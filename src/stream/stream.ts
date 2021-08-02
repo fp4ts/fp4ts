@@ -39,12 +39,12 @@ export const fromIO = <A>(t: IO.IO<A>): Stream<A> =>
 export const repeat = <A>(fa: Stream<A>): Stream<A> => concat_(fa, () => fa);
 
 export const suspend = <A>(thunk: () => Stream<A>): Stream<A> =>
-  P.suspend(IO.defer(thunk));
+  P.defer(IO.delay(thunk));
 
 export const cons = <A>(as: A[], fa: Stream<A>): Stream<A> =>
   P.cons(
     as,
-    IO.defer(() => fa),
+    IO.delay(() => fa),
   );
 
 export const unfold = <S, A>(

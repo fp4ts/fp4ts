@@ -2,7 +2,7 @@ import { pipe } from '../fp/core';
 import * as IO from '../effect/io';
 
 type Terminal<R> = Succeed<R> | Fail;
-export type Pull<O, R> = Cons<O, R> | Suspend<O, R> | Terminal<R>;
+export type Pull<O, R> = Cons<O, R> | Defer<O, R> | Terminal<R>;
 
 interface Cons<O, R> {
   readonly tag: 'output';
@@ -10,8 +10,8 @@ interface Cons<O, R> {
   readonly tail: IO.IO<Pull<O, R>>;
 }
 
-interface Suspend<O, R> {
-  readonly tag: 'suspend';
+interface Defer<O, R> {
+  readonly tag: 'defer';
   readonly thunk: IO.IO<Pull<O, R>>;
 }
 
@@ -46,16 +46,15 @@ export const output: <O>(as: O[]) => Pull<O, void> = xs =>
 export const cons: <O, R>(as: O[], tail: IO.IO<Pull<O, R>>) => Pull<O, R> = (
   xs,
   tail,
-) => (xs.length === 0 ? suspend(tail) : { tag: 'output', head: xs, tail });
+) => (xs.length === 0 ? defer(tail) : { tag: 'output', head: xs, tail });
 
-export const suspend: <O, R>(thunk: IO.IO<Pull<O, R>>) => Pull<O, R> =
-  thunk => ({
-    tag: 'suspend',
-    thunk,
-  });
+export const defer: <O, R>(thunk: IO.IO<Pull<O, R>>) => Pull<O, R> = thunk => ({
+  tag: 'defer',
+  thunk,
+});
 
 export const fromIO: <R>(task: IO.IO<R>) => Pull<never, R> = task =>
-  suspend(
+  defer(
     pipe(
       task,
       IO.map(pure),
@@ -106,8 +105,8 @@ export const flatMap_ = <O, R, R2>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, flatMap(f)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, flatMap(f)));
 
     case 'output':
       return cons(fa.head, IO.map_(fa.tail, flatMap(f)));
@@ -129,8 +128,8 @@ export const handleErrorWith_ = <O, R>(
         return throwError(e as Error);
       }
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, handleErrorWith(h)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, handleErrorWith(h)));
 
     case 'output':
       return cons(fa.head, IO.map_(fa.tail, handleErrorWith(h)));
@@ -139,10 +138,10 @@ export const handleErrorWith_ = <O, R>(
 
 export const delayBy_ = <O, R>(fa: Pull<O, R>, ms: number): Pull<O, R> =>
   pipe(
-    IO.defer(() => done),
+    IO.delay(() => done),
     IO.delayBy(ms),
     IO.map(() => fa),
-    suspend,
+    defer,
   );
 
 // -- Output functions
@@ -191,11 +190,11 @@ export const uncons = <O>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, uncons));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, uncons));
 
     case 'output':
-      return pure([fa.head, suspend(fa.tail)]);
+      return pure([fa.head, defer(fa.tail)]);
   }
 };
 
@@ -257,15 +256,15 @@ export const filterOutput_ = <O>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, filterOutput(p)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, filterOutput(p)));
 
     case 'output':
       try {
         return cons(fa.head.filter(p), IO.map_(fa.tail, filterOutput(p)));
       } catch (e) {
         return append_(throwError(e as Error), () =>
-          filterOutput_(suspend(fa.tail), p),
+          filterOutput_(defer(fa.tail), p),
         );
       }
   }
@@ -280,15 +279,15 @@ export const mapOutput_ = <O, O2>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, mapOutput(f)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, mapOutput(f)));
 
     case 'output':
       try {
         return cons(fa.head.map(f), IO.map_(fa.tail, mapOutput(f)));
       } catch (e) {
         return append_(throwError(e as Error), () =>
-          mapOutput_(suspend(fa.tail), f),
+          mapOutput_(defer(fa.tail), f),
         );
       }
   }
@@ -303,8 +302,8 @@ export const flatMapOutput_ = <O, O2>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, flatMapOutput(f)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, flatMapOutput(f)));
 
     case 'output': {
       const go = (idx: number): Pull<O2, void> => {
@@ -318,7 +317,7 @@ export const flatMapOutput_ = <O, O2>(
             return throwError(e);
           }
         } else {
-          return suspend(IO.map_(fa.tail, flatMapOutput(f)));
+          return defer(IO.map_(fa.tail, flatMapOutput(f)));
         }
       };
       return go(0);
@@ -337,13 +336,13 @@ export const unconsN_ = <O>(
     case 'fail':
       return fa;
 
-    case 'suspend':
-      return suspend(IO.map_(fa.thunk, unconsN(n, allowFewer)));
+    case 'defer':
+      return defer(IO.map_(fa.thunk, unconsN(n, allowFewer)));
 
     case 'output':
       if (fa.head.length < n)
         return pipe(
-          suspend(IO.map_(fa.tail, unconsN(n - fa.head.length, allowFewer))),
+          defer(IO.map_(fa.tail, unconsN(n - fa.head.length, allowFewer))),
           flatMap(x => {
             if (!x && allowFewer) return pure([fa.head, done]);
             if (!x) return pure(undefined);
@@ -354,7 +353,7 @@ export const unconsN_ = <O>(
       if (fa.head.length > n)
         return pure([fa.head.slice(0, n), cons(fa.head.slice(n), fa.tail)]);
 
-      return pure([fa.head, suspend(fa.tail)]);
+      return pure([fa.head, defer(fa.tail)]);
   }
 };
 
@@ -370,12 +369,12 @@ export const compile_ = <O, B>(
     case 'fail':
       return IO.throwError(fa.error);
 
-    case 'suspend':
+    case 'defer':
       return IO.flatMap_(fa.thunk, compile(init, combine));
 
     case 'output':
       return pipe(
-        IO.defer(() => fa.head.reduce(combine, init)),
+        IO.delay(() => fa.head.reduce(combine, init)),
         IO.flatMap(z => pipe(fa.tail, IO.flatMap(compile(z, combine)))),
       );
   }

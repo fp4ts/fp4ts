@@ -21,14 +21,14 @@ import * as IOR from '../effect/io-runtime';
 // const doSomeWork = (n: number) => {
 //   let x = n;
 //   return pipe(
-//     IO.suspendPromise(async () => {
+//     IO.deferPromise(async () => {
 //       console.log('RUNNING', n);
 //       x -= 1;
 //       if (x > 0) {
 //         console.log(`#${n} Failing ${n - x}`);
 //         throw new Error(`failure #${n} on ${n - x}`);
 //       }
-//       return Promise.resolve(n);
+//       return n;
 //     }),
 //     S.retry(300, ms => ms * 2, 10),
 //     S.map(n => console.log('succeeded', n)),
@@ -59,24 +59,58 @@ import * as IOR from '../effect/io-runtime';
 //   IO.unsafeRunAsync,
 // ).then(console.log);
 
-const timeoutSequence = (name: string) =>
-  pipe(
-    [1, 2, 3, 4, 5].map(n =>
-      pipe(
-        IO.sleep(n * 100 + (Math.random() * 1000 + 200)),
-        IO.map(() => console.log(`finished ${name} ${n}`)),
-      ),
-    ),
-    IO.sequence,
-    IO.map(() => IO.unit),
-    IO.fork,
-  );
+// const timeoutSequence = (name: string) =>
+//   pipe(
+//     [1, 2, 3, 4, 5].map(n =>
+//       pipe(
+//         IO.sleep(n * 100 + (Math.random() * 1000 + 200)),
+//         IO.map(() => console.log(`finished ${name} ${n}`)),
+//       ),
+//     ),
+//     IO.sequence,
+//     IO.map(() => IO.unit),
+//     IO.fork,
+//   );
+
+// pipe(
+//   IO.Do,
+//   IO.bindTo('fa', () => timeoutSequence('fa')),
+//   IO.bindTo('fb', () => timeoutSequence('fb')),
+//   IO.bind(({ fa }) => fa.join),
+//   IO.bind(({ fb }) => fb.join),
+//   IOR.unsafeRunToPromise,
+// ).catch(console.log);
+
+// pipe(
+//   IO.Do,
+//   IO.bindTo('result', () => {
+//     const onCancel = (name: string) =>
+//       IO.onCancel(IO.delay(() => console.log(`Canceled ${name}`)));
+
+//     const perform = (name: string, ms: number) =>
+//       pipe(IO.pure(name), IO.delayBy(ms), onCancel(name));
+
+//     return IO.race_(perform('A', 100), perform('B', 500));
+//   }),
+//   IOR.unsafeRunToPromise,
+// )
+//   .then(console.log)
+//   .catch(console.log);
 
 pipe(
-  IO.Do,
-  IO.bindTo('fa', () => timeoutSequence('fa')),
-  IO.bindTo('fb', () => timeoutSequence('fb')),
-  IO.bind(({ fa }) => fa.join()),
-  IO.bind(({ fb }) => fb.join()),
+  [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
+  IO.parTraverseOutcome(([n, idx]) =>
+    pipe(
+      IO.delay(() => {
+        if (idx < 1) throw new Error();
+        console.log(`${idx} completed in ${n} seconds`);
+      }),
+      IO.delayBy(n * 1_000),
+      IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
+    ),
+  ),
+  // IO.timeout(200),
   IOR.unsafeRunToPromise,
-).catch(console.log);
+)
+  .then(console.log)
+  .catch(console.log);
