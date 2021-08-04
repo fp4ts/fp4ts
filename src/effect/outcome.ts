@@ -34,6 +34,7 @@ const view = <A>(oc: Outcome<A>): OutcomeView<A> => oc as any;
 // -- Constructors
 
 export const success: <A>(result: A) => Outcome<A> = r => new Success(r);
+export const successUnit: Outcome<void> = success(undefined);
 
 export const failure: (error: Error) => Outcome<never> = e => new Failure(e);
 
