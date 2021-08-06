@@ -8,114 +8,25 @@ import * as D from './deferred';
 import * as Sem from './semaphore';
 import { Poll } from './poll';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export abstract class IO<A> {
-  // @ts-ignore
-  private readonly __void: void;
-}
+import {
+  IO,
+  Pure,
+  Fail,
+  Delay,
+  Map,
+  FlatMap,
+  HandleErrorWith,
+  Async,
+  RacePair,
+  Uncancelable,
+  OnCancel,
+  Suspend,
+  Fork,
+} from './algebra';
 
-export const IOEndFiber = new (class IOEnd extends IO<never> {
-  public readonly tag = 'IOEndFiber';
-})();
-export type IOEndFiber = typeof IOEndFiber;
+// Public exports
 
-export const Suspend = new (class Suspend extends IO<never> {
-  public readonly tag = 'suspend';
-})();
-export type Suspend = typeof Suspend;
-
-// export const Canceled = new (class Canceled extends IO<never> {
-//   public readonly tag = 'canceled';
-// })();
-// export type Canceled = typeof Canceled;
-
-class Pure<A> extends IO<A> {
-  public readonly tag = 'pure';
-  public constructor(public readonly value: A) {
-    super();
-  }
-}
-
-class Fail extends IO<never> {
-  public readonly tag = 'fail';
-  public constructor(readonly error: Error) {
-    super();
-  }
-}
-
-class Delay<A> extends IO<A> {
-  public readonly tag = 'delay';
-  public constructor(public readonly thunk: () => A) {
-    super();
-  }
-}
-
-class Bind<A, B> extends IO<B> {
-  public readonly tag = 'bind';
-  public constructor(
-    public readonly ioa: IO<A>,
-    public readonly cont: (ea: E.Either<Error, A>) => IO<B>,
-  ) {
-    super();
-  }
-}
-
-type Cont<K, R> = (cb: (ea: E.Either<Error, K>) => void) => IO<R>;
-class Async<K, R> extends IO<R> {
-  public readonly tag = 'async';
-  public constructor(public readonly body: Cont<K, R>) {
-    super();
-  }
-}
-
-class Fork<A> extends IO<F.Fiber<A>> {
-  public readonly tag = 'fork';
-  public constructor(public readonly ioa: IO<A>) {
-    super();
-  }
-}
-
-class OnCancel<A> extends IO<A> {
-  public readonly tag = 'onCancel';
-  public constructor(
-    public readonly ioa: IO<A>,
-    public readonly fin: IO<void>,
-  ) {
-    super();
-  }
-}
-
-class Uncancelable<A> extends IO<A> {
-  public readonly tag = 'uncancelable';
-  public constructor(public readonly body: (p: Poll) => IO<A>) {
-    super();
-  }
-}
-
-class RacePair<A, B> extends IO<
-  E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<B>, O.Outcome<B>]>
-> {
-  public readonly tag = 'racePair';
-  public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {
-    super();
-  }
-}
-
-export type IOView<A> =
-  | IOEndFiber
-  | Pure<A>
-  | Suspend
-  // | Canceled
-  | Delay<A>
-  | Bind<any, A>
-  | Async<any, A>
-  | Fail
-  | Fork<A>
-  | OnCancel<A>
-  | Uncancelable<A>
-  | RacePair<unknown, unknown>;
-
-export const view = <A>(_: IO<A>): IOView<A> => _ as any;
+export { IO };
 
 // -- Constructors
 
@@ -146,7 +57,7 @@ export const async = <A>(
     uncancelable<A>(p =>
       pipe(
         k(resume),
-        flatMap(fin => p(fin ? onCancel_(Suspend, fin) : Suspend)),
+        flatMap(fin => (fin ? onCancel_(p(Suspend), fin) : p(Suspend))),
       ),
     ),
   );
@@ -322,7 +233,7 @@ export const finalize_ = <A>(
       poll(ioa),
       onCancel(finalizer(O.canceled)),
       handleErrorWith(flow(O.failure, finalizer)),
-      flatTap(finalizer),
+      flatTap(a => finalizer(O.success(a))),
     ),
   );
 
@@ -336,7 +247,7 @@ export const bracketOutcome_ = <A, B>(
   ioa: IO<A>,
   use: (a: A) => IO<B>,
   release: (a: A, oc: O.Outcome<B>) => IO<void>,
-): IO<B> => bracketFull_(poll => poll(ioa), use, release);
+): IO<B> => bracketFull_(() => ioa, use, release);
 
 export const bracketFull_ = <A, B>(
   acquire: (poll: Poll) => IO<A>,
@@ -350,7 +261,7 @@ export const bracketFull_ = <A, B>(
         defer(() =>
           pipe(
             poll(use(a)),
-            finalize(oc => poll(release(a, oc))),
+            finalize(oc => release(a, oc)),
           ),
         ),
       ),
@@ -358,7 +269,7 @@ export const bracketFull_ = <A, B>(
   );
 
 export const map_: <A, B>(ioa: IO<A>, f: (a: A) => B) => IO<B> = (ioa, f) =>
-  flatMap_(ioa, x => pure(f(x)));
+  new Map(ioa, f);
 
 export const tap_: <A>(ioa: IO<A>, f: (a: A) => unknown) => IO<A> = (ioa, f) =>
   map_(ioa, x => {
@@ -369,7 +280,7 @@ export const tap_: <A>(ioa: IO<A>, f: (a: A) => unknown) => IO<A> = (ioa, f) =>
 export const flatMap_: <A, B>(ioa: IO<A>, f: (a: A) => IO<B>) => IO<B> = (
   ioa,
   f,
-) => new Bind(ioa, E.fold(throwError, f));
+) => new FlatMap(ioa, f);
 
 export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   ioa,
@@ -379,7 +290,7 @@ export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
 export const handleErrorWith_: <A, B>(
   ioa: IO<A>,
   f: (e: Error) => IO<B>,
-) => IO<A | B> = (ioa, f) => new Bind(ioa, E.fold(f, pure));
+) => IO<A | B> = (ioa, f) => new HandleErrorWith(ioa, f);
 
 export const traverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
   defer(() =>

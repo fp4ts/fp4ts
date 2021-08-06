@@ -6,7 +6,7 @@ import * as IOR from '../effect/io-runtime';
 // pipe(
 //   S.range(1, 1_000_000),
 //   // S.tap(console.log),
-//   S.flatMap(x => S.of(x, x)),
+//   S.flatMap(x => S.of(x)),
 //   S.map(x => x * 2),
 //   // S.zipWithIndex,
 //   // S.tap(console.log),
@@ -91,7 +91,7 @@ import * as IOR from '../effect/io-runtime';
 //     const perform = (name: string, ms: number) =>
 //       pipe(IO.pure(name), IO.delayBy(ms), onCancel(name));
 
-//     return IO.race_(perform('A', 1000), perform('B', 500));
+//     return IO.race_(perform('A', 500), perform('B', 1000));
 //   }),
 //   IOR.unsafeRunToPromise,
 // )
@@ -109,19 +109,39 @@ pipe(
       IO.delayBy(n * 1_000),
       // IO.flatTap(() => IO.delay(() => console.log('EXECUTING', idx))),
       IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
-      IO.timeout(2000),
     ),
   ),
+  IO.timeout(2000),
   IOR.unsafeRunToPromise,
 )
   .then(console.log)
   .catch(console.log);
 
 // pipe(
-//   IO.delay(() => console.log('test')),
-//   IO.delayBy(1_000),
-//   IO.onCancel(IO.delay(() => console.log('being canceled'))),
+//   IO.delay(() => 2),
+//   IO.map(x => x * 2),
+//   IO.flatMap(x => IO.delay(() => console.log('result', x))),
+//   // IO.flatTap(() => IO.sleep(1_000)),
+//   // IO.onCancel(IO.delay(() => console.log('being canceled'))),
 //   IO.timeout(2000),
+//   IOR.unsafeRunToPromise,
+// )
+//   .then(e => console.log('result', e))
+//   .catch(console.log);
+
+// pipe(
+//   [1, 2, 3, 4, 5],
+//   IO.parTraverseOutcomeN(
+//     n =>
+//       pipe(
+//         IO.delay(() => console.log('EXECUTING', n)),
+//         IO.delayBy(1_000),
+//         IO.flatMap(() => IO.delay(() => console.log('COMPLETED', n))),
+//         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
+//       ),
+//     2,
+//   ),
+//   IO.timeout(1_500),
 //   IOR.unsafeRunToPromise,
 // )
 //   .then(console.log)
