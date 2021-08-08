@@ -9,17 +9,13 @@ import { Poll } from './poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
+  public readonly stack = new Error();
 }
 
-export const Suspend = new (class Suspend extends IO<never> {
-  public readonly tag = 'suspend';
+export const Canceled = new (class Canceled extends IO<void> {
+  public readonly tag = 'canceled';
 })();
-export type Suspend = typeof Suspend;
-
-// export const Canceled = new (class Canceled extends IO<never> {
-//   public readonly tag = 'canceled';
-// })();
-// export type Canceled = typeof Canceled;
+export type Canceled = typeof Canceled;
 
 export class Pure<A> extends IO<A> {
   public readonly tag = 'pure';
@@ -120,6 +116,11 @@ export class UnmaskRunLoop<A> extends IO<A> {
   }
 }
 
+export const Suspend = new (class Suspend extends IO<never> {
+  public readonly tag = 'suspend';
+})();
+export type Suspend = typeof Suspend;
+
 export const IOEndFiber = new (class IOEnd extends IO<never> {
   public readonly tag = 'IOEndFiber';
 })();
@@ -128,7 +129,7 @@ export type IOEndFiber = typeof IOEndFiber;
 export type IOView<A> =
   | Pure<A>
   | Fail
-  | Suspend
+  | Canceled
   | Delay<A>
   | Map<any, A>
   | FlatMap<any, A>
@@ -139,6 +140,7 @@ export type IOView<A> =
   | Uncancelable<A>
   | RacePair<unknown, unknown>
   | UnmaskRunLoop<A>
+  | Suspend
   | IOEndFiber;
 
 export const view = <A>(_: IO<A>): IOView<A> => _ as any;

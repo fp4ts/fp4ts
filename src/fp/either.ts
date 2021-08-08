@@ -30,6 +30,11 @@ export const fold: <E, A, B1, B2 = B1>(
 ) => (fa: Either<E, A>) => B1 | B2 = (onLeft, onRight) => fa =>
   fold_(fa, onLeft, onRight);
 
+export const swapped: <A, B>(ea: Either<A, B>) => Either<B, A> = fold(
+  right,
+  left,
+);
+
 export const map: <A, B>(
   f: (a: A) => B,
 ) => <E>(fa: Either<E, A>) => Either<E, B> = f => fa => map_(fa, f);

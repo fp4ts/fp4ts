@@ -10,7 +10,9 @@ export class Ref<A> {
   public readonly get: () => IO.IO<A> = () => IO.delay(() => this.value);
 
   public readonly set: (a: A) => IO.IO<void> = x =>
-    IO.delay(() => (this.value = x));
+    IO.delay(() => {
+      this.value = x;
+    });
 
   public readonly update: (f: (a: A) => A) => IO.IO<void> = f =>
     IO.delay(() => {

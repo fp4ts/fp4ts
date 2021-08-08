@@ -4,7 +4,6 @@ import * as E from '../fp/either';
 import { flow, id, pipe } from '../fp/core';
 
 type ResumeReader<A> = (a: A) => void;
-type ReaderMap<A> = { readonly [id: number]: ResumeReader<A> };
 
 class State<A> {
   public readonly view: StateView<A> = this as any;

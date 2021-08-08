@@ -13,6 +13,7 @@ type Stack = Frame[];
 export class IOFiber<A> implements F.Fiber<A> {
   private outcome?: O.Outcome<A>;
   private canceled: boolean = false;
+  private finalizing: boolean = false;
 
   private masks: number = 0;
   private callbacks: ((oc: O.Outcome<A>) => void)[] = [];
@@ -24,19 +25,38 @@ export class IOFiber<A> implements F.Fiber<A> {
   private static ID: number = 0;
   private readonly ID: number = ++IOFiber.ID;
 
-  public constructor(private startIO: IO.IO<A>) {}
+  private startIO: IO.IO<unknown>;
+
+  public constructor(startIO: IO.IO<A>) {
+    this.startIO = startIO;
+  }
 
   public join: IO.IO<O.Outcome<A>> = IO.async(cb =>
-    IO.delay(() => this.onComplete(flow(E.right, cb))),
+    IO.delay(() => {
+      const listener: (oc: O.Outcome<A>) => void = flow(E.right, cb);
+      const cancel = IO.delay(() => {
+        this.callbacks = this.callbacks.filter(l => l !== listener);
+      });
+
+      this.onComplete(listener);
+      return cancel;
+    }),
   );
 
   public cancel: IO.IO<void> = IO.uncancelable(() =>
     IO.defer(() => {
       this.canceled = true;
 
-      return !this.masks && !this.outcome
-        ? IO.async<unknown>(cb => IO.delay(() => this.cancelAsync(cb)))
-        : IO.map_(this.join, () => undefined);
+      if (!this.masks) {
+        return IO.async<void>(cb =>
+          IO.delay(() => {
+            this.cancelAsync(cb);
+            return undefined;
+          }),
+        );
+      } else {
+        return IO.map_(this.join, () => undefined);
+      }
     }),
   );
 
@@ -44,10 +64,16 @@ export class IOFiber<A> implements F.Fiber<A> {
     this.schedule(this, cb);
   }
 
-  private runLoop(_cur0: IO.IO<A>): void {
-    let _cur = _cur0;
-
+  private runLoop(_cur: IO.IO<unknown>): void {
     while (true) {
+      if (_cur === IOA.IOEndFiber) {
+        return;
+      }
+
+      if (this.shouldFinalize()) {
+        return this.cancelAsync();
+      }
+
       const cur = IOA.view(_cur);
       switch (cur.tag) {
         case 'IOEndFiber':
@@ -103,14 +129,24 @@ export class IOFiber<A> implements F.Fiber<A> {
           _cur = cur.ioa;
           continue;
 
+        case 'canceled':
+          this.startIO = _cur;
+          this.canceled = true;
+          if (!this.masks) {
+            return this.cancelAsync();
+          } else {
+            _cur = IO.pure(undefined);
+            continue;
+          }
+
         case 'async': {
-          const prevCanceled = this.canceled;
+          const prevFinalizing = this.finalizing;
 
           const cb: (ea: E.Either<Error, unknown>) => void = ea => {
-            setImmediate(() => {
-              // If we have not been canceled while suspended, or the task is
-              // uncancelable, continue with the execution
-              if (prevCanceled === this.canceled || this.masks) {
+            // If we have not been canceled while suspended, or the task is
+            // uncancelable, continue with the execution
+            if (prevFinalizing === this.finalizing) {
+              if (!this.shouldFinalize()) {
                 const next = E.fold_(ea, IO.throwError, IO.pure);
                 this.startIO = next;
                 this.schedule(this);
@@ -119,7 +155,10 @@ export class IOFiber<A> implements F.Fiber<A> {
                 // asynchronously
                 this.cancelAsync();
               }
-            });
+            } else {
+              // console.log('CANCELED BUT GOT HERE', this.ID, ea);
+              // setImmediate(() => cb(ea));
+            }
           };
 
           _cur = cur.body(cb);
@@ -153,8 +192,8 @@ export class IOFiber<A> implements F.Fiber<A> {
               [O.Outcome<unknown>, IOFiber<unknown>],
               [IOFiber<unknown>, O.Outcome<unknown>]
             >
-          >(cb =>
-            IO.delay(() => {
+          >(cb => {
+            const r = IO.delay(() => {
               const fiberA = new IOFiber(ioa);
               const fiberB = new IOFiber(iob);
 
@@ -163,15 +202,20 @@ export class IOFiber<A> implements F.Fiber<A> {
 
               const cancel = pipe(
                 IO.Do,
-                IO.bindTo('cancelA', () => pipe(fiberA, F.cancel, IO.fork)),
-                IO.bindTo('cancelB', () => pipe(fiberA, F.cancel, IO.fork)),
+                IO.bindTo('cancelA', () => pipe(fiberA.cancel, IO.fork)),
+                IO.bindTo('cancelB', () => pipe(fiberB.cancel, IO.fork)),
                 IO.bind(({ cancelA }) => cancelA.join),
                 IO.bind(({ cancelB }) => cancelB.join),
+                IO.map(() => undefined),
               );
 
-              return cancel;
-            }),
-          );
+              return IO.flatMap_(
+                IO.delay(() => {}),
+                () => cancel,
+              );
+            });
+            return r;
+          });
 
           _cur = next;
           continue;
@@ -181,6 +225,8 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private cancelAsync(cb?: (ea: E.Either<Error, void>) => void): void {
+    this.finalizing = true;
+
     if (this.finalizers.length) {
       this.conts = [IOA.Continuation.CancelationLoopK];
       this.stack = cb ? [cb as (u: unknown) => unknown] : [];
@@ -196,15 +242,23 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private complete(oc: O.Outcome<A>): void {
+    // console.log('COMPLETING', this.ID, oc); // , new Error().stack);
     this.join = IO.pure(oc);
     this.cancel = IO.unit;
     this.outcome = oc;
-    this.callbacks.forEach(cb => cb(oc));
 
-    this.callbacks = [];
+    try {
+      this.callbacks.forEach(cb => cb(oc));
+    } catch {
+      console.log('SWALLOWING EXCEPTION');
+    }
+
     this.stack = [];
     this.conts = [];
+    this.callbacks = [];
     this.finalizers = [];
+    this.masks = 0;
+    this.startIO = IOA.IOEndFiber;
   }
 
   private onComplete(cb: (oc: O.Outcome<A>) => void): void {
@@ -216,7 +270,11 @@ export class IOFiber<A> implements F.Fiber<A> {
     setImmediate(() => f.runLoop(f.startIO));
   }
 
-  // Continuations
+  private shouldFinalize(): boolean {
+    return this.canceled && !this.masks;
+  }
+
+  // -- Continuations
 
   private succeeded(r: unknown): IO.IO<unknown> {
     while (true) {

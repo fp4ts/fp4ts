@@ -63,13 +63,13 @@ export const retry: (
   nextDelay: (ms: number) => number,
   maxAttempts: number,
   retriable?: (e: Error) => boolean, //= () => true,
-) => <A>(t: IO.IO<A>) => Stream<A> =
+) => <A>(ioa: IO.IO<A>) => Stream<A> =
   (delay, nextDelay, maxAttempts, retriable = () => true) =>
-  t =>
-    retry_(t, delay, nextDelay, maxAttempts, retriable);
+  ioa =>
+    retry_(ioa, delay, nextDelay, maxAttempts, retriable);
 
 export const retry_ = <A>(
-  t: IO.IO<A>,
+  ioa: IO.IO<A>,
   delay: number,
   nextDelay: (ms: number) => number,
   maxAttempts: number,
@@ -80,12 +80,15 @@ export const retry_ = <A>(
   const delays: Stream<number> = unfold(delay, d => [d, nextDelay(d)]);
 
   return pipe(
-    fromIO(t),
+    fromIO(ioa),
     attempts(delays),
     take(maxAttempts),
     takeThrough(E.fold(retriable, () => false)),
     last,
-    map(x => x!),
+    map(x => {
+      console.log('LAST', x);
+      return x!;
+    }),
     rethrow,
   );
 };
