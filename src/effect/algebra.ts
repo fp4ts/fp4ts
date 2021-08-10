@@ -9,7 +9,6 @@ import { Poll } from './poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
-  public readonly stack = new Error();
 }
 
 export const Canceled = new (class Canceled extends IO<void> {

@@ -85,10 +85,7 @@ export const retry_ = <A>(
     take(maxAttempts),
     takeThrough(E.fold(retriable, () => false)),
     last,
-    map(x => {
-      console.log('LAST', x);
-      return x!;
-    }),
+    map(x => x!),
     rethrow,
   );
 };

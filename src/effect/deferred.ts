@@ -63,18 +63,16 @@ export class Deferred<A> {
       reader: ResumeReader<A>,
     ): IO.IO<IO.IO<void> | undefined> =>
       IO.defer(() =>
-        pipe(
-          this.state.modify(
-            foldState<A, [State<A>, IO.IO<void> | undefined]>(
-              ({ value }) => {
-                reader(value);
-                return [new SetState(value), undefined];
-              },
-              ({ readers }) => {
-                const newState = new UnsetState([...readers, reader]);
-                return [newState, deleteReader(reader)];
-              },
-            ),
+        this.state.modify(
+          foldState<A, [State<A>, IO.IO<void> | undefined]>(
+            ({ value }) => {
+              reader(value);
+              return [new SetState(value), undefined];
+            },
+            ({ readers }) => {
+              const newState = new UnsetState([...readers, reader]);
+              return [newState, deleteReader(reader)];
+            },
           ),
         ),
       );
@@ -98,7 +96,7 @@ export class Deferred<A> {
   public readonly complete = (result: A): IO.IO<void> => {
     const notifyReaders = (readers: ResumeReader<A>[]): IO.IO<void> => {
       return pipe(
-        readers.map(f => IO.delay(() => f(result))),
+        readers.map(f => IO.delay(() => setImmediate(() => f(result)))),
         IO.sequence,
         IO.flatMap(() => IO.unit),
       );
@@ -106,14 +104,13 @@ export class Deferred<A> {
 
     return IO.defer(() =>
       pipe(
-        this.state.get(),
-        IO.flatMap(
+        this.state.modify(
           foldState(
-            () => IO.unit,
-            ({ readers }) => notifyReaders(readers),
+            s => [s, IO.unit],
+            ({ readers }) => [new SetState(result), notifyReaders(readers)],
           ),
         ),
-        IO.flatMap(() => this.state.set(new SetState(result))),
+        IO.flatten,
       ),
     );
   };

@@ -48,13 +48,9 @@ import * as IOR from '../effect/io-runtime';
 //     S.fromIO,
 //   );
 
-// pipe(
-//   S.range(5),
-//   S.tap(console.log),
-//   S.flatMap(doSomeWork),
-//   S.drain,
-//   IOR.unsafeRunToPromise,
-// ).catch(console.log);
+// pipe(S.range(5), S.flatMap(doSomeWork), S.drain, IOR.unsafeRunToPromise).catch(
+//   console.log,
+// );
 
 // pipe(
 //   // S.range(100)
@@ -141,46 +137,47 @@ import * as IOR from '../effect/io-runtime';
 //   .then(e => console.log('result', e))
 //   .catch(console.log);
 
-// pipe(
-//   [1, 2, 3, 4, 5],
-//   IO.parTraverseN(
-//     n =>
-//       pipe(
-//         IO.delay(() => console.log('EXECUTING', n)),
-//         IO.delayBy(1_000),
-//         IO.flatMap(() => IO.delay(() => console.log('COMPLETED', n))),
-//         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
-//       ),
-//     2,
-//   ),
-//   IO.timeout(1_500),
-//   IOR.unsafeRunToPromise,
-// )
-//   .then(console.log)
-//   .catch(console.log);
-
-const doSomeWork = (n: number) =>
-  pipe(
-    IO.delay(() => console.log('STARTING', n)),
-    IO.flatMap(() =>
+pipe(
+  [1, 2, 3, 4, 5],
+  IO.parTraverseN(
+    n =>
       pipe(
-        // IO.pure(undefined),
-        IO.defer(() =>
-          n % 2 ? IO.throwError(new Error()) : IO.pure(undefined),
+        IO.delay(() => console.log('EXECUTING', n)),
+        IO.flatMap(() =>
+          pipe(
+            IO.sleep(1_000 * (5 - n)),
+            IO.flatMap(() => IO.delay(() => console.log('COMPLETED', n))),
+          ),
         ),
-        IO.delayBy((5 - n) * 1_000),
-        IO.flatMap(() => IO.delay(() => console.log('FINISHED', n))),
         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
       ),
-    ),
-  );
+    2,
+  ),
+  IO.timeout(1_500),
+  IOR.unsafeRunMain,
+);
 
-pipe([1, 2, 3, 4, 5].map(doSomeWork), IO.parSequence, IOR.unsafeRunToPromise)
-  .then(() => console.log('DONE'))
-  .catch(e => console.log('Errorred:', e));
+// const doSomeWork = (n: number) =>
+//   pipe(
+//     IO.delay(() => console.log('STARTING', n)),
+//     IO.flatMap(() =>
+//       pipe(
+//         // IO.pure(undefined),
+//         IO.defer(() =>
+//           n % 2 ? IO.throwError(new Error()) : IO.pure(undefined),
+//         ),
+//         IO.delayBy((5 - n) * 1_000),
+//         IO.flatMap(() => IO.delay(() => console.log('FINISHED', n))),
+//         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
+//       ),
+//     ),
+//   );
+
+// pipe([1, 2, 3, 4, 5].map(doSomeWork), IO.parSequence, IOR.unsafeRunToPromise)
+//   .then(() => console.log('DONE'))
+//   .catch(e => console.log('Errorred:', e));
 
 // pipe(
-//   // IO.both_(
 //   IO.both_(
 //     pipe(
 //       IO.sleep(5000),
@@ -192,8 +189,6 @@ pipe([1, 2, 3, 4, 5].map(doSomeWork), IO.parSequence, IOR.unsafeRunToPromise)
 //     ),
 //   ),
 //   IO.timeout(200),
-//   // pipe(IO.throwError(new Error()), IO.delayBy(250)),
-//   // ),
 //   IOR.unsafeRunToPromise,
 // )
 //   .then(console.log)

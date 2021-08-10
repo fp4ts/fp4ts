@@ -27,27 +27,25 @@ export class Semaphore {
   private constructor(private readonly state: Ref<State>) {}
 
   public readonly acquire = (): IO.IO<void> =>
-    IO.uncancelable(poll =>
-      pipe(
-        Deferred.of<void>(),
-        IO.flatMap(wait => {
-          const cancel = this.state.update(state =>
-            state.copy({ queue: state.queue.filter(x => x !== wait) }),
-          );
+    pipe(
+      Deferred.of<void>(),
+      IO.flatMap(wait => {
+        const cancel = this.state.update(state =>
+          state.copy({ queue: state.queue.filter(x => x !== wait) }),
+        );
 
-          return pipe(
-            this.state.modify(state =>
-              state.permits === 0
-                ? [
-                    state.copy({ queue: [...state.queue, wait] }),
-                    IO.onCancel_(poll(wait.get()), cancel),
-                  ]
-                : [state.copy({ permits: state.permits - 1 }), IO.unit],
-            ),
-            IO.flatten,
-          );
-        }),
-      ),
+        return pipe(
+          this.state.modify(state =>
+            state.permits === 0
+              ? [
+                  state.copy({ queue: [...state.queue, wait] }),
+                  IO.onCancel_(wait.get(), cancel),
+                ]
+              : [state.copy({ permits: state.permits - 1 }), IO.unit],
+          ),
+          IO.flatten,
+        );
+      }),
     );
 
   public readonly release = (): IO.IO<void> =>

@@ -46,7 +46,6 @@ export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
       const onSuccess: (x: A) => void = flow(E.right, resume);
       const onFailure: (e: Error) => void = flow(E.left, resume);
       thunk().then(onSuccess, onFailure);
-      return undefined;
     }),
   );
 
@@ -186,7 +185,7 @@ export const parSequenceOutcome = <A>(ioas: IO<A>[]): IO<O.Outcome<A>[]> =>
   parTraverseOutcome_(ioas, id);
 
 export const parTraverseOutcomeN: <A, B>(
-  f: (a: A) => IO<O.Outcome<B>>,
+  f: (a: A) => IO<B>,
   maxConcurrent: number,
 ) => (as: A[]) => IO<O.Outcome<B>[]> = (f, maxConcurrent) => as =>
   parTraverseOutcomeN_(as, f, maxConcurrent);
@@ -216,9 +215,8 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   ): IO<E.Either<X, Y>> =>
     O.fold_<X, IO<E.Either<X, Y>>>(
       oc,
-      () => {
-        // console.log('CONTINUING WITH CANCELED OUTCOME');
-        return pipe(
+      () =>
+        pipe(
           poll(f.join),
           onCancel(f.cancel),
           flatMap(
@@ -228,16 +226,9 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
               y => pure(E.right(y)),
             ),
           ),
-        );
-      },
-      ex => {
-        // console.log('CONTINUING RACE WITH CANCELLATION ON ERROR');
-        return flatMap_(f.cancel, () => throwError(ex));
-      },
-      x => {
-        // console.log('CONTINUING WITH SUCCESS', x);
-        return map_(f.cancel, () => E.left(x));
-      },
+        ),
+      ex => flatMap_(f.cancel, () => throwError(ex)),
+      x => map_(f.cancel, () => E.left(x)),
     );
 
   return uncancelable(poll =>
@@ -295,13 +286,11 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
       flatMap(
         E.fold(
           ([oc, f]: [O.Outcome<A>, F.Fiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [F.Fiber<A>, O.Outcome<B>]) => {
-            // console.log('LEFT WON', f, oc);
-            return pipe(
+          ([f, oc]: [F.Fiber<A>, O.Outcome<B>]) =>
+            pipe(
               cont(poll, oc, f),
               map(([b, a]) => [a, b]),
-            );
-          },
+            ),
         ),
       ),
     ),
@@ -394,7 +383,7 @@ export const traverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
 
 export const parTraverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
   defer(() =>
-    as.map(f).reduce<IO<B[]>>(
+    as.map(f).reduceRight<IO<B[]>>(
       (iobs, b) =>
         pipe(
           both_(iobs, b),
@@ -475,34 +464,3 @@ export const bind_ = <S extends {}, B>(
   ios: IO<S>,
   iob: (s: S) => IO<B>,
 ): IO<S> => flatMap_(ios, s => map_(iob(s), () => s));
-
-// -- Syntax
-
-declare module './algebra' {
-  interface IO<A> {
-    readonly '>>': <B>(that: IO<B>) => IO<B>;
-    readonly '<<': <B>(that: IO<B>) => IO<A>;
-    readonly '>>=': <B>(f: (a: A) => IO<B>) => IO<B>;
-    readonly void: IO<void>;
-  }
-}
-
-// @ts-ignore
-IO.prototype['<<'] = function <A, B>(this: IO<A>, that: IO<B>): IO<A> {
-  return this['>>='](x => map_(that, () => x));
-};
-
-// @ts-ignore
-IO.prototype['>>'] = function <A, B>(this: IO<A>, that: IO<B>): IO<B> {
-  return this['>>='](() => that);
-};
-
-// @ts-ignore
-IO.prototype['>>='] = function <A, B>(this: IO<A>, f: (a: A) => IO<B>): IO<B> {
-  return flatMap_(this, f);
-};
-
-// @ts-ignore
-IO.prototype.void = function <A>(this: IO<A>): IO<void> {
-  return this['>>'](unit);
-};

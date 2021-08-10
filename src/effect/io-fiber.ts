@@ -6,6 +6,7 @@ import { flow, pipe } from '../fp/core';
 import { Poll } from './poll';
 
 import * as IOA from './algebra';
+import { PlatformConfig } from './io-platform';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -25,10 +26,13 @@ export class IOFiber<A> implements F.Fiber<A> {
   private static ID: number = 0;
   private readonly ID: number = ++IOFiber.ID;
 
-  private startIO: IO.IO<unknown>;
+  private resumeIO: IO.IO<unknown>;
+
+  private readonly autoSuspendThreshold: number =
+    PlatformConfig.AUTO_SUSPEND_THRESHOLD;
 
   public constructor(startIO: IO.IO<A>) {
-    this.startIO = startIO;
+    this.resumeIO = startIO;
   }
 
   public join: IO.IO<O.Outcome<A>> = IO.async(cb =>
@@ -48,12 +52,7 @@ export class IOFiber<A> implements F.Fiber<A> {
       this.canceled = true;
 
       if (!this.masks) {
-        return IO.async<void>(cb =>
-          IO.delay(() => {
-            this.cancelAsync(cb);
-            return undefined;
-          }),
-        );
+        return IO.async<void>(cb => IO.delay(() => this.cancelAsync(cb)));
       } else {
         return IO.map_(this.join, () => undefined);
       }
@@ -65,20 +64,22 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private runLoop(_cur: IO.IO<unknown>): void {
+    let nextAutoSuspend = this.autoSuspendThreshold;
+
     while (true) {
       if (_cur === IOA.IOEndFiber) {
         return;
-      }
-
-      if (this.shouldFinalize()) {
+      } else if (this.shouldFinalize()) {
         return this.cancelAsync();
+      } else if (nextAutoSuspend-- <= 0) {
+        this.resumeIO = _cur;
+        return this.schedule(this);
       }
 
       const cur = IOA.view(_cur);
       switch (cur.tag) {
-        case 'IOEndFiber':
         case 'suspend':
-          this.startIO = _cur;
+          this.resumeIO = _cur;
           return;
 
         case 'pure':
@@ -130,36 +131,31 @@ export class IOFiber<A> implements F.Fiber<A> {
           continue;
 
         case 'canceled':
-          this.startIO = _cur;
           this.canceled = true;
-          if (!this.masks) {
-            return this.cancelAsync();
-          } else {
-            _cur = IO.pure(undefined);
-            continue;
-          }
+          _cur = IO.pure(undefined);
+          continue;
 
         case 'async': {
           const prevFinalizing = this.finalizing;
 
-          const cb: (ea: E.Either<Error, unknown>) => void = ea => {
-            // If we have not been canceled while suspended, or the task is
-            // uncancelable, continue with the execution
-            if (prevFinalizing === this.finalizing) {
-              if (!this.shouldFinalize()) {
-                const next = E.fold_(ea, IO.throwError, IO.pure);
-                this.startIO = next;
-                this.schedule(this);
-              } else {
-                // Otherwise, we've been canceled and we should cancel ourselves
-                // asynchronously
-                this.cancelAsync();
+          const cb: (ea: E.Either<Error, unknown>) => void = ea =>
+            this.resume(() => {
+              // If we have not been canceled while suspended, or the task is
+              // uncancelable, continue with the execution
+              if (prevFinalizing === this.finalizing) {
+                if (!this.shouldFinalize()) {
+                  const next = E.fold_(ea, IO.throwError, IO.pure);
+                  this.resumeIO = next;
+                  this.schedule(this);
+                } else {
+                  // Otherwise, we've been canceled and we should cancel ourselves
+                  // asynchronously
+                  this.cancelAsync();
+                }
               }
-            } else {
-              // console.log('CANCELED BUT GOT HERE', this.ID, ea);
-              // setImmediate(() => cb(ea));
-            }
-          };
+              // We were canceled while suspended, so just drop the callback
+              // result
+            });
 
           _cur = cur.body(cb);
           continue;
@@ -192,8 +188,8 @@ export class IOFiber<A> implements F.Fiber<A> {
               [O.Outcome<unknown>, IOFiber<unknown>],
               [IOFiber<unknown>, O.Outcome<unknown>]
             >
-          >(cb => {
-            const r = IO.delay(() => {
+          >(cb =>
+            IO.delay(() => {
               const fiberA = new IOFiber(ioa);
               const fiberB = new IOFiber(iob);
 
@@ -209,17 +205,16 @@ export class IOFiber<A> implements F.Fiber<A> {
                 IO.map(() => undefined),
               );
 
-              return IO.flatMap_(
-                IO.delay(() => {}),
-                () => cancel,
-              );
-            });
-            return r;
-          });
+              return cancel;
+            }),
+          );
 
           _cur = next;
           continue;
         }
+
+        case 'IOEndFiber':
+          throw new Error('Uncaught end fiber');
       }
     }
   }
@@ -234,7 +229,7 @@ export class IOFiber<A> implements F.Fiber<A> {
       // do not allow further cancelations
       this.masks += 1;
       const fin = this.finalizers.pop()!;
-      setImmediate(() => this.runLoop(fin));
+      this.runLoop(fin);
     } else {
       cb && cb(E.rightUnit);
       this.complete(O.canceled);
@@ -242,15 +237,14 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private complete(oc: O.Outcome<A>): void {
-    // console.log('COMPLETING', this.ID, oc); // , new Error().stack);
     this.join = IO.pure(oc);
     this.cancel = IO.unit;
     this.outcome = oc;
 
     try {
       this.callbacks.forEach(cb => cb(oc));
-    } catch {
-      console.log('SWALLOWING EXCEPTION');
+    } catch (e) {
+      console.log('SWALLOWING EXCEPTION', e);
     }
 
     this.stack = [];
@@ -258,7 +252,7 @@ export class IOFiber<A> implements F.Fiber<A> {
     this.callbacks = [];
     this.finalizers = [];
     this.masks = 0;
-    this.startIO = IOA.IOEndFiber;
+    this.resumeIO = IOA.IOEndFiber;
   }
 
   private onComplete(cb: (oc: O.Outcome<A>) => void): void {
@@ -267,7 +261,11 @@ export class IOFiber<A> implements F.Fiber<A> {
 
   private schedule<A>(f: IOFiber<A>, cb?: (ea: O.Outcome<A>) => void): void {
     cb && f.callbacks.push(cb);
-    setImmediate(() => f.runLoop(f.startIO));
+    this.resume(() => f.runLoop(f.resumeIO));
+  }
+
+  private resume(cont: () => void): void {
+    setImmediate(cont);
   }
 
   private shouldFinalize(): boolean {
@@ -296,6 +294,7 @@ export class IOFiber<A> implements F.Fiber<A> {
           return this.flatMapK(r);
 
         case IOA.Continuation.HandleErrorWithK:
+          this.stack.pop(); // Skip over error handlers
           continue;
 
         case IOA.Continuation.OnCancelK:
@@ -325,6 +324,7 @@ export class IOFiber<A> implements F.Fiber<A> {
 
         case IOA.Continuation.MapK:
         case IOA.Continuation.FlatMapK:
+          this.stack.pop(); // skip over success transformers
           continue;
 
         case IOA.Continuation.HandleErrorWithK:
