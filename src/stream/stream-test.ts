@@ -151,7 +151,7 @@ pipe(
         ),
         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
       ),
-    2,
+    4,
   ),
   IO.timeout(1_500),
   IOR.unsafeRunMain,

@@ -11,11 +11,6 @@ export abstract class IO<A> {
   private readonly __void: void;
 }
 
-export const Canceled = new (class Canceled extends IO<void> {
-  public readonly tag = 'canceled';
-})();
-export type Canceled = typeof Canceled;
-
 export class Pure<A> extends IO<A> {
   public readonly tag = 'pure';
   public constructor(public readonly value: A) {
@@ -65,10 +60,19 @@ export class HandleErrorWith<A> extends IO<A> {
   }
 }
 
-export type Cont<K, R> = (cb: (ea: Either<Error, K>) => void) => IO<R>;
-export class Async<K, R> extends IO<R> {
+export const CurrentTimeMillis =
+  new (class CurrentTimeMillis extends IO<number> {
+    public readonly tag = 'currentTimeMillis';
+  })();
+export type CurrentTimeMillis = typeof CurrentTimeMillis;
+
+export class Async<A> extends IO<A> {
   public readonly tag = 'async';
-  public constructor(public readonly body: Cont<K, R>) {
+  public constructor(
+    public readonly body: (
+      cb: (ea: Either<Error, A>) => void,
+    ) => IO<IO<void> | undefined>,
+  ) {
     super();
   }
 }
@@ -90,6 +94,11 @@ export class OnCancel<A> extends IO<A> {
   }
 }
 
+export const Canceled = new (class Canceled extends IO<void> {
+  public readonly tag = 'canceled';
+})();
+export type Canceled = typeof Canceled;
+
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 'uncancelable';
   public constructor(public readonly body: (p: Poll) => IO<A>) {
@@ -102,6 +111,13 @@ export class RacePair<A, B> extends IO<
 > {
   public readonly tag = 'racePair';
   public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {
+    super();
+  }
+}
+
+export class Sleep extends IO<void> {
+  public readonly tag = 'sleep';
+  public constructor(public readonly ms: number) {
     super();
   }
 }
@@ -128,16 +144,18 @@ export type IOEndFiber = typeof IOEndFiber;
 export type IOView<A> =
   | Pure<A>
   | Fail
-  | Canceled
   | Delay<A>
   | Map<any, A>
   | FlatMap<any, A>
   | HandleErrorWith<A>
-  | Async<any, A>
+  | CurrentTimeMillis
+  | Async<A>
   | Fork<A>
+  | Canceled
   | OnCancel<A>
   | Uncancelable<A>
   | RacePair<unknown, unknown>
+  | Sleep
   | UnmaskRunLoop<A>
   | Suspend
   | IOEndFiber;

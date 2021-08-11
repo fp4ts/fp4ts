@@ -4,6 +4,8 @@ import * as O from './outcome';
 import { IOFiber } from './io-fiber';
 import { flow, pipe } from '../fp/core';
 
+import { GlobalExecutionContext } from './execution-context';
+
 export const unsafeRunToPromise = <A>(ioa: IO.IO<A>): Promise<A> =>
   new Promise((resolve, reject) =>
     unsafeRunAsync_(ioa, E.fold(reject, resolve)),
@@ -26,7 +28,11 @@ export const unsafeRunAsync_: <A>(
 export const unsafeRunAsyncOutcome_: <A>(
   ioa: IO.IO<A>,
   cb: (oc: O.Outcome<A>) => void,
-) => void = (ioa, cb) => new IOFiber(ioa).unsafeRunAsync(cb);
+) => void = (ioa, cb) => {
+  const fiber = new IOFiber(ioa, GlobalExecutionContext);
+  fiber.onComplete(cb);
+  GlobalExecutionContext.executeFiber(fiber);
+};
 
 export const listenForSignal = (s: string): IO.IO<void> =>
   IO.async(resume =>

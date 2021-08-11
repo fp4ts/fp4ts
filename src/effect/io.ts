@@ -17,11 +17,12 @@ import {
   Map,
   FlatMap,
   HandleErrorWith,
+  CurrentTimeMillis,
+  Sleep,
   Async,
   RacePair,
   Uncancelable,
   OnCancel,
-  Suspend,
   Fork,
 } from './algebra';
 
@@ -51,17 +52,11 @@ export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
 
 export const throwError: (error: Error) => IO<never> = error => new Fail(error);
 
+export const currentTimeMillis: IO<number> = CurrentTimeMillis;
+
 export const async = <A>(
   k: (cb: (ea: E.Either<Error, A>) => void) => IO<IO<void> | undefined>,
-): IO<A> =>
-  new Async(resume =>
-    uncancelable<A>(poll =>
-      pipe(
-        k(resume),
-        flatMap(fin => (fin ? onCancel_(poll(Suspend), fin) : poll(Suspend))),
-      ),
-    ),
-  );
+): IO<A> => new Async(k);
 
 export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);
 
@@ -83,13 +78,7 @@ export const onCancel: (fin: IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   fin => ioa =>
     onCancel_(ioa, fin);
 
-export const sleep = (ms: number): IO<void> =>
-  async(resume =>
-    delay(() => {
-      const ref = setTimeout(() => resume(E.rightUnit), ms);
-      return delay(() => clearTimeout(ref));
-    }),
-  );
+export const sleep = (ms: number): IO<void> => new Sleep(ms);
 
 export const delayBy: (ms: number) => <A>(ioa: IO<A>) => IO<A> = ms => ioa =>
   delayBy_(ioa, ms);
