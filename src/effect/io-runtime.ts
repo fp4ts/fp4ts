@@ -49,10 +49,7 @@ export const Signal = Object.freeze({
 });
 
 export const unsafeRunMain = (ioa: IO.IO<unknown>): void => {
-  const onCancel = () =>
-    IO.delay(() => {
-      console.log('CANCELED ALL');
-    });
+  const onCancel = () => IO.delay(() => process.exit(2));
   const onFailure = (e: Error) =>
     IO.delay(() => {
       console.error(e);

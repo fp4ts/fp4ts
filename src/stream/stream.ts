@@ -29,7 +29,7 @@ export const range: ((until: number) => Stream<number>) &
 };
 
 export const rangeFrom = (x: number = 0): Stream<number> =>
-  concat_(pure(x), () => rangeFrom(x + 1));
+  concat_(range(x, x + 512), () => rangeFrom(x + 512));
 
 export const integers: () => Stream<number> = () => rangeFrom(1);
 

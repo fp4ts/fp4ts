@@ -1,4 +1,5 @@
 import { Either } from '../fp/either';
+import { ExecutionContext } from './execution-context';
 import { Fiber } from './fiber';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
@@ -66,6 +67,11 @@ export const CurrentTimeMillis =
   })();
 export type CurrentTimeMillis = typeof CurrentTimeMillis;
 
+export const ReadEC = new (class ReadEC extends IO<ExecutionContext> {
+  public readonly tag = 'readEC';
+})();
+export type ReadEC = typeof ReadEC;
+
 export class Async<A> extends IO<A> {
   public readonly tag = 'async';
   public constructor(
@@ -122,6 +128,16 @@ export class Sleep extends IO<void> {
   }
 }
 
+export class ExecuteOn<A> extends IO<A> {
+  public readonly tag = 'executeOn';
+  public constructor(
+    public readonly ioa: IO<A>,
+    public readonly ec: ExecutionContext,
+  ) {
+    super();
+  }
+}
+
 // Internal algebra produced by fiber execution
 
 export class UnmaskRunLoop<A> extends IO<A> {
@@ -149,6 +165,7 @@ export type IOView<A> =
   | FlatMap<any, A>
   | HandleErrorWith<A>
   | CurrentTimeMillis
+  | ReadEC
   | Async<A>
   | Fork<A>
   | Canceled
@@ -157,6 +174,7 @@ export type IOView<A> =
   | RacePair<unknown, unknown>
   | Sleep
   | UnmaskRunLoop<A>
+  | ExecuteOn<A>
   | Suspend
   | IOEndFiber;
 
@@ -169,5 +187,6 @@ export enum Continuation {
   OnCancelK,
   UncancelableK,
   UnmaskK,
+  RunOnK,
   CancelationLoopK,
 }

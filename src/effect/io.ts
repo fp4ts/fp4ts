@@ -18,13 +18,16 @@ import {
   FlatMap,
   HandleErrorWith,
   CurrentTimeMillis,
-  Sleep,
+  ReadEC,
   Async,
   RacePair,
   Uncancelable,
   OnCancel,
   Fork,
+  Sleep,
+  ExecuteOn,
 } from './algebra';
+import { ExecutionContext } from './execution-context';
 
 // Public exports
 
@@ -53,6 +56,8 @@ export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
 export const throwError: (error: Error) => IO<never> = error => new Fail(error);
 
 export const currentTimeMillis: IO<number> = CurrentTimeMillis;
+
+export const readExecutionContext: IO<ExecutionContext> = ReadEC;
 
 export const async = <A>(
   k: (cb: (ea: E.Either<Error, A>) => void) => IO<IO<void> | undefined>,
@@ -91,6 +96,10 @@ export const timeoutTo: <B>(
   fallback: IO<B>,
 ) => <A>(ioa: IO<A | B>) => IO<A | B> = (ms, fallback) => ioa =>
   timeoutTo_(ioa, ms, fallback);
+
+export const executeOn: (ec: ExecutionContext) => <A>(ioa: IO<A>) => IO<A> =
+  ec => ioa =>
+    executeOn_(ioa, ec);
 
 export const race: <B>(iob: IO<B>) => <A>(ioa: IO<A>) => IO<E.Either<A, B>> =
   iob => ioa =>
@@ -195,6 +204,9 @@ export const timeout_ = <A>(ioa: IO<A>, ms: number): IO<A> =>
 
 export const timeoutTo_ = <A>(ioa: IO<A>, ms: number, fallback: IO<A>): IO<A> =>
   pipe(race_(sleep(ms), ioa), flatMap(E.fold(() => fallback, pure)));
+
+export const executeOn_ = <A>(ioa: IO<A>, ec: ExecutionContext): IO<A> =>
+  new ExecuteOn(ioa, ec);
 
 export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   const cont = <X, Y>(
