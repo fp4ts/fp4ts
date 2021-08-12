@@ -1,5 +1,5 @@
 import { pipe } from '../fp/core';
-import * as S from './stream';
+// import * as S from './stream';
 import * as IO from '../effect/io';
 import * as IOR from '../effect/io-runtime';
 
@@ -106,24 +106,24 @@ import * as IOR from '../effect/io-runtime';
 //   .then(console.log)
 //   .catch(console.log);
 
-// pipe(
-//   [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
-//   IO.parTraverseOutcome(([n, idx]) =>
-//     pipe(
-//       IO.delay(() => {
-//         if (idx < 1) throw new Error();
-//         console.log(`${idx} completed in ${n} seconds`);
-//       }),
-//       IO.delayBy(n * 1_000),
-//       // IO.flatTap(() => IO.delay(() => console.log('EXECUTING', idx))),
-//       IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
-//     ),
-//   ),
-//   IO.timeout(2000),
-//   IOR.unsafeRunToPromise,
-// )
-//   .then(console.log)
-//   .catch(console.log);
+pipe(
+  [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
+  IO.parTraverse(([n, idx]) =>
+    pipe(
+      IO.delay(() => {
+        if (idx < 1) throw new Error();
+        console.log(`${idx} completed in ${n} seconds`);
+      }),
+      IO.delayBy(n * 1_000),
+      // IO.flatTap(() => IO.delay(() => console.log('EXECUTING', idx))),
+      IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
+    ),
+  ),
+  IO.timeout(2000),
+  IOR.unsafeRunToPromise,
+)
+  .then(console.log)
+  .catch(console.log);
 
 // pipe(
 //   IO.delay(() => 2),
@@ -162,38 +162,36 @@ import * as IOR from '../effect/io-runtime';
 //     IO.delay(() => console.log('STARTING', n)),
 //     IO.flatMap(() =>
 //       pipe(
-//         // IO.pure(undefined),
-//         IO.defer(() =>
-//           n % 2 ? IO.throwError(new Error('Errooooor')) : IO.pure(undefined),
-//         ),
+//         IO.defer(() => IO.pure(undefined)),
 //         IO.delayBy((5 - n) * 1_000),
 //         IO.flatMap(() => IO.delay(() => console.log('FINISHED', n))),
 //         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
+//         IO.flatMap(() => IO.throwError(new Error('Erooor'))),
 //       ),
 //     ),
 //   );
 
 // pipe([1, 2, 3, 4, 5].map(doSomeWork), IO.parSequence, IOR.unsafeRunMain);
 
-pipe(
-  IO.readExecutionContext,
-  IO.flatMap(ec =>
-    pipe(
-      IO.both_(
-        pipe(
-          IO.sleep(5000),
-          IO.onCancel(IO.delay(() => console.log('CANCELED 1'))),
-        ),
-        pipe(
-          IO.sleep(5000),
-          IO.onCancel(IO.delay(() => console.log('CANCELED 2'))),
-        ),
-      ),
-      IO.executeOn(ec),
-    ),
-  ),
-  IO.timeout(200),
-  IOR.unsafeRunToPromise,
-)
-  .then(console.log)
-  .catch(console.log);
+// pipe(
+//   IO.readExecutionContext,
+//   IO.flatMap(ec =>
+//     pipe(
+//       IO.both_(
+//         pipe(
+//           IO.sleep(50),
+//           IO.onCancel(IO.delay(() => console.log('CANCELED 1'))),
+//         ),
+//         pipe(
+//           IO.sleep(5000),
+//           IO.onCancel(IO.delay(() => console.log('CANCELED 2'))),
+//         ),
+//       ),
+//       IO.executeOn(ec),
+//     ),
+//   ),
+//   IO.timeout(200),
+//   IOR.unsafeRunToPromise,
+// )
+//   .then(console.log)
+//   .catch(console.log);

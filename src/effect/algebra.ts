@@ -138,7 +138,7 @@ export class ExecuteOn<A> extends IO<A> {
   }
 }
 
-// Internal algebra produced by fiber execution
+// -- Internal algebra produced by fiber execution
 
 export class UnmaskRunLoop<A> extends IO<A> {
   public readonly tag = 'unmaskRunLoop';
@@ -179,6 +179,14 @@ export type IOView<A> =
   | IOEndFiber;
 
 export const view = <A>(_: IO<A>): IOView<A> => _ as any;
+
+export enum Resumption {
+  ExecR,
+  AsyncContinueSuccessR,
+  AsyncContinueFailureR,
+  RunOnR,
+  DoneR,
+}
 
 export enum Continuation {
   MapK,

@@ -28,11 +28,8 @@ export class IOFiber<A> implements F.Fiber<A> {
   private resumeIO: IO.IO<unknown>;
   private currentEC: ExecutionContext;
 
-  private readonly ID: number = ++IOFiber.ID;
   private readonly autoSuspendThreshold: number =
     PlatformConfig.AUTO_SUSPEND_THRESHOLD;
-
-  private static ID: number = 0;
 
   public constructor(startIO: IO.IO<A>, startEC: ExecutionContext) {
     this.resumeIO = startIO;
