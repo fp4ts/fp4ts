@@ -13,6 +13,9 @@ class Success<A> extends Outcome<A> {
   public constructor(public readonly result: A) {
     super();
   }
+  public toString(): string {
+    return `[Success: ${this.result}]`;
+  }
 }
 
 class Failure extends Outcome<never> {
@@ -20,10 +23,16 @@ class Failure extends Outcome<never> {
   public constructor(public readonly error: Error) {
     super();
   }
+  public toString(): string {
+    return `[Failure: ${this.error}]`;
+  }
 }
 
 const Canceled = new (class Canceled extends Outcome<never> {
   readonly tag = 'canceled';
+  public toString(): string {
+    return '[Canceled]';
+  }
 })();
 type Canceled = typeof Canceled;
 

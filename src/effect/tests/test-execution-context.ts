@@ -1,4 +1,5 @@
 import { ExecutionContext } from '../execution-context';
+import { Ticker } from './ticker';
 
 class Task {
   public constructor(
@@ -15,7 +16,7 @@ interface State {
   readonly tasks: Task[];
 }
 
-export class TestExecutionContext implements ExecutionContext {
+export class TestExecutionContext implements ExecutionContext, Ticker {
   private lastFailure?: Error;
   private clock: number = 0;
   private lastId: number = 0;

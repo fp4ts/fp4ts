@@ -17,6 +17,7 @@ import {
   Map,
   FlatMap,
   HandleErrorWith,
+  Attempt,
   CurrentTimeMillis,
   ReadEC,
   Async,
@@ -157,10 +158,24 @@ export const handleErrorWith: <B>(
   f: (e: Error) => IO<B>,
 ) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleErrorWith_(ioa, f);
 
-export const attempt: <A>(ioa: IO<A>) => IO<E.Either<Error, A>> = flow(
-  map(E.right),
-  handleErrorWith(flow(E.left, pure)),
-);
+export const onError: (f: (e: Error) => IO<void>) => <A>(ioa: IO<A>) => IO<A> =
+  f => ioa =>
+    onError_(ioa, f);
+
+export const attempt: <A>(ioa: IO<A>) => IO<E.Either<Error, A>> = ioa =>
+  new Attempt(ioa);
+
+export const redeem: <A, B>(
+  onFailure: (e: Error) => B,
+  onSuccess: (a: A) => B,
+) => (ioa: IO<A>) => IO<B> = (onFailure, onSuccess) => ioa =>
+  redeem_(ioa, onFailure, onSuccess);
+
+export const redeemWith: <A, B>(
+  onFailure: (e: Error) => IO<B>,
+  onSuccess: (a: A) => IO<B>,
+) => (ioa: IO<A>) => IO<B> = (onFailure, onSuccess) => ioa =>
+  redeemWith_(ioa, onFailure, onSuccess);
 
 export const traverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]> =
   f => as =>
@@ -311,8 +326,13 @@ export const finalize_ = <A>(
     pipe(
       poll(ioa),
       onCancel(finalizer(O.canceled)),
-      handleErrorWith(e =>
-        flatMap_(finalizer(O.failure(e)), () => throwError(e)),
+      onError(e =>
+        pipe(
+          finalizer(O.failure(e)),
+          handleErrorWith(e2 =>
+            flatMap_(readExecutionContext, ec => pure(ec.reportFailure(e2))),
+          ),
+        ),
       ),
       flatTap(a => finalizer(O.success(a))),
     ),
@@ -372,6 +392,27 @@ export const handleErrorWith_: <A>(
   ioa: IO<A>,
   f: (e: Error) => IO<A>,
 ) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f);
+
+export const onError_ = <A>(ioa: IO<A>, f: (e: Error) => IO<void>): IO<A> =>
+  handleErrorWith_(ioa, e =>
+    pipe(
+      f(e),
+      attempt,
+      flatMap(() => throwError(e)),
+    ),
+  );
+
+export const redeem_ = <A, B>(
+  ioa: IO<A>,
+  onFailure: (e: Error) => B,
+  onSuccess: (a: A) => B,
+): IO<B> => pipe(ioa, attempt, map(E.fold(onFailure, onSuccess)));
+
+export const redeemWith_ = <A, B>(
+  ioa: IO<A>,
+  onFailure: (e: Error) => IO<B>,
+  onSuccess: (a: A) => IO<B>,
+): IO<B> => pipe(ioa, attempt, flatMap(E.fold(onFailure, onSuccess)));
 
 export const traverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
   defer(() =>

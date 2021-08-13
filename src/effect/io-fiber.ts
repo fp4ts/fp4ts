@@ -104,6 +104,11 @@ export class IOFiber<A> implements F.Fiber<A> {
           _cur = cur.ioa;
           continue;
 
+        case 'attempt':
+          this.conts.push(IOA.Continuation.AttemptK);
+          _cur = cur.ioa;
+          continue;
+
         case 'currentTimeMillis':
           _cur = IO.pure(this.currentEC.currentTimeMillis());
           continue;
@@ -132,8 +137,12 @@ export class IOFiber<A> implements F.Fiber<A> {
 
         case 'async': {
           const prevFinalizing = this.finalizing;
+          let receivedResult = false;
 
-          const cb: (ea: E.Either<Error, unknown>) => void = ea =>
+          const cb: (ea: E.Either<Error, unknown>) => void = ea => {
+            if (receivedResult) return;
+            receivedResult = true;
+
             // Ensure to insert an async boundary to break execution from
             // other fibers
             this.resume(() => {
@@ -153,6 +162,7 @@ export class IOFiber<A> implements F.Fiber<A> {
               // We were canceled while suspended, so just drop the callback
               // result
             });
+          };
 
           const next = IO.uncancelable<A>(poll =>
             pipe(
@@ -324,6 +334,7 @@ export class IOFiber<A> implements F.Fiber<A> {
     this.callbacks = [];
     this.finalizers = [];
     this.masks = 0;
+    this.currentEC = undefined as any;
     this.resumeIO = IOA.IOEndFiber;
   }
 
@@ -358,7 +369,8 @@ export class IOFiber<A> implements F.Fiber<A> {
             r = f(r);
             continue;
           } catch (e) {
-            return this.failed(e as Error);
+            // return this.failed(e as Error);
+            return IO.throwError(e as Error);
           }
 
         case IOA.Continuation.FlatMapK:
@@ -366,6 +378,10 @@ export class IOFiber<A> implements F.Fiber<A> {
 
         case IOA.Continuation.HandleErrorWithK:
           this.stack.pop(); // Skip over error handlers
+          continue;
+
+        case IOA.Continuation.AttemptK:
+          r = E.right(r);
           continue;
 
         case IOA.Continuation.OnCancelK:
@@ -409,6 +425,10 @@ export class IOFiber<A> implements F.Fiber<A> {
             e = e2;
             continue;
           }
+
+        case IOA.Continuation.AttemptK:
+          // return this.succeeded(E.left(e));
+          return IO.pure(E.left(e)); // lack of tco
 
         case IOA.Continuation.OnCancelK:
           this.onCancelK();

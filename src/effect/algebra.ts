@@ -61,6 +61,13 @@ export class HandleErrorWith<A> extends IO<A> {
   }
 }
 
+export class Attempt<A> extends IO<Either<Error, A>> {
+  public readonly tag = 'attempt';
+  public constructor(public readonly ioa: IO<A>) {
+    super();
+  }
+}
+
 export const CurrentTimeMillis =
   new (class CurrentTimeMillis extends IO<number> {
     public readonly tag = 'currentTimeMillis';
@@ -164,6 +171,7 @@ export type IOView<A> =
   | Map<any, A>
   | FlatMap<any, A>
   | HandleErrorWith<A>
+  | Attempt<Either<Error, A>>
   | CurrentTimeMillis
   | ReadEC
   | Async<A>
@@ -192,6 +200,7 @@ export enum Continuation {
   MapK,
   FlatMapK,
   HandleErrorWithK,
+  AttemptK,
   OnCancelK,
   UncancelableK,
   UnmaskK,

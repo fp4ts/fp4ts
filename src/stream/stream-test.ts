@@ -138,25 +138,25 @@ import * as IOR from '../effect/io-runtime';
 //   .then(e => console.log('result', e))
 //   .catch(console.log);
 
-// pipe(
-//   [1, 2, 3, 4, 5],
-//   IO.parTraverseN(
-//     n =>
-//       pipe(
-//         IO.delay(() => console.log('EXECUTING', n)),
-//         IO.flatMap(() =>
-//           pipe(
-//             IO.sleep(1_000 * (5 - n)),
-//             IO.flatMap(() => IO.delay(() => console.log('COMPLETED', n))),
-//           ),
-//         ),
-//         IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
-//       ),
-//     4,
-//   ),
-//   IO.timeout(1_500),
-//   IOR.unsafeRunMain,
-// );
+pipe(
+  [1, 2, 3, 4, 5],
+  IO.parTraverseN(
+    n =>
+      pipe(
+        IO.delay(() => console.log('EXECUTING', n)),
+        IO.flatMap(() =>
+          pipe(
+            IO.sleep(1_000 * (5 - n)),
+            IO.flatMap(() => IO.delay(() => console.log('COMPLETED', n))),
+          ),
+        ),
+        IO.onCancel(IO.delay(() => console.log('CANCELED', n))),
+      ),
+    4,
+  ),
+  IO.timeout(1_500),
+  IOR.unsafeRunMain,
+);
 
 // const doSomeWork = (n: number) =>
 //   pipe(
@@ -197,19 +197,19 @@ import * as IOR from '../effect/io-runtime';
 //   .then(console.log)
 //   .catch(console.log);
 
-pipe(
-  [...new Array(1000000)].map((_, idx) => IO.pure(idx)),
-  xs =>
-    xs.reduce(
-      (fz, fx) =>
-        pipe(
-          IO.Do,
-          IO.bindTo('z', () => fz),
-          IO.bindTo('x', () => fx),
-          IO.map(({ z, x }) => z + x),
-        ),
-      IO.pure(0),
-    ),
-  IO.tap(console.log),
-  IOR.unsafeRunMain,
-);
+// pipe(
+//   [...new Array(1000000)].map((_, idx) => IO.pure(idx)),
+//   xs =>
+//     xs.reduce(
+//       (fz, fx) =>
+//         pipe(
+//           IO.Do,
+//           IO.bindTo('z', () => fz),
+//           IO.bindTo('x', () => fx),
+//           IO.map(({ z, x }) => z + x),
+//         ),
+//       IO.pure(0),
+//     ),
+//   IO.tap(console.log),
+//   IOR.unsafeRunMain,
+// );
