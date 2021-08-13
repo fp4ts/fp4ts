@@ -12,7 +12,8 @@ import * as IOR from '../effect/io-runtime';
 //   // S.tap(console.log),
 //   // S.drain,
 //   // S.take(10000),
-//   S.compile(0, (x, [y]) => x + y),
+//   S.fold(0, (x, [y]) => x + y),
+//   S.drain,
 //   // S.toArray,
 //   IOR.unsafeRunToPromise,
 // )
@@ -106,24 +107,24 @@ import * as IOR from '../effect/io-runtime';
 //   .then(console.log)
 //   .catch(console.log);
 
-pipe(
-  [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
-  IO.parTraverse(([n, idx]) =>
-    pipe(
-      IO.delay(() => {
-        if (idx < 1) throw new Error();
-        console.log(`${idx} completed in ${n} seconds`);
-      }),
-      IO.delayBy(n * 1_000),
-      // IO.flatTap(() => IO.delay(() => console.log('EXECUTING', idx))),
-      IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
-    ),
-  ),
-  IO.timeout(2000),
-  IOR.unsafeRunToPromise,
-)
-  .then(console.log)
-  .catch(console.log);
+// pipe(
+//   [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
+//   IO.parTraverse(([n, idx]) =>
+//     pipe(
+//       IO.delay(() => {
+//         if (idx < 1) throw new Error();
+//         console.log(`${idx} completed in ${n} seconds`);
+//       }),
+//       IO.delayBy(n * 1_000),
+//       // IO.flatTap(() => IO.delay(() => console.log('EXECUTING', idx))),
+//       IO.onCancel(IO.delay(() => console.log(`${n} canceled`))),
+//     ),
+//   ),
+//   IO.timeout(2000),
+//   IOR.unsafeRunToPromise,
+// )
+//   .then(console.log)
+//   .catch(console.log);
 
 // pipe(
 //   IO.delay(() => 2),
@@ -195,3 +196,20 @@ pipe(
 // )
 //   .then(console.log)
 //   .catch(console.log);
+
+pipe(
+  [...new Array(1000000)].map((_, idx) => IO.pure(idx)),
+  xs =>
+    xs.reduce(
+      (fz, fx) =>
+        pipe(
+          IO.Do,
+          IO.bindTo('z', () => fz),
+          IO.bindTo('x', () => fx),
+          IO.map(({ z, x }) => z + x),
+        ),
+      IO.pure(0),
+    ),
+  IO.tap(console.log),
+  IOR.unsafeRunMain,
+);

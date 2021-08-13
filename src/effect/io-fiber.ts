@@ -204,8 +204,8 @@ export class IOFiber<A> implements F.Fiber<A> {
               fiberA.onComplete(oc => cb(E.right(E.left([oc, fiberB]))));
               fiberB.onComplete(oc => cb(E.right(E.right([fiberA, oc]))));
 
-              this.currentEC.executeFiber(fiberA);
-              this.currentEC.executeFiber(fiberB);
+              this.schedule(fiberA, this.currentEC);
+              this.schedule(fiberB, this.currentEC);
 
               const cancel = pipe(
                 IO.Do,
@@ -315,7 +315,7 @@ export class IOFiber<A> implements F.Fiber<A> {
     try {
       this.callbacks.forEach(cb => cb(oc));
     } catch (e) {
-      console.log('SWALLOWING EXCEPTION', e);
+      this.currentEC.reportFailure(e as Error);
     }
 
     this.cxts = [];
@@ -328,7 +328,7 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private schedule(f: IOFiber<unknown>, ec: ExecutionContext): void {
-    ec.executeFiber(f);
+    ec.executeAsync(() => f.run());
   }
 
   private resume(cont: () => void): void {
@@ -426,7 +426,7 @@ export class IOFiber<A> implements F.Fiber<A> {
           return this.runOnK();
 
         case IOA.Continuation.CancelationLoopK:
-          return this.cancelationLoopFailureK();
+          return this.cancelationLoopFailureK(e);
       }
     }
   }
@@ -437,6 +437,7 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private terminateFailureK(e: Error): IO.IO<unknown> {
+    this.currentEC.reportFailure(e);
     this.complete(O.failure(e));
     return IOA.IOEndFiber;
   }
@@ -486,7 +487,8 @@ export class IOFiber<A> implements F.Fiber<A> {
     return IOA.IOEndFiber;
   }
 
-  private cancelationLoopFailureK(): IO.IO<unknown> {
+  private cancelationLoopFailureK(e: Error): IO.IO<unknown> {
+    this.currentEC.reportFailure(e);
     return this.cancelationLoopSuccessK();
   }
 }

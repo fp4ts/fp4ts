@@ -1,26 +1,26 @@
 import { constant, id, Lazy } from './core';
 
-export interface Left<A> {
-  readonly tag: 'left';
-  readonly value: A;
+export class Left<A> {
+  public readonly tag = 'left';
+  public constructor(public readonly value: A) {}
+  public toString(): string {
+    return `[Left: ${this.value}]`;
+  }
 }
 
-export interface Right<B> {
-  readonly tag: 'right';
-  readonly value: B;
+export class Right<B> {
+  public readonly tag = 'right';
+  public constructor(public readonly value: B) {}
+  public toString(): string {
+    return `[Right: ${this.value}]`;
+  }
 }
 
 export type Either<A, B> = Left<A> | Right<B>;
 
-export const left: <E>(e: E) => Either<E, never> = x => ({
-  tag: 'left',
-  value: x,
-});
+export const left: <E>(e: E) => Either<E, never> = x => new Left(x);
 
-export const right: <A>(a: A) => Either<never, A> = x => ({
-  tag: 'right',
-  value: x,
-});
+export const right: <A>(a: A) => Either<never, A> = x => new Right(x);
 
 export const rightUnit: Either<never, void> = right(undefined);
 

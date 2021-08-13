@@ -63,8 +63,6 @@ export const async = <A>(
   k: (cb: (ea: E.Either<Error, A>) => void) => IO<IO<void> | undefined>,
 ): IO<A> => new Async(k);
 
-export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);
-
 export const never: IO<never> = async(() => pure(undefined));
 
 export const canceled: IO<void> = Canceled;
@@ -78,6 +76,8 @@ export const uncancelable: <A>(
 export const deferred: <A>(a?: A) => IO<D.Deferred<A>> = D.of;
 
 export const ref: <A>(a: A) => IO<Ref.Ref<A>> = Ref.of;
+
+export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);
 
 export const onCancel: (fin: IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   fin => ioa =>
@@ -156,6 +156,11 @@ export const flatten: <A>(ioioa: IO<IO<A>>) => IO<A> = flatMap(id);
 export const handleErrorWith: <B>(
   f: (e: Error) => IO<B>,
 ) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleErrorWith_(ioa, f);
+
+export const attempt: <A>(ioa: IO<A>) => IO<E.Either<Error, A>> = flow(
+  map(E.right),
+  handleErrorWith(flow(E.left, pure)),
+);
 
 export const traverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]> =
   f => as =>

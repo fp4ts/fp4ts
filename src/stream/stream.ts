@@ -357,16 +357,16 @@ export const zipWith_ = <A, B, C>(
 ): Stream<C> =>
   pipe(
     P.uncons(fa),
-    P.flatMap(x =>
-      !x
-        ? empty
-        : pipe(
-            P.uncons(fb),
-            P.flatMap(y =>
-              !y ? empty : pure([x, y] as [[A[], Stream<A>], [B[], Stream<B>]]),
-            ),
-          ),
-    ),
+    P.flatMap(x => {
+      if (!x) return empty;
+
+      return pipe(
+        P.uncons(fb),
+        P.flatMap(y =>
+          !y ? empty : pure([x, y] as [[A[], Stream<A>], [B[], Stream<B>]]),
+        ),
+      );
+    }),
     flatMap(([[xhd, xtl], [yhd, ytl]]) => {
       if (xhd.length < yhd.length)
         return cons(
