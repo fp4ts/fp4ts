@@ -182,7 +182,7 @@ export class IOFiber<A> implements F.Fiber<A> {
           this.masks += 1;
           const id = this.masks;
 
-          const poll: Poll = iob => new IOA.UnmaskRunLoop(iob, id);
+          const poll: Poll = iob => new IOA.UnmaskRunLoop(iob, id, this);
 
           this.conts.push(IOA.Continuation.UncancelableK);
           _cur = cur.body(poll);
@@ -191,7 +191,8 @@ export class IOFiber<A> implements F.Fiber<A> {
 
         case 'unmaskRunLoop':
           // Prevent nested invocations from unmasking the loop more that once
-          if (this.masks === cur.id) {
+          // and unmasking different fibers
+          if (this.masks === cur.id && this === cur.fiber) {
             this.masks -= 1;
             this.conts.push(IOA.Continuation.UnmaskK);
           }
@@ -452,13 +453,21 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private terminateSuccessK(r: unknown): IO.IO<unknown> {
-    this.complete(O.success(r));
+    if (this.canceled) {
+      this.complete(O.canceled);
+    } else {
+      this.complete(O.success(r));
+    }
     return IOA.IOEndFiber;
   }
 
   private terminateFailureK(e: Error): IO.IO<unknown> {
     this.currentEC.reportFailure(e);
-    this.complete(O.failure(e));
+    if (this.canceled) {
+      this.complete(O.canceled);
+    } else {
+      this.complete(O.failure(e));
+    }
     return IOA.IOEndFiber;
   }
 

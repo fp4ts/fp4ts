@@ -75,7 +75,7 @@ export class TestExecutionContext implements ExecutionContext, Ticker {
 
   public tickAll(untilTime: number = Infinity): void {
     this.tick(untilTime);
-    if (!this.tasks.isEmpty()) {
+    while (!this.tasks.isEmpty()) {
       this.tickAll(untilTime);
     }
   }
@@ -96,27 +96,8 @@ export class TestExecutionContext implements ExecutionContext, Ticker {
           a.runsAt === b.runsAt ? a.id - b.id : a.runsAt - b.runsAt,
         ),
       head: (): Task | undefined => {
-        const { runsAt: firstTick } =
-          this.tasks.sorted().find(({ runsAt }) => runsAt <= this.clock) ?? {};
-        if (firstTick == null) return undefined;
-
-        const forTaking = arrayTakeWhile(
-          this._tasks,
-          ({ runsAt }) => runsAt === firstTick,
-        );
-
-        const nextTaskIdx = Math.floor(Math.random() * forTaking.length);
-        return forTaking[nextTaskIdx];
+        return this.tasks.sorted().find(({ runsAt }) => runsAt <= this.clock);
       },
     };
   }
-}
-
-function arrayTakeWhile<A>(xs: A[], p: (a: A) => boolean): A[] {
-  const results: A[] = [];
-  for (let i = 0; i < xs.length; i++) {
-    if (!p(xs[i])) break;
-    results.push(xs[i]);
-  }
-  return results;
 }

@@ -149,7 +149,11 @@ export class ExecuteOn<A> extends IO<A> {
 
 export class UnmaskRunLoop<A> extends IO<A> {
   public readonly tag = 'unmaskRunLoop';
-  public constructor(public readonly ioa: IO<A>, public readonly id: number) {
+  public constructor(
+    public readonly ioa: IO<A>,
+    public readonly id: number,
+    public readonly fiber: Fiber<unknown>,
+  ) {
     super();
   }
 }

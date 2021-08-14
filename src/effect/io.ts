@@ -249,7 +249,18 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
           ),
         ),
       ex => flatMap_(f.cancel, () => throwError(ex)),
-      x => map_(f.cancel, () => E.left(x)),
+      x =>
+        pipe(
+          f.cancel,
+          flatMap(() => f.join),
+          flatMap(
+            O.fold(
+              () => pure(E.left(x)),
+              ey => throwError(ey),
+              () => pure(E.left(x)),
+            ),
+          ),
+        ),
     );
 
   return uncancelable(poll =>
