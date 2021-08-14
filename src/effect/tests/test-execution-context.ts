@@ -76,7 +76,7 @@ export class TestExecutionContext implements ExecutionContext, Ticker {
   public tickAll(untilTime: number = Infinity): void {
     this.tick(untilTime);
     while (!this.tasks.isEmpty()) {
-      this.tickAll(untilTime);
+      this.tick(untilTime);
     }
   }
 

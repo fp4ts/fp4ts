@@ -4,7 +4,7 @@ import * as IO from '../io';
 import * as IOR from '../io-runtime';
 import { TestExecutionContext } from '../tests/test-execution-context';
 import { Ticker } from '../tests/ticker';
-import { pipe } from '../../fp/core';
+import { id, pipe } from '../../fp/core';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -717,12 +717,7 @@ describe('io monad', () => {
     it.ticked('should cancel never after forking', async ticker => {
       const io = pipe(
         IO.fork(IO.never),
-        IO.flatMap(f =>
-          pipe(
-            f.cancel,
-            IO.flatMap(() => f.join),
-          ),
-        ),
+        IO.flatMap(f => IO.flatMap_(f.cancel, () => f.join)),
       );
 
       await expect(io).toCompleteAs(O.canceled, ticker);
@@ -967,5 +962,291 @@ describe('io monad', () => {
       await expect(io).toCancel(ticker);
       expect(cont).toHaveBeenCalled();
     });
+  });
+
+  describe('finalizers', () => {
+    it.ticked('finalizer should not run on success', async ticker => {
+      const fin = jest.fn();
+
+      const io = pipe(IO.pure(42), IO.onCancel(IO.delay(fin)));
+
+      await expect(io).toCompleteAs(42, ticker);
+      expect(fin).not.toHaveBeenCalled();
+    });
+
+    it.ticked('should run finalizer on success', async ticker => {
+      const fin = jest.fn();
+
+      const io = pipe(
+        IO.pure(42),
+        IO.finalize(() => IO.delay(fin)),
+      );
+
+      await expect(io).toCompleteAs(42, ticker);
+      expect(fin).toHaveBeenCalled();
+    });
+
+    it.ticked('should run finalizer on failure', async ticker => {
+      const fin = jest.fn();
+
+      const io = pipe(
+        IO.throwError(new Error('test error')),
+        IO.finalize(() => IO.delay(fin)),
+      );
+
+      await expect(io).toFailAs(new Error('test error'), ticker);
+      expect(fin).toHaveBeenCalled();
+    });
+
+    it.ticked('should run finalizer on cancelation', async ticker => {
+      const fin = jest.fn();
+
+      const io = pipe(
+        IO.canceled,
+        IO.finalize(() => IO.delay(fin)),
+      );
+
+      await expect(io).toCancel(ticker);
+      expect(fin).toHaveBeenCalled();
+    });
+
+    it.ticked('should run multiple finalizers', async ticker => {
+      const inner = jest.fn();
+      const outer = jest.fn();
+
+      const io = pipe(
+        IO.pure(42),
+        IO.finalize(() => IO.delay(inner)),
+        IO.finalize(() => IO.delay(outer)),
+      );
+
+      await expect(io).toCompleteAs(42, ticker);
+      expect(inner).toHaveBeenCalled();
+      expect(outer).toHaveBeenCalled();
+    });
+
+    it.ticked('should run multiple finalizers exactly once', async ticker => {
+      const inner = jest.fn();
+      const outer = jest.fn();
+
+      const io = pipe(
+        IO.pure(42),
+        IO.finalize(() => IO.delay(inner)),
+        IO.finalize(() => IO.delay(outer)),
+      );
+
+      await expect(io).toCompleteAs(42, ticker);
+      expect(inner).toHaveBeenCalledTimes(1);
+      expect(outer).toHaveBeenCalledTimes(1);
+    });
+
+    it.ticked('should run finalizer on async success', async ticker => {
+      const fin = jest.fn();
+
+      const io = pipe(
+        IO.pure(42),
+        IO.delayBy(1_000 * 60 * 60 * 24), // 1 day
+        IO.finalize(
+          O.fold(
+            () => IO.unit,
+            () => IO.unit,
+            () => IO.delay(fin),
+          ),
+        ),
+      );
+
+      await expect(io).toCompleteAs(42, ticker);
+      expect(fin).toHaveBeenCalled();
+    });
+
+    it.ticked('should retain errors through finalizers', async ticker => {
+      const io = pipe(
+        IO.throwError(new Error('test error')),
+        IO.finalize(() => IO.unit),
+        IO.finalize(() => IO.unit),
+      );
+
+      await expect(io).toFailAs(new Error('test error'), ticker);
+    });
+
+    it.ticked('should run an async finalizer of async IO', async ticker => {
+      const fin = jest.fn();
+
+      const body = IO.async(() =>
+        IO.delay(() =>
+          pipe(
+            IO.async(cb =>
+              pipe(
+                IO.readExecutionContext,
+                IO.flatMap(ec =>
+                  // enforce async completion
+                  IO.delay(() => ec.executeAsync(() => cb(E.rightUnit))),
+                ),
+              ),
+            ),
+            IO.tap(fin),
+          ),
+        ),
+      );
+
+      const io = pipe(
+        IO.Do,
+        IO.bindTo('fiber', () => IO.fork(body)),
+        IO.bind(() => IO.delay(() => ticker.tickAll())), // start async task
+        IO.flatMap(({ fiber }) => fiber.cancel), // cancel after the async task is running
+      );
+
+      await expect(io).toCompleteAs(undefined, ticker);
+      expect(fin).toHaveBeenCalled();
+    });
+
+    it.ticked(
+      'should not run finalizer of canceled uncancelable succeeds',
+      async ticker => {
+        const fin = jest.fn();
+
+        const io = pipe(
+          IO.uncancelable(() =>
+            pipe(
+              IO.canceled,
+              IO.map(() => 42),
+            ),
+          ),
+          IO.onCancel(IO.delay(fin)),
+        );
+
+        await expect(io).toCancel(ticker);
+        expect(fin).not.toHaveBeenCalled();
+      },
+    );
+
+    it.ticked(
+      'should not run finalizer of canceled uncancelable fails',
+      async ticker => {
+        const fin = jest.fn();
+
+        const io = pipe(
+          IO.uncancelable(() =>
+            pipe(
+              IO.canceled,
+              IO.flatMap(() => IO.throwError(new Error('test error'))),
+            ),
+          ),
+          IO.onCancel(IO.delay(fin)),
+        );
+
+        await expect(io).toCancel(ticker);
+        expect(fin).not.toHaveBeenCalled();
+      },
+    );
+
+    it.ticked('should run finalizer on failed bracket use', async ticker => {
+      const io = pipe(
+        IO.Do,
+        IO.bindTo('ref', () => IO.ref(false)),
+        IO.bind(({ ref }) =>
+          pipe(
+            IO.bracketFull_(
+              () => IO.unit,
+              () => throwError(new Error('Uncaught error')),
+              () => ref.set(true),
+            ),
+            IO.attempt,
+          ),
+        ),
+        IO.flatMap(({ ref }) => ref.get()),
+      );
+
+      await expect(io).toCompleteAs(true, ticker);
+    });
+  });
+
+  describe('stack-safety', () => {
+    it.ticked('should evaluate 10,000 consecutive binds', async ticker => {
+      const loop: (i: number) => IO.IO<void> = i =>
+        i < 10_000
+          ? pipe(
+              IO.unit,
+              IO.flatMap(() => loop(i + 1)),
+              IO.map(id),
+            )
+          : IO.unit;
+
+      await expect(loop(0)).toCompleteAs(undefined, ticker);
+    });
+
+    it.ticked('should evaluate 10,000 error handler binds', async ticker => {
+      const loop: (i: number) => IO.IO<void> = i =>
+        i < 10_000
+          ? pipe(
+              IO.unit,
+              IO.flatMap(() => loop(i + 1)),
+              IO.handleErrorWith(IO.throwError),
+            )
+          : IO.throwError(new Error('test error'));
+
+      const io = IO.handleErrorWith_(loop(0), () => IO.unit);
+      await expect(io).toCompleteAs(undefined, ticker);
+    });
+
+    it.ticked('should evaluate 10,000 consecutive attempts', async ticker => {
+      let acc: IO.IO<unknown> = IO.unit;
+
+      for (let i = 0; i < 10_000; i++) acc = IO.attempt(acc);
+
+      const io = IO.flatMap_(acc, () => IO.unit);
+      await expect(io).toCompleteAs(undefined, ticker);
+    });
+  });
+
+  describe('parTraverseN', () => {
+    it.ticked('should propagate errors', async ticker => {
+      const io = pipe(
+        [1, 2, 3],
+        IO.parTraverseN(
+          x => (x === 2 ? throwError(new Error('test error')) : IO.unit),
+          2,
+        ),
+      );
+
+      await expect(io).toFailAs(new Error('test error'), ticker);
+    });
+
+    // it.ticked('should be cancelable', async ticker => {
+    //   const traverse = pipe(
+    //     [1, 2, 3],
+    //     IO.parTraverseN(() => IO.never, 2),
+    //   );
+
+    //   const io = pipe(
+    //     IO.Do,
+    //     IO.bindTo('fiber', () => IO.fork(traverse)),
+    //     IO.bind(() => IO.delay(() => ticker.tickAll())),
+    //     IO.flatMap(({ fiber }) => fiber.cancel),
+    //   );
+
+    //   await expect(io).toCompleteAs(undefined, ticker);
+    // });
+
+    // it.ticked('should cancel all running tasks', async ticker => {
+    //   const fins = [jest.fn(), jest.fn(), jest.fn()];
+
+    //   const traverse = pipe(
+    //     fins,
+    //     IO.parTraverseN(fin => IO.onCancel_(IO.never, IO.delay(fin)), 2),
+    //   );
+
+    //   const io = pipe(
+    //     IO.Do,
+    //     IO.bindTo('fiber', () => IO.fork(traverse)),
+    //     IO.bind(() => IO.delay(() => ticker.tickAll())),
+    //     IO.flatMap(({ fiber }) => fiber.cancel),
+    //   );
+
+    //   await expect(io).toCompleteAs(undefined, ticker);
+    //   expect(fins[0]).toHaveBeenCalled();
+    //   expect(fins[1]).toHaveBeenCalled();
+    //   expect(fins[2]).not.toHaveBeenCalled();
+    // });
   });
 });

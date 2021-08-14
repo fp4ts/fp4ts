@@ -154,6 +154,10 @@ export const flatTap: <A>(f: (a: A) => IO<unknown>) => (ioa: IO<A>) => IO<A> =
 
 export const flatten: <A>(ioioa: IO<IO<A>>) => IO<A> = flatMap(id);
 
+export const handleError: <B>(
+  f: (e: Error) => B,
+) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleError_(ioa, f);
+
 export const handleErrorWith: <B>(
   f: (e: Error) => IO<B>,
 ) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleErrorWith_(ioa, f);
@@ -370,11 +374,9 @@ export const bracketFull_ = <A, B>(
     pipe(
       acquire(poll),
       flatMap(a =>
-        defer(() =>
-          pipe(
-            poll(use(a)),
-            finalize(oc => release(a, oc)),
-          ),
+        pipe(
+          defer(() => poll(use(a))),
+          finalize(oc => release(a, oc)),
         ),
       ),
     ),
@@ -398,6 +400,11 @@ export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   ioa,
   f,
 ) => flatMap_(ioa, x => map_(f(x), () => x));
+
+export const handleError_: <A>(ioa: IO<A>, f: (e: Error) => A) => IO<A> = (
+  ioa,
+  f,
+) => handleErrorWith_(ioa, e => pure(f(e)));
 
 export const handleErrorWith_: <A>(
   ioa: IO<A>,
