@@ -1,146 +1,8 @@
+import '../test-kit/jest';
 import * as E from '../../fp/either';
 import * as O from '../outcome';
 import * as IO from '../io';
-import * as IOR from '../io-runtime';
-import { TestExecutionContext } from '../tests/test-execution-context';
-import { Ticker } from '../tests/ticker';
 import { id, pipe } from '../../fp/core';
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Matchers<R> {
-      tickTo(oc: O.Outcome<unknown>, ticker: Ticker): Promise<unknown>;
-      toCompleteAs(result: unknown, ticker: Ticker): Promise<unknown>;
-      toFailAs(error: Error, ticker: Ticker): Promise<unknown>;
-      toCancel(ticker: Ticker): Promise<unknown>;
-    }
-
-    interface It {
-      ticked(
-        message: string,
-        body: (ticker: Ticker) => unknown | Promise<unknown>,
-      ): void;
-    }
-  }
-}
-
-type T = typeof expect['extend'] extends (_: {
-  [k: string]: (this: infer MatcherContext, ...arg: any) => any;
-}) => any
-  ? MatcherContext
-  : never;
-
-function ticked(
-  runTest: (ticker: Ticker) => any | Promise<any>,
-): () => Promise<any> {
-  return () => {
-    const ticker = new TestExecutionContext();
-    return runTest(ticker);
-  };
-}
-
-it.ticked = (
-  message: string,
-  testBody: (ticker: Ticker) => any | Promise<any>,
-) => {
-  it(
-    message,
-    ticked(ticker => testBody(ticker)),
-  );
-};
-
-test.ticked = (
-  message: string,
-  testBody: (ticker: Ticker) => any | Promise<any>,
-) => {
-  test(
-    message,
-    ticked(ticker => testBody(ticker)),
-  );
-};
-
-async function tickTo(
-  this: T,
-  receivedIO: IO.IO<unknown>,
-  expected: O.Outcome<unknown>,
-  ec: TestExecutionContext,
-) {
-  const receivedPromise = IOR.unsafeRunOutcomeToPromise_(receivedIO, ec);
-
-  ec.tickAll();
-
-  const received = await receivedPromise;
-  const result = this.equals(received, expected);
-
-  const message = O.fold_(
-    expected,
-    () =>
-      O.fold_(
-        received,
-        () => 'be canceled, but was',
-        e => `be canceled, but failed with ${this.utils.printReceived(`${e}`)}`,
-        r =>
-          `be canceled, but completed with ${this.utils.printReceived(`${r}`)}`,
-      ),
-    e =>
-      O.fold_(
-        received,
-        () => `fail with ${this.utils.printExpected(`${e}`)}, but was canceled`,
-        e2 =>
-          `fail with ${this.utils.printExpected(
-            `${e}`,
-          )}, but failed with ${this.utils.printReceived(`${e2}`)}`,
-        r2 =>
-          `fail with ${this.utils.printExpected(
-            `${e}`,
-          )}, but completed with ${this.utils.printReceived(`${r2}`)}`,
-      ),
-    r =>
-      O.fold_(
-        received,
-        () =>
-          `complete with ${this.utils.printExpected(`${r}`)}, but was canceled`,
-        e2 =>
-          `complete with ${this.utils.printExpected(
-            `${r}`,
-          )}, but failed with ${this.utils.printReceived(`${e2}`)}`,
-        r2 =>
-          `complete with ${this.utils.printExpected(
-            `${r}`,
-          )}, but completed with ${this.utils.printReceived(`${r2}`)}`,
-      ),
-  );
-
-  return result
-    ? { pass: true, message: () => `Expected IO not to ${message}` }
-    : { pass: false, message: () => `Expected IO to ${message}` };
-}
-
-expect.extend({
-  tickTo,
-
-  toCompleteAs(
-    receivedIO: IO.IO<unknown>,
-    expected: unknown,
-    ec: TestExecutionContext,
-  ) {
-    return tickTo.apply(this, [receivedIO, O.success(expected), ec]);
-  },
-
-  toFailAs(
-    receivedIO: IO.IO<unknown>,
-    expected: Error,
-    ec: TestExecutionContext,
-  ) {
-    return tickTo.apply(this, [receivedIO, O.failure(expected), ec]);
-  },
-
-  toCancel(receivedIO: IO.IO<unknown>, ec: TestExecutionContext) {
-    return tickTo.apply(this, [receivedIO, O.canceled, ec]);
-  },
-});
 
 const throwError = (e: Error) => {
   throw e;
@@ -149,7 +11,7 @@ const throwError = (e: Error) => {
 describe('io monad', () => {
   describe('free monad', () => {
     it.ticked('should produce a pure value', async ticker => {
-      await expect(IO.pure(42)).toCompleteAs(42, ticker);
+      await expect(IO.pure(42)).toCompleteWith(42, ticker);
     });
 
     it.ticked('should sequence two effects', async ticker => {
@@ -164,7 +26,7 @@ describe('io monad', () => {
         ),
       );
 
-      await expect(fa).toCompleteAs(undefined, ticker);
+      await expect(fa).toCompleteWith(undefined, ticker);
       expect(i).toBe(42);
     });
 
@@ -172,22 +34,22 @@ describe('io monad', () => {
       const io1 = IO.async(cb => IO.delay(() => cb(E.right(42))));
       const io2 = IO.flatMap_(io1, i => IO.pure(i));
 
-      await expect(io1).toCompleteAs(42, ticker);
-      await expect(io2).toCompleteAs(42, ticker);
+      await expect(io1).toCompleteWith(42, ticker);
+      await expect(io2).toCompleteWith(42, ticker);
     });
   });
 
   describe('error handling', () => {
     it.ticked('should capture suspended error', async ticker => {
       const io = IO.delay(() => throwError(Error('test error')));
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should resume async IO with failure', async ticker => {
       const io = IO.async(cb =>
         IO.delay(() => cb(E.left(new Error('test error')))),
       );
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should propagate thrown error', async ticker => {
@@ -195,7 +57,7 @@ describe('io monad', () => {
         IO.throwError(new Error('test error')),
         IO.flatMap(() => IO.unit),
       );
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should short circuit the execution on error', async ticker => {
@@ -205,13 +67,13 @@ describe('io monad', () => {
         IO.flatMap(() => IO.delay(fn)),
       );
 
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
       expect(fn).not.toHaveBeenCalled();
     });
 
     it.ticked('should handle thrown error', async ticker => {
       const io = pipe(IO.throwError(new Error('test error')), IO.attempt);
-      await expect(io).toCompleteAs(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in redeem recovery', async ticker => {
@@ -223,7 +85,10 @@ describe('io monad', () => {
         ),
         IO.attempt,
       );
-      await expect(io).toCompleteAs(E.left(new Error('thrown error')), ticker);
+      await expect(io).toCompleteWith(
+        E.left(new Error('thrown error')),
+        ticker,
+      );
     });
 
     it.ticked('should recover from errors using redeemWith', async ticker => {
@@ -234,7 +99,7 @@ describe('io monad', () => {
           () => IO.pure(43),
         ),
       );
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
     });
 
     it.ticked('should bind success values using redeemWith', async ticker => {
@@ -245,7 +110,7 @@ describe('io monad', () => {
           () => IO.pure(43),
         ),
       );
-      await expect(io).toCompleteAs(43, ticker);
+      await expect(io).toCompleteWith(43, ticker);
     });
 
     it.ticked('should catch error thrown in map', async ticker => {
@@ -254,7 +119,7 @@ describe('io monad', () => {
         IO.map(() => throwError(new Error('test error'))),
         IO.attempt,
       );
-      await expect(io).toCompleteAs(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in flatMap', async ticker => {
@@ -263,7 +128,7 @@ describe('io monad', () => {
         IO.flatMap(() => throwError(new Error('test error'))),
         IO.attempt,
       );
-      await expect(io).toCompleteAs(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in handleErrorWith', async ticker => {
@@ -272,7 +137,10 @@ describe('io monad', () => {
         IO.handleErrorWith(() => throwError(new Error('thrown error'))),
         IO.attempt,
       );
-      await expect(io).toCompleteAs(E.left(new Error('thrown error')), ticker);
+      await expect(io).toCompleteWith(
+        E.left(new Error('thrown error')),
+        ticker,
+      );
     });
 
     it.ticked(
@@ -295,7 +163,10 @@ describe('io monad', () => {
           IO.attempt,
         );
 
-        await expect(io).toCompleteAs(E.left(new Error('first error')), ticker);
+        await expect(io).toCompleteWith(
+          E.left(new Error('first error')),
+          ticker,
+        );
       },
     );
   });
@@ -307,8 +178,8 @@ describe('io monad', () => {
         counter += 1;
         return counter;
       });
-      await expect(io).toCompleteAs(43, ticker);
-      await expect(io).toCompleteAs(44, ticker);
+      await expect(io).toCompleteWith(43, ticker);
+      await expect(io).toCompleteWith(44, ticker);
     });
 
     it.ticked('should execute suspended effect on each use', async ticker => {
@@ -325,7 +196,7 @@ describe('io monad', () => {
         IO.map(({ a, b }) => [a, b] as [number, number]),
       );
 
-      await expect(io).toCompleteAs([43, 44], ticker);
+      await expect(io).toCompleteWith([43, 44], ticker);
     });
   });
 
@@ -337,7 +208,7 @@ describe('io monad', () => {
         IO.fork,
         IO.flatMap(f => f.join),
       );
-      await expect(io).toCompleteAs(O.success(43), ticker);
+      await expect(io).toCompleteWith(O.success(43), ticker);
     });
 
     it.ticked('should fork and join a failed fiber', async ticker => {
@@ -346,7 +217,10 @@ describe('io monad', () => {
         IO.fork,
         IO.flatMap(f => f.join),
       );
-      await expect(io).toCompleteAs(O.failure(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(
+        O.failure(new Error('test error')),
+        ticker,
+      );
     });
 
     it.ticked(
@@ -357,7 +231,7 @@ describe('io monad', () => {
           IO.fork,
           IO.map(() => 42),
         );
-        await expect(io).toCompleteAs(42, ticker);
+        await expect(io).toCompleteWith(42, ticker);
       },
     );
 
@@ -376,7 +250,7 @@ describe('io monad', () => {
             ),
           ),
         );
-        await expect(io).toCompleteAs(42, ticker);
+        await expect(io).toCompleteWith(42, ticker);
       },
     );
 
@@ -388,7 +262,7 @@ describe('io monad', () => {
           IO.fork,
           IO.flatMap(f => f.join),
         );
-        await expect(io).toCompleteAs(O.canceled, ticker);
+        await expect(io).toCompleteWith(O.canceled, ticker);
       },
     );
 
@@ -401,7 +275,7 @@ describe('io monad', () => {
         IO.map(() => undefined),
       );
 
-      await expect(ioa).toCompleteAs(undefined, ticker);
+      await expect(ioa).toCompleteWith(undefined, ticker);
     });
   });
 
@@ -409,7 +283,7 @@ describe('io monad', () => {
     it.ticked('should resume async continuation', async ticker => {
       const io = IO.async(cb => IO.delay(() => cb(E.right(42))));
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
     });
 
     it.ticked(
@@ -420,7 +294,7 @@ describe('io monad', () => {
           IO.map(x => x + 2),
         );
 
-        await expect(io).toCompleteAs(44, ticker);
+        await expect(io).toCompleteWith(44, ticker);
       },
     );
 
@@ -431,7 +305,7 @@ describe('io monad', () => {
         IO.map(() => undefined),
       );
 
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked(
@@ -457,7 +331,7 @@ describe('io monad', () => {
           IO.flatMap(({ f }) => f.join),
         );
 
-        await expect(io).toCompleteAs(O.success(42), ticker);
+        await expect(io).toCompleteWith(O.success(42), ticker);
       },
     );
 
@@ -474,7 +348,7 @@ describe('io monad', () => {
           ),
         );
 
-        await expect(ioa).toCompleteAs(O.canceled, ticker);
+        await expect(ioa).toCompleteWith(O.canceled, ticker);
       },
     );
 
@@ -506,7 +380,7 @@ describe('io monad', () => {
         }),
       );
 
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
       expect(innerR).toBe(1);
       expect(outerR).toBe(2);
     });
@@ -515,17 +389,17 @@ describe('io monad', () => {
   describe('both', () => {
     it.ticked('should complete when both fibers complete', async ticker => {
       const io = IO.both_(IO.pure(42), IO.pure(43));
-      await expect(io).toCompleteAs([42, 43], ticker);
+      await expect(io).toCompleteWith([42, 43], ticker);
     });
 
     it.ticked('should fail if lhs fiber fails', async ticker => {
       const io = IO.both_(IO.throwError(new Error('left error')), IO.pure(43));
-      await expect(io).toFailAs(new Error('left error'), ticker);
+      await expect(io).toFailWith(new Error('left error'), ticker);
     });
 
     it.ticked('should fail if rhs fiber fails', async ticker => {
       const io = IO.both_(IO.pure(42), IO.throwError(new Error('right error')));
-      await expect(io).toFailAs(new Error('right error'), ticker);
+      await expect(io).toFailWith(new Error('right error'), ticker);
     });
 
     it.ticked('should cancel if lhs cancels', async ticker => {
@@ -534,7 +408,7 @@ describe('io monad', () => {
         IO.fork,
         IO.flatMap(f => f.join),
       );
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should cancel if rhs cancels', async ticker => {
@@ -543,7 +417,7 @@ describe('io monad', () => {
         IO.fork,
         IO.flatMap(f => f.join),
       );
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should propagate cancelation', async ticker => {
@@ -556,7 +430,7 @@ describe('io monad', () => {
         IO.flatMap(({ f }) => f.join),
       );
 
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should cancel both fibers', async ticker => {
@@ -581,7 +455,7 @@ describe('io monad', () => {
         IO.map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]),
       );
 
-      await expect(io).toCompleteAs([true, true], ticker);
+      await expect(io).toCompleteWith([true, true], ticker);
     });
   });
 
@@ -595,7 +469,7 @@ describe('io monad', () => {
         ),
       );
 
-      await expect(io).toCompleteAs(E.left(42), ticker);
+      await expect(io).toCompleteWith(E.left(42), ticker);
     });
 
     it.ticked('should complete with faster, rhs', async ticker => {
@@ -607,24 +481,24 @@ describe('io monad', () => {
         IO.pure(43),
       );
 
-      await expect(io).toCompleteAs(E.right(43), ticker);
+      await expect(io).toCompleteWith(E.right(43), ticker);
     });
 
     it.ticked('should fail if lhs fails', async ticker => {
       const io = IO.race_(IO.throwError(new Error('left error')), IO.pure(43));
-      await expect(io).toFailAs(new Error('left error'), ticker);
+      await expect(io).toFailWith(new Error('left error'), ticker);
     });
 
     it.ticked('should fail if rhs fails', async ticker => {
       const io = IO.race_(IO.pure(42), IO.throwError(new Error('right error')));
-      await expect(io).toFailAs(new Error('right error'), ticker);
+      await expect(io).toFailWith(new Error('right error'), ticker);
     });
 
     it.ticked(
       'should fail if lhs fails and rhs never completes',
       async ticker => {
         const io = IO.race_(IO.throwError(new Error('left error')), IO.never);
-        await expect(io).toFailAs(new Error('left error'), ticker);
+        await expect(io).toFailWith(new Error('left error'), ticker);
       },
     );
 
@@ -632,7 +506,7 @@ describe('io monad', () => {
       'should fail if rhs fails and lhs never completes',
       async ticker => {
         const io = IO.race_(IO.never, IO.throwError(new Error('right error')));
-        await expect(io).toFailAs(new Error('right error'), ticker);
+        await expect(io).toFailWith(new Error('right error'), ticker);
       },
     );
 
@@ -640,7 +514,7 @@ describe('io monad', () => {
       'should complete with lhs when rhs never completes',
       async ticker => {
         const io = IO.race_(IO.pure(42), IO.never);
-        await expect(io).toCompleteAs(E.left(42), ticker);
+        await expect(io).toCompleteWith(E.left(42), ticker);
       },
     );
 
@@ -648,7 +522,7 @@ describe('io monad', () => {
       'should complete with rhs when lhs never completes',
       async ticker => {
         const io = IO.race_(IO.never, IO.pure(43));
-        await expect(io).toCompleteAs(E.right(43), ticker);
+        await expect(io).toCompleteWith(E.right(43), ticker);
       },
     );
 
@@ -659,14 +533,14 @@ describe('io monad', () => {
         IO.flatMap(f => f.join),
       );
 
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked(
       'should succeed if lhs succeeds and rhs cancels',
       async ticker => {
         const io = IO.race_(IO.pure(42), IO.canceled);
-        await expect(io).toCompleteAs(E.left(42), ticker);
+        await expect(io).toCompleteWith(E.left(42), ticker);
       },
     );
 
@@ -674,18 +548,18 @@ describe('io monad', () => {
       'should succeed if rhs succeeds and lhs cancels',
       async ticker => {
         const io = IO.race_(IO.canceled, IO.pure(43));
-        await expect(io).toCompleteAs(E.right(43), ticker);
+        await expect(io).toCompleteWith(E.right(43), ticker);
       },
     );
 
     it.ticked('should fail if lhs fails and rhs cancels', async ticker => {
       const io = IO.race_(IO.throwError(new Error('test error')), IO.canceled);
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should fail if rhs fails and lhs cancels', async ticker => {
       const io = IO.race_(IO.canceled, IO.throwError(new Error('test error')));
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should cancel both fibers when canceled', async ticker => {
@@ -709,7 +583,7 @@ describe('io monad', () => {
         IO.map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]),
       );
 
-      await expect(io).toCompleteAs([true, true], ticker);
+      await expect(io).toCompleteWith([true, true], ticker);
     });
   });
 
@@ -720,7 +594,7 @@ describe('io monad', () => {
         IO.flatMap(f => IO.flatMap_(f.cancel, () => f.join)),
       );
 
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should cancel infinite chain of binds', async ticker => {
@@ -736,7 +610,7 @@ describe('io monad', () => {
         ),
       );
 
-      await expect(io).toCompleteAs(O.canceled, ticker);
+      await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should trigger cancelation cleanup of async', async ticker => {
@@ -751,7 +625,7 @@ describe('io monad', () => {
         IO.flatMap(({ f }) => f.cancel),
       );
 
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
       expect(cleanup).toHaveBeenCalled();
     });
 
@@ -874,7 +748,7 @@ describe('io monad', () => {
         );
       });
 
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
       expect(cont).toHaveBeenCalled();
     });
 
@@ -904,7 +778,7 @@ describe('io monad', () => {
           IO.flatMap(({ fiber }) => fiber.join),
         );
 
-        await expect(io).toCompleteAs(O.canceled, ticker);
+        await expect(io).toCompleteWith(O.canceled, ticker);
         expect(results).toEqual([1, 2, 3]);
       },
     );
@@ -970,7 +844,7 @@ describe('io monad', () => {
 
       const io = pipe(IO.pure(42), IO.onCancel(IO.delay(fin)));
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
       expect(fin).not.toHaveBeenCalled();
     });
 
@@ -982,7 +856,7 @@ describe('io monad', () => {
         IO.finalize(() => IO.delay(fin)),
       );
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
@@ -994,7 +868,7 @@ describe('io monad', () => {
         IO.finalize(() => IO.delay(fin)),
       );
 
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
       expect(fin).toHaveBeenCalled();
     });
 
@@ -1020,7 +894,7 @@ describe('io monad', () => {
         IO.finalize(() => IO.delay(outer)),
       );
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalled();
       expect(outer).toHaveBeenCalled();
     });
@@ -1035,7 +909,7 @@ describe('io monad', () => {
         IO.finalize(() => IO.delay(outer)),
       );
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalledTimes(1);
       expect(outer).toHaveBeenCalledTimes(1);
     });
@@ -1055,7 +929,7 @@ describe('io monad', () => {
         ),
       );
 
-      await expect(io).toCompleteAs(42, ticker);
+      await expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
@@ -1066,7 +940,7 @@ describe('io monad', () => {
         IO.finalize(() => IO.unit),
       );
 
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should run an async finalizer of async IO', async ticker => {
@@ -1096,7 +970,7 @@ describe('io monad', () => {
         IO.flatMap(({ fiber }) => fiber.cancel), // cancel after the async task is running
       );
 
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
@@ -1157,7 +1031,7 @@ describe('io monad', () => {
         IO.flatMap(({ ref }) => ref.get()),
       );
 
-      await expect(io).toCompleteAs(true, ticker);
+      await expect(io).toCompleteWith(true, ticker);
     });
   });
 
@@ -1172,7 +1046,7 @@ describe('io monad', () => {
             )
           : IO.unit;
 
-      await expect(loop(0)).toCompleteAs(undefined, ticker);
+      await expect(loop(0)).toCompleteWith(undefined, ticker);
     });
 
     it.ticked('should evaluate 10,000 error handler binds', async ticker => {
@@ -1186,7 +1060,7 @@ describe('io monad', () => {
           : IO.throwError(new Error('test error'));
 
       const io = IO.handleErrorWith_(loop(0), () => IO.unit);
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
     });
 
     it.ticked('should evaluate 10,000 consecutive attempts', async ticker => {
@@ -1195,7 +1069,7 @@ describe('io monad', () => {
       for (let i = 0; i < 10_000; i++) acc = IO.attempt(acc);
 
       const io = IO.flatMap_(acc, () => IO.unit);
-      await expect(io).toCompleteAs(undefined, ticker);
+      await expect(io).toCompleteWith(undefined, ticker);
     });
   });
 
@@ -1209,7 +1083,7 @@ describe('io monad', () => {
         ),
       );
 
-      await expect(io).toFailAs(new Error('test error'), ticker);
+      await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     // it.ticked('should be cancelable', async ticker => {
