@@ -34,6 +34,13 @@ export class Delay<A> extends IO<A> {
   }
 }
 
+export class Defer<A> extends IO<A> {
+  public readonly tag = 'defer';
+  public constructor(public readonly thunk: () => IO<A>) {
+    super();
+  }
+}
+
 export class Map<E, A> extends IO<A> {
   public readonly tag = 'map';
   public constructor(
@@ -173,6 +180,7 @@ export type IOView<A> =
   | Pure<A>
   | Fail
   | Delay<A>
+  | Defer<A>
   | Map<any, A>
   | FlatMap<any, A>
   | HandleErrorWith<A>

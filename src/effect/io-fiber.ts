@@ -31,9 +31,6 @@ export class IOFiber<A> implements F.Fiber<A> {
   private readonly autoSuspendThreshold: number =
     PlatformConfig.AUTO_SUSPEND_THRESHOLD;
 
-  private static ID: number = 0;
-  public readonly ID: number = ++IOFiber.ID;
-
   public constructor(startIO: IO.IO<A>, startEC: ExecutionContext) {
     this.resumeIO = startIO;
     this.currentEC = startEC;
@@ -86,6 +83,14 @@ export class IOFiber<A> implements F.Fiber<A> {
         case 'delay':
           try {
             _cur = IO.pure(cur.thunk());
+          } catch (e) {
+            _cur = IO.throwError(e as Error);
+          }
+          continue;
+
+        case 'defer':
+          try {
+            _cur = cur.thunk();
           } catch (e) {
             _cur = IO.throwError(e as Error);
           }

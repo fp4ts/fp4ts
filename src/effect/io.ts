@@ -13,6 +13,7 @@ import {
   Pure,
   Fail,
   Delay,
+  Defer,
   Canceled,
   Map,
   FlatMap,
@@ -43,7 +44,7 @@ export const unit: IO<void> = pure(undefined);
 export const delay: <A>(thunk: () => A) => IO<A> = thunk => new Delay(thunk);
 
 export const defer: <A>(thunk: () => IO<A>) => IO<A> = thunk =>
-  pipe(thunk, delay, flatten);
+  new Defer(thunk);
 
 export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
   async(resume =>
