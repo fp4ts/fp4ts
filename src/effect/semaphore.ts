@@ -27,25 +27,27 @@ export class Semaphore {
   private constructor(private readonly state: Ref<State>) {}
 
   public readonly acquire = (): IO.IO<void> =>
-    pipe(
-      Deferred.of<void>(),
-      IO.flatMap(wait => {
-        const cancel = this.state.update(state =>
-          state.copy({ queue: state.queue.filter(x => x !== wait) }),
-        );
+    IO.uncancelable(poll =>
+      pipe(
+        Deferred.of<void>(),
+        IO.flatMap(wait => {
+          const cancel = this.state.update(state =>
+            state.copy({ queue: state.queue.filter(x => x !== wait) }),
+          );
 
-        return pipe(
-          this.state.modify(state =>
-            state.permits === 0
-              ? [
-                  state.copy({ queue: [...state.queue, wait] }),
-                  IO.onCancel_(wait.get(), cancel),
-                ]
-              : [state.copy({ permits: state.permits - 1 }), IO.unit],
-          ),
-          IO.flatten,
-        );
-      }),
+          return pipe(
+            this.state.modify(state =>
+              state.permits === 0
+                ? [
+                    state.copy({ queue: [...state.queue, wait] }),
+                    pipe(poll(wait.get()), IO.onCancel(cancel)),
+                  ]
+                : [state.copy({ permits: state.permits - 1 }), IO.unit],
+            ),
+            IO.flatten,
+          );
+        }),
+      ),
     );
 
   public readonly release = (): IO.IO<void> =>
@@ -64,10 +66,11 @@ export class Semaphore {
     );
 
   public readonly withPermit = <A>(ioa: IO.IO<A>): IO.IO<A> =>
-    IO.bracket_(
-      this.acquire(),
-      () => ioa,
-      () => this.release(),
+    IO.uncancelable(poll =>
+      pipe(
+        poll(this.acquire()),
+        IO.flatMap(() => IO.finalize_(poll(ioa), () => this.release())),
+      ),
     );
 
   public static readonly withPermits = (permits: number): IO.IO<Semaphore> => {
@@ -88,9 +91,9 @@ export const release: (sem: Semaphore) => IO.IO<void> = sem => sem.release();
 
 export const withPermit: (sem: Semaphore) => <A>(ioa: IO.IO<A>) => IO.IO<A> =
   sem => ioa =>
-    withPermit_(ioa, sem);
+    withPermit_(sem, ioa);
 
-export const withPermit_: <A>(ioa: IO.IO<A>, sem: Semaphore) => IO.IO<A> = (
-  ioa,
+export const withPermit_: <A>(sem: Semaphore, ioa: IO.IO<A>) => IO.IO<A> = (
   sem,
+  ioa,
 ) => sem.withPermit(ioa);

@@ -31,6 +31,9 @@ export class IOFiber<A> implements F.Fiber<A> {
   private readonly autoSuspendThreshold: number =
     PlatformConfig.AUTO_SUSPEND_THRESHOLD;
 
+  private static ID: number = 0;
+  public readonly ID: number = ++IOFiber.ID;
+
   public constructor(startIO: IO.IO<A>, startEC: ExecutionContext) {
     this.resumeIO = startIO;
     this.currentEC = startEC;
@@ -46,7 +49,9 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   public run(): void {
-    this.runLoop(this.resumeIO);
+    const cur = this.resumeIO;
+    this.resumeIO = null as any;
+    this.runLoop(cur);
   }
 
   public onComplete(cb: (oc: O.Outcome<A>) => void): void {
@@ -152,11 +157,11 @@ export class IOFiber<A> implements F.Fiber<A> {
                 if (!this.shouldFinalize()) {
                   const next = E.fold_(ea, IO.throwError, IO.pure);
                   this.resumeIO = next;
-                  this.schedule(this, this.currentEC);
+                  return this.schedule(this, this.currentEC);
                 } else {
                   // Otherwise, we've been canceled and we should cancel
                   // ourselves asynchronously
-                  this.cancelAsync();
+                  return this.cancelAsync();
                 }
               }
               // We were canceled while suspended, so just drop the callback
@@ -220,8 +225,8 @@ export class IOFiber<A> implements F.Fiber<A> {
 
               const cancel = pipe(
                 IO.Do,
-                IO.bindTo('cancelA', () => pipe(fiberA.cancel, IO.fork)),
-                IO.bindTo('cancelB', () => pipe(fiberB.cancel, IO.fork)),
+                IO.bindTo('cancelA', pipe(fiberA.cancel, IO.fork)),
+                IO.bindTo('cancelB', pipe(fiberB.cancel, IO.fork)),
                 IO.bind(({ cancelA }) => cancelA.join),
                 IO.bind(({ cancelB }) => cancelB.join),
                 IO.map(() => undefined),
@@ -271,6 +276,7 @@ export class IOFiber<A> implements F.Fiber<A> {
         }
 
         case 'suspend':
+          this.resumeIO = null as any;
           return;
 
         case 'IOEndFiber':
@@ -310,8 +316,7 @@ export class IOFiber<A> implements F.Fiber<A> {
 
       // do not allow further cancelations
       this.masks += 1;
-      const fin = this.finalizers.pop()!;
-      this.runLoop(fin);
+      this.runLoop(this.finalizers.pop()!);
     } else {
       cb && cb(E.rightUnit);
       this.complete(O.canceled);
@@ -348,7 +353,7 @@ export class IOFiber<A> implements F.Fiber<A> {
   }
 
   private shouldFinalize(): boolean {
-    return this.canceled && !this.masks;
+    return this.canceled && this.isUnmasked();
   }
 
   private isUnmasked(): boolean {
@@ -476,7 +481,7 @@ export class IOFiber<A> implements F.Fiber<A> {
     try {
       return f(r);
     } catch (e) {
-      return this.failed(e);
+      return this.failed(e as Error);
     }
   }
 

@@ -191,6 +191,11 @@ export const parTraverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]> =
   f => as =>
     parTraverse_(as, f);
 
+export const parSequenceN: (
+  maxConcurrent: number,
+) => <A>(ioas: IO<A>[]) => IO<A[]> = maxConcurrent => ioas =>
+  parSequenceN_(ioas, maxConcurrent);
+
 export const parTraverseN: <A, B>(
   f: (a: A) => IO<B>,
   maxConcurrent: number,
@@ -439,20 +444,122 @@ export const traverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
         pipe(
           Do,
           bindTo('acc', () => ioAcc),
-          bindTo('b', () => f(ioa)),
+          bindTo('b', () => defer(() => f(ioa))),
           map(({ acc, b }) => [...acc, b]),
         ),
       pure([]),
     ),
   );
 
+export const parSequenceN_: <A>(
+  ioas: IO<A>[],
+  maxConcurrent: number,
+) => IO<A[]> = (ioas, maxConcurrent) => parTraverseN_(ioas, id, maxConcurrent);
+
+export const map2_ = <A, B, C>(
+  ioa: IO<A>,
+  iob: IO<B>,
+  f: (a: A, b: B) => C,
+): IO<C> =>
+  uncancelable(poll =>
+    pipe(
+      Do,
+      bindTo('fiberA', fork(ioa)),
+      bindTo('fiberB', fork(iob)),
+
+      bind(({ fiberA, fiberB }) =>
+        pipe(
+          fiberB.join,
+          flatMap(
+            O.fold(
+              () => fiberA.cancel,
+              () => fiberA.cancel,
+              () => unit,
+            ),
+          ),
+          fork,
+        ),
+      ),
+      bind(({ fiberA, fiberB }) =>
+        pipe(
+          fiberA.join,
+          flatMap(
+            O.fold(
+              () => fiberB.cancel,
+              () => fiberB.cancel,
+              () => unit,
+            ),
+          ),
+          fork,
+        ),
+      ),
+
+      bindTo('a', ({ fiberA, fiberB }) =>
+        pipe(
+          poll(fiberA.join),
+          onCancel(fiberA.cancel),
+          onCancel(fiberB.cancel),
+          flatMap(
+            O.fold(
+              () =>
+                flatMap_(fiberB.cancel, () =>
+                  pipe(
+                    fiberB.join,
+                    flatMap(
+                      O.fold(
+                        () => flatMap_(canceled, () => never),
+                        e => throwError(e),
+                        () => flatMap_(canceled, () => never),
+                      ),
+                    ),
+                    poll,
+                  ),
+                ),
+              e => flatMap_(fiberB.cancel, () => throwError(e)),
+              a => pure(a),
+            ),
+          ),
+        ),
+      ),
+
+      bindTo('b', ({ fiberA, fiberB }) =>
+        pipe(
+          poll(fiberB.join),
+          onCancel(fiberB.cancel),
+          flatMap(
+            O.fold(
+              () =>
+                pipe(
+                  fiberA.join,
+                  flatMap(
+                    O.fold(
+                      () => flatMap_(canceled, () => never),
+                      e => throwError(e),
+                      () => flatMap_(canceled, () => never),
+                    ),
+                  ),
+                  poll,
+                ),
+              e => throwError(e),
+              b => pure(b),
+            ),
+          ),
+        ),
+      ),
+
+      map(({ a, b }) => f(a, b)),
+    ),
+  );
+
 export const parTraverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
   defer(() =>
-    as.map(f).reduceRight<IO<B[]>>(
-      (iobs, b) =>
-        pipe(
-          both_(iobs, b),
-          map(([bs, b]) => [...bs, b]),
+    as.reduceRight(
+      (iobs, a) =>
+        map2_(
+          // Order very important
+          iobs,
+          defer(() => f(a)),
+          (bs, b) => [...bs, b],
         ),
       pure([] as B[]),
     ),
@@ -465,7 +572,7 @@ export const parTraverseN_ = <A, B>(
 ): IO<B[]> =>
   pipe(
     Sem.of(maxConcurrent),
-    flatMap(sem => parTraverse_(as, flow(f, Sem.withPermit(sem)))),
+    flatMap(sem => parTraverse_(as, x => sem.withPermit(f(x)))),
   );
 
 export const parTraverseOutcome_ = <A, B>(
@@ -473,7 +580,7 @@ export const parTraverseOutcome_ = <A, B>(
   f: (a: A) => IO<B>,
 ): IO<O.Outcome<B>[]> =>
   defer(() => {
-    const iobFibers = as.map(flow(f, fork));
+    const iobFibers = as.map(flow(x => defer(() => f(x)), fork));
 
     return pipe(
       sequence(iobFibers),
@@ -507,7 +614,7 @@ export const Do: IO<{}> = pure({});
 
 export const bindTo: <N extends string, S extends {}, B>(
   name: N,
-  iob: (s: S) => IO<B>,
+  iob: IO<B> | ((s: S) => IO<B>),
 ) => (
   ios: IO<S>,
 ) => IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }> =
@@ -515,17 +622,23 @@ export const bindTo: <N extends string, S extends {}, B>(
     bindTo_(ios, name, iob);
 
 export const bind: <S extends {}, B>(
-  iob: (s: S) => IO<B>,
+  iob: IO<B> | ((s: S) => IO<B>),
 ) => (ios: IO<S>) => IO<S> = iob => ios => bind_(ios, iob);
 
 export const bindTo_ = <N extends string, S extends {}, B>(
   ios: IO<S>,
   name: N,
-  iob: (s: S) => IO<B>,
+  iob: IO<B> | ((s: S) => IO<B>),
 ): IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }> =>
-  flatMap_(ios, s => map_(iob(s), b => ({ ...s, [name as N]: b } as any)));
+  flatMap_(ios, s =>
+    map_(
+      typeof iob === 'function' ? iob(s) : iob,
+      b => ({ ...s, [name as N]: b } as any),
+    ),
+  );
 
 export const bind_ = <S extends {}, B>(
   ios: IO<S>,
-  iob: (s: S) => IO<B>,
-): IO<S> => flatMap_(ios, s => map_(iob(s), () => s));
+  iob: IO<B> | ((s: S) => IO<B>),
+): IO<S> =>
+  flatMap_(ios, s => map_(typeof iob === 'function' ? iob(s) : iob, () => s));

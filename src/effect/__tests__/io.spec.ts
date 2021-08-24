@@ -3,6 +3,7 @@ import * as E from '../../fp/either';
 import * as O from '../outcome';
 import * as IO from '../io';
 import { id, pipe } from '../../fp/core';
+import { Semaphore } from '../semaphore';
 
 const throwError = (e: Error) => {
   throw e;
@@ -1033,6 +1034,33 @@ describe('io monad', () => {
 
       await expect(io).toCompleteWith(true, ticker);
     });
+
+    it.ticked(
+      'should cancel never completing use of acquired resource',
+      async ticker => {
+        const io = pipe(
+          IO.Do,
+          IO.bindTo('def', () => IO.deferred<void>()),
+          IO.bindTo('bracket', ({ def }) =>
+            IO.pure(
+              IO.bracketFull_(
+                () => IO.unit,
+                () => IO.never,
+                () => def.complete(undefined),
+              ),
+            ),
+          ),
+          IO.bindTo('dFiber', ({ def }) => IO.fork(def.get())),
+          IO.bind(() => IO.delay(() => ticker.tickAll())), // start waiting for the result of cancelation
+          IO.bindTo('bFiber', ({ bracket }) => IO.fork(bracket)),
+          IO.bind(() => IO.delay(() => ticker.tickAll())), // start `use` with resource
+          IO.bind(({ bFiber }) => bFiber.cancel),
+          IO.flatMap(({ dFiber }) => dFiber.join), // await the cancelation result
+        );
+
+        await expect(io).toCompleteWith(O.success(undefined), ticker);
+      },
+    );
   });
 
   describe('stack-safety', () => {
@@ -1086,41 +1114,83 @@ describe('io monad', () => {
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    // it.ticked('should be cancelable', async ticker => {
-    //   const traverse = pipe(
-    //     [1, 2, 3],
-    //     IO.parTraverseN(() => IO.never, 2),
-    //   );
+    it.ticked('should be cancelable', async ticker => {
+      const traverse = pipe(
+        [1, 2, 3],
+        IO.parTraverseN(() => IO.never, 2),
+      );
 
-    //   const io = pipe(
-    //     IO.Do,
-    //     IO.bindTo('fiber', () => IO.fork(traverse)),
-    //     IO.bind(() => IO.delay(() => ticker.tickAll())),
-    //     IO.flatMap(({ fiber }) => fiber.cancel),
-    //   );
+      const io = pipe(
+        IO.Do,
+        IO.bindTo('fiber', () => IO.fork(traverse)),
+        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.flatMap(({ fiber }) => fiber.cancel),
+      );
 
-    //   await expect(io).toCompleteAs(undefined, ticker);
-    // });
+      await expect(io).toCompleteWith(undefined, ticker);
+    });
 
-    // it.ticked('should cancel all running tasks', async ticker => {
-    //   const fins = [jest.fn(), jest.fn(), jest.fn()];
+    it.ticked('should cancel all running tasks', async ticker => {
+      const fins = [jest.fn(), jest.fn(), jest.fn()];
 
-    //   const traverse = pipe(
-    //     fins,
-    //     IO.parTraverseN(fin => IO.onCancel_(IO.never, IO.delay(fin)), 2),
-    //   );
+      const traverse = pipe(
+        fins,
+        IO.parTraverseN(fin => IO.onCancel_(IO.never, IO.delay(fin)), 2),
+      );
 
-    //   const io = pipe(
-    //     IO.Do,
-    //     IO.bindTo('fiber', () => IO.fork(traverse)),
-    //     IO.bind(() => IO.delay(() => ticker.tickAll())),
-    //     IO.flatMap(({ fiber }) => fiber.cancel),
-    //   );
+      const io = pipe(
+        IO.Do,
+        IO.bindTo('fiber', () => IO.fork(traverse)),
+        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.flatMap(({ fiber }) => fiber.cancel),
+      );
 
-    //   await expect(io).toCompleteAs(undefined, ticker);
-    //   expect(fins[0]).toHaveBeenCalled();
-    //   expect(fins[1]).toHaveBeenCalled();
-    //   expect(fins[2]).not.toHaveBeenCalled();
-    // });
+      await expect(io).toCompleteWith(undefined, ticker);
+      expect(fins[0]).toHaveBeenCalled();
+      expect(fins[1]).toHaveBeenCalled();
+      expect(fins[2]).not.toHaveBeenCalled();
+    });
+
+    it.ticked(
+      'should not execute un-started IOs when earlier one failed',
+      async ticker => {
+        const fin = jest.fn();
+        const cont = jest.fn();
+        const ts = [
+          IO.defer(() => IO.throwError(new Error('test test'))),
+          IO.never,
+          IO.onCancel_(IO.never, IO.delay(fin)),
+          IO.delay(cont),
+          IO.delay(cont),
+        ];
+
+        const io = pipe(ts, IO.parTraverseN(id, 2));
+
+        await expect(io).toFailWith(new Error('test test'), ticker);
+        expect(fin).toHaveBeenCalled();
+        expect(cont).not.toHaveBeenCalled();
+      },
+    );
+
+    it.ticked(
+      'should not release the permit when release gets canceled',
+      async ticker => {
+        const cont = jest.fn();
+
+        const io = pipe(
+          IO.Do,
+          IO.bindTo('sem', Semaphore.withPermits(1)),
+          IO.bindTo('f1', ({ sem }) => IO.fork(sem.withPermit(IO.never))),
+          IO.bindTo('f2', ({ sem }) => IO.fork(sem.withPermit(IO.never))),
+          IO.bind(IO.delay(() => ticker.tickAll())),
+          IO.bind(({ sem }) => IO.fork(sem.withPermit(IO.delay(cont)))),
+          IO.bind(IO.delay(() => ticker.tickAll())),
+          IO.flatMap(({ f2 }) => f2.cancel),
+        );
+
+        await expect(io).toCompleteWith(undefined, ticker);
+        expect(cont).not.toHaveBeenCalled();
+      },
+    );
   });
 });

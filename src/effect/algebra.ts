@@ -10,6 +10,7 @@ import { Poll } from './poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
+  private stack: any = new Error().stack;
 }
 
 export class Pure<A> extends IO<A> {

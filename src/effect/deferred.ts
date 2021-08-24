@@ -94,13 +94,14 @@ export class Deferred<A> {
   };
 
   public readonly complete = (result: A): IO.IO<void> => {
-    const notifyReaders = (readers: ResumeReader<A>[]): IO.IO<void> => {
-      return pipe(
-        readers.map(f => IO.delay(() => setImmediate(() => f(result)))),
-        IO.sequence,
-        IO.flatMap(() => IO.unit),
+    const notifyReaders = (readers: ResumeReader<A>[]): IO.IO<void> =>
+      IO.defer(() =>
+        pipe(
+          readers.map(f => IO.delay(() => f(result))),
+          IO.sequence,
+          IO.flatMap(() => IO.unit),
+        ),
       );
-    };
 
     return IO.defer(() =>
       pipe(

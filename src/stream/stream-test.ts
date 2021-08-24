@@ -139,7 +139,7 @@ import * as IOR from '../effect/io-runtime';
 //   .catch(console.log);
 
 pipe(
-  [1, 2, 3, 4, 5],
+  [1, 2, 3, 4, 5, 6, 7, 8, 9],
   IO.parTraverseN(
     n =>
       pipe(
