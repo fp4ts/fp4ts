@@ -1,16 +1,12 @@
-import * as Ref from '../ref';
-import * as D from '../deferred';
 import { IO } from './io';
+import * as Ref from '../kernel/ref';
+import * as D from '../kernel/deferred';
 
 import './syntax';
 
 // Public exports
 
 export { IO } from './io';
-
-export * from './constructors';
-export * from './operators';
-export * from './do';
 
 export const deferred: <A>(a?: A) => IO<D.Deferred<A>> = D.of;
 

@@ -1,7 +1,10 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
-import { Outcome } from '../outcome';
-import { Fiber } from '../fiber';
+
+import { Outcome } from '../kernel/outcome';
+import { Fiber } from '../kernel/fiber';
+import { IORuntime } from '../unsafe/io-runtime';
+
 import { IO as IOBase } from './algebra';
 import { IO } from './index';
 
@@ -30,6 +33,11 @@ import {
   handleErrorWith_,
   flatten,
 } from './operators';
+import {
+  unsafeRunAsyncOutcome_,
+  unsafeRunAsync_,
+  unsafeRunToPromise_,
+} from './unsafe';
 
 declare module './algebra' {
   interface IO<A> {
@@ -89,6 +97,20 @@ declare module './algebra' {
     ) => IO<B>;
 
     map2: <B>(iob: IO<B>) => <C>(f: (a: A, b: B) => C) => IO<C>;
+
+    unsafeRunToPromise: (runtime?: IORuntime) => Promise<A>;
+
+    unsafeRunOutcomeToPromise: (runtime?: IORuntime) => Promise<Outcome<A>>;
+
+    unsafeRunAsync: (
+      cb: (ea: Either<Error, A>) => void,
+      runtime?: IORuntime,
+    ) => void;
+
+    unsafeRunAsyncOutcome: (
+      cb: (oc: Outcome<A>) => void,
+      runtime?: IORuntime,
+    ) => void;
   }
 }
 
@@ -247,4 +269,27 @@ IOBase.prototype.map2 = function <A, B>(
   that: IO<B>,
 ): <C>(f: (a: A, b: B) => C) => IO<C> {
   return f => map2_(this, that, f);
+};
+
+IOBase.prototype.unsafeRunToPromise = function <A>(
+  this: IO<A>,
+  runtime?: IORuntime,
+): Promise<A> {
+  return unsafeRunToPromise_(this, runtime);
+};
+
+IOBase.prototype.unsafeRunAsync = function <A>(
+  this: IO<A>,
+  cb: (ea: Either<Error, A>) => void,
+  runtime?: IORuntime,
+): void {
+  unsafeRunAsync_(this, cb, runtime);
+};
+
+IOBase.prototype.unsafeRunAsyncOutcome = function <A>(
+  this: IO<A>,
+  cb: (oc: Outcome<A>) => void,
+  runtime?: IORuntime,
+): void {
+  unsafeRunAsyncOutcome_(this, cb, runtime);
 };

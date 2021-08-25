@@ -1,7 +1,7 @@
 import { ok as assert } from 'assert';
 import { Ref } from './ref';
 import { Deferred } from './deferred';
-import { IO } from './io';
+import { IO } from '../io';
 
 class State {
   // @ts-ignore

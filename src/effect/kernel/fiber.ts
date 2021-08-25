@@ -1,5 +1,5 @@
-import { IO } from './io';
 import { Outcome } from './outcome';
+import { IO } from '../io';
 
 export interface Fiber<A> {
   readonly join: IO<Outcome<A>>;

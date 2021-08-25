@@ -1,12 +1,12 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
-import { Outcome } from '../outcome';
-import { Poll } from '../poll';
+
+import { Outcome } from '../kernel/outcome';
+import * as Ref from '../kernel/ref';
+import * as D from '../kernel/deferred';
+import { Poll } from '../kernel/poll';
+
 import { IO as IOBase } from './algebra';
-
-import * as Ref from '../ref';
-import * as D from '../deferred';
-
 import {
   async,
   canceled,

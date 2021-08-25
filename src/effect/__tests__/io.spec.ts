@@ -1,9 +1,10 @@
 import '../test-kit/jest';
-import * as E from '../../fp/either';
-import * as O from '../outcome';
-import { IO } from '../io';
 import { id, pipe } from '../../fp/core';
-import { Semaphore } from '../semaphore';
+import * as E from '../../fp/either';
+
+import { IO } from '../io';
+import * as O from '../kernel/outcome';
+import { Semaphore } from '../kernel/semaphore';
 
 const throwError = (e: Error) => {
   throw e;

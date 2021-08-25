@@ -1,10 +1,13 @@
 import { flow, id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
-import * as O from '../outcome';
-import * as F from '../fiber';
-import * as Sem from '../semaphore';
+
+import * as F from '../kernel/fiber';
 import { ExecutionContext } from '../execution-context';
-import { Poll } from '../poll';
+
+import * as O from '../kernel/outcome';
+import * as Sem from '../kernel/semaphore';
+import { Poll } from '../kernel/poll';
+
 import {
   Attempt,
   ExecuteOn,
@@ -26,7 +29,7 @@ import {
   throwError,
   uncancelable,
   unit,
-} from './index';
+} from './constructors';
 import { bind, bindTo, Do } from './do';
 
 export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);

@@ -1,7 +1,7 @@
 import { pipe } from '../fp/core';
 // import * as S from './stream';
 import { IO } from '../effect/io';
-import * as IOR from '../effect/io-runtime';
+import * as IOR from '../effect/unsafe/io-runtime';
 
 // pipe(
 //   S.range(1, 10_000),
@@ -15,8 +15,8 @@ import * as IOR from '../effect/io-runtime';
 //   S.fold(0, (x, [y]) => x + y),
 //   S.drain,
 //   // S.toArray,
-//   IOR.unsafeRunToPromise,
 // )
+//   .unsafeRunToPromise()
 //   .then(console.log)
 //   .catch(e => console.log('ERROR', e));
 
@@ -45,7 +45,7 @@ import * as IOR from '../effect/io-runtime';
 //     S.fromIO,
 //   );
 
-// pipe(S.range(5), S.flatMap(doSomeWork), S.drain, IOR.unsafeRunToPromise).catch(
+// pipe(S.range(5), S.flatMap(doSomeWork), S.drain).unsafeRunToPromise().catch(
 //   console.log,
 // );
 
@@ -62,8 +62,9 @@ import * as IOR from '../effect/io-runtime';
 //   // S.drop(5),
 //   // S.toArray,
 //   S.drain,
-//   IO.unsafeRunAsync,
-// ).then(console.log);
+// )
+//   .unsafeRunToPromise()
+//   .then(console.log);
 
 // const timeoutSequence = (name: string) =>
 //   pipe(
@@ -82,8 +83,9 @@ import * as IOR from '../effect/io-runtime';
 //   IO.bindTo('fb', () => timeoutSequence('fb')),
 //   IO.bind(({ fa }) => fa.join),
 //   IO.bind(({ fb }) => fb.join),
-//   IOR.unsafeRunToPromise,
-// ).catch(console.log);
+// )
+//   .unsafeRunToPromise()
+//   .catch(console.log);
 
 // pipe(
 //   IO.Do,
@@ -97,26 +99,25 @@ import * as IOR from '../effect/io-runtime';
 
 //     return IO.race(perform('A', 500), perform('B', 1000));
 //   }),
-//   IOR.unsafeRunToPromise,
 // )
+//   .unsafeRunToPromise()
 //   .then(console.log)
 //   .catch(console.log);
 
 // pipe(
-//   pipe(
-//     [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
-//     IO.parTraverse(([n, idx]) =>
-//       IO(() => {
-//         if (idx < 1) throw new Error();
-//         console.log(`${idx} completed in ${n} seconds`);
-//       })
-//         .delayBy(n * 1_000)
-//         // .flatTap(() => IO(() => console.log('EXECUTING', idx)))
-//         .onCancel(IO(() => console.log(`${n} canceled`))),
-//     ),
-//   ).timeout(2000),
-//   IOR.unsafeRunToPromise,
+//   [5, 2, 7, 4, 8, 1, 4].map((n, idx) => [n, idx] as [number, number]),
+//   IO.parTraverse(([n, idx]) =>
+//     IO(() => {
+//       if (idx < 1) throw new Error();
+//       console.log(`${idx} completed in ${n} seconds`);
+//     })
+//       .delayBy(n * 1_000)
+//       // .flatTap(() => IO(() => console.log('EXECUTING', idx)))
+//       .onCancel(IO(() => console.log(`${n} canceled`))),
+//   ),
 // )
+//   .timeout(2000)
+//   .unsafeRunToPromise()
 //   .then(console.log)
 //   .catch(console.log);
 
@@ -159,17 +160,15 @@ pipe(
 
 // pipe([1, 2, 3, 4, 5].map(doSomeWork), IO.parSequence, IOR.unsafeRunMain);
 
-// pipe(
-//   IO.readExecutionContext
-//     .flatMap(ec =>
-//       IO.both_(
-//         IO.sleep(50).onCancel(IO(() => console.log('CANCELED 1'))),
-//         IO.sleep(5000).onCancel(IO(() => console.log('CANCELED 2'))),
-//       ).executeOn(ec),
-//     )
-//     .timeout(200),
-//   IOR.unsafeRunToPromise,
-// )
+// IO.readExecutionContext
+//   .flatMap(ec =>
+//     IO.both(
+//       IO.sleep(50).onCancel(IO(() => console.log('CANCELED 1'))),
+//       IO.sleep(5000).onCancel(IO(() => console.log('CANCELED 2'))),
+//     ).executeOn(ec),
+//   )
+//   .timeout(200)
+//   .unsafeRunToPromise()
 //   .then(console.log)
 //   .catch(console.log);
 

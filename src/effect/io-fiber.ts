@@ -1,13 +1,15 @@
 import { flow, pipe } from '../fp/core';
 import * as E from '../fp/either';
-import * as O from './outcome';
-import * as F from './fiber';
+
 import { IO } from './io';
-import { Poll } from './poll';
+import { ExecutionContext } from './execution-context';
+
+import * as O from './kernel/outcome';
+import * as F from './kernel/fiber';
+import { Poll } from './kernel/poll';
 
 import * as IOA from './io/algebra';
-import { PlatformConfig } from './io-platform';
-import { ExecutionContext } from './execution-context';
+import { IORuntime } from './unsafe/io-runtime';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -28,13 +30,21 @@ export class IOFiber<A> implements F.Fiber<A> {
   private resumeIO: IO<unknown>;
   private currentEC: ExecutionContext;
 
-  private readonly autoSuspendThreshold: number =
-    PlatformConfig.AUTO_SUSPEND_THRESHOLD;
+  private readonly autoSuspendThreshold: number;
 
-  public constructor(startIO: IO<A>, startEC: ExecutionContext) {
+  private readonly runtime: IORuntime;
+
+  public constructor(
+    startIO: IO<A>,
+    startEC: ExecutionContext,
+    runtime: IORuntime,
+  ) {
     this.resumeIO = startIO;
     this.currentEC = startEC;
     this.cxts.push(startEC);
+    this.runtime = runtime;
+
+    this.autoSuspendThreshold = this.runtime.config.autoSuspendThreshold;
   }
 
   public get join(): IO<O.Outcome<A>> {
@@ -128,7 +138,7 @@ export class IOFiber<A> implements F.Fiber<A> {
           continue;
 
         case 'fork': {
-          const fiber = new IOFiber(cur.ioa, this.currentEC);
+          const fiber = new IOFiber(cur.ioa, this.currentEC, this.runtime);
           this.schedule(fiber, this.currentEC);
           _cur = IO.pure(fiber);
           continue;
@@ -216,8 +226,8 @@ export class IOFiber<A> implements F.Fiber<A> {
             >
           >(cb =>
             IO(() => {
-              const fiberA = new IOFiber(ioa, this.currentEC);
-              const fiberB = new IOFiber(iob, this.currentEC);
+              const fiberA = new IOFiber(ioa, this.currentEC, this.runtime);
+              const fiberB = new IOFiber(iob, this.currentEC, this.runtime);
 
               fiberA.onComplete(oc => cb(E.right(E.left([oc, fiberB]))));
               fiberB.onComplete(oc => cb(E.right(E.right([fiberA, oc]))));

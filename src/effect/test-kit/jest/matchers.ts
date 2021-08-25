@@ -1,6 +1,6 @@
 import { IO } from '../../io';
-import * as O from '../../outcome';
-import * as IOR from '../../io-runtime';
+import * as O from '../../kernel/outcome';
+import * as IOR from '../../unsafe/io-runtime';
 import { Ticker } from '../ticker';
 import { TestExecutionContext } from '../test-execution-context';
 
@@ -30,7 +30,12 @@ async function tickTo(
   expected: O.Outcome<unknown>,
   ec: TestExecutionContext,
 ) {
-  const receivedPromise = IOR.unsafeRunOutcomeToPromise_(receivedIO, ec);
+  const receivedPromise: Promise<O.Outcome<unknown>> = new Promise(resolve =>
+    receivedIO.unsafeRunAsyncOutcome(
+      oc => resolve(oc),
+      new IOR.IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
+    ),
+  );
 
   ec.tickAll();
 

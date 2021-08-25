@@ -1,8 +1,10 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
-import { Fiber } from '../fiber';
-import { Outcome } from '../outcome';
-import { Poll } from '../poll';
+
+import { Fiber } from '../kernel/fiber';
+
+import { Outcome } from '../kernel/outcome';
+import { Poll } from '../kernel/poll';
 
 // -- IO Algebra
 

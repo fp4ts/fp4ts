@@ -1,7 +1,8 @@
-import * as E from '../fp/either';
-import { flow, id, pipe } from '../fp/core';
+import * as E from '../../fp/either';
+import { flow, id, pipe } from '../../fp/core';
+
+import { IO } from '../io';
 import { Ref } from './ref';
-import { IO } from './io';
 
 type ResumeReader<A> = (a: A) => void;
 
@@ -111,7 +112,7 @@ export class Deferred<A> {
 
   public static of = <A>(a?: A): IO<Deferred<A>> => {
     const state: State<A> = a ? new SetState(a) : new UnsetState([]);
-    return pipe(Ref.of(state).map(state => new Deferred<A>(state)));
+    return Ref.of(state).map(state => new Deferred<A>(state));
   };
 }
 

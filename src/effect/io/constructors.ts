@@ -2,7 +2,7 @@ import { flow } from '../../fp/core';
 import * as E from '../../fp/either';
 
 import { ExecutionContext } from '../execution-context';
-import { Poll } from '../poll';
+import { Poll } from '../kernel/poll';
 import {
   Async,
   Canceled,

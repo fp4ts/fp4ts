@@ -1,4 +1,4 @@
-import * as O from '../../outcome';
+import * as O from '../../kernel/outcome';
 import { ticked } from '../ticked';
 import { Ticker } from '../ticker';
 

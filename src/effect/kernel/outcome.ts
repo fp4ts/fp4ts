@@ -1,4 +1,4 @@
-import * as E from '../fp/either';
+import * as E from '../../fp/either';
 
 export class CancellationError extends Error {}
 
