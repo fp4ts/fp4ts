@@ -1,91 +1,39 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import { flow, id, pipe } from '../fp/core';
-import * as E from '../fp/either';
-import * as O from './outcome';
-import * as F from './fiber';
-import * as Ref from './ref';
-import * as D from './deferred';
-import * as Sem from './semaphore';
-import { Poll } from './poll';
-
+import { flow, id, pipe } from '../../fp/core';
+import * as E from '../../fp/either';
+import * as O from '../outcome';
+import * as F from '../fiber';
+import * as Sem from '../semaphore';
+import { ExecutionContext } from '../execution-context';
+import { Poll } from '../poll';
 import {
-  IO,
-  Pure,
-  Fail,
-  Delay,
-  Defer,
-  Canceled,
-  Map,
-  FlatMap,
-  HandleErrorWith,
   Attempt,
-  CurrentTimeMillis,
-  ReadEC,
-  Async,
-  RacePair,
-  Uncancelable,
-  OnCancel,
-  Fork,
-  Sleep,
   ExecuteOn,
+  FlatMap,
+  Fork,
+  HandleErrorWith,
+  IO,
+  Map,
+  OnCancel,
+  RacePair,
 } from './algebra';
-import { ExecutionContext } from './execution-context';
-
-// Public exports
-
-export { IO };
-
-// -- Constructors
-
-export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
-
-export const unit: IO<void> = pure(undefined);
-
-export const delay: <A>(thunk: () => A) => IO<A> = thunk => new Delay(thunk);
-
-export const defer: <A>(thunk: () => IO<A>) => IO<A> = thunk =>
-  new Defer(thunk);
-
-export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
-  async(resume =>
-    delay(() => {
-      const onSuccess: (x: A) => void = flow(E.right, resume);
-      const onFailure: (e: Error) => void = flow(E.left, resume);
-      thunk().then(onSuccess, onFailure);
-    }),
-  );
-
-export const throwError: (error: Error) => IO<never> = error => new Fail(error);
-
-export const currentTimeMillis: IO<number> = CurrentTimeMillis;
-
-export const readExecutionContext: IO<ExecutionContext> = ReadEC;
-
-export const async = <A>(
-  k: (cb: (ea: E.Either<Error, A>) => void) => IO<IO<void> | undefined>,
-): IO<A> => new Async(k);
-
-export const never: IO<never> = async(() => pure(undefined));
-
-export const canceled: IO<void> = Canceled;
-
-export const uncancelable: <A>(
-  ioa: (p: <B>(iob: IO<B>) => IO<B>) => IO<A>,
-) => IO<A> = ioa => new Uncancelable(ioa);
-
-// -- Point-free operators
-
-export const deferred: <A>(a?: A) => IO<D.Deferred<A>> = D.of;
-
-export const ref: <A>(a: A) => IO<Ref.Ref<A>> = Ref.of;
+import {
+  canceled,
+  defer,
+  never,
+  pure,
+  readExecutionContext,
+  sleep,
+  throwError,
+  uncancelable,
+  unit,
+} from './index';
+import { bind, bindTo, Do } from './do';
 
 export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);
 
 export const onCancel: (fin: IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   fin => ioa =>
     onCancel_(ioa, fin);
-
-export const sleep = (ms: number): IO<void> => new Sleep(ms);
 
 export const delayBy: (ms: number) => <A>(ioa: IO<A>) => IO<A> = ms => ioa =>
   delayBy_(ioa, ms);
@@ -114,6 +62,10 @@ export const racePair: <B>(
 ) => IO<E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<A>, O.Outcome<B>]>> =
   iob => ioa =>
     racePair_(ioa, iob);
+
+export const both: <B>(iob: IO<B>) => <A>(ioa: IO<A>) => IO<[A, B]> =
+  iob => ioa =>
+    both_(ioa, iob);
 
 export const finalize: <A>(
   finalizer: (oc: O.Outcome<A>) => IO<void>,
@@ -608,38 +560,3 @@ export const parTraverseOutcomeN_ = <A, B>(
     Sem.of(maxConcurrent),
     flatMap(sem => parTraverseOutcome_(as, flow(f, Sem.withPermit(sem)))),
   );
-
-// -- Do notation
-
-export const Do: IO<{}> = pure({});
-
-export const bindTo: <N extends string, S extends {}, B>(
-  name: N,
-  iob: IO<B> | ((s: S) => IO<B>),
-) => (
-  ios: IO<S>,
-) => IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }> =
-  (name, iob) => ios =>
-    bindTo_(ios, name, iob);
-
-export const bind: <S extends {}, B>(
-  iob: IO<B> | ((s: S) => IO<B>),
-) => (ios: IO<S>) => IO<S> = iob => ios => bind_(ios, iob);
-
-export const bindTo_ = <N extends string, S extends {}, B>(
-  ios: IO<S>,
-  name: N,
-  iob: IO<B> | ((s: S) => IO<B>),
-): IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }> =>
-  flatMap_(ios, s =>
-    map_(
-      typeof iob === 'function' ? iob(s) : iob,
-      b => ({ ...s, [name as N]: b } as any),
-    ),
-  );
-
-export const bind_ = <S extends {}, B>(
-  ios: IO<S>,
-  iob: IO<B> | ((s: S) => IO<B>),
-): IO<S> =>
-  flatMap_(ios, s => map_(typeof iob === 'function' ? iob(s) : iob, () => s));

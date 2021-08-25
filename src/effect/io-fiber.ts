@@ -5,7 +5,7 @@ import * as O from './outcome';
 import * as F from './fiber';
 import { Poll } from './poll';
 
-import * as IOA from './algebra';
+import * as IOA from './io/algebra';
 import { PlatformConfig } from './io-platform';
 import { ExecutionContext } from './execution-context';
 

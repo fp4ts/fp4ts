@@ -1,8 +1,8 @@
-import { Either } from '../fp/either';
-import { ExecutionContext } from './execution-context';
-import { Fiber } from './fiber';
-import { Outcome } from './outcome';
-import { Poll } from './poll';
+import { Either } from '../../fp/either';
+import { ExecutionContext } from '../execution-context';
+import { Fiber } from '../fiber';
+import { Outcome } from '../outcome';
+import { Poll } from '../poll';
 
 // -- IO Algebra
 
@@ -10,7 +10,6 @@ import { Poll } from './poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
-  private stack: any = new Error().stack;
 }
 
 export class Pure<A> extends IO<A> {
@@ -92,7 +91,7 @@ export class Async<A> extends IO<A> {
   public constructor(
     public readonly body: (
       cb: (ea: Either<Error, A>) => void,
-    ) => IO<IO<void> | undefined>,
+    ) => IO<IO<void> | undefined | void>,
   ) {
     super();
   }
