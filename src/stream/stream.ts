@@ -1,8 +1,8 @@
 import { ok as assert } from 'assert';
 import { id, pipe } from '../fp/core';
 import * as E from '../fp/either';
-import * as IO from '../effect/io';
 import * as P from './pull';
+import { IO } from '../effect/io';
 
 type Stream<A> = P.Pull<A, void>;
 
@@ -33,7 +33,7 @@ export const rangeFrom = (x: number = 0): Stream<number> =>
 
 export const integers: () => Stream<number> = () => rangeFrom(1);
 
-export const fromIO = <A>(t: IO.IO<A>): Stream<A> =>
+export const fromIO = <A>(t: IO<A>): Stream<A> =>
   pipe(P.fromIO(t), P.flatMap(P.output1));
 
 export const repeat = <A>(fa: Stream<A>): Stream<A> => concat_(fa, () => fa);
@@ -63,13 +63,13 @@ export const retry: (
   nextDelay: (ms: number) => number,
   maxAttempts: number,
   retriable?: (e: Error) => boolean, //= () => true,
-) => <A>(ioa: IO.IO<A>) => Stream<A> =
+) => <A>(ioa: IO<A>) => Stream<A> =
   (delay, nextDelay, maxAttempts, retriable = () => true) =>
   ioa =>
     retry_(ioa, delay, nextDelay, maxAttempts, retriable);
 
 export const retry_ = <A>(
-  ioa: IO.IO<A>,
+  ioa: IO<A>,
   delay: number,
   nextDelay: (ms: number) => number,
   maxAttempts: number,
@@ -133,7 +133,7 @@ export const flatMap: <A, B>(
 export const flatten: <A>(ffa: Stream<Stream<A>>) => Stream<A> = flatMap(id);
 
 export const evalMap: <A, B>(
-  f: (a: A) => IO.IO<B>,
+  f: (a: A) => IO<B>,
 ) => (fa: Stream<A>) => Stream<B> = f => fa => evalMap_(fa, f);
 
 export const handleErrorWith: <A>(
@@ -242,14 +242,14 @@ export const scan1: <A>(
 export const compile: <A, B>(
   init: B,
   combine: (b: B, a: A) => B,
-) => (fa: Stream<A>) => IO.IO<B> = P.compile;
+) => (fa: Stream<A>) => IO<B> = P.compile;
 
-export const drain: <A>(fa: Stream<A>) => IO.IO<void> = compile(
+export const drain: <A>(fa: Stream<A>) => IO<void> = compile(
   undefined,
   () => undefined,
 );
 
-export const toArray = <A>(fa: Stream<A>): IO.IO<A[]> =>
+export const toArray = <A>(fa: Stream<A>): IO<A[]> =>
   pipe(
     chunks(fa),
     compile([], (xs: A[], ys) => xs.concat(ys)),
@@ -316,10 +316,8 @@ export const handleErrorWith_: <A>(
   h: (e: Error) => Stream<A>,
 ) => Stream<A> = P.handleErrorWith_;
 
-export const evalMap_ = <A, B>(
-  fa: Stream<A>,
-  f: (a: A) => IO.IO<B>,
-): Stream<B> => flatMap_(fa, x => pipe(P.fromIO(f(x)), P.flatMap(P.output1)));
+export const evalMap_ = <A, B>(fa: Stream<A>, f: (a: A) => IO<B>): Stream<B> =>
+  flatMap_(fa, x => pipe(P.fromIO(f(x)), P.flatMap(P.output1)));
 
 export const delayBy_: <A>(fa: Stream<A>, ms: number) => Stream<A> = P.delayBy_;
 
@@ -428,7 +426,7 @@ export const compile_: <A, B>(
   fa: Stream<A>,
   combine: (b: B, a: A) => B,
   init: B,
-) => IO.IO<B> = P.compile_;
+) => IO<B> = P.compile_;
 
 const scanArray = <A, B>(xs: A[], combine: (b: B, a: A) => B, z: B): B[] =>
   xs.reduce((zs, x) => [...zs, combine(zs[zs.length - 1], x)], [z]);

@@ -2,6 +2,7 @@ import { flow } from '../../fp/core';
 import * as E from '../../fp/either';
 
 import { ExecutionContext } from '../execution-context';
+import { Poll } from '../poll';
 import {
   Async,
   Canceled,
@@ -49,8 +50,7 @@ export const never: IO<never> = async(() => pure(undefined));
 
 export const canceled: IO<void> = Canceled;
 
-export const uncancelable: <A>(
-  ioa: (p: <B>(iob: IO<B>) => IO<B>) => IO<A>,
-) => IO<A> = ioa => new Uncancelable(ioa);
+export const uncancelable: <A>(ioa: (p: Poll) => IO<A>) => IO<A> = ioa =>
+  new Uncancelable(ioa);
 
 export const sleep = (ms: number): IO<void> => new Sleep(ms);

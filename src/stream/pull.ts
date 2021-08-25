@@ -1,5 +1,5 @@
 import { pipe } from '../fp/core';
-import * as IO from '../effect/io';
+import { IO } from '../effect/io';
 
 type Terminal<R> = Succeed<R> | Fail;
 export type Pull<O, R> = Cons<O, R> | Defer<O, R> | Terminal<R>;
@@ -7,12 +7,12 @@ export type Pull<O, R> = Cons<O, R> | Defer<O, R> | Terminal<R>;
 interface Cons<O, R> {
   readonly tag: 'output';
   readonly head: O[];
-  readonly tail: IO.IO<Pull<O, R>>;
+  readonly tail: IO<Pull<O, R>>;
 }
 
 interface Defer<O, R> {
   readonly tag: 'defer';
-  readonly thunk: IO.IO<Pull<O, R>>;
+  readonly thunk: IO<Pull<O, R>>;
 }
 
 interface Succeed<R> {
@@ -43,24 +43,18 @@ export const output1: <O>(a: O) => Pull<O, void> = x =>
 export const output: <O>(as: O[]) => Pull<O, void> = xs =>
   cons(xs, IO.pure(done));
 
-export const cons: <O, R>(as: O[], tail: IO.IO<Pull<O, R>>) => Pull<O, R> = (
+export const cons: <O, R>(as: O[], tail: IO<Pull<O, R>>) => Pull<O, R> = (
   xs,
   tail,
 ) => (xs.length === 0 ? defer(tail) : { tag: 'output', head: xs, tail });
 
-export const defer: <O, R>(thunk: IO.IO<Pull<O, R>>) => Pull<O, R> = thunk => ({
+export const defer: <O, R>(thunk: IO<Pull<O, R>>) => Pull<O, R> = thunk => ({
   tag: 'defer',
   thunk,
 });
 
-export const fromIO: <R>(task: IO.IO<R>) => Pull<never, R> = task =>
-  defer(
-    pipe(
-      task,
-      IO.map(pure),
-      IO.handleErrorWith(e => IO.pure(throwError(e))),
-    ),
-  );
+export const fromIO: <R>(task: IO<R>) => Pull<never, R> = task =>
+  defer(task.map(pure).handleErrorWith(e => IO.pure(throwError(e))));
 
 export const append: <O, R2>(
   fb: () => Pull<O, R2>,
@@ -106,10 +100,10 @@ export const flatMap_ = <O, R, R2>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, flatMap(f)));
+      return defer(fa.thunk.map(flatMap(f)));
 
     case 'output':
-      return cons(fa.head, IO.map_(fa.tail, flatMap(f)));
+      return cons(fa.head, fa.tail.map(flatMap(f)));
   }
 };
 
@@ -129,19 +123,18 @@ export const handleErrorWith_ = <O, R>(
       }
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, handleErrorWith(h)));
+      return defer(fa.thunk.map(handleErrorWith(h)));
 
     case 'output':
-      return cons(fa.head, IO.map_(fa.tail, handleErrorWith(h)));
+      return cons(fa.head, fa.tail.map(handleErrorWith(h)));
   }
 };
 
 export const delayBy_ = <O, R>(fa: Pull<O, R>, ms: number): Pull<O, R> =>
-  pipe(
-    IO.delay(() => done),
-    IO.delayBy(ms),
-    IO.map(() => fa),
-    defer,
+  defer(
+    IO.delay(() => done)
+      .delayBy(ms)
+      .map(() => fa),
   );
 
 // -- Output functions
@@ -191,7 +184,7 @@ export const uncons = <O>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, uncons));
+      return defer(fa.thunk.map(uncons));
 
     case 'output':
       return pure([fa.head, defer(fa.tail)]);
@@ -209,7 +202,7 @@ export const unconsN: (
 export const compile: <O, B>(
   init: B,
   combine: (b: B, o: O) => B,
-) => (fa: Pull<O, void>) => IO.IO<B> = (init, combine) => fa =>
+) => (fa: Pull<O, void>) => IO<B> = (init, combine) => fa =>
   compile_(fa, combine, init);
 
 export const take_ = <O>(fa: Pull<O, void>, n: number): Pull<O, void> =>
@@ -257,11 +250,11 @@ export const filterOutput_ = <O>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, filterOutput(p)));
+      return defer(fa.thunk.map(filterOutput(p)));
 
     case 'output':
       try {
-        return cons(fa.head.filter(p), IO.map_(fa.tail, filterOutput(p)));
+        return cons(fa.head.filter(p), fa.tail.map(filterOutput(p)));
       } catch (e) {
         return append_(throwError(e as Error), () =>
           filterOutput_(defer(fa.tail), p),
@@ -280,11 +273,11 @@ export const mapOutput_ = <O, O2>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, mapOutput(f)));
+      return defer(fa.thunk.map(mapOutput(f)));
 
     case 'output':
       try {
-        return cons(fa.head.map(f), IO.map_(fa.tail, mapOutput(f)));
+        return cons(fa.head.map(f), fa.tail.map(mapOutput(f)));
       } catch (e) {
         return append_(throwError(e as Error), () =>
           mapOutput_(defer(fa.tail), f),
@@ -303,7 +296,7 @@ export const flatMapOutput_ = <O, O2>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, flatMapOutput(f)));
+      return defer(fa.thunk.map(flatMapOutput(f)));
 
     case 'output': {
       const go = (idx: number): Pull<O2, void> => {
@@ -317,7 +310,7 @@ export const flatMapOutput_ = <O, O2>(
             return throwError(e);
           }
         } else {
-          return defer(IO.map_(fa.tail, flatMapOutput(f)));
+          return defer(fa.tail.map(flatMapOutput(f)));
         }
       };
       return go(0);
@@ -337,12 +330,12 @@ export const unconsN_ = <O>(
       return fa;
 
     case 'defer':
-      return defer(IO.map_(fa.thunk, unconsN(n, allowFewer)));
+      return defer(fa.thunk.map(unconsN(n, allowFewer)));
 
     case 'output':
       if (fa.head.length < n)
         return pipe(
-          defer(IO.map_(fa.tail, unconsN(n - fa.head.length, allowFewer))),
+          defer(fa.tail.map(unconsN(n - fa.head.length, allowFewer))),
           flatMap(x => {
             if (!x && allowFewer) return pure([fa.head, done]);
             if (!x) return pure(undefined);
@@ -361,7 +354,7 @@ export const compile_ = <O, B>(
   fa: Pull<O, void>,
   combine: (b: B, o: O) => B,
   init: B,
-): IO.IO<B> => {
+): IO<B> => {
   switch (fa.tag) {
     case 'succeed':
       return IO.pure(init);
@@ -370,12 +363,11 @@ export const compile_ = <O, B>(
       return IO.throwError(fa.error);
 
     case 'defer':
-      return IO.flatMap_(fa.thunk, compile(init, combine));
+      return fa.thunk.flatMap(compile(init, combine));
 
     case 'output':
-      return pipe(
-        IO.delay(() => fa.head.reduce(combine, init)),
-        IO.flatMap(z => pipe(fa.tail, IO.flatMap(compile(z, combine)))),
+      return IO(() => fa.head.reduce(combine, init)).flatMap(z =>
+        fa.tail.flatMap(compile(z, combine)),
       );
   }
 };

@@ -83,12 +83,22 @@ export const bracketOutcome: <A, B>(
   use => release => ioa =>
     bracketOutcome_(ioa, use, release);
 
-export const bracketFull: <A>(
+export const bracketFull = <A, B>(
   acquire: (poll: Poll) => IO<A>,
-) => <B>(
+  use: (a: A) => IO<B>,
   release: (a: A, oc: O.Outcome<B>) => IO<void>,
-) => (use: (a: A) => IO<B>) => IO<B> = acquire => release => use =>
-  bracketFull_(acquire, use, release);
+): IO<B> =>
+  uncancelable(poll =>
+    pipe(
+      acquire(poll),
+      flatMap(a =>
+        pipe(
+          defer(() => poll(use(a))),
+          finalize(oc => release(a, oc)),
+        ),
+      ),
+    ),
+  );
 
 export const map: <A, B>(f: (a: A) => B) => (ioa: IO<A>) => IO<B> = f => ioa =>
   map_(ioa, f);
@@ -321,24 +331,7 @@ export const bracketOutcome_ = <A, B>(
   ioa: IO<A>,
   use: (a: A) => IO<B>,
   release: (a: A, oc: O.Outcome<B>) => IO<void>,
-): IO<B> => bracketFull_(() => ioa, use, release);
-
-export const bracketFull_ = <A, B>(
-  acquire: (poll: Poll) => IO<A>,
-  use: (a: A) => IO<B>,
-  release: (a: A, oc: O.Outcome<B>) => IO<void>,
-): IO<B> =>
-  uncancelable(poll =>
-    pipe(
-      acquire(poll),
-      flatMap(a =>
-        pipe(
-          defer(() => poll(use(a))),
-          finalize(oc => release(a, oc)),
-        ),
-      ),
-    ),
-  );
+): IO<B> => bracketFull(() => ioa, use, release);
 
 export const map_: <A, B>(ioa: IO<A>, f: (a: A) => B) => IO<B> = (ioa, f) =>
   new Map(ioa, f);

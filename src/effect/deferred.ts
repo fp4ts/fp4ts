@@ -1,7 +1,7 @@
-import { Ref } from './ref';
-import * as IO from './io';
 import * as E from '../fp/either';
 import { flow, id, pipe } from '../fp/core';
+import { Ref } from './ref';
+import { IO } from './io';
 
 type ResumeReader<A> = (a: A) => void;
 
@@ -48,8 +48,8 @@ export class Deferred<A> {
 
   private constructor(private readonly state: Ref<State<A>>) {}
 
-  public readonly get = (): IO.IO<A> => {
-    const deleteReader = (reader: ResumeReader<A>): IO.IO<void> =>
+  public readonly get = (): IO<A> => {
+    const deleteReader = (reader: ResumeReader<A>): IO<void> =>
       IO.defer(() =>
         this.state.update(
           foldState<A, State<A>>(
@@ -59,12 +59,10 @@ export class Deferred<A> {
         ),
       );
 
-    const addReader = (
-      reader: ResumeReader<A>,
-    ): IO.IO<IO.IO<void> | undefined> =>
+    const addReader = (reader: ResumeReader<A>): IO<IO<void> | undefined> =>
       IO.defer(() =>
         this.state.modify(
-          foldState<A, [State<A>, IO.IO<void> | undefined]>(
+          foldState<A, [State<A>, IO<void> | undefined]>(
             ({ value }) => {
               reader(value);
               return [new SetState(value), undefined];
@@ -78,61 +76,51 @@ export class Deferred<A> {
       );
 
     return IO.defer(() =>
-      pipe(
-        this.state.get(),
-        IO.flatMap(
-          foldState(
-            ({ value }) => IO.pure(value),
-            () =>
-              IO.async(resume =>
-                IO.defer(() => addReader(flow(E.right, resume))),
-              ),
-          ),
+      this.state.get().flatMap(
+        foldState(
+          ({ value }) => IO.pure(value),
+          () =>
+            IO.async(resume =>
+              IO.defer(() => addReader(flow(E.right, resume))),
+            ),
         ),
       ),
     );
   };
 
-  public readonly complete = (result: A): IO.IO<void> => {
-    const notifyReaders = (readers: ResumeReader<A>[]): IO.IO<void> =>
-      IO.defer(() =>
-        pipe(
-          readers.map(f => IO.delay(() => f(result))),
-          IO.sequence,
-          IO.flatMap(() => IO.unit),
-        ),
+  public readonly complete = (result: A): IO<void> => {
+    const notifyReaders = (readers: ResumeReader<A>[]): IO<void> =>
+      IO.defer(
+        () =>
+          pipe(
+            readers.map(f => IO(() => f(result))),
+            IO.sequence,
+          ).void,
       );
 
-    return IO.defer(() =>
-      pipe(
+    return IO.defer(
+      () =>
         this.state.modify(
           foldState(
             s => [s, IO.unit],
             ({ readers }) => [new SetState(result), notifyReaders(readers)],
           ),
-        ),
-        IO.flatten,
-      ),
+        ).flatten,
     );
   };
 
-  public static of = <A>(a?: A): IO.IO<Deferred<A>> => {
+  public static of = <A>(a?: A): IO<Deferred<A>> => {
     const state: State<A> = a ? new SetState(a) : new UnsetState([]);
-    return pipe(
-      Ref.of(state),
-      IO.map(state => new Deferred<A>(state)),
-    );
+    return pipe(Ref.of(state).map(state => new Deferred<A>(state)));
   };
 }
 
-export const of: <A = unknown>(a?: A) => IO.IO<Deferred<A>> = x =>
-  Deferred.of(x);
+export const of: <A = unknown>(a?: A) => IO<Deferred<A>> = x => Deferred.of(x);
 
-export const get: <A>(dfa: Deferred<A>) => IO.IO<A> = dfa => dfa.get();
+export const get: <A>(dfa: Deferred<A>) => IO<A> = dfa => dfa.get();
 
-export const complete: <A>(a: A) => (dfa: Deferred<A>) => IO.IO<void> =
-  a => dfa =>
-    complete_(dfa, a);
+export const complete: <A>(a: A) => (dfa: Deferred<A>) => IO<void> = a => dfa =>
+  complete_(dfa, a);
 
-export const complete_ = <A>(dfa: Deferred<A>, a: A): IO.IO<void> =>
+export const complete_ = <A>(dfa: Deferred<A>, a: A): IO<void> =>
   dfa.complete(a);

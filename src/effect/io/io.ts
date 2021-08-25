@@ -1,0 +1,187 @@
+import { Either } from '../../fp/either';
+import { ExecutionContext } from '../execution-context';
+import { Outcome } from '../outcome';
+import { Poll } from '../poll';
+import { IO as IOBase } from './algebra';
+
+import * as Ref from '../ref';
+import * as D from '../deferred';
+
+import {
+  async,
+  canceled,
+  currentTimeMillis,
+  defer,
+  deferPromise,
+  delay,
+  never,
+  pure,
+  readExecutionContext,
+  sleep,
+  throwError,
+  uncancelable,
+  unit,
+} from './constructors';
+import {
+  both_,
+  bracketFull,
+  parSequence,
+  parSequenceN,
+  parSequenceN_,
+  parTraverse,
+  parTraverseN,
+  parTraverseN_,
+  parTraverse_,
+  race_,
+  sequence,
+  traverse,
+  traverse_,
+} from './operators';
+import { bind, bindTo, Do } from './do';
+
+export type IO<A> = IOBase<A>;
+
+export const IO: IOObj = (<A>(thunk: () => A) => delay(thunk)) as any;
+
+interface IOObj {
+  <A>(thunk: () => A): IO<A>;
+
+  pure: <A>(a: A) => IO<A>;
+
+  delay: <A>(thunk: () => A) => IO<A>;
+
+  defer: <A>(thunk: () => IO<A>) => IO<A>;
+
+  deferPromise: <A>(thunk: () => Promise<A>) => IO<A>;
+
+  throwError: (e: Error) => IO<never>;
+
+  currentTimeMillis: IO<number>;
+
+  readExecutionContext: IO<ExecutionContext>;
+
+  async: <A>(
+    k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined | void>,
+  ) => IO<A>;
+
+  unit: IO<void>;
+
+  never: IO<never>;
+
+  canceled: IO<void>;
+
+  ref: <A>(a: A) => IO<Ref.Ref<A>>;
+
+  deferred: <A>(a?: A) => IO<D.Deferred<A>>;
+
+  uncancelable: <A>(ioa: (p: Poll) => IO<A>) => IO<A>;
+
+  sleep: (ms: number) => IO<void>;
+
+  race: <A, B>(ioa: IO<A>, iob: IO<B>) => IO<Either<A, B>>;
+
+  both: <A, B>(ioa: IO<A>, iob: IO<B>) => IO<[A, B]>;
+
+  sequence: <A>(ioas: IO<A>[]) => IO<A[]>;
+
+  traverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]>;
+  traverse_: <A, B>(as: A[], f: (a: A) => IO<B>) => IO<B[]>;
+
+  parSequence: <A>(ioas: IO<A>[]) => IO<A[]>;
+
+  parTraverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]>;
+  parTraverse_: <A, B>(as: A[], f: (a: A) => IO<B>) => IO<B[]>;
+
+  parSequenceN: (maxConcurrent: number) => <A>(ioas: IO<A>[]) => IO<A[]>;
+  parSequenceN_: <A>(ioas: IO<A>[], maxConcurrent: number) => IO<A[]>;
+
+  parTraverseN: <A, B>(
+    f: (a: A) => IO<B>,
+    maxConcurrent: number,
+  ) => (as: A[]) => IO<B[]>;
+  parTraverseN_: <A, B>(
+    as: A[],
+    f: (a: A) => IO<B>,
+    maxConcurrent: number,
+  ) => IO<B[]>;
+
+  bracketFull: <A, B>(
+    acquire: (poll: Poll) => IO<A>,
+    use: (a: A) => IO<B>,
+    release: (a: A, oc: Outcome<B>) => IO<void>,
+  ) => IO<B>;
+
+  // Do notation
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  Do: IO<{}>;
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  bindTo: <N extends string, S extends {}, B>(
+    name: N,
+    iob: IO<B> | ((s: S) => IO<B>),
+  ) => (
+    ios: IO<S>,
+  ) => IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }>;
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  bind: <S extends {}, B>(
+    iob: IO<B> | ((s: S) => IO<B>),
+  ) => (ios: IO<S>) => IO<S>;
+}
+
+IO.pure = pure;
+
+IO.delay = delay;
+
+IO.defer = defer;
+
+IO.deferPromise = deferPromise;
+
+IO.throwError = throwError;
+
+IO.currentTimeMillis = currentTimeMillis;
+
+IO.readExecutionContext = readExecutionContext;
+
+IO.async = async;
+
+IO.unit = unit;
+
+IO.never = never;
+
+IO.canceled = canceled;
+
+IO.ref = a => Ref.of(a);
+
+IO.deferred = x => D.of(x);
+
+IO.uncancelable = uncancelable;
+
+IO.sleep = sleep;
+
+IO.race = race_;
+
+IO.both = both_;
+
+IO.sequence = sequence;
+
+IO.traverse = traverse;
+IO.traverse_ = traverse_;
+
+IO.parSequence = parSequence;
+
+IO.parTraverse = parTraverse;
+IO.parTraverse_ = parTraverse_;
+
+IO.parSequenceN = parSequenceN;
+IO.parSequenceN_ = parSequenceN_;
+
+IO.parTraverseN = parTraverseN;
+IO.parTraverseN_ = parTraverseN_;
+
+IO.bracketFull = bracketFull;
+
+IO.Do = Do;
+IO.bindTo = bindTo;
+IO.bind = bind;

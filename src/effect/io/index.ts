@@ -1,19 +1,12 @@
 import * as Ref from '../ref';
 import * as D from '../deferred';
+import { IO } from './io';
 
 import './syntax';
-import { IO as IOBase } from './algebra';
-import { delay } from './constructors';
 
 // Public exports
 
-interface IOObj {
-  <A>(thunk: () => A): IO<A>;
-}
-
-export const IO: IOObj = thunk => delay(thunk);
-
-export type IO<A> = IOBase<A>;
+export { IO } from './io';
 
 export * from './constructors';
 export * from './operators';

@@ -1,7 +1,7 @@
 import '../test-kit/jest';
 import * as E from '../../fp/either';
 import * as O from '../outcome';
-import * as IO from '../io';
+import { IO } from '../io';
 import { id, pipe } from '../../fp/core';
 import { Semaphore } from '../semaphore';
 
@@ -19,9 +19,8 @@ describe('io monad', () => {
       let i: number = 0;
 
       const fa = pipe(
-        IO.pure(42),
-        IO.flatMap(i2 =>
-          IO.delay(() => {
+        IO.pure(42).flatMap(i2 =>
+          IO(() => {
             i = i2;
           }),
         ),
@@ -32,8 +31,8 @@ describe('io monad', () => {
     });
 
     it.ticked('should preserve monad identity on async', async ticker => {
-      const io1 = IO.async(cb => IO.delay(() => cb(E.right(42))));
-      const io2 = IO.flatMap_(io1, i => IO.pure(i));
+      const io1 = IO.async(cb => IO(() => cb(E.right(42))));
+      const io2 = io1.flatMap(i => IO.pure(i));
 
       await expect(io1).toCompleteWith(42, ticker);
       await expect(io2).toCompleteWith(42, ticker);
@@ -42,50 +41,39 @@ describe('io monad', () => {
 
   describe('error handling', () => {
     it.ticked('should capture suspended error', async ticker => {
-      const io = IO.delay(() => throwError(Error('test error')));
+      const io = IO(() => throwError(Error('test error')));
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should resume async IO with failure', async ticker => {
-      const io = IO.async(cb =>
-        IO.delay(() => cb(E.left(new Error('test error')))),
-      );
+      const io = IO.async(cb => IO(() => cb(E.left(new Error('test error')))));
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should propagate thrown error', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.flatMap(() => IO.unit),
-      );
+      const io = IO.throwError(new Error('test error')).void;
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should short circuit the execution on error', async ticker => {
       const fn = jest.fn();
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.flatMap(() => IO.delay(fn)),
-      );
+      const io = IO.throwError(new Error('test error')).flatMap(() => IO(fn));
 
       await expect(io).toFailWith(new Error('test error'), ticker);
       expect(fn).not.toHaveBeenCalled();
     });
 
     it.ticked('should handle thrown error', async ticker => {
-      const io = pipe(IO.throwError(new Error('test error')), IO.attempt);
+      const io = IO.throwError(new Error('test error')).attempt;
       await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in redeem recovery', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.redeem(
-          () => throwError(new Error('thrown error')),
-          () => 42,
-        ),
-        IO.attempt,
-      );
+      const io = IO.throwError(new Error('test error')).redeem(
+        () => throwError(new Error('thrown error')),
+        () => 42,
+      ).attempt;
+
       await expect(io).toCompleteWith(
         E.left(new Error('thrown error')),
         ticker,
@@ -93,51 +81,40 @@ describe('io monad', () => {
     });
 
     it.ticked('should recover from errors using redeemWith', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error()),
-        IO.redeemWith(
-          () => IO.pure(42),
-          () => IO.pure(43),
-        ),
+      const io = IO.throwError(new Error()).redeemWith(
+        () => IO.pure(42),
+        () => IO.pure(43),
       );
       await expect(io).toCompleteWith(42, ticker);
     });
 
     it.ticked('should bind success values using redeemWith', async ticker => {
-      const io = pipe(
-        IO.unit,
-        IO.redeemWith(
-          () => IO.pure(42),
-          () => IO.pure(43),
-        ),
+      const io = IO.unit.redeemWith(
+        () => IO.pure(42),
+        () => IO.pure(43),
       );
       await expect(io).toCompleteWith(43, ticker);
     });
 
     it.ticked('should catch error thrown in map', async ticker => {
-      const io = pipe(
-        IO.unit,
-        IO.map(() => throwError(new Error('test error'))),
-        IO.attempt,
-      );
+      const io = IO.unit.map(() => throwError(new Error('test error'))).attempt;
+
       await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in flatMap', async ticker => {
-      const io = pipe(
-        IO.unit,
-        IO.flatMap(() => throwError(new Error('test error'))),
-        IO.attempt,
-      );
+      const io = IO.unit.flatMap(() =>
+        throwError(new Error('test error')),
+      ).attempt;
+
       await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in handleErrorWith', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.handleErrorWith(() => throwError(new Error('thrown error'))),
-        IO.attempt,
-      );
+      const io = IO.throwError(new Error('test error')).handleErrorWith(() =>
+        throwError(new Error('thrown error')),
+      ).attempt;
+
       await expect(io).toCompleteWith(
         E.left(new Error('thrown error')),
         ticker,
@@ -147,22 +124,13 @@ describe('io monad', () => {
     it.ticked(
       'should throw first bracket release error if use effect succeeded',
       async ticker => {
-        const inner = pipe(
-          IO.bracket_(
-            IO.unit,
-            () => IO.unit,
-            () => IO.throwError(new Error('first error')),
-          ),
+        const inner = IO.unit.bracket(() => IO.unit)(() =>
+          IO.throwError(new Error('first error')),
         );
 
-        const io = pipe(
-          IO.bracket_(
-            IO.unit,
-            () => inner,
-            () => IO.throwError(new Error('second error')),
-          ),
-          IO.attempt,
-        );
+        const io = IO.unit.bracket(() => inner)(() =>
+          IO.throwError(new Error('second error')),
+        ).attempt;
 
         await expect(io).toCompleteWith(
           E.left(new Error('first error')),
@@ -175,17 +143,18 @@ describe('io monad', () => {
   describe('side effect suspension', () => {
     it.ticked('should not memoize effects', async ticker => {
       let counter = 42;
-      const io = IO.delay(() => {
+      const io = IO(() => {
         counter += 1;
         return counter;
       });
+
       await expect(io).toCompleteWith(43, ticker);
       await expect(io).toCompleteWith(44, ticker);
     });
 
     it.ticked('should execute suspended effect on each use', async ticker => {
       let counter = 42;
-      const x = IO.delay(() => {
+      const x = IO(() => {
         counter += 1;
         return counter;
       });
@@ -194,8 +163,7 @@ describe('io monad', () => {
         IO.Do,
         IO.bindTo('a', () => x),
         IO.bindTo('b', () => x),
-        IO.map(({ a, b }) => [a, b] as [number, number]),
-      );
+      ).map(({ a, b }) => [a, b] as [number, number]);
 
       await expect(io).toCompleteWith([43, 44], ticker);
     });
@@ -203,21 +171,18 @@ describe('io monad', () => {
 
   describe('fibers', () => {
     it.ticked('should fork and join a fiber', async ticker => {
-      const io = pipe(
-        IO.pure(42),
-        IO.map(x => x + 1),
-        IO.fork,
-        IO.flatMap(f => f.join),
-      );
+      const io = IO.pure(42)
+        .map(x => x + 1)
+        .fork.flatMap(f => f.join);
+
       await expect(io).toCompleteWith(O.success(43), ticker);
     });
 
     it.ticked('should fork and join a failed fiber', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.fork,
-        IO.flatMap(f => f.join),
+      const io = IO.throwError(new Error('test error')).fork.flatMap(
+        f => f.join,
       );
+
       await expect(io).toCompleteWith(
         O.failure(new Error('test error')),
         ticker,
@@ -227,11 +192,7 @@ describe('io monad', () => {
     it.ticked(
       'should fork and ignore a non-terminating fiber',
       async ticker => {
-        const io = pipe(
-          IO.never,
-          IO.fork,
-          IO.map(() => 42),
-        );
+        const io = IO.never.fork.map(() => 42);
         await expect(io).toCompleteWith(42, ticker);
       },
     );
@@ -239,18 +200,16 @@ describe('io monad', () => {
     it.ticked(
       'should start a fiber and continue with its results',
       async ticker => {
-        const io = pipe(
-          IO.pure(42),
-          IO.fork,
-          IO.flatMap(f => f.join),
-          IO.flatMap(
+        const io = IO.pure(42)
+          .fork.flatMap(f => f.join)
+          .flatMap(
             O.fold(
               () => IO.pure(0),
               () => IO.pure(-1),
               x => IO.pure(x),
             ),
-          ),
-        );
+          );
+
         await expect(io).toCompleteWith(42, ticker);
       },
     );
@@ -258,11 +217,7 @@ describe('io monad', () => {
     it.ticked(
       'should produce canceled outcome when fiber canceled',
       async ticker => {
-        const io = pipe(
-          IO.canceled,
-          IO.fork,
-          IO.flatMap(f => f.join),
-        );
+        const io = IO.canceled.fork.flatMap(f => f.join);
         await expect(io).toCompleteWith(O.canceled, ticker);
       },
     );
@@ -270,11 +225,10 @@ describe('io monad', () => {
     it.ticked('should cancel already canceled fiber', async ticker => {
       const ioa = pipe(
         IO.Do,
-        IO.bindTo('f', () => IO.fork(IO.canceled)),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.bindTo('f', () => IO.canceled.fork),
+        IO.bind(() => IO(() => ticker.tickAll())),
         IO.bind(({ f }) => f.cancel),
-        IO.map(() => undefined),
-      );
+      ).void;
 
       await expect(ioa).toCompleteWith(undefined, ticker);
     });
@@ -282,7 +236,7 @@ describe('io monad', () => {
 
   describe('async', () => {
     it.ticked('should resume async continuation', async ticker => {
-      const io = IO.async(cb => IO.delay(() => cb(E.right(42))));
+      const io = IO.async(cb => IO(() => cb(E.right(42))));
 
       await expect(io).toCompleteWith(42, ticker);
     });
@@ -290,9 +244,8 @@ describe('io monad', () => {
     it.ticked(
       'should resume async continuation and bind its results',
       async ticker => {
-        const io = pipe(
-          IO.async<number>(cb => IO.delay(() => cb(E.right(42)))),
-          IO.map(x => x + 2),
+        const io = IO.async<number>(cb => IO(() => cb(E.right(42)))).map(
+          x => x + 2,
         );
 
         await expect(io).toCompleteWith(44, ticker);
@@ -300,11 +253,9 @@ describe('io monad', () => {
     );
 
     it.ticked('should produce a failure when bind fails', async ticker => {
-      const io = pipe(
-        IO.async<number>(cb => IO.delay(() => cb(E.right(42)))),
-        IO.flatMap(() => IO.throwError(new Error('test error'))),
-        IO.map(() => undefined),
-      );
+      const io = IO.async<number>(cb => IO(() => cb(E.right(42)))).flatMap(() =>
+        IO.throwError(new Error('test error')),
+      ).void;
 
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
@@ -315,22 +266,21 @@ describe('io monad', () => {
         let cb: (ea: E.Either<Error, number>) => void;
 
         const async = IO.async<number>(cb0 =>
-          IO.delay(() => {
+          IO(() => {
             cb = cb0;
           }),
         );
 
         const io = pipe(
           IO.Do,
-          IO.bindTo('f', () => IO.fork(async)),
-          IO.bind(() => IO.delay(() => ticker.tickAll())),
-          IO.bind(() => IO.delay(() => cb(E.right(42)))),
-          IO.bind(() => IO.delay(() => ticker.tickAll())),
-          IO.bind(() => IO.delay(() => cb(E.right(43)))),
-          IO.bind(() => IO.delay(() => ticker.tickAll())),
-          IO.bind(() => IO.delay(() => cb(E.left(new Error('test error'))))),
-          IO.flatMap(({ f }) => f.join),
-        );
+          IO.bindTo('f', () => async.fork),
+          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => cb(E.right(42)))),
+          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => cb(E.right(43)))),
+          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => cb(E.left(new Error('test error'))))),
+        ).flatMap(({ f }) => f.join);
 
         await expect(io).toCompleteWith(O.success(42), ticker);
       },
@@ -340,13 +290,10 @@ describe('io monad', () => {
       'should cancel and complete a fiber while finalizer on poll',
       async ticker => {
         const ioa = IO.uncancelable(poll =>
-          pipe(
-            IO.canceled,
-            IO.flatMap(() => poll(IO.unit)),
-            IO.finalize(() => IO.unit),
-            IO.fork,
-            IO.flatMap(f => f.join),
-          ),
+          IO.canceled
+            .flatMap(() => poll(IO.unit))
+            .finalize(() => IO.unit)
+            .fork.flatMap(f => f.join),
         );
 
         await expect(ioa).toCompleteWith(O.canceled, ticker);
@@ -359,24 +306,20 @@ describe('io monad', () => {
 
       const outer = IO.async<number>(cb1 => {
         const inner = IO.async<number>(cb2 =>
-          pipe(
-            IO.delay(() => cb1(E.right(1))),
-            IO.flatMap(() => IO.readExecutionContext),
-            IO.flatMap(ec =>
-              IO.delay(() => ec.executeAsync(() => cb2(E.right(2)))),
-            ),
-          ),
+          IO(() => cb1(E.right(1)))
+            .flatMap(() => IO.readExecutionContext)
+            .flatMap(ec => IO(() => ec.executeAsync(() => cb2(E.right(2))))),
         );
 
-        return IO.flatMap_(inner, i =>
-          IO.delay(() => {
+        return inner.flatMap(i =>
+          IO(() => {
             innerR = i;
           }),
         );
       });
 
-      const io = IO.flatMap_(outer, i =>
-        IO.delay(() => {
+      const io = outer.flatMap(i =>
+        IO(() => {
           outerR = i;
         }),
       );
@@ -389,47 +332,40 @@ describe('io monad', () => {
 
   describe('both', () => {
     it.ticked('should complete when both fibers complete', async ticker => {
-      const io = IO.both_(IO.pure(42), IO.pure(43));
+      const io = IO.both(IO.pure(42), IO.pure(43));
       await expect(io).toCompleteWith([42, 43], ticker);
     });
 
     it.ticked('should fail if lhs fiber fails', async ticker => {
-      const io = IO.both_(IO.throwError(new Error('left error')), IO.pure(43));
+      const io = IO.both(IO.throwError(new Error('left error')), IO.pure(43));
       await expect(io).toFailWith(new Error('left error'), ticker);
     });
 
     it.ticked('should fail if rhs fiber fails', async ticker => {
-      const io = IO.both_(IO.pure(42), IO.throwError(new Error('right error')));
+      const io = IO.both(IO.pure(42), IO.throwError(new Error('right error')));
       await expect(io).toFailWith(new Error('right error'), ticker);
     });
 
     it.ticked('should cancel if lhs cancels', async ticker => {
-      const io = pipe(
-        IO.both_(IO.canceled, IO.pure(43)),
-        IO.fork,
-        IO.flatMap(f => f.join),
-      );
+      const io = IO.both(IO.canceled, IO.pure(43)).fork.flatMap(f => f.join);
+
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should cancel if rhs cancels', async ticker => {
-      const io = pipe(
-        IO.both_(IO.pure(42), IO.canceled),
-        IO.fork,
-        IO.flatMap(f => f.join),
-      );
+      const io = IO.both(IO.pure(42), IO.canceled).fork.flatMap(f => f.join);
+
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should propagate cancelation', async ticker => {
       const io = pipe(
         IO.Do,
-        IO.bindTo('f', () => IO.fork(IO.both_(IO.never, IO.never))),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.bindTo('f', IO.both(IO.never, IO.never).fork),
+        IO.bind(IO(() => ticker.tickAll())),
         IO.bind(({ f }) => f.cancel),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
-        IO.flatMap(({ f }) => f.join),
-      );
+        IO.bind(IO(() => ticker.tickAll())),
+      ).flatMap(({ f }) => f.join);
 
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
@@ -437,24 +373,22 @@ describe('io monad', () => {
     it.ticked('should cancel both fibers', async ticker => {
       const io = pipe(
         IO.Do,
-        IO.bindTo('l', () => IO.ref<boolean>(false)),
-        IO.bindTo('r', () => IO.ref<boolean>(false)),
-        IO.bindTo('fiber', ({ l, r }) =>
-          pipe(
-            IO.both_(
-              pipe(IO.never, IO.onCancel(l.set(true))),
-              pipe(IO.never, IO.onCancel(r.set(true))),
-            ),
-            IO.fork,
-          ),
+        IO.bindTo('l', IO.ref<boolean>(false)),
+        IO.bindTo('r', IO.ref<boolean>(false)),
+        IO.bindTo(
+          'fiber',
+          ({ l, r }) =>
+            IO.both(
+              IO.never.onCancel(l.set(true)),
+              IO.never.onCancel(r.set(true)),
+            ).fork,
         ),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.tickAll())),
         IO.bind(({ fiber }) => fiber.cancel),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.tickAll())),
         IO.bindTo('l2', ({ l }) => l.get()),
         IO.bindTo('r2', ({ r }) => r.get()),
-        IO.map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]),
-      );
+      ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
 
       await expect(io).toCompleteWith([true, true], ticker);
     });
@@ -462,23 +396,17 @@ describe('io monad', () => {
 
   describe('race', () => {
     it.ticked('should complete with faster, lhs', async ticker => {
-      const io = IO.race_(
+      const io = IO.race(
         IO.pure(42),
-        pipe(
-          IO.sleep(100),
-          IO.flatMap(() => IO.pure(43)),
-        ),
+        IO.sleep(100).flatMap(() => IO.pure(43)),
       );
 
       await expect(io).toCompleteWith(E.left(42), ticker);
     });
 
     it.ticked('should complete with faster, rhs', async ticker => {
-      const io = IO.race_(
-        pipe(
-          IO.sleep(100),
-          IO.flatMap(() => IO.pure(42)),
-        ),
+      const io = IO.race(
+        IO.sleep(100).flatMap(() => IO.pure(42)),
         IO.pure(43),
       );
 
@@ -486,19 +414,19 @@ describe('io monad', () => {
     });
 
     it.ticked('should fail if lhs fails', async ticker => {
-      const io = IO.race_(IO.throwError(new Error('left error')), IO.pure(43));
+      const io = IO.race(IO.throwError(new Error('left error')), IO.pure(43));
       await expect(io).toFailWith(new Error('left error'), ticker);
     });
 
     it.ticked('should fail if rhs fails', async ticker => {
-      const io = IO.race_(IO.pure(42), IO.throwError(new Error('right error')));
+      const io = IO.race(IO.pure(42), IO.throwError(new Error('right error')));
       await expect(io).toFailWith(new Error('right error'), ticker);
     });
 
     it.ticked(
       'should fail if lhs fails and rhs never completes',
       async ticker => {
-        const io = IO.race_(IO.throwError(new Error('left error')), IO.never);
+        const io = IO.race(IO.throwError(new Error('left error')), IO.never);
         await expect(io).toFailWith(new Error('left error'), ticker);
       },
     );
@@ -506,7 +434,7 @@ describe('io monad', () => {
     it.ticked(
       'should fail if rhs fails and lhs never completes',
       async ticker => {
-        const io = IO.race_(IO.never, IO.throwError(new Error('right error')));
+        const io = IO.race(IO.never, IO.throwError(new Error('right error')));
         await expect(io).toFailWith(new Error('right error'), ticker);
       },
     );
@@ -514,7 +442,7 @@ describe('io monad', () => {
     it.ticked(
       'should complete with lhs when rhs never completes',
       async ticker => {
-        const io = IO.race_(IO.pure(42), IO.never);
+        const io = IO.race(IO.pure(42), IO.never);
         await expect(io).toCompleteWith(E.left(42), ticker);
       },
     );
@@ -522,17 +450,13 @@ describe('io monad', () => {
     it.ticked(
       'should complete with rhs when lhs never completes',
       async ticker => {
-        const io = IO.race_(IO.never, IO.pure(43));
+        const io = IO.race(IO.never, IO.pure(43));
         await expect(io).toCompleteWith(E.right(43), ticker);
       },
     );
 
     it.ticked('should be canceled when both sides canceled', async ticker => {
-      const io = pipe(
-        IO.race_(IO.canceled, IO.canceled),
-        IO.fork,
-        IO.flatMap(f => f.join),
-      );
+      const io = IO.race(IO.canceled, IO.canceled).fork.flatMap(f => f.join);
 
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
@@ -540,7 +464,7 @@ describe('io monad', () => {
     it.ticked(
       'should succeed if lhs succeeds and rhs cancels',
       async ticker => {
-        const io = IO.race_(IO.pure(42), IO.canceled);
+        const io = IO.race(IO.pure(42), IO.canceled);
         await expect(io).toCompleteWith(E.left(42), ticker);
       },
     );
@@ -548,41 +472,39 @@ describe('io monad', () => {
     it.ticked(
       'should succeed if rhs succeeds and lhs cancels',
       async ticker => {
-        const io = IO.race_(IO.canceled, IO.pure(43));
+        const io = IO.race(IO.canceled, IO.pure(43));
         await expect(io).toCompleteWith(E.right(43), ticker);
       },
     );
 
     it.ticked('should fail if lhs fails and rhs cancels', async ticker => {
-      const io = IO.race_(IO.throwError(new Error('test error')), IO.canceled);
+      const io = IO.race(IO.throwError(new Error('test error')), IO.canceled);
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should fail if rhs fails and lhs cancels', async ticker => {
-      const io = IO.race_(IO.canceled, IO.throwError(new Error('test error')));
+      const io = IO.race(IO.canceled, IO.throwError(new Error('test error')));
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked('should cancel both fibers when canceled', async ticker => {
       const io = pipe(
         IO.Do,
-        IO.bindTo('l', () => IO.ref(false)),
-        IO.bindTo('r', () => IO.ref(false)),
-        IO.bindTo('fiber', ({ l, r }) =>
-          pipe(
-            IO.race_(
-              pipe(IO.never, IO.onCancel(l.set(true))),
-              pipe(IO.never, IO.onCancel(r.set(true))),
-            ),
-            IO.fork,
-          ),
+        IO.bindTo('l', IO.ref(false)),
+        IO.bindTo('r', IO.ref(false)),
+        IO.bindTo(
+          'fiber',
+          ({ l, r }) =>
+            IO.race(
+              IO.never.onCancel(l.set(true)),
+              IO.never.onCancel(r.set(true)),
+            ).fork,
         ),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.tickAll())),
         IO.bind(({ fiber }) => fiber.cancel),
         IO.bindTo('l2', ({ l }) => l.get()),
         IO.bindTo('r2', ({ r }) => r.get()),
-        IO.map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]),
-      );
+      ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
 
       await expect(io).toCompleteWith([true, true], ticker);
     });
@@ -590,26 +512,14 @@ describe('io monad', () => {
 
   describe('cancelation', () => {
     it.ticked('should cancel never after forking', async ticker => {
-      const io = pipe(
-        IO.fork(IO.never),
-        IO.flatMap(f => IO.flatMap_(f.cancel, () => f.join)),
-      );
+      const io = IO.never.fork.flatMap(f => f.cancel['>>>'](f.join));
 
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
 
     it.ticked('should cancel infinite chain of binds', async ticker => {
-      const infinite: IO.IO<void> = IO.flatMap_(IO.unit, () => infinite);
-
-      const io = pipe(
-        IO.fork(infinite),
-        IO.flatMap(f =>
-          pipe(
-            f.cancel,
-            IO.flatMap(() => f.join),
-          ),
-        ),
-      );
+      const infinite: IO<void> = IO.unit.flatMap(() => infinite);
+      const io = infinite.fork.flatMap(f => f.cancel['>>>'](f.join));
 
       await expect(io).toCompleteWith(O.canceled, ticker);
     });
@@ -617,14 +527,13 @@ describe('io monad', () => {
     it.ticked('should trigger cancelation cleanup of async', async ticker => {
       const cleanup = jest.fn();
 
-      const target = IO.async(() => IO.pure(IO.delay(cleanup)));
+      const target = IO.async(() => IO.pure(IO(cleanup)));
 
       const io = pipe(
         IO.Do,
-        IO.bindTo('f', () => IO.fork(target)),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
-        IO.flatMap(({ f }) => f.cancel),
-      );
+        IO.bindTo('f', () => target.fork),
+        IO.bind(() => IO(() => ticker.tickAll())),
+      ).flatMap(({ f }) => f.cancel);
 
       await expect(io).toCompleteWith(undefined, ticker);
       expect(cleanup).toHaveBeenCalled();
@@ -638,7 +547,7 @@ describe('io monad', () => {
     //     const target = IO.uncancelable(() =>
     //       IO.async(() =>
     //         IO.pure(
-    //           IO.delay(() => {
+    //           IO(() => {
     //             executed = true;
     //           }),
     //         ),
@@ -648,7 +557,7 @@ describe('io monad', () => {
     //     const io = pipe(
     //       IO.Do,
     //       IO.bindTo('f', () => IO.fork(target)),
-    //       IO.bind(() => IO.delay(() => ticker.tickAll())),
+    //       IO.bind(() => IO(() => ticker.tickAll())),
     //       IO.flatMap(({ f }) => f.cancel),
     //     );
 
@@ -670,10 +579,7 @@ describe('io monad', () => {
       'should cancel bind of canceled uncancelable block',
       async ticker => {
         const cont = jest.fn();
-        const io = pipe(
-          IO.uncancelable(() => IO.canceled),
-          IO.flatMap(() => IO.delay(() => cont)),
-        );
+        const io = IO.uncancelable(() => IO.canceled).flatMap(() => IO(cont));
 
         await expect(io).toCancel(ticker);
         expect(cont).not.toHaveBeenCalled();
@@ -684,10 +590,7 @@ describe('io monad', () => {
       const cleanup = jest.fn();
 
       const io = IO.uncancelable(poll =>
-        pipe(
-          IO.canceled,
-          IO.flatMap(() => IO.onCancel_(poll(IO.unit), IO.delay(cleanup))),
-        ),
+        IO.canceled.flatMap(() => poll(IO.unit).onCancel(IO(cleanup))),
       );
 
       await expect(io).toCancel(ticker);
@@ -700,11 +603,7 @@ describe('io monad', () => {
         const cont = jest.fn();
 
         const io = IO.uncancelable(poll =>
-          pipe(
-            IO.canceled,
-            IO.flatMap(() => poll(IO.unit)),
-            IO.flatMap(() => IO.delay(cont)),
-          ),
+          IO.canceled.flatMap(() => poll(IO.unit)).flatMap(() => IO(cont)),
         );
 
         await expect(io).toCancel(ticker);
@@ -718,10 +617,7 @@ describe('io monad', () => {
         const cleanup = jest.fn();
 
         const io = IO.uncancelable(() =>
-          pipe(
-            IO.canceled,
-            IO.flatMap(() => IO.onCancel_(IO.unit, IO.delay(cleanup))),
-          ),
+          IO.canceled.flatMap(() => IO.unit.onCancel(IO(cleanup))),
         );
 
         await expect(io).toCancel(ticker);
@@ -734,19 +630,10 @@ describe('io monad', () => {
 
       const io = IO.uncancelable(outerPoll => {
         const inner = IO.uncancelable(() =>
-          outerPoll(
-            pipe(
-              IO.canceled,
-              IO.flatMap(() => IO.delay(cont)),
-            ),
-          ),
+          outerPoll(IO.canceled.flatMap(() => IO(cont))),
         );
 
-        return pipe(
-          IO.fork(inner),
-          IO.flatMap(f => f.join),
-          IO.map(() => undefined),
-        );
+        return inner.fork.flatMap(f => f.join).void;
       });
 
       await expect(io).toCompleteWith(undefined, ticker);
@@ -757,8 +644,8 @@ describe('io monad', () => {
       'should run three finalizers while async suspended',
       async ticker => {
         const results: number[] = [];
-        const pushResult: (x: number) => IO.IO<void> = x =>
-          IO.delay(() => {
+        const pushResult: (x: number) => IO<void> = x =>
+          IO(() => {
             results.push(x);
           });
 
@@ -766,18 +653,13 @@ describe('io monad', () => {
 
         const io = pipe(
           IO.Do,
-          IO.bindTo('fiber', () =>
-            pipe(
-              body,
-              IO.onCancel(pushResult(2)),
-              IO.onCancel(pushResult(3)),
-              IO.fork,
-            ),
+          IO.bindTo(
+            'fiber',
+            body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
           ),
-          IO.bind(() => IO.delay(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.tickAll())),
           IO.bind(({ fiber }) => fiber.cancel),
-          IO.flatMap(({ fiber }) => fiber.join),
-        );
+        ).flatMap(({ fiber }) => fiber.join);
 
         await expect(io).toCompleteWith(O.canceled, ticker);
         expect(results).toEqual([1, 2, 3]);
@@ -791,10 +673,7 @@ describe('io monad', () => {
 
         const io = IO.uncancelable(outerPoll =>
           IO.uncancelable(innerPoll =>
-            pipe(
-              outerPoll(innerPoll(IO.canceled)),
-              IO.flatMap(() => IO.delay(cont)),
-            ),
+            outerPoll(innerPoll(IO.canceled)).flatMap(() => IO(cont)),
           ),
         );
 
@@ -810,10 +689,7 @@ describe('io monad', () => {
 
         const io = IO.uncancelable(outerPoll =>
           IO.uncancelable(innerPoll =>
-            pipe(
-              innerPoll(outerPoll(IO.canceled)),
-              IO.flatMap(() => IO.delay(cont)),
-            ),
+            innerPoll(outerPoll(IO.canceled)).flatMap(() => IO(cont)),
           ),
         );
 
@@ -826,12 +702,7 @@ describe('io monad', () => {
       const cont = jest.fn();
 
       const io = IO.uncancelable(poll =>
-        IO.uncancelable(() =>
-          pipe(
-            poll(poll(IO.canceled)),
-            IO.flatMap(() => IO.delay(cont)),
-          ),
-        ),
+        IO.uncancelable(() => poll(poll(IO.canceled)).flatMap(() => IO(cont))),
       );
 
       await expect(io).toCancel(ticker);
@@ -843,7 +714,7 @@ describe('io monad', () => {
     it.ticked('finalizer should not run on success', async ticker => {
       const fin = jest.fn();
 
-      const io = pipe(IO.pure(42), IO.onCancel(IO.delay(fin)));
+      const io = IO.pure(42).onCancel(IO(fin));
 
       await expect(io).toCompleteWith(42, ticker);
       expect(fin).not.toHaveBeenCalled();
@@ -852,10 +723,7 @@ describe('io monad', () => {
     it.ticked('should run finalizer on success', async ticker => {
       const fin = jest.fn();
 
-      const io = pipe(
-        IO.pure(42),
-        IO.finalize(() => IO.delay(fin)),
-      );
+      const io = IO.pure(42).finalize(() => IO(fin));
 
       await expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
@@ -864,10 +732,7 @@ describe('io monad', () => {
     it.ticked('should run finalizer on failure', async ticker => {
       const fin = jest.fn();
 
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.finalize(() => IO.delay(fin)),
-      );
+      const io = IO.throwError(new Error('test error')).finalize(() => IO(fin));
 
       await expect(io).toFailWith(new Error('test error'), ticker);
       expect(fin).toHaveBeenCalled();
@@ -876,10 +741,7 @@ describe('io monad', () => {
     it.ticked('should run finalizer on cancelation', async ticker => {
       const fin = jest.fn();
 
-      const io = pipe(
-        IO.canceled,
-        IO.finalize(() => IO.delay(fin)),
-      );
+      const io = IO.canceled.finalize(() => IO(fin));
 
       await expect(io).toCancel(ticker);
       expect(fin).toHaveBeenCalled();
@@ -889,11 +751,9 @@ describe('io monad', () => {
       const inner = jest.fn();
       const outer = jest.fn();
 
-      const io = pipe(
-        IO.pure(42),
-        IO.finalize(() => IO.delay(inner)),
-        IO.finalize(() => IO.delay(outer)),
-      );
+      const io = IO.pure(42)
+        .finalize(() => IO(inner))
+        .finalize(() => IO(outer));
 
       await expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalled();
@@ -904,11 +764,9 @@ describe('io monad', () => {
       const inner = jest.fn();
       const outer = jest.fn();
 
-      const io = pipe(
-        IO.pure(42),
-        IO.finalize(() => IO.delay(inner)),
-        IO.finalize(() => IO.delay(outer)),
-      );
+      const io = IO.pure(42)
+        .finalize(() => IO(inner))
+        .finalize(() => IO(outer));
 
       await expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalledTimes(1);
@@ -918,28 +776,24 @@ describe('io monad', () => {
     it.ticked('should run finalizer on async success', async ticker => {
       const fin = jest.fn();
 
-      const io = pipe(
-        IO.pure(42),
-        IO.delayBy(1_000 * 60 * 60 * 24), // 1 day
-        IO.finalize(
+      const io = IO.pure(42)
+        .delayBy(1_000 * 60 * 60 * 24) // 1 day
+        .finalize(
           O.fold(
             () => IO.unit,
             () => IO.unit,
-            () => IO.delay(fin),
+            () => IO(fin),
           ),
-        ),
-      );
+        );
 
       await expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
     it.ticked('should retain errors through finalizers', async ticker => {
-      const io = pipe(
-        IO.throwError(new Error('test error')),
-        IO.finalize(() => IO.unit),
-        IO.finalize(() => IO.unit),
-      );
+      const io = IO.throwError(new Error('test error'))
+        .finalize(() => IO.unit)
+        .finalize(() => IO.unit);
 
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
@@ -948,28 +802,21 @@ describe('io monad', () => {
       const fin = jest.fn();
 
       const body = IO.async(() =>
-        IO.delay(() =>
-          pipe(
-            IO.async(cb =>
-              pipe(
-                IO.readExecutionContext,
-                IO.flatMap(ec =>
-                  // enforce async completion
-                  IO.delay(() => ec.executeAsync(() => cb(E.rightUnit))),
-                ),
-              ),
+        IO(() =>
+          IO.async<void>(cb =>
+            IO.readExecutionContext.flatMap(ec =>
+              // enforce async completion
+              IO(() => ec.executeAsync(() => cb(E.rightUnit))),
             ),
-            IO.tap(fin),
-          ),
+          ).tap(fin),
         ),
       );
 
       const io = pipe(
         IO.Do,
-        IO.bindTo('fiber', () => IO.fork(body)),
-        IO.bind(() => IO.delay(() => ticker.tickAll())), // start async task
-        IO.flatMap(({ fiber }) => fiber.cancel), // cancel after the async task is running
-      );
+        IO.bindTo('fiber', body.fork),
+        IO.bind(IO(() => ticker.tickAll())), // start async task
+      ).flatMap(({ fiber }) => fiber.cancel); // cancel after the async task is running;
 
       await expect(io).toCompleteWith(undefined, ticker);
       expect(fin).toHaveBeenCalled();
@@ -980,14 +827,8 @@ describe('io monad', () => {
       async ticker => {
         const fin = jest.fn();
 
-        const io = pipe(
-          IO.uncancelable(() =>
-            pipe(
-              IO.canceled,
-              IO.map(() => 42),
-            ),
-          ),
-          IO.onCancel(IO.delay(fin)),
+        const io = IO.uncancelable(() => IO.canceled.map(() => 42)).onCancel(
+          IO(fin),
         );
 
         await expect(io).toCancel(ticker);
@@ -1000,15 +841,9 @@ describe('io monad', () => {
       async ticker => {
         const fin = jest.fn();
 
-        const io = pipe(
-          IO.uncancelable(() =>
-            pipe(
-              IO.canceled,
-              IO.flatMap(() => IO.throwError(new Error('test error'))),
-            ),
-          ),
-          IO.onCancel(IO.delay(fin)),
-        );
+        const io = IO.uncancelable(() =>
+          IO.canceled.flatMap(() => IO.throwError(new Error('test error'))),
+        ).onCancel(IO(fin));
 
         await expect(io).toCancel(ticker);
         expect(fin).not.toHaveBeenCalled();
@@ -1018,19 +853,16 @@ describe('io monad', () => {
     it.ticked('should run finalizer on failed bracket use', async ticker => {
       const io = pipe(
         IO.Do,
-        IO.bindTo('ref', () => IO.ref(false)),
-        IO.bind(({ ref }) =>
-          pipe(
-            IO.bracketFull_(
+        IO.bindTo('ref', IO.ref(false)),
+        IO.bind(
+          ({ ref }) =>
+            IO.bracketFull(
               () => IO.unit,
               () => throwError(new Error('Uncaught error')),
               () => ref.set(true),
-            ),
-            IO.attempt,
-          ),
+            ).attempt,
         ),
-        IO.flatMap(({ ref }) => ref.get()),
-      );
+      ).flatMap(({ ref }) => ref.get());
 
       await expect(io).toCompleteWith(true, ticker);
     });
@@ -1040,23 +872,22 @@ describe('io monad', () => {
       async ticker => {
         const io = pipe(
           IO.Do,
-          IO.bindTo('def', () => IO.deferred<void>()),
+          IO.bindTo('def', IO.deferred<void>()),
           IO.bindTo('bracket', ({ def }) =>
             IO.pure(
-              IO.bracketFull_(
+              IO.bracketFull(
                 () => IO.unit,
                 () => IO.never,
                 () => def.complete(undefined),
               ),
             ),
           ),
-          IO.bindTo('dFiber', ({ def }) => IO.fork(def.get())),
-          IO.bind(() => IO.delay(() => ticker.tickAll())), // start waiting for the result of cancelation
-          IO.bindTo('bFiber', ({ bracket }) => IO.fork(bracket)),
-          IO.bind(() => IO.delay(() => ticker.tickAll())), // start `use` with resource
+          IO.bindTo('dFiber', ({ def }) => def.get().fork),
+          IO.bind(IO(() => ticker.tickAll())), // start waiting for the result of cancelation
+          IO.bindTo('bFiber', ({ bracket }) => bracket.fork),
+          IO.bind(IO(() => ticker.tickAll())), // start `use` with resource
           IO.bind(({ bFiber }) => bFiber.cancel),
-          IO.flatMap(({ dFiber }) => dFiber.join), // await the cancelation result
-        );
+        ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
 
         await expect(io).toCompleteWith(O.success(undefined), ticker);
       },
@@ -1065,38 +896,28 @@ describe('io monad', () => {
 
   describe('stack-safety', () => {
     it.ticked('should evaluate 10,000 consecutive binds', async ticker => {
-      const loop: (i: number) => IO.IO<void> = i =>
-        i < 10_000
-          ? pipe(
-              IO.unit,
-              IO.flatMap(() => loop(i + 1)),
-              IO.map(id),
-            )
-          : IO.unit;
+      const loop: (i: number) => IO<void> = i =>
+        i < 10_000 ? IO.unit.flatMap(() => loop(i + 1)).map(id) : IO.unit;
 
       await expect(loop(0)).toCompleteWith(undefined, ticker);
     });
 
     it.ticked('should evaluate 10,000 error handler binds', async ticker => {
-      const loop: (i: number) => IO.IO<void> = i =>
+      const loop: (i: number) => IO<void> = i =>
         i < 10_000
-          ? pipe(
-              IO.unit,
-              IO.flatMap(() => loop(i + 1)),
-              IO.handleErrorWith(IO.throwError),
-            )
+          ? IO.unit.flatMap(() => loop(i + 1)).handleErrorWith(IO.throwError)
           : IO.throwError(new Error('test error'));
 
-      const io = IO.handleErrorWith_(loop(0), () => IO.unit);
+      const io = loop(0).handleErrorWith(() => IO.unit);
       await expect(io).toCompleteWith(undefined, ticker);
     });
 
     it.ticked('should evaluate 10,000 consecutive attempts', async ticker => {
-      let acc: IO.IO<unknown> = IO.unit;
+      let acc: IO<unknown> = IO.unit;
 
-      for (let i = 0; i < 10_000; i++) acc = IO.attempt(acc);
+      for (let i = 0; i < 10_000; i++) acc = acc.attempt;
 
-      const io = IO.flatMap_(acc, () => IO.unit);
+      const io = acc.flatMap(() => IO.unit);
       await expect(io).toCompleteWith(undefined, ticker);
     });
   });
@@ -1122,10 +943,9 @@ describe('io monad', () => {
 
       const io = pipe(
         IO.Do,
-        IO.bindTo('fiber', () => IO.fork(traverse)),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
-        IO.flatMap(({ fiber }) => fiber.cancel),
-      );
+        IO.bindTo('fiber', () => traverse.fork),
+        IO.bind(() => IO(() => ticker.tickAll())),
+      ).flatMap(({ fiber }) => fiber.cancel);
 
       await expect(io).toCompleteWith(undefined, ticker);
     });
@@ -1135,15 +955,14 @@ describe('io monad', () => {
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(fin => IO.onCancel_(IO.never, IO.delay(fin)), 2),
+        IO.parTraverseN(fin => IO.never.onCancel(IO(fin)), 2),
       );
 
       const io = pipe(
         IO.Do,
-        IO.bindTo('fiber', () => IO.fork(traverse)),
-        IO.bind(() => IO.delay(() => ticker.tickAll())),
-        IO.flatMap(({ fiber }) => fiber.cancel),
-      );
+        IO.bindTo('fiber', () => traverse.fork),
+        IO.bind(IO(() => ticker.tickAll())),
+      ).flatMap(({ fiber }) => fiber.cancel);
 
       await expect(io).toCompleteWith(undefined, ticker);
       expect(fins[0]).toHaveBeenCalled();
@@ -1159,9 +978,9 @@ describe('io monad', () => {
         const ts = [
           IO.defer(() => IO.throwError(new Error('test test'))),
           IO.never,
-          IO.onCancel_(IO.never, IO.delay(fin)),
-          IO.delay(cont),
-          IO.delay(cont),
+          IO.never.onCancel(IO(fin)),
+          IO(cont),
+          IO(cont),
         ];
 
         const io = pipe(ts, IO.parTraverseN(id, 2));
@@ -1180,13 +999,12 @@ describe('io monad', () => {
         const io = pipe(
           IO.Do,
           IO.bindTo('sem', Semaphore.withPermits(1)),
-          IO.bindTo('f1', ({ sem }) => IO.fork(sem.withPermit(IO.never))),
-          IO.bindTo('f2', ({ sem }) => IO.fork(sem.withPermit(IO.never))),
-          IO.bind(IO.delay(() => ticker.tickAll())),
-          IO.bind(({ sem }) => IO.fork(sem.withPermit(IO.delay(cont)))),
-          IO.bind(IO.delay(() => ticker.tickAll())),
-          IO.flatMap(({ f2 }) => f2.cancel),
-        );
+          IO.bindTo('f1', ({ sem }) => sem.withPermit(IO.never).fork),
+          IO.bindTo('f2', ({ sem }) => sem.withPermit(IO.never).fork),
+          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(({ sem }) => sem.withPermit(IO(cont)).fork),
+          IO.bind(IO(() => ticker.tickAll())),
+        ).flatMap(({ f2 }) => f2.cancel);
 
         await expect(io).toCompleteWith(undefined, ticker);
         expect(cont).not.toHaveBeenCalled();

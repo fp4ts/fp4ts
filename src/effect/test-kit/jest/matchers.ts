@@ -1,5 +1,5 @@
+import { IO } from '../../io';
 import * as O from '../../outcome';
-import * as IO from '../../io';
 import * as IOR from '../../io-runtime';
 import { Ticker } from '../ticker';
 import { TestExecutionContext } from '../test-execution-context';
@@ -26,7 +26,7 @@ type MatcherContext = typeof expect['extend'] extends JestExtends<infer Context>
 
 async function tickTo(
   this: MatcherContext,
-  receivedIO: IO.IO<unknown>,
+  receivedIO: IO<unknown>,
   expected: O.Outcome<unknown>,
   ec: TestExecutionContext,
 ) {
@@ -85,7 +85,7 @@ expect.extend({
   tickTo,
 
   toCompleteWith(
-    receivedIO: IO.IO<unknown>,
+    receivedIO: IO<unknown>,
     expected: unknown,
     ec: TestExecutionContext,
   ) {
@@ -93,14 +93,14 @@ expect.extend({
   },
 
   toFailWith(
-    receivedIO: IO.IO<unknown>,
+    receivedIO: IO<unknown>,
     expected: Error,
     ec: TestExecutionContext,
   ) {
     return tickTo.apply(this, [receivedIO, O.failure(expected), ec]);
   },
 
-  toCancel(receivedIO: IO.IO<unknown>, ec: TestExecutionContext) {
+  toCancel(receivedIO: IO<unknown>, ec: TestExecutionContext) {
     return tickTo.apply(this, [receivedIO, O.canceled, ec]);
   },
 });

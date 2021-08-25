@@ -1,8 +1,7 @@
 import { ok as assert } from 'assert';
 import { Ref } from './ref';
 import { Deferred } from './deferred';
-import * as IO from './io';
-import { pipe } from '../fp/core';
+import { IO } from './io';
 
 class State {
   // @ts-ignore
@@ -26,33 +25,27 @@ export class Semaphore {
 
   private constructor(private readonly state: Ref<State>) {}
 
-  public readonly acquire = (): IO.IO<void> =>
+  public readonly acquire = (): IO<void> =>
     IO.uncancelable(poll =>
-      pipe(
-        Deferred.of<void>(),
-        IO.flatMap(wait => {
-          const cancel = this.state.update(state =>
-            state.copy({ queue: state.queue.filter(x => x !== wait) }),
-          );
+      Deferred.of<void>().flatMap(wait => {
+        const cancel = this.state.update(state =>
+          state.copy({ queue: state.queue.filter(x => x !== wait) }),
+        );
 
-          return pipe(
-            this.state.modify(state =>
-              state.permits === 0
-                ? [
-                    state.copy({ queue: [...state.queue, wait] }),
-                    pipe(poll(wait.get()), IO.onCancel(cancel)),
-                  ]
-                : [state.copy({ permits: state.permits - 1 }), IO.unit],
-            ),
-            IO.flatten,
-          );
-        }),
-      ),
+        return this.state.modify(state =>
+          state.permits === 0
+            ? [
+                state.copy({ queue: [...state.queue, wait] }),
+                poll(wait.get()).onCancel(cancel),
+              ]
+            : [state.copy({ permits: state.permits - 1 }), IO.unit],
+        ).flatten;
+      }),
     );
 
-  public readonly release = (): IO.IO<void> =>
-    IO.uncancelable(() =>
-      pipe(
+  public readonly release = (): IO<void> =>
+    IO.uncancelable(
+      () =>
         this.state.modify(state => {
           if (state.queue.length) {
             const [head, ...tail] = state.queue;
@@ -60,40 +53,32 @@ export class Semaphore {
           } else {
             return [state.copy({ permits: state.permits + 1 }), IO.unit];
           }
-        }),
-        IO.flatten,
-      ),
+        }).flatten,
     );
 
-  public readonly withPermit = <A>(ioa: IO.IO<A>): IO.IO<A> =>
+  public readonly withPermit = <A>(ioa: IO<A>): IO<A> =>
     IO.uncancelable(poll =>
-      pipe(
-        poll(this.acquire()),
-        IO.flatMap(() => IO.finalize_(poll(ioa), () => this.release())),
-      ),
+      poll(this.acquire())['>>>'](poll(ioa).finalize(() => this.release())),
     );
 
-  public static readonly withPermits = (permits: number): IO.IO<Semaphore> => {
+  public static readonly withPermits = (permits: number): IO<Semaphore> => {
     assert(permits > 0, 'maxPermits must be > 0');
-    return pipe(
-      Ref.of(new State([], permits)),
-      IO.map(state => new Semaphore(state)),
-    );
+    return Ref.of(new State([], permits)).map(state => new Semaphore(state));
   };
 }
 
-export const of = (permits: number): IO.IO<Semaphore> =>
+export const of = (permits: number): IO<Semaphore> =>
   Semaphore.withPermits(permits);
 
-export const acquire: (sem: Semaphore) => IO.IO<void> = sem => sem.acquire();
+export const acquire: (sem: Semaphore) => IO<void> = sem => sem.acquire();
 
-export const release: (sem: Semaphore) => IO.IO<void> = sem => sem.release();
+export const release: (sem: Semaphore) => IO<void> = sem => sem.release();
 
-export const withPermit: (sem: Semaphore) => <A>(ioa: IO.IO<A>) => IO.IO<A> =
+export const withPermit: (sem: Semaphore) => <A>(ioa: IO<A>) => IO<A> =
   sem => ioa =>
     withPermit_(sem, ioa);
 
-export const withPermit_: <A>(sem: Semaphore, ioa: IO.IO<A>) => IO.IO<A> = (
+export const withPermit_: <A>(sem: Semaphore, ioa: IO<A>) => IO<A> = (
   sem,
   ioa,
 ) => sem.withPermit(ioa);
