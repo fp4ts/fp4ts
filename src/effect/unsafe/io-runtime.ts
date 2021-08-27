@@ -52,6 +52,8 @@ export const unsafeRunMain = (ioa: IO<unknown>): void => {
 
   return ioa
     .race(IO.race(Signal.SIGTERM(), Signal.SIGINT()))
-    .finalize(O.fold(onCancel, onFailure, E.fold(onSuccess, onCancel)))
+    .finalize(
+      O.fold(onCancel, onFailure, x => x.flatMap(E.fold(onSuccess, onCancel))),
+    )
     .unsafeRunAsync(() => {}, runtime);
 };

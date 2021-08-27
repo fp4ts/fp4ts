@@ -1,4 +1,4 @@
-import * as O from '../../kernel/outcome';
+import { IOOutcome } from '../../io-outcome';
 import { ticked } from '../ticked';
 import { Ticker } from '../ticker';
 
@@ -7,7 +7,7 @@ declare global {
   namespace jest {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Matchers<R> {
-      tickTo(oc: O.Outcome<unknown>, ticker: Ticker): Promise<unknown>;
+      tickTo(oc: IOOutcome<unknown>, ticker: Ticker): Promise<unknown>;
       toCompleteWith(result: unknown, ticker: Ticker): Promise<unknown>;
       toFailWith(error: Error, ticker: Ticker): Promise<unknown>;
       toCancel(ticker: Ticker): Promise<unknown>;

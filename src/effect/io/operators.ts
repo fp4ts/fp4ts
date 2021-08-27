@@ -1,6 +1,8 @@
 import { flow, id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
 
+import { IOFiber } from '../io-fiber';
+import { IOOutcome } from '../io-outcome';
 import { ExecutionContext } from '../execution-context';
 
 import * as O from '../kernel/outcome';
@@ -31,7 +33,6 @@ import {
   unit,
 } from './constructors';
 import { bind, bindTo, Do } from './do';
-import { IOFiber } from '../io-fiber';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
@@ -63,7 +64,7 @@ export const racePair: <B>(
   iob: IO<B>,
 ) => <A>(
   ioa: IO<A>,
-) => IO<E.Either<[O.Outcome<A>, IOFiber<B>], [IOFiber<A>, O.Outcome<B>]>> =
+) => IO<E.Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =
   iob => ioa =>
     racePair_(ioa, iob);
 
@@ -72,7 +73,7 @@ export const both: <B>(iob: IO<B>) => <A>(ioa: IO<A>) => IO<[A, B]> =
     both_(ioa, iob);
 
 export const finalize: <A>(
-  finalizer: (oc: O.Outcome<A>) => IO<void>,
+  finalizer: (oc: IOOutcome<A>) => IO<void>,
 ) => (ioa: IO<A>) => IO<A> = finalizer => ioa => finalize_(ioa, finalizer);
 
 export const bracket: <A, B>(
@@ -83,14 +84,14 @@ export const bracket: <A, B>(
 
 export const bracketOutcome: <A, B>(
   use: (a: A) => IO<B>,
-) => (release: (a: A, oc: O.Outcome<B>) => IO<void>) => (ioa: IO<A>) => IO<B> =
+) => (release: (a: A, oc: IOOutcome<B>) => IO<void>) => (ioa: IO<A>) => IO<B> =
   use => release => ioa =>
     bracketOutcome_(ioa, use, release);
 
 export const bracketFull = <A, B>(
   acquire: (poll: Poll<URI>) => IO<A>,
   use: (a: A) => IO<B>,
-  release: (a: A, oc: O.Outcome<B>) => IO<void>,
+  release: (a: A, oc: IOOutcome<B>) => IO<void>,
 ): IO<B> =>
   uncancelable(poll =>
     pipe(
@@ -173,15 +174,15 @@ export const parSequence = <A>(ioas: IO<A>[]): IO<A[]> =>
 
 export const parTraverseOutcome: <A, B>(
   f: (a: A) => IO<B>,
-) => (as: A[]) => IO<O.Outcome<B>[]> = f => as => parTraverseOutcome_(as, f);
+) => (as: A[]) => IO<IOOutcome<B>[]> = f => as => parTraverseOutcome_(as, f);
 
-export const parSequenceOutcome = <A>(ioas: IO<A>[]): IO<O.Outcome<A>[]> =>
+export const parSequenceOutcome = <A>(ioas: IO<A>[]): IO<IOOutcome<A>[]> =>
   parTraverseOutcome_(ioas, id);
 
 export const parTraverseOutcomeN: <A, B>(
   f: (a: A) => IO<B>,
   maxConcurrent: number,
-) => (as: A[]) => IO<O.Outcome<B>[]> = (f, maxConcurrent) => as =>
+) => (as: A[]) => IO<IOOutcome<B>[]> = (f, maxConcurrent) => as =>
   parTraverseOutcomeN_(as, f, maxConcurrent);
 
 // -- Point-ful operators
@@ -207,10 +208,10 @@ export const executeOn_ = <A>(ioa: IO<A>, ec: ExecutionContext): IO<A> =>
 export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   const cont = <X, Y>(
     poll: Poll<URI>,
-    oc: O.Outcome<X>,
+    oc: IOOutcome<X>,
     f: IOFiber<Y>,
   ): IO<E.Either<X, Y>> =>
-    O.fold_<X, IO<E.Either<X, Y>>>(
+    O.fold_<URI, Error, X, IO<E.Either<X, Y>>>(
       oc,
       () =>
         pipe(
@@ -220,20 +221,20 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
             O.fold(
               () => flatMap_(poll(canceled), () => never),
               ey => throwError(ey),
-              y => pure(E.right(y)),
+              fy => map_(fy, E.right),
             ),
           ),
         ),
       ex => flatMap_(f.cancel, () => throwError(ex)),
-      x =>
+      fx =>
         pipe(
           f.cancel,
           flatMap(() => f.join),
           flatMap(
             O.fold(
-              () => pure(E.left(x)),
+              () => map_(fx, E.left),
               ey => throwError(ey),
-              () => pure(E.left(x)),
+              () => map_(fx, E.left),
             ),
           ),
         ),
@@ -244,8 +245,8 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
       poll(racePair_(ioa, iob)),
       flatMap(
         E.fold(
-          ([oc, f]: [O.Outcome<A>, IOFiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [IOFiber<A>, O.Outcome<B>]) =>
+          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
+          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
             pipe(cont(poll, oc, f), map(E.swapped)),
         ),
       ),
@@ -256,13 +257,13 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
 export const racePair_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<E.Either<[O.Outcome<A>, IOFiber<B>], [IOFiber<A>, O.Outcome<B>]>> =>
+): IO<E.Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =>
   new RacePair(ioa, iob);
 
 export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
   const cont = <X, Y>(
     poll: Poll<URI>,
-    oc: O.Outcome<X>,
+    oc: IOOutcome<X>,
     f: IOFiber<Y>,
   ): IO<[X, Y]> =>
     O.fold_(
@@ -274,7 +275,7 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
           flatMap(() => never),
         ),
       ex => flatMap_(f.cancel, () => throwError(ex)),
-      x =>
+      fx =>
         pipe(
           poll(f.join),
           onCancel(f.cancel),
@@ -282,7 +283,7 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
             O.fold(
               () => flatMap_(poll(canceled), () => never),
               ey => throwError(ey),
-              y => pure([x, y]),
+              fy => flatMap_(fx, x => map_(fy, y => [x, y])),
             ),
           ),
         ),
@@ -293,8 +294,8 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
       poll(racePair_(ioa, iob)),
       flatMap(
         E.fold(
-          ([oc, f]: [O.Outcome<A>, IOFiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [IOFiber<A>, O.Outcome<B>]) =>
+          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
+          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
             pipe(
               cont(poll, oc, f),
               map(([b, a]) => [a, b]),
@@ -307,7 +308,7 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
 
 export const finalize_ = <A>(
   ioa: IO<A>,
-  finalizer: (oc: O.Outcome<A>) => IO<void>,
+  finalizer: (oc: IOOutcome<A>) => IO<void>,
 ): IO<A> =>
   uncancelable(poll =>
     pipe(
@@ -321,7 +322,7 @@ export const finalize_ = <A>(
           ),
         ),
       ),
-      flatTap(a => finalizer(O.success(a))),
+      flatTap(a => finalizer(O.success(pure(a)))),
     ),
   );
 
@@ -334,7 +335,7 @@ export const bracket_ = <A, B>(
 export const bracketOutcome_ = <A, B>(
   ioa: IO<A>,
   use: (a: A) => IO<B>,
-  release: (a: A, oc: O.Outcome<B>) => IO<void>,
+  release: (a: A, oc: IOOutcome<B>) => IO<void>,
 ): IO<B> => bracketFull(() => ioa, use, release);
 
 export const map_: <A, B>(ioa: IO<A>, f: (a: A) => B) => IO<B> = (ioa, f) =>
@@ -466,7 +467,7 @@ export const map2_ = <A, B, C>(
                   ),
                 ),
               e => flatMap_(fiberB.cancel, () => throwError(e)),
-              a => pure(a),
+              a => a,
             ),
           ),
         ),
@@ -491,7 +492,7 @@ export const map2_ = <A, B, C>(
                   poll,
                 ),
               e => throwError(e),
-              b => pure(b),
+              b => b,
             ),
           ),
         ),
@@ -528,7 +529,7 @@ export const parTraverseN_ = <A, B>(
 export const parTraverseOutcome_ = <A, B>(
   as: A[],
   f: (a: A) => IO<B>,
-): IO<O.Outcome<B>[]> =>
+): IO<IOOutcome<B>[]> =>
   defer(() => {
     const iobFibers = as.map(flow(x => defer(() => f(x)), fork));
 
@@ -555,7 +556,7 @@ export const parTraverseOutcomeN_ = <A, B>(
   as: A[],
   f: (a: A) => IO<B>,
   maxConcurrent: number,
-): IO<O.Outcome<B>[]> =>
+): IO<IOOutcome<B>[]> =>
   pipe(
     Sem.of(maxConcurrent),
     flatMap(sem => parTraverseOutcome_(as, flow(f, Sem.withPermit(sem)))),

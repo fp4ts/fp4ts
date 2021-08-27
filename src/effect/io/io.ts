@@ -1,7 +1,7 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
+import { IOOutcome } from '../io-outcome';
 
-import { Outcome } from '../kernel/outcome';
 import * as Ref from '../kernel/ref';
 import * as D from '../kernel/deferred';
 import { Poll } from '../kernel/poll';
@@ -112,7 +112,7 @@ interface IOObj {
   bracketFull: <A, B>(
     acquire: (poll: Poll<URI>) => IO<A>,
     use: (a: A) => IO<B>,
-    release: (a: A, oc: Outcome<B>) => IO<void>,
+    release: (a: A, oc: IOOutcome<B>) => IO<void>,
   ) => IO<B>;
 
   // Do notation

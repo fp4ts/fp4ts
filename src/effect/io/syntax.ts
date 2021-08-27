@@ -2,9 +2,9 @@ import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
 
-import { Outcome } from '../kernel/outcome';
 import { IORuntime } from '../unsafe/io-runtime';
 
+import { IOOutcome } from '../io-outcome';
 import { IO as IOBase } from './algebra';
 import { IO } from './index';
 
@@ -60,7 +60,7 @@ declare module './algebra' {
 
     both: <B>(iob: IO<B>) => IO<[A, B]>;
 
-    finalize: (fin: (oc: Outcome<A>) => IO<void>) => IO<A>;
+    finalize: (fin: (oc: IOOutcome<A>) => IO<void>) => IO<A>;
 
     bracket: <B>(
       use: (a: A) => IO<B>,
@@ -68,7 +68,7 @@ declare module './algebra' {
 
     bracketOutcome: <B>(
       use: (a: A) => IO<B>,
-    ) => (release: (a: A, oc: Outcome<B>) => IO<void>) => IO<B>;
+    ) => (release: (a: A, oc: IOOutcome<B>) => IO<void>) => IO<B>;
 
     map: <B>(f: (a: A) => B) => IO<B>;
 
@@ -103,7 +103,7 @@ declare module './algebra' {
 
     unsafeRunToPromise: (runtime?: IORuntime) => Promise<A>;
 
-    unsafeRunOutcomeToPromise: (runtime?: IORuntime) => Promise<Outcome<A>>;
+    unsafeRunOutcomeToPromise: (runtime?: IORuntime) => Promise<IOOutcome<A>>;
 
     unsafeRunAsync: (
       cb: (ea: Either<Error, A>) => void,
@@ -111,7 +111,7 @@ declare module './algebra' {
     ) => void;
 
     unsafeRunAsyncOutcome: (
-      cb: (oc: Outcome<A>) => void,
+      cb: (oc: IOOutcome<A>) => void,
       runtime?: IORuntime,
     ) => void;
   }
@@ -169,7 +169,7 @@ IOBase.prototype.both = function <A, B>(this: IO<A>, that: IO<B>): IO<[A, B]> {
 
 IOBase.prototype.finalize = function <A>(
   this: IO<A>,
-  finalizer: (oc: Outcome<A>) => IO<void>,
+  finalizer: (oc: IOOutcome<A>) => IO<void>,
 ): IO<A> {
   return finalize_(this, finalizer);
 };
@@ -184,7 +184,7 @@ IOBase.prototype.bracket = function <A, B>(
 IOBase.prototype.bracketOutcome = function <A, B>(
   this: IO<A>,
   use: (a: A) => IO<B>,
-): (release: (a: A, oc: Outcome<B>) => IO<void>) => IO<B> {
+): (release: (a: A, oc: IOOutcome<B>) => IO<void>) => IO<B> {
   return release => bracketOutcome_(this, use, release);
 };
 
@@ -297,7 +297,7 @@ IOBase.prototype.unsafeRunAsync = function <A>(
 
 IOBase.prototype.unsafeRunAsyncOutcome = function <A>(
   this: IO<A>,
-  cb: (oc: Outcome<A>) => void,
+  cb: (oc: IOOutcome<A>) => void,
   runtime?: IORuntime,
 ): void {
   unsafeRunAsyncOutcome_(this, cb, runtime);

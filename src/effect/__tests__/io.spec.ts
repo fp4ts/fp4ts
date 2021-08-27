@@ -176,7 +176,7 @@ describe('io monad', () => {
         .map(x => x + 1)
         .fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(O.success(43), ticker);
+      await expect(io).toCompleteWith(O.success(IO.pure(43)), ticker);
     });
 
     it.ticked('should fork and join a failed fiber', async ticker => {
@@ -207,7 +207,7 @@ describe('io monad', () => {
             O.fold(
               () => IO.pure(0),
               () => IO.pure(-1),
-              x => IO.pure(x),
+              id,
             ),
           );
 
@@ -283,7 +283,7 @@ describe('io monad', () => {
           IO.bind(IO(() => cb(E.left(new Error('test error'))))),
         ).flatMap(({ f }) => f.join);
 
-        await expect(io).toCompleteWith(O.success(42), ticker);
+        await expect(io).toCompleteWith(O.success(IO.pure(42)), ticker);
       },
     );
 
@@ -890,7 +890,7 @@ describe('io monad', () => {
           IO.bind(({ bFiber }) => bFiber.cancel),
         ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
 
-        await expect(io).toCompleteWith(O.success(undefined), ticker);
+        await expect(io).toCompleteWith(O.success(IO.pure(undefined)), ticker);
       },
     );
   });

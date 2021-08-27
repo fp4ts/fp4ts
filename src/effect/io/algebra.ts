@@ -1,8 +1,8 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
+import { IOOutcome } from '../io-outcome';
 
-import { Outcome } from '../kernel/outcome';
 import { Poll } from '../kernel/poll';
 
 // HKT
@@ -141,7 +141,7 @@ export class Uncancelable<A> extends IO<A> {
 }
 
 export class RacePair<A, B> extends IO<
-  Either<[Outcome<A>, IOFiber<B>], [IOFiber<A>, Outcome<B>]>
+  Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>
 > {
   public readonly tag = 'racePair';
   public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {

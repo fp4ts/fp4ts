@@ -1,16 +1,18 @@
+import { Applicative } from '../../cats';
 import * as E from '../../fp/either';
+import { Kind } from '../../fp/hkt';
 
 export class CancellationError extends Error {}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Outcome<A> {
+export class Outcome<F, E, A> {
   // @ts-ignore
   private readonly __void: void;
 }
 
-class Success<A> extends Outcome<A> {
+class Success<F, A> extends Outcome<F, never, A> {
   public readonly tag = 'success';
-  public constructor(public readonly result: A) {
+  public constructor(public readonly result: Kind<F, A>) {
     super();
   }
   public toString(): string {
@@ -18,9 +20,9 @@ class Success<A> extends Outcome<A> {
   }
 }
 
-class Failure extends Outcome<never> {
+class Failure<E> extends Outcome<unknown, E, never> {
   public readonly tag = 'failure';
-  public constructor(public readonly error: Error) {
+  public constructor(public readonly error: E) {
     super();
   }
   public toString(): string {
@@ -28,7 +30,7 @@ class Failure extends Outcome<never> {
   }
 }
 
-const Canceled = new (class Canceled extends Outcome<never> {
+const Canceled = new (class Canceled extends Outcome<unknown, never, never> {
   readonly tag = 'canceled';
   public toString(): string {
     return '[Canceled]';
@@ -36,46 +38,41 @@ const Canceled = new (class Canceled extends Outcome<never> {
 })();
 type Canceled = typeof Canceled;
 
-type OutcomeView<A> = Success<A> | Failure | Canceled;
+type OutcomeView<F, E, A> = Success<F, A> | Failure<E> | Canceled;
 
-const view = <A>(oc: Outcome<A>): OutcomeView<A> => oc as any;
+const view = <F, E, A>(oc: Outcome<F, E, A>): OutcomeView<F, E, A> => oc as any;
 
 // -- Constructors
 
-export const success: <A>(result: A) => Outcome<A> = r => new Success(r);
-export const successUnit: Outcome<void> = success(undefined);
+export const success: <F, A>(fa: Kind<F, A>) => Outcome<F, never, A> = fa =>
+  new Success(fa);
 
-export const failure: (error: Error) => Outcome<never> = e => new Failure(e);
+export const failure: <E>(error: E) => Outcome<unknown, E, never> = e =>
+  new Failure(e);
 
-export const canceled: Outcome<never> = Canceled;
+export const canceled: Outcome<unknown, never, never> = Canceled;
 
-export const fromEither = <A>(ea: E.Either<Error, A>): Outcome<A> =>
-  E.fold_(ea, failure, success);
+export const fromEither =
+  <F>(F: Applicative<F>) =>
+  <E, A>(ea: E.Either<E, A>): Outcome<F, E, A> =>
+    E.fold_(ea, failure, a => success(F.pure(a)));
 
 // -- Point-free operators
 
-export const toEither = <A>(oc: Outcome<A>): E.Either<Error, A> =>
-  fold_<A, E.Either<Error, A>>(
-    oc,
-    () => E.left(new CancellationError()),
-    E.left,
-    E.right,
-  );
-
-export const fold: <A, B>(
+export const fold: <F, E, A, B>(
   onCanceled: () => B,
-  onFailure: (e: Error) => B,
-  onSuccess: (a: A) => B,
-) => (oc: Outcome<A>) => B = (onCanceled, onFailure, onSuccess) => oc =>
+  onFailure: (e: E) => B,
+  onSuccess: (a: Kind<F, A>) => B,
+) => (oc: Outcome<F, E, A>) => B = (onCanceled, onFailure, onSuccess) => oc =>
   fold_(oc, onCanceled, onFailure, onSuccess);
 
 // -- Point-ful operators
 
-export const fold_ = <A, B>(
-  _oc: Outcome<A>,
+export const fold_ = <F, E, A, B>(
+  _oc: Outcome<F, E, A>,
   onCanceled: () => B,
-  onFailure: (e: Error) => B,
-  onSuccess: (a: A) => B,
+  onFailure: (e: E) => B,
+  onSuccess: (a: Kind<F, A>) => B,
 ): B => {
   const oc = view(_oc);
   switch (oc.tag) {

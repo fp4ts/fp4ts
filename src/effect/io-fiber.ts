@@ -1,4 +1,4 @@
-import { flow, pipe } from '../fp/core';
+import { flow, id, pipe } from '../fp/core';
 import * as E from '../fp/either';
 
 import { IO } from './io';
@@ -10,6 +10,7 @@ import { Poll } from './kernel/poll';
 
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
+import { IOOutcome } from './io-outcome';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -18,8 +19,8 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
-  private outcome?: O.Outcome<A>;
+export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
+  private outcome?: IOOutcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
   private masks: number = 0;
@@ -29,7 +30,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
   private cxts: ExecutionContext[] = [];
 
   private finalizers: IO<unknown>[] = [];
-  private callbacks: ((oc: O.Outcome<A>) => void)[] = [];
+  private callbacks: ((oc: IOOutcome<A>) => void)[] = [];
 
   private resumeIO: IO<unknown>;
   private currentEC: ExecutionContext;
@@ -51,13 +52,13 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
     this.autoSuspendThreshold = this.runtime.config.autoSuspendThreshold;
   }
 
-  public get join(): IO<O.Outcome<A>> {
+  public get join(): IO<IOOutcome<A>> {
     return this._join;
   }
 
   public joinWith = <B>(onCancel: IO<B>): IO<A | B> =>
     this.join.flatMap(
-      O.fold<A, IO<A | B>>(() => onCancel, IO.throwError, IO.pure),
+      O.fold<IOA.URI, Error, A, IO<A | B>>(() => onCancel, IO.throwError, id),
     );
 
   public get joinWithNever(): IO<A> {
@@ -74,7 +75,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
     this.runLoop(cur);
   }
 
-  public onComplete(cb: (oc: O.Outcome<A>) => void): void {
+  public onComplete(cb: (oc: IOOutcome<A>) => void): void {
     this.outcome ? cb(this.outcome) : this.callbacks.push(cb);
   }
 
@@ -237,8 +238,8 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
 
           const next = IO.async<
             E.Either<
-              [O.Outcome<unknown>, IOFiber<unknown>],
-              [IOFiber<unknown>, O.Outcome<unknown>]
+              [IOOutcome<unknown>, IOFiber<unknown>],
+              [IOFiber<unknown>, IOOutcome<unknown>]
             >
           >(cb =>
             IO(() => {
@@ -311,9 +312,9 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
     }
   }
 
-  private _join: IO<O.Outcome<A>> = IO.async(cb =>
+  private _join: IO<IOOutcome<A>> = IO.async(cb =>
     IO(() => {
-      const listener: (oc: O.Outcome<A>) => void = flow(E.right, cb);
+      const listener: (oc: IOOutcome<A>) => void = flow(E.right, cb);
       const cancel = IO(() => {
         this.callbacks = this.callbacks.filter(l => l !== listener);
       });
@@ -349,7 +350,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
     }
   }
 
-  private complete(oc: O.Outcome<A>): void {
+  private complete(oc: IOOutcome<A>): void {
     this._join = IO.pure(oc);
     this._cancel = IO.unit;
     this.outcome = oc;
@@ -501,7 +502,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
     if (this.canceled) {
       this.complete(O.canceled);
     } else {
-      this.complete(O.success(r));
+      this.complete(O.success(IO.pure(r as A)));
     }
     return IOA.IOEndFiber;
   }

@@ -1,4 +1,5 @@
 import { IO } from '../../io';
+import { IOOutcome } from '../../io-outcome';
 import * as O from '../../kernel/outcome';
 import * as IOR from '../../unsafe/io-runtime';
 import { Ticker } from '../ticker';
@@ -9,7 +10,7 @@ declare global {
   namespace jest {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Matchers<R> {
-      tickTo(oc: O.Outcome<unknown>, ticker: Ticker): Promise<unknown>;
+      tickTo(oc: IOOutcome<unknown>, ticker: Ticker): Promise<unknown>;
       toCompleteWith(result: unknown, ticker: Ticker): Promise<unknown>;
       toFailWith(error: Error, ticker: Ticker): Promise<unknown>;
       toCancel(ticker: Ticker): Promise<unknown>;
@@ -27,10 +28,10 @@ type MatcherContext = typeof expect['extend'] extends JestExtends<infer Context>
 async function tickTo(
   this: MatcherContext,
   receivedIO: IO<unknown>,
-  expected: O.Outcome<unknown>,
+  expected: IOOutcome<unknown>,
   ec: TestExecutionContext,
 ) {
-  const receivedPromise: Promise<O.Outcome<unknown>> = new Promise(resolve =>
+  const receivedPromise: Promise<IOOutcome<unknown>> = new Promise(resolve =>
     receivedIO.unsafeRunAsyncOutcome(
       oc => resolve(oc),
       new IOR.IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
@@ -94,7 +95,7 @@ expect.extend({
     expected: unknown,
     ec: TestExecutionContext,
   ) {
-    return tickTo.apply(this, [receivedIO, O.success(expected), ec]);
+    return tickTo.apply(this, [receivedIO, O.success(IO.pure(expected)), ec]);
   },
 
   toFailWith(

@@ -6,6 +6,9 @@ import { IOFiber } from '../io-fiber';
 import * as O from '../kernel/outcome';
 
 import { IORuntime } from '../unsafe/io-runtime';
+import { Pure } from './algebra';
+import { IOOutcome } from '../io-outcome';
+import { URI } from '.';
 
 // Point-free definitions
 
@@ -21,7 +24,7 @@ export const unsafeRunAsync: <A>(
   unsafeRunAsync_(ioa, cb, runtime);
 
 export const unsafeRunAsyncOutcome: <A>(
-  cb: (oc: O.Outcome<A>) => void,
+  cb: (oc: IOOutcome<A>) => void,
   runtime?: IORuntime,
 ) => (ioa: IO<A>) => void = (cb, runtime) => ioa =>
   unsafeRunAsyncOutcome_(ioa, cb, runtime);
@@ -36,16 +39,27 @@ export const unsafeRunToPromise_: <A>(
     unsafeRunAsync_(ioa, flow(E.fold(reject, resolve)), runtime),
   );
 
-export const unsafeRunAsync_: <A>(
+export const unsafeRunAsync_ = <A>(
   ioa: IO<A>,
   cb: (ea: E.Either<Error, A>) => void,
   runtime?: IORuntime,
-) => void = (ioa, cb, runtime) =>
-  unsafeRunAsyncOutcome_(ioa, flow(O.toEither, cb), runtime);
+): void =>
+  unsafeRunAsyncOutcome_(
+    ioa,
+    flow(
+      O.fold<URI, Error, A, E.Either<Error, A>>(
+        () => E.left(new O.CancellationError()),
+        e => E.left(e),
+        (a: IO<A>) => E.right((a as Pure<A>).value),
+      ),
+      cb,
+    ),
+    runtime,
+  );
 
 export const unsafeRunAsyncOutcome_: <A>(
   ioa: IO<A>,
-  cb: (oc: O.Outcome<A>) => void,
+  cb: (oc: IOOutcome<A>) => void,
   runtime?: IORuntime,
 ) => void = (ioa, cb, runtime = IORuntime.global) => {
   const fiber = new IOFiber(ioa, runtime.executionContext, runtime);
