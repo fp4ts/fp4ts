@@ -14,6 +14,10 @@ import { IORuntime } from './unsafe/io-runtime';
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
 
+type ContResult =
+  | { tag: 'success'; value: unknown }
+  | { tag: 'failure'; error: Error };
+
 export class IOFiber<A> implements F.Fiber<A> {
   private outcome?: O.Outcome<A>;
   private canceled: boolean = false;
@@ -384,96 +388,110 @@ export class IOFiber<A> implements F.Fiber<A> {
   // -- Continuations
 
   private succeeded(r: unknown): IO<unknown> {
-    while (true) {
-      const nextCont = this.conts.pop();
-      switch (nextCont) {
-        case undefined:
-          return this.terminateSuccessK(r);
-
-        case IOA.Continuation.MapK:
-          try {
-            const f = this.stack.pop()!;
-            r = f(r);
-            continue;
-          } catch (e) {
-            // return this.failed(e as Error);
-            return IO.throwError(e as Error);
-          }
-
-        case IOA.Continuation.FlatMapK:
-          return this.flatMapK(r);
-
-        case IOA.Continuation.HandleErrorWithK:
-          this.stack.pop(); // Skip over error handlers
-          continue;
-
-        case IOA.Continuation.AttemptK:
-          r = E.right(r);
-          continue;
-
-        case IOA.Continuation.OnCancelK:
-          this.onCancelK();
-          continue;
-
-        case IOA.Continuation.UncancelableK:
-          this.uncancelableK();
-          continue;
-
-        case IOA.Continuation.UnmaskK:
-          this.unmaskK();
-          continue;
-
-        case IOA.Continuation.RunOnK:
-          return this.runOnK();
-
-        case IOA.Continuation.CancelationLoopK:
-          return this.cancelationLoopSuccessK();
-      }
-    }
+    return this.continue({ tag: 'success', value: r });
   }
 
   private failed(e: Error): IO<unknown> {
-    while (true) {
-      const nextCont = this.conts.pop();
-      switch (nextCont) {
-        case undefined:
-          return this.terminateFailureK(e);
+    return this.continue({ tag: 'failure', error: e });
+  }
 
-        case IOA.Continuation.MapK:
-        case IOA.Continuation.FlatMapK:
-          this.stack.pop(); // skip over success transformers
-          continue;
+  private continue(cr: ContResult): IO<unknown> {
+    loop: while (true) {
+      if (cr.tag === 'success') {
+        let r = cr.value;
 
-        case IOA.Continuation.HandleErrorWithK:
-          try {
-            const f = this.stack.pop()! as (e: Error) => IO<unknown>;
-            return f(e);
-          } catch (e2) {
-            e = e2 as Error;
-            continue;
+        while (true) {
+          const nextCont = this.conts.pop();
+          switch (nextCont) {
+            case undefined:
+              return this.terminateSuccessK(r);
+
+            case IOA.Continuation.MapK:
+              try {
+                const f = this.stack.pop()!;
+                r = f(r);
+                continue;
+              } catch (e) {
+                cr = { tag: 'failure', error: e as Error };
+                continue loop;
+              }
+
+            case IOA.Continuation.FlatMapK:
+              return this.flatMapK(r);
+
+            case IOA.Continuation.HandleErrorWithK:
+              this.stack.pop(); // Skip over error handlers
+              continue;
+
+            case IOA.Continuation.AttemptK:
+              r = E.right(r);
+              continue;
+
+            case IOA.Continuation.OnCancelK:
+              this.onCancelK();
+              continue;
+
+            case IOA.Continuation.UncancelableK:
+              this.uncancelableK();
+              continue;
+
+            case IOA.Continuation.UnmaskK:
+              this.unmaskK();
+              continue;
+
+            case IOA.Continuation.RunOnK:
+              return this.runOnK();
+
+            case IOA.Continuation.CancelationLoopK:
+              return this.cancelationLoopSuccessK();
           }
+        }
+      } else {
+        let e = cr.error;
 
-        case IOA.Continuation.AttemptK:
-          // return this.succeeded(E.left(e));
-          return IO.pure(E.left(e)); // lack of tco
+        while (true) {
+          const nextCont = this.conts.pop();
+          switch (nextCont) {
+            case undefined:
+              return this.terminateFailureK(e);
 
-        case IOA.Continuation.OnCancelK:
-          this.onCancelK();
-          continue;
+            case IOA.Continuation.MapK:
+            case IOA.Continuation.FlatMapK:
+              this.stack.pop(); // skip over success transformers
+              continue;
 
-        case IOA.Continuation.UncancelableK:
-          this.uncancelableK();
-          continue;
+            case IOA.Continuation.HandleErrorWithK:
+              try {
+                const f = this.stack.pop()! as (e: Error) => IO<unknown>;
+                return f(e);
+              } catch (e2) {
+                e = e2 as Error;
+                continue;
+              }
 
-        case IOA.Continuation.UnmaskK:
-          this.unmaskK();
-          continue;
+            case IOA.Continuation.AttemptK:
+              cr = { tag: 'success', value: E.left(e) };
+              continue loop;
 
-        case IOA.Continuation.RunOnK:
-          return this.runOnK();
+            case IOA.Continuation.OnCancelK:
+              this.onCancelK();
+              continue;
 
-        case IOA.Continuation.CancelationLoopK:
-          return this.cancelationLoopFailureK(e);
+            case IOA.Continuation.UncancelableK:
+              this.uncancelableK();
+              continue;
+
+            case IOA.Continuation.UnmaskK:
+              this.unmaskK();
+              continue;
+
+            case IOA.Continuation.RunOnK:
+              return this.runOnK();
+
+            case IOA.Continuation.CancelationLoopK:
+              return this.cancelationLoopFailureK(e);
+          }
+        }
       }
     }
   }
