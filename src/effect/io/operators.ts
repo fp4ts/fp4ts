@@ -357,15 +357,13 @@ export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   f,
 ) => flatMap_(ioa, x => map_(f(x), () => x));
 
-export const handleError_: <A>(ioa: IO<A>, f: (e: Error) => A) => IO<A> = (
-  ioa,
-  f,
-) => handleErrorWith_(ioa, e => pure(f(e)));
+export const handleError_: <A, B>(ioa: IO<A>, f: (e: Error) => B) => IO<A | B> =
+  (ioa, f) => handleErrorWith_(ioa, e => pure(f(e)));
 
-export const handleErrorWith_: <A>(
+export const handleErrorWith_: <A, B>(
   ioa: IO<A>,
-  f: (e: Error) => IO<A>,
-) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f);
+  f: (e: Error) => IO<B>,
+) => IO<A | B> = (ioa, f) => new HandleErrorWith(ioa, f);
 
 export const onError_ = <A>(ioa: IO<A>, f: (e: Error) => IO<void>): IO<A> =>
   handleErrorWith_(ioa, e =>
