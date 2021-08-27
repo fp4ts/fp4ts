@@ -1,10 +1,20 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
-
-import { Fiber } from '../kernel/fiber';
+import { IOFiber } from '../io-fiber';
 
 import { Outcome } from '../kernel/outcome';
 import { Poll } from '../kernel/poll';
+
+// HKT
+
+export const URI = 'effect-io/io';
+export type URI = typeof URI;
+
+declare module '../../fp/hkt' {
+  interface URItoKind<A> {
+    [URI]: IO<A>;
+  }
+}
 
 // -- IO Algebra
 
@@ -12,6 +22,8 @@ import { Poll } from '../kernel/poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
+  // @ts-ignore
+  private readonly _URI: URI;
 }
 
 export class Pure<A> extends IO<A> {
@@ -99,7 +111,7 @@ export class Async<A> extends IO<A> {
   }
 }
 
-export class Fork<A> extends IO<Fiber<A>> {
+export class Fork<A> extends IO<IOFiber<A>> {
   public readonly tag = 'fork';
   public constructor(public readonly ioa: IO<A>) {
     super();
@@ -123,13 +135,13 @@ export type Canceled = typeof Canceled;
 
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 'uncancelable';
-  public constructor(public readonly body: (p: Poll) => IO<A>) {
+  public constructor(public readonly body: (p: Poll<URI>) => IO<A>) {
     super();
   }
 }
 
 export class RacePair<A, B> extends IO<
-  Either<[Outcome<A>, Fiber<B>], [Fiber<A>, Outcome<B>]>
+  Either<[Outcome<A>, IOFiber<B>], [IOFiber<A>, Outcome<B>]>
 > {
   public readonly tag = 'racePair';
   public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {
@@ -161,7 +173,7 @@ export class UnmaskRunLoop<A> extends IO<A> {
   public constructor(
     public readonly ioa: IO<A>,
     public readonly id: number,
-    public readonly fiber: Fiber<unknown>,
+    public readonly fiber: IOFiber<unknown>,
   ) {
     super();
   }

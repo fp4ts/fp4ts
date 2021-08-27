@@ -1,8 +1,8 @@
 import { Either } from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
+import { IOFiber } from '../io-fiber';
 
 import { Outcome } from '../kernel/outcome';
-import { Fiber } from '../kernel/fiber';
 import { IORuntime } from '../unsafe/io-runtime';
 
 import { IO as IOBase } from './algebra';
@@ -42,7 +42,7 @@ import { uncancelable } from './constructors';
 
 declare module './algebra' {
   interface IO<A> {
-    fork: IO<Fiber<A>>;
+    fork: IO<IOFiber<A>>;
 
     onCancel: (fin: IO<void>) => IO<A>;
 
@@ -118,7 +118,7 @@ declare module './algebra' {
 }
 
 Object.defineProperty(IOBase.prototype, 'fork', {
-  get<A>(this: IO<A>): IO<Fiber<A>> {
+  get<A>(this: IO<A>): IO<IOFiber<A>> {
     return fork(this);
   },
 });

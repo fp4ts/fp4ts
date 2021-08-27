@@ -4,6 +4,7 @@ import * as E from '../../fp/either';
 import { ExecutionContext } from '../execution-context';
 import { Poll } from '../kernel/poll';
 import {
+  URI,
   Async,
   Canceled,
   CurrentTimeMillis,
@@ -49,7 +50,7 @@ export const never: IO<never> = async(() => pure(undefined));
 
 export const canceled: IO<void> = Canceled;
 
-export const uncancelable: <A>(ioa: (p: Poll) => IO<A>) => IO<A> = ioa =>
+export const uncancelable: <A>(ioa: (p: Poll<URI>) => IO<A>) => IO<A> = ioa =>
   new Uncancelable(ioa);
 
 export const sleep = (ms: number): IO<void> => new Sleep(ms);

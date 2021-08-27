@@ -1,5 +1,5 @@
-import { IO } from '../io';
+import { Kind } from '../../fp/hkt';
 
-export interface Poll {
-  <A>(ioa: IO<A>): IO<A>;
+export interface Poll<F> {
+  <A>(ioa: Kind<F, A>): Kind<F, A>;
 }

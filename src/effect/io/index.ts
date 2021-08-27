@@ -6,7 +6,7 @@ import './syntax';
 
 // Public exports
 
-export { IO } from './io';
+export { IO, URI } from './io';
 
 export const deferred: <A>(a?: A) => IO<D.Deferred<A>> = D.of;
 

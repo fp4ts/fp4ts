@@ -18,7 +18,7 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> implements F.Fiber<A> {
+export class IOFiber<A> implements F.Fiber<IOA.URI, A> {
   private outcome?: O.Outcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
@@ -214,7 +214,8 @@ export class IOFiber<A> implements F.Fiber<A> {
           this.masks += 1;
           const id = this.masks;
 
-          const poll: Poll = iob => new IOA.UnmaskRunLoop(iob, id, this);
+          const poll: Poll<IOA.URI> = iob =>
+            new IOA.UnmaskRunLoop(iob, id, this);
 
           this.conts.push(IOA.Continuation.UncancelableK);
           _cur = cur.body(poll);

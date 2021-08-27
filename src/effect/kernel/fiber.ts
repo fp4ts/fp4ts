@@ -1,12 +1,9 @@
 import { Outcome } from './outcome';
-import { IO } from '../io';
+import { Kind } from '../../fp/hkt';
 
-export interface Fiber<A> {
-  readonly join: IO<Outcome<A>>;
-  readonly joinWith: <B>(onCancel: IO<B>) => IO<A | B>;
-  readonly joinWithNever: IO<A>;
-  readonly cancel: IO<void>;
+export interface Fiber<F, A> {
+  readonly join: Kind<F, Outcome<A>>;
+  readonly joinWith: <B>(onCancel: Kind<F, B>) => Kind<F, A | B>;
+  readonly joinWithNever: Kind<F, A>;
+  readonly cancel: Kind<F, void>;
 }
-
-export const join: <A>(fa: Fiber<A>) => IO<Outcome<A>> = fa => fa.join;
-export const cancel: (fa: Fiber<unknown>) => IO<void> = fa => fa.cancel;

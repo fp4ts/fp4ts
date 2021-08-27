@@ -6,7 +6,7 @@ import * as Ref from '../kernel/ref';
 import * as D from '../kernel/deferred';
 import { Poll } from '../kernel/poll';
 
-import { IO as IOBase } from './algebra';
+import { IO as IOBase, URI } from './algebra';
 import {
   async,
   canceled,
@@ -38,6 +38,8 @@ import {
   traverse_,
 } from './operators';
 import { bind, bindTo, Do } from './do';
+
+export { URI } from './algebra';
 
 export type IO<A> = IOBase<A>;
 
@@ -76,7 +78,7 @@ interface IOObj {
 
   deferred: <A>(a?: A) => IO<D.Deferred<A>>;
 
-  uncancelable: <A>(ioa: (p: Poll) => IO<A>) => IO<A>;
+  uncancelable: <A>(ioa: (p: Poll<URI>) => IO<A>) => IO<A>;
 
   sleep: (ms: number) => IO<void>;
 
@@ -108,7 +110,7 @@ interface IOObj {
   ) => IO<B[]>;
 
   bracketFull: <A, B>(
-    acquire: (poll: Poll) => IO<A>,
+    acquire: (poll: Poll<URI>) => IO<A>,
     use: (a: A) => IO<B>,
     release: (a: A, oc: Outcome<B>) => IO<void>,
   ) => IO<B>;

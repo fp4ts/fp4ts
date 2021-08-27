@@ -1,7 +1,6 @@
 import { flow, id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
 
-import * as F from '../kernel/fiber';
 import { ExecutionContext } from '../execution-context';
 
 import * as O from '../kernel/outcome';
@@ -9,6 +8,7 @@ import * as Sem from '../kernel/semaphore';
 import { Poll } from '../kernel/poll';
 
 import {
+  URI,
   Attempt,
   ExecuteOn,
   FlatMap,
@@ -31,8 +31,9 @@ import {
   unit,
 } from './constructors';
 import { bind, bindTo, Do } from './do';
+import { IOFiber } from '../io-fiber';
 
-export const fork: <A>(ioa: IO<A>) => IO<F.Fiber<A>> = ioa => new Fork(ioa);
+export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
 export const onCancel: (fin: IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   fin => ioa =>
@@ -62,7 +63,7 @@ export const racePair: <B>(
   iob: IO<B>,
 ) => <A>(
   ioa: IO<A>,
-) => IO<E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<A>, O.Outcome<B>]>> =
+) => IO<E.Either<[O.Outcome<A>, IOFiber<B>], [IOFiber<A>, O.Outcome<B>]>> =
   iob => ioa =>
     racePair_(ioa, iob);
 
@@ -87,7 +88,7 @@ export const bracketOutcome: <A, B>(
     bracketOutcome_(ioa, use, release);
 
 export const bracketFull = <A, B>(
-  acquire: (poll: Poll) => IO<A>,
+  acquire: (poll: Poll<URI>) => IO<A>,
   use: (a: A) => IO<B>,
   release: (a: A, oc: O.Outcome<B>) => IO<void>,
 ): IO<B> =>
@@ -205,9 +206,9 @@ export const executeOn_ = <A>(ioa: IO<A>, ec: ExecutionContext): IO<A> =>
 
 export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   const cont = <X, Y>(
-    poll: Poll,
+    poll: Poll<URI>,
     oc: O.Outcome<X>,
-    f: F.Fiber<Y>,
+    f: IOFiber<Y>,
   ): IO<E.Either<X, Y>> =>
     O.fold_<X, IO<E.Either<X, Y>>>(
       oc,
@@ -243,8 +244,8 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
       poll(racePair_(ioa, iob)),
       flatMap(
         E.fold(
-          ([oc, f]: [O.Outcome<A>, F.Fiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [F.Fiber<A>, O.Outcome<B>]) =>
+          ([oc, f]: [O.Outcome<A>, IOFiber<B>]) => cont(poll, oc, f),
+          ([f, oc]: [IOFiber<A>, O.Outcome<B>]) =>
             pipe(cont(poll, oc, f), map(E.swapped)),
         ),
       ),
@@ -255,14 +256,14 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
 export const racePair_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<A>, O.Outcome<B>]>> =>
+): IO<E.Either<[O.Outcome<A>, IOFiber<B>], [IOFiber<A>, O.Outcome<B>]>> =>
   new RacePair(ioa, iob);
 
 export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
   const cont = <X, Y>(
-    poll: Poll,
+    poll: Poll<URI>,
     oc: O.Outcome<X>,
-    f: F.Fiber<Y>,
+    f: IOFiber<Y>,
   ): IO<[X, Y]> =>
     O.fold_(
       oc,
@@ -292,8 +293,8 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
       poll(racePair_(ioa, iob)),
       flatMap(
         E.fold(
-          ([oc, f]: [O.Outcome<A>, F.Fiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [F.Fiber<A>, O.Outcome<B>]) =>
+          ([oc, f]: [O.Outcome<A>, IOFiber<B>]) => cont(poll, oc, f),
+          ([f, oc]: [IOFiber<A>, O.Outcome<B>]) =>
             pipe(
               cont(poll, oc, f),
               map(([b, a]) => [a, b]),
@@ -534,10 +535,13 @@ export const parTraverseOutcome_ = <A, B>(
     return pipe(
       sequence(iobFibers),
       flatMap(fibers => {
-        const results = traverse_(fibers, F.join);
-        const fiberCancels = traverse_(
-          fibers,
-          flow(flow(F.cancel, fork), flatMap(F.join)),
+        const results = traverse_(fibers, x => x.join);
+        const fiberCancels = traverse_(fibers, f =>
+          pipe(
+            f.cancel,
+            fork,
+            flatMap(f2 => f2.join),
+          ),
         );
         return onCancel_(
           results,
