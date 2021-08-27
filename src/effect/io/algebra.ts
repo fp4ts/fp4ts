@@ -31,12 +31,20 @@ export class Pure<A> extends IO<A> {
   public constructor(public readonly value: A) {
     super();
   }
+
+  public override toString(): string {
+    return `[Pure value: ${this.value}]`;
+  }
 }
 
 export class Fail extends IO<never> {
   public readonly tag = 'fail';
   public constructor(readonly error: Error) {
     super();
+  }
+
+  public override toString(): string {
+    return `[Fail error: ${this.error}]`;
   }
 }
 

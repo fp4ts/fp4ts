@@ -1,7 +1,8 @@
 import { ok as assert } from 'assert';
 import { Ref } from './ref';
 import { Deferred } from './deferred';
-import { IO } from '../io';
+import { IO, URI } from '../io';
+import { ioSync } from '../io/instances';
 
 class State {
   // @ts-ignore
@@ -23,7 +24,7 @@ export class Semaphore {
   // @ts-ignore
   private readonly __void: void;
 
-  private constructor(private readonly state: Ref<State>) {}
+  private constructor(private readonly state: Ref<URI, State>) {}
 
   public readonly acquire = (): IO<void> =>
     IO.uncancelable(poll =>
@@ -63,7 +64,9 @@ export class Semaphore {
 
   public static readonly withPermits = (permits: number): IO<Semaphore> => {
     assert(permits > 0, 'maxPermits must be > 0');
-    return Ref.of(new State([], permits)).map(state => new Semaphore(state));
+    return Ref.of(ioSync)(new State([], permits)).map(
+      state => new Semaphore(state),
+    );
   };
 }
 

@@ -6,3 +6,4 @@ export * from './flat-map';
 export * from './functor';
 export * from './monad';
 export * from './monad-error';
+export * from './defer';

@@ -38,6 +38,7 @@ import {
   traverse_,
 } from './operators';
 import { bind, bindTo, Do } from './do';
+import { ioSync } from './instances';
 
 export { URI } from './algebra';
 
@@ -74,7 +75,7 @@ interface IOObj {
 
   canceled: IO<void>;
 
-  ref: <A>(a: A) => IO<Ref.Ref<A>>;
+  ref: <A>(a: A) => IO<Ref.Ref<URI, A>>;
 
   deferred: <A>(a?: A) => IO<D.Deferred<A>>;
 
@@ -156,7 +157,7 @@ IO.never = never;
 
 IO.canceled = canceled;
 
-IO.ref = a => Ref.of(a);
+IO.ref = x => Ref.of(ioSync)(x);
 
 IO.deferred = x => D.of(x);
 

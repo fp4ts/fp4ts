@@ -1,8 +1,9 @@
 import * as E from '../../fp/either';
 import { flow, id, pipe } from '../../fp/core';
 
-import { IO } from '../io';
+import { IO, URI } from '../io';
 import { Ref } from './ref';
+import { ioSync } from '../io/instances';
 
 type ResumeReader<A> = (a: A) => void;
 
@@ -47,7 +48,7 @@ export class Deferred<A> {
   // @ts-ignore
   private readonly __void: void;
 
-  private constructor(private readonly state: Ref<State<A>>) {}
+  private constructor(private readonly state: Ref<URI, State<A>>) {}
 
   public readonly get = (): IO<A> => {
     const deleteReader = (reader: ResumeReader<A>): IO<void> =>
@@ -112,7 +113,7 @@ export class Deferred<A> {
 
   public static of = <A>(a?: A): IO<Deferred<A>> => {
     const state: State<A> = a ? new SetState(a) : new UnsetState([]);
-    return Ref.of(state).map(state => new Deferred<A>(state));
+    return Ref.of(ioSync)(state).map(state => new Deferred<A>(state));
   };
 }
 

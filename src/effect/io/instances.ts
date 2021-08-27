@@ -5,42 +5,70 @@ import {
   FlatMap,
   Applicative,
   MonadError,
+  Defer,
 } from '../../cats';
+import { Async } from '../kernel/async';
 import { Concurrent } from '../kernel/concurrent';
 import { MonadCancel } from '../kernel/monad-cancel';
 import { Spawn } from '../kernel/spawn';
+import { Sync } from '../kernel/sync';
+import { Temporal } from '../kernel/temporal';
 
 import { URI } from './algebra';
-import { never, pure, throwError, uncancelable } from './constructors';
+import {
+  async,
+  defer,
+  delay,
+  never,
+  pure,
+  sleep,
+  throwError,
+  uncancelable,
+  unit,
+} from './constructors';
 import {
   attempt,
   both_,
   bracketFull,
   bracketOutcome_,
   bracket_,
-  finalize_,
+  delayBy_,
+  executeOn_,
+  finalize,
+  flatMap,
   flatMap_,
+  flatTap,
   flatten,
   fork,
-  handleErrorWith_,
-  handleError_,
+  handleError,
+  handleErrorWith,
+  map,
   map2_,
   map_,
-  onCancel_,
-  onError_,
+  onCancel,
+  onError,
   parSequence,
   parSequenceN_,
   parTraverseN_,
   parTraverse_,
   racePair_,
   race_,
-  redeemWith_,
-  redeem_,
+  redeem,
+  redeemWith,
+  tap,
+  timeoutTo_,
+  timeout_,
 } from './operators';
+
+export const ioDefer: Defer<URI> = {
+  _URI: URI,
+  defer: defer,
+};
 
 export const ioFunctor: Functor<URI> = {
   _URI: URI,
-  map: fa => f => map_(fa, f),
+  map: f => fa => map(f)(fa),
+  tap: tap,
 };
 
 export const ioParallelApply: Apply<URI> = {
@@ -54,7 +82,8 @@ export const ioParallelApply: Apply<URI> = {
 
 export const ioParallelApplicative: Applicative<URI> = {
   ...ioParallelApply,
-  pure: a => pure(a),
+  pure: pure,
+  unit: unit,
 };
 
 export const ioSequentialApply: Apply<URI> = {
@@ -69,11 +98,13 @@ export const ioSequentialApply: Apply<URI> = {
 export const ioSequentialApplicative: Applicative<URI> = {
   ...ioSequentialApply,
   pure: pure,
+  unit: unit,
 };
 
 export const ioFlatMap: FlatMap<URI> = {
   ...ioSequentialApply,
-  flatMap: fa => f => flatMap_(fa, f),
+  flatMap: f => fa => flatMap(f)(fa),
+  flatTap: flatTap,
   flatten: flatten,
 };
 
@@ -85,22 +116,28 @@ export const ioMonad: Monad<URI> = {
 export const ioMonadError: MonadError<URI, Error> = {
   ...ioMonad,
   throwError: throwError,
-  handleError: fa => h => handleError_(fa, h),
-  handleErrorWith: fa => h => handleErrorWith_(fa, h),
+  handleError: handleError,
+  handleErrorWith: handleErrorWith,
   attempt: attempt,
-  onError: fa => h => onError_(fa, h),
-  redeem: fa => (h, f) => redeem_(fa, h, f),
-  redeemWith: fa => (h, f) => redeemWith_(fa, h, f),
+  onError: onError,
+  redeem: redeem,
+  redeemWith: redeemWith,
 };
 
 export const ioMonadCancel: MonadCancel<URI, Error> = {
   ...ioMonadError,
   uncancelable: uncancelable,
-  onCancel: onCancel_,
-  finalize: finalize_,
+  onCancel: onCancel,
+  finalize: finalize,
   bracket: fa => use => release => bracket_(fa, use, release),
   bracketOutcome: fa => use => release => bracketOutcome_(fa, use, release),
   bracketFull: acquire => use => release => bracketFull(acquire, use, release),
+};
+
+export const ioSync: Sync<URI> = {
+  ...ioMonadError,
+  ...ioDefer,
+  delay: delay,
 };
 
 export const ioSpawn: Spawn<URI, Error> = {
@@ -123,4 +160,22 @@ export const ioConcurrent: Concurrent<URI, Error> = {
 
   parTraverseN: n => as => f => parTraverseN_(as, f, n),
   parSequenceN: n => fas => parSequenceN_(fas, n),
+};
+
+export const ioTemporal: Temporal<URI, Error> = {
+  ...ioConcurrent,
+  sleep: sleep,
+  delayBy: delayBy_,
+  timeoutTo: timeoutTo_,
+  timeout: timeout_,
+};
+
+export const ioAsync: Async<URI> = {
+  ...ioSync,
+  ...ioTemporal,
+  async: async,
+  async_: async,
+  never: never,
+  executeOn: executeOn_,
+  fromPromise: null as any,
 };
