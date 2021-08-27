@@ -162,6 +162,8 @@ export class IOFiber<A> implements F.Fiber<A> {
           const cb: (ea: E.Either<Error, unknown>) => void = ea => {
             if (receivedResult) return;
             receivedResult = true;
+            // Drop the callback if we have been completed while suspended
+            if (this.outcome != null) return;
 
             // Ensure to insert an async boundary to break execution from
             // other fibers
@@ -287,7 +289,6 @@ export class IOFiber<A> implements F.Fiber<A> {
         }
 
         case 'suspend':
-          this.resumeIO = null as any;
           return;
 
         case 'IOEndFiber':

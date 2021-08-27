@@ -26,7 +26,7 @@ export class IORuntime {
   }
 }
 
-export const listenForSignal = (s: string): IO<void> =>
+const listenForSignal = (s: string): IO<void> =>
   IO.async(resume =>
     IO(() => {
       const listener = () => resume(E.rightUnit);
@@ -45,6 +45,7 @@ export const Signal = Object.freeze({
 });
 
 export const unsafeRunMain = (ioa: IO<unknown>): void => {
+  const runtime = IORuntime.global;
   const onCancel = () => IO(() => process.exit(2));
   const onFailure = () => IO(() => process.exit(1));
   const onSuccess = () => IO(() => process.exit(0));
@@ -52,5 +53,5 @@ export const unsafeRunMain = (ioa: IO<unknown>): void => {
   return ioa
     .race(IO.race(Signal.SIGTERM(), Signal.SIGINT()))
     .finalize(O.fold(onCancel, onFailure, E.fold(onSuccess, onCancel)))
-    .unsafeRunAsync(() => {});
+    .unsafeRunAsync(() => {}, runtime);
 };

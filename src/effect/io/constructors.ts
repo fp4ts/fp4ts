@@ -32,7 +32,6 @@ export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
       const onSuccess: (x: A) => void = flow(E.right, resume);
       const onFailure: (e: Error) => void = flow(E.left, resume);
       thunk().then(onSuccess, onFailure);
-      return undefined;
     }),
   );
 

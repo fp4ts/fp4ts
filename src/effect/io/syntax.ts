@@ -38,6 +38,7 @@ import {
   unsafeRunAsync_,
   unsafeRunToPromise_,
 } from './unsafe';
+import { uncancelable } from './constructors';
 
 declare module './algebra' {
   interface IO<A> {
@@ -95,6 +96,8 @@ declare module './algebra' {
       onFailure: (e: Error) => IO<B>,
       onSuccess: (a: A) => IO<B>,
     ) => IO<B>;
+
+    uncancelable: IO<A>;
 
     map2: <B>(iob: IO<B>) => <C>(f: (a: A, b: B) => C) => IO<C>;
 
@@ -263,6 +266,12 @@ IOBase.prototype.redeemWith = function <A, B>(
 ): IO<B> {
   return redeemWith_(this, onFailure, onSuccess);
 };
+
+Object.defineProperty(IOBase.prototype, 'uncancelable', {
+  get<A>(this: IO<A>): IO<A> {
+    return uncancelable(() => this);
+  },
+});
 
 IOBase.prototype.map2 = function <A, B>(
   this: IO<A>,

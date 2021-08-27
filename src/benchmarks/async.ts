@@ -1,0 +1,50 @@
+import '../benchmarking';
+import { id, pipe } from '../fp/core';
+import * as E from '../fp/either';
+import { IO } from '../effect/io';
+
+const size = 1000;
+
+const evalAsync = (n: number): IO<number> =>
+  IO.async(cb => IO(() => cb(E.right(n))));
+
+pipe(
+  benchmark.group('async')(
+    benchmark('async', async () => {
+      const loop = (i: number): IO<number> =>
+        i < size ? evalAsync(i + 1).flatMap(loop) : evalAsync(i);
+
+      await IO(() => 0)
+        .flatMap(loop)
+        .unsafeRunToPromise();
+    }),
+
+    benchmark('race', async () => {
+      const task = [...new Array(size).keys()].reduce<IO<number>>(
+        acc => IO.race(acc, IO.pure(1)).map(E.fold(id, id)),
+        IO.never,
+      );
+
+      await task.unsafeRunToPromise();
+    }),
+
+    benchmark('uncancelable', async () => {
+      const loop = (i: number): IO<number> =>
+        i < size ? IO(() => i + 1).uncancelable.flatMap(loop) : IO.pure(i);
+
+      await loop(0).unsafeRunToPromise();
+    }),
+
+    benchmark('bracket', async () => {
+      const loop = (i: number): IO<number> =>
+        i < size
+          ? IO(() => i)
+              .bracket(i => IO(() => i + 1))(() => IO.unit)
+              .flatMap(loop)
+          : IO.pure(1);
+
+      await loop(0).unsafeRunToPromise();
+    }),
+  ),
+  runBenchmark(),
+);

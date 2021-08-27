@@ -20,6 +20,9 @@
   },
   "scripts": {
     "test": "jest",
+    "benchmark": "yarn compile && ./scripts/benchmark.sh",
+    "compile": "yarn clean && yarn tsc",
+    "clean": "rm -rf dist",
     "lint": "eslint ./src"
   }
 }

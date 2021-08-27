@@ -41,7 +41,9 @@ import { bind, bindTo, Do } from './do';
 
 export type IO<A> = IOBase<A>;
 
-export const IO: IOObj = (<A>(thunk: () => A) => delay(thunk)) as any;
+export const IO: IOObj = function <A>(thunk: () => A): IO<A> {
+  return delay(thunk);
+};
 
 interface IOObj {
   <A>(thunk: () => A): IO<A>;
