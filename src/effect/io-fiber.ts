@@ -51,6 +51,15 @@ export class IOFiber<A> implements F.Fiber<A> {
     return this._join;
   }
 
+  public joinWith = <B>(onCancel: IO<B>): IO<A | B> =>
+    this.join.flatMap(
+      O.fold<A, IO<A | B>>(() => onCancel, IO.throwError, IO.pure),
+    );
+
+  public get joinWithNever(): IO<A> {
+    return this.joinWith(IO.never);
+  }
+
   public get cancel(): IO<void> {
     return this._cancel;
   }

@@ -255,7 +255,7 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
 export const racePair_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<B>, O.Outcome<B>]>> =>
+): IO<E.Either<[O.Outcome<A>, F.Fiber<B>], [F.Fiber<A>, O.Outcome<B>]>> =>
   new RacePair(ioa, iob);
 
 export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {

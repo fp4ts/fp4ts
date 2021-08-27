@@ -129,7 +129,7 @@ export class Uncancelable<A> extends IO<A> {
 }
 
 export class RacePair<A, B> extends IO<
-  Either<[Outcome<A>, Fiber<B>], [Fiber<B>, Outcome<B>]>
+  Either<[Outcome<A>, Fiber<B>], [Fiber<A>, Outcome<B>]>
 > {
   public readonly tag = 'racePair';
   public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {

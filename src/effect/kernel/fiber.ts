@@ -3,6 +3,8 @@ import { IO } from '../io';
 
 export interface Fiber<A> {
   readonly join: IO<Outcome<A>>;
+  readonly joinWith: <B>(onCancel: IO<B>) => IO<A | B>;
+  readonly joinWithNever: IO<A>;
   readonly cancel: IO<void>;
 }
 
