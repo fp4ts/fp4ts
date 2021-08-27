@@ -307,7 +307,7 @@ export const flatMapOutput_ = <O, O2>(
               append(() => go(idx + 1)),
             );
           } catch (e) {
-            return throwError(e);
+            return throwError(e as Error);
           }
         } else {
           return defer(fa.tail.map(flatMapOutput(f)));

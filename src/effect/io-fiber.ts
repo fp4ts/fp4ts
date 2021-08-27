@@ -440,7 +440,7 @@ export class IOFiber<A> implements F.Fiber<A> {
             const f = this.stack.pop()! as (e: Error) => IO<unknown>;
             return f(e);
           } catch (e2) {
-            e = e2;
+            e = e2 as Error;
             continue;
           }
 
