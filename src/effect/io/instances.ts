@@ -51,9 +51,9 @@ import {
   onCancel,
   onError,
   parSequence,
-  parSequenceN_,
-  parTraverseN_,
-  parTraverse_,
+  parSequenceN,
+  parTraverse,
+  parTraverseN,
   raceOutcome_,
   racePair_,
   race_,
@@ -159,11 +159,11 @@ export const ioSpawn: () => Spawn<URI, Error> = () => ({
 
 export const ioConcurrent: () => Concurrent<URI, Error> = () => ({
   ...ioSpawn(),
-  parTraverse: as => f => parTraverse_(as, f),
+  parTraverse: parTraverse,
   parSequence: parSequence,
 
-  parTraverseN: n => as => f => parTraverseN_(as, f, n),
-  parSequenceN: n => fas => parSequenceN_(fas, n),
+  parTraverseN: parTraverseN,
+  parSequenceN: parSequenceN,
 });
 
 export const ioTemporal: () => Temporal<URI, Error> = () => ({

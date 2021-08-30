@@ -32,7 +32,7 @@ pipe(
     benchmark('async', async () => {
       const loop = (i: number): IO<number> =>
         IO.pure(i).flatMap(j =>
-          j > size ? IO.async(cb => IO(() => cb(E.right(j)))) : loop(j + 1),
+          j > size ? IO.async_(cb => IO(() => cb(E.right(j)))) : loop(j + 1),
         );
       await loop(0).unsafeRunToPromise();
     }),

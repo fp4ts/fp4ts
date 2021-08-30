@@ -43,6 +43,8 @@ import {
 } from './operators';
 import { bind, bindTo, Do } from './do';
 import { ioAsync, ioSync } from './instances';
+import { Kind } from '../../fp/hkt';
+import { Traversable } from '../../cats';
 
 export { URI } from './algebra';
 
@@ -103,28 +105,53 @@ interface IOObj {
     iob: IO<B>,
   ) => IO<[IOOutcome<A>, IOOutcome<B>]>;
 
-  sequence: <A>(ioas: IO<A>[]) => IO<A[]>;
+  sequence: <T>(
+    T: Traversable<T>,
+  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
 
-  traverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]>;
-  traverse_: <A, B>(as: A[], f: (a: A) => IO<B>) => IO<B[]>;
+  traverse: <T>(
+    T: Traversable<T>,
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
 
-  parSequence: <A>(ioas: IO<A>[]) => IO<A[]>;
+  traverse_: <T, A, B>(
+    T: Traversable<T>,
+    ts: Kind<T, A>,
+    f: (a: A) => IO<B>,
+  ) => IO<Kind<T, B>>;
 
-  parTraverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]>;
-  parTraverse_: <A, B>(as: A[], f: (a: A) => IO<B>) => IO<B[]>;
+  parSequence: <T>(
+    T: Traversable<T>,
+  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
 
-  parSequenceN: (maxConcurrent: number) => <A>(ioas: IO<A>[]) => IO<A[]>;
-  parSequenceN_: <A>(ioas: IO<A>[], maxConcurrent: number) => IO<A[]>;
+  parTraverse: <T>(
+    T: Traversable<T>,
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
+  parTraverse_: <T, A, B>(
+    T: Traversable<T>,
+    ts: Kind<T, A>,
+    f: (a: A) => IO<B>,
+  ) => IO<Kind<T, B>>;
 
-  parTraverseN: <A, B>(
+  parSequenceN: <T>(
+    T: Traversable<T>,
+    maxConcurrent: number,
+  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
+  parSequenceN_: <T, A>(
+    T: Traversable<T>,
+    iots: Kind<T, IO<A>>,
+    maxConcurrent: number,
+  ) => IO<Kind<T, A>>;
+
+  parTraverseN: <T>(
+    T: Traversable<T>,
+    maxConcurrent: number,
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
+  parTraverseN_: <T, A, B>(
+    T: Traversable<T>,
+    ts: Kind<T, A>,
     f: (a: A) => IO<B>,
     maxConcurrent: number,
-  ) => (as: A[]) => IO<B[]>;
-  parTraverseN_: <A, B>(
-    as: A[],
-    f: (a: A) => IO<B>,
-    maxConcurrent: number,
-  ) => IO<B[]>;
+  ) => IO<Kind<T, B>>;
 
   bracketFull: <A, B>(
     acquire: (poll: Poll<URI>) => IO<A>,

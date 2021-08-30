@@ -1,6 +1,7 @@
 import '../test-kit/jest';
 import { id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
+import { arrayTraversable } from '../../cats/data/array/instances';
 
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
@@ -929,9 +930,9 @@ describe('io monad', () => {
       const io = pipe(
         [1, 2, 3],
         IO.parTraverseN(
-          x => (x === 2 ? throwError(new Error('test error')) : IO.unit),
+          arrayTraversable(),
           2,
-        ),
+        )(x => (x === 2 ? throwError(new Error('test error')) : IO.unit)),
       );
 
       await expect(io).toFailWith(new Error('test error'), ticker);
@@ -940,7 +941,7 @@ describe('io monad', () => {
     it.ticked('should be cancelable', async ticker => {
       const traverse = pipe(
         [1, 2, 3],
-        IO.parTraverseN(() => IO.never, 2),
+        IO.parTraverseN(arrayTraversable(), 2)(() => IO.never),
       );
 
       const io = pipe(
@@ -957,7 +958,10 @@ describe('io monad', () => {
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(fin => IO.never.onCancel(IO(fin)), 2),
+        IO.parTraverseN(
+          arrayTraversable(),
+          2,
+        )(fin => IO.never.onCancel(IO(fin))),
       );
 
       const io = pipe(
@@ -985,7 +989,7 @@ describe('io monad', () => {
           IO(cont),
         ];
 
-        const io = pipe(ts, IO.parTraverseN(id, 2));
+        const io = pipe(ts, IO.parTraverseN(arrayTraversable(), 2)(id));
 
         await expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();

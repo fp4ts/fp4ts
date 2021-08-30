@@ -134,7 +134,8 @@ export const traverse_ = <G, A, B>(
   xs: A[],
   f: (a: A) => Kind<G, B>,
 ): Kind<G, B[]> =>
-  xs.reduce(
+  // TODO: Fix
+  xs.reduceRight(
     (gbs, x) => G.map2(gbs, f(x))((bs, b) => [...bs, b]),
     G.pure([] as B[]),
   );

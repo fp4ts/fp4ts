@@ -1,5 +1,6 @@
 import { flow, id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
+import { Traversable } from '../../cats';
 
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
@@ -33,7 +34,12 @@ import {
   unit,
 } from './constructors';
 import { bind, bindTo, Do } from './do';
-import { ioAsync } from './instances';
+import {
+  ioAsync,
+  ioParallelApplicative,
+  ioSequentialApplicative,
+} from './instances';
+import { Kind } from '../../fp/hkt';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
@@ -150,41 +156,61 @@ export const redeemWith: <A, B>(
 ) => (ioa: IO<A>) => IO<B> = (onFailure, onSuccess) => ioa =>
   redeemWith_(ioa, onFailure, onSuccess);
 
-export const traverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]> =
-  f => as =>
-    traverse_(as, f);
+export const traverse: <T>(
+  T: Traversable<T>,
+) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>> =
+  T => f => ts =>
+    traverse_(T, ts, f);
 
-export const sequence = <A>(ioas: IO<A>[]): IO<A[]> => traverse_(ioas, id);
+export const sequence =
+  <T>(T: Traversable<T>) =>
+  <A>(ioas: Kind<T, IO<A>>): IO<Kind<T, A>> =>
+    traverse_(T, ioas, id);
 
-export const parTraverse: <A, B>(f: (a: A) => IO<B>) => (as: A[]) => IO<B[]> =
-  f => as =>
-    parTraverse_(as, f);
+export const parTraverse: <T>(
+  T: Traversable<T>,
+) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>> =
+  T => f => ts =>
+    parTraverse_(T, ts, f);
 
-export const parSequenceN: (
+export const parSequenceN: <T>(
+  T: Traversable<T>,
   maxConcurrent: number,
-) => <A>(ioas: IO<A>[]) => IO<A[]> = maxConcurrent => ioas =>
-  parSequenceN_(ioas, maxConcurrent);
+) => <A>(iot: Kind<T, IO<A>>) => IO<Kind<T, A>> = (T, maxConcurrent) => iot =>
+  parSequenceN_(T, iot, maxConcurrent);
 
-export const parTraverseN: <A, B>(
-  f: (a: A) => IO<B>,
+export const parTraverseN: <T>(
+  T: Traversable<T>,
   maxConcurrent: number,
-) => (as: A[]) => IO<B[]> = (f, ms) => as => parTraverseN_(as, f, ms);
+) => <A, B>(f: (a: A) => IO<B>) => (as: Kind<T, A>) => IO<Kind<T, B>> =
+  (T, ms) => f => as =>
+    parTraverseN_(T, as, f, ms);
 
-export const parSequence = <A>(ioas: IO<A>[]): IO<A[]> =>
-  parTraverse_(ioas, id);
+export const parSequence =
+  <T>(T: Traversable<T>) =>
+  <A>(iot: Kind<T, IO<A>>): IO<Kind<T, A>> =>
+    parTraverse_(T, iot, id);
 
-export const parTraverseOutcome: <A, B>(
+export const parTraverseOutcome: <T>(
+  T: Traversable<T>,
+) => <A, B>(
   f: (a: A) => IO<B>,
-) => (as: A[]) => IO<IOOutcome<B>[]> = f => as => parTraverseOutcome_(as, f);
+) => (ts: Kind<T, A>) => IO<Kind<T, IOOutcome<B>>> = T => f => as =>
+  parTraverseOutcome_(T, as, f);
 
-export const parSequenceOutcome = <A>(ioas: IO<A>[]): IO<IOOutcome<A>[]> =>
-  parTraverseOutcome_(ioas, id);
+export const parSequenceOutcome =
+  <T>(T: Traversable<T>) =>
+  <A>(iot: Kind<T, IO<A>>): IO<Kind<T, IOOutcome<A>>> =>
+    parTraverseOutcome_(T, iot, id);
 
-export const parTraverseOutcomeN: <A, B>(
-  f: (a: A) => IO<B>,
+export const parTraverseOutcomeN: <T>(
+  T: Traversable<T>,
   maxConcurrent: number,
-) => (as: A[]) => IO<IOOutcome<B>[]> = (f, maxConcurrent) => as =>
-  parTraverseOutcomeN_(as, f, maxConcurrent);
+) => <A, B>(
+  f: (a: A) => IO<B>,
+) => (ts: Kind<T, A>) => IO<Kind<T, IOOutcome<B>>> =
+  (T, maxConcurrent) => f => as =>
+    parTraverseOutcomeN_(T, as, f, maxConcurrent);
 
 // -- Point-ful operators
 
@@ -437,24 +463,18 @@ export const redeemWith_ = <A, B>(
   onSuccess: (a: A) => IO<B>,
 ): IO<B> => pipe(ioa, attempt, flatMap(E.fold(onFailure, onSuccess)));
 
-export const traverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
-  defer(() =>
-    as.reduce(
-      (ioAcc: IO<B[]>, ioa) =>
-        pipe(
-          Do,
-          bindTo('acc', () => ioAcc),
-          bindTo('b', () => defer(() => f(ioa))),
-          map(({ acc, b }) => [...acc, b]),
-        ),
-      pure([]),
-    ),
-  );
+export const traverse_ = <T, A, B>(
+  T: Traversable<T>,
+  ts: Kind<T, A>,
+  f: (a: A) => IO<B>,
+): IO<Kind<T, B>> => defer(() => T.traverse(ioSequentialApplicative())(f)(ts));
 
-export const parSequenceN_: <A>(
-  ioas: IO<A>[],
+export const parSequenceN_: <T, A>(
+  T: Traversable<T>,
+  ioas: Kind<T, IO<A>>,
   maxConcurrent: number,
-) => IO<A[]> = (ioas, maxConcurrent) => parTraverseN_(ioas, id, maxConcurrent);
+) => IO<Kind<T, A>> = (T, ioas, maxConcurrent) =>
+  parTraverseN_(T, ioas, id, maxConcurrent);
 
 export const map2_ = <A, B, C>(
   ioa: IO<A>,
@@ -551,42 +571,36 @@ export const map2_ = <A, B, C>(
     ),
   );
 
-export const parTraverse_ = <A, B>(as: A[], f: (a: A) => IO<B>): IO<B[]> =>
-  defer(() =>
-    as.reduceRight(
-      (iobs, a) =>
-        map2_(
-          // Order very important
-          iobs,
-          defer(() => f(a)),
-          (bs, b) => [...bs, b],
-        ),
-      pure([] as B[]),
-    ),
-  );
+export const parTraverse_ = <T, A, B>(
+  T: Traversable<T>,
+  ts: Kind<T, A>,
+  f: (a: A) => IO<B>,
+): IO<Kind<T, B>> => defer(() => T.traverse(ioParallelApplicative())(f)(ts));
 
-export const parTraverseN_ = <A, B>(
-  as: A[],
+export const parTraverseN_ = <T, A, B>(
+  T: Traversable<T>,
+  ts: Kind<T, A>,
   f: (a: A) => IO<B>,
   maxConcurrent: number,
-): IO<B[]> =>
+): IO<Kind<T, B>> =>
   pipe(
     Sem.of(ioAsync())(maxConcurrent),
-    flatMap(sem => parTraverse_(as, x => sem.withPermit(f(x)))),
+    flatMap(sem => parTraverse_(T, ts, x => sem.withPermit(f(x)))),
   );
 
-export const parTraverseOutcome_ = <A, B>(
-  as: A[],
+export const parTraverseOutcome_ = <T, A, B>(
+  T: Traversable<T>,
+  ts: Kind<T, A>,
   f: (a: A) => IO<B>,
-): IO<IOOutcome<B>[]> =>
+): IO<Kind<T, IOOutcome<B>>> =>
   defer(() => {
-    const iobFibers = as.map(flow(x => defer(() => f(x)), fork));
+    const iobFibers = T.map(flow((x: A) => defer(() => f(x)), fork))(ts);
 
     return pipe(
-      sequence(iobFibers),
+      sequence(T)(iobFibers),
       flatMap(fibers => {
-        const results = traverse_(fibers, x => x.join);
-        const fiberCancels = traverse_(fibers, f =>
+        const results = traverse_(T, fibers, x => x.join);
+        const fiberCancels = traverse_(T, fibers, f =>
           pipe(
             f.cancel,
             fork,
@@ -601,12 +615,13 @@ export const parTraverseOutcome_ = <A, B>(
     );
   });
 
-export const parTraverseOutcomeN_ = <A, B>(
-  as: A[],
+export const parTraverseOutcomeN_ = <T, A, B>(
+  T: Traversable<T>,
+  ts: Kind<T, A>,
   f: (a: A) => IO<B>,
   maxConcurrent: number,
-): IO<IOOutcome<B>[]> =>
+): IO<Kind<T, IOOutcome<B>>> =>
   pipe(
     Sem.of(ioAsync())(maxConcurrent),
-    flatMap(sem => parTraverseOutcome_(as, flow(f, Sem.withPermit(sem)))),
+    flatMap(sem => parTraverseOutcome_(T, ts, flow(f, Sem.withPermit(sem)))),
   );

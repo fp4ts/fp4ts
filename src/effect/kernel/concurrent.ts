@@ -1,15 +1,27 @@
+import { Traversable } from '../../cats';
 import { Kind } from '../../fp/hkt';
 import { Spawn } from './spawn';
 
 export interface Concurrent<F, E> extends Spawn<F, E> {
-  parTraverse: <A>(as: A[]) => <B>(f: (a: A) => Kind<F, B>) => Kind<F, B[]>;
-  parSequence: <A>(as: Kind<F, A>[]) => Kind<F, A[]>;
+  parTraverse: <T>(
+    T: Traversable<T>,
+  ) => <A, B>(
+    f: (a: A) => Kind<F, B>,
+  ) => (ts: Kind<T, A>) => Kind<F, Kind<T, B>>;
 
-  parTraverseN: (
-    maxConcurrent: number,
-  ) => <A>(as: A[]) => <B>(f: (a: A) => Kind<F, B>) => Kind<F, B[]>;
+  parSequence: <T>(
+    T: Traversable<T>,
+  ) => <A>(as: Kind<T, Kind<F, A>>) => Kind<F, Kind<T, A>>;
 
-  parSequenceN: (
+  parTraverseN: <T>(
+    T: Traversable<T>,
     maxConcurrent: number,
-  ) => <A>(as: Kind<F, A>[]) => Kind<F, A[]>;
+  ) => <A, B>(
+    f: (a: A) => Kind<F, B>,
+  ) => (ts: Kind<T, A>) => Kind<F, Kind<T, B>>;
+
+  parSequenceN: <T>(
+    T: Traversable<T>,
+    maxConcurrent: number,
+  ) => <A>(as: Kind<T, Kind<F, A>>) => Kind<F, Kind<T, A>>;
 }
