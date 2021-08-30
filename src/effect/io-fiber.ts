@@ -329,7 +329,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
       this.canceled = true;
 
       return this.isUnmasked()
-        ? IO.async<void>(cb => IO(() => this.cancelAsync(cb)))
+        ? IO.async_<void>(cb => IO(() => this.cancelAsync(cb)))
         : this.join.void;
     }),
   );

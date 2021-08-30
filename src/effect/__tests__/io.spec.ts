@@ -33,7 +33,7 @@ describe('io monad', () => {
     });
 
     it.ticked('should preserve monad identity on async', async ticker => {
-      const io1 = IO.async(cb => IO(() => cb(E.right(42))));
+      const io1 = IO.async_(cb => IO(() => cb(E.right(42))));
       const io2 = io1.flatMap(i => IO.pure(i));
 
       await expect(io1).toCompleteWith(42, ticker);
@@ -48,7 +48,7 @@ describe('io monad', () => {
     });
 
     it.ticked('should resume async IO with failure', async ticker => {
-      const io = IO.async(cb => IO(() => cb(E.left(new Error('test error')))));
+      const io = IO.async_(cb => IO(() => cb(E.left(new Error('test error')))));
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
@@ -238,7 +238,7 @@ describe('io monad', () => {
 
   describe('async', () => {
     it.ticked('should resume async continuation', async ticker => {
-      const io = IO.async(cb => IO(() => cb(E.right(42))));
+      const io = IO.async_(cb => IO(() => cb(E.right(42))));
 
       await expect(io).toCompleteWith(42, ticker);
     });
@@ -246,7 +246,7 @@ describe('io monad', () => {
     it.ticked(
       'should resume async continuation and bind its results',
       async ticker => {
-        const io = IO.async<number>(cb => IO(() => cb(E.right(42)))).map(
+        const io = IO.async_<number>(cb => IO(() => cb(E.right(42)))).map(
           x => x + 2,
         );
 
@@ -255,8 +255,8 @@ describe('io monad', () => {
     );
 
     it.ticked('should produce a failure when bind fails', async ticker => {
-      const io = IO.async<number>(cb => IO(() => cb(E.right(42)))).flatMap(() =>
-        IO.throwError(new Error('test error')),
+      const io = IO.async_<number>(cb => IO(() => cb(E.right(42)))).flatMap(
+        () => IO.throwError(new Error('test error')),
       ).void;
 
       await expect(io).toFailWith(new Error('test error'), ticker);
@@ -267,7 +267,7 @@ describe('io monad', () => {
       async ticker => {
         let cb: (ea: E.Either<Error, number>) => void;
 
-        const async = IO.async<number>(cb0 =>
+        const async = IO.async_<number>(cb0 =>
           IO(() => {
             cb = cb0;
           }),
@@ -306,8 +306,8 @@ describe('io monad', () => {
       let outerR: number = 0;
       let innerR: number = 0;
 
-      const outer = IO.async<number>(cb1 => {
-        const inner = IO.async<number>(cb2 =>
+      const outer = IO.async_<number>(cb1 => {
+        const inner = IO.async_<number>(cb2 =>
           IO(() => cb1(E.right(1)))
             .flatMap(() => IO.readExecutionContext)
             .flatMap(ec => IO(() => ec.executeAsync(() => cb2(E.right(2))))),
@@ -547,7 +547,7 @@ describe('io monad', () => {
     //     let executed = false;
 
     //     const target = IO.uncancelable(() =>
-    //       IO.async(() =>
+    //       IO.async_(() =>
     //         IO.pure(
     //           IO(() => {
     //             executed = true;
@@ -805,7 +805,7 @@ describe('io monad', () => {
 
       const body = IO.async(() =>
         IO(() =>
-          IO.async<void>(cb =>
+          IO.async_<void>(cb =>
             IO.readExecutionContext.flatMap(ec =>
               // enforce async completion
               IO(() => ec.executeAsync(() => cb(E.rightUnit))),

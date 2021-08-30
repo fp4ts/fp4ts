@@ -9,11 +9,13 @@ import { Poll } from '../kernel/poll';
 import { IO as IOBase, URI } from './algebra';
 import {
   async,
+  async_,
   canceled,
   currentTimeMillis,
   defer,
   deferPromise,
   delay,
+  fromPromise,
   never,
   pure,
   readExecutionContext,
@@ -23,6 +25,7 @@ import {
   unit,
 } from './constructors';
 import {
+  bothOutcome_,
   both_,
   bracketFull,
   parSequence,
@@ -32,6 +35,7 @@ import {
   parTraverseN,
   parTraverseN_,
   parTraverse_,
+  raceOutcome_,
   race_,
   sequence,
   traverse,
@@ -59,6 +63,8 @@ interface IOObj {
 
   deferPromise: <A>(thunk: () => Promise<A>) => IO<A>;
 
+  fromPromise: <A>(iop: IO<Promise<A>>) => IO<A>;
+
   throwError: (e: Error) => IO<never>;
 
   currentTimeMillis: IO<number>;
@@ -66,8 +72,10 @@ interface IOObj {
   readExecutionContext: IO<ExecutionContext>;
 
   async: <A>(
-    k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined | void>,
+    k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined>,
   ) => IO<A>;
+
+  async_: <A>(k: (cb: (ea: Either<Error, A>) => void) => IO<void>) => IO<A>;
 
   unit: IO<void>;
 
@@ -84,8 +92,16 @@ interface IOObj {
   sleep: (ms: number) => IO<void>;
 
   race: <A, B>(ioa: IO<A>, iob: IO<B>) => IO<Either<A, B>>;
+  raceOutcome: <A, B>(
+    ioa: IO<A>,
+    iob: IO<B>,
+  ) => IO<Either<IOOutcome<A>, IOOutcome<B>>>;
 
   both: <A, B>(ioa: IO<A>, iob: IO<B>) => IO<[A, B]>;
+  bothOutcome: <A, B>(
+    ioa: IO<A>,
+    iob: IO<B>,
+  ) => IO<[IOOutcome<A>, IOOutcome<B>]>;
 
   sequence: <A>(ioas: IO<A>[]) => IO<A[]>;
 
@@ -143,6 +159,8 @@ IO.defer = defer;
 
 IO.deferPromise = deferPromise;
 
+IO.fromPromise = fromPromise;
+
 IO.throwError = throwError;
 
 IO.currentTimeMillis = currentTimeMillis;
@@ -150,6 +168,8 @@ IO.currentTimeMillis = currentTimeMillis;
 IO.readExecutionContext = readExecutionContext;
 
 IO.async = async;
+
+IO.async_ = async_;
 
 IO.unit = unit;
 
@@ -166,8 +186,10 @@ IO.uncancelable = uncancelable;
 IO.sleep = sleep;
 
 IO.race = race_;
+IO.raceOutcome = raceOutcome_;
 
 IO.both = both_;
+IO.bothOutcome = bothOutcome_;
 
 IO.sequence = sequence;
 

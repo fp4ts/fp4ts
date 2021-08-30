@@ -17,8 +17,10 @@ import { Temporal } from '../kernel/temporal';
 import { URI } from './algebra';
 import {
   async,
+  async_,
   defer,
   delay,
+  fromPromise,
   never,
   pure,
   sleep,
@@ -28,6 +30,7 @@ import {
 } from './constructors';
 import {
   attempt,
+  bothOutcome_,
   both_,
   bracketFull,
   bracketOutcome_,
@@ -51,6 +54,7 @@ import {
   parSequenceN_,
   parTraverseN_,
   parTraverse_,
+  raceOutcome_,
   racePair_,
   race_,
   redeem,
@@ -147,10 +151,10 @@ export const ioSpawn: () => Spawn<URI, Error> = () => ({
   never: never,
   suspend: null as any,
   racePair: racePair_,
-  raceOutcome: null as any,
+  raceOutcome: raceOutcome_,
   race: race_,
   both: both_,
-  bothOutcome: null as any,
+  bothOutcome: bothOutcome_,
 });
 
 export const ioConcurrent: () => Concurrent<URI, Error> = () => ({
@@ -174,8 +178,8 @@ export const ioAsync: () => Async<URI> = () => ({
   ...ioSync(),
   ...ioTemporal(),
   async: async,
-  async_: async,
+  async_: async_,
   never: never,
   executeOn: executeOn_,
-  fromPromise: null as any,
+  fromPromise: fromPromise,
 });

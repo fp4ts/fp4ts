@@ -113,7 +113,7 @@ export class Async<A> extends IO<A> {
   public constructor(
     public readonly body: (
       cb: (ea: Either<Error, A>) => void,
-    ) => IO<IO<void> | undefined | void>,
+    ) => IO<IO<void> | undefined>,
   ) {
     super();
   }

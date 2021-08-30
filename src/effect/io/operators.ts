@@ -255,6 +255,30 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   );
 };
 
+export const raceOutcome_ = <A, B>(
+  ioa: IO<A>,
+  iob: IO<B>,
+): IO<E.Either<IOOutcome<A>, IOOutcome<B>>> =>
+  uncancelable(() =>
+    pipe(
+      racePair_(ioa, iob),
+      flatMap(
+        E.fold(
+          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
+            pipe(
+              f.cancel,
+              map(() => E.left(oc) as E.Either<IOOutcome<A>, IOOutcome<B>>),
+            ),
+          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
+            pipe(
+              f.cancel,
+              map(() => E.right(oc)),
+            ),
+        ),
+      ),
+    ),
+  );
+
 export const racePair_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
@@ -306,6 +330,32 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
     ),
   );
 };
+
+export const bothOutcome_ = <A, B>(
+  ioa: IO<A>,
+  iob: IO<B>,
+): IO<[IOOutcome<A>, IOOutcome<B>]> =>
+  uncancelable(poll =>
+    pipe(
+      poll(racePair_(ioa, iob)),
+      flatMap(
+        E.fold(
+          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
+            pipe(
+              poll(f.join),
+              onCancel(f.cancel),
+              map(oc2 => [oc, oc2]),
+            ),
+          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
+            pipe(
+              poll(f.join),
+              onCancel(f.cancel),
+              map(oc2 => [oc2, oc]),
+            ),
+        ),
+      ),
+    ),
+  );
 
 export const finalize_ = <A>(
   ioa: IO<A>,

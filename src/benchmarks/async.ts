@@ -6,7 +6,7 @@ import { IO } from '../effect/io';
 const size = 1000;
 
 const evalAsync = (n: number): IO<number> =>
-  IO.async(cb => IO(() => cb(E.right(n))));
+  IO.async_(cb => IO(() => cb(E.right(n))));
 
 pipe(
   benchmark.group('async')(
