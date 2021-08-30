@@ -33,6 +33,7 @@ import {
   unit,
 } from './constructors';
 import { bind, bindTo, Do } from './do';
+import { ioAsync } from './instances';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
@@ -520,7 +521,7 @@ export const parTraverseN_ = <A, B>(
   maxConcurrent: number,
 ): IO<B[]> =>
   pipe(
-    Sem.of(maxConcurrent),
+    Sem.of(ioAsync())(maxConcurrent),
     flatMap(sem => parTraverse_(as, x => sem.withPermit(f(x)))),
   );
 
@@ -556,6 +557,6 @@ export const parTraverseOutcomeN_ = <A, B>(
   maxConcurrent: number,
 ): IO<IOOutcome<B>[]> =>
   pipe(
-    Sem.of(maxConcurrent),
+    Sem.of(ioAsync())(maxConcurrent),
     flatMap(sem => parTraverseOutcome_(as, flow(f, Sem.withPermit(sem)))),
   );

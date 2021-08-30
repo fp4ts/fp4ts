@@ -60,61 +60,61 @@ import {
   timeout_,
 } from './operators';
 
-export const ioDefer: Defer<URI> = {
+export const ioDefer: () => Defer<URI> = () => ({
   _URI: URI,
   defer: defer,
-};
+});
 
-export const ioFunctor: Functor<URI> = {
+export const ioFunctor: () => Functor<URI> = () => ({
   _URI: URI,
-  map: f => fa => map(f)(fa),
+  map: map,
   tap: tap,
-};
+});
 
-export const ioParallelApply: Apply<URI> = {
-  ...ioFunctor,
+export const ioParallelApply: () => Apply<URI> = () => ({
+  ...ioFunctor(),
   ap: ff => fa => map2_(ff, fa, (f, a) => f(a)),
   map2: (fa, fb) => f => map2_(fa, fb, f),
   product: (fa, fb) => map2_(fa, fb, (a, b) => [a, b]),
   productL: (fa, fb) => map2_(fa, fb, a => a),
   productR: (fa, fb) => map2_(fa, fb, (_, b) => b),
-};
+});
 
-export const ioParallelApplicative: Applicative<URI> = {
-  ...ioParallelApply,
+export const ioParallelApplicative: () => Applicative<URI> = () => ({
+  ...ioParallelApply(),
   pure: pure,
   unit: unit,
-};
+});
 
-export const ioSequentialApply: Apply<URI> = {
-  ...ioFunctor,
+export const ioSequentialApply: () => Apply<URI> = () => ({
+  ...ioFunctor(),
   ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
   map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
   product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
   productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
   productR: (fa, fb) => flatMap_(fa, () => fb),
-};
+});
 
-export const ioSequentialApplicative: Applicative<URI> = {
-  ...ioSequentialApply,
+export const ioSequentialApplicative: () => Applicative<URI> = () => ({
+  ...ioSequentialApply(),
   pure: pure,
   unit: unit,
-};
+});
 
-export const ioFlatMap: FlatMap<URI> = {
-  ...ioSequentialApply,
-  flatMap: f => fa => flatMap(f)(fa),
+export const ioFlatMap: () => FlatMap<URI> = () => ({
+  ...ioSequentialApply(),
+  flatMap: flatMap,
   flatTap: flatTap,
   flatten: flatten,
-};
+});
 
-export const ioMonad: Monad<URI> = {
-  ...ioSequentialApplicative,
-  ...ioFlatMap,
-};
+export const ioMonad: () => Monad<URI> = () => ({
+  ...ioSequentialApplicative(),
+  ...ioFlatMap(),
+});
 
-export const ioMonadError: MonadError<URI, Error> = {
-  ...ioMonad,
+export const ioMonadError: () => MonadError<URI, Error> = () => ({
+  ...ioMonad(),
   throwError: throwError,
   handleError: handleError,
   handleErrorWith: handleErrorWith,
@@ -122,27 +122,27 @@ export const ioMonadError: MonadError<URI, Error> = {
   onError: onError,
   redeem: redeem,
   redeemWith: redeemWith,
-};
+});
 
-export const ioMonadCancel: MonadCancel<URI, Error> = {
-  ...ioMonadError,
+export const ioMonadCancel: () => MonadCancel<URI, Error> = () => ({
+  ...ioMonadError(),
   uncancelable: uncancelable,
   onCancel: onCancel,
   finalize: finalize,
   bracket: fa => use => release => bracket_(fa, use, release),
   bracketOutcome: fa => use => release => bracketOutcome_(fa, use, release),
   bracketFull: acquire => use => release => bracketFull(acquire, use, release),
-};
+});
 
-export const ioSync: Sync<URI> = {
-  ...ioMonadError,
-  ...ioDefer,
+export const ioSync: () => Sync<URI> = () => ({
+  ...ioMonadError(),
+  ...ioDefer(),
   delay: delay,
-};
+});
 
-export const ioSpawn: Spawn<URI, Error> = {
-  ...ioMonadCancel,
-  applicative: ioParallelApplicative,
+export const ioSpawn: () => Spawn<URI, Error> = () => ({
+  ...ioMonadCancel(),
+  applicative: ioParallelApplicative(),
   fork: fork,
   never: never,
   suspend: null as any,
@@ -151,31 +151,31 @@ export const ioSpawn: Spawn<URI, Error> = {
   race: race_,
   both: both_,
   bothOutcome: null as any,
-};
+});
 
-export const ioConcurrent: Concurrent<URI, Error> = {
-  ...ioSpawn,
+export const ioConcurrent: () => Concurrent<URI, Error> = () => ({
+  ...ioSpawn(),
   parTraverse: as => f => parTraverse_(as, f),
   parSequence: parSequence,
 
   parTraverseN: n => as => f => parTraverseN_(as, f, n),
   parSequenceN: n => fas => parSequenceN_(fas, n),
-};
+});
 
-export const ioTemporal: Temporal<URI, Error> = {
-  ...ioConcurrent,
+export const ioTemporal: () => Temporal<URI, Error> = () => ({
+  ...ioConcurrent(),
   sleep: sleep,
   delayBy: delayBy_,
   timeoutTo: timeoutTo_,
   timeout: timeout_,
-};
+});
 
-export const ioAsync: Async<URI> = {
-  ...ioSync,
-  ...ioTemporal,
+export const ioAsync: () => Async<URI> = () => ({
+  ...ioSync(),
+  ...ioTemporal(),
   async: async,
   async_: async,
   never: never,
   executeOn: executeOn_,
   fromPromise: null as any,
-};
+});

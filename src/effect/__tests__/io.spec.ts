@@ -5,6 +5,7 @@ import * as E from '../../fp/either';
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
 import { Semaphore } from '../kernel/semaphore';
+import { ioAsync } from '../io/instances';
 
 const throwError = (e: Error) => {
   throw e;
@@ -999,7 +1000,7 @@ describe('io monad', () => {
 
         const io = pipe(
           IO.Do,
-          IO.bindTo('sem', Semaphore.withPermits(1)),
+          IO.bindTo('sem', Semaphore.withPermits(ioAsync())(1)),
           IO.bindTo('f1', ({ sem }) => sem.withPermit(IO.never).fork),
           IO.bindTo('f2', ({ sem }) => sem.withPermit(IO.never).fork),
           IO.bind(IO(() => ticker.tickAll())),
