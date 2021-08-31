@@ -1,5 +1,5 @@
 import { flow, id, pipe } from '../fp/core';
-import * as E from '../fp/either';
+import { Either, Left, Right } from '../cats/data';
 
 import { IO } from './io';
 import { ExecutionContext } from './execution-context';
@@ -173,7 +173,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
           const prevFinalizing = this.finalizing;
           let receivedResult = false;
 
-          const cb: (ea: E.Either<Error, unknown>) => void = ea => {
+          const cb: (ea: Either<Error, unknown>) => void = ea => {
             if (receivedResult) return;
             receivedResult = true;
             // Drop the callback if we have been completed while suspended
@@ -186,7 +186,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
               // uncancelable, continue with the execution
               if (prevFinalizing === this.finalizing) {
                 if (!this.shouldFinalize()) {
-                  const next = E.fold_(ea, IO.throwError, IO.pure);
+                  const next = ea.fold(IO.throwError, IO.pure);
                   this.resumeIO = next;
                   return this.schedule(this, this.currentEC);
                 } else {
@@ -237,7 +237,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
           const { ioa, iob } = cur;
 
           const next = IO.async<
-            E.Either<
+            Either<
               [IOOutcome<unknown>, IOFiber<unknown>],
               [IOFiber<unknown>, IOOutcome<unknown>]
             >
@@ -246,8 +246,8 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
               const fiberA = new IOFiber(ioa, this.currentEC, this.runtime);
               const fiberB = new IOFiber(iob, this.currentEC, this.runtime);
 
-              fiberA.onComplete(oc => cb(E.right(E.left([oc, fiberB]))));
-              fiberB.onComplete(oc => cb(E.right(E.right([fiberA, oc]))));
+              fiberA.onComplete(oc => cb(Right(Left([oc, fiberB]))));
+              fiberB.onComplete(oc => cb(Right(Right([fiberA, oc]))));
 
               this.schedule(fiberA, this.currentEC);
               this.schedule(fiberB, this.currentEC);
@@ -273,7 +273,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
           const next = IO.async<void>(resume =>
             IO(() => {
               const cancel = this.currentEC.sleep(ms, () =>
-                resume(E.rightUnit),
+                resume(Either.rightUnit),
               );
               return IO(cancel);
             }),
@@ -314,7 +314,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
 
   private _join: IO<IOOutcome<A>> = IO.async(cb =>
     IO(() => {
-      const listener: (oc: IOOutcome<A>) => void = flow(E.right, cb);
+      const listener: (oc: IOOutcome<A>) => void = flow(Right, cb);
       const cancel = IO(() => {
         this.callbacks = this.callbacks.filter(l => l !== listener);
       });
@@ -334,7 +334,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
     }),
   );
 
-  private cancelAsync(cb?: (ea: E.Either<Error, void>) => void): void {
+  private cancelAsync(cb?: (ea: Either<Error, void>) => void): void {
     this.finalizing = true;
 
     if (this.finalizers.length) {
@@ -345,7 +345,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
       this.masks += 1;
       this.runLoop(this.finalizers.pop()!);
     } else {
-      cb && cb(E.rightUnit);
+      cb && cb(Either.rightUnit);
       this.complete(O.canceled);
     }
   }
@@ -426,7 +426,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
               continue;
 
             case IOA.Continuation.AttemptK:
-              r = E.right(r);
+              r = Right(r);
               continue;
 
             case IOA.Continuation.OnCancelK:
@@ -472,7 +472,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
               }
 
             case IOA.Continuation.AttemptK:
-              cr = { tag: 'success', value: E.left(e) };
+              cr = { tag: 'success', value: Left(e) };
               continue loop;
 
             case IOA.Continuation.OnCancelK:
@@ -553,9 +553,9 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
     }
 
     const cb = this.stack.pop() as
-      | ((ea: E.Either<Error, void>) => void)
+      | ((ea: Either<Error, void>) => void)
       | undefined;
-    cb && cb(E.rightUnit);
+    cb && cb(Either.rightUnit);
 
     this.complete(O.canceled);
 

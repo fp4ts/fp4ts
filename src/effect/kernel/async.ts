@@ -1,5 +1,5 @@
-import { Either } from '../../fp/either';
 import { Kind } from '../../fp/hkt';
+import { Either } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { Sync } from './sync';
 import { Temporal } from './temporal';

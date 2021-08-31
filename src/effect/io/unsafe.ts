@@ -1,5 +1,5 @@
 import { flow } from '../../fp/core';
-import * as E from '../../fp/either';
+import { Either, Left, Right } from '../../cats/data';
 
 import { IO } from './io';
 import { IOFiber } from '../io-fiber';
@@ -18,7 +18,7 @@ export const unsafeRunToPromise: (
   unsafeRunToPromise_(ioa, runtime);
 
 export const unsafeRunAsync: <A>(
-  cb: (ea: E.Either<Error, A>) => void,
+  cb: (ea: Either<Error, A>) => void,
   runtime?: IORuntime,
 ) => (ioa: IO<A>) => void = (cb, runtime) => ioa =>
   unsafeRunAsync_(ioa, cb, runtime);
@@ -36,21 +36,25 @@ export const unsafeRunToPromise_: <A>(
   runtime?: IORuntime,
 ) => Promise<A> = (ioa, runtime) =>
   new Promise((resolve, reject) =>
-    unsafeRunAsync_(ioa, flow(E.fold(reject, resolve)), runtime),
+    unsafeRunAsync_(
+      ioa,
+      flow(ea => ea.fold(reject, resolve)),
+      runtime,
+    ),
   );
 
 export const unsafeRunAsync_ = <A>(
   ioa: IO<A>,
-  cb: (ea: E.Either<Error, A>) => void,
+  cb: (ea: Either<Error, A>) => void,
   runtime?: IORuntime,
 ): void =>
   unsafeRunAsyncOutcome_(
     ioa,
     flow(
-      O.fold<URI, Error, A, E.Either<Error, A>>(
-        () => E.left(new O.CancellationError()),
-        e => E.left(e),
-        (a: IO<A>) => E.right((a as Pure<A>).value),
+      O.fold<URI, Error, A, Either<Error, A>>(
+        () => Left(new O.CancellationError()),
+        e => Left(e),
+        (a: IO<A>) => Right((a as Pure<A>).value),
       ),
       cb,
     ),

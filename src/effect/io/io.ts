@@ -1,4 +1,4 @@
-import { Either } from '../../fp/either';
+import { Either } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { IOOutcome } from '../io-outcome';
 

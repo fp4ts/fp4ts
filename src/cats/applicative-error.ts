@@ -1,5 +1,5 @@
-import { Either } from '../fp/either';
 import { Kind } from '../fp/hkt';
+import { Either } from './data';
 import { Applicative } from './applicative';
 
 export interface ApplicativeError<F, E> extends Applicative<F> {

@@ -1,4 +1,4 @@
-import * as E from '../../fp/either';
+import { Either } from '../../cats/data';
 
 import { IO } from '../io';
 import { ExecutionContext, GlobalExecutionContext } from '../execution-context';
@@ -29,7 +29,7 @@ export class IORuntime {
 const listenForSignal = (s: string): IO<void> =>
   IO.async(resume =>
     IO(() => {
-      const listener = () => resume(E.rightUnit);
+      const listener = () => resume(Either.rightUnit);
       const removeListener = () => {
         process.removeListener(s, listener);
       };
@@ -53,7 +53,9 @@ export const unsafeRunMain = (ioa: IO<unknown>): void => {
   return ioa
     .race(IO.race(Signal.SIGTERM(), Signal.SIGINT()))
     .finalize(
-      O.fold(onCancel, onFailure, x => x.flatMap(E.fold(onSuccess, onCancel))),
+      O.fold(onCancel, onFailure, x =>
+        x.flatMap(ea => ea.fold(onSuccess, onCancel)),
+      ),
     )
     .unsafeRunAsync(() => {}, runtime);
 };

@@ -1,5 +1,13 @@
-import { Either } from './either';
-import { flatMap_, flatTap_, flatten, fold_, map_, tap_ } from './operators';
+import { Either } from './algebra';
+import {
+  flatMap_,
+  flatTap_,
+  flatten,
+  fold_,
+  map_,
+  swapped,
+  tap_,
+} from './operators';
 
 declare module './algebra' {
   interface Either<E, A> {
@@ -9,6 +17,7 @@ declare module './algebra' {
     flatTap: <E2 = E>(f: (a: A) => Either<E2, unknown>) => Either<E2, A>;
     flatten: A extends Either<E, infer B> ? Either<E, B> : never | unknown;
     fold: <B>(onLeft: (e: E) => B, onRight: (a: A) => B) => B;
+    swapped: Either<A, E>;
   }
 }
 
@@ -53,3 +62,9 @@ Either.prototype.fold = function <E, A, B>(
 ): B {
   return fold_(this, onLeft, onRight);
 };
+
+Object.defineProperty(Either.prototype, 'swapped', {
+  get<E, A>(this: Either<E, A>): Either<A, E> {
+    return swapped(this);
+  },
+});

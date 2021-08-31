@@ -1,5 +1,5 @@
-import * as E from '../../fp/either';
 import { flow, id, pipe } from '../../fp/core';
+import { Right } from '../../cats/data';
 import { Kind } from '../../fp/hkt';
 
 import { Ref } from './ref';
@@ -90,7 +90,7 @@ export class Deferred<F, A> {
             ({ value }) => this.F.pure(value),
             () =>
               this.F.async(resume =>
-                this.F.defer(() => addReader(flow(E.right, resume))),
+                this.F.defer(() => addReader(flow(Right, resume))),
               ),
           ),
         ),

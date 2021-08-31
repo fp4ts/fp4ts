@@ -1,6 +1,6 @@
 import '../benchmarking';
 import { pipe } from '../fp/core';
-import * as E from '../fp/either';
+import { Either } from '../cats/data';
 import { IO } from '../effect/io';
 import { arrayTraversable } from '../cats/data/array/instances';
 
@@ -14,7 +14,7 @@ const consumeTicks = (n: number): IO<void> =>
       const onCancel = IO(() => (canceled = false));
 
       const tick = () =>
-        n-- > 0 && !canceled ? process.nextTick(tick) : cb(E.rightUnit);
+        n-- > 0 && !canceled ? process.nextTick(tick) : cb(Either.rightUnit);
       tick();
 
       return onCancel.void;

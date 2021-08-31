@@ -1,8 +1,8 @@
 import '../benchmarking';
 
+import { Right } from '../cats/data';
 import { IO } from '../effect/io';
 import { pipe } from '../fp/core';
-import * as E from '../fp/either';
 
 const size = 100_000;
 
@@ -32,7 +32,7 @@ pipe(
     benchmark('async', async () => {
       const loop = (i: number): IO<number> =>
         IO.pure(i).flatMap(j =>
-          j > size ? IO.async_(cb => IO(() => cb(E.right(j)))) : loop(j + 1),
+          j > size ? IO.async_(cb => IO(() => cb(Right(j)))) : loop(j + 1),
         );
       await loop(0).unsafeRunToPromise();
     }),

@@ -1,3 +1,3 @@
 import './syntax';
 
-export { Either } from './either';
+export { Either, Right, Left } from './either';

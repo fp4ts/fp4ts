@@ -1,12 +1,12 @@
 import '../benchmarking';
 import { id, pipe } from '../fp/core';
-import * as E from '../fp/either';
+import { Right } from '../cats/data';
 import { IO } from '../effect/io';
 
 const size = 1000;
 
 const evalAsync = (n: number): IO<number> =>
-  IO.async_(cb => IO(() => cb(E.right(n))));
+  IO.async_(cb => IO(() => cb(Right(n))));
 
 pipe(
   benchmark.group('async')(
@@ -21,7 +21,7 @@ pipe(
 
     benchmark('race', async () => {
       const task = [...new Array(size).keys()].reduce<IO<number>>(
-        acc => IO.race(acc, IO.pure(1)).map(E.fold(id, id)),
+        acc => IO.race(acc, IO.pure(1)).map(ea => ea.fold(id, id)),
         IO.never,
       );
 

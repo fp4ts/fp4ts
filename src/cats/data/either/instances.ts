@@ -15,7 +15,7 @@ import {
   map_,
   tap,
 } from './operators';
-import { pure } from './constructors';
+import { pure, rightUnit } from './constructors';
 
 export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () => ({
   URI: URI,
@@ -50,13 +50,13 @@ export const eitherApply2: Lazy<Apply2<URI>> = () => ({
 export const eitherApplicative2C: <E>() => Applicative2C<URI, E> = () => ({
   ...eitherApply2C(),
   pure: pure,
-  unit: pure(undefined),
+  unit: rightUnit,
 });
 
 export const eitherApplicative2: Lazy<Applicative2<URI>> = () => ({
   ...eitherApply2(),
   pure: pure,
-  unit: pure(undefined),
+  unit: rightUnit,
 });
 
 export const eitherFlatMap2C: <E>() => FlatMap2C<URI, E> = () => ({

@@ -1,5 +1,5 @@
 import { flow } from '../../fp/core';
-import * as E from '../../fp/either';
+import { Either, Left, Right } from '../../cats/data';
 
 import { ExecutionContext } from '../execution-context';
 import { Poll } from '../kernel/poll';
@@ -35,11 +35,11 @@ export const currentTimeMillis: IO<number> = CurrentTimeMillis;
 export const readExecutionContext: IO<ExecutionContext> = ReadEC;
 
 export const async = <A>(
-  k: (cb: (ea: E.Either<Error, A>) => void) => IO<IO<void> | undefined>,
+  k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined>,
 ): IO<A> => new Async(k);
 
 export const async_ = <A>(
-  k: (cb: (ea: E.Either<Error, A>) => void) => IO<void>,
+  k: (cb: (ea: Either<Error, A>) => void) => IO<void>,
 ): IO<A> => new Async(resume => defer(() => map_(k(resume), () => undefined)));
 
 export const never: IO<never> = async(() => pure(undefined));
@@ -54,8 +54,8 @@ export const sleep = (ms: number): IO<void> => new Sleep(ms);
 export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
   async_(resume =>
     delay(() => {
-      const onSuccess: (x: A) => void = flow(E.right, resume);
-      const onFailure: (e: Error) => void = flow(E.left, resume);
+      const onSuccess: (x: A) => void = flow(Right, resume);
+      const onFailure: (e: Error) => void = flow(Left, resume);
       thunk().then(onSuccess, onFailure);
     }),
   );
@@ -64,8 +64,8 @@ export const fromPromise = <A>(iop: IO<Promise<A>>): IO<A> =>
   flatMap_(iop, p =>
     async_(resume =>
       delay(() => {
-        const onSuccess: (x: A) => void = flow(E.right, resume);
-        const onFailure: (e: Error) => void = flow(E.left, resume);
+        const onSuccess: (x: A) => void = flow(Right, resume);
+        const onFailure: (e: Error) => void = flow(Left, resume);
         p.then(onSuccess, onFailure);
       }),
     ),

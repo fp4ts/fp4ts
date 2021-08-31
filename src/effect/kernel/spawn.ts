@@ -1,6 +1,6 @@
 import { Applicative } from '../../cats';
-import { Either } from '../../fp/either';
 import { Kind } from '../../fp/hkt';
+import { Either } from '../../cats/data';
 import { Fiber } from './fiber';
 import { MonadCancel } from './monad-cancel';
 import { Outcome } from './outcome';

@@ -1,6 +1,6 @@
 import { flow, id, pipe } from '../../fp/core';
-import * as E from '../../fp/either';
 import { Traversable } from '../../cats';
+import { Either, Left, Right } from '../../cats/data';
 
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
@@ -63,7 +63,7 @@ export const executeOn: (ec: ExecutionContext) => <A>(ioa: IO<A>) => IO<A> =
   ec => ioa =>
     executeOn_(ioa, ec);
 
-export const race: <B>(iob: IO<B>) => <A>(ioa: IO<A>) => IO<E.Either<A, B>> =
+export const race: <B>(iob: IO<B>) => <A>(ioa: IO<A>) => IO<Either<A, B>> =
   iob => ioa =>
     race_(ioa, iob);
 
@@ -71,7 +71,7 @@ export const racePair: <B>(
   iob: IO<B>,
 ) => <A>(
   ioa: IO<A>,
-) => IO<E.Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =
+) => IO<Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =
   iob => ioa =>
     racePair_(ioa, iob);
 
@@ -141,7 +141,7 @@ export const onError: (f: (e: Error) => IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   f => ioa =>
     onError_(ioa, f);
 
-export const attempt: <A>(ioa: IO<A>) => IO<E.Either<Error, A>> = ioa =>
+export const attempt: <A>(ioa: IO<A>) => IO<Either<Error, A>> = ioa =>
   new Attempt(ioa);
 
 export const redeem: <A, B>(
@@ -227,18 +227,21 @@ export const timeout_ = <A>(ioa: IO<A>, ms: number): IO<A> =>
   timeoutTo_(ioa, ms, throwError(new Error('Timeout exceeded')));
 
 export const timeoutTo_ = <A>(ioa: IO<A>, ms: number, fallback: IO<A>): IO<A> =>
-  pipe(race_(sleep(ms), ioa), flatMap(E.fold(() => fallback, pure)));
+  pipe(
+    race_(sleep(ms), ioa),
+    flatMap(ea => ea.fold(() => fallback, pure)),
+  );
 
 export const executeOn_ = <A>(ioa: IO<A>, ec: ExecutionContext): IO<A> =>
   new ExecuteOn(ioa, ec);
 
-export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
+export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<Either<A, B>> => {
   const cont = <X, Y>(
     poll: Poll<URI>,
     oc: IOOutcome<X>,
     f: IOFiber<Y>,
-  ): IO<E.Either<X, Y>> =>
-    O.fold_<URI, Error, X, IO<E.Either<X, Y>>>(
+  ): IO<Either<X, Y>> =>
+    O.fold_<URI, Error, X, IO<Either<X, Y>>>(
       oc,
       () =>
         pipe(
@@ -248,7 +251,7 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
             O.fold(
               () => flatMap_(poll(canceled), () => never),
               ey => throwError(ey),
-              fy => map_(fy, E.right),
+              fy => map_(fy, Right),
             ),
           ),
         ),
@@ -259,9 +262,9 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
           flatMap(() => f.join),
           flatMap(
             O.fold(
-              () => map_(fx, E.left),
+              () => map_(fx, Left),
               ey => throwError(ey),
-              () => map_(fx, E.left),
+              () => map_(fx, Left),
             ),
           ),
         ),
@@ -270,11 +273,14 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
   return uncancelable(poll =>
     pipe(
       poll(racePair_(ioa, iob)),
-      flatMap(
-        E.fold(
+      flatMap(ea =>
+        ea.fold(
           ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
           ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
-            pipe(cont(poll, oc, f), map(E.swapped)),
+            pipe(
+              cont(poll, oc, f),
+              map(ea => ea.swapped),
+            ),
         ),
       ),
     ),
@@ -284,21 +290,21 @@ export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<E.Either<A, B>> => {
 export const raceOutcome_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<E.Either<IOOutcome<A>, IOOutcome<B>>> =>
+): IO<Either<IOOutcome<A>, IOOutcome<B>>> =>
   uncancelable(() =>
     pipe(
       racePair_(ioa, iob),
-      flatMap(
-        E.fold(
+      flatMap(ea =>
+        ea.fold(
           ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
             pipe(
               f.cancel,
-              map(() => E.left(oc) as E.Either<IOOutcome<A>, IOOutcome<B>>),
+              map(() => Left(oc) as Either<IOOutcome<A>, IOOutcome<B>>),
             ),
           ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
             pipe(
               f.cancel,
-              map(() => E.right(oc)),
+              map(() => Right(oc)),
             ),
         ),
       ),
@@ -308,7 +314,7 @@ export const raceOutcome_ = <A, B>(
 export const racePair_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<E.Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =>
+): IO<Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =>
   new RacePair(ioa, iob);
 
 export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
@@ -343,8 +349,8 @@ export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
   return uncancelable(poll =>
     pipe(
       poll(racePair_(ioa, iob)),
-      flatMap(
-        E.fold(
+      flatMap(ea =>
+        ea.fold(
           ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
           ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
             pipe(
@@ -364,8 +370,8 @@ export const bothOutcome_ = <A, B>(
   uncancelable(poll =>
     pipe(
       poll(racePair_(ioa, iob)),
-      flatMap(
-        E.fold(
+      flatMap(ea =>
+        ea.fold(
           ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
             pipe(
               poll(f.join),
@@ -457,13 +463,23 @@ export const redeem_ = <A, B>(
   ioa: IO<A>,
   onFailure: (e: Error) => B,
   onSuccess: (a: A) => B,
-): IO<B> => pipe(ioa, attempt, map(E.fold(onFailure, onSuccess)));
+): IO<B> =>
+  pipe(
+    ioa,
+    attempt,
+    map(ea => ea.fold(onFailure, onSuccess)),
+  );
 
 export const redeemWith_ = <A, B>(
   ioa: IO<A>,
   onFailure: (e: Error) => IO<B>,
   onSuccess: (a: A) => IO<B>,
-): IO<B> => pipe(ioa, attempt, flatMap(E.fold(onFailure, onSuccess)));
+): IO<B> =>
+  pipe(
+    ioa,
+    attempt,
+    flatMap(ea => ea.fold(onFailure, onSuccess)),
+  );
 
 export const traverse_ = <T, A, B>(
   T: Traversable<T>,

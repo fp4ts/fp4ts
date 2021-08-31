@@ -1,6 +1,6 @@
 import '../test-kit/jest';
 import { id, pipe } from '../../fp/core';
-import * as E from '../../fp/either';
+import { Either, Left, Right } from '../../cats/data';
 
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
@@ -35,7 +35,7 @@ describe('io monad', () => {
     });
 
     it.ticked('should preserve monad identity on async', async ticker => {
-      const io1 = IO.async_(cb => IO(() => cb(E.right(42))));
+      const io1 = IO.async_(cb => IO(() => cb(Right(42))));
       const io2 = io1.flatMap(i => IO.pure(i));
 
       await expect(io1).toCompleteWith(42, ticker);
@@ -50,7 +50,7 @@ describe('io monad', () => {
     });
 
     it.ticked('should resume async IO with failure', async ticker => {
-      const io = IO.async_(cb => IO(() => cb(E.left(new Error('test error')))));
+      const io = IO.async_(cb => IO(() => cb(Left(new Error('test error')))));
       await expect(io).toFailWith(new Error('test error'), ticker);
     });
 
@@ -69,7 +69,7 @@ describe('io monad', () => {
 
     it.ticked('should handle thrown error', async ticker => {
       const io = IO.throwError(new Error('test error')).attempt;
-      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in redeem recovery', async ticker => {
@@ -78,10 +78,7 @@ describe('io monad', () => {
         () => 42,
       ).attempt;
 
-      await expect(io).toCompleteWith(
-        E.left(new Error('thrown error')),
-        ticker,
-      );
+      await expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
     });
 
     it.ticked('should recover from errors using redeemWith', async ticker => {
@@ -103,7 +100,7 @@ describe('io monad', () => {
     it.ticked('should catch error thrown in map', async ticker => {
       const io = IO.unit.map(() => throwError(new Error('test error'))).attempt;
 
-      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in flatMap', async ticker => {
@@ -111,7 +108,7 @@ describe('io monad', () => {
         throwError(new Error('test error')),
       ).attempt;
 
-      await expect(io).toCompleteWith(E.left(new Error('test error')), ticker);
+      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
     it.ticked('should catch error thrown in handleErrorWith', async ticker => {
@@ -119,10 +116,7 @@ describe('io monad', () => {
         throwError(new Error('thrown error')),
       ).attempt;
 
-      await expect(io).toCompleteWith(
-        E.left(new Error('thrown error')),
-        ticker,
-      );
+      await expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
     });
 
     it.ticked(
@@ -136,10 +130,7 @@ describe('io monad', () => {
           IO.throwError(new Error('second error')),
         ).attempt;
 
-        await expect(io).toCompleteWith(
-          E.left(new Error('first error')),
-          ticker,
-        );
+        await expect(io).toCompleteWith(Left(new Error('first error')), ticker);
       },
     );
   });
@@ -240,7 +231,7 @@ describe('io monad', () => {
 
   describe('async', () => {
     it.ticked('should resume async continuation', async ticker => {
-      const io = IO.async_(cb => IO(() => cb(E.right(42))));
+      const io = IO.async_(cb => IO(() => cb(Right(42))));
 
       await expect(io).toCompleteWith(42, ticker);
     });
@@ -248,7 +239,7 @@ describe('io monad', () => {
     it.ticked(
       'should resume async continuation and bind its results',
       async ticker => {
-        const io = IO.async_<number>(cb => IO(() => cb(E.right(42)))).map(
+        const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).map(
           x => x + 2,
         );
 
@@ -257,8 +248,8 @@ describe('io monad', () => {
     );
 
     it.ticked('should produce a failure when bind fails', async ticker => {
-      const io = IO.async_<number>(cb => IO(() => cb(E.right(42)))).flatMap(
-        () => IO.throwError(new Error('test error')),
+      const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).flatMap(() =>
+        IO.throwError(new Error('test error')),
       ).void;
 
       await expect(io).toFailWith(new Error('test error'), ticker);
@@ -267,7 +258,7 @@ describe('io monad', () => {
     it.ticked(
       'should resume only once even if cb called multiple times',
       async ticker => {
-        let cb: (ea: E.Either<Error, number>) => void;
+        let cb: (ea: Either<Error, number>) => void;
 
         const async = IO.async_<number>(cb0 =>
           IO(() => {
@@ -279,11 +270,11 @@ describe('io monad', () => {
           IO.Do,
           IO.bindTo('f', () => async.fork),
           IO.bind(IO(() => ticker.tickAll())),
-          IO.bind(IO(() => cb(E.right(42)))),
+          IO.bind(IO(() => cb(Right(42)))),
           IO.bind(IO(() => ticker.tickAll())),
-          IO.bind(IO(() => cb(E.right(43)))),
+          IO.bind(IO(() => cb(Right(43)))),
           IO.bind(IO(() => ticker.tickAll())),
-          IO.bind(IO(() => cb(E.left(new Error('test error'))))),
+          IO.bind(IO(() => cb(Left(new Error('test error'))))),
         ).flatMap(({ f }) => f.join);
 
         await expect(io).toCompleteWith(O.success(IO.pure(42)), ticker);
@@ -310,9 +301,9 @@ describe('io monad', () => {
 
       const outer = IO.async_<number>(cb1 => {
         const inner = IO.async_<number>(cb2 =>
-          IO(() => cb1(E.right(1)))
+          IO(() => cb1(Right(1)))
             .flatMap(() => IO.readExecutionContext)
-            .flatMap(ec => IO(() => ec.executeAsync(() => cb2(E.right(2))))),
+            .flatMap(ec => IO(() => ec.executeAsync(() => cb2(Right(2))))),
         );
 
         return inner.flatMap(i =>
@@ -405,7 +396,7 @@ describe('io monad', () => {
         IO.sleep(100).flatMap(() => IO.pure(43)),
       );
 
-      await expect(io).toCompleteWith(E.left(42), ticker);
+      await expect(io).toCompleteWith(Left(42), ticker);
     });
 
     it.ticked('should complete with faster, rhs', async ticker => {
@@ -414,7 +405,7 @@ describe('io monad', () => {
         IO.pure(43),
       );
 
-      await expect(io).toCompleteWith(E.right(43), ticker);
+      await expect(io).toCompleteWith(Right(43), ticker);
     });
 
     it.ticked('should fail if lhs fails', async ticker => {
@@ -447,7 +438,7 @@ describe('io monad', () => {
       'should complete with lhs when rhs never completes',
       async ticker => {
         const io = IO.race(IO.pure(42), IO.never);
-        await expect(io).toCompleteWith(E.left(42), ticker);
+        await expect(io).toCompleteWith(Left(42), ticker);
       },
     );
 
@@ -455,7 +446,7 @@ describe('io monad', () => {
       'should complete with rhs when lhs never completes',
       async ticker => {
         const io = IO.race(IO.never, IO.pure(43));
-        await expect(io).toCompleteWith(E.right(43), ticker);
+        await expect(io).toCompleteWith(Right(43), ticker);
       },
     );
 
@@ -469,7 +460,7 @@ describe('io monad', () => {
       'should succeed if lhs succeeds and rhs cancels',
       async ticker => {
         const io = IO.race(IO.pure(42), IO.canceled);
-        await expect(io).toCompleteWith(E.left(42), ticker);
+        await expect(io).toCompleteWith(Left(42), ticker);
       },
     );
 
@@ -477,7 +468,7 @@ describe('io monad', () => {
       'should succeed if rhs succeeds and lhs cancels',
       async ticker => {
         const io = IO.race(IO.canceled, IO.pure(43));
-        await expect(io).toCompleteWith(E.right(43), ticker);
+        await expect(io).toCompleteWith(Right(43), ticker);
       },
     );
 
@@ -810,7 +801,7 @@ describe('io monad', () => {
           IO.async_<void>(cb =>
             IO.readExecutionContext.flatMap(ec =>
               // enforce async completion
-              IO(() => ec.executeAsync(() => cb(E.rightUnit))),
+              IO(() => ec.executeAsync(() => cb(Either.rightUnit))),
             ),
           ).tap(fin),
         ),

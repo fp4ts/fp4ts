@@ -29,6 +29,9 @@ export const flatTap: <E2, A>(
 export const flatten = <E, A>(eea: Either<E, Either<E, A>>): Either<E, A> =>
   flatMap_(eea, id);
 
+export const swapped = <E, A>(ea: Either<E, A>): Either<A, E> =>
+  fold_<E, A, Either<A, E>>(ea, right, left);
+
 // -- Point-ful operators
 
 export const map_ = <E, A, B>(ea: Either<E, A>, f: (a: A) => B): Either<E, B> =>
