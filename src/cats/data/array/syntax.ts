@@ -1,4 +1,4 @@
-import { Monoid } from '../..';
+import { Monoid } from '../../monoid';
 import {
   concat_,
   drop_,

@@ -1,12 +1,13 @@
 import '../test-kit/jest';
 import { id, pipe } from '../../fp/core';
 import * as E from '../../fp/either';
-import { arrayTraversable } from '../../cats/data/array/instances';
 
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
 import { Semaphore } from '../kernel/semaphore';
 import { ioAsync } from '../io/instances';
+import { List } from '../../cats/data';
+import { listTraversable } from '../../cats/data/list/instances';
 
 const throwError = (e: Error) => {
   throw e;
@@ -928,9 +929,9 @@ describe('io monad', () => {
   describe('parTraverseN', () => {
     it.ticked('should propagate errors', async ticker => {
       const io = pipe(
-        [1, 2, 3],
+        List(1, 2, 3),
         IO.parTraverseN(
-          arrayTraversable(),
+          listTraversable(),
           2,
         )(x => (x === 2 ? throwError(new Error('test error')) : IO.unit)),
       );
@@ -940,8 +941,8 @@ describe('io monad', () => {
 
     it.ticked('should be cancelable', async ticker => {
       const traverse = pipe(
-        [1, 2, 3],
-        IO.parTraverseN(arrayTraversable(), 2)(() => IO.never),
+        List(1, 2, 3),
+        IO.parTraverseN(listTraversable(), 2)(() => IO.never),
       );
 
       const io = pipe(
@@ -954,12 +955,12 @@ describe('io monad', () => {
     });
 
     it.ticked('should cancel all running tasks', async ticker => {
-      const fins = [jest.fn(), jest.fn(), jest.fn()];
+      const fins = List(jest.fn(), jest.fn(), jest.fn());
 
       const traverse = pipe(
         fins,
         IO.parTraverseN(
-          arrayTraversable(),
+          listTraversable(),
           2,
         )(fin => IO.never.onCancel(IO(fin))),
       );
@@ -971,9 +972,9 @@ describe('io monad', () => {
       ).flatMap(({ fiber }) => fiber.cancel);
 
       await expect(io).toCompleteWith(undefined, ticker);
-      expect(fins[0]).toHaveBeenCalled();
-      expect(fins[1]).toHaveBeenCalled();
-      expect(fins[2]).not.toHaveBeenCalled();
+      expect(fins.elem(0)).toHaveBeenCalled();
+      expect(fins.elem(1)).toHaveBeenCalled();
+      expect(fins.elem(2)).not.toHaveBeenCalled();
     });
 
     it.ticked(
@@ -981,15 +982,15 @@ describe('io monad', () => {
       async ticker => {
         const fin = jest.fn();
         const cont = jest.fn();
-        const ts = [
+        const ts = List(
           IO.defer(() => IO.throwError(new Error('test test'))),
           IO.never,
           IO.never.onCancel(IO(fin)),
           IO(cont),
           IO(cont),
-        ];
+        );
 
-        const io = pipe(ts, IO.parTraverseN(arrayTraversable(), 2)(id));
+        const io = pipe(ts, IO.parTraverseN(listTraversable(), 2)(id));
 
         await expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();

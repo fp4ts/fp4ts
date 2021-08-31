@@ -2,7 +2,8 @@ import { pipe } from '../fp/core';
 // import * as S from './stream';
 import { IO } from '../effect/io';
 import * as IOR from '../effect/unsafe/io-runtime';
-import { arrayTraversable } from '../cats/data/array/instances';
+import { List } from '../cats/data';
+import { listTraversable } from '../cats/data/list/instances';
 
 // pipe(
 //   S.range(1, 10_000),
@@ -134,9 +135,9 @@ import { arrayTraversable } from '../cats/data/array/instances';
 
 pipe(
   pipe(
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    List(1, 2, 3, 4, 5, 6, 7, 8, 9),
     IO.parTraverseN(
-      arrayTraversable(),
+      listTraversable(),
       4,
     )(n =>
       IO(() => console.log('EXECUTING', n))

@@ -4,6 +4,8 @@ export interface Lazy<A> {
   (): A;
 }
 
+export type SuperType<A, B = unknown> = A extends B ? B : unknown;
+
 export const id: <A>(a: A) => A = x => x;
 export const constant: <A>(a: A) => () => A = x => () => x;
 
