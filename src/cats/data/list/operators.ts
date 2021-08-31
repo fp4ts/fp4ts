@@ -2,6 +2,7 @@ import { id, pipe } from '../../../fp/core';
 import { Kind } from '../../../fp/hkt';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
+import { MonoidK } from '../../monoid-k';
 
 import { List, view } from './algebra';
 import { cons, empty, fromArray, pure } from './constructors';
@@ -42,6 +43,15 @@ export const nonEmpty = <A>(xs: List<A>): boolean => !isEmpty(xs);
 
 export const size = <A>(xs: List<A>): number => foldLeft_(xs, 0, n => n + 1);
 
+export const toArray = <A>(xs: List<A>): A[] => {
+  const results: A[] = [];
+  while (nonEmpty(xs)) {
+    results.push(head(xs));
+    xs = tail(xs);
+  }
+  return results;
+};
+
 export const reverse = <A>(xs: List<A>): List<A> => {
   let result: List<A> = empty;
   while (nonEmpty(xs)) {
@@ -52,17 +62,29 @@ export const reverse = <A>(xs: List<A>): List<A> => {
 };
 
 export const prepend =
-  <A>(x: A) =>
-  <B>(xs: List<B>): List<A | B> =>
-    prepend_<A | B>(xs, x);
+  <B>(x: B) =>
+  <A extends B>(xs: List<A>): List<B> =>
+    prepend_(xs, x);
 
 export const concat =
   <B>(ys: List<B>) =>
-  <A>(xs: List<A>): List<A | B> =>
-    concat_<A | B>(xs, ys);
+  <A extends B>(xs: List<A>): List<B> =>
+    concat_(xs, ys);
 
 export const elem: (idx: number) => <A>(xs: List<A>) => A = idx => xs =>
   elem_(xs, idx);
+
+export const all: <A>(p: (a: A) => boolean) => (xs: List<A>) => boolean =
+  p => xs =>
+    all_(xs, p);
+
+export const any: <A>(p: (a: A) => boolean) => (xs: List<A>) => boolean =
+  p => xs =>
+    any_(xs, p);
+
+export const count: <A>(p: (a: A) => boolean) => (xs: List<A>) => number =
+  p => xs =>
+    count_(xs, p);
 
 export const take: (n: number) => <A>(xs: List<A>) => List<A> = n => xs =>
   take_(xs, n);
@@ -112,6 +134,12 @@ export const foldMap: <M>(
   M: Monoid<M>,
 ) => <A>(f: (a: A) => M) => (xs: List<A>) => M = M => f => xs =>
   foldMap_(M, xs, f);
+
+export const foldMapK: <F>(
+  F: MonoidK<F>,
+) => <A, B>(f: (a: A) => Kind<F, B>) => (xs: List<A>) => Kind<F, B> =
+  F => f => xs =>
+    foldMapK_(F, xs, f);
 
 export const collect: <A, B>(
   f: (a: A) => B | undefined,
@@ -182,6 +210,31 @@ export const elem_ = <A>(xs: List<A>, idx: number): A => {
   return head(xs);
 };
 
+export const all_ = <A>(xs: List<A>, p: (a: A) => boolean): boolean => {
+  while (nonEmpty(xs)) {
+    if (!p(head(xs))) return false;
+    xs = tail(xs);
+  }
+  return true;
+};
+
+export const any_ = <A>(xs: List<A>, p: (a: A) => boolean): boolean => {
+  while (nonEmpty(xs)) {
+    if (p(head(xs))) return true;
+    xs = tail(xs);
+  }
+  return false;
+};
+
+export const count_ = <A>(xs: List<A>, p: (a: A) => boolean): number => {
+  let c = 0;
+  while (nonEmpty(xs)) {
+    if (p(head(xs))) c += 1;
+    xs = tail(xs);
+  }
+  return c;
+};
+
 export const take_ = <A>(xs: List<A>, n: number): List<A> => {
   const results: A[] = [];
   while (nonEmpty(xs) && n-- > 0) {
@@ -234,7 +287,7 @@ export const fold_ = <A, B>(
   onCons: (head: A, tail: List<A>) => B,
 ): B => {
   const l = view(xs);
-  return l.tag === 'cons' ? onCons(l.h, l.t) : onNil();
+  return l.tag === 'cons' ? onCons(l._head, l._tail) : onNil();
 };
 
 export const foldLeft_ = <A, B>(xs: List<A>, z: B, f: (b: B, a: A) => B): B => {
@@ -261,37 +314,52 @@ export const foldRight_ = <A, B>(
   return z;
 };
 
-export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A =>
-  foldRight_(tail(xs), head(xs), f);
+export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
+  xs = reverse(xs);
+  let z: A = head(xs);
+  xs = tail(xs);
+  while (nonEmpty(xs)) {
+    z = f(head(xs), z);
+    xs = tail(xs);
+  }
+  return z;
+};
 
 export const foldMap_ = <M, A>(M: Monoid<M>, xs: List<A>, f: (a: A) => M): M =>
   foldLeft_(xs, M.empty, (m, x) => M.combine(m, f(x)));
+
+export const foldMapK_ = <F, A, B>(
+  F: MonoidK<F>,
+  xs: List<A>,
+  f: (a: A) => Kind<F, B>,
+): Kind<F, B> => foldMap_(F.algebra(), xs, f);
 
 export const collect_ = <A, B>(
   xs: List<A>,
   f: (a: A) => B | undefined,
 ): List<B> => {
-  let rs: List<B> = empty;
+  const rs: B[] = [];
   while (nonEmpty(xs)) {
     const r = f(head(xs));
-    if (r) rs = cons(r, rs);
     xs = tail(xs);
+    if (r == null) continue;
+    rs.push(r);
   }
-  return rs;
+  return fromArray(rs);
 };
 
 export const collectWhile_ = <A, B>(
   xs: List<A>,
   f: (a: A) => B | undefined,
 ): List<B> => {
-  let rs: List<B> = empty;
+  const rs: B[] = [];
   while (nonEmpty(xs)) {
     const r = f(head(xs));
-    if (!r) return rs;
-    rs = cons(r, rs);
+    if (r == null) break;
+    rs.push(r);
     xs = tail(xs);
   }
-  return rs;
+  return fromArray(rs);
 };
 
 export const scanLeft_ = <A, B>(
@@ -299,12 +367,13 @@ export const scanLeft_ = <A, B>(
   z: B,
   f: (b: B, a: A) => B,
 ): List<B> => {
-  let rs: List<B> = pure(z);
+  const rs: B[] = [z];
   while (nonEmpty(xs)) {
     z = f(z, head(xs));
-    rs = cons(z, rs);
+    rs.push(z);
+    xs = tail(xs);
   }
-  return reverse(rs);
+  return fromArray(rs);
 };
 
 export const scanLeft1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> =>
@@ -320,12 +389,23 @@ export const scanRight_ = <A, B>(
   while (nonEmpty(xs)) {
     z = f(head(xs), z);
     rs = cons(z, rs);
+    xs = tail(xs);
   }
   return rs;
 };
 
-export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> =>
-  scanRight_(tail(xs), head(xs), f);
+export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
+  xs = reverse(xs);
+  let z = head(xs);
+  xs = tail(xs);
+  let rs: List<A> = pure(z);
+  while (nonEmpty(xs)) {
+    z = f(head(xs), z);
+    rs = cons(z, rs);
+    xs = tail(xs);
+  }
+  return rs;
+};
 
 export const traverse_ = <G, A, B>(
   G: Applicative<G>,
@@ -334,7 +414,7 @@ export const traverse_ = <G, A, B>(
 ): Kind<G, List<B>> => {
   const consF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
     G.map2(ys, f(x))(prepend_);
-  return foldRight(G.pure(empty), consF)(xs);
+  return foldRight_(xs, G.pure(empty), consF);
 };
 
 export const flatTraverse_ = <G, A, B>(
@@ -345,5 +425,5 @@ export const flatTraverse_ = <G, A, B>(
   const concatF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
     G.map2(f(x), ys)(concat_);
 
-  return foldRight(G.pure(empty), concatF)(xs);
+  return foldRight_(xs, G.pure(empty), concatF);
 };

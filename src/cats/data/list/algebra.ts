@@ -19,13 +19,20 @@ declare module '../../../fp/hkt' {
 
 export class Cons<A> extends List<A> {
   public readonly tag = 'cons';
-  public constructor(public readonly h: A, public readonly t: List<A>) {
+  public constructor(public readonly _head: A, public readonly _tail: List<A>) {
     super();
+  }
+
+  public override toString(): string {
+    return `${this._head} :: ${this._tail}`;
   }
 }
 
 export const Nil = new (class Nil extends List<never> {
   public readonly tag = 'nil';
+  public override toString(): string {
+    return 'Nil';
+  }
 })();
 export type Nil = typeof Nil;
 

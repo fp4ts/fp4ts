@@ -50,7 +50,7 @@ declare module './algebra' {
 
     timeout: (ms: number) => IO<A>;
 
-    timeoutTo: <B>(ms: number, iob: IO<B>) => IO<A | B>;
+    timeoutTo: <B = A>(ms: number, iob: IO<B>) => IO<B>;
 
     executeOn: (ec: ExecutionContext) => IO<A>;
 
@@ -83,9 +83,9 @@ declare module './algebra' {
     '>>>': <B>(iob: IO<B>) => IO<B>;
     '<<<': (iob: IO<unknown>) => IO<A>;
 
-    handleError: <B>(h: (e: Error) => B) => IO<A | B>;
+    handleError: <B = A>(h: (e: Error) => B) => IO<B>;
 
-    handleErrorWith: <B>(h: (e: Error) => IO<B>) => IO<A | B>;
+    handleErrorWith: <B = A>(h: (e: Error) => IO<B>) => IO<B>;
 
     onError: (h: (e: Error) => IO<void>) => IO<A>;
 

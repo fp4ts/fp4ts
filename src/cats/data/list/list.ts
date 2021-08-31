@@ -15,8 +15,10 @@ interface ListObj {
   pure: <A>(x: A) => List<A>;
   empty: List<never>;
   of: <A>(...xs: A[]) => List<A>;
+  fromArray: <A>(xs: A[]) => List<A>;
 }
 
 List.pure = pure;
 List.empty = empty;
 List.of = of;
+List.fromArray = fromArray;

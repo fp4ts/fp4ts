@@ -7,11 +7,11 @@ export interface ApplicativeError<F, E> extends Applicative<F> {
 
   readonly handleError: <B>(
     f: (a: E) => B,
-  ) => <A>(fa: Kind<F, A>) => Kind<F, A | B>;
+  ) => <A extends B>(fa: Kind<F, A>) => Kind<F, B>;
 
   readonly handleErrorWith: <B>(
     f: (a: E) => Kind<F, B>,
-  ) => <A>(fa: Kind<F, A>) => Kind<F, A | B>;
+  ) => <A extends B>(fa: Kind<F, A>) => Kind<F, B>;
 
   readonly attempt: <A>(fa: Kind<F, A>) => Kind<F, Either<E, A>>;
 

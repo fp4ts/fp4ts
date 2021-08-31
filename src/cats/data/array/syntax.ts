@@ -23,8 +23,8 @@ declare global {
     take(n: number): T[];
     drop(n: number): T[];
 
-    '+++': <B>(ys: B[]) => Array<T | B>;
-    concat<B>(ys: B[]): Array<T | B>;
+    '+++': <B = T>(ys: B[]) => Array<B>;
+    concat<B = T>(ys: B[]): Array<B>;
 
     all: (p: (a: T) => boolean) => boolean;
     any: (p: (a: T) => boolean) => boolean;
@@ -67,8 +67,8 @@ Array.prototype.drop = function <A>(this: A[], n: number): A[] {
   return drop_(this, n);
 };
 
-Array.prototype['+++'] = function <A, B>(this: A[], that: B[]): Array<A | B> {
-  return concat_<A | B>(this, that);
+Array.prototype['+++'] = function <A>(this: A[], that: A[]): Array<A> {
+  return concat_(this, that);
 };
 
 Array.prototype.foldMap = function <A, M>(

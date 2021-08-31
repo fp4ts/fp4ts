@@ -56,9 +56,9 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
     return this._join;
   }
 
-  public joinWith = <B>(onCancel: IO<B>): IO<A | B> =>
+  public joinWith = <B = A>(onCancel: IO<B>): IO<B> =>
     this.join.flatMap(
-      O.fold<IOA.URI, Error, A, IO<A | B>>(() => onCancel, IO.throwError, id),
+      O.fold<IOA.URI, Error, B, IO<B>>(() => onCancel, IO.throwError, id),
     );
 
   public get joinWithNever(): IO<A> {

@@ -56,7 +56,7 @@ export const timeout: (ms: number) => <A>(ioa: IO<A>) => IO<A> = ms => ioa =>
 export const timeoutTo: <B>(
   ms: number,
   fallback: IO<B>,
-) => <A>(ioa: IO<A | B>) => IO<A | B> = (ms, fallback) => ioa =>
+) => <A extends B>(ioa: IO<A>) => IO<B> = (ms, fallback) => ioa =>
   timeoutTo_(ioa, ms, fallback);
 
 export const executeOn: (ec: ExecutionContext) => <A>(ioa: IO<A>) => IO<A> =
@@ -131,11 +131,11 @@ export const flatten: <A>(ioioa: IO<IO<A>>) => IO<A> = flatMap(id);
 
 export const handleError: <B>(
   f: (e: Error) => B,
-) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleError_(ioa, f);
+) => <A extends B>(ioa: IO<A>) => IO<B> = f => ioa => handleError_(ioa, f);
 
 export const handleErrorWith: <B>(
   f: (e: Error) => IO<B>,
-) => <A>(ioa: IO<A | B>) => IO<A | B> = f => ioa => handleErrorWith_(ioa, f);
+) => <A extends B>(ioa: IO<A>) => IO<B> = f => ioa => handleErrorWith_(ioa, f);
 
 export const onError: (f: (e: Error) => IO<void>) => <A>(ioa: IO<A>) => IO<A> =
   f => ioa =>
@@ -434,13 +434,15 @@ export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   f,
 ) => flatMap_(ioa, x => map_(f(x), () => x));
 
-export const handleError_: <A, B>(ioa: IO<A>, f: (e: Error) => B) => IO<A | B> =
-  (ioa, f) => handleErrorWith_(ioa, e => pure(f(e)));
+export const handleError_: <A>(ioa: IO<A>, f: (e: Error) => A) => IO<A> = (
+  ioa,
+  f,
+) => handleErrorWith_(ioa, e => pure(f(e)));
 
-export const handleErrorWith_: <A, B>(
+export const handleErrorWith_: <A>(
   ioa: IO<A>,
-  f: (e: Error) => IO<B>,
-) => IO<A | B> = (ioa, f) => new HandleErrorWith(ioa, f);
+  f: (e: Error) => IO<A>,
+) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f);
 
 export const onError_ = <A>(ioa: IO<A>, f: (e: Error) => IO<void>): IO<A> =>
   handleErrorWith_(ioa, e =>

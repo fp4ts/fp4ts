@@ -28,8 +28,8 @@ export const drop =
 
 export const concat =
   <B>(ys: B[]) =>
-  <A>(xs: A[]): Array<A | B> =>
-    concat_<A | B>(xs, ys);
+  <A extends B>(xs: A[]): Array<B> =>
+    concat_(xs, ys);
 
 export const all =
   <A>(p: (a: A) => boolean) =>

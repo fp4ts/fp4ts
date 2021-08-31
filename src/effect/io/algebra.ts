@@ -80,11 +80,11 @@ export class FlatMap<E, A> extends IO<A> {
     super();
   }
 }
-export class HandleErrorWith<A, B> extends IO<A | B> {
+export class HandleErrorWith<A> extends IO<A> {
   public readonly tag = 'handleErrorWith';
   public constructor(
     public readonly ioa: IO<A>,
-    public readonly f: (e: Error) => IO<B>,
+    public readonly f: (e: Error) => IO<A>,
   ) {
     super();
   }
@@ -204,7 +204,7 @@ export type IOView<A> =
   | Defer<A>
   | Map<any, A>
   | FlatMap<any, A>
-  | HandleErrorWith<A, unknown>
+  | HandleErrorWith<A>
   | Attempt<Either<Error, A>>
   | CurrentTimeMillis
   | ReadEC
