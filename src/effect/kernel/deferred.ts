@@ -1,5 +1,5 @@
 import { flow, id, pipe } from '../../fp/core';
-import { Right } from '../../cats/data';
+import { None, Option, Right, Some } from '../../cats/data';
 import { Kind } from '../../fp/hkt';
 
 import { Ref } from './ref';
@@ -66,17 +66,17 @@ export class Deferred<F, A> {
 
     const addReader = (
       reader: ResumeReader<A>,
-    ): Kind<F, Kind<F, void> | undefined> =>
+    ): Kind<F, Option<Kind<F, void>>> =>
       this.F.defer(() =>
         this.state.modify(
-          foldState<A, [State<A>, Kind<F, void> | undefined]>(
+          foldState<A, [State<A>, Option<Kind<F, void>>]>(
             ({ value }) => {
               reader(value);
-              return [new SetState(value), undefined];
+              return [new SetState(value), None];
             },
             ({ readers }) => {
               const newState = new UnsetState([...readers, reader]);
-              return [newState, deleteReader(reader)];
+              return [newState, Some(deleteReader(reader))];
             },
           ),
         ),

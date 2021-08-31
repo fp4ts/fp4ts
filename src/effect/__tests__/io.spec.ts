@@ -1,6 +1,6 @@
 import '../test-kit/jest';
 import { id, pipe } from '../../fp/core';
-import { Either, Left, Right } from '../../cats/data';
+import { Either, Left, Right, Some } from '../../cats/data';
 
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
@@ -522,7 +522,7 @@ describe('io monad', () => {
     it.ticked('should trigger cancelation cleanup of async', async ticker => {
       const cleanup = jest.fn();
 
-      const target = IO.async(() => IO.pure(IO(cleanup)));
+      const target = IO.async(() => IO.pure(Some(IO(cleanup))));
 
       const io = pipe(
         IO.Do,
@@ -644,7 +644,7 @@ describe('io monad', () => {
             results.push(x);
           });
 
-        const body = IO.async<never>(() => IO.pure(pushResult(1)));
+        const body = IO.async<never>(() => IO.pure(Some(pushResult(1))));
 
         const io = pipe(
           IO.Do,
@@ -798,10 +798,12 @@ describe('io monad', () => {
 
       const body = IO.async(() =>
         IO(() =>
-          IO.async_<void>(cb =>
-            IO.readExecutionContext.flatMap(ec =>
-              // enforce async completion
-              IO(() => ec.executeAsync(() => cb(Either.rightUnit))),
+          Some(
+            IO.async_<void>(cb =>
+              IO.readExecutionContext.flatMap(ec =>
+                // enforce async completion
+                IO(() => ec.executeAsync(() => cb(Either.rightUnit))),
+              ),
             ),
           ).tap(fin),
         ),

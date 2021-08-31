@@ -1,5 +1,5 @@
 import { flow } from '../../fp/core';
-import { Either, Left, Right } from '../../cats/data';
+import { Either, Left, None, Option, Right } from '../../cats/data';
 
 import { ExecutionContext } from '../execution-context';
 import { Poll } from '../kernel/poll';
@@ -35,14 +35,14 @@ export const currentTimeMillis: IO<number> = CurrentTimeMillis;
 export const readExecutionContext: IO<ExecutionContext> = ReadEC;
 
 export const async = <A>(
-  k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined>,
+  k: (cb: (ea: Either<Error, A>) => void) => IO<Option<IO<void>>>,
 ): IO<A> => new Async(k);
 
 export const async_ = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => IO<void>,
-): IO<A> => new Async(resume => defer(() => map_(k(resume), () => undefined)));
+): IO<A> => new Async(resume => defer(() => map_(k(resume), () => None)));
 
-export const never: IO<never> = async(() => pure(undefined));
+export const never: IO<never> = async(() => pure(None));
 
 export const canceled: IO<void> = Canceled;
 

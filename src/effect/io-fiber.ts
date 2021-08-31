@@ -1,5 +1,5 @@
 import { flow, id, pipe } from '../fp/core';
-import { Either, Left, Right } from '../cats/data';
+import { Either, Left, Right, Some } from '../cats/data';
 
 import { IO } from './io';
 import { ExecutionContext } from './execution-context';
@@ -203,7 +203,10 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
           const next = IO.uncancelable<A>(poll =>
             cur.body(cb).flatMap(fin =>
               // Ensure to attach the finalizer if returned
-              fin ? poll(IOA.Suspend).onCancel(fin) : poll(IOA.Suspend),
+              fin.fold(
+                () => poll(IOA.Suspend),
+                fin => poll(IOA.Suspend).onCancel(fin),
+              ),
             ),
           );
 
@@ -260,7 +263,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
                 IO.bind(({ cancelB }) => cancelB.join),
               ).void;
 
-              return cancel;
+              return Some(cancel);
             }),
           );
 
@@ -275,7 +278,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
               const cancel = this.currentEC.sleep(ms, () =>
                 resume(Either.rightUnit),
               );
-              return IO(cancel);
+              return Some(IO(cancel));
             }),
           );
 
@@ -320,7 +323,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
       });
 
       this.onComplete(listener);
-      return cancel;
+      return Some(cancel);
     }),
   );
 

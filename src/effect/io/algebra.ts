@@ -1,4 +1,4 @@
-import { Either } from '../../cats/data';
+import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
@@ -113,7 +113,7 @@ export class Async<A> extends IO<A> {
   public constructor(
     public readonly body: (
       cb: (ea: Either<Error, A>) => void,
-    ) => IO<IO<void> | undefined>,
+    ) => IO<Option<IO<void>>>,
   ) {
     super();
   }

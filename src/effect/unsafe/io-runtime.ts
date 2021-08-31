@@ -1,4 +1,4 @@
-import { Either } from '../../cats/data';
+import { Either, Some } from '../../cats/data';
 
 import { IO } from '../io';
 import { ExecutionContext, GlobalExecutionContext } from '../execution-context';
@@ -35,7 +35,7 @@ const listenForSignal = (s: string): IO<void> =>
       };
 
       process.on(s, listener);
-      return IO(removeListener);
+      return Some(IO(removeListener));
     }),
   );
 

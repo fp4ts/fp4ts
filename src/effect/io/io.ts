@@ -1,4 +1,4 @@
-import { Either } from '../../cats/data';
+import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { IOOutcome } from '../io-outcome';
 
@@ -74,7 +74,7 @@ interface IOObj {
   readExecutionContext: IO<ExecutionContext>;
 
   async: <A>(
-    k: (cb: (ea: Either<Error, A>) => void) => IO<IO<void> | undefined>,
+    k: (cb: (ea: Either<Error, A>) => void) => IO<Option<IO<void>>>,
   ) => IO<A>;
 
   async_: <A>(k: (cb: (ea: Either<Error, A>) => void) => IO<void>) => IO<A>;
