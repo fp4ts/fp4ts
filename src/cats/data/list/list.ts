@@ -1,7 +1,16 @@
 import { List as ListBase } from './algebra';
 import { empty, fromArray, of, pure } from './constructors';
 
-export { URI } from './algebra';
+// HKT
+
+export const URI = 'cats/data/list';
+export type URI = typeof URI;
+
+declare module '../../../fp/hkt' {
+  interface URItoKind<A> {
+    [URI]: List<A>;
+  }
+}
 
 export type List<A> = ListBase<A>;
 

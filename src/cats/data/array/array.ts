@@ -1,5 +1,16 @@
 import { empty, of } from './constructors';
 
+// HKT
+
+export const URI = 'cats/data/array';
+export type URI = typeof URI;
+
+declare module '../../../fp/hkt' {
+  interface URItoKind<A> {
+    [URI]: Array<A>;
+  }
+}
+
 interface ArrayObj {
   <A>(...xs: A[]): A[];
 
@@ -14,14 +25,3 @@ export const Array: ArrayObj = function (...xs) {
 };
 Array.of = of;
 Array.empty = empty;
-
-// HKT
-
-export const URI = 'cats/data/array';
-export type URI = typeof URI;
-
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Array<A>;
-  }
-}

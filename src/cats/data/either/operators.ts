@@ -1,4 +1,5 @@
 import { id } from '../../../fp/core';
+import { None, Option, Some } from '../option';
 import { Either, view } from './algebra';
 import { left, right } from './constructors';
 
@@ -31,6 +32,9 @@ export const flatten = <E, A>(eea: Either<E, Either<E, A>>): Either<E, A> =>
 
 export const swapped = <E, A>(ea: Either<E, A>): Either<A, E> =>
   fold_<E, A, Either<A, E>>(ea, right, left);
+
+export const toOption = <A>(ea: Either<unknown, A>): Option<A> =>
+  fold_(ea, () => None, Some);
 
 // -- Point-ful operators
 

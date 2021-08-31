@@ -4,17 +4,6 @@ export class List<A> {
   private readonly __void: void;
 }
 
-// HKT
-
-export const URI = 'cats/data/list';
-export type URI = typeof URI;
-
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: List<A>;
-  }
-}
-
 // Definitions
 
 export class Cons<A> extends List<A> {

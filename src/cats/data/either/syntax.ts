@@ -1,3 +1,4 @@
+import { Option } from '../option';
 import { Either } from './algebra';
 import {
   flatMap_,
@@ -7,6 +8,7 @@ import {
   map_,
   swapped,
   tap_,
+  toOption,
 } from './operators';
 
 declare module './algebra' {
@@ -18,6 +20,7 @@ declare module './algebra' {
     flatten: A extends Either<E, infer B> ? Either<E, B> : never | unknown;
     fold: <B>(onLeft: (e: E) => B, onRight: (a: A) => B) => B;
     swapped: Either<A, E>;
+    toOption: Option<A>;
   }
 }
 
@@ -66,5 +69,11 @@ Either.prototype.fold = function <E, A, B>(
 Object.defineProperty(Either.prototype, 'swapped', {
   get<E, A>(this: Either<E, A>): Either<A, E> {
     return swapped(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'toOption', {
+  get<A>(this: Either<unknown, A>): Option<A> {
+    return toOption(this);
   },
 });

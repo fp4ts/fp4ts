@@ -1,8 +1,8 @@
 import '../benchmarking';
 import { pipe } from '../fp/core';
-import { Either } from '../cats/data';
+import { Either, List } from '../cats/data';
 import { IO } from '../effect/io';
-import { arrayTraversable } from '../cats/data/array/instances';
+import { listTraversable } from '../cats/data/list/instances';
 
 const size = 1000;
 const ticks = 1000;
@@ -23,9 +23,9 @@ const consumeTicks = (n: number): IO<void> =>
 
 pipe(
   benchmark('parTraverse', async () => {
-    const arr = [...new Array(size).keys()];
+    const arr = List.fromArray([...new Array(size).keys()]);
 
-    await IO.parTraverse_(arrayTraversable(), arr, () =>
+    await IO.parTraverse_(listTraversable(), arr, () =>
       consumeTicks(ticks),
     ).unsafeRunToPromise();
   }),
