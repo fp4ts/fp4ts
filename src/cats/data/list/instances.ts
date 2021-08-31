@@ -51,7 +51,7 @@ export const listMonoidK: Lazy<MonoidK<URI>> = () => ({
 });
 
 export const listFunctor: Lazy<Functor<URI>> = () => ({
-  _URI: URI,
+  URI: URI,
   map: map,
   tap: tap,
 });
@@ -79,7 +79,7 @@ export const listFlatMap: Lazy<FlatMap<URI>> = () => ({
 });
 
 export const listFoldable: Lazy<Foldable<URI>> = () => ({
-  _URI: URI,
+  URI: URI,
   isEmpty: isEmpty,
   nonEmpty: nonEmpty,
   size: size,

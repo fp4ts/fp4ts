@@ -65,12 +65,12 @@ import {
 } from './operators';
 
 export const ioDefer: () => Defer<URI> = () => ({
-  _URI: URI,
+  URI: URI,
   defer: defer,
 });
 
 export const ioFunctor: () => Functor<URI> = () => ({
-  _URI: URI,
+  URI: URI,
   map: map,
   tap: tap,
 });

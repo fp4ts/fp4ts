@@ -2,7 +2,7 @@ import { Kind } from '../fp/hkt';
 import { Monoid } from './monoid';
 
 export interface Foldable<F> {
-  readonly _URI: F;
+  readonly URI: F;
 
   readonly foldLeft: <A, B>(
     b: B,

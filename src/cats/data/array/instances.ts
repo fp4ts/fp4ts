@@ -50,7 +50,7 @@ export const arrayMonoidK: () => MonoidK<URI> = () => ({
 });
 
 export const arrayFunctor: () => Functor<URI> = () => ({
-  _URI: URI,
+  URI: URI,
 
   map: map,
 
@@ -85,7 +85,7 @@ export const arrayMonad: () => Monad<URI> = () => ({
 });
 
 export const arrayFoldable: () => Foldable<URI> = () => ({
-  _URI: URI,
+  URI: URI,
   all: all,
   any: any,
   count: count,
