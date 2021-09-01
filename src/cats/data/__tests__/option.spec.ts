@@ -22,6 +22,14 @@ describe('option', () => {
     it('should create None from Left', () => {
       expect(Option.fromEither(Left(42))).toEqual(None);
     });
+
+    test('Some not to be empty', () => {
+      expect(Some(42).nonEmpty).toBe(true);
+    });
+
+    test('None to be empty', () => {
+      expect(None.isEmpty).toBe(true);
+    });
   });
 
   describe('map', () => {

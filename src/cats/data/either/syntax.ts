@@ -5,7 +5,9 @@ import {
   flatTap_,
   flatten,
   fold_,
+  isEmpty,
   map_,
+  nonEmpty,
   swapped,
   tap_,
   toOption,
@@ -13,16 +15,32 @@ import {
 
 declare module './algebra' {
   interface Either<E, A> {
+    readonly isEmpty: boolean;
+    readonly nonEmpty: boolean;
     map: <B>(f: (a: A) => B) => Either<E, B>;
     tap: (f: (a: A) => unknown) => Either<E, A>;
     flatMap: <B, E2 = E>(f: (a: A) => Either<E2, B>) => Either<E2, B>;
     flatTap: <E2 = E>(f: (a: A) => Either<E2, unknown>) => Either<E2, A>;
-    flatten: A extends Either<E, infer B> ? Either<E, B> : never | unknown;
+    readonly flatten: A extends Either<E, infer B>
+      ? Either<E, B>
+      : never | unknown;
     fold: <B>(onLeft: (e: E) => B, onRight: (a: A) => B) => B;
-    swapped: Either<A, E>;
-    toOption: Option<A>;
+    readonly swapped: Either<A, E>;
+    readonly toOption: Option<A>;
   }
 }
+
+Object.defineProperty(Either.prototype, 'isEmpty', {
+  get<E, A>(this: Either<E, A>): boolean {
+    return isEmpty(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'nonEmpty', {
+  get<E, A>(this: Either<E, A>): boolean {
+    return nonEmpty(this);
+  },
+});
 
 Either.prototype.map = function <E, A, B>(
   this: Either<E, A>,

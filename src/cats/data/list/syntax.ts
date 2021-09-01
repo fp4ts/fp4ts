@@ -52,14 +52,14 @@ import {
 
 declare module './algebra' {
   interface List<A> {
-    head: A;
-    tail: List<A>;
-    uncons: [A, List<A>] | undefined;
-    isEmpty: boolean;
-    nonEmpty: boolean;
-    size: number;
-    toArray: A[];
-    reverse: List<A>;
+    readonly head: A;
+    readonly tail: List<A>;
+    readonly uncons: [A, List<A>] | undefined;
+    readonly isEmpty: boolean;
+    readonly nonEmpty: boolean;
+    readonly size: number;
+    readonly toArray: A[];
+    readonly reverse: List<A>;
     prepend: <B = A>(x: B) => List<B>;
     concat: <B = A>(xs: List<B>) => List<B>;
     '+++': <B = A>(xs: List<B>) => List<B>;
@@ -73,7 +73,7 @@ declare module './algebra' {
     filter: (p: (a: A) => boolean) => List<A>;
     map: <B>(f: (a: A) => B) => List<A>;
     flatMap: <B>(f: (a: A) => List<B>) => List<A>;
-    flatten: A extends List<infer B> ? List<B> : never | unknown;
+    readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
     foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
     foldLeft1: <B = A>(f: (x: B, a: B) => B) => B;
@@ -83,7 +83,7 @@ declare module './algebra' {
     foldMapK: <F>(F: MonoidK<F>) => <B>(f: (a: A) => Kind<F, B>) => Kind<F, B>;
     zip: <B>(ys: List<B>) => List<[A, B]>;
     zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
-    zipWithIndex: List<[A, number]>;
+    readonly zipWithIndex: List<[A, number]>;
     zipPad: <B, A2 = A>(
       ys: List<B>,
       defaultL: () => A2,

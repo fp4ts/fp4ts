@@ -42,7 +42,7 @@ import { uncancelable } from './constructors';
 
 declare module './algebra' {
   interface IO<A> {
-    fork: IO<IOFiber<A>>;
+    readonly fork: IO<IOFiber<A>>;
 
     onCancel: (fin: IO<void>) => IO<A>;
 
@@ -54,7 +54,7 @@ declare module './algebra' {
 
     executeOn: (ec: ExecutionContext) => IO<A>;
 
-    void: IO<void>;
+    readonly void: IO<void>;
 
     race: <B>(iob: IO<B>) => IO<Either<A, B>>;
 
@@ -78,7 +78,7 @@ declare module './algebra' {
 
     flatTap: (f: (a: A) => IO<unknown>) => IO<A>;
 
-    flatten: A extends IO<infer B> ? IO<B> : never | unknown;
+    readonly flatten: A extends IO<infer B> ? IO<B> : never | unknown;
 
     '>>>': <B>(iob: IO<B>) => IO<B>;
     '<<<': (iob: IO<unknown>) => IO<A>;
@@ -89,7 +89,7 @@ declare module './algebra' {
 
     onError: (h: (e: Error) => IO<void>) => IO<A>;
 
-    attempt: IO<Either<Error, A>>;
+    readonly attempt: IO<Either<Error, A>>;
 
     redeem: <B>(onFailure: (e: Error) => B, onSuccess: (a: A) => B) => IO<B>;
     redeemWith: <B>(
@@ -97,7 +97,7 @@ declare module './algebra' {
       onSuccess: (a: A) => IO<B>,
     ) => IO<B>;
 
-    uncancelable: IO<A>;
+    readonly uncancelable: IO<A>;
 
     map2: <B>(iob: IO<B>) => <C>(f: (a: A, b: B) => C) => IO<C>;
 

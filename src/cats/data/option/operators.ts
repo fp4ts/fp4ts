@@ -2,6 +2,15 @@ import { flow, id } from '../../../fp/core';
 import { Option, view } from './algebra';
 import { none, some } from './constructors';
 
+export const isEmpty = <A>(o: Option<A>): boolean =>
+  fold_(
+    o,
+    () => true,
+    () => false,
+  );
+
+export const nonEmpty = <A>(o: Option<A>): boolean => !isEmpty(o);
+
 export const map: <A, B>(f: (a: A) => B) => (o: Option<A>) => Option<B> =
   f => o =>
     map_(o, f);

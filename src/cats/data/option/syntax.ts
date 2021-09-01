@@ -1,16 +1,39 @@
 import { Option } from './algebra';
-import { flatMap_, flatTap_, flatten, fold_, map_, tap_ } from './operators';
+import {
+  flatMap_,
+  flatTap_,
+  flatten,
+  fold_,
+  isEmpty,
+  map_,
+  nonEmpty,
+  tap_,
+} from './operators';
 
 declare module './algebra' {
   interface Option<A> {
+    readonly isEmpty: boolean;
+    readonly nonEmpty: boolean;
     map: <B>(f: (a: A) => B) => Option<B>;
     tap: (f: (a: A) => unknown) => Option<A>;
     flatMap: <B>(f: (a: A) => Option<B>) => Option<B>;
     flatTap: (f: (a: A) => Option<unknown>) => Option<A>;
-    flatten: A extends Option<infer B> ? Option<B> : never | unknown;
+    readonly flatten: A extends Option<infer B> ? Option<B> : never | unknown;
     fold: <B>(onNone: () => B, onSome: (a: A) => B) => B;
   }
 }
+
+Object.defineProperty(Option.prototype, 'isEmpty', {
+  get<A>(this: Option<A>): boolean {
+    return isEmpty(this);
+  },
+});
+
+Object.defineProperty(Option.prototype, 'nonEmpty', {
+  get<A>(this: Option<A>): boolean {
+    return nonEmpty(this);
+  },
+});
 
 Option.prototype.map = function <A, B>(
   this: Option<A>,

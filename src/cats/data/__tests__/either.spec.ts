@@ -23,6 +23,14 @@ describe('Either', () => {
     it('should be equivalent to right', () => {
       expect(Either(42)).toEqual(Right(42));
     });
+
+    test('right not to be empty', () => {
+      expect(Right(42).nonEmpty).toBe(true);
+    });
+
+    test('left to be empty', () => {
+      expect(Left(42).isEmpty).toBe(true);
+    });
   });
 
   describe('map', () => {

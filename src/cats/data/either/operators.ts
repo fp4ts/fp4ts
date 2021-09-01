@@ -9,6 +9,15 @@ export const fold: <E, A, B>(
 ) => (ea: Either<E, A>) => B = (onLeft, onRight) => ea =>
   fold_(ea, onLeft, onRight);
 
+export const isEmpty = <E, A>(ea: Either<E, A>): boolean =>
+  fold_(
+    ea,
+    () => true,
+    () => false,
+  );
+
+export const nonEmpty = <E, A>(ea: Either<E, A>): boolean => !isEmpty(ea);
+
 export const map: <A, B>(
   f: (a: A) => B,
 ) => <E>(ea: Either<E, A>) => Either<E, B> = f => ea => map_(ea, f);
