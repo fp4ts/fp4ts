@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Either<E, A> {
+export abstract class Either<E, A> {
   // @ts-ignore
   private readonly __void: void;
 }

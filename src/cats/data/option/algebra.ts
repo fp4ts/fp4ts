@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Option<A> {
+export abstract class Option<A> {
   // @ts-ignore
   private readonly __void: void;
 }

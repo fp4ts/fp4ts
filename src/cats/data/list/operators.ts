@@ -493,7 +493,7 @@ export const traverse_ = <G, A, B>(
 ): Kind<G, List<B>> => {
   const consF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
     G.map2(ys, f(x))(prepend_);
-  return foldRight_(xs, G.pure(empty), consF);
+  return foldRight_(xs, G.pure(empty as List<B>), consF);
 };
 
 export const flatTraverse_ = <G, A, B>(
@@ -504,5 +504,5 @@ export const flatTraverse_ = <G, A, B>(
   const concatF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
     G.map2(f(x), ys)(concat_);
 
-  return foldRight_(xs, G.pure(empty), concatF);
+  return foldRight_(xs, G.pure(empty as List<B>), concatF);
 };
