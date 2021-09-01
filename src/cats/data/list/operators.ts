@@ -3,6 +3,7 @@ import { Kind } from '../../../fp/hkt';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
 import { MonoidK } from '../../monoid-k';
+import { Option } from '../option';
 
 import { List, view } from './algebra';
 import { cons, empty, fromArray, pure } from './constructors';
@@ -176,11 +177,11 @@ export const zipWithPad: <A, B, C>(
   zipWithPad_(xs, ys, dx, dy, f);
 
 export const collect: <A, B>(
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ) => (xs: List<A>) => List<B> = f => xs => collect_(xs, f);
 
 export const collectWhile: <A, B>(
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ) => (xs: List<A>) => List<B> = f => xs => collectWhile_(xs, f);
 
 export const scanLeft: <A, B>(
@@ -415,27 +416,27 @@ export const zipWithPad_ = <A, B, C>(
 
 export const collect_ = <A, B>(
   xs: List<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): List<B> => {
   const rs: B[] = [];
   while (nonEmpty(xs)) {
     const r = f(head(xs));
     xs = tail(xs);
-    if (r == null) continue;
-    rs.push(r);
+    if (r.isEmpty) continue;
+    rs.push(r.get);
   }
   return fromArray(rs);
 };
 
 export const collectWhile_ = <A, B>(
   xs: List<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): List<B> => {
   const rs: B[] = [];
   while (nonEmpty(xs)) {
     const r = f(head(xs));
-    if (r == null) break;
-    rs.push(r);
+    if (r.isEmpty) break;
+    rs.push(r.get);
     xs = tail(xs);
   }
   return fromArray(rs);

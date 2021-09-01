@@ -11,6 +11,15 @@ export const isEmpty = <A>(o: Option<A>): boolean =>
 
 export const nonEmpty = <A>(o: Option<A>): boolean => !isEmpty(o);
 
+export const get = <A>(o: Option<A>): A =>
+  fold_(
+    o,
+    () => {
+      throw new Error('None.get');
+    },
+    id,
+  );
+
 export const map: <A, B>(f: (a: A) => B) => (o: Option<A>) => Option<B> =
   f => o =>
     map_(o, f);

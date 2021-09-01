@@ -1,4 +1,5 @@
 import { id } from '../../../fp/core';
+import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';
 import { List } from '../list';
 import { listMonoidK } from '../list/instances';
@@ -638,8 +639,8 @@ describe('list', () => {
   });
 
   describe('collect', () => {
-    const collectEven = (n: number): number | undefined =>
-      n % 2 === 0 ? n : undefined;
+    const collectEven = (n: number): Option<number> =>
+      n % 2 === 0 ? Some(n) : None;
 
     it('should return an empty list out of empty list', () => {
       expect(List.empty.collect(collectEven)).toEqual(List.empty);
@@ -655,13 +656,13 @@ describe('list', () => {
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.collect(id).toArray).toEqual(xs.toArray);
+      expect(xs.collect(Some).toArray).toEqual(xs.toArray);
     });
   });
 
   describe('collectWhile', () => {
-    const collectEven = (n: number): number | undefined =>
-      n % 2 === 0 ? n : undefined;
+    const collectEven = (n: number): Option<number> =>
+      n % 2 === 0 ? Some(n) : None;
 
     it('should return an empty list out of empty list', () => {
       expect(List.empty.collectWhile(collectEven)).toEqual(List.empty);
@@ -677,7 +678,7 @@ describe('list', () => {
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.collectWhile(id).toArray).toEqual(xs.toArray);
+      expect(xs.collectWhile(Some).toArray).toEqual(xs.toArray);
     });
   });
 

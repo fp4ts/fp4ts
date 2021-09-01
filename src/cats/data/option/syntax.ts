@@ -8,10 +8,12 @@ import {
   map_,
   nonEmpty,
   tap_,
+  get,
 } from './operators';
 
 declare module './algebra' {
   interface Option<A> {
+    readonly get: A;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
     map: <B>(f: (a: A) => B) => Option<B>;
@@ -22,6 +24,12 @@ declare module './algebra' {
     fold: <B>(onNone: () => B, onSome: (a: A) => B) => B;
   }
 }
+
+Object.defineProperty(Option.prototype, 'get', {
+  get<A>(this: Option<A>): A {
+    return get(this);
+  },
+});
 
 Object.defineProperty(Option.prototype, 'isEmpty', {
   get<A>(this: Option<A>): boolean {

@@ -1,3 +1,4 @@
+import { Option } from '..';
 import { Kind } from '../../../fp/hkt';
 import { Applicative } from '../../applicative';
 import { Monoid } from '../../monoid';
@@ -95,8 +96,8 @@ declare module './algebra' {
       defaultR: () => B,
       f: (a: A2, b: B) => C,
     ) => List<C>;
-    collect: <B>(f: (a: A) => B | undefined) => List<B>;
-    collectWhile: <B>(f: (a: A) => B | undefined) => List<B>;
+    collect: <B>(f: (a: A) => Option<B>) => List<B>;
+    collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
     scanLeft: <B>(z: B, f: (b: B, a: A) => B) => List<B>;
     scanLeft1: <B = A>(f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
@@ -335,14 +336,14 @@ List.prototype.zipWithPad = function <A, B, C>(
 
 List.prototype.collect = function <A, B>(
   this: List<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): List<B> {
   return collect_(this, f);
 };
 
 List.prototype.collectWhile = function <A, B>(
   this: List<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): List<B> {
   return collectWhile_(this, f);
 };
