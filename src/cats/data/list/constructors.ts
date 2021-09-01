@@ -10,5 +10,11 @@ export const empty: List<never> = Nil;
 
 export const of = <A = never>(...xs: A[]): List<A> => fromArray(xs);
 
-export const fromArray = <A>(xs: A[]): List<A> =>
-  xs.reduceRight<List<A>>((xs, x) => cons(x, xs), Nil);
+export const fromArray = <A>(xs: A[]): List<A> => {
+  let results: List<A> = empty;
+  let idx = xs.length;
+  while (idx-- > 0) {
+    results = cons(xs[idx], results);
+  }
+  return results;
+};

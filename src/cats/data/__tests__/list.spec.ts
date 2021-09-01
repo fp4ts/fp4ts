@@ -490,6 +490,153 @@ describe('list', () => {
     });
   });
 
+  describe('zip', () => {
+    it('should produce an empty list when zipped with empty list on lhs', () => {
+      expect(List.empty.zip(List(42))).toEqual(List.empty);
+    });
+
+    it('should produce an empty list when zipped with empty list on rhs', () => {
+      expect(List(42).zip(List.empty)).toEqual(List.empty);
+    });
+
+    it('should zip two single element lists', () => {
+      expect(List(42).zip(List(43))).toEqual(List([42, 43]));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.zip(xs).toArray).toEqual(xs.toArray.map(x => [x, x]));
+    });
+  });
+
+  describe('zipPad', () => {
+    it('should fill default value on left', () => {
+      expect(
+        List.empty.zipPad(
+          List(42),
+          () => 1,
+          () => 2,
+        ),
+      ).toEqual(List([1, 42]));
+    });
+
+    it('should fill default value on right', () => {
+      expect(
+        List(42).zipPad(
+          List.empty,
+          () => 1,
+          () => 2,
+        ),
+      ).toEqual(List([42, 2]));
+    });
+
+    it('should zip two single element lists', () => {
+      expect(
+        List(42).zipPad(
+          List(43),
+          () => 1,
+          () => 2,
+        ),
+      ).toEqual(List([42, 43]));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(
+        xs.zipPad(
+          xs,
+          () => 1,
+          () => 2,
+        ).toArray,
+      ).toEqual(xs.toArray.map(x => [x, x]));
+    });
+  });
+
+  describe('zipWithIndex', () => {
+    it('should produce an empty list out of empty list', () => {
+      expect(List.empty.zipWithIndex).toEqual(List.empty);
+    });
+
+    it('should index the values in the list', () => {
+      expect(List(1, 2, 3).zipWithIndex).toEqual(List([1, 0], [2, 1], [3, 2]));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.zipWithIndex.toArray).toEqual(xs.toArray.map(x => [x, x]));
+    });
+  });
+
+  describe('zipWith', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should produce an empty list when zipped with empty list on lhs', () => {
+      expect(List.empty.zipWith(List(42), add)).toEqual(List.empty);
+    });
+
+    it('should produce an empty list when zipped with empty list on rhs', () => {
+      expect(List(42).zipWith(List.empty, add)).toEqual(List.empty);
+    });
+
+    it('should zip two single element lists', () => {
+      expect(List(42).zipWith(List(43), add)).toEqual(List(85));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.zipWith(xs, add).toArray).toEqual(xs.toArray.map(x => x + x));
+    });
+  });
+
+  describe('zipWithPad', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should fill default value on left', () => {
+      expect(
+        List.empty.zipWithPad(
+          List(42),
+          () => 1,
+          () => 2,
+          add,
+        ),
+      ).toEqual(List(43));
+    });
+
+    it('should fill default value on right', () => {
+      expect(
+        List(42).zipWithPad(
+          List.empty,
+          () => 1,
+          () => 2,
+          add,
+        ),
+      ).toEqual(List(44));
+    });
+
+    it('should zip two single element lists', () => {
+      expect(
+        List(42).zipWithPad(
+          List(43),
+          () => 1,
+          () => 2,
+          add,
+        ),
+      ).toEqual(List(85));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(
+        xs.zipWithPad(
+          xs,
+          () => 1,
+          () => 2,
+          add,
+        ).toArray,
+      ).toEqual(xs.toArray.map(x => x + x));
+    });
+  });
+
   describe('collect', () => {
     const collectEven = (n: number): number | undefined =>
       n % 2 === 0 ? n : undefined;

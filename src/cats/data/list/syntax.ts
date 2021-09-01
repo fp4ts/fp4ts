@@ -43,6 +43,11 @@ import {
   toArray,
   traverse_,
   uncons,
+  zipPad_,
+  zipWithIndex,
+  zipWithPad_,
+  zipWith_,
+  zip_,
 } from './operators';
 
 declare module './algebra' {
@@ -76,6 +81,20 @@ declare module './algebra' {
     foldRight1: <B = A>(f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
     foldMapK: <F>(F: MonoidK<F>) => <B>(f: (a: A) => Kind<F, B>) => Kind<F, B>;
+    zip: <B>(ys: List<B>) => List<[A, B]>;
+    zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
+    zipWithIndex: List<[A, number]>;
+    zipPad: <B, A2 = A>(
+      ys: List<B>,
+      defaultL: () => A2,
+      defaultR: () => B,
+    ) => List<[A2, B]>;
+    zipWithPad: <B, C, A2 = A>(
+      ys: List<B>,
+      defaultL: () => A2,
+      defaultR: () => B,
+      f: (a: A2, b: B) => C,
+    ) => List<C>;
     collect: <B>(f: (a: A) => B | undefined) => List<B>;
     collectWhile: <B>(f: (a: A) => B | undefined) => List<B>;
     scanLeft: <B>(z: B, f: (b: B, a: A) => B) => List<B>;
@@ -272,6 +291,46 @@ List.prototype.foldMapK = function <A, F>(
   F: MonoidK<F>,
 ): <B>(f: (a: A) => Kind<F, B>) => Kind<F, B> {
   return f => foldMapK_(F, this, f);
+};
+
+List.prototype.zip = function <A, B>(
+  this: List<A>,
+  that: List<B>,
+): List<[A, B]> {
+  return zip_(this, that);
+};
+
+List.prototype.zipWith = function <A, B, C>(
+  this: List<A>,
+  that: List<B>,
+  f: (a: A, b: B) => C,
+): List<C> {
+  return zipWith_(this, that, f);
+};
+
+Object.defineProperty(List.prototype, 'zipWithIndex', {
+  get<A>(this: List<A>): List<[A, number]> {
+    return zipWithIndex(this);
+  },
+});
+
+List.prototype.zipPad = function <A, B>(
+  this: List<A>,
+  that: List<B>,
+  defaultL: () => A,
+  defaultR: () => B,
+): List<[A, B]> {
+  return zipPad_(this, that, defaultL, defaultR);
+};
+
+List.prototype.zipWithPad = function <A, B, C>(
+  this: List<A>,
+  that: List<B>,
+  defaultL: () => A,
+  defaultR: () => B,
+  f: (a: A, b: B) => C,
+): List<C> {
+  return zipWithPad_(this, that, defaultL, defaultR, f);
 };
 
 List.prototype.collect = function <A, B>(

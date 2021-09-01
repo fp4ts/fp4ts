@@ -141,6 +141,40 @@ export const foldMapK: <F>(
   F => f => xs =>
     foldMapK_(F, xs, f);
 
+export const zip: <B>(ys: List<B>) => <A>(xs: List<A>) => List<[A, B]> =
+  ys => xs =>
+    zip_(xs, ys);
+
+export const zipPad: <A2, B>(
+  ys: List<B>,
+  defaultX: () => A2,
+  defaultY: () => B,
+) => <A extends A2>(xs: List<A>) => List<[A2, B]> = (ys, dx, dy) => xs =>
+  zipPad_(xs, ys, dx, dy);
+
+export const zipWithIndex = <A>(xs: List<A>): List<[A, number]> => {
+  const rs: [A, number][] = [];
+  let idx = 0;
+  while (nonEmpty(xs)) {
+    rs.push([head(xs), idx++]);
+    xs = tail(xs);
+  }
+  return fromArray(rs);
+};
+
+export const zipWith: <A, B, C>(
+  ys: List<B>,
+  f: (a: A, b: B) => C,
+) => (xs: List<A>) => List<C> = (ys, f) => xs => zipWith_(xs, ys, f);
+
+export const zipWithPad: <A, B, C>(
+  ys: List<B>,
+  defaultX: () => A,
+  defaultY: () => B,
+  f: (a: A, b: B) => C,
+) => (xs: List<A>) => List<C> = (ys, dx, dy, f) => xs =>
+  zipWithPad_(xs, ys, dx, dy, f);
+
 export const collect: <A, B>(
   f: (a: A) => B | undefined,
 ) => (xs: List<A>) => List<B> = f => xs => collect_(xs, f);
@@ -333,6 +367,51 @@ export const foldMapK_ = <F, A, B>(
   xs: List<A>,
   f: (a: A) => Kind<F, B>,
 ): Kind<F, B> => foldMap_(F.algebra(), xs, f);
+
+export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
+  zipWith_(xs, ys, (x, y) => [x, y]);
+
+export const zipPad_ = <A, B>(
+  xs: List<A>,
+  ys: List<B>,
+  defaultX: () => A,
+  defaultY: () => B,
+): List<[A, B]> => zipWithPad_(xs, ys, defaultX, defaultY, (x, y) => [x, y]);
+
+export const zipWith_ = <A, B, C>(
+  xs: List<A>,
+  ys: List<B>,
+  f: (a: A, b: B) => C,
+): List<C> => {
+  const rs: C[] = [];
+  while (nonEmpty(xs) && nonEmpty(ys)) {
+    rs.push(f(head(xs), head(ys)));
+    xs = tail(xs);
+    ys = tail(ys);
+  }
+  return fromArray(rs);
+};
+
+export const zipWithPad_ = <A, B, C>(
+  xs: List<A>,
+  ys: List<B>,
+  defaultX: () => A,
+  defaultY: () => B,
+  f: (a: A, b: B) => C,
+): List<C> => {
+  const rs: C[] = [];
+  while (nonEmpty(xs) || nonEmpty(ys)) {
+    rs.push(
+      f(
+        nonEmpty(xs) ? head(xs) : defaultX(),
+        nonEmpty(ys) ? head(ys) : defaultY(),
+      ),
+    );
+    xs = tail(xs);
+    ys = tail(ys);
+  }
+  return fromArray(rs);
+};
 
 export const collect_ = <A, B>(
   xs: List<A>,
