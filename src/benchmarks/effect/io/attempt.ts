@@ -1,17 +1,15 @@
-import '../benchmarking';
-import { pipe } from '../fp/core';
-import { IO } from '../effect/io';
+import '../../../benchmarking';
+import { pipe } from '../../../fp/core';
+import { IO } from '../../../effect/io';
 
 const size = 100_000;
 
 pipe(
-  benchmark.group('handleErrorWith')(
+  benchmark.group('attempt')(
     benchmark('happy path', async () => {
       const loop = (i: number): IO<number> =>
         i < size
-          ? IO.pure(i + 1)
-              .handleErrorWith(IO.throwError)
-              .flatMap(loop)
+          ? IO.pure(i + 1).attempt.flatMap(ea => ea.fold(IO.throwError, loop))
           : IO.pure(i);
 
       await loop(0).unsafeRunToPromise();
@@ -24,8 +22,7 @@ pipe(
         i < size
           ? IO.throwError(error)
               .flatMap(x => IO.pure(x + 1))
-              .flatMap(x => IO.pure(x + 1))
-              .handleErrorWith(() => loop(i + 1))
+              .attempt.flatMap(ea => ea.fold(() => loop(i + 1), IO.pure))
           : IO.pure(i);
 
       await loop(0).unsafeRunToPromise();

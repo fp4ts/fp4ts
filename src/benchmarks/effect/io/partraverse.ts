@@ -1,8 +1,8 @@
-import '../benchmarking';
-import { pipe } from '../fp/core';
-import { Either, List, Some } from '../cats/data';
-import { IO } from '../effect/io';
-import { listTraversable } from '../cats/data/list/instances';
+import '../../../benchmarking';
+import { pipe } from '../../../fp/core';
+import { Either, List, Some } from '../../../cats/data';
+import { IO } from '../../../effect/io';
+import { listTraversable } from '../../../cats/data/list/instances';
 
 const size = 1000;
 const ticks = 1000;

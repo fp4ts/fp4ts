@@ -14,8 +14,8 @@ export interface Apply<F> extends Functor<F> {
 
   readonly product: <A, B>(fa: Kind<F, A>, fb: Kind<F, B>) => Kind<F, [A, B]>;
 
-  readonly productL: <A>(fa: Kind<F, A>, fb: Kind<F, unknown>) => Kind<F, A>;
-  readonly productR: <B>(fa: Kind<F, unknown>, fb: Kind<F, B>) => Kind<F, B>;
+  readonly productL: <A, B>(fa: Kind<F, A>, fb: Kind<F, B>) => Kind<F, A>;
+  readonly productR: <A, B>(fa: Kind<F, A>, fb: Kind<F, B>) => Kind<F, B>;
 }
 
 export interface Apply2C<F, E> extends Functor2C<F, E> {
@@ -33,12 +33,12 @@ export interface Apply2C<F, E> extends Functor2C<F, E> {
     fb: Kind2<F, E, B>,
   ) => Kind2<F, E, [A, B]>;
 
-  readonly productL: <A>(
+  readonly productL: <A, B>(
     fa: Kind2<F, E, A>,
-    fb: Kind2<F, E, unknown>,
+    fb: Kind2<F, E, B>,
   ) => Kind2<F, E, A>;
-  readonly productR: <B>(
-    fa: Kind2<F, E, unknown>,
+  readonly productR: <A, B>(
+    fa: Kind2<F, E, A>,
     fb: Kind2<F, E, B>,
   ) => Kind2<F, E, B>;
 }
@@ -58,12 +58,12 @@ export interface Apply2<F> extends Functor2<F> {
     fb: Kind2<F, E, B>,
   ) => Kind2<F, E, [A, B]>;
 
-  readonly productL: <E, A>(
+  readonly productL: <E, A, B>(
     fa: Kind2<F, E, A>,
-    fb: Kind2<F, E, unknown>,
+    fb: Kind2<F, E, B>,
   ) => Kind2<F, E, A>;
-  readonly productR: <E, B>(
-    fa: Kind2<F, E, unknown>,
+  readonly productR: <E, A, B>(
+    fa: Kind2<F, E, A>,
     fb: Kind2<F, E, B>,
   ) => Kind2<F, E, B>;
 }

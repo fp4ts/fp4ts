@@ -1,6 +1,6 @@
-import '../benchmarking';
-import { pipe } from '../fp/core';
-import { IO } from '../effect/io';
+import '../../../benchmarking';
+import { pipe } from '../../../fp/core';
+import { IO } from '../../../effect/io';
 
 const size = 10_000;
 

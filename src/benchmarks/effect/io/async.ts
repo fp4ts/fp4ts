@@ -1,7 +1,7 @@
-import '../benchmarking';
-import { id, pipe } from '../fp/core';
-import { Right } from '../cats/data';
-import { IO } from '../effect/io';
+import '../../../benchmarking';
+import { id, pipe } from '../../../fp/core';
+import { Right } from '../../../cats/data';
+import { IO } from '../../../effect/io';
 
 const size = 1000;
 
