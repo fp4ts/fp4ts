@@ -19,8 +19,14 @@ declare module './algebra' {
     readonly nonEmpty: boolean;
     map: <B>(f: (a: A) => B) => Either<E, B>;
     tap: (f: (a: A) => unknown) => Either<E, A>;
-    flatMap: <B, E2 = E>(f: (a: A) => Either<E2, B>) => Either<E2, B>;
-    flatTap: <E2 = E>(f: (a: A) => Either<E2, unknown>) => Either<E2, A>;
+    flatMap: <B, E2>(
+      this: Either<E2, A>,
+      f: (a: A) => Either<E2, B>,
+    ) => Either<E2, B>;
+    flatTap: <E2>(
+      this: Either<E2, A>,
+      f: (a: A) => Either<E2, unknown>,
+    ) => Either<E2, A>;
     readonly flatten: A extends Either<E, infer B>
       ? Either<E, B>
       : never | unknown;

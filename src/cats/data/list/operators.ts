@@ -3,10 +3,11 @@ import { Kind } from '../../../fp/hkt';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
 import { MonoidK } from '../../monoid-k';
-import { Option } from '../option';
+import { Option, None, Some } from '../option';
 
 import { List, view } from './algebra';
 import { cons, empty, fromArray, pure } from './constructors';
+import { Eq } from '../../eq';
 
 const throwError = (e: Error) => {
   throw e;
@@ -26,11 +27,11 @@ export const tail = <A>(xs: List<A>): List<A> =>
     (_, t) => t,
   );
 
-export const uncons = <A>(xs: List<A>): [A, List<A>] | undefined =>
+export const uncons = <A>(xs: List<A>): Option<[A, List<A>]> =>
   fold_(
     xs,
-    () => undefined,
-    (h, t) => [h, t],
+    () => None,
+    (h, t) => Some([h, t]),
   );
 
 export const isEmpty = <A>(xs: List<A>): boolean =>
@@ -52,6 +53,16 @@ export const toArray = <A>(xs: List<A>): A[] => {
   }
   return results;
 };
+
+export const equals: <A2>(
+  E: Eq<A2>,
+) => (ys: List<A2>) => <A extends A2>(xs: List<A>) => boolean = E => ys => xs =>
+  equals_(E, xs, ys);
+
+export const notEquals: <A2>(
+  E: Eq<A2>,
+) => (ys: List<A2>) => <A extends A2>(xs: List<A>) => boolean = E => ys => xs =>
+  notEquals_(E, xs, ys);
 
 export const reverse = <A>(xs: List<A>): List<A> => {
   let result: List<A> = empty;
@@ -224,6 +235,18 @@ export const flatSequence: <G>(
   flatTraverse(G)(id);
 
 // -- Point-ful operators
+
+export const equals_ = <A>(E: Eq<A>, xs: List<A>, ys: List<A>): boolean => {
+  while (nonEmpty(xs) && nonEmpty(ys)) {
+    if (E.notEquals(head(xs), head(ys))) return false;
+    xs = tail(xs);
+    ys = tail(ys);
+  }
+  return isEmpty(xs) && isEmpty(ys);
+};
+
+export const notEquals_ = <A>(E: Eq<A>, xs: List<A>, ys: List<A>): boolean =>
+  !equals_(E, xs, ys);
 
 export const prepend_ = <A>(xs: List<A>, x: A): List<A> => cons(x, xs);
 

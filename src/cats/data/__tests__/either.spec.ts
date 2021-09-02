@@ -7,6 +7,24 @@ describe('Either', () => {
     throw e;
   };
 
+  describe('type', () => {
+    it('should be covariant in first parameters', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const ea: Either<number, number> = Right(42);
+    });
+
+    it('should be covariant in second parameter', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const ea: Either<number, number> = Left(42);
+    });
+
+    it('should disallow widening of unrelated type', () => {
+      const ea: Either<number, never> = Left(42);
+      // @ts-expect-error
+      ea.flatMap(() => Left('error'));
+    });
+  });
+
   describe('constructors', () => {
     it('should create a right value', () => {
       expect(

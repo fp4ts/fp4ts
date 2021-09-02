@@ -1,6 +1,7 @@
 import { Option } from '..';
 import { Kind } from '../../../fp/hkt';
 import { Applicative } from '../../applicative';
+import { Eq } from '../../eq';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 
@@ -14,6 +15,7 @@ import {
   count_,
   drop_,
   elem_,
+  equals_,
   filter_,
   flatMap_,
   flatSequence,
@@ -30,6 +32,7 @@ import {
   isEmpty,
   map_,
   nonEmpty,
+  notEquals_,
   prepend_,
   reverse,
   scanLeft1_,
@@ -55,15 +58,17 @@ declare module './algebra' {
   interface List<A> {
     readonly head: A;
     readonly tail: List<A>;
-    readonly uncons: [A, List<A>] | undefined;
+    readonly uncons: Option<[A, List<A>]>;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
     readonly size: number;
     readonly toArray: A[];
     readonly reverse: List<A>;
-    prepend: <B = A>(x: B) => List<B>;
-    concat: <B = A>(xs: List<B>) => List<B>;
-    '+++': <B = A>(xs: List<B>) => List<B>;
+    equals: <B>(this: List<B>, E: Eq<B>, xs: List<B>) => boolean;
+    notEquals: <B>(this: List<B>, E: Eq<B>, xs: List<B>) => boolean;
+    prepend: <B>(this: List<B>, x: B) => List<B>;
+    concat: <B>(this: List<B>, xs: List<B>) => List<B>;
+    '+++': <B>(this: List<B>, xs: List<B>) => List<B>;
     elem: (idx: number) => A;
     all: (p: (a: A) => boolean) => boolean;
     any: (p: (a: A) => boolean) => boolean;
@@ -85,12 +90,14 @@ declare module './algebra' {
     zip: <B>(ys: List<B>) => List<[A, B]>;
     zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
     readonly zipWithIndex: List<[A, number]>;
-    zipPad: <B, A2 = A>(
+    zipPad: <B, A2>(
+      this: List<A2>,
       ys: List<B>,
       defaultL: () => A2,
       defaultR: () => B,
     ) => List<[A2, B]>;
-    zipWithPad: <B, C, A2 = A>(
+    zipWithPad: <B, C, A2>(
+      this: List<A2>,
       ys: List<B>,
       defaultL: () => A2,
       defaultR: () => B,
@@ -99,9 +106,9 @@ declare module './algebra' {
     collect: <B>(f: (a: A) => Option<B>) => List<B>;
     collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
     scanLeft: <B>(z: B, f: (b: B, a: A) => B) => List<B>;
-    scanLeft1: <B = A>(f: (x: B, y: B) => B) => List<B>;
+    scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
-    scanRight1: <B = A>(f: (x: B, y: B) => B) => List<B>;
+    scanRight1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     traverse: <G>(
       G: Applicative<G>,
     ) => <B>(f: (a: A) => Kind<G, B>) => Kind<G, List<B>>;
@@ -130,7 +137,7 @@ Object.defineProperty(List.prototype, 'tail', {
 });
 
 Object.defineProperty(List.prototype, 'uncons', {
-  get<A>(this: List<A>): [A, List<A>] | undefined {
+  get<A>(this: List<A>): Option<[A, List<A>]> {
     return uncons(this);
   },
 });
@@ -164,6 +171,22 @@ Object.defineProperty(List.prototype, 'reverse', {
     return reverse(this);
   },
 });
+
+List.prototype.equals = function <A>(
+  this: List<A>,
+  E: Eq<A>,
+  that: List<A>,
+): boolean {
+  return equals_(E, this, that);
+};
+
+List.prototype.notEquals = function <A>(
+  this: List<A>,
+  E: Eq<A>,
+  that: List<A>,
+): boolean {
+  return notEquals_(E, this, that);
+};
 
 List.prototype.prepend = function <A>(this: List<A>, x: A): List<A> {
   return prepend_(this, x);

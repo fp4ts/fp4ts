@@ -1,7 +1,14 @@
 import { Right, Left } from '../either';
 import { Option, Some, None } from '../option';
 
-describe('option', () => {
+describe('Option', () => {
+  describe('type', () => {
+    it('should be covariant', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const o: Option<number> = None;
+    });
+  });
+
   describe('constructors', () => {
     it('should create Some from the non-nullish value', () => {
       expect(Option(42)).toEqual(Some(42));

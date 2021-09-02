@@ -3,8 +3,22 @@ import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';
 import { List } from '../list';
 import { listMonoidK } from '../list/instances';
+import { primitiveEq } from '../../eq';
 
-describe('list', () => {
+describe('List', () => {
+  describe('type', () => {
+    it('should be covariant', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const xs: List<number> = List.empty;
+    });
+
+    it('should disallow type expansion of unrelated types', () => {
+      const xs: List<number> = List.empty;
+      // @ts-expect-error
+      xs.prepend('string');
+    });
+  });
+
   describe('constructors', () => {
     it('should an empty list', () => {
       const xs = List();
@@ -60,11 +74,35 @@ describe('list', () => {
     });
 
     it('should return undefined when unconsing the empty list', () => {
-      expect(List.empty.uncons).toBeUndefined();
+      expect(List.empty.uncons).toEqual(None);
     });
 
     it('should return head and tail of the list', () => {
-      expect(List(1).uncons).toEqual([1, List.empty]);
+      expect(List(1).uncons).toEqual(Some([1, List.empty]));
+    });
+  });
+
+  describe('equality', () => {
+    const E = primitiveEq();
+    test('two empty lists to be the same', () => {
+      expect(List.empty.equals(E, List.empty)).toBe(true);
+    });
+
+    test('list with a single element not to be equal to empty list', () => {
+      expect(List(1).notEquals(E, List.empty)).toBe(true);
+    });
+
+    test('empty list not to be equal to list with a single element', () => {
+      expect(List.empty.notEquals(E, List(1))).toBe(true);
+    });
+
+    test('two lists identical lists to be equal', () => {
+      expect(List(1, 2, 3).equals(E, List(1, 2, 3))).toBe(true);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.equals(E, xs)).toBe(true);
     });
   });
 
