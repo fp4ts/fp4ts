@@ -4,10 +4,12 @@ import { Eq } from '../../eq';
 import { List } from '../list';
 import { Option, None, Some } from '../option';
 import { Hashable } from '../../hashable';
+import { Monoid } from '../../monoid';
+import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
 
 import { Bucket, Empty, Inner, Leaf, Map, toNode } from './algebra';
-import { pipe } from '../../../fp/core';
+import { id, pipe } from '../../../fp/core';
 
 export const isEmpty: <K, V>(m: Map<K, V>) => boolean = m =>
   m === (Empty as Map<never, never>);
@@ -81,13 +83,51 @@ export const union: <K2>(
     union_(H, m1, m2);
 
 export const unionWith: <K2>(
-  H: Hashable<K2>,
+  E: Eq<K2>,
 ) => <V2>(
   m2: Map<K2, V2>,
   u: (v1: V2, v2: V2, k: K2) => V2,
 ) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
-  H => (m2, u) => m1 =>
-    unionWith_(H, m1, m2, u);
+  E => (m2, u) => m1 =>
+    unionWith_(E, m1, m2, u);
+
+// TODO: finish intersections
+// export const intersect
+
+export const difference: <K2>(
+  E: Eq<K2>,
+) => <V2>(
+  m2: Map<K2, V2>,
+) => <K extends K2, V1>(map: Map<K, V1>) => Map<K2, V1> = E => m2 => m1 =>
+  difference_(E, m1, m2);
+
+export const symmetricDifference: <K2>(
+  E: Eq<K2>,
+) => <V2>(
+  m2: Map<K2, V2>,
+) => <K extends K2, V extends V2>(map: Map<K, V>) => Map<K2, V2> =
+  E => m2 => m1 =>
+    symmetricDifference_(E, m1, m2);
+
+export const filter: <K, V>(
+  p: (v: V, k: K) => boolean,
+) => (m: Map<K, V>) => Map<K, V> = p => m => filter_(m, p);
+
+export const map: <K, V, B>(
+  f: (v: V, k: K) => B,
+) => (m: Map<K, V>) => Map<K, B> = p => m => map_(m, p);
+
+export const flatMap: <K2>(
+  E: Eq<K2>,
+) => <V, B>(
+  f: (v: V, k: K2) => Map<K2, B>,
+) => <K extends K2>(m: Map<K, V>) => Map<K2, B> = E => f => m =>
+  flatMap_(E, m, f);
+
+export const flatten: <K2>(
+  E: Eq<K2>,
+) => <K extends K2, V>(mm: Map<K, Map<K, V>>) => Map<K2, V> = E => mm =>
+  flatMap_(E, mm, id);
 
 export const foldLeft: <K, V, B>(
   z: B,
@@ -98,6 +138,17 @@ export const foldRight: <K, V, B>(
   z: B,
   f: (v: V, b: B, k: K) => B,
 ) => (m: Map<K, V>) => B = (z, f) => m => foldRight_(m, z, f);
+
+export const foldMap: <M>(
+  M: Monoid<M>,
+) => <K, V>(f: (v: V, k: K) => M) => (map: Map<K, V>) => M = M => f => map =>
+  foldMap_(M, map, f);
+
+export const foldMapK: <F>(
+  F: MonoidK<F>,
+) => <K, V, B>(
+  f: (v: V, k: K) => Kind<F, B>,
+) => (map: Map<K, V>) => Kind<F, B> = F => f => map => foldMapK_(F, map, f);
 
 // -- Point-ful operators
 
@@ -158,6 +209,22 @@ export const intersectWith_ = <K, V1, V2, C>(
   f: (v1: V1, v2: V2, k: K) => C,
 ): Map<K, C> => _intersect(H, m1, m2, 0, f);
 
+export const difference_ = <K, V1, V2>(
+  E: Eq<K>,
+  m1: Map<K, V1>,
+  m2: Map<K, V2>,
+): Map<K, V1> => _difference(E, m1, m2, 0);
+
+export const symmetricDifference_ = <K, V>(
+  E: Eq<K>,
+  m1: Map<K, V>,
+  m2: Map<K, V>,
+): Map<K, V> => {
+  const ld = _difference(E, m1, m2, 0);
+  const rd = _difference(E, m2, m1, 0);
+  return union_(E, ld, rd);
+};
+
 export const filter_ = <K, V>(
   m: Map<K, V>,
   p: (v: V, k: K) => boolean,
@@ -193,6 +260,13 @@ export const map_ = <K, V, B>(
       return new Leaf(n.buckets.map(([h, k, v]) => [h, k, f(v, k)]));
   }
 };
+
+export const flatMap_ = <K, V, B>(
+  E: Eq<K>,
+  m: Map<K, V>,
+  f: (v: V, k: K) => Map<K, B>,
+): Map<K, B> =>
+  foldLeft_(m, Empty as Map<K, B>, (m2, v, k) => union_(E, m2, f(v, k)));
 
 export const foldLeft_ = <K, V, B>(
   m: Map<K, V>,
@@ -230,16 +304,22 @@ export const foldRight_ = <K, V, B>(
   }
 };
 
+export const foldMap_ = <K, V, M>(
+  M: Monoid<M>,
+  m: Map<K, V>,
+  f: (v: V, k: K) => M,
+): M => foldLeft_(m, M.empty, (r, v, k) => M.combine(r, f(v, k)));
+
+export const foldMapK_ = <F, K, V, B>(
+  F: MonoidK<F>,
+  m: Map<K, V>,
+  f: (v: V, k: K) => Kind<F, B>,
+): Kind<F, B> => foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK(r, f(v, k)));
+
 export const traverse_ = <G, K, V, B>(
   G: Applicative<G>,
   m: Map<K, V>,
-  f: (v: V) => Kind<G, B>,
-): Kind<G, Map<K, B>> => traverseWithKey_(G, m, ([, v]) => f(v));
-
-export const traverseWithKey_ = <G, K, V, B>(
-  G: Applicative<G>,
-  m: Map<K, V>,
-  f: (p: [K, V]) => Kind<G, B>,
+  f: (v: V, k: K) => Kind<G, B>,
 ): Kind<G, Map<K, B>> => {
   const n = toNode(m);
 
@@ -252,7 +332,7 @@ export const traverseWithKey_ = <G, K, V, B>(
         gbs: Kind<G, Map<K, B>[]>,
         m2: Map<K, V>,
       ): Kind<G, Map<K, B>[]> =>
-        G.map2(traverseWithKey_(G, m2, f), gbs)((m, ms) => [...ms, m]);
+        G.map2(traverse_(G, m2, f), gbs)((m, ms) => [...ms, m]);
 
       return pipe(
         n.children.reduce(appendF, G.pure([] as Map<K, B>[])),
@@ -265,7 +345,7 @@ export const traverseWithKey_ = <G, K, V, B>(
         gbs: Kind<G, Bucket<K, B>[]>,
         [h, k, v]: Bucket<K, V>,
       ): Kind<G, Bucket<K, B>[]> =>
-        G.map2(f([k, v]), gbs)((b, bs) => [...bs, [h, k, b]]);
+        G.map2(f(v, k), gbs)((b, bs) => [...bs, [h, k, b]]);
 
       return pipe(
         n.buckets.reduce(appendF, G.pure([] as Bucket<K, B>[])),
@@ -654,4 +734,58 @@ const _intersectBottomLeaves = <K, V1, V2, C>(
   }
 
   return newBuckets.length === 0 ? Empty : new Leaf(newBuckets);
+};
+
+const _difference = <K, V1, V2>(
+  E: Eq<K>,
+  m1: Map<K, V1>,
+  m2: Map<K, V2>,
+  d: number,
+): Map<K, V1> => {
+  const n1 = toNode(m1);
+  const n2 = toNode(m2);
+
+  switch (n1.tag) {
+    case 'empty':
+      return Empty;
+
+    case 'inner':
+      switch (n2.tag) {
+        case 'empty':
+          return n1;
+
+        case 'inner':
+          return _makeInner(
+            n1.children.map((c, i) => _difference(E, c, n2.children[i], d + 1)),
+          );
+
+        case 'leaf': {
+          assert(n2.buckets.length === 1);
+          const [h, k] = n2.buckets[0];
+          return _remove(E, n1, k, h, d);
+        }
+      }
+
+    case 'leaf':
+      switch (n2.tag) {
+        case 'empty':
+          return n1;
+
+        case 'inner': {
+          assert(n1.buckets.length === 1);
+          const [h, k] = n1.buckets[0];
+          return _lookup(E, n2, k, h, d).fold(
+            () => n1 as Map<K, V1>,
+            () => Empty,
+          );
+        }
+
+        case 'leaf': {
+          const contains = (k: K) =>
+            Boolean(n2.buckets.find(([, k2]) => E.equals(k, k2)));
+          const newBuckets = n1.buckets.filter(([, k]) => !contains(k));
+          return newBuckets.length ? new Leaf(newBuckets) : Empty;
+        }
+      }
+  }
 };

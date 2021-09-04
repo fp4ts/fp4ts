@@ -38,7 +38,9 @@ export const arraySemigroupK: () => SemigroupK<URI> = () => ({
 
   combineK: concat_,
 
-  algebra: getSemigroupKAlgebra(arraySemigroupK()),
+  algebra: () => ({
+    combine: concat_,
+  }),
 });
 
 export const arrayMonoidK: () => MonoidK<URI> = () => ({
@@ -46,7 +48,10 @@ export const arrayMonoidK: () => MonoidK<URI> = () => ({
 
   emptyK: () => [],
 
-  algebra: getMonoidKAlgebra(arrayMonoidK()),
+  algebra: () => ({
+    empty: [],
+    combine: concat_,
+  }),
 });
 
 export const arrayFunctor: () => Functor<URI> = () => ({

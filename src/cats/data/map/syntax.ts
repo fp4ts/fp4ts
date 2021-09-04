@@ -1,13 +1,21 @@
-import { Option } from '..';
+import { Option } from '../option';
+import { Monoid } from '../../monoid';
+import { MonoidK } from '../../monoid-k';
+import { Applicative } from '../../applicative';
 import { PrimitiveType } from '../../../fp/primitive-type';
-import { Eq } from '../../eq';
+import { Eq, primitiveEq } from '../../eq';
 import { Hashable, primitiveMD5Hashable } from '../../hashable';
 import { List } from '../list';
 import { Map } from './algebra';
 import {
   contains_,
+  difference_,
   filter_,
+  flatMap_,
+  flatten,
   foldLeft_,
+  foldMapK_,
+  foldMap_,
   foldRight_,
   insertWith_,
   insert_,
@@ -20,13 +28,16 @@ import {
   nonEmpty,
   remove_,
   size,
+  symmetricDifference_,
   toArray,
   toList,
+  traverse_,
   unionWith_,
   union_,
   update_,
   values,
 } from './operators';
+import { Kind } from '../../../fp/hkt';
 
 declare module './algebra' {
   interface Map<K, V> {
@@ -126,13 +137,65 @@ declare module './algebra' {
       f: (v1: V, v2: V2, k: K2) => C,
     ): Map<K2, C>;
 
+    '\\'<K2, V2>(this: Map<K2, V>, E: Eq<K2>, m2: Map<K2, V2>): Map<K2, V>;
+    '\\'<K2 extends PrimitiveType, V2>(
+      this: Map<K2, V>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V>;
+    difference<K2, V2>(
+      this: Map<K2, V>,
+      E: Eq<K2>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V>;
+    difference<K2 extends PrimitiveType, V2>(
+      this: Map<K2, V>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V>;
+
+    '\\//'<K2, V2>(this: Map<K2, V2>, E: Eq<K2>, m2: Map<K2, V2>): Map<K2, V2>;
+    '\\//'<K2 extends PrimitiveType, V2>(
+      this: Map<K2, V2>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V2>;
+    symmetricDifference<K2, V2>(
+      this: Map<K2, V2>,
+      E: Eq<K2>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V2>;
+    symmetricDifference<K2 extends PrimitiveType, V2>(
+      this: Map<K2, V2>,
+      m2: Map<K2, V2>,
+    ): Map<K2, V2>;
+
     filter(p: (v: V, k: K) => boolean): Map<K, V>;
 
     map<B>(f: (v: V, k: K) => B): Map<K, B>;
 
-    foldLeft<B>(z: B, f: (b: B, v: V, k: K) => B): B;
+    flatMap<K2>(
+      this: Map<K2, V>,
+      E: Eq<K2>,
+    ): <B>(f: (v: V, k: K) => Map<K2, B>) => Map<K2, B>;
+    flatMap<K2 extends PrimitiveType, B>(
+      this: Map<K2, V>,
+      f: (v: V, k: K) => Map<K2, B>,
+    ): Map<K2, B>;
+    flatten: V extends Map<infer K2, infer B>
+      ? K extends PrimitiveType
+        ? (this: Map<K2, Map<K2, B>>) => Map<K2, B>
+        : (this: Map<K2, Map<K2, B>>, E: Eq<K2>) => Map<K2, B>
+      : never;
 
+    foldLeft<B>(z: B, f: (b: B, v: V, k: K) => B): B;
     foldRight<B>(z: B, f: (v: V, b: B, k: K) => B): B;
+
+    foldMap<M>(M: Monoid<M>): (f: (v: V, k: K) => M) => M;
+    foldMapK<F>(
+      F: MonoidK<F>,
+    ): <B>(f: (v: V, k: K) => Kind<F, B>) => Kind<F, B>;
+
+    traverse<G>(
+      G: Applicative<G>,
+    ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>>;
   }
 }
 
@@ -213,17 +276,13 @@ Map.prototype.remove = function (this: any, ...args: any[]): any {
     : remove_(primitiveMD5Hashable(), this, args[0]);
 };
 
-Map.prototype['+++'] = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? union_(args[0], this, args[1])
-    : union_(primitiveMD5Hashable(), this, args[0]);
-};
-
 Map.prototype.union = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? union_(args[0], this, args[1])
     : union_(primitiveMD5Hashable(), this, args[0]);
 };
+
+Map.prototype['+++'] = Map.prototype.union;
 
 Map.prototype.unionWith = function (this: any, ...args: any[]): any {
   return args.length === 3
@@ -243,6 +302,20 @@ Map.prototype.intersectWith = function (this: any, ...args: any[]): any {
     : intersectWith_(primitiveMD5Hashable(), this, args[0], args[1]);
 };
 
+Map.prototype.difference = function (this: any, ...args: any[]): any {
+  return args.length === 2
+    ? difference_(args[0], this, args[1])
+    : difference_(primitiveEq(), this, args[0]);
+};
+Map.prototype['\\'] = Map.prototype.difference;
+
+Map.prototype.symmetricDifference = function (this: any, ...args: any[]): any {
+  return args.length === 2
+    ? symmetricDifference_(args[0], this, args[1])
+    : symmetricDifference_(primitiveEq(), this, args[0]);
+};
+Map.prototype['\\//'] = Map.prototype.symmetricDifference;
+
 Map.prototype.filter = function <K, V>(
   this: Map<K, V>,
   p: (v: V, k: K) => boolean,
@@ -255,6 +328,18 @@ Map.prototype.map = function <K, V, B>(
   f: (v: V, k: K) => B,
 ): Map<K, B> {
   return map_(this, f);
+};
+
+Map.prototype.flatMap = function (this: any, ...args: any[]): any {
+  return typeof args === 'function'
+    ? (f: any) => flatMap_(args[0], this, f)
+    : flatMap_(primitiveEq(), this, args[0]);
+};
+
+Map.prototype.flatten = function (this: any, ...args: any[]): any {
+  return args.length === 1
+    ? flatten(primitiveEq())(this)
+    : flatten(args[0])(this);
 };
 
 Map.prototype.foldLeft = function <K, V, B>(
@@ -271,4 +356,25 @@ Map.prototype.foldRight = function <K, V, B>(
   f: (v: V, b: B, k: K) => B,
 ): B {
   return foldRight_(this, z, f);
+};
+
+Map.prototype.foldMap = function <K, V, M>(
+  this: Map<K, V>,
+  M: Monoid<M>,
+): (f: (v: V, k: K) => M) => M {
+  return f => foldMap_(M, this, f);
+};
+
+Map.prototype.foldMapK = function <F, K, V>(
+  this: Map<K, V>,
+  F: MonoidK<F>,
+): <B>(f: (v: V, k: K) => Kind<F, B>) => Kind<F, B> {
+  return f => foldMapK_(F, this, f);
+};
+
+Map.prototype.traverse = function <G, K, V>(
+  this: Map<K, V>,
+  G: Applicative<G>,
+): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>> {
+  return f => traverse_(G, this, f);
 };

@@ -2,6 +2,9 @@ import { List } from '../list';
 import { Some, None } from '../option';
 import { primitiveMD5Hashable } from '../../hashable';
 import { Map } from '../map';
+import { listMonoidK } from '../list/instances';
+import { arrayMonoidK } from '../array/instances';
+import { optionApplicative } from '../option/instances';
 
 describe('Map', () => {
   const H = primitiveMD5Hashable();
@@ -353,6 +356,35 @@ describe('Map', () => {
     });
   });
 
+  describe('difference', () => {
+    it('should return id when difference with empty map', () => {
+      expect(Map([1, 2], [2, 3])['\\'](Map.empty)).toEqual(Map([1, 2], [2, 3]));
+    });
+
+    it('should remove shared keys', () => {
+      expect(Map([1, 2], [2, 3])['\\'](Map([2, 3], [3, 4])).toArray).toEqual([
+        [1, 2],
+      ]);
+    });
+  });
+
+  describe('symmetricDifference', () => {
+    it('should return id when difference with empty map', () => {
+      expect(Map([1, 2], [2, 3])['\\//'](H, Map.empty)).toEqual(
+        Map([1, 2], [2, 3]),
+      );
+    });
+
+    it('should yield union of differences', () => {
+      expect(Map([1, 2], [2, 3])['\\//'](Map([2, 3], [3, 4])).toArray).toEqual(
+        expect.arrayContaining([
+          [1, 2],
+          [3, 4],
+        ]),
+      );
+    });
+  });
+
   describe('filter', () => {
     it('should return empty map when empty initially', () => {
       expect(Map.empty.filter(() => false)).toEqual(Map.empty);
@@ -390,6 +422,62 @@ describe('Map', () => {
     });
   });
 
+  describe('flatMap', () => {
+    it('should flat map into singletons', () => {
+      expect(
+        Map([1, 2], [3, 4]).flatMap((v, k) => Map([k, v])).toArray,
+      ).toEqual(
+        expect.arrayContaining([
+          [1, 2],
+          [3, 4],
+        ]),
+      );
+    });
+
+    it('should flat map into maps', () => {
+      expect(
+        Map([1, 2], [3, 4]).flatMap((v, k) => Map([k, v], [v, k])).toArray,
+      ).toEqual(
+        expect.arrayContaining([
+          [1, 2],
+          [2, 1],
+          [3, 4],
+          [4, 3],
+        ]),
+      );
+    });
+  });
+
+  describe('flatten', () => {
+    it('should flatten singletons', () => {
+      expect(
+        Map([1, Map<number, number>([2, 3])], [3, Map([4, 5])]).flatten()
+          .toArray,
+      ).toEqual(
+        expect.arrayContaining([
+          [2, 3],
+          [4, 5],
+        ]),
+      );
+    });
+
+    it('should flatten maps', () => {
+      expect(
+        Map(
+          [1, Map<number, number>([2, 3], [3, 2])],
+          [3, Map([4, 5], [5, 4])],
+        ).flatten().toArray,
+      ).toEqual(
+        expect.arrayContaining([
+          [2, 3],
+          [3, 2],
+          [4, 5],
+          [5, 4],
+        ]),
+      );
+    });
+  });
+
   describe('foldLeft', () => {
     it('should return initial value when empty', () => {
       expect(Map.empty.foldLeft(0, (x, y) => x + y)).toBe(0);
@@ -407,6 +495,52 @@ describe('Map', () => {
 
     it('should sum all values', () => {
       expect(Map([1, 2], [3, 4]).foldRight(0, (y, x) => x + y)).toBe(6);
+    });
+  });
+
+  describe('foldMap', () => {
+    it('should fold empty map into list', () => {
+      expect(Map.empty.foldMap(listMonoidK().algebra())(x => List(x))).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should fold map into array of its values', () => {
+      expect(
+        Map([1, 2], [3, 4]).foldMap(arrayMonoidK().algebra())(x => [x]),
+      ).toEqual(expect.arrayContaining([2, 4]));
+    });
+  });
+
+  describe('foldMapK', () => {
+    it('should fold empty map into list', () => {
+      expect(Map.empty.foldMapK(listMonoidK())(x => List(x))).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should fold map into array of its values', () => {
+      expect(Map([1, 2], [3, 4]).foldMapK(arrayMonoidK())(x => [x])).toEqual(
+        expect.arrayContaining([2, 4]),
+      );
+    });
+  });
+
+  describe('traverse', () => {
+    it('should produce some when map contains only even values', () => {
+      expect(
+        Map([1, 2], [3, 4]).traverse(optionApplicative())(v =>
+          v % 2 === 0 ? Some(v) : None,
+        ),
+      ).toEqual(Some(Map([1, 2], [3, 4])));
+    });
+
+    it('should produce none when contains odd values', () => {
+      expect(
+        Map([1, 2], [3, 5]).traverse(optionApplicative())(v =>
+          v % 2 === 0 ? Some(v) : None,
+        ),
+      ).toEqual(None);
     });
   });
 });
