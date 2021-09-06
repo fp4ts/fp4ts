@@ -855,6 +855,24 @@ describe('List', () => {
     });
   });
 
+  describe('show', () => {
+    it('should show empty list', () => {
+      expect(List.empty.show()).toBe('[]');
+    });
+
+    it('should show list of primitive values', () => {
+      expect(List(1, 2, 3).show()).toBe('[1, 2, 3]');
+    });
+
+    it('should show list of complex', () => {
+      expect(
+        List<[number, number]>([1, 1], [2, 2], [3, 3]).show({
+          show: ([x, y]) => `(${x}, ${y})`,
+        }),
+      ).toBe('[(1, 1), (2, 2), (3, 3)]');
+    });
+  });
+
   describe('monad', () => {
     it('should create a list of one element', () => {
       const xs = List.pure(1);

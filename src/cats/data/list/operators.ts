@@ -1,13 +1,14 @@
 import { id, pipe } from '../../../fp/core';
 import { Kind } from '../../../fp/hkt';
+import { Eq } from '../../eq';
+import { Show } from '../../show';
 import { Monoid } from '../../monoid';
-import { Applicative } from '../../applicative';
 import { MonoidK } from '../../monoid-k';
+import { Applicative } from '../../applicative';
 import { Option, None, Some } from '../option';
 
 import { List, view } from './algebra';
 import { cons, empty, fromArray, pure } from './constructors';
-import { Eq } from '../../eq';
 
 const throwError = (e: Error) => {
   throw e;
@@ -233,6 +234,10 @@ export const flatSequence: <G>(
   G: Applicative<G>,
 ) => <A>(gxs: List<Kind<G, List<A>>>) => Kind<G, List<A>> = G =>
   flatTraverse(G)(id);
+
+export const show: <A2>(S: Show<A2>) => <A extends A2>(xs: List<A>) => string =
+  S => xs =>
+    show_(S, xs);
 
 // -- Point-ful operators
 
@@ -529,4 +534,9 @@ export const flatTraverse_ = <G, A, B>(
     G.map2(f(x), ys)(concat_);
 
   return foldRight_(xs, G.pure(empty as List<B>), concatF);
+};
+
+export const show_ = <A>(S: Show<A>, xs: List<A>): string => {
+  const values = toArray(xs).map(S.show).join(', ');
+  return `[${values}]`;
 };

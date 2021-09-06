@@ -1,7 +1,9 @@
 import { Option } from '..';
 import { Kind } from '../../../fp/hkt';
+import { PrimitiveType } from '../../../fp/primitive-type';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
+import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 
@@ -40,6 +42,7 @@ import {
   scanRight1_,
   scanRight_,
   sequence,
+  show_,
   size,
   slice_,
   tail,
@@ -53,6 +56,7 @@ import {
   zipWith_,
   zip_,
 } from './operators';
+import { primitiveShow } from '../..';
 
 declare module './algebra' {
   interface List<A> {
@@ -121,6 +125,9 @@ declare module './algebra' {
     flatSequence: A extends Kind<unknown, List<infer B>>
       ? <G>(G: Applicative<G>) => Kind<G, List<B>>
       : never | unknown;
+
+    show<A2 extends PrimitiveType>(this: List<A2>): string;
+    show<A2>(this: List<A2>, S: Show<A2>): string;
   }
 }
 
@@ -426,4 +433,10 @@ List.prototype.flatSequence = function <A, G>(
   G: Applicative<G>,
 ): Kind<G, List<A>> {
   return flatSequence(G)(this);
+};
+
+List.prototype.show = function (this: any, ...args: any[]): string {
+  return args.length === 1
+    ? show_(args[0], this)
+    : show_(primitiveShow(), this);
 };
