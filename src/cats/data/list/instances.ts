@@ -17,9 +17,7 @@ import {
   count,
   flatMap,
   flatMap_,
-  flatSequence,
   flatten,
-  flatTraverse,
   foldLeft,
   foldMap,
   foldRight,
@@ -96,6 +94,4 @@ export const listTraversable: Lazy<Traversable<URI>> = () => ({
   ...listFunctor(),
   traverse: traverse,
   sequence: sequence,
-  flatTraverse: (_, G) => flatTraverse(G),
-  flatSequence: (_, G) => flatSequence(G),
 });

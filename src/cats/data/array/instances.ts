@@ -1,5 +1,5 @@
-import { getMonoidKAlgebra, MonoidK } from '../../monoid-k';
-import { getSemigroupKAlgebra, SemigroupK } from '../../semigroup-k';
+import { MonoidK } from '../../monoid-k';
+import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { FlatMap } from '../../flat-map';
@@ -16,9 +16,7 @@ import {
   count,
   flatMap,
   flatMap_,
-  flatSequence,
   flatten,
-  flatTraverse,
   foldLeft,
   foldMap,
   foldRight,
@@ -107,6 +105,4 @@ export const arrayTraversable: () => Traversable<URI> = () => ({
   ...arrayFoldable(),
   traverse: traverse,
   sequence: sequence,
-  flatTraverse: (_, G) => flatTraverse(G),
-  flatSequence: (_, G) => flatSequence(G),
 });

@@ -97,6 +97,54 @@ describe('Map', () => {
     });
   });
 
+  describe('count', () => {
+    it('should return zero when map is empty', () => {
+      expect(Map.empty.count(() => true)).toBe(0);
+    });
+
+    it('should count even numbers', () => {
+      expect(Map([1, 2], [2, 3]).count(v => v % 2 === 0)).toBe(1);
+    });
+  });
+
+  describe('all', () => {
+    it('should return true when empty', () => {
+      expect(Map.empty.all(() => false)).toBe(true);
+    });
+
+    it('should true when all values are even', () => {
+      expect(Map([1, 2], [2, 4]).all(v => v % 2 === 0)).toBe(true);
+    });
+
+    it('should false when all values odd', () => {
+      expect(Map([1, 2], [2, 3]).all(v => v % 2 === 0)).toBe(false);
+    });
+  });
+
+  describe('any', () => {
+    it('should return false when empty', () => {
+      expect(Map.empty.any(() => false)).toBe(false);
+    });
+
+    it('should true when all values are odd', () => {
+      expect(Map([1, 3], [2, 5]).any(v => v % 2 === 0)).toBe(false);
+    });
+
+    it('should false when one value even', () => {
+      expect(Map([1, 2], [2, 3]).any(v => v % 2 === 0)).toBe(true);
+    });
+  });
+
+  describe('count', () => {
+    it('should return zero when map is empty', () => {
+      expect(Map.empty.count(() => true)).toBe(0);
+    });
+
+    it('should count even numbers', () => {
+      expect(Map([1, 2], [2, 3]).count(v => v % 2 === 0)).toBe(1);
+    });
+  });
+
   describe('contains', () => {
     const m = Map(...pairs);
 
@@ -541,6 +589,26 @@ describe('Map', () => {
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(None);
+    });
+  });
+
+  describe('show', () => {
+    it('should show an empty map', () => {
+      expect(Map.empty.show()).toBe('[Map entries: {}]');
+    });
+
+    it('should print out values', () => {
+      expect(Map([1, 2], [2, 3]).show()).toBe(
+        '[Map entries: { 2 => 3, 1 => 2 }]',
+      );
+    });
+
+    it('should print out complex values', () => {
+      expect(
+        Map<number, [number, number]>([1, [2, 2]], [2, [3, 3]]).show({
+          show: ([x, y]) => `(${x}, ${y})`,
+        }),
+      ).toBe('[Map entries: { 2 => (3, 3), 1 => (2, 2) }]');
     });
   });
 });

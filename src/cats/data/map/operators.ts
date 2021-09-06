@@ -4,6 +4,7 @@ import { Eq } from '../../eq';
 import { List } from '../list';
 import { Option, None, Some } from '../option';
 import { Hashable } from '../../hashable';
+import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
@@ -29,6 +30,18 @@ export const toList = <K, V>(m: Map<K, V>): List<[K, V]> =>
   foldLeft_(m, List.empty as List<[K, V]>, (xs, v, k) => xs.prepend([k, v]));
 
 export const toArray = <K, V>(m: Map<K, V>): [K, V][] => toList(m).toArray;
+
+export const count: <K, V>(
+  p: (v: V, k: K) => boolean,
+) => (m: Map<K, V>) => number = p => m => count_(m, p);
+
+export const all: <K, V>(
+  p: (v: V, k: K) => boolean,
+) => (m: Map<K, V>) => boolean = p => m => all_(m, p);
+
+export const any: <K, V>(
+  p: (v: V, k: K) => boolean,
+) => (m: Map<K, V>) => boolean = p => m => any_(m, p);
 
 export const contains: <K2>(
   H: Hashable<K2>,
@@ -91,8 +104,19 @@ export const unionWith: <K2>(
   E => (m2, u) => m1 =>
     unionWith_(E, m1, m2, u);
 
-// TODO: finish intersections
-// export const intersect
+export const intersect: <K2>(
+  E: Eq<K2>,
+) => <V2>(m2: Map<K2, V2>) => <K extends K2, V>(m: Map<K, V>) => Map<K2, V> =
+  E => m2 => m1 =>
+    intersect_(E, m1, m2);
+
+export const intersectWith: <K2>(
+  E: Eq<K2>,
+) => <V, V2, C>(
+  m2: Map<K2, V2>,
+  f: (v1: V, v2: V2, k: K2) => C,
+) => <K extends K2>(m: Map<K, V>) => Map<K2, C> = E => (m2, f) => m1 =>
+  intersectWith_(E, m1, m2, f);
 
 export const difference: <K2>(
   E: Eq<K2>,
@@ -116,6 +140,10 @@ export const filter: <K, V>(
 export const map: <K, V, B>(
   f: (v: V, k: K) => B,
 ) => (m: Map<K, V>) => Map<K, B> = p => m => map_(m, p);
+
+export const tap: <K, V>(
+  f: (v: V, k: K) => unknown,
+) => (m: Map<K, V>) => Map<K, V> = f => m => tap_(m, f);
 
 export const flatMap: <K2>(
   E: Eq<K2>,
@@ -150,10 +178,82 @@ export const foldMapK: <F>(
   f: (v: V, k: K) => Kind<F, B>,
 ) => (map: Map<K, V>) => Kind<F, B> = F => f => map => foldMapK_(F, map, f);
 
+export const traverse: <G>(
+  G: Applicative<G>,
+) => <K, V, B>(
+  f: (v: V, k: K) => Kind<G, B>,
+) => (m: Map<K, V>) => Kind<G, Map<K, B>> = G => f => m => traverse_(G, m, f);
+
+export const sequence: <G>(
+  G: Applicative<G>,
+) => <K, V>(m: Map<K, Kind<G, V>>) => Kind<G, Map<K, V>> = G => m =>
+  traverse_(G, m, id);
+
+export const show: <K2, V2>(
+  SK: Show<K2>,
+  SV: Show<V2>,
+) => <K extends K2, V extends V2>(m: Map<K, V>) => string = (SK, SV) => m =>
+  show_(SK, SV, m);
+
 // -- Point-ful operators
 
 export const contains_ = <K, V>(H: Hashable<K>, m: Map<K, V>, k: K): boolean =>
   lookup_(H, m, k).nonEmpty;
+
+export const count_ = <K, V>(
+  m: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): number => foldLeft_(m, 0, (c, v, k) => (p(v, k) ? c + 1 : c));
+
+export const all_ = <K, V>(
+  m: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): boolean => {
+  const n = toNode(m);
+
+  switch (n.tag) {
+    case 'empty':
+      return true;
+
+    case 'inner':
+      for (let i = 0, len = n.children.length; i < len; i++) {
+        if (!all_(n.children[i], p)) return false;
+      }
+      return true;
+
+    case 'leaf':
+      for (let i = 0, len = n.buckets.length; i < len; i++) {
+        const [, k, v] = n.buckets[i];
+        if (!p(v, k)) return false;
+      }
+      return true;
+  }
+};
+
+export const any_ = <K, V>(
+  m: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): boolean => {
+  const n = toNode(m);
+
+  switch (n.tag) {
+    case 'empty':
+      return false;
+
+    case 'inner':
+      for (let i = 0, len = n.children.length; i < len; i++) {
+        if (any_(n.children[i], p)) return true;
+      }
+      return false;
+
+    case 'leaf':
+      for (let i = 0, len = n.buckets.length; i < len; i++) {
+        const [, k, v] = n.buckets[i];
+        if (p(v, k)) return true;
+      }
+      return false;
+  }
+};
 
 export const lookup_ = <K, V>(H: Hashable<K>, m: Map<K, V>, k: K): Option<V> =>
   _lookup(H, m, k, _hash(H, k), 0);
@@ -196,10 +296,10 @@ export const unionWith_ = <K, V>(
   u: (v1: V, v2: V, k: K) => V,
 ): Map<K, V> => _union(E, m1, m2, u, 0);
 
-export const intersect_ = <K, V>(
+export const intersect_ = <K, V, V2>(
   E: Eq<K>,
   m1: Map<K, V>,
-  m2: Map<K, V>,
+  m2: Map<K, V2>,
 ): Map<K, V> => intersectWith_(E, m1, m2, v => v);
 
 export const intersectWith_ = <K, V1, V2, C>(
@@ -260,6 +360,15 @@ export const map_ = <K, V, B>(
       return new Leaf(n.buckets.map(([h, k, v]) => [h, k, f(v, k)]));
   }
 };
+
+export const tap_ = <K, V>(
+  m: Map<K, V>,
+  f: (v: V, k: K) => unknown,
+): Map<K, V> =>
+  map_(m, (k, v) => {
+    f(k, v);
+    return k;
+  });
 
 export const flatMap_ = <K, V, B>(
   E: Eq<K>,
@@ -353,6 +462,14 @@ export const traverse_ = <G, K, V, B>(
       );
     }
   }
+};
+
+export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
+  const entries = toArray(m)
+    .map(([k, v]) => `${SK.show(k)} => ${SV.show(v)}`)
+    .join(', ');
+
+  return entries === '' ? '[Map entries: {}]' : `[Map entries: { ${entries} }]`;
 };
 
 // -- Private implementation

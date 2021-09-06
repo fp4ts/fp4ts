@@ -1,4 +1,5 @@
 import { Option } from '../option';
+import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
@@ -8,7 +9,10 @@ import { Hashable, primitiveMD5Hashable } from '../../hashable';
 import { List } from '../list';
 import { Map } from './algebra';
 import {
+  all_,
+  any_,
   contains_,
+  count_,
   difference_,
   filter_,
   flatMap_,
@@ -27,8 +31,10 @@ import {
   map_,
   nonEmpty,
   remove_,
+  show_,
   size,
   symmetricDifference_,
+  tap_,
   toArray,
   toList,
   traverse_,
@@ -38,6 +44,7 @@ import {
   values,
 } from './operators';
 import { Kind } from '../../../fp/hkt';
+import { primitiveShow } from '../..';
 
 declare module './algebra' {
   interface Map<K, V> {
@@ -48,6 +55,11 @@ declare module './algebra' {
     readonly size: number;
     readonly toList: List<[K, V]>;
     readonly toArray: Array<[K, V]>;
+
+    count(p: (v: V, k: K) => boolean): number;
+
+    any(p: (v: V, k: K) => boolean): boolean;
+    all(p: (v: V, k: K) => boolean): boolean;
 
     contains<K2>(this: Map<K2, V>, H: Hashable<K2>, k: K2): boolean;
     contains<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): boolean;
@@ -170,6 +182,7 @@ declare module './algebra' {
     filter(p: (v: V, k: K) => boolean): Map<K, V>;
 
     map<B>(f: (v: V, k: K) => B): Map<K, B>;
+    tap(f: (v: V, k: K) => unknown): Map<K, V>;
 
     flatMap<K2>(
       this: Map<K2, V>,
@@ -196,6 +209,12 @@ declare module './algebra' {
     traverse<G>(
       G: Applicative<G>,
     ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>>;
+
+    show<K2 extends PrimitiveType, V2 extends PrimitiveType>(
+      this: Map<K2, V2>,
+    ): string;
+    show<K2 extends PrimitiveType, V2>(this: Map<K2, V2>, SV: Show<V2>): string;
+    show<K2, V2>(this: Map<K2, V2>, SK: Show<K2>, SV: Show<V2>): string;
   }
 }
 
@@ -240,6 +259,27 @@ Object.defineProperty(Map.prototype, 'toArray', {
     return toArray(this);
   },
 });
+
+Map.prototype.count = function <K, V>(
+  this: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): number {
+  return count_(this, p);
+};
+
+Map.prototype.all = function <K, V>(
+  this: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): boolean {
+  return all_(this, p);
+};
+
+Map.prototype.any = function <K, V>(
+  this: Map<K, V>,
+  p: (v: V, k: K) => boolean,
+): boolean {
+  return any_(this, p);
+};
 
 Map.prototype.contains = function (this: any, ...args: any[]): boolean {
   return args.length === 2
@@ -330,6 +370,13 @@ Map.prototype.map = function <K, V, B>(
   return map_(this, f);
 };
 
+Map.prototype.tap = function <K, V>(
+  this: Map<K, V>,
+  f: (v: V, k: K) => unknown,
+): Map<K, V> {
+  return tap_(this, f);
+};
+
 Map.prototype.flatMap = function (this: any, ...args: any[]): any {
   return typeof args === 'function'
     ? (f: any) => flatMap_(args[0], this, f)
@@ -377,4 +424,15 @@ Map.prototype.traverse = function <G, K, V>(
   G: Applicative<G>,
 ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>> {
   return f => traverse_(G, this, f);
+};
+
+Map.prototype.show = function (this: any, ...args: any[]): string {
+  switch (args.length) {
+    case 2:
+      return show_(args[0], args[1], this);
+    case 1:
+      return show_(primitiveShow(), args[0], this);
+    default:
+      return show_(primitiveShow(), primitiveShow(), this);
+  }
 };

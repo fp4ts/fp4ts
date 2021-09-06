@@ -14,3 +14,4 @@ export * from './traversable';
 
 export * from './semigroup';
 export * from './monoid';
+export * from './show';
