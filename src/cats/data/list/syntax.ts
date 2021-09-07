@@ -1,11 +1,11 @@
-import { Option } from '..';
 import { Kind } from '../../../fp/hkt';
-import { PrimitiveType } from '../../../fp/primitive-type';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
+import { Option } from '../option';
+import { Either } from '../either';
 
 import { List } from './algebra';
 import {
@@ -35,6 +35,7 @@ import {
   map_,
   nonEmpty,
   notEquals_,
+  partition_,
   prepend_,
   reverse,
   scanLeft1_,
@@ -108,6 +109,7 @@ declare module './algebra' {
     ) => List<C>;
     collect: <B>(f: (a: A) => Option<B>) => List<B>;
     collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
+    partition: <L, R>(f: (a: A) => Either<L, R>) => [List<L>, List<R>];
     scanLeft: <B>(z: B, f: (b: B, a: A) => B) => List<B>;
     scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
@@ -374,6 +376,13 @@ List.prototype.collectWhile = function <A, B>(
   f: (a: A) => Option<B>,
 ): List<B> {
   return collectWhile_(this, f);
+};
+
+List.prototype.partition = function <A, L, R>(
+  this: List<A>,
+  f: (a: A) => Either<L, R>,
+): [List<L>, List<R>] {
+  return partition_(this, f);
 };
 
 List.prototype.scanLeft = function <A, B>(

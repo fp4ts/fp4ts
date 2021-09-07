@@ -1,4 +1,5 @@
 import { id } from '../../../fp/core';
+import { Left, Right } from '../either';
 import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';
 import { List } from '../list';
@@ -716,6 +717,37 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs.collectWhile(Some).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('partition', () => {
+    it('should partition empty list to tuple of empty lists', () => {
+      expect(List.empty.partition(() => Left(null))).toEqual([
+        List.empty,
+        List.empty,
+      ]);
+    });
+
+    it('should return left partition', () => {
+      expect(List(1, 2, 3).partition(Left)).toEqual([
+        List(1, 2, 3),
+        List.empty,
+      ]);
+    });
+
+    it('should return right partition', () => {
+      expect(List(1, 2, 3).partition(Right)).toEqual([
+        List.empty,
+        List(1, 2, 3),
+      ]);
+    });
+
+    it('should make partition of odd and even numbers', () => {
+      expect(
+        List(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(x =>
+          x % 2 === 0 ? Right(x) : Left(x),
+        ),
+      ).toEqual([List(1, 3, 5, 7, 9), List(2, 4, 6, 8)]);
     });
   });
 

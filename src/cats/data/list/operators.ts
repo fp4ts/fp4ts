@@ -5,6 +5,7 @@ import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
+import { Either } from '../either';
 import { Option, None, Some } from '../option';
 
 import { List, view } from './algebra';
@@ -195,6 +196,10 @@ export const collect: <A, B>(
 export const collectWhile: <A, B>(
   f: (a: A) => Option<B>,
 ) => (xs: List<A>) => List<B> = f => xs => collectWhile_(xs, f);
+
+export const partition: <A, L, R>(
+  f: (a: A) => Either<L, R>,
+) => (xs: List<A>) => [List<L>, List<R>] = f => xs => partition_(xs, f);
 
 export const scanLeft: <A, B>(
   z: B,
@@ -468,6 +473,22 @@ export const collectWhile_ = <A, B>(
     xs = tail(xs);
   }
   return fromArray(rs);
+};
+
+export const partition_ = <A, L, R>(
+  xs: List<A>,
+  f: (a: A) => Either<L, R>,
+): [List<L>, List<R>] => {
+  const ls: L[] = [];
+  const rs: R[] = [];
+  while (nonEmpty(xs)) {
+    f(head(xs)).fold(
+      l => ls.push(l),
+      r => rs.push(r),
+    );
+    xs = tail(xs);
+  }
+  return [fromArray(ls), fromArray(rs)];
 };
 
 export const scanLeft_ = <A, B>(
