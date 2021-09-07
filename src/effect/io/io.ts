@@ -1,3 +1,13 @@
+import {
+  Applicative,
+  Apply,
+  Defer,
+  FlatMap,
+  Functor,
+  Monad,
+  MonadError,
+  Traversable,
+} from '../../cats';
 import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { IOOutcome } from '../io-outcome';
@@ -5,6 +15,12 @@ import { IOOutcome } from '../io-outcome';
 import * as Ref from '../kernel/ref';
 import * as D from '../kernel/deferred';
 import { Poll } from '../kernel/poll';
+import { MonadCancel } from '../kernel/monad-cancel';
+import { Sync } from '../kernel/sync';
+import { Spawn } from '../kernel/spawn';
+import { Concurrent } from '../kernel/concurrent';
+import { Temporal } from '../kernel/temporal';
+import { Async } from '../kernel/async';
 
 import { IO as IOBase, URI } from './algebra';
 import {
@@ -42,9 +58,24 @@ import {
   traverse_,
 } from './operators';
 import { bind, bindTo, Do } from './do';
-import { ioAsync, ioSync } from './instances';
+import {
+  ioAsync,
+  ioConcurrent,
+  ioDefer,
+  ioFlatMap,
+  ioFunctor,
+  ioMonad,
+  ioMonadCancel,
+  ioMonadError,
+  ioParallelApplicative,
+  ioParallelApply,
+  ioSequentialApplicative,
+  ioSequentialApply,
+  ioSpawn,
+  ioSync,
+  ioTemporal,
+} from './instances';
 import { Kind } from '../../fp/hkt';
-import { Traversable } from '../../cats';
 
 export { URI } from './algebra';
 
@@ -52,7 +83,7 @@ export type IO<A> = IOBase<A>;
 
 export const IO: IOObj = function <A>(thunk: () => A): IO<A> {
   return delay(thunk);
-};
+} as any;
 
 interface IOObj {
   <A>(thunk: () => A): IO<A>;
@@ -176,6 +207,24 @@ interface IOObj {
   bind: <S extends {}, B>(
     iob: IO<B> | ((s: S) => IO<B>),
   ) => (ios: IO<S>) => IO<S>;
+
+  // -- Instances
+
+  readonly Defer: Defer<URI>;
+  readonly Functor: Functor<URI>;
+  readonly ParallelApply: Apply<URI>;
+  readonly ParallelApplicative: Applicative<URI>;
+  readonly SequentialApply: Apply<URI>;
+  readonly SequentialApplicative: Applicative<URI>;
+  readonly FlatMap: FlatMap<URI>;
+  readonly Monad: Monad<URI>;
+  readonly MonadError: MonadError<URI, Error>;
+  readonly MonadCancel: MonadCancel<URI, Error>;
+  readonly Sync: Sync<URI>;
+  readonly Spawn: Spawn<URI, Error>;
+  readonly Concurrent: Concurrent<URI, Error>;
+  readonly Temporal: Temporal<URI, Error>;
+  readonly Async: Async<URI>;
 }
 
 IO.pure = pure;
@@ -204,9 +253,9 @@ IO.never = never;
 
 IO.canceled = canceled;
 
-IO.ref = x => Ref.of(ioSync())(x);
+IO.ref = x => Ref.of(IO.Sync)(x);
 
-IO.deferred = x => D.of(ioAsync())(x);
+IO.deferred = x => D.of(IO.Async)(x);
 
 IO.uncancelable = uncancelable;
 
@@ -239,3 +288,79 @@ IO.bracketFull = bracketFull;
 IO.Do = Do;
 IO.bindTo = bindTo;
 IO.bind = bind;
+
+Object.defineProperty(IO, 'Defer', {
+  get(): Defer<URI> {
+    return ioDefer();
+  },
+});
+Object.defineProperty(IO, 'Functor', {
+  get(): Functor<URI> {
+    return ioFunctor();
+  },
+});
+Object.defineProperty(IO, 'ParallelApply', {
+  get(): Apply<URI> {
+    return ioParallelApply();
+  },
+});
+Object.defineProperty(IO, 'ParallelApplicative', {
+  get(): Applicative<URI> {
+    return ioParallelApplicative();
+  },
+});
+Object.defineProperty(IO, 'SequentialApply', {
+  get(): Apply<URI> {
+    return ioSequentialApply();
+  },
+});
+Object.defineProperty(IO, 'SequentialApplicative', {
+  get(): Applicative<URI> {
+    return ioSequentialApplicative();
+  },
+});
+Object.defineProperty(IO, 'FlatMap', {
+  get(): FlatMap<URI> {
+    return ioFlatMap();
+  },
+});
+Object.defineProperty(IO, 'Monad', {
+  get(): Monad<URI> {
+    return ioMonad();
+  },
+});
+Object.defineProperty(IO, 'MonadError', {
+  get(): MonadError<URI, Error> {
+    return ioMonadError();
+  },
+});
+Object.defineProperty(IO, 'MonadCancel', {
+  get(): MonadCancel<URI, Error> {
+    return ioMonadCancel();
+  },
+});
+Object.defineProperty(IO, 'Sync', {
+  get(): Sync<URI> {
+    return ioSync();
+  },
+});
+Object.defineProperty(IO, 'Spawn', {
+  get(): Spawn<URI, Error> {
+    return ioSpawn();
+  },
+});
+Object.defineProperty(IO, 'Concurrent', {
+  get(): Concurrent<URI, Error> {
+    return ioConcurrent();
+  },
+});
+Object.defineProperty(IO, 'Temporal', {
+  get(): Temporal<URI, Error> {
+    return ioTemporal();
+  },
+});
+Object.defineProperty(IO, 'Async', {
+  get(): Async<URI> {
+    return ioAsync();
+  },
+});

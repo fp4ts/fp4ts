@@ -1,13 +1,10 @@
 import '../test-kit/jest';
 import { id, pipe } from '../../fp/core';
-import { Either, Left, Right, Some } from '../../cats/data';
+import { Either, Left, Right, Some, List } from '../../cats/data';
 
 import { IO } from '../io';
 import * as O from '../kernel/outcome';
 import { Semaphore } from '../kernel/semaphore';
-import { ioAsync } from '../io/instances';
-import { List } from '../../cats/data';
-import { listTraversable } from '../../cats/data/list/instances';
 
 const throwError = (e: Error) => {
   throw e;
@@ -924,7 +921,7 @@ describe('io monad', () => {
       const io = pipe(
         List(1, 2, 3),
         IO.parTraverseN(
-          listTraversable(),
+          List.Traversable,
           2,
         )(x => (x === 2 ? throwError(new Error('test error')) : IO.unit)),
       );
@@ -935,7 +932,7 @@ describe('io monad', () => {
     it.ticked('should be cancelable', async ticker => {
       const traverse = pipe(
         List(1, 2, 3),
-        IO.parTraverseN(listTraversable(), 2)(() => IO.never),
+        IO.parTraverseN(List.Traversable, 2)(() => IO.never),
       );
 
       const io = pipe(
@@ -952,10 +949,7 @@ describe('io monad', () => {
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(
-          listTraversable(),
-          2,
-        )(fin => IO.never.onCancel(IO(fin))),
+        IO.parTraverseN(List.Traversable, 2)(fin => IO.never.onCancel(IO(fin))),
       );
 
       const io = pipe(
@@ -983,7 +977,7 @@ describe('io monad', () => {
           IO(cont),
         );
 
-        const io = pipe(ts, IO.parTraverseN(listTraversable(), 2)(id));
+        const io = pipe(ts, IO.parTraverseN(List.Traversable, 2)(id));
 
         await expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();
@@ -998,7 +992,7 @@ describe('io monad', () => {
 
         const io = pipe(
           IO.Do,
-          IO.bindTo('sem', Semaphore.withPermits(ioAsync())(1)),
+          IO.bindTo('sem', Semaphore.withPermits(IO.Async)(1)),
           IO.bindTo('f1', ({ sem }) => sem.withPermit(IO.never).fork),
           IO.bindTo('f2', ({ sem }) => sem.withPermit(IO.never).fork),
           IO.bind(IO(() => ticker.tickAll())),
