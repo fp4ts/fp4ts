@@ -5,6 +5,7 @@ import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
+import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 import { URI } from './list';
@@ -74,6 +75,11 @@ export const listFlatMap: Lazy<FlatMap<URI>> = () => ({
   flatMap: flatMap,
   flatten: flatten,
   flatTap: tap,
+});
+
+export const listMonad: Lazy<Monad<URI>> = () => ({
+  ...listApplicative(),
+  ...listFlatMap(),
 });
 
 export const listFoldable: Lazy<Foldable<URI>> = () => ({

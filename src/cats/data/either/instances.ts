@@ -5,7 +5,7 @@ import { Functor2C, Functor2 } from '../../functor';
 import { FlatMap2C, FlatMap2 } from '../../flat-map';
 import { Monad2C, Monad2 } from '../../monad';
 
-import { URI } from './algebra';
+import { URI } from './either';
 import {
   flatMap,
   flatMap_,

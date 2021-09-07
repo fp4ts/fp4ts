@@ -29,18 +29,3 @@ export class Left<E> extends Either<E, never> {
 type View<E, A> = Left<E> | Right<A>;
 
 export const view = <E, A>(_: Either<E, A>): View<E, A> => _ as any;
-
-// HKT
-
-export const URI = 'cats/data/either';
-export type URI = typeof URI;
-
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Either<unknown, A>;
-  }
-
-  interface URItoKind2<E, A> {
-    [URI]: Either<E, A>;
-  }
-}

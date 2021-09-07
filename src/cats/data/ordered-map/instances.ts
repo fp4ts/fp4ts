@@ -1,6 +1,7 @@
 import { Lazy } from '../../../fp/core';
 import { Functor2C, Functor2 } from '../../functor';
 import { Foldable2, Foldable2C } from '../../foldable';
+import { Traversable2C, Traversable2 } from '../../traversable';
 
 import { URI } from './ordered-map';
 import {
@@ -18,7 +19,6 @@ import {
   tap,
   traverse,
 } from './operators';
-import { Traversable2C } from '../..';
 
 export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () => ({
   URI: URI,
@@ -58,9 +58,17 @@ export const orderedMapFoldable2: Lazy<Foldable2<URI>> = () => ({
   size: size,
 });
 
-export const orderedTraversable2C: <K>() => Traversable2C<URI, K> = () => ({
+export const orderedMapTraversable2C: <K>() => Traversable2C<URI, K> = () => ({
   ...orderedMapFunctor2C(),
   ...orderedMapFoldable2C(),
+
+  traverse: traverse,
+  sequence: sequence,
+});
+
+export const orderedMapTraversable2: Lazy<Traversable2<URI>> = () => ({
+  ...orderedMapFunctor2(),
+  ...orderedMapFoldable2(),
 
   traverse: traverse,
   sequence: sequence,

@@ -1,10 +1,8 @@
 import { List } from '../list';
-import { Some, None } from '../option';
+import { Option, Some, None } from '../option';
 import { primitiveMD5Hashable } from '../../hashable';
 import { Map } from '../map';
-import { listMonoidK } from '../list/instances';
 import { arrayMonoidK } from '../array/instances';
-import { optionApplicative } from '../option/instances';
 
 describe('Map', () => {
   const H = primitiveMD5Hashable();
@@ -528,7 +526,7 @@ describe('Map', () => {
 
   describe('foldMap', () => {
     it('should fold empty map into list', () => {
-      expect(Map.empty.foldMap(listMonoidK().algebra())(x => List(x))).toEqual(
+      expect(Map.empty.foldMap(List.MonoidK.algebra())(x => List(x))).toEqual(
         List.empty,
       );
     });
@@ -542,7 +540,7 @@ describe('Map', () => {
 
   describe('foldMapK', () => {
     it('should fold empty map into list', () => {
-      expect(Map.empty.foldMapK(listMonoidK())(x => List(x))).toEqual(
+      expect(Map.empty.foldMapK(List.MonoidK)(x => List(x))).toEqual(
         List.empty,
       );
     });
@@ -557,7 +555,7 @@ describe('Map', () => {
   describe('traverse', () => {
     it('should produce some when map contains only even values', () => {
       expect(
-        Map([1, 2], [3, 4]).traverse(optionApplicative())(v =>
+        Map([1, 2], [3, 4]).traverse(Option.Applicative)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(Some(Map([1, 2], [3, 4])));
@@ -565,7 +563,7 @@ describe('Map', () => {
 
     it('should produce none when contains odd values', () => {
       expect(
-        Map([1, 2], [3, 5]).traverse(optionApplicative())(v =>
+        Map([1, 2], [3, 5]).traverse(Option.Applicative)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(None);

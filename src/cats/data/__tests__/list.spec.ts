@@ -2,7 +2,6 @@ import { id } from '../../../fp/core';
 import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';
 import { List } from '../list';
-import { listMonoidK } from '../list/instances';
 import { primitiveEq } from '../../eq';
 
 describe('List', () => {
@@ -490,19 +489,19 @@ describe('List', () => {
   describe('foldMap', () => {
     it('should produce an empty list out of empty list', () => {
       expect(
-        List.empty.foldMap(listMonoidK().algebra())(x => List(x, x)),
+        List.empty.foldMap(List.MonoidK.algebra())(x => List(x, x)),
       ).toEqual(List.empty);
     });
 
     it('should produce double the number of elements', () => {
       expect(
-        List(1, 2, 3).foldMap(listMonoidK().algebra())(x => List(x, x)),
+        List(1, 2, 3).foldMap(List.MonoidK.algebra())(x => List(x, x)),
       ).toEqual(List(1, 1, 2, 2, 3, 3));
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldMap(listMonoidK().algebra())(x => List(x)).toArray).toEqual(
+      expect(xs.foldMap(List.MonoidK.algebra())(x => List(x)).toArray).toEqual(
         xs.toArray,
       );
     });
@@ -510,20 +509,20 @@ describe('List', () => {
 
   describe('foldMapK', () => {
     it('should produce an empty list out of empty list', () => {
-      expect(List.empty.foldMapK(listMonoidK())(x => List(x, x))).toEqual(
+      expect(List.empty.foldMapK(List.MonoidK)(x => List(x, x))).toEqual(
         List.empty,
       );
     });
 
     it('should produce double the number of elements', () => {
-      expect(List(1, 2, 3).foldMapK(listMonoidK())(x => List(x, x))).toEqual(
+      expect(List(1, 2, 3).foldMapK(List.MonoidK)(x => List(x, x))).toEqual(
         List(1, 1, 2, 2, 3, 3),
       );
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldMapK(listMonoidK())(x => List(x)).toArray).toEqual(
+      expect(xs.foldMapK(List.MonoidK)(x => List(x)).toArray).toEqual(
         xs.toArray,
       );
     });

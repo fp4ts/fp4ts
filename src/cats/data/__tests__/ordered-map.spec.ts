@@ -1,11 +1,9 @@
+import { id } from '../../../fp/core';
 import { List } from '../list';
-import { Some, None } from '../option';
+import { Option, Some, None } from '../option';
 import { primitiveOrd } from '../../ord';
 import { OrderedMap } from '../ordered-map';
-import { listMonoidK } from '../list/instances';
 import { arrayMonoidK } from '../array/instances';
-import { optionApplicative } from '../option/instances';
-import { id } from '../../../fp/core';
 
 describe('OrderedMap', () => {
   describe('types', () => {
@@ -634,7 +632,7 @@ describe('OrderedMap', () => {
   describe('foldMap', () => {
     it('should fold empty map into list', () => {
       expect(
-        OrderedMap.empty.foldMap(listMonoidK().algebra())(x => List(x)),
+        OrderedMap.empty.foldMap(List.MonoidK.algebra())(x => List(x)),
       ).toEqual(List.empty);
     });
 
@@ -647,7 +645,7 @@ describe('OrderedMap', () => {
 
   describe('foldMapK', () => {
     it('should fold empty map into list', () => {
-      expect(OrderedMap.empty.foldMapK(listMonoidK())(x => List(x))).toEqual(
+      expect(OrderedMap.empty.foldMapK(List.MonoidK)(x => List(x))).toEqual(
         List.empty,
       );
     });
@@ -662,7 +660,7 @@ describe('OrderedMap', () => {
   describe('traverse', () => {
     it('should produce some when map contains only even values', () => {
       expect(
-        OrderedMap([1, 2], [3, 4]).traverse(optionApplicative())(v =>
+        OrderedMap([1, 2], [3, 4]).traverse(Option.Applicative)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(Some(OrderedMap([1, 2], [3, 4])));
@@ -670,7 +668,7 @@ describe('OrderedMap', () => {
 
     it('should produce none when contains odd values', () => {
       expect(
-        OrderedMap([1, 2], [3, 5]).traverse(optionApplicative())(v =>
+        OrderedMap([1, 2], [3, 5]).traverse(Option.Applicative)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(None);

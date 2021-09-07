@@ -1,15 +1,27 @@
+import { PrimitiveType } from '../../../fp/primitive-type';
+import { Foldable2, Foldable2C } from '../../foldable';
+import { Functor2, Functor2C } from '../../functor';
+import { Traversable2, Traversable2C } from '../../traversable';
 import { List } from '../list';
 import { Hashable, primitiveMD5Hashable } from '../../hashable';
 
 import { Empty, Map as MapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
-import { PrimitiveType } from '../../../fp/primitive-type';
+import {
+  mapFoldable2,
+  mapFoldable2C,
+  mapFunctor2,
+  mapFunctor2C,
+  mapTraversable2,
+  mapTraversable2C,
+} from './instances';
 
 export const Map: MapObj = function <K extends PrimitiveType, V>(
   ...pairs: [K, V][]
 ): Map<K, V> {
   return of<K>(primitiveMD5Hashable())(...pairs);
-};
+} as any;
+
 export type Map<K, V> = MapBase<K, V>;
 
 export interface MapObj {
@@ -28,12 +40,41 @@ export interface MapObj {
   fromList: <K2>(
     H: Hashable<K2>,
   ) => <K extends K2, V>(xs: List<[K, V]>) => Map<K2, V>;
+
+  // -- Instances
+
+  Functor2C: <K>() => Functor2C<URI, K>;
+  Foldable2C: <K>() => Foldable2C<URI, K>;
+  Traversable2C: <K>() => Traversable2C<URI, K>;
+  readonly Functor2: Functor2<URI>;
+  readonly Foldable2: Foldable2<URI>;
+  readonly Traversable2: Traversable2<URI>;
 }
 
 Map.empty = Empty;
 Map.of = of;
 Map.fromArray = fromArray;
 Map.fromList = fromList;
+
+Map.Functor2C = mapFunctor2C;
+Map.Foldable2C = mapFoldable2C;
+Map.Traversable2C = mapTraversable2C;
+
+Object.defineProperty(Map, 'Functor2', {
+  get(): Functor2<URI> {
+    return mapFunctor2();
+  },
+});
+Object.defineProperty(Map, 'Foldable2', {
+  get(): Foldable2<URI> {
+    return mapFoldable2();
+  },
+});
+Object.defineProperty(Map, 'Traversable2', {
+  get(): Traversable2<URI> {
+    return mapTraversable2();
+  },
+});
 
 // HKT
 
