@@ -1,0 +1,27 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export abstract class OrderedMap<K, V> {
+  // @ts-ignore
+  private readonly __void: void;
+}
+
+export class Bin<K, V> extends OrderedMap<K, V> {
+  public readonly tag = 'bin';
+  public constructor(
+    public readonly key: K,
+    public readonly value: V,
+    public readonly height: number,
+    public readonly lhs: OrderedMap<K, V>,
+    public readonly rhs: OrderedMap<K, V>,
+  ) {
+    super();
+  }
+}
+
+export const Empty = new (class Empty extends OrderedMap<never, never> {
+  public readonly tag = 'empty';
+})();
+export type Empty = typeof Empty;
+
+export type Node<K, V> = Bin<K, V> | Empty;
+
+export const toNode = <K, V>(_: OrderedMap<K, V>): Node<K, V> => _ as any;

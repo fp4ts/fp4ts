@@ -97,16 +97,6 @@ describe('Map', () => {
     });
   });
 
-  describe('count', () => {
-    it('should return zero when map is empty', () => {
-      expect(Map.empty.count(() => true)).toBe(0);
-    });
-
-    it('should count even numbers', () => {
-      expect(Map([1, 2], [2, 3]).count(v => v % 2 === 0)).toBe(1);
-    });
-  });
-
   describe('all', () => {
     it('should return true when empty', () => {
       expect(Map.empty.all(() => false)).toBe(true);
@@ -447,16 +437,6 @@ describe('Map', () => {
           [3, 3],
         ]),
       );
-    });
-  });
-
-  describe('map', () => {
-    it('should return empty map when empty initially', () => {
-      expect(Map.empty.map(x => x * 2)).toEqual(Map.empty);
-    });
-
-    it('should double all values', () => {
-      expect(Map([1, 2], [3, 4]).map(x => x * 2)).toEqual(Map([1, 4], [3, 8]));
     });
   });
 

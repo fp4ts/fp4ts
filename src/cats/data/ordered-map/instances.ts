@@ -1,9 +1,8 @@
 import { Lazy } from '../../../fp/core';
 import { Functor2C, Functor2 } from '../../functor';
-import { Foldable2C, Foldable2 } from '../../foldable';
-import { Traversable2, Traversable2C } from '../../traversable';
+import { Foldable2, Foldable2C } from '../../foldable';
 
-import { URI } from './map';
+import { URI } from './ordered-map';
 import {
   all,
   any,
@@ -19,20 +18,21 @@ import {
   tap,
   traverse,
 } from './operators';
+import { Traversable2C } from '../..';
 
-export const mapFunctor2C: <K>() => Functor2C<URI, K> = () => ({
+export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () => ({
   URI: URI,
   map: map,
   tap: tap,
 });
 
-export const mapFunctor2: Lazy<Functor2<URI>> = () => ({
+export const orderedMapFunctor2: Lazy<Functor2<URI>> = () => ({
   URI: URI,
   map: map,
   tap: tap,
 });
 
-export const mapFoldable2C: <K>() => Foldable2C<URI, K> = () => ({
+export const orderedMapFoldable2C: <K>() => Foldable2C<URI, K> = () => ({
   URI: URI,
   foldLeft: foldLeft,
   foldRight: foldRight,
@@ -45,7 +45,7 @@ export const mapFoldable2C: <K>() => Foldable2C<URI, K> = () => ({
   size: size,
 });
 
-export const mapFoldable2: Lazy<Foldable2<URI>> = () => ({
+export const orderedMapFoldable2: Lazy<Foldable2<URI>> = () => ({
   URI: URI,
   foldLeft: foldLeft,
   foldRight: foldRight,
@@ -58,17 +58,9 @@ export const mapFoldable2: Lazy<Foldable2<URI>> = () => ({
   size: size,
 });
 
-export const mapTraversable2C: <E>() => Traversable2C<URI, E> = () => ({
-  ...mapFunctor2C(),
-  ...mapFoldable2C(),
-
-  traverse: traverse,
-  sequence: sequence,
-});
-
-export const mapTraversable2: Lazy<Traversable2<URI>> = () => ({
-  ...mapFunctor2(),
-  ...mapFoldable2(),
+export const orderedTraversable2C: <K>() => Traversable2C<URI, K> = () => ({
+  ...orderedMapFunctor2C(),
+  ...orderedMapFoldable2C(),
 
   traverse: traverse,
   sequence: sequence,

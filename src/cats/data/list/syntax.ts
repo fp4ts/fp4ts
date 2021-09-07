@@ -3,7 +3,7 @@ import { Kind } from '../../../fp/hkt';
 import { PrimitiveType } from '../../../fp/primitive-type';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
-import { Show } from '../../show';
+import { Show, primitiveShow } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 
@@ -56,7 +56,6 @@ import {
   zipWith_,
   zip_,
 } from './operators';
-import { primitiveShow } from '../..';
 
 declare module './algebra' {
   interface List<A> {
@@ -81,14 +80,14 @@ declare module './algebra' {
     drop: (n: number) => List<A>;
     slice: (from: number, until: number) => List<A>;
     filter: (p: (a: A) => boolean) => List<A>;
-    map: <B>(f: (a: A) => B) => List<A>;
-    flatMap: <B>(f: (a: A) => List<B>) => List<A>;
+    map: <B>(f: (a: A) => B) => List<B>;
+    flatMap: <B>(f: (a: A) => List<B>) => List<B>;
     readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
     foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
     foldLeft1: <B = A>(f: (x: B, a: B) => B) => B;
     foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
-    foldRight1: <B = A>(f: (x: B, a: B) => B) => B;
+    foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
     foldMapK: <F>(F: MonoidK<F>) => <B>(f: (a: A) => Kind<F, B>) => Kind<F, B>;
     zip: <B>(ys: List<B>) => List<[A, B]>;

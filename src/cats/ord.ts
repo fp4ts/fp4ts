@@ -2,7 +2,7 @@ import { Lazy } from '../fp/core';
 import { PrimitiveType } from '../fp/primitive-type';
 import { Eq, primitiveEq } from './eq';
 
-enum Compare {
+export enum Compare {
   LT,
   GT,
   EQ,
