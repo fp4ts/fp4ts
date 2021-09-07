@@ -1,3 +1,4 @@
+import { Kind } from '../../../fp/hkt';
 import { Option } from '../option';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
@@ -43,8 +44,6 @@ import {
   update_,
   values,
 } from './operators';
-import { Kind } from '../../../fp/hkt';
-import { primitiveShow } from '../..';
 
 declare module './algebra' {
   interface Map<K, V> {
@@ -210,11 +209,9 @@ declare module './algebra' {
       G: Applicative<G>,
     ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>>;
 
-    show<K2 extends PrimitiveType, V2 extends PrimitiveType>(
-      this: Map<K2, V2>,
-    ): string;
-    show<K2 extends PrimitiveType, V2>(this: Map<K2, V2>, SV: Show<V2>): string;
-    show<K2, V2>(this: Map<K2, V2>, SK: Show<K2>, SV: Show<V2>): string;
+    show(this: Map<K, V>): string;
+    show<K2 extends PrimitiveType>(this: Map<K2, V>, SV?: Show<V>): string;
+    show(this: Map<K, V>, SK: Show<K>, SV: Show<V>): string;
   }
 }
 
@@ -431,8 +428,8 @@ Map.prototype.show = function (this: any, ...args: any[]): string {
     case 2:
       return show_(args[0], args[1], this);
     case 1:
-      return show_(primitiveShow(), args[0], this);
+      return show_(Show.fromToString(), args[0], this);
     default:
-      return show_(primitiveShow(), primitiveShow(), this);
+      return show_(Show.fromToString(), Show.fromToString(), this);
   }
 };

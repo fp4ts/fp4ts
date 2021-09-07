@@ -3,7 +3,7 @@ import { Kind } from '../../../fp/hkt';
 import { PrimitiveType } from '../../../fp/primitive-type';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
-import { Show, primitiveShow } from '../../show';
+import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 
@@ -125,8 +125,7 @@ declare module './algebra' {
       ? <G>(G: Applicative<G>) => Kind<G, List<B>>
       : never | unknown;
 
-    show<A2 extends PrimitiveType>(this: List<A2>): string;
-    show<A2>(this: List<A2>, S: Show<A2>): string;
+    show(this: List<A>, S?: Show<A>): string;
   }
 }
 
@@ -434,8 +433,9 @@ List.prototype.flatSequence = function <A, G>(
   return flatSequence(G)(this);
 };
 
-List.prototype.show = function (this: any, ...args: any[]): string {
-  return args.length === 1
-    ? show_(args[0], this)
-    : show_(primitiveShow(), this);
+List.prototype.show = function <A>(
+  this: List<A>,
+  S: Show<A> = Show.fromToString(),
+): string {
+  return show_(S, this);
 };

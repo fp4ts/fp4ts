@@ -4,7 +4,7 @@ import { PrimitiveType } from '../../../fp/primitive-type';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Ord, primitiveOrd } from '../../ord';
-import { Show, primitiveShow } from '../../show';
+import { Show } from '../../show';
 import { Applicative } from '../../applicative';
 
 import { Option } from '../option';
@@ -234,14 +234,12 @@ declare module './algebra' {
       G: Applicative<G>,
     ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, OrderedMap<K, B>>;
 
-    show<K2 extends PrimitiveType, V2 extends PrimitiveType>(
-      this: OrderedMap<K2, V2>,
+    show(this: OrderedMap<K, V>): string;
+    show<K2 extends PrimitiveType>(
+      this: OrderedMap<K2, V>,
+      SV: Show<V>,
     ): string;
-    show<K2 extends PrimitiveType, V2>(
-      this: OrderedMap<K2, V2>,
-      SV: Show<V2>,
-    ): string;
-    show<K2, V2>(this: OrderedMap<K2, V2>, SK: Show<K2>, SV: Show<V2>): string;
+    show(this: OrderedMap<K, V>, SK: Show<K>, SV: Show<V>): string;
   }
 }
 
@@ -491,8 +489,8 @@ OrderedMap.prototype.show = function (this: any, ...args: any[]): string {
     case 2:
       return show_(args[0], args[1], this);
     case 1:
-      return show_(primitiveShow(), args[0], this);
+      return show_(Show.fromToString(), args[0], this);
     default:
-      return show_(primitiveShow(), primitiveShow(), this);
+      return show_(Show.fromToString(), Show.fromToString(), this);
   }
 };

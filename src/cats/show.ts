@@ -1,13 +1,12 @@
-import { Lazy } from '../fp/core';
-import { PrimitiveType } from '../fp/primitive-type';
-
 export interface Show<A> {
   readonly show: (a: A) => string;
 }
 
-export const primitiveShow: Lazy<Show<PrimitiveType>> = () => ({
-  show: x => `${x}`,
-});
+export const Show = {
+  fromToString: <A>(): Show<A> => ({
+    show: x => `${x}`,
+  }),
+};
 
 // HKT
 
