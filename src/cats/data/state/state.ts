@@ -5,7 +5,15 @@ import { Functor2C, Functor2 } from '../../functor';
 import { Monad2C, Monad2 } from '../../monad';
 
 import { State as StateBase } from './algebra';
-import { get, pure, set, modify, update, updateAndGet } from './constructors';
+import {
+  get,
+  pure,
+  set,
+  modify,
+  update,
+  updateAndGet,
+  unit,
+} from './constructors';
 import {
   stateApplicative2,
   stateApplicative2C,
@@ -25,6 +33,7 @@ export const State: StateObj = {
   pure: pure,
   get: get,
   set: set,
+  unit: unit,
 
   update: update,
   updateAndGet: updateAndGet,
@@ -49,6 +58,7 @@ export const State: StateObj = {
 
 export interface StateObj {
   pure<S, A>(a: A): State<S, A>;
+  unit<S>(): State<S, void>;
   get<S>(): State<S, S>;
   set<S>(s: S): State<S, void>;
 

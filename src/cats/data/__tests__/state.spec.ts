@@ -52,6 +52,16 @@ describe('State', () => {
           .runState(42),
       ).toEqual([43, '84']);
     });
+
+    it('should be stack safe', () => {
+      const size = 10_000;
+      const loop = (i: number): State<number, void> =>
+        i < size
+          ? State.update<number>(j => j + 1).get.flatMap(loop)
+          : State.unit();
+
+      expect(loop(0).runState(0)).toEqual([10_000, undefined]);
+    });
   });
 
   describe('monad', () => {

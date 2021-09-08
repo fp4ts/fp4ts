@@ -49,33 +49,33 @@ declare module './algebra' {
 
 Object.defineProperty(State.prototype, 'get', {
   get<S, A>(this: State<S, A>): State<S, S> {
-    return get();
+    return flatMap_(this, () => get());
   },
 });
 
 State.prototype.set = function <S, A>(this: State<S, A>, s: S): State<S, void> {
-  return set(s);
+  return flatMap_(this, () => set(s));
 };
 
 State.prototype.update = function <S, A>(
   this: State<S, A>,
   f: (s: S) => S,
 ): State<S, void> {
-  return update(f);
+  return flatMap_(this, () => update(f));
 };
 
 State.prototype.updateAndGet = function <S, A>(
   this: State<S, A>,
   f: (s: S) => S,
 ): State<S, S> {
-  return updateAndGet(f);
+  return flatMap_(this, () => updateAndGet(f));
 };
 
 State.prototype.modify = function <S, A, B>(
   this: State<S, A>,
   f: (s: S) => [S, B],
 ): State<S, B> {
-  return modify(f);
+  return flatMap_(this, () => modify(f));
 };
 
 State.prototype.mapState = function <S, A, B>(
