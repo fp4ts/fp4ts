@@ -42,7 +42,7 @@ interface ListObj {
 
   readonly SemigroupK: SemigroupK<URI>;
   readonly MonoidK: MonoidK<URI>;
-  readonly FunctorK: Functor<URI>;
+  readonly Functor: Functor<URI>;
   readonly Apply: Apply<URI>;
   readonly Applicative: Applicative<URI>;
   readonly Alternative: Alternative<URI>;
@@ -67,7 +67,7 @@ Object.defineProperty(List, 'MonoidK', {
     return listMonoidK();
   },
 });
-Object.defineProperty(List, 'FunctorK', {
+Object.defineProperty(List, 'Functor', {
   get(): Functor<URI> {
     return listFunctor();
   },

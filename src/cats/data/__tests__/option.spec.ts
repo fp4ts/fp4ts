@@ -100,4 +100,26 @@ describe('Option', () => {
       expect(Some(None).flatten).toEqual(None);
     });
   });
+
+  describe('monad', () => {
+    it('should a pure value', () => {
+      expect(Option.pure(42)).toEqual(Some(42));
+    });
+
+    test('lest identity', () => {
+      const h = (x: number): Option<number> => Option(x * 2);
+      expect(Option.pure(42).flatMap(h)).toEqual(h(42));
+    });
+
+    test('right identity', () => {
+      expect(Option(42).flatMap(Option.pure)).toEqual(Option(42));
+    });
+
+    test('associativity', () => {
+      const h = (n: number): Option<number> => Option(n * 2);
+      const g = (n: number): Option<number> => Option(n);
+      const m = Option(42);
+      expect(m.flatMap(h).flatMap(g)).toEqual(m.flatMap(x => h(x).flatMap(g)));
+    });
+  });
 });

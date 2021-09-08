@@ -9,7 +9,7 @@ import { Monad } from '../../monad';
 
 import { Either } from '../either';
 import { Option as OptionBase } from './algebra';
-import { fromEither, fromNullable, none, some } from './constructors';
+import { fromEither, fromNullable, none, pure, some } from './constructors';
 import {
   optionAlternative,
   optionApplicative,
@@ -36,6 +36,7 @@ export const None = none;
 
 export interface OptionObj {
   <A>(x: A | null | undefined): Option<A>;
+  pure: <A>(x: A) => Option<A>;
   some: <A>(x: A) => Option<A>;
   none: Option<never>;
   fromEither: <A>(ea: Either<unknown, A>) => Option<A>;
@@ -53,6 +54,7 @@ export interface OptionObj {
   readonly Monad: Monad<URI>;
 }
 
+Option.pure = pure;
 Option.some = some;
 Option.none = none;
 Option.fromEither = fromEither;
