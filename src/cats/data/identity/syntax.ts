@@ -1,7 +1,7 @@
-import { Identity } from './identity';
+import { Identity } from './algebra';
 import { flatMap_, flatTap_, flatten, map_, tap_ } from './operators';
 
-declare module './identity' {
+declare module './algebra' {
   interface Identity<A> {
     map<B>(f: (a: A) => B): Identity<B>;
     tap(f: (a: A) => unknown): Identity<A>;

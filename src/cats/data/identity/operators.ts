@@ -1,5 +1,6 @@
 import { id } from '../../../fp/core';
-import { Identity } from './identity';
+import { pure } from './constructors';
+import { Identity } from './algebra';
 
 export const map: <A, B>(f: (a: A) => B) => (fa: Identity<A>) => Identity<B> =
   f => fa =>
@@ -23,7 +24,7 @@ export const flatten: <A>(ffa: Identity<Identity<A>>) => Identity<A> = ffa =>
 // -- Point-ful operators
 
 export const map_ = <A, B>(fa: Identity<A>, f: (a: A) => B): Identity<B> =>
-  new Identity(f(fa.get));
+  pure(f(fa.get));
 
 export const tap_ = <A>(fa: Identity<A>, f: (a: A) => unknown): Identity<A> => {
   f(fa.get);

@@ -4,6 +4,7 @@ import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
 
+import { Identity as IdentityBase } from './algebra';
 import { pure } from './constructors';
 import {
   identityApplicative,
@@ -13,41 +14,58 @@ import {
   identityMonad,
 } from './instances';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Identity<A> {
-  // @ts-ignore
-  private readonly __void: void;
+export type Identity<A> = IdentityBase<A>;
 
-  public constructor(public readonly get: A) {}
+export const Identity: IdentityObj = function <A>(a: A): Identity<A> {
+  return pure(a);
+} as any;
 
-  public static pure<A>(a: A): Identity<A> {
-    return pure(a);
-  }
+interface IdentityObj {
+  <A>(a: A): Identity<A>;
+  pure<A>(a: A): Identity<A>;
+  unit: Identity<void>;
 
-  public static readonly unit: Identity<void> = pure(undefined);
-
-  // -- Instances
-
-  public static get Functor(): Functor<URI> {
-    return identityFunctor();
-  }
-
-  public static get Apply(): Apply<URI> {
-    return identityApply();
-  }
-
-  public static get Applicative(): Applicative<URI> {
-    return identityApplicative();
-  }
-
-  public static get FlatMap(): FlatMap<URI> {
-    return identityFlatMap();
-  }
-
-  public static get Monad(): Monad<URI> {
-    return identityMonad();
-  }
+  readonly Functor: Functor<URI>;
+  readonly Apply: Apply<URI>;
+  readonly Applicative: Applicative<URI>;
+  readonly FlatMap: FlatMap<URI>;
+  readonly Monad: Monad<URI>;
 }
+
+Identity.pure = pure;
+Identity.unit = pure(undefined);
+
+// -- Instances
+
+Object.defineProperty(Identity, 'Functor', {
+  get(): Functor<URI> {
+    return identityFunctor();
+  },
+});
+
+Object.defineProperty(Identity, 'Apply', {
+  get(): Apply<URI> {
+    return identityApply();
+  },
+});
+
+Object.defineProperty(Identity, 'Applicative', {
+  get(): Applicative<URI> {
+    return identityApplicative();
+  },
+});
+
+Object.defineProperty(Identity, 'FlatMap', {
+  get(): FlatMap<URI> {
+    return identityFlatMap();
+  },
+});
+
+Object.defineProperty(Identity, 'Monad', {
+  get(): Monad<URI> {
+    return identityMonad();
+  },
+});
 
 // HKT
 
