@@ -8,7 +8,7 @@ export abstract class List<A> {
 
 export class Cons<A> extends List<A> {
   public readonly tag = 'cons';
-  public constructor(public readonly _head: A, public readonly _tail: List<A>) {
+  public constructor(public readonly _head: A, public _tail: List<A>) {
     super();
   }
 

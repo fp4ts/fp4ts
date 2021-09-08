@@ -265,6 +265,33 @@ describe('List', () => {
     });
   });
 
+  describe('takeRight', () => {
+    it('should return an empty list when list is list is empty', () => {
+      expect(List.empty.takeRight(1)).toEqual(List.empty);
+    });
+
+    it('should return an empty list when 0 elements are taken', () => {
+      expect(List(1, 2, 3).takeRight(0)).toEqual(List.empty);
+    });
+
+    it('should return 2 elements list if 2 element are taken', () => {
+      expect(List(1, 2, 3).takeRight(2)).toEqual(List(2, 3));
+    });
+
+    it('should return entire list if entire list is taken', () => {
+      expect(List(1, 2, 3).takeRight(3)).toEqual(List(1, 2, 3));
+    });
+
+    it('should return entire list if more than size of the list is taken', () => {
+      expect(List(1, 2, 3).takeRight(1000)).toEqual(List(1, 2, 3));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.takeRight(10_000).toArray).toEqual(xs.toArray);
+    });
+  });
+
   describe('drop', () => {
     it('should return an empty list when list is list is empty', () => {
       expect(List.empty.drop(1)).toEqual(List.empty);
@@ -292,6 +319,33 @@ describe('List', () => {
     });
   });
 
+  describe('dropRight', () => {
+    it('should return an empty list when list is list is empty', () => {
+      expect(List.empty.dropRight(1)).toEqual(List.empty);
+    });
+
+    it('should return an entire list when 0 elements are dropped', () => {
+      expect(List(1, 2, 3).dropRight(0)).toEqual(List(1, 2, 3));
+    });
+
+    it('should drop a single element from list', () => {
+      expect(List(1, 2, 3).dropRight(1)).toEqual(List(1, 2));
+    });
+
+    it('should return drop the entire length of the list', () => {
+      expect(List(1, 2, 3).dropRight(3)).toEqual(List.empty);
+    });
+
+    it('should return an empty list if more than list size is dropped', () => {
+      expect(List(1, 2, 3).dropRight(1000)).toEqual(List.empty);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.dropRight(10_000).toArray).toEqual([]);
+    });
+  });
+
   describe('slice', () => {
     it('should return an empty list if empty list is sliced', () => {
       expect(List.empty.slice(1, 2)).toEqual(List.empty);
@@ -314,6 +368,28 @@ describe('List', () => {
       expect(xs.slice(2_500, 5_000).toArray).toEqual(
         [...new Array(10_000)].slice(2_500, 5_000),
       );
+    });
+  });
+
+  describe('splitAt', () => {
+    it('should return two empty lists when empty', () => {
+      expect(List.empty.splitAt(0)).toEqual([List.empty, List.empty]);
+    });
+
+    it('should return empty lhs when split on negative index', () => {
+      expect(List(1, 2, 3).splitAt(-1)).toEqual([List.empty, List(1, 2, 3)]);
+    });
+
+    it('should return singleton lhs when split on index 0', () => {
+      expect(List(1, 2, 3).splitAt(0)).toEqual([List(1), List(2, 3)]);
+    });
+
+    it('should return singleton rhs when split on index 2', () => {
+      expect(List(1, 2, 3).splitAt(2)).toEqual([List(1, 2), List(3)]);
+    });
+
+    it('should return empty rhs when split beyond the bounds of list', () => {
+      expect(List(1, 2, 3).splitAt(1_000)).toEqual([List(1, 2, 3), List.empty]);
     });
   });
 

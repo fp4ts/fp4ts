@@ -8,8 +8,8 @@ import { Applicative } from '../../applicative';
 import { Either } from '../either';
 import { Option, None, Some } from '../option';
 
-import { List, view } from './algebra';
-import { cons, empty, fromArray, pure } from './constructors';
+import { Cons, List, view } from './algebra';
+import { cons, empty, nil, pure } from './constructors';
 
 const throwError = (e: Error) => {
   throw e;
@@ -103,7 +103,13 @@ export const count: <A>(p: (a: A) => boolean) => (xs: List<A>) => number =
 export const take: (n: number) => <A>(xs: List<A>) => List<A> = n => xs =>
   take_(xs, n);
 
+export const takeRight: (n: number) => <A>(xs: List<A>) => List<A> = n => xs =>
+  take_(xs, n);
+
 export const drop: (n: number) => <A>(xs: List<A>) => List<A> = n => xs =>
+  drop_(xs, n);
+
+export const dropRight: (n: number) => <A>(xs: List<A>) => List<A> = n => xs =>
   drop_(xs, n);
 
 export const slice: (
@@ -167,13 +173,19 @@ export const zipPad: <A2, B>(
   zipPad_(xs, ys, dx, dy);
 
 export const zipWithIndex = <A>(xs: List<A>): List<[A, number]> => {
-  const rs: [A, number][] = [];
+  if (isEmpty(xs)) return nil;
+
   let idx = 0;
+  const result: Cons<[A, number]> = new Cons([head(xs), idx++], nil);
+  let cur = result;
+  xs = tail(xs);
   while (nonEmpty(xs)) {
-    rs.push([head(xs), idx++]);
+    const tmp: Cons<[A, number]> = new Cons([head(xs), idx++], nil);
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
   }
-  return fromArray(rs);
+  return result;
 };
 
 export const zipWith: <A, B, C>(
@@ -261,11 +273,17 @@ export const notEquals_ = <A>(E: Eq<A>, xs: List<A>, ys: List<A>): boolean =>
 export const prepend_ = <A>(xs: List<A>, x: A): List<A> => cons(x, xs);
 
 export const concat_ = <A>(xs: List<A>, ys: List<A>): List<A> => {
-  let result = ys;
-  let lhs = reverse(xs);
-  while (nonEmpty(lhs)) {
-    result = cons(head(lhs), result);
-    lhs = tail(lhs);
+  if (isEmpty(xs)) return ys;
+  if (isEmpty(ys)) return xs;
+
+  const result = new Cons(head(xs), ys);
+  let cur = result;
+  xs = tail(xs);
+  while (nonEmpty(xs)) {
+    const temp = new Cons(head(xs), ys);
+    cur._tail = temp;
+    cur = temp;
+    xs = tail(xs);
   }
   return result;
 };
@@ -304,12 +322,28 @@ export const count_ = <A>(xs: List<A>, p: (a: A) => boolean): number => {
 };
 
 export const take_ = <A>(xs: List<A>, n: number): List<A> => {
-  const results: A[] = [];
+  if (isEmpty(xs) || n-- <= 0) return nil;
+
+  const result = new Cons(head(xs), nil);
+  let cur = result;
+  xs = tail(xs);
   while (nonEmpty(xs) && n-- > 0) {
-    results.push(head(xs));
+    const tmp = new Cons(head(xs), nil);
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
   }
-  return fromArray(results);
+  return result;
+};
+
+export const takeRight_ = <A>(xs: List<A>, n: number): List<A> => {
+  let lag = xs;
+  let lead = drop_(xs, n);
+  while (nonEmpty(lead)) {
+    lag = tail(lag);
+    lead = tail(lead);
+  }
+  return lag;
 };
 
 export const drop_ = <A>(xs: List<A>, n: number): List<A> => {
@@ -319,19 +353,58 @@ export const drop_ = <A>(xs: List<A>, n: number): List<A> => {
   return xs;
 };
 
+export const dropRight_ = <A>(xs: List<A>, n: number): List<A> => {
+  let lead = drop_(xs, n);
+  let h: Cons<A> | undefined;
+  let t: Cons<A> | undefined;
+  while (nonEmpty(lead)) {
+    const nx = new Cons(head(xs), nil);
+    if (!h) {
+      h = nx;
+    } else {
+      t!._tail = nx;
+    }
+    t = nx;
+    xs = tail(xs);
+    lead = tail(lead);
+  }
+  return h ? h : nil;
+};
+
 export const slice_ = <A>(xs: List<A>, from: number, until: number): List<A> =>
   pipe(xs, drop(from), take(until - from));
+
+export const splitAt_ = <A>(xs: List<A>, idx: number): [List<A>, List<A>] => {
+  if (isEmpty(xs) || idx-- < 0) return [nil, xs];
+
+  const ys = new Cons(head(xs), nil);
+  let cur = ys;
+  xs = tail(xs);
+  while (nonEmpty(xs) && idx-- > 0) {
+    const tmp = new Cons(head(xs), nil);
+    cur._tail = tmp;
+    cur = tmp;
+    xs = tail(xs);
+  }
+  return [ys, xs];
+};
 
 export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> =>
   foldRight_(xs, empty as List<A>, (x, ys) => (p(x) ? cons(x, ys) : ys));
 
 export const map_ = <A, B>(xs: List<A>, f: (a: A) => B): List<B> => {
-  const rs: B[] = [];
+  if (isEmpty(xs)) return nil;
+
+  const result = new Cons(f(head(xs)), nil);
+  let cur = result;
+  xs = tail(xs);
   while (nonEmpty(xs)) {
-    rs.push(f(head(xs)));
+    const tmp = new Cons(f(head(xs)), nil);
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
   }
-  return fromArray(rs);
+  return result;
 };
 
 export const tap_ = <A>(xs: List<A>, f: (a: A) => unknown): List<A> =>
@@ -341,12 +414,28 @@ export const tap_ = <A>(xs: List<A>, f: (a: A) => unknown): List<A> =>
   });
 
 export const flatMap_ = <A, B>(xs: List<A>, f: (a: A) => List<B>): List<B> => {
-  const rs: List<B>[] = [];
+  let h: Cons<B> | undefined;
+  let t: Cons<B> | undefined;
+
   while (nonEmpty(xs)) {
-    rs.push(f(head(xs)));
+    let bs = f(head(xs));
+
+    while (nonEmpty(bs)) {
+      const nx = new Cons(head(bs), nil);
+      if (!t) {
+        h = nx;
+      } else {
+        t!._tail = nx;
+      }
+      t = nx;
+
+      bs = tail(bs);
+    }
+
     xs = tail(xs);
   }
-  return rs.reduceRight((r, n) => concat_(n, r), empty);
+
+  return h ? h : nil;
 };
 
 export const fold_ = <A, B>(
@@ -417,13 +506,20 @@ export const zipWith_ = <A, B, C>(
   ys: List<B>,
   f: (a: A, b: B) => C,
 ): List<C> => {
-  const rs: C[] = [];
+  if (isEmpty(xs) || isEmpty(ys)) return nil;
+
+  const result = new Cons(f(head(xs), head(ys)), nil);
+  let cur = result;
+  xs = tail(xs);
+  ys = tail(ys);
   while (nonEmpty(xs) && nonEmpty(ys)) {
-    rs.push(f(head(xs), head(ys)));
+    const tmp = new Cons(f(head(xs), head(ys)), nil);
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
     ys = tail(ys);
   }
-  return fromArray(rs);
+  return result;
 };
 
 export const zipWithPad_ = <A, B, C>(
@@ -433,62 +529,120 @@ export const zipWithPad_ = <A, B, C>(
   defaultY: () => B,
   f: (a: A, b: B) => C,
 ): List<C> => {
-  const rs: C[] = [];
+  if (isEmpty(xs) && isEmpty(ys)) return nil;
+
+  const result = new Cons(
+    f(
+      fold_(xs, defaultX, h => h),
+      fold_(ys, defaultY, h => h),
+    ),
+    nil,
+  );
+  let cur = result;
+  xs = tail(xs);
+  ys = tail(ys);
+
   while (nonEmpty(xs) || nonEmpty(ys)) {
-    rs.push(
+    const tmp = new Cons(
       f(
-        nonEmpty(xs) ? head(xs) : defaultX(),
-        nonEmpty(ys) ? head(ys) : defaultY(),
+        fold_(xs, defaultX, h => h),
+        fold_(ys, defaultY, h => h),
       ),
+      nil,
     );
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
     ys = tail(ys);
   }
-  return fromArray(rs);
+
+  return result;
 };
 
 export const collect_ = <A, B>(
   xs: List<A>,
   f: (a: A) => Option<B>,
 ): List<B> => {
-  const rs: B[] = [];
+  let h: Cons<B> | undefined;
+  let t: Cons<B> | undefined;
+
   while (nonEmpty(xs)) {
     const r = f(head(xs));
     xs = tail(xs);
     if (r.isEmpty) continue;
-    rs.push(r.get);
+
+    const nx = new Cons(r.get, nil);
+    if (!h) {
+      h = nx;
+    } else {
+      t!._tail = nx;
+    }
+    t = nx;
   }
-  return fromArray(rs);
+
+  return h ? h : nil;
 };
 
 export const collectWhile_ = <A, B>(
   xs: List<A>,
   f: (a: A) => Option<B>,
 ): List<B> => {
-  const rs: B[] = [];
+  let h: Cons<B> | undefined;
+  let t: Cons<B> | undefined;
+
   while (nonEmpty(xs)) {
     const r = f(head(xs));
-    if (r.isEmpty) break;
-    rs.push(r.get);
     xs = tail(xs);
+    if (r.isEmpty) break;
+
+    const nx = new Cons(r.get, nil);
+    if (!h) {
+      h = nx;
+    } else {
+      t!._tail = nx;
+    }
+    t = nx;
   }
-  return fromArray(rs);
+
+  return h ? h : nil;
 };
 
 export const partition_ = <A, L, R>(
   xs: List<A>,
   f: (a: A) => Either<L, R>,
 ): [List<L>, List<R>] => {
-  const ls: L[] = [];
-  const rs: R[] = [];
+  let hl: Cons<L> | undefined;
+  let tl: Cons<L> | undefined;
+  let hr: Cons<R> | undefined;
+  let tr: Cons<R> | undefined;
+
   while (nonEmpty(xs)) {
-    f(head(xs)).fold(
-      l => ls.push(l),
-      r => rs.push(r),
+    const r = f(head(xs));
+    r.fold(
+      l => {
+        const nx = new Cons(l, nil);
+        if (!hl) {
+          hl = nx;
+        } else {
+          tl!._tail = nx;
+        }
+        tl = nx;
+      },
+      r => {
+        const nx = new Cons(r, nil);
+        if (!hr) {
+          hr = nx;
+        } else {
+          tr!._tail = nx;
+        }
+        tr = nx;
+      },
     );
+
     xs = tail(xs);
   }
-  return [fromArray(ls), fromArray(rs)];
+
+  return [hl ? hl : nil, hr ? hr : nil];
 };
 
 export const scanLeft_ = <A, B>(
@@ -496,13 +650,16 @@ export const scanLeft_ = <A, B>(
   z: B,
   f: (b: B, a: A) => B,
 ): List<B> => {
-  const rs: B[] = [z];
+  const result = new Cons(z, nil);
+  let cur = result;
   while (nonEmpty(xs)) {
     z = f(z, head(xs));
-    rs.push(z);
+    const tmp = new Cons(z, nil);
+    cur._tail = tmp;
+    cur = tmp;
     xs = tail(xs);
   }
-  return fromArray(rs);
+  return result;
 };
 
 export const scanLeft1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> =>

@@ -15,6 +15,7 @@ import {
   collect_,
   concat_,
   count_,
+  dropRight_,
   drop_,
   elem_,
   equals_,
@@ -46,7 +47,9 @@ import {
   show_,
   size,
   slice_,
+  splitAt_,
   tail,
+  takeRight_,
   take_,
   toArray,
   traverse_,
@@ -68,18 +71,21 @@ declare module './algebra' {
     readonly size: number;
     readonly toArray: A[];
     readonly reverse: List<A>;
-    equals: <B>(this: List<B>, E: Eq<B>, xs: List<B>) => boolean;
-    notEquals: <B>(this: List<B>, E: Eq<B>, xs: List<B>) => boolean;
-    prepend: <B>(this: List<B>, x: B) => List<B>;
-    concat: <B>(this: List<B>, xs: List<B>) => List<B>;
-    '+++': <B>(this: List<B>, xs: List<B>) => List<B>;
-    elem: (idx: number) => A;
-    all: (p: (a: A) => boolean) => boolean;
-    any: (p: (a: A) => boolean) => boolean;
-    count: (p: (a: A) => boolean) => number;
-    take: (n: number) => List<A>;
-    drop: (n: number) => List<A>;
-    slice: (from: number, until: number) => List<A>;
+    equals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
+    notEquals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
+    prepend<B>(this: List<B>, x: B): List<B>;
+    concat<B>(this: List<B>, xs: List<B>): List<B>;
+    '+++'<B>(this: List<B>, xs: List<B>): List<B>;
+    elem(idx: number): A;
+    all(p: (a: A) => boolean): boolean;
+    any(p: (a: A) => boolean): boolean;
+    count(p: (a: A) => boolean): number;
+    take(n: number): List<A>;
+    takeRight(n: number): List<A>;
+    drop(n: number): List<A>;
+    dropRight(n: number): List<A>;
+    slice(from: number, until: number): List<A>;
+    splitAt(idx: number): [List<A>, List<A>];
     filter: (p: (a: A) => boolean) => List<A>;
     map: <B>(f: (a: A) => B) => List<B>;
     flatMap: <B>(f: (a: A) => List<B>) => List<B>;
@@ -236,8 +242,16 @@ List.prototype.take = function <A>(this: List<A>, n: number): List<A> {
   return take_(this, n);
 };
 
+List.prototype.takeRight = function <A>(this: List<A>, n: number): List<A> {
+  return takeRight_(this, n);
+};
+
 List.prototype.drop = function <A>(this: List<A>, n: number): List<A> {
   return drop_(this, n);
+};
+
+List.prototype.dropRight = function <A>(this: List<A>, n: number): List<A> {
+  return dropRight_(this, n);
 };
 
 List.prototype.slice = function <A>(
@@ -246,6 +260,13 @@ List.prototype.slice = function <A>(
   until: number,
 ): List<A> {
   return slice_(this, from, until);
+};
+
+List.prototype.splitAt = function <A>(
+  this: List<A>,
+  idx: number,
+): [List<A>, List<A>] {
+  return splitAt_(this, idx);
 };
 
 List.prototype.filter = function <A>(
