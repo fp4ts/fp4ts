@@ -1,5 +1,6 @@
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
+import { Alternative } from '../../alternative';
 import { Foldable } from '../../foldable';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
@@ -20,6 +21,7 @@ import {
   listTraversable,
   listFlatMap,
   listMonad,
+  listAlternative,
 } from './instances';
 
 export type List<A> = ListBase<A>;
@@ -43,6 +45,7 @@ interface ListObj {
   readonly FunctorK: Functor<URI>;
   readonly Apply: Apply<URI>;
   readonly Applicative: Applicative<URI>;
+  readonly Alternative: Alternative<URI>;
   readonly FlatMap: FlatMap<URI>;
   readonly Monad: Monad<URI>;
   readonly Foldable: Foldable<URI>;
@@ -77,6 +80,11 @@ Object.defineProperty(List, 'Apply', {
 Object.defineProperty(List, 'Applicative', {
   get(): Applicative<URI> {
     return listApplicative();
+  },
+});
+Object.defineProperty(List, 'Alternative', {
+  get(): Alternative<URI> {
+    return listAlternative();
   },
 });
 Object.defineProperty(List, 'FlatMap', {

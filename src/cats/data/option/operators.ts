@@ -28,6 +28,15 @@ export const tap: <A>(f: (a: A) => unknown) => (o: Option<A>) => Option<A> =
   f => o =>
     tap_(o, f);
 
+export const or: <A2>(
+  y: Option<A2>,
+) => <A extends A2>(x: Option<A>) => Option<A2> = y => x => or_(x, y);
+
+export const orElse: <A2>(
+  defaultValue: () => A2,
+) => <A extends A2>(x: Option<A>) => A2 = defaultValue => x =>
+  orElse_(x, defaultValue);
+
 export const flatMap: <A, B>(
   f: (a: A) => Option<B>,
 ) => (o: Option<A>) => Option<B> = f => o => flatMap_(o, f);
@@ -54,6 +63,12 @@ export const tap_ = <A>(o: Option<A>, f: (a: A) => unknown): Option<A> =>
     f(x);
     return x;
   });
+
+export const or_ = <A>(x: Option<A>, y: Option<A>): Option<A> =>
+  fold_(x, () => y, some);
+
+export const orElse_ = <A>(x: Option<A>, defaultValue: () => A): A =>
+  fold_(x, defaultValue, id);
 
 export const flatMap_ = <A, B>(
   o: Option<A>,

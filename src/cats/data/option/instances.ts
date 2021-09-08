@@ -1,9 +1,14 @@
 import { Lazy } from '../../../fp/core';
+import { SemigroupK } from '../../semigroup-k';
+import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
+import { Alternative } from '../../alternative';
 import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
+
+import { URI } from './option';
 import {
   flatMap,
   flatMap_,
@@ -11,10 +16,27 @@ import {
   flatten,
   map,
   map_,
+  or_,
   tap,
 } from './operators';
-import { URI } from './option';
-import { pure } from './constructors';
+import { none, pure } from './constructors';
+
+export const optionSemigroupK: Lazy<SemigroupK<URI>> = () => ({
+  URI: URI,
+  combineK: or_,
+  algebra: () => ({
+    combine: or_,
+  }),
+});
+
+export const optionMonoidK: Lazy<MonoidK<URI>> = () => ({
+  ...optionSemigroupK(),
+  emptyK: () => none,
+  algebra: () => ({
+    combine: or_,
+    empty: none,
+  }),
+});
 
 export const optionFunctor: Lazy<Functor<URI>> = () => ({
   URI: URI,
@@ -35,6 +57,11 @@ export const optionApplicative: Lazy<Applicative<URI>> = () => ({
   ...optionApply(),
   pure: pure,
   unit: pure(undefined),
+});
+
+export const optionAlternative: Lazy<Alternative<URI>> = () => ({
+  ...optionApplicative(),
+  ...optionMonoidK(),
 });
 
 export const optionFlatMap: Lazy<FlatMap<URI>> = () => ({

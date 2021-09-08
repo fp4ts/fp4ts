@@ -49,6 +49,34 @@ describe('Option', () => {
     });
   });
 
+  describe('or', () => {
+    it('should return None when both are None', () => {
+      expect(None.or(None)).toEqual(None);
+    });
+
+    it('should return lhs when both are Some', () => {
+      expect(Some(42)['<|>'](Some(43))).toEqual(Some(42));
+    });
+
+    it('should return lhs when rhs is None', () => {
+      expect(Some(42)['<|>'](None)).toEqual(Some(42));
+    });
+
+    it('should return rhs when lhs is None', () => {
+      expect(None['<|>'](Some(43))).toEqual(Some(43));
+    });
+  });
+
+  describe('orElse', () => {
+    it('should return lhs when is Some', () => {
+      expect(Some(42).orElse(() => 43)).toBe(42);
+    });
+
+    it('should return rhs when is None', () => {
+      expect(None.orElse(() => 43)).toBe(43);
+    });
+  });
+
   describe('flatMap', () => {
     it('should map the wrapped value', () => {
       expect(Some(42).flatMap(x => Some(x * 2))).toEqual(Some(84));

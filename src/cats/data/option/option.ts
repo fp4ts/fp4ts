@@ -1,3 +1,6 @@
+import { MonoidK } from '../../monoid-k';
+import { SemigroupK } from '../../semigroup-k';
+import { Alternative } from '../../alternative';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -8,11 +11,14 @@ import { Either } from '../either';
 import { Option as OptionBase } from './algebra';
 import { fromEither, fromNullable, none, some } from './constructors';
 import {
+  optionAlternative,
   optionApplicative,
   optionApply,
   optionFlatMap,
   optionFunctor,
   optionMonad,
+  optionMonoidK,
+  optionSemigroupK,
 } from './instances';
 
 // -- Object
@@ -37,9 +43,12 @@ export interface OptionObj {
 
   // -- Instances
 
+  readonly SemigroupK: SemigroupK<URI>;
+  readonly MonoidK: MonoidK<URI>;
   readonly Functor: Functor<URI>;
   readonly Apply: Apply<URI>;
   readonly Applicative: Applicative<URI>;
+  readonly Alternative: Alternative<URI>;
   readonly FlatMap: FlatMap<URI>;
   readonly Monad: Monad<URI>;
 }
@@ -49,6 +58,16 @@ Option.none = none;
 Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 
+Object.defineProperty(Option, 'SemigroupK', {
+  get(): SemigroupK<URI> {
+    return optionSemigroupK();
+  },
+});
+Object.defineProperty(Option, 'MonoidK', {
+  get(): MonoidK<URI> {
+    return optionMonoidK();
+  },
+});
 Object.defineProperty(Option, 'Functor', {
   get(): Functor<URI> {
     return optionFunctor();
@@ -62,6 +81,11 @@ Object.defineProperty(Option, 'Apply', {
 Object.defineProperty(Option, 'Applicative', {
   get(): Applicative<URI> {
     return optionApplicative();
+  },
+});
+Object.defineProperty(Option, 'Alternative', {
+  get(): Alternative<URI> {
+    return optionAlternative();
   },
 });
 Object.defineProperty(Option, 'FlatMap', {

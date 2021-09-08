@@ -1,3 +1,4 @@
+import { SemigroupK2, SemigroupK2C } from '../../semigroup-k';
 import { Applicative2, Applicative2C } from '../../applicative';
 import { Apply2, Apply2C } from '../../apply';
 import { FlatMap2, FlatMap2C } from '../../flat-map';
@@ -17,6 +18,8 @@ import {
   eitherFunctor2C,
   eitherMonad2,
   eitherMonad2C,
+  eitherSemigroupK2,
+  eitherSemigroupK2C,
 } from './instances';
 
 export type Either<E, A> = EitherBase<E, A>;
@@ -37,11 +40,13 @@ export interface EitherObj {
 
   // -- Instances
 
+  SemigroupK2C: <E>() => SemigroupK2C<URI, E>;
   Functor2C: <E>() => Functor2C<URI, E>;
   Apply2C: <E>() => Apply2C<URI, E>;
   Applicative2C: <E>() => Applicative2C<URI, E>;
   FlatMap2C: <E>() => FlatMap2C<URI, E>;
   Monad2C: <E>() => Monad2C<URI, E>;
+  SemigroupK2: SemigroupK2<URI>;
   readonly Functor2: Functor2<URI>;
   readonly Apply2: Apply2<URI>;
   readonly Applicative2: Applicative2<URI>;
@@ -54,6 +59,12 @@ Either.left = left;
 Either.pure = pure;
 Either.rightUnit = rightUnit;
 
+Either.SemigroupK2C = eitherSemigroupK2C;
+Object.defineProperty(Either, 'SemigroupK2', {
+  get(): SemigroupK2<URI> {
+    return eitherSemigroupK2();
+  },
+});
 Either.Functor2C = eitherFunctor2C;
 Object.defineProperty(Either, 'Functor2', {
   get(): Functor2<URI> {

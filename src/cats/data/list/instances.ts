@@ -2,6 +2,7 @@ import { Lazy } from '../../../fp/core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
+import { Alternative } from '../../alternative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
@@ -33,7 +34,7 @@ import {
 } from './operators';
 
 export const listSemigroupK: Lazy<SemigroupK<URI>> = () => ({
-  _URI: URI,
+  URI: URI,
   combineK: concat_,
   algebra: () => ({
     combine: concat_,
@@ -68,6 +69,11 @@ export const listApplicative: Lazy<Applicative<URI>> = () => ({
   ...listApply(),
   pure: pure,
   unit: empty,
+});
+
+export const listAlternative: Lazy<Alternative<URI>> = () => ({
+  ...listApplicative(),
+  ...listMonoidK(),
 });
 
 export const listFlatMap: Lazy<FlatMap<URI>> = () => ({

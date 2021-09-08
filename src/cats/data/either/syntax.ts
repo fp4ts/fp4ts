@@ -8,6 +8,8 @@ import {
   isEmpty,
   map_,
   nonEmpty,
+  orElse_,
+  or_,
   swapped,
   tap_,
   toOption,
@@ -17,20 +19,30 @@ declare module './algebra' {
   interface Either<E, A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
-    map: <B>(f: (a: A) => B) => Either<E, B>;
-    tap: (f: (a: A) => unknown) => Either<E, A>;
-    flatMap: <B, E2>(
+
+    map<B>(f: (a: A) => B): Either<E, B>;
+    tap(f: (a: A) => unknown): Either<E, A>;
+
+    or<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
+    '<|>'<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
+
+    orElse<A2>(this: Either<E, A2>, defaultValue: () => A2): A2;
+
+    flatMap<B, E2>(
       this: Either<E2, A>,
       f: (a: A) => Either<E2, B>,
-    ) => Either<E2, B>;
-    flatTap: <E2>(
+    ): Either<E2, B>;
+    flatTap<E2>(
       this: Either<E2, A>,
       f: (a: A) => Either<E2, unknown>,
-    ) => Either<E2, A>;
+    ): Either<E2, A>;
+
     readonly flatten: A extends Either<E, infer B>
       ? Either<E, B>
       : never | unknown;
-    fold: <B>(onLeft: (e: E) => B, onRight: (a: A) => B) => B;
+
+    fold<B>(onLeft: (e: E) => B, onRight: (a: A) => B): B;
+
     readonly swapped: Either<A, E>;
     readonly toOption: Option<A>;
   }
@@ -60,6 +72,22 @@ Either.prototype.tap = function <E, A>(
   f: (a: A) => unknown,
 ): Either<E, A> {
   return tap_(this, f);
+};
+
+Either.prototype.or = function <E, A>(
+  this: Either<E, A>,
+  that: Either<E, A>,
+): Either<E, A> {
+  return or_(this, that);
+};
+
+Either.prototype['<|>'] = Either.prototype.or;
+
+Either.prototype.orElse = function <E, A>(
+  this: Either<E, A>,
+  defaultValue: () => A,
+): A {
+  return orElse_(this, defaultValue);
 };
 
 Either.prototype.flatMap = function <E, A, B>(

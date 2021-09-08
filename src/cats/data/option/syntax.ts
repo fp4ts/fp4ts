@@ -9,6 +9,8 @@ import {
   nonEmpty,
   tap_,
   get,
+  or_,
+  orElse_,
 } from './operators';
 
 declare module './algebra' {
@@ -16,12 +18,20 @@ declare module './algebra' {
     readonly get: A;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
-    map: <B>(f: (a: A) => B) => Option<B>;
-    tap: (f: (a: A) => unknown) => Option<A>;
-    flatMap: <B>(f: (a: A) => Option<B>) => Option<B>;
-    flatTap: (f: (a: A) => Option<unknown>) => Option<A>;
+
+    map<B>(f: (a: A) => B): Option<B>;
+    tap(f: (a: A) => unknown): Option<A>;
+
+    or<A2>(this: Option<A2>, that: Option<A2>): Option<A2>;
+    '<|>'<A2>(this: Option<A2>, that: Option<A2>): Option<A2>;
+
+    orElse<A2>(this: Option<A2>, defaultValue: () => A2): A2;
+
+    flatMap<B>(f: (a: A) => Option<B>): Option<B>;
+    flatTap(f: (a: A) => Option<unknown>): Option<A>;
     readonly flatten: A extends Option<infer B> ? Option<B> : never | unknown;
-    fold: <B>(onNone: () => B, onSome: (a: A) => B) => B;
+
+    fold<B>(onNone: () => B, onSome: (a: A) => B): B;
   }
 }
 
@@ -55,6 +65,22 @@ Option.prototype.tap = function <A>(
   f: (a: A) => unknown,
 ): Option<A> {
   return tap_(this, f);
+};
+
+Option.prototype.or = function <A>(
+  this: Option<A>,
+  that: Option<A>,
+): Option<A> {
+  return or_(this, that);
+};
+
+Option.prototype['<|>'] = Option.prototype.or;
+
+Option.prototype.orElse = function <A>(
+  this: Option<A>,
+  defaultValue: () => A,
+): A {
+  return orElse_(this, defaultValue);
 };
 
 Option.prototype.flatMap = function <A, B>(

@@ -32,7 +32,7 @@ import {
 import { pure } from './constructors';
 
 export const arraySemigroupK: () => SemigroupK<URI> = () => ({
-  _URI: URI,
+  URI: URI,
 
   combineK: concat_,
 

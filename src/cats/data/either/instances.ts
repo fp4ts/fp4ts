@@ -1,4 +1,5 @@
 import { Lazy } from '../../../fp/core';
+import { SemigroupK2, SemigroupK2C } from '../../semigroup-k';
 import { Apply2C, Apply2 } from '../../apply';
 import { Applicative2C, Applicative2 } from '../../applicative';
 import { Functor2C, Functor2 } from '../../functor';
@@ -13,9 +14,26 @@ import {
   flatten,
   map,
   map_,
+  or_,
   tap,
 } from './operators';
 import { pure, rightUnit } from './constructors';
+
+export const eitherSemigroupK2C: <E>() => SemigroupK2C<URI, E> = () => ({
+  URI: URI,
+  combineK: or_,
+  algebra: () => ({
+    combine: or_,
+  }),
+});
+
+export const eitherSemigroupK2: Lazy<SemigroupK2<URI>> = () => ({
+  URI: URI,
+  combineK: or_,
+  algebra: () => ({
+    combine: or_,
+  }),
+});
 
 export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () => ({
   URI: URI,
@@ -58,6 +76,10 @@ export const eitherApplicative2: Lazy<Applicative2<URI>> = () => ({
   pure: pure,
   unit: rightUnit,
 });
+
+// export const eitherAlternative2C: <E>() => Alternative2C<URI, E> = () => ({
+//   ...eitherapp
+// })
 
 export const eitherFlatMap2C: <E>() => FlatMap2C<URI, E> = () => ({
   ...eitherApply2C(),
