@@ -41,14 +41,11 @@ export const arrayMonoidK: () => MonoidK<URI> = () => {
 
 export const arrayFunctor: () => Functor<URI> = () => Functor.of({ URI, map_ });
 
-export const arrayApply: () => Apply<URI> = () => ({
-  ...arrayFunctor(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, f)),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: fa => fa,
-  productR: (_, fb) => fb,
-});
+export const arrayApply: () => Apply<URI> = () =>
+  Apply.of({
+    ...arrayFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
+  });
 
 export const arrayApplicative: () => Applicative<URI> = () => ({
   ...arrayApply(),

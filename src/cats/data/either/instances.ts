@@ -22,23 +22,17 @@ export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () =>
 export const eitherFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
 
-export const eitherApply2C: <E>() => Apply2C<URI, E> = () => ({
-  ...eitherFunctor2C(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
-  productR: (fa, fb) => flatMap_(fa, () => map_(fb, b => b)),
-});
+export const eitherApply2C: <E>() => Apply2C<URI, E> = () =>
+  Apply2C.of({
+    ...eitherFunctor2C(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
-export const eitherApply2: Lazy<Apply2<URI>> = () => ({
-  ...eitherFunctor2(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
-  productR: (fa, fb) => flatMap_(fa, () => map_(fb, b => b)),
-});
+export const eitherApply2: Lazy<Apply2<URI>> = () =>
+  Apply2.of({
+    ...eitherFunctor2(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
 export const eitherApplicative2C: <E>() => Applicative2C<URI, E> = () => ({
   ...eitherApply2C(),

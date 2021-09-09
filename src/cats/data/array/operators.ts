@@ -136,7 +136,7 @@ export const traverse_ = <G, A, B>(
 ): Kind<G, B[]> =>
   // TODO: Fix
   xs.reduceRight(
-    (gbs, x) => G.map2(gbs, f(x))((bs, b) => [...bs, b]),
+    (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
     G.pure([] as B[]),
   );
 
@@ -146,6 +146,6 @@ export const flatTraverse_ = <G, A, B>(
   f: (a: A) => Kind<G, B[]>,
 ): Kind<G, B[]> =>
   xs.reduce(
-    (gbs, x) => G.map2(gbs, f(x))((bs, b) => [...bs, ...b]),
+    (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, ...b]),
     G.pure([] as B[]),
   );

@@ -43,14 +43,11 @@ export const listMonoidK: Lazy<MonoidK<URI>> = () => {
 
 export const listFunctor: Lazy<Functor<URI>> = () => Functor.of({ URI, map_ });
 
-export const listApply: Lazy<Apply<URI>> = () => ({
-  ...listFunctor(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: fa => fa,
-  productR: (_, fb) => fb,
-});
+export const listApply: Lazy<Apply<URI>> = () =>
+  Apply.of({
+    ...listFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
 export const listApplicative: Lazy<Applicative<URI>> = () => ({
   ...listApply(),

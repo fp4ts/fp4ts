@@ -11,7 +11,7 @@ import { Option, Some, None } from '../option';
 
 import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
-import { id } from '../../../fp/core';
+import { id, pipe } from '../../../fp/core';
 
 const throwError = (e: Error) => {
   throw e;
@@ -718,10 +718,13 @@ export const traverse_ = <G, K, V, B>(
   const bF = f(n.value, n.key);
   const rhsF = traverse_(G, n.rhs, f);
 
-  return G.map2(
-    G.product(lhsF, bF),
-    rhsF,
-  )(([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as OrderedMap<K, B>);
+  return pipe(
+    G.product_(lhsF, bF),
+    G.map2(
+      rhsF,
+      ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as OrderedMap<K, B>,
+    ),
+  );
 };
 
 export const show_ = <K, V>(

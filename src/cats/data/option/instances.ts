@@ -24,14 +24,11 @@ export const optionMonoidK: Lazy<MonoidK<URI>> = () => {
 export const optionFunctor: Lazy<Functor<URI>> = () =>
   Functor.of({ URI, map_ });
 
-export const optionApply: Lazy<Apply<URI>> = () => ({
-  ...optionFunctor(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
-  productR: (fa, fb) => flatMap_(fa, () => map_(fb, b => b)),
-});
+export const optionApply: Lazy<Apply<URI>> = () =>
+  Apply.of({
+    ...optionFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
 export const optionApplicative: Lazy<Applicative<URI>> = () => ({
   ...optionApply(),

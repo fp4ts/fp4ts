@@ -10,7 +10,7 @@ export interface Functor<F> {
   readonly tap_: <A>(fa: Kind<F, A>, f: (a: A) => unknown) => Kind<F, A>;
 }
 
-type FunctorRequirements<F> = Pick<Functor<F>, 'URI' | 'map_'> &
+export type FunctorRequirements<F> = Pick<Functor<F>, 'URI' | 'map_'> &
   Partial<Functor<F>>;
 export const Functor = Object.freeze({
   of: <F>(F: FunctorRequirements<F>): Functor<F> => ({
@@ -38,7 +38,10 @@ export interface Functor2C<F, E> {
   ) => Kind2<F, E, A>;
 }
 
-type Functor2CRequirements<F, E> = Pick<Functor2C<F, E>, 'URI' | 'map_'> &
+export type Functor2CRequirements<F, E> = Pick<
+  Functor2C<F, E>,
+  'URI' | 'map_'
+> &
   Partial<Functor2C<F, E>>;
 export const Functor2C = Object.freeze({
   of: <F, E>(F: Functor2CRequirements<F, E>): Functor2C<F, E> => ({
@@ -69,7 +72,7 @@ export interface Functor2<F> {
   ) => Kind2<F, E, A>;
 }
 
-type Functor2Requirements<F> = Pick<Functor2<F>, 'URI' | 'map_'> &
+export type Functor2Requirements<F> = Pick<Functor2<F>, 'URI' | 'map_'> &
   Partial<Functor2<F>>;
 export const Functor2 = Object.freeze({
   of: <F>(F: Functor2Requirements<F>): Functor2<F> => ({

@@ -15,7 +15,7 @@ import { Spawn } from '../kernel/spawn';
 import { Sync } from '../kernel/sync';
 import { Temporal } from '../kernel/temporal';
 
-import { URI } from './algebra';
+import { IO, URI } from './algebra';
 import {
   async,
   async_,
@@ -72,14 +72,15 @@ export const ioDefer: Lazy<Defer<URI>> = () => ({
 export const ioFunctor: Lazy<Functor<URI>> = () =>
   Functor.of({ URI, map_, tap_ });
 
-export const ioParallelApply: Lazy<Apply<URI>> = () => ({
-  ...ioFunctor(),
-  ap: ff => fa => map2_(ff, fa, (f, a) => f(a)),
-  map2: (fa, fb) => f => map2_(fa, fb, f),
-  product: (fa, fb) => map2_(fa, fb, (a, b) => [a, b]),
-  productL: (fa, fb) => map2_(fa, fb, a => a),
-  productR: (fa, fb) => map2_(fa, fb, (_, b) => b),
-});
+export const ioParallelApply: Lazy<Apply<URI>> = () =>
+  Apply.of({
+    ...ioFunctor(),
+    ap_: (ff, fa) => map2_(ff, fa, (f, a) => f(a)),
+    map2_:
+      <A, B>(fa: IO<A>, fb: IO<B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        map2_(fa, fb, f),
+  });
 
 export const ioParallelApplicative: Lazy<Applicative<URI>> = () => ({
   ...ioParallelApply(),
@@ -87,14 +88,11 @@ export const ioParallelApplicative: Lazy<Applicative<URI>> = () => ({
   unit: unit,
 });
 
-export const ioSequentialApply: Lazy<Apply<URI>> = () => ({
-  ...ioFunctor(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
-  productR: (fa, fb) => flatMap_(fa, () => fb),
-});
+export const ioSequentialApply: Lazy<Apply<URI>> = () =>
+  Apply.of({
+    ...ioFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
 export const ioSequentialApplicative: Lazy<Applicative<URI>> = () => ({
   ...ioSequentialApply(),

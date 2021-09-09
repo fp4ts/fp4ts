@@ -18,6 +18,7 @@ import {
 } from './operators';
 import { URI } from './reader';
 import { pure, unit } from './constructors';
+import { Reader } from './algebra';
 
 export const readerFunctor2C: <R>() => Functor2C<URI, R> = () =>
   Functor2C.of({ URI, map_ });
@@ -25,23 +26,31 @@ export const readerFunctor2C: <R>() => Functor2C<URI, R> = () =>
 export const readerFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
 
-export const readerApply2C: <R>() => Apply2C<URI, R> = () => ({
-  ...readerFunctor2C(),
-  ap: ff => fa => ap_(ff, fa),
-  map2: (fa, fb) => f => map2_(fa, fb, f),
-  product: product_,
-  productL: productL_,
-  productR: productR_,
-});
+export const readerApply2C: <R>() => Apply2C<URI, R> = <R>() =>
+  Apply2C.of<URI, R>({
+    ...readerFunctor2C<R>(),
+    ap_: ap_,
+    map2_:
+      <A, B>(fa: Reader<R, A>, fb: Reader<R, B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        map2_<R, R, A, B, C>(fa, fb, f),
+    product_: product_,
+    productL_: productL_,
+    productR_: productR_,
+  });
 
-export const readerApply2: Lazy<Apply2<URI>> = () => ({
-  ...readerFunctor2C(),
-  ap: ff => fa => ap_(ff, fa),
-  map2: (fa, fb) => f => map2_(fa, fb, f),
-  product: product_,
-  productL: productL_,
-  productR: productR_,
-});
+export const readerApply2: Lazy<Apply2<URI>> = () =>
+  Apply2.of({
+    ...readerFunctor2C(),
+    ap_: ap_,
+    map2_:
+      <E, A, B>(fa: Reader<E, A>, fb: Reader<E, B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        map2_<E, E, A, B, C>(fa, fb, f),
+    product_: product_,
+    productL_: productL_,
+    productR_: productR_,
+  });
 
 export const readerApplicative2C: <R>() => Applicative2C<URI, R> = () => ({
   ...readerApply2C(),

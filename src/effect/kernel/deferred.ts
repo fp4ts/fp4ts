@@ -103,7 +103,7 @@ export class Deferred<F, A> {
       this.F.defer(() =>
         pipe(
           readers.map(f => this.F.delay(() => f(result))),
-          rds => rds.reduce(this.F.productR, this.F.unit),
+          rds => rds.reduce(this.F.productR_, this.F.unit),
         ),
       );
 

@@ -12,14 +12,11 @@ import { pure, unit } from './constructors';
 export const identityFunctor: Lazy<Functor<URI>> = () =>
   Functor.of({ URI, map_ });
 
-export const identityApply: Lazy<Apply<URI>> = () => ({
-  ...identityFunctor(),
-  ap: ff => fa => flatMap_(ff, f => map_(fa, a => f(a))),
-  map2: (fa, fb) => f => flatMap_(fa, a => map_(fb, b => f(a, b))),
-  product: (fa, fb) => flatMap_(fa, a => map_(fb, b => [a, b])),
-  productL: (fa, fb) => flatMap_(fa, a => map_(fb, () => a)),
-  productR: (fa, fb) => flatMap_(fa, () => map_(fb, b => b)),
-});
+export const identityApply: Lazy<Apply<URI>> = () =>
+  Apply.of({
+    ...identityFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
 export const identityApplicative: Lazy<Applicative<URI>> = () => ({
   ...identityApply(),

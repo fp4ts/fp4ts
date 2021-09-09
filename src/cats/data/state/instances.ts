@@ -24,23 +24,25 @@ export const stateFunctor2C: <S>() => Functor2C<URI, S> = () =>
 export const stateFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
 
-export const stateApply2C: <S>() => Apply2C<URI, S> = () => ({
-  ...stateFunctor2C(),
-  ap: ff => fa => map2(ff, fa)((f, a) => f(a)),
-  map2: map2,
-  product: product_,
-  productL: productL_,
-  productR: productR_,
-});
+export const stateApply2C: <S>() => Apply2C<URI, S> = () =>
+  Apply2C.of({
+    ...stateFunctor2C(),
+    ap_: (ff, fa) => map2(ff, fa)((f, a) => f(a)),
+    map2_: map2,
+    product_: product_,
+    productL_: productL_,
+    productR_: productR_,
+  });
 
-export const stateApply2: Lazy<Apply2<URI>> = () => ({
-  ...stateFunctor2(),
-  ap: ff => fa => map2(ff, fa)((f, a) => f(a)),
-  map2: map2,
-  product: product_,
-  productL: productL_,
-  productR: productR_,
-});
+export const stateApply2: Lazy<Apply2<URI>> = () =>
+  Apply2.of({
+    ...stateFunctor2(),
+    ap_: (ff, fa) => map2(ff, fa)((f, a) => f(a)),
+    map2_: map2,
+    product_: product_,
+    productL_: productL_,
+    productR_: productR_,
+  });
 
 export const stateApplicative2C: <S>() => Applicative2C<URI, S> = () => ({
   ...stateApply2C(),
