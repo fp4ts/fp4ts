@@ -17,7 +17,6 @@ import {
   any,
   concat_,
   count,
-  flatMap,
   flatMap_,
   flatten,
   foldLeft,
@@ -28,7 +27,7 @@ import {
   nonEmpty,
   sequence,
   size,
-  tap,
+  tap_,
   traverse,
 } from './operators';
 
@@ -61,12 +60,13 @@ export const listAlternative: Lazy<Alternative<URI>> = () => ({
   ...listMonoidK(),
 });
 
-export const listFlatMap: Lazy<FlatMap<URI>> = () => ({
-  ...listApply(),
-  flatMap: flatMap,
-  flatten: flatten,
-  flatTap: tap,
-});
+export const listFlatMap: Lazy<FlatMap<URI>> = () =>
+  FlatMap.of({
+    ...listApply(),
+    flatMap_: flatMap_,
+    flatTap_: tap_,
+    flatten: flatten,
+  });
 
 export const listMonad: Lazy<Monad<URI>> = () => ({
   ...listApplicative(),

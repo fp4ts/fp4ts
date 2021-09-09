@@ -7,8 +7,8 @@ import { Monad2, Monad2C } from '../../monad';
 
 import { URI } from './state';
 import {
-  flatMap,
-  flatTap,
+  flatMap_,
+  flatTap_,
   flatten,
   map2,
   map_,
@@ -56,19 +56,21 @@ export const stateApplicative2: Lazy<Applicative2<URI>> = () =>
     pure: pure,
   });
 
-export const stateFlatMap2C: <S>() => FlatMap2C<URI, S> = () => ({
-  ...stateApply2C(),
-  flatMap: flatMap,
-  flatTap: flatTap,
-  flatten: flatten,
-});
+export const stateFlatMap2C: <S>() => FlatMap2C<URI, S> = () =>
+  FlatMap2C.of({
+    ...stateApply2C(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
-export const stateFlatMap2: Lazy<FlatMap2<URI>> = () => ({
-  ...stateApply2(),
-  flatMap: flatMap,
-  flatTap: flatTap,
-  flatten: flatten,
-});
+export const stateFlatMap2: Lazy<FlatMap2<URI>> = () =>
+  FlatMap2.of({
+    ...stateApply2(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
 export const stateMonad2C: <S>() => Monad2C<URI, S> = () => ({
   ...stateApplicative2C(),

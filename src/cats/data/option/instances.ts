@@ -9,7 +9,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { URI } from './option';
-import { flatMap, flatMap_, flatTap, flatten, map_, or_ } from './operators';
+import { flatMap_, flatTap_, flatten, map_, or_ } from './operators';
 import { none, pure } from './constructors';
 
 export const optionSemigroupK: Lazy<SemigroupK<URI>> = () =>
@@ -41,12 +41,13 @@ export const optionAlternative: Lazy<Alternative<URI>> = () => ({
   ...optionMonoidK(),
 });
 
-export const optionFlatMap: Lazy<FlatMap<URI>> = () => ({
-  ...optionApply(),
-  flatMap: flatMap,
-  flatTap: flatTap,
-  flatten: flatten,
-});
+export const optionFlatMap: Lazy<FlatMap<URI>> = () =>
+  FlatMap.of({
+    ...optionApply(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
 export const optionMonad: Lazy<Monad<URI>> = () => ({
   ...optionApplicative(),

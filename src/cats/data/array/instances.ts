@@ -14,9 +14,7 @@ import {
   any,
   concat_,
   count,
-  flatMap,
   flatMap_,
-  flatten,
   foldLeft,
   foldMap,
   foldRight,
@@ -25,7 +23,6 @@ import {
   nonEmpty,
   sequence,
   size,
-  tap,
   traverse,
 } from './operators';
 import { empty, pure } from './constructors';
@@ -48,18 +45,10 @@ export const arrayApply: () => Apply<URI> = () =>
   });
 
 export const arrayApplicative: () => Applicative<URI> = () =>
-  Applicative.of({
-    ...arrayApply(),
-    pure: pure,
-    unit: [],
-  });
+  Applicative.of({ ...arrayApply(), pure: pure, unit: [] });
 
-export const arrayFlatMap: () => FlatMap<URI> = () => ({
-  ...arrayApply(),
-  flatMap: flatMap,
-  flatTap: tap,
-  flatten: flatten,
-});
+export const arrayFlatMap: () => FlatMap<URI> = () =>
+  FlatMap.of({ ...arrayApply(), flatMap_: flatMap_ });
 
 export const arrayMonad: () => Monad<URI> = () => ({
   ...arrayApplicative(),

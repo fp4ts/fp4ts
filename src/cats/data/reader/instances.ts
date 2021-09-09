@@ -66,19 +66,21 @@ export const readerApplicative2: Lazy<Applicative2<URI>> = () =>
     unit: unit,
   });
 
-export const readerFlatMap2C: <R>() => FlatMap2C<URI, R> = () => ({
-  ...readerApply2C(),
-  flatMap: f => fa => flatMap_(fa, f),
-  flatTap: f => fa => flatTap_(fa, f),
-  flatten: flatten,
-});
+export const readerFlatMap2C: <R>() => FlatMap2C<URI, R> = () =>
+  FlatMap2C.of({
+    ...readerApply2C(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
-export const readerFlatMap2: Lazy<FlatMap2<URI>> = () => ({
-  ...readerApply2(),
-  flatMap: f => fa => flatMap_(fa, f),
-  flatTap: f => fa => flatTap_(fa, f),
-  flatten: flatten,
-});
+export const readerFlatMap2: Lazy<FlatMap2<URI>> = () =>
+  FlatMap2.of({
+    ...readerApply2(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
 export const readerMonad2C: <R>() => Monad2C<URI, R> = () => ({
   ...readerApplicative2C(),

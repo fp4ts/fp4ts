@@ -39,9 +39,8 @@ import {
   delayBy_,
   executeOn_,
   finalize,
-  flatMap,
   flatMap_,
-  flatTap,
+  flatTap_,
   flatten,
   fork,
   handleError,
@@ -102,12 +101,13 @@ export const ioSequentialApplicative: Lazy<Applicative<URI>> = () =>
     unit: unit,
   });
 
-export const ioFlatMap: Lazy<FlatMap<URI>> = () => ({
-  ...ioSequentialApply(),
-  flatMap: flatMap,
-  flatTap: flatTap,
-  flatten: flatten,
-});
+export const ioFlatMap: Lazy<FlatMap<URI>> = () =>
+  FlatMap.of({
+    ...ioSequentialApply(),
+    flatMap_: flatMap_,
+    flatTap_: flatTap_,
+    flatten: flatten,
+  });
 
 export const ioMonad: Lazy<Monad<URI>> = () => ({
   ...ioSequentialApplicative(),
