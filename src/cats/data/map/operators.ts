@@ -145,6 +145,10 @@ export const tap: <K, V>(
   f: (v: V, k: K) => unknown,
 ) => (m: Map<K, V>) => Map<K, V> = f => m => tap_(m, f);
 
+export const collect: <K, V, B>(
+  f: (v: V, k: K) => Option<B>,
+) => (m: Map<K, V>) => Map<K, B> = f => m => collect_(m, f);
+
 export const flatMap: <K2>(
   E: Eq<K2>,
 ) => <V, B>(
@@ -369,6 +373,33 @@ export const tap_ = <K, V>(
     f(k, v);
     return k;
   });
+
+export const collect_ = <K, V, B>(
+  m: Map<K, V>,
+  f: (v: V, k: K) => Option<B>,
+): Map<K, B> => {
+  const n = toNode(m);
+
+  switch (n.tag) {
+    case 'empty':
+      return Empty;
+
+    case 'inner':
+      return _makeInner(n.children.map(c => collect_(c, f)));
+
+    case 'leaf': {
+      const newBuckets: Bucket<K, B>[] = [];
+      for (let i = 0, len = n.buckets.length; i < len; i++) {
+        const [h, k, v] = n.buckets[i];
+        f(v, k).fold(
+          () => {},
+          b => newBuckets.push([h, k, b]),
+        );
+      }
+      return newBuckets.length ? new Leaf(newBuckets) : Empty;
+    }
+  }
+};
 
 export const flatMap_ = <K, V, B>(
   E: Eq<K>,

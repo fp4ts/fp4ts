@@ -448,6 +448,31 @@ describe('Map', () => {
     });
   });
 
+  describe('collect', () => {
+    it('should return empty map when empty initially', () => {
+      expect(Map.empty.collect(Some)).toEqual(Map.empty);
+    });
+
+    it('should collect even values', () => {
+      const m = Map([1, 2], [2, 3], [3, 4], [4, 5]).collect(x =>
+        x % 2 === 0 ? Some(x) : None,
+      ).toArray;
+
+      expect(m).toEqual(
+        expect.arrayContaining([
+          [1, 2],
+          [3, 4],
+        ]),
+      );
+      expect(m).not.toEqual(
+        expect.arrayContaining([
+          [2, 3],
+          [4, 5],
+        ]),
+      );
+    });
+  });
+
   describe('flatMap', () => {
     it('should flat map into singletons', () => {
       expect(

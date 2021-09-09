@@ -12,6 +12,7 @@ import { Map } from './algebra';
 import {
   all_,
   any_,
+  collect_,
   contains_,
   count_,
   difference_,
@@ -182,6 +183,8 @@ declare module './algebra' {
 
     map<B>(f: (v: V, k: K) => B): Map<K, B>;
     tap(f: (v: V, k: K) => unknown): Map<K, V>;
+
+    collect<B>(f: (v: V, k: K) => Option<B>): Map<K, B>;
 
     flatMap<K2>(
       this: Map<K2, V>,
@@ -372,6 +375,13 @@ Map.prototype.tap = function <K, V>(
   f: (v: V, k: K) => unknown,
 ): Map<K, V> {
   return tap_(this, f);
+};
+
+Map.prototype.collect = function <K, V, B>(
+  this: Map<K, V>,
+  f: (v: V, k: K) => Option<B>,
+): Map<K, B> {
+  return collect_(this, f);
 };
 
 Map.prototype.flatMap = function (this: any, ...args: any[]): any {
