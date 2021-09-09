@@ -65,6 +65,76 @@ describe('OrderedMap', () => {
     });
   });
 
+  describe('head', () => {
+    it('should throw when map is empty', () => {
+      expect(() => OrderedMap.empty.head).toThrow();
+    });
+
+    it('should return first elements of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).head).toBe(4);
+    });
+  });
+
+  describe('headOption', () => {
+    it('should return None when empty', () => {
+      expect(OrderedMap.empty.headOption).toEqual(None);
+    });
+
+    it('should return first elements of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).headOption).toEqual(Some(4));
+    });
+  });
+
+  describe('tail', () => {
+    it('should return empty map when empty', () => {
+      expect(OrderedMap.empty.tail).toEqual(OrderedMap.empty);
+    });
+
+    it('should remove element of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).tail).toEqual(OrderedMap([1, 2]));
+    });
+  });
+
+  describe('init', () => {
+    it('should return empty map when empty', () => {
+      expect(OrderedMap.empty.init).toEqual(OrderedMap.empty);
+    });
+
+    it('should remove last element of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).init).toEqual(OrderedMap([-1, 4]));
+    });
+  });
+
+  describe('headOption', () => {
+    it('should throw when map is empty', () => {
+      expect(OrderedMap.empty.headOption).toEqual(None);
+    });
+
+    it('should return first elements of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).headOption).toEqual(Some(4));
+    });
+  });
+
+  describe('last', () => {
+    it('should throw when map is empty', () => {
+      expect(() => OrderedMap.empty.last).toThrow();
+    });
+
+    it('should return last elements of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).last).toBe(2);
+    });
+  });
+
+  describe('lastOption', () => {
+    it('should return None when empty', () => {
+      expect(OrderedMap.empty.lastOption).toEqual(None);
+    });
+
+    it('should return last elements of the map', () => {
+      expect(OrderedMap([1, 2], [-1, 4]).lastOption).toEqual(Some(2));
+    });
+  });
+
   describe('all', () => {
     it('should return true when empty', () => {
       expect(OrderedMap.empty.all(() => false)).toBe(true);
@@ -560,6 +630,23 @@ describe('OrderedMap', () => {
       expect(OrderedMap([1, 2], [3, 4]).map(x => x * 2)).toEqual(
         OrderedMap([1, 4], [3, 8]),
       );
+    });
+  });
+
+  describe('collect', () => {
+    it('should return empty map when empty initially', () => {
+      expect(OrderedMap.empty.collect(Some)).toEqual(OrderedMap.empty);
+    });
+
+    it('should collect even numbers', () => {
+      expect(
+        OrderedMap([1, 2], [2, 3], [3, 4], [4, 5]).collect(x =>
+          x % 2 === 0 ? Some(x) : None,
+        ).toArray,
+      ).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
     });
   });
 

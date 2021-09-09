@@ -9,12 +9,38 @@ import { Ord, Compare } from '../../ord';
 import { List } from '../list';
 import { Option, Some, None } from '../option';
 
-import { Bin, Empty, OrderedMap, toNode } from './algebra';
+import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
 import { id } from '../../../fp/core';
 
+const throwError = (e: Error) => {
+  throw e;
+};
+
 export const isEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m === Empty;
 export const nonEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m !== Empty;
+
+export const head = <K, V>(m: OrderedMap<K, V>): V =>
+  min(m).fold(() => throwError(new Error('Empty.head')), id);
+
+export const headOption = <K, V>(m: OrderedMap<K, V>): Option<V> => min(m);
+
+export const tail = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> =>
+  popMin(m).fold(
+    () => Empty,
+    ([, t]) => t,
+  );
+
+export const init = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> =>
+  popMax(m).fold(
+    () => Empty,
+    ([, t]) => t,
+  );
+
+export const last = <K, V>(m: OrderedMap<K, V>): V =>
+  max(m).fold(() => throwError(new Error('Empty.last')), id);
+
+export const lastOption = <K, V>(m: OrderedMap<K, V>): Option<V> => max(m);
 
 export const size = <K, V>(m: OrderedMap<K, V>): number =>
   foldLeft_(m, 0, c => c + 1);
@@ -41,30 +67,18 @@ export const min = <K, V>(m: OrderedMap<K, V>): Option<V> =>
   minWithKey(m).map(([, v]) => v);
 
 export const minWithKey = <K, V>(m0: OrderedMap<K, V>): Option<[K, V]> => {
-  let min: Option<[K, V]> = None;
-  let n = toNode(m0);
-
-  while (n.tag !== 'empty') {
-    min = Some([n.key, n.value]);
-    n = toNode(n.lhs);
-  }
-
-  return min;
+  const loop = (n: Node<K, V>, r: Option<[K, V]>): Option<[K, V]> =>
+    n.tag === 'empty' ? r : loop(toNode(n.lhs), Some([n.key, n.value]));
+  return loop(toNode(m0), None);
 };
 
 export const max = <K, V>(m: OrderedMap<K, V>): Option<V> =>
   maxWithKey(m).map(([, v]) => v);
 
 export const maxWithKey = <K, V>(m0: OrderedMap<K, V>): Option<[K, V]> => {
-  let max: Option<[K, V]> = None;
-  let n = toNode(m0);
-
-  while (n.tag !== 'empty') {
-    max = Some([n.key, n.value]);
-    n = toNode(n.rhs);
-  }
-
-  return max;
+  const loop = (n: Node<K, V>, r: Option<[K, V]>): Option<[K, V]> =>
+    n.tag === 'empty' ? r : loop(toNode(n.rhs), Some([n.key, n.value]));
+  return loop(toNode(m0), None);
 };
 
 export const popMin = <K, V>(
@@ -206,6 +220,10 @@ export const map: <K, V, B>(
 export const tap: <K, V>(
   f: (v: V, k: K) => unknown,
 ) => (m: OrderedMap<K, V>) => OrderedMap<K, V> = f => m => tap_(m, f);
+
+export const collect: <K, V, B>(
+  f: (v: V, k: K) => Option<B>,
+) => (m: OrderedMap<K, V>) => OrderedMap<K, B> = f => m => collect_(m, f);
 
 export const foldLeft: <K, V, B>(
   z: B,
@@ -614,6 +632,19 @@ export const tap_ = <K, V>(
     f(v, k);
     return v;
   });
+
+export const collect_ = <K, V, B>(
+  m: OrderedMap<K, V>,
+  f: (v: V, k: K) => Option<B>,
+): OrderedMap<K, B> => {
+  const n = toNode(m);
+  if (n.tag === 'empty') return Empty;
+
+  return f(n.value, n.key).fold(
+    () => _balance(_link(collect_(n.lhs, f), collect_(n.rhs, f))),
+    v => _balance(_mkBin(n.key, v, collect_(n.lhs, f), collect_(n.rhs, f))),
+  );
+};
 
 export const foldLeft_ = <K, V, B>(
   m: OrderedMap<K, V>,

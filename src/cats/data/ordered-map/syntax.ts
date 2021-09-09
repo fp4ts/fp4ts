@@ -14,6 +14,7 @@ import { OrderedMap } from './algebra';
 import {
   all_,
   any_,
+  collect_,
   contains_,
   count_,
   difference_,
@@ -24,11 +25,16 @@ import {
   foldMap_,
   foldRight1_,
   foldRight_,
+  head,
+  headOption,
+  init,
   insertWith_,
   insert_,
   intersectWith_,
   intersect_,
   isEmpty,
+  last,
+  lastOption,
   lookup_,
   map_,
   max,
@@ -44,6 +50,7 @@ import {
   show_,
   size,
   symmetricDifference_,
+  tail,
   toArray,
   toList,
   traverse_,
@@ -56,6 +63,15 @@ declare module './algebra' {
   interface OrderedMap<K, V> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
+
+    readonly head: V;
+    readonly headOption: Option<V>;
+
+    readonly tail: OrderedMap<K, V>;
+    readonly init: OrderedMap<K, V>;
+
+    readonly last: V;
+    readonly lastOption: V;
 
     readonly size: number;
 
@@ -220,6 +236,8 @@ declare module './algebra' {
     filter(p: (v: V, k: K) => boolean): OrderedMap<K, V>;
     map<B>(f: (v: V, k: K) => B): OrderedMap<K, B>;
 
+    collect<B>(f: (v: V, k: K) => Option<B>): OrderedMap<K, B>;
+
     foldLeft<B>(z: B, f: (b: B, v: V, k: K) => B): B;
     foldLeft1<V2>(this: OrderedMap<K, V2>, f: (r: V2, v: V2) => V2): V2;
     foldRight<B>(z: B, f: (v: V, b: B, k: K) => B): B;
@@ -252,6 +270,42 @@ Object.defineProperty(OrderedMap.prototype, 'isEmpty', {
 Object.defineProperty(OrderedMap.prototype, 'nonEmpty', {
   get<K, V>(this: OrderedMap<K, V>): boolean {
     return nonEmpty(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'head', {
+  get<K, V>(this: OrderedMap<K, V>): V {
+    return head(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'headOption', {
+  get<K, V>(this: OrderedMap<K, V>): Option<V> {
+    return headOption(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'tail', {
+  get<K, V>(this: OrderedMap<K, V>): OrderedMap<K, V> {
+    return tail(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'init', {
+  get<K, V>(this: OrderedMap<K, V>): OrderedMap<K, V> {
+    return init(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'last', {
+  get<K, V>(this: OrderedMap<K, V>): V {
+    return last(this);
+  },
+});
+
+Object.defineProperty(OrderedMap.prototype, 'lastOption', {
+  get<K, V>(this: OrderedMap<K, V>): Option<V> {
+    return lastOption(this);
   },
 });
 
@@ -431,6 +485,13 @@ OrderedMap.prototype.map = function <K, V, B>(
   f: (v: V, k: K) => B,
 ): OrderedMap<K, B> {
   return map_(this, f);
+};
+
+OrderedMap.prototype.collect = function <K, V, B>(
+  this: OrderedMap<K, V>,
+  f: (v: V, k: K) => Option<B>,
+): OrderedMap<K, B> {
+  return collect_(this, f);
 };
 
 OrderedMap.prototype.foldLeft = function <K, V, B>(
