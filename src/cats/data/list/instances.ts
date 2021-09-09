@@ -24,7 +24,6 @@ import {
   foldMap,
   foldRight,
   isEmpty,
-  map,
   map_,
   nonEmpty,
   sequence,
@@ -33,22 +32,14 @@ import {
   traverse,
 } from './operators';
 
-export const listSemigroupK: Lazy<SemigroupK<URI>> = () => ({
-  URI: URI,
-  combineK: concat_,
-  algebra: () => ({
-    combine: concat_,
-  }),
-});
+export const listSemigroupK: Lazy<SemigroupK<URI>> = () =>
+  SemigroupK.of({ URI, combineK_: concat_ });
 
-export const listMonoidK: Lazy<MonoidK<URI>> = () => ({
-  ...listSemigroupK(),
-  emptyK: () => empty,
-  algebra: () => ({
-    empty: empty,
-    combine: concat_,
-  }),
-});
+export const listMonoidK: Lazy<MonoidK<URI>> = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { algebra, ...rest } = listSemigroupK();
+  return MonoidK.of({ ...rest, emptyK: () => empty });
+};
 
 export const listFunctor: Lazy<Functor<URI>> = () => Functor.of({ URI, map_ });
 

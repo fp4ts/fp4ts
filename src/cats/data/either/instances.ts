@@ -10,21 +10,11 @@ import { URI } from './either';
 import { flatMap, flatMap_, flatTap, flatten, map_, or_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
-export const eitherSemigroupK2C: <E>() => SemigroupK2C<URI, E> = () => ({
-  URI: URI,
-  combineK: or_,
-  algebra: () => ({
-    combine: or_,
-  }),
-});
+export const eitherSemigroupK2C: <E>() => SemigroupK2C<URI, E> = () =>
+  SemigroupK2C.of({ URI, combineK_: or_ });
 
-export const eitherSemigroupK2: Lazy<SemigroupK2<URI>> = () => ({
-  URI: URI,
-  combineK: or_,
-  algebra: () => ({
-    combine: or_,
-  }),
-});
+export const eitherSemigroupK2: Lazy<SemigroupK2<URI>> = () =>
+  SemigroupK2.of({ URI, combineK_: or_ });
 
 export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () =>
   Functor2C.of({ URI, map_ });

@@ -46,7 +46,6 @@ import {
   fork,
   handleError,
   handleErrorWith,
-  map,
   map2_,
   map_,
   onCancel,
@@ -60,7 +59,7 @@ import {
   race_,
   redeem,
   redeemWith,
-  tap,
+  tap_,
   timeoutTo_,
   timeout_,
 } from './operators';
@@ -70,11 +69,8 @@ export const ioDefer: Lazy<Defer<URI>> = () => ({
   defer: defer,
 });
 
-export const ioFunctor: Lazy<Functor<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const ioFunctor: Lazy<Functor<URI>> = () =>
+  Functor.of({ URI, map_, tap_ });
 
 export const ioParallelApply: Lazy<Apply<URI>> = () => ({
   ...ioFunctor(),

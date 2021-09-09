@@ -21,7 +21,6 @@ import {
   foldMap,
   foldRight,
   isEmpty,
-  map,
   map_,
   nonEmpty,
   sequence,
@@ -29,28 +28,16 @@ import {
   tap,
   traverse,
 } from './operators';
-import { pure } from './constructors';
+import { empty, pure } from './constructors';
 
-export const arraySemigroupK: () => SemigroupK<URI> = () => ({
-  URI: URI,
+export const arraySemigroupK: () => SemigroupK<URI> = () =>
+  SemigroupK.of({ URI, combineK_: concat_ });
 
-  combineK: concat_,
-
-  algebra: () => ({
-    combine: concat_,
-  }),
-});
-
-export const arrayMonoidK: () => MonoidK<URI> = () => ({
-  ...arraySemigroupK(),
-
-  emptyK: () => [],
-
-  algebra: () => ({
-    empty: [],
-    combine: concat_,
-  }),
-});
+export const arrayMonoidK: () => MonoidK<URI> = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { algebra, ...rest } = arraySemigroupK();
+  return MonoidK.of({ ...rest, emptyK: () => empty });
+};
 
 export const arrayFunctor: () => Functor<URI> = () => Functor.of({ URI, map_ });
 

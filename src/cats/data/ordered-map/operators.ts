@@ -698,7 +698,7 @@ export const foldMap_ = <K, V, M>(
   M: Monoid<M>,
   m: OrderedMap<K, V>,
   f: (v: V, k: K) => M,
-): M => foldLeft_(map_(m, f), M.empty, M.combine);
+): M => foldLeft_(map_(m, f), M.empty, M.combine_);
 
 export const foldMapK_ = <F, K, V, B>(
   F: MonoidK<F>,

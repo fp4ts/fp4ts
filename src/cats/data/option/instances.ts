@@ -12,22 +12,14 @@ import { URI } from './option';
 import { flatMap, flatMap_, flatTap, flatten, map_, or_ } from './operators';
 import { none, pure } from './constructors';
 
-export const optionSemigroupK: Lazy<SemigroupK<URI>> = () => ({
-  URI: URI,
-  combineK: or_,
-  algebra: () => ({
-    combine: or_,
-  }),
-});
+export const optionSemigroupK: Lazy<SemigroupK<URI>> = () =>
+  SemigroupK.of({ URI, combineK_: or_ });
 
-export const optionMonoidK: Lazy<MonoidK<URI>> = () => ({
-  ...optionSemigroupK(),
-  emptyK: () => none,
-  algebra: () => ({
-    combine: or_,
-    empty: none,
-  }),
-});
+export const optionMonoidK: Lazy<MonoidK<URI>> = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { algebra, ...rest } = optionSemigroupK();
+  return MonoidK.of({ ...rest, emptyK: () => none });
+};
 
 export const optionFunctor: Lazy<Functor<URI>> = () =>
   Functor.of({ URI, map_ });

@@ -448,13 +448,13 @@ export const foldMap_ = <K, V, M>(
   M: Monoid<M>,
   m: Map<K, V>,
   f: (v: V, k: K) => M,
-): M => foldLeft_(m, M.empty, (r, v, k) => M.combine(r, f(v, k)));
+): M => foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, f(v, k)));
 
 export const foldMapK_ = <F, K, V, B>(
   F: MonoidK<F>,
   m: Map<K, V>,
   f: (v: V, k: K) => Kind<F, B>,
-): Kind<F, B> => foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK(r, f(v, k)));
+): Kind<F, B> => foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
 
 export const traverse_ = <G, K, V, B>(
   G: Applicative<G>,

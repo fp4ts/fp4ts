@@ -121,7 +121,7 @@ export const flatMap_: <A, B>(xs: A[], f: (a: A) => B[]) => B[] = (xs, f) =>
   xs.flatMap(f);
 
 export const foldMap_ = <M, A>(xs: A[], f: (a: A) => M, M: Monoid<M>): M =>
-  foldLeft_(map_(xs, f), M.empty, M.combine);
+  foldLeft_(map_(xs, f), M.empty, M.combine_);
 
 export const foldLeft_ = <A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B =>
   xs.reduce(f, z);
