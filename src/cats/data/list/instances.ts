@@ -55,10 +55,11 @@ export const listApplicative: Lazy<Applicative<URI>> = () =>
     unit: empty,
   });
 
-export const listAlternative: Lazy<Alternative<URI>> = () => ({
-  ...listApplicative(),
-  ...listMonoidK(),
-});
+export const listAlternative: Lazy<Alternative<URI>> = () =>
+  Alternative.of({
+    ...listApplicative(),
+    ...listMonoidK(),
+  });
 
 export const listFlatMap: Lazy<FlatMap<URI>> = () =>
   FlatMap.of({

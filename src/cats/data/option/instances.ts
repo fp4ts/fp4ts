@@ -36,10 +36,11 @@ export const optionApplicative: Lazy<Applicative<URI>> = () =>
     pure: pure,
   });
 
-export const optionAlternative: Lazy<Alternative<URI>> = () => ({
-  ...optionApplicative(),
-  ...optionMonoidK(),
-});
+export const optionAlternative: Lazy<Alternative<URI>> = () =>
+  Alternative.of({
+    ...optionApplicative(),
+    ...optionMonoidK(),
+  });
 
 export const optionFlatMap: Lazy<FlatMap<URI>> = () =>
   FlatMap.of({
