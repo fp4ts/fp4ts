@@ -259,13 +259,13 @@ export const traverse: <G>(
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, B>,
 ) => (m: OrderedMap<K, V>) => Kind<G, OrderedMap<K, B>> = G => f => m =>
-  traverse_(G, m, f);
+  traverse_(G)(m, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
 ) => <K, V>(m: OrderedMap<K, Kind<G, V>>) => Kind<G, OrderedMap<K, V>> =
   G => m =>
-    traverse_(G, m, id);
+    traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
@@ -704,26 +704,27 @@ export const foldMapK_ =
   <K, V, B>(m: OrderedMap<K, V>, f: (v: V, k: K) => Kind<F, B>): Kind<F, B> =>
     foldMap_(F.algebra<B>())(m, f);
 
-export const traverse_ = <G, K, V, B>(
-  G: Applicative<G>,
-  m: OrderedMap<K, V>,
-  f: (v: V, k: K) => Kind<G, B>,
-): Kind<G, OrderedMap<K, B>> => {
-  const n = toNode(m);
-  if (n.tag === 'empty') return G.pure(Empty as OrderedMap<K, B>);
+export const traverse_ =
+  <G>(G: Applicative<G>) =>
+  <K, V, B>(
+    m: OrderedMap<K, V>,
+    f: (v: V, k: K) => Kind<G, B>,
+  ): Kind<G, OrderedMap<K, B>> => {
+    const n = toNode(m);
+    if (n.tag === 'empty') return G.pure(Empty as OrderedMap<K, B>);
 
-  const lhsF = traverse_(G, n.lhs, f);
-  const bF = f(n.value, n.key);
-  const rhsF = traverse_(G, n.rhs, f);
+    const lhsF = traverse_(G)(n.lhs, f);
+    const bF = f(n.value, n.key);
+    const rhsF = traverse_(G)(n.rhs, f);
 
-  return pipe(
-    G.product_(lhsF, bF),
-    G.map2(
-      rhsF,
-      ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as OrderedMap<K, B>,
-    ),
-  );
-};
+    return pipe(
+      G.product_(lhsF, bF),
+      G.map2(
+        rhsF,
+        ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as OrderedMap<K, B>,
+      ),
+    );
+  };
 
 export const show_ = <K, V>(
   SK: Show<K>,

@@ -186,12 +186,12 @@ export const traverse: <G>(
   G: Applicative<G>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, B>,
-) => (m: Map<K, V>) => Kind<G, Map<K, B>> = G => f => m => traverse_(G, m, f);
+) => (m: Map<K, V>) => Kind<G, Map<K, B>> = G => f => m => traverse_(G)(m, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
 ) => <K, V>(m: Map<K, Kind<G, V>>) => Kind<G, Map<K, V>> = G => m =>
-  traverse_(G, m, id);
+  traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
@@ -454,44 +454,45 @@ export const foldMapK_ =
   <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, B>): Kind<F, B> =>
     foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
 
-export const traverse_ = <G, K, V, B>(
-  G: Applicative<G>,
-  m: Map<K, V>,
-  f: (v: V, k: K) => Kind<G, B>,
-): Kind<G, Map<K, B>> => {
-  const n = toNode(m);
+export const traverse_ =
+  <G>(G: Applicative<G>) =>
+  <K, V, B>(
+    m: Map<K, V>,
+    f: (v: V, k: K) => Kind<G, B>,
+  ): Kind<G, Map<K, B>> => {
+    const n = toNode(m);
 
-  switch (n.tag) {
-    case 'empty':
-      return G.pure(Empty as Map<K, B>);
+    switch (n.tag) {
+      case 'empty':
+        return G.pure(Empty as Map<K, B>);
 
-    case 'inner': {
-      const appendF = (
-        gbs: Kind<G, Map<K, B>[]>,
-        m2: Map<K, V>,
-      ): Kind<G, Map<K, B>[]> =>
-        G.map2_(traverse_(G, m2, f), gbs)((m, ms) => [...ms, m]);
+      case 'inner': {
+        const appendF = (
+          gbs: Kind<G, Map<K, B>[]>,
+          m2: Map<K, V>,
+        ): Kind<G, Map<K, B>[]> =>
+          G.map2_(traverse_(G)(m2, f), gbs)((m, ms) => [...ms, m]);
 
-      return pipe(
-        n.children.reduce(appendF, G.pure([] as Map<K, B>[])),
-        G.map(children => new Inner(children) as Map<K, B>),
-      );
+        return pipe(
+          n.children.reduce(appendF, G.pure([] as Map<K, B>[])),
+          G.map(children => new Inner(children) as Map<K, B>),
+        );
+      }
+
+      case 'leaf': {
+        const appendF = (
+          gbs: Kind<G, Bucket<K, B>[]>,
+          [h, k, v]: Bucket<K, V>,
+        ): Kind<G, Bucket<K, B>[]> =>
+          G.map2_(f(v, k), gbs)((b, bs) => [...bs, [h, k, b]]);
+
+        return pipe(
+          n.buckets.reduce(appendF, G.pure([] as Bucket<K, B>[])),
+          G.map(buckets => new Leaf(buckets) as Map<K, B>),
+        );
+      }
     }
-
-    case 'leaf': {
-      const appendF = (
-        gbs: Kind<G, Bucket<K, B>[]>,
-        [h, k, v]: Bucket<K, V>,
-      ): Kind<G, Bucket<K, B>[]> =>
-        G.map2_(f(v, k), gbs)((b, bs) => [...bs, [h, k, b]]);
-
-      return pipe(
-        n.buckets.reduce(appendF, G.pure([] as Bucket<K, B>[])),
-        G.map(buckets => new Leaf(buckets) as Map<K, B>),
-      );
-    }
-  }
-};
+  };
 
 export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
   const entries = toArray(m)

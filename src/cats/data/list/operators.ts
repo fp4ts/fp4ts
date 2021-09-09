@@ -251,7 +251,7 @@ export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(f: (a: A) => Kind<G, B>) => (xs: List<A>) => Kind<G, List<B>> =
   G => f => xs =>
-    traverse_(G, xs, f);
+    traverse_(G)(xs, f);
 
 export const flatTraverse: <G>(
   G: Applicative<G>,
@@ -711,15 +711,13 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
   return rs;
 };
 
-export const traverse_ = <G, A, B>(
-  G: Applicative<G>,
-  xs: List<A>,
-  f: (a: A) => Kind<G, B>,
-): Kind<G, List<B>> => {
-  const consF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
-    G.map2_(ys, f(x))(prepend_);
-  return foldRight_(xs, G.pure(empty as List<B>), consF);
-};
+export const traverse_ =
+  <G>(G: Applicative<G>) =>
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, B>): Kind<G, List<B>> => {
+    const consF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
+      G.map2_(ys, f(x))(prepend_);
+    return foldRight_(xs, G.pure(empty as List<B>), consF);
+  };
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

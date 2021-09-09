@@ -25,6 +25,7 @@ import {
   sequence,
   size,
   traverse,
+  traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
 
@@ -74,9 +75,10 @@ export const arrayFoldable: () => Foldable<URI> = () =>
     size: size,
   });
 
-export const arrayTraversable: () => Traversable<URI> = () => ({
-  ...arrayFunctor(),
-  ...arrayFoldable(),
-  traverse: traverse,
-  sequence: sequence,
-});
+export const arrayTraversable: () => Traversable<URI> = () =>
+  Traversable.of({
+    ...arrayFunctor(),
+    ...arrayFoldable(),
+    traverse_: traverse_,
+    sequence: sequence,
+  });

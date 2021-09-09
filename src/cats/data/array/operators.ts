@@ -75,11 +75,11 @@ export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(f: (a: A) => Kind<G, B>) => (xs: A[]) => Kind<G, B[]> =
   G => f => xs =>
-    traverse_(G, xs, f);
+    traverse_(G)(xs, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
-) => <A>(gs: Kind<G, A>[]) => Kind<G, A[]> = G => gs => traverse_(G, gs, id);
+) => <A>(gs: Kind<G, A>[]) => Kind<G, A[]> = G => gs => traverse_(G)(gs, id);
 
 export const flatTraverse: <G>(
   G: Applicative<G>,
@@ -129,16 +129,14 @@ export const foldLeft_ = <A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B =>
 export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
   xs.reduceRight((b, a) => f(a, b), z);
 
-export const traverse_ = <G, A, B>(
-  G: Applicative<G>,
-  xs: A[],
-  f: (a: A) => Kind<G, B>,
-): Kind<G, B[]> =>
-  // TODO: Fix
-  xs.reduceRight(
-    (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
-    G.pure([] as B[]),
-  );
+export const traverse_ =
+  <G>(G: Applicative<G>) =>
+  <A, B>(xs: A[], f: (a: A) => Kind<G, B>): Kind<G, B[]> =>
+    // TODO: Fix
+    xs.reduceRight(
+      (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
+      G.pure([] as B[]),
+    );
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

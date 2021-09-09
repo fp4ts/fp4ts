@@ -17,6 +17,7 @@ import {
   sequence,
   size,
   traverse,
+  traverse_,
 } from './operators';
 
 export const mapFunctor2C: <K>() => Functor2C<URI, K> = () =>
@@ -53,18 +54,20 @@ export const mapFoldable2: Lazy<Foldable2<URI>> = () =>
     size: size,
   });
 
-export const mapTraversable2C: <E>() => Traversable2C<URI, E> = () => ({
-  ...mapFunctor2C(),
-  ...mapFoldable2C(),
+export const mapTraversable2C: <E>() => Traversable2C<URI, E> = () =>
+  Traversable2C.of({
+    ...mapFunctor2C(),
+    ...mapFoldable2C(),
 
-  traverse: traverse,
-  sequence: sequence,
-});
+    traverse_: traverse_,
+    sequence: sequence,
+  });
 
-export const mapTraversable2: Lazy<Traversable2<URI>> = () => ({
-  ...mapFunctor2(),
-  ...mapFoldable2(),
+export const mapTraversable2: Lazy<Traversable2<URI>> = () =>
+  Traversable2.of({
+    ...mapFunctor2(),
+    ...mapFoldable2(),
 
-  traverse: traverse,
-  sequence: sequence,
-});
+    traverse_: traverse_,
+    sequence: sequence,
+  });

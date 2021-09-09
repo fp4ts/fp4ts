@@ -430,7 +430,7 @@ Map.prototype.traverse = function <G, K, V>(
   this: Map<K, V>,
   G: Applicative<G>,
 ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, Map<K, B>> {
-  return f => traverse_(G, this, f);
+  return f => traverse_(G)(this, f);
 };
 
 Map.prototype.show = function (this: any, ...args: any[]): string {

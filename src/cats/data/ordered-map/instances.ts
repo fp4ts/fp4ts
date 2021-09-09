@@ -16,7 +16,7 @@ import {
   nonEmpty,
   sequence,
   size,
-  traverse,
+  traverse_,
 } from './operators';
 
 export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () =>
@@ -53,18 +53,20 @@ export const orderedMapFoldable2: Lazy<Foldable2<URI>> = () =>
     size: size,
   });
 
-export const orderedMapTraversable2C: <K>() => Traversable2C<URI, K> = () => ({
-  ...orderedMapFunctor2C(),
-  ...orderedMapFoldable2C(),
+export const orderedMapTraversable2C: <K>() => Traversable2C<URI, K> = () =>
+  Traversable2C.of({
+    ...orderedMapFunctor2C(),
+    ...orderedMapFoldable2C(),
 
-  traverse: traverse,
-  sequence: sequence,
-});
+    traverse_: traverse_,
+    sequence: sequence,
+  });
 
-export const orderedMapTraversable2: Lazy<Traversable2<URI>> = () => ({
-  ...orderedMapFunctor2(),
-  ...orderedMapFoldable2(),
+export const orderedMapTraversable2: Lazy<Traversable2<URI>> = () =>
+  Traversable2.of({
+    ...orderedMapFunctor2(),
+    ...orderedMapFoldable2(),
 
-  traverse: traverse,
-  sequence: sequence,
-});
+    traverse_: traverse_,
+    sequence: sequence,
+  });

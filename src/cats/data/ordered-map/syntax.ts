@@ -542,7 +542,7 @@ OrderedMap.prototype.traverse = function <G, K, V>(
   this: OrderedMap<K, V>,
   G: Applicative<G>,
 ): <B>(f: (v: V, k: K) => Kind<G, B>) => Kind<G, OrderedMap<K, B>> {
-  return f => traverse_(G, this, f);
+  return f => traverse_(G)(this, f);
 };
 
 OrderedMap.prototype.show = function (this: any, ...args: any[]): string {

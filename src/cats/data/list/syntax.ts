@@ -472,7 +472,7 @@ List.prototype.traverse = function <A, G>(
   this: List<A>,
   G: Applicative<G>,
 ): <B>(f: (a: A) => Kind<G, B>) => Kind<G, List<B>> {
-  return f => traverse_(G, this, f);
+  return f => traverse_(G)(this, f);
 };
 
 List.prototype.sequence = function <A, G>(
