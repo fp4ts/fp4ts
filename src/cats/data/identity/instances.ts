@@ -28,7 +28,8 @@ export const identityApplicative: Lazy<Applicative<URI>> = () =>
 export const identityFlatMap: Lazy<FlatMap<URI>> = () =>
   FlatMap.of({ ...identityApply(), flatMap_: flatMap_ });
 
-export const identityMonad: Lazy<Monad<URI>> = () => ({
-  ...identityApplicative(),
-  ...identityFlatMap(),
-});
+export const identityMonad: Lazy<Monad<URI>> = () =>
+  Monad.of({
+    ...identityApplicative(),
+    ...identityFlatMap(),
+  });

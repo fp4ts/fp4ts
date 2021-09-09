@@ -82,12 +82,14 @@ export const readerFlatMap2: Lazy<FlatMap2<URI>> = () =>
     flatten: flatten,
   });
 
-export const readerMonad2C: <R>() => Monad2C<URI, R> = () => ({
-  ...readerApplicative2C(),
-  ...readerFlatMap2C(),
-});
+export const readerMonad2C: <R>() => Monad2C<URI, R> = () =>
+  Monad2C.of({
+    ...readerApplicative2C(),
+    ...readerFlatMap2C(),
+  });
 
-export const readerMonad2: Lazy<Monad2<URI>> = () => ({
-  ...readerApplicative2(),
-  ...readerFlatMap2(),
-});
+export const readerMonad2: Lazy<Monad2<URI>> = () =>
+  Monad2.of({
+    ...readerApplicative2(),
+    ...readerFlatMap2(),
+  });

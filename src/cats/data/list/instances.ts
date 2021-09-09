@@ -68,10 +68,11 @@ export const listFlatMap: Lazy<FlatMap<URI>> = () =>
     flatten: flatten,
   });
 
-export const listMonad: Lazy<Monad<URI>> = () => ({
-  ...listApplicative(),
-  ...listFlatMap(),
-});
+export const listMonad: Lazy<Monad<URI>> = () =>
+  Monad.of({
+    ...listApplicative(),
+    ...listFlatMap(),
+  });
 
 export const listFoldable: Lazy<Foldable<URI>> = () => ({
   URI: URI,

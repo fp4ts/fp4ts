@@ -1,13 +1,6 @@
 import { id } from '../fp/core';
 import { Kind, Kind2 } from '../fp/hkt';
-import {
-  Apply,
-  Apply2C,
-  Apply2,
-  Apply2CRequirements,
-  Apply2Requirements,
-  ApplyRequirements,
-} from './apply';
+import { Apply, Apply2C, Apply2 } from './apply';
 
 export interface FlatMap<F> extends Apply<F> {
   readonly flatMap: <A, B>(
@@ -29,14 +22,14 @@ export interface FlatMap<F> extends Apply<F> {
   readonly flatten: <A>(ffa: Kind<F, Kind<F, A>>) => Kind<F, A>;
 }
 
-export type FlatMapRequirements<F> = Pick<FlatMap<F>, 'flatMap_'> &
-  ApplyRequirements<F> &
+export type FlatMapRequirements<F> = Pick<
+  FlatMap<F>,
+  'URI' | 'flatMap_' | 'map_'
+> &
   Partial<FlatMap<F>>;
 export const FlatMap = {
   of: <F>(F: FlatMapRequirements<F>): FlatMap<F> => {
     const self: FlatMap<F> = Object.freeze({
-      ...Apply.of(F),
-
       flatMap:
         <A, B>(f: (a: A) => Kind<F, B>) =>
         (fa: Kind<F, A>) =>
@@ -51,11 +44,18 @@ export const FlatMap = {
 
       flatten: ffa => self.flatMap_(ffa, id),
 
+      ...FlatMap.deriveApply(F),
       ...F,
     });
 
     return self;
   },
+
+  deriveApply: <F>(F: FlatMapRequirements<F>): Apply<F> =>
+    Apply.of<F>({
+      ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
+      ...F,
+    }),
 };
 
 export interface FlatMap2C<F, E> extends Apply2C<F, E> {
@@ -78,14 +78,14 @@ export interface FlatMap2C<F, E> extends Apply2C<F, E> {
   readonly flatten: <A>(ffa: Kind2<F, E, Kind2<F, E, A>>) => Kind2<F, E, A>;
 }
 
-export type FlatMap2CRequirements<F, E> = Pick<FlatMap2C<F, E>, 'flatMap_'> &
-  Apply2CRequirements<F, E> &
+export type FlatMap2CRequirements<F, E> = Pick<
+  FlatMap2C<F, E>,
+  'URI' | 'flatMap_' | 'map_'
+> &
   Partial<FlatMap2C<F, E>>;
 export const FlatMap2C = {
   of: <F, E>(F: FlatMap2CRequirements<F, E>): FlatMap2C<F, E> => {
     const self: FlatMap2C<F, E> = Object.freeze({
-      ...Apply2C.of(F),
-
       flatMap:
         <A, B>(f: (a: A) => Kind2<F, E, B>) =>
         (fa: Kind2<F, E, A>) =>
@@ -100,11 +100,18 @@ export const FlatMap2C = {
 
       flatten: ffa => self.flatMap_(ffa, id),
 
+      ...FlatMap2C.deriveApply(F),
       ...F,
     });
 
     return self;
   },
+
+  deriveApply: <F, E>(F: FlatMap2CRequirements<F, E>): Apply2C<F, E> =>
+    Apply2C.of<F, E>({
+      ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
+      ...F,
+    }),
 };
 
 export interface FlatMap2<F> extends Apply2<F> {
@@ -127,14 +134,14 @@ export interface FlatMap2<F> extends Apply2<F> {
   readonly flatten: <E, A>(ffa: Kind2<F, E, Kind2<F, E, A>>) => Kind2<F, E, A>;
 }
 
-export type FlatMap2Requirements<F> = Pick<FlatMap2<F>, 'flatMap_'> &
-  Apply2Requirements<F> &
+export type FlatMap2Requirements<F> = Pick<
+  FlatMap2<F>,
+  'URI' | 'flatMap_' | 'map_'
+> &
   Partial<FlatMap2<F>>;
 export const FlatMap2 = {
   of: <F>(F: FlatMap2Requirements<F>): FlatMap2<F> => {
     const self: FlatMap2<F> = Object.freeze({
-      ...Apply2.of(F),
-
       flatMap:
         <E, A, B>(f: (a: A) => Kind2<F, E, B>) =>
         (fa: Kind2<F, E, A>) =>
@@ -149,9 +156,16 @@ export const FlatMap2 = {
 
       flatten: ffa => self.flatMap_(ffa, id),
 
+      ...FlatMap2.deriveApply(F),
       ...F,
     });
 
     return self;
   },
+
+  deriveApply: <F>(F: FlatMap2Requirements<F>): Apply2<F> =>
+    Apply2.of<F>({
+      ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
+      ...F,
+    }),
 };

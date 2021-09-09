@@ -50,10 +50,11 @@ export const arrayApplicative: () => Applicative<URI> = () =>
 export const arrayFlatMap: () => FlatMap<URI> = () =>
   FlatMap.of({ ...arrayApply(), flatMap_: flatMap_ });
 
-export const arrayMonad: () => Monad<URI> = () => ({
-  ...arrayApplicative(),
-  ...arrayFlatMap(),
-});
+export const arrayMonad: () => Monad<URI> = () =>
+  Monad.of({
+    ...arrayApplicative(),
+    ...arrayFlatMap(),
+  });
 
 export const arrayFoldable: () => Foldable<URI> = () => ({
   URI: URI,

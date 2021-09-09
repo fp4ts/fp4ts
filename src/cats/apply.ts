@@ -43,7 +43,7 @@ export const Apply = Object.freeze({
     const self: Apply<F> = {
       ...Functor.of(F),
 
-      ap: fa => ff => F.ap_(ff, fa),
+      ap: fa => ff => self.ap_(ff, fa),
 
       product: fb => fa => self.product_(fa, fb),
       product_: <A, B>(fa: Kind<F, A>, fb: Kind<F, B>) =>
@@ -118,9 +118,7 @@ export type Apply2CRequirements<F, E> = Pick<Apply2C<F, E>, 'ap_'> &
 export const Apply2C = Object.freeze({
   of: <F, E>(F: Apply2CRequirements<F, E>): Apply2C<F, E> => {
     const self: Apply2C<F, E> = {
-      ...Functor2C.of(F),
-
-      ap: fa => ff => F.ap_(ff, fa),
+      ap: fa => ff => self.ap_(ff, fa),
 
       product: fb => fa => self.product_(fa, fb),
       product_: <A, B>(fa: Kind2<F, E, A>, fb: Kind2<F, E, B>) =>
@@ -139,6 +137,7 @@ export const Apply2C = Object.freeze({
       productR: fb => fa => self.productR_(fa, fb),
       productR_: (fa, fb) => self.map_(self.product_(fa, fb), ([, b]) => b),
 
+      ...Functor2C.of(F),
       ...F,
     };
 
@@ -195,9 +194,7 @@ export type Apply2Requirements<F> = Pick<Apply2<F>, 'ap_'> &
 export const Apply2 = Object.freeze({
   of: <F>(F: Apply2Requirements<F>): Apply2<F> => {
     const self: Apply2<F> = {
-      ...Functor2.of(F),
-
-      ap: fa => ff => F.ap_(ff, fa),
+      ap: fa => ff => self.ap_(ff, fa),
 
       product: fb => fa => self.product_(fa, fb),
       product_: <E, A, B>(fa: Kind2<F, E, A>, fb: Kind2<F, E, B>) =>
@@ -216,6 +213,7 @@ export const Apply2 = Object.freeze({
       productR: fb => fa => self.productR_(fa, fb),
       productR_: (fa, fb) => self.map_(self.product_(fa, fb), ([, b]) => b),
 
+      ...Functor2.of(F),
       ...F,
     };
 

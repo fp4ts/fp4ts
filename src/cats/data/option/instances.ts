@@ -49,7 +49,8 @@ export const optionFlatMap: Lazy<FlatMap<URI>> = () =>
     flatten: flatten,
   });
 
-export const optionMonad: Lazy<Monad<URI>> = () => ({
-  ...optionApplicative(),
-  ...optionFlatMap(),
-});
+export const optionMonad: Lazy<Monad<URI>> = () =>
+  Monad.of({
+    ...optionApplicative(),
+    ...optionFlatMap(),
+  });

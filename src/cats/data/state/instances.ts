@@ -72,12 +72,14 @@ export const stateFlatMap2: Lazy<FlatMap2<URI>> = () =>
     flatten: flatten,
   });
 
-export const stateMonad2C: <S>() => Monad2C<URI, S> = () => ({
-  ...stateApplicative2C(),
-  ...stateFlatMap2C(),
-});
+export const stateMonad2C: <S>() => Monad2C<URI, S> = () =>
+  Monad2C.of({
+    ...stateApplicative2C(),
+    ...stateFlatMap2C(),
+  });
 
-export const stateMonad2: Lazy<Monad2<URI>> = () => ({
-  ...stateApplicative2(),
-  ...stateFlatMap2(),
-});
+export const stateMonad2: Lazy<Monad2<URI>> = () =>
+  Monad2.of({
+    ...stateApplicative2(),
+    ...stateFlatMap2(),
+  });

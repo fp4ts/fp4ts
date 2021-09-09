@@ -1,5 +1,7 @@
 import { Kind, Kind2 } from '../fp/hkt';
+import { Functor } from './functor';
 import { Apply, Apply2C, Apply2 } from './apply';
+import { Functor2, Functor2C } from '.';
 
 export interface Applicative<F> extends Apply<F> {
   readonly pure: <A>(a: A) => Kind<F, A>;
@@ -14,17 +16,19 @@ export type ApplicativeRequirements<F> = Pick<
 export const Applicative = Object.freeze({
   of: <F>(F: ApplicativeRequirements<F>): Applicative<F> => {
     const self: Applicative<F> = Object.freeze({
-      ...Apply.of({
-        map_: F.map_ ?? ((fa, f) => self.ap_(self.pure(f), fa)),
-        ...F,
-      }),
-
       unit: F.pure(undefined as void),
 
+      ...Apply.of({ ...Applicative.deriveFunctor(F), ...F }),
       ...F,
     });
     return self;
   },
+
+  deriveFunctor: <F>(F: ApplicativeRequirements<F>): Functor<F> =>
+    Functor.of({
+      map_: (fa, f) => F.ap_(F.pure(f), fa),
+      ...F,
+    }),
 });
 
 export interface Applicative2C<F, E> extends Apply2C<F, E> {
@@ -40,17 +44,16 @@ export type Applicative2CRequirements<F, E> = Pick<
 export const Applicative2C = Object.freeze({
   of: <F, E>(F: Applicative2CRequirements<F, E>): Applicative2C<F, E> => {
     const self: Applicative2C<F, E> = Object.freeze({
-      ...Apply2C.of({
-        map_: F.map_ ?? ((fa, f) => self.ap_(self.pure(f), fa)),
-        ...F,
-      }),
-
       unit: F.pure(undefined as void),
 
+      ...Apply2C.of({ ...Applicative2C.deriveFunctor(F), ...F }),
       ...F,
     });
     return self;
   },
+
+  deriveFunctor: <F, E>(F: Applicative2CRequirements<F, E>): Functor2C<F, E> =>
+    Functor2C.of({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),
 });
 
 export interface Applicative2<F> extends Apply2<F> {
@@ -66,18 +69,14 @@ export type Applicative2Requirements<F> = Pick<
 export const Applicative2 = Object.freeze({
   of: <F>(F: Applicative2Requirements<F>): Applicative2<F> => {
     const self: Applicative2<F> = Object.freeze({
-      ...Apply2.of({
-        map_:
-          F.map_ ??
-          (<E, A, B>(fa: Kind2<F, E, A>, f: (a: A) => B) =>
-            self.ap_(self.pure<E, (a: A) => B>(f), fa)),
-        ...F,
-      }),
-
       unit: F.pure<never, void>(undefined as void),
 
+      ...Apply2.of({ ...Applicative2.deriveFunctor(F), ...F }),
       ...F,
     });
     return self;
   },
+
+  deriveFunctor: <F>(F: Applicative2Requirements<F>): Functor2<F> =>
+    Functor2.of<F>({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),
 });

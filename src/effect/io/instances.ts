@@ -109,10 +109,11 @@ export const ioFlatMap: Lazy<FlatMap<URI>> = () =>
     flatten: flatten,
   });
 
-export const ioMonad: Lazy<Monad<URI>> = () => ({
-  ...ioSequentialApplicative(),
-  ...ioFlatMap(),
-});
+export const ioMonad: Lazy<Monad<URI>> = () =>
+  Monad.of({
+    ...ioSequentialApplicative(),
+    ...ioFlatMap(),
+  });
 
 export const ioMonadError: Lazy<MonadError<URI, Error>> = () => ({
   ...ioMonad(),

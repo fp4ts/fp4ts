@@ -54,12 +54,14 @@ export const eitherFlatMap2C: <E>() => FlatMap2C<URI, E> = () =>
 export const eitherFlatMap2: Lazy<FlatMap2<URI>> = () =>
   FlatMap2.of({ ...eitherApply2(), flatMap_: flatMap_ });
 
-export const eitherMonad2C: <E>() => Monad2C<URI, E> = () => ({
-  ...eitherApplicative2C(),
-  ...eitherFlatMap2C(),
-});
+export const eitherMonad2C: <E>() => Monad2C<URI, E> = () =>
+  Monad2C.of({
+    ...eitherApplicative2C(),
+    ...eitherFlatMap2C(),
+  });
 
-export const eitherMonad2: Lazy<Monad2<URI>> = () => ({
-  ...eitherApplicative2(),
-  ...eitherFlatMap2(),
-});
+export const eitherMonad2: Lazy<Monad2<URI>> = () =>
+  Monad2.of({
+    ...eitherApplicative2(),
+    ...eitherFlatMap2(),
+  });
