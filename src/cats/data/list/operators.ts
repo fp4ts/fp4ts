@@ -16,10 +16,13 @@ const throwError = (e: Error) => {
 };
 
 export const head = <A>(xs: List<A>): A =>
+  headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
+
+export const headOption = <A>(xs: List<A>): Option<A> =>
   fold_(
     xs,
-    () => throwError(new Error('Nil.head')),
-    h => h,
+    () => None,
+    h => Some(h),
   );
 
 export const tail = <A>(xs: List<A>): List<A> =>
@@ -28,6 +31,20 @@ export const tail = <A>(xs: List<A>): List<A> =>
     () => empty,
     (_, t) => t,
   );
+
+export const init = <A>(xs: List<A>): List<A> => dropRight_(xs, 1);
+
+export const last = <A>(xs: List<A>): A =>
+  lastOption(xs).fold(() => throwError(new Error('Nil.last')), id);
+
+export const lastOption = <A>(xs: List<A>): Option<A> => {
+  let l: Option<A> = None;
+  while (nonEmpty(xs)) {
+    l = Some(head(xs));
+    xs = tail(xs);
+  }
+  return l;
+};
 
 export const uncons = <A>(xs: List<A>): Option<[A, List<A>]> =>
   fold_(

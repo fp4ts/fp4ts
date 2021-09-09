@@ -82,6 +82,46 @@ describe('List', () => {
     });
   });
 
+  describe('headOption', () => {
+    it('should return None when list is empty', () => {
+      expect(List.empty.headOption).toEqual(None);
+    });
+
+    it('should return Some head when list is not empty', () => {
+      expect(List(1, 2).headOption).toEqual(Some(1));
+    });
+  });
+
+  describe('last', () => {
+    it('should throw error on empty list', () => {
+      expect(() => List.empty.last).toThrow();
+    });
+
+    it('should return Some last when list is not empty', () => {
+      expect(List(1, 2).last).toEqual(2);
+    });
+  });
+
+  describe('lastOption', () => {
+    it('should return None when list is empty', () => {
+      expect(List.empty.lastOption).toEqual(None);
+    });
+
+    it('should return Some last when list is not empty', () => {
+      expect(List(1, 2).lastOption).toEqual(Some(2));
+    });
+  });
+
+  describe('init', () => {
+    it('should return an empty list when empty', () => {
+      expect(List.empty.init).toEqual(List.empty);
+    });
+
+    it('should return a list without the last element', () => {
+      expect(List(1, 2, 3).init).toEqual(List(1, 2));
+    });
+  });
+
   describe('equality', () => {
     const E = primitiveEq();
     test('two empty lists to be the same', () => {

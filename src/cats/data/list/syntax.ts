@@ -32,7 +32,11 @@ import {
   foldRight_,
   fold_,
   head,
+  headOption,
+  init,
   isEmpty,
+  last,
+  lastOption,
   map_,
   nonEmpty,
   notEquals_,
@@ -64,7 +68,11 @@ import {
 declare module './algebra' {
   interface List<A> {
     readonly head: A;
+    readonly headOption: A;
     readonly tail: List<A>;
+    readonly init: List<A>;
+    readonly last: A;
+    readonly lastOption: A;
     readonly uncons: Option<[A, List<A>]>;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
@@ -143,9 +151,33 @@ Object.defineProperty(List.prototype, 'head', {
   },
 });
 
+Object.defineProperty(List.prototype, 'headOption', {
+  get<A>(this: List<A>): Option<A> {
+    return headOption(this);
+  },
+});
+
 Object.defineProperty(List.prototype, 'tail', {
   get<A>(this: List<A>): List<A> {
     return tail(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'init', {
+  get<A>(this: List<A>): List<A> {
+    return init(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'last', {
+  get<A>(this: List<A>): A {
+    return last(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'lastOption', {
+  get<A>(this: List<A>): Option<A> {
+    return lastOption(this);
   },
 });
 
