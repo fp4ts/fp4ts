@@ -15,12 +15,12 @@ export type ApplicativeRequirements<F> = Pick<
   Partial<Applicative<F>>;
 export const Applicative = Object.freeze({
   of: <F>(F: ApplicativeRequirements<F>): Applicative<F> => {
-    const self: Applicative<F> = Object.freeze({
+    const self: Applicative<F> = {
       unit: F.pure(undefined as void),
 
       ...Apply.of({ ...Applicative.deriveFunctor(F), ...F }),
       ...F,
-    });
+    };
     return self;
   },
 
@@ -43,12 +43,12 @@ export type Applicative2CRequirements<F, E> = Pick<
   Partial<Applicative2C<F, E>>;
 export const Applicative2C = Object.freeze({
   of: <F, E>(F: Applicative2CRequirements<F, E>): Applicative2C<F, E> => {
-    const self: Applicative2C<F, E> = Object.freeze({
+    const self: Applicative2C<F, E> = {
       unit: F.pure(undefined as void),
 
       ...Apply2C.of({ ...Applicative2C.deriveFunctor(F), ...F }),
       ...F,
-    });
+    };
     return self;
   },
 

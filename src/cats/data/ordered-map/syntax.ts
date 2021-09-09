@@ -528,14 +528,14 @@ OrderedMap.prototype.foldMap = function <K, V, M>(
   this: OrderedMap<K, V>,
   M: Monoid<M>,
 ): (f: (v: V, k: K) => M) => M {
-  return f => foldMap_(M, this, f);
+  return f => foldMap_(M)(this, f);
 };
 
 OrderedMap.prototype.foldMapK = function <F, K, V>(
   this: OrderedMap<K, V>,
   F: MonoidK<F>,
 ): <B>(f: (v: V, k: K) => Kind<F, B>) => Kind<F, B> {
-  return f => foldMapK_(F, this, f);
+  return f => foldMapK_(F)(this, f);
 };
 
 OrderedMap.prototype.traverse = function <G, K, V>(

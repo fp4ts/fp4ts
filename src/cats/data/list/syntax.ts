@@ -367,14 +367,14 @@ List.prototype.foldMap = function <A, M>(
   this: List<A>,
   M: Monoid<M>,
 ): (f: (a: A) => M) => M {
-  return f => foldMap_(M, this, f);
+  return f => foldMap_(M)(this, f);
 };
 
 List.prototype.foldMapK = function <A, F>(
   this: List<A>,
   F: MonoidK<F>,
 ): <B>(f: (a: A) => Kind<F, B>) => Kind<F, B> {
-  return f => foldMapK_(F, this, f);
+  return f => foldMapK_(F)(this, f);
 };
 
 List.prototype.zip = function <A, B>(

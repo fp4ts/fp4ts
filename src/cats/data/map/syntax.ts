@@ -416,14 +416,14 @@ Map.prototype.foldMap = function <K, V, M>(
   this: Map<K, V>,
   M: Monoid<M>,
 ): (f: (v: V, k: K) => M) => M {
-  return f => foldMap_(M, this, f);
+  return f => foldMap_(M)(this, f);
 };
 
 Map.prototype.foldMapK = function <F, K, V>(
   this: Map<K, V>,
   F: MonoidK<F>,
 ): <B>(f: (v: V, k: K) => Kind<F, B>) => Kind<F, B> {
-  return f => foldMapK_(F, this, f);
+  return f => foldMapK_(F)(this, f);
 };
 
 Map.prototype.traverse = function <G, K, V>(

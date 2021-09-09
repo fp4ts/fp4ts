@@ -14,14 +14,20 @@ import { URI } from './list';
 import { empty, pure } from './constructors';
 import {
   all,
+  all_,
   any,
+  any_,
   concat_,
   count,
+  count_,
   flatMap_,
   flatten,
   foldLeft,
+  foldLeft_,
   foldMap,
+  foldMap_,
   foldRight,
+  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -75,18 +81,19 @@ export const listMonad: Lazy<Monad<URI>> = () =>
     ...listFlatMap(),
   });
 
-export const listFoldable: Lazy<Foldable<URI>> = () => ({
-  URI: URI,
-  isEmpty: isEmpty,
-  nonEmpty: nonEmpty,
-  size: size,
-  all: all,
-  any: any,
-  count: count,
-  foldMap: foldMap,
-  foldLeft: foldLeft,
-  foldRight: foldRight,
-});
+export const listFoldable: Lazy<Foldable<URI>> = () =>
+  Foldable.of({
+    URI: URI,
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
+    size: size,
+    all_: all_,
+    any_: any_,
+    count_: count_,
+    foldMap_: foldMap_,
+    foldLeft_: foldLeft_,
+    foldRight_: foldRight_,
+  });
 
 export const listTraversable: Lazy<Traversable<URI>> = () => ({
   ...listFoldable(),

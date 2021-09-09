@@ -5,12 +5,12 @@ import { Traversable2C, Traversable2 } from '../../traversable';
 
 import { URI } from './ordered-map';
 import {
-  all,
-  any,
-  count,
-  foldLeft,
-  foldMap,
-  foldRight,
+  all_,
+  any_,
+  count_,
+  foldLeft_,
+  foldMap_,
+  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -25,31 +25,33 @@ export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () =>
 export const orderedMapFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
 
-export const orderedMapFoldable2C: <K>() => Foldable2C<URI, K> = () => ({
-  URI: URI,
-  foldLeft: foldLeft,
-  foldRight: foldRight,
-  foldMap: foldMap,
-  all: all,
-  any: any,
-  count: count,
-  isEmpty: isEmpty,
-  nonEmpty: nonEmpty,
-  size: size,
-});
+export const orderedMapFoldable2C: <K>() => Foldable2C<URI, K> = () =>
+  Foldable2C.of({
+    URI: URI,
+    foldLeft_: foldLeft_,
+    foldRight_: foldRight_,
+    foldMap_: foldMap_,
+    all_: all_,
+    any_: any_,
+    count_: count_,
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
+    size: size,
+  });
 
-export const orderedMapFoldable2: Lazy<Foldable2<URI>> = () => ({
-  URI: URI,
-  foldLeft: foldLeft,
-  foldRight: foldRight,
-  foldMap: foldMap,
-  all: all,
-  any: any,
-  count: count,
-  isEmpty: isEmpty,
-  nonEmpty: nonEmpty,
-  size: size,
-});
+export const orderedMapFoldable2: Lazy<Foldable2<URI>> = () =>
+  Foldable2.of({
+    URI: URI,
+    foldLeft_: foldLeft_,
+    foldRight_: foldRight_,
+    foldMap_: foldMap_,
+    all_: all_,
+    any_: any_,
+    count_: count_,
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
+    size: size,
+  });
 
 export const orderedMapTraversable2C: <K>() => Traversable2C<URI, K> = () => ({
   ...orderedMapFunctor2C(),

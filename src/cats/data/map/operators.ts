@@ -174,13 +174,13 @@ export const foldRight: <K, V, B>(
 export const foldMap: <M>(
   M: Monoid<M>,
 ) => <K, V>(f: (v: V, k: K) => M) => (map: Map<K, V>) => M = M => f => map =>
-  foldMap_(M, map, f);
+  foldMap_(M)(map, f);
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, B>,
-) => (map: Map<K, V>) => Kind<F, B> = F => f => map => foldMapK_(F, map, f);
+) => (map: Map<K, V>) => Kind<F, B> = F => f => map => foldMapK_(F)(map, f);
 
 export const traverse: <G>(
   G: Applicative<G>,
@@ -444,17 +444,15 @@ export const foldRight_ = <K, V, B>(
   }
 };
 
-export const foldMap_ = <K, V, M>(
-  M: Monoid<M>,
-  m: Map<K, V>,
-  f: (v: V, k: K) => M,
-): M => foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, f(v, k)));
+export const foldMap_ =
+  <M>(M: Monoid<M>) =>
+  <K, V>(m: Map<K, V>, f: (v: V, k: K) => M): M =>
+    foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, f(v, k)));
 
-export const foldMapK_ = <F, K, V, B>(
-  F: MonoidK<F>,
-  m: Map<K, V>,
-  f: (v: V, k: K) => Kind<F, B>,
-): Kind<F, B> => foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
+export const foldMapK_ =
+  <F>(F: MonoidK<F>) =>
+  <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, B>): Kind<F, B> =>
+    foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
 
 export const traverse_ = <G, K, V, B>(
   G: Applicative<G>,

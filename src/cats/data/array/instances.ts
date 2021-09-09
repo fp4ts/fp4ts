@@ -1,3 +1,4 @@
+import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
@@ -10,14 +11,14 @@ import { Traversable } from '../../traversable';
 
 import { URI } from './array';
 import {
-  all,
-  any,
+  all_,
+  any_,
   concat_,
-  count,
+  count_,
   flatMap_,
-  foldLeft,
-  foldMap,
-  foldRight,
+  foldLeft_,
+  foldMap_,
+  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -56,18 +57,22 @@ export const arrayMonad: () => Monad<URI> = () =>
     ...arrayFlatMap(),
   });
 
-export const arrayFoldable: () => Foldable<URI> = () => ({
-  URI: URI,
-  all: all,
-  any: any,
-  count: count,
-  foldMap: foldMap,
-  foldLeft: foldLeft,
-  foldRight: foldRight,
-  isEmpty: isEmpty,
-  nonEmpty: nonEmpty,
-  size: size,
-});
+export const arrayFoldable: () => Foldable<URI> = () =>
+  Foldable.of({
+    URI: URI,
+    all_: all_,
+    any_: any_,
+    count_: count_,
+    foldMap_:
+      <M>(M: Monoid<M>) =>
+      <A>(xs: A[], f: (a: A) => M) =>
+        foldMap_(xs, f, M),
+    foldLeft_: foldLeft_,
+    foldRight_: foldRight_,
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
+    size: size,
+  });
 
 export const arrayTraversable: () => Traversable<URI> = () => ({
   ...arrayFunctor(),

@@ -170,13 +170,13 @@ export const foldRight: <A, B>(
 export const foldMap: <M>(
   M: Monoid<M>,
 ) => <A>(f: (a: A) => M) => (xs: List<A>) => M = M => f => xs =>
-  foldMap_(M, xs, f);
+  foldMap_(M)(xs, f);
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <A, B>(f: (a: A) => Kind<F, B>) => (xs: List<A>) => Kind<F, B> =
   F => f => xs =>
-    foldMapK_(F, xs, f);
+    foldMapK_(F)(xs, f);
 
 export const zip: <B>(ys: List<B>) => <A>(xs: List<A>) => List<[A, B]> =
   ys => xs =>
@@ -499,14 +499,15 @@ export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
   return z;
 };
 
-export const foldMap_ = <M, A>(M: Monoid<M>, xs: List<A>, f: (a: A) => M): M =>
-  foldLeft_(xs, M.empty, (m, x) => M.combine_(m, f(x)));
+export const foldMap_ =
+  <M>(M: Monoid<M>) =>
+  <A>(xs: List<A>, f: (a: A) => M): M =>
+    foldLeft_(xs, M.empty, (m, x) => M.combine_(m, f(x)));
 
-export const foldMapK_ = <F, A, B>(
-  F: MonoidK<F>,
-  xs: List<A>,
-  f: (a: A) => Kind<F, B>,
-): Kind<F, B> => foldMap_(F.algebra(), xs, f);
+export const foldMapK_ =
+  <F>(F: MonoidK<F>) =>
+  <A, B>(xs: List<A>, f: (a: A) => Kind<F, B>): Kind<F, B> =>
+    foldMap_(F.algebra<B>())(xs, f);
 
 export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
   zipWith_(xs, ys, (x, y) => [x, y]);

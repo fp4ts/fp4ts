@@ -7,13 +7,13 @@ export interface Monad<F> extends FlatMap<F>, Applicative<F> {}
 
 export type MonadRequirements<F> = Pick<Monad<F>, 'URI' | 'flatMap_' | 'pure'> &
   Partial<Monad<F>>;
-export const Monad = {
+export const Monad = Object.freeze({
   of: <F>(F: MonadRequirements<F>): Monad<F> => {
-    const self: Monad<F> = Object.freeze({
+    const self: Monad<F> = {
       ...Monad.deriveFlatMap(F),
       ...Monad.deriveApplicative(F),
       ...F,
-    });
+    };
     return self;
   },
 
@@ -38,7 +38,7 @@ export const Monad = {
       ...Monad.deriveApply(F),
       ...F,
     }),
-};
+});
 
 export interface Monad2C<F, E> extends FlatMap2C<F, E>, Applicative2C<F, E> {}
 
@@ -47,13 +47,13 @@ export type Monad2CRequirements<F, E> = Pick<
   'URI' | 'flatMap_' | 'pure'
 > &
   Partial<Monad2C<F, E>>;
-export const Monad2C = {
+export const Monad2C = Object.freeze({
   of: <F, E>(F: Monad2CRequirements<F, E>): Monad2C<F, E> => {
-    const self: Monad2C<F, E> = Object.freeze({
+    const self: Monad2C<F, E> = {
       ...Monad2C.deriveFlatMap(F),
       ...Monad2C.deriveApplicative(F),
       ...F,
-    });
+    };
     return self;
   },
 
@@ -83,7 +83,7 @@ export const Monad2C = {
       ...Monad2C.deriveApply(F),
       ...F,
     }),
-};
+});
 
 export interface Monad2<F> extends FlatMap2<F>, Applicative2<F> {}
 
@@ -92,13 +92,13 @@ export type Monad2Requirements<F> = Pick<
   'URI' | 'flatMap_' | 'pure'
 > &
   Partial<Monad2<F>>;
-export const Monad2 = {
+export const Monad2 = Object.freeze({
   of: <F>(F: Monad2Requirements<F>): Monad2<F> => {
-    const self: Monad2<F> = Object.freeze({
+    const self: Monad2<F> = {
       ...Monad2.deriveFlatMap(F),
       ...Monad2.deriveApplicative(F),
       ...F,
-    });
+    };
     return self;
   },
 
@@ -126,4 +126,4 @@ export const Monad2 = {
       ...Monad2.deriveApply(F),
       ...F,
     }),
-};
+});

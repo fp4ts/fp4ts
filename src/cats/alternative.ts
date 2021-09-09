@@ -25,22 +25,21 @@ export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
 export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
   MonoidKRequirements<F> &
   Partial<Alternative<F>>;
-export const Alternative = {
+export const Alternative = Object.freeze({
   of: <F>(F: AlternativeRequirements<F>): Alternative<F> => {
-    const self: Alternative<F> = Object.freeze({
+    const self: Alternative<F> = {
       many: <A>(fa: Kind<F, A>): Kind<F, List<A>> =>
         self.combineK_(self.many1(fa), self.pure(List.empty as List<A>)),
 
-      many1: <A>(fa: Kind<F, A>): Kind<F, List<A>> =>
-        self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+      many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
 
       ...MonoidK.of<F>(F),
       ...Applicative.of<F>(F),
       ...F,
-    });
+    };
     return self;
   },
-};
+});
 
 export interface Alternative2C<F, E>
   extends Applicative2C<F, E>,
@@ -52,22 +51,21 @@ export interface Alternative2C<F, E>
 export type Alternative2CRequirements<F, E> = Applicative2CRequirements<F, E> &
   MonoidK2CRequirements<F, E> &
   Partial<Alternative2C<F, E>>;
-export const Alternative2C = {
+export const Alternative2C = Object.freeze({
   of: <F, E>(F: Alternative2CRequirements<F, E>): Alternative2C<F, E> => {
-    const self: Alternative2C<F, E> = Object.freeze({
+    const self: Alternative2C<F, E> = {
       many: <A>(fa: Kind2<F, E, A>): Kind2<F, E, List<A>> =>
         self.combineK_(self.many1(fa), self.pure(List.empty as List<A>)),
 
-      many1: <A>(fa: Kind2<F, E, A>): Kind2<F, E, List<A>> =>
-        self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+      many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
 
       ...MonoidK2C.of<F, E>(F),
       ...Applicative2C.of<F, E>(F),
       ...F,
-    });
+    };
     return self;
   },
-};
+});
 
 export interface Alternative2<F> extends Applicative2<F>, MonoidK2<F> {
   readonly many: <E, A>(fa: Kind2<F, E, A>) => Kind2<F, E, List<A>>;
@@ -77,19 +75,18 @@ export interface Alternative2<F> extends Applicative2<F>, MonoidK2<F> {
 export type Alternative2Requirements<F> = Applicative2Requirements<F> &
   MonoidK2Requirements<F> &
   Partial<Alternative2<F>>;
-export const Alternative2 = {
+export const Alternative2 = Object.freeze({
   of: <F>(F: Alternative2Requirements<F>): Alternative2<F> => {
-    const self: Alternative2<F> = Object.freeze({
+    const self: Alternative2<F> = {
       many: <E, A>(fa: Kind2<F, E, A>): Kind2<F, E, List<A>> =>
         self.combineK_(self.many1(fa), self.pure(List.empty as List<A>)),
 
-      many1: <E, A>(fa: Kind2<F, E, A>): Kind2<F, E, List<A>> =>
-        self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+      many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
 
       ...MonoidK2.of<F>(F),
       ...Applicative2.of<F>(F),
       ...F,
-    });
+    };
     return self;
   },
-};
+});

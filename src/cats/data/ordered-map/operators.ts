@@ -246,13 +246,13 @@ export const foldRight1: <V2>(
 export const foldMap: <M>(
   M: Monoid<M>,
 ) => <K, V>(f: (v: V, k: K) => M) => (m: OrderedMap<K, V>) => M = M => f => m =>
-  foldMap_(M, m, f);
+  foldMap_(M)(m, f);
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, B>,
-) => (m: OrderedMap<K, V>) => Kind<F, B> = F => f => m => foldMapK_(F, m, f);
+) => (m: OrderedMap<K, V>) => Kind<F, B> = F => f => m => foldMapK_(F)(m, f);
 
 export const traverse: <G>(
   G: Applicative<G>,
@@ -694,17 +694,15 @@ export const foldRight1_ = <K, V>(
     ([v, mm]) => foldRight_(mm, v, f),
   );
 
-export const foldMap_ = <K, V, M>(
-  M: Monoid<M>,
-  m: OrderedMap<K, V>,
-  f: (v: V, k: K) => M,
-): M => foldLeft_(map_(m, f), M.empty, M.combine_);
+export const foldMap_ =
+  <M>(M: Monoid<M>) =>
+  <K, V>(m: OrderedMap<K, V>, f: (v: V, k: K) => M): M =>
+    foldLeft_(map_(m, f), M.empty, M.combine_);
 
-export const foldMapK_ = <F, K, V, B>(
-  F: MonoidK<F>,
-  m: OrderedMap<K, V>,
-  f: (v: V, k: K) => Kind<F, B>,
-): Kind<F, B> => foldMap_(F.algebra(), m, f);
+export const foldMapK_ =
+  <F>(F: MonoidK<F>) =>
+  <K, V, B>(m: OrderedMap<K, V>, f: (v: V, k: K) => Kind<F, B>): Kind<F, B> =>
+    foldMap_(F.algebra<B>())(m, f);
 
 export const traverse_ = <G, K, V, B>(
   G: Applicative<G>,
