@@ -6,22 +6,11 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { URI } from './identity';
-import {
-  flatMap,
-  flatMap_,
-  flatTap,
-  flatten,
-  map,
-  map_,
-  tap,
-} from './operators';
+import { flatMap, flatMap_, flatTap, flatten, map_ } from './operators';
 import { pure, unit } from './constructors';
 
-export const identityFunctor: Lazy<Functor<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const identityFunctor: Lazy<Functor<URI>> = () =>
+  Functor.of({ URI, map_ });
 
 export const identityApply: Lazy<Apply<URI>> = () => ({
   ...identityFunctor(),

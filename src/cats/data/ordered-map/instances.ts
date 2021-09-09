@@ -12,25 +12,18 @@ import {
   foldMap,
   foldRight,
   isEmpty,
-  map,
+  map_,
   nonEmpty,
   sequence,
   size,
-  tap,
   traverse,
 } from './operators';
 
-export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () =>
+  Functor2C.of({ URI, map_ });
 
-export const orderedMapFunctor2: Lazy<Functor2<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const orderedMapFunctor2: Lazy<Functor2<URI>> = () =>
+  Functor2.of({ URI, map_ });
 
 export const orderedMapFoldable2C: <K>() => Foldable2C<URI, K> = () => ({
   URI: URI,

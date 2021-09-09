@@ -52,13 +52,7 @@ export const arrayMonoidK: () => MonoidK<URI> = () => ({
   }),
 });
 
-export const arrayFunctor: () => Functor<URI> = () => ({
-  URI: URI,
-
-  map: map,
-
-  tap: tap,
-});
+export const arrayFunctor: () => Functor<URI> = () => Functor.of({ URI, map_ });
 
 export const arrayApply: () => Apply<URI> = () => ({
   ...arrayFunctor(),

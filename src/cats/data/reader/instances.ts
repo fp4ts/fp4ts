@@ -10,27 +10,20 @@ import {
   flatMap_,
   flatTap_,
   flatten,
-  map,
   map2_,
+  map_,
   productL_,
   productR_,
   product_,
-  tap,
 } from './operators';
 import { URI } from './reader';
 import { pure, unit } from './constructors';
 
-export const readerFunctor2C: <R>() => Functor2C<URI, R> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const readerFunctor2C: <R>() => Functor2C<URI, R> = () =>
+  Functor2C.of({ URI, map_ });
 
-export const readerFunctor2: Lazy<Functor2<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const readerFunctor2: Lazy<Functor2<URI>> = () =>
+  Functor2.of({ URI, map_ });
 
 export const readerApply2C: <R>() => Apply2C<URI, R> = () => ({
   ...readerFunctor2C(),

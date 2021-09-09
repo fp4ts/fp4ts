@@ -50,11 +50,7 @@ export const listMonoidK: Lazy<MonoidK<URI>> = () => ({
   }),
 });
 
-export const listFunctor: Lazy<Functor<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const listFunctor: Lazy<Functor<URI>> = () => Functor.of({ URI, map_ });
 
 export const listApply: Lazy<Apply<URI>> = () => ({
   ...listFunctor(),

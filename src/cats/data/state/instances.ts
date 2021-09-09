@@ -10,26 +10,19 @@ import {
   flatMap,
   flatTap,
   flatten,
-  map,
   map2,
+  map_,
   productL_,
   productR_,
   product_,
-  tap,
 } from './operators';
 import { pure } from './constructors';
 
-export const stateFunctor2C: <S>() => Functor2C<URI, S> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const stateFunctor2C: <S>() => Functor2C<URI, S> = () =>
+  Functor2C.of({ URI, map_ });
 
-export const stateFunctor2: Lazy<Functor2<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const stateFunctor2: Lazy<Functor2<URI>> = () =>
+  Functor2.of({ URI, map_ });
 
 export const stateApply2C: <S>() => Apply2C<URI, S> = () => ({
   ...stateFunctor2C(),

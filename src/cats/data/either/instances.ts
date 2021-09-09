@@ -7,16 +7,7 @@ import { FlatMap2C, FlatMap2 } from '../../flat-map';
 import { Monad2C, Monad2 } from '../../monad';
 
 import { URI } from './either';
-import {
-  flatMap,
-  flatMap_,
-  flatTap,
-  flatten,
-  map,
-  map_,
-  or_,
-  tap,
-} from './operators';
+import { flatMap, flatMap_, flatTap, flatten, map_, or_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
 export const eitherSemigroupK2C: <E>() => SemigroupK2C<URI, E> = () => ({
@@ -35,17 +26,11 @@ export const eitherSemigroupK2: Lazy<SemigroupK2<URI>> = () => ({
   }),
 });
 
-export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const eitherFunctor2C: <E>() => Functor2C<URI, E> = () =>
+  Functor2C.of({ URI, map_ });
 
-export const eitherFunctor2: Lazy<Functor2<URI>> = () => ({
-  URI: URI,
-  map: map,
-  tap: tap,
-});
+export const eitherFunctor2: Lazy<Functor2<URI>> = () =>
+  Functor2.of({ URI, map_ });
 
 export const eitherApply2C: <E>() => Apply2C<URI, E> = () => ({
   ...eitherFunctor2C(),
