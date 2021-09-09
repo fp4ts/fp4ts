@@ -47,11 +47,12 @@ export const arrayApply: () => Apply<URI> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
   });
 
-export const arrayApplicative: () => Applicative<URI> = () => ({
-  ...arrayApply(),
-  pure: pure,
-  unit: [],
-});
+export const arrayApplicative: () => Applicative<URI> = () =>
+  Applicative.of({
+    ...arrayApply(),
+    pure: pure,
+    unit: [],
+  });
 
 export const arrayFlatMap: () => FlatMap<URI> = () => ({
   ...arrayApply(),

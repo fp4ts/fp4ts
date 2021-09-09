@@ -30,11 +30,11 @@ export const optionApply: Lazy<Apply<URI>> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const optionApplicative: Lazy<Applicative<URI>> = () => ({
-  ...optionApply(),
-  pure: pure,
-  unit: pure(undefined),
-});
+export const optionApplicative: Lazy<Applicative<URI>> = () =>
+  Applicative.of({
+    ...optionApply(),
+    pure: pure,
+  });
 
 export const optionAlternative: Lazy<Alternative<URI>> = () => ({
   ...optionApplicative(),

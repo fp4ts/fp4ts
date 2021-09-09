@@ -18,11 +18,12 @@ export const identityApply: Lazy<Apply<URI>> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const identityApplicative: Lazy<Applicative<URI>> = () => ({
-  ...identityApply(),
-  pure: pure,
-  unit: unit,
-});
+export const identityApplicative: Lazy<Applicative<URI>> = () =>
+  Applicative.of({
+    ...identityApply(),
+    pure: pure,
+    unit: unit,
+  });
 
 export const identityFlatMap: Lazy<FlatMap<URI>> = () => ({
   ...identityFunctor(),

@@ -44,17 +44,17 @@ export const stateApply2: Lazy<Apply2<URI>> = () =>
     productR_: productR_,
   });
 
-export const stateApplicative2C: <S>() => Applicative2C<URI, S> = () => ({
-  ...stateApply2C(),
-  pure: pure,
-  unit: pure(undefined),
-});
+export const stateApplicative2C: <S>() => Applicative2C<URI, S> = () =>
+  Applicative2C.of({
+    ...stateApply2C(),
+    pure: pure,
+  });
 
-export const stateApplicative2: Lazy<Applicative2<URI>> = () => ({
-  ...stateApply2(),
-  pure: pure,
-  unit: pure(undefined),
-});
+export const stateApplicative2: Lazy<Applicative2<URI>> = () =>
+  Applicative2.of({
+    ...stateApply2(),
+    pure: pure,
+  });
 
 export const stateFlatMap2C: <S>() => FlatMap2C<URI, S> = () => ({
   ...stateApply2C(),

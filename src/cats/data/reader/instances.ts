@@ -52,17 +52,19 @@ export const readerApply2: Lazy<Apply2<URI>> = () =>
     productR_: productR_,
   });
 
-export const readerApplicative2C: <R>() => Applicative2C<URI, R> = () => ({
-  ...readerApply2C(),
-  pure: pure,
-  unit: unit,
-});
+export const readerApplicative2C: <R>() => Applicative2C<URI, R> = () =>
+  Applicative2C.of({
+    ...readerApply2C(),
+    pure: pure,
+    unit: unit,
+  });
 
-export const readerApplicative2: Lazy<Applicative2<URI>> = () => ({
-  ...readerApply2(),
-  pure: pure,
-  unit: unit,
-});
+export const readerApplicative2: Lazy<Applicative2<URI>> = () =>
+  Applicative2C.of({
+    ...readerApply2(),
+    pure: pure,
+    unit: unit,
+  });
 
 export const readerFlatMap2C: <R>() => FlatMap2C<URI, R> = () => ({
   ...readerApply2C(),

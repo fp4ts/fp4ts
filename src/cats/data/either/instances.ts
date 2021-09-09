@@ -34,21 +34,19 @@ export const eitherApply2: Lazy<Apply2<URI>> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const eitherApplicative2C: <E>() => Applicative2C<URI, E> = () => ({
-  ...eitherApply2C(),
-  pure: pure,
-  unit: rightUnit,
-});
+export const eitherApplicative2C: <E>() => Applicative2C<URI, E> = () =>
+  Applicative2C.of({
+    ...eitherApply2C(),
+    pure: pure,
+    unit: rightUnit,
+  });
 
-export const eitherApplicative2: Lazy<Applicative2<URI>> = () => ({
-  ...eitherApply2(),
-  pure: pure,
-  unit: rightUnit,
-});
-
-// export const eitherAlternative2C: <E>() => Alternative2C<URI, E> = () => ({
-//   ...eitherapp
-// })
+export const eitherApplicative2: Lazy<Applicative2<URI>> = () =>
+  Applicative2.of({
+    ...eitherApply2(),
+    pure: pure,
+    unit: rightUnit,
+  });
 
 export const eitherFlatMap2C: <E>() => FlatMap2C<URI, E> = () => ({
   ...eitherApply2C(),

@@ -49,11 +49,12 @@ export const listApply: Lazy<Apply<URI>> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const listApplicative: Lazy<Applicative<URI>> = () => ({
-  ...listApply(),
-  pure: pure,
-  unit: empty,
-});
+export const listApplicative: Lazy<Applicative<URI>> = () =>
+  Applicative.of({
+    ...listApply(),
+    pure: pure,
+    unit: empty,
+  });
 
 export const listAlternative: Lazy<Alternative<URI>> = () => ({
   ...listApplicative(),

@@ -82,11 +82,12 @@ export const ioParallelApply: Lazy<Apply<URI>> = () =>
         map2_(fa, fb, f),
   });
 
-export const ioParallelApplicative: Lazy<Applicative<URI>> = () => ({
-  ...ioParallelApply(),
-  pure: pure,
-  unit: unit,
-});
+export const ioParallelApplicative: Lazy<Applicative<URI>> = () =>
+  Applicative.of({
+    ...ioParallelApply(),
+    pure: pure,
+    unit: unit,
+  });
 
 export const ioSequentialApply: Lazy<Apply<URI>> = () =>
   Apply.of({
@@ -94,11 +95,12 @@ export const ioSequentialApply: Lazy<Apply<URI>> = () =>
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const ioSequentialApplicative: Lazy<Applicative<URI>> = () => ({
-  ...ioSequentialApply(),
-  pure: pure,
-  unit: unit,
-});
+export const ioSequentialApplicative: Lazy<Applicative<URI>> = () =>
+  Applicative.of({
+    ...ioSequentialApply(),
+    pure: pure,
+    unit: unit,
+  });
 
 export const ioFlatMap: Lazy<FlatMap<URI>> = () => ({
   ...ioSequentialApply(),
