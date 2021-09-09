@@ -6,6 +6,7 @@ import { Alternative } from '../../alternative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
 import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
@@ -15,6 +16,7 @@ import { empty, pure } from './constructors';
 import {
   all_,
   any_,
+  collect_,
   concat_,
   count_,
   flatMap_,
@@ -41,6 +43,12 @@ export const listMonoidK: Lazy<MonoidK<URI>> = () => {
 };
 
 export const listFunctor: Lazy<Functor<URI>> = () => Functor.of({ URI, map_ });
+
+export const listFunctorFilter: Lazy<FunctorFilter<URI>> = () =>
+  FunctorFilter.of({
+    ...listFunctor(),
+    mapFilter_: collect_,
+  });
 
 export const listApply: Lazy<Apply<URI>> = () =>
   Apply.of({

@@ -4,6 +4,7 @@ import { Alternative } from '../../alternative';
 import { Foldable } from '../../foldable';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
@@ -16,6 +17,7 @@ import {
   listApply,
   listFoldable,
   listFunctor,
+  listFunctorFilter,
   listMonoidK,
   listSemigroupK,
   listTraversable,
@@ -43,6 +45,7 @@ interface ListObj {
   readonly SemigroupK: SemigroupK<URI>;
   readonly MonoidK: MonoidK<URI>;
   readonly Functor: Functor<URI>;
+  readonly FunctorFilter: FunctorFilter<URI>;
   readonly Apply: Apply<URI>;
   readonly Applicative: Applicative<URI>;
   readonly Alternative: Alternative<URI>;
@@ -70,6 +73,11 @@ Object.defineProperty(List, 'MonoidK', {
 Object.defineProperty(List, 'Functor', {
   get(): Functor<URI> {
     return listFunctor();
+  },
+});
+Object.defineProperty(List, 'FunctorFilter', {
+  get(): FunctorFilter<URI> {
+    return listFunctorFilter();
   },
 });
 Object.defineProperty(List, 'Apply', {

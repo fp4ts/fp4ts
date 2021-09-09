@@ -6,6 +6,7 @@ export * from './applicative-error';
 export * from './apply';
 export * from './flat-map';
 export * from './functor';
+export * from './functor-filter';
 export * from './monad';
 export * from './monad-error';
 export * from './defer';

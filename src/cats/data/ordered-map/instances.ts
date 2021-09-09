@@ -1,5 +1,6 @@
 import { Lazy } from '../../../fp/core';
 import { Functor2C, Functor2 } from '../../functor';
+import { FunctorFilter2, FunctorFilter2C } from '../../functor-filter';
 import { Foldable2, Foldable2C } from '../../foldable';
 import { Traversable2C, Traversable2 } from '../../traversable';
 
@@ -7,6 +8,7 @@ import { URI } from './ordered-map';
 import {
   all_,
   any_,
+  collect_,
   count_,
   foldLeft_,
   foldMap_,
@@ -24,6 +26,18 @@ export const orderedMapFunctor2C: <K>() => Functor2C<URI, K> = () =>
 
 export const orderedMapFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
+
+export const orderedMapFunctorFilter2C: <K>() => FunctorFilter2C<URI, K> = () =>
+  FunctorFilter2C.of({
+    ...orderedMapFunctor2C(),
+    mapFilter_: collect_,
+  });
+
+export const orderedMapFunctorFilter2: Lazy<FunctorFilter2<URI>> = () =>
+  FunctorFilter2.of({
+    ...orderedMapFunctor2(),
+    mapFilter_: collect_,
+  });
 
 export const orderedMapFoldable2C: <K>() => Foldable2C<URI, K> = () =>
   Foldable2C.of({

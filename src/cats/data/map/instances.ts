@@ -1,12 +1,14 @@
 import { Lazy } from '../../../fp/core';
 import { Functor2C, Functor2 } from '../../functor';
+import { FunctorFilter2C, FunctorFilter2 } from '../../functor-filter';
 import { Foldable2C, Foldable2 } from '../../foldable';
-import { Traversable2, Traversable2C } from '../../traversable';
+import { Traversable2C, Traversable2 } from '../../traversable';
 
 import { URI } from './map';
 import {
   all_,
   any_,
+  collect_,
   count_,
   foldLeft_,
   foldMap_,
@@ -16,7 +18,6 @@ import {
   nonEmpty,
   sequence,
   size,
-  traverse,
   traverse_,
 } from './operators';
 
@@ -25,6 +26,18 @@ export const mapFunctor2C: <K>() => Functor2C<URI, K> = () =>
 
 export const mapFunctor2: Lazy<Functor2<URI>> = () =>
   Functor2.of({ URI, map_ });
+
+export const mapFunctorFilter2C: <K>() => FunctorFilter2C<URI, K> = () =>
+  FunctorFilter2C.of({
+    ...mapFunctor2C(),
+    mapFilter_: collect_,
+  });
+
+export const mapFunctorFilter2: Lazy<FunctorFilter2<URI>> = () =>
+  FunctorFilter2.of({
+    ...mapFunctor2(),
+    mapFilter_: collect_,
+  });
 
 export const mapFoldable2C: <K>() => Foldable2C<URI, K> = () =>
   Foldable2C.of({

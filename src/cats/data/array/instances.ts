@@ -8,11 +8,13 @@ import { Functor } from '../../functor';
 import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
+import { FunctorFilter } from '../../functor-filter';
 
 import { URI } from './array';
 import {
   all_,
   any_,
+  collect_,
   concat_,
   count_,
   flatMap_,
@@ -24,7 +26,6 @@ import {
   nonEmpty,
   sequence,
   size,
-  traverse,
   traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
@@ -39,6 +40,12 @@ export const arrayMonoidK: () => MonoidK<URI> = () => {
 };
 
 export const arrayFunctor: () => Functor<URI> = () => Functor.of({ URI, map_ });
+
+export const arrayFilterFunctor: () => FunctorFilter<URI> = () =>
+  FunctorFilter.of({
+    ...arrayFunctor(),
+    mapFilter_: collect_,
+  });
 
 export const arrayApply: () => Apply<URI> = () =>
   Apply.of({

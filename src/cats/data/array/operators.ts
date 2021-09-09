@@ -2,6 +2,7 @@ import { id } from '../../../fp/core';
 import { Kind } from '../../../fp/hkt';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
+import { Option } from '../option';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -116,6 +117,17 @@ export const tap_: <A>(xs: A[], f: (a: A) => unknown) => A[] = (xs, f) =>
     f(x);
     return x;
   });
+
+export const collect_ = <A, B>(xs: A[], f: (a: A) => Option<B>): B[] => {
+  const ys: B[] = [];
+  for (let i = 0, len = xs.length; i < len; i++) {
+    f(xs[i]).fold(
+      () => {},
+      y => ys.push(y),
+    );
+  }
+  return ys;
+};
 
 export const flatMap_: <A, B>(xs: A[], f: (a: A) => B[]) => B[] = (xs, f) =>
   xs.flatMap(f);

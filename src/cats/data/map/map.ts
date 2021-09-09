@@ -1,6 +1,7 @@
 import { PrimitiveType } from '../../../fp/primitive-type';
 import { Foldable2, Foldable2C } from '../../foldable';
 import { Functor2, Functor2C } from '../../functor';
+import { FunctorFilter2, FunctorFilter2C } from '../../functor-filter';
 import { Traversable2, Traversable2C } from '../../traversable';
 import { List } from '../list';
 import { Hashable, primitiveMD5Hashable } from '../../hashable';
@@ -12,6 +13,8 @@ import {
   mapFoldable2C,
   mapFunctor2,
   mapFunctor2C,
+  mapFunctorFilter2,
+  mapFunctorFilter2C,
   mapTraversable2,
   mapTraversable2C,
 } from './instances';
@@ -44,9 +47,11 @@ export interface MapObj {
   // -- Instances
 
   Functor2C: <K>() => Functor2C<URI, K>;
+  FunctorFilter2C: <K>() => FunctorFilter2C<URI, K>;
   Foldable2C: <K>() => Foldable2C<URI, K>;
   Traversable2C: <K>() => Traversable2C<URI, K>;
   readonly Functor2: Functor2<URI>;
+  readonly FunctorFilter2: FunctorFilter2<URI>;
   readonly Foldable2: Foldable2<URI>;
   readonly Traversable2: Traversable2<URI>;
 }
@@ -57,12 +62,18 @@ Map.fromArray = fromArray;
 Map.fromList = fromList;
 
 Map.Functor2C = mapFunctor2C;
+Map.FunctorFilter2C = mapFunctorFilter2C;
 Map.Foldable2C = mapFoldable2C;
 Map.Traversable2C = mapTraversable2C;
 
 Object.defineProperty(Map, 'Functor2', {
   get(): Functor2<URI> {
     return mapFunctor2();
+  },
+});
+Object.defineProperty(Map, 'FunctorFilter2', {
+  get(): FunctorFilter2<URI> {
+    return mapFunctorFilter2();
   },
 });
 Object.defineProperty(Map, 'Foldable2', {
