@@ -1,4 +1,4 @@
-import { Kind, id } from '../../../core';
+import { Kind, id, URIS } from '../../../core';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
 import { Option } from '../option';
@@ -71,26 +71,26 @@ export const foldRight: <A, B>(z: B, f: (a: A, b: B) => B) => (xs: A[]) => B =
   (z, f) => xs =>
     foldRight_(xs, z, f);
 
-export const traverse: <G>(
+export const traverse: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A, B>(
   f: (a: A) => Kind<G, C, S, R, E, B>,
 ) => (xs: A[]) => Kind<G, C, S, R, E, B[]> = G => f => xs =>
   traverse_(G)(xs, f);
 
-export const sequence: <G>(
+export const sequence: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A>(gs: Kind<G, C, S, R, E, A>[]) => Kind<G, C, S, R, E, A[]> =
   G => gs => traverse_(G)(gs, id);
 
-export const flatTraverse: <G>(
+export const flatTraverse: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A, B>(
   f: (a: A) => Kind<G, C, S, R, E, B[]>,
 ) => (xs: A[]) => Kind<G, C, S, R, E, B[]> = G => f => xs =>
   flatTraverse_(G, xs, f);
 
-export const flatSequence: <G>(
+export const flatSequence: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A>(
   xgs: Kind<G, C, S, R, E, A[]>[],
@@ -145,7 +145,7 @@ export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
   xs.reduceRight((b, a) => f(a, b), z);
 
 export const traverse_ =
-  <G>(G: Applicative<G>) =>
+  <G extends URIS>(G: Applicative<G>) =>
   <C, S, R, E, A, B>(
     xs: A[],
     f: (a: A) => Kind<G, C, S, R, E, B>,
@@ -156,7 +156,7 @@ export const traverse_ =
       G.pure([] as B[]),
     );
 
-export const flatTraverse_ = <G, C, S, R, E, A, B>(
+export const flatTraverse_ = <G extends URIS, C, S, R, E, A, B>(
   G: Applicative<G>,
   xs: A[],
   f: (a: A) => Kind<G, C, S, R, E, B[]>,

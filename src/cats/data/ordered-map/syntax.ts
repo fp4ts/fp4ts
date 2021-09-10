@@ -1,4 +1,4 @@
-import { Kind } from '../../../core';
+import { Kind, URIS } from '../../../core';
 import { PrimitiveType } from '../../../fp/primitive-type';
 
 import { Monoid } from '../../monoid';
@@ -244,13 +244,13 @@ declare module './algebra' {
     foldRight1<V2>(this: OrderedMap<K, V2>, f: (v: V2, r: V2) => V2): V2;
 
     foldMap<M>(M: Monoid<M>): (f: (v: V, k: K) => M) => M;
-    foldMapK<F>(
+    foldMapK<F extends URIS>(
       F: MonoidK<F>,
     ): <C, S, R, E, B>(
       f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
     ) => Kind<F, C, S, R, E, B>;
 
-    traverse<G>(
+    traverse<G extends URIS>(
       G: Applicative<G>,
     ): <C, S, R, E, B>(
       f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
@@ -535,7 +535,7 @@ OrderedMap.prototype.foldMap = function <K, V, M>(
   return f => foldMap_(M)(this, f);
 };
 
-OrderedMap.prototype.foldMapK = function <F, K, V>(
+OrderedMap.prototype.foldMapK = function <F extends URIS, K, V>(
   this: OrderedMap<K, V>,
   F: MonoidK<F>,
 ): <C, S, R, E, B>(
@@ -544,7 +544,7 @@ OrderedMap.prototype.foldMapK = function <F, K, V>(
   return f => foldMapK_(F)(this, f);
 };
 
-OrderedMap.prototype.traverse = function <G, K, V>(
+OrderedMap.prototype.traverse = function <G extends URIS, K, V>(
   this: OrderedMap<K, V>,
   G: Applicative<G>,
 ): <C, S, R, E, B>(

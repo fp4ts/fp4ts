@@ -1,8 +1,9 @@
-import { Auto, Kind } from '../core';
+import { Auto, Kind, URIS } from '../core';
 import { Either } from './data';
 import { Applicative } from './applicative';
 
-export interface ApplicativeError<F, E, C = Auto> extends Applicative<F, C> {
+export interface ApplicativeError<F extends URIS, E, C = Auto>
+  extends Applicative<F, C> {
   readonly throwError: <S, R, A>(e: E) => Kind<F, C, S, R, E, A>;
 
   readonly handleError: <S, R, B>(

@@ -1,8 +1,8 @@
-import { Kind, id, Auto } from '../core';
+import { Kind, id, Auto, URIS } from '../core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 
-export interface FunctorFilter<F, C = Auto> extends Functor<F, C> {
+export interface FunctorFilter<F extends URIS, C = Auto> extends Functor<F, C> {
   readonly mapFilter: <A, B>(
     f: (a: A) => Option<B>,
   ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
@@ -40,7 +40,7 @@ export interface FunctorFilter<F, C = Auto> extends Functor<F, C> {
   ) => Kind<F, C, S, R, E, A>;
 }
 
-export type FunctorFilterRequirements<F, C = Auto> = Pick<
+export type FunctorFilterRequirements<F extends URIS, C = Auto> = Pick<
   FunctorFilter<F, C>,
   'mapFilter_'
 > &
@@ -48,7 +48,7 @@ export type FunctorFilterRequirements<F, C = Auto> = Pick<
   Partial<FunctorFilter<F, C>>;
 
 export const FunctorFilter = Object.freeze({
-  of: <F, C = Auto>(
+  of: <F extends URIS, C = Auto>(
     F: FunctorFilterRequirements<F, C>,
   ): FunctorFilter<F, C> => {
     const self: FunctorFilter<F, C> = {

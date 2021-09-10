@@ -21,8 +21,3 @@ export type Kind<F, C, S, R, E, A> = F extends URIS
       >[F[0]['_F']]
     : never
   : never;
-
-export type Kind1<F, C, A> = Kind<F, C, unknown, unknown, unknown, A>;
-export type Kind2<F, C, E, A> = Kind<F, C, unknown, unknown, E, A>;
-export type Kind3<F, C, R, E, A> = Kind<F, C, unknown, R, E, A>;
-export type Kind4<F, C, S, R, E, A> = Kind<F, C, S, R, E, A>;

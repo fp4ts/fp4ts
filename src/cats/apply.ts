@@ -1,7 +1,7 @@
-import { Auto, Kind } from '../core';
+import { Auto, Kind, URIS } from '../core';
 import { Functor, FunctorRequirements } from './functor';
 
-export interface Apply<F, C = Auto> extends Functor<F, C> {
+export interface Apply<F extends URIS, C = Auto> extends Functor<F, C> {
   readonly ap: <S, R, E, A>(
     fa: Kind<F, C, S, R, E, A>,
   ) => <B>(ff: Kind<F, C, S, R, E, (a: A) => B>) => Kind<F, C, S, R, E, B>;
@@ -44,11 +44,14 @@ export interface Apply<F, C = Auto> extends Functor<F, C> {
   ) => Kind<F, C, S, R, E, B>;
 }
 
-export type ApplyRequirements<F, C = Auto> = Pick<Apply<F, C>, 'ap_'> &
+export type ApplyRequirements<F extends URIS, C = Auto> = Pick<
+  Apply<F, C>,
+  'ap_'
+> &
   FunctorRequirements<F, C> &
   Partial<Apply<F, C>>;
 export const Apply = Object.freeze({
-  of: <F, C = Auto>(F: ApplyRequirements<F, C>): Apply<F, C> => {
+  of: <F extends URIS, C = Auto>(F: ApplyRequirements<F, C>): Apply<F, C> => {
     const self: Apply<F, C> = {
       ap: fa => ff => self.ap_(ff, fa),
 

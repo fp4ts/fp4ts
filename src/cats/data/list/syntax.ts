@@ -1,4 +1,4 @@
-import { Kind } from '../../../core';
+import { Kind, URIS } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
@@ -104,7 +104,7 @@ declare module './algebra' {
     foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
     foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
-    foldMapK: <F>(
+    foldMapK: <F extends URIS>(
       F: MonoidK<F>,
     ) => <C, S, R, E, B>(
       f: (a: A) => Kind<F, C, S, R, E, B>,
@@ -132,7 +132,7 @@ declare module './algebra' {
     scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
     scanRight1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
-    traverse: <G>(
+    traverse: <G extends URIS>(
       G: Applicative<G>,
     ) => <B, C, S, R, E>(
       f: (a: A) => Kind<G, C, S, R, E, B>,
@@ -145,9 +145,11 @@ declare module './algebra' {
       infer E,
       infer B
     >
-      ? <G, C, S, R, E>(G: Applicative<G>) => Kind<G, C, S, R, E, List<B>>
+      ? <G extends URIS, C, S, R, E>(
+          G: Applicative<G>,
+        ) => Kind<G, C, S, R, E, List<B>>
       : never | unknown;
-    flatTraverse: <G, C, S, R, E>(
+    flatTraverse: <G extends URIS, C, S, R, E>(
       G: Applicative<G>,
     ) => <B>(
       f: (a: A) => Kind<G, C, S, R, E, List<B>>,
@@ -160,7 +162,7 @@ declare module './algebra' {
       infer E,
       List<infer B>
     >
-      ? <G>(G: Applicative<G>) => Kind<G, C, S, R, E, List<B>>
+      ? <G extends URIS>(G: Applicative<G>) => Kind<G, C, S, R, E, List<B>>
       : never | unknown;
 
     show(this: List<A>, S?: Show<A>): string;
@@ -392,7 +394,7 @@ List.prototype.foldMap = function <A, M>(
   return f => foldMap_(M)(this, f);
 };
 
-List.prototype.foldMapK = function <A, F>(
+List.prototype.foldMapK = function <F extends URIS, A>(
   this: List<A>,
   F: MonoidK<F>,
 ): <C, S, R, E, B>(
@@ -492,7 +494,7 @@ List.prototype.scanRight1 = function <A>(
   return scanRight1_(this, f);
 };
 
-List.prototype.traverse = function <A, G>(
+List.prototype.traverse = function <G extends URIS, A>(
   this: List<A>,
   G: Applicative<G>,
 ): <C, S, R, E, B>(
@@ -501,14 +503,14 @@ List.prototype.traverse = function <A, G>(
   return f => traverse_(G)(this, f);
 };
 
-List.prototype.sequence = function <G, C, S, R, E, A>(
+List.prototype.sequence = function <G extends URIS, C, S, R, E, A>(
   this: List<Kind<G, C, S, R, E, A>>,
   G: Applicative<G>,
 ): Kind<G, C, S, R, E, List<A>> {
   return sequence(G)(this);
 };
 
-List.prototype.flatTraverse = function <G, C, S, R, E, A>(
+List.prototype.flatTraverse = function <G extends URIS, C, S, R, E, A>(
   G: Applicative<G>,
 ): <B>(
   f: (a: A) => Kind<G, C, S, R, E, List<B>>,
@@ -516,7 +518,7 @@ List.prototype.flatTraverse = function <G, C, S, R, E, A>(
   return f => flatTraverse_(G, this, f);
 };
 
-List.prototype.flatSequence = function <G, C, S, R, E, A>(
+List.prototype.flatSequence = function <G extends URIS, C, S, R, E, A>(
   this: List<Kind<G, C, S, R, E, List<A>>>,
   G: Applicative<G>,
 ): Kind<G, C, S, R, E, List<A>> {

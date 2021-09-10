@@ -1,4 +1,4 @@
-import { Kind } from '../../../core';
+import { Kind, URIS } from '../../../core';
 import { Option } from '../option';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
@@ -204,13 +204,13 @@ declare module './algebra' {
     foldRight<B>(z: B, f: (v: V, b: B, k: K) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (v: V, k: K) => M) => M;
-    foldMapK<F>(
+    foldMapK<F extends URIS>(
       F: MonoidK<F>,
     ): <C, S, R, E, B>(
       f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
     ) => Kind<F, C, S, R, E, B>;
 
-    traverse<G>(
+    traverse<G extends URIS>(
       G: Applicative<G>,
     ): <C, S, R, E, B>(
       f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
@@ -423,7 +423,7 @@ Map.prototype.foldMap = function <K, V, M>(
   return f => foldMap_(M)(this, f);
 };
 
-Map.prototype.foldMapK = function <F, K, V>(
+Map.prototype.foldMapK = function <F extends URIS, K, V>(
   this: Map<K, V>,
   F: MonoidK<F>,
 ): <C, S, R, E, B>(
@@ -432,7 +432,7 @@ Map.prototype.foldMapK = function <F, K, V>(
   return f => foldMapK_(F)(this, f);
 };
 
-Map.prototype.traverse = function <G, K, V>(
+Map.prototype.traverse = function <G extends URIS, K, V>(
   this: Map<K, V>,
   G: Applicative<G>,
 ): <C, S, R, E, B>(

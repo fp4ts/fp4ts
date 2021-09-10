@@ -1,4 +1,4 @@
-import { flow, id, pipe, Kind, URI } from '../../core';
+import { flow, id, pipe, Kind, URI, URIS } from '../../core';
 import { Traversable } from '../../cats';
 import { Either, Left, Right } from '../../cats/data';
 
@@ -155,7 +155,7 @@ export const redeemWith: <A, B>(
 ) => (ioa: IO<A>) => IO<B> = (onFailure, onSuccess) => ioa =>
   redeemWith_(ioa, onFailure, onSuccess);
 
-export const traverse: <T>(
+export const traverse: <T extends URIS>(
   T: Traversable<T>,
 ) => <A, B>(
   f: (a: A) => IO<B>,
@@ -164,13 +164,13 @@ export const traverse: <T>(
 ) => IO<Kind<T, C2, S2, R2, E2, B>> = T => f => ts => traverse_(T, ts, f);
 
 export const sequence =
-  <T>(T: Traversable<T>) =>
+  <T extends URIS>(T: Traversable<T>) =>
   <A, C2, S2, R2, E2>(
     ioas: Kind<T, C2, S2, R2, E2, IO<A>>,
   ): IO<Kind<T, C2, S2, R2, E2, A>> =>
     traverse_(T, ioas, id);
 
-export const parTraverse: <T>(
+export const parTraverse: <T extends URIS>(
   T: Traversable<T>,
 ) => <A, B>(
   f: (a: A) => IO<B>,
@@ -178,7 +178,7 @@ export const parTraverse: <T>(
   ts: Kind<T, C2, S2, R2, E2, A>,
 ) => IO<Kind<T, C2, S2, R2, E2, B>> = T => f => ts => parTraverse_(T, ts, f);
 
-export const parSequenceN: <T>(
+export const parSequenceN: <T extends URIS>(
   T: Traversable<T>,
   maxConcurrent: number,
 ) => <C2, S2, R2, E2, A>(
@@ -186,7 +186,7 @@ export const parSequenceN: <T>(
 ) => IO<Kind<T, C2, S2, R2, E2, A>> = (T, maxConcurrent) => iot =>
   parSequenceN_(T, iot, maxConcurrent);
 
-export const parTraverseN: <T, C2>(
+export const parTraverseN: <T extends URIS, C2>(
   T: Traversable<T, C2>,
   maxConcurrent: number,
 ) => <A, B>(
@@ -197,13 +197,13 @@ export const parTraverseN: <T, C2>(
   parTraverseN_(T, as, f, ms);
 
 export const parSequence =
-  <T>(T: Traversable<T>) =>
+  <T extends URIS>(T: Traversable<T>) =>
   <C2, S2, R2, E2, A>(
     iot: Kind<T, C2, S2, R2, E2, IO<A>>,
   ): IO<Kind<T, C2, S2, R2, E2, A>> =>
     parTraverse_(T, iot, id);
 
-export const parTraverseOutcome: <T>(
+export const parTraverseOutcome: <T extends URIS>(
   T: Traversable<T>,
 ) => <A, B>(
   f: (a: A) => IO<B>,
@@ -213,13 +213,13 @@ export const parTraverseOutcome: <T>(
   parTraverseOutcome_(T, as, f);
 
 export const parSequenceOutcome =
-  <T>(T: Traversable<T>) =>
+  <T extends URIS>(T: Traversable<T>) =>
   <C2, S2, R2, E2, A>(
     iot: Kind<T, C2, S2, R2, E2, IO<A>>,
   ): IO<Kind<T, C2, S2, R2, E2, IOOutcome<A>>> =>
     parTraverseOutcome_(T, iot, id);
 
-export const parTraverseOutcomeN: <T>(
+export const parTraverseOutcomeN: <T extends URIS>(
   T: Traversable<T>,
   maxConcurrent: number,
 ) => <A, B>(
@@ -497,14 +497,14 @@ export const redeemWith_ = <A, B>(
     flatMap(ea => ea.fold(onFailure, onSuccess)),
   );
 
-export const traverse_ = <T, C2, S2, R2, E2, A, B>(
+export const traverse_ = <T extends URIS, C2, S2, R2, E2, A, B>(
   T: Traversable<T>,
   ts: Kind<T, C2, S2, R2, E2, A>,
   f: (a: A) => IO<B>,
 ): IO<Kind<T, C2, S2, R2, E2, B>> =>
   defer(() => T.traverse(ioSequentialApplicative())(f)(ts));
 
-export const parSequenceN_: <T, C2, S2, R2, E2, A>(
+export const parSequenceN_: <T extends URIS, C2, S2, R2, E2, A>(
   T: Traversable<T>,
   ioas: Kind<T, C2, S2, R2, E2, IO<A>>,
   maxConcurrent: number,
@@ -606,14 +606,14 @@ export const map2_ = <A, B, C>(
     ),
   );
 
-export const parTraverse_ = <T, C2, S2, R2, E2, A, B>(
+export const parTraverse_ = <T extends URIS, C2, S2, R2, E2, A, B>(
   T: Traversable<T, C2>,
   ts: Kind<T, C2, S2, R2, E2, A>,
   f: (a: A) => IO<B>,
 ): IO<Kind<T, C2, S2, R2, E2, B>> =>
   defer(() => T.traverse(ioParallelApplicative())(f)(ts));
 
-export const parTraverseN_ = <T, C2, S2, R2, E2, A, B>(
+export const parTraverseN_ = <T extends URIS, C2, S2, R2, E2, A, B>(
   T: Traversable<T, C2>,
   ts: Kind<T, C2, S2, R2, E2, A>,
   f: (a: A) => IO<B>,
@@ -624,7 +624,7 @@ export const parTraverseN_ = <T, C2, S2, R2, E2, A, B>(
     flatMap(sem => parTraverse_(T, ts, x => sem.withPermit(f(x)))),
   );
 
-export const parTraverseOutcome_ = <T, C2, S2, R2, E2, A, B>(
+export const parTraverseOutcome_ = <T extends URIS, C2, S2, R2, E2, A, B>(
   T: Traversable<T, C2>,
   ts: Kind<T, C2, S2, R2, E2, A>,
   f: (a: A) => IO<B>,
@@ -651,7 +651,7 @@ export const parTraverseOutcome_ = <T, C2, S2, R2, E2, A, B>(
     );
   });
 
-export const parTraverseOutcomeN_ = <T, C2, S2, R2, E2, A, B>(
+export const parTraverseOutcomeN_ = <T extends URIS, C2, S2, R2, E2, A, B>(
   T: Traversable<T, C2>,
   ts: Kind<T, C2, S2, R2, E2, A>,
   f: (a: A) => IO<B>,

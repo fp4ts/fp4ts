@@ -1,4 +1,4 @@
-import { URI, Kind } from '../../core';
+import { URI, Kind, URIS } from '../../core';
 import {
   Applicative,
   Apply,
@@ -134,13 +134,13 @@ interface IOObj {
     iob: IO<B>,
   ) => IO<[IOOutcome<A>, IOOutcome<B>]>;
 
-  sequence: <T, C2>(
+  sequence: <T extends URIS, C2>(
     T: Traversable<T, C2>,
   ) => <S2, R2, E2, A>(
     iots: Kind<T, C2, S2, R2, E2, IO<A>>,
   ) => IO<Kind<T, C2, S2, R2, E2, A>>;
 
-  traverse: <T, C2>(
+  traverse: <T extends URIS, C2>(
     T: Traversable<T, C2>,
   ) => <A, B>(
     f: (a: A) => IO<B>,
@@ -148,44 +148,44 @@ interface IOObj {
     ts: Kind<T, C2, S2, R2, E2, A>,
   ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
-  traverse_: <T, C2, S2, R2, E2, A, B>(
+  traverse_: <T extends URIS, C2, S2, R2, E2, A, B>(
     T: Traversable<T, C2>,
     ts: Kind<T, C2, S2, R2, E2, A>,
     f: (a: A) => IO<B>,
   ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
-  parSequence: <T, C2>(
+  parSequence: <T extends URIS, C2>(
     T: Traversable<T, C2>,
   ) => <C2, S2, R2, E2, A>(
     iots: Kind<T, C2, S2, R2, E2, IO<A>>,
   ) => IO<Kind<T, C2, S2, R2, E2, A>>;
 
-  parTraverse: <T, C2>(
+  parTraverse: <T extends URIS, C2>(
     T: Traversable<T, C2>,
   ) => <A, B>(
     f: (a: A) => IO<B>,
   ) => <C2, S2, R2, E2>(
     ts: Kind<T, C2, S2, R2, E2, A>,
   ) => IO<Kind<T, C2, S2, R2, E2, B>>;
-  parTraverse_: <T, C2, S2, R2, E2, A, B>(
+  parTraverse_: <T extends URIS, C2, S2, R2, E2, A, B>(
     T: Traversable<T, C2>,
     ts: Kind<T, C2, S2, R2, E2, A>,
     f: (a: A) => IO<B>,
   ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
-  parSequenceN: <T, C2>(
+  parSequenceN: <T extends URIS, C2>(
     T: Traversable<T, C2>,
     maxConcurrent: number,
   ) => <C2, S2, R2, E2, A>(
     iots: Kind<T, C2, S2, R2, E2, IO<A>>,
   ) => IO<Kind<T, C2, S2, R2, E2, A>>;
-  parSequenceN_: <T, C2, S2, R2, E2, A>(
+  parSequenceN_: <T extends URIS, C2, S2, R2, E2, A>(
     T: Traversable<T, C2>,
     iots: Kind<T, C2, S2, R2, E2, IO<A>>,
     maxConcurrent: number,
   ) => IO<Kind<T, C2, S2, R2, E2, A>>;
 
-  parTraverseN: <T, C2>(
+  parTraverseN: <T extends URIS, C2>(
     T: Traversable<T, C2>,
     maxConcurrent: number,
   ) => <A, B>(
@@ -193,7 +193,7 @@ interface IOObj {
   ) => <C2, S2, R2, E2>(
     ts: Kind<T, C2, S2, R2, E2, A>,
   ) => IO<Kind<T, C2, S2, R2, E2, B>>;
-  parTraverseN_: <T, C2, S2, R2, E2, A, B>(
+  parTraverseN_: <T extends URIS, C2, S2, R2, E2, A, B>(
     T: Traversable<T, C2>,
     ts: Kind<T, C2, S2, R2, E2, A>,
     f: (a: A) => IO<B>,

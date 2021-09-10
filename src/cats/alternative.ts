@@ -1,9 +1,9 @@
-import { Auto, Kind } from '../core';
+import { Auto, Kind, URIS } from '../core';
 import { List } from './data';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 
-export interface Alternative<F, C = Auto>
+export interface Alternative<F extends URIS, C = Auto>
   extends Applicative<F, C>,
     MonoidK<F, C> {
   readonly many: <S, R, E, A>(
@@ -14,14 +14,16 @@ export interface Alternative<F, C = Auto>
   ) => Kind<F, C, S, R, E, List<A>>;
 }
 
-export type AlternativeRequirements<F, C = Auto> = ApplicativeRequirements<
-  F,
-  C
-> &
+export type AlternativeRequirements<
+  F extends URIS,
+  C = Auto,
+> = ApplicativeRequirements<F, C> &
   MonoidKRequirements<F, C> &
   Partial<Alternative<F, C>>;
 export const Alternative = Object.freeze({
-  of: <F, C = Auto>(F: AlternativeRequirements<F, C>): Alternative<F, C> => {
+  of: <F extends URIS, C = Auto>(
+    F: AlternativeRequirements<F, C>,
+  ): Alternative<F, C> => {
     const self: Alternative<F, C> = {
       many: <S, R, E, A>(
         fa: Kind<F, C, S, R, E, A>,

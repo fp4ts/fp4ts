@@ -26,7 +26,7 @@ interface ReaderObj {
   pure<A>(a: A): Reader<unknown, A>;
   unit: Reader<unknown, void>;
   read<R>(): Reader<R, R>;
-  provide<R>(r: R): Reader<R, void>;
+  provide<R>(r: R): Reader<unknown, void>;
 
   // -- Instances
 

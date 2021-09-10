@@ -1,7 +1,7 @@
-import { Kind, instance, Auto, Base } from '../core';
+import { Kind, instance, Auto, Base, URIS } from '../core';
 import { Monoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
 
-export interface Foldable<F, C = Auto> extends Base<F, C> {
+export interface Foldable<F extends URIS, C = Auto> extends Base<F, C> {
   readonly foldLeft: <A, B>(
     b: B,
     f: (b: B, a: A) => B,
@@ -58,13 +58,15 @@ export interface Foldable<F, C = Auto> extends Base<F, C> {
   readonly size: <S, R, E, A>(fa: Kind<F, C, S, R, E, A>) => number;
 }
 
-export type FoldableRequirements<F, C = Auto> = Pick<
+export type FoldableRequirements<F extends URIS, C = Auto> = Pick<
   Foldable<F, C>,
   'foldLeft_' | 'foldRight_'
 > &
   Partial<Foldable<F, C>>;
 export const Foldable = {
-  of: <F, C = Auto>(F: FoldableRequirements<F, C>): Foldable<F, C> => {
+  of: <F extends URIS, C = Auto>(
+    F: FoldableRequirements<F, C>,
+  ): Foldable<F, C> => {
     const self: Foldable<F, C> = instance<Foldable<F, C>>({
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldRight: (z, f) => fa => self.foldRight_(fa, z, f),

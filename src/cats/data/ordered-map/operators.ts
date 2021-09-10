@@ -1,4 +1,4 @@
-import { Kind } from '../../../core';
+import { Kind, URIS } from '../../../core';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
@@ -248,14 +248,14 @@ export const foldMap: <M>(
 ) => <K, V>(f: (v: V, k: K) => M) => (m: OrderedMap<K, V>) => M = M => f => m =>
   foldMap_(M)(m, f);
 
-export const foldMapK: <F>(
+export const foldMapK: <F extends URIS>(
   F: MonoidK<F>,
 ) => <C, S, R, E, K, V, B>(
   f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
 ) => (m: OrderedMap<K, V>) => Kind<F, C, S, R, E, B> = F => f => m =>
   foldMapK_(F)(m, f);
 
-export const traverse: <G>(
+export const traverse: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, K, V, B>(
   f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
@@ -263,7 +263,7 @@ export const traverse: <G>(
   G => f => m =>
     traverse_(G)(m, f);
 
-export const sequence: <G>(
+export const sequence: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, K, V>(
   m: OrderedMap<K, Kind<G, C, S, R, E, V>>,
@@ -702,7 +702,7 @@ export const foldMap_ =
     foldLeft_(map_(m, f), M.empty, M.combine_);
 
 export const foldMapK_ =
-  <F>(F: MonoidK<F>) =>
+  <F extends URIS>(F: MonoidK<F>) =>
   <C, S, R, E, K, V, B>(
     m: OrderedMap<K, V>,
     f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
@@ -710,7 +710,7 @@ export const foldMapK_ =
     foldMap_(F.algebra<S, R, E, B>())(m, f);
 
 export const traverse_ =
-  <G>(G: Applicative<G>) =>
+  <G extends URIS>(G: Applicative<G>) =>
   <C, S, R, E, K, V, B>(
     m: OrderedMap<K, V>,
     f: (v: V, k: K) => Kind<G, C, S, R, E, B>,

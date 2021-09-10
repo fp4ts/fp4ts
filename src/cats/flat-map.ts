@@ -1,7 +1,7 @@
-import { Auto, id, Kind } from '../core';
+import { Auto, id, Kind, URIS } from '../core';
 import { Apply } from './apply';
 
-export interface FlatMap<F, C = Auto> extends Apply<F, C> {
+export interface FlatMap<F extends URIS, C = Auto> extends Apply<F, C> {
   readonly flatMap: <S, R, E, A, B>(
     f: (a: A) => Kind<F, C, S, R, E, B>,
   ) => (fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
@@ -23,13 +23,15 @@ export interface FlatMap<F, C = Auto> extends Apply<F, C> {
   ) => Kind<F, C, S, R, E, A>;
 }
 
-export type FlatMapRequirements<F, C = Auto> = Pick<
+export type FlatMapRequirements<F extends URIS, C = Auto> = Pick<
   FlatMap<F, C>,
   'flatMap_' | 'map_'
 > &
   Partial<FlatMap<F, C>>;
 export const FlatMap = Object.freeze({
-  of: <F, C = Auto>(F: FlatMapRequirements<F, C>): FlatMap<F, C> => {
+  of: <F extends URIS, C = Auto>(
+    F: FlatMapRequirements<F, C>,
+  ): FlatMap<F, C> => {
     const self: FlatMap<F, C> = {
       flatMap: f => fa => self.flatMap_(fa, f),
 
@@ -46,7 +48,9 @@ export const FlatMap = Object.freeze({
     return self;
   },
 
-  deriveApply: <F, C = Auto>(F: FlatMapRequirements<F, C>): Apply<F, C> =>
+  deriveApply: <F extends URIS, C = Auto>(
+    F: FlatMapRequirements<F, C>,
+  ): Apply<F, C> =>
     Apply.of<F, C>({
       ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
       ...F,

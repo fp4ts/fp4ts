@@ -1,4 +1,4 @@
-import { Kind, id, pipe } from '../../../core';
+import { Kind, id, pipe, URIS } from '../../../core';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
@@ -171,7 +171,7 @@ export const foldMap: <M>(
 ) => <A>(f: (a: A) => M) => (xs: List<A>) => M = M => f => xs =>
   foldMap_(M)(xs, f);
 
-export const foldMapK: <F>(
+export const foldMapK: <F extends URIS>(
   F: MonoidK<F>,
 ) => <C, S, R, E, A, B>(
   f: (a: A) => Kind<F, C, S, R, E, B>,
@@ -247,27 +247,27 @@ export const scanRight: <A, B>(
 export const scanRight1: <A>(f: (x: A, y: A) => A) => (xs: List<A>) => List<A> =
   f => xs => scanRight1_(xs, f);
 
-export const traverse: <G>(
+export const traverse: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A, B>(
   f: (a: A) => Kind<G, C, S, R, E, B>,
 ) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
   traverse_(G)(xs, f);
 
-export const flatTraverse: <G>(
+export const flatTraverse: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A, B>(
   f: (a: A) => Kind<G, C, S, R, E, List<B>>,
 ) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
   flatTraverse_(G, xs, f);
 
-export const sequence: <G>(
+export const sequence: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A>(
   gxs: List<Kind<G, C, S, R, E, A>>,
 ) => Kind<G, C, S, R, E, List<A>> = G => traverse(G)(id);
 
-export const flatSequence: <G>(
+export const flatSequence: <G extends URIS>(
   G: Applicative<G>,
 ) => <C, S, R, E, A>(
   gxs: List<Kind<G, C, S, R, E, List<A>>>,
@@ -509,7 +509,7 @@ export const foldMap_ =
     foldLeft_(xs, M.empty, (m, x) => M.combine_(m, f(x)));
 
 export const foldMapK_ =
-  <F>(F: MonoidK<F>) =>
+  <F extends URIS>(F: MonoidK<F>) =>
   <C, S, R, E, A, B>(
     xs: List<A>,
     f: (a: A) => Kind<F, C, S, R, E, B>,
@@ -719,7 +719,7 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 };
 
 export const traverse_ =
-  <G>(G: Applicative<G>) =>
+  <G extends URIS>(G: Applicative<G>) =>
   <C, S, R, E, A, B>(
     xs: List<A>,
     f: (a: A) => Kind<G, C, S, R, E, B>,
@@ -731,7 +731,7 @@ export const traverse_ =
     return foldRight_(xs, G.pure(empty as List<B>), consF);
   };
 
-export const flatTraverse_ = <G, C, S, R, E, A, B>(
+export const flatTraverse_ = <G extends URIS, C, S, R, E, A, B>(
   G: Applicative<G>,
   xs: List<A>,
   f: (a: A) => Kind<G, C, S, R, E, List<B>>,

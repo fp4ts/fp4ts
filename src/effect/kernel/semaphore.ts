@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Auto, Kind, Kind1, pipe, URIS } from '../../core';
+import { Auto, Kind, pipe, URIS } from '../../core';
 
 import { Ref } from './ref';
 import { Deferred } from './deferred';
@@ -30,7 +30,7 @@ export class Semaphore<F extends URIS, C = Auto> {
     private readonly state: Ref<F, State<F>, C>,
   ) {}
 
-  public readonly acquire = (): Kind1<F, C, void> =>
+  public readonly acquire = <S, R>(): Kind<F, C, S, R, Error, void> =>
     this.F.uncancelable(poll =>
       pipe(
         Deferred.of(this.F)<void>(),
@@ -52,7 +52,7 @@ export class Semaphore<F extends URIS, C = Auto> {
       ),
     );
 
-  public readonly release = (): Kind1<F, C, void> =>
+  public readonly release = <S, R>(): Kind<F, C, S, R, Error, void> =>
     this.F.uncancelable(() =>
       pipe(
         this.state.modify(state => {
@@ -67,7 +67,9 @@ export class Semaphore<F extends URIS, C = Auto> {
       ),
     );
 
-  public readonly withPermit = <A>(fa: Kind1<F, C, A>): Kind1<F, C, A> =>
+  public readonly withPermit = <S, R, A>(
+    fa: Kind<F, C, S, R, Error, A>,
+  ): Kind<F, C, S, R, Error, A> =>
     this.F.uncancelable(poll =>
       pipe(
         poll(this.acquire()),
@@ -82,7 +84,7 @@ export class Semaphore<F extends URIS, C = Auto> {
 
   public static readonly withPermits =
     <F extends URIS, C>(F: Async<F, C>) =>
-    (permits: number): Kind1<F, C, Semaphore<F>> => {
+    <S, R>(permits: number): Kind<F, C, S, R, Error, Semaphore<F>> => {
       assert(permits > 0, 'maxPermits must be > 0');
       return pipe(
         Ref.of(F)(new State<F>([], permits)),
@@ -93,23 +95,24 @@ export class Semaphore<F extends URIS, C = Auto> {
 
 export const of =
   <F extends URIS, C>(F: Async<F, C>) =>
-  (permits: number): Kind1<F, C, Semaphore<F, C>> =>
+  <S, R>(permits: number): Kind<F, C, S, R, Error, Semaphore<F, C>> =>
     Semaphore.withPermits(F)(permits);
 
-export const acquire: <F extends URIS, C>(
+export const acquire: <F extends URIS, C, S, R>(
   sem: Semaphore<F, C>,
-) => Kind1<F, C, void> = sem => sem.acquire();
+) => Kind<F, C, S, R, Error, void> = sem => sem.acquire();
 
-export const release: <F extends URIS, C>(
+export const release: <F extends URIS, C, S, R>(
   sem: Semaphore<F, C>,
-) => Kind1<F, C, void> = sem => sem.release();
+) => Kind<F, C, S, R, Error, void> = sem => sem.release();
 
 export const withPermit: <F extends URIS, C>(
   sem: Semaphore<F, C>,
-) => <A>(fa: Kind1<F, C, A>) => Kind1<F, C, A> = sem => fa =>
-  withPermit_(sem, fa);
+) => <S, R, A>(fa: Kind<F, C, S, R, Error, A>) => Kind<F, C, S, R, Error, A> =
+  sem => fa =>
+    withPermit_(sem, fa);
 
-export const withPermit_: <F extends URIS, C, A>(
+export const withPermit_: <F extends URIS, C, A, S, R>(
   sem: Semaphore<F, C>,
-  fa: Kind1<F, C, A>,
-) => Kind1<F, C, A> = (sem, fa) => sem.withPermit(fa);
+  fa: Kind<F, C, S, R, Error, A>,
+) => Kind<F, C, S, R, Error, A> = (sem, fa) => sem.withPermit(fa);

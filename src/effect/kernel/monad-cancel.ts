@@ -1,9 +1,10 @@
-import { Auto, Kind } from '../../core';
+import { Auto, Kind, URIS } from '../../core';
 import { MonadError } from '../../cats';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
 
-export interface MonadCancel<F, E, C = Auto> extends MonadError<F, E, C> {
+export interface MonadCancel<F extends URIS, E, C = Auto>
+  extends MonadError<F, E, C> {
   readonly uncancelable: <S, R, A>(
     body: (poll: Poll<F, C>) => Kind<F, C, S, R, E, A>,
   ) => Kind<F, C, S, R, E, A>;

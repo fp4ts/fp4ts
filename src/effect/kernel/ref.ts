@@ -1,8 +1,7 @@
-import { Auto, Kind, Fix } from '../../core';
+import { Auto, Kind, Fix, URIS } from '../../core';
 import { Sync } from './sync';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Ref<F, A, C = Auto> {
+export class Ref<F extends URIS, A, C = Auto> {
   // @ts-ignore
   private readonly __void: void;
 
@@ -38,7 +37,7 @@ export class Ref<F, A, C = Auto> {
     });
 
   public static readonly of =
-    <F, C = Auto>(F: Sync<F, C>) =>
+    <F extends URIS, C = Auto>(F: Sync<F, C>) =>
     <S, R, B>(
       x: B,
     ): Kind<F, C, S, R, Error, Ref<F, B, C & Fix<'S', S> & Fix<'R', R>>> =>
@@ -47,54 +46,55 @@ export class Ref<F, A, C = Auto> {
 
 // Point-free
 
-export const of: <F, C = Auto>(
+export const of: <F extends URIS, C = Auto>(
   F: Sync<F, C>,
 ) => <S, R, A>(
   a: A,
 ) => Kind<F, C, S, R, Error, Ref<F, A, C & Fix<'S', S> & Fix<'R', R>>> = F =>
   Ref.of(F);
 
-export const get: <F, C, S, R, A>(
+export const get: <F extends URIS, C, S, R, A>(
   ra: Ref<F, A, C>,
 ) => Kind<F, C, S, R, Error, A> = ra => ra.get();
 
 export const set: <A>(
   a: A,
-) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, void> =
-  a => ra =>
-    set_(ra, a);
+) => <F extends URIS, C, S, R>(
+  ra: Ref<F, A, C>,
+) => Kind<F, C, S, R, Error, void> = a => ra => set_(ra, a);
 
 export const update: <A>(
   f: (a: A) => A,
-) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, void> =
-  f => ra =>
-    update_(ra, f);
+) => <F extends URIS, C, S, R>(
+  ra: Ref<F, A, C>,
+) => Kind<F, C, S, R, Error, void> = f => ra => update_(ra, f);
 
 export const updateAndGet: <A>(
   f: (a: A) => A,
-) => <F, C, S, R>(ref: Ref<F, A, C>) => Kind<F, C, S, R, Error, A> = f => ra =>
-  updateAndGet_(ra, f);
+) => <F extends URIS, C, S, R>(
+  ref: Ref<F, A, C>,
+) => Kind<F, C, S, R, Error, A> = f => ra => updateAndGet_(ra, f);
 
 export const modify: <A, B>(
   f: (a: A) => [A, B],
-) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, B> = f => ra =>
-  modify_(ra, f);
+) => <F extends URIS, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, B> =
+  f => ra => modify_(ra, f);
 
 // Point-ful
 
-export const set_: <F, C, S, R, A>(
+export const set_: <F extends URIS, C, S, R, A>(
   ra: Ref<F, A, C>,
   a: A,
 ) => Kind<F, C, S, R, Error, void> = (ra, a) => ra.set(a);
-export const update_: <F, C, S, R, A>(
+export const update_: <F extends URIS, C, S, R, A>(
   ra: Ref<F, A, C>,
   f: (a: A) => A,
 ) => Kind<F, C, S, R, Error, void> = (ra, f) => ra.update(f);
-export const updateAndGet_: <F, C, S, R, A>(
+export const updateAndGet_: <F extends URIS, C, S, R, A>(
   ra: Ref<F, A, C>,
   f: (a: A) => A,
 ) => Kind<F, C, S, R, Error, A> = (ra, f) => ra.updateAndGet(f);
-export const modify_: <F, C, S, R, A, B>(
+export const modify_: <F extends URIS, C, S, R, A, B>(
   ra: Ref<F, A, C>,
   f: (a: A) => [A, B],
 ) => Kind<F, C, S, R, Error, B> = (ra, f) => ra.modify(f);
