@@ -1,3 +1,4 @@
+import { URI } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -25,11 +26,11 @@ interface IdentityObj {
   pure<A>(a: A): Identity<A>;
   unit: Identity<void>;
 
-  readonly Functor: Functor<URI>;
-  readonly Apply: Apply<URI>;
-  readonly Applicative: Applicative<URI>;
-  readonly FlatMap: FlatMap<URI>;
-  readonly Monad: Monad<URI>;
+  readonly Functor: Functor<[URI<IdentityURI>]>;
+  readonly Apply: Apply<[URI<IdentityURI>]>;
+  readonly Applicative: Applicative<[URI<IdentityURI>]>;
+  readonly FlatMap: FlatMap<[URI<IdentityURI>]>;
+  readonly Monad: Monad<[URI<IdentityURI>]>;
 }
 
 Identity.pure = pure;
@@ -38,42 +39,42 @@ Identity.unit = pure(undefined);
 // -- Instances
 
 Object.defineProperty(Identity, 'Functor', {
-  get(): Functor<URI> {
+  get(): Functor<[URI<IdentityURI>]> {
     return identityFunctor();
   },
 });
 
 Object.defineProperty(Identity, 'Apply', {
-  get(): Apply<URI> {
+  get(): Apply<[URI<IdentityURI>]> {
     return identityApply();
   },
 });
 
 Object.defineProperty(Identity, 'Applicative', {
-  get(): Applicative<URI> {
+  get(): Applicative<[URI<IdentityURI>]> {
     return identityApplicative();
   },
 });
 
 Object.defineProperty(Identity, 'FlatMap', {
-  get(): FlatMap<URI> {
+  get(): FlatMap<[URI<IdentityURI>]> {
     return identityFlatMap();
   },
 });
 
 Object.defineProperty(Identity, 'Monad', {
-  get(): Monad<URI> {
+  get(): Monad<[URI<IdentityURI>]> {
     return identityMonad();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/id';
-export type URI = typeof URI;
+export const IdentityURI = 'cats/data/identity';
+export type IdentityURI = typeof IdentityURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Identity<A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [IdentityURI]: Identity<A>;
   }
 }

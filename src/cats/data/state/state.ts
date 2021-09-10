@@ -1,8 +1,9 @@
-import { Applicative2C, Applicative2 } from '../../applicative';
-import { Apply2C, Apply2 } from '../../apply';
-import { FlatMap2C, FlatMap2 } from '../../flat-map';
-import { Functor2C, Functor2 } from '../../functor';
-import { Monad2C, Monad2 } from '../../monad';
+import { URI } from '../../../core';
+import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
+import { FlatMap } from '../../flat-map';
+import { Functor } from '../../functor';
+import { Monad } from '../../monad';
 
 import { State as StateBase } from './algebra';
 import {
@@ -15,16 +16,11 @@ import {
   unit,
 } from './constructors';
 import {
-  stateApplicative2,
-  stateApplicative2C,
-  stateApply2,
-  stateApply2C,
-  stateFlatMap2,
-  stateFlatMap2C,
-  stateFunctor2,
-  stateFunctor2C,
-  stateMonad2,
-  stateMonad2C,
+  stateApplicative,
+  stateApply,
+  stateFlatMap,
+  stateFunctor,
+  stateMonad,
 } from './instances';
 
 export type State<S, A> = StateBase<S, A>;
@@ -38,22 +34,6 @@ export const State: StateObj = {
   update: update,
   updateAndGet: updateAndGet,
   modify: modify,
-
-  Functor2C<S>(): Functor2C<URI, S> {
-    return stateFunctor2C();
-  },
-  Apply2C<S>(): Apply2C<URI, S> {
-    return stateApply2C();
-  },
-  Applicative2C<S>(): Applicative2C<URI, S> {
-    return stateApplicative2C();
-  },
-  FlatMap2C<S>(): FlatMap2C<URI, S> {
-    return stateFlatMap2C();
-  },
-  Monad2C<S>(): Monad2C<URI, S> {
-    return stateMonad2C();
-  },
 } as any;
 
 export interface StateObj {
@@ -66,51 +46,46 @@ export interface StateObj {
   updateAndGet<S>(f: (s: S) => S): State<S, S>;
   modify<S, A>(f: (s: S) => [S, A]): State<S, A>;
 
-  Functor2C<S>(): Functor2C<URI, S>;
-  Apply2C<S>(): Apply2C<URI, S>;
-  Applicative2C<S>(): Applicative2C<URI, S>;
-  FlatMap2C<S>(): FlatMap2C<URI, S>;
-  Monad2C<S>(): Monad2C<URI, S>;
-  readonly FunctorK2: Functor2<URI>;
-  readonly Apply2: Apply2<URI>;
-  readonly Applicative2: Applicative2<URI>;
-  readonly FlatMap2: FlatMap2<URI>;
-  readonly Monad2: Monad2<URI>;
+  readonly FunctorK: Functor<[URI<StateURI>]>;
+  readonly Apply: Apply<[URI<StateURI>]>;
+  readonly Applicative: Applicative<[URI<StateURI>]>;
+  readonly FlatMap: FlatMap<[URI<StateURI>]>;
+  readonly Monad: Monad<[URI<StateURI>]>;
 }
 
-Object.defineProperty(State, 'Functor2', {
-  get(): Functor2<URI> {
-    return stateFunctor2();
+Object.defineProperty(State, 'Functor', {
+  get(): Functor<[URI<StateURI>]> {
+    return stateFunctor();
   },
 });
-Object.defineProperty(State, 'Apply2', {
-  get(): Apply2<URI> {
-    return stateApply2();
+Object.defineProperty(State, 'Apply', {
+  get(): Apply<[URI<StateURI>]> {
+    return stateApply();
   },
 });
-Object.defineProperty(State, 'Applicative2', {
-  get(): Applicative2<URI> {
-    return stateApplicative2();
+Object.defineProperty(State, 'Applicative', {
+  get(): Applicative<[URI<StateURI>]> {
+    return stateApplicative();
   },
 });
-Object.defineProperty(State, 'FlatMap2', {
-  get(): FlatMap2<URI> {
-    return stateFlatMap2();
+Object.defineProperty(State, 'FlatMap', {
+  get(): FlatMap<[URI<StateURI>]> {
+    return stateFlatMap();
   },
 });
-Object.defineProperty(State, 'Monad2', {
-  get(): Monad2<URI> {
-    return stateMonad2();
+Object.defineProperty(State, 'Monad', {
+  get(): Monad<[URI<StateURI>]> {
+    return stateMonad();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/state';
-export type URI = typeof URI;
+export const StateURI = 'cats/data/state';
+export type StateURI = typeof StateURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind2<E, A> {
-    [URI]: State<E, A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [StateURI]: State<S, A>;
   }
 }

@@ -1,5 +1,4 @@
-import { id, pipe } from '../../../fp/core';
-import { Kind } from '../../../fp/hkt';
+import { Kind, id, pipe } from '../../../core';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
@@ -174,9 +173,10 @@ export const foldMap: <M>(
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
-) => <A, B>(f: (a: A) => Kind<F, B>) => (xs: List<A>) => Kind<F, B> =
-  F => f => xs =>
-    foldMapK_(F)(xs, f);
+) => <C, S, R, E, A, B>(
+  f: (a: A) => Kind<F, C, S, R, E, B>,
+) => (xs: List<A>) => Kind<F, C, S, R, E, B> = F => f => xs =>
+  foldMapK_(F)(xs, f);
 
 export const zip: <B>(ys: List<B>) => <A>(xs: List<A>) => List<[A, B]> =
   ys => xs =>
@@ -249,25 +249,29 @@ export const scanRight1: <A>(f: (x: A, y: A) => A) => (xs: List<A>) => List<A> =
 
 export const traverse: <G>(
   G: Applicative<G>,
-) => <A, B>(f: (a: A) => Kind<G, B>) => (xs: List<A>) => Kind<G, List<B>> =
-  G => f => xs =>
-    traverse_(G)(xs, f);
+) => <C, S, R, E, A, B>(
+  f: (a: A) => Kind<G, C, S, R, E, B>,
+) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
+  traverse_(G)(xs, f);
 
 export const flatTraverse: <G>(
   G: Applicative<G>,
-) => <A, B>(
-  f: (a: A) => Kind<G, List<B>>,
-) => (xs: List<A>) => Kind<G, List<B>> = G => f => xs =>
+) => <C, S, R, E, A, B>(
+  f: (a: A) => Kind<G, C, S, R, E, List<B>>,
+) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
   flatTraverse_(G, xs, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
-) => <A>(gxs: List<Kind<G, A>>) => Kind<G, List<A>> = G => traverse(G)(id);
+) => <C, S, R, E, A>(
+  gxs: List<Kind<G, C, S, R, E, A>>,
+) => Kind<G, C, S, R, E, List<A>> = G => traverse(G)(id);
 
 export const flatSequence: <G>(
   G: Applicative<G>,
-) => <A>(gxs: List<Kind<G, List<A>>>) => Kind<G, List<A>> = G =>
-  flatTraverse(G)(id);
+) => <C, S, R, E, A>(
+  gxs: List<Kind<G, C, S, R, E, List<A>>>,
+) => Kind<G, C, S, R, E, List<A>> = G => flatTraverse(G)(id);
 
 export const show: <A2>(S: Show<A2>) => <A extends A2>(xs: List<A>) => string =
   S => xs =>
@@ -506,8 +510,11 @@ export const foldMap_ =
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<F, B>): Kind<F, B> =>
-    foldMap_(F.algebra<B>())(xs, f);
+  <C, S, R, E, A, B>(
+    xs: List<A>,
+    f: (a: A) => Kind<F, C, S, R, E, B>,
+  ): Kind<F, C, S, R, E, B> =>
+    foldMap_(F.algebra<S, R, E, B>())(xs, f);
 
 export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
   zipWith_(xs, ys, (x, y) => [x, y]);
@@ -713,19 +720,26 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, B>): Kind<G, List<B>> => {
-    const consF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
-      G.map2_(ys, f(x))(prepend_);
+  <C, S, R, E, A, B>(
+    xs: List<A>,
+    f: (a: A) => Kind<G, C, S, R, E, B>,
+  ): Kind<G, C, S, R, E, List<B>> => {
+    const consF = (
+      x: A,
+      ys: Kind<G, C, S, R, E, List<B>>,
+    ): Kind<G, C, S, R, E, List<B>> => G.map2_(ys, f(x))(prepend_);
     return foldRight_(xs, G.pure(empty as List<B>), consF);
   };
 
-export const flatTraverse_ = <G, A, B>(
+export const flatTraverse_ = <G, C, S, R, E, A, B>(
   G: Applicative<G>,
   xs: List<A>,
-  f: (a: A) => Kind<G, List<B>>,
-): Kind<G, List<B>> => {
-  const concatF = (x: A, ys: Kind<G, List<B>>): Kind<G, List<B>> =>
-    G.map2_(f(x), ys)(concat_);
+  f: (a: A) => Kind<G, C, S, R, E, List<B>>,
+): Kind<G, C, S, R, E, List<B>> => {
+  const concatF = (
+    x: A,
+    ys: Kind<G, C, S, R, E, List<B>>,
+  ): Kind<G, C, S, R, E, List<B>> => G.map2_(f(x), ys)(concat_);
 
   return foldRight_(xs, G.pure(empty as List<B>), concatF);
 };

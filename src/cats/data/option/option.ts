@@ -1,3 +1,4 @@
+import { URI } from '../../../core';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
 import { Alternative } from '../../alternative';
@@ -44,14 +45,14 @@ export interface OptionObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<URI>;
-  readonly MonoidK: MonoidK<URI>;
-  readonly Functor: Functor<URI>;
-  readonly Apply: Apply<URI>;
-  readonly Applicative: Applicative<URI>;
-  readonly Alternative: Alternative<URI>;
-  readonly FlatMap: FlatMap<URI>;
-  readonly Monad: Monad<URI>;
+  readonly SemigroupK: SemigroupK<URI<OptionURI>>;
+  readonly MonoidK: MonoidK<URI<OptionURI>>;
+  readonly Functor: Functor<[URI<OptionURI>]>;
+  readonly Apply: Apply<URI<OptionURI>>;
+  readonly Applicative: Applicative<URI<OptionURI>>;
+  readonly Alternative: Alternative<URI<OptionURI>>;
+  readonly FlatMap: FlatMap<URI<OptionURI>>;
+  readonly Monad: Monad<URI<OptionURI>>;
 }
 
 Option.pure = pure;
@@ -61,53 +62,53 @@ Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 
 Object.defineProperty(Option, 'SemigroupK', {
-  get(): SemigroupK<URI> {
+  get(): SemigroupK<[URI<OptionURI>]> {
     return optionSemigroupK();
   },
 });
 Object.defineProperty(Option, 'MonoidK', {
-  get(): MonoidK<URI> {
+  get(): MonoidK<[URI<OptionURI>]> {
     return optionMonoidK();
   },
 });
 Object.defineProperty(Option, 'Functor', {
-  get(): Functor<URI> {
+  get(): Functor<[URI<OptionURI>]> {
     return optionFunctor();
   },
 });
 Object.defineProperty(Option, 'Apply', {
-  get(): Apply<URI> {
+  get(): Apply<[URI<OptionURI>]> {
     return optionApply();
   },
 });
 Object.defineProperty(Option, 'Applicative', {
-  get(): Applicative<URI> {
+  get(): Applicative<[URI<OptionURI>]> {
     return optionApplicative();
   },
 });
 Object.defineProperty(Option, 'Alternative', {
-  get(): Alternative<URI> {
+  get(): Alternative<[URI<OptionURI>]> {
     return optionAlternative();
   },
 });
 Object.defineProperty(Option, 'FlatMap', {
-  get(): FlatMap<URI> {
+  get(): FlatMap<[URI<OptionURI>]> {
     return optionFlatMap();
   },
 });
 Object.defineProperty(Option, 'Monad', {
-  get(): Monad<URI> {
+  get(): Monad<[URI<OptionURI>]> {
     return optionMonad();
   },
 });
 
 // -- HKT
 
-export const URI = 'cats/data/option';
-export type URI = typeof URI;
+export const OptionURI = 'cats/data/option';
+export type OptionURI = typeof OptionURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Option<A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [OptionURI]: Option<A>;
   }
 }

@@ -10,11 +10,11 @@ export const Show = {
 
 // HKT
 
-export const URI = 'cats/show';
-export type URI = typeof URI;
+export const ShowURI = 'cats/show';
+export type ShowURI = typeof ShowURI;
 
-declare module '../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Show<A>;
+declare module '../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [ShowURI]: Show<A>;
   }
 }

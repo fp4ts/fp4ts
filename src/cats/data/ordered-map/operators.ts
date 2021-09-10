@@ -1,4 +1,4 @@
-import { Kind } from '../../../fp/hkt';
+import { Kind } from '../../../core';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
@@ -250,22 +250,24 @@ export const foldMap: <M>(
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
-) => <K, V, B>(
-  f: (v: V, k: K) => Kind<F, B>,
-) => (m: OrderedMap<K, V>) => Kind<F, B> = F => f => m => foldMapK_(F)(m, f);
+) => <C, S, R, E, K, V, B>(
+  f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
+) => (m: OrderedMap<K, V>) => Kind<F, C, S, R, E, B> = F => f => m =>
+  foldMapK_(F)(m, f);
 
 export const traverse: <G>(
   G: Applicative<G>,
-) => <K, V, B>(
-  f: (v: V, k: K) => Kind<G, B>,
-) => (m: OrderedMap<K, V>) => Kind<G, OrderedMap<K, B>> = G => f => m =>
-  traverse_(G)(m, f);
+) => <C, S, R, E, K, V, B>(
+  f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
+) => (m: OrderedMap<K, V>) => Kind<G, C, S, R, E, OrderedMap<K, B>> =
+  G => f => m =>
+    traverse_(G)(m, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
-) => <K, V>(m: OrderedMap<K, Kind<G, V>>) => Kind<G, OrderedMap<K, V>> =
-  G => m =>
-    traverse_(G)(m, id);
+) => <C, S, R, E, K, V>(
+  m: OrderedMap<K, Kind<G, C, S, R, E, V>>,
+) => Kind<G, C, S, R, E, OrderedMap<K, V>> = G => m => traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
@@ -701,15 +703,18 @@ export const foldMap_ =
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
-  <K, V, B>(m: OrderedMap<K, V>, f: (v: V, k: K) => Kind<F, B>): Kind<F, B> =>
-    foldMap_(F.algebra<B>())(m, f);
+  <C, S, R, E, K, V, B>(
+    m: OrderedMap<K, V>,
+    f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
+  ): Kind<F, C, S, R, E, B> =>
+    foldMap_(F.algebra<S, R, E, B>())(m, f);
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <K, V, B>(
+  <C, S, R, E, K, V, B>(
     m: OrderedMap<K, V>,
-    f: (v: V, k: K) => Kind<G, B>,
-  ): Kind<G, OrderedMap<K, B>> => {
+    f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
+  ): Kind<G, C, S, R, E, OrderedMap<K, B>> => {
     const n = toNode(m);
     if (n.tag === 'empty') return G.pure(Empty as OrderedMap<K, B>);
 

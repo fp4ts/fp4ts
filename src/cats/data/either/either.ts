@@ -1,25 +1,20 @@
-import { SemigroupK2, SemigroupK2C } from '../../semigroup-k';
-import { Applicative2, Applicative2C } from '../../applicative';
-import { Apply2, Apply2C } from '../../apply';
-import { FlatMap2, FlatMap2C } from '../../flat-map';
-import { Functor2, Functor2C } from '../../functor';
-import { Monad2, Monad2C } from '../../monad';
+import { URI } from '../../../core';
+import { SemigroupK } from '../../semigroup-k';
+import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
+import { FlatMap } from '../../flat-map';
+import { Functor } from '../../functor';
+import { Monad } from '../../monad';
 
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';
 import {
-  eitherApplicative2,
-  eitherApplicative2C,
-  eitherApply2,
-  eitherApply2C,
-  eitherFlatMap2,
-  eitherFlatMap2C,
-  eitherFunctor2,
-  eitherFunctor2C,
-  eitherMonad2,
-  eitherMonad2C,
-  eitherSemigroupK2,
-  eitherSemigroupK2C,
+  eitherApplicative,
+  eitherApply,
+  eitherFlatMap,
+  eitherFunctor,
+  eitherMonad,
+  eitherSemigroupK,
 } from './instances';
 
 export type Either<E, A> = EitherBase<E, A>;
@@ -39,19 +34,12 @@ export interface EitherObj {
   rightUnit: Either<never, void>;
 
   // -- Instances
-
-  SemigroupK2C: <E>() => SemigroupK2C<URI, E>;
-  Functor2C: <E>() => Functor2C<URI, E>;
-  Apply2C: <E>() => Apply2C<URI, E>;
-  Applicative2C: <E>() => Applicative2C<URI, E>;
-  FlatMap2C: <E>() => FlatMap2C<URI, E>;
-  Monad2C: <E>() => Monad2C<URI, E>;
-  SemigroupK2: SemigroupK2<URI>;
-  readonly Functor2: Functor2<URI>;
-  readonly Apply2: Apply2<URI>;
-  readonly Applicative2: Applicative2<URI>;
-  readonly FlatMap2: FlatMap2<URI>;
-  readonly Monad2: Monad2<URI>;
+  readonly SemigroupK: SemigroupK<[URI<EitherURI>]>;
+  readonly Functor: Functor<[URI<EitherURI>]>;
+  readonly Apply: Apply<[URI<EitherURI>]>;
+  readonly Applicative: Applicative<[URI<EitherURI>]>;
+  readonly FlatMap: FlatMap<[URI<EitherURI>]>;
+  readonly Monad: Monad<[URI<EitherURI>]>;
 }
 
 Either.right = right;
@@ -59,54 +47,44 @@ Either.left = left;
 Either.pure = pure;
 Either.rightUnit = rightUnit;
 
-Either.SemigroupK2C = eitherSemigroupK2C;
-Object.defineProperty(Either, 'SemigroupK2', {
-  get(): SemigroupK2<URI> {
-    return eitherSemigroupK2();
+Object.defineProperty(Either, 'SemigroupK', {
+  get(): SemigroupK<[URI<EitherURI>]> {
+    return eitherSemigroupK();
   },
 });
-Either.Functor2C = eitherFunctor2C;
-Object.defineProperty(Either, 'Functor2', {
-  get(): Functor2<URI> {
-    return eitherFunctor2();
+Object.defineProperty(Either, 'Functor', {
+  get(): Functor<[URI<EitherURI>]> {
+    return eitherFunctor();
   },
 });
-Either.Apply2C = eitherApply2C;
-Object.defineProperty(Either, 'Apply2', {
-  get(): Apply2<URI> {
-    return eitherApply2();
+Object.defineProperty(Either, 'Apply', {
+  get(): Apply<[URI<EitherURI>]> {
+    return eitherApply();
   },
 });
-Either.Applicative2C = eitherApplicative2C;
-Object.defineProperty(Either, 'Applicative2', {
-  get(): Applicative2<URI> {
-    return eitherApplicative2();
+Object.defineProperty(Either, 'Applicative', {
+  get(): Applicative<[URI<EitherURI>]> {
+    return eitherApplicative();
   },
 });
-Either.FlatMap2C = eitherFlatMap2C;
-Object.defineProperty(Either, 'FlatMap2', {
-  get(): FlatMap2<URI> {
-    return eitherFlatMap2();
+Object.defineProperty(Either, 'FlatMap', {
+  get(): FlatMap<[URI<EitherURI>]> {
+    return eitherFlatMap();
   },
 });
-Either.Monad2C = eitherMonad2C;
-Object.defineProperty(Either, 'Monad2', {
-  get(): Monad2<URI> {
-    return eitherMonad2();
+Object.defineProperty(Either, 'Monad', {
+  get(): Monad<[URI<EitherURI>]> {
+    return eitherMonad();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/either';
-export type URI = typeof URI;
+export const EitherURI = 'cats/data/either';
+export type EitherURI = typeof EitherURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Either<unknown, A>;
-  }
-
-  interface URItoKind2<E, A> {
-    [URI]: Either<E, A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [EitherURI]: Either<E, A>;
   }
 }

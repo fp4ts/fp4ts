@@ -1,22 +1,19 @@
+import { URI } from '../../../core';
 import { PrimitiveType } from '../../../fp/primitive-type';
-import { Foldable2, Foldable2C } from '../../foldable';
-import { Functor2, Functor2C } from '../../functor';
-import { FunctorFilter2, FunctorFilter2C } from '../../functor-filter';
-import { Traversable2, Traversable2C } from '../../traversable';
+import { Foldable } from '../../foldable';
+import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
+import { Traversable } from '../../traversable';
 import { List } from '../list';
 import { Hashable, primitiveMD5Hashable } from '../../hashable';
 
 import { Empty, Map as MapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
 import {
-  mapFoldable2,
-  mapFoldable2C,
-  mapFunctor2,
-  mapFunctor2C,
-  mapFunctorFilter2,
-  mapFunctorFilter2C,
+  mapFoldable,
+  mapFunctor,
+  mapFunctorFilter,
   mapTraversable2,
-  mapTraversable2C,
 } from './instances';
 
 export const Map: MapObj = function <K extends PrimitiveType, V>(
@@ -46,14 +43,10 @@ export interface MapObj {
 
   // -- Instances
 
-  Functor2C: <K>() => Functor2C<URI, K>;
-  FunctorFilter2C: <K>() => FunctorFilter2C<URI, K>;
-  Foldable2C: <K>() => Foldable2C<URI, K>;
-  Traversable2C: <K>() => Traversable2C<URI, K>;
-  readonly Functor2: Functor2<URI>;
-  readonly FunctorFilter2: FunctorFilter2<URI>;
-  readonly Foldable2: Foldable2<URI>;
-  readonly Traversable2: Traversable2<URI>;
+  readonly Functor: Functor<[URI<MapURI>]>;
+  readonly FunctorFilter: FunctorFilter<[URI<MapURI>]>;
+  readonly Foldable: Foldable<[URI<MapURI>]>;
+  readonly Traversable: Traversable<[URI<MapURI>]>;
 }
 
 Map.empty = Empty;
@@ -61,39 +54,34 @@ Map.of = of;
 Map.fromArray = fromArray;
 Map.fromList = fromList;
 
-Map.Functor2C = mapFunctor2C;
-Map.FunctorFilter2C = mapFunctorFilter2C;
-Map.Foldable2C = mapFoldable2C;
-Map.Traversable2C = mapTraversable2C;
-
-Object.defineProperty(Map, 'Functor2', {
-  get(): Functor2<URI> {
-    return mapFunctor2();
+Object.defineProperty(Map, 'Functor', {
+  get(): Functor<[URI<MapURI>]> {
+    return mapFunctor();
   },
 });
-Object.defineProperty(Map, 'FunctorFilter2', {
-  get(): FunctorFilter2<URI> {
-    return mapFunctorFilter2();
+Object.defineProperty(Map, 'FunctorFilter', {
+  get(): FunctorFilter<[URI<MapURI>]> {
+    return mapFunctorFilter();
   },
 });
-Object.defineProperty(Map, 'Foldable2', {
-  get(): Foldable2<URI> {
-    return mapFoldable2();
+Object.defineProperty(Map, 'Foldable', {
+  get(): Foldable<[URI<MapURI>]> {
+    return mapFoldable();
   },
 });
-Object.defineProperty(Map, 'Traversable2', {
-  get(): Traversable2<URI> {
+Object.defineProperty(Map, 'Traversable', {
+  get(): Traversable<[URI<MapURI>]> {
     return mapTraversable2();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/map';
-export type URI = typeof URI;
+export const MapURI = 'cats/data/map';
+export type MapURI = typeof MapURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind2<E, A> {
-    [URI]: Map<E, A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [MapURI]: Map<E, A>;
   }
 }

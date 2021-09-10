@@ -11,8 +11,8 @@ export interface Eq<A> {
 export const URI = 'cats/eq';
 export type URI = typeof URI;
 
-declare module '../fp/hkt' {
-  interface URItoKind<A> {
+declare module '../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
     [URI]: Eq<A>;
   }
 }

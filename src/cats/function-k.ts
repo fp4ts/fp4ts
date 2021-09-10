@@ -1,13 +1,5 @@
-import { Kind, Kind2 } from '../fp/hkt';
+import { Auto, Kind } from '../core';
 
-export interface FunctionK<F, G> {
-  <A>(fa: Kind<F, A>): Kind<G, A>;
-}
-
-export interface FunctionK2C<F, G, E> {
-  <A>(fa: Kind2<F, E, A>): Kind2<G, E, A>;
-}
-
-export interface FunctionK2<F, G> {
-  <E, A>(fa: Kind2<F, E, A>): Kind2<G, E, A>;
+export interface FunctionK<F, G, FC = Auto, GC = Auto> {
+  <S, R, E, A>(fa: Kind<F, FC, S, R, E, A>): Kind<G, GC, S, R, E, A>;
 }

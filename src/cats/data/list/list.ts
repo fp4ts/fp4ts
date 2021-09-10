@@ -1,3 +1,5 @@
+import { URI } from '../../../core';
+
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { Alternative } from '../../alternative';
@@ -42,17 +44,17 @@ interface ListObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<URI>;
-  readonly MonoidK: MonoidK<URI>;
-  readonly Functor: Functor<URI>;
-  readonly FunctorFilter: FunctorFilter<URI>;
-  readonly Apply: Apply<URI>;
-  readonly Applicative: Applicative<URI>;
-  readonly Alternative: Alternative<URI>;
-  readonly FlatMap: FlatMap<URI>;
-  readonly Monad: Monad<URI>;
-  readonly Foldable: Foldable<URI>;
-  readonly Traversable: Traversable<URI>;
+  readonly SemigroupK: SemigroupK<[URI<ListURI>]>;
+  readonly MonoidK: MonoidK<[URI<ListURI>]>;
+  readonly Functor: Functor<[URI<ListURI>]>;
+  readonly FunctorFilter: FunctorFilter<[URI<ListURI>]>;
+  readonly Apply: Apply<[URI<ListURI>]>;
+  readonly Applicative: Applicative<[URI<ListURI>]>;
+  readonly Alternative: Alternative<[URI<ListURI>]>;
+  readonly FlatMap: FlatMap<[URI<ListURI>]>;
+  readonly Monad: Monad<[URI<ListURI>]>;
+  readonly Foldable: Foldable<[URI<ListURI>]>;
+  readonly Traversable: Traversable<[URI<ListURI>]>;
 }
 
 List.pure = pure;
@@ -61,68 +63,68 @@ List.of = of;
 List.fromArray = fromArray;
 
 Object.defineProperty(List, 'SemigroupK', {
-  get(): SemigroupK<URI> {
+  get(): SemigroupK<[URI<ListURI>]> {
     return listSemigroupK();
   },
 });
 Object.defineProperty(List, 'MonoidK', {
-  get(): MonoidK<URI> {
+  get(): MonoidK<[URI<ListURI>]> {
     return listMonoidK();
   },
 });
 Object.defineProperty(List, 'Functor', {
-  get(): Functor<URI> {
+  get(): Functor<[URI<ListURI>]> {
     return listFunctor();
   },
 });
 Object.defineProperty(List, 'FunctorFilter', {
-  get(): FunctorFilter<URI> {
+  get(): FunctorFilter<[URI<ListURI>]> {
     return listFunctorFilter();
   },
 });
 Object.defineProperty(List, 'Apply', {
-  get(): Apply<URI> {
+  get(): Apply<[URI<ListURI>]> {
     return listApply();
   },
 });
 Object.defineProperty(List, 'Applicative', {
-  get(): Applicative<URI> {
+  get(): Applicative<[URI<ListURI>]> {
     return listApplicative();
   },
 });
 Object.defineProperty(List, 'Alternative', {
-  get(): Alternative<URI> {
+  get(): Alternative<[URI<ListURI>]> {
     return listAlternative();
   },
 });
 Object.defineProperty(List, 'FlatMap', {
-  get(): FlatMap<URI> {
+  get(): FlatMap<[URI<ListURI>]> {
     return listFlatMap();
   },
 });
 Object.defineProperty(List, 'Monad', {
-  get(): Monad<URI> {
+  get(): Monad<[URI<ListURI>]> {
     return listMonad();
   },
 });
 Object.defineProperty(List, 'Foldable', {
-  get(): Foldable<URI> {
+  get(): Foldable<[URI<ListURI>]> {
     return listFoldable();
   },
 });
 Object.defineProperty(List, 'Traversable', {
-  get(): Traversable<URI> {
+  get(): Traversable<[URI<ListURI>]> {
     return listTraversable();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/list';
-export type URI = typeof URI;
+export const ListURI = 'cats/data/list';
+export type ListURI = typeof ListURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: List<A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [ListURI]: List<A>;
   }
 }

@@ -1,22 +1,19 @@
+import { URI } from '../../../core';
 import { PrimitiveType } from '../../../fp/primitive-type';
-import { Foldable2, Foldable2C } from '../../foldable';
-import { Functor2, Functor2C } from '../../functor';
-import { FunctorFilter2, FunctorFilter2C } from '../../functor-filter';
-import { Traversable2, Traversable2C } from '../../traversable';
+import { Foldable } from '../../foldable';
+import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
+import { Traversable } from '../../traversable';
 import { List } from '../list';
 import { Ord, primitiveOrd } from '../../ord';
 
 import { OrderedMap as OrderedMapBase } from './algebra';
 import { empty, fromArray, fromList, fromSortedArray } from './constructors';
 import {
-  orderedMapFoldable2,
-  orderedMapFoldable2C,
-  orderedMapFunctor2,
-  orderedMapFunctor2C,
-  orderedMapFunctorFilter2,
-  orderedMapFunctorFilter2C,
-  orderedMapTraversable2,
-  orderedMapTraversable2C,
+  orderedMapFoldable,
+  orderedMapFunctor,
+  orderedMapFunctorFilter,
+  orderedMapTraversable,
 } from './instances';
 
 export type OrderedMap<K, V> = OrderedMapBase<K, V>;
@@ -36,14 +33,10 @@ export interface OrderedMapObj {
 
   // -- Instances
 
-  Functor2C: <K>() => Functor2C<URI, K>;
-  FunctorFilter2C: <K>() => FunctorFilter2C<URI, K>;
-  Foldable2C: <K>() => Foldable2C<URI, K>;
-  Traversable2C: <K>() => Traversable2C<URI, K>;
-  readonly Functor2: Functor2<URI>;
-  readonly FunctorFilter2: FunctorFilter2<URI>;
-  readonly Foldable2: Foldable2<URI>;
-  readonly Traversable2: Traversable2<URI>;
+  readonly Functor: Functor<[URI<OrderedMapURI>]>;
+  readonly FunctorFilter: FunctorFilter<[URI<OrderedMapURI>]>;
+  readonly Foldable: Foldable<[URI<OrderedMapURI>]>;
+  readonly Traversable: Traversable<[URI<OrderedMapURI>]>;
 }
 
 OrderedMap.empty = empty;
@@ -51,39 +44,34 @@ OrderedMap.fromArray = fromArray;
 OrderedMap.fromList = fromList;
 OrderedMap.fromSortedArray = fromSortedArray;
 
-OrderedMap.Functor2C = orderedMapFunctor2C;
-OrderedMap.FunctorFilter2C = orderedMapFunctorFilter2C;
-OrderedMap.Foldable2C = orderedMapFoldable2C;
-OrderedMap.Traversable2C = orderedMapTraversable2C;
-
-Object.defineProperty(OrderedMap, 'Functor2', {
-  get(): Functor2<URI> {
-    return orderedMapFunctor2();
+Object.defineProperty(OrderedMap, 'Functor', {
+  get(): Functor<[URI<OrderedMapURI>]> {
+    return orderedMapFunctor();
   },
 });
-Object.defineProperty(OrderedMap, 'FunctorFilter2', {
-  get(): FunctorFilter2<URI> {
-    return orderedMapFunctorFilter2();
+Object.defineProperty(OrderedMap, 'FunctorFilter', {
+  get(): FunctorFilter<[URI<OrderedMapURI>]> {
+    return orderedMapFunctorFilter();
   },
 });
-Object.defineProperty(OrderedMap, 'Foldable2', {
-  get(): Foldable2<URI> {
-    return orderedMapFoldable2();
+Object.defineProperty(OrderedMap, 'Foldable', {
+  get(): Foldable<[URI<OrderedMapURI>]> {
+    return orderedMapFoldable();
   },
 });
-Object.defineProperty(OrderedMap, 'Traversable2', {
-  get(): Traversable2<URI> {
-    return orderedMapTraversable2();
+Object.defineProperty(OrderedMap, 'Traversable', {
+  get(): Traversable<[URI<OrderedMapURI>]> {
+    return orderedMapTraversable();
   },
 });
 
 // HKT
 
-export const URI = 'cats/data/ordered-map';
-export type URI = typeof URI;
+export const OrderedMapURI = 'cats/data/ordered-map';
+export type OrderedMapURI = typeof OrderedMapURI;
 
-declare module '../../../fp/hkt' {
-  interface URItoKind2<E, A> {
-    [URI]: OrderedMap<E, A>;
+declare module '../../../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [OrderedMapURI]: OrderedMap<E, A>;
   }
 }

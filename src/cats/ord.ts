@@ -1,4 +1,4 @@
-import { Lazy } from '../fp/core';
+import { Lazy } from '../core';
 import { PrimitiveType } from '../fp/primitive-type';
 import { Eq, primitiveEq } from './eq';
 
@@ -18,12 +18,12 @@ export interface Ord<A> extends Eq<A> {
 
 // HKT
 
-export const URI = 'cats/ord';
-export type URI = typeof URI;
+export const OrdURI = 'cats/ord';
+export type OrdURI = typeof OrdURI;
 
-declare module '../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: Ord<A>;
+declare module '../core/hkt/hkt' {
+  interface URItoKind<FC, S, R, E, A> {
+    [OrdURI]: Ord<A>;
   }
 }
 
