@@ -45,14 +45,14 @@ export interface OptionObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<URI<OptionURI>>;
+  readonly SemigroupK: SemigroupK<[URI<OptionURI>]>;
   readonly MonoidK: MonoidK<URI<OptionURI>>;
   readonly Functor: Functor<[URI<OptionURI>]>;
-  readonly Apply: Apply<URI<OptionURI>>;
-  readonly Applicative: Applicative<URI<OptionURI>>;
-  readonly Alternative: Alternative<URI<OptionURI>>;
-  readonly FlatMap: FlatMap<URI<OptionURI>>;
-  readonly Monad: Monad<URI<OptionURI>>;
+  readonly Apply: Apply<[URI<OptionURI>]>;
+  readonly Applicative: Applicative<[URI<OptionURI>]>;
+  readonly Alternative: Alternative<[URI<OptionURI>]>;
+  readonly FlatMap: FlatMap<[URI<OptionURI>]>;
+  readonly Monad: Monad<[URI<OptionURI>]>;
 }
 
 Option.pure = pure;

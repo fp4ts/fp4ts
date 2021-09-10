@@ -1,10 +1,9 @@
-import { flow } from '../../fp/core';
+import { flow, URI } from '../../core';
 import { Either, Left, None, Option, Right } from '../../cats/data';
 
 import { ExecutionContext } from '../execution-context';
 import { Poll } from '../kernel/poll';
 import {
-  URI,
   Async,
   Canceled,
   CurrentTimeMillis,
@@ -18,6 +17,7 @@ import {
   Uncancelable,
 } from './algebra';
 import { flatMap_, map_ } from './operators';
+import { IoURI } from '.';
 
 export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
 
@@ -46,8 +46,8 @@ export const never: IO<never> = async(() => pure(None));
 
 export const canceled: IO<void> = Canceled;
 
-export const uncancelable: <A>(ioa: (p: Poll<URI>) => IO<A>) => IO<A> = ioa =>
-  new Uncancelable(ioa);
+export const uncancelable: <A>(ioa: (p: Poll<[URI<IoURI>]>) => IO<A>) => IO<A> =
+  ioa => new Uncancelable(ioa);
 
 export const sleep = (ms: number): IO<void> => new Sleep(ms);
 

@@ -1,16 +1,23 @@
-import { Kind } from '../../fp/hkt';
+import { Kind, Auto, URIS } from '../../core';
 import { Concurrent } from './concurrent';
 
-export interface Temporal<F, E> extends Concurrent<F, E> {
-  readonly sleep: (ms: number) => Kind<F, void>;
+export interface Temporal<F extends URIS, E, C = Auto>
+  extends Concurrent<F, E, C> {
+  readonly sleep: <S, R>(ms: number) => Kind<F, C, S, R, E, void>;
 
-  readonly delayBy: <A>(fa: Kind<F, A>, ms: number) => Kind<F, A>;
-
-  readonly timeoutTo: <A>(
-    ioa: Kind<F, A>,
+  readonly delayBy: <S, R, A>(
+    fa: Kind<F, C, S, R, E, A>,
     ms: number,
-    fallback: Kind<F, A>,
-  ) => Kind<F, A>;
+  ) => Kind<F, C, S, R, E, A>;
 
-  readonly timeout: <A>(ioa: Kind<F, A>, ms: number) => Kind<F, A>;
+  readonly timeoutTo: <S, R, A>(
+    ioa: Kind<F, C, S, R, E, A>,
+    ms: number,
+    fallback: Kind<F, C, S, R, E, A>,
+  ) => Kind<F, C, S, R, E, A>;
+
+  readonly timeout: <S, R, A>(
+    ioa: Kind<F, C, S, R, E, A>,
+    ms: number,
+  ) => Kind<F, C, S, R, E, A>;
 }

@@ -1,8 +1,8 @@
+import { Auto, Base, Kind, Kind1 } from '../../core';
 import { FunctionK, Show } from '../../cats';
-import { Kind } from '../../fp/hkt';
 
-export interface Console<F> {
-  readonly readLine: Kind<F, string>;
+export interface Console<F, C = Auto> extends Base<F, C> {
+  readonly readLine: Kind1<F, C, string>;
 
   print<A>(a: A): string;
   print<A>(S: Show<A>, a: A): string;
@@ -16,5 +16,5 @@ export interface Console<F> {
   errorLn<A>(a: A): string;
   errorLn<A>(S: Show<A>, a: A): string;
 
-  mapK<G>(nt: FunctionK<F, G>): Console<G>;
+  mapK<G, CG>(nt: FunctionK<F, G, C, CG>): Console<G, CG>;
 }

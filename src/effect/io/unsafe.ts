@@ -3,12 +3,11 @@ import { Either, Left, Right } from '../../cats/data';
 
 import { IO } from './io';
 import { IOFiber } from '../io-fiber';
-import * as O from '../kernel/outcome';
 
 import { IORuntime } from '../unsafe/io-runtime';
 import { Pure } from './algebra';
 import { IOOutcome } from '../io-outcome';
-import { URI } from '.';
+import { CancellationError } from '../kernel/outcome/algebra';
 
 // Point-free definitions
 
@@ -51,11 +50,12 @@ export const unsafeRunAsync_ = <A>(
   unsafeRunAsyncOutcome_(
     ioa,
     flow(
-      O.fold<URI, Error, A, Either<Error, A>>(
-        () => Left(new O.CancellationError()),
-        e => Left(e),
-        (a: IO<A>) => Right((a as Pure<A>).value),
-      ),
+      oc =>
+        oc.fold(
+          (): Either<Error, A> => Left(new CancellationError()),
+          e => Left(e),
+          (a: IO<A>) => Right((a as Pure<A>).value),
+        ),
       cb,
     ),
     runtime,

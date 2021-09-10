@@ -1,13 +1,14 @@
-import { flow, id, pipe } from '../fp/core';
+import { flow, id, pipe, URI } from '../core';
 import { Either, Left, Right, Some } from '../cats/data';
 
 import { IO } from './io';
 import { ExecutionContext } from './execution-context';
 
-import * as O from './kernel/outcome';
+import { Outcome } from './kernel/outcome';
 import * as F from './kernel/fiber';
 import { Poll } from './kernel/poll';
 
+import { IoURI } from './io';
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
 import { IOOutcome } from './io-outcome';
@@ -19,7 +20,7 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
+export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
   private outcome?: IOOutcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
@@ -56,10 +57,14 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
     return this._join;
   }
 
-  public joinWith = <B = A>(onCancel: IO<B>): IO<B> =>
-    this.join.flatMap(
-      O.fold<IOA.URI, Error, B, IO<B>>(() => onCancel, IO.throwError, id),
+  public joinWith<B>(
+    this: F.Fiber<[URI<IoURI>], Error, B>,
+    onCancel: IO<B>,
+  ): IO<B> {
+    return this.join.flatMap(oc =>
+      oc.fold(() => onCancel, IO.throwError as (e: Error) => IO<B>, id),
     );
+  }
 
   public get joinWithNever(): IO<A> {
     return this.joinWith(IO.never);
@@ -218,7 +223,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
           this.masks += 1;
           const id = this.masks;
 
-          const poll: Poll<IOA.URI> = iob =>
+          const poll: Poll<[URI<IoURI>]> = iob =>
             new IOA.UnmaskRunLoop(iob, id, this);
 
           this.conts.push(IOA.Continuation.UncancelableK);
@@ -349,7 +354,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
       this.runLoop(this.finalizers.pop()!);
     } else {
       cb && cb(Either.rightUnit);
-      this.complete(O.canceled);
+      this.complete(Outcome.canceled());
     }
   }
 
@@ -503,9 +508,9 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
 
   private terminateSuccessK(r: unknown): IO<unknown> {
     if (this.canceled) {
-      this.complete(O.canceled);
+      this.complete(Outcome.canceled());
     } else {
-      this.complete(O.success(IO.pure(r as A)));
+      this.complete(Outcome.success(IO.pure(r as A)));
     }
     return IOA.IOEndFiber;
   }
@@ -513,9 +518,9 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
   private terminateFailureK(e: Error): IO<unknown> {
     this.currentEC.reportFailure(e);
     if (this.canceled) {
-      this.complete(O.canceled);
+      this.complete(Outcome.canceled());
     } else {
-      this.complete(O.failure(e));
+      this.complete(Outcome.failure(e));
     }
     return IOA.IOEndFiber;
   }
@@ -560,7 +565,7 @@ export class IOFiber<A> implements F.Fiber<IOA.URI, Error, A> {
       | undefined;
     cb && cb(Either.rightUnit);
 
-    this.complete(O.canceled);
+    this.complete(Outcome.canceled());
 
     return IOA.IOEndFiber;
   }

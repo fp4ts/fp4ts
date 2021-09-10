@@ -1,29 +1,36 @@
-import { Kind } from '../../fp/hkt';
+import { Auto, Kind, Fix } from '../../core';
 import { Sync } from './sync';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class Ref<F, A> {
+export class Ref<F, A, C = Auto> {
   // @ts-ignore
   private readonly __void: void;
 
-  private constructor(private readonly F: Sync<F>, private value: A) {}
+  private constructor(private readonly F: Sync<F, C>, private value: A) {}
 
-  public readonly get: () => Kind<F, A> = () => this.F.delay(() => this.value);
+  public readonly get: <S, R>() => Kind<F, C, S, R, Error, A> = () =>
+    this.F.delay(() => this.value);
 
-  public readonly set: (a: A) => Kind<F, void> = x =>
+  public readonly set: <S, R>(a: A) => Kind<F, C, S, R, Error, void> = x =>
     this.F.delay(() => {
       this.value = x;
     });
 
-  public readonly update: (f: (a: A) => A) => Kind<F, void> = f =>
+  public readonly update: <S, R>(
+    f: (a: A) => A,
+  ) => Kind<F, C, S, R, Error, void> = f =>
     this.F.delay(() => {
       this.value = f(this.value);
     });
 
-  public readonly updateAndGet: (f: (a: A) => A) => Kind<F, A> = f =>
+  public readonly updateAndGet: <S, R>(
+    f: (a: A) => A,
+  ) => Kind<F, C, S, R, Error, A> = f =>
     this.F.delay(() => (this.value = f(this.value)));
 
-  public readonly modify: <B>(f: (a: A) => [A, B]) => Kind<F, B> = f =>
+  public readonly modify: <S, R, B>(
+    f: (a: A) => [A, B],
+  ) => Kind<F, C, S, R, Error, B> = f =>
     this.F.delay(() => {
       const [x, r] = f(this.value);
       this.value = x;
@@ -31,46 +38,63 @@ export class Ref<F, A> {
     });
 
   public static readonly of =
-    <F>(F: Sync<F>) =>
-    <B>(x: B): Kind<F, Ref<F, B>> =>
+    <F, C = Auto>(F: Sync<F, C>) =>
+    <S, R, B>(
+      x: B,
+    ): Kind<F, C, S, R, Error, Ref<F, B, C & Fix<'S', S> & Fix<'R', R>>> =>
       F.delay(() => new Ref(F, x));
 }
 
 // Point-free
 
-export const of: <F>(F: Sync<F>) => <A>(a: A) => Kind<F, Ref<F, A>> = F =>
+export const of: <F, C = Auto>(
+  F: Sync<F, C>,
+) => <S, R, A>(
+  a: A,
+) => Kind<F, C, S, R, Error, Ref<F, A, C & Fix<'S', S> & Fix<'R', R>>> = F =>
   Ref.of(F);
 
-export const get: <F, A>(ra: Ref<F, A>) => Kind<F, A> = ra => ra.get();
+export const get: <F, C, S, R, A>(
+  ra: Ref<F, A, C>,
+) => Kind<F, C, S, R, Error, A> = ra => ra.get();
 
-export const set: <A>(a: A) => <F>(ra: Ref<F, A>) => Kind<F, void> = a => ra =>
-  set_(ra, a);
+export const set: <A>(
+  a: A,
+) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, void> =
+  a => ra =>
+    set_(ra, a);
 
 export const update: <A>(
   f: (a: A) => A,
-) => <F>(ra: Ref<F, A>) => Kind<F, void> = f => ra => update_(ra, f);
+) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, void> =
+  f => ra =>
+    update_(ra, f);
 
 export const updateAndGet: <A>(
   f: (a: A) => A,
-) => <F>(ref: Ref<F, A>) => Kind<F, A> = f => ra => updateAndGet_(ra, f);
+) => <F, C, S, R>(ref: Ref<F, A, C>) => Kind<F, C, S, R, Error, A> = f => ra =>
+  updateAndGet_(ra, f);
 
 export const modify: <A, B>(
   f: (a: A) => [A, B],
-) => <F>(ra: Ref<F, A>) => Kind<F, B> = f => ra => modify_(ra, f);
+) => <F, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, B> = f => ra =>
+  modify_(ra, f);
 
 // Point-ful
 
-export const set_: <F, A>(ra: Ref<F, A>, a: A) => Kind<F, void> = (ra, a) =>
-  ra.set(a);
-export const update_: <F, A>(ra: Ref<F, A>, f: (a: A) => A) => Kind<F, void> = (
-  ra,
-  f,
-) => ra.update(f);
-export const updateAndGet_: <F, A>(
-  ra: Ref<F, A>,
+export const set_: <F, C, S, R, A>(
+  ra: Ref<F, A, C>,
+  a: A,
+) => Kind<F, C, S, R, Error, void> = (ra, a) => ra.set(a);
+export const update_: <F, C, S, R, A>(
+  ra: Ref<F, A, C>,
   f: (a: A) => A,
-) => Kind<F, A> = (ra, f) => ra.updateAndGet(f);
-export const modify_: <F, A, B>(
-  ra: Ref<F, A>,
+) => Kind<F, C, S, R, Error, void> = (ra, f) => ra.update(f);
+export const updateAndGet_: <F, C, S, R, A>(
+  ra: Ref<F, A, C>,
+  f: (a: A) => A,
+) => Kind<F, C, S, R, Error, A> = (ra, f) => ra.updateAndGet(f);
+export const modify_: <F, C, S, R, A, B>(
+  ra: Ref<F, A, C>,
   f: (a: A) => [A, B],
-) => Kind<F, B> = (ra, f) => ra.modify(f);
+) => Kind<F, C, S, R, Error, B> = (ra, f) => ra.modify(f);

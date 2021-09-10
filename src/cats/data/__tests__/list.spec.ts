@@ -962,13 +962,13 @@ describe('List', () => {
   });
 
   describe('traverse & sequence', () => {
-    it('should map list of numbers to array of a single list', () => {
-      expect(
-        List(1, 2, 3)
-          .map(x => [x])
-          .sequence(arrayApplicative()),
-      ).toEqual([List(1, 2, 3)]);
-    });
+    // it('should map list of numbers to array of a single list', () => {
+    //   expect(
+    //     List(1, 2, 3)
+    //       .map(x => [x])
+    //       .sequence(arrayApplicative()),
+    //   ).toEqual([List(1, 2, 3)]);
+    // });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
@@ -979,13 +979,13 @@ describe('List', () => {
   });
 
   describe('flatTraverse & flatSequence', () => {
-    it('should map list of numbers to array of a single list', () => {
-      expect(
-        List(1, 2, 3)
-          .map(x => [List(x)])
-          .flatSequence(arrayApplicative()),
-      ).toEqual([List(1, 2, 3)]);
-    });
+    // it('should map list of numbers to array of a single list', () => {
+    //   expect(
+    //     List(1, 2, 3)
+    //       .map(x => [List(x)])
+    //       .flatSequence(arrayApplicative()),
+    //   ).toEqual([List(1, 2, 3)]);
+    // });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);

@@ -1,6 +1,8 @@
 import { Defer, MonadError } from '../../cats';
-import { Kind } from '../../fp/hkt';
+import { Kind, Auto } from '../../core';
 
-export interface Sync<F> extends MonadError<F, Error>, Defer<F> {
-  readonly delay: <A>(a: () => A) => Kind<F, A>;
+export interface Sync<F, C = Auto>
+  extends MonadError<F, Error, C>,
+    Defer<F, C> {
+  readonly delay: <S, R, A>(a: () => A) => Kind<F, C, S, R, Error, A>;
 }

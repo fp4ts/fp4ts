@@ -1,6 +1,6 @@
 import { IO } from '../../io';
 import { IOOutcome } from '../../io-outcome';
-import * as O from '../../kernel/outcome';
+import { Outcome } from '../../kernel/outcome';
 import * as IOR from '../../unsafe/io-runtime';
 import { Ticker } from '../ticker';
 import { TestExecutionContext } from '../test-execution-context';
@@ -43,19 +43,16 @@ async function tickTo(
   const received = await receivedPromise;
   const result = this.equals(received, expected);
 
-  const message = O.fold_(
-    expected,
+  const message = expected.fold(
     () =>
-      O.fold_(
-        received,
+      received.fold(
         () => 'be canceled, but was',
         e => `be canceled, but failed with ${this.utils.printReceived(`${e}`)}`,
         r =>
           `be canceled, but completed with ${this.utils.printReceived(`${r}`)}`,
       ),
     e =>
-      O.fold_(
-        received,
+      received.fold(
         () => `fail with ${this.utils.printExpected(`${e}`)}, but was canceled`,
         e2 =>
           `fail with ${this.utils.printExpected(
@@ -67,8 +64,7 @@ async function tickTo(
           )}, but completed with ${this.utils.printReceived(`${r2}`)}`,
       ),
     r =>
-      O.fold_(
-        received,
+      received.fold(
         () =>
           `complete with ${this.utils.printExpected(`${r}`)}, but was canceled`,
         e2 =>
@@ -95,7 +91,11 @@ expect.extend({
     expected: unknown,
     ec: TestExecutionContext,
   ) {
-    return tickTo.apply(this, [receivedIO, O.success(IO.pure(expected)), ec]);
+    return tickTo.apply(this, [
+      receivedIO,
+      Outcome.success(IO.pure(expected)),
+      ec,
+    ]);
   },
 
   toFailWith(
@@ -103,10 +103,10 @@ expect.extend({
     expected: Error,
     ec: TestExecutionContext,
   ) {
-    return tickTo.apply(this, [receivedIO, O.failure(expected), ec]);
+    return tickTo.apply(this, [receivedIO, Outcome.failure(expected), ec]);
   },
 
   toCancel(receivedIO: IO<unknown>, ec: TestExecutionContext) {
-    return tickTo.apply(this, [receivedIO, O.canceled, ec]);
+    return tickTo.apply(this, [receivedIO, Outcome.canceled(), ec]);
   },
 });

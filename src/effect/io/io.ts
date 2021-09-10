@@ -1,3 +1,4 @@
+import { URI, Kind } from '../../core';
 import {
   Applicative,
   Apply,
@@ -22,7 +23,7 @@ import { Concurrent } from '../kernel/concurrent';
 import { Temporal } from '../kernel/temporal';
 import { Async } from '../kernel/async';
 
-import { IO as IOBase, URI } from './algebra';
+import { IO as IOBase } from './algebra';
 import {
   async,
   async_,
@@ -75,9 +76,6 @@ import {
   ioSync,
   ioTemporal,
 } from './instances';
-import { Kind } from '../../fp/hkt';
-
-export { URI } from './algebra';
 
 export type IO<A> = IOBase<A>;
 
@@ -116,11 +114,11 @@ interface IOObj {
 
   canceled: IO<void>;
 
-  ref: <A>(a: A) => IO<Ref.Ref<URI, A>>;
+  ref: <A>(a: A) => IO<Ref.Ref<[URI<IoURI>], A>>;
 
-  deferred: <A>(a?: A) => IO<D.Deferred<URI, A>>;
+  deferred: <A>(a?: A) => IO<D.Deferred<[URI<IoURI>], A>>;
 
-  uncancelable: <A>(ioa: (p: Poll<URI>) => IO<A>) => IO<A>;
+  uncancelable: <A>(ioa: (p: Poll<[URI<IoURI>]>) => IO<A>) => IO<A>;
 
   sleep: (ms: number) => IO<void>;
 
@@ -136,56 +134,74 @@ interface IOObj {
     iob: IO<B>,
   ) => IO<[IOOutcome<A>, IOOutcome<B>]>;
 
-  sequence: <T>(
-    T: Traversable<T>,
-  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
+  sequence: <T, C2>(
+    T: Traversable<T, C2>,
+  ) => <S2, R2, E2, A>(
+    iots: Kind<T, C2, S2, R2, E2, IO<A>>,
+  ) => IO<Kind<T, C2, S2, R2, E2, A>>;
 
-  traverse: <T>(
-    T: Traversable<T>,
-  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
-
-  traverse_: <T, A, B>(
-    T: Traversable<T>,
-    ts: Kind<T, A>,
+  traverse: <T, C2>(
+    T: Traversable<T, C2>,
+  ) => <A, B>(
     f: (a: A) => IO<B>,
-  ) => IO<Kind<T, B>>;
+  ) => <S2, R2, E2>(
+    ts: Kind<T, C2, S2, R2, E2, A>,
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
-  parSequence: <T>(
-    T: Traversable<T>,
-  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
-
-  parTraverse: <T>(
-    T: Traversable<T>,
-  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
-  parTraverse_: <T, A, B>(
-    T: Traversable<T>,
-    ts: Kind<T, A>,
+  traverse_: <T, C2, S2, R2, E2, A, B>(
+    T: Traversable<T, C2>,
+    ts: Kind<T, C2, S2, R2, E2, A>,
     f: (a: A) => IO<B>,
-  ) => IO<Kind<T, B>>;
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
-  parSequenceN: <T>(
-    T: Traversable<T>,
-    maxConcurrent: number,
-  ) => <A>(iots: Kind<T, IO<A>>) => IO<Kind<T, A>>;
-  parSequenceN_: <T, A>(
-    T: Traversable<T>,
-    iots: Kind<T, IO<A>>,
-    maxConcurrent: number,
-  ) => IO<Kind<T, A>>;
+  parSequence: <T, C2>(
+    T: Traversable<T, C2>,
+  ) => <C2, S2, R2, E2, A>(
+    iots: Kind<T, C2, S2, R2, E2, IO<A>>,
+  ) => IO<Kind<T, C2, S2, R2, E2, A>>;
 
-  parTraverseN: <T>(
-    T: Traversable<T>,
+  parTraverse: <T, C2>(
+    T: Traversable<T, C2>,
+  ) => <A, B>(
+    f: (a: A) => IO<B>,
+  ) => <C2, S2, R2, E2>(
+    ts: Kind<T, C2, S2, R2, E2, A>,
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
+  parTraverse_: <T, C2, S2, R2, E2, A, B>(
+    T: Traversable<T, C2>,
+    ts: Kind<T, C2, S2, R2, E2, A>,
+    f: (a: A) => IO<B>,
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
+
+  parSequenceN: <T, C2>(
+    T: Traversable<T, C2>,
     maxConcurrent: number,
-  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, A>) => IO<Kind<T, B>>;
-  parTraverseN_: <T, A, B>(
-    T: Traversable<T>,
-    ts: Kind<T, A>,
+  ) => <C2, S2, R2, E2, A>(
+    iots: Kind<T, C2, S2, R2, E2, IO<A>>,
+  ) => IO<Kind<T, C2, S2, R2, E2, A>>;
+  parSequenceN_: <T, C2, S2, R2, E2, A>(
+    T: Traversable<T, C2>,
+    iots: Kind<T, C2, S2, R2, E2, IO<A>>,
+    maxConcurrent: number,
+  ) => IO<Kind<T, C2, S2, R2, E2, A>>;
+
+  parTraverseN: <T, C2>(
+    T: Traversable<T, C2>,
+    maxConcurrent: number,
+  ) => <A, B>(
+    f: (a: A) => IO<B>,
+  ) => <C2, S2, R2, E2>(
+    ts: Kind<T, C2, S2, R2, E2, A>,
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
+  parTraverseN_: <T, C2, S2, R2, E2, A, B>(
+    T: Traversable<T, C2>,
+    ts: Kind<T, C2, S2, R2, E2, A>,
     f: (a: A) => IO<B>,
     maxConcurrent: number,
-  ) => IO<Kind<T, B>>;
+  ) => IO<Kind<T, C2, S2, R2, E2, B>>;
 
   bracketFull: <A, B>(
-    acquire: (poll: Poll<URI>) => IO<A>,
+    acquire: (poll: Poll<[URI<IoURI>]>) => IO<A>,
     use: (a: A) => IO<B>,
     release: (a: A, oc: IOOutcome<B>) => IO<void>,
   ) => IO<B>;
@@ -210,21 +226,21 @@ interface IOObj {
 
   // -- Instances
 
-  readonly Defer: Defer<URI>;
-  readonly Functor: Functor<URI>;
-  readonly ParallelApply: Apply<URI>;
-  readonly ParallelApplicative: Applicative<URI>;
-  readonly SequentialApply: Apply<URI>;
-  readonly SequentialApplicative: Applicative<URI>;
-  readonly FlatMap: FlatMap<URI>;
-  readonly Monad: Monad<URI>;
-  readonly MonadError: MonadError<URI, Error>;
-  readonly MonadCancel: MonadCancel<URI, Error>;
-  readonly Sync: Sync<URI>;
-  readonly Spawn: Spawn<URI, Error>;
-  readonly Concurrent: Concurrent<URI, Error>;
-  readonly Temporal: Temporal<URI, Error>;
-  readonly Async: Async<URI>;
+  readonly Defer: Defer<[URI<IoURI>]>;
+  readonly Functor: Functor<[URI<IoURI>]>;
+  readonly ParallelApply: Apply<[URI<IoURI>]>;
+  readonly ParallelApplicative: Applicative<[URI<IoURI>]>;
+  readonly SequentialApply: Apply<[URI<IoURI>]>;
+  readonly SequentialApplicative: Applicative<[URI<IoURI>]>;
+  readonly FlatMap: FlatMap<[URI<IoURI>]>;
+  readonly Monad: Monad<[URI<IoURI>]>;
+  readonly MonadError: MonadError<[URI<IoURI>], Error>;
+  readonly MonadCancel: MonadCancel<[URI<IoURI>], Error>;
+  readonly Sync: Sync<[URI<IoURI>]>;
+  readonly Spawn: Spawn<[URI<IoURI>], Error>;
+  readonly Concurrent: Concurrent<[URI<IoURI>], Error>;
+  readonly Temporal: Temporal<[URI<IoURI>], Error>;
+  readonly Async: Async<[URI<IoURI>]>;
 }
 
 IO.pure = pure;
@@ -290,77 +306,88 @@ IO.bindTo = bindTo;
 IO.bind = bind;
 
 Object.defineProperty(IO, 'Defer', {
-  get(): Defer<URI> {
+  get(): Defer<[URI<IoURI>]> {
     return ioDefer();
   },
 });
 Object.defineProperty(IO, 'Functor', {
-  get(): Functor<URI> {
+  get(): Functor<[URI<IoURI>]> {
     return ioFunctor();
   },
 });
 Object.defineProperty(IO, 'ParallelApply', {
-  get(): Apply<URI> {
+  get(): Apply<[URI<IoURI>]> {
     return ioParallelApply();
   },
 });
 Object.defineProperty(IO, 'ParallelApplicative', {
-  get(): Applicative<URI> {
+  get(): Applicative<[URI<IoURI>]> {
     return ioParallelApplicative();
   },
 });
 Object.defineProperty(IO, 'SequentialApply', {
-  get(): Apply<URI> {
+  get(): Apply<[URI<IoURI>]> {
     return ioSequentialApply();
   },
 });
 Object.defineProperty(IO, 'SequentialApplicative', {
-  get(): Applicative<URI> {
+  get(): Applicative<[URI<IoURI>]> {
     return ioSequentialApplicative();
   },
 });
 Object.defineProperty(IO, 'FlatMap', {
-  get(): FlatMap<URI> {
+  get(): FlatMap<[URI<IoURI>]> {
     return ioFlatMap();
   },
 });
 Object.defineProperty(IO, 'Monad', {
-  get(): Monad<URI> {
+  get(): Monad<[URI<IoURI>]> {
     return ioMonad();
   },
 });
 Object.defineProperty(IO, 'MonadError', {
-  get(): MonadError<URI, Error> {
+  get(): MonadError<[URI<IoURI>], Error> {
     return ioMonadError();
   },
 });
 Object.defineProperty(IO, 'MonadCancel', {
-  get(): MonadCancel<URI, Error> {
+  get(): MonadCancel<[URI<IoURI>], Error> {
     return ioMonadCancel();
   },
 });
 Object.defineProperty(IO, 'Sync', {
-  get(): Sync<URI> {
+  get(): Sync<[URI<IoURI>]> {
     return ioSync();
   },
 });
 Object.defineProperty(IO, 'Spawn', {
-  get(): Spawn<URI, Error> {
+  get(): Spawn<[URI<IoURI>], Error> {
     return ioSpawn();
   },
 });
 Object.defineProperty(IO, 'Concurrent', {
-  get(): Concurrent<URI, Error> {
+  get(): Concurrent<[URI<IoURI>], Error> {
     return ioConcurrent();
   },
 });
 Object.defineProperty(IO, 'Temporal', {
-  get(): Temporal<URI, Error> {
+  get(): Temporal<[URI<IoURI>], Error> {
     return ioTemporal();
   },
 });
 Object.defineProperty(IO, 'Async', {
-  get(): Async<URI> {
+  get(): Async<[URI<IoURI>]> {
     return ioAsync();
   },
 });
+
+// HKT
+
+export const IoURI = 'effect-io/io';
+export type IoURI = typeof IoURI;
+
+declare module '../../core' {
+  interface URItoKind<FC, S, R, E, A> {
+    [IoURI]: IO<A>;
+  }
+}

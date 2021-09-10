@@ -1,20 +1,11 @@
+import { IoURI } from '.';
 import { Either, Option } from '../../cats/data';
+import { URI } from '../../core';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 
 import { Poll } from '../kernel/poll';
-
-// HKT
-
-export const URI = 'effect-io/io';
-export type URI = typeof URI;
-
-declare module '../../fp/hkt' {
-  interface URItoKind<A> {
-    [URI]: IO<A>;
-  }
-}
 
 // -- IO Algebra
 
@@ -23,7 +14,7 @@ export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
   // @ts-ignore
-  private readonly _URI: URI;
+  private readonly _F: URI;
 }
 
 export class Pure<A> extends IO<A> {
@@ -143,7 +134,7 @@ export type Canceled = typeof Canceled;
 
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 'uncancelable';
-  public constructor(public readonly body: (p: Poll<URI>) => IO<A>) {
+  public constructor(public readonly body: (p: Poll<[URI<IoURI>]>) => IO<A>) {
     super();
   }
 }

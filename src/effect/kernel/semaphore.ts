@@ -1,12 +1,11 @@
 import { ok as assert } from 'assert';
-import { Kind } from '../../fp/hkt';
-import { pipe } from '../../fp/core';
+import { Auto, Kind, Kind1, pipe, URIS } from '../../core';
 
 import { Ref } from './ref';
 import { Deferred } from './deferred';
 import { Async } from './async';
 
-class State<F> {
+class State<F extends URIS> {
   // @ts-ignore
   private readonly __void: void;
 
@@ -22,16 +21,16 @@ class State<F> {
     new State(queue, permits);
 }
 
-export class Semaphore<F> {
+export class Semaphore<F extends URIS, C = Auto> {
   // @ts-ignore
   private readonly __void: void;
 
   private constructor(
-    private readonly F: Async<F>,
-    private readonly state: Ref<F, State<F>>,
+    private readonly F: Async<F, C>,
+    private readonly state: Ref<F, State<F>, C>,
   ) {}
 
-  public readonly acquire = (): Kind<F, void> =>
+  public readonly acquire = (): Kind1<F, C, void> =>
     this.F.uncancelable(poll =>
       pipe(
         Deferred.of(this.F)<void>(),
@@ -46,14 +45,14 @@ export class Semaphore<F> {
                   state.copy({ queue: [...state.queue, wait] }),
                   pipe(poll(wait.get()), this.F.onCancel(cancel)),
                 ]
-              : [state.copy({ permits: state.permits - 1 }), this.F.unit],
+              : [state.copy({ permits: state.permits - 1 }), this.F.unit()],
           );
         }),
         this.F.flatten,
       ),
     );
 
-  public readonly release = (): Kind<F, void> =>
+  public readonly release = (): Kind1<F, C, void> =>
     this.F.uncancelable(() =>
       pipe(
         this.state.modify(state => {
@@ -61,14 +60,14 @@ export class Semaphore<F> {
             const [head, ...tail] = state.queue;
             return [state.copy({ queue: tail }), head.complete(undefined)];
           } else {
-            return [state.copy({ permits: state.permits + 1 }), this.F.unit];
+            return [state.copy({ permits: state.permits + 1 }), this.F.unit()];
           }
         }),
         this.F.flatten,
       ),
     );
 
-  public readonly withPermit = <A>(fa: Kind<F, A>): Kind<F, A> =>
+  public readonly withPermit = <A>(fa: Kind1<F, C, A>): Kind1<F, C, A> =>
     this.F.uncancelable(poll =>
       pipe(
         poll(this.acquire()),
@@ -82,8 +81,8 @@ export class Semaphore<F> {
     );
 
   public static readonly withPermits =
-    <F>(F: Async<F>) =>
-    (permits: number): Kind<F, Semaphore<F>> => {
+    <F extends URIS, C>(F: Async<F, C>) =>
+    (permits: number): Kind1<F, C, Semaphore<F>> => {
       assert(permits > 0, 'maxPermits must be > 0');
       return pipe(
         Ref.of(F)(new State<F>([], permits)),
@@ -93,21 +92,24 @@ export class Semaphore<F> {
 }
 
 export const of =
-  <F>(F: Async<F>) =>
-  (permits: number): Kind<F, Semaphore<F>> =>
+  <F extends URIS, C>(F: Async<F, C>) =>
+  (permits: number): Kind1<F, C, Semaphore<F, C>> =>
     Semaphore.withPermits(F)(permits);
 
-export const acquire: <F>(sem: Semaphore<F>) => Kind<F, void> = sem =>
-  sem.acquire();
+export const acquire: <F extends URIS, C>(
+  sem: Semaphore<F, C>,
+) => Kind1<F, C, void> = sem => sem.acquire();
 
-export const release: <F>(sem: Semaphore<F>) => Kind<F, void> = sem =>
-  sem.release();
+export const release: <F extends URIS, C>(
+  sem: Semaphore<F, C>,
+) => Kind1<F, C, void> = sem => sem.release();
 
-export const withPermit: <F>(
-  sem: Semaphore<F>,
-) => <A>(fa: Kind<F, A>) => Kind<F, A> = sem => fa => withPermit_(sem, fa);
+export const withPermit: <F extends URIS, C>(
+  sem: Semaphore<F, C>,
+) => <A>(fa: Kind1<F, C, A>) => Kind1<F, C, A> = sem => fa =>
+  withPermit_(sem, fa);
 
-export const withPermit_: <F, A>(
-  sem: Semaphore<F>,
-  fa: Kind<F, A>,
-) => Kind<F, A> = (sem, fa) => sem.withPermit(fa);
+export const withPermit_: <F extends URIS, C, A>(
+  sem: Semaphore<F, C>,
+  fa: Kind1<F, C, A>,
+) => Kind1<F, C, A> = (sem, fa) => sem.withPermit(fa);

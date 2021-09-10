@@ -1,5 +1,5 @@
-import { Kind } from '../../fp/hkt';
+import { Auto, Base, Kind } from '../../core';
 
-export interface Poll<F> {
-  <A>(ioa: Kind<F, A>): Kind<F, A>;
+export interface Poll<F, C = Auto> {
+  <S, R, E, A>(ioa: Kind<F, C, S, R, E, A>): Kind<F, C, S, R, E, A>;
 }
