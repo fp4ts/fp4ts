@@ -3,3 +3,4 @@ export * from './fix';
 export * from './hkt';
 export * from './kind';
 export * from './instance';
+export * from './variance';

@@ -1,43 +1,124 @@
-import { Auto, Kind, URIS } from '../core';
+import { Auto, Intro, Kind, Mix, URIS, V } from '../core';
 import { Functor, FunctorRequirements } from './functor';
 
 export interface Apply<F extends URIS, C = Auto> extends Functor<F, C> {
-  readonly ap: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-  ) => <B>(ff: Kind<F, C, S, R, E, (a: A) => B>) => Kind<F, C, S, R, E, B>;
+  readonly ap: <S2, R2, E2, A>(
+    fa: Kind<F, C, S2, R2, E2, A>,
+  ) => <S, R, E, B>(
+    ff: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      (a: A) => B
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    B
+  >;
+
   readonly ap_: <S, R, E, A, B>(
     ff: Kind<F, C, S, R, E, (a: A) => B>,
     fa: Kind<F, C, S, R, E, A>,
   ) => Kind<F, C, S, R, E, B>;
 
-  readonly map2: <CC, S, R, E, A, B, C>(
-    fb: Kind<F, CC, S, R, E, B>,
-    f: (a: A, b: B) => C,
-  ) => (fa: Kind<F, CC, S, R, E, A>) => Kind<F, CC, S, R, E, C>;
-  readonly map2_: <CC, S, R, E, A, B>(
-    fa: Kind<F, CC, S, R, E, A>,
-    fb: Kind<F, CC, S, R, E, B>,
-  ) => <C>(f: (a: A, b: B) => C) => Kind<F, CC, S, R, E, C>;
-
-  readonly product: <S, R, E, B>(
+  readonly map2: <S2, R2, E2, A, B, D>(
+    fb: Kind<F, C, S2, R2, E2, B>,
+    f: (a: A, b: B) => D,
+  ) => <S, R, E>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    D
+  >;
+  readonly map2_: <S, R, E, A, B>(
+    fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,
-  ) => <A>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, [A, B]>;
+  ) => <D>(f: (a: A, b: B) => D) => Kind<F, C, S, R, E, D>;
+
+  readonly product: <S2, R2, E2, B>(
+    fb: Kind<F, C, S2, R2, E2, B>,
+  ) => <S, R, E, A>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    [A, B]
+  >;
   readonly product_: <S, R, E, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,
   ) => Kind<F, C, S, R, E, [A, B]>;
 
-  readonly productL: <S, R, E, B>(
-    fb: Kind<F, C, S, R, E, B>,
-  ) => <A>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
+  readonly productL: <S2, R2, E2, B>(
+    fb: Kind<F, C, S2, R2, E2, B>,
+  ) => <S, R, E, A>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    A
+  >;
   readonly productL_: <S, R, E, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,
   ) => Kind<F, C, S, R, E, A>;
 
-  readonly productR: <S, R, E, B>(
-    fb: Kind<F, C, S, R, E, B>,
-  ) => <A>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
+  readonly productR: <S2, R2, E2, B>(
+    fb: Kind<F, C, S2, R2, E2, B>,
+  ) => <S, R, E, A>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    B
+  >;
   readonly productR_: <S, R, E, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,

@@ -1,10 +1,26 @@
 import { Semigroup } from './semigroup';
-import { Auto, Base, instance, Kind, URIS } from '../core';
+import { Auto, Base, instance, Intro, Kind, Mix, URIS } from '../core';
 
 export interface SemigroupK<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly combineK: <S, R, E, A>(
-    y: Kind<F, C, S, R, E, A>,
-  ) => (x: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
+  readonly combineK: <S2, R2, E2, A>(
+    y: Kind<F, C, S2, R2, E2, A>,
+  ) => <S, R, E>(
+    x: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    A
+  >;
   readonly combineK_: <S, R, E, A>(
     x: Kind<F, C, S, R, E, A>,
     y: Kind<F, C, S, R, E, A>,

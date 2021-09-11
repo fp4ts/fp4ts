@@ -1,26 +1,79 @@
-import { Auto, id, Kind, URIS } from '../core';
+import { Auto, id, Intro, Kind, Mix, URIS } from '../core';
 import { Apply } from './apply';
 
 export interface FlatMap<F extends URIS, C = Auto> extends Apply<F, C> {
-  readonly flatMap: <S, R, E, A, B>(
-    f: (a: A) => Kind<F, C, S, R, E, B>,
-  ) => (fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
+  readonly flatMap: <S2, R2, E2, A, B>(
+    f: (a: A) => Kind<F, C, S2, R2, E2, B>,
+  ) => <S, R, E>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    B
+  >;
   readonly flatMap_: <S, R, E, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     f: (a: A) => Kind<F, C, S, R, E, B>,
   ) => Kind<F, C, S, R, E, B>;
 
-  readonly flatTap: <S, R, E, A>(
-    f: (a: A) => Kind<F, C, S, R, E, unknown>,
-  ) => (fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
+  readonly flatTap: <S2, R2, E2, A>(
+    f: (a: A) => Kind<F, C, S2, R2, E2, unknown>,
+  ) => <S, R, E>(
+    fa: Kind<
+      F,
+      C,
+      Intro<C, 'S', S2, S>,
+      Intro<C, 'R', R2, R>,
+      Intro<C, 'E', E2, E>,
+      A
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    A
+  >;
   readonly flatTap_: <S, R, E, A>(
     fa: Kind<F, C, S, R, E, A>,
     f: (a: A) => Kind<F, C, S, R, E, unknown>,
   ) => Kind<F, C, S, R, E, A>;
 
-  readonly flatten: <S, R, E, A>(
-    ffa: Kind<F, C, S, R, E, Kind<F, C, S, R, E, A>>,
-  ) => Kind<F, C, S, R, E, A>;
+  readonly flatten: <S2, R2, E2, S, R, E, A>(
+    ffa: Kind<
+      F,
+      C,
+      S2,
+      R2,
+      E2,
+      Kind<
+        F,
+        C,
+        Intro<C, 'S', S2, S>,
+        Intro<C, 'R', R2, R>,
+        Intro<C, 'E', E2, E>,
+        A
+      >
+    >,
+  ) => Kind<
+    F,
+    C,
+    Mix<C, 'S', [S2, S]>,
+    Mix<C, 'R', [R2, R]>,
+    Mix<C, 'E', [E2, E]>,
+    A
+  >;
 }
 
 export type FlatMapRequirements<F extends URIS, C = Auto> = Pick<

@@ -1,4 +1,5 @@
-import { Lazy, URI } from '../../../core';
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { URI, V } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -10,6 +11,7 @@ import {
   flatMap_,
   flatTap_,
   flatten,
+  map2,
   map2_,
   map_,
   productL_,
@@ -18,41 +20,39 @@ import {
 } from './operators';
 import { ReaderURI } from './reader';
 import { pure, unit } from './constructors';
-import { Reader } from './algebra';
 
-export const readerFunctor: Lazy<Functor<[URI<ReaderURI>]>> = () =>
-  Functor.of({ map_ });
+type Variance = V<'R', '-'> & V<'A', '+'>;
 
-export const readerApply: Lazy<Apply<[URI<ReaderURI>]>> = () =>
-  Apply.of({
+export const readerFunctor = () =>
+  Functor.of<[URI<ReaderURI, Variance>], Variance>({ map_ });
+
+export const readerApply = () =>
+  Apply.of<[URI<ReaderURI, Variance>], Variance>({
     ...readerFunctor(),
     ap_: ap_,
-    map2_:
-      <R, A, B>(fa: Reader<R, A>, fb: Reader<R, B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        map2_<R, R, A, B, C>(fa, fb, f),
+    map2_: map2_,
     product_: product_,
     productL_: productL_,
     productR_: productR_,
   });
 
-export const readerApplicative: Lazy<Applicative<[URI<ReaderURI>]>> = () =>
-  Applicative.of({
+export const readerApplicative = () =>
+  Applicative.of<[URI<ReaderURI, Variance>], Variance>({
     ...readerApply(),
     pure: pure,
     unit: () => unit,
   });
 
-export const readerFlatMap: Lazy<FlatMap<[URI<ReaderURI>]>> = () =>
-  FlatMap.of({
+export const readerFlatMap = () =>
+  FlatMap.of<[URI<ReaderURI, Variance>], Variance>({
     ...readerApply(),
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
   });
 
-export const readerMonad: Lazy<Monad<[URI<ReaderURI>]>> = () =>
-  Monad.of({
+export const readerMonad = () =>
+  Monad.of<[URI<ReaderURI, Variance>], Variance>({
     ...readerApplicative(),
     ...readerFlatMap(),
   });

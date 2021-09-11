@@ -95,7 +95,7 @@ Reader.prototype.map2 = function <R1, R2, A, B, C>(
   that: Reader<R2, B>,
   f: (a: A, b: B) => C,
 ): Reader<R1 & R2, C> {
-  return map2_(this, that, f);
+  return map2_(this, that)(f);
 };
 
 Reader.prototype.product = function <R1, R2, A, B>(

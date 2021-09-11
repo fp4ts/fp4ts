@@ -19,7 +19,7 @@ export const map2: <R2, A, B, C>(
   fb: Reader<R2, B>,
   f: (a: A, b: B) => C,
 ) => <R1>(fa: Reader<R1, A>) => Reader<R1 & R2, C> = (fb, f) => fa =>
-  map2_(fa, fb, f);
+  map2_(fa, fb)(f);
 
 export const product: <R2, A, B>(
   fb: Reader<R2, B>,
@@ -70,11 +70,13 @@ export const ap_ = <R1, R2, A, B>(
   fa: Reader<R2, A>,
 ): Reader<R1 & R2, B> => flatMap_(ff, f => map_(fa, a => f(a)));
 
-export const map2_ = <R1, R2, A, B, C>(
-  fa: Reader<R1, A>,
-  fb: Reader<R2, B>,
-  f: (a: A, b: B) => C,
-): Reader<R1 & R2, C> => flatMap_(fa, a => map_(fb, b => f(a, b)));
+export const map2_ =
+  <R1, R2, A, B>(
+    fa: Reader<R1, A>,
+    fb: Reader<R2, B>,
+  ): (<C>(f: (a: A, b: B) => C) => Reader<R1 & R2, C>) =>
+  f =>
+    flatMap_(fa, a => map_(fb, b => f(a, b)));
 
 export const product_ = <R1, R2, A, B>(
   fa: Reader<R1, A>,

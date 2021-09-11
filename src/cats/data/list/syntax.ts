@@ -137,14 +137,7 @@ declare module './algebra' {
     ) => <B, C, S, R, E>(
       f: (a: A) => Kind<G, C, S, R, E, B>,
     ) => Kind<G, C, S, R, E, List<B>>;
-    sequence: A extends Kind<
-      unknown,
-      infer C,
-      infer S,
-      infer R,
-      infer E,
-      infer B
-    >
+    sequence: A extends Kind<any, infer C, infer S, infer R, infer E, infer B>
       ? <G extends URIS, C, S, R, E>(
           G: Applicative<G>,
         ) => Kind<G, C, S, R, E, List<B>>
@@ -155,7 +148,7 @@ declare module './algebra' {
       f: (a: A) => Kind<G, C, S, R, E, List<B>>,
     ) => Kind<G, C, S, R, E, List<B>>;
     flatSequence: A extends Kind<
-      unknown,
+      any,
       infer C,
       infer R,
       infer S,
