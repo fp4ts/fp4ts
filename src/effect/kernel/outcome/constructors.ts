@@ -1,10 +1,9 @@
-import { Fix, Kind, URIS } from '../../../core';
+import { Kind1, URIS } from '../../../core';
 import { Canceled, Failure, Outcome, Success } from './algebra';
 
-export const success = <F extends URIS, C2, S2, R2, E2, A>(
-  fa: Kind<F, C2, S2, R2, E2, A>,
-): Outcome<F, never, A, C2 & Fix<'S', S2> & Fix<'R', R2> & Fix<'E', E2>> =>
-  new Success(fa);
+export const success = <F extends URIS, C, A>(
+  fa: Kind1<F, C, A>,
+): Outcome<F, never, A, C> => new Success(fa);
 
 export const failure = <F extends URIS, C2, E>(
   e: E,

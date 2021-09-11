@@ -8,6 +8,7 @@ import { Monad } from '../../monad';
 import { Reader as ReaderBase } from './algebra';
 import { provide, pure, read, unit } from './constructors';
 import {
+  Variance,
   readerApplicative,
   readerApply,
   readerFlatMap,
@@ -30,11 +31,11 @@ interface ReaderObj {
 
   // -- Instances
 
-  readonly Functor: Functor<[URI<ReaderURI>]>;
-  readonly Apply: Apply<[URI<ReaderURI>]>;
-  readonly Applicative: Applicative<[URI<ReaderURI>]>;
-  readonly FlatMap: FlatMap<[URI<ReaderURI>]>;
-  readonly Monad: Monad<[URI<ReaderURI>]>;
+  readonly Functor: Functor<[URI<ReaderURI, Variance>], Variance>;
+  readonly Apply: Apply<[URI<ReaderURI, Variance>], Variance>;
+  readonly Applicative: Applicative<[URI<ReaderURI, Variance>], Variance>;
+  readonly FlatMap: FlatMap<[URI<ReaderURI, Variance>], Variance>;
+  readonly Monad: Monad<[URI<ReaderURI, Variance>], Variance>;
 }
 
 Reader.pure = pure;
@@ -43,27 +44,27 @@ Reader.read = read;
 Reader.provide = provide;
 
 Object.defineProperty(Reader, 'Functor', {
-  get(): Functor<[URI<ReaderURI>]> {
+  get(): Functor<[URI<ReaderURI, Variance>], Variance> {
     return readerFunctor();
   },
 });
 Object.defineProperty(Reader, 'Apply', {
-  get(): Apply<[URI<ReaderURI>]> {
+  get(): Apply<[URI<ReaderURI, Variance>], Variance> {
     return readerApply();
   },
 });
 Object.defineProperty(Reader, 'Applicative', {
-  get(): Applicative<[URI<ReaderURI>]> {
+  get(): Applicative<[URI<ReaderURI, Variance>], Variance> {
     return readerApplicative();
   },
 });
 Object.defineProperty(Reader, 'FlatMap', {
-  get(): FlatMap<[URI<ReaderURI>]> {
+  get(): FlatMap<[URI<ReaderURI, Variance>], Variance> {
     return readerFlatMap();
   },
 });
 Object.defineProperty(Reader, 'Monad', {
-  get(): Monad<[URI<ReaderURI>]> {
+  get(): Monad<[URI<ReaderURI, Variance>], Variance> {
     return readerMonad();
   },
 });

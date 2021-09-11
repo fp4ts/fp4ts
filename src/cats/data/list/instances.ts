@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { URI, V } from '../../../core';
 
 import { Lazy } from '../../../fp/core';
 import { SemigroupK } from '../../semigroup-k';
@@ -35,71 +35,85 @@ import {
   traverse_,
 } from './operators';
 
-export const listSemigroupK: Lazy<SemigroupK<[URI<ListURI>]>> = () =>
-  SemigroupK.of({ combineK_: concat_ });
+export type Variance = V<'A', '+'>;
 
-export const listMonoidK: Lazy<MonoidK<[URI<ListURI>]>> = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { algebra, ...rest } = listSemigroupK();
-  return MonoidK.of({ ...rest, emptyK: () => empty });
-};
+export const listSemigroupK: Lazy<
+  SemigroupK<[URI<ListURI, Variance>], Variance>
+> = () => SemigroupK.of({ combineK_: concat_ });
 
-export const listFunctor: Lazy<Functor<[URI<ListURI>]>> = () =>
-  Functor.of({ map_ });
+export const listMonoidK: Lazy<MonoidK<[URI<ListURI, Variance>], Variance>> =
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { algebra, ...rest } = listSemigroupK();
+    return MonoidK.of({ ...rest, emptyK: () => empty });
+  };
 
-export const listFunctorFilter: Lazy<FunctorFilter<[URI<ListURI>]>> = () =>
+export const listFunctor: Lazy<Functor<[URI<ListURI, Variance>], Variance>> =
+  () => Functor.of({ map_ });
+
+export const listFunctorFilter: Lazy<
+  FunctorFilter<[URI<ListURI, Variance>], Variance>
+> = () =>
   FunctorFilter.of({
     ...listFunctor(),
     mapFilter_: collect_,
   });
 
-export const listApply: Lazy<Apply<[URI<ListURI>]>> = () =>
+export const listApply: Lazy<Apply<[URI<ListURI, Variance>], Variance>> = () =>
   Apply.of({
     ...listFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const listApplicative: Lazy<Applicative<[URI<ListURI>]>> = () =>
+export const listApplicative: Lazy<
+  Applicative<[URI<ListURI, Variance>], Variance>
+> = () =>
   Applicative.of({
     ...listApply(),
     pure: pure,
     unit: () => empty,
   });
 
-export const listAlternative: Lazy<Alternative<[URI<ListURI>]>> = () =>
+export const listAlternative: Lazy<
+  Alternative<[URI<ListURI, Variance>], Variance>
+> = () =>
   Alternative.of({
     ...listApplicative(),
     ...listMonoidK(),
   });
 
-export const listFlatMap: Lazy<FlatMap<[URI<ListURI>]>> = () =>
-  FlatMap.of({
-    ...listApply(),
-    flatMap_: flatMap_,
-    flatTap_: tap_,
-    flatten: flatten,
-  });
+export const listFlatMap: Lazy<FlatMap<[URI<ListURI, Variance>], Variance>> =
+  () =>
+    FlatMap.of({
+      ...listApply(),
+      flatMap_: flatMap_,
+      flatTap_: tap_,
+      flatten: flatten,
+    });
 
-export const listMonad: Lazy<Monad<[URI<ListURI>]>> = () =>
+export const listMonad: Lazy<Monad<[URI<ListURI, Variance>], Variance>> = () =>
   Monad.of({
     ...listApplicative(),
     ...listFlatMap(),
   });
 
-export const listFoldable: Lazy<Foldable<[URI<ListURI>]>> = () =>
-  Foldable.of({
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: size,
-    all_: all_,
-    any_: any_,
-    count_: count_,
-    foldMap_: foldMap_,
-    foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
-  });
+export const listFoldable: Lazy<Foldable<[URI<ListURI, Variance>], Variance>> =
+  () =>
+    Foldable.of({
+      isEmpty: isEmpty,
+      nonEmpty: nonEmpty,
+      size: size,
+      all_: all_,
+      any_: any_,
+      count_: count_,
+      foldMap_: foldMap_,
+      foldLeft_: foldLeft_,
+      foldRight_: foldRight_,
+    });
 
-export const listTraversable: Lazy<Traversable<[URI<ListURI>]>> = () =>
+export const listTraversable: Lazy<
+  Traversable<[URI<ListURI, Variance>], Variance>
+> = () =>
   Traversable.of({
     ...listFoldable(),
     ...listFunctor(),

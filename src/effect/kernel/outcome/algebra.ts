@@ -1,4 +1,4 @@
-import { Auto, Fix, Kind, URIS } from '../../../core';
+import { Auto, Kind1, URIS } from '../../../core';
 
 export class CancellationError extends Error {}
 
@@ -7,14 +7,9 @@ export abstract class Outcome<F extends URIS, E, A, C = Auto> {
   private readonly __void: void;
 }
 
-export class Success<F extends URIS, C2, S2, R2, E2, A> extends Outcome<
-  F,
-  never,
-  A,
-  C2 & Fix<'S', S2> & Fix<'R', R2> & Fix<'E', E2>
-> {
+export class Success<F extends URIS, C, A> extends Outcome<F, never, A, C> {
   public readonly tag = 'success';
-  public constructor(public readonly result: Kind<F, C2, S2, R2, E2, A>) {
+  public constructor(public readonly result: Kind1<F, C, A>) {
     super();
   }
   public toString(): string {
@@ -50,7 +45,7 @@ export class Canceled<F extends URIS, C = Auto> extends Outcome<
 }
 
 export type OutcomeView<F extends URIS, E, A, C = Auto> =
-  | Success<F, unknown, unknown, unknown, A, C>
+  | Success<F, A, C>
   | Failure<F, E, C>
   | Canceled<F, C>;
 

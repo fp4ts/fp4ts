@@ -12,6 +12,7 @@ import { Either } from '../either';
 import { Option as OptionBase } from './algebra';
 import { fromEither, fromNullable, none, pure, some } from './constructors';
 import {
+  Variance,
   optionAlternative,
   optionApplicative,
   optionApply,
@@ -45,14 +46,14 @@ export interface OptionObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<[URI<OptionURI>]>;
-  readonly MonoidK: MonoidK<[URI<OptionURI>]>;
-  readonly Functor: Functor<[URI<OptionURI>]>;
-  readonly Apply: Apply<[URI<OptionURI>]>;
-  readonly Applicative: Applicative<[URI<OptionURI>]>;
-  readonly Alternative: Alternative<[URI<OptionURI>]>;
-  readonly FlatMap: FlatMap<[URI<OptionURI>]>;
-  readonly Monad: Monad<[URI<OptionURI>]>;
+  readonly SemigroupK: SemigroupK<[URI<OptionURI, Variance>], Variance>;
+  readonly MonoidK: MonoidK<[URI<OptionURI, Variance>], Variance>;
+  readonly Functor: Functor<[URI<OptionURI, Variance>], Variance>;
+  readonly Apply: Apply<[URI<OptionURI, Variance>], Variance>;
+  readonly Applicative: Applicative<[URI<OptionURI, Variance>], Variance>;
+  readonly Alternative: Alternative<[URI<OptionURI, Variance>], Variance>;
+  readonly FlatMap: FlatMap<[URI<OptionURI, Variance>], Variance>;
+  readonly Monad: Monad<[URI<OptionURI, Variance>], Variance>;
 }
 
 Option.pure = pure;
@@ -62,42 +63,42 @@ Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 
 Object.defineProperty(Option, 'SemigroupK', {
-  get(): SemigroupK<[URI<OptionURI>]> {
+  get(): SemigroupK<[URI<OptionURI, Variance>], Variance> {
     return optionSemigroupK();
   },
 });
 Object.defineProperty(Option, 'MonoidK', {
-  get(): MonoidK<[URI<OptionURI>]> {
+  get(): MonoidK<[URI<OptionURI, Variance>], Variance> {
     return optionMonoidK();
   },
 });
 Object.defineProperty(Option, 'Functor', {
-  get(): Functor<[URI<OptionURI>]> {
+  get(): Functor<[URI<OptionURI, Variance>], Variance> {
     return optionFunctor();
   },
 });
 Object.defineProperty(Option, 'Apply', {
-  get(): Apply<[URI<OptionURI>]> {
+  get(): Apply<[URI<OptionURI, Variance>], Variance> {
     return optionApply();
   },
 });
 Object.defineProperty(Option, 'Applicative', {
-  get(): Applicative<[URI<OptionURI>]> {
+  get(): Applicative<[URI<OptionURI, Variance>], Variance> {
     return optionApplicative();
   },
 });
 Object.defineProperty(Option, 'Alternative', {
-  get(): Alternative<[URI<OptionURI>]> {
+  get(): Alternative<[URI<OptionURI, Variance>], Variance> {
     return optionAlternative();
   },
 });
 Object.defineProperty(Option, 'FlatMap', {
-  get(): FlatMap<[URI<OptionURI>]> {
+  get(): FlatMap<[URI<OptionURI, Variance>], Variance> {
     return optionFlatMap();
   },
 });
 Object.defineProperty(Option, 'Monad', {
-  get(): Monad<[URI<OptionURI>]> {
+  get(): Monad<[URI<OptionURI, Variance>], Variance> {
     return optionMonad();
   },
 });

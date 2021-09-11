@@ -514,9 +514,7 @@ const _hash = <K>(H: Hashable<K>, k: K): number =>
   // take first, most significant 32 bits
   Buffer.from(H.hash(k)).readUIntLE(0, 4);
 
-const _index = (h: number, d: number): number =>
-  // ensure the number is positive
-  Math.abs((h & (0b11111 << (d * 5))) >> (d * 5));
+const _index = (h: number, d: number): number => (h >> (d * 5)) & 0b11111;
 
 const _makeInner = <K, V>(children: Map<K, V>[]): Map<K, V> => {
   for (let i = 0, len = children.length; i < len; i++) {

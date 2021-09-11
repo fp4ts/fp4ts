@@ -10,6 +10,7 @@ import { Hashable, primitiveMD5Hashable } from '../../hashable';
 import { Empty, Map as MapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
 import {
+  Variance,
   mapFoldable,
   mapFunctor,
   mapFunctorFilter,
@@ -43,10 +44,10 @@ export interface MapObj {
 
   // -- Instances
 
-  readonly Functor: Functor<[URI<MapURI>]>;
-  readonly FunctorFilter: FunctorFilter<[URI<MapURI>]>;
-  readonly Foldable: Foldable<[URI<MapURI>]>;
-  readonly Traversable: Traversable<[URI<MapURI>]>;
+  readonly Functor: Functor<[URI<MapURI, Variance>], Variance>;
+  readonly FunctorFilter: FunctorFilter<[URI<MapURI, Variance>], Variance>;
+  readonly Foldable: Foldable<[URI<MapURI, Variance>], Variance>;
+  readonly Traversable: Traversable<[URI<MapURI, Variance>], Variance>;
 }
 
 Map.empty = Empty;
@@ -55,22 +56,22 @@ Map.fromArray = fromArray;
 Map.fromList = fromList;
 
 Object.defineProperty(Map, 'Functor', {
-  get(): Functor<[URI<MapURI>]> {
+  get(): Functor<[URI<MapURI, Variance>], Variance> {
     return mapFunctor();
   },
 });
 Object.defineProperty(Map, 'FunctorFilter', {
-  get(): FunctorFilter<[URI<MapURI>]> {
+  get(): FunctorFilter<[URI<MapURI, Variance>], Variance> {
     return mapFunctorFilter();
   },
 });
 Object.defineProperty(Map, 'Foldable', {
-  get(): Foldable<[URI<MapURI>]> {
+  get(): Foldable<[URI<MapURI, Variance>], Variance> {
     return mapFoldable();
   },
 });
 Object.defineProperty(Map, 'Traversable', {
-  get(): Traversable<[URI<MapURI>]> {
+  get(): Traversable<[URI<MapURI, Variance>], Variance> {
     return mapTraversable2();
   },
 });

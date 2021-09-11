@@ -9,6 +9,7 @@ import { Monad } from '../../monad';
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';
 import {
+  Variance,
   eitherApplicative,
   eitherApply,
   eitherFlatMap,
@@ -34,12 +35,12 @@ export interface EitherObj {
   rightUnit: Either<never, void>;
 
   // -- Instances
-  readonly SemigroupK: SemigroupK<[URI<EitherURI>]>;
-  readonly Functor: Functor<[URI<EitherURI>]>;
-  readonly Apply: Apply<[URI<EitherURI>]>;
-  readonly Applicative: Applicative<[URI<EitherURI>]>;
-  readonly FlatMap: FlatMap<[URI<EitherURI>]>;
-  readonly Monad: Monad<[URI<EitherURI>]>;
+  readonly SemigroupK: SemigroupK<[URI<EitherURI, Variance>], Variance>;
+  readonly Functor: Functor<[URI<EitherURI, Variance>], Variance>;
+  readonly Apply: Apply<[URI<EitherURI, Variance>], Variance>;
+  readonly Applicative: Applicative<[URI<EitherURI, Variance>], Variance>;
+  readonly FlatMap: FlatMap<[URI<EitherURI, Variance>], Variance>;
+  readonly Monad: Monad<[URI<EitherURI, Variance>], Variance>;
 }
 
 Either.right = right;
@@ -48,32 +49,32 @@ Either.pure = pure;
 Either.rightUnit = rightUnit;
 
 Object.defineProperty(Either, 'SemigroupK', {
-  get(): SemigroupK<[URI<EitherURI>]> {
+  get(): SemigroupK<[URI<EitherURI, Variance>], Variance> {
     return eitherSemigroupK();
   },
 });
 Object.defineProperty(Either, 'Functor', {
-  get(): Functor<[URI<EitherURI>]> {
+  get(): Functor<[URI<EitherURI, Variance>], Variance> {
     return eitherFunctor();
   },
 });
 Object.defineProperty(Either, 'Apply', {
-  get(): Apply<[URI<EitherURI>]> {
+  get(): Apply<[URI<EitherURI, Variance>], Variance> {
     return eitherApply();
   },
 });
 Object.defineProperty(Either, 'Applicative', {
-  get(): Applicative<[URI<EitherURI>]> {
+  get(): Applicative<[URI<EitherURI, Variance>], Variance> {
     return eitherApplicative();
   },
 });
 Object.defineProperty(Either, 'FlatMap', {
-  get(): FlatMap<[URI<EitherURI>]> {
+  get(): FlatMap<[URI<EitherURI, Variance>], Variance> {
     return eitherFlatMap();
   },
 });
 Object.defineProperty(Either, 'Monad', {
-  get(): Monad<[URI<EitherURI>]> {
+  get(): Monad<[URI<EitherURI, Variance>], Variance> {
     return eitherMonad();
   },
 });

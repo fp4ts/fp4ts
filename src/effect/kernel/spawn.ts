@@ -1,4 +1,4 @@
-import { Kind, Auto, URIS } from '../../core';
+import { Kind, Auto, URIS, Empty } from '../../core';
 import { Applicative } from '../../cats';
 import { Either } from '../../cats/data';
 import { Fiber } from './fiber';
@@ -12,8 +12,8 @@ export interface Spawn<F extends URIS, E, C = Auto>
   readonly fork: <S, R, A>(
     fa: Kind<F, C, S, R, E, A>,
   ) => Kind<F, C, S, R, E, Fiber<F, E, A, C>>;
-  readonly never: Kind<F, C, unknown, unknown, E, never>;
-  readonly suspend: Kind<F, C, unknown, unknown, E, void>;
+  readonly never: Kind<F, C, Empty<C, 'S'>, Empty<C, 'R'>, E, never>;
+  readonly suspend: Kind<F, C, Empty<C, 'S'>, Empty<C, 'R'>, E, void>;
 
   readonly racePair: <S, R, A, B>(
     fa: Kind<F, C, S, R, E, A>,

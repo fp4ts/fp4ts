@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { URI, V } from '../../../core';
+import { Lazy, URI, V } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -21,38 +21,45 @@ import {
 import { ReaderURI } from './reader';
 import { pure, unit } from './constructors';
 
-type Variance = V<'R', '-'> & V<'A', '+'>;
+export type Variance = V<'R', '-'> & V<'A', '+'>;
 
-export const readerFunctor = () =>
-  Functor.of<[URI<ReaderURI, Variance>], Variance>({ map_ });
+export const readerFunctor: Lazy<
+  Functor<[URI<ReaderURI, Variance>], Variance>
+> = () => Functor.of({ map_ });
 
-export const readerApply = () =>
-  Apply.of<[URI<ReaderURI, Variance>], Variance>({
-    ...readerFunctor(),
-    ap_: ap_,
-    map2_: map2_,
-    product_: product_,
-    productL_: productL_,
-    productR_: productR_,
-  });
+export const readerApply: Lazy<Apply<[URI<ReaderURI, Variance>], Variance>> =
+  () =>
+    Apply.of({
+      ...readerFunctor(),
+      ap_: ap_,
+      map2_: map2_,
+      product_: product_,
+      productL_: productL_,
+      productR_: productR_,
+    });
 
-export const readerApplicative = () =>
-  Applicative.of<[URI<ReaderURI, Variance>], Variance>({
+export const readerApplicative: Lazy<
+  Applicative<[URI<ReaderURI, Variance>], Variance>
+> = () =>
+  Applicative.of({
     ...readerApply(),
     pure: pure,
     unit: () => unit,
   });
 
-export const readerFlatMap = () =>
-  FlatMap.of<[URI<ReaderURI, Variance>], Variance>({
+export const readerFlatMap: Lazy<
+  FlatMap<[URI<ReaderURI, Variance>], Variance>
+> = () =>
+  FlatMap.of({
     ...readerApply(),
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
   });
 
-export const readerMonad = () =>
-  Monad.of<[URI<ReaderURI, Variance>], Variance>({
-    ...readerApplicative(),
-    ...readerFlatMap(),
-  });
+export const readerMonad: Lazy<Monad<[URI<ReaderURI, Variance>], Variance>> =
+  () =>
+    Monad.of({
+      ...readerApplicative(),
+      ...readerFlatMap(),
+    });

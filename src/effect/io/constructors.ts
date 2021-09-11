@@ -2,7 +2,7 @@ import { flow, URI } from '../../core';
 import { Either, Left, None, Option, Right } from '../../cats/data';
 
 import { ExecutionContext } from '../execution-context';
-import { Poll } from '../kernel/poll';
+import { Poll } from '../kernel';
 import {
   Async,
   Canceled,

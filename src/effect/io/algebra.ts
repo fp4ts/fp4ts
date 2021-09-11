@@ -1,11 +1,11 @@
-import { IoURI } from '.';
+import { IoURI } from './io';
 import { Either, Option } from '../../cats/data';
 import { URI } from '../../core';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 
-import { Poll } from '../kernel/poll';
+import { Poll } from '../kernel';
 
 // -- IO Algebra
 
@@ -13,8 +13,6 @@ import { Poll } from '../kernel/poll';
 export abstract class IO<A> {
   // @ts-ignore
   private readonly __void: void;
-  // @ts-ignore
-  private readonly _F: URI;
 }
 
 export class Pure<A> extends IO<A> {

@@ -13,15 +13,17 @@ import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { IOOutcome } from '../io-outcome';
 
+import {
+  Poll,
+  MonadCancel,
+  Sync,
+  Spawn,
+  Concurrent,
+  Temporal,
+  Async,
+} from '../kernel';
 import * as Ref from '../kernel/ref';
 import * as D from '../kernel/deferred';
-import { Poll } from '../kernel/poll';
-import { MonadCancel } from '../kernel/monad-cancel';
-import { Sync } from '../kernel/sync';
-import { Spawn } from '../kernel/spawn';
-import { Concurrent } from '../kernel/concurrent';
-import { Temporal } from '../kernel/temporal';
-import { Async } from '../kernel/async';
 
 import { IO as IOBase } from './algebra';
 import {

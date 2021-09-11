@@ -1,4 +1,5 @@
 import { Param } from './fix';
+import { OrNever } from './or-never';
 
 export type Variance = '+' | '-' | '#';
 
@@ -36,11 +37,11 @@ export type Mix<
     ? X[0] & X[1] & X[2] & X[3] & X[4] & X[5] & X[6]
     : X extends [any, any, any, any, any, any, any, any]
     ? X[0] & X[1] & X[2] & X[3] & X[4] & X[5] & X[6] & X[7]
+    : X extends [any, any, any, any, any, any, any, any, any]
+    ? X[0] & X[1] & X[2] & X[3] & X[4] & X[5] & X[6] & X[7] & X[8]
     : // X[0] & X[1] & ...
       UnionToIntersection<{ [k in keyof X]: OrNever<X[k]> }[number]>
   : X[0];
-
-type OrNever<K> = unknown extends K ? never : K;
 
 export type Intro<C, P extends Param, Fixed, Current> = C extends V<P, '#'>
   ? Fixed

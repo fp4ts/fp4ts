@@ -1,4 +1,4 @@
-import { Lazy, URI } from '../../../core';
+import { Lazy, URI, V } from '../../../core';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
@@ -18,35 +18,42 @@ import {
 } from './operators';
 import { pure } from './constructors';
 
-export const stateFunctor: Lazy<Functor<[URI<StateURI>]>> = () =>
-  Functor.of({ map_ });
+export type Variance = V<'S', '#'> & V<'A', '+'>;
 
-export const stateApply: Lazy<Apply<[URI<StateURI>]>> = () =>
-  Apply.of({
-    ...stateFunctor(),
-    ap_: (ff, fa) => map2(ff, fa)((f, a) => f(a)),
-    map2_: map2,
-    product_: product_,
-    productL_: productL_,
-    productR_: productR_,
-  });
+export const stateFunctor: Lazy<Functor<[URI<StateURI, Variance>], Variance>> =
+  () => Functor.of({ map_ });
 
-export const stateApplicative: Lazy<Applicative<[URI<StateURI>]>> = () =>
+export const stateApply: Lazy<Apply<[URI<StateURI, Variance>], Variance>> =
+  () =>
+    Apply.of({
+      ...stateFunctor(),
+      ap_: (ff, fa) => map2(ff, fa)((f, a) => f(a)),
+      map2_: map2,
+      product_: product_,
+      productL_: productL_,
+      productR_: productR_,
+    });
+
+export const stateApplicative: Lazy<
+  Applicative<[URI<StateURI, Variance>], Variance>
+> = () =>
   Applicative.of({
     ...stateApply(),
     pure: pure,
   });
 
-export const stateFlatMap: Lazy<FlatMap<[URI<StateURI>]>> = () =>
-  FlatMap.of({
-    ...stateApply(),
-    flatMap_: flatMap_,
-    flatTap_: flatTap_,
-    flatten: flatten,
-  });
+export const stateFlatMap: Lazy<FlatMap<[URI<StateURI, Variance>], Variance>> =
+  () =>
+    FlatMap.of({
+      ...stateApply(),
+      flatMap_: flatMap_,
+      flatTap_: flatTap_,
+      flatten: flatten,
+    });
 
-export const stateMonad: Lazy<Monad<[URI<StateURI>]>> = () =>
-  Monad.of({
-    ...stateApplicative(),
-    ...stateFlatMap(),
-  });
+export const stateMonad: Lazy<Monad<[URI<StateURI, Variance>], Variance>> =
+  () =>
+    Monad.of({
+      ...stateApplicative(),
+      ...stateFlatMap(),
+    });

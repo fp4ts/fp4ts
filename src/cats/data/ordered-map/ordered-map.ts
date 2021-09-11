@@ -10,6 +10,7 @@ import { Ord, primitiveOrd } from '../../ord';
 import { OrderedMap as OrderedMapBase } from './algebra';
 import { empty, fromArray, fromList, fromSortedArray } from './constructors';
 import {
+  Variance,
   orderedMapFoldable,
   orderedMapFunctor,
   orderedMapFunctorFilter,
@@ -33,10 +34,13 @@ export interface OrderedMapObj {
 
   // -- Instances
 
-  readonly Functor: Functor<[URI<OrderedMapURI>]>;
-  readonly FunctorFilter: FunctorFilter<[URI<OrderedMapURI>]>;
-  readonly Foldable: Foldable<[URI<OrderedMapURI>]>;
-  readonly Traversable: Traversable<[URI<OrderedMapURI>]>;
+  readonly Functor: Functor<[URI<OrderedMapURI, Variance>], Variance>;
+  readonly FunctorFilter: FunctorFilter<
+    [URI<OrderedMapURI, Variance>],
+    Variance
+  >;
+  readonly Foldable: Foldable<[URI<OrderedMapURI, Variance>], Variance>;
+  readonly Traversable: Traversable<[URI<OrderedMapURI, Variance>], Variance>;
 }
 
 OrderedMap.empty = empty;
@@ -45,22 +49,22 @@ OrderedMap.fromList = fromList;
 OrderedMap.fromSortedArray = fromSortedArray;
 
 Object.defineProperty(OrderedMap, 'Functor', {
-  get(): Functor<[URI<OrderedMapURI>]> {
+  get(): Functor<[URI<OrderedMapURI, Variance>], Variance> {
     return orderedMapFunctor();
   },
 });
 Object.defineProperty(OrderedMap, 'FunctorFilter', {
-  get(): FunctorFilter<[URI<OrderedMapURI>]> {
+  get(): FunctorFilter<[URI<OrderedMapURI, Variance>], Variance> {
     return orderedMapFunctorFilter();
   },
 });
 Object.defineProperty(OrderedMap, 'Foldable', {
-  get(): Foldable<[URI<OrderedMapURI>]> {
+  get(): Foldable<[URI<OrderedMapURI, Variance>], Variance> {
     return orderedMapFoldable();
   },
 });
 Object.defineProperty(OrderedMap, 'Traversable', {
-  get(): Traversable<[URI<OrderedMapURI>]> {
+  get(): Traversable<[URI<OrderedMapURI, Variance>], Variance> {
     return orderedMapTraversable();
   },
 });

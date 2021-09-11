@@ -1,8 +1,15 @@
-import { Auto, Base, Kind, URIS } from '../../core';
+import { Auto, Base, Empty, Kind, URIS } from '../../core';
 import { FunctionK, Show } from '../../cats';
 
 export interface Console<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly readLine: Kind<F, C, unknown, unknown, never, string>;
+  readonly readLine: Kind<
+    F,
+    C,
+    Empty<C, 'S'>,
+    Empty<C, 'R'>,
+    Empty<C, 'E'>,
+    string
+  >;
 
   print<A>(a: A): string;
   print<A>(S: Show<A>, a: A): string;

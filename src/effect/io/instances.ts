@@ -8,12 +8,14 @@ import {
   MonadError,
   Defer,
 } from '../../cats';
-import { Async } from '../kernel/async';
-import { Concurrent } from '../kernel/concurrent';
-import { MonadCancel } from '../kernel/monad-cancel';
-import { Spawn } from '../kernel/spawn';
-import { Sync } from '../kernel/sync';
-import { Temporal } from '../kernel/temporal';
+import {
+  Async,
+  Concurrent,
+  MonadCancel,
+  Spawn,
+  Sync,
+  Temporal,
+} from '../kernel';
 
 import { IoURI } from './io';
 import { IO } from './algebra';

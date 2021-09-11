@@ -8,6 +8,7 @@ import { Monad } from '../../monad';
 import { Identity as IdentityBase } from './algebra';
 import { pure } from './constructors';
 import {
+  Variance,
   identityApplicative,
   identityApply,
   identityFlatMap,
@@ -26,11 +27,11 @@ interface IdentityObj {
   pure<A>(a: A): Identity<A>;
   unit: Identity<void>;
 
-  readonly Functor: Functor<[URI<IdentityURI>]>;
-  readonly Apply: Apply<[URI<IdentityURI>]>;
-  readonly Applicative: Applicative<[URI<IdentityURI>]>;
-  readonly FlatMap: FlatMap<[URI<IdentityURI>]>;
-  readonly Monad: Monad<[URI<IdentityURI>]>;
+  readonly Functor: Functor<[URI<IdentityURI, Variance>], Variance>;
+  readonly Apply: Apply<[URI<IdentityURI, Variance>], Variance>;
+  readonly Applicative: Applicative<[URI<IdentityURI, Variance>], Variance>;
+  readonly FlatMap: FlatMap<[URI<IdentityURI, Variance>], Variance>;
+  readonly Monad: Monad<[URI<IdentityURI, Variance>], Variance>;
 }
 
 Identity.pure = pure;
@@ -39,31 +40,31 @@ Identity.unit = pure(undefined);
 // -- Instances
 
 Object.defineProperty(Identity, 'Functor', {
-  get(): Functor<[URI<IdentityURI>]> {
+  get(): Functor<[URI<IdentityURI, Variance>], Variance> {
     return identityFunctor();
   },
 });
 
 Object.defineProperty(Identity, 'Apply', {
-  get(): Apply<[URI<IdentityURI>]> {
+  get(): Apply<[URI<IdentityURI, Variance>], Variance> {
     return identityApply();
   },
 });
 
 Object.defineProperty(Identity, 'Applicative', {
-  get(): Applicative<[URI<IdentityURI>]> {
+  get(): Applicative<[URI<IdentityURI, Variance>], Variance> {
     return identityApplicative();
   },
 });
 
 Object.defineProperty(Identity, 'FlatMap', {
-  get(): FlatMap<[URI<IdentityURI>]> {
+  get(): FlatMap<[URI<IdentityURI, Variance>], Variance> {
     return identityFlatMap();
   },
 });
 
 Object.defineProperty(Identity, 'Monad', {
-  get(): Monad<[URI<IdentityURI>]> {
+  get(): Monad<[URI<IdentityURI, Variance>], Variance> {
     return identityMonad();
   },
 });

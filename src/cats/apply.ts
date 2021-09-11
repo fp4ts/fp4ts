@@ -1,4 +1,4 @@
-import { Auto, Intro, Kind, Mix, URIS, V } from '../core';
+import { Auto, Intro, Kind, Mix, URIS } from '../core';
 import { Functor, FunctorRequirements } from './functor';
 
 export interface Apply<F extends URIS, C = Auto> extends Functor<F, C> {

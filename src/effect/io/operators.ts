@@ -6,9 +6,8 @@ import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 import { ExecutionContext } from '../execution-context';
 
-import { Outcome } from '../kernel/outcome';
 import * as Sem from '../kernel/semaphore';
-import { Poll } from '../kernel/poll';
+import { Outcome, Poll } from '../kernel';
 
 import { IoURI } from './io';
 import {
@@ -104,7 +103,7 @@ export const bracketFull = <A, B>(
       acquire(poll),
       flatMap(a =>
         pipe(
-          defer<B>(() => poll(use(a))),
+          defer(() => poll(use(a))),
           finalize(oc => release(a, oc)),
         ),
       ),

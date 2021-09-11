@@ -1,4 +1,4 @@
-import { Kind, Auto, URIS } from '../../core';
+import { Kind, Auto, URIS, Empty } from '../../core';
 import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { Sync } from './sync';
@@ -17,7 +17,7 @@ export interface Async<F extends URIS, C = Auto>
     k: (cb: (ea: Either<Error, A>) => void) => Kind<F, C, S, R, Error, void>,
   ) => Kind<F, C, S, R, Error, A>;
 
-  readonly never: Kind<F, C, unknown, unknown, Error, never>;
+  readonly never: Kind<F, C, Empty<C, 'S'>, Empty<C, 'R'>, Error, never>;
 
   readonly executeOn: <S, R, A>(
     fa: Kind<F, C, S, R, Error, A>,

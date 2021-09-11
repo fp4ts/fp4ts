@@ -1,30 +1,25 @@
-import { Auto, Fix, Kind, URIS } from '../../../core';
+import { Auto, Kind1, URIS } from '../../../core';
 import { Outcome as OutcomeBase } from './algebra';
 import { canceled, failure, success } from './constructors';
 
 export type Outcome<F extends URIS, E, A, C2 = Auto> = OutcomeBase<F, E, A, C2>;
 
-export const Outcome: OutcomeObj = function <F extends URIS, C2, S2, R2, E2, A>(
-  fa: Kind<F, C2, S2, R2, E2, A>,
-): Outcome<F, never, A, C2 & Fix<'S', S2> & Fix<'R', R2> & Fix<'E', E2>> {
+export const Outcome: OutcomeObj = function <F extends URIS, C, A>(
+  fa: Kind1<F, C, A>,
+): Outcome<F, never, A, C> {
   return success(fa);
 };
 
 interface OutcomeObj {
-  <F extends URIS, C2, S2, R2, E2, A>(fa: Kind<F, C2, S2, R2, E2, A>): Outcome<
-    F,
-    never,
-    A,
-    C2 & Fix<'S', S2> & Fix<'R', R2> & Fix<'E', E2>
-  >;
+  <F extends URIS, C, A>(fa: Kind1<F, C, A>): Outcome<F, never, A, C>;
 
-  success: <F extends URIS, C2, S2, R2, E2, A>(
-    fa: Kind<F, C2, S2, R2, E2, A>,
-  ) => Outcome<F, never, A, C2 & Fix<'S', S2> & Fix<'R', R2> & Fix<'E', E2>>;
+  success: <F extends URIS, C, A>(
+    fa: Kind1<F, C, A>,
+  ) => Outcome<F, never, A, C>;
 
-  failure: <F extends URIS, C2, E>(e: E) => Outcome<F, E, never, C2>;
+  failure: <F extends URIS, C, E>(e: E) => Outcome<F, E, never, C>;
 
-  canceled: <F extends URIS, C2>() => Outcome<F, never, never, C2>;
+  canceled: <F extends URIS, C>() => Outcome<F, never, never, C>;
 }
 
 Outcome.success = success;

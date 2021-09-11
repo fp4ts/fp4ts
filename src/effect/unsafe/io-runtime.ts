@@ -3,7 +3,6 @@ import { Either, Some } from '../../cats/data';
 import { IO } from '../io';
 import { ExecutionContext, GlobalExecutionContext } from '../execution-context';
 
-import * as O from '../kernel/outcome';
 import { IORuntimeConfig } from './io-runtime-config';
 import { PlatformConfig } from './io-platform';
 

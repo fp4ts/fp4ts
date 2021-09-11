@@ -5,8 +5,7 @@ import { IOFiber } from '../io-fiber';
 import { IORuntime } from '../unsafe/io-runtime';
 
 import { IOOutcome } from '../io-outcome';
-import { IO as IOBase } from './algebra';
-import { IO } from './index';
+import { IO } from './algebra';
 
 import {
   fork,
@@ -117,25 +116,25 @@ declare module './algebra' {
   }
 }
 
-Object.defineProperty(IOBase.prototype, 'fork', {
+Object.defineProperty(IO.prototype, 'fork', {
   get<A>(this: IO<A>): IO<IOFiber<A>> {
     return fork(this);
   },
 });
 
-IOBase.prototype.onCancel = function <A>(this: IO<A>, fin: IO<void>): IO<A> {
+IO.prototype.onCancel = function <A>(this: IO<A>, fin: IO<void>): IO<A> {
   return onCancel_(this, fin);
 };
 
-IOBase.prototype.delayBy = function <A>(this: IO<A>, ms: number): IO<A> {
+IO.prototype.delayBy = function <A>(this: IO<A>, ms: number): IO<A> {
   return delayBy_(this, ms);
 };
 
-IOBase.prototype.timeout = function <A>(this: IO<A>, ms: number): IO<A> {
+IO.prototype.timeout = function <A>(this: IO<A>, ms: number): IO<A> {
   return timeout_(this, ms);
 };
 
-IOBase.prototype.timeoutTo = function <A>(
+IO.prototype.timeoutTo = function <A>(
   this: IO<A>,
   ms: number,
   fallback: IO<A>,
@@ -143,115 +142,112 @@ IOBase.prototype.timeoutTo = function <A>(
   return timeoutTo_(this, ms, fallback);
 };
 
-IOBase.prototype.executeOn = function <A>(
+IO.prototype.executeOn = function <A>(
   this: IO<A>,
   ec: ExecutionContext,
 ): IO<A> {
   return executeOn_(this, ec);
 };
 
-Object.defineProperty(IOBase.prototype, 'void', {
+Object.defineProperty(IO.prototype, 'void', {
   get(this: IO<unknown>): IO<void> {
     return map_(this, () => {});
   },
 });
 
-IOBase.prototype.race = function <A, B>(
+IO.prototype.race = function <A, B>(
   this: IO<A>,
   that: IO<B>,
 ): IO<Either<A, B>> {
   return race_(this, that);
 };
 
-IOBase.prototype.both = function <A, B>(this: IO<A>, that: IO<B>): IO<[A, B]> {
+IO.prototype.both = function <A, B>(this: IO<A>, that: IO<B>): IO<[A, B]> {
   return both_(this, that);
 };
 
-IOBase.prototype.finalize = function <A>(
+IO.prototype.finalize = function <A>(
   this: IO<A>,
   finalizer: (oc: IOOutcome<A>) => IO<void>,
 ): IO<A> {
   return finalize_(this, finalizer);
 };
 
-IOBase.prototype.bracket = function <A, B>(
+IO.prototype.bracket = function <A, B>(
   this: IO<A>,
   use: (a: A) => IO<B>,
 ): (release: (a: A) => IO<void>) => IO<B> {
   return release => bracket_(this, use, release);
 };
 
-IOBase.prototype.bracketOutcome = function <A, B>(
+IO.prototype.bracketOutcome = function <A, B>(
   this: IO<A>,
   use: (a: A) => IO<B>,
 ): (release: (a: A, oc: IOOutcome<B>) => IO<void>) => IO<B> {
   return release => bracketOutcome_(this, use, release);
 };
 
-IOBase.prototype.map = function <A, B>(this: IO<A>, f: (a: A) => B): IO<B> {
+IO.prototype.map = function <A, B>(this: IO<A>, f: (a: A) => B): IO<B> {
   return map_(this, f);
 };
 
-IOBase.prototype.tap = function <A>(this: IO<A>, f: (a: A) => unknown): IO<A> {
+IO.prototype.tap = function <A>(this: IO<A>, f: (a: A) => unknown): IO<A> {
   return tap_(this, f);
 };
 
-IOBase.prototype.flatMap = function <A, B>(
-  this: IO<A>,
-  f: (a: A) => IO<B>,
-): IO<B> {
+IO.prototype.flatMap = function <A, B>(this: IO<A>, f: (a: A) => IO<B>): IO<B> {
   return flatMap_(this, f);
 };
 
-Object.defineProperty(IOBase.prototype, 'flatten', {
+Object.defineProperty(IO.prototype, 'flatten', {
   get<A>(this: IO<IO<A>>): IO<A> {
     return flatten(this);
   },
 });
 
-IOBase.prototype.flatTap = function <A>(
+IO.prototype.flatTap = function <A>(
   this: IO<A>,
   f: (a: A) => IO<unknown>,
 ): IO<A> {
   return flatTap_(this, f);
 };
 
-IOBase.prototype['>>>'] = function <A, B>(this: IO<A>, that: IO<B>): IO<B> {
+IO.prototype['>>>'] = function <A, B>(this: IO<A>, that: IO<B>): IO<B> {
   return this.flatMap(() => that);
 };
 
-IOBase.prototype['<<<'] = function <A>(this: IO<A>, that: IO<unknown>): IO<A> {
+IO.prototype['<<<'] = function <A>(this: IO<A>, that: IO<unknown>): IO<A> {
   return this.flatMap(a => that.map(() => a));
 };
 
-IOBase.prototype.handleError = function <A>(
+IO.prototype.handleError = function <A>(
   this: IO<A>,
   h: (e: Error) => A,
 ): IO<A> {
   return handleError_(this, h);
 };
 
-IOBase.prototype.handleErrorWith = function <A>(
+IO.prototype.handleErrorWith = function <A>(
   this: IO<A>,
   h: (e: Error) => IO<A>,
 ): IO<A> {
   return handleErrorWith_(this, h);
 };
 
-IOBase.prototype.onError = function <A>(
+IO.prototype.onError = function <A>(
   this: IO<A>,
   h: (e: Error) => IO<void>,
 ): IO<A> {
   return onError_(this, h);
 };
 
-Object.defineProperty(IOBase.prototype, 'attempt', {
+Object.defineProperty(IO.prototype, 'attempt', {
   get<A>(this: IO<A>): IO<Either<Error, A>> {
     return attempt(this);
   },
 });
 
-IOBase.prototype.redeem = function <A, B>(
+IO.prototype.redeem = function <A, B>(
   this: IO<A>,
   onFailure: (e: Error) => B,
   onSuccess: (a: A) => B,
@@ -259,7 +255,7 @@ IOBase.prototype.redeem = function <A, B>(
   return redeem_(this, onFailure, onSuccess);
 };
 
-IOBase.prototype.redeemWith = function <A, B>(
+IO.prototype.redeemWith = function <A, B>(
   this: IO<A>,
   onFailure: (e: Error) => IO<B>,
   onSuccess: (a: A) => IO<B>,
@@ -267,27 +263,27 @@ IOBase.prototype.redeemWith = function <A, B>(
   return redeemWith_(this, onFailure, onSuccess);
 };
 
-Object.defineProperty(IOBase.prototype, 'uncancelable', {
+Object.defineProperty(IO.prototype, 'uncancelable', {
   get<A>(this: IO<A>): IO<A> {
     return uncancelable(() => this);
   },
 });
 
-IOBase.prototype.map2 = function <A, B>(
+IO.prototype.map2 = function <A, B>(
   this: IO<A>,
   that: IO<B>,
 ): <C>(f: (a: A, b: B) => C) => IO<C> {
   return f => map2_(this, that, f);
 };
 
-IOBase.prototype.unsafeRunToPromise = function <A>(
+IO.prototype.unsafeRunToPromise = function <A>(
   this: IO<A>,
   runtime?: IORuntime,
 ): Promise<A> {
   return unsafeRunToPromise_(this, runtime);
 };
 
-IOBase.prototype.unsafeRunAsync = function <A>(
+IO.prototype.unsafeRunAsync = function <A>(
   this: IO<A>,
   cb: (ea: Either<Error, A>) => void,
   runtime?: IORuntime,
@@ -295,7 +291,7 @@ IOBase.prototype.unsafeRunAsync = function <A>(
   unsafeRunAsync_(this, cb, runtime);
 };
 
-IOBase.prototype.unsafeRunAsyncOutcome = function <A>(
+IO.prototype.unsafeRunAsyncOutcome = function <A>(
   this: IO<A>,
   cb: (oc: IOOutcome<A>) => void,
   runtime?: IORuntime,

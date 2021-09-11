@@ -1,4 +1,4 @@
-import { Lazy, URI } from '../../../core';
+import { Lazy, URI, V } from '../../../core';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
@@ -10,30 +10,39 @@ import { EitherURI } from './either';
 import { flatMap_, map_, or_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
-export const eitherSemigroupK: Lazy<SemigroupK<[URI<EitherURI>]>> = () =>
-  SemigroupK.of({ combineK_: or_ });
+export type Variance = V<'E', '+'> & V<'A', '+'>;
 
-export const eitherFunctor: Lazy<Functor<[URI<EitherURI>]>> = () =>
-  Functor.of({ map_ });
+export const eitherSemigroupK: Lazy<
+  SemigroupK<[URI<EitherURI, Variance>], Variance>
+> = () => SemigroupK.of({ combineK_: or_ });
 
-export const eitherApply: Lazy<Apply<[URI<EitherURI>]>> = () =>
-  Apply.of({
-    ...eitherFunctor(),
-    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+export const eitherFunctor: Lazy<
+  Functor<[URI<EitherURI, Variance>], Variance>
+> = () => Functor.of({ map_ });
 
-export const eitherApplicative: Lazy<Applicative<[URI<EitherURI>]>> = () =>
+export const eitherApply: Lazy<Apply<[URI<EitherURI, Variance>], Variance>> =
+  () =>
+    Apply.of({
+      ...eitherFunctor(),
+      ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    });
+
+export const eitherApplicative: Lazy<
+  Applicative<[URI<EitherURI, Variance>], Variance>
+> = () =>
   Applicative.of({
     ...eitherApply(),
     pure: pure,
     unit: () => rightUnit,
   });
 
-export const eitherFlatMap: Lazy<FlatMap<[URI<EitherURI>]>> = () =>
-  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_ });
+export const eitherFlatMap: Lazy<
+  FlatMap<[URI<EitherURI, Variance>], Variance>
+> = () => FlatMap.of({ ...eitherApply(), flatMap_: flatMap_ });
 
-export const eitherMonad: Lazy<Monad<[URI<EitherURI>]>> = () =>
-  Monad.of({
-    ...eitherApplicative(),
-    ...eitherFlatMap(),
-  });
+export const eitherMonad: Lazy<Monad<[URI<EitherURI, Variance>], Variance>> =
+  () =>
+    Monad.of({
+      ...eitherApplicative(),
+      ...eitherFlatMap(),
+    });

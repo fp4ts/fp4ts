@@ -4,10 +4,10 @@ import { Either, Left, Right } from '../../cats/data';
 import { IO } from './io';
 import { IOFiber } from '../io-fiber';
 
+import { CancellationError } from '../kernel';
 import { IORuntime } from '../unsafe/io-runtime';
 import { Pure } from './algebra';
 import { IOOutcome } from '../io-outcome';
-import { CancellationError } from '../kernel/outcome/algebra';
 
 // Point-free definitions
 
