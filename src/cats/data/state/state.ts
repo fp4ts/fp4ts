@@ -66,7 +66,7 @@ export const StateURI = 'cats/data/state';
 export type StateURI = typeof StateURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [StateURI]: State<S, A>;
   }
 }

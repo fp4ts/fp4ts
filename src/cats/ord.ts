@@ -22,7 +22,7 @@ export const OrdURI = 'cats/ord';
 export type OrdURI = typeof OrdURI;
 
 declare module '../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [OrdURI]: Ord<A>;
   }
 }

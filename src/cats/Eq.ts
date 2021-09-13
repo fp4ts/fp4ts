@@ -12,7 +12,7 @@ export const EqURI = 'cats/eq';
 export type EqURI = typeof EqURI;
 
 declare module '../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [EqURI]: Eq<A>;
   }
 }

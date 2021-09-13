@@ -24,7 +24,7 @@ const TestConsoleURI = 'tests/free/test-console';
 type TestConsoleURI = typeof TestConsoleURI;
 
 declare module '../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [TestConsoleURI]: TestConsole<A>;
   }
 }

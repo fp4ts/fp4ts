@@ -75,7 +75,7 @@ export const ReaderURI = 'cats/data/reader';
 export type ReaderURI = typeof ReaderURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [ReaderURI]: Reader<R, A>;
   }
 }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
 import { Auto } from './base';
 import { OrFix } from './fix';
 import { Empty } from './variance';
@@ -15,6 +13,7 @@ export interface URI<F extends CoercedURIS, C = Auto> {
 export type Kind<F extends URIS, C, S, R, E, A> = F extends [any, ...infer Next]
   ? URItoKind<
       F[0]['_C'],
+      C,
       OrFix<'S', F[0]['_C'], OrFix<'S', C, S>>,
       OrFix<'R', F[0]['_C'], OrFix<'R', C, R>>,
       OrFix<'E', F[0]['_C'], OrFix<'E', C, E>>,

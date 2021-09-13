@@ -75,7 +75,7 @@ export const OrderedMapURI = 'cats/data/ordered-map';
 export type OrderedMapURI = typeof OrderedMapURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [OrderedMapURI]: OrderedMap<E, A>;
   }
 }

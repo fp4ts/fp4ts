@@ -13,7 +13,7 @@ export const HashableURI = 'cats/hashable';
 export type HashableURI = typeof HashableURI;
 
 declare module '../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [HashableURI]: Hashable<A>;
   }
 }

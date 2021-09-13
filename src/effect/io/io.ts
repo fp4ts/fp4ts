@@ -389,7 +389,7 @@ export const IoURI = 'effect-io/io';
 export type IoURI = typeof IoURI;
 
 declare module '../../core' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [IoURI]: IO<A>;
   }
 }

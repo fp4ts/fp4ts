@@ -82,7 +82,7 @@ export const MapURI = 'cats/data/map';
 export type MapURI = typeof MapURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [MapURI]: Map<E, A>;
   }
 }

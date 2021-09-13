@@ -109,7 +109,7 @@ export const OptionURI = 'cats/data/option';
 export type OptionURI = typeof OptionURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [OptionURI]: Option<A>;
   }
 }

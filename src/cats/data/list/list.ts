@@ -125,7 +125,7 @@ export const ListURI = 'cats/data/list';
 export type ListURI = typeof ListURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [ListURI]: List<A>;
   }
 }

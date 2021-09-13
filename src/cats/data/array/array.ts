@@ -21,7 +21,7 @@ export const ArrayURI = 'cats/data/array';
 export type ArrayURI = typeof ArrayURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [ArrayURI]: Array<A>;
   }
 }

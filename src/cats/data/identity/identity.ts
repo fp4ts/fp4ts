@@ -75,7 +75,7 @@ export const IdentityURI = 'cats/data/identity';
 export type IdentityURI = typeof IdentityURI;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, S, R, E, A> {
+  interface URItoKind<FC, TC, S, R, E, A> {
     [IdentityURI]: Identity<A>;
   }
 }
