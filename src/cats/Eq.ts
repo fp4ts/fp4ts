@@ -8,12 +8,12 @@ export interface Eq<A> {
 
 // HKT
 
-export const URI = 'cats/eq';
-export type URI = typeof URI;
+export const EqURI = 'cats/eq';
+export type EqURI = typeof EqURI;
 
 declare module '../core/hkt/hkt' {
   interface URItoKind<FC, S, R, E, A> {
-    [URI]: Eq<A>;
+    [EqURI]: Eq<A>;
   }
 }
 

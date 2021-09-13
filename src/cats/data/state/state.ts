@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { Fix, URI } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -47,38 +47,18 @@ export interface StateObj {
   updateAndGet<S>(f: (s: S) => S): State<S, S>;
   modify<S, A>(f: (s: S) => [S, A]): State<S, A>;
 
-  readonly FunctorK: Functor<[URI<StateURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<StateURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<StateURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<StateURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<StateURI, Variance>], Variance>;
+  Functor<S>(): Functor<[URI<StateURI, Fix<'S', S>>], Variance>;
+  Apply<S>(): Apply<[URI<StateURI, Fix<'S', S>>], Variance>;
+  Applicative<S>(): Applicative<[URI<StateURI, Fix<'S', S>>], Variance>;
+  FlatMap<S>(): FlatMap<[URI<StateURI, Fix<'S', S>>], Variance>;
+  Monad<S>(): Monad<[URI<StateURI, Fix<'S', S>>], Variance>;
 }
 
-Object.defineProperty(State, 'Functor', {
-  get(): Functor<[URI<StateURI, Variance>], Variance> {
-    return stateFunctor();
-  },
-});
-Object.defineProperty(State, 'Apply', {
-  get(): Apply<[URI<StateURI, Variance>], Variance> {
-    return stateApply();
-  },
-});
-Object.defineProperty(State, 'Applicative', {
-  get(): Applicative<[URI<StateURI, Variance>], Variance> {
-    return stateApplicative();
-  },
-});
-Object.defineProperty(State, 'FlatMap', {
-  get(): FlatMap<[URI<StateURI, Variance>], Variance> {
-    return stateFlatMap();
-  },
-});
-Object.defineProperty(State, 'Monad', {
-  get(): Monad<[URI<StateURI, Variance>], Variance> {
-    return stateMonad();
-  },
-});
+State.Functor = stateFunctor;
+State.Apply = stateApply;
+State.Applicative = stateApplicative;
+State.FlatMap = stateFlatMap;
+State.Monad = stateMonad;
 
 // HKT
 
