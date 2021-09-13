@@ -25,8 +25,8 @@ export interface Spawn<F extends URIS, E, C = Auto>
     R,
     E,
     Either<
-      [Outcome<F, E, A, C>, Fiber<F, E, B>],
-      [Fiber<F, E, A>, Outcome<F, E, B, C>]
+      [Outcome<F, E, A>, Fiber<F, E, B>],
+      [Fiber<F, E, A>, Outcome<F, E, B>]
     >
   >;
 
@@ -38,7 +38,7 @@ export interface Spawn<F extends URIS, E, C = Auto>
   readonly raceOutcome: <S, R, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,
-  ) => Kind<F, C, S, R, E, Either<Outcome<F, E, A, C>, Outcome<F, E, B, C>>>;
+  ) => Kind<F, C, S, R, E, Either<Outcome<F, E, A>, Outcome<F, E, B>>>;
 
   readonly both: <S, R, A, B>(
     fa: Kind<F, C, S, R, E, A>,
@@ -48,5 +48,5 @@ export interface Spawn<F extends URIS, E, C = Auto>
   readonly bothOutcome: <S, R, A, B>(
     fa: Kind<F, C, S, R, E, A>,
     fb: Kind<F, C, S, R, E, B>,
-  ) => Kind<F, C, S, R, E, [Outcome<F, E, A, C>, Outcome<F, E, B, C>]>;
+  ) => Kind<F, C, S, R, E, [Outcome<F, E, A>, Outcome<F, E, B>]>;
 }
