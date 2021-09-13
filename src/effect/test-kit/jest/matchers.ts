@@ -1,6 +1,5 @@
 import { IO } from '../../io';
 import { IOOutcome } from '../../io-outcome';
-import { Outcome } from '../../kernel/outcome';
 import * as IOR from '../../unsafe/io-runtime';
 import { Ticker } from '../ticker';
 import { TestExecutionContext } from '../test-execution-context';
@@ -93,7 +92,7 @@ expect.extend({
   ) {
     return tickTo.apply(this, [
       receivedIO,
-      Outcome.success(IO.pure(expected)),
+      IOOutcome.success(IO.pure(expected)),
       ec,
     ]);
   },
@@ -103,10 +102,10 @@ expect.extend({
     expected: Error,
     ec: TestExecutionContext,
   ) {
-    return tickTo.apply(this, [receivedIO, Outcome.failure(expected), ec]);
+    return tickTo.apply(this, [receivedIO, IOOutcome.failure(expected), ec]);
   },
 
   toCancel(receivedIO: IO<unknown>, ec: TestExecutionContext) {
-    return tickTo.apply(this, [receivedIO, Outcome.canceled(), ec]);
+    return tickTo.apply(this, [receivedIO, IOOutcome.canceled(), ec]);
   },
 });

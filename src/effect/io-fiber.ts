@@ -4,7 +4,6 @@ import { Either, Left, Right, Some } from '../cats/data';
 import { IO } from './io';
 import { ExecutionContext } from './execution-context';
 
-import { Outcome } from './kernel/outcome';
 import * as F from './kernel/fiber';
 import { Poll } from './kernel/poll';
 
@@ -354,7 +353,7 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
       this.runLoop(this.finalizers.pop()!);
     } else {
       cb && cb(Either.rightUnit);
-      this.complete(Outcome.canceled());
+      this.complete(IOOutcome.canceled());
     }
   }
 
@@ -508,9 +507,9 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
 
   private terminateSuccessK(r: unknown): IO<unknown> {
     if (this.canceled) {
-      this.complete(Outcome.canceled());
+      this.complete(IOOutcome.canceled());
     } else {
-      this.complete(Outcome.success(IO.pure(r as A)));
+      this.complete(IOOutcome.success(IO.pure(r as A)));
     }
     return IOA.IOEndFiber;
   }
@@ -518,9 +517,9 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
   private terminateFailureK(e: Error): IO<unknown> {
     this.currentEC.reportFailure(e);
     if (this.canceled) {
-      this.complete(Outcome.canceled());
+      this.complete(IOOutcome.canceled());
     } else {
-      this.complete(Outcome.failure(e));
+      this.complete(IOOutcome.failure(e));
     }
     return IOA.IOEndFiber;
   }
@@ -565,7 +564,7 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
       | undefined;
     cb && cb(Either.rightUnit);
 
-    this.complete(Outcome.canceled());
+    this.complete(IOOutcome.canceled());
 
     return IOA.IOEndFiber;
   }

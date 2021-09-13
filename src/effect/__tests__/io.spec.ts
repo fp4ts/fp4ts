@@ -3,7 +3,7 @@ import { id, pipe } from '../../fp/core';
 import { Either, Left, Right, Some, List } from '../../cats/data';
 
 import { IO } from '../io';
-import { Outcome } from '../kernel/outcome';
+import { IOOutcome } from '../io-outcome';
 import { Semaphore } from '../kernel/semaphore';
 
 const throwError = (e: Error) => {
@@ -167,7 +167,7 @@ describe('io monad', () => {
         .map(x => x + 1)
         .fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(Outcome.success(IO.pure(43)), ticker);
+      await expect(io).toCompleteWith(IOOutcome.success(IO.pure(43)), ticker);
     });
 
     it.ticked('should fork and join a failed fiber', async ticker => {
@@ -176,7 +176,7 @@ describe('io monad', () => {
       );
 
       await expect(io).toCompleteWith(
-        Outcome.failure(new Error('test error')),
+        IOOutcome.failure(new Error('test error')),
         ticker,
       );
     });
@@ -210,7 +210,7 @@ describe('io monad', () => {
       'should produce canceled outcome when fiber canceled',
       async ticker => {
         const io = IO.canceled.fork.flatMap(f => f.join);
-        await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+        await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
       },
     );
 
@@ -274,7 +274,7 @@ describe('io monad', () => {
           IO.bind(IO(() => cb(Left(new Error('test error'))))),
         ).flatMap(({ f }) => f.join);
 
-        await expect(io).toCompleteWith(Outcome.success(IO.pure(42)), ticker);
+        await expect(io).toCompleteWith(IOOutcome.success(IO.pure(42)), ticker);
       },
     );
 
@@ -288,7 +288,7 @@ describe('io monad', () => {
             .fork.flatMap(f => f.join),
         );
 
-        await expect(ioa).toCompleteWith(Outcome.canceled(), ticker);
+        await expect(ioa).toCompleteWith(IOOutcome.canceled(), ticker);
       },
     );
 
@@ -341,13 +341,13 @@ describe('io monad', () => {
     it.ticked('should cancel if lhs cancels', async ticker => {
       const io = IO.both(IO.canceled, IO.pure(43)).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should cancel if rhs cancels', async ticker => {
       const io = IO.both(IO.pure(42), IO.canceled).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should propagate cancelation', async ticker => {
@@ -359,7 +359,7 @@ describe('io monad', () => {
         IO.bind(IO(() => ticker.tickAll())),
       ).flatMap(({ f }) => f.join);
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should cancel both fibers', async ticker => {
@@ -450,7 +450,7 @@ describe('io monad', () => {
     it.ticked('should be canceled when both sides canceled', async ticker => {
       const io = IO.race(IO.canceled, IO.canceled).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked(
@@ -506,14 +506,14 @@ describe('io monad', () => {
     it.ticked('should cancel never after forking', async ticker => {
       const io = IO.never.fork.flatMap(f => f.cancel['>>>'](f.join));
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should cancel infinite chain of binds', async ticker => {
       const infinite: IO<void> = IO.unit.flatMap(() => infinite);
       const io = infinite.fork.flatMap(f => f.cancel['>>>'](f.join));
 
-      await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should trigger cancelation cleanup of async', async ticker => {
@@ -653,7 +653,7 @@ describe('io monad', () => {
           IO.bind(({ fiber }) => fiber.cancel),
         ).flatMap(({ fiber }) => fiber.join);
 
-        await expect(io).toCompleteWith(Outcome.canceled(), ticker);
+        await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
         expect(results).toEqual([1, 2, 3]);
       },
     );
@@ -883,7 +883,7 @@ describe('io monad', () => {
           IO.bind(({ bFiber }) => bFiber.cancel),
         ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
 
-        await expect(io).toCompleteWith(Outcome.success(IO.unit), ticker);
+        await expect(io).toCompleteWith(IOOutcome.success(IO.unit), ticker);
       },
     );
   });

@@ -1,4 +1,4 @@
-import { Auto, Kind1, URIS } from '../../../core';
+import { Kind1, URIS } from '../../../core';
 import { Outcome as OutcomeBase } from './algebra';
 import { canceled, failure, success } from './constructors';
 
