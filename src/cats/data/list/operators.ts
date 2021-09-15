@@ -1,4 +1,4 @@
-import { Kind, id, pipe, URIS } from '../../../core';
+import { Kind, id, pipe, URIS, AnyK } from '../../../core';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
 import { Monoid } from '../../monoid';
@@ -171,12 +171,11 @@ export const foldMap: <M>(
 ) => <A>(f: (a: A) => M) => (xs: List<A>) => M = M => f => xs =>
   foldMap_(M)(xs, f);
 
-export const foldMapK: <F extends URIS>(
+export const foldMapK: <F extends AnyK>(
   F: MonoidK<F>,
-) => <C, S, R, E, A, B>(
-  f: (a: A) => Kind<F, C, S, R, E, B>,
-) => (xs: List<A>) => Kind<F, C, S, R, E, B> = F => f => xs =>
-  foldMapK_(F)(xs, f);
+) => <A, B>(f: (a: A) => Kind<F, [B]>) => (xs: List<A>) => Kind<F, [B]> =
+  F => f => xs =>
+    foldMapK_(F)(xs, f);
 
 export const zip: <B>(ys: List<B>) => <A>(xs: List<A>) => List<[A, B]> =
   ys => xs =>
@@ -247,31 +246,27 @@ export const scanRight: <A, B>(
 export const scanRight1: <A>(f: (x: A, y: A) => A) => (xs: List<A>) => List<A> =
   f => xs => scanRight1_(xs, f);
 
-export const traverse: <G extends URIS>(
+export const traverse: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A, B>(
-  f: (a: A) => Kind<G, C, S, R, E, B>,
-) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
-  traverse_(G)(xs, f);
+) => <A, B>(f: (a: A) => Kind<G, [B]>) => (xs: List<A>) => Kind<G, [List<B>]> =
+  G => f => xs =>
+    traverse_(G)(xs, f);
 
-export const flatTraverse: <G extends URIS>(
+export const flatTraverse: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A, B>(
-  f: (a: A) => Kind<G, C, S, R, E, List<B>>,
-) => (xs: List<A>) => Kind<G, C, S, R, E, List<B>> = G => f => xs =>
+) => <A, B>(
+  f: (a: A) => Kind<G, [List<B>]>,
+) => (xs: List<A>) => Kind<G, [List<B>]> = G => f => xs =>
   flatTraverse_(G, xs, f);
 
-export const sequence: <G extends URIS>(
+export const sequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A>(
-  gxs: List<Kind<G, C, S, R, E, A>>,
-) => Kind<G, C, S, R, E, List<A>> = G => traverse(G)(id);
+) => <A>(gxs: List<Kind<G, [A]>>) => Kind<G, [List<A>]> = G => traverse(G)(id);
 
-export const flatSequence: <G extends URIS>(
+export const flatSequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A>(
-  gxs: List<Kind<G, C, S, R, E, List<A>>>,
-) => Kind<G, C, S, R, E, List<A>> = G => flatTraverse(G)(id);
+) => <A>(gxs: List<Kind<G, [List<A>]>>) => Kind<G, [List<A>]> = G =>
+  flatTraverse(G)(id);
 
 export const show: <A2>(S: Show<A2>) => <A extends A2>(xs: List<A>) => string =
   S => xs =>
@@ -509,12 +504,9 @@ export const foldMap_ =
     foldLeft_(xs, M.empty, (m, x) => M.combine_(m, f(x)));
 
 export const foldMapK_ =
-  <F extends URIS>(F: MonoidK<F>) =>
-  <C, S, R, E, A, B>(
-    xs: List<A>,
-    f: (a: A) => Kind<F, C, S, R, E, B>,
-  ): Kind<F, C, S, R, E, B> =>
-    foldMap_(F.algebra<S, R, E, B>())(xs, f);
+  <F extends AnyK>(F: MonoidK<F>) =>
+  <A, B>(xs: List<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
+    foldMap_(F.algebra())(xs, f);
 
 export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
   zipWith_(xs, ys, (x, y) => [x, y]);
@@ -719,27 +711,20 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 };
 
 export const traverse_ =
-  <G extends URIS>(G: Applicative<G>) =>
-  <C, S, R, E, A, B>(
-    xs: List<A>,
-    f: (a: A) => Kind<G, C, S, R, E, B>,
-  ): Kind<G, C, S, R, E, List<B>> => {
-    const consF = (
-      x: A,
-      ys: Kind<G, C, S, R, E, List<B>>,
-    ): Kind<G, C, S, R, E, List<B>> => G.map2_(ys, f(x))(prepend_);
+  <G extends AnyK>(G: Applicative<G>) =>
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> => {
+    const consF = (x: A, ys: Kind<G, [List<B>]>): Kind<G, [List<B>]> =>
+      G.map2_(ys, f(x))(prepend_);
     return foldRight_(xs, G.pure(empty as List<B>), consF);
   };
 
-export const flatTraverse_ = <G extends URIS, C, S, R, E, A, B>(
+export const flatTraverse_ = <G extends AnyK, A, B>(
   G: Applicative<G>,
   xs: List<A>,
-  f: (a: A) => Kind<G, C, S, R, E, List<B>>,
-): Kind<G, C, S, R, E, List<B>> => {
-  const concatF = (
-    x: A,
-    ys: Kind<G, C, S, R, E, List<B>>,
-  ): Kind<G, C, S, R, E, List<B>> => G.map2_(f(x), ys)(concat_);
+  f: (a: A) => Kind<G, [List<B>]>,
+): Kind<G, [List<B>]> => {
+  const concatF = (x: A, ys: Kind<G, [List<B>]>): Kind<G, [List<B>]> =>
+    G.map2_(f(x), ys)(concat_);
 
   return foldRight_(xs, G.pure(empty as List<B>), concatF);
 };

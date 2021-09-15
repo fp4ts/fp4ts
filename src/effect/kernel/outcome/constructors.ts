@@ -1,12 +1,12 @@
-import { Kind1, URIS } from '../../../core';
+import { AnyK, Kind } from '../../../core';
 import { Canceled, Failure, Outcome, Success } from './algebra';
 
-export const success = <F extends URIS, C, A>(
-  fa: Kind1<F, C, A>,
+export const success = <F extends AnyK, A>(
+  fa: Kind<F, [A]>,
 ): Outcome<F, never, A> => new Success(fa);
 
-export const failure = <F extends URIS, E>(e: E): Outcome<F, E, never> =>
+export const failure = <F extends AnyK, E>(e: E): Outcome<F, E, never> =>
   new Failure(e);
 
-export const canceled = <F extends URIS>(): Outcome<F, never, never> =>
+export const canceled = <F extends AnyK>(): Outcome<F, never, never> =>
   new Canceled();

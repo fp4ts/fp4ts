@@ -1,4 +1,4 @@
-import { Kind, URIS } from '../../../core';
+import { AnyK, Kind, URIS } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
 import { Show } from '../../show';
@@ -104,11 +104,9 @@ declare module './algebra' {
     foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
     foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
-    foldMapK: <F extends URIS>(
+    foldMapK: <F extends AnyK>(
       F: MonoidK<F>,
-    ) => <C, S, R, E, B>(
-      f: (a: A) => Kind<F, C, S, R, E, B>,
-    ) => Kind<F, C, S, R, E, B>;
+    ) => <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
     zip: <B>(ys: List<B>) => List<[A, B]>;
     zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
     readonly zipWithIndex: List<[A, number]>;
@@ -132,30 +130,17 @@ declare module './algebra' {
     scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
     scanRight1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
-    traverse: <G extends URIS>(
+    traverse: <G extends AnyK>(
       G: Applicative<G>,
-    ) => <B, C, S, R, E>(
-      f: (a: A) => Kind<G, C, S, R, E, B>,
-    ) => Kind<G, C, S, R, E, List<B>>;
-    sequence: A extends Kind<any, infer C, infer S, infer R, infer E, infer B>
-      ? <G extends URIS, C, S, R, E>(
-          G: Applicative<G>,
-        ) => Kind<G, C, S, R, E, List<B>>
+    ) => <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]>;
+    sequence: A extends Kind<any, [infer B]>
+      ? <G extends AnyK>(G: Applicative<G>) => Kind<G, [List<B>]>
       : never | unknown;
-    flatTraverse: <G extends URIS, C, S, R, E>(
+    flatTraverse: <G extends AnyK>(
       G: Applicative<G>,
-    ) => <B>(
-      f: (a: A) => Kind<G, C, S, R, E, List<B>>,
-    ) => Kind<G, C, S, R, E, List<B>>;
-    flatSequence: A extends Kind<
-      any,
-      infer C,
-      infer R,
-      infer S,
-      infer E,
-      List<infer B>
-    >
-      ? <G extends URIS>(G: Applicative<G>) => Kind<G, C, S, R, E, List<B>>
+    ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
+    flatSequence: A extends Kind<any, [List<infer B>]>
+      ? <G extends AnyK>(G: Applicative<G>) => Kind<G, [List<B>]>
       : never | unknown;
 
     show(this: List<A>, S?: Show<A>): string;
@@ -387,12 +372,10 @@ List.prototype.foldMap = function <A, M>(
   return f => foldMap_(M)(this, f);
 };
 
-List.prototype.foldMapK = function <F extends URIS, A>(
+List.prototype.foldMapK = function <F extends AnyK, A>(
   this: List<A>,
   F: MonoidK<F>,
-): <C, S, R, E, B>(
-  f: (a: A) => Kind<F, C, S, R, E, B>,
-) => Kind<F, C, S, R, E, B> {
+): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
   return f => foldMapK_(F)(this, f);
 };
 
@@ -487,34 +470,30 @@ List.prototype.scanRight1 = function <A>(
   return scanRight1_(this, f);
 };
 
-List.prototype.traverse = function <G extends URIS, A>(
+List.prototype.traverse = function <G extends AnyK, A>(
   this: List<A>,
   G: Applicative<G>,
-): <C, S, R, E, B>(
-  f: (a: A) => Kind<G, C, S, R, E, B>,
-) => Kind<G, C, S, R, E, List<B>> {
+): <C, S, R, E, B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]> {
   return f => traverse_(G)(this, f);
 };
 
-List.prototype.sequence = function <G extends URIS, C, S, R, E, A>(
-  this: List<Kind<G, C, S, R, E, A>>,
+List.prototype.sequence = function <G extends AnyK, A>(
+  this: List<Kind<G, [A]>>,
   G: Applicative<G>,
-): Kind<G, C, S, R, E, List<A>> {
+): Kind<G, [List<A>]> {
   return sequence(G)(this);
 };
 
-List.prototype.flatTraverse = function <G extends URIS, C, S, R, E, A>(
+List.prototype.flatTraverse = function <G extends AnyK, A>(
   G: Applicative<G>,
-): <B>(
-  f: (a: A) => Kind<G, C, S, R, E, List<B>>,
-) => Kind<G, C, S, R, E, List<B>> {
+): <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]> {
   return f => flatTraverse_(G, this, f);
 };
 
-List.prototype.flatSequence = function <G extends URIS, C, S, R, E, A>(
-  this: List<Kind<G, C, S, R, E, List<A>>>,
+List.prototype.flatSequence = function <G extends AnyK, A>(
+  this: List<Kind<G, [List<A>]>>,
   G: Applicative<G>,
-): Kind<G, C, S, R, E, List<A>> {
+): Kind<G, [List<A>]> {
   return flatSequence(G)(this);
 };
 

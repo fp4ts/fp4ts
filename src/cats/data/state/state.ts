@@ -1,4 +1,4 @@
-import { Fix, URI } from '../../../core';
+import { $, TyK, _ } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -16,7 +16,6 @@ import {
   unit,
 } from './constructors';
 import {
-  Variance,
   stateApplicative,
   stateApply,
   stateFlatMap,
@@ -47,11 +46,11 @@ export interface StateObj {
   updateAndGet<S>(f: (s: S) => S): State<S, S>;
   modify<S, A>(f: (s: S) => [S, A]): State<S, A>;
 
-  Functor<S>(): Functor<[URI<StateURI, Fix<'S', S>>], Variance>;
-  Apply<S>(): Apply<[URI<StateURI, Fix<'S', S>>], Variance>;
-  Applicative<S>(): Applicative<[URI<StateURI, Fix<'S', S>>], Variance>;
-  FlatMap<S>(): FlatMap<[URI<StateURI, Fix<'S', S>>], Variance>;
-  Monad<S>(): Monad<[URI<StateURI, Fix<'S', S>>], Variance>;
+  Functor<S>(): Functor<$<StateK, [S]>>;
+  Apply<S>(): Apply<$<StateK, [S]>>;
+  Applicative<S>(): Applicative<$<StateK, [S]>>;
+  FlatMap<S>(): FlatMap<$<StateK, [S]>>;
+  Monad<S>(): Monad<$<StateK, [S]>>;
 }
 
 State.Functor = stateFunctor;
@@ -64,9 +63,10 @@ State.Monad = stateMonad;
 
 export const StateURI = 'cats/data/state';
 export type StateURI = typeof StateURI;
+export type StateK = TyK<StateURI, [_, _]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [StateURI]: State<S, A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [StateURI]: State<Tys[0], Tys[1]>;
   }
 }

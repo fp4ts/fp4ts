@@ -1,8 +1,5 @@
-import { URIS } from './kind';
+import { AnyK } from './ty-ctor';
 
-export interface Auto {}
-
-export interface Base<F extends URIS, C = Auto> {
-  readonly _F: F;
-  readonly _C: C;
+export interface Base<F extends AnyK> {
+  _F: F;
 }

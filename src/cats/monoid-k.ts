@@ -1,22 +1,17 @@
-import { Auto, Kind, URIS } from '../core';
+import { Kind, AnyK } from '../core';
 import { Monoid } from './monoid';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 
-export interface MonoidK<F extends URIS, C = Auto> extends SemigroupK<F, C> {
-  readonly emptyK: <S, R, E, A>() => Kind<F, C, S, R, E, A>;
+export interface MonoidK<F extends AnyK> extends SemigroupK<F> {
+  readonly emptyK: <A>() => Kind<F, [A]>;
 
-  readonly algebra: <S, R, E, A>() => Monoid<Kind<F, C, S, R, E, A>>;
+  readonly algebra: <A>() => Monoid<Kind<F, [A]>>;
 }
-export type MonoidKRequirements<F extends URIS, C = Auto> = Pick<
-  MonoidK<F, C>,
-  'emptyK'
-> &
-  SemigroupKRequirements<F, C> &
-  Partial<MonoidK<F, C>>;
+export type MonoidKRequirements<F extends AnyK> = Pick<MonoidK<F>, 'emptyK'> &
+  SemigroupKRequirements<F> &
+  Partial<MonoidK<F>>;
 export const MonoidK = Object.freeze({
-  of: <F extends URIS, C = Auto>(
-    F: MonoidKRequirements<F, C>,
-  ): MonoidK<F, C> => ({
+  of: <F extends AnyK>(F: MonoidKRequirements<F>): MonoidK<F> => ({
     ...SemigroupK.of(F),
     ...F,
 

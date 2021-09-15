@@ -1,11 +1,11 @@
-import { Fix, URI, V } from '../../../core';
+import { $ } from '../../../core';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
-import { StateURI } from './state';
+import { StateK } from './state';
 import {
   flatMap_,
   flatTap_,
@@ -18,17 +18,10 @@ import {
 } from './operators';
 import { pure } from './constructors';
 
-export type Variance = V<'S', '#'>;
+export const stateFunctor: <S>() => Functor<$<StateK, [S]>> = () =>
+  Functor.of({ map_ });
 
-export const stateFunctor: <S>() => Functor<
-  [URI<StateURI, Fix<'S', S>>],
-  Variance
-> = () => Functor.of({ map_ });
-
-export const stateApply: <S>() => Apply<
-  [URI<StateURI, Fix<'S', S>>],
-  Variance
-> = () =>
+export const stateApply: <S>() => Apply<$<StateK, [S]>> = () =>
   Apply.of({
     ...stateFunctor(),
     ap_: (ff, fa) => map2(ff, fa)((f, a) => f(a)),
@@ -38,19 +31,13 @@ export const stateApply: <S>() => Apply<
     productR_: productR_,
   });
 
-export const stateApplicative: <S>() => Applicative<
-  [URI<StateURI, Fix<'S', S>>],
-  Variance
-> = () =>
+export const stateApplicative: <S>() => Applicative<$<StateK, [S]>> = () =>
   Applicative.of({
     ...stateApply(),
     pure: pure,
   });
 
-export const stateFlatMap: <S>() => FlatMap<
-  [URI<StateURI, Fix<'S', S>>],
-  Variance
-> = () =>
+export const stateFlatMap: <S>() => FlatMap<$<StateK, [S]>> = () =>
   FlatMap.of({
     ...stateApply(),
     flatMap_: flatMap_,
@@ -58,10 +45,7 @@ export const stateFlatMap: <S>() => FlatMap<
     flatten: flatten,
   });
 
-export const stateMonad: <S>() => Monad<
-  [URI<StateURI, Fix<'S', S>>],
-  Variance
-> = () =>
+export const stateMonad: <S>() => Monad<$<StateK, [S]>> = () =>
   Monad.of({
     ...stateApplicative(),
     ...stateFlatMap(),

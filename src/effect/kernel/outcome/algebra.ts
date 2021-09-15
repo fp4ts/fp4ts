@@ -1,15 +1,15 @@
-import { Auto, Kind1, URIS } from '../../../core';
+import { AnyK, Kind } from '../../../core';
 
 export class CancellationError extends Error {}
 
-export abstract class Outcome<F extends URIS, E, A> {
+export abstract class Outcome<F extends AnyK, E, A> {
   // @ts-ignore
   private readonly __void: void;
 }
 
-export class Success<F extends URIS, C, A> extends Outcome<F, never, A> {
+export class Success<F extends AnyK, A> extends Outcome<F, never, A> {
   public readonly tag = 'success';
-  public constructor(public readonly result: Kind1<F, C, A>) {
+  public constructor(public readonly result: Kind<F, [A]>) {
     super();
   }
   public toString(): string {
@@ -17,7 +17,7 @@ export class Success<F extends URIS, C, A> extends Outcome<F, never, A> {
   }
 }
 
-export class Failure<F extends URIS, E> extends Outcome<F, E, never> {
+export class Failure<F extends AnyK, E> extends Outcome<F, E, never> {
   public readonly tag = 'failure';
   public constructor(public readonly error: E) {
     super();
@@ -27,18 +27,18 @@ export class Failure<F extends URIS, E> extends Outcome<F, E, never> {
   }
 }
 
-export class Canceled<F extends URIS> extends Outcome<F, never, never> {
+export class Canceled<F extends AnyK> extends Outcome<F, never, never> {
   public readonly tag = 'canceled';
   public toString(): string {
     return '[Canceled]';
   }
 }
 
-export type OutcomeView<F extends URIS, E, A> =
-  | Success<F, Auto, A>
+export type OutcomeView<F extends AnyK, E, A> =
+  | Success<F, A>
   | Failure<F, E>
   | Canceled<F>;
 
-export const view = <F extends URIS, E, A>(
+export const view = <F extends AnyK, E, A>(
   _: Outcome<F, E, A>,
 ): OutcomeView<F, E, A> => _ as any;

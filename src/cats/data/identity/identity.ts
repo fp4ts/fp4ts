@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { TyK, _ } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -8,7 +8,6 @@ import { Monad } from '../../monad';
 import { Identity as IdentityBase } from './algebra';
 import { pure } from './constructors';
 import {
-  Variance,
   identityApplicative,
   identityApply,
   identityFlatMap,
@@ -27,11 +26,11 @@ interface IdentityObj {
   pure<A>(a: A): Identity<A>;
   unit: Identity<void>;
 
-  readonly Functor: Functor<[URI<IdentityURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<IdentityURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<IdentityURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<IdentityURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<IdentityURI, Variance>], Variance>;
+  readonly Functor: Functor<IdentityK>;
+  readonly Apply: Apply<IdentityK>;
+  readonly Applicative: Applicative<IdentityK>;
+  readonly FlatMap: FlatMap<IdentityK>;
+  readonly Monad: Monad<IdentityK>;
 }
 
 Identity.pure = pure;
@@ -40,31 +39,31 @@ Identity.unit = pure(undefined);
 // -- Instances
 
 Object.defineProperty(Identity, 'Functor', {
-  get(): Functor<[URI<IdentityURI, Variance>], Variance> {
+  get(): Functor<IdentityK> {
     return identityFunctor();
   },
 });
 
 Object.defineProperty(Identity, 'Apply', {
-  get(): Apply<[URI<IdentityURI, Variance>], Variance> {
+  get(): Apply<IdentityK> {
     return identityApply();
   },
 });
 
 Object.defineProperty(Identity, 'Applicative', {
-  get(): Applicative<[URI<IdentityURI, Variance>], Variance> {
+  get(): Applicative<IdentityK> {
     return identityApplicative();
   },
 });
 
 Object.defineProperty(Identity, 'FlatMap', {
-  get(): FlatMap<[URI<IdentityURI, Variance>], Variance> {
+  get(): FlatMap<IdentityK> {
     return identityFlatMap();
   },
 });
 
 Object.defineProperty(Identity, 'Monad', {
-  get(): Monad<[URI<IdentityURI, Variance>], Variance> {
+  get(): Monad<IdentityK> {
     return identityMonad();
   },
 });
@@ -73,9 +72,10 @@ Object.defineProperty(Identity, 'Monad', {
 
 export const IdentityURI = 'cats/data/identity';
 export type IdentityURI = typeof IdentityURI;
+export type IdentityK = TyK<IdentityURI, [_]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [IdentityURI]: Identity<A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [IdentityURI]: Identity<Tys[0]>;
   }
 }

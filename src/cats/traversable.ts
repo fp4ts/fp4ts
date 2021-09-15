@@ -1,125 +1,57 @@
-import { Kind, id, Auto, URIS, Intro, Mix } from '../core';
+import { Kind, id, AnyK } from '../core';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';
 import { Functor, FunctorRequirements } from './functor';
 
-export interface Traversable<F extends URIS, C = Auto>
-  extends Functor<F, C>,
-    Foldable<F, C> {
-  readonly traverse: <G extends URIS>(
+export interface Traversable<F extends AnyK> extends Functor<F>, Foldable<F> {
+  readonly traverse: <G extends AnyK>(
     G: Applicative<G>,
-  ) => <CG, SG, RG, EG, A, B>(
-    f: (a: A) => Kind<G, CG, SG, RG, EG, B>,
-  ) => <S, R, E>(
-    fa: Kind<F, C, S, R, E, A>,
-  ) => Kind<G, CG, SG, RG, E, Kind<F, C, S, R, E, B>>;
-  readonly traverse_: <G extends URIS>(
+  ) => <A, B>(
+    f: (a: A) => Kind<G, [B]>,
+  ) => <S, R, E>(fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+  readonly traverse_: <G extends AnyK>(
     G: Applicative<G>,
-  ) => <C2, S2, R2, E2, S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
-    f: (a: A) => Kind<G, C2, S2, R2, E2, B>,
-  ) => Kind<G, C2, S2, R2, E2, Kind<F, C, S, R, E, B>>;
+  ) => <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => Kind<G, [B]>,
+  ) => Kind<G, [Kind<F, [B]>]>;
 
-  readonly sequence: <G extends URIS>(
+  readonly sequence: <G extends AnyK>(
     G: Applicative<G>,
-  ) => <CG, SG, RG, EG, S, R, E, A>(
-    fga: Kind<F, C, S, R, E, Kind<G, CG, SG, RG, EG, A>>,
-  ) => Kind<G, CG, SG, RG, EG, Kind<F, C, S, R, E, A>>;
+  ) => <CG, A>(fga: Kind<F, [Kind<G, [A]>]>) => Kind<G, [Kind<F, [A]>]>;
 
-  readonly flatTraverse: <G extends URIS>(
+  readonly flatTraverse: <G extends AnyK>(
     F: FlatMap<F>,
     G: Applicative<G>,
-  ) => <CG, SG, RG, EG, S2, R2, E2, A, B>(
-    f: (a: A) => Kind<G, CG, SG, RG, EG, Kind<F, C, S2, R2, E2, B>>,
-  ) => <S, R, E>(
-    fa: Kind<
-      F,
-      C,
-      Intro<C, 'S', S2, S>,
-      Intro<C, 'R', R2, R>,
-      Intro<E, 'E', E2, E>,
-      A
-    >,
-  ) => Kind<
-    G,
-    CG,
-    SG,
-    RG,
-    EG,
-    Kind<
-      F,
-      C,
-      Mix<C, 'S', [S2, S]>,
-      Mix<C, 'R', [R2, R]>,
-      Mix<C, 'E', [E2, E]>,
-      B
-    >
-  >;
-  readonly flatTraverse_: <G extends URIS>(
+  ) => <A, B>(
+    f: (a: A) => Kind<G, [Kind<F, [B]>]>,
+  ) => <S, R, E>(fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+  readonly flatTraverse_: <G extends AnyK>(
     F: FlatMap<F>,
     G: Applicative<G>,
-  ) => <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
-    f: (a: A) => Kind<G, C, S, R, E, Kind<F, C, S, R, E, B>>,
-  ) => Kind<G, C, S, R, E, Kind<F, C, S, R, E, B>>;
+  ) => <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => Kind<G, [Kind<F, [B]>]>,
+  ) => Kind<G, [Kind<F, [B]>]>;
 
-  readonly flatSequence: <G extends URIS>(
+  readonly flatSequence: <G extends AnyK>(
     F: FlatMap<F>,
     G: Applicative<G>,
-  ) => <CG, SG, RG, EG, S2, R2, E2, S, R, E, A>(
-    fgfa: Kind<
-      F,
-      C,
-      S2,
-      R2,
-      E2,
-      Kind<
-        G,
-        CG,
-        SG,
-        RG,
-        EG,
-        Kind<
-          F,
-          C,
-          Intro<C, 'S', S2, S>,
-          Intro<C, 'R', R2, R>,
-          Intro<C, 'E', E2, E>,
-          A
-        >
-      >
-    >,
-  ) => Kind<
-    G,
-    CG,
-    SG,
-    RG,
-    EG,
-    Kind<
-      F,
-      C,
-      Mix<C, 'S', [S2, S]>,
-      Mix<C, 'R', [R2, R]>,
-      Mix<C, 'E', [E2, E]>,
-      A
-    >
-  >;
+  ) => <A>(fgfa: Kind<F, [Kind<G, [Kind<F, [A]>]>]>) => Kind<G, [Kind<F, [A]>]>;
 }
 
-export type TraversableRequirements<T extends URIS, C = Auto> = Pick<
-  Traversable<T, C>,
+export type TraversableRequirements<T extends AnyK> = Pick<
+  Traversable<T>,
   'traverse_'
 > &
-  FoldableRequirements<T, C> &
-  FunctorRequirements<T, C> &
-  Partial<Traversable<T, C>>;
+  FoldableRequirements<T> &
+  FunctorRequirements<T> &
+  Partial<Traversable<T>>;
 
 export const Traversable = Object.freeze({
-  of: <T extends URIS, C = Auto>(
-    T: TraversableRequirements<T, C>,
-  ): Traversable<T, C> => {
-    const self: Traversable<T, C> = {
+  of: <T extends AnyK>(T: TraversableRequirements<T>): Traversable<T> => {
+    const self: Traversable<T> = {
       traverse: G => f => fa => self.traverse_(G)(fa, f),
 
       sequence: G => fga => self.traverse_(G)(fga, id),

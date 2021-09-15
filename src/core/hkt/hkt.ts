@@ -15,11 +15,11 @@ export interface HKT4<F, S, R, E, A> extends HKT3<F, R, E, A> {
   _S: S;
 }
 
-export interface URItoKind<FC, TC, S, R, E, A> {
-  ['HKT1']: HKT<FC, A>;
-  ['HKT2']: HKT2<FC, E, A>;
-  ['HKT3']: HKT3<FC, R, E, A>;
-  ['HKT4']: HKT4<FC, S, R, E, A>;
+export interface URItoKind<Tys extends unknown[]> {
+  ['HKT1']: HKT<'HKT1', Tys[0]>;
+  ['HKT2']: HKT2<'HKT2', Tys[0], Tys[1]>;
+  ['HKT3']: HKT3<'HKT3', Tys[0], Tys[1], Tys[2]>;
+  ['HKT4']: HKT4<'HKT4', Tys[0], Tys[1], Tys[2], Tys[3]>;
 }
 
-export type CoercedURIS = keyof URItoKind<any, any, any, any, any, any>;
+export type URIS = keyof URItoKind<any>;

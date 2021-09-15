@@ -1,4 +1,4 @@
-import { Lazy, URI, V } from '../../../core';
+import { $ } from '../../../core';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
@@ -6,43 +6,34 @@ import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
-import { EitherURI } from './either';
+import { EitherK } from './either';
 import { flatMap_, map_, or_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
-export type Variance = V<'E', '+'> & V<'A', '+'>;
+export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
+  SemigroupK.of({ combineK_: or_ });
 
-export const eitherSemigroupK: Lazy<
-  SemigroupK<[URI<EitherURI, Variance>], Variance>
-> = () => SemigroupK.of({ combineK_: or_ });
+export const eitherFunctor: <E>() => Functor<$<EitherK, [E]>> = () =>
+  Functor.of({ map_ });
 
-export const eitherFunctor: Lazy<
-  Functor<[URI<EitherURI, Variance>], Variance>
-> = () => Functor.of({ map_ });
+export const eitherApply: <E>() => Apply<$<EitherK, [E]>> = () =>
+  Apply.of({
+    ...eitherFunctor(),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+  });
 
-export const eitherApply: Lazy<Apply<[URI<EitherURI, Variance>], Variance>> =
-  () =>
-    Apply.of({
-      ...eitherFunctor(),
-      ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-    });
-
-export const eitherApplicative: Lazy<
-  Applicative<[URI<EitherURI, Variance>], Variance>
-> = () =>
+export const eitherApplicative: <E>() => Applicative<$<EitherK, [E]>> = () =>
   Applicative.of({
     ...eitherApply(),
     pure: pure,
-    unit: () => rightUnit,
+    unit: rightUnit,
   });
 
-export const eitherFlatMap: Lazy<
-  FlatMap<[URI<EitherURI, Variance>], Variance>
-> = () => FlatMap.of({ ...eitherApply(), flatMap_: flatMap_ });
+export const eitherFlatMap: <E>() => FlatMap<$<EitherK, [E]>> = () =>
+  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_ });
 
-export const eitherMonad: Lazy<Monad<[URI<EitherURI, Variance>], Variance>> =
-  () =>
-    Monad.of({
-      ...eitherApplicative(),
-      ...eitherFlatMap(),
-    });
+export const eitherMonad: <E>() => Monad<$<EitherK, [E]>> = () =>
+  Monad.of({
+    ...eitherApplicative(),
+    ...eitherFlatMap(),
+  });

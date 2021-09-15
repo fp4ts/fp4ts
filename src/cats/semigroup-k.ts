@@ -1,44 +1,21 @@
 import { Semigroup } from './semigroup';
-import { Auto, Base, instance, Intro, Kind, Mix, URIS } from '../core';
+import { Base, instance, Kind, AnyK } from '../core';
 
-export interface SemigroupK<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly combineK: <S2, R2, E2, A>(
-    y: Kind<F, C, S2, R2, E2, A>,
-  ) => <S, R, E>(
-    x: Kind<
-      F,
-      C,
-      Intro<C, 'S', S2, S>,
-      Intro<C, 'R', R2, R>,
-      Intro<C, 'E', E2, E>,
-      A
-    >,
-  ) => Kind<
-    F,
-    C,
-    Mix<C, 'S', [S2, S]>,
-    Mix<C, 'R', [R2, R]>,
-    Mix<C, 'E', [E2, E]>,
-    A
-  >;
-  readonly combineK_: <S, R, E, A>(
-    x: Kind<F, C, S, R, E, A>,
-    y: Kind<F, C, S, R, E, A>,
-  ) => Kind<F, C, S, R, E, A>;
+export interface SemigroupK<F extends AnyK> extends Base<F> {
+  readonly combineK: <A>(y: Kind<F, [A]>) => (x: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly combineK_: <A>(x: Kind<F, [A]>, y: Kind<F, [A]>) => Kind<F, [A]>;
 
-  readonly algebra: <S, R, E, A>() => Semigroup<Kind<F, C, S, R, E, A>>;
+  readonly algebra: <A>() => Semigroup<Kind<F, [A]>>;
 }
 
-export type SemigroupKRequirements<F extends URIS, C = Auto> = Pick<
-  SemigroupK<F, C>,
+export type SemigroupKRequirements<F extends AnyK> = Pick<
+  SemigroupK<F>,
   'combineK_'
 > &
-  Partial<SemigroupK<F, C>>;
+  Partial<SemigroupK<F>>;
 export const SemigroupK = Object.freeze({
-  of: <F extends URIS, C = Auto>(
-    F: SemigroupKRequirements<F, C>,
-  ): SemigroupK<F, C> =>
-    instance<SemigroupK<F, C>>({
+  of: <F extends AnyK>(F: SemigroupKRequirements<F>): SemigroupK<F> =>
+    instance<SemigroupK<F>>({
       combineK: y => x => F.combineK_(x, y),
       algebra: () => ({
         combine: F.combineK ?? (y => x => F.combineK_(y, x)),

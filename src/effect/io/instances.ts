@@ -1,4 +1,4 @@
-import { instance, Lazy, URI } from '../../core';
+import { instance, Lazy } from '../../core';
 import {
   Functor,
   Apply,
@@ -17,7 +17,7 @@ import {
   Temporal,
 } from '../kernel';
 
-import { IoURI } from './io';
+import { IoK } from './io';
 import { IO } from './algebra';
 import {
   async,
@@ -66,15 +66,14 @@ import {
   timeout_,
 } from './operators';
 
-export const ioDefer: Lazy<Defer<[URI<IoURI>]>> = () =>
-  instance<Defer<[URI<IoURI>]>>({
+export const ioDefer: Lazy<Defer<IoK>> = () =>
+  instance<Defer<IoK>>({
     defer: defer,
   });
 
-export const ioFunctor: Lazy<Functor<[URI<IoURI>]>> = () =>
-  Functor.of({ map_, tap_ });
+export const ioFunctor: Lazy<Functor<IoK>> = () => Functor.of({ map_, tap_ });
 
-export const ioParallelApply: Lazy<Apply<[URI<IoURI>]>> = () =>
+export const ioParallelApply: Lazy<Apply<IoK>> = () =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => map2_(ff, fa, (f, a) => f(a)),
@@ -84,27 +83,27 @@ export const ioParallelApply: Lazy<Apply<[URI<IoURI>]>> = () =>
         map2_(fa, fb, f),
   });
 
-export const ioParallelApplicative: Lazy<Applicative<[URI<IoURI>]>> = () =>
+export const ioParallelApplicative: Lazy<Applicative<IoK>> = () =>
   Applicative.of({
     ...ioParallelApply(),
     pure: pure,
-    unit: () => unit,
+    unit,
   });
 
-export const ioSequentialApply: Lazy<Apply<[URI<IoURI>]>> = () =>
+export const ioSequentialApply: Lazy<Apply<IoK>> = () =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   });
 
-export const ioSequentialApplicative: Lazy<Applicative<[URI<IoURI>]>> = () =>
+export const ioSequentialApplicative: Lazy<Applicative<IoK>> = () =>
   Applicative.of({
     ...ioSequentialApply(),
     pure: pure,
-    unit: () => unit,
+    unit,
   });
 
-export const ioFlatMap: Lazy<FlatMap<[URI<IoURI>]>> = () =>
+export const ioFlatMap: Lazy<FlatMap<IoK>> = () =>
   FlatMap.of({
     ...ioSequentialApply(),
     flatMap_: flatMap_,
@@ -112,13 +111,13 @@ export const ioFlatMap: Lazy<FlatMap<[URI<IoURI>]>> = () =>
     flatten: flatten,
   });
 
-export const ioMonad: Lazy<Monad<[URI<IoURI>]>> = () =>
+export const ioMonad: Lazy<Monad<IoK>> = () =>
   Monad.of({
     ...ioSequentialApplicative(),
     ...ioFlatMap(),
   });
 
-export const ioMonadError: Lazy<MonadError<[URI<IoURI>], Error>> = () => ({
+export const ioMonadError: Lazy<MonadError<IoK, Error>> = () => ({
   ...ioMonad(),
   throwError: throwError,
   handleError: handleError,
@@ -129,7 +128,7 @@ export const ioMonadError: Lazy<MonadError<[URI<IoURI>], Error>> = () => ({
   redeemWith: redeemWith,
 });
 
-export const ioMonadCancel: Lazy<MonadCancel<[URI<IoURI>], Error>> = () => ({
+export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = () => ({
   ...ioMonadError(),
   uncancelable: uncancelable,
   onCancel: onCancel,
@@ -139,13 +138,13 @@ export const ioMonadCancel: Lazy<MonadCancel<[URI<IoURI>], Error>> = () => ({
   bracketFull: acquire => use => release => bracketFull(acquire, use, release),
 });
 
-export const ioSync: Lazy<Sync<[URI<IoURI>]>> = () => ({
+export const ioSync: Lazy<Sync<IoK>> = () => ({
   ...ioMonadError(),
   ...ioDefer(),
   delay: delay,
 });
 
-export const ioSpawn: Lazy<Spawn<[URI<IoURI>], Error>> = () => ({
+export const ioSpawn: Lazy<Spawn<IoK, Error>> = () => ({
   ...ioMonadCancel(),
   applicative: ioParallelApplicative(),
   fork: fork,
@@ -158,7 +157,7 @@ export const ioSpawn: Lazy<Spawn<[URI<IoURI>], Error>> = () => ({
   bothOutcome: bothOutcome_,
 });
 
-export const ioConcurrent: Lazy<Concurrent<[URI<IoURI>], Error>> = () => ({
+export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = () => ({
   ...ioSpawn(),
   parTraverse: parTraverse,
   parSequence: parSequence,
@@ -167,7 +166,7 @@ export const ioConcurrent: Lazy<Concurrent<[URI<IoURI>], Error>> = () => ({
   parSequenceN: parSequenceN,
 });
 
-export const ioTemporal: Lazy<Temporal<[URI<IoURI>], Error>> = () => ({
+export const ioTemporal: Lazy<Temporal<IoK, Error>> = () => ({
   ...ioConcurrent(),
   sleep: sleep,
   delayBy: delayBy_,
@@ -175,7 +174,7 @@ export const ioTemporal: Lazy<Temporal<[URI<IoURI>], Error>> = () => ({
   timeout: timeout_,
 });
 
-export const ioAsync: Lazy<Async<[URI<IoURI>]>> = () => ({
+export const ioAsync: Lazy<Async<IoK>> = () => ({
   ...ioSync(),
   ...ioTemporal(),
   async: async,

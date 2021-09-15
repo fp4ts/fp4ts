@@ -1,57 +1,50 @@
-import { Kind, id, Auto, URIS } from '../core';
+import { Kind, id, AnyK } from '../core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 
-export interface FunctorFilter<F extends URIS, C = Auto> extends Functor<F, C> {
+export interface FunctorFilter<F extends AnyK> extends Functor<F> {
   readonly mapFilter: <A, B>(
     f: (a: A) => Option<B>,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
-  readonly mapFilter_: <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly mapFilter_: <A, B>(
+    fa: Kind<F, [A]>,
     f: (a: A) => Option<B>,
-  ) => Kind<F, C, S, R, E, B>;
+  ) => Kind<F, [B]>;
 
   readonly collect: <A, B>(
     f: (a: A) => Option<B>,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
-  readonly collect_: <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly collect_: <A, B>(
+    fa: Kind<F, [A]>,
     f: (a: A) => Option<B>,
-  ) => Kind<F, C, S, R, E, B>;
+  ) => Kind<F, [B]>;
 
-  readonly flattenOption: <S, R, E, A>(
-    ffa: Kind<F, C, S, R, E, Option<A>>,
-  ) => Kind<F, C, S, R, E, A>;
+  readonly flattenOption: <A>(ffa: Kind<F, [Option<A>]>) => Kind<F, [A]>;
 
   readonly filter: <A>(
     p: (a: A) => boolean,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
-  readonly filter_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-    p: (a: A) => boolean,
-  ) => Kind<F, C, S, R, E, A>;
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly filter_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => Kind<F, [A]>;
 
   readonly filterNot: <A>(
     p: (a: A) => boolean,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
-  readonly filterNot_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly filterNot_: <A>(
+    fa: Kind<F, [A]>,
     p: (a: A) => boolean,
-  ) => Kind<F, C, S, R, E, A>;
+  ) => Kind<F, [A]>;
 }
 
-export type FunctorFilterRequirements<F extends URIS, C = Auto> = Pick<
-  FunctorFilter<F, C>,
+export type FunctorFilterRequirements<F extends AnyK> = Pick<
+  FunctorFilter<F>,
   'mapFilter_'
 > &
-  FunctorRequirements<F, C> &
-  Partial<FunctorFilter<F, C>>;
+  FunctorRequirements<F> &
+  Partial<FunctorFilter<F>>;
 
 export const FunctorFilter = Object.freeze({
-  of: <F extends URIS, C = Auto>(
-    F: FunctorFilterRequirements<F, C>,
-  ): FunctorFilter<F, C> => {
-    const self: FunctorFilter<F, C> = {
+  of: <F extends AnyK>(F: FunctorFilterRequirements<F>): FunctorFilter<F> => {
+    const self: FunctorFilter<F> = {
       mapFilter: f => fa => self.mapFilter_(fa, f),
 
       collect: f => fa => self.mapFilter_(fa, f),
@@ -65,7 +58,7 @@ export const FunctorFilter = Object.freeze({
       filterNot: f => fa => self.filterNot_(fa, f),
       filterNot_: (fa, p) => self.filter_(fa, x => !p(x)),
 
-      ...Functor.of<F, C>(F),
+      ...Functor.of<F>(F),
       ...F,
     };
     return self;

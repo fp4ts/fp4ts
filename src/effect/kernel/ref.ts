@@ -1,35 +1,29 @@
-import { Auto, Kind, Fix, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 import { Sync } from './sync';
 
-export class Ref<F extends URIS, A, C = Auto> {
+export class Ref<F extends AnyK, A> {
   // @ts-ignore
   private readonly __void: void;
 
-  private constructor(private readonly F: Sync<F, C>, private value: A) {}
+  private constructor(private readonly F: Sync<F>, private value: A) {}
 
-  public readonly get: <S, R>() => Kind<F, C, S, R, Error, A> = () =>
+  public readonly get: () => Kind<F, [A]> = () =>
     this.F.delay(() => this.value);
 
-  public readonly set: <S, R>(a: A) => Kind<F, C, S, R, Error, void> = x =>
+  public readonly set: (a: A) => Kind<F, [void]> = x =>
     this.F.delay(() => {
       this.value = x;
     });
 
-  public readonly update: <S, R>(
-    f: (a: A) => A,
-  ) => Kind<F, C, S, R, Error, void> = f =>
+  public readonly update: (f: (a: A) => A) => Kind<F, [void]> = f =>
     this.F.delay(() => {
       this.value = f(this.value);
     });
 
-  public readonly updateAndGet: <S, R>(
-    f: (a: A) => A,
-  ) => Kind<F, C, S, R, Error, A> = f =>
+  public readonly updateAndGet: (f: (a: A) => A) => Kind<F, [A]> = f =>
     this.F.delay(() => (this.value = f(this.value)));
 
-  public readonly modify: <S, R, B>(
-    f: (a: A) => [A, B],
-  ) => Kind<F, C, S, R, Error, B> = f =>
+  public readonly modify: <B>(f: (a: A) => [A, B]) => Kind<F, [B]> = f =>
     this.F.delay(() => {
       const [x, r] = f(this.value);
       this.value = x;
@@ -37,64 +31,53 @@ export class Ref<F extends URIS, A, C = Auto> {
     });
 
   public static readonly of =
-    <F extends URIS, C = Auto>(F: Sync<F, C>) =>
-    <S, R, B>(
-      x: B,
-    ): Kind<F, C, S, R, Error, Ref<F, B, C & Fix<'S', S> & Fix<'R', R>>> =>
+    <F extends AnyK>(F: Sync<F>) =>
+    <B>(x: B): Kind<F, [Ref<F, B>]> =>
       F.delay(() => new Ref(F, x));
 }
 
 // Point-free
 
-export const of: <F extends URIS, C = Auto>(
-  F: Sync<F, C>,
-) => <S, R, A>(
-  a: A,
-) => Kind<F, C, S, R, Error, Ref<F, A, C & Fix<'S', S> & Fix<'R', R>>> = F =>
-  Ref.of(F);
+export const of: <F extends AnyK>(
+  F: Sync<F>,
+) => <A>(a: A) => Kind<F, [Ref<F, A>]> = F => Ref.of(F);
 
-export const get: <F extends URIS, C, S, R, A>(
-  ra: Ref<F, A, C>,
-) => Kind<F, C, S, R, Error, A> = ra => ra.get();
+export const get: <F extends AnyK, A>(ra: Ref<F, A>) => Kind<F, [A]> = ra =>
+  ra.get();
 
 export const set: <A>(
   a: A,
-) => <F extends URIS, C, S, R>(
-  ra: Ref<F, A, C>,
-) => Kind<F, C, S, R, Error, void> = a => ra => set_(ra, a);
+) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [void]> = a => ra =>
+  set_(ra, a);
 
 export const update: <A>(
   f: (a: A) => A,
-) => <F extends URIS, C, S, R>(
-  ra: Ref<F, A, C>,
-) => Kind<F, C, S, R, Error, void> = f => ra => update_(ra, f);
+) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [void]> = f => ra =>
+  update_(ra, f);
 
 export const updateAndGet: <A>(
   f: (a: A) => A,
-) => <F extends URIS, C, S, R>(
-  ref: Ref<F, A, C>,
-) => Kind<F, C, S, R, Error, A> = f => ra => updateAndGet_(ra, f);
+) => <F extends AnyK, C, S, R>(ref: Ref<F, A>) => Kind<F, [A]> = f => ra =>
+  updateAndGet_(ra, f);
 
 export const modify: <A, B>(
   f: (a: A) => [A, B],
-) => <F extends URIS, C, S, R>(ra: Ref<F, A, C>) => Kind<F, C, S, R, Error, B> =
-  f => ra => modify_(ra, f);
+) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [B]> = f => ra =>
+  modify_(ra, f);
 
 // Point-ful
 
-export const set_: <F extends URIS, C, S, R, A>(
-  ra: Ref<F, A, C>,
-  a: A,
-) => Kind<F, C, S, R, Error, void> = (ra, a) => ra.set(a);
-export const update_: <F extends URIS, C, S, R, A>(
-  ra: Ref<F, A, C>,
+export const set_: <F extends AnyK, A>(ra: Ref<F, A>, a: A) => Kind<F, [void]> =
+  (ra, a) => ra.set(a);
+export const update_: <F extends AnyK, A>(
+  ra: Ref<F, A>,
   f: (a: A) => A,
-) => Kind<F, C, S, R, Error, void> = (ra, f) => ra.update(f);
-export const updateAndGet_: <F extends URIS, C, S, R, A>(
-  ra: Ref<F, A, C>,
+) => Kind<F, [void]> = (ra, f) => ra.update(f);
+export const updateAndGet_: <F extends AnyK, A>(
+  ra: Ref<F, A>,
   f: (a: A) => A,
-) => Kind<F, C, S, R, Error, A> = (ra, f) => ra.updateAndGet(f);
-export const modify_: <F extends URIS, C, S, R, A, B>(
-  ra: Ref<F, A, C>,
+) => Kind<F, [A]> = (ra, f) => ra.updateAndGet(f);
+export const modify_: <F extends AnyK, A, B>(
+  ra: Ref<F, A>,
   f: (a: A) => [A, B],
-) => Kind<F, C, S, R, Error, B> = (ra, f) => ra.modify(f);
+) => Kind<F, [B]> = (ra, f) => ra.modify(f);

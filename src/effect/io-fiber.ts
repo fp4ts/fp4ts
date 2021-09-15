@@ -1,4 +1,4 @@
-import { flow, id, pipe, URI } from '../core';
+import { flow, id, pipe } from '../core';
 import { Either, Left, Right, Some } from '../cats/data';
 
 import { IO } from './io';
@@ -7,10 +7,10 @@ import { ExecutionContext } from './execution-context';
 import * as F from './kernel/fiber';
 import { Poll } from './kernel/poll';
 
-import { IoURI } from './io';
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
 import { IOOutcome } from './io-outcome';
+import { IoK } from './io/io';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -19,7 +19,7 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
+export class IOFiber<A> implements F.Fiber<IoK, Error, A> {
   private outcome?: IOOutcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
@@ -56,10 +56,7 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
     return this._join;
   }
 
-  public joinWith<B>(
-    this: F.Fiber<[URI<IoURI>], Error, B>,
-    onCancel: IO<B>,
-  ): IO<B> {
+  public joinWith<B>(this: F.Fiber<IoK, Error, B>, onCancel: IO<B>): IO<B> {
     return this.join.flatMap(oc =>
       oc.fold(() => onCancel, IO.throwError as (e: Error) => IO<B>, id),
     );
@@ -222,8 +219,7 @@ export class IOFiber<A> implements F.Fiber<[URI<IoURI>], Error, A> {
           this.masks += 1;
           const id = this.masks;
 
-          const poll: Poll<[URI<IoURI>]> = iob =>
-            new IOA.UnmaskRunLoop(iob, id, this);
+          const poll: Poll<IoK> = iob => new IOA.UnmaskRunLoop(iob, id, this);
 
           this.conts.push(IOA.Continuation.UncancelableK);
           _cur = cur.body(poll);

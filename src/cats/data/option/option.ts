@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { TyK, _ } from '../../../core';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
 import { Alternative } from '../../alternative';
@@ -12,7 +12,6 @@ import { Either } from '../either';
 import { Option as OptionBase } from './algebra';
 import { fromEither, fromNullable, none, pure, some } from './constructors';
 import {
-  Variance,
   optionAlternative,
   optionApplicative,
   optionApply,
@@ -46,14 +45,14 @@ export interface OptionObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<[URI<OptionURI, Variance>], Variance>;
-  readonly MonoidK: MonoidK<[URI<OptionURI, Variance>], Variance>;
-  readonly Functor: Functor<[URI<OptionURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<OptionURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<OptionURI, Variance>], Variance>;
-  readonly Alternative: Alternative<[URI<OptionURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<OptionURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<OptionURI, Variance>], Variance>;
+  readonly SemigroupK: SemigroupK<OptionK>;
+  readonly MonoidK: MonoidK<OptionK>;
+  readonly Functor: Functor<OptionK>;
+  readonly Apply: Apply<OptionK>;
+  readonly Applicative: Applicative<OptionK>;
+  readonly Alternative: Alternative<OptionK>;
+  readonly FlatMap: FlatMap<OptionK>;
+  readonly Monad: Monad<OptionK>;
 }
 
 Option.pure = pure;
@@ -63,42 +62,42 @@ Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 
 Object.defineProperty(Option, 'SemigroupK', {
-  get(): SemigroupK<[URI<OptionURI, Variance>], Variance> {
+  get(): SemigroupK<OptionK> {
     return optionSemigroupK();
   },
 });
 Object.defineProperty(Option, 'MonoidK', {
-  get(): MonoidK<[URI<OptionURI, Variance>], Variance> {
+  get(): MonoidK<OptionK> {
     return optionMonoidK();
   },
 });
 Object.defineProperty(Option, 'Functor', {
-  get(): Functor<[URI<OptionURI, Variance>], Variance> {
+  get(): Functor<OptionK> {
     return optionFunctor();
   },
 });
 Object.defineProperty(Option, 'Apply', {
-  get(): Apply<[URI<OptionURI, Variance>], Variance> {
+  get(): Apply<OptionK> {
     return optionApply();
   },
 });
 Object.defineProperty(Option, 'Applicative', {
-  get(): Applicative<[URI<OptionURI, Variance>], Variance> {
+  get(): Applicative<OptionK> {
     return optionApplicative();
   },
 });
 Object.defineProperty(Option, 'Alternative', {
-  get(): Alternative<[URI<OptionURI, Variance>], Variance> {
+  get(): Alternative<OptionK> {
     return optionAlternative();
   },
 });
 Object.defineProperty(Option, 'FlatMap', {
-  get(): FlatMap<[URI<OptionURI, Variance>], Variance> {
+  get(): FlatMap<OptionK> {
     return optionFlatMap();
   },
 });
 Object.defineProperty(Option, 'Monad', {
-  get(): Monad<[URI<OptionURI, Variance>], Variance> {
+  get(): Monad<OptionK> {
     return optionMonad();
   },
 });
@@ -107,9 +106,10 @@ Object.defineProperty(Option, 'Monad', {
 
 export const OptionURI = 'cats/data/option';
 export type OptionURI = typeof OptionURI;
+export type OptionK = TyK<OptionURI, [_]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [OptionURI]: Option<A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [OptionURI]: Option<Tys[0]>;
   }
 }

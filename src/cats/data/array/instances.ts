@@ -1,4 +1,3 @@
-import { URI } from '../../../core';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
@@ -11,7 +10,7 @@ import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 import { FunctorFilter } from '../../functor-filter';
 
-import { ArrayURI } from './array';
+import { ArrayK } from './array';
 import {
   all_,
   any_,
@@ -31,43 +30,42 @@ import {
 } from './operators';
 import { empty, pure } from './constructors';
 
-export const arraySemigroupK: () => SemigroupK<[URI<ArrayURI>]> = () =>
+export const arraySemigroupK: () => SemigroupK<ArrayK> = () =>
   SemigroupK.of({ combineK_: concat_ });
 
-export const arrayMonoidK: () => MonoidK<[URI<ArrayURI>]> = () => {
+export const arrayMonoidK: () => MonoidK<ArrayK> = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { algebra, ...rest } = arraySemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
 };
 
-export const arrayFunctor: () => Functor<[URI<ArrayURI>]> = () =>
-  Functor.of({ map_ });
+export const arrayFunctor: () => Functor<ArrayK> = () => Functor.of({ map_ });
 
-export const arrayFilterFunctor: () => FunctorFilter<[URI<ArrayURI>]> = () =>
+export const arrayFilterFunctor: () => FunctorFilter<ArrayK> = () =>
   FunctorFilter.of({
     ...arrayFunctor(),
     mapFilter_: collect_,
   });
 
-export const arrayApply: () => Apply<[URI<ArrayURI>]> = () =>
-  Apply.of({
+export const arrayApply: () => Apply<ArrayK> = () =>
+  Apply.of<ArrayK>({
     ...arrayFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
   });
 
-export const arrayApplicative: () => Applicative<[URI<ArrayURI>]> = () =>
-  Applicative.of({ ...arrayApply(), pure: pure, unit: () => [] });
+export const arrayApplicative: () => Applicative<ArrayK> = () =>
+  Applicative.of({ ...arrayApply(), pure: pure, unit: [] });
 
-export const arrayFlatMap: () => FlatMap<[URI<ArrayURI>]> = () =>
+export const arrayFlatMap: () => FlatMap<ArrayK> = () =>
   FlatMap.of({ ...arrayApply(), flatMap_: flatMap_ });
 
-export const arrayMonad: () => Monad<[URI<ArrayURI>]> = () =>
+export const arrayMonad: () => Monad<ArrayK> = () =>
   Monad.of({
     ...arrayApplicative(),
     ...arrayFlatMap(),
   });
 
-export const arrayFoldable: () => Foldable<[URI<ArrayURI>]> = () =>
+export const arrayFoldable: () => Foldable<ArrayK> = () =>
   Foldable.of({
     all_: all_,
     any_: any_,
@@ -83,7 +81,7 @@ export const arrayFoldable: () => Foldable<[URI<ArrayURI>]> = () =>
     size: size,
   });
 
-export const arrayTraversable: () => Traversable<[URI<ArrayURI>]> = () =>
+export const arrayTraversable: () => Traversable<ArrayK> = () =>
   Traversable.of({
     ...arrayFunctor(),
     ...arrayFoldable(),

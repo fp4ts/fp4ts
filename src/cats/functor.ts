@@ -1,31 +1,18 @@
-import { Auto, Base, instance, Kind, URIS } from '../core';
+import { Base, instance, Kind, AnyK } from '../core';
 
-export interface Functor<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly map: <A, B>(
-    f: (a: A) => B,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, B>;
-  readonly map_: <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
-    f: (a: A) => B,
-  ) => Kind<F, C, S, R, E, B>;
+export interface Functor<F extends AnyK> extends Base<F> {
+  readonly map: <A, B>(f: (a: A) => B) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly map_: <A, B>(fa: Kind<F, [A]>, f: (a: A) => B) => Kind<F, [B]>;
 
-  readonly tap: <A>(
-    f: (a: A) => unknown,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => Kind<F, C, S, R, E, A>;
-  readonly tap_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-    f: (a: A) => unknown,
-  ) => Kind<F, C, S, R, E, A>;
+  readonly tap: <A>(f: (a: A) => unknown) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly tap_: <A>(fa: Kind<F, [A]>, f: (a: A) => unknown) => Kind<F, [A]>;
 }
 
-export type FunctorRequirements<F extends URIS, C = Auto> = Pick<
-  Functor<F, C>,
-  'map_'
-> &
-  Partial<Functor<F, C>>;
+export type FunctorRequirements<F extends AnyK> = Pick<Functor<F>, 'map_'> &
+  Partial<Functor<F>>;
 export const Functor = Object.freeze({
-  of: <F extends URIS, C = Auto>(F: FunctorRequirements<F, C>): Functor<F, C> =>
-    instance<Functor<F, C>>({
+  of: <F extends AnyK>(F: FunctorRequirements<F>): Functor<F> =>
+    instance<Functor<F>>({
       map: f => fa => F.map_(fa, f),
       tap: f => fa => F.map_(fa, x => (f(x), x)),
       tap_: (fa, f) => F.map_(fa, x => (f(x), x)),

@@ -1,7 +1,5 @@
-import { Auto, Base, Kind, URIS } from '../core';
+import { Base, Kind, AnyK } from '../core';
 
-export interface Defer<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly defer: <S, R, E, A>(
-    fa: () => Kind<F, C, S, R, E, A>,
-  ) => Kind<F, C, S, R, E, A>;
+export interface Defer<F extends AnyK> extends Base<F> {
+  readonly defer: <A>(fa: () => Kind<F, [A]>) => Kind<F, [A]>;
 }

@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { $, TyK, _ } from '../../../core';
 import { PrimitiveType } from '../../../fp/primitive-type';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
@@ -10,11 +10,10 @@ import { Hashable, primitiveMD5Hashable } from '../../hashable';
 import { Empty, Map as MapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
 import {
-  Variance,
   mapFoldable,
   mapFunctor,
   mapFunctorFilter,
-  mapTraversable2,
+  mapTraversable,
 } from './instances';
 
 export const Map: MapObj = function <K extends PrimitiveType, V>(
@@ -44,10 +43,10 @@ export interface MapObj {
 
   // -- Instances
 
-  readonly Functor: Functor<[URI<MapURI, Variance>], Variance>;
-  readonly FunctorFilter: FunctorFilter<[URI<MapURI, Variance>], Variance>;
-  readonly Foldable: Foldable<[URI<MapURI, Variance>], Variance>;
-  readonly Traversable: Traversable<[URI<MapURI, Variance>], Variance>;
+  Functor<K>(): Functor<$<MapK, [K]>>;
+  FunctorFilter<K>(): FunctorFilter<$<MapK, [K]>>;
+  Foldable<K>(): Foldable<$<MapK, [K]>>;
+  Traversable<K>(): Traversable<$<MapK, [K]>>;
 }
 
 Map.empty = Empty;
@@ -55,34 +54,19 @@ Map.of = of;
 Map.fromArray = fromArray;
 Map.fromList = fromList;
 
-Object.defineProperty(Map, 'Functor', {
-  get(): Functor<[URI<MapURI, Variance>], Variance> {
-    return mapFunctor();
-  },
-});
-Object.defineProperty(Map, 'FunctorFilter', {
-  get(): FunctorFilter<[URI<MapURI, Variance>], Variance> {
-    return mapFunctorFilter();
-  },
-});
-Object.defineProperty(Map, 'Foldable', {
-  get(): Foldable<[URI<MapURI, Variance>], Variance> {
-    return mapFoldable();
-  },
-});
-Object.defineProperty(Map, 'Traversable', {
-  get(): Traversable<[URI<MapURI, Variance>], Variance> {
-    return mapTraversable2();
-  },
-});
+Map.Functor = mapFunctor;
+Map.FunctorFilter = mapFunctorFilter;
+Map.Foldable = mapFoldable;
+Map.Traversable = mapTraversable;
 
 // HKT
 
 export const MapURI = 'cats/data/map';
 export type MapURI = typeof MapURI;
+export type MapK = TyK<MapURI, [_, _]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [MapURI]: Map<E, A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [MapURI]: Map<Tys[0], Tys[1]>;
   }
 }

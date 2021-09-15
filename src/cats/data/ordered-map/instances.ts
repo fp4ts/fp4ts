@@ -1,10 +1,10 @@
-import { Lazy, URI, V } from '../../../core';
+import { $ } from '../../../core';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
-import { OrderedMapURI } from './ordered-map';
+import { OrderedMapK } from './ordered-map';
 import {
   all_,
   any_,
@@ -21,23 +21,18 @@ import {
   traverse_,
 } from './operators';
 
-export type Variance = V<'E', '+'> & V<'A', '+'>;
+export const orderedMapFunctor: <K>() => Functor<$<OrderedMapK, [K]>> = () =>
+  Functor.of({ map_ });
 
-export const orderedMapFunctor: Lazy<
-  Functor<[URI<OrderedMapURI, Variance>], Variance>
-> = () => Functor.of({ map_ });
-
-export const orderedMapFunctorFilter: Lazy<
-  FunctorFilter<[URI<OrderedMapURI, Variance>], Variance>
+export const orderedMapFunctorFilter: <K>() => FunctorFilter<
+  $<OrderedMapK, [K]>
 > = () =>
   FunctorFilter.of({
     ...orderedMapFunctor(),
     mapFilter_: collect_,
   });
 
-export const orderedMapFoldable: Lazy<
-  Foldable<[URI<OrderedMapURI, Variance>], Variance>
-> = () =>
+export const orderedMapFoldable: <K>() => Foldable<$<OrderedMapK, [K]>> = () =>
   Foldable.of({
     foldLeft_: foldLeft_,
     foldRight_: foldRight_,
@@ -50,13 +45,12 @@ export const orderedMapFoldable: Lazy<
     size: size,
   });
 
-export const orderedMapTraversable: Lazy<
-  Traversable<[URI<OrderedMapURI, Variance>], Variance>
-> = () =>
-  Traversable.of({
-    ...orderedMapFunctor(),
-    ...orderedMapFoldable(),
+export const orderedMapTraversable: <K>() => Traversable<$<OrderedMapK, [K]>> =
+  () =>
+    Traversable.of({
+      ...orderedMapFunctor(),
+      ...orderedMapFoldable(),
 
-    traverse_: traverse_,
-    sequence: sequence,
-  });
+      traverse_: traverse_,
+      sequence: sequence,
+    });

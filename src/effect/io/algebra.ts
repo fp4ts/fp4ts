@@ -1,6 +1,5 @@
-import { IoURI } from './io';
+import { IoK } from './io';
 import { Either, Option } from '../../cats/data';
-import { URI } from '../../core';
 import { ExecutionContext } from '../execution-context';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
@@ -132,7 +131,7 @@ export type Canceled = typeof Canceled;
 
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 'uncancelable';
-  public constructor(public readonly body: (p: Poll<[URI<IoURI>]>) => IO<A>) {
+  public constructor(public readonly body: (p: Poll<IoK>) => IO<A>) {
     super();
   }
 }

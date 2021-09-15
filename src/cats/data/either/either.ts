@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { $, TyK, _ } from '../../../core';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
@@ -9,7 +9,6 @@ import { Monad } from '../../monad';
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';
 import {
-  Variance,
   eitherApplicative,
   eitherApply,
   eitherFlatMap,
@@ -35,12 +34,12 @@ export interface EitherObj {
   rightUnit: Either<never, void>;
 
   // -- Instances
-  readonly SemigroupK: SemigroupK<[URI<EitherURI, Variance>], Variance>;
-  readonly Functor: Functor<[URI<EitherURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<EitherURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<EitherURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<EitherURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<EitherURI, Variance>], Variance>;
+  SemigroupK<E>(): SemigroupK<$<EitherK, [E]>>;
+  Functor<E>(): Functor<$<EitherK, [E]>>;
+  Apply<E>(): Apply<$<EitherK, [E]>>;
+  Applicative<E>(): Applicative<$<EitherK, [E]>>;
+  FlatMap<E>(): FlatMap<$<EitherK, [E]>>;
+  Monad<E>(): Monad<$<EitherK, [E]>>;
 }
 
 Either.right = right;
@@ -48,44 +47,21 @@ Either.left = left;
 Either.pure = pure;
 Either.rightUnit = rightUnit;
 
-Object.defineProperty(Either, 'SemigroupK', {
-  get(): SemigroupK<[URI<EitherURI, Variance>], Variance> {
-    return eitherSemigroupK();
-  },
-});
-Object.defineProperty(Either, 'Functor', {
-  get(): Functor<[URI<EitherURI, Variance>], Variance> {
-    return eitherFunctor();
-  },
-});
-Object.defineProperty(Either, 'Apply', {
-  get(): Apply<[URI<EitherURI, Variance>], Variance> {
-    return eitherApply();
-  },
-});
-Object.defineProperty(Either, 'Applicative', {
-  get(): Applicative<[URI<EitherURI, Variance>], Variance> {
-    return eitherApplicative();
-  },
-});
-Object.defineProperty(Either, 'FlatMap', {
-  get(): FlatMap<[URI<EitherURI, Variance>], Variance> {
-    return eitherFlatMap();
-  },
-});
-Object.defineProperty(Either, 'Monad', {
-  get(): Monad<[URI<EitherURI, Variance>], Variance> {
-    return eitherMonad();
-  },
-});
+Either.SemigroupK = eitherSemigroupK;
+Either.Functor = eitherFunctor;
+Either.Apply = eitherApply;
+Either.Applicative = eitherApplicative;
+Either.FlatMap = eitherFlatMap;
+Either.Monad = eitherMonad;
 
 // HKT
 
 export const EitherURI = 'cats/data/either';
 export type EitherURI = typeof EitherURI;
+export type EitherK = TyK<EitherURI, [_, _]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [EitherURI]: Either<E, A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [EitherURI]: Either<Tys[0], Tys[1]>;
   }
 }

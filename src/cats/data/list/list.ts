@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { TyK, _ } from '../../../core';
 
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
@@ -15,7 +15,6 @@ import { Traversable } from '../../traversable';
 import { List as ListBase } from './algebra';
 import { empty, fromArray, of, pure } from './constructors';
 import {
-  Variance,
   listApplicative,
   listApply,
   listFoldable,
@@ -45,17 +44,17 @@ interface ListObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<[URI<ListURI, Variance>], Variance>;
-  readonly MonoidK: MonoidK<[URI<ListURI, Variance>], Variance>;
-  readonly Functor: Functor<[URI<ListURI, Variance>], Variance>;
-  readonly FunctorFilter: FunctorFilter<[URI<ListURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<ListURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<ListURI, Variance>], Variance>;
-  readonly Alternative: Alternative<[URI<ListURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<ListURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<ListURI, Variance>], Variance>;
-  readonly Foldable: Foldable<[URI<ListURI, Variance>], Variance>;
-  readonly Traversable: Traversable<[URI<ListURI, Variance>], Variance>;
+  readonly SemigroupK: SemigroupK<ListK>;
+  readonly MonoidK: MonoidK<ListK>;
+  readonly Functor: Functor<ListK>;
+  readonly FunctorFilter: FunctorFilter<ListK>;
+  readonly Apply: Apply<ListK>;
+  readonly Applicative: Applicative<ListK>;
+  readonly Alternative: Alternative<ListK>;
+  readonly FlatMap: FlatMap<ListK>;
+  readonly Monad: Monad<ListK>;
+  readonly Foldable: Foldable<ListK>;
+  readonly Traversable: Traversable<ListK>;
 }
 
 List.pure = pure;
@@ -64,57 +63,57 @@ List.of = of;
 List.fromArray = fromArray;
 
 Object.defineProperty(List, 'SemigroupK', {
-  get(): SemigroupK<[URI<ListURI, Variance>], Variance> {
+  get(): SemigroupK<ListK> {
     return listSemigroupK();
   },
 });
 Object.defineProperty(List, 'MonoidK', {
-  get(): MonoidK<[URI<ListURI, Variance>], Variance> {
+  get(): MonoidK<ListK> {
     return listMonoidK();
   },
 });
 Object.defineProperty(List, 'Functor', {
-  get(): Functor<[URI<ListURI, Variance>], Variance> {
+  get(): Functor<ListK> {
     return listFunctor();
   },
 });
 Object.defineProperty(List, 'FunctorFilter', {
-  get(): FunctorFilter<[URI<ListURI, Variance>], Variance> {
+  get(): FunctorFilter<ListK> {
     return listFunctorFilter();
   },
 });
 Object.defineProperty(List, 'Apply', {
-  get(): Apply<[URI<ListURI, Variance>], Variance> {
+  get(): Apply<ListK> {
     return listApply();
   },
 });
 Object.defineProperty(List, 'Applicative', {
-  get(): Applicative<[URI<ListURI, Variance>], Variance> {
+  get(): Applicative<ListK> {
     return listApplicative();
   },
 });
 Object.defineProperty(List, 'Alternative', {
-  get(): Alternative<[URI<ListURI, Variance>], Variance> {
+  get(): Alternative<ListK> {
     return listAlternative();
   },
 });
 Object.defineProperty(List, 'FlatMap', {
-  get(): FlatMap<[URI<ListURI, Variance>], Variance> {
+  get(): FlatMap<ListK> {
     return listFlatMap();
   },
 });
 Object.defineProperty(List, 'Monad', {
-  get(): Monad<[URI<ListURI, Variance>], Variance> {
+  get(): Monad<ListK> {
     return listMonad();
   },
 });
 Object.defineProperty(List, 'Foldable', {
-  get(): Foldable<[URI<ListURI, Variance>], Variance> {
+  get(): Foldable<ListK> {
     return listFoldable();
   },
 });
 Object.defineProperty(List, 'Traversable', {
-  get(): Traversable<[URI<ListURI, Variance>], Variance> {
+  get(): Traversable<ListK> {
     return listTraversable();
   },
 });
@@ -123,9 +122,10 @@ Object.defineProperty(List, 'Traversable', {
 
 export const ListURI = 'cats/data/list';
 export type ListURI = typeof ListURI;
+export type ListK = TyK<ListURI, [_]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [ListURI]: List<A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [ListURI]: List<Tys[0]>;
   }
 }

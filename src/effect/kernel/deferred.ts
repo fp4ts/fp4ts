@@ -1,4 +1,4 @@
-import { Kind, flow, id, pipe, Auto, URIS } from '../../core';
+import { Kind, flow, id, pipe, AnyK } from '../../core';
 import { None, Option, Right, Some } from '../../cats/data';
 
 import { Ref } from './ref';
@@ -43,19 +43,17 @@ class SetState<A> extends State<A> {
 
 type StateView<A> = UnsetState<A> | SetState<A>;
 
-export class Deferred<F extends URIS, A, C = Auto> {
+export class Deferred<F extends AnyK, A> {
   // @ts-ignore
   private readonly __void: void;
 
   private constructor(
-    private readonly F: Async<F, C>,
-    private readonly state: Ref<F, State<A>, C>,
+    private readonly F: Async<F>,
+    private readonly state: Ref<F, State<A>>,
   ) {}
 
-  public readonly get = <S, R, E>(): Kind<F, C, S, R, Error, A> => {
-    const deleteReader = (
-      reader: ResumeReader<A>,
-    ): Kind<F, C, S, R, Error, void> =>
+  public readonly get = (): Kind<F, [A]> => {
+    const deleteReader = (reader: ResumeReader<A>): Kind<F, [void]> =>
       this.F.defer(() =>
         this.state.update(
           foldState<A, State<A>>(
@@ -67,10 +65,10 @@ export class Deferred<F extends URIS, A, C = Auto> {
 
     const addReader = (
       reader: ResumeReader<A>,
-    ): Kind<F, C, S, R, Error, Option<Kind<F, C, S, R, Error, void>>> =>
+    ): Kind<F, [Option<Kind<F, [void]>>]> =>
       this.F.defer(() =>
         this.state.modify(
-          foldState<A, [State<A>, Option<Kind<F, C, S, R, Error, void>>]>(
+          foldState<A, [State<A>, Option<Kind<F, [void]>>]>(
             ({ value }) => {
               reader(value);
               return [new SetState(value), None];
@@ -99,16 +97,12 @@ export class Deferred<F extends URIS, A, C = Auto> {
     );
   };
 
-  public readonly complete = <S, R>(
-    result: A,
-  ): Kind<F, C, S, R, Error, void> => {
-    const notifyReaders = (
-      readers: ResumeReader<A>[],
-    ): Kind<F, C, S, R, Error, void> =>
+  public readonly complete = <S, R>(result: A): Kind<F, [void]> => {
+    const notifyReaders = (readers: ResumeReader<A>[]): Kind<F, [void]> =>
       this.F.defer(() =>
         pipe(
           readers.map(f => this.F.delay(() => f(result))),
-          rds => rds.reduce(this.F.productR_, this.F.unit()),
+          rds => rds.reduce(this.F.productR_, this.F.unit),
         ),
       );
 
@@ -126,10 +120,8 @@ export class Deferred<F extends URIS, A, C = Auto> {
   };
 
   public static of =
-    <F extends URIS, C = Auto>(F: Async<F, C>) =>
-    <A, S = unknown, R = unknown>(
-      a?: A,
-    ): Kind<F, C, S, R, Error, Deferred<F, A, C>> => {
+    <F extends AnyK>(F: Async<F>) =>
+    <A>(a?: A): Kind<F, [Deferred<F, A>]> => {
       const state: State<A> = a ? new SetState(a) : new UnsetState([]);
       return pipe(
         Ref.of(F)(state),
@@ -138,23 +130,20 @@ export class Deferred<F extends URIS, A, C = Auto> {
     };
 }
 
-export const of: <F extends URIS, C = Auto>(
-  F: Async<F, C>,
-) => <S, R, A = unknown>(a?: A) => Kind<F, C, S, R, Error, Deferred<F, A, C>> =
-  F => x =>
-    Deferred.of(F)(x);
+export const of: <F extends AnyK>(
+  F: Async<F>,
+) => <A = unknown>(a?: A) => Kind<F, [Deferred<F, A>]> = F => x =>
+  Deferred.of(F)(x);
 
-export const get: <F extends URIS, C, S, R, A>(
-  dfa: Deferred<F, A, C>,
-) => Kind<F, C, S, R, Error, A> = dfa => dfa.get();
+export const get: <F extends AnyK, A>(dfa: Deferred<F, A>) => Kind<F, [A]> =
+  dfa => dfa.get();
 
 export const complete: <A>(
   a: A,
-) => <F extends URIS, C, S, R>(
-  dfa: Deferred<F, A, C>,
-) => Kind<F, C, S, R, Error, void> = a => dfa => complete_(dfa, a);
+) => <F extends AnyK>(dfa: Deferred<F, A>) => Kind<F, [void]> = a => dfa =>
+  complete_(dfa, a);
 
-export const complete_ = <F extends URIS, C, S, R, A>(
-  dfa: Deferred<F, A, C>,
+export const complete_ = <F extends AnyK, A>(
+  dfa: Deferred<F, A>,
   a: A,
-): Kind<F, C, S, R, Error, void> => dfa.complete(a);
+): Kind<F, [void]> => dfa.complete(a);

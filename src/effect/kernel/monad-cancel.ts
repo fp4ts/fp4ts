@@ -1,45 +1,40 @@
-import { Auto, Intro, Kind, Mix, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 import { MonadError } from '../../cats';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
 
-export interface MonadCancel<F extends URIS, E, C = Auto>
-  extends MonadError<F, E, C> {
-  readonly uncancelable: <S, R, A>(
-    body: (poll: Poll<F, C>) => Kind<F, C, S, R, E, A>,
-  ) => Kind<F, C, S, R, E, A>;
+export interface MonadCancel<F extends AnyK, E> extends MonadError<F, E> {
+  readonly uncancelable: <A>(
+    body: (poll: Poll<F>) => Kind<F, [A]>,
+  ) => Kind<F, [A]>;
 
-  readonly onCancel: <S2, R2>(
-    fin: Kind<F, C, S2, R2, E, void>,
-  ) => <S, R, A>(
-    fa: Kind<F, C, Intro<C, 'S', S2, S>, Intro<C, 'R', R2, R>, E, A>,
-  ) => Kind<F, C, Mix<C, 'S', [S2, S]>, Mix<C, 'R', [R2, R]>, E, A>;
+  readonly onCancel: (
+    fin: Kind<F, [void]>,
+  ) => <A>(fa: Kind<F, [A]>) => Kind<F, [A]>;
 
-  readonly finalize: <S2, R2, A>(
-    finalizer: (oc: Outcome<F, E, A>) => Kind<F, C, S2, R2, E, void>,
-  ) => <S, R>(
-    fa: Kind<F, C, Intro<C, 'S', S2, S>, Intro<C, 'R', R2, R>, E, A>,
-  ) => Kind<F, C, Mix<C, 'S', [S2, S]>, Mix<C, 'R', [R2, R]>, E, A>;
+  readonly finalize: <A>(
+    finalizer: (oc: Outcome<F, E, A>) => Kind<F, [void]>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
 
-  readonly bracket: <S, R, A>(
-    fa: Kind<F, C, S, R, E, A>,
+  readonly bracket: <A>(
+    fa: Kind<F, [A]>,
   ) => <B>(
-    use: (a: A) => Kind<F, C, S, R, E, B>,
-  ) => (release: (a: A) => Kind<F, C, S, R, E, void>) => Kind<F, C, S, R, E, B>;
+    use: (a: A) => Kind<F, [B]>,
+  ) => (release: (a: A) => Kind<F, [void]>) => Kind<F, [B]>;
 
-  readonly bracketOutcome: <S, R, A>(
-    fa: Kind<F, C, S, R, E, A>,
+  readonly bracketOutcome: <A>(
+    fa: Kind<F, [A]>,
   ) => <B>(
-    use: (a: A) => Kind<F, C, S, R, E, B>,
+    use: (a: A) => Kind<F, [B]>,
   ) => (
-    release: (a: A, oc: Outcome<F, E, B>) => Kind<F, C, S, R, E, void>,
-  ) => Kind<F, C, S, R, E, B>;
+    release: (a: A, oc: Outcome<F, E, B>) => Kind<F, [void]>,
+  ) => Kind<F, [B]>;
 
-  readonly bracketFull: <S, R, A>(
-    acquire: (poll: Poll<F, C>) => Kind<F, C, S, R, E, A>,
+  readonly bracketFull: <A>(
+    acquire: (poll: Poll<F>) => Kind<F, [A]>,
   ) => <B>(
-    use: (a: A) => Kind<F, C, S, R, E, B>,
+    use: (a: A) => Kind<F, [B]>,
   ) => (
-    release: (a: A, oc: Outcome<F, E, B>) => Kind<F, C, S, R, E, void>,
-  ) => Kind<F, C, S, R, E, B>;
+    release: (a: A, oc: Outcome<F, E, B>) => Kind<F, [void]>,
+  ) => Kind<F, [B]>;
 }

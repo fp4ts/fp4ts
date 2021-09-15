@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Kind, URIS } from '../../../core';
+import { AnyK, Kind } from '../../../core';
 import { Eq } from '../../eq';
 import { List } from '../list';
 import { Option, None, Some } from '../option';
@@ -176,25 +176,22 @@ export const foldMap: <M>(
 ) => <K, V>(f: (v: V, k: K) => M) => (map: Map<K, V>) => M = M => f => map =>
   foldMap_(M)(map, f);
 
-export const foldMapK: <F extends URIS>(
+export const foldMapK: <F extends AnyK>(
   F: MonoidK<F>,
-) => <C, S, R, E, K, V, B>(
-  f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
-) => (map: Map<K, V>) => Kind<F, C, S, R, E, B> = F => f => map =>
-  foldMapK_(F)(map, f);
+) => <K, V, B>(
+  f: (v: V, k: K) => Kind<F, [B]>,
+) => (map: Map<K, V>) => Kind<F, [B]> = F => f => map => foldMapK_(F)(map, f);
 
-export const traverse: <G extends URIS>(
+export const traverse: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, K, V, B>(
-  f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
-) => (m: Map<K, V>) => Kind<G, C, S, R, E, Map<K, B>> = G => f => m =>
-  traverse_(G)(m, f);
+) => <K, V, B>(
+  f: (v: V, k: K) => Kind<G, [B]>,
+) => (m: Map<K, V>) => Kind<G, [Map<K, B>]> = G => f => m => traverse_(G)(m, f);
 
-export const sequence: <G extends URIS>(
+export const sequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, K, V>(
-  m: Map<K, Kind<G, C, S, R, E, V>>,
-) => Kind<G, C, S, R, E, Map<K, V>> = G => m => traverse_(G)(m, id);
+) => <K, V>(m: Map<K, Kind<G, [V]>>) => Kind<G, [Map<K, V>]> = G => m =>
+  traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
@@ -453,19 +450,16 @@ export const foldMap_ =
     foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, f(v, k)));
 
 export const foldMapK_ =
-  <F extends URIS>(F: MonoidK<F>) =>
-  <C, S, R, E, K, V, B>(
-    m: Map<K, V>,
-    f: (v: V, k: K) => Kind<F, C, S, R, E, B>,
-  ): Kind<F, C, S, R, E, B> =>
+  <F extends AnyK>(F: MonoidK<F>) =>
+  <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
     foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
 
 export const traverse_ =
-  <G extends URIS>(G: Applicative<G>) =>
-  <C, S, R, E, K, V, B>(
+  <G extends AnyK>(G: Applicative<G>) =>
+  <K, V, B>(
     m: Map<K, V>,
-    f: (v: V, k: K) => Kind<G, C, S, R, E, B>,
-  ): Kind<G, C, S, R, E, Map<K, B>> => {
+    f: (v: V, k: K) => Kind<G, [B]>,
+  ): Kind<G, [Map<K, B>]> => {
     const n = toNode(m);
 
     switch (n.tag) {
@@ -474,9 +468,9 @@ export const traverse_ =
 
       case 'inner': {
         const appendF = (
-          gbs: Kind<G, C, S, R, E, Map<K, B>[]>,
+          gbs: Kind<G, [Map<K, B>[]]>,
           m2: Map<K, V>,
-        ): Kind<G, C, S, R, E, Map<K, B>[]> =>
+        ): Kind<G, Map<K, B>[]> =>
           G.map2_(traverse_(G)(m2, f), gbs)((m, ms) => [...ms, m]);
 
         return pipe(
@@ -487,9 +481,9 @@ export const traverse_ =
 
       case 'leaf': {
         const appendF = (
-          gbs: Kind<G, C, S, R, E, Bucket<K, B>[]>,
+          gbs: Kind<G, [Bucket<K, B>[]]>,
           [h, k, v]: Bucket<K, V>,
-        ): Kind<G, C, S, R, E, Bucket<K, B>[]> =>
+        ): Kind<G, [Bucket<K, B>[]]> =>
           G.map2_(f(v, k), gbs)((b, bs) => [...bs, [h, k, b]]);
 
         return pipe(

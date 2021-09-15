@@ -1,27 +1,20 @@
-import { Auto, Base, Empty, Kind, URIS } from '../../core';
+import { AnyK, Base, Kind } from '../../core';
 import { FunctionK, Show } from '../../cats';
 
-export interface Console<F extends URIS, C = Auto> extends Base<F, C> {
-  readonly readLine: Kind<
-    F,
-    C,
-    Empty<C, 'S'>,
-    Empty<C, 'R'>,
-    Empty<C, 'E'>,
-    string
-  >;
+export interface Console<F extends AnyK> extends Base<F> {
+  readonly readLine: Kind<F, [string]>;
 
-  print<A>(a: A): string;
-  print<A>(S: Show<A>, a: A): string;
+  print<A>(a: A): Kind<F, [void]>;
+  print<A>(S: Show<A>, a: A): Kind<F, [void]>;
 
-  printLn<A>(a: A): string;
-  printLn<A>(S: Show<A>, a: A): string;
+  printLn<A>(a: A): Kind<F, [void]>;
+  printLn<A>(S: Show<A>, a: A): Kind<F, [void]>;
 
-  error<A>(a: A): string;
-  error<A>(S: Show<A>, a: A): string;
+  error<A>(a: A): Kind<F, [void]>;
+  error<A>(S: Show<A>, a: A): Kind<F, [void]>;
 
-  errorLn<A>(a: A): string;
-  errorLn<A>(S: Show<A>, a: A): string;
+  errorLn<A>(a: A): Kind<F, [void]>;
+  errorLn<A>(S: Show<A>, a: A): Kind<F, [void]>;
 
-  mapK<G extends URIS, CG>(nt: FunctionK<F, G, C, CG>): Console<G, CG>;
+  mapK<G extends AnyK>(nt: FunctionK<F, G>): Console<G>;
 }

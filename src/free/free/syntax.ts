@@ -1,34 +1,15 @@
 import { FunctionK, Monad } from '../../cats';
-import { Intro, Kind, Mix, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 import { Free } from './algebra';
 import { flatMap_, map_, mapK_ } from './operators';
 
 declare module './algebra' {
-  interface Free<F, C, S, R, E, A> {
-    map<B>(f: (a: A) => B): Free<F, C, S, R, E, B>;
+  interface Free<F extends AnyK, A> {
+    map<B>(f: (a: A) => B): Free<F, B>;
 
-    flatMap<S2, R2, E2, B>(
-      this: Free<
-        F,
-        C,
-        Intro<C, 'S', S2, S>,
-        Intro<C, 'R', R2, R>,
-        Intro<C, 'E', E2, E>,
-        A
-      >,
-      f: (a: A) => Free<F, C, S2, R2, E2, B>,
-    ): Free<
-      F,
-      C,
-      Mix<C, 'S', [S2, S]>,
-      Mix<C, 'R', [R2, R]>,
-      Mix<C, 'E', [E2, E]>,
-      B
-    >;
+    flatMap<B>(this: Free<F, A>, f: (a: A) => Free<F, B>): Free<F, B>;
 
-    mapK<G extends URIS, CG>(
-      G: Monad<G, CG>,
-    ): (nt: FunctionK<F, G, C, CG>) => Kind<G, CG, S, R, E, A>;
+    mapK<G extends AnyK>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]>;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Kind, id, URIS } from '../../../core';
+import { Kind, id, AnyK } from '../../../core';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
 import { Option } from '../option';
@@ -71,30 +71,27 @@ export const foldRight: <A, B>(z: B, f: (a: A, b: B) => B) => (xs: A[]) => B =
   (z, f) => xs =>
     foldRight_(xs, z, f);
 
-export const traverse: <G extends URIS>(
+export const traverse: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A, B>(
-  f: (a: A) => Kind<G, C, S, R, E, B>,
-) => (xs: A[]) => Kind<G, C, S, R, E, B[]> = G => f => xs =>
-  traverse_(G)(xs, f);
+) => <A, B>(f: (a: A) => Kind<G, [B]>) => (xs: A[]) => Kind<G, [B[]]> =
+  G => f => xs =>
+    traverse_(G)(xs, f);
 
-export const sequence: <G extends URIS>(
+export const sequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A>(gs: Kind<G, C, S, R, E, A>[]) => Kind<G, C, S, R, E, A[]> =
-  G => gs => traverse_(G)(gs, id);
+) => <A>(gs: Kind<G, [A]>[]) => Kind<G, [A[]]> = G => gs =>
+  traverse_(G)(gs, id);
 
-export const flatTraverse: <G extends URIS>(
+export const flatTraverse: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A, B>(
-  f: (a: A) => Kind<G, C, S, R, E, B[]>,
-) => (xs: A[]) => Kind<G, C, S, R, E, B[]> = G => f => xs =>
-  flatTraverse_(G, xs, f);
+) => <A, B>(f: (a: A) => Kind<G, [B[]]>) => (xs: A[]) => Kind<G, [B[]]> =
+  G => f => xs =>
+    flatTraverse_(G, xs, f);
 
-export const flatSequence: <G extends URIS>(
+export const flatSequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <C, S, R, E, A>(
-  xgs: Kind<G, C, S, R, E, A[]>[],
-) => Kind<G, C, S, R, E, A[]> = G => xgs => flatTraverse_(G, xgs, id);
+) => <A>(xgs: Kind<G, [A[]]>[]) => Kind<G, [A[]]> = G => xgs =>
+  flatTraverse_(G, xgs, id);
 
 // Point-ful operators
 
@@ -145,23 +142,20 @@ export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
   xs.reduceRight((b, a) => f(a, b), z);
 
 export const traverse_ =
-  <G extends URIS>(G: Applicative<G>) =>
-  <C, S, R, E, A, B>(
-    xs: A[],
-    f: (a: A) => Kind<G, C, S, R, E, B>,
-  ): Kind<G, C, S, R, E, B[]> =>
+  <G extends AnyK>(G: Applicative<G>) =>
+  <A, B>(xs: A[], f: (a: A) => Kind<G, [B]>): Kind<G, [B[]]> =>
     // TODO: Fix
     xs.reduceRight(
-      (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
+      (gbs: Kind<G, [B[]]>, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
       G.pure([] as B[]),
     );
 
-export const flatTraverse_ = <G extends URIS, C, S, R, E, A, B>(
+export const flatTraverse_ = <G extends AnyK, A, B>(
   G: Applicative<G>,
   xs: A[],
-  f: (a: A) => Kind<G, C, S, R, E, B[]>,
-): Kind<G, C, S, R, E, B[]> =>
+  f: (a: A) => Kind<G, [B[]]>,
+): Kind<G, [B[]]> =>
   xs.reduce(
-    (gbs, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, ...b]),
+    (gbs: Kind<G, [B[]]>, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, ...b]),
     G.pure([] as B[]),
   );

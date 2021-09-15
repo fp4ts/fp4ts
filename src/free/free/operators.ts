@@ -1,62 +1,39 @@
 import { FunctionK, Monad } from '../../cats';
-import { Intro, Kind, Mix, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 import { FlatMap, Free, view } from './algebra';
 import { pure } from './constructors';
 
 export const map =
   <A, B>(f: (a: A) => B) =>
-  <F extends URIS, C, S, R, E>(
-    self: Free<F, C, S, R, E, A>,
-  ): Free<F, C, S, R, E, B> =>
+  <F extends AnyK>(self: Free<F, A>): Free<F, B> =>
     map_(self, f);
 
 export const flatMap =
-  <F extends URIS, C, S2, R2, E2, A, B>(
-    f: (a: A) => Free<F, C, S2, R2, E2, B>,
-  ) =>
-  <S, R, E>(
-    self: Free<
-      F,
-      C,
-      Intro<C, 'S', S2, S>,
-      Intro<C, 'R', R2, R>,
-      Intro<C, 'E', E2, E>,
-      A
-    >,
-  ): Free<
-    F,
-    C,
-    Mix<C, 'S', [S2, S]>,
-    Mix<C, 'R', [R2, R]>,
-    Mix<C, 'E', [E2, E]>,
-    B
-  > =>
+  <F extends AnyK, A, B>(f: (a: A) => Free<F, B>) =>
+  <S, R, E>(self: Free<F, A>): Free<F, B> =>
     flatMap_(self, f);
 
 export const mapK =
-  <G extends URIS, CG>(G: Monad<G, CG>) =>
-  <F extends URIS, C>(nt: FunctionK<F, G, C, CG>) =>
-  <S, R, E, A>(free: Free<F, C, S, R, E, A>): Kind<G, CG, S, R, E, A> =>
+  <G extends AnyK>(G: Monad<G>) =>
+  <F extends AnyK>(nt: FunctionK<F, G>) =>
+  <A>(free: Free<F, A>): Kind<G, [A]> =>
     mapK_(G)(free, nt);
 
 // Point-ful operators
 
-export const map_ = <F extends URIS, C, S, R, E, A, B>(
-  self: Free<F, C, S, R, E, A>,
+export const map_ = <F extends AnyK, A, B>(
+  self: Free<F, A>,
   f: (a: A) => B,
-): Free<F, C, S, R, E, B> => flatMap_(self, x => pure(f(x)));
+): Free<F, B> => flatMap_(self, x => pure(f(x)));
 
-export const flatMap_ = <F extends URIS, C, S, R, E, A, B>(
-  self: Free<F, C, S, R, E, A>,
-  f: (a: A) => Free<F, C, S, R, E, B>,
-): Free<F, C, S, R, E, B> => new FlatMap(self, f);
+export const flatMap_ = <F extends AnyK, A, B>(
+  self: Free<F, A>,
+  f: (a: A) => Free<F, B>,
+): Free<F, B> => new FlatMap(self, f);
 
 export const mapK_ =
-  <G extends URIS, CG>(G: Monad<G, CG>) =>
-  <F extends URIS, C, S, R, E, A>(
-    _free: Free<F, C, S, R, E, A>,
-    nt: FunctionK<F, G, C, CG>,
-  ): Kind<G, CG, S, R, E, A> => {
+  <G extends AnyK>(G: Monad<G>) =>
+  <F extends AnyK, A>(_free: Free<F, A>, nt: FunctionK<F, G>): Kind<G, [A]> => {
     const free = view(_free);
     switch (free.tag) {
       case 'pure':

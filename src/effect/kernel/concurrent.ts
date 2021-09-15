@@ -1,36 +1,27 @@
 import { Traversable } from '../../cats';
-import { Auto, Kind, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 import { Spawn } from './spawn';
 
-export interface Concurrent<F extends URIS, E, C = Auto>
-  extends Spawn<F, E, C> {
-  readonly parTraverse: <T extends URIS>(
+export interface Concurrent<F extends AnyK, E> extends Spawn<F, E> {
+  readonly parTraverse: <T extends AnyK>(
     T: Traversable<T>,
   ) => <S, R, A, B>(
-    f: (a: A) => Kind<F, C, S, R, E, B>,
-  ) => <CT, ST, RT, ET>(
-    ts: Kind<T, CT, ST, RT, ET, A>,
-  ) => Kind<F, C, S, R, E, Kind<T, CT, ST, RT, ET, B>>;
+    f: (a: A) => Kind<F, [B]>,
+  ) => (ts: Kind<T, [A]>) => Kind<F, [Kind<T, [B]>]>;
 
-  readonly parSequence: <T extends URIS>(
+  readonly parSequence: <T extends AnyK>(
     T: Traversable<T>,
-  ) => <CT, ST, RT, ET, S, R, A>(
-    as: Kind<T, CT, ST, RT, ET, Kind<F, C, S, R, E, A>>,
-  ) => Kind<F, C, S, R, E, Kind<T, CT, ST, RT, ET, A>>;
+  ) => <A>(as: Kind<T, [Kind<F, [A]>]>) => Kind<F, [Kind<T, [A]>]>;
 
-  readonly parTraverseN: <T extends URIS>(
+  readonly parTraverseN: <T extends AnyK>(
     T: Traversable<T>,
     maxConcurrent: number,
-  ) => <S, R, A, B>(
-    f: (a: A) => Kind<F, C, S, R, E, B>,
-  ) => <CT, ST, RT, ET>(
-    ts: Kind<T, CT, ST, RT, ET, A>,
-  ) => Kind<F, C, S, R, E, Kind<T, CT, ST, RT, ET, B>>;
+  ) => <A, B>(
+    f: (a: A) => Kind<F, [B]>,
+  ) => (ts: Kind<T, [A]>) => Kind<F, [Kind<T, [B]>]>;
 
-  readonly parSequenceN: <T extends URIS>(
+  readonly parSequenceN: <T extends AnyK>(
     T: Traversable<T>,
     maxConcurrent: number,
-  ) => <CT, ST, RT, ET, S, R, A>(
-    as: Kind<T, CT, ST, RT, ET, Kind<F, C, S, R, E, A>>,
-  ) => Kind<F, C, S, R, E, Kind<T, CT, ST, RT, ET, A>>;
+  ) => <A>(as: Kind<T, [Kind<F, [A]>]>) => Kind<F, [Kind<T, [A]>]>;
 }

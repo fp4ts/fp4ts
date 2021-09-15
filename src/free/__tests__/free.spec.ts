@@ -1,7 +1,7 @@
+import { $, TyK, _ } from '../../core';
 import { FunctionK } from '../../cats';
 import { State } from '../../cats/data';
-import { StateURI } from '../../cats/data/state/state';
-import { Fix, URI } from '../../core';
+import { StateK } from '../../cats/data/state/state';
 import { Free } from '../free';
 
 class TestConsoleBase<A> {
@@ -22,31 +22,25 @@ class WriteLine extends TestConsoleBase<string> {
 type TestConsole<A> = ReadLine | WriteLine;
 const TestConsoleURI = 'tests/free/test-console';
 type TestConsoleURI = typeof TestConsoleURI;
+type TestConsoleK = TyK<TestConsoleURI, [_]>;
 
 declare module '../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [TestConsoleURI]: TestConsole<A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [TestConsoleURI]: TestConsole<Tys[0]>;
   }
 }
 
 describe('Free', () => {
-  const program: Free<
-    [URI<TestConsoleURI>],
-    unknown,
-    unknown,
-    unknown,
-    unknown,
-    void
-  > = Free.suspend(new WriteLine('What is your name?'))
+  const program: Free<TestConsoleK, void> = Free.suspend(
+    new WriteLine('What is your name?'),
+  )
     .flatMap(() => Free.suspend(ReadLine))
     .flatMap(name => Free.suspend(new WriteLine(`Hello ${name}!`)));
 
   it('should translate to state', () => {
     type S = [string[], string[]];
 
-    const nt: FunctionK<[URI<TestConsoleURI>], [URI<StateURI, Fix<'S', S>>]> = <
-      A,
-    >(
+    const nt: FunctionK<TestConsoleK, $<StateK, [S]>> = <A>(
       c: TestConsole<A>,
     ): State<S, A> => {
       if (c.tag === 'readLine')

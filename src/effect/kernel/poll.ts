@@ -1,5 +1,5 @@
-import { Auto, Kind, URIS } from '../../core';
+import { AnyK, Kind } from '../../core';
 
-export interface Poll<F extends URIS, C = Auto> {
-  <S, R, E, A>(ioa: Kind<F, C, S, R, E, A>): Kind<F, C, S, R, E, A>;
+export interface Poll<F extends AnyK> {
+  <A>(ioa: Kind<F, [A]>): Kind<F, [A]>;
 }

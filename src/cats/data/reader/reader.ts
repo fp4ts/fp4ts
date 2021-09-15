@@ -1,4 +1,4 @@
-import { URI } from '../../../core';
+import { $, TyK, _ } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -8,7 +8,6 @@ import { Monad } from '../../monad';
 import { Reader as ReaderBase } from './algebra';
 import { provide, pure, read, unit } from './constructors';
 import {
-  Variance,
   readerApplicative,
   readerApply,
   readerFlatMap,
@@ -31,11 +30,11 @@ interface ReaderObj {
 
   // -- Instances
 
-  readonly Functor: Functor<[URI<ReaderURI, Variance>], Variance>;
-  readonly Apply: Apply<[URI<ReaderURI, Variance>], Variance>;
-  readonly Applicative: Applicative<[URI<ReaderURI, Variance>], Variance>;
-  readonly FlatMap: FlatMap<[URI<ReaderURI, Variance>], Variance>;
-  readonly Monad: Monad<[URI<ReaderURI, Variance>], Variance>;
+  Functor: <R>() => Functor<$<ReaderK, [R]>>;
+  Apply: <R>() => Apply<$<ReaderK, [R]>>;
+  Applicative: <R>() => Applicative<$<ReaderK, [R]>>;
+  FlatMap: <R>() => FlatMap<$<ReaderK, [R]>>;
+  Monad: <R>() => Monad<$<ReaderK, [R]>>;
 }
 
 Reader.pure = pure;
@@ -43,39 +42,20 @@ Reader.unit = unit;
 Reader.read = read;
 Reader.provide = provide;
 
-Object.defineProperty(Reader, 'Functor', {
-  get(): Functor<[URI<ReaderURI, Variance>], Variance> {
-    return readerFunctor();
-  },
-});
-Object.defineProperty(Reader, 'Apply', {
-  get(): Apply<[URI<ReaderURI, Variance>], Variance> {
-    return readerApply();
-  },
-});
-Object.defineProperty(Reader, 'Applicative', {
-  get(): Applicative<[URI<ReaderURI, Variance>], Variance> {
-    return readerApplicative();
-  },
-});
-Object.defineProperty(Reader, 'FlatMap', {
-  get(): FlatMap<[URI<ReaderURI, Variance>], Variance> {
-    return readerFlatMap();
-  },
-});
-Object.defineProperty(Reader, 'Monad', {
-  get(): Monad<[URI<ReaderURI, Variance>], Variance> {
-    return readerMonad();
-  },
-});
+Reader.Functor = readerFunctor;
+Reader.Apply = readerApply;
+Reader.Applicative = readerApplicative;
+Reader.FlatMap = readerFlatMap;
+Reader.Monad = readerMonad;
 
 // HKT
 
 export const ReaderURI = 'cats/data/reader';
 export type ReaderURI = typeof ReaderURI;
+export type ReaderK = TyK<ReaderURI, [_, _]>;
 
 declare module '../../../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [ReaderURI]: Reader<R, A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [ReaderURI]: Reader<Tys[0], Tys[1]>;
   }
 }

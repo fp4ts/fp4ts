@@ -1,30 +1,26 @@
-import { Kind, Auto, URIS, Empty } from '../../core';
+import { Kind, AnyK } from '../../core';
 import { Either, Option } from '../../cats/data';
 import { ExecutionContext } from '../execution-context';
 import { Sync } from './sync';
 import { Temporal } from './temporal';
 
-export interface Async<F extends URIS, C = Auto>
-  extends Sync<F, C>,
-    Temporal<F, Error, C> {
-  readonly async: <S, R, A>(
+export interface Async<F extends AnyK> extends Sync<F>, Temporal<F, Error> {
+  readonly async: <A>(
     k: (
       cb: (ea: Either<Error, A>) => void,
-    ) => Kind<F, C, S, R, Error, Option<Kind<F, C, S, R, Error, void>>>,
-  ) => Kind<F, C, S, R, Error, A>;
+    ) => Kind<F, [Option<Kind<F, [void]>>]>,
+  ) => Kind<F, [A]>;
 
-  readonly async_: <S, R, A>(
-    k: (cb: (ea: Either<Error, A>) => void) => Kind<F, C, S, R, Error, void>,
-  ) => Kind<F, C, S, R, Error, A>;
+  readonly async_: <A>(
+    k: (cb: (ea: Either<Error, A>) => void) => Kind<F, [void]>,
+  ) => Kind<F, [A]>;
 
-  readonly never: Kind<F, C, Empty<C, 'S'>, Empty<C, 'R'>, Error, never>;
+  readonly never: Kind<F, [never]>;
 
-  readonly executeOn: <S, R, A>(
-    fa: Kind<F, C, S, R, Error, A>,
+  readonly executeOn: <A>(
+    fa: Kind<F, [A]>,
     ec: ExecutionContext,
-  ) => Kind<F, C, S, R, Error, A>;
+  ) => Kind<F, [A]>;
 
-  readonly fromPromise: <S, R, A>(
-    p: Kind<F, C, S, R, Error, Promise<A>>,
-  ) => Kind<F, C, S, R, Error, A>;
+  readonly fromPromise: <A>(p: Kind<F, [Promise<A>]>) => Kind<F, [A]>;
 }

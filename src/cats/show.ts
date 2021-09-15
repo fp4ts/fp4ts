@@ -14,7 +14,7 @@ export const ShowURI = 'cats/show';
 export type ShowURI = typeof ShowURI;
 
 declare module '../core/hkt/hkt' {
-  interface URItoKind<FC, TC, S, R, E, A> {
-    [ShowURI]: Show<A>;
+  interface URItoKind<Tys extends unknown[]> {
+    [ShowURI]: Show<Tys[0]>;
   }
 }

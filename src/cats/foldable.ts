@@ -1,73 +1,52 @@
-import { Kind, instance, Auto, Base, URIS } from '../core';
+import { Kind, instance, Base, AnyK } from '../core';
 import { Monoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
 
-export interface Foldable<F extends URIS, C = Auto> extends Base<F, C> {
+export interface Foldable<F extends AnyK> extends Base<F> {
   readonly foldLeft: <A, B>(
     b: B,
     f: (b: B, a: A) => B,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => B;
-  readonly foldLeft_: <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
-    b: B,
-    f: (b: B, a: A) => B,
-  ) => B;
+  ) => (fa: Kind<F, [A]>) => B;
+  readonly foldLeft_: <A, B>(fa: Kind<F, [A]>, b: B, f: (b: B, a: A) => B) => B;
 
   readonly foldRight: <A, B>(
     b: B,
     f: (a: A, b: B) => B,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => B;
-  readonly foldRight_: <S, R, E, A, B>(
-    fa: Kind<F, C, S, R, E, A>,
+  ) => (fa: Kind<F, [A]>) => B;
+  readonly foldRight_: <A, B>(
+    fa: Kind<F, [A]>,
     b: B,
     f: (a: A, b: B) => B,
   ) => B;
 
   readonly foldMap: <M>(
     M: Monoid<M>,
-  ) => <A>(f: (a: A) => M) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => M;
+  ) => <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
   readonly foldMap_: <M>(
     M: Monoid<M>,
-  ) => <S, R, E, A>(fa: Kind<F, C, S, R, E, A>, f: (a: A) => M) => M;
+  ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
 
-  readonly isEmpty: <S, R, E, A>(fa: Kind<F, C, S, R, E, A>) => boolean;
-  readonly nonEmpty: <S, R, E, A>(fa: Kind<F, C, S, R, E, A>) => boolean;
+  readonly isEmpty: <A>(fa: Kind<F, [A]>) => boolean;
+  readonly nonEmpty: <A>(fa: Kind<F, [A]>) => boolean;
 
-  readonly all: <A>(
-    p: (a: A) => boolean,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => boolean;
-  readonly all_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-    p: (a: A) => boolean,
-  ) => boolean;
-  readonly any: <A>(
-    p: (a: A) => boolean,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => boolean;
-  readonly any_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-    p: (a: A) => boolean,
-  ) => boolean;
+  readonly all: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => boolean;
+  readonly all_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+  readonly any: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => boolean;
+  readonly any_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
 
-  readonly count: <A>(
-    p: (a: A) => boolean,
-  ) => <S, R, E>(fa: Kind<F, C, S, R, E, A>) => number;
-  readonly count_: <S, R, E, A>(
-    fa: Kind<F, C, S, R, E, A>,
-    p: (a: A) => boolean,
-  ) => number;
+  readonly count: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => number;
+  readonly count_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => number;
 
-  readonly size: <S, R, E, A>(fa: Kind<F, C, S, R, E, A>) => number;
+  readonly size: <A>(fa: Kind<F, [A]>) => number;
 }
 
-export type FoldableRequirements<F extends URIS, C = Auto> = Pick<
-  Foldable<F, C>,
+export type FoldableRequirements<F extends AnyK> = Pick<
+  Foldable<F>,
   'foldLeft_' | 'foldRight_'
 > &
-  Partial<Foldable<F, C>>;
+  Partial<Foldable<F>>;
 export const Foldable = {
-  of: <F extends URIS, C = Auto>(
-    F: FoldableRequirements<F, C>,
-  ): Foldable<F, C> => {
-    const self: Foldable<F, C> = instance<Foldable<F, C>>({
+  of: <F extends AnyK>(F: FoldableRequirements<F>): Foldable<F> => {
+    const self: Foldable<F> = instance<Foldable<F>>({
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
 
