@@ -1,6 +1,6 @@
 import '../../benchmarking';
 import { ok as assert } from 'assert';
-import { pipe } from '../../fp/core';
+import { pipe } from '../../core';
 import { Map as CatsMap } from '../../cats/data/map';
 import { OrderedMap as CatsOrderedMap } from '../../cats/data/ordered-map';
 

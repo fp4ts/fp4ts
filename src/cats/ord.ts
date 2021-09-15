@@ -1,5 +1,5 @@
 import { Lazy } from '../core';
-import { PrimitiveType } from '../fp/primitive-type';
+import { PrimitiveType } from '../core/primitive-type';
 import { Eq, primitiveEq } from './eq';
 
 export enum Compare {

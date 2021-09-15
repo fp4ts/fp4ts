@@ -10,7 +10,7 @@ import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
 
 import { Bucket, Empty, Inner, Leaf, Map, toNode } from './algebra';
-import { id, pipe } from '../../../fp/core';
+import { id, pipe } from '../../../core';
 
 export const isEmpty: <K, V>(m: Map<K, V>) => boolean = m =>
   m === (Empty as Map<never, never>);

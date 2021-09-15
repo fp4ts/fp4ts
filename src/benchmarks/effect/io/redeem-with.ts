@@ -1,5 +1,5 @@
 import '../../../benchmarking';
-import { pipe } from '../../../fp/core';
+import { pipe } from '../../../core';
 import { IO } from '../../../effect/io';
 
 const size = 100_000;

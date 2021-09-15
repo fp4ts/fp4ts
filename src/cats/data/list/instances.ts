@@ -1,4 +1,4 @@
-import { Lazy } from '../../../fp/core';
+import { Lazy } from '../../../core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';

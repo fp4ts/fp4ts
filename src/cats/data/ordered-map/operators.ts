@@ -11,7 +11,7 @@ import { Option, Some, None } from '../option';
 
 import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
-import { id, pipe } from '../../../fp/core';
+import { id, pipe } from '../../../core';
 
 const throwError = (e: Error) => {
   throw e;

@@ -1,5 +1,5 @@
 import '../test-kit/jest';
-import { id, pipe } from '../../fp/core';
+import { id, pipe } from '../../core';
 import { Either, Left, Right, Some, List } from '../../cats/data';
 
 import { IO } from '../io';

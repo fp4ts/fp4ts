@@ -1,5 +1,5 @@
 import '../../../benchmarking';
-import { id, pipe } from '../../../fp/core';
+import { id, pipe } from '../../../core';
 import { Right } from '../../../cats/data';
 import { IO } from '../../../effect/io';
 

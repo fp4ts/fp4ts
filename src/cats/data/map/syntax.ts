@@ -4,7 +4,7 @@ import { Show } from '../../show';
 import { Monoid } from '../../monoid';
 import { MonoidK } from '../../monoid-k';
 import { Applicative } from '../../applicative';
-import { PrimitiveType } from '../../../fp/primitive-type';
+import { PrimitiveType } from '../../../core/primitive-type';
 import { Eq, primitiveEq } from '../../eq';
 import { Hashable, primitiveMD5Hashable } from '../../hashable';
 import { List } from '../list';

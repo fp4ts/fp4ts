@@ -1,5 +1,5 @@
-import { Lazy } from '../fp/core';
-import { PrimitiveType } from '../fp/primitive-type';
+import { Lazy } from '../core';
+import { PrimitiveType } from '../core/primitive-type';
 
 export interface Eq<A> {
   readonly equals: (lhs: A, rhs: A) => boolean;

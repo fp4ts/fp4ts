@@ -1,4 +1,4 @@
-import { flow } from '../../fp/core';
+import { flow } from '../../core';
 import { Either, Left, Right } from '../../cats/data';
 
 import { IO } from './io';

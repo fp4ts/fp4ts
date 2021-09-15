@@ -1,4 +1,4 @@
-import { id } from '../../../fp/core';
+import { id } from '../../../core';
 import { List } from '../list';
 import { Option, Some, None } from '../option';
 import { primitiveOrd } from '../../ord';

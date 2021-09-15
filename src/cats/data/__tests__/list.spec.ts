@@ -1,4 +1,4 @@
-import { id } from '../../../fp/core';
+import { id } from '../../../core';
 import { Either, Left, Right } from '../either';
 import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';

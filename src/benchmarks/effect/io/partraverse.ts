@@ -1,5 +1,5 @@
 import '../../../benchmarking';
-import { pipe } from '../../../fp/core';
+import { pipe } from '../../../core';
 import { Either, List, Some } from '../../../cats/data';
 import { IO } from '../../../effect/io';
 

@@ -1,5 +1,5 @@
 import { $, TyK, _ } from '../../../core';
-import { PrimitiveType } from '../../../fp/primitive-type';
+import { PrimitiveType } from '../../../core/primitive-type';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
