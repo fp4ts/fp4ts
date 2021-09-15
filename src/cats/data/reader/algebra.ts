@@ -1,7 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Reader<R, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Pure<A> extends Reader<unknown, A> {

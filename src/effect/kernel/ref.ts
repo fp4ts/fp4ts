@@ -47,22 +47,22 @@ export const get: <F extends AnyK, A>(ra: Ref<F, A>) => Kind<F, [A]> = ra =>
 
 export const set: <A>(
   a: A,
-) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [void]> = a => ra =>
+) => <F extends AnyK>(ra: Ref<F, A>) => Kind<F, [void]> = a => ra =>
   set_(ra, a);
 
 export const update: <A>(
   f: (a: A) => A,
-) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [void]> = f => ra =>
+) => <F extends AnyK>(ra: Ref<F, A>) => Kind<F, [void]> = f => ra =>
   update_(ra, f);
 
 export const updateAndGet: <A>(
   f: (a: A) => A,
-) => <F extends AnyK, C, S, R>(ref: Ref<F, A>) => Kind<F, [A]> = f => ra =>
+) => <F extends AnyK>(ref: Ref<F, A>) => Kind<F, [A]> = f => ra =>
   updateAndGet_(ra, f);
 
 export const modify: <A, B>(
   f: (a: A) => [A, B],
-) => <F extends AnyK, C, S, R>(ra: Ref<F, A>) => Kind<F, [B]> = f => ra =>
+) => <F extends AnyK>(ra: Ref<F, A>) => Kind<F, [B]> = f => ra =>
   modify_(ra, f);
 
 // Point-ful

@@ -1,7 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class State<S, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Pure<S, A> extends State<S, A> {

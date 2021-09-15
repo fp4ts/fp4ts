@@ -14,7 +14,7 @@ export interface Apply<F extends AnyK> extends Functor<F> {
   readonly map2: <A, B, D>(
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => D,
-  ) => <S, R, E>(fa: Kind<F, [A]>) => Kind<F, [D]>;
+  ) => (fa: Kind<F, [A]>) => Kind<F, [D]>;
   readonly map2_: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,

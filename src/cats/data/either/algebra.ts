@@ -1,7 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export abstract class Either<E, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Right<A> extends Either<never, A> {

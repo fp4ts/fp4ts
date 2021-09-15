@@ -5,7 +5,7 @@ import { Spawn } from './spawn';
 export interface Concurrent<F extends AnyK, E> extends Spawn<F, E> {
   readonly parTraverse: <T extends AnyK>(
     T: Traversable<T>,
-  ) => <S, R, A, B>(
+  ) => <A, B>(
     f: (a: A) => Kind<F, [B]>,
   ) => (ts: Kind<T, [A]>) => Kind<F, [Kind<T, [B]>]>;
 

@@ -97,7 +97,7 @@ export class Deferred<F extends AnyK, A> {
     );
   };
 
-  public readonly complete = <S, R>(result: A): Kind<F, [void]> => {
+  public readonly complete = (result: A): Kind<F, [void]> => {
     const notifyReaders = (readers: ResumeReader<A>[]): Kind<F, [void]> =>
       this.F.defer(() =>
         pipe(

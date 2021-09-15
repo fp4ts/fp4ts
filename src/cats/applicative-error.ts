@@ -18,7 +18,7 @@ export interface ApplicativeError<F extends AnyK, E> extends Applicative<F> {
   readonly redeem: <A, B>(
     h: (e: E) => B,
     f: (a: A) => B,
-  ) => <S, R>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
 
   readonly redeemWith: <A, B>(
     h: (e: E) => Kind<F, [B]>,

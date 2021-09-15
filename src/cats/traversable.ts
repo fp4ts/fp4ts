@@ -9,7 +9,7 @@ export interface Traversable<F extends AnyK> extends Functor<F>, Foldable<F> {
     G: Applicative<G>,
   ) => <A, B>(
     f: (a: A) => Kind<G, [B]>,
-  ) => <S, R, E>(fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+  ) => (fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
   readonly traverse_: <G extends AnyK>(
     G: Applicative<G>,
   ) => <A, B>(
@@ -19,14 +19,14 @@ export interface Traversable<F extends AnyK> extends Functor<F>, Foldable<F> {
 
   readonly sequence: <G extends AnyK>(
     G: Applicative<G>,
-  ) => <CG, A>(fga: Kind<F, [Kind<G, [A]>]>) => Kind<G, [Kind<F, [A]>]>;
+  ) => <A>(fga: Kind<F, [Kind<G, [A]>]>) => Kind<G, [Kind<F, [A]>]>;
 
   readonly flatTraverse: <G extends AnyK>(
     F: FlatMap<F>,
     G: Applicative<G>,
   ) => <A, B>(
     f: (a: A) => Kind<G, [Kind<F, [B]>]>,
-  ) => <S, R, E>(fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+  ) => (fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
   readonly flatTraverse_: <G extends AnyK>(
     F: FlatMap<F>,
     G: Applicative<G>,

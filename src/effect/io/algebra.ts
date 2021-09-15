@@ -8,10 +8,8 @@ import { Poll } from '../kernel';
 
 // -- IO Algebra
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export abstract class IO<A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Pure<A> extends IO<A> {

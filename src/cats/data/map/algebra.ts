@@ -1,9 +1,7 @@
 import { ok as assert } from 'assert';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export abstract class Map<K, V> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Inner<K, V> extends Map<K, V> {

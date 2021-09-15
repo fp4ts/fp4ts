@@ -11,7 +11,7 @@ export const map =
 
 export const flatMap =
   <F extends AnyK, A, B>(f: (a: A) => Free<F, B>) =>
-  <S, R, E>(self: Free<F, A>): Free<F, B> =>
+  (self: Free<F, A>): Free<F, B> =>
     flatMap_(self, f);
 
 export const mapK =

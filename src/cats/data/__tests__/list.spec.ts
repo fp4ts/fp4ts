@@ -17,6 +17,11 @@ describe('List', () => {
       // @ts-expect-error
       xs.prepend('string');
     });
+
+    test('call', () => {
+      // @ts-ignore
+      List.empty(22);
+    });
   });
 
   describe('constructors', () => {

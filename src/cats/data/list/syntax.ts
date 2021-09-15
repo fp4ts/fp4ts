@@ -473,7 +473,7 @@ List.prototype.scanRight1 = function <A>(
 List.prototype.traverse = function <G extends AnyK, A>(
   this: List<A>,
   G: Applicative<G>,
-): <C, S, R, E, B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]> {
+): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]> {
   return f => traverse_(G)(this, f);
 };
 
