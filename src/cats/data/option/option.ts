@@ -7,8 +7,8 @@ import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
-
 import { Either } from '../either';
+
 import { Option as OptionBase } from './algebra';
 import { fromEither, fromNullable, none, pure, some } from './constructors';
 import {
@@ -21,6 +21,7 @@ import {
   optionMonoidK,
   optionSemigroupK,
 } from './instances';
+import { tailRecM } from './operators';
 
 // -- Object
 
@@ -43,6 +44,8 @@ export interface OptionObj {
   fromEither: <A>(ea: Either<unknown, A>) => Option<A>;
   fromNullable: <A>(x: A | null | undefined) => Option<A>;
 
+  tailRecM: <A>(a: A) => <B>(f: (a: A) => Option<Either<A, B>>) => Option<B>;
+
   // -- Instances
 
   readonly SemigroupK: SemigroupK<OptionK>;
@@ -60,6 +63,7 @@ Option.some = some;
 Option.none = none;
 Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
+Option.tailRecM = tailRecM;
 
 Object.defineProperty(Option, 'SemigroupK', {
   get(): SemigroupK<OptionK> {

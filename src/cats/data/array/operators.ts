@@ -2,6 +2,7 @@ import { Kind, id, AnyK } from '../../../core';
 import { Monoid } from '../../monoid';
 import { Applicative } from '../../applicative';
 import { Option } from '../option';
+import { Either } from '../either';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -62,6 +63,10 @@ export const flatten: <A>(xss: A[][]) => A[] = xss => xss.flatMap(id);
 export const foldMap: <M>(
   M: Monoid<M>,
 ) => <A>(f: (a: A) => M) => (xs: A[]) => M = M => f => xs => foldMap_(xs, f, M);
+
+export const tailRecM: <A>(a: A) => <B>(f: (a: A) => Either<A, B>[]) => B[] =
+  a => f =>
+    tailRecM_(a, f);
 
 export const foldLeft: <A, B>(z: B, f: (b: B, a: A) => B) => (xs: A[]) => B =
   (z, f) => xs =>
@@ -131,6 +136,21 @@ export const collect_ = <A, B>(xs: A[], f: (a: A) => Option<B>): B[] => {
 
 export const flatMap_: <A, B>(xs: A[], f: (a: A) => B[]) => B[] = (xs, f) =>
   xs.flatMap(f);
+
+export const tailRecM_ = <A, B>(a: A, f: (a: A) => Either<A, B>[]): B[] => {
+  const results: B[] = [];
+  const stack: Either<A, B>[] = f(a);
+
+  while (stack.length > 0) {
+    const head = stack.pop()!;
+    head.fold(
+      a => stack.push(...f(a).reverse()),
+      b => results.push(b),
+    );
+  }
+
+  return results;
+};
 
 export const foldMap_ = <M, A>(xs: A[], f: (a: A) => M, M: Monoid<M>): M =>
   foldLeft_(map_(xs, f), M.empty, M.combine_);

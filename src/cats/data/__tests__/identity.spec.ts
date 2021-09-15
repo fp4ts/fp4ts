@@ -1,6 +1,33 @@
+import { Left, Right } from '../either';
 import { Identity } from '../identity';
 
 describe('Identity', () => {
+  describe('tailRecM', () => {
+    it('should return initial result when returned right', () => {
+      expect(Identity.tailRecM(42)(x => Identity(Right(x)))).toEqual(
+        Identity(42),
+      );
+    });
+
+    it('should compute recursive sum', () => {
+      expect(
+        Identity.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10 ? Identity(Left([i + 1, x + i])) : Identity(Right(x)),
+        ),
+      ).toEqual(Identity(45));
+    });
+
+    it('should be stack safe', () => {
+      const size = 100_000;
+
+      expect(
+        Identity.tailRecM(0)(i =>
+          i < size ? Identity(Left(i + 1)) : Identity(Right(i)),
+        ),
+      ).toEqual(Identity(size));
+    });
+  });
+
   describe('monad', () => {
     it('should a pure value', () => {
       expect(Identity.pure(42).get).toEqual(42);

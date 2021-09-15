@@ -1,3 +1,4 @@
+import { Either, Right, Left } from '../either';
 import { State } from '../state';
 
 describe('State', () => {
@@ -61,6 +62,20 @@ describe('State', () => {
           : State.unit();
 
       expect(loop(0).runState(0)).toEqual([10_000, undefined]);
+    });
+  });
+
+  describe('tailRecM', () => {
+    it('should compute sum of all numbers by accessing the state', () => {
+      expect(
+        State.tailRecM(0)<number, void>(i =>
+          i < 10
+            ? State.get<number>()
+                .flatMap(s => State.set(s + i))
+                .map(() => Left(i + 1))
+            : State.pure(Either.rightUnit),
+        ).runState(0),
+      ).toEqual([45, undefined]);
     });
   });
 

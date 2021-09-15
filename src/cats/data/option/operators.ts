@@ -1,4 +1,6 @@
-import { flow, id } from '../../../fp/core';
+import { flow, id } from '../../../core';
+import { Either } from '../either';
+
 import { Option, view } from './algebra';
 import { none, some } from './constructors';
 
@@ -48,6 +50,11 @@ export const flatTap: <A>(
 export const flatten: <A>(o: Option<Option<A>>) => Option<A> = o =>
   flatMap_(o, id);
 
+export const tailRecM: <A>(
+  a: A,
+) => <B>(f: (a: A) => Option<Either<A, B>>) => Option<B> = a => f =>
+  tailRecM_(a, f);
+
 export const fold: <A, B>(
   onNone: () => B,
   onSome: (a: A) => B,
@@ -79,6 +86,28 @@ export const flatTap_ = <A>(
   o: Option<A>,
   f: (a: A) => Option<unknown>,
 ): Option<A> => flatMap_(o, x => map_(f(x), () => x));
+
+export const tailRecM_ = <A, B>(
+  a: A,
+  f: (a: A) => Option<Either<A, B>>,
+): Option<B> => {
+  let cur: Option<Either<A, B>> = f(a);
+  let result: Option<B> | undefined;
+
+  while (!result) {
+    fold_<Either<A, B>, void>(
+      cur,
+      () => (result = none),
+      ab =>
+        ab.fold<void>(
+          a => (cur = f(a)),
+          b => (result = some(b)),
+        ),
+    );
+  }
+
+  return result;
+};
 
 export const fold_ = <A, B>(
   o: Option<A>,

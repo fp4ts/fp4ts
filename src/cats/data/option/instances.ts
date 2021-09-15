@@ -9,7 +9,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { OptionK } from './option';
-import { flatMap_, flatTap_, flatten, map_, or_ } from './operators';
+import { flatMap_, flatTap_, flatten, map_, or_, tailRecM_ } from './operators';
 import { none, pure } from './constructors';
 
 export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = () =>
@@ -47,6 +47,7 @@ export const optionFlatMap: Lazy<FlatMap<OptionK>> = () =>
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
+    tailRecM_: tailRecM_,
   });
 
 export const optionMonad: Lazy<Monad<OptionK>> = () =>

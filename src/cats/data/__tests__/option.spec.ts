@@ -101,6 +101,34 @@ describe('Option', () => {
     });
   });
 
+  describe('tailRecM', () => {
+    it('should return initial result when returned Some', () => {
+      expect(Option.tailRecM(42)(x => Some(Right(x)))).toEqual(Some(42));
+    });
+
+    it('should return left when computation returned None', () => {
+      expect(Option.tailRecM(42)(x => None)).toEqual(None);
+    });
+
+    it('should compute recursive sum', () => {
+      expect(
+        Option.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10 ? Some(Left([i + 1, x + i])) : Some(Right(x)),
+        ),
+      ).toEqual(Some(45));
+    });
+
+    it('should be stack safe', () => {
+      const size = 100_000;
+
+      expect(
+        Option.tailRecM(0)(i =>
+          i < size ? Some(Left(i + 1)) : Some(Right(i)),
+        ),
+      ).toEqual(Some(size));
+    });
+  });
+
   describe('monad', () => {
     it('should a pure value', () => {
       expect(Option.pure(42)).toEqual(Some(42));

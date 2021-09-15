@@ -1,5 +1,5 @@
 import { id } from '../../../fp/core';
-import { Left, Right } from '../either';
+import { Either, Left, Right } from '../either';
 import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../array/instances';
 import { List } from '../list';
@@ -492,6 +492,50 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs.flatMap(List).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('tailRecM', () => {
+    it('should return initial result when returned singleton list', () => {
+      expect(List.tailRecM(42)(x => List(Right(x)))).toEqual(List(42));
+    });
+
+    it('should return empty list when an empty list is returned', () => {
+      expect(List.tailRecM(42)(x => List.empty)).toEqual(List.empty);
+    });
+
+    it('should compute recursive sum', () => {
+      expect(
+        List.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10
+            ? List<Either<[number, number], number>>(
+                Right(x),
+                Left([i + 1, x + i]),
+              )
+            : List(Right(x)),
+        ),
+      ).toEqual(List(0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45));
+    });
+
+    it('should compute recursive sum inverted', () => {
+      expect(
+        List.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10
+            ? List<Either<[number, number], number>>(
+                Left([i + 1, x + i]),
+                Right(x),
+              )
+            : List(Right(x)),
+        ),
+      ).toEqual(List(45, 36, 28, 21, 15, 10, 6, 3, 1, 0, 0));
+    });
+
+    it('should be stack safe', () => {
+      const size = 100_000;
+
+      expect(
+        List.tailRecM(0)(i => (i < size ? List(Left(i + 1)) : List(Right(i)))),
+      ).toEqual(List(size));
     });
   });
 

@@ -7,7 +7,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { EitherK } from './either';
-import { flatMap_, map_, or_ } from './operators';
+import { flatMap_, map_, or_, tailRecM_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
 export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
@@ -30,7 +30,7 @@ export const eitherApplicative: <E>() => Applicative<$<EitherK, [E]>> = () =>
   });
 
 export const eitherFlatMap: <E>() => FlatMap<$<EitherK, [E]>> = () =>
-  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_ });
+  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
 
 export const eitherMonad: <E>() => Monad<$<EitherK, [E]>> = () =>
   Monad.of({

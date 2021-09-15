@@ -85,6 +85,34 @@ describe('Either', () => {
     });
   });
 
+  describe('tailRecM', () => {
+    it('should return initial result when returned right', () => {
+      expect(Either.tailRecM(42)(x => Right(Right(x)))).toEqual(Right(42));
+    });
+
+    it('should return left when computation returned left', () => {
+      expect(Either.tailRecM(42)(x => Left('Error'))).toEqual(Left('Error'));
+    });
+
+    it('should compute recursive sum', () => {
+      expect(
+        Either.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10 ? Right(Left([i + 1, x + i])) : Right(Right(x)),
+        ),
+      ).toEqual(Right(45));
+    });
+
+    it('should be stack safe', () => {
+      const size = 100_000;
+
+      expect(
+        Either.tailRecM(0)(i =>
+          i < size ? Right(Left(i + 1)) : Right(Right(i)),
+        ),
+      ).toEqual(Right(size));
+    });
+  });
+
   describe('toOption', () => {
     it('should convert right value to Some', () => {
       expect(Right(42).toOption).toEqual(Some(42));

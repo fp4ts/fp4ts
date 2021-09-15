@@ -1,4 +1,5 @@
-import { id } from '../../../fp/core';
+import { id } from '../../../core';
+import { Either } from '..';
 import { FlatMap, Pure, State, view } from './algebra';
 import { get, pure, set } from './constructors';
 
@@ -39,6 +40,11 @@ export const flatMap: <S, A, B>(
 export const flatTap: <S, A>(
   f: (a: A) => State<S, unknown>,
 ) => (fa: State<S, A>) => State<S, A> = f => fa => flatTap_(fa, f);
+
+export const tailRecM: <A>(
+  a: A,
+) => <S, B>(f: (a: A) => State<S, Either<A, B>>) => State<S, B> = a => f =>
+  tailRecM_(a, f);
 
 export const runState: <S>(s: S) => <A>(fa: State<S, A>) => [S, A] = s => fa =>
   runState_(fa, s);
@@ -101,6 +107,17 @@ export const flatTap_ = <S, A>(
 
 export const flatten = <S, A>(ffa: State<S, State<S, A>>): State<S, A> =>
   flatMap_(ffa, id);
+
+export const tailRecM_ = <S, A, B>(
+  a: A,
+  f: (a: A) => State<S, Either<A, B>>,
+): State<S, B> =>
+  flatMap_(f(a), ab =>
+    ab.fold(
+      a => tailRecM_(a, f),
+      b => pure(b),
+    ),
+  );
 
 export const runState_ = <S, A>(fa: State<S, A>, s: S): [S, A] => {
   type Frame = (a: unknown) => State<unknown, unknown>;

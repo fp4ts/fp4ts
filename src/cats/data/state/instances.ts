@@ -15,6 +15,7 @@ import {
   productL_,
   productR_,
   product_,
+  tailRecM_,
 } from './operators';
 import { pure } from './constructors';
 
@@ -43,6 +44,7 @@ export const stateFlatMap: <S>() => FlatMap<$<StateK, [S]>> = () =>
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
+    tailRecM_: tailRecM_,
   });
 
 export const stateMonad: <S>() => Monad<$<StateK, [S]>> = () =>

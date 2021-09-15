@@ -125,6 +125,10 @@ export const flatTap: <A>(f: (a: A) => IO<unknown>) => (ioa: IO<A>) => IO<A> =
   f => ioa =>
     flatTap_(ioa, f);
 
+export const tailRecM: <A>(
+  a: A,
+) => <B>(f: (a: A) => IO<Either<A, B>>) => IO<B> = a => f => tailRecM_(a, f);
+
 export const flatten: <A>(ioioa: IO<IO<A>>) => IO<A> = flatMap(id);
 
 export const handleError: <B>(
@@ -437,6 +441,14 @@ export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   ioa,
   f,
 ) => flatMap_(ioa, x => map_(f(x), () => x));
+
+export const tailRecM_ = <A, B>(a: A, f: (a: A) => IO<Either<A, B>>): IO<B> =>
+  flatMap_(f(a), ab =>
+    ab.fold(
+      a => tailRecM_(a, f),
+      b => pure(b),
+    ),
+  );
 
 export const handleError_: <A>(ioa: IO<A>, f: (e: Error) => A) => IO<A> = (
   ioa,

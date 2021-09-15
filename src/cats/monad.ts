@@ -8,7 +8,7 @@ export interface Monad<F extends AnyK> extends FlatMap<F>, Applicative<F> {}
 
 export type MonadRequirements<F extends AnyK> = Pick<
   Monad<F>,
-  'flatMap_' | 'pure'
+  'flatMap_' | 'pure' | 'tailRecM_'
 > &
   Partial<Monad<F>>;
 export const Monad = Object.freeze({

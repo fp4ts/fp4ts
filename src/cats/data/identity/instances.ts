@@ -6,7 +6,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { IdentityK } from './identity';
-import { flatMap_, map_ } from './operators';
+import { flatMap_, map_, tailRecM_ } from './operators';
 import { pure, unit } from './constructors';
 
 export const identityFunctor: Lazy<Functor<IdentityK>> = () =>
@@ -26,7 +26,7 @@ export const identityApplicative: Lazy<Applicative<IdentityK>> = () =>
   });
 
 export const identityFlatMap: Lazy<FlatMap<IdentityK>> = () =>
-  FlatMap.of({ ...identityApply(), flatMap_: flatMap_ });
+  FlatMap.of({ ...identityApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
 
 export const identityMonad: Lazy<Monad<IdentityK>> = () =>
   Monad.of({

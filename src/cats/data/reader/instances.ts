@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { $ } from '../../../core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
@@ -16,6 +15,7 @@ import {
   productL_,
   productR_,
   product_,
+  tailRecM_,
 } from './operators';
 import { ReaderK } from './reader';
 import { pure, unit } from './constructors';
@@ -46,6 +46,7 @@ export const readerFlatMap: <R>() => FlatMap<$<ReaderK, [R]>> = () =>
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
+    tailRecM_: tailRecM_,
   });
 
 export const readerMonad: <R>() => Monad<$<ReaderK, [R]>> = () =>

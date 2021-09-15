@@ -1,5 +1,6 @@
 import { id, Kind, AnyK } from '../core';
 import { Apply } from './apply';
+import { Either } from './data';
 
 export interface FlatMap<F extends AnyK> extends Apply<F> {
   readonly flatMap: <A, B>(
@@ -19,11 +20,19 @@ export interface FlatMap<F extends AnyK> extends Apply<F> {
   ) => Kind<F, [A]>;
 
   readonly flatten: <A>(ffa: Kind<F, [Kind<F, [A]>]>) => Kind<F, [A]>;
+
+  readonly tailRecM: <A>(
+    a: A,
+  ) => <B>(f: (a: A) => Kind<F, [Either<A, B>]>) => Kind<F, [B]>;
+  readonly tailRecM_: <A, B>(
+    a: A,
+    f: (a: A) => Kind<F, [Either<A, B>]>,
+  ) => Kind<F, [B]>;
 }
 
 export type FlatMapRequirements<F extends AnyK> = Pick<
   FlatMap<F>,
-  'flatMap_' | 'map_'
+  'flatMap_' | 'map_' | 'tailRecM_'
 > &
   Partial<FlatMap<F>>;
 export const FlatMap = Object.freeze({
@@ -36,6 +45,8 @@ export const FlatMap = Object.freeze({
       flatTap_: (fa, f) => self.flatMap_(fa, x => self.map_(f(x), () => x)),
 
       flatten: ffa => self.flatMap_(ffa, id),
+
+      tailRecM: a => f => self.tailRecM_(a, f),
 
       ...FlatMap.deriveApply(F),
       ...F,

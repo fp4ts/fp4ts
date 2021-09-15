@@ -1,4 +1,5 @@
-import { id } from '../../../fp/core';
+import { id } from '../../../core';
+import { Either } from '../either';
 import { FlatMap, Pure, Reader, view } from './algebra';
 import { pure } from './constructors';
 
@@ -47,6 +48,11 @@ export const flatTap: <R2, A>(
 export const flatten = <R1, R2, A>(
   ffa: Reader<R1, Reader<R2, A>>,
 ): Reader<R1 & R2, A> => flatMap_(ffa, id);
+
+export const tailRecM: <A>(
+  a: A,
+) => <R, B>(f: (a: A) => Reader<R, Either<A, B>>) => Reader<R, B> = a => f =>
+  tailRecM_(a, f);
 
 export const runReader: <R>(r: R) => <A>(fa: Reader<R, A>) => A = r => fa =>
   runReader_(fa, r);
@@ -102,6 +108,18 @@ export const flatTap_ = <R1, R2, A>(
   fa: Reader<R1, A>,
   f: (a: A) => Reader<R2, unknown>,
 ): Reader<R1 & R2, A> => flatMap_(fa, x => map_(f(x), () => x));
+
+export const tailRecM_ = <R, A, B>(
+  a: A,
+  f: (a: A) => Reader<R, Either<A, B>>,
+): Reader<R, B> =>
+  // We can afford this since we ensure the stack safety in the run function
+  flatMap_(f(a), ab =>
+    ab.fold(
+      a => tailRecM_(a, f),
+      b => pure(b),
+    ),
+  );
 
 export const runReader_ = <R, A>(fa: Reader<R, A>, r: R): A => {
   type Frame = (a: unknown) => Reader<unknown, unknown>;

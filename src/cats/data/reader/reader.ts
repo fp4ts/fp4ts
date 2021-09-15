@@ -4,6 +4,7 @@ import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { Either } from '../either';
 
 import { Reader as ReaderBase } from './algebra';
 import { provide, pure, read, unit } from './constructors';
@@ -14,6 +15,7 @@ import {
   readerFunctor,
   readerMonad,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type Reader<R, A> = ReaderBase<R, A>;
 
@@ -27,6 +29,9 @@ interface ReaderObj {
   unit: Reader<unknown, void>;
   read<R>(): Reader<R, R>;
   provide<R>(r: R): Reader<unknown, void>;
+  tailRecM<A>(
+    a: A,
+  ): <R, B>(f: (a: A) => Reader<R, Either<A, B>>) => Reader<R, B>;
 
   // -- Instances
 
@@ -41,6 +46,7 @@ Reader.pure = pure;
 Reader.unit = unit;
 Reader.read = read;
 Reader.provide = provide;
+Reader.tailRecM = tailRecM;
 
 Reader.Functor = readerFunctor;
 Reader.Apply = readerApply;

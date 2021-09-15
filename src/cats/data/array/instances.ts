@@ -26,6 +26,7 @@ import {
   nonEmpty,
   sequence,
   size,
+  tailRecM_,
   traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
@@ -57,7 +58,7 @@ export const arrayApplicative: () => Applicative<ArrayK> = () =>
   Applicative.of({ ...arrayApply(), pure: pure, unit: [] });
 
 export const arrayFlatMap: () => FlatMap<ArrayK> = () =>
-  FlatMap.of({ ...arrayApply(), flatMap_: flatMap_ });
+  FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
 
 export const arrayMonad: () => Monad<ArrayK> = () =>
   Monad.of({

@@ -16,6 +16,7 @@ import {
   eitherMonad,
   eitherSemigroupK,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type Either<E, A> = EitherBase<E, A>;
 
@@ -33,6 +34,10 @@ export interface EitherObj {
   left: <E, A = never>(e: E) => Either<E, A>;
   rightUnit: Either<never, void>;
 
+  tailRecM: <A>(
+    a: A,
+  ) => <E, B>(f: (a: A) => Either<E, Either<A, B>>) => Either<E, B>;
+
   // -- Instances
   SemigroupK<E>(): SemigroupK<$<EitherK, [E]>>;
   Functor<E>(): Functor<$<EitherK, [E]>>;
@@ -46,6 +51,7 @@ Either.right = right;
 Either.left = left;
 Either.pure = pure;
 Either.rightUnit = rightUnit;
+Either.tailRecM = tailRecM;
 
 Either.SemigroupK = eitherSemigroupK;
 Either.Functor = eitherFunctor;

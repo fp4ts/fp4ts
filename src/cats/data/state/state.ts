@@ -4,6 +4,7 @@ import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { Either } from '../either';
 
 import { State as StateBase } from './algebra';
 import {
@@ -22,6 +23,7 @@ import {
   stateFunctor,
   stateMonad,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type State<S, A> = StateBase<S, A>;
 
@@ -30,6 +32,8 @@ export const State: StateObj = {
   get: get,
   set: set,
   unit: unit,
+
+  tailRecM: tailRecM,
 
   update: update,
   updateAndGet: updateAndGet,
@@ -45,6 +49,8 @@ export interface StateObj {
   update<S>(f: (s: S) => S): State<S, void>;
   updateAndGet<S>(f: (s: S) => S): State<S, S>;
   modify<S, A>(f: (s: S) => [S, A]): State<S, A>;
+
+  tailRecM<A>(a: A): <S, B>(f: (a: A) => State<S, Either<A, B>>) => State<S, B>;
 
   Functor<S>(): Functor<$<StateK, [S]>>;
   Apply<S>(): Apply<$<StateK, [S]>>;

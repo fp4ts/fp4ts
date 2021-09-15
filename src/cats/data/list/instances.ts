@@ -29,6 +29,7 @@ import {
   nonEmpty,
   sequence,
   size,
+  tailRecM_,
   tap_,
   traverse_,
 } from './operators';
@@ -75,6 +76,7 @@ export const listFlatMap: Lazy<FlatMap<ListK>> = () =>
     flatMap_: flatMap_,
     flatTap_: tap_,
     flatten: flatten,
+    tailRecM_: tailRecM_,
   });
 
 export const listMonad: Lazy<Monad<ListK>> = () =>

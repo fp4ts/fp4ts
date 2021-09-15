@@ -57,6 +57,7 @@ import {
   raceOutcome_,
   race_,
   sequence,
+  tailRecM,
   traverse,
   traverse_,
 } from './operators';
@@ -89,6 +90,8 @@ interface IOObj {
   <A>(thunk: () => A): IO<A>;
 
   pure: <A>(a: A) => IO<A>;
+
+  tailRecM: <A>(a: A) => <B>(f: (a: A) => IO<Either<A, B>>) => IO<B>;
 
   delay: <A>(thunk: () => A) => IO<A>;
 
@@ -234,6 +237,8 @@ interface IOObj {
 }
 
 IO.pure = pure;
+
+IO.tailRecM = tailRecM;
 
 IO.delay = delay;
 

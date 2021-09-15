@@ -61,6 +61,7 @@ import {
   race_,
   redeem,
   redeemWith,
+  tailRecM_,
   tap_,
   timeoutTo_,
   timeout_,
@@ -109,6 +110,7 @@ export const ioFlatMap: Lazy<FlatMap<IoK>> = () =>
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
+    tailRecM_: tailRecM_,
   });
 
 export const ioMonad: Lazy<Monad<IoK>> = () =>

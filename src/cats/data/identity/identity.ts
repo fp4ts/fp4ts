@@ -4,6 +4,7 @@ import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { Either } from '../either';
 
 import { Identity as IdentityBase } from './algebra';
 import { pure } from './constructors';
@@ -14,6 +15,7 @@ import {
   identityFunctor,
   identityMonad,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type Identity<A> = IdentityBase<A>;
 
@@ -25,6 +27,9 @@ interface IdentityObj {
   <A>(a: A): Identity<A>;
   pure<A>(a: A): Identity<A>;
   unit: Identity<void>;
+  tailRecM: <A>(
+    a: A,
+  ) => <B>(f: (a: A) => Identity<Either<A, B>>) => Identity<B>;
 
   readonly Functor: Functor<IdentityK>;
   readonly Apply: Apply<IdentityK>;
@@ -35,6 +40,7 @@ interface IdentityObj {
 
 Identity.pure = pure;
 Identity.unit = pure(undefined);
+Identity.tailRecM = tailRecM;
 
 // -- Instances
 

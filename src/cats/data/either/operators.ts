@@ -9,14 +9,18 @@ export const fold: <E, A, B>(
 ) => (ea: Either<E, A>) => B = (onLeft, onRight) => ea =>
   fold_(ea, onLeft, onRight);
 
-export const isEmpty = <E, A>(ea: Either<E, A>): boolean =>
+export const isLeft = <E, A>(ea: Either<E, A>): boolean =>
   fold_(
     ea,
     () => true,
     () => false,
   );
 
-export const nonEmpty = <E, A>(ea: Either<E, A>): boolean => !isEmpty(ea);
+export const isRight = <E, A>(ea: Either<E, A>): boolean => !isLeft(ea);
+
+export const isEmpty = <E, A>(ea: Either<E, A>): boolean => isLeft(ea);
+
+export const nonEmpty = <E, A>(ea: Either<E, A>): boolean => isRight(ea);
 
 export const map: <A, B>(
   f: (a: A) => B,
@@ -48,6 +52,11 @@ export const flatTap: <E2, A>(
 
 export const flatten = <E, A>(eea: Either<E, Either<E, A>>): Either<E, A> =>
   flatMap_(eea, id);
+
+export const tailRecM: <A>(
+  a: A,
+) => <E, B>(f: (a: A) => Either<E, Either<A, B>>) => Either<E, B> = a => f =>
+  tailRecM_(a, f);
 
 export const swapped = <E, A>(ea: Either<E, A>): Either<A, E> =>
   fold_<E, A, Either<A, E>>(ea, right, left);
@@ -84,6 +93,29 @@ export const flatTap_ = <E, A>(
   ea: Either<E, A>,
   f: (a: A) => Either<E, unknown>,
 ): Either<E, A> => fold_(ea, left, x => map_(f(x), () => x));
+
+export const tailRecM_ = <E, A, B>(
+  a: A,
+  f: (a: A) => Either<E, Either<A, B>>,
+): Either<E, B> => {
+  let cur: Either<E, Either<A, B>> = f(a);
+  let result: Either<E, B> | undefined;
+
+  while (!result) {
+    fold_<E, Either<A, B>, void>(
+      cur,
+      e => (result = left(e)),
+      ab =>
+        fold_<A, B, void>(
+          ab,
+          a => (cur = f(a)),
+          b => (result = right(b)),
+        ),
+    );
+  }
+
+  return result;
+};
 
 export const fold_ = <E, A, B>(
   ea: Either<E, A>,

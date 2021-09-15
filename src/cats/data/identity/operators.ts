@@ -1,6 +1,7 @@
-import { id } from '../../../fp/core';
+import { id } from '../../../core';
 import { pure } from './constructors';
 import { Identity } from './algebra';
+import { Either } from '../either';
 
 export const map: <A, B>(f: (a: A) => B) => (fa: Identity<A>) => Identity<B> =
   f => fa =>
@@ -20,6 +21,11 @@ export const flatTap: <A>(
 
 export const flatten: <A>(ffa: Identity<Identity<A>>) => Identity<A> = ffa =>
   flatMap_(ffa, id);
+
+export const tailRecM: <A>(
+  a: A,
+) => <B>(f: (a: A) => Identity<Either<A, B>>) => Identity<B> = a => f =>
+  tailRecM_(a, f);
 
 // -- Point-ful operators
 
@@ -42,4 +48,21 @@ export const flatTap_ = <A>(
 ): Identity<A> => {
   f(fa.get);
   return fa;
+};
+
+export const tailRecM_ = <A, B>(
+  a: A,
+  f: (a: A) => Identity<Either<A, B>>,
+): Identity<B> => {
+  let cur: Either<A, B> = f(a).get;
+  let result: B | undefined;
+
+  while (!result) {
+    cur.fold<void>(
+      a => (cur = f(a).get),
+      b => (result = b),
+    );
+  }
+
+  return pure(result);
 };

@@ -11,6 +11,7 @@ import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
 import { Traversable } from '../../traversable';
+import { Either } from '../either';
 
 import { List as ListBase } from './algebra';
 import { empty, fromArray, of, pure } from './constructors';
@@ -27,6 +28,7 @@ import {
   listMonad,
   listAlternative,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type List<A> = ListBase<A>;
 
@@ -41,6 +43,7 @@ interface ListObj {
   empty: List<never>;
   of: <A>(...xs: A[]) => List<A>;
   fromArray: <A>(xs: A[]) => List<A>;
+  tailRecM: <A>(a: A) => <B>(f: (a: A) => List<Either<A, B>>) => List<B>;
 
   // -- Instances
 
@@ -61,6 +64,7 @@ List.pure = pure;
 List.empty = empty;
 List.of = of;
 List.fromArray = fromArray;
+List.tailRecM = tailRecM;
 
 Object.defineProperty(List, 'SemigroupK', {
   get(): SemigroupK<ListK> {

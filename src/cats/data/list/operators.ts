@@ -8,7 +8,7 @@ import { Either } from '../either';
 import { Option, None, Some } from '../option';
 
 import { Cons, List, view } from './algebra';
-import { cons, empty, nil, pure } from './constructors';
+import { cons, empty, fromArray, nil, pure } from './constructors';
 
 const throwError = (e: Error) => {
   throw e;
@@ -150,6 +150,11 @@ export const flatMap: <A, B>(f: (a: A) => List<B>) => (xs: List<A>) => List<B> =
   f => xs => flatMap_(xs, f);
 
 export const flatten: <A>(xs: List<List<A>>) => List<A> = flatMap(id);
+
+export const tailRecM: <A>(
+  a: A,
+) => <B>(f: (a: A) => List<Either<A, B>>) => List<B> = a => f =>
+  tailRecM_(a, f);
 
 export const fold: <A, B>(
   onNil: () => B,
@@ -384,7 +389,7 @@ export const dropRight_ = <A>(xs: List<A>, n: number): List<A> => {
     xs = tail(xs);
     lead = tail(lead);
   }
-  return h ? h : nil;
+  return h ?? nil;
 };
 
 export const slice_ = <A>(xs: List<A>, from: number, until: number): List<A> =>
@@ -451,7 +456,7 @@ export const flatMap_ = <A, B>(xs: List<A>, f: (a: A) => List<B>): List<B> => {
     xs = tail(xs);
   }
 
-  return h ? h : nil;
+  return h ?? nil;
 };
 
 export const fold_ = <A, B>(
@@ -461,6 +466,44 @@ export const fold_ = <A, B>(
 ): B => {
   const l = view(xs);
   return l.tag === 'cons' ? onCons(l._head, l._tail) : onNil();
+};
+
+export const tailRecM_ = <A, B>(
+  a: A,
+  f: (a: A) => List<Either<A, B>>,
+): List<B> => {
+  let stack: List<List<Either<A, B>>> = pure(f(a));
+  let h: Cons<B> | undefined;
+  let t: Cons<B> | undefined;
+
+  while (nonEmpty(stack)) {
+    const xhd = head(stack);
+    const xtl = tail(stack);
+
+    if (isEmpty(xhd)) {
+      stack = xtl;
+      continue;
+    }
+
+    const nx = head(xhd);
+    nx.fold(
+      a => {
+        stack = cons(f(a), cons(tail(xhd), xtl));
+      },
+      b => {
+        const tmp = new Cons(b, nil);
+        if (!t) {
+          h = tmp;
+        } else {
+          t!._tail = tmp;
+        }
+        t = tmp;
+        stack = cons(tail(xhd), xtl);
+      },
+    );
+  }
+
+  return h ?? nil;
 };
 
 export const foldLeft_ = <A, B>(xs: List<A>, z: B, f: (b: B, a: A) => B): B => {
@@ -597,7 +640,7 @@ export const collect_ = <A, B>(
     t = nx;
   }
 
-  return h ? h : nil;
+  return h ?? nil;
 };
 
 export const collectWhile_ = <A, B>(
@@ -621,7 +664,7 @@ export const collectWhile_ = <A, B>(
     t = nx;
   }
 
-  return h ? h : nil;
+  return h ?? nil;
 };
 
 export const partition_ = <A, L, R>(
