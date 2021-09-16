@@ -1,18 +1,26 @@
 import { List } from '../list';
 
+import { Measured } from './measured';
 import { FingerTree, Single, Empty } from './algebra';
 import { append_ } from './operators';
 
-export const pure = <A>(a: A): FingerTree<A> => new Single(a);
+export const pure = <V, A>(a: A): FingerTree<V, A> => new Single(a);
 
-export const empty: FingerTree<never> = Empty;
+export const empty = <V>(): FingerTree<V, never> => new Empty();
 
-export const singleton = <A>(a: A): FingerTree<A> => pure(a);
+export const singleton = <V, A>(a: A): FingerTree<V, A> => pure(a);
 
-export const of = <A>(...xs: A[]): FingerTree<A> => fromArray(xs);
+export const of =
+  <V, A>(M: Measured<A, V>) =>
+  (...xs: A[]): FingerTree<V, A> =>
+    fromArray(M)(xs);
 
-export const fromArray = <A>(xs: A[]): FingerTree<A> =>
-  xs.reduce(append_, empty as FingerTree<A>);
+export const fromArray =
+  <V, A>(M: Measured<A, V>) =>
+  (xs: A[]): FingerTree<V, A> =>
+    xs.reduce(append_(M), empty() as FingerTree<V, A>);
 
-export const fromList = <A>(xs: List<A>): FingerTree<A> =>
-  xs.foldLeft(empty as FingerTree<A>, append_);
+export const fromList =
+  <V, A>(M: Measured<A, V>) =>
+  (xs: List<A>): FingerTree<V, A> =>
+    xs.foldLeft(empty() as FingerTree<V, A>, append_(M));

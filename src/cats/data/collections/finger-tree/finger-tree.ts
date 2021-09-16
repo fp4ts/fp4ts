@@ -3,24 +3,25 @@ import { List } from '../list';
 
 import { FingerTree as FingerTreeBase } from './algebra';
 import { empty, fromArray, fromList, pure, singleton } from './constructors';
+import { Measured } from './measured';
 
-export type FingerTree<A> = FingerTreeBase<A>;
+export type FingerTree<V, A> = FingerTreeBase<V, A>;
 
-export const FingerTree: FingerTreeObj = function <A>(
-  ...xs: A[]
-): FingerTree<A> {
-  return fromArray(xs);
+export const FingerTree: FingerTreeObj = function <V, A>(
+  M: Measured<A, V>,
+): (...xs: A[]) => FingerTree<V, A> {
+  return (...xs) => fromArray(M)(xs);
 };
 
 interface FingerTreeObj {
-  <A>(...xs: A[]): FingerTree<A>;
+  <V, A>(M: Measured<A, V>): (...xs: A[]) => FingerTree<V, A>;
 
-  pure<A>(x: A): FingerTree<A>;
-  singleton<A>(x: A): FingerTree<A>;
-  empty: FingerTree<never>;
+  pure<V, A>(x: A): FingerTree<V, A>;
+  singleton<V, A>(x: A): FingerTree<V, A>;
+  empty<V>(): FingerTree<V, never>;
 
-  fromArray<A>(xs: A[]): FingerTree<A>;
-  fromList<A>(xs: List<A>): FingerTree<A>;
+  fromArray<V, A>(M: Measured<A, V>): (xs: A[]) => FingerTree<V, A>;
+  fromList<V, A>(M: Measured<A, V>): (xs: List<A>) => FingerTree<V, A>;
 }
 
 FingerTree.pure = pure;
@@ -33,10 +34,10 @@ FingerTree.fromList = fromList;
 
 export const FingerTreeURI = 'cats/data/collections/finger-tree';
 export type FingerTreeURI = typeof FingerTreeURI;
-export type FingerTreeK = TyK<FingerTreeURI, [_]>;
+export type FingerTreeK = TyK<FingerTreeURI, [_, _]>;
 
 declare module '../../../../core/hkt/hkt' {
   interface URItoKind<Tys extends unknown[]> {
-    [FingerTreeURI]: FingerTree<Tys[0]>;
+    [FingerTreeURI]: FingerTree<Tys[0], Tys[1]>;
   }
 }

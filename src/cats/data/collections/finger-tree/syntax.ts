@@ -2,6 +2,7 @@ import { Option } from '../../option';
 import { List } from '../list';
 
 import { FingerTree } from './algebra';
+import { Measured } from './measured';
 import {
   append_,
   concat_,
@@ -23,29 +24,43 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface FingerTree<A> {
+  interface FingerTree<V, A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
-    readonly head: A;
-    readonly headOption: Option<A>;
-    readonly tail: FingerTree<A>;
+    head(M: Measured<A, V>): A;
+    headOption(M: Measured<A, V>): Option<A>;
+    tail(M: Measured<A, V>): FingerTree<V, A>;
 
-    readonly last: A;
-    readonly lastOption: Option<A>;
-    readonly init: FingerTree<A>;
+    last(M: Measured<A, V>): A;
+    lastOption(M: Measured<A, V>): Option<A>;
+    init(M: Measured<A, V>): FingerTree<V, A>;
 
-    readonly popHead: Option<[A, FingerTree<A>]>;
-    readonly popLast: Option<[A, FingerTree<A>]>;
+    popHead<B>(
+      this: FingerTree<V, B>,
+      M: Measured<B, V>,
+    ): Option<[A, FingerTree<V, A>]>;
+    popLast<B>(
+      this: FingerTree<V, B>,
+      M: Measured<B, V>,
+    ): Option<[A, FingerTree<V, A>]>;
 
-    readonly toList: List<A>;
-    readonly toArray: A[];
+    toList<B>(this: FingerTree<V, B>, M: Measured<B, V>): List<A>;
+    toArray<B>(this: FingerTree<V, B>, M: Measured<B, V>): A[];
 
-    prepend<B>(this: FingerTree<B>, b: B): FingerTree<B>;
-    append<B>(this: FingerTree<B>, b: B): FingerTree<B>;
+    prepend<B>(
+      this: FingerTree<V, B>,
+      M: Measured<A, V>,
+    ): (b: B) => FingerTree<V, B>;
+    append<B>(
+      this: FingerTree<V, B>,
+      M: Measured<A, V>,
+    ): (b: B) => FingerTree<V, B>;
 
-    concat<B>(this: FingerTree<B>, that: FingerTree<B>): FingerTree<B>;
-    '+++'<B>(this: FingerTree<B>, that: FingerTree<B>): FingerTree<B>;
+    concat<B>(
+      this: FingerTree<V, B>,
+      M: Measured<B, V>,
+    ): (that: FingerTree<V, B>) => FingerTree<V, B>;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldRight<B>(z: B, f: (b: B, a: A) => B): B;
@@ -53,89 +68,101 @@ declare module './algebra' {
 }
 
 Object.defineProperty(FingerTree.prototype, 'isEmpty', {
-  get<A>(this: FingerTree<A>): boolean {
+  get<V, A>(this: FingerTree<V, A>): boolean {
     return isEmpty(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'nonEmpty', {
-  get<A>(this: FingerTree<A>): boolean {
+  get<V, A>(this: FingerTree<V, A>): boolean {
     return nonEmpty(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'head', {
-  get<A>(this: FingerTree<A>): A {
-    return head(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => A {
+    return M => head(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'headOption', {
-  get<A>(this: FingerTree<A>): Option<A> {
-    return headOption(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => Option<A> {
+    return M => headOption(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'tail', {
-  get<A>(this: FingerTree<A>): FingerTree<A> {
-    return tail(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => FingerTree<V, A> {
+    return M => tail(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'last', {
-  get<A>(this: FingerTree<A>): A {
-    return last(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => A {
+    return M => last(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'lastOption', {
-  get<A>(this: FingerTree<A>): Option<A> {
-    return lastOption(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => Option<A> {
+    return M => lastOption(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'init', {
-  get<A>(this: FingerTree<A>): FingerTree<A> {
-    return init(this);
+  get<V, A>(this: FingerTree<V, A>): (M: Measured<A, V>) => FingerTree<V, A> {
+    return M => init(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'popHead', {
-  get<A>(this: FingerTree<A>): Option<[A, FingerTree<A>]> {
-    return popHead(this);
+  get<V, A>(
+    this: FingerTree<V, A>,
+  ): (M: Measured<A, V>) => Option<[A, FingerTree<V, A>]> {
+    return M => popHead(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'popLast', {
-  get<A>(this: FingerTree<A>): Option<[A, FingerTree<A>]> {
-    return popLast(this);
+  get<V, A>(
+    this: FingerTree<V, A>,
+  ): (M: Measured<A, V>) => Option<[A, FingerTree<V, A>]> {
+    return M => popLast(M)(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'toList', {
-  get<A>(this: FingerTree<A>): List<A> {
+  get<V, A>(this: FingerTree<V, A>): List<A> {
     return toList(this);
   },
 });
 
 Object.defineProperty(FingerTree.prototype, 'toArray', {
-  get<A>(this: FingerTree<A>): A[] {
+  get<V, A>(this: FingerTree<V, A>): A[] {
     return toArray(this);
   },
 });
 
-FingerTree.prototype.prepend = function (x) {
-  return prepend_(this, x);
+FingerTree.prototype.prepend = function <V, A>(
+  this: FingerTree<V, A>,
+  M: Measured<A, V>,
+) {
+  return (x: A) => prepend_(M)(this, x);
 };
 
-FingerTree.prototype.append = function (x) {
-  return append_(this, x);
+FingerTree.prototype.append = function <V, A>(
+  this: FingerTree<V, A>,
+  M: Measured<A, V>,
+) {
+  return (x: A) => append_(M)(this, x);
 };
 
-FingerTree.prototype.concat = function (that) {
-  return concat_(this, that);
+FingerTree.prototype.concat = function <V, A>(
+  this: FingerTree<V, A>,
+  M: Measured<A, V>,
+) {
+  return (that: FingerTree<V, A>) => concat_(M)(this, that);
 };
-FingerTree.prototype['+++'] = FingerTree.prototype.concat;
 
 FingerTree.prototype.foldLeft = function (z, f) {
   return foldLeft_(this, z, f);
