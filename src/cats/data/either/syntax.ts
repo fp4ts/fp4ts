@@ -8,7 +8,7 @@ import {
   isEmpty,
   map_,
   nonEmpty,
-  orElse_,
+  getOrElse_,
   or_,
   swapped,
   tap_,
@@ -23,10 +23,10 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Either<E, B>;
     tap(f: (a: A) => unknown): Either<E, A>;
 
-    or<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
+    orElse<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
     '<|>'<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
 
-    orElse<A2>(this: Either<E, A2>, defaultValue: () => A2): A2;
+    getOrElse<A2>(this: Either<E, A2>, defaultValue: () => A2): A2;
 
     flatMap<B, E2>(
       this: Either<E2, A>,
@@ -74,20 +74,20 @@ Either.prototype.tap = function <E, A>(
   return tap_(this, f);
 };
 
-Either.prototype.or = function <E, A>(
+Either.prototype.orElse = function <E, A>(
   this: Either<E, A>,
   that: Either<E, A>,
 ): Either<E, A> {
   return or_(this, that);
 };
 
-Either.prototype['<|>'] = Either.prototype.or;
+Either.prototype['<|>'] = Either.prototype.orElse;
 
-Either.prototype.orElse = function <E, A>(
+Either.prototype.getOrElse = function <E, A>(
   this: Either<E, A>,
   defaultValue: () => A,
 ): A {
-  return orElse_(this, defaultValue);
+  return getOrElse_(this, defaultValue);
 };
 
 Either.prototype.flatMap = function <E, A, B>(

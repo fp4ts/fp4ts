@@ -30,14 +30,14 @@ export const tap: <A>(f: (a: A) => unknown) => (o: Option<A>) => Option<A> =
   f => o =>
     tap_(o, f);
 
-export const or: <A2>(
-  y: Option<A2>,
-) => <A extends A2>(x: Option<A>) => Option<A2> = y => x => or_(x, y);
-
 export const orElse: <A2>(
+  y: Option<A2>,
+) => <A extends A2>(x: Option<A>) => Option<A2> = y => x => orElse_(x, y);
+
+export const getOrElse: <A2>(
   defaultValue: () => A2,
 ) => <A extends A2>(x: Option<A>) => A2 = defaultValue => x =>
-  orElse_(x, defaultValue);
+  getOrElse_(x, defaultValue);
 
 export const flatMap: <A, B>(
   f: (a: A) => Option<B>,
@@ -71,10 +71,10 @@ export const tap_ = <A>(o: Option<A>, f: (a: A) => unknown): Option<A> =>
     return x;
   });
 
-export const or_ = <A>(x: Option<A>, y: Option<A>): Option<A> =>
+export const orElse_ = <A>(x: Option<A>, y: Option<A>): Option<A> =>
   fold_(x, () => y, some);
 
-export const orElse_ = <A>(x: Option<A>, defaultValue: () => A): A =>
+export const getOrElse_ = <A>(x: Option<A>, defaultValue: () => A): A =>
   fold_(x, defaultValue, id);
 
 export const flatMap_ = <A, B>(

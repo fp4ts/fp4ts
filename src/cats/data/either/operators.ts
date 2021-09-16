@@ -35,10 +35,10 @@ export const or: <E2, A2>(
 ) => <E extends E2, A extends A2>(x: Either<E, A>) => Either<E2, A2> = y => x =>
   or_(x, y);
 
-export const orElse: <A2>(
+export const getOrElse: <A2>(
   defaultValue: () => A2,
 ) => <E, A extends A2>(x: Either<E, A>) => A2 = defaultValue => x =>
-  orElse_(x, defaultValue);
+  getOrElse_(x, defaultValue);
 
 export const flatMap: <E2, A, B>(
   f: (a: A) => Either<E2, B>,
@@ -81,7 +81,7 @@ export const tap_ = <E, A>(
 export const or_ = <E, A>(x: Either<E, A>, y: Either<E, A>): Either<E, A> =>
   fold_(x, () => y, right);
 
-export const orElse_ = <E, A>(x: Either<E, A>, defaultValue: () => A): A =>
+export const getOrElse_ = <E, A>(x: Either<E, A>, defaultValue: () => A): A =>
   fold_(x, defaultValue, id);
 
 export const flatMap_ = <E, A, B>(

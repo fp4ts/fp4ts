@@ -25,6 +25,6 @@ export type FreeK = TyK<FreeURI, [_, _]>;
 
 declare module '../../core/hkt/hkt' {
   interface URItoKind<Tys extends unknown[]> {
-    [FreeURI]: Tys[0] extends AnyK ? Free<Tys[0], Tys[1]> : never;
+    [FreeURI]: Tys[0] extends AnyK ? Free<Tys[0], Tys[1]> : any;
   }
 }

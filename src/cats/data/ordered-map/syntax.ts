@@ -1,4 +1,4 @@
-import { AnyK, Kind, URIS } from '../../../core';
+import { AnyK, Kind } from '../../../core';
 import { PrimitiveType } from '../../../core/primitive-type';
 
 import { Monoid } from '../../monoid';

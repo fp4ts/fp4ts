@@ -9,17 +9,21 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { OptionK } from './option';
-import { flatMap_, flatTap_, flatten, map_, or_, tailRecM_ } from './operators';
+import {
+  flatMap_,
+  flatTap_,
+  flatten,
+  map_,
+  orElse_,
+  tailRecM_,
+} from './operators';
 import { none, pure } from './constructors';
 
 export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = () =>
-  SemigroupK.of({ combineK_: or_ });
+  SemigroupK.of({ combineK_: orElse_ });
 
-export const optionMonoidK: Lazy<MonoidK<OptionK>> = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { algebra, ...rest } = optionSemigroupK();
-  return MonoidK.of({ ...rest, emptyK: () => none });
-};
+export const optionMonoidK: Lazy<MonoidK<OptionK>> = () =>
+  MonoidK.of({ emptyK: () => none, combineK_: orElse_ });
 
 export const optionFunctor: Lazy<Functor<OptionK>> = () => Functor.of({ map_ });
 

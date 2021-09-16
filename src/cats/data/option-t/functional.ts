@@ -1,4 +1,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { OrderedMap, OrderedMapK } from './ordered-map';
+export { OptionT, OptionTK } from './option-t';

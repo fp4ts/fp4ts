@@ -1,3 +1,3 @@
 import './syntax';
 
-export { Identity } from './identity';
+export { Identity, IdentityK } from './identity';

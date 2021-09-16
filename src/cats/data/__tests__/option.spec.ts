@@ -4,7 +4,6 @@ import { Option, Some, None } from '../option';
 describe('Option', () => {
   describe('type', () => {
     it('should be covariant', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const o: Option<number> = None;
     });
   });
@@ -49,9 +48,9 @@ describe('Option', () => {
     });
   });
 
-  describe('or', () => {
+  describe('orElse', () => {
     it('should return None when both are None', () => {
-      expect(None.or(None)).toEqual(None);
+      expect(None.orElse(None)).toEqual(None);
     });
 
     it('should return lhs when both are Some', () => {
@@ -67,13 +66,13 @@ describe('Option', () => {
     });
   });
 
-  describe('orElse', () => {
+  describe('getOrElse', () => {
     it('should return lhs when is Some', () => {
-      expect(Some(42).orElse(() => 43)).toBe(42);
+      expect(Some(42).getOrElse(() => 43)).toBe(42);
     });
 
     it('should return rhs when is None', () => {
-      expect(None.orElse(() => 43)).toBe(43);
+      expect(None.getOrElse(() => 43)).toBe(43);
     });
   });
 

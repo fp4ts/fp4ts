@@ -8,6 +8,11 @@ export interface Alternative<F extends AnyK>
     MonoidK<F> {
   readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
   readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
+
+  readonly orElse: <B>(
+    fb: Kind<F, [B]>,
+  ) => <A extends B>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly orElse_: <A>(fa: Kind<F, [A]>, fb: Kind<F, [A]>) => Kind<F, [A]>;
 }
 
 export type AlternativeRequirements<F extends AnyK> =
@@ -19,6 +24,9 @@ export const Alternative = Object.freeze({
         self.combineK_(self.many1(fa), self.pure(List.empty as List<A>)),
 
       many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+
+      orElse: fb => fa => self.orElse_(fa, fb),
+      orElse_: (fa, fb) => self.combineK_(fa, fb),
 
       ...MonoidK.of(F),
       ...Applicative.of(F),

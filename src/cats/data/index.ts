@@ -4,6 +4,8 @@ export * from './identity';
 export * from './state';
 export * from './reader';
 
+export * from './option-t';
+
 export * from './array';
 export * from './list';
 export * from './map';
