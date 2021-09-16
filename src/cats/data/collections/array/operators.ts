@@ -1,8 +1,8 @@
-import { Kind, id, AnyK } from '../../../core';
-import { Monoid } from '../../monoid';
-import { Applicative } from '../../applicative';
-import { Option } from '../option';
-import { Either } from '../either';
+import { Kind, id, AnyK } from '../../../../core';
+import { Monoid } from '../../../monoid';
+import { Applicative } from '../../../applicative';
+import { Option } from '../../option';
+import { Either } from '../../either';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];

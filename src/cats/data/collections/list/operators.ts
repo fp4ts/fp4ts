@@ -1,11 +1,11 @@
-import { Kind, id, pipe, URIS, AnyK } from '../../../core';
-import { Eq } from '../../eq';
-import { Show } from '../../show';
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { Applicative } from '../../applicative';
-import { Either } from '../either';
-import { Option, None, Some } from '../option';
+import { Kind, id, pipe, URIS, AnyK } from '../../../../core';
+import { Eq } from '../../../eq';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Applicative } from '../../../applicative';
+import { Either } from '../../either';
+import { Option, None, Some } from '../../option';
 
 import { Cons, List, view } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';

@@ -1,11 +1,11 @@
-import { $, TyK, _ } from '../../../core';
-import { PrimitiveType } from '../../../core/primitive-type';
-import { Foldable } from '../../foldable';
-import { Functor } from '../../functor';
-import { FunctorFilter } from '../../functor-filter';
-import { Traversable } from '../../traversable';
+import { $, TyK, _ } from '../../../../core';
+import { PrimitiveType } from '../../../../core/primitive-type';
+import { Foldable } from '../../../foldable';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Traversable } from '../../../traversable';
 import { List } from '../list';
-import { Hashable, primitiveMD5Hashable } from '../../hashable';
+import { Hashable, primitiveMD5Hashable } from '../../../hashable';
 
 import { Empty, Map as MapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
@@ -61,11 +61,11 @@ Map.Traversable = mapTraversable;
 
 // HKT
 
-export const MapURI = 'cats/data/map';
+export const MapURI = 'cats/data/collections/map';
 export type MapURI = typeof MapURI;
 export type MapK = TyK<MapURI, [_, _]>;
 
-declare module '../../../core/hkt/hkt' {
+declare module '../../../../core/hkt/hkt' {
   interface URItoKind<Tys extends unknown[]> {
     [MapURI]: Map<Tys[0], Tys[1]>;
   }

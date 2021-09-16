@@ -1,8 +1,8 @@
-import { $ } from '../../../core';
-import { Functor } from '../../functor';
-import { FunctorFilter } from '../../functor-filter';
-import { Foldable } from '../../foldable';
-import { Traversable } from '../../traversable';
+import { $ } from '../../../../core';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Foldable } from '../../../foldable';
+import { Traversable } from '../../../traversable';
 
 import { OrderedMapK } from './ordered-map';
 import {

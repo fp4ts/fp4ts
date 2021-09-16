@@ -1,9 +1,9 @@
 import { id } from '../../../core';
-import { List } from '../list';
+import { List } from '../collections/list';
 import { Option, Some, None } from '../option';
 import { primitiveOrd } from '../../ord';
-import { OrderedMap } from '../ordered-map';
-import { arrayMonoidK } from '../array/instances';
+import { OrderedMap } from '../collections/ordered-map';
+import { arrayMonoidK } from '../collections/array/instances';
 
 describe('OrderedMap', () => {
   describe('types', () => {

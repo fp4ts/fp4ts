@@ -6,7 +6,4 @@ export * from './reader';
 
 export * from './option-t';
 
-export * from './array';
-export * from './list';
-export * from './map';
-export * from './ordered-map';
+export * from './collections';

@@ -1,11 +1,11 @@
-import { AnyK, Kind, URIS } from '../../../core';
-import { Applicative } from '../../applicative';
-import { Eq } from '../../eq';
-import { Show } from '../../show';
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { Option } from '../option';
-import { Either } from '../either';
+import { AnyK, Kind, URIS } from '../../../../core';
+import { Applicative } from '../../../applicative';
+import { Eq } from '../../../eq';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Option } from '../../option';
+import { Either } from '../../either';
 
 import { List } from './algebra';
 import {

@@ -1,17 +1,17 @@
-import { AnyK, Kind } from '../../../core';
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { Applicative } from '../../applicative';
+import { AnyK, Kind } from '../../../../core';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Applicative } from '../../../applicative';
 
-import { Show } from '../../show';
-import { Ord, Compare } from '../../ord';
+import { Show } from '../../../show';
+import { Ord, Compare } from '../../../ord';
 
 import { List } from '../list';
-import { Option, Some, None } from '../option';
+import { Option, Some, None } from '../../option';
 
 import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
-import { id, pipe } from '../../../core';
+import { id, pipe } from '../../../../core';
 
 const throwError = (e: Error) => {
   throw e;

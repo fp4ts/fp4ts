@@ -1,11 +1,11 @@
-import { $, TyK, _ } from '../../../core';
-import { PrimitiveType } from '../../../core/primitive-type';
-import { Foldable } from '../../foldable';
-import { Functor } from '../../functor';
-import { FunctorFilter } from '../../functor-filter';
-import { Traversable } from '../../traversable';
+import { $, TyK, _ } from '../../../../core';
+import { PrimitiveType } from '../../../../core/primitive-type';
+import { Foldable } from '../../../foldable';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Traversable } from '../../../traversable';
 import { List } from '../list';
-import { Ord, primitiveOrd } from '../../ord';
+import { Ord, primitiveOrd } from '../../../ord';
 
 import { OrderedMap as OrderedMapBase } from './algebra';
 import { empty, fromArray, fromList, fromSortedArray } from './constructors';
@@ -51,11 +51,11 @@ OrderedMap.Traversable = orderedMapTraversable;
 
 // HKT
 
-export const OrderedMapURI = 'cats/data/ordered-map';
+export const OrderedMapURI = 'cats/data/collections/ordered-map';
 export type OrderedMapURI = typeof OrderedMapURI;
 export type OrderedMapK = TyK<OrderedMapURI, [_, _]>;
 
-declare module '../../../core/hkt/hkt' {
+declare module '../../../../core/hkt/hkt' {
   interface URItoKind<Tys extends unknown[]> {
     [OrderedMapURI]: OrderedMap<Tys[0], Tys[1]>;
   }

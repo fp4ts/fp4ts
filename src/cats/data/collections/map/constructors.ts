@@ -1,4 +1,4 @@
-import { Hashable } from '../../hashable';
+import { Hashable } from '../../../hashable';
 import { List } from '../list';
 import { Empty, Map } from './algebra';
 import { insert_ } from './operators';

@@ -1,8 +1,8 @@
-import { List } from '../list';
+import { List } from '../collections/list';
 import { Option, Some, None } from '../option';
 import { primitiveMD5Hashable } from '../../hashable';
-import { Map } from '../map';
-import { arrayMonoidK } from '../array/instances';
+import { Map } from '../collections/map';
+import { arrayMonoidK } from '../collections/array/instances';
 
 describe('Map', () => {
   const H = primitiveMD5Hashable();

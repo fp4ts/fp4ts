@@ -1,13 +1,13 @@
-import { AnyK, Kind } from '../../../core';
-import { PrimitiveType } from '../../../core/primitive-type';
+import { AnyK, Kind } from '../../../../core';
+import { PrimitiveType } from '../../../../core/primitive-type';
 
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { Ord, primitiveOrd } from '../../ord';
-import { Show } from '../../show';
-import { Applicative } from '../../applicative';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Ord, primitiveOrd } from '../../../ord';
+import { Show } from '../../../show';
+import { Applicative } from '../../../applicative';
 
-import { Option } from '../option';
+import { Option } from '../../option';
 import { List } from '../list';
 
 import { OrderedMap } from './algebra';

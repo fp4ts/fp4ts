@@ -1,8 +1,8 @@
 import { id } from '../../../core';
 import { Either, Left, Right } from '../either';
 import { Option, Some, None } from '../option';
-import { arrayApplicative } from '../array/instances';
-import { List } from '../list';
+import { arrayApplicative } from '../collections/array/instances';
+import { List } from '../collections/list';
 import { primitiveEq } from '../../eq';
 
 describe('List', () => {

@@ -1,17 +1,17 @@
-import { TyK, _ } from '../../../core';
+import { TyK, _ } from '../../../../core';
 
-import { Apply } from '../../apply';
-import { Applicative } from '../../applicative';
-import { Alternative } from '../../alternative';
-import { Foldable } from '../../foldable';
-import { FlatMap } from '../../flat-map';
-import { Functor } from '../../functor';
-import { FunctorFilter } from '../../functor-filter';
-import { Monad } from '../../monad';
-import { MonoidK } from '../../monoid-k';
-import { SemigroupK } from '../../semigroup-k';
-import { Traversable } from '../../traversable';
-import { Either } from '../either';
+import { Apply } from '../../../apply';
+import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
+import { Foldable } from '../../../foldable';
+import { FlatMap } from '../../../flat-map';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Monad } from '../../../monad';
+import { MonoidK } from '../../../monoid-k';
+import { SemigroupK } from '../../../semigroup-k';
+import { Traversable } from '../../../traversable';
+import { Either } from '../../either';
 
 import { List as ListBase } from './algebra';
 import { empty, fromArray, of, pure } from './constructors';
@@ -124,11 +124,11 @@ Object.defineProperty(List, 'Traversable', {
 
 // HKT
 
-export const ListURI = 'cats/data/list';
+export const ListURI = 'cats/data/collections/list';
 export type ListURI = typeof ListURI;
 export type ListK = TyK<ListURI, [_]>;
 
-declare module '../../../core/hkt/hkt' {
+declare module '../../../../core/hkt/hkt' {
   interface URItoKind<Tys extends unknown[]> {
     [ListURI]: List<Tys[0]>;
   }

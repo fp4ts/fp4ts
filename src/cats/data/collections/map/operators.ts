@@ -1,16 +1,16 @@
 import { ok as assert } from 'assert';
-import { AnyK, Kind } from '../../../core';
-import { Eq } from '../../eq';
+import { AnyK, Kind } from '../../../../core';
+import { Eq } from '../../../eq';
 import { List } from '../list';
-import { Option, None, Some } from '../option';
-import { Hashable } from '../../hashable';
-import { Show } from '../../show';
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { Applicative } from '../../applicative';
+import { Option, None, Some } from '../../option';
+import { Hashable } from '../../../hashable';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Applicative } from '../../../applicative';
 
 import { Bucket, Empty, Inner, Leaf, Map, toNode } from './algebra';
-import { id, pipe } from '../../../core';
+import { id, pipe } from '../../../../core';
 
 export const isEmpty: <K, V>(m: Map<K, V>) => boolean = m =>
   m === (Empty as Map<never, never>);

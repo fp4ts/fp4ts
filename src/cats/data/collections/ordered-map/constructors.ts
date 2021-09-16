@@ -1,5 +1,5 @@
 import { List } from '../list';
-import { Ord } from '../../ord';
+import { Ord } from '../../../ord';
 
 import { Bin, Empty, OrderedMap } from './algebra';
 import { insert_ } from './operators';

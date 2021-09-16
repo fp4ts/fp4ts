@@ -1,14 +1,14 @@
-import { Monoid } from '../../monoid';
-import { MonoidK } from '../../monoid-k';
-import { SemigroupK } from '../../semigroup-k';
-import { Apply } from '../../apply';
-import { Applicative } from '../../applicative';
-import { FlatMap } from '../../flat-map';
-import { Functor } from '../../functor';
-import { Monad } from '../../monad';
-import { Foldable } from '../../foldable';
-import { Traversable } from '../../traversable';
-import { FunctorFilter } from '../../functor-filter';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { SemigroupK } from '../../../semigroup-k';
+import { Apply } from '../../../apply';
+import { Applicative } from '../../../applicative';
+import { FlatMap } from '../../../flat-map';
+import { Functor } from '../../../functor';
+import { Monad } from '../../../monad';
+import { Foldable } from '../../../foldable';
+import { Traversable } from '../../../traversable';
+import { FunctorFilter } from '../../../functor-filter';
 
 import { ArrayK } from './array';
 import {
