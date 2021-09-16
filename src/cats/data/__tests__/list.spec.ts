@@ -20,7 +20,7 @@ describe('List', () => {
   });
 
   describe('constructors', () => {
-    it('should an empty list', () => {
+    it('should create an empty list', () => {
       const xs = List();
       expect(xs.isEmpty).toBe(true);
       expect(xs.toArray).toEqual([]);
@@ -82,6 +82,16 @@ describe('List', () => {
     });
   });
 
+  describe('head', () => {
+    it('should throw when list is empty', () => {
+      expect(() => List.empty.head).toThrow();
+    });
+
+    it('should return head of the list', () => {
+      expect(List(1, 2).head).toBe(1);
+    });
+  });
+
   describe('headOption', () => {
     it('should return None when list is empty', () => {
       expect(List.empty.headOption).toEqual(None);
@@ -109,6 +119,16 @@ describe('List', () => {
 
     it('should return Some last when list is not empty', () => {
       expect(List(1, 2).lastOption).toEqual(Some(2));
+    });
+  });
+
+  describe('tail', () => {
+    it('should return an empty list when empty', () => {
+      expect(List.empty.tail).toEqual(List.empty);
+    });
+
+    it('should return a list without the first element', () => {
+      expect(List(1, 2, 3).tail).toEqual(List(2, 3));
     });
   });
 
