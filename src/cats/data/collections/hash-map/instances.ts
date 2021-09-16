@@ -4,7 +4,7 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 
-import { MapK } from './map';
+import { HashMapK } from './hash-map';
 import {
   all_,
   any_,
@@ -21,16 +21,16 @@ import {
   traverse_,
 } from './operators';
 
-export const mapFunctor: <K>() => Functor<$<MapK, [K]>> = () =>
+export const mapFunctor: <K>() => Functor<$<HashMapK, [K]>> = () =>
   Functor.of({ map_ });
 
-export const mapFunctorFilter: <K>() => FunctorFilter<$<MapK, [K]>> = () =>
+export const mapFunctorFilter: <K>() => FunctorFilter<$<HashMapK, [K]>> = () =>
   FunctorFilter.of({
     ...mapFunctor(),
     mapFilter_: collect_,
   });
 
-export const mapFoldable: <K>() => Foldable<$<MapK, [K]>> = () =>
+export const mapFoldable: <K>() => Foldable<$<HashMapK, [K]>> = () =>
   Foldable.of({
     foldLeft_: foldLeft_,
     foldRight_: foldRight_,
@@ -43,7 +43,7 @@ export const mapFoldable: <K>() => Foldable<$<MapK, [K]>> = () =>
     size: size,
   });
 
-export const mapTraversable: <K>() => Traversable<$<MapK, [K]>> = () =>
+export const mapTraversable: <K>() => Traversable<$<HashMapK, [K]>> = () =>
   Traversable.of({
     ...mapFunctor(),
     ...mapFoldable(),

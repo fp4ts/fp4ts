@@ -9,48 +9,50 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 
-import { Bucket, Empty, Inner, Leaf, Map, toNode } from './algebra';
+import { Bucket, Empty, Inner, Leaf, HashMap, toNode } from './algebra';
 import { id, pipe } from '../../../../core';
 
-export const isEmpty: <K, V>(m: Map<K, V>) => boolean = m =>
-  m === (Empty as Map<never, never>);
+export const isEmpty: <K, V>(m: HashMap<K, V>) => boolean = m =>
+  m === (Empty as HashMap<never, never>);
 
-export const nonEmpty: <K, V>(m: Map<K, V>) => boolean = m =>
-  m !== (Empty as Map<never, never>);
+export const nonEmpty: <K, V>(m: HashMap<K, V>) => boolean = m =>
+  m !== (Empty as HashMap<never, never>);
 
-export const keys = <K, V>(m: Map<K, V>): List<K> =>
+export const keys = <K, V>(m: HashMap<K, V>): List<K> =>
   foldLeft_(m, List.empty as List<K>, (ks, _, k) => ks.prepend(k));
 
-export const values = <K, V>(m: Map<K, V>): List<V> =>
+export const values = <K, V>(m: HashMap<K, V>): List<V> =>
   foldLeft_(m, List.empty as List<V>, (vs, v) => vs.prepend(v));
 
-export const size = <K, V>(m: Map<K, V>): number => foldLeft_(m, 0, x => x + 1);
+export const size = <K, V>(m: HashMap<K, V>): number =>
+  foldLeft_(m, 0, x => x + 1);
 
-export const toList = <K, V>(m: Map<K, V>): List<[K, V]> =>
+export const toList = <K, V>(m: HashMap<K, V>): List<[K, V]> =>
   foldLeft_(m, List.empty as List<[K, V]>, (xs, v, k) => xs.prepend([k, v]));
 
-export const toArray = <K, V>(m: Map<K, V>): [K, V][] => toList(m).toArray;
+export const toArray = <K, V>(m: HashMap<K, V>): [K, V][] => toList(m).toArray;
 
 export const count: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: Map<K, V>) => number = p => m => count_(m, p);
+) => (m: HashMap<K, V>) => number = p => m => count_(m, p);
 
 export const all: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: Map<K, V>) => boolean = p => m => all_(m, p);
+) => (m: HashMap<K, V>) => boolean = p => m => all_(m, p);
 
 export const any: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: Map<K, V>) => boolean = p => m => any_(m, p);
+) => (m: HashMap<K, V>) => boolean = p => m => any_(m, p);
 
-export const contains: <K2>(
+export const hasKey: <K2>(
   H: Hashable<K2>,
-) => (k: K2) => <K extends K2, V>(map: Map<K, V>) => boolean = H => k => map =>
-  contains_(H, map, k);
+) => (k: K2) => <K extends K2, V>(map: HashMap<K, V>) => boolean =
+  H => k => map =>
+    hasKey_(H, map, k);
 
 export const lookup: <K2>(
   H: Hashable<K2>,
-) => (k: K2) => <K extends K2, V>(map: Map<K, V>) => Option<V> =
+) => (k: K2) => <K extends K2, V>(map: HashMap<K, V>) => Option<V> =
   H => k => map =>
     lookup_(H, map, k);
 
@@ -59,7 +61,7 @@ export const insert: <K2>(
 ) => <V2>(
   k: K2,
   v: V2,
-) => <K extends K2, V extends V2>(map: Map<K, V>) => Map<K2, V2> =
+) => <K extends K2, V extends V2>(map: HashMap<K, V>) => HashMap<K2, V2> =
   H => (k, v) => map =>
     insert_(H, map, k, v);
 
@@ -69,7 +71,7 @@ export const insertWith: <K2>(
   k: K2,
   v: V2,
   u: (v1: V2, v2: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(map: Map<K, V>) => Map<K2, V2> =
+) => <K extends K2, V extends V2>(map: HashMap<K, V>) => HashMap<K2, V2> =
   H => (k, v, u) => map =>
     insertWith_(H, map, k, v, u);
 
@@ -78,139 +80,149 @@ export const update: <K2>(
 ) => <V2>(
   k: K2,
   u: (v: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(m: Map<K, V>) => Map<K2, V2> =
+) => <K extends K2, V extends V2>(m: HashMap<K, V>) => HashMap<K2, V2> =
   H => (k, u) => m =>
     update_(H, m, k, u);
 
 export const remove: <K2>(
   H: Hashable<K2>,
-) => (k: K2) => <K extends K2, V>(m: Map<K, V>) => Map<K2, V> = H => k => m =>
-  remove_(H, m, k);
+) => (k: K2) => <K extends K2, V>(m: HashMap<K, V>) => HashMap<K2, V> =
+  H => k => m =>
+    remove_(H, m, k);
 
 export const union: <K2>(
   H: Hashable<K2>,
 ) => <V2>(
-  m2: Map<K2, V2>,
-) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
+  m2: HashMap<K2, V2>,
+) => <K extends K2, V extends V2>(m1: HashMap<K, V>) => HashMap<K2, V2> =
   H => m2 => m1 =>
     union_(H, m1, m2);
 
 export const unionWith: <K2>(
   E: Eq<K2>,
 ) => <V2>(
-  m2: Map<K2, V2>,
+  m2: HashMap<K2, V2>,
   u: (v1: V2, v2: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
+) => <K extends K2, V extends V2>(m1: HashMap<K, V>) => HashMap<K2, V2> =
   E => (m2, u) => m1 =>
     unionWith_(E, m1, m2, u);
 
 export const intersect: <K2>(
   E: Eq<K2>,
-) => <V2>(m2: Map<K2, V2>) => <K extends K2, V>(m: Map<K, V>) => Map<K2, V> =
-  E => m2 => m1 =>
-    intersect_(E, m1, m2);
+) => <V2>(
+  m2: HashMap<K2, V2>,
+) => <K extends K2, V>(m: HashMap<K, V>) => HashMap<K2, V> = E => m2 => m1 =>
+  intersect_(E, m1, m2);
 
 export const intersectWith: <K2>(
   E: Eq<K2>,
 ) => <V, V2, C>(
-  m2: Map<K2, V2>,
+  m2: HashMap<K2, V2>,
   f: (v1: V, v2: V2, k: K2) => C,
-) => <K extends K2>(m: Map<K, V>) => Map<K2, C> = E => (m2, f) => m1 =>
+) => <K extends K2>(m: HashMap<K, V>) => HashMap<K2, C> = E => (m2, f) => m1 =>
   intersectWith_(E, m1, m2, f);
 
 export const difference: <K2>(
   E: Eq<K2>,
 ) => <V2>(
-  m2: Map<K2, V2>,
-) => <K extends K2, V1>(map: Map<K, V1>) => Map<K2, V1> = E => m2 => m1 =>
-  difference_(E, m1, m2);
+  m2: HashMap<K2, V2>,
+) => <K extends K2, V1>(map: HashMap<K, V1>) => HashMap<K2, V1> =
+  E => m2 => m1 =>
+    difference_(E, m1, m2);
 
 export const symmetricDifference: <K2>(
   E: Eq<K2>,
 ) => <V2>(
-  m2: Map<K2, V2>,
-) => <K extends K2, V extends V2>(map: Map<K, V>) => Map<K2, V2> =
+  m2: HashMap<K2, V2>,
+) => <K extends K2, V extends V2>(map: HashMap<K, V>) => HashMap<K2, V2> =
   E => m2 => m1 =>
     symmetricDifference_(E, m1, m2);
 
 export const filter: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: Map<K, V>) => Map<K, V> = p => m => filter_(m, p);
+) => (m: HashMap<K, V>) => HashMap<K, V> = p => m => filter_(m, p);
 
 export const map: <K, V, B>(
   f: (v: V, k: K) => B,
-) => (m: Map<K, V>) => Map<K, B> = p => m => map_(m, p);
+) => (m: HashMap<K, V>) => HashMap<K, B> = p => m => map_(m, p);
 
 export const tap: <K, V>(
   f: (v: V, k: K) => unknown,
-) => (m: Map<K, V>) => Map<K, V> = f => m => tap_(m, f);
+) => (m: HashMap<K, V>) => HashMap<K, V> = f => m => tap_(m, f);
 
 export const collect: <K, V, B>(
   f: (v: V, k: K) => Option<B>,
-) => (m: Map<K, V>) => Map<K, B> = f => m => collect_(m, f);
+) => (m: HashMap<K, V>) => HashMap<K, B> = f => m => collect_(m, f);
 
 export const flatMap: <K2>(
   E: Eq<K2>,
 ) => <V, B>(
-  f: (v: V, k: K2) => Map<K2, B>,
-) => <K extends K2>(m: Map<K, V>) => Map<K2, B> = E => f => m =>
+  f: (v: V, k: K2) => HashMap<K2, B>,
+) => <K extends K2>(m: HashMap<K, V>) => HashMap<K2, B> = E => f => m =>
   flatMap_(E, m, f);
 
 export const flatten: <K2>(
   E: Eq<K2>,
-) => <K extends K2, V>(mm: Map<K, Map<K, V>>) => Map<K2, V> = E => mm =>
-  flatMap_(E, mm, id);
+) => <K extends K2, V>(mm: HashMap<K, HashMap<K, V>>) => HashMap<K2, V> =
+  E => mm =>
+    flatMap_(E, mm, id);
 
 export const foldLeft: <K, V, B>(
   z: B,
   f: (b: B, v: V, k: K) => B,
-) => (m: Map<K, V>) => B = (z, f) => m => foldLeft_(m, z, f);
+) => (m: HashMap<K, V>) => B = (z, f) => m => foldLeft_(m, z, f);
 
 export const foldRight: <K, V, B>(
   z: B,
   f: (v: V, b: B, k: K) => B,
-) => (m: Map<K, V>) => B = (z, f) => m => foldRight_(m, z, f);
+) => (m: HashMap<K, V>) => B = (z, f) => m => foldRight_(m, z, f);
 
 export const foldMap: <M>(
   M: Monoid<M>,
-) => <K, V>(f: (v: V, k: K) => M) => (map: Map<K, V>) => M = M => f => map =>
-  foldMap_(M)(map, f);
+) => <K, V>(f: (v: V, k: K) => M) => (map: HashMap<K, V>) => M =
+  M => f => map =>
+    foldMap_(M)(map, f);
 
 export const foldMapK: <F extends AnyK>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, [B]>,
-) => (map: Map<K, V>) => Kind<F, [B]> = F => f => map => foldMapK_(F)(map, f);
+) => (map: HashMap<K, V>) => Kind<F, [B]> = F => f => map =>
+  foldMapK_(F)(map, f);
 
 export const traverse: <G extends AnyK>(
   G: Applicative<G>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, [B]>,
-) => (m: Map<K, V>) => Kind<G, [Map<K, B>]> = G => f => m => traverse_(G)(m, f);
+) => (m: HashMap<K, V>) => Kind<G, [HashMap<K, B>]> = G => f => m =>
+  traverse_(G)(m, f);
 
 export const sequence: <G extends AnyK>(
   G: Applicative<G>,
-) => <K, V>(m: Map<K, Kind<G, [V]>>) => Kind<G, [Map<K, V>]> = G => m =>
+) => <K, V>(m: HashMap<K, Kind<G, [V]>>) => Kind<G, [HashMap<K, V>]> = G => m =>
   traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
   SV: Show<V2>,
-) => <K extends K2, V extends V2>(m: Map<K, V>) => string = (SK, SV) => m =>
+) => <K extends K2, V extends V2>(m: HashMap<K, V>) => string = (SK, SV) => m =>
   show_(SK, SV, m);
 
 // -- Point-ful operators
 
-export const contains_ = <K, V>(H: Hashable<K>, m: Map<K, V>, k: K): boolean =>
-  lookup_(H, m, k).nonEmpty;
+export const hasKey_ = <K, V>(
+  H: Hashable<K>,
+  m: HashMap<K, V>,
+  k: K,
+): boolean => lookup_(H, m, k).nonEmpty;
 
 export const count_ = <K, V>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   p: (v: V, k: K) => boolean,
 ): number => foldLeft_(m, 0, (c, v, k) => (p(v, k) ? c + 1 : c));
 
 export const all_ = <K, V>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   p: (v: V, k: K) => boolean,
 ): boolean => {
   const n = toNode(m);
@@ -235,7 +247,7 @@ export const all_ = <K, V>(
 };
 
 export const any_ = <K, V>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   p: (v: V, k: K) => boolean,
 ): boolean => {
   const n = toNode(m);
@@ -259,80 +271,86 @@ export const any_ = <K, V>(
   }
 };
 
-export const lookup_ = <K, V>(H: Hashable<K>, m: Map<K, V>, k: K): Option<V> =>
-  _lookup(H, m, k, _hash(H, k), 0);
+export const lookup_ = <K, V>(
+  H: Hashable<K>,
+  m: HashMap<K, V>,
+  k: K,
+): Option<V> => _lookup(H, m, k, _hash(H, k), 0);
 
 export const insert_ = <K, V>(
   H: Hashable<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   v: V,
-): Map<K, V> => insertWith_(H, m, k, v, (v1, v2) => v2);
+): HashMap<K, V> => insertWith_(H, m, k, v, (v1, v2) => v2);
 
 export const insertWith_ = <K, V>(
   H: Hashable<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   v: V,
   u: (v1: V, v2: V, k: K) => V,
-): Map<K, V> => _insert(H, m, k, v, _hash(H, k), 0, u);
+): HashMap<K, V> => _insert(H, m, k, v, _hash(H, k), 0, u);
 
 export const update_ = <K, V>(
   H: Hashable<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   u: (v: V, k: K) => V,
-): Map<K, V> => _update(H, m, k, _hash(H, k), 0, u);
+): HashMap<K, V> => _update(H, m, k, _hash(H, k), 0, u);
 
-export const remove_ = <K, V>(H: Hashable<K>, m: Map<K, V>, k: K): Map<K, V> =>
-  _remove(H, m, k, _hash(H, k), 0);
+export const remove_ = <K, V>(
+  H: Hashable<K>,
+  m: HashMap<K, V>,
+  k: K,
+): HashMap<K, V> => _remove(H, m, k, _hash(H, k), 0);
 
 export const union_ = <K, V>(
   E: Eq<K>,
-  m1: Map<K, V>,
-  m2: Map<K, V>,
-): Map<K, V> => unionWith_(E, m1, m2, v => v);
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V>,
+): HashMap<K, V> => unionWith_(E, m1, m2, v => v);
 
 export const unionWith_ = <K, V>(
   E: Eq<K>,
-  m1: Map<K, V>,
-  m2: Map<K, V>,
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V>,
   u: (v1: V, v2: V, k: K) => V,
-): Map<K, V> => _union(E, m1, m2, u, 0);
+): HashMap<K, V> => _union(E, m1, m2, u, 0);
 
 export const intersect_ = <K, V, V2>(
   E: Eq<K>,
-  m1: Map<K, V>,
-  m2: Map<K, V2>,
-): Map<K, V> => intersectWith_(E, m1, m2, v => v);
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V2>,
+): HashMap<K, V> => intersectWith_(E, m1, m2, v => v);
 
 export const intersectWith_ = <K, V1, V2, C>(
   H: Eq<K>,
-  m1: Map<K, V1>,
-  m2: Map<K, V2>,
+  m1: HashMap<K, V1>,
+  m2: HashMap<K, V2>,
   f: (v1: V1, v2: V2, k: K) => C,
-): Map<K, C> => _intersect(H, m1, m2, 0, f);
+): HashMap<K, C> => _intersect(H, m1, m2, 0, f);
 
 export const difference_ = <K, V1, V2>(
   E: Eq<K>,
-  m1: Map<K, V1>,
-  m2: Map<K, V2>,
-): Map<K, V1> => _difference(E, m1, m2, 0);
+  m1: HashMap<K, V1>,
+  m2: HashMap<K, V2>,
+): HashMap<K, V1> => _difference(E, m1, m2, 0);
 
 export const symmetricDifference_ = <K, V>(
   E: Eq<K>,
-  m1: Map<K, V>,
-  m2: Map<K, V>,
-): Map<K, V> => {
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V>,
+): HashMap<K, V> => {
   const ld = _difference(E, m1, m2, 0);
   const rd = _difference(E, m2, m1, 0);
   return union_(E, ld, rd);
 };
 
 export const filter_ = <K, V>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   p: (v: V, k: K) => boolean,
-): Map<K, V> => {
+): HashMap<K, V> => {
   const n = toNode(m);
   switch (n.tag) {
     case 'empty':
@@ -349,9 +367,9 @@ export const filter_ = <K, V>(
 };
 
 export const map_ = <K, V, B>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   f: (v: V, k: K) => B,
-): Map<K, B> => {
+): HashMap<K, B> => {
   const n = toNode(m);
   switch (n.tag) {
     case 'empty':
@@ -366,18 +384,18 @@ export const map_ = <K, V, B>(
 };
 
 export const tap_ = <K, V>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   f: (v: V, k: K) => unknown,
-): Map<K, V> =>
+): HashMap<K, V> =>
   map_(m, (k, v) => {
     f(k, v);
     return k;
   });
 
 export const collect_ = <K, V, B>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   f: (v: V, k: K) => Option<B>,
-): Map<K, B> => {
+): HashMap<K, B> => {
   const n = toNode(m);
 
   switch (n.tag) {
@@ -403,13 +421,13 @@ export const collect_ = <K, V, B>(
 
 export const flatMap_ = <K, V, B>(
   E: Eq<K>,
-  m: Map<K, V>,
-  f: (v: V, k: K) => Map<K, B>,
-): Map<K, B> =>
-  foldLeft_(m, Empty as Map<K, B>, (m2, v, k) => union_(E, m2, f(v, k)));
+  m: HashMap<K, V>,
+  f: (v: V, k: K) => HashMap<K, B>,
+): HashMap<K, B> =>
+  foldLeft_(m, Empty as HashMap<K, B>, (m2, v, k) => union_(E, m2, f(v, k)));
 
 export const foldLeft_ = <K, V, B>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   z: B,
   f: (b: B, v: V, k: K) => B,
 ): B => {
@@ -427,7 +445,7 @@ export const foldLeft_ = <K, V, B>(
 };
 
 export const foldRight_ = <K, V, B>(
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   z: B,
   f: (v: V, b: B, k: K) => B,
 ): B => {
@@ -446,36 +464,36 @@ export const foldRight_ = <K, V, B>(
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
-  <K, V>(m: Map<K, V>, f: (v: V, k: K) => M): M =>
+  <K, V>(m: HashMap<K, V>, f: (v: V, k: K) => M): M =>
     foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, f(v, k)));
 
 export const foldMapK_ =
   <F extends AnyK>(F: MonoidK<F>) =>
-  <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
+  <K, V, B>(m: HashMap<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
     foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, f(v, k)));
 
 export const traverse_ =
   <G extends AnyK>(G: Applicative<G>) =>
   <K, V, B>(
-    m: Map<K, V>,
+    m: HashMap<K, V>,
     f: (v: V, k: K) => Kind<G, [B]>,
-  ): Kind<G, [Map<K, B>]> => {
+  ): Kind<G, [HashMap<K, B>]> => {
     const n = toNode(m);
 
     switch (n.tag) {
       case 'empty':
-        return G.pure(Empty as Map<K, B>);
+        return G.pure(Empty as HashMap<K, B>);
 
       case 'inner': {
         const appendF = (
-          gbs: Kind<G, [Map<K, B>[]]>,
-          m2: Map<K, V>,
-        ): Kind<G, Map<K, B>[]> =>
+          gbs: Kind<G, [HashMap<K, B>[]]>,
+          m2: HashMap<K, V>,
+        ): Kind<G, HashMap<K, B>[]> =>
           G.map2_(traverse_(G)(m2, f), gbs)((m, ms) => [...ms, m]);
 
         return pipe(
-          n.children.reduce(appendF, G.pure([] as Map<K, B>[])),
-          G.map(children => new Inner(children) as Map<K, B>),
+          n.children.reduce(appendF, G.pure([] as HashMap<K, B>[])),
+          G.map(children => new Inner(children) as HashMap<K, B>),
         );
       }
 
@@ -488,13 +506,17 @@ export const traverse_ =
 
         return pipe(
           n.buckets.reduce(appendF, G.pure([] as Bucket<K, B>[])),
-          G.map(buckets => new Leaf(buckets) as Map<K, B>),
+          G.map(buckets => new Leaf(buckets) as HashMap<K, B>),
         );
       }
     }
   };
 
-export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
+export const show_ = <K, V>(
+  SK: Show<K>,
+  SV: Show<V>,
+  m: HashMap<K, V>,
+): string => {
   const entries = toArray(m)
     .map(([k, v]) => `${SK.show(k)} => ${SV.show(v)}`)
     .join(', ');
@@ -510,7 +532,7 @@ const _hash = <K>(H: Hashable<K>, k: K): number =>
 
 const _index = (h: number, d: number): number => (h >> (d * 5)) & 0b11111;
 
-const _makeInner = <K, V>(children: Map<K, V>[]): Map<K, V> => {
+const _makeInner = <K, V>(children: HashMap<K, V>[]): HashMap<K, V> => {
   for (let i = 0, len = children.length; i < len; i++) {
     if (children[i] !== Empty) return new Inner(children);
   }
@@ -519,7 +541,7 @@ const _makeInner = <K, V>(children: Map<K, V>[]): Map<K, V> => {
 
 const _lookup = <K, V>(
   E: Eq<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   h: number,
   d: number,
@@ -550,13 +572,13 @@ const _lookup = <K, V>(
 
 const _insert = <K, V>(
   E: Eq<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   v: V,
   h: number,
   d: number,
   u: (v1: V, v2: V, k: K) => V,
-): Map<K, V> => {
+): HashMap<K, V> => {
   const n = toNode(m);
 
   switch (n.tag) {
@@ -588,10 +610,10 @@ const _insertSplit = <K, V>(
   h: number,
   d: number,
   u: (v1: V, v2: V, k: K) => V,
-): Map<K, V> => {
+): HashMap<K, V> => {
   assert(d < 5, 'Maximum depth exceeded');
   assert(n.buckets.length === 1, 'Cannot have more than one bucket');
-  let ret: Map<K, V> = new Inner(new Array(32).fill(Empty));
+  let ret: HashMap<K, V> = new Inner(new Array(32).fill(Empty));
   const [h2, k2, v2] = n.buckets[0];
   ret = _insert(E, ret, k2, v2, h2, d, u);
   ret = _insert(E, ret, k, v, h, d, u);
@@ -606,7 +628,7 @@ const _insertProbe = <K, V>(
   h: number,
   d: number,
   u: (v1: V, v2: V, k: K) => V,
-): Map<K, V> => {
+): HashMap<K, V> => {
   assert(d === 5, 'Should not probe unless in max depth');
   const newBuckets = [...n.buckets];
   for (let i = 0, len = n.buckets.length; i < len; i++) {
@@ -621,12 +643,12 @@ const _insertProbe = <K, V>(
 
 const _update = <K, V>(
   E: Eq<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   h: number,
   d: number,
   u: (v: V, k: K) => V,
-): Map<K, V> => {
+): HashMap<K, V> => {
   const n = toNode(m);
 
   switch (n.tag) {
@@ -658,11 +680,11 @@ const _update = <K, V>(
 
 const _remove = <K, V>(
   E: Eq<K>,
-  m: Map<K, V>,
+  m: HashMap<K, V>,
   k: K,
   h: number,
   d: number,
-): Map<K, V> => {
+): HashMap<K, V> => {
   const n = toNode(m);
 
   switch (n.tag) {
@@ -688,11 +710,11 @@ const _remove = <K, V>(
 
 const _union = <K, V>(
   E: Eq<K>,
-  m1: Map<K, V>,
-  m2: Map<K, V>,
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V>,
   u: (v1: V, v2: V, k: K) => V,
   d: number,
-): Map<K, V> => {
+): HashMap<K, V> => {
   assert(d <= 5, 'Maximum depth exceeded');
   const n1 = toNode(m1);
   const n2 = toNode(m2);
@@ -714,7 +736,7 @@ const _union = <K, V>(
 
         case 'leaf':
           assert(d < 5, 'Maximum depth exceeded');
-          return n2.buckets.reduce<Map<K, V>>(
+          return n2.buckets.reduce<HashMap<K, V>>(
             (nn, [h, k, v]) => _insert(E, nn, k, v, h, d, u),
             n1,
           );
@@ -727,7 +749,7 @@ const _union = <K, V>(
 
         case 'inner':
           assert(d < 5, 'Maximum depth exceeded');
-          return n1.buckets.reduce<Map<K, V>>(
+          return n1.buckets.reduce<HashMap<K, V>>(
             (nn, [h, k, v]) =>
               _insert(E, nn, k, v, h, d, (v2, v1, k) => u(v1, v2, k)),
             n2,
@@ -747,9 +769,9 @@ const _mergeSplitLeafs = <K, V>(
   n2: Leaf<K, V>,
   u: (v1: V, v2: V, k: K) => V,
   d: number,
-): Map<K, V> => {
+): HashMap<K, V> => {
   assert(d < 5, 'Maximum depth exceeded');
-  let ret: Map<K, V> = Empty as Map<never, never>;
+  let ret: HashMap<K, V> = Empty as HashMap<never, never>;
   for (let i = 0, len = n1.buckets.length; i < len; i++) {
     const [h, k, v] = n1.buckets[i];
     ret = _insert(E, ret, k, v, h, d, () => v);
@@ -767,7 +789,7 @@ const _mergeProbeLeafs = <K, V>(
   n2: Leaf<K, V>,
   u: (v1: V, v2: V, k: K) => V,
   d: number,
-): Map<K, V> => {
+): HashMap<K, V> => {
   assert(d === 5, 'Cannot probe unless maximum depth is reached');
   const newBuckets = [...n1.buckets];
   const indexOfKey = (k: K): number =>
@@ -789,11 +811,11 @@ const _mergeProbeLeafs = <K, V>(
 
 const _intersect = <K, V1, V2, C>(
   E: Eq<K>,
-  m1: Map<K, V1>,
-  m2: Map<K, V2>,
+  m1: HashMap<K, V1>,
+  m2: HashMap<K, V2>,
   d: number,
   f: (l: V1, r: V2, k: K) => C,
-): Map<K, C> => {
+): HashMap<K, C> => {
   assert(d <= 5, 'Maximum depth exceeded');
   const n1 = toNode(m1);
   const n2 = toNode(m2);
@@ -817,7 +839,7 @@ const _intersect = <K, V1, V2, C>(
 
         case 'leaf': {
           const [h, k, v2] = n2.buckets[0];
-          return _lookup(E, n1, k, h, d).fold<Map<K, C>>(
+          return _lookup(E, n1, k, h, d).fold<HashMap<K, C>>(
             () => Empty,
             v1 => new Leaf([[h, k, f(v1, v2, k)]]),
           );
@@ -831,7 +853,7 @@ const _intersect = <K, V1, V2, C>(
 
         case 'inner': {
           const [h, k, v1] = n1.buckets[0];
-          return _lookup(E, n2, k, h, d).fold<Map<K, C>>(
+          return _lookup(E, n2, k, h, d).fold<HashMap<K, C>>(
             () => Empty,
             v2 => new Leaf([[h, k, f(v1, v2, k)]]),
           );
@@ -851,7 +873,7 @@ const _intersectSingletonLeaves = <K, V1, V2, C>(
   l2: Leaf<K, V2>,
   d: number,
   f: (l: V1, r: V2, k: K) => C,
-): Map<K, C> => {
+): HashMap<K, C> => {
   const [h, k1, v1] = l1.buckets[0];
   const [, k2, v2] = l2.buckets[0];
 
@@ -864,7 +886,7 @@ const _intersectBottomLeaves = <K, V1, V2, C>(
   l2: Leaf<K, V2>,
   d: number,
   f: (l: V1, r: V2, k: K) => C,
-): Map<K, C> => {
+): HashMap<K, C> => {
   const newBuckets: Bucket<K, C>[] = [];
   const idxOf = (k: K): number =>
     l2.buckets.findIndex(([, k2]) => E.equals(k, k2));
@@ -883,10 +905,10 @@ const _intersectBottomLeaves = <K, V1, V2, C>(
 
 const _difference = <K, V1, V2>(
   E: Eq<K>,
-  m1: Map<K, V1>,
-  m2: Map<K, V2>,
+  m1: HashMap<K, V1>,
+  m2: HashMap<K, V2>,
   d: number,
-): Map<K, V1> => {
+): HashMap<K, V1> => {
   const n1 = toNode(m1);
   const n2 = toNode(m2);
 
@@ -920,7 +942,7 @@ const _difference = <K, V1, V2>(
           assert(n1.buckets.length === 1);
           const [h, k] = n1.buckets[0];
           return _lookup(E, n2, k, h, d).fold(
-            () => n1 as Map<K, V1>,
+            () => n1 as HashMap<K, V1>,
             () => Empty,
           );
         }

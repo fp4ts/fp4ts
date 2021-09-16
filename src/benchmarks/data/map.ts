@@ -1,7 +1,7 @@
 import '../../benchmarking';
 import { ok as assert } from 'assert';
 import { pipe } from '../../core';
-import { Map as CatsMap } from '../../cats/data/collections/map';
+import { HashMap as CatsMap } from '../../cats/data/collections/hash-map';
 import { OrderedMap as CatsOrderedMap } from '../../cats/data/collections/ordered-map';
 
 const size = 10_000;
