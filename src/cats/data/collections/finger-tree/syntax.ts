@@ -18,6 +18,7 @@ import {
   popHead,
   popLast,
   prepend_,
+  splitAt_,
   tail,
   toArray,
   toList,
@@ -45,8 +46,8 @@ declare module './algebra' {
       M: Measured<B, V>,
     ): Option<[A, FingerTree<V, A>]>;
 
-    toList<B>(this: FingerTree<V, B>, M: Measured<B, V>): List<A>;
-    toArray<B>(this: FingerTree<V, B>, M: Measured<B, V>): A[];
+    readonly toList: List<A>;
+    readonly toArray: A[];
 
     prepend<B>(
       this: FingerTree<V, B>,
@@ -61,6 +62,13 @@ declare module './algebra' {
       this: FingerTree<V, B>,
       M: Measured<B, V>,
     ): (that: FingerTree<V, B>) => FingerTree<V, B>;
+
+    splitAt(
+      M: Measured<A, V>,
+    ): (
+      start: V,
+      p: (v: V) => boolean,
+    ) => Option<[FingerTree<V, A>, A, FingerTree<V, A>]>;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldRight<B>(z: B, f: (b: B, a: A) => B): B;
@@ -162,6 +170,13 @@ FingerTree.prototype.concat = function <V, A>(
   M: Measured<A, V>,
 ) {
   return (that: FingerTree<V, A>) => concat_(M)(this, that);
+};
+
+FingerTree.prototype.splitAt = function <V, A>(
+  this: FingerTree<V, A>,
+  M: Measured<A, V>,
+) {
+  return (start: V, p: (v: V) => boolean) => splitAt_(M)(this, start, p);
 };
 
 FingerTree.prototype.foldLeft = function (z, f) {

@@ -252,6 +252,29 @@ describe('FingerTree', () => {
     });
   });
 
+  describe('splitAt', () => {
+    it('should return none when tree is empty', () => {
+      expect(FingerTree.empty().splitAt(M)(undefined, () => true)).toEqual(
+        None,
+      );
+    });
+
+    it('should split on the first element', () => {
+      const [before, x, after] = FingerTree(M)(1, 2, 3).splitAt(M)(
+        undefined,
+        () => true,
+      ).get;
+
+      expect([before.toArray, x, after.toArray]).toEqual([[], 1, [2, 3]]);
+    });
+
+    it('should return None when predicate never evaluates', () => {
+      expect(FingerTree(M)(1, 2, 3).splitAt(M)(undefined, () => false)).toEqual(
+        None,
+      );
+    });
+  });
+
   describe('foldLeft', () => {
     const add = (x: number, y: number): number => x + y;
 
@@ -277,51 +300,94 @@ describe('FingerTree', () => {
     });
   });
 
-  // describe('foldRight', () => {
-  //   const add = (x: number, y: number): number => x + y;
+  describe('foldRight', () => {
+    const add = (x: number, y: number): number => x + y;
 
-  //   it('should return initial value on empty list', () => {
-  //     expect(List.empty().foldRight(0, add)).toBe(0);
-  //   });
+    it('should return initial value on empty list', () => {
+      expect(FingerTree.empty().foldRight(0, add)).toBe(0);
+    });
 
-  //   it('should sum all values of the list', () => {
-  //     expect(List(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
-  //   });
+    it('should sum all values of the list', () => {
+      expect(FingerTree(M)(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
+    });
 
-  //   it('should be right associative', () => {
-  //     expect(List(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`)).toBe(
-  //       '(1 (2 (3 ())))',
-  //     );
-  //   });
+    it('should be right associative', () => {
+      expect(
+        FingerTree(M)(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`),
+      ).toBe('(1 (2 (3 ())))');
+    });
 
-  //   it('should be stack safe', () => {
-  //     const xs = List.fromArray([...new Array(10_000).keys()]);
-  //     expect(xs.foldRight(0, add)).toEqual(
-  //       [...new Array(10_000).keys()].reduce(add, 0),
-  //     );
-  //   });
-  // });
+    it('should be stack safe', () => {
+      const xs = FingerTree.fromArray(M)([...new Array(10_000).keys()]);
+      expect(xs.foldRight(0, add)).toEqual(
+        [...new Array(10_000).keys()].reduce(add, 0),
+      );
+    });
+  });
 
   describe('measurements', () => {
+    type Size = number;
+    const sizeMonoid: Monoid<Size> = {
+      empty: 0,
+      combine: y => x => x + y,
+      combine_: (x, y) => x + y,
+    };
+
+    const sizeMeasured = <A>(): Measured<A, Size> => ({
+      monoid: sizeMonoid,
+      // all elements are counted only once
+      measure: () => 1,
+    });
+
+    const S = sizeMeasured();
+    const xs = [...new Array(10_000).keys()];
+    const t = FingerTree(sizeMeasured<number>())(...xs);
+
     it('should calculate size', () => {
-      type Size = number;
-      const sizeMonoid: Monoid<Size> = {
-        empty: 0,
-        combine: y => x => x + y,
-        combine_: (x, y) => x + y,
-      };
+      expect(fingerTreeMeasured<Size, number>(sizeMeasured()).measure(t)).toBe(
+        10_000,
+      );
+    });
 
-      const sizeMeasured = <A>(): Measured<A, Size> => ({
-        monoid: sizeMonoid,
-        // all elements are counted only once
-        measure: () => 1,
-      });
+    it('should return value on index 0', () => {
+      const [head, x, tail] = FingerTree(S)(1, 2, 3, 4, 5).splitAt(S)(
+        0,
+        x => x > 0,
+      ).get;
 
-      const M2 = fingerTreeMeasured<Size, number>(sizeMeasured());
+      expect([head.toArray, x, tail.toArray]).toEqual([[], 1, [2, 3, 4, 5]]);
+    });
+
+    it('should return value on index 2', () => {
+      const [head, x, tail] = FingerTree(S)(1, 2, 3, 4, 5).splitAt(S)(
+        0,
+        x => x > 2,
+      ).get;
+
+      expect([head.toArray, x, tail.toArray]).toEqual([[1, 2], 3, [4, 5]]);
+    });
+
+    it('should last element of the array', () => {
+      const [head, x, tail] = FingerTree(S)(1, 2, 3, 4, 5).splitAt(S)(
+        0,
+        x => x > 4,
+      ).get;
+
+      expect([head.toArray, x, tail.toArray]).toEqual([[1, 2, 3, 4], 5, []]);
+    });
+
+    it('should return none when indexed out out bounds', () => {
+      expect(
+        FingerTree(S)(1, 2, 3, 4, 5).splitAt(S)(0, x => x > 10000),
+      ).toEqual(None);
+    });
+
+    it('should be stack safe for the splitAt', () => {
       const xs = [...new Array(10_000).keys()];
-      const t = FingerTree(sizeMeasured<number>())(...xs);
+      const ft = FingerTree.fromArray(S)(xs);
 
-      expect(M2.measure(t)).toBe(10_000);
+      const rs = xs.map(idx => ft.splitAt(S)(0, x => x > idx).get[1]);
+      expect(rs).toEqual(xs);
     });
   });
 });
