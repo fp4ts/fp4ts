@@ -12,6 +12,10 @@ import { Applicative } from '../../../applicative';
 import { Bucket, Empty, Inner, Leaf, HashMap, toNode } from './algebra';
 import { id, pipe } from '../../../../core';
 
+const throwError = (e: Error) => {
+  throw e;
+};
+
 export const isEmpty: <K, V>(m: HashMap<K, V>) => boolean = m =>
   m === (Empty as HashMap<never, never>);
 
@@ -49,6 +53,11 @@ export const hasKey: <K2>(
 ) => (k: K2) => <K extends K2, V>(map: HashMap<K, V>) => boolean =
   H => k => map =>
     hasKey_(H, map, k);
+
+export const get: <K2>(
+  H: Hashable<K2>,
+) => (k: K2) => <K extends K2, V>(map: HashMap<K, V>) => V = H => k => map =>
+  get_(H, map, k);
 
 export const lookup: <K2>(
   H: Hashable<K2>,
@@ -270,6 +279,12 @@ export const any_ = <K, V>(
       return false;
   }
 };
+
+export const get_ = <K, V>(H: Hashable<K>, m: HashMap<K, V>, k: K): V =>
+  _lookup(H, m, k, _hash(H, k), 0).fold(
+    () => throwError(new Error('Key does not exist')),
+    id,
+  );
 
 export const lookup_ = <K, V>(
   H: Hashable<K>,

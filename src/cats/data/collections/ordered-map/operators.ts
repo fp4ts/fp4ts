@@ -119,6 +119,11 @@ export const contains: <K2>(
   O => k => m =>
     contains_(O, m, k);
 
+export const get: <K2>(
+  O: Ord<K2>,
+) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => V = O => k => m =>
+  get_(O, m, k);
+
 export const lookup: <K2>(
   O: Ord<K2>,
 ) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => Option<V> =
@@ -317,6 +322,12 @@ export const contains_ = <K, V>(
   lookup_(O, m, k).fold(
     () => false,
     () => true,
+  );
+
+export const get_ = <K, V>(O: Ord<K>, m: OrderedMap<K, V>, k: K): V =>
+  lookup_(O, m, k).fold(
+    () => throwError(new Error('Element for key does not exist')),
+    id,
   );
 
 export const lookup_ = <K, V>(

@@ -44,6 +44,7 @@ import {
   union_,
   update_,
   values,
+  get_,
 } from './operators';
 
 declare module './algebra' {
@@ -64,8 +65,15 @@ declare module './algebra' {
     hasKey<K2>(this: HashMap<K2, V>, H: Hashable<K2>, k: K2): boolean;
     hasKey<K2 extends PrimitiveType>(this: HashMap<K2, V>, k: K2): boolean;
 
+    get<K2>(this: HashMap<K2, V>, H: Hashable<K2>, k: K2): V;
+    get<K2 extends PrimitiveType>(this: HashMap<K2, V>, k: K2): V;
+    '!!'<K2>(this: HashMap<K2, V>, H: Hashable<K2>, k: K2): V;
+    '!!'<K2 extends PrimitiveType>(this: HashMap<K2, V>, k: K2): V;
+
     lookup<K2>(this: HashMap<K2, V>, H: Hashable<K2>, k: K2): Option<V>;
     lookup<K2 extends PrimitiveType>(this: HashMap<K2, V>, k: K2): Option<V>;
+    '!?'<K2>(this: HashMap<K2, V>, H: Hashable<K2>, k: K2): Option<V>;
+    '!?'<K2 extends PrimitiveType>(this: HashMap<K2, V>, k: K2): Option<V>;
 
     insert<K2, V2>(
       this: HashMap<K2, V2>,
@@ -310,14 +318,19 @@ HashMap.prototype.hasKey = function (this: any, ...args: any[]): boolean {
     : hasKey_(primitiveMD5Hashable(), this, args[0]);
 };
 
-HashMap.prototype.lookup = function (
-  this: any,
-  ...args: any[]
-): Option<unknown> {
+HashMap.prototype.get = function (this: any, ...args: any[]): any {
+  return args.length === 2
+    ? get_(args[0], this, args[1])
+    : get_(primitiveMD5Hashable(), this, args[0]);
+};
+HashMap.prototype['!!'] = HashMap.prototype.get;
+
+HashMap.prototype.lookup = function (this: any, ...args: any[]): Option<any> {
   return args.length === 2
     ? lookup_(args[0], this, args[1])
     : lookup_(primitiveMD5Hashable(), this, args[0]);
 };
+HashMap.prototype['!?'] = HashMap.prototype.get;
 
 HashMap.prototype.insert = function (this: any, ...args: any[]): any {
   return args.length === 3

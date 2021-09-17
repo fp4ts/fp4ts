@@ -25,6 +25,7 @@ import {
   foldMap_,
   foldRight1_,
   foldRight_,
+  get_,
   head,
   headOption,
   init,
@@ -95,8 +96,15 @@ declare module './algebra' {
     contains<K2 extends PrimitiveType>(this: OrderedMap<K2, V>, k: K2): boolean;
     contains<K2>(this: OrderedMap<K2, V>, O: Ord<K2>, k: K2): boolean;
 
+    get<K2 extends PrimitiveType>(this: OrderedMap<K2, V>, k: K2): V;
+    get<K2>(this: OrderedMap<K2, V>, O: Ord<K2>, k: K2): V;
+    '!!'<K2 extends PrimitiveType>(this: OrderedMap<K2, V>, k: K2): V;
+    '!!'<K2>(this: OrderedMap<K2, V>, O: Ord<K2>, k: K2): V;
+
     lookup<K2 extends PrimitiveType>(this: OrderedMap<K2, V>, k: K2): Option<V>;
     lookup<K2>(this: OrderedMap<K2, V>, O: Ord<K2>, k: K2): Option<V>;
+    '!?'<K2 extends PrimitiveType>(this: OrderedMap<K2, V>, k: K2): Option<V>;
+    '!?'<K2>(this: OrderedMap<K2, V>, O: Ord<K2>, k: K2): Option<V>;
 
     insert<K2 extends PrimitiveType, V2>(
       this: OrderedMap<K2, V2>,
@@ -400,11 +408,19 @@ OrderedMap.prototype.contains = function (this: any, ...args: any[]): any {
     : contains_(primitiveOrd(), this, args[0]);
 };
 
+OrderedMap.prototype.get = function (this: any, ...args: any[]): any {
+  return args.length === 2
+    ? get_(args[0], this, args[1])
+    : get_(primitiveOrd(), this, args[0]);
+};
+OrderedMap.prototype['!!'] = OrderedMap.prototype.get;
+
 OrderedMap.prototype.lookup = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? lookup_(args[0], this, args[1])
     : lookup_(primitiveOrd(), this, args[0]);
 };
+OrderedMap.prototype['!?'] = OrderedMap.prototype.lookup;
 
 OrderedMap.prototype.insert = function (this: any, ...args: any[]): any {
   return args.length === 3
