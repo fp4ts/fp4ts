@@ -396,7 +396,7 @@ export const slice_ = <A>(xs: List<A>, from: number, until: number): List<A> =>
   pipe(xs, drop(from), take(until - from));
 
 export const splitAt_ = <A>(xs: List<A>, idx: number): [List<A>, List<A>] => {
-  if (isEmpty(xs) || idx-- < 0) return [nil, xs];
+  if (isEmpty(xs) || idx-- <= 0) return [nil, xs];
 
   const ys = new Cons(head(xs), nil);
   let cur = ys;

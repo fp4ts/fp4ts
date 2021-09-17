@@ -1,3 +1,5 @@
+import { ok as assert } from 'assert';
+
 // https://andrew.gibiansky.com/blog/haskell/finger-trees/
 export abstract class FingerTree<V, A> {
   private readonly __void!: void;
@@ -23,6 +25,10 @@ export class Deep<V, A> extends FingerTree<V, A> {
     public readonly suffix: Affix<A>,
   ) {
     super();
+    assert(
+      prefix.length > 0 && prefix.length < 5,
+      'Affix size has to be between 1 and 4',
+    );
   }
 }
 

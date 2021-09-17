@@ -440,8 +440,12 @@ describe('List', () => {
       expect(List(1, 2, 3).splitAt(-1)).toEqual([List.empty, List(1, 2, 3)]);
     });
 
-    it('should return singleton lhs when split on index 0', () => {
-      expect(List(1, 2, 3).splitAt(0)).toEqual([List(1), List(2, 3)]);
+    it('should return empty lhs when split on index 0', () => {
+      expect(List(1, 2, 3).splitAt(0)).toEqual([List(), List(1, 2, 3)]);
+    });
+
+    it('should return singleton lhs when split on index 1', () => {
+      expect(List(1, 2, 3).splitAt(1)).toEqual([List(1), List(2, 3)]);
     });
 
     it('should return singleton rhs when split on index 2', () => {

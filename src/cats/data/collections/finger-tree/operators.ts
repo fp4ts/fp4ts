@@ -151,7 +151,7 @@ export const popLast =
                   }
                 }
               },
-              ([[v, ...node], rest_]) => _mkDeep(node, rest_, ft.suffix, M),
+              ([[v, ...node], rest_]) => _mkDeep(ft.prefix, rest_, node, M),
             );
             return Some([ft.suffix[ft.suffix.length - 1], rest]);
           }
@@ -376,21 +376,41 @@ export const foldRight_ = <V, A, B>(
 // -- Private implementation
 
 const _mkDeep = <V, A>(
-  prefix: Affix<A>,
+  prefix: A[],
   deep: FingerTree<V, Node<V, A>>,
-  suffix: Affix<A>,
+  suffix: A[],
   M: Measured<A, V>,
-) => {
+): FingerTree<V, A> => {
   const { combine_, empty } = M.monoid;
   const ML = listMeasured(M);
-  const MFT = fingerTreeMeasured(nodeMeasured(M));
+  const MN = nodeMeasured(M);
+
+  if (prefix.length === 0 && suffix.length === 0)
+    return popHead(MN)(deep).fold(
+      () => new Empty<V>(),
+      ([[, ...node], deeper]) => _mkDeep(node, deeper, [], M),
+    );
+
+  if (prefix.length === 0)
+    return popLast(MN)(deep).fold(
+      () => _chunkToTree(M)(suffix),
+      ([[, ...node], deeper]) => _mkDeep(node, deeper, suffix, M),
+    );
+
+  if (suffix.length === 0)
+    return popLast(MN)(deep).fold(
+      () => _chunkToTree(M)(prefix),
+      ([[, ...node], deeper]) => _mkDeep(prefix, deeper, node, M),
+    );
+
+  const MFT = fingerTreeMeasured(MN);
   const annotation = [
     ML.measure(prefix),
     MFT.measure(deep),
     ML.measure(suffix),
   ].reduce(combine_, empty);
 
-  return new Deep(annotation, prefix, deep, suffix);
+  return new Deep(annotation, prefix as Affix<A>, deep, suffix as Affix<A>);
 };
 
 const _nodes = <V, A>(M: Measured<A, V>) => {

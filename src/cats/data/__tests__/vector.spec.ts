@@ -24,8 +24,8 @@ describe('Vector', () => {
     });
 
     it('should create a vector from list', () => {
-      expect(Vector.fromList(List(1, 2, 3, 4, 5)).toList).toEqual(
-        List(1, 2, 3, 4, 5),
+      expect(Vector.fromList(List(1, 2, 3, 4, 5)).toArray).toEqual(
+        Vector(1, 2, 3, 4, 5).toArray,
       );
     });
 
@@ -184,6 +184,205 @@ describe('Vector', () => {
     });
   });
 
+  describe('take', () => {
+    it('should return an empty vector when vector is vector is empty', () => {
+      expect(Vector.empty.take(1).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return an empty vector when 0 elements are taken', () => {
+      expect(Vector(1, 2, 3).take(0).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return 1 element vector if 1 element is taken', () => {
+      expect(Vector(1, 2, 3).take(1).toArray).toEqual(Vector(1).toArray);
+    });
+
+    it('should return entire vector if entire vector is taken', () => {
+      expect(Vector(1, 2, 3).take(3).toArray).toEqual(Vector(1, 2, 3).toArray);
+    });
+
+    it('should return entire vector if more than size of the vector is taken', () => {
+      expect(Vector(1, 2, 3).take(1000).toArray).toEqual(
+        Vector(1, 2, 3).toArray,
+      );
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.take(10_000).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('takeRight', () => {
+    it('should return an empty vector when vector is vector is empty', () => {
+      expect(Vector.empty.takeRight(1).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return an empty vector when 0 elements are taken', () => {
+      expect(Vector(1, 2, 3).takeRight(0).toArray).toEqual(
+        Vector.empty.toArray,
+      );
+    });
+
+    it('should return 2 elements vector if 2 element are taken', () => {
+      expect(Vector(1, 2, 3).takeRight(2).toArray).toEqual(
+        Vector(2, 3).toArray,
+      );
+    });
+
+    it('should return entire vector if entire vector is taken', () => {
+      expect(Vector(1, 2, 3).takeRight(3).toArray).toEqual(
+        Vector(1, 2, 3).toArray,
+      );
+    });
+
+    it('should return entire vector if more than size of the vector is taken', () => {
+      expect(Vector(1, 2, 3).takeRight(1000).toArray).toEqual(
+        Vector(1, 2, 3).toArray,
+      );
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.takeRight(10_000).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('drop', () => {
+    it('should return an empty vector when vector is vector is empty', () => {
+      expect(Vector.empty.drop(1).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return an entire vector when 0 elements are dropped', () => {
+      expect(Vector(1, 2, 3).drop(0).toArray).toEqual(Vector(1, 2, 3).toArray);
+    });
+
+    it('should drop a single element from vector', () => {
+      expect(Vector(1, 2, 3).drop(1).toArray).toEqual(Vector(2, 3).toArray);
+    });
+
+    it('should return drop the entire length of the vector', () => {
+      expect(Vector(1, 2, 3).drop(3).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return an empty vector if more than vector size is dropped', () => {
+      expect(Vector(1, 2, 3).drop(1000).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.drop(10_000).toArray).toEqual([]);
+    });
+  });
+
+  describe('dropRight', () => {
+    it('should return an empty vector when vector is vector is empty', () => {
+      expect(Vector.empty.dropRight(1).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should return an entire vector when 0 elements are dropped', () => {
+      expect(Vector(1, 2, 3).dropRight(0).toArray).toEqual(
+        Vector(1, 2, 3).toArray,
+      );
+    });
+
+    it('should drop a single element from vector', () => {
+      expect(Vector(1, 2, 3).dropRight(1).toArray).toEqual(
+        Vector(1, 2).toArray,
+      );
+    });
+
+    it('should return drop the entire length of the vector', () => {
+      expect(Vector(1, 2, 3).dropRight(3).toArray).toEqual(
+        Vector.empty.toArray,
+      );
+    });
+
+    it('should return an empty vector if more than vector size is dropped', () => {
+      expect(Vector(1, 2, 3).dropRight(1000).toArray).toEqual(
+        Vector.empty.toArray,
+      );
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.dropRight(10_000).toArray).toEqual([]);
+    });
+  });
+
+  describe('slice', () => {
+    it('should return an empty vector if empty vector is sliced', () => {
+      expect(Vector.empty.slice(1, 2).toArray).toEqual(Vector.empty.toArray);
+    });
+
+    it('should drop first element of the vector', () => {
+      expect(Vector(1, 2, 3, 4).slice(1, 1000).toArray).toEqual(
+        Vector(2, 3, 4).toArray,
+      );
+    });
+
+    it('should take first element of the vector', () => {
+      expect(Vector(1, 2, 3, 4).slice(0, 1).toArray).toEqual(Vector(1).toArray);
+    });
+
+    it('should slice middle two elements of the vector', () => {
+      expect(Vector(1, 2, 3, 4).slice(1, 3).toArray).toEqual(
+        Vector(2, 3).toArray,
+      );
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000)]);
+      expect(xs.slice(2_500, 5_000).toArray).toEqual(
+        [...new Array(10_000)].slice(2_500, 5_000),
+      );
+    });
+  });
+
+  describe('splitAt', () => {
+    it('should return two empty vectors when empty', () => {
+      expect(Vector.empty.splitAt(0)).toEqual([Vector.empty, Vector.empty]);
+    });
+
+    it('should return empty lhs when split on negative index', () => {
+      expect(Vector(1, 2, 3).splitAt(-1)).toEqual([
+        Vector.empty,
+        Vector(1, 2, 3),
+      ]);
+    });
+
+    it('should return empty lhs when split on index 0', () => {
+      const [lhs, rhs] = Vector(1, 2, 3).splitAt(0);
+      expect([lhs.toArray, rhs.toArray]).toEqual([
+        Vector().toArray,
+        Vector(1, 2, 3).toArray,
+      ]);
+    });
+
+    it('should return singleton lhs when split on index 1', () => {
+      const [lhs, rhs] = Vector(1, 2, 3).splitAt(1);
+      expect([lhs.toArray, rhs.toArray]).toEqual([
+        Vector(1).toArray,
+        Vector(2, 3).toArray,
+      ]);
+    });
+
+    it('should return singleton rhs when split on index 2', () => {
+      const [lhs, rhs] = Vector(1, 2, 3).splitAt(2);
+      expect([lhs.toArray, rhs.toArray]).toEqual([
+        Vector(1, 2).toArray,
+        Vector(3).toArray,
+      ]);
+    });
+
+    it('should return empty rhs when split beyond the bounds of vector', () => {
+      expect(Vector(1, 2, 3).splitAt(1_000)).toEqual([
+        Vector(1, 2, 3),
+        Vector.empty,
+      ]);
+    });
+  });
+
   describe('concat', () => {
     it('should concat two empty vectors into an empty vector', () => {
       expect(Vector.empty.concat(Vector.empty)).toEqual(Vector.empty);
@@ -243,22 +442,22 @@ describe('Vector', () => {
   describe('foldRight', () => {
     const add = (x: number, y: number): number => x + y;
 
-    it('should return initial value on empty list', () => {
-      expect(List.empty.foldRight(0, add)).toBe(0);
+    it('should return initial value on empty vector', () => {
+      expect(Vector.empty.foldRight(0, add)).toBe(0);
     });
 
-    it('should sum all values of the list', () => {
-      expect(List(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
+    it('should sum all values of the vector', () => {
+      expect(Vector(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
     });
 
     it('should be right associative', () => {
-      expect(List(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`)).toBe(
+      expect(Vector(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`)).toBe(
         '(1 (2 (3 ())))',
       );
     });
 
     it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
       expect(xs.foldRight(0, add)).toEqual(
         [...new Array(10_000).keys()].reduce(add, 0),
       );
