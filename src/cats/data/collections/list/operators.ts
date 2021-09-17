@@ -104,6 +104,10 @@ export const concat =
 export const elem: (idx: number) => <A>(xs: List<A>) => A = idx => xs =>
   elem_(xs, idx);
 
+export const elemOption: (idx: number) => <A>(xs: List<A>) => Option<A> =
+  idx => xs =>
+    elemOption_(xs, idx);
+
 export const all: <A>(p: (a: A) => boolean) => (xs: List<A>) => boolean =
   p => xs =>
     all_(xs, p);
@@ -315,6 +319,13 @@ export const elem_ = <A>(xs: List<A>, idx: number): A => {
   }
   if (isEmpty(xs)) throw new Error('Index out of bounds');
   return head(xs);
+};
+
+export const elemOption_ = <A>(xs: List<A>, idx: number): Option<A> => {
+  while (idx-- > 0) {
+    xs = tail(xs);
+  }
+  return isEmpty(xs) ? None : Some(head(xs));
 };
 
 export const all_ = <A>(xs: List<A>, p: (a: A) => boolean): boolean => {

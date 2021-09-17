@@ -1,4 +1,4 @@
-import { AnyK, Kind, URIS } from '../../../../core';
+import { AnyK, Kind } from '../../../../core';
 import { Applicative } from '../../../applicative';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
@@ -17,6 +17,7 @@ import {
   count_,
   dropRight_,
   drop_,
+  elemOption_,
   elem_,
   equals_,
   filter_,
@@ -84,7 +85,13 @@ declare module './algebra' {
     prepend<B>(this: List<B>, x: B): List<B>;
     concat<B>(this: List<B>, xs: List<B>): List<B>;
     '+++'<B>(this: List<B>, xs: List<B>): List<B>;
+
     elem(idx: number): A;
+    '!!'(idx: number): A;
+
+    elemOption(idx: number): Option<A>;
+    '!?'(idx: number): Option<A>;
+
     all(p: (a: A) => boolean): boolean;
     any(p: (a: A) => boolean): boolean;
     count(p: (a: A) => boolean): number;
@@ -254,6 +261,15 @@ List.prototype['+++'] = function <A>(this: List<A>, that: List<A>): List<A> {
 List.prototype.elem = function <A>(this: List<A>, idx: number): A {
   return elem_(this, idx);
 };
+List.prototype['!!'] = List.prototype.elem;
+
+List.prototype.elemOption = function <A>(
+  this: List<A>,
+  idx: number,
+): Option<A> {
+  return elemOption_(this, idx);
+};
+List.prototype['!?'] = List.prototype.elemOption;
 
 List.prototype.all = function <A>(
   this: List<A>,
