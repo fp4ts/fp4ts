@@ -9,6 +9,7 @@ import { FlatMap } from '../../../flat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
+import { Either } from '../../either';
 
 import { List } from '../list';
 
@@ -26,6 +27,7 @@ import {
   vectorSemigroupK,
   vectorTraversable,
 } from './instances';
+import { tailRecM } from './operators';
 
 export type Vector<A> = VectorBase<A>;
 
@@ -42,6 +44,8 @@ interface VectorObj {
 
   fromArray<A>(xs: A[]): Vector<A>;
   fromList<A>(xs: List<A>): Vector<A>;
+
+  tailRecM<A>(a: A): <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B>;
 
   // -- Instances
 
@@ -62,6 +66,8 @@ Vector.singleton = singleton;
 Vector.empty = empty;
 Vector.fromArray = fromArray;
 Vector.fromList = fromList;
+
+Vector.tailRecM = tailRecM;
 
 Object.defineProperty(Vector, 'SemigroupK', {
   get(): SemigroupK<VectorK> {

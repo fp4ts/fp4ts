@@ -25,6 +25,7 @@ import {
   foldRight_,
   map_,
   size,
+  tailRecM_,
   traverse_,
 } from './operators';
 import { VectorK } from './vector';
@@ -80,7 +81,7 @@ export const vectorFlatMap: Lazy<FlatMap<VectorK>> = () =>
     map_: map_,
     flatMap_: flatMap_,
     flatten: flatten,
-    tailRecM_: null as any,
+    tailRecM_: tailRecM_,
   });
 
 export const vectorMonad: Lazy<Monad<VectorK>> = () =>

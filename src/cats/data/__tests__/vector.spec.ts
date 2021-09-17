@@ -1,7 +1,8 @@
+import { id } from '../../../core';
 import { Some, None } from '../option';
+import { Either, Left, Right } from '../either';
 import { List } from '../collections/list';
 import { Vector } from '../collections/vector';
-import { id } from '../../../core';
 
 describe('Vector', () => {
   describe('type', () => {
@@ -528,6 +529,52 @@ describe('Vector', () => {
     it('should be stack safe', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
       expect(xs.flatMap(Vector).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('tailRecM', () => {
+    it('should return initial result when returned singleton vector', () => {
+      expect(Vector.tailRecM(42)(x => Vector(Right(x)))).toEqual(Vector(42));
+    });
+
+    it('should return empty vector when an empty vector is returned', () => {
+      expect(Vector.tailRecM(42)(x => Vector.empty)).toEqual(Vector.empty);
+    });
+
+    it('should compute recursive sum', () => {
+      expect(
+        Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10
+            ? Vector<Either<[number, number], number>>(
+                Right(x),
+                Left([i + 1, x + i]),
+              )
+            : Vector(Right(x)),
+        ).toArray,
+      ).toEqual(Vector(0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45).toArray);
+    });
+
+    it('should compute recursive sum inverted', () => {
+      expect(
+        Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+          i < 10
+            ? Vector<Either<[number, number], number>>(
+                Left([i + 1, x + i]),
+                Right(x),
+              )
+            : Vector(Right(x)),
+        ).toArray,
+      ).toEqual(Vector(45, 36, 28, 21, 15, 10, 6, 3, 1, 0, 0).toArray);
+    });
+
+    it('should be stack safe', () => {
+      const size = 100_000;
+
+      expect(
+        Vector.tailRecM(0)(i =>
+          i < size ? Vector(Left(i + 1)) : Vector(Right(i)),
+        ),
+      ).toEqual(Vector(size));
     });
   });
 

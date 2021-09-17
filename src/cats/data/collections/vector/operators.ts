@@ -3,6 +3,7 @@ import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
+import { Either } from '../../either';
 import { Option } from '../../option';
 import { List } from '../list';
 
@@ -152,6 +153,11 @@ export const flatMap: <A, B>(
 export const flatten: <A>(ffa: Vector<Vector<A>>) => Vector<A> = ffa =>
   flatMap_(ffa, id);
 
+export const tailRecM: <A>(
+  a: A,
+) => <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B> = a => f =>
+  tailRecM_(a, f);
+
 export const foldLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -288,6 +294,31 @@ export const flatMap_ = <A, B>(
   xs: Vector<A>,
   f: (a: A) => Vector<B>,
 ): Vector<B> => foldLeft_(xs, empty as Vector<B>, (zs, x) => concat_(zs, f(x)));
+
+export const tailRecM_ = <A, B>(
+  a: A,
+  f: (a: A) => Vector<Either<A, B>>,
+): Vector<B> => {
+  const stack: Vector<Either<A, B>>[] = [f(a)];
+  let results: Vector<B> = empty;
+
+  while (stack.length > 0) {
+    const xs = stack[stack.length - 1];
+    if (isEmpty(xs)) {
+      stack.pop();
+      continue;
+    }
+
+    const [hd, tl] = popHead(xs).get;
+    stack[stack.length - 1] = tl;
+    hd.fold<void>(
+      a => stack.push(f(a)),
+      b => (results = append_(results, b)),
+    );
+  }
+
+  return results;
+};
 
 export const foldLeft_ = <A, B>(xs: Vector<A>, z: B, f: (b: B, a: A) => B): B =>
   FT.foldLeft_(xs._root, z, f);
