@@ -304,11 +304,10 @@ export const splitAt_ =
 
     const LM = listMeasured(M);
     const startPref = combine_(start, LM.measure(prefix));
-    const splitList = _splitList(M);
     // The split point is in the prefix.
     if (p(startPref)) {
       // Treat the prefix as a list and find where the split point is.
-      return splitList(prefix, p, start).map(
+      return _splitList(M, prefix, p, start).map(
         //  Convert the pre-split part of the prefix to a tree.
         ([before, [x, ...after]]) => [
           _chunkToTree(M)(before),
@@ -330,7 +329,7 @@ export const splitAt_ =
           const start_ = combine_(startPref, MFT.measure(before));
           // Convert the node at the split point into a list, and search for the
           // real split point within that list.
-          return splitList(node, p, start_).map(
+          return _splitList(M, node, p, start_).map(
             ([beforeNode, [x, ...afterNode]]) => [
               _mkDeep(M)(prefix, before, beforeNode),
               x,
@@ -343,7 +342,7 @@ export const splitAt_ =
 
     // Otherwise, the split point is in the suffix.
     const start_ = combine_(startPref, MFT.measure(deep));
-    return splitList(suffix, p, start_).map(([before, [x, ...after]]) => [
+    return _splitList(M, suffix, p, start_).map(([before, [x, ...after]]) => [
       _mkDeep(M)(prefix, deep, before),
       x,
       _chunkToTree(M)(after),
@@ -499,30 +498,22 @@ const _concatWithMiddle = <V, A>(M: Measured<A, V>) => {
   return loop;
 };
 
-const _splitList = <V, A>(M: Measured<A, V>) => {
-  const loop = (
-    xs: A[],
-    p: (a: V) => boolean,
-    start: V,
-  ): Option<[A[], A[]]> => {
-    if (!xs.length) return None;
-
-    const [x, ...rest] = xs;
-    const start_ = M.monoid.combine_(start, M.measure(x));
-    if (p(start_)) return Some([[], [x, ...rest]]);
-
-    return loop(rest, p, start_).map(([before, after]) => [
-      [x, ...before],
-      after,
-    ]);
-  };
-  return loop;
+const _splitList = <V, A>(
+  M: Measured<A, V>,
+  xs: A[],
+  p: (a: V) => boolean,
+  start: V,
+): Option<[A[], A[]]> => {
+  for (let i = 0, len = xs.length; i < len; i++) {
+    start = M.monoid.combine_(start, M.measure(xs[i]));
+    if (p(start)) return Some([xs.slice(0, i), xs.slice(i)]);
+  }
+  return None;
 };
 
-const _chunkToTree =
-  <V, A>(M: Measured<A, V>) =>
-  (affix: A[]): FingerTree<V, A> => {
-    const ML = listMeasured(M);
+const _chunkToTree = <V, A>(M: Measured<A, V>) => {
+  const ML = listMeasured(M);
+  return (affix: A[]): FingerTree<V, A> => {
     const v = ML.measure(affix);
     switch (affix.length) {
       case 0:
@@ -539,3 +530,4 @@ const _chunkToTree =
         throw new Error('Invalid list size');
     }
   };
+};
