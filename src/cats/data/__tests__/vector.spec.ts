@@ -129,6 +129,27 @@ describe('Vector', () => {
     });
   });
 
+  describe('reverse', () => {
+    it('should return an empty vector', () => {
+      expect(Vector.empty.reverse).toEqual(Vector.empty);
+    });
+
+    it('should reserve a vector of single element', () => {
+      expect(Vector(42).reverse).toEqual(Vector(42));
+    });
+
+    it('should reserve a vector of three elements', () => {
+      expect(Vector(1, 2, 3).reverse.toArray).toEqual(Vector(3, 2, 1).toArray);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.reverse.toArray).toEqual(
+        [...new Array(10_000).keys()].reverse(),
+      );
+    });
+  });
+
   describe('prepend', () => {
     it('should prepend an element to an empty vector', () => {
       expect(Vector.empty.prepend(42)).toEqual(Vector(42));
@@ -182,6 +203,67 @@ describe('Vector', () => {
       );
 
       expect(v.toArray).toEqual(xs);
+    });
+  });
+
+  describe('all', () => {
+    it('should return true when list is empty', () => {
+      expect(Vector.empty.all(() => false)).toBe(true);
+    });
+
+    it('should return true when all elements are even', () => {
+      expect(List(2, 4, 6).all(x => x % 2 === 0)).toBe(true);
+    });
+
+    it('should return false when one element is odd', () => {
+      expect(List(2, 4, 6, 7).all(x => x % 2 === 0)).toBe(false);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()].map(() => true));
+      expect(xs.all(id)).toBe(true);
+    });
+  });
+
+  describe('any', () => {
+    it('should return false when list is empty', () => {
+      expect(Vector.empty.any(() => true)).toBe(false);
+    });
+
+    it('should return true when all elements are odd', () => {
+      expect(Vector(1, 3, 5).any(x => x % 2 === 0)).toBe(false);
+    });
+
+    it('should return false when one element is even', () => {
+      expect(Vector(1, 3, 6).any(x => x % 2 === 0)).toBe(true);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray(
+        [...new Array(10_000).keys()].map(() => false),
+      );
+      expect(xs.any(id)).toBe(false);
+    });
+  });
+
+  describe('count', () => {
+    it('should return zero when list is empty', () => {
+      expect(Vector.empty.count(() => true)).toBe(0);
+    });
+
+    it('should return 1 when 1 element is even', () => {
+      expect(Vector(1, 2, 3).count(x => x % 2 === 0)).toBe(1);
+    });
+
+    it('should return 3 when all elements are even', () => {
+      expect(Vector(2, 4, 6).count(x => x % 2 === 0)).toBe(3);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray(
+        [...new Array(10_000).keys()].map(() => true),
+      );
+      expect(xs.count(id)).toBe(10_000);
     });
   });
 

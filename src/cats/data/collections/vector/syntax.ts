@@ -1,10 +1,19 @@
+import { AnyK, Kind } from '../../../../core';
+import { Applicative } from '../../../applicative';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+
+import { Show } from '../../../show';
 import { Option } from '../../option';
 import { List } from '../list';
 
 import { Vector } from './algebra';
 import {
+  all_,
+  any_,
   append_,
   concat_,
+  count_,
   dropRight_,
   drop_,
   elemOption_,
@@ -13,6 +22,8 @@ import {
   flatten,
   foldLeft1_,
   foldLeft_,
+  foldMapK_,
+  foldMap_,
   foldRight1_,
   foldRight_,
   head,
@@ -26,6 +37,8 @@ import {
   popHead,
   popLast,
   prepend_,
+  reverse,
+  show,
   slice_,
   splitAt_,
   tail,
@@ -33,6 +46,7 @@ import {
   take_,
   toArray,
   toList,
+  traverse_,
 } from './operators';
 
 declare module './algebra' {
@@ -54,6 +68,8 @@ declare module './algebra' {
     readonly toList: List<A>;
     readonly toArray: A[];
 
+    readonly reverse: Vector<A>;
+
     prepend<B>(this: Vector<B>, b: B): Vector<B>;
     cons<B>(this: Vector<B>, b: B): Vector<B>;
     '+::'<B>(this: Vector<B>, b: B): Vector<B>;
@@ -61,6 +77,18 @@ declare module './algebra' {
     append<B>(this: Vector<B>, b: B): Vector<B>;
     snoc<B>(this: Vector<B>, b: B): Vector<B>;
     '::+'<B>(this: Vector<B>, b: B): Vector<B>;
+
+    concat<B>(this: Vector<B>, that: Vector<B>): Vector<B>;
+    '+++'<B>(this: Vector<B>, that: Vector<B>): Vector<B>;
+
+    elem(idx: number): A;
+    '!!'(idx: number): A;
+    elemOption(idx: number): Option<A>;
+    '!?'(idx: number): Option<A>;
+
+    all(p: (a: A) => boolean): boolean;
+    any(p: (a: A) => boolean): boolean;
+    count(p: (a: A) => boolean): number;
 
     take(n: number): Vector<A>;
     takeRight(n: number): Vector<A>;
@@ -70,14 +98,6 @@ declare module './algebra' {
 
     slice(from: number, until: number): Vector<A>;
     splitAt(idx: number): [Vector<A>, Vector<A>];
-
-    concat<B>(this: Vector<B>, that: Vector<B>): Vector<B>;
-    '+++'<B>(this: Vector<B>, that: Vector<B>): Vector<B>;
-
-    elem(idx: number): A;
-    '!!'(idx: number): A;
-    elemOption(idx: number): Option<A>;
-    '!?'(idx: number): Option<A>;
 
     map<B>(f: (a: A) => B): Vector<B>;
 
@@ -89,6 +109,17 @@ declare module './algebra' {
     foldLeft1<B>(this: Vector<B>, f: (z: B, x: B) => B): B;
     foldRight<B>(z: B, f: (a: A, b: B) => B): B;
     foldRight1<B>(this: Vector<B>, f: (x: B, z: B) => B): B;
+
+    foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapK<F extends AnyK>(
+      F: MonoidK<F>,
+    ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+
+    traverse<G extends AnyK>(
+      G: Applicative<G>,
+    ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Vector<A>]>;
+
+    show(this: Vector<A>, S?: Show<A>): string;
   }
 }
 
@@ -164,6 +195,12 @@ Object.defineProperty(Vector.prototype, 'toArray', {
   },
 });
 
+Object.defineProperty(Vector.prototype, 'reverse', {
+  get<A>(this: Vector<A>): Vector<A> {
+    return reverse(this);
+  },
+});
+
 Vector.prototype.prepend = function (x) {
   return prepend_(this, x);
 };
@@ -175,6 +212,31 @@ Vector.prototype.append = function (x) {
 };
 Vector.prototype.snoc = Vector.prototype.append;
 Vector.prototype['::+'] = Vector.prototype.append;
+
+Vector.prototype.concat = function (that) {
+  return concat_(this, that);
+};
+Vector.prototype['+++'] = Vector.prototype.concat;
+
+Vector.prototype.elem = function (idx) {
+  return elem_(this, idx);
+};
+Vector.prototype['!!'] = Vector.prototype.elem;
+
+Vector.prototype.elemOption = function (idx) {
+  return elemOption_(this, idx);
+};
+Vector.prototype['!?'] = Vector.prototype.elemOption;
+
+Vector.prototype.all = function (p) {
+  return all_(this, p);
+};
+Vector.prototype.any = function (p) {
+  return any_(this, p);
+};
+Vector.prototype.count = function (p) {
+  return count_(this, p);
+};
 
 Vector.prototype.take = function (idx) {
   return take_(this, idx);
@@ -197,21 +259,6 @@ Vector.prototype.slice = function (from, until) {
 Vector.prototype.splitAt = function (idx) {
   return splitAt_(this, idx);
 };
-
-Vector.prototype.concat = function (that) {
-  return concat_(this, that);
-};
-Vector.prototype['+++'] = Vector.prototype.concat;
-
-Vector.prototype.elem = function (idx) {
-  return elem_(this, idx);
-};
-Vector.prototype['!!'] = Vector.prototype.elem;
-
-Vector.prototype.elemOption = function (idx) {
-  return elemOption_(this, idx);
-};
-Vector.prototype['!?'] = Vector.prototype.elemOption;
 
 Vector.prototype.map = function (f) {
   return map_(this, f);
@@ -241,4 +288,20 @@ Vector.prototype.foldRight = function (z, f) {
 
 Vector.prototype.foldRight1 = function (f) {
   return foldRight1_(this, f);
+};
+
+Vector.prototype.foldMap = function (M) {
+  return f => foldMap_(M)(this, f);
+};
+
+Vector.prototype.foldMapK = function (F) {
+  return f => foldMapK_(F)(this, f);
+};
+
+Vector.prototype.traverse = function (G) {
+  return f => traverse_(G)(this, f);
+};
+
+Vector.prototype.show = function (S = Show.fromToString()): any {
+  return show(S)(this);
 };

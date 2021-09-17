@@ -26,6 +26,7 @@ const FT_ = {
 
 export const isEmpty: <A>(xs: Vector<A>) => boolean = xs =>
   FT.isEmpty(xs._root);
+
 export const nonEmpty: <A>(xs: Vector<A>) => boolean = xs =>
   FT.nonEmpty(xs._root);
 
@@ -66,6 +67,9 @@ export const popHead = <A>(v: Vector<A>): Option<[A, Vector<A>]> =>
 export const popLast = <A>(v: Vector<A>): Option<[A, Vector<A>]> =>
   FT_.popLast(v._root).map(([hd, tl]) => [hd, new Vector(tl)]);
 
+export const reverse = <A>(xs: Vector<A>): Vector<A> =>
+  foldLeft_(xs, empty as Vector<A>, prepend_);
+
 export const prepend: <B>(x: B) => <A extends B>(xs: Vector<A>) => Vector<B> =
   x => xs =>
     prepend_(xs, x);
@@ -93,6 +97,18 @@ export const elemOption: (idx: number) => <A>(xs: Vector<A>) => Option<A> =
   idx => xs =>
     elemOption_(xs, idx);
 
+export const all: <A>(p: (a: A) => boolean) => (xs: Vector<A>) => boolean =
+  p => xs =>
+    all_(xs, p);
+
+export const any: <A>(p: (a: A) => boolean) => (xs: Vector<A>) => boolean =
+  p => xs =>
+    any_(xs, p);
+
+export const count: <A>(p: (a: A) => boolean) => (xs: Vector<A>) => number =
+  p => xs =>
+    count_(xs, p);
+
 export const take: (n: number) => <A>(xs: Vector<A>) => Vector<A> = n => xs =>
   take_(xs, n);
 
@@ -113,6 +129,18 @@ export const slice: (
 ) => <A>(xs: Vector<A>) => Vector<A> = (from, until) => xs =>
   slice_(xs, from, until);
 
+export const splitAt: (
+  idx: number,
+) => <A>(xs: Vector<A>) => [Vector<A>, Vector<A>] = idx => xs =>
+  splitAt_(xs, idx);
+
+export const filter: <A>(p: (a: A) => boolean) => (xs: Vector<A>) => Vector<A> =
+  p => xs => filter_(xs, p);
+
+export const collect: <A, B>(
+  f: (a: A) => Option<B>,
+) => (xs: Vector<A>) => Vector<B> = f => xs => collect_(xs, f);
+
 export const map: <A, B>(f: (a: A) => B) => (xs: Vector<A>) => Vector<B> =
   f => xs =>
     map_(xs, f);
@@ -129,10 +157,48 @@ export const foldLeft: <A, B>(
   f: (b: B, a: A) => B,
 ) => (xs: Vector<A>) => B = (z, f) => xs => foldLeft_(xs, z, f);
 
+export const foldLeft1: <B>(
+  f: (z: B, x: B) => B,
+) => <A extends B>(xs: Vector<A>) => B = f => xs => foldLeft1_(xs, f);
+
 export const foldRight: <A, B>(
   z: B,
   f: (a: A, b: B) => B,
 ) => (xs: Vector<A>) => B = (z, f) => xs => foldRight_(xs, z, f);
+
+export const foldRight1: <B>(
+  f: (x: B, z: B) => B,
+) => <A extends B>(xs: Vector<A>) => B = f => xs => foldRight1_(xs, f);
+
+export const foldMap: <M>(
+  M: Monoid<M>,
+) => <A>(f: (a: A) => M) => (xs: Vector<A>) => M = M => f => xs =>
+  foldMap_(M)(xs, f);
+
+export const foldMapK: <F extends AnyK>(
+  F: MonoidK<F>,
+) => <A, B>(f: (a: A) => Kind<F, [B]>) => (xs: Vector<A>) => Kind<F, [B]> =
+  F => f => xs =>
+    foldMapK_(F)(xs, f);
+
+export const traverse: <G extends AnyK>(
+  G: Applicative<G>,
+) => <A, B>(
+  f: (a: A) => Kind<G, [B]>,
+) => (xs: Vector<A>) => Kind<G, [Vector<B>]> = G => f => xs =>
+  traverse_(G)(xs, f);
+
+export const sequence =
+  <G extends AnyK>(G: Applicative<G>) =>
+  <A>(xxs: Vector<Kind<G, [A]>>): Kind<G, [Vector<A>]> =>
+    traverse_(G)(xxs, id);
+
+export const show =
+  <A>(S: Show<A>) =>
+  (xs: Vector<A>): string => {
+    const values = toArray(xs).map(S.show).join(', ');
+    return `[${values}]`;
+  };
 
 // -- Point-ful operators
 
@@ -157,6 +223,15 @@ export const elem_ = <A>(xs: Vector<A>, idx: number): A =>
 
 export const elemOption_ = <A>(xs: Vector<A>, idx: number): Option<A> =>
   FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
+
+export const all_ = <A>(xs: Vector<A>, f: (a: A) => boolean): boolean =>
+  foldLeft_(xs, true as boolean, (x, y) => x && f(y));
+
+export const any_ = <A>(xs: Vector<A>, f: (a: A) => boolean): boolean =>
+  foldLeft_(xs, false as boolean, (x, y) => x || f(y));
+
+export const count_ = <A>(xs: Vector<A>, f: (a: A) => boolean): number =>
+  foldLeft_(xs, 0, (c, x) => (f(x) ? c + 1 : c));
 
 export const take_ = <A>(xs: Vector<A>, n: number): Vector<A> =>
   splitAt_(xs, n)[0];
@@ -271,8 +346,3 @@ export const traverse_ =
       G.map2_(ys, f(x))(prepend_);
     return foldRight_(xs, G.pure(empty as Vector<A>), consF);
   };
-
-export const show_ = <A>(S: Show<A>, xs: Vector<A>): string => {
-  const values = toArray(xs).map(S.show).join(', ');
-  return `[${values}]`;
-};

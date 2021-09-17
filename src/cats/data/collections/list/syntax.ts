@@ -22,7 +22,6 @@ import {
   equals_,
   filter_,
   flatMap_,
-  flatSequence,
   flatten,
   flatTraverse_,
   foldLeft1_,
@@ -68,18 +67,25 @@ import {
 
 declare module './algebra' {
   interface List<A> {
+    readonly isEmpty: boolean;
+    readonly nonEmpty: boolean;
+
     readonly head: A;
     readonly headOption: A;
     readonly tail: List<A>;
-    readonly init: List<A>;
+
     readonly last: A;
     readonly lastOption: A;
+    readonly init: List<A>;
+
     readonly uncons: Option<[A, List<A>]>;
-    readonly isEmpty: boolean;
-    readonly nonEmpty: boolean;
+
     readonly size: number;
+
     readonly toArray: A[];
+
     readonly reverse: List<A>;
+
     equals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
     notEquals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
     prepend<B>(this: List<B>, x: B): List<B>;
@@ -109,6 +115,7 @@ declare module './algebra' {
     map: <B>(f: (a: A) => B) => List<B>;
     flatMap: <B>(f: (a: A) => List<B>) => List<B>;
     readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
+
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
     foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
     foldLeft1: <B = A>(f: (x: B, a: B) => B) => B;
@@ -150,9 +157,6 @@ declare module './algebra' {
     flatTraverse: <G extends AnyK>(
       G: Applicative<G>,
     ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
-    flatSequence: A extends Kind<any, [List<infer B>]>
-      ? <G extends AnyK>(G: Applicative<G>) => Kind<G, [List<B>]>
-      : never | unknown;
 
     show(this: List<A>, S?: Show<A>): string;
   }
@@ -508,13 +512,6 @@ List.prototype.flatTraverse = function <G extends AnyK, A>(
   G: Applicative<G>,
 ): <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]> {
   return f => flatTraverse_(G, this, f);
-};
-
-List.prototype.flatSequence = function <G extends AnyK, A>(
-  this: List<Kind<G, [List<A>]>>,
-  G: Applicative<G>,
-): Kind<G, [List<A>]> {
-  return flatSequence(G)(this);
 };
 
 List.prototype.show = function <A>(
