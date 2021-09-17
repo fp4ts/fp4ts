@@ -5,9 +5,10 @@ export abstract class FingerTree<V, A> {
   private readonly __void!: void;
 }
 
-export class Empty<V> extends FingerTree<V, never> {
+export const Empty = new (class Empty extends FingerTree<any, never> {
   public readonly tag = 'empty';
-}
+})();
+export type Empty = typeof Empty;
 
 export class Single<V, A> extends FingerTree<V, A> {
   public readonly tag = 'single';
@@ -32,7 +33,7 @@ export class Deep<V, A> extends FingerTree<V, A> {
   }
 }
 
-export type View<V, A> = Empty<V> | Single<V, A> | Deep<V, A>;
+export type View<V, A> = Empty | Single<V, A> | Deep<V, A>;
 export const view = <V, A>(_: FingerTree<V, A>): View<V, A> => _ as any;
 
 export type Node<V, A> = [V, A, A] | [V, A, A, A];

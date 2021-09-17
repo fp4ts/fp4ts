@@ -31,7 +31,7 @@ export const tail: <V, A>(
 ) => (xs: FingerTree<V, A>) => FingerTree<V, A> = M => xs =>
   popHead(M)(xs)
     .map(([, tl]) => tl)
-    .getOrElse(() => new Empty());
+    .getOrElse(() => Empty);
 
 export const last: <V, A>(M: Measured<A, V>) => (xs: FingerTree<V, A>) => A =
   M => xs =>
@@ -49,7 +49,7 @@ export const init: <V, A>(
 ) => (xs: FingerTree<V, A>) => FingerTree<V, A> = M => xs =>
   popLast(M)(xs)
     .map(([, tl]) => tl)
-    .getOrElse(() => new Empty());
+    .getOrElse(() => Empty);
 
 export const toList = <V, A>(v: FingerTree<V, A>): List<A> =>
   foldRight_(v, List.empty as List<A>, (x, xs) => xs.prepend(x));
@@ -67,7 +67,7 @@ export const popHead =
         return None;
 
       case 'single':
-        return Some([ft.value, new Empty()]);
+        return Some([ft.value, Empty]);
 
       case 'deep': {
         const mkDeep = _mkDeep(M);
@@ -86,15 +86,15 @@ export const popHead =
                     return new Single<V, A>(ft.suffix[0]);
                   case 2: {
                     const [x, y] = ft.suffix;
-                    return mkDeep([x], new Empty<V>(), [y]);
+                    return mkDeep([x], Empty, [y]);
                   }
                   case 3: {
                     const [x, y, z] = ft.suffix;
-                    return mkDeep([x, y], new Empty<V>(), [z]);
+                    return mkDeep([x, y], Empty, [z]);
                   }
                   case 4: {
                     const [x, y, z, w] = ft.suffix;
-                    return mkDeep([x, y, z], new Empty<V>(), [w]);
+                    return mkDeep([x, y, z], Empty, [w]);
                   }
                 }
               },
@@ -117,7 +117,7 @@ export const popLast =
         return None;
 
       case 'single':
-        return Some([ft.value, new Empty()]);
+        return Some([ft.value, Empty]);
 
       case 'deep': {
         const mkDeep = _mkDeep(M);
@@ -142,15 +142,15 @@ export const popLast =
                     return new Single<V, A>(ft.prefix[0]);
                   case 2: {
                     const [x, y] = ft.prefix;
-                    return mkDeep([x], new Empty<V>(), [y]);
+                    return mkDeep([x], Empty, [y]);
                   }
                   case 3: {
                     const [x, y, z] = ft.prefix;
-                    return mkDeep([x], new Empty<V>(), [y, z]);
+                    return mkDeep([x], Empty, [y, z]);
                   }
                   case 4: {
                     const [x, y, z, w] = ft.prefix;
-                    return mkDeep([x], new Empty<V>(), [y, z, w]);
+                    return mkDeep([x], Empty, [y, z, w]);
                   }
                 }
               },
@@ -213,7 +213,7 @@ export const prepend_ =
         return new Single(x);
 
       case 'single':
-        return mkDeep([x], new Empty(), [ft.value]);
+        return mkDeep([x], Empty, [ft.value]);
 
       case 'deep':
         switch (ft.prefix.length) {
@@ -245,7 +245,7 @@ export const append_ =
         return new Single(x);
 
       case 'single':
-        return mkDeep([ft.value], new Empty(), [x]);
+        return mkDeep([ft.value], Empty, [x]);
 
       case 'deep':
         switch (ft.suffix.length) {
@@ -290,7 +290,7 @@ export const splitAt_ =
     // annotation makes the predicate true.
     if (ft.tag === 'single')
       return p(combine_(start, M.measure(ft.value)))
-        ? Some([new Empty(), ft.value, new Empty()])
+        ? Some([Empty, ft.value, Empty])
         : None;
 
     // For the deeper case, we must do several checks:
@@ -409,8 +409,8 @@ const _mkDeep = <V, A>(M: Measured<A, V>) => {
     suffix: A[],
   ): FingerTree<V, A> => {
     if (prefix.length === 0 && suffix.length === 0)
-      return popHead(MN)(deep).fold(
-        () => new Empty<V>(),
+      return popHead(MN)(deep).fold<FingerTree<V, A>>(
+        () => Empty,
         ([[, ...node], deeper]) => loop(node, deeper, []),
       );
 
@@ -478,18 +478,18 @@ const _concatWithMiddle = <V, A>(M: Measured<A, V>) => {
     if (left.tag === 'empty' && m.length === 0) return right;
     if (left.tag === 'empty') {
       const [x, ...xs] = m;
-      return prepend(loop(new Empty(), xs, right), x);
+      return prepend(loop(Empty, xs, right), x);
     }
     if (left.tag === 'single')
-      return prepend(loop(new Empty(), m, right), left.value);
+      return prepend(loop(Empty, m, right), left.value);
 
     if (right.tag === 'empty' && m.length === 0) return left;
     if (right.tag === 'empty') {
       const [last, init] = [m[m.length - 1], m.slice(0, m.length - 1)];
-      return append(loop(left, init, new Empty()), last);
+      return append(loop(left, init, Empty), last);
     }
     if (right.tag === 'single')
-      return append(loop(left, m, new Empty()), right.value);
+      return append(loop(left, m, Empty), right.value);
 
     const mid = _nodes(M)([...left.suffix, ...m, ...right.prefix]);
     const deep = _concatWithMiddle(nodeMeasured(M))(left.deep, mid, right.deep);
@@ -526,18 +526,15 @@ const _chunkToTree =
     const v = ML.measure(affix);
     switch (affix.length) {
       case 0:
-        return new Empty();
+        return Empty;
       case 1:
         return new Single(affix[0]);
       case 2:
-        return new Deep(v, [affix[0]], new Empty<V>(), [affix[1]]);
+        return new Deep(v, [affix[0]], Empty, [affix[1]]);
       case 3:
-        return new Deep(v, [affix[0]], new Empty<V>(), [affix[1], affix[2]]);
+        return new Deep(v, [affix[0]], Empty, [affix[1], affix[2]]);
       case 4:
-        return new Deep(v, [affix[0], affix[1]], new Empty<V>(), [
-          affix[2],
-          affix[3],
-        ]);
+        return new Deep(v, [affix[0], affix[1]], Empty, [affix[2], affix[3]]);
       default:
         throw new Error('Invalid list size');
     }

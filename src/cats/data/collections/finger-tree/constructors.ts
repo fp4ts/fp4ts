@@ -6,7 +6,7 @@ import { append_ } from './operators';
 
 export const pure = <V, A>(a: A): FingerTree<V, A> => new Single(a);
 
-export const empty = <V>(): FingerTree<V, never> => new Empty();
+export const empty = <V>(): FingerTree<V, never> => Empty;
 
 export const singleton = <V, A>(a: A): FingerTree<V, A> => pure(a);
 
