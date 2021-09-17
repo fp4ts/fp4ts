@@ -2,6 +2,7 @@ import { id } from '../../../core';
 import { Either, Left, Right } from '../either';
 import { Option, Some, None } from '../option';
 import { arrayApplicative } from '../collections/array/instances';
+import { Vector } from '../collections/vector';
 import { List } from '../collections/list';
 import { primitiveEq } from '../../eq';
 
@@ -47,6 +48,10 @@ describe('List', () => {
       const xs = List.of(1, 2, 3);
       expect(xs.toArray).toEqual([1, 2, 3]);
     });
+
+    it('should create a list from vector', () => {
+      expect(List.fromVector(Vector(1, 2, 3))).toEqual(List(1, 2, 3));
+    });
   });
 
   describe('accessors', () => {
@@ -79,6 +84,10 @@ describe('List', () => {
 
     it('should return head and tail of the list', () => {
       expect(List(1).uncons).toEqual(Some([1, List.empty]));
+    });
+
+    it('should transform the list to vector', () => {
+      expect(List(1, 2, 3).toVector.toArray).toEqual([1, 2, 3]);
     });
   });
 

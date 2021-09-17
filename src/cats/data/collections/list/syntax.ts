@@ -6,6 +6,7 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Option } from '../../option';
 import { Either } from '../../either';
+import { Vector } from '../vector';
 
 import { List } from './algebra';
 import {
@@ -56,6 +57,7 @@ import {
   takeRight_,
   take_,
   toArray,
+  toVector,
   traverse_,
   uncons,
   zipPad_,
@@ -83,6 +85,7 @@ declare module './algebra' {
     readonly size: number;
 
     readonly toArray: A[];
+    readonly toVector: Vector<A>;
 
     readonly reverse: List<A>;
 
@@ -225,6 +228,12 @@ Object.defineProperty(List.prototype, 'size', {
 Object.defineProperty(List.prototype, 'toArray', {
   get<A>(this: List<A>): A[] {
     return toArray(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'toVector', {
+  get<A>(this: List<A>): Vector<A> {
+    return toVector(this);
   },
 });
 

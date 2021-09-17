@@ -1,3 +1,4 @@
+import { Vector } from '../vector';
 import { Cons, List, Nil } from './algebra';
 
 export const pure = <A>(x: A): List<A> => new Cons(x, Nil);
@@ -18,3 +19,6 @@ export const fromArray = <A>(xs: A[]): List<A> => {
   }
   return results;
 };
+
+export const fromVector = <A>(xs: Vector<A>): List<A> =>
+  xs.foldRight(empty as List<A>, cons);

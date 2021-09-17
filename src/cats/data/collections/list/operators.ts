@@ -8,7 +8,8 @@ import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
 
 import { Cons, List, view } from './algebra';
-import { cons, empty, fromArray, nil, pure } from './constructors';
+import { cons, empty, nil, pure } from './constructors';
+import { Vector } from '../vector';
 
 const throwError = (e: Error) => {
   throw e;
@@ -67,6 +68,15 @@ export const toArray = <A>(xs: List<A>): A[] => {
   const results: A[] = [];
   while (nonEmpty(xs)) {
     results.push(head(xs));
+    xs = tail(xs);
+  }
+  return results;
+};
+
+export const toVector = <A>(xs: List<A>): Vector<A> => {
+  let results: Vector<A> = Vector.empty;
+  while (nonEmpty(xs)) {
+    results = results.append(head(xs));
     xs = tail(xs);
   }
   return results;
