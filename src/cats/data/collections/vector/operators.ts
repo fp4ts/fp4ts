@@ -9,7 +9,7 @@ import { List } from '../list';
 import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
 import { empty } from './constructors';
-import { sizeMeasured } from './instances';
+import { fingerTreeSizeMeasured, sizeMeasured } from './instances';
 
 const throwError = (e: Error) => {
   throw e;
@@ -28,6 +28,9 @@ export const isEmpty: <A>(xs: Vector<A>) => boolean = xs =>
   FT.isEmpty(xs._root);
 export const nonEmpty: <A>(xs: Vector<A>) => boolean = xs =>
   FT.nonEmpty(xs._root);
+
+export const size: <A>(xs: Vector<A>) => number = xs =>
+  fingerTreeSizeMeasured.measure(xs._root);
 
 export const head: <A>(xs: Vector<A>) => A = xs =>
   headOption(xs).getOrElse(() => throwError(new Error('Vector.empty.head')));
@@ -110,6 +113,14 @@ export const slice: (
 ) => <A>(xs: Vector<A>) => Vector<A> = (from, until) => xs =>
   slice_(xs, from, until);
 
+export const map: <A, B>(f: (a: A) => B) => (xs: Vector<A>) => Vector<B> =
+  f => xs =>
+    map_(xs, f);
+
+export const flatMap: <A, B>(
+  f: (a: A) => Vector<B>,
+) => (xs: Vector<A>) => Vector<B> = f => xs => flatMap_(xs, f);
+
 export const flatten: <A>(ffa: Vector<Vector<A>>) => Vector<A> = ffa =>
   flatMap_(ffa, id);
 
@@ -147,39 +158,17 @@ export const elem_ = <A>(xs: Vector<A>, idx: number): A =>
 export const elemOption_ = <A>(xs: Vector<A>, idx: number): Option<A> =>
   FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
 
-export const take_ = <A>(xs: Vector<A>, n: number): Vector<A> => {
-  let result: Vector<A> = empty;
-  while (nonEmpty(xs) && n-- > 0) {
-    const [hd, tl] = popHead(xs).get;
-    result = append_(result, hd);
-    xs = tl;
-  }
-  return result;
-};
+export const take_ = <A>(xs: Vector<A>, n: number): Vector<A> =>
+  splitAt_(xs, n)[0];
 
-export const takeRight_ = <A>(xs: Vector<A>, n: number): Vector<A> => {
-  let result: Vector<A> = empty;
-  while (nonEmpty(xs) && n-- > 0) {
-    const [hd, tl] = popLast(xs).get;
-    result = prepend_(result, hd);
-    xs = tl;
-  }
-  return result;
-};
+export const takeRight_ = <A>(xs: Vector<A>, n: number): Vector<A> =>
+  splitAt_(xs, size(xs) - n)[1];
 
-export const drop_ = <A>(xs: Vector<A>, n: number): Vector<A> => {
-  while (nonEmpty(xs) && n-- > 0) {
-    [, xs] = popHead(xs).get;
-  }
-  return xs;
-};
+export const drop_ = <A>(xs: Vector<A>, n: number): Vector<A> =>
+  splitAt_(xs, n)[1];
 
-export const dropRight_ = <A>(xs: Vector<A>, n: number): Vector<A> => {
-  while (nonEmpty(xs) && n-- > 0) {
-    [, xs] = popLast(xs).get;
-  }
-  return xs;
-};
+export const dropRight_ = <A>(xs: Vector<A>, n: number): Vector<A> =>
+  splitAt_(xs, size(xs) - n)[0];
 
 export const slice_ = <A>(
   xs: Vector<A>,

@@ -1,6 +1,7 @@
 import { Some, None } from '../option';
 import { List } from '../collections/list';
 import { Vector } from '../collections/vector';
+import { id } from '../../../core';
 
 describe('Vector', () => {
   describe('type', () => {
@@ -411,6 +412,40 @@ describe('Vector', () => {
       const vx = Vector.fromArray(xs);
 
       expect(vx['+++'](vx).toArray).toEqual([...xs, ...xs]);
+    });
+  });
+
+  describe('map', () => {
+    it('should return an empty vector if empty vector if mapped', () => {
+      expect(Vector.empty.map(() => true)).toEqual(Vector.empty);
+    });
+
+    it('should double all of the elements', () => {
+      expect(Vector(1, 2, 3).map(x => x * 2).toArray).toEqual(
+        Vector(2, 4, 6).toArray,
+      );
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.map(id).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('flatMap', () => {
+    it('should return an empty vector if empty vector if mapped', () => {
+      expect(Vector.empty.flatMap(() => Vector(true))).toEqual(Vector.empty);
+    });
+
+    it('should return twice the double of all elements', () => {
+      expect(
+        Vector(1, 2, 3).flatMap(x => Vector(x * 2, x * 2)).toArray,
+      ).toEqual(Vector(2, 2, 4, 4, 6, 6).toArray);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.flatMap(Vector).toArray).toEqual(xs.toArray);
     });
   });
 

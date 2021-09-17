@@ -69,13 +69,14 @@ export const popHead =
       case 'single':
         return Some([ft.value, new Empty()]);
 
-      case 'deep':
+      case 'deep': {
+        const mkDeep = _mkDeep(M);
         switch (ft.prefix.length) {
           case 2:
           case 3:
           case 4: {
             const [x, ...rest] = ft.prefix;
-            return Some([x, _mkDeep(rest, ft.deep, ft.suffix, M)]);
+            return Some([x, mkDeep(rest, ft.deep, ft.suffix)]);
           }
           case 1: {
             const rest = popHead(nodeMeasured(M))(ft.deep).fold(
@@ -85,23 +86,24 @@ export const popHead =
                     return new Single<V, A>(ft.suffix[0]);
                   case 2: {
                     const [x, y] = ft.suffix;
-                    return _mkDeep([x], new Empty<V>(), [y], M);
+                    return mkDeep([x], new Empty<V>(), [y]);
                   }
                   case 3: {
                     const [x, y, z] = ft.suffix;
-                    return _mkDeep([x, y], new Empty<V>(), [z], M);
+                    return mkDeep([x, y], new Empty<V>(), [z]);
                   }
                   case 4: {
                     const [x, y, z, w] = ft.suffix;
-                    return _mkDeep([x, y, z], new Empty<V>(), [w], M);
+                    return mkDeep([x, y, z], new Empty<V>(), [w]);
                   }
                 }
               },
-              ([[, ...node], rest_]) => _mkDeep(node, rest_, ft.suffix, M),
+              ([[, ...node], rest_]) => mkDeep(node, rest_, ft.suffix),
             );
             return Some([ft.prefix[0], rest]);
           }
         }
+      }
     }
   };
 
@@ -117,19 +119,20 @@ export const popLast =
       case 'single':
         return Some([ft.value, new Empty()]);
 
-      case 'deep':
+      case 'deep': {
+        const mkDeep = _mkDeep(M);
         switch (ft.suffix.length) {
           case 2: {
             const [x, y] = ft.suffix;
-            return Some([y, _mkDeep(ft.prefix, ft.deep, [x], M)]);
+            return Some([y, mkDeep(ft.prefix, ft.deep, [x])]);
           }
           case 3: {
             const [x, y, z] = ft.suffix;
-            return Some([z, _mkDeep(ft.prefix, ft.deep, [x, y], M)]);
+            return Some([z, mkDeep(ft.prefix, ft.deep, [x, y])]);
           }
           case 4: {
             const [x, y, z, w] = ft.suffix;
-            return Some([w, _mkDeep(ft.prefix, ft.deep, [x, y, z], M)]);
+            return Some([w, mkDeep(ft.prefix, ft.deep, [x, y, z])]);
           }
           case 1: {
             const rest = popLast(nodeMeasured(M))(ft.deep).fold(
@@ -139,23 +142,24 @@ export const popLast =
                     return new Single<V, A>(ft.prefix[0]);
                   case 2: {
                     const [x, y] = ft.prefix;
-                    return _mkDeep([x], new Empty<V>(), [y], M);
+                    return mkDeep([x], new Empty<V>(), [y]);
                   }
                   case 3: {
                     const [x, y, z] = ft.prefix;
-                    return _mkDeep([x], new Empty<V>(), [y, z], M);
+                    return mkDeep([x], new Empty<V>(), [y, z]);
                   }
                   case 4: {
                     const [x, y, z, w] = ft.prefix;
-                    return _mkDeep([x], new Empty<V>(), [y, z, w], M);
+                    return mkDeep([x], new Empty<V>(), [y, z, w]);
                   }
                 }
               },
-              ([[v, ...node], rest_]) => _mkDeep(ft.prefix, rest_, node, M),
+              ([[, ...node], rest_]) => mkDeep(ft.prefix, rest_, node),
             );
             return Some([ft.suffix[ft.suffix.length - 1], rest]);
           }
         }
+      }
     }
   };
 
@@ -202,28 +206,28 @@ export const prepend_ =
   <V, A>(M: Measured<A, V>) =>
   (v: FingerTree<V, A>, x: A): FingerTree<V, A> => {
     const ft = view(v);
+    const mkDeep = _mkDeep(M);
 
     switch (ft.tag) {
       case 'empty':
         return new Single(x);
 
       case 'single':
-        return _mkDeep([x], new Empty(), [ft.value], M);
+        return mkDeep([x], new Empty(), [ft.value]);
 
       case 'deep':
         switch (ft.prefix.length) {
           case 1:
           case 2:
           case 3:
-            return _mkDeep([x, ...ft.prefix], ft.deep, ft.suffix, M);
+            return mkDeep([x, ...ft.prefix], ft.deep, ft.suffix);
           case 4: {
             const [a, b, c, d] = ft.prefix;
             const v = listMeasured(M).measure([b, c, d]);
-            return _mkDeep(
+            return mkDeep(
               [x, a],
               prepend_(nodeMeasured(M))(ft.deep, [v, b, c, d]),
               ft.suffix,
-              M,
             );
           }
         }
@@ -234,28 +238,28 @@ export const append_ =
   <V, A>(M: Measured<A, V>) =>
   (v: FingerTree<V, A>, x: A): FingerTree<V, A> => {
     const ft = view(v);
+    const mkDeep = _mkDeep(M);
 
     switch (ft.tag) {
       case 'empty':
         return new Single(x);
 
       case 'single':
-        return _mkDeep([ft.value], new Empty(), [x], M);
+        return mkDeep([ft.value], new Empty(), [x]);
 
       case 'deep':
         switch (ft.suffix.length) {
           case 1:
           case 2:
           case 3:
-            return _mkDeep(ft.prefix, ft.deep, [...ft.suffix, x], M);
+            return mkDeep(ft.prefix, ft.deep, [...ft.suffix, x]);
           case 4: {
             const [a, b, c, d] = ft.suffix;
             const v = listMeasured(M).measure([a, b, c]);
-            return _mkDeep(
+            return mkDeep(
               ft.prefix,
               append_(nodeMeasured(M))(ft.deep, [v, a, b, c]),
               [d, x],
-              M,
             );
           }
         }
@@ -275,56 +279,75 @@ export const splitAt_ =
     p: (a: V) => boolean,
   ): Option<[FingerTree<V, A>, A, FingerTree<V, A>]> => {
     const ft = view(xs);
+    const { combine_ } = M.monoid;
 
+    // An empty finger tree cannot have a split, since there
+    // are no elements whose annotations we
+    // can add to the monoidal value we are given.
     if (ft.tag === 'empty') return None;
-    if (ft.tag === 'single') {
-      if (p(M.monoid.combine_(start, M.measure(ft.value)))) {
-        return Some([new Empty(), ft.value, new Empty()]);
-      } else {
-        return None;
-      }
-    }
 
-    if (!p(M.monoid.combine_(start, ft.annotation)))
+    // For a single element, we must check whether or not its
+    // annotation makes the predicate true.
+    if (ft.tag === 'single')
+      return p(combine_(start, M.measure(ft.value)))
+        ? Some([new Empty(), ft.value, new Empty()])
+        : None;
+
+    // For the deeper case, we must do several checks:
+    // Up to one for each prefix and for the deeper tree.
+    const { annotation: total, prefix, deep, suffix } = ft;
+
+    // Make sure a split point exists.
+    if (!p(combine_(start, total)))
       // Split point does not exists
       return None;
 
     const LM = listMeasured(M);
-    const startPref = M.monoid.combine_(start, LM.measure(ft.prefix));
+    const startPref = combine_(start, LM.measure(prefix));
+    const splitList = _splitList(M);
+    // The split point is in the prefix.
     if (p(startPref)) {
-      return _splitList(M)(ft.prefix, p, start).map(
+      // Treat the prefix as a list and find where the split point is.
+      return splitList(prefix, p, start).map(
+        //  Convert the pre-split part of the prefix to a tree.
         ([before, [x, ...after]]) => [
           _chunkToTree(M)(before),
           x,
-          _mkDeep(after as Affix<A>, ft.deep, ft.suffix, M),
+          _mkDeep(M)(after, deep, suffix),
         ],
       );
     }
 
     const MN = nodeMeasured(M);
     const MFT = fingerTreeMeasured(MN);
-    if (p(M.monoid.combine_(startPref, MFT.measure(ft.deep))))
-      return splitAt_(MN)(ft.deep, startPref, p).flatMap(
+    // The split point is in the deeper tree.
+    if (p(combine_(startPref, MFT.measure(deep)))) {
+      // Find the split point in the deeper tree.
+      // The split point is not as fine-grained as we want, as it works on Node<V, A>,
+      // instead of just values of type A.
+      return splitAt_(MN)(deep, startPref, p).flatMap(
         ([before, [, ...node], after]) => {
-          const start_ = M.monoid.combine_(startPref, MFT.measure(before));
-          return _splitList(M)(node, p, start_).map(
+          const start_ = combine_(startPref, MFT.measure(before));
+          // Convert the node at the split point into a list, and search for the
+          // real split point within that list.
+          return splitList(node, p, start_).map(
             ([beforeNode, [x, ...afterNode]]) => [
-              _mkDeep(ft.prefix, before, beforeNode as Affix<A>, M),
+              _mkDeep(M)(prefix, before, beforeNode),
               x,
-              _mkDeep(afterNode as Affix<A>, after, ft.suffix, M),
+              _mkDeep(M)(afterNode, after, suffix),
             ],
           );
         },
       );
+    }
 
-    const start_ = M.monoid.combine_(startPref, MFT.measure(ft.deep));
-    return _splitList(M)(ft.suffix, p, start_).map(
-      ([before, [x, ...after]]) => [
-        _mkDeep(ft.prefix, ft.deep, before as Affix<A>, M),
-        x,
-        _chunkToTree(M)(after),
-      ],
-    );
+    // Otherwise, the split point is in the suffix.
+    const start_ = combine_(startPref, MFT.measure(deep));
+    return splitList(suffix, p, start_).map(([before, [x, ...after]]) => [
+      _mkDeep(M)(prefix, deep, before),
+      x,
+      _chunkToTree(M)(after),
+    ]);
   };
 
 export const foldLeft_ = <V, A, B>(
@@ -375,42 +398,45 @@ export const foldRight_ = <V, A, B>(
 
 // -- Private implementation
 
-const _mkDeep = <V, A>(
-  prefix: A[],
-  deep: FingerTree<V, Node<V, A>>,
-  suffix: A[],
-  M: Measured<A, V>,
-): FingerTree<V, A> => {
+const _mkDeep = <V, A>(M: Measured<A, V>) => {
   const { combine_, empty } = M.monoid;
-  const ML = listMeasured(M);
   const MN = nodeMeasured(M);
+  const chunkToTree = _chunkToTree(M);
 
-  if (prefix.length === 0 && suffix.length === 0)
-    return popHead(MN)(deep).fold(
-      () => new Empty<V>(),
-      ([[, ...node], deeper]) => _mkDeep(node, deeper, [], M),
-    );
+  const loop = (
+    prefix: A[],
+    deep: FingerTree<V, Node<V, A>>,
+    suffix: A[],
+  ): FingerTree<V, A> => {
+    if (prefix.length === 0 && suffix.length === 0)
+      return popHead(MN)(deep).fold(
+        () => new Empty<V>(),
+        ([[, ...node], deeper]) => loop(node, deeper, []),
+      );
 
-  if (prefix.length === 0)
-    return popLast(MN)(deep).fold(
-      () => _chunkToTree(M)(suffix),
-      ([[, ...node], deeper]) => _mkDeep(node, deeper, suffix, M),
-    );
+    if (prefix.length === 0)
+      return popHead(MN)(deep).fold(
+        () => chunkToTree(suffix),
+        ([[, ...node], deeper]) => loop(node, deeper, suffix),
+      );
 
-  if (suffix.length === 0)
-    return popLast(MN)(deep).fold(
-      () => _chunkToTree(M)(prefix),
-      ([[, ...node], deeper]) => _mkDeep(prefix, deeper, node, M),
-    );
+    if (suffix.length === 0)
+      return popLast(MN)(deep).fold(
+        () => chunkToTree(prefix),
+        ([[, ...node], deeper]) => loop(prefix, deeper, node),
+      );
 
-  const MFT = fingerTreeMeasured(MN);
-  const annotation = [
-    ML.measure(prefix),
-    MFT.measure(deep),
-    ML.measure(suffix),
-  ].reduce(combine_, empty);
+    const ML = listMeasured(M);
+    const MFT = fingerTreeMeasured(MN);
+    const annotation = [
+      ML.measure(prefix),
+      MFT.measure(deep),
+      ML.measure(suffix),
+    ].reduce(combine_, empty);
 
-  return new Deep(annotation, prefix as Affix<A>, deep, suffix as Affix<A>);
+    return new Deep(annotation, prefix as Affix<A>, deep, suffix as Affix<A>);
+  };
+  return loop;
 };
 
 const _nodes = <V, A>(M: Measured<A, V>) => {
@@ -437,73 +463,81 @@ const _nodes = <V, A>(M: Measured<A, V>) => {
   return loop;
 };
 
-const _concatWithMiddle =
-  <V, A>(M: Measured<A, V>) =>
-  (lhs: FingerTree<V, A>, m: A[], rhs: FingerTree<V, A>): FingerTree<V, A> => {
+const _concatWithMiddle = <V, A>(M: Measured<A, V>) => {
+  const prepend = prepend_(M);
+  const append = append_(M);
+
+  const loop = (
+    lhs: FingerTree<V, A>,
+    m: A[],
+    rhs: FingerTree<V, A>,
+  ): FingerTree<V, A> => {
     const left = view(lhs);
     const right = view(rhs);
 
     if (left.tag === 'empty' && m.length === 0) return right;
     if (left.tag === 'empty') {
       const [x, ...xs] = m;
-      return prepend_(M)(_concatWithMiddle(M)(new Empty(), xs, right), x);
+      return prepend(loop(new Empty(), xs, right), x);
     }
     if (left.tag === 'single')
-      return prepend_(M)(
-        _concatWithMiddle(M)(new Empty(), m, right),
-        left.value,
-      );
+      return prepend(loop(new Empty(), m, right), left.value);
 
     if (right.tag === 'empty' && m.length === 0) return left;
     if (right.tag === 'empty') {
       const [last, init] = [m[m.length - 1], m.slice(0, m.length - 1)];
-      return append_(M)(_concatWithMiddle(M)(left, init, new Empty()), last);
+      return append(loop(left, init, new Empty()), last);
     }
     if (right.tag === 'single')
-      return append_(M)(
-        _concatWithMiddle(M)(left, m, new Empty()),
-        right.value,
-      );
+      return append(loop(left, m, new Empty()), right.value);
 
     const mid = _nodes(M)([...left.suffix, ...m, ...right.prefix]);
     const deep = _concatWithMiddle(nodeMeasured(M))(left.deep, mid, right.deep);
-    return _mkDeep(left.prefix, deep, right.suffix, M);
+    return _mkDeep(M)(left.prefix, deep, right.suffix);
   };
 
-const _splitList =
-  <V, A>(M: Measured<A, V>) =>
-  (xs: A[], p: (a: V) => boolean, start: V): Option<[A[], A[]]> => {
-    if (!xs) return None;
+  return loop;
+};
+
+const _splitList = <V, A>(M: Measured<A, V>) => {
+  const loop = (
+    xs: A[],
+    p: (a: V) => boolean,
+    start: V,
+  ): Option<[A[], A[]]> => {
+    if (!xs.length) return None;
 
     const [x, ...rest] = xs;
     const start_ = M.monoid.combine_(start, M.measure(x));
     if (p(start_)) return Some([[], [x, ...rest]]);
 
-    return _splitList(M)(rest, p, start_).map(([before, after]) => [
+    return loop(rest, p, start_).map(([before, after]) => [
       [x, ...before],
       after,
     ]);
   };
+  return loop;
+};
 
 const _chunkToTree =
   <V, A>(M: Measured<A, V>) =>
   (affix: A[]): FingerTree<V, A> => {
+    const ML = listMeasured(M);
+    const v = ML.measure(affix);
     switch (affix.length) {
       case 0:
         return new Empty();
       case 1:
         return new Single(affix[0]);
       case 2:
-        return _mkDeep([affix[0]], new Empty<V>(), [affix[1]], M);
+        return new Deep(v, [affix[0]], new Empty<V>(), [affix[1]]);
       case 3:
-        return _mkDeep([affix[0]], new Empty<V>(), [affix[1], affix[2]], M);
+        return new Deep(v, [affix[0]], new Empty<V>(), [affix[1], affix[2]]);
       case 4:
-        return _mkDeep(
-          [affix[0], affix[1]],
-          new Empty<V>(),
-          [affix[2], affix[3]],
-          M,
-        );
+        return new Deep(v, [affix[0], affix[1]], new Empty<V>(), [
+          affix[2],
+          affix[3],
+        ]);
       default:
         throw new Error('Invalid list size');
     }

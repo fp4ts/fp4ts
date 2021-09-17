@@ -9,6 +9,8 @@ import {
   drop_,
   elemOption_,
   elem_,
+  flatMap_,
+  flatten,
   foldLeft1_,
   foldLeft_,
   foldRight1_,
@@ -19,6 +21,7 @@ import {
   isEmpty,
   last,
   lastOption,
+  map_,
   nonEmpty,
   popHead,
   popLast,
@@ -75,6 +78,12 @@ declare module './algebra' {
     '!!'(idx: number): A;
     elemOption(idx: number): Option<A>;
     '!?'(idx: number): Option<A>;
+
+    map<B>(f: (a: A) => B): Vector<B>;
+
+    flatMap<B>(f: (a: A) => Vector<B>): Vector<B>;
+
+    readonly flatten: A extends Vector<infer B> ? Vector<B> : never | unknown;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: Vector<B>, f: (z: B, x: B) => B): B;
@@ -203,6 +212,20 @@ Vector.prototype.elemOption = function (idx) {
   return elemOption_(this, idx);
 };
 Vector.prototype['!?'] = Vector.prototype.elemOption;
+
+Vector.prototype.map = function (f) {
+  return map_(this, f);
+};
+
+Vector.prototype.flatMap = function (f) {
+  return flatMap_(this, f);
+};
+
+Object.defineProperty(Vector.prototype, 'flatten', {
+  get<A>(this: Vector<Vector<A>>): Vector<A> {
+    return flatten(this);
+  },
+});
 
 Vector.prototype.foldLeft = function (z, f) {
   return foldLeft_(this, z, f);

@@ -125,7 +125,7 @@ const runBenchmark =
         const r = fn();
         r instanceof Promise ? await r : {};
         performance.mark(end);
-        performance.measure(id);
+        performance.measure(id, start, end);
       }
 
       // Disconnect observer

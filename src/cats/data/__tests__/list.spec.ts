@@ -487,21 +487,6 @@ describe('List', () => {
     });
   });
 
-  describe('map', () => {
-    it('should return an empty list if empty list if mapped', () => {
-      expect(List.empty.map(() => true)).toEqual(List.empty);
-    });
-
-    it('should double all of the elements', () => {
-      expect(List(1, 2, 3).map(x => x * 2)).toEqual(List(2, 4, 6));
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.map(id).toArray).toEqual(xs.toArray);
-    });
-  });
-
   describe('flatMap', () => {
     it('should return an empty list if empty list if mapped', () => {
       expect(List.empty.flatMap(() => List(true))).toEqual(List.empty);

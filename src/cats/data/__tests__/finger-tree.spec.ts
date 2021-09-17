@@ -382,12 +382,25 @@ describe('FingerTree', () => {
       ).toEqual(None);
     });
 
-    it('should be stack safe for the splitAt', () => {
+    it('should be stack safe for the splitAt 1', () => {
       const xs = [...new Array(10_000).keys()];
       const ft = FingerTree.fromArray(S)(xs);
 
       const rs = xs.map(idx => ft.splitAt(S)(0, x => x > idx).get[1]);
       expect(rs).toEqual(xs);
+    });
+
+    it('should be stack safe for the splitAt 2', () => {
+      const size = 10_000;
+      const idx = size / 2;
+      const xs = [...new Array(size).keys()];
+      const r = FingerTree.fromArray(S)(xs).splitAt(S)(0, x => x > idx).get;
+
+      expect([r[0].toArray, r[1], r[2].toArray]).toEqual([
+        xs.slice(0, idx),
+        idx,
+        xs.slice(idx + 1),
+      ]);
     });
   });
 });
