@@ -234,6 +234,10 @@ describe('Map', () => {
     it('should remove existing entry from the map', () => {
       expect(HashMap([1, 2], [3, 4]).remove(3).toArray).toEqual([[1, 2]]);
     });
+
+    it('should remove existing entry from the map', () => {
+      expect(HashMap([1, 2], [2, 3]).remove(2).toArray).toEqual([[1, 2]]);
+    });
   });
 
   describe('update', () => {

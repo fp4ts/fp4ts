@@ -12,6 +12,9 @@ import { Applicative } from '../../../applicative';
 import { Bucket, Empty, Inner, Leaf, HashMap, toNode } from './algebra';
 import { id, pipe } from '../../../../core';
 
+const SIZE = 32;
+const MASK = 0b11111;
+
 const throwError = (e: Error) => {
   throw e;
 };
@@ -241,7 +244,7 @@ export const all_ = <K, V>(
       return true;
 
     case 'inner':
-      for (let i = 0, len = n.children.length; i < len; i++) {
+      for (let i = 0, len = SIZE; i < len; i++) {
         if (!all_(n.children[i], p)) return false;
       }
       return true;
@@ -266,7 +269,7 @@ export const any_ = <K, V>(
       return false;
 
     case 'inner':
-      for (let i = 0, len = n.children.length; i < len; i++) {
+      for (let i = 0, len = SIZE; i < len; i++) {
         if (any_(n.children[i], p)) return true;
       }
       return false;
@@ -371,12 +374,19 @@ export const filter_ = <K, V>(
     case 'empty':
       return Empty;
 
-    case 'inner':
-      return _makeInner(n.children.map(c => filter_(c, p)));
+    case 'inner': {
+      let mask = 0;
+      const newChildren: HashMap<K, V>[] = new Array(SIZE);
+      for (let i = 0; i < SIZE; i++) {
+        newChildren[i] = filter_(n.children[i], p);
+        mask |= Number(newChildren[i] !== Empty) << i;
+      }
+      return _mkInner(newChildren, mask);
+    }
 
     case 'leaf': {
       const newBuckets = n.buckets.filter(([, k, v]) => p(v, k));
-      return newBuckets.length ? new Leaf(newBuckets) : Empty;
+      return _mkLeaf(newBuckets);
     }
   }
 };
@@ -391,7 +401,10 @@ export const map_ = <K, V, B>(
       return Empty;
 
     case 'inner':
-      return new Inner(n.children.map(c => map_(c, f)));
+      return _mkInner(
+        n.children.map(c => map_(c, f)),
+        n.mask,
+      );
 
     case 'leaf':
       return new Leaf(n.buckets.map(([h, k, v]) => [h, k, f(v, k)]));
@@ -417,8 +430,15 @@ export const collect_ = <K, V, B>(
     case 'empty':
       return Empty;
 
-    case 'inner':
-      return _makeInner(n.children.map(c => collect_(c, f)));
+    case 'inner': {
+      let mask = 0;
+      const newChildren: HashMap<K, B>[] = new Array(SIZE);
+      for (let i = 0; i < SIZE; i++) {
+        newChildren[i] = collect_(n.children[i], f);
+        mask |= Number(newChildren[i] !== Empty) << i;
+      }
+      return _mkInner(newChildren, mask);
+    }
 
     case 'leaf': {
       const newBuckets: Bucket<K, B>[] = [];
@@ -429,7 +449,7 @@ export const collect_ = <K, V, B>(
           b => newBuckets.push([h, k, b]),
         );
       }
-      return newBuckets.length ? new Leaf(newBuckets) : Empty;
+      return _mkLeaf(newBuckets);
     }
   }
 };
@@ -508,7 +528,13 @@ export const traverse_ =
 
         return pipe(
           n.children.reduce(appendF, G.pure([] as HashMap<K, B>[])),
-          G.map(children => new Inner(children) as HashMap<K, B>),
+          G.map(children => {
+            let mask = 0;
+            for (let i = 0; i < SIZE; i++) {
+              mask |= Number(children[i] !== Empty) << i;
+            }
+            return _mkInner(children, mask) as HashMap<K, B>;
+          }),
         );
       }
 
@@ -545,14 +571,15 @@ const _hash = <K>(H: Hashable<K>, k: K): number =>
   // take first, most significant 32 bits
   Buffer.from(H.hash(k)).readUIntLE(0, 4);
 
-const _index = (h: number, d: number): number => (h >> (d * 5)) & 0b11111;
+const _index = (h: number, d: number): number => (h >> (d * 5)) & MASK;
 
-const _makeInner = <K, V>(children: HashMap<K, V>[]): HashMap<K, V> => {
-  for (let i = 0, len = children.length; i < len; i++) {
-    if (children[i] !== Empty) return new Inner(children);
-  }
-  return Empty;
-};
+const _mkInner = <K, V>(
+  children: HashMap<K, V>[],
+  mask: number,
+): HashMap<K, V> => (mask ? new Inner(children, mask) : Empty);
+
+const _mkLeaf = <K, V>(buckets: Bucket<K, V>[]): HashMap<K, V> =>
+  buckets.length ? new Leaf(buckets) : Empty;
 
 const _lookup = <K, V>(
   E: Eq<K>,
@@ -599,14 +626,13 @@ const _insert = <K, V>(
   switch (n.tag) {
     case 'empty':
       assert(d <= 5, 'Maximum depth exceeded');
-      return new Leaf([[h, k, v]]);
+      return _mkLeaf([[h, k, v]]);
 
     case 'inner': {
       assert(d < 5, 'Maximum depth exceeded');
       const children = [...n.children];
-      const index = _index(h, d);
-      children[index] = _insert(E, children[index], k, v, h, d + 1, u);
-      return new Inner(children);
+      const mask = _insertChildren(E, children, n.mask, k, v, h, d, u);
+      return _mkInner(children, mask);
     }
 
     case 'leaf':
@@ -615,6 +641,23 @@ const _insert = <K, V>(
         ? _insertSplit(E, n, k, v, h, d, u)
         : _insertProbe(E, n, k, v, h, d, u);
   }
+};
+
+/** Mutable! */
+const _insertChildren = <K, V>(
+  E: Eq<K>,
+  children: HashMap<K, V>[],
+  mask: number,
+  k: K,
+  v: V,
+  h: number,
+  d: number,
+  u: (v1: V, v2: V, k: K) => V,
+): number => {
+  assert(d < 5, 'Maximum depth exceeded');
+  const index = _index(h, d);
+  children[index] = _insert(E, children[index], k, v, h, d + 1, u);
+  return mask | (1 << index);
 };
 
 const _insertSplit = <K, V>(
@@ -628,11 +671,12 @@ const _insertSplit = <K, V>(
 ): HashMap<K, V> => {
   assert(d < 5, 'Maximum depth exceeded');
   assert(n.buckets.length === 1, 'Cannot have more than one bucket');
-  let ret: HashMap<K, V> = new Inner(new Array(32).fill(Empty));
+  const children: HashMap<K, V>[] = new Array(SIZE).fill(Empty);
+  let mask = 0;
   const [h2, k2, v2] = n.buckets[0];
-  ret = _insert(E, ret, k2, v2, h2, d, u);
-  ret = _insert(E, ret, k, v, h, d, u);
-  return ret;
+  mask = _insertChildren(E, children, mask, k2, v2, h2, d, u);
+  mask = _insertChildren(E, children, mask, k, v, h, d, u);
+  return _mkInner(children, mask);
 };
 
 const _insertProbe = <K, V>(
@@ -649,11 +693,11 @@ const _insertProbe = <K, V>(
   for (let i = 0, len = n.buckets.length; i < len; i++) {
     if (E.equals(newBuckets[i][1], k)) {
       newBuckets[i] = [h, k, u(newBuckets[i][2], v, newBuckets[i][1])];
-      return new Leaf(newBuckets);
+      return _mkLeaf(newBuckets);
     }
   }
   newBuckets.push([h, k, v]);
-  return new Leaf(newBuckets);
+  return _mkLeaf(newBuckets);
 };
 
 const _update = <K, V>(
@@ -676,7 +720,7 @@ const _update = <K, V>(
       const children = [...n.children];
       const index = _index(h, d);
       children[index] = _update(E, children[index], k, h, d + 1, u);
-      return new Inner(children);
+      return _mkInner(children, n.mask);
     }
 
     case 'leaf': {
@@ -688,7 +732,7 @@ const _update = <K, V>(
           break;
         }
       }
-      return new Leaf(newBuckets);
+      return _mkLeaf(newBuckets);
     }
   }
 };
@@ -709,16 +753,20 @@ const _remove = <K, V>(
 
     case 'inner': {
       assert(d < 5, 'Maximum depth exceeded');
+      const mask = n.mask;
       const children = [...n.children];
       const index = _index(h, d);
       children[index] = _remove(E, children[index], k, h, d + 1);
-      return _makeInner(children);
+      return _mkInner(
+        children,
+        mask & ~(Number(children[index] === Empty) << index),
+      );
     }
 
     case 'leaf': {
       assert(d <= 5, 'Maximum depth exceeded');
       const buckets = n.buckets.filter(([, k2]) => E.notEquals(k, k2));
-      return buckets.length ? new Leaf(buckets) : Empty;
+      return _mkLeaf(buckets);
     }
   }
 };
@@ -743,11 +791,18 @@ const _union = <K, V>(
         case 'empty':
           return n1;
 
-        case 'inner':
+        case 'inner': {
           assert(d < 5, 'Maximum depth exceeded');
-          return new Inner(
-            n1.children.map((c, i) => _union(E, c, n2.children[i], u, d + 1)),
-          );
+          const newChildren: HashMap<K, V>[] = new Array(SIZE);
+          let mask = 0;
+          for (let i = 0; i < SIZE; i++) {
+            const l = n1.children[i];
+            const r = n2.children[i];
+            newChildren[i] = _union(E, l, r, u, d + 1);
+            mask |= Number(newChildren[i] !== Empty) << i;
+          }
+          return _mkInner(newChildren, mask);
+        }
 
         case 'leaf':
           assert(d < 5, 'Maximum depth exceeded');
@@ -821,7 +876,7 @@ const _mergeProbeLeafs = <K, V>(
     }
   }
 
-  return new Leaf(newBuckets);
+  return _mkLeaf(newBuckets);
 };
 
 const _intersect = <K, V1, V2, C>(
@@ -846,17 +901,22 @@ const _intersect = <K, V1, V2, C>(
 
         case 'inner': {
           assert(d < 5, 'Maximum depth exceeded');
-          const children = n1.children.map((c, i) =>
-            _intersect(E, c, n2.children[i], d + 1, f),
-          );
-          return _makeInner(children);
+          const newChildren: HashMap<K, C>[] = new Array(SIZE);
+          let mask = 0;
+          for (let i = 0; i < SIZE; i++) {
+            const l = n1.children[i];
+            const r = n2.children[i];
+            newChildren[i] = _intersect(E, l, r, d + 1, f);
+            mask |= Number(newChildren[i] !== Empty) << i;
+          }
+          return _mkInner(newChildren, mask);
         }
 
         case 'leaf': {
           const [h, k, v2] = n2.buckets[0];
           return _lookup(E, n1, k, h, d).fold<HashMap<K, C>>(
             () => Empty,
-            v1 => new Leaf([[h, k, f(v1, v2, k)]]),
+            v1 => _mkLeaf([[h, k, f(v1, v2, k)]]),
           );
         }
       }
@@ -870,7 +930,7 @@ const _intersect = <K, V1, V2, C>(
           const [h, k, v1] = n1.buckets[0];
           return _lookup(E, n2, k, h, d).fold<HashMap<K, C>>(
             () => Empty,
-            v2 => new Leaf([[h, k, f(v1, v2, k)]]),
+            v2 => _mkLeaf([[h, k, f(v1, v2, k)]]),
           );
         }
 
@@ -936,10 +996,17 @@ const _difference = <K, V1, V2>(
         case 'empty':
           return n1;
 
-        case 'inner':
-          return _makeInner(
-            n1.children.map((c, i) => _difference(E, c, n2.children[i], d + 1)),
-          );
+        case 'inner': {
+          const newChildren: HashMap<K, V1>[] = new Array(SIZE);
+          let mask = 0;
+          for (let i = 0; i < SIZE; i++) {
+            const l = n1.children[i];
+            const r = n2.children[i];
+            newChildren[i] = _difference(E, l, r, d + 1);
+            mask |= Number(newChildren[i] !== Empty) << i;
+          }
+          return _mkInner(newChildren, mask);
+        }
 
         case 'leaf': {
           assert(n2.buckets.length === 1);
@@ -966,7 +1033,7 @@ const _difference = <K, V1, V2>(
           const contains = (k: K) =>
             Boolean(n2.buckets.find(([, k2]) => E.equals(k, k2)));
           const newBuckets = n1.buckets.filter(([, k]) => !contains(k));
-          return newBuckets.length ? new Leaf(newBuckets) : Empty;
+          return _mkLeaf(newBuckets);
         }
       }
   }

@@ -6,8 +6,12 @@ export abstract class HashMap<K, V> {
 
 export class Inner<K, V> extends HashMap<K, V> {
   public readonly tag = 'inner';
-  public constructor(public readonly children: HashMap<K, V>[]) {
+  public constructor(
+    public readonly children: HashMap<K, V>[],
+    public readonly mask: number,
+  ) {
     super();
+    // assert(this.mask !== 0, 'Inner node cannot be empty');
   }
 }
 

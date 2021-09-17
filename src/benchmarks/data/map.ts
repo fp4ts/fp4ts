@@ -22,7 +22,7 @@ pipe(
       m.delete(values[0]);
     }
 
-    // assert(m.size === 0);
+    assert(m.size === 0);
   }),
 
   benchmark('cats map', () => {
@@ -39,7 +39,7 @@ pipe(
       m = m.remove(values[0]);
     }
 
-    // assert(m.isEmpty);
+    assert(m.isEmpty);
   }),
 
   benchmark('cats ordered map', () => {
@@ -56,7 +56,7 @@ pipe(
       m = m.remove(values[0]);
     }
 
-    // assert(m.isEmpty);
+    assert(m.isEmpty);
   }),
 
   runBenchmark(),
