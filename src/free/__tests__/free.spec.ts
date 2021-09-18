@@ -47,12 +47,14 @@ describe('Free', () => {
     >;
   };
 
+  const lift = <A>(c: TestConsole<A>): Free<TestConsoleK, A> => Free.suspend(c);
+  const writeLine = (line: string) => lift<void>(new WriteLine(line));
+  const readLine = lift(ReadLine);
+
   it('should translate to state', () => {
-    const program: Free<TestConsoleK, void> = Free.suspend(
-      new WriteLine('What is your name?'),
-    )
-      .flatMap(() => Free.suspend(ReadLine))
-      .flatMap(name => Free.suspend(new WriteLine(`Hello ${name}!`)));
+    const program: Free<TestConsoleK, void> = writeLine('What is your name?')
+      .flatMap(() => readLine)
+      .flatMap(name => writeLine(`Hello ${name}!`));
 
     const resultState = program.mapK(State.Monad<S>())(nt);
 
@@ -65,7 +67,7 @@ describe('Free', () => {
     const size = 10_000;
     const loop = (i: number): Free<TestConsoleK, void> =>
       i < size
-        ? Free.suspend(new WriteLine('')).flatMap(() => loop(i + 1))
+        ? writeLine('').flatMap(() => loop(i + 1))
         : Free.pure(undefined);
 
     const state = loop(0).mapK(State.Monad<S>())(nt);

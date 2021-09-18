@@ -1,12 +1,10 @@
 import { _ } from './hole';
 import { URItoKind } from './hkt';
-import { AnyK, TyK } from './ty-ctor';
+import { AnyK, TyK } from './ctor';
 
 // prettier-ignore
 export type Kind<K extends AnyK, Tys extends unknown[]> =
-  [K] extends [TyK<infer F, infer Tvs>]
-    ? URItoKind<ApplyKind<Tvs, Tys>>[F]
-    : never;
+  [K] extends [TyK<infer F, infer Tvs>] ? URItoKind<ApplyKind<Tvs, Tys>>[F] : never;
 
 // prettier-ignore
 type ApplyKind<Tvs extends unknown[], Tys extends unknown[]> =

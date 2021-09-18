@@ -15,9 +15,7 @@ export type $<K extends AnyK, Tys extends unknown[]> = TCtor<K, Tys>
 
 // prettier-ignore
 export type TCtor<K extends AnyK, Tys extends unknown[]> =
-  [K] extends [TyK<infer F, infer Tvs>]
-    ? TyK<F, ApplyTyK<Tvs, Tys>>
-    : never;
+  [K] extends [TyK<infer F, infer Tvs>] ? TyK<F, ApplyTyK<Tvs, Tys>> : never;
 
 // prettier-ignore
 type ApplyTyK<Tvs extends unknown[], Tys extends unknown[]> =
