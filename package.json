@@ -18,7 +18,7 @@
     "typescript": "^4.4.2"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --maxWorkers=50%",
     "benchmark": "yarn compile && ./scripts/benchmark.sh",
     "compile": "yarn clean && yarn tsc",
     "clean": "rm -rf dist",
