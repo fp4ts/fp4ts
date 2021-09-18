@@ -2,8 +2,10 @@ import { _ } from './hole';
 import { URIS } from './hkt';
 
 export interface TyK<F extends URIS, Tvs extends unknown[]> {
-  _F: F;
-  _Tvs: Tvs;
+  TypeConstructor: {
+    _F: F;
+    _Tvs: Tvs;
+  };
 }
 
 export type AnyK = TyK<any, any>;
@@ -19,11 +21,15 @@ export type TCtor<K extends AnyK, Tys extends unknown[]> =
 
 // prettier-ignore
 type ApplyTyK<Tvs extends unknown[], Tys extends unknown[]> =
-  Tys extends { length: infer L }
-    ? L extends keyof ApplyHeadTypeTable<any, any>
-      ? ApplyHeadTypeTable<Tvs, Tys>[L]
+  Tvs extends [_, ...unknown[]]
+    ? Tys extends { length: infer L }
+      ? L extends keyof ApplyHeadTypeTable<any, any>
+        ? ApplyHeadTypeTable<Tvs, Tys>[L]
+        : never
       : never
-    : never;
+    : Tvs extends [infer A, ...infer Tvs2]
+      ? [A, ...ApplyTyK<Tvs2, Tys>]
+      : never;
 
 // prettier-ignore
 type ApplyHeadTypeTable<Tvs extends unknown[], Tys extends unknown[]> = {
