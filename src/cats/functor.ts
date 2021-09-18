@@ -1,4 +1,5 @@
 import { Base, instance, Kind, AnyK } from '../core';
+import { ComposedFunctor } from './composed';
 
 export interface Functor<F extends AnyK> extends Base<F> {
   readonly map: <A, B>(f: (a: A) => B) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
@@ -18,4 +19,9 @@ export const Functor = Object.freeze({
       tap_: (fa, f) => F.map_(fa, x => (f(x), x)),
       ...F,
     }),
+
+  compose: <F extends AnyK, G extends AnyK>(
+    F: Functor<F>,
+    G: Functor<G>,
+  ): ComposedFunctor<F, G> => ComposedFunctor.of(F, G),
 });

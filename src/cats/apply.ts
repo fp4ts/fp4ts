@@ -1,4 +1,5 @@
 import { Kind, AnyK } from '../core';
+import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
 
 export interface Apply<F extends AnyK> extends Functor<F> {
@@ -76,4 +77,9 @@ export const Apply = Object.freeze({
 
     return self;
   },
+
+  compose: <F extends AnyK, G extends AnyK>(
+    F: Apply<F>,
+    G: Apply<G>,
+  ): ComposedApply<F, G> => ComposedApply.of(F, G),
 });
