@@ -17,7 +17,6 @@ import {
   Uncancelable,
 } from './algebra';
 import { flatMap_, map_ } from './operators';
-import { IoURI } from '.';
 import { IoK } from './io';
 
 export const pure: <A>(a: A) => IO<A> = value => new Pure(value);

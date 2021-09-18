@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '../../../../core';
+import { AnyK, Kind, throwError } from '../../../../core';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -12,10 +12,6 @@ import { Option, Some, None } from '../../option';
 import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
 import { id, pipe } from '../../../../core';
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 export const isEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m === Empty;
 export const nonEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m !== Empty;

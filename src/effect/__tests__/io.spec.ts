@@ -1,14 +1,10 @@
 import '../test-kit/jest';
-import { id, pipe } from '../../core';
+import { id, pipe, throwError } from '../../core';
 import { Either, Left, Right, Some, List } from '../../cats/data';
 
 import { IO } from '../io';
 import { IOOutcome } from '../io-outcome';
 import { Semaphore } from '../kernel/semaphore';
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 describe('io monad', () => {
   describe('free monad', () => {

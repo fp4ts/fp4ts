@@ -1,12 +1,9 @@
+import { throwError } from '../../../../core';
 import { Option, None, Some } from '../../option';
 import { List } from '../list';
 import { Deep, Empty, Node, Single, view, FingerTree, Affix } from './algebra';
 import { fingerTreeMeasured, listMeasured, nodeMeasured } from './instances';
 import { Measured } from './measured';
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 export const isEmpty: <V, A>(xs: FingerTree<V, A>) => boolean = xs => {
   const v = view(xs);

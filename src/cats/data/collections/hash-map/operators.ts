@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { AnyK, Kind } from '../../../../core';
+import { AnyK, Kind, throwError } from '../../../../core';
 import { Eq } from '../../../eq';
 import { List } from '../list';
 import { Option, None, Some } from '../../option';
@@ -14,10 +14,6 @@ import { id, pipe } from '../../../../core';
 
 const SIZE = 32;
 const MASK = 0b11111;
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 export const isEmpty: <K, V>(m: HashMap<K, V>) => boolean = m =>
   m === (Empty as HashMap<never, never>);

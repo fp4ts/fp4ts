@@ -1,12 +1,8 @@
-import { id } from '../../../core';
+import { id, throwError } from '../../../core';
 import { Either, Right, Left } from '../either';
 import { Some, None } from '../option';
 
 describe('Either', () => {
-  const throwError = (e: Error) => {
-    throw e;
-  };
-
   describe('type', () => {
     it('should be covariant in first parameters', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,4 +1,4 @@
-import { Kind, id, pipe, URIS, AnyK } from '../../../../core';
+import { Kind, id, pipe, AnyK, throwError } from '../../../../core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
@@ -10,10 +10,6 @@ import { Option, None, Some } from '../../option';
 import { Cons, List, view } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { Vector } from '../vector';
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);

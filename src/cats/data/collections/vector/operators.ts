@@ -1,4 +1,4 @@
-import { AnyK, id, Kind, pipe } from '../../../../core';
+import { AnyK, id, Kind, pipe, throwError } from '../../../../core';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -11,10 +11,6 @@ import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
 import { empty } from './constructors';
 import { fingerTreeSizeMeasured, sizeMeasured } from './instances';
-
-const throwError = (e: Error) => {
-  throw e;
-};
 
 const FT_ = {
   popHead: FT.popHead(sizeMeasured),

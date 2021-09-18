@@ -14,6 +14,10 @@ export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
   };
 };
 
+export const throwError = (e: Error): never => {
+  throw e;
+};
+
 export const id: <A>(a: A) => A = x => x;
 export const constant: <A>(a: A) => () => A = x => () => x;
 
