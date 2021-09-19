@@ -1,16 +1,21 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: './',
+  rootDir: './packages',
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.spec.json',
+    },
+  },
   roots: [
-    '<rootDir>/packages/cats/core/src',
-    '<rootDir>/packages/cats/free/src',
-    '<rootDir>/packages/core/src',
-    '<rootDir>/packages/effect/core/src',
-    '<rootDir>/packages/effect/kernel/src',
-    '<rootDir>/packages/effect/std/src',
+    '<rootDir>/cats/core/src',
+    '<rootDir>/cats/free/src',
+    '<rootDir>/core/src',
+    '<rootDir>/effect/core/src',
+    '<rootDir>/effect/kernel/src',
+    '<rootDir>/effect/std/src',
   ],
   testEnvironment: 'node',
 };

@@ -1,5 +1,6 @@
 dist
-tsconfig.tsbuildinfo
+lib
+*.tsbuildinfo
 
 # Created by https://www.gitignore.io/api/node,code,linux,macos
 
