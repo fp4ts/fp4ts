@@ -55,14 +55,18 @@ export const tailRecM_ = <A, B>(
   f: (a: A) => Identity<Either<A, B>>,
 ): Identity<B> => {
   let cur: Either<A, B> = f(a).get;
-  let result: B | undefined;
+  let resolved: boolean = false;
+  let result: B;
 
-  while (!result) {
+  while (!resolved) {
     cur.fold<void>(
       a => (cur = f(a).get),
-      b => (result = b),
+      b => {
+        resolved = true;
+        result = b;
+      },
     );
   }
 
-  return pure(result);
+  return pure(result!);
 };

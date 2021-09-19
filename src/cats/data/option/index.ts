@@ -1,3 +1,3 @@
 import './syntax';
 
-export { Option, Some, None } from './option';
+export { Option, OptionK, Some, None } from './option';

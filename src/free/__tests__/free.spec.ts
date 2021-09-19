@@ -52,7 +52,9 @@ describe('Free', () => {
   const readLine = lift(ReadLine);
 
   it('should translate to state', () => {
-    const program: Free<TestConsoleK, void> = writeLine('What is your name?')
+    const program: Free<TestConsoleK, void> = Free.suspend(
+      new WriteLine('What is your name?'),
+    )
       .flatMap(() => readLine)
       .flatMap(name => writeLine(`Hello ${name}!`));
 

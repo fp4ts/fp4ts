@@ -116,7 +116,9 @@ declare module './algebra' {
 
     filter: (p: (a: A) => boolean) => List<A>;
     map: <B>(f: (a: A) => B) => List<B>;
+
     flatMap: <B>(f: (a: A) => List<B>) => List<B>;
+
     readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
 
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
