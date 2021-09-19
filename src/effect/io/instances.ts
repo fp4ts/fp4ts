@@ -7,6 +7,7 @@ import {
   Applicative,
   MonadError,
   Defer,
+  ApplicativeError,
 } from '../../cats';
 import {
   Async,
@@ -48,10 +49,13 @@ import {
   fork,
   handleError,
   handleErrorWith,
+  handleErrorWith_,
+  handleError_,
   map2_,
   map_,
   onCancel,
   onError,
+  onError_,
   parSequence,
   parSequenceN,
   parTraverse,
@@ -61,6 +65,8 @@ import {
   race_,
   redeem,
   redeemWith,
+  redeemWith_,
+  redeem_,
   tailRecM_,
   tap_,
   timeoutTo_,
@@ -119,16 +125,17 @@ export const ioMonad: Lazy<Monad<IoK>> = () =>
     ...ioFlatMap(),
   });
 
-export const ioMonadError: Lazy<MonadError<IoK, Error>> = () => ({
-  ...ioMonad(),
-  throwError: throwError,
-  handleError: handleError,
-  handleErrorWith: handleErrorWith,
-  attempt: attempt,
-  onError: onError,
-  redeem: redeem,
-  redeemWith: redeemWith,
-});
+export const ioMonadError: Lazy<MonadError<IoK, Error>> = () =>
+  MonadError.of({
+    ...ioMonad(),
+    throwError: throwError,
+    handleError_: handleError_,
+    handleErrorWith_: handleErrorWith_,
+    attempt: attempt,
+    onError_: onError_,
+    redeem_: redeem_,
+    redeemWith_: redeemWith_,
+  });
 
 export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = () => ({
   ...ioMonadError(),
