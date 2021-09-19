@@ -1,4 +1,5 @@
 import { AnyK, Kind } from '../../../core';
+import { FunctionK } from '../../function-k';
 import { Monad } from '../../monad';
 
 import { Kleisli } from './algebra';
@@ -14,6 +15,7 @@ import {
   flatTapF_,
   flatTap_,
   map2_,
+  mapK_,
   map_,
   productL_,
   productR_,
@@ -88,6 +90,7 @@ declare module './algebra' {
       ? Kleisli<F, A & A2, C>
       : never & unknown;
 
+    mapK<G extends AnyK>(M: Monad<F>, nt: FunctionK<F, G>): Kleisli<G, A, B>;
     run(M: Monad<F>): <AA extends A>(a: AA) => Kind<F, [B]>;
   }
 }
@@ -155,6 +158,10 @@ Kleisli.prototype.flatMapF = function (f) {
 };
 Kleisli.prototype.flatTapF = function (f) {
   return flatTapF_(this, f);
+};
+
+Kleisli.prototype.mapK = function (M, nt) {
+  return mapK_(M)(this, nt);
 };
 
 Kleisli.prototype.run = function (M) {

@@ -1,9 +1,10 @@
 import { AnyK, id, Kind, pipe } from '../../../core';
+import { FunctionK } from '../../function-k';
 import { Monad } from '../../monad';
 import { Either, Left, Right } from '../either';
 
 import { FlatMap, Kleisli, Adapt, AdaptF, Pure, view } from './algebra';
-import { liftF, pure } from './constructors';
+import { liftF, pure, suspend } from './constructors';
 
 export const dimap: <A, C>(
   f: (a: C) => A,
@@ -98,6 +99,13 @@ export const tailRecM: <B>(
 ) => <F extends AnyK, A, C>(
   f: (b: B) => Kleisli<F, A, Either<B, C>>,
 ) => Kleisli<F, A, C> = b => f => tailRecM_(b, f);
+
+export const mapK: <F extends AnyK>(
+  M: Monad<F>,
+) => <G extends AnyK>(
+  nt: FunctionK<F, G>,
+) => <A, B>(k: Kleisli<F, A, B>) => Kleisli<G, A, B> = M => nt => k =>
+  mapK_(M)(k, nt);
 
 export const run: <F extends AnyK>(
   M: Monad<F>,
@@ -204,6 +212,14 @@ export const tailRecM_ = <F extends AnyK, A, B, C>(
       c => pure(c),
     ),
   );
+
+export const mapK_ =
+  <F extends AnyK>(M: Monad<F>) =>
+  <G extends AnyK, A, B>(
+    k: Kleisli<F, A, B>,
+    nt: FunctionK<F, G>,
+  ): Kleisli<G, A, B> =>
+    suspend((a: A) => nt(run_(M)(k, a)));
 
 export const run_ = <F extends AnyK>(
   M: Monad<F>,

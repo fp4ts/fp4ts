@@ -2,6 +2,7 @@ import { id, throwError } from '../../../core';
 import { Identity, IdentityK } from '../identity';
 import { OptionK, Some, None, Option } from '../option';
 import { Kleisli } from '../kleisli';
+import { FunctionK } from '../..';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>
@@ -230,6 +231,20 @@ describe('Kleisli', () => {
 
       // @ts-expect-error
       k.ap(KleisliId(() => Identity(42)));
+    });
+  });
+
+  describe('mapK', () => {
+    it('should convert Identity context to Option', () => {
+      const nt: FunctionK<IdentityK, OptionK> = x => Some(x.get);
+
+      const k = KleisliId((x: number) => Identity(x))
+        .map(x => x + 1)
+        .dimap(() => 42)(x => x * 2);
+
+      expect(k.mapK(Identity.Monad, nt).run(Option.Monad)(null)).toEqual(
+        Some(86),
+      );
     });
   });
 });
