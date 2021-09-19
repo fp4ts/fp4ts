@@ -65,7 +65,7 @@ export const runReader: <R>(r: R) => <A>(fa: Reader<R, A>) => A = r => fa =>
 // -- Point-ful operators
 
 export const provide_ = <R, A>(fa: Reader<R, A>, r: R): Reader<unknown, A> =>
-  new Reader(K.adopt_(fa._kleisli, () => r));
+  new Reader(K.adapt_(fa._kleisli, () => r));
 
 export const map_ = <R, A, B>(fa: Reader<R, A>, f: (a: A) => B): Reader<R, B> =>
   flatMap_(fa, x => pure(f(x)));

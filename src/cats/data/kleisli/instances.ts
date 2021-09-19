@@ -6,7 +6,16 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { KleisliK } from './kleisli';
-import { flatMap_, map_, tailRecM_ } from './operators';
+import {
+  ap_,
+  flatMap_,
+  map2_,
+  map_,
+  productL_,
+  productR_,
+  product_,
+  tailRecM_,
+} from './operators';
 import { pure } from './constructors';
 
 export const kleisliFunctor = <F extends AnyK, A>(): Functor<
@@ -19,7 +28,11 @@ export const kleisliFunctor = <F extends AnyK, A>(): Functor<
 export const kleisliApply = <F extends AnyK, A>(): Apply<$<KleisliK, [F, A]>> =>
   Apply.of({
     ...kleisliFunctor(),
-    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    ap_: ap_,
+    map2_: map2_,
+    product_: product_,
+    productL_: productL_,
+    productR_: productR_,
   });
 
 export const kleisliApplicative = <F extends AnyK, A>(): Applicative<

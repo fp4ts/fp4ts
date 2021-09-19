@@ -3,16 +3,21 @@ import { Monad } from '../../monad';
 
 import { Kleisli } from './algebra';
 import {
-  adoptF_,
-  adopt_,
+  adaptF_,
+  adapt_,
   andThen_,
+  ap_,
   compose_,
   dimap_,
   flatMapF_,
   flatMap_,
   flatTapF_,
   flatTap_,
+  map2_,
   map_,
+  productL_,
+  productR_,
+  product_,
   run_,
   tap_,
 } from './operators';
@@ -24,8 +29,8 @@ declare module './algebra' {
       f: (c: C) => AA,
     ): <D>(g: (bb: BB) => D) => Kleisli<F, C, D>;
 
-    adopt<AA>(f: (a: AA) => A): Kleisli<F, AA, B>;
-    adoptF<AA>(f: (a: AA) => Kind<F, [A]>): Kleisli<F, AA, B>;
+    adapt<AA>(f: (a: AA) => A): Kleisli<F, AA, B>;
+    adaptF<AA>(f: (a: AA) => Kind<F, [A]>): Kleisli<F, AA, B>;
 
     andThen<BB, C>(
       this: Kleisli<F, A, BB>,
@@ -41,6 +46,26 @@ declare module './algebra' {
 
     map<C, D>(this: Kleisli<F, A, C>, f: (c: C) => D): Kleisli<F, A, D>;
     tap<C>(this: Kleisli<F, A, C>, f: (c: C) => unknown): Kleisli<F, A, C>;
+
+    ap<A2, B, C>(
+      this: Kleisli<F, A, (_: B) => C>,
+      fb: Kleisli<F, A2, B>,
+    ): Kleisli<F, A & A2, C>;
+    '<*>'<A2, B, C>(
+      this: Kleisli<F, A, (_: B) => C>,
+      fb: Kleisli<F, A2, B>,
+    ): Kleisli<F, A & A2, C>;
+
+    map2<A2, C, D>(
+      that: Kleisli<F, A2, C>,
+      f: (b: B, c: C) => D,
+    ): Kleisli<F, A & A2, D>;
+
+    product<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, [B, C]>;
+    productL<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, B>;
+    '>>>'<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, B>;
+    productR<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, C>;
+    '<<<'<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, C>;
 
     flatMap<A2, C, D>(
       this: Kleisli<F, A, C>,
@@ -71,12 +96,12 @@ Kleisli.prototype.dimap = function (f) {
   return g => dimap_(this, f, g);
 };
 
-Kleisli.prototype.adopt = function (f) {
-  return adopt_(this, f);
+Kleisli.prototype.adapt = function (f) {
+  return adapt_(this, f);
 };
 
-Kleisli.prototype.adoptF = function (f) {
-  return adoptF_(this, f);
+Kleisli.prototype.adaptF = function (f) {
+  return adaptF_(this, f);
 };
 
 Kleisli.prototype.andThen = function (that) {
@@ -95,6 +120,29 @@ Kleisli.prototype.map = function (f) {
 Kleisli.prototype.tap = function (f) {
   return tap_(this, f);
 };
+
+Kleisli.prototype.ap = function (fb) {
+  return ap_(this, fb);
+};
+Kleisli.prototype['<*>'] = Kleisli.prototype.ap;
+
+Kleisli.prototype.map2 = function (that, f) {
+  return map2_(this, that)(f);
+};
+
+Kleisli.prototype.product = function (that) {
+  return product_(this, that);
+};
+
+Kleisli.prototype.productL = function (that) {
+  return productL_(this, that);
+};
+Kleisli.prototype['>>>'] = Kleisli.prototype.productL;
+
+Kleisli.prototype.productR = function (that) {
+  return productR_(this, that);
+};
+Kleisli.prototype['<<<'] = Kleisli.prototype.productR;
 
 Kleisli.prototype.flatMap = function (f) {
   return flatMap_(this, f);

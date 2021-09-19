@@ -73,7 +73,7 @@ describe('Kleisli', () => {
     it('should modify the input', () => {
       expect(
         KleisliId((x: number) => Identity(x))
-          .adopt((s: string) => parseInt(s, 10))
+          .adapt((s: string) => parseInt(s, 10))
           .run(Identity.Monad)('42'),
       ).toEqual(Identity(42));
     });
@@ -83,7 +83,7 @@ describe('Kleisli', () => {
     it('should modify the input', () => {
       expect(
         KleisliId((x: number) => Identity(x))
-          .adoptF((s: string) => Identity(parseInt(s, 10)))
+          .adaptF((s: string) => Identity(parseInt(s, 10)))
           .run(Identity.Monad)('42'),
       ).toEqual(Identity(42));
     });
@@ -91,7 +91,7 @@ describe('Kleisli', () => {
     it('should return none when adoptF returns none', () => {
       expect(
         Kleisli<OptionK, number, number>((x: number) => Some(x))
-          .adoptF((s: string) => None)
+          .adaptF((s: string) => None)
           .run(Option.Monad)('42'),
       ).toEqual(None);
     });
@@ -208,6 +208,28 @@ describe('Kleisli', () => {
           x: 42,
         }),
       ).toEqual(Identity(43));
+    });
+  });
+
+  describe('flatten', () => {
+    it('should be never unless nested', () => {
+      const a: never = KleisliId(() => Identity(42)).flatten;
+    });
+  });
+
+  describe('ap', () => {
+    it('should apply the wrapped function to the value', () => {
+      const k = KleisliId(() => Identity((x: number) => x + 1));
+      expect(
+        k.ap(KleisliId(() => Identity(42))).run(Identity.Monad)(null),
+      ).toEqual(Identity(43));
+    });
+
+    it('should do not allow unless a function type', () => {
+      const k = KleisliId(() => Identity(42));
+
+      // @ts-expect-error
+      k.ap(KleisliId(() => Identity(42)));
     });
   });
 });

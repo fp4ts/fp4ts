@@ -2,7 +2,7 @@ import { AnyK, id, Kind, pipe } from '../../../core';
 import { Monad } from '../../monad';
 import { Either, Left, Right } from '../either';
 
-import { FlatMap, Kleisli, Adopt, AdoptF, Pure, view } from './algebra';
+import { FlatMap, Kleisli, Adapt, AdaptF, Pure, view } from './algebra';
 import { liftF, pure } from './constructors';
 
 export const dimap: <A, C>(
@@ -13,14 +13,14 @@ export const dimap: <A, C>(
   f => g => fa =>
     dimap_(fa, f, g);
 
-export const adopt: <A, AA>(
+export const adapt: <A, AA>(
   f: (a: AA) => A,
 ) => <F extends AnyK, B>(fa: Kleisli<F, A, B>) => Kleisli<F, AA, B> = f => fa =>
-  adopt_(fa, f);
+  adapt_(fa, f);
 
-export const adoptF: <F extends AnyK, A, AA>(
+export const adaptF: <F extends AnyK, A, AA>(
   f: (a: AA) => Kind<F, [A]>,
-) => <B>(fa: Kleisli<F, A, B>) => Kleisli<F, AA, B> = f => fa => adoptF_(fa, f);
+) => <B>(fa: Kleisli<F, A, B>) => Kleisli<F, AA, B> = f => fa => adaptF_(fa, f);
 
 export const andThen: <F extends AnyK, B2, C>(
   fb: Kleisli<F, B2, C>,
@@ -41,6 +41,33 @@ export const tap: <B>(
   f: (b: B) => unknown,
 ) => <F extends AnyK, A>(fa: Kleisli<F, A, B>) => Kleisli<F, A, B> = f => fa =>
   tap_(fa, f);
+
+export const ap: <F extends AnyK, A2, B>(
+  fa: Kleisli<F, A2, B>,
+) => <A1, C>(ff: Kleisli<F, A1, (b: B) => C>) => Kleisli<F, A1 & A2, C> =
+  fa => ff =>
+    ap_(ff, fa);
+
+export const map2: <F extends AnyK, A2, B, C, D>(
+  fb: Kleisli<F, A2, C>,
+  f: (b: B, c: C) => D,
+) => <A1>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, D> = (fb, f) => fa =>
+  map2_(fa, fb)(f);
+
+export const product: <F extends AnyK, A2, C>(
+  fb: Kleisli<F, A2, C>,
+) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, [B, C]> = fb => fa =>
+  product_(fa, fb);
+
+export const productL: <F extends AnyK, A2, C>(
+  fb: Kleisli<F, A2, C>,
+) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, B> = fb => fa =>
+  productL_(fa, fb);
+
+export const productR: <F extends AnyK, A2, C>(
+  fb: Kleisli<F, A2, C>,
+) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, C> = fb => fa =>
+  productR_(fa, fb);
 
 export const flatMap: <F extends AnyK, A2, B, C>(
   f: (b: B) => Kleisli<F, A2, C>,
@@ -83,22 +110,22 @@ export const dimap_ = <F extends AnyK, A, B, C, D>(
   fa: Kleisli<F, A, B>,
   f: (a: C) => A,
   g: (a: B) => D,
-): Kleisli<F, C, D> => pipe(fa, adopt(f), map(g));
+): Kleisli<F, C, D> => pipe(fa, adapt(f), map(g));
 
-export const adopt_ = <F extends AnyK, A, AA, B>(
+export const adapt_ = <F extends AnyK, A, AA, B>(
   fa: Kleisli<F, A, B>,
   f: (a: AA) => A,
-): Kleisli<F, AA, B> => new Adopt(fa, f);
+): Kleisli<F, AA, B> => new Adapt(fa, f);
 
-export const adoptF_ = <F extends AnyK, A, AA, B>(
+export const adaptF_ = <F extends AnyK, A, AA, B>(
   fa: Kleisli<F, A, B>,
   f: (a: AA) => Kind<F, [A]>,
-): Kleisli<F, AA, B> => new AdoptF(fa, f);
+): Kleisli<F, AA, B> => new AdaptF(fa, f);
 
 export const andThen_ = <F extends AnyK, A, B, C>(
   fa: Kleisli<F, A, B>,
   fb: Kleisli<F, B, C>,
-): Kleisli<F, A, C> => flatMap_(fa, b => adopt_(fb, () => b));
+): Kleisli<F, A, C> => flatMap_(fa, b => adapt_(fb, () => b));
 
 export const compose_ = <F extends AnyK, Z, A, B>(
   fb: Kleisli<F, Z, A>,
@@ -118,6 +145,34 @@ export const tap_ = <F extends AnyK, A, B>(
     f(x);
     return x;
   });
+
+export const ap_ = <F extends AnyK, A1, A2, B, C>(
+  ff: Kleisli<F, A1, (b: B) => C>,
+  fa: Kleisli<F, A2, B>,
+): Kleisli<F, A1 & A2, C> => flatMap_(ff, f => map_(fa, a => f(a)));
+
+export const map2_ =
+  <F extends AnyK, A1, A2, B, C>(
+    fa: Kleisli<F, A1, B>,
+    fb: Kleisli<F, A2, C>,
+  ) =>
+  <D>(f: (b: B, c: C) => D): Kleisli<F, A1 & A2, D> =>
+    flatMap_(fa, b => map_(fb, c => f(b, c)));
+
+export const product_ = <F extends AnyK, A1, A2, B, C>(
+  fa: Kleisli<F, A1, B>,
+  fb: Kleisli<F, A2, C>,
+): Kleisli<F, A1 & A2, [B, C]> => flatMap_(fa, b => map_(fb, c => [b, c]));
+
+export const productL_ = <F extends AnyK, A1, A2, B, C>(
+  fa: Kleisli<F, A1, B>,
+  fb: Kleisli<F, A2, C>,
+): Kleisli<F, A1 & A2, B> => flatMap_(fa, b => map_(fb, () => b));
+
+export const productR_ = <F extends AnyK, A1, A2, B, C>(
+  fa: Kleisli<F, A1, B>,
+  fb: Kleisli<F, A2, C>,
+): Kleisli<F, A1 & A2, C> => flatMap_(fa, () => map_(fb, c => c));
 
 export const flatMap_ = <F extends AnyK, A1, A2, B, C>(
   fa: Kleisli<F, A1, B>,
@@ -163,9 +218,9 @@ export const run_ = <F extends AnyK>(
           return M.pure(Right(v.value));
         case 'suspend':
           return M.map_(v.f(a), Right);
-        case 'adopt':
+        case 'adapt':
           return M.pure(Left([v.self, v.f(a)]));
-        case 'adoptF':
+        case 'adaptF':
           return M.map_(v.f(a), aa => Left([v.self, aa]));
         case 'flatMap':
           return M.map_(loop(v.self, a), e => Left([v.f(e), a]));

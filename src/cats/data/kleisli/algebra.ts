@@ -36,8 +36,8 @@ export class FlatMap<F extends AnyK, A1, A2, B, C> extends Kleisli<
   }
 }
 
-export class Adopt<F extends AnyK, A, AA, B> extends Kleisli<F, AA, B> {
-  public readonly tag = 'adopt';
+export class Adapt<F extends AnyK, A, AA, B> extends Kleisli<F, AA, B> {
+  public readonly tag = 'adapt';
   public constructor(
     public readonly self: Kleisli<F, A, B>,
     public readonly f: (a: AA) => A,
@@ -46,8 +46,8 @@ export class Adopt<F extends AnyK, A, AA, B> extends Kleisli<F, AA, B> {
   }
 }
 
-export class AdoptF<F extends AnyK, A, AA, B> extends Kleisli<F, AA, B> {
-  public readonly tag = 'adoptF';
+export class AdaptF<F extends AnyK, A, AA, B> extends Kleisli<F, AA, B> {
+  public readonly tag = 'adaptF';
   public constructor(
     public readonly self: Kleisli<F, A, B>,
     public readonly f: (a: AA) => Kind<F, [A]>,
@@ -61,8 +61,8 @@ export type View<F extends AnyK, A, B> =
   | Pure<F, B>
   | Suspend<F, A, B>
   | FlatMap<F, any, A, any, B>
-  | Adopt<F, A, any, B>
-  | AdoptF<F, A, any, B>;
+  | Adapt<F, A, any, B>
+  | AdaptF<F, A, any, B>;
 
 export const view = <F extends AnyK, A, B>(
   _: Kleisli<F, A, B>,
