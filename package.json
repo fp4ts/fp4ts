@@ -1,5 +1,11 @@
 {
-  "name": "effect-io",
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "./packages/cats/*",
+    "./packages/core",
+    "./packages/effect/*"
+  ],
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",

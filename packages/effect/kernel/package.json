@@ -2,5 +2,9 @@
   "name": "@cats4ts/effect-kernel",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@cats4ts/core": "*",
+    "@cats4ts/cats-core": "*"
+  }
 }

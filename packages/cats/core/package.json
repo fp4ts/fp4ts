@@ -1,5 +1,8 @@
 {
   "name": "@cats4ts/cats-core",
   "version": "1.0.0",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@cats4ts/core": "*"
+  }
 }
