@@ -3,14 +3,12 @@ import { Reader } from '../reader';
 describe('Reader', () => {
   describe('types', () => {
     it('should be contravariant in the first type argument', () => {
-      const r1: Reader<number, void> = Reader.provide(10);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const r: Reader<unknown, void> = r1;
+      const r1: Reader<number, number> = Reader.pure(10);
+      const r: Reader<unknown, number> = r1;
     });
 
     it('should be covariant in the second type argument', () => {
       const r1: Reader<unknown, 1> = Reader.pure(1);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const r: Reader<unknown, number> = r1;
     });
   });

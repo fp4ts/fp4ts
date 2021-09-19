@@ -1,5 +1,5 @@
 import { Reader } from './algebra';
-import { provide, read, unit } from './constructors';
+import { read, unit } from './constructors';
 import {
   ap_,
   flatMap_,
@@ -10,6 +10,7 @@ import {
   productL_,
   productR_,
   product_,
+  provide_,
   runReader_,
   tap_,
 } from './operators';
@@ -65,7 +66,7 @@ Reader.prototype.provide = function <R, A>(
   this: Reader<R, A>,
   r: R,
 ): Reader<unknown, A> {
-  return flatMap_(provide(r), () => this);
+  return provide_(this, r);
 };
 
 Reader.prototype.map = function <R, A, B>(

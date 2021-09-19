@@ -1,7 +1,12 @@
-import { id } from '../../../core';
+import { id, pipe } from '../../../core';
+import * as K from '../kleisli/functional';
+import { Identity } from '../identity';
 import { Either } from '../either';
-import { FlatMap, Pure, Reader, view } from './algebra';
+import { Reader } from './algebra';
 import { pure } from './constructors';
+
+export const provide: <R>(r: R) => <A>(fa: Reader<R, A>) => Reader<unknown, A> =
+  r => fa => provide_(fa, r);
 
 export const map: <A, B>(
   f: (a: A) => B,
@@ -59,6 +64,9 @@ export const runReader: <R>(r: R) => <A>(fa: Reader<R, A>) => A = r => fa =>
 
 // -- Point-ful operators
 
+export const provide_ = <R, A>(fa: Reader<R, A>, r: R): Reader<unknown, A> =>
+  new Reader(K.adopt_(fa._kleisli, () => r));
+
 export const map_ = <R, A, B>(fa: Reader<R, A>, f: (a: A) => B): Reader<R, B> =>
   flatMap_(fa, x => pure(f(x)));
 
@@ -102,7 +110,13 @@ export const productR_ = <R1, R2, A, B>(
 export const flatMap_ = <R1, R2, A, B>(
   fa: Reader<R1, A>,
   f: (a: A) => Reader<R2, B>,
-): Reader<R1 & R2, B> => new FlatMap(fa, f);
+): Reader<R1 & R2, B> =>
+  new Reader(
+    pipe(
+      fa._kleisli,
+      K.flatMap(a => f(a)._kleisli),
+    ),
+  );
 
 export const flatTap_ = <R1, R2, A>(
   fa: Reader<R1, A>,
@@ -121,36 +135,5 @@ export const tailRecM_ = <R, A, B>(
     ),
   );
 
-export const runReader_ = <R, A>(fa: Reader<R, A>, r: R): A => {
-  type Frame = (a: unknown) => Reader<unknown, unknown>;
-  let _cur: Reader<unknown, unknown> = fa;
-  let env: unknown = r;
-  const stack: Frame[] = [];
-
-  while (true) {
-    const cur = view(_cur);
-
-    switch (cur.tag) {
-      case 'pure': {
-        const next = stack.pop();
-        if (!next) return cur.value as A;
-        _cur = next(cur.value);
-        continue;
-      }
-
-      case 'flatMap':
-        stack.push(cur.f);
-        _cur = cur.self;
-        continue;
-
-      case 'provide':
-        env = cur.environment;
-        _cur = new Pure(undefined);
-        continue;
-
-      case 'read':
-        _cur = new Pure(env);
-        continue;
-    }
-  }
-};
+export const runReader_ = <R, A>(fa: Reader<R, A>, r: R): A =>
+  K.run_(Identity.Monad)(fa._kleisli, r).get;

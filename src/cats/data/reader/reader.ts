@@ -7,7 +7,7 @@ import { Monad } from '../../monad';
 import { Either } from '../either';
 
 import { Reader as ReaderBase } from './algebra';
-import { provide, pure, read, unit } from './constructors';
+import { pure, read, unit } from './constructors';
 import {
   readerApplicative,
   readerApply,
@@ -28,7 +28,6 @@ interface ReaderObj {
   pure<A>(a: A): Reader<unknown, A>;
   unit: Reader<unknown, void>;
   read<R>(): Reader<R, R>;
-  provide<R>(r: R): Reader<unknown, void>;
   tailRecM<A>(
     a: A,
   ): <R, B>(f: (a: A) => Reader<R, Either<A, B>>) => Reader<R, B>;
@@ -45,7 +44,6 @@ interface ReaderObj {
 Reader.pure = pure;
 Reader.unit = unit;
 Reader.read = read;
-Reader.provide = provide;
 Reader.tailRecM = tailRecM;
 
 Reader.Functor = readerFunctor;
