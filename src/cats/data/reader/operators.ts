@@ -114,7 +114,7 @@ export const flatMap_ = <R1, R2, A, B>(
   new Reader(
     pipe(
       fa._kleisli,
-      K.flatMap(a => f(a)._kleisli),
+      K.flatMap(Identity.FlatMap)(a => f(a)._kleisli),
     ),
   );
 
@@ -136,4 +136,4 @@ export const tailRecM_ = <R, A, B>(
   );
 
 export const runReader_ = <R, A>(fa: Reader<R, A>, r: R): A =>
-  K.run_(Identity.Monad)(fa._kleisli, r).get;
+  K.runM_(Identity.Monad)(fa._kleisli, r).get;

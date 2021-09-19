@@ -27,28 +27,30 @@ export const Kleisli: KleisliObj = function (f) {
 interface KleisliObj {
   <F extends AnyK, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
 
-  pure<F extends AnyK, B>(x: B): Kleisli<F, unknown, B>;
+  pure<F extends AnyK>(F: Applicative<F>): <B>(x: B) => Kleisli<F, unknown, B>;
 
   liftF<F extends AnyK, B>(fb: Kind<F, [B]>): Kleisli<F, unknown, B>;
 
   suspend<F extends AnyK, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
 
-  unit<F extends AnyK>(): Kleisli<F, unknown, void>;
+  unit<F extends AnyK>(F: Applicative<F>): Kleisli<F, unknown, void>;
 
-  identity<F extends AnyK, A>(): Kleisli<F, A, A>;
+  identity<F extends AnyK, A>(F: Applicative<F>): Kleisli<F, A, A>;
 
-  tailRecM<A>(
+  tailRecM<F extends AnyK>(
+    F: Monad<F>,
+  ): <A>(
     a: A,
-  ): <F extends AnyK, B, C>(
-    f: (a: A) => Kleisli<F, B, Either<A, C>>,
-  ) => Kleisli<F, B, C>;
+  ) => <B, C>(f: (a: A) => Kleisli<F, B, Either<A, C>>) => Kleisli<F, B, C>;
 
   // -- Instances
-  Functor<F extends AnyK, A>(): Functor<$<KleisliK, [F, A]>>;
-  Apply<F extends AnyK, A>(): Apply<$<KleisliK, [F, A]>>;
-  Applicative<F extends AnyK, A>(): Applicative<$<KleisliK, [F, A]>>;
-  FlatMap<F extends AnyK, A>(): FlatMap<$<KleisliK, [F, A]>>;
-  Monad<F extends AnyK, A>(): Monad<$<KleisliK, [F, A]>>;
+  Functor<F extends AnyK, A>(F: Functor<F>): Functor<$<KleisliK, [F, A]>>;
+  Apply<F extends AnyK, A>(F: FlatMap<F>): Apply<$<KleisliK, [F, A]>>;
+  Applicative<F extends AnyK, A>(
+    F: Applicative<F>,
+  ): Applicative<$<KleisliK, [F, A]>>;
+  FlatMap<F extends AnyK, A>(F: Monad<F>): FlatMap<$<KleisliK, [F, A]>>;
+  Monad<F extends AnyK, A>(F: Monad<F>): Monad<$<KleisliK, [F, A]>>;
 }
 
 Kleisli.pure = pure;

@@ -20,19 +20,21 @@ describe('OptionT', () => {
 
   describe('constructors', () => {
     it('should create a pure value', () => {
-      expect(OptionT(Identity.Applicative)(42).value).toEqual(
+      expect(OptionT.fromNullable(Identity.Applicative)(42).value).toEqual(
         Identity(Some(42)),
       );
     });
 
     it('should create a None from null', () => {
-      expect(OptionT(Identity.Applicative)(null).value).toEqual(Identity(None));
+      expect(OptionT.fromNullable(Identity.Applicative)(null).value).toEqual(
+        Identity(None),
+      );
     });
 
     it('should create a None from undefined', () => {
-      expect(OptionT(Identity.Applicative)(undefined).value).toEqual(
-        Identity(None),
-      );
+      expect(
+        OptionT.fromNullable(Identity.Applicative)(undefined).value,
+      ).toEqual(Identity(None));
     });
 
     it('should lift pure value wrapped in an effect', () => {
@@ -171,20 +173,22 @@ describe('OptionT', () => {
     });
 
     test('lest identity', () => {
-      const h = (x: number): OptionT<IdentityK, number> => OptionT(F)(x * 2);
+      const h = (x: number): OptionT<IdentityK, number> =>
+        OptionT.pure(F)(x * 2);
       expect(OptionT.pure(F)(42).flatMap(F)(h)).toEqual(h(42));
     });
 
     test('right identity', () => {
-      expect(OptionT(F)(42).flatMap(F)(OptionT.pure(F))).toEqual(
-        OptionT(F)(42),
+      expect(OptionT.pure(F)(42).flatMap(F)(OptionT.pure(F))).toEqual(
+        OptionT.pure(F)(42),
       );
     });
 
     test('associativity', () => {
-      const h = (n: number): OptionT<IdentityK, number> => OptionT(F)(n * 2);
-      const g = (n: number): OptionT<IdentityK, number> => OptionT(F)(n);
-      const m = OptionT(F)(42);
+      const h = (n: number): OptionT<IdentityK, number> =>
+        OptionT.pure(F)(n * 2);
+      const g = (n: number): OptionT<IdentityK, number> => OptionT.pure(F)(n);
+      const m = OptionT.pure(F)(42);
       expect(m.flatMap(F)(h).flatMap(F)(g)).toEqual(
         m.flatMap(F)(x => h(x).flatMap(F)(g)),
       );

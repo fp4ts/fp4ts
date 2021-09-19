@@ -1,6 +1,9 @@
-import { AnyK, Kind } from '../../../core';
+import { $, AnyK, Kind, α, λ } from '../../../core';
+
 import { FunctionK } from '../../function-k';
-import { Monad } from '../../monad';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
 
 import { Kleisli } from './algebra';
 import {
@@ -14,6 +17,7 @@ import {
   flatMap_,
   flatTapF_,
   flatTap_,
+  lift_,
   map2_,
   mapK_,
   map_,
@@ -26,144 +30,177 @@ import {
 
 declare module './algebra' {
   interface Kleisli<F extends AnyK, A, B> {
-    dimap<C, AA extends A, BB>(
+    dimap<AA extends A, BB>(
       this: Kleisli<F, A, BB>,
-      f: (c: C) => AA,
-    ): <D>(g: (bb: BB) => D) => Kleisli<F, C, D>;
+      F: Functor<F>,
+    ): <C>(f: (c: C) => AA) => <D>(g: (bb: BB) => D) => Kleisli<F, C, D>;
 
     adapt<AA>(f: (a: AA) => A): Kleisli<F, AA, B>;
-    adaptF<AA>(f: (a: AA) => Kind<F, [A]>): Kleisli<F, AA, B>;
+    adaptF(
+      F: FlatMap<F>,
+    ): <AA>(f: (a: AA) => Kind<F, [A]>) => Kleisli<F, AA, B>;
 
-    andThen<BB, C>(
+    andThen<BB>(
       this: Kleisli<F, A, BB>,
-      that: Kleisli<F, BB, C>,
-    ): Kleisli<F, A, C>;
-    '>=>'<BB, C>(
+      F: FlatMap<F>,
+    ): <C>(that: Kleisli<F, BB, C>) => Kleisli<F, A, C>;
+    '>=>'<BB>(
       this: Kleisli<F, A, BB>,
-      that: Kleisli<F, BB, C>,
-    ): Kleisli<F, A, C>;
+      F: FlatMap<F>,
+    ): <C>(that: Kleisli<F, BB, C>) => Kleisli<F, A, C>;
 
-    compose<Z, AA extends A>(that: Kleisli<F, Z, AA>): Kleisli<F, Z, B>;
-    '<=<'<Z, AA extends A>(that: Kleisli<F, Z, AA>): Kleisli<F, Z, B>;
+    compose(
+      F: FlatMap<F>,
+    ): <Z, AA extends A>(that: Kleisli<F, Z, AA>) => Kleisli<F, Z, B>;
+    '<=<'(
+      F: FlatMap<F>,
+    ): <Z, AA extends A>(that: Kleisli<F, Z, AA>) => Kleisli<F, Z, B>;
 
-    map<C, D>(this: Kleisli<F, A, C>, f: (c: C) => D): Kleisli<F, A, D>;
-    tap<C>(this: Kleisli<F, A, C>, f: (c: C) => unknown): Kleisli<F, A, C>;
+    map<C>(
+      this: Kleisli<F, A, C>,
+      F: Functor<F>,
+    ): <D>(f: (c: C) => D) => Kleisli<F, A, D>;
+    tap<C>(
+      this: Kleisli<F, A, C>,
+      F: Functor<F>,
+    ): (f: (c: C) => unknown) => Kleisli<F, A, C>;
 
-    ap<A2, B, C>(
+    ap<B, C>(
       this: Kleisli<F, A, (_: B) => C>,
-      fb: Kleisli<F, A2, B>,
-    ): Kleisli<F, A & A2, C>;
-    '<*>'<A2, B, C>(
+      F: FlatMap<F>,
+    ): <A2>(fb: Kleisli<F, A2, B>) => Kleisli<F, A & A2, C>;
+    '<*>'<B, C>(
       this: Kleisli<F, A, (_: B) => C>,
-      fb: Kleisli<F, A2, B>,
-    ): Kleisli<F, A & A2, C>;
+      F: FlatMap<F>,
+    ): <A2>(fb: Kleisli<F, A2, B>) => Kleisli<F, A & A2, C>;
 
-    map2<A2, C, D>(
+    map2(
+      F: FlatMap<F>,
+    ): <A2, C, D>(
       that: Kleisli<F, A2, C>,
       f: (b: B, c: C) => D,
-    ): Kleisli<F, A & A2, D>;
+    ) => Kleisli<F, A & A2, D>;
 
-    product<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, [B, C]>;
-    productL<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, B>;
-    '>>>'<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, B>;
-    productR<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, C>;
-    '<<<'<A2, C>(that: Kleisli<F, A2, C>): Kleisli<F, A & A2, C>;
+    product(
+      F: FlatMap<F>,
+    ): <A2, C>(that: Kleisli<F, A2, C>) => Kleisli<F, A & A2, [B, C]>;
+    productL(
+      F: FlatMap<F>,
+    ): <A2, C>(that: Kleisli<F, A2, C>) => Kleisli<F, A & A2, B>;
+    '>>>'(
+      F: FlatMap<F>,
+    ): <A2, C>(that: Kleisli<F, A2, C>) => Kleisli<F, A & A2, B>;
+    productR(
+      F: FlatMap<F>,
+    ): <A2, C>(that: Kleisli<F, A2, C>) => Kleisli<F, A & A2, C>;
+    '<<<'(
+      F: FlatMap<F>,
+    ): <A2, C>(that: Kleisli<F, A2, C>) => Kleisli<F, A & A2, C>;
 
-    flatMap<A2, C, D>(
+    flatMap<C>(
       this: Kleisli<F, A, C>,
-      f: (c: C) => Kleisli<F, A2, D>,
-    ): Kleisli<F, A & A2, D>;
-    flatTap<A2, C>(
+      F: FlatMap<F>,
+    ): <A2, D>(f: (c: C) => Kleisli<F, A2, D>) => Kleisli<F, A & A2, D>;
+    flatTap<C>(
       this: Kleisli<F, A, C>,
-      f: (C: C) => Kleisli<F, A2, unknown>,
-    ): Kleisli<F, A & A2, C>;
-    flatMapF<C, D>(
+      F: FlatMap<F>,
+    ): <A2>(f: (C: C) => Kleisli<F, A2, unknown>) => Kleisli<F, A & A2, C>;
+    flatMapF<C>(
       this: Kleisli<F, A, C>,
-      f: (c: C) => Kind<F, [D]>,
-    ): Kleisli<F, A, D>;
+      F: FlatMap<F>,
+    ): <D>(f: (c: C) => Kind<F, [D]>) => Kleisli<F, A, D>;
     flatTapF<C>(
       this: Kleisli<F, A, C>,
-      f: (c: C) => Kind<F, [unknown]>,
-    ): Kleisli<F, A, C>;
+      F: FlatMap<F>,
+    ): (f: (c: C) => Kind<F, [unknown]>) => Kleisli<F, A, C>;
 
-    readonly flatten: B extends Kleisli<F, infer A2, infer C>
-      ? Kleisli<F, A & A2, C>
-      : never & unknown;
+    flatten<A2, C>(
+      this: Kleisli<F, A, Kleisli<F, A2, C>>,
+      F: FlatMap<F>,
+    ): Kleisli<F, A & A2, C>;
 
-    mapK<G extends AnyK>(M: Monad<F>, nt: FunctionK<F, G>): Kleisli<G, A, B>;
-    run(M: Monad<F>): <AA extends A>(a: AA) => Kind<F, [B]>;
+    mapK<G extends AnyK>(nt: FunctionK<F, G>): Kleisli<G, A, B>;
+    lift<G extends AnyK>(
+      G: Applicative<G>,
+    ): Kleisli<λ<[α], $<G, [$<F, [α]>]>>, A, B>;
+
+    run<AA extends A>(a: AA): Kind<F, [B]>;
   }
 }
 
-Kleisli.prototype.dimap = function (f) {
-  return g => dimap_(this, f, g);
+Kleisli.prototype.dimap = function (F) {
+  return f => g => dimap_(F)(this, f, g);
 };
 
 Kleisli.prototype.adapt = function (f) {
   return adapt_(this, f);
 };
 
-Kleisli.prototype.adaptF = function (f) {
-  return adaptF_(this, f);
+Kleisli.prototype.adaptF = function (F) {
+  return f => adaptF_(F)(this, f);
 };
 
-Kleisli.prototype.andThen = function (that) {
-  return andThen_(this, that);
+Kleisli.prototype.andThen = function (F) {
+  return that => andThen_(F)(this, that);
 };
 Kleisli.prototype['>=>'] = Kleisli.prototype.andThen;
 
-Kleisli.prototype.compose = function (that) {
-  return compose_(that, this);
+Kleisli.prototype.compose = function (F) {
+  return that => compose_(F)(that, this);
 };
 Kleisli.prototype['<=<'] = Kleisli.prototype.compose;
 
-Kleisli.prototype.map = function (f) {
-  return map_(this, f);
+Kleisli.prototype.map = function (F) {
+  return f => map_(F)(this, f);
 };
-Kleisli.prototype.tap = function (f) {
-  return tap_(this, f);
+Kleisli.prototype.tap = function (F) {
+  return f => tap_(F)(this, f);
 };
 
-Kleisli.prototype.ap = function (fb) {
-  return ap_(this, fb);
+Kleisli.prototype.ap = function (F) {
+  return fb => ap_(F)(this, fb);
 };
 Kleisli.prototype['<*>'] = Kleisli.prototype.ap;
 
-Kleisli.prototype.map2 = function (that, f) {
-  return map2_(this, that)(f);
+Kleisli.prototype.map2 = function (F) {
+  return (that, f) => map2_(F)(this, that)(f);
 };
 
-Kleisli.prototype.product = function (that) {
-  return product_(this, that);
+Kleisli.prototype.product = function (F) {
+  return that => product_(F)(this, that);
 };
 
-Kleisli.prototype.productL = function (that) {
-  return productL_(this, that);
+Kleisli.prototype.productL = function (F) {
+  return that => productL_(F)(this, that);
 };
 Kleisli.prototype['>>>'] = Kleisli.prototype.productL;
 
-Kleisli.prototype.productR = function (that) {
-  return productR_(this, that);
+Kleisli.prototype.productR = function (F) {
+  return that => productR_(F)(this, that);
 };
 Kleisli.prototype['<<<'] = Kleisli.prototype.productR;
 
-Kleisli.prototype.flatMap = function (f) {
-  return flatMap_(this, f);
+Kleisli.prototype.flatMap = function (F) {
+  return f => flatMap_(F)(this, f);
 };
-Kleisli.prototype.flatTap = function (f) {
-  return flatTap_(this, f);
+Kleisli.prototype.flatTap = function (F) {
+  return f => flatTap_(F)(this, f);
 };
-Kleisli.prototype.flatMapF = function (f) {
-  return flatMapF_(this, f);
+Kleisli.prototype.flatMapF = function (F) {
+  return f => flatMapF_(F)(this, f);
 };
-Kleisli.prototype.flatTapF = function (f) {
-  return flatTapF_(this, f);
-};
-
-Kleisli.prototype.mapK = function (M, nt) {
-  return mapK_(M)(this, nt);
+Kleisli.prototype.flatTapF = function (F) {
+  return f => flatTapF_(F)(this, f);
 };
 
-Kleisli.prototype.run = function (M) {
-  return a => run_(M)(this, a);
+Kleisli.prototype.mapK = function (nt) {
+  return mapK_(this, nt);
+};
+
+Kleisli.prototype.lift = function (G) {
+  return lift_(this, G);
+};
+
+Kleisli.prototype.run = function (a) {
+  return run_(this, a);
 };

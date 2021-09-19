@@ -18,43 +18,47 @@ import {
 } from './operators';
 import { pure } from './constructors';
 
-export const kleisliFunctor = <F extends AnyK, A>(): Functor<
-  $<KleisliK, [F, A]>
-> =>
+export const kleisliFunctor = <F extends AnyK, A>(
+  F: Functor<F>,
+): Functor<$<KleisliK, [F, A]>> =>
   Functor.of({
-    map_: map_,
+    map_: map_(F),
   });
 
-export const kleisliApply = <F extends AnyK, A>(): Apply<$<KleisliK, [F, A]>> =>
+export const kleisliApply = <F extends AnyK, A>(
+  F: FlatMap<F>,
+): Apply<$<KleisliK, [F, A]>> =>
   Apply.of({
-    ...kleisliFunctor(),
-    ap_: ap_,
-    map2_: map2_,
-    product_: product_,
-    productL_: productL_,
-    productR_: productR_,
+    ...kleisliFunctor(F),
+    ap_: ap_(F),
+    map2_: map2_(F),
+    product_: product_(F),
+    productL_: productL_(F),
+    productR_: productR_(F),
   });
 
-export const kleisliApplicative = <F extends AnyK, A>(): Applicative<
-  $<KleisliK, [F, A]>
-> =>
+export const kleisliApplicative = <F extends AnyK, A>(
+  F: Applicative<F>,
+): Applicative<$<KleisliK, [F, A]>> =>
   Applicative.of({
-    ...kleisliFunctor(),
-    ...kleisliApplicative(),
-    pure: pure,
+    ...kleisliFunctor(F),
+    ...kleisliApplicative(F),
+    pure: pure(F),
   });
 
-export const kleisliFlatMap = <F extends AnyK, A>(): FlatMap<
-  $<KleisliK, [F, A]>
-> =>
+export const kleisliFlatMap = <F extends AnyK, A>(
+  F: Monad<F>,
+): FlatMap<$<KleisliK, [F, A]>> =>
   FlatMap.of({
-    ...kleisliApply(),
-    flatMap_: flatMap_,
-    tailRecM_: tailRecM_,
+    ...kleisliApply(F),
+    flatMap_: flatMap_(F),
+    tailRecM_: tailRecM_(F),
   });
 
-export const kleisliMonad = <F extends AnyK, A>(): Monad<$<KleisliK, [F, A]>> =>
+export const kleisliMonad = <F extends AnyK, A>(
+  F: Monad<F>,
+): Monad<$<KleisliK, [F, A]>> =>
   Monad.of({
-    ...kleisliApplicative(),
-    ...kleisliFlatMap(),
+    ...kleisliApplicative(F),
+    ...kleisliFlatMap(F),
   });
