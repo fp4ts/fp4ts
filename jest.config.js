@@ -33,5 +33,7 @@ module.exports = {
     '^@cats4ts/effect-std/lib/(.*)$': '<rootDir>/effect/std/src/$1/',
     '^@cats4ts/effect-test-kit$': '<rootDir>/effect/test-kit/src',
     '^@cats4ts/effect-test-kit/lib/(.*)$': '<rootDir>/effect/test-kit/src/$1/',
+    '^@cats4ts/stream-core$': '<rootDir>/effect/stream-core/src',
+    '^@cats4ts/stream-core/lib/(.*)$': '<rootDir>/effect/stream-core/src/$1/',
   },
 };

@@ -1,0 +1,11 @@
+{
+  "name": "@cats4ts/stream-core",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@cats4ts/core": "*",
+    "@cats4ts/cats-core": "*",
+    "@cats4ts/effect-kernel": "*"
+  }
+}

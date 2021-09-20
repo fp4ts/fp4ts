@@ -26,9 +26,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
+
   "exclude": [
     "node_modules",
     "lib",
     "dist"
+  ],
+
+  "include": [
+    "**/*"
   ]
 }

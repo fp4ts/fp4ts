@@ -17,12 +17,18 @@
       "@cats4ts/effect-std/lib/*": ["./effect/std/src/*"],
       "@cats4ts/effect-test-kit": ["./effect/test-kit/src"],
       "@cats4ts/effect-test-kit/lib/*": ["./effect/test-kit/src/*"],
+      "@cats4ts/stream-core": ["./stream/core/src"],
+      "@cats4ts/stream-core/lib/*": ["./stream/core/src/*"],
     },
     "rootDirs": [
       "./cats/core/src",
       "./cats/free/src",
       "./core/src",
-      "./effect/src"
+      "./effect/core/src",
+      "./effect/kernel/src",
+      "./effect/std/src",
+      "./effect/test-kit/src",
+      "./stream/core/src"
     ]
   }
 }

@@ -41,7 +41,11 @@ declare module './algebra' {
       ? Either<E, B>
       : never | unknown;
 
-    fold<B>(onLeft: (e: E) => B, onRight: (a: A) => B): B;
+    fold<E2, A2, B>(
+      this: Either<E2, A2>,
+      onLeft: (e: E2) => B,
+      onRight: (a: A2) => B,
+    ): B;
 
     readonly swapped: Either<A, E>;
     readonly toOption: Option<A>;
