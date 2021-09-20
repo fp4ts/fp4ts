@@ -1,11 +1,9 @@
 import { $, AnyK, id, Kind, pipe, α, λ } from '@cats4ts/core';
-import {
-  Applicative,
-  Functor,
-  FlatMap,
-  Monad,
-  FunctionK,
-} from '@cats4ts/cats-core';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
+import { FunctionK } from '../../function-k';
 
 import { Either, Left, Right } from '../either';
 

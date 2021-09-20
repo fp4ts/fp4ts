@@ -1,13 +1,11 @@
 import { ok as assert } from 'assert';
 import { AnyK, Kind, throwError } from '@cats4ts/core';
-import {
-  Eq,
-  Hashable,
-  Show,
-  Monoid,
-  MonoidK,
-  Applicative,
-} from '@cats4ts/cats-core';
+import { Eq } from '../../../eq';
+import { Hashable } from '../../../hashable';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Applicative } from '../../../applicative';
 
 import { List } from '../list';
 import { Option, None, Some } from '../../option';

@@ -1,5 +1,6 @@
 import { Kind, id, AnyK } from '@cats4ts/core';
-import { Monoid, Applicative } from '@cats4ts/cats-core';
+import { Monoid } from '../../../monoid';
+import { Applicative } from '../../../applicative';
 
 import { Option } from '../../option';
 import { Either } from '../../either';

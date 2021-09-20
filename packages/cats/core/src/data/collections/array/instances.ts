@@ -1,16 +1,14 @@
-import {
-  Monoid,
-  MonoidK,
-  SemigroupK,
-  Apply,
-  Applicative,
-  FlatMap,
-  Functor,
-  Monad,
-  Foldable,
-  Traversable,
-  FunctorFilter,
-} from '@cats4ts/cats-core';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { SemigroupK } from '../../../semigroup-k';
+import { Apply } from '../../../apply';
+import { Applicative } from '../../../applicative';
+import { FlatMap } from '../../../flat-map';
+import { Monad } from '../../../monad';
+import { Foldable } from '../../../foldable';
+import { Traversable } from '../../../traversable';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
 
 import { ArrayK } from './array';
 import {

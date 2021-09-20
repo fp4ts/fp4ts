@@ -1,5 +1,8 @@
 import { AnyK, id, Kind, pipe, throwError } from '@cats4ts/core';
-import { Applicative, Monoid, MonoidK, Show } from '@cats4ts/cats-core';
+import { Applicative } from '../../../applicative';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Show } from '../../../show';
 
 import { Either } from '../../either';
 import { Option } from '../../option';

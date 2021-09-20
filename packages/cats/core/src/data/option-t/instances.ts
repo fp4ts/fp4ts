@@ -1,20 +1,17 @@
 import { AnyK, $ } from '@cats4ts/core';
-
-import {
-  SemigroupK,
-  MonoidK,
-  Functor,
-  Apply,
-  Applicative,
-  FlatMap,
-  Monad,
-} from '@cats4ts/cats-core';
+import { SemigroupK } from '../../semigroup-k';
+import { MonoidK } from '../../monoid-k';
+import { Functor } from '../../functor';
+import { Apply } from '../../apply';
+import { Applicative } from '../../applicative';
+import { Alternative } from '../../alternative';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { OptionTK } from './option-t';
 
 import { flatMap_, map_, orElse_, tailRecM_ } from './operators';
 import { none, pure } from './constructors';
-import { Alternative } from '../../alternative';
 
 export const optionTSemigroupK: <F extends AnyK>(
   F: Monad<F>,

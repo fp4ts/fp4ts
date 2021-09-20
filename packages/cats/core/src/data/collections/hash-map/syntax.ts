@@ -1,14 +1,10 @@
 import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
-import {
-  Show,
-  Monoid,
-  MonoidK,
-  Applicative,
-  Eq,
-  primitiveEq,
-  Hashable,
-  primitiveMD5Hashable,
-} from '@cats4ts/cats-core';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Applicative } from '../../../applicative';
+import { Eq, primitiveEq } from '../../../eq';
+import { Hashable, primitiveMD5Hashable } from '../../../hashable';
 
 import { Option } from '../../option';
 import { List } from '../list';

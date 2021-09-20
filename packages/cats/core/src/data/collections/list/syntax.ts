@@ -1,5 +1,9 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { Applicative, Eq, Show, Monoid, MonoidK } from '@cats4ts/cats-core';
+import { Applicative } from '../../../applicative';
+import { Eq } from '../../../eq';
+import { Show } from '../../../show';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
 
 import { Option } from '../../option';
 import { Either } from '../../either';

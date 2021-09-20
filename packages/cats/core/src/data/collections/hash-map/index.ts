@@ -1,3 +1,3 @@
 import './syntax';
 
-export { HashMap } from './hash-map';
+export { HashMap, HashMapK } from './hash-map';

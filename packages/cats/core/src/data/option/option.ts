@@ -1,15 +1,12 @@
 import { TyK, _ } from '@cats4ts/core';
-
-import {
-  MonoidK,
-  SemigroupK,
-  Alternative,
-  Applicative,
-  Apply,
-  FlatMap,
-  Functor,
-  Monad,
-} from '@cats4ts/cats-core';
+import { SemigroupK } from '../../semigroup-k';
+import { MonoidK } from '../../monoid-k';
+import { Apply } from '../../apply';
+import { Applicative } from '../../applicative';
+import { Alternative } from '../../alternative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { Either } from '../either';
 

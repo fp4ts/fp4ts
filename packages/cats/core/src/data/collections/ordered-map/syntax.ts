@@ -1,12 +1,9 @@
 import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
-import {
-  Monoid,
-  MonoidK,
-  Ord,
-  primitiveOrd,
-  Show,
-  Applicative,
-} from '@cats4ts/cats-core';
+import { Monoid } from '../../../monoid';
+import { MonoidK } from '../../../monoid-k';
+import { Ord, primitiveOrd } from '../../../ord';
+import { Show } from '../../../show';
+import { Applicative } from '../../../applicative';
 
 import { Option } from '../../option';
 import { List } from '../list';

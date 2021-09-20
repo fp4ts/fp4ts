@@ -1,5 +1,6 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { Applicative } from '@cats4ts/cats-core';
+import { Applicative } from '../../applicative';
+
 import { Identity, Kleisli, Pure, Suspend } from './algebra';
 
 export const pure =

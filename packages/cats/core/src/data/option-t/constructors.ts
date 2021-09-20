@@ -1,5 +1,6 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { Functor, Applicative } from '@cats4ts/cats-core';
+import { Functor } from '../../functor';
+import { Applicative } from '../../applicative';
 
 import { Option, Some, None } from '../option';
 

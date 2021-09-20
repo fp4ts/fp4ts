@@ -1,5 +1,4 @@
 {
-  "name": "@cats4ts/root",
   "private": true,
   "workspaces": [
     "./packages/cats/*",
@@ -26,7 +25,7 @@
   "scripts": {
     "test": "jest --maxWorkers=50%",
     "benchmark": "yarn compile && ./scripts/benchmark.sh",
-    "compile": "yarn clean && yarn tsc",
+    "compile": "yarn clean && yarn tsc -p tsconfig.json",
     "clean": "rm -rf dist",
     "lint": "eslint ./src"
   }

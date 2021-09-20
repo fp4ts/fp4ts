@@ -1,12 +1,9 @@
 import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
-import {
-  Foldable,
-  Functor,
-  FunctorFilter,
-  Traversable,
-  Ord,
-  primitiveOrd,
-} from '@cats4ts/cats-core';
+import { Foldable } from '../../../foldable';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Traversable } from '../../../traversable';
+import { Ord, primitiveOrd } from '../../../ord';
 
 import { List } from '../list';
 

@@ -1,4 +1,4 @@
-import { Ord } from '@cats4ts/cats-core';
+import { Ord } from '../../../ord';
 
 import { List } from '../list';
 

@@ -1,11 +1,9 @@
 import { $, AnyK } from '@cats4ts/core';
-import {
-  Apply,
-  Applicative,
-  Functor,
-  FlatMap,
-  Monad,
-} from '@cats4ts/cats-core';
+import { Apply } from '../../apply';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { KleisliK } from './kleisli';
 import {

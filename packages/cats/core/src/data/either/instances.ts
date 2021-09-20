@@ -1,12 +1,10 @@
 import { $ } from '@cats4ts/core';
-import {
-  SemigroupK,
-  Apply,
-  Applicative,
-  Functor,
-  FlatMap,
-  Monad,
-} from '@cats4ts/cats-core';
+import { SemigroupK } from '../../semigroup-k';
+import { Apply } from '../../apply';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { EitherK } from './either';
 import { flatMap_, map_, or_, tailRecM_ } from './operators';

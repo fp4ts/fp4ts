@@ -1,12 +1,9 @@
 import { $, TyK, _ } from '@cats4ts/core';
-
-import {
-  Applicative,
-  Apply,
-  FlatMap,
-  Functor,
-  Monad,
-} from '@cats4ts/cats-core';
+import { Functor } from '../../functor';
+import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { Either } from '../either';
 

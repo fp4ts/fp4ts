@@ -1,11 +1,9 @@
 import { $ } from '@cats4ts/core';
-import {
-  Functor,
-  Applicative,
-  Apply,
-  FlatMap,
-  Monad,
-} from '@cats4ts/cats-core';
+import { Functor } from '../../functor';
+import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
+import { FlatMap } from '../../flat-map';
+import { Monad } from '../../monad';
 
 import { StateK } from './state';
 import {

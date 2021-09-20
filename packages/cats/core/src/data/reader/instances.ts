@@ -1,12 +1,9 @@
 import { $ } from '@cats4ts/core';
-
-import {
-  Applicative,
-  Apply,
-  FlatMap,
-  Functor,
-  Monad,
-} from '@cats4ts/cats-core';
+import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
+import { FlatMap } from '../../flat-map';
+import { Functor } from '../../functor';
+import { Monad } from '../../monad';
 
 import {
   ap_,

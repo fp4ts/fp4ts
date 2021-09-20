@@ -1,5 +1,8 @@
 import { $, AnyK, Kind, α, λ } from '@cats4ts/core';
-import { FunctionK, Applicative, Functor, FlatMap } from '@cats4ts/cats-core';
+import { FunctionK } from '../../function-k';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
+import { FlatMap } from '../../flat-map';
 
 import { Kleisli } from './algebra';
 import {

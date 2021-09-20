@@ -1,4 +1,4 @@
-import { Hashable } from '@cats4ts/cats-core';
+import { Hashable } from '../../../hashable';
 
 import { List } from '../list';
 import { Empty, HashMap } from './algebra';
