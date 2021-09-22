@@ -1,4 +1,5 @@
 import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import { None, Option, Some } from '@cats4ts/cats-core/lib/data';
 
 import * as PO from './operators';
@@ -16,14 +17,31 @@ import {
   view,
 } from './algebra';
 import { Chunk } from '../chunk';
-import { FunctionK, MonadError } from '@cats4ts/cats-core';
+import { CompositeFailure } from '../composite-failure';
 
 const P = { ...PO, ...PC };
+
+export const cons = <F extends AnyK, O>(
+  c: Chunk<O>,
+  p: Pull<F, O, void>,
+): Pull<F, O, void> => (c.isEmpty ? p : P.flatMap_(P.output(c), () => p));
 
 export const uncons: <F extends AnyK, O>(
   pull: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = pull =>
   new Uncons(pull);
+
+export const take: (
+  n: number,
+) => <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+) => Pull<F, O, Option<Pull<F, O, void>>> = n => p => take_(p, n);
+
+export const drop: (
+  n: number,
+) => <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<Pull<F, O, void>>> = n => p => drop_(p, n);
 
 export const mapOutput: <O, P>(
   f: (o: O) => P,
@@ -50,6 +68,52 @@ export const compile: <F extends AnyK>(
     compile_(F)(stream, init, foldChunk);
 
 // -- Point-ful operators
+
+export const take_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  n: number,
+): Pull<F, O, Option<Pull<F, O, void>>> =>
+  n <= 0
+    ? P.pure(None)
+    : pipe(
+        p,
+        uncons,
+        P.flatMap(opt =>
+          opt.fold(
+            () => P.pure(None),
+            ([hd, tl]) => {
+              const m = hd.size;
+              if (m < n)
+                return P.flatMap_(P.output(hd), () => take_(tl, n - m));
+              if (m === n) return P.map_(P.output(hd), () => Some(tl));
+              const [hdx, tlx] = hd.splitAt(n);
+              return P.map_(P.output(hdx), () => Some(cons(tlx, tl)));
+            },
+          ),
+        ),
+      );
+
+export const drop_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  n: number,
+): Pull<F, never, Option<Pull<F, O, void>>> =>
+  n <= 0
+    ? P.pure(Some(p))
+    : pipe(
+        p,
+        uncons,
+        P.flatMap(opt =>
+          opt.fold(
+            () => P.pure(None),
+            ([hd, tl]) => {
+              const m = hd.size;
+              if (m < n) return drop_(tl, n - m);
+              if (m === n) return P.pure(Some(tl));
+              return P.pure(Some(cons(hd.drop(n), tl)));
+            },
+          ),
+        ),
+      );
 
 export const mapOutput_ = <F extends AnyK, O, P>(
   pull: Pull<F, O, void>,
@@ -80,6 +144,18 @@ export const translate_ = <F extends AnyK, G extends AnyK, O>(
   nt: FunctionK<F, G>,
 ): Pull<G, O, void> => new Translate(pull, nt);
 
+// -- Compilation
+
+type Cont<Y, G extends AnyK, X> = (t: Terminal<Y>) => Pull<G, X, void>;
+
+interface Run<G extends AnyK, X, End> {
+  done(): End;
+  fail(e: Error): End;
+  out(hd: Chunk<X>, tl: Pull<G, X, void>): End;
+}
+
+type CallRun<G extends AnyK, X, End> = (r: Run<G, X, End>) => End;
+
 export const compile_ =
   <F extends AnyK>(F: MonadError<F, Error>) =>
   <O, B>(
@@ -87,16 +163,6 @@ export const compile_ =
     init: B,
     foldChunk: (b: B, c: Chunk<O>) => B,
   ): Kind<F, [B]> => {
-    type Cont<Y, G extends AnyK, X> = (t: Terminal<Y>) => Pull<G, X, void>;
-
-    interface Run<G extends AnyK, X, End> {
-      done(): End;
-      fail(e: Error): End;
-      out(hd: Chunk<X>, tl: Pull<G, X, void>): End;
-    }
-
-    type CallRun<G extends AnyK, X, End> = (r: Run<G, X, End>) => End;
-
     class BuildRun<G extends AnyK, X, End>
       implements Run<G, X, Kind<F, [CallRun<G, X, Kind<G, [End]>>]>>
     {
@@ -108,42 +174,45 @@ export const compile_ =
 
     type ViewL<G extends AnyK, X> = Action<G, X, unknown> | Terminal<unknown>;
 
-    let cont: Cont<unknown, AnyK, never>;
+    let cont: Cont<unknown, any, never>;
 
-    const viewL = <G extends AnyK, X>(free: Pull<G, X, void>): ViewL<G, X> => {
-      const v = view(free);
-      switch (v.tag) {
-        case 'succeed':
-        case 'fail':
-          return v;
+    const viewL = <G extends AnyK, X>(free0: Pull<G, X, void>): ViewL<G, X> => {
+      let free: Pull<G, X, void> = free0;
+      while (true) {
+        const v = view(free);
+        switch (v.tag) {
+          case 'succeed':
+          case 'fail':
+            return v;
 
-        case 'translate':
-        case 'output':
-        case 'flatMapOutput':
-        case 'uncons':
-        case 'eval':
-          cont = id;
-          return v;
+          case 'translate':
+          case 'output':
+          case 'flatMapOutput':
+          case 'uncons':
+          case 'eval':
+            cont = id;
+            return v;
 
-        case 'bind': {
-          const step = view(v.step);
-          switch (step.tag) {
-            case 'succeed':
-            case 'fail':
-              return viewL(v.cont(step));
+          case 'bind': {
+            const step = view(v.step);
+            switch (step.tag) {
+              case 'succeed':
+              case 'fail':
+                free = v.cont(step);
+                continue;
 
-            case 'translate':
-            case 'output':
-            case 'flatMapOutput':
-            case 'uncons':
-            case 'eval':
-              cont = v.cont;
-              return step;
+              case 'translate':
+              case 'output':
+              case 'flatMapOutput':
+              case 'uncons':
+              case 'eval':
+                cont = v.cont;
+                return step;
 
-            case 'bind':
-              return viewL(
-                new Bind(step.step, r => new Bind(step.cont(r), v.cont)),
-              );
+              case 'bind':
+                free = new Bind(step.step, r => new Bind(step.cont(r), v.cont));
+                continue;
+            }
           }
         }
       }
@@ -196,7 +265,7 @@ export const compile_ =
           const go = (idx: number): Pull<G, X, void> => {
             if (idx === hd.size) return flatMapOutput_(tl, this.fun);
             try {
-              return new Bind(this.fun(hd['!!'](idx)), t => {
+              return new Bind<G, X, void, void>(this.fun(hd['!!'](idx)), t => {
                 switch (t.tag) {
                   case 'succeed':
                     return go(idx + 1);
@@ -294,8 +363,23 @@ export const compile_ =
         try {
           return go<F, O, B>(initFk, new OuterRun(foldChunk(this.acc, hd)), tl);
         } catch (error) {
-          // Fix
-          return F.throwError(error as Error);
+          const tv = viewL(tl);
+          switch (tv.tag) {
+            case 'eval':
+            case 'output':
+            case 'flatMapOutput':
+            case 'uncons':
+            case 'translate':
+              return go<F, O, B>(initFk, this, cont(new Fail(error as Error)));
+            case 'succeed':
+              return F.throwError(error as Error);
+            case 'fail':
+              return F.throwError(
+                CompositeFailure.from(tv.error, error as Error),
+              );
+            default:
+              return F.throwError(error as Error);
+          }
         }
       };
     }

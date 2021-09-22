@@ -45,5 +45,9 @@ export const EmptyChunk = new (class EmptyChunk extends Chunk<never> {
 })();
 export type EmptyChunk = typeof EmptyChunk;
 
-export type View<O> = SingletonChunk<O> | ArrayChunk<O> | EmptyChunk;
+export type View<O> =
+  | SingletonChunk<O>
+  | ArrayChunk<O>
+  | ArraySlice<O>
+  | EmptyChunk;
 export const view = <O>(_: Chunk<O>): View<O> => _ as any;

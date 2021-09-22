@@ -7,24 +7,35 @@ import {
   handleErrorWith_,
   map_,
   onComplete_,
+  toVoid,
 } from './operators';
 import { Chunk } from '../chunk';
 import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import {
   compile_,
+  drop_,
   flatMapOutput_,
   mapOutput_,
+  take_,
   translate_,
   uncons,
 } from './stream-projection';
-
-export {};
 
 declare module './algebra' {
   interface Pull<F extends AnyK, O, R> {
     readonly uncons: R extends void
       ? Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>
       : never;
+
+    take(
+      this: Pull<F, O, void>,
+      n: number,
+    ): Pull<F, O, Option<Pull<F, O, void>>>;
+
+    drop(
+      this: Pull<F, O, void>,
+      n: number,
+    ): Pull<F, never, Option<Pull<F, O, void>>>;
 
     mapOutput<O2, P>(
       this: Pull<F, O2, void>,
@@ -41,11 +52,17 @@ declare module './algebra' {
       nt: FunctionK<F, G>,
     ): Pull<G, O, void>;
 
+    readonly void: Pull<F, O, void>;
+
     map<X, R2>(this: Pull<F, O, X>, f: (r: X) => R2): Pull<F, O, R2>;
 
     flatMap<O2, X, R2>(
       this: Pull<F, O2, X>,
       f: (r: X) => Pull<F, O2, R2>,
+    ): Pull<F, O2, R2>;
+    '>>>'<O2, X, R2>(
+      this: Pull<F, O2, X>,
+      f: () => Pull<F, O2, R2>,
     ): Pull<F, O2, R2>;
 
     handleErrorWith<O2, R2>(
@@ -75,6 +92,14 @@ Object.defineProperty(Pull.prototype, 'uncons', {
   },
 });
 
+Pull.prototype.take = function (n) {
+  return take_(this, n);
+};
+
+Pull.prototype.drop = function (n) {
+  return drop_(this, n);
+};
+
 Pull.prototype.mapOutput = function (f) {
   return mapOutput_(this, f);
 };
@@ -87,11 +112,20 @@ Pull.prototype.translate = function (nt) {
   return translate_(this, nt);
 };
 
+Object.defineProperty(Pull.prototype, 'void', {
+  get<F extends AnyK, O, R>(this: Pull<F, O, R>): Pull<F, O, void> {
+    return toVoid(this);
+  },
+});
+
 Pull.prototype.map = function (f) {
   return map_(this, f);
 };
 
 Pull.prototype.flatMap = function (f) {
+  return flatMap_(this, f);
+};
+Pull.prototype['>>>'] = function (f) {
   return flatMap_(this, f);
 };
 

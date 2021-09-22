@@ -4,6 +4,10 @@ import { Either, Right, Left } from '@cats4ts/cats-core/lib/data';
 import { pure } from './constructors';
 import { Bind, Fail, Pull, Succeed } from './algebra';
 
+export const toVoid: <F extends AnyK, O, R>(
+  p: Pull<F, O, R>,
+) => Pull<F, O, void> = p => map_(p, () => {});
+
 export const map: <R, R2>(
   f: (r: R) => R2,
 ) => <F extends AnyK, O>(pull: Pull<F, O, R>) => Pull<F, O, R2> = f => pull =>

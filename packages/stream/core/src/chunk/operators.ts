@@ -1,6 +1,13 @@
 import { List, Vector } from '@cats4ts/cats-core/lib/data';
 import { ok as assert } from 'assert';
-import { ArrayChunk, Chunk, EmptyChunk, SingletonChunk, view } from './algebra';
+import {
+  ArrayChunk,
+  ArraySlice,
+  Chunk,
+  EmptyChunk,
+  SingletonChunk,
+  view,
+} from './algebra';
 
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
@@ -14,11 +21,29 @@ export const size = <O>(c: Chunk<O>): number => {
       return 1;
     case 'array':
       return v.array.length;
+    case 'slice':
+      return v.length;
   }
 };
 
+export const take: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
+  take_(c, n);
+
+export const drop: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
+  drop_(c, n);
+
 export const elem: (idx: number) => <O>(c: Chunk<O>) => O = idx => c =>
   elem_(c, idx);
+
+export const slice: (
+  offset: number,
+  until: number,
+) => <O>(c: Chunk<O>) => Chunk<O> = (offset, until) => c =>
+  slice_(c, offset, until);
+
+export const splitAt: (
+  idx: number,
+) => <O>(c: Chunk<O>) => [Chunk<O>, Chunk<O>] = idx => c => splitAt_(c, idx);
 
 export const concat: <O2>(
   c2: Chunk<O2>,
@@ -27,6 +52,11 @@ export const concat: <O2>(
 export const map: <O, O2>(f: (o: O) => O2) => (c: Chunk<O>) => Chunk<O2> =
   f => c =>
     map_(c, f);
+
+export const zipWith: <O1, O2, O3>(
+  c2: Chunk<O2>,
+  f: (o1: O1, o2: O2) => O3,
+) => (c1: Chunk<O1>) => Chunk<O3> = (c2, f) => c1 => zipWith_(c1, c2, f);
 
 export const toArray: <O>(c: Chunk<O>) => O[] = c => {
   const v = view(c);
@@ -37,6 +67,8 @@ export const toArray: <O>(c: Chunk<O>) => O[] = c => {
       return [v.value];
     case 'array':
       return v.array;
+    case 'slice':
+      return v.values.slice(v.offset, v.offset + v.length);
   }
 };
 
@@ -48,6 +80,10 @@ export const toVector: <O>(c: Chunk<O>) => Vector<O> = c =>
 
 // -- Point-ful operators
 
+export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => slice_(c, 0, n);
+
+export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => slice_(c, n);
+
 export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
   assert(idx < size(c), 'Chunk.elem IndexOutOfBounds');
   const v = view(c);
@@ -56,37 +92,64 @@ export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
       return v.array[idx];
     case 'singleton':
       return v.value;
+    case 'slice':
+      return v.values[v.offset + idx];
     default:
       assert(false, 'Empty chunk cannot be indexed');
   }
 };
 
-export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
-  const v1 = view(c1);
-  const v2 = view(c2);
-  switch (v1.tag) {
-    case 'empty':
-      return v2;
-    case 'singleton':
-      switch (v2.tag) {
-        case 'empty':
-          return v1;
-        case 'singleton':
-          return new ArrayChunk([v1.value, v2.value]);
-        case 'array':
-          return new ArrayChunk([v1.value, ...v2.array]);
-      }
+export const slice_ = <O>(
+  c: Chunk<O>,
+  offset: number,
+  until?: number,
+): Chunk<O> => {
+  const s = size(c);
+  until = until ?? s;
+  if (offset < 0) offset = 0;
+  if (until >= s) until = s;
+  if (offset >= until) return EmptyChunk;
+
+  const v = view(c);
+  switch (v.tag) {
     case 'array':
-      switch (v2.tag) {
-        case 'empty':
-          return v1;
-        case 'singleton':
-          return new ArrayChunk([...v1.array, v2.value]);
-        case 'array':
-          return new ArrayChunk([...v1.array, ...v2.array]);
-      }
+      return new ArraySlice(v.array, offset, until - offset);
+    case 'slice':
+      return new ArraySlice(
+        v.values,
+        v.offset + offset,
+        v.offset + until - offset,
+      );
+
+    default:
+      assert(false, 'impossible state');
   }
 };
+
+export const splitAt_ = <O>(c: Chunk<O>, n: number): [Chunk<O>, Chunk<O>] => {
+  if (n <= 0) return [EmptyChunk, EmptyChunk];
+  if (n >= size(c)) return [c, EmptyChunk];
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return [EmptyChunk, EmptyChunk];
+    case 'singleton':
+      return [v, EmptyChunk];
+    case 'array':
+      return [
+        new ArraySlice(v.array, 0, n),
+        new ArraySlice(v.array, n, v.array.length - n),
+      ];
+    case 'slice':
+      return [
+        new ArraySlice(v.values, v.offset, n),
+        new ArraySlice(v.values, v.offset + n, v.length - n),
+      ];
+  }
+};
+
+export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> =>
+  new ArrayChunk([...toArray(c1), ...toArray(c2)]);
 
 export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
   const v = view(c);
@@ -97,6 +160,13 @@ export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
       return new SingletonChunk(f(v.value));
     case 'array':
       return new ArrayChunk(v.array.map(f));
+    case 'slice': {
+      const ret: O2[] = new Array(v.values.length);
+      for (let i = 0, len = v.values.length; i < len; i++) {
+        ret[i] = f(v.values[i]);
+      }
+      return new ArrayChunk(ret);
+    }
   }
 };
 
@@ -113,5 +183,77 @@ export const foldLeft_ = <O, B>(
       return f(init, v.value);
     case 'array':
       return v.array.reduce(f, init);
+    case 'slice':
+      let ret: B = init;
+      for (let i = 0, len = v.values.length; i < len; i++) {
+        ret = f(ret, v.values[i]);
+      }
+      return ret;
+  }
+};
+
+export const zipWith_ = <O1, O2, O3>(
+  c1: Chunk<O1>,
+  c2: Chunk<O2>,
+  f: (o1: O1, o2: O2) => O3,
+): Chunk<O3> => {
+  if (c1 === EmptyChunk || c2 === EmptyChunk) return EmptyChunk;
+  const v1 = view(c1);
+  const v2 = view(c2);
+
+  switch (v1.tag) {
+    case 'singleton':
+      return new SingletonChunk(f(v1.value, elem_(v2, 0)));
+    case 'slice':
+      switch (v2.tag) {
+        case 'singleton':
+          return new SingletonChunk(f(elem_(v1, 0), v2.value));
+
+        case 'slice': {
+          const len = Math.min(v1.length, v2.values.length);
+          const ret: O3[] = new Array(len);
+          for (let i = 0; i < len; i++) {
+            ret[i] = f(v1.values[v1.offset + i], v2.values[v1.offset + i]);
+          }
+          return new ArrayChunk(ret);
+        }
+
+        case 'array': {
+          const len = Math.min(v1.length, v2.array.length);
+          const ret: O3[] = new Array(len);
+          for (let i = 0; i < len; i++) {
+            ret[i] = f(v1.values[v1.offset + i], v2.array[i]);
+          }
+          return new ArrayChunk(ret);
+        }
+
+        default:
+          throw new Error('impossible state');
+      }
+    case 'array':
+      switch (v2.tag) {
+        case 'slice': {
+          const len = Math.min(v1.array.length, v2.length);
+          const ret: O3[] = new Array(len);
+          for (let i = 0; i < len; i++) {
+            ret[i] = f(v1.array[i], v2.values[v2.offset + i]);
+          }
+          return new ArrayChunk(ret);
+        }
+
+        case 'array': {
+          const len = Math.min(v1.array.length, v2.array.length);
+          const ret: O3[] = new Array(len);
+          for (let i = 0; i < len; i++) {
+            ret[i] = f(v1.array[i], v2.array[i]);
+          }
+          return new ArrayChunk(ret);
+        }
+
+        default:
+          throw new Error('impossible state');
+      }
+    default:
+      throw new Error('impossible state');
   }
 };

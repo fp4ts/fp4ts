@@ -9,6 +9,8 @@ import {
   fromList,
   fromVector,
   of,
+  pure,
+  suspend,
 } from './constructor';
 
 export type Stream<F extends AnyK, A> = StreamBase<F, A>;
@@ -19,6 +21,8 @@ export const Stream: StreamObj = function (...xs) {
 
 interface StreamObj {
   <F extends AnyK, A>(...xs: A[]): Stream<F, A>;
+  pure<F extends AnyK, A>(x: A): Stream<F, A>;
+  suspend<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
   of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
   empty<F extends AnyK>(): Stream<F, never>;
   fromArray<F extends AnyK, A>(xs: A[]): Stream<F, A>;
@@ -27,6 +31,8 @@ interface StreamObj {
   fromChunk<F extends AnyK, A>(chunk: Chunk<A>): Stream<F, A>;
 }
 
+Stream.pure = pure;
+Stream.suspend = suspend;
 Stream.of = of;
 Stream.empty = empty;
 Stream.fromArray = fromArray;

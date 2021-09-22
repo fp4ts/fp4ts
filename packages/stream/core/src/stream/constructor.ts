@@ -10,6 +10,10 @@ export const pure = <F extends AnyK, A>(x: A): Stream<F, A> =>
 export const empty = <F extends AnyK>(): Stream<F, never> =>
   new Stream(Pull.done());
 
+export const suspend = <F extends AnyK, A>(
+  thunk: () => Stream<F, A>,
+): Stream<F, A> => new Stream(Pull.suspend(() => thunk().pull));
+
 export const of = <F extends AnyK, A>(...xs: A[]): Stream<F, A> =>
   fromArray(xs);
 

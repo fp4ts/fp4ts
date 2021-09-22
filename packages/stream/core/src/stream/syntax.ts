@@ -1,6 +1,8 @@
 import { MonadError } from '@cats4ts/cats-core';
+import { List, Vector } from '@cats4ts/cats-core/lib/data';
 import { AnyK } from '@cats4ts/core';
 import { SyncIoK } from '@cats4ts/effect-core';
+import { Chunk } from '../chunk';
 import { Stream } from './algebra';
 import { Compiler, PureCompiler } from './compiler';
 import {
@@ -10,10 +12,27 @@ import {
   flatten,
   compileF,
   compile,
+  take_,
+  prepend_,
+  prependChunk_,
+  head,
+  drop_,
+  tail,
+  zip_,
+  zipWith_,
 } from './operators';
 
 declare module './algebra' {
   interface Stream<F extends AnyK, A> {
+    readonly head: Stream<F, A>;
+    readonly tail: Stream<F, A>;
+
+    prepend<B>(this: Stream<F, B>, x: B): Stream<F, B>;
+    prependChunk<B>(this: Stream<F, B>, x: Chunk<B>): Stream<F, B>;
+
+    take(n: number): Stream<F, A>;
+    drop(n: number): Stream<F, A>;
+
     concat<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
     '+++'<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
 
@@ -23,10 +42,44 @@ declare module './algebra' {
 
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
 
+    zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
+    zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
+
     compile: F extends SyncIoK ? PureCompiler<A> : never;
     compileF(F: MonadError<F, Error>): Compiler<F, A>;
+
+    toList: F extends SyncIoK ? List<A> : never;
+    toVector: F extends SyncIoK ? Vector<A> : never;
   }
 }
+
+Object.defineProperty(Stream.prototype, 'head', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+    return head(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'tail', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+    return tail(this);
+  },
+});
+
+Stream.prototype.prepend = function (x) {
+  return prepend_(this, x);
+};
+
+Stream.prototype.prependChunk = function (c) {
+  return prependChunk_(this, c);
+};
+
+Stream.prototype.take = function (n) {
+  return take_(this, n);
+};
+
+Stream.prototype.drop = function (n) {
+  return drop_(this, n);
+};
 
 Stream.prototype.concat = function (that) {
   return concat_(this, that);
@@ -47,6 +100,14 @@ Object.defineProperty(Stream.prototype, 'flatten', {
   },
 });
 
+Stream.prototype.zip = function (that) {
+  return zip_(this, that);
+};
+
+Stream.prototype.zipWith = function (that, f) {
+  return zipWith_(this, that)(f);
+};
+
 Object.defineProperty(Stream.prototype, 'compile', {
   get<A>(this: Stream<SyncIoK, A>): PureCompiler<A> {
     return compile(this);
@@ -56,3 +117,15 @@ Object.defineProperty(Stream.prototype, 'compile', {
 Stream.prototype.compileF = function (F) {
   return compileF(F)(this);
 };
+
+Object.defineProperty(Stream.prototype, 'toList', {
+  get<A>(this: Stream<AnyK, A>): List<A> {
+    return this.compile.toList;
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'toVector', {
+  get<A>(this: Stream<AnyK, A>): Vector<A> {
+    return this.compile.toVector;
+  },
+});
