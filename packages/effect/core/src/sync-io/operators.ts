@@ -77,9 +77,9 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
 
       resultLoop: while (true) {
         if (result.tag === 'success') {
-          while (true) {
-            let v: unknown = result.value;
+          let v: unknown = result.value;
 
+          while (true) {
             switch (conts.pop()) {
               case Continuation.MapK: {
                 const f = stack.pop()! as (u: unknown) => unknown;
@@ -104,7 +104,7 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
               }
 
               case Continuation.HandleErrorWithK:
-                conts.pop(); // skip over error handlers
+                stack.pop(); // skip over error handlers
                 continue;
 
               case Continuation.AttemptK:
@@ -112,13 +112,13 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 continue;
 
               case undefined:
-                return result.value as A;
+                return v as A;
             }
           }
         } else {
-          while (true) {
-            let e = result.error;
+          let e = result.error;
 
+          while (true) {
             switch (conts.pop()) {
               case Continuation.MapK:
               case Continuation.FlatMapK:
@@ -141,7 +141,7 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 continue resultLoop;
 
               case undefined:
-                throw result.error;
+                throw e;
             }
           }
         }

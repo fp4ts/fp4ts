@@ -31,4 +31,31 @@ describe('SyncIO', () => {
         .unsafeRunSync(),
     ).toBe(43);
   });
+
+  it('should map element', () => {
+    expect(
+      SyncIO(() => 42)
+        .map(x => x * 2)
+        .unsafeRunSync(),
+    ).toBe(84);
+  });
+
+  it('should map element', () => {
+    expect(
+      SyncIO(() => 42)
+        .map(x => x * 2)
+        .flatMap(x => SyncIO(() => x + 1))
+        .map(x => x + 2)
+        .unsafeRunSync(),
+    ).toBe(87);
+  });
+
+  it('should skip over the error failure when successful', () => {
+    expect(
+      SyncIO(() => 42)
+        .handleErrorWith(() => SyncIO.pure(94))
+        .map(x => x * 2)
+        .unsafeRunSync(),
+    ).toBe(84);
+  });
 });

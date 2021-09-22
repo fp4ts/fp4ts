@@ -1,8 +1,16 @@
 import { MonadError } from '@cats4ts/cats-core';
 import { AnyK } from '@cats4ts/core';
+import { SyncIoK } from '@cats4ts/effect-core';
 import { Stream } from './algebra';
-import { Compiler } from './compiler';
-import { concat_, map_, flatMap_, flatten, compile } from './operators';
+import { Compiler, PureCompiler } from './compiler';
+import {
+  concat_,
+  map_,
+  flatMap_,
+  flatten,
+  compileF,
+  compile,
+} from './operators';
 
 declare module './algebra' {
   interface Stream<F extends AnyK, A> {
@@ -15,7 +23,8 @@ declare module './algebra' {
 
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
 
-    compile(F: MonadError<F, Error>): Compiler<F, A>;
+    compile: F extends SyncIoK ? PureCompiler<A> : never;
+    compileF(F: MonadError<F, Error>): Compiler<F, A>;
   }
 }
 
@@ -38,6 +47,12 @@ Object.defineProperty(Stream.prototype, 'flatten', {
   },
 });
 
-Stream.prototype.compile = function (F) {
-  return compile(F)(this);
+Object.defineProperty(Stream.prototype, 'compile', {
+  get<A>(this: Stream<SyncIoK, A>): PureCompiler<A> {
+    return compile(this);
+  },
+});
+
+Stream.prototype.compileF = function (F) {
+  return compileF(F)(this);
 };

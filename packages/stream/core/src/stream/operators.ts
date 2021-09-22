@@ -1,7 +1,8 @@
-import { MonadError } from '@cats4ts/cats-core';
 import { AnyK, id } from '@cats4ts/core';
+import { MonadError } from '@cats4ts/cats-core';
+import { SyncIoK } from '@cats4ts/effect-core';
 import { Stream } from './algebra';
-import { Compiler } from './compiler';
+import { Compiler, PureCompiler } from './compiler';
 
 export const concat: <F extends AnyK, A2>(
   s2: Stream<F, A2>,
@@ -20,7 +21,10 @@ export const flatten: <F extends AnyK, A>(
   ss: Stream<F, Stream<F, A>>,
 ) => Stream<F, A> = ss => flatMap_(ss, id);
 
-export const compile: <F extends AnyK>(
+export const compile: <A>(s: Stream<SyncIoK, A>) => PureCompiler<A> = s =>
+  new PureCompiler(s._underlying);
+
+export const compileF: <F extends AnyK>(
   F: MonadError<F, Error>,
 ) => <A>(s: Stream<F, A>) => Compiler<F, A> = F => s =>
   new Compiler(F, s._underlying);
