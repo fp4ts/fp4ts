@@ -6,7 +6,7 @@ import { Semaphore } from '@cats4ts/effect-kernel';
 import { IO } from '../io';
 import { IOOutcome } from '../io-outcome';
 
-describe('io monad', () => {
+describe('IO', () => {
   describe('free monad', () => {
     it.ticked('should produce a pure value', async ticker => {
       await expect(IO.pure(42)).toCompleteWith(42, ticker);

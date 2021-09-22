@@ -308,9 +308,13 @@ export const tailRecM_ = <A, B>(
 
     const [hd, tl] = popHead(xs).get;
     stack[stack.length - 1] = tl;
-    hd.fold<void>(
-      a => stack.push(f(a)),
-      b => (results = append_(results, b)),
+    hd.fold(
+      a => {
+        stack.push(f(a));
+      },
+      b => {
+        results = append_(results, b);
+      },
     );
   }
 

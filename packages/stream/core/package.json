@@ -6,6 +6,7 @@
   "dependencies": {
     "@cats4ts/core": "*",
     "@cats4ts/cats-core": "*",
+    "@cats4ts/effect-core": "*",
     "@cats4ts/effect-kernel": "*"
   }
 }

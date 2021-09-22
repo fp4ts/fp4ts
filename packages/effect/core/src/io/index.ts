@@ -2,4 +2,4 @@ import './syntax';
 
 // Public exports
 
-export { IO, IoURI } from './io';
+export { IO, IoK } from './io';

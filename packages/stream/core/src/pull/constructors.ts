@@ -8,8 +8,7 @@ import { Eval, Fail, Pull, Succeed, Terminal, Output, Bind } from './algebra';
 export const pure = <F extends AnyK, R>(r: R): Pull<F, never, R> =>
   new Succeed(r);
 
-export const unit = <F extends AnyK>(): Terminal<F, void> =>
-  pure(undefined) as Terminal<any, void>;
+export const unit: Terminal<void> = pure(undefined) as Terminal<void>;
 
 export const done = <F extends AnyK>(): Pull<F, never, void> => pure(undefined);
 
@@ -37,4 +36,4 @@ export const output = <F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void> =>
 
 export const suspend = <F extends AnyK, O, R>(
   thunk: () => Pull<F, O, R>,
-): Pull<F, O, R> => new Bind(unit(), thunk);
+): Pull<F, O, R> => new Bind(unit, thunk);

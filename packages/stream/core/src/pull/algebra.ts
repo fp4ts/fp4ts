@@ -7,21 +7,21 @@ export abstract class Pull<F extends AnyK, O, R> {
   readonly __void!: void;
 }
 
-export class Succeed<F extends AnyK, R> extends Pull<F, never, R> {
+export class Succeed<R> extends Pull<AnyK, never, R> {
   public readonly tag = 'succeed';
   public constructor(public readonly result: R) {
     super();
   }
 }
 
-export class Fail<F extends AnyK> extends Pull<F, never, never> {
+export class Fail extends Pull<AnyK, never, never> {
   public readonly tag = 'fail';
-  public constructor(public readonly e: Error) {
+  public constructor(public readonly error: Error) {
     super();
   }
 }
 
-export type Terminal<F extends AnyK, R> = Succeed<F, R> | Fail<F>;
+export type Terminal<R> = Succeed<R> | Fail;
 
 export class Output<F extends AnyK, O> extends Pull<F, O, void> {
   public readonly tag = 'output';
@@ -30,15 +30,15 @@ export class Output<F extends AnyK, O> extends Pull<F, O, void> {
   }
 }
 
-export class Translate<F extends AnyK, G extends AnyK, O> extends Pull<
-  G,
+export class Translate<G extends AnyK, F extends AnyK, O> extends Pull<
+  F,
   O,
   void
 > {
   public readonly tag = 'translate';
   public constructor(
-    public readonly self: Pull<F, O, void>,
-    public readonly nt: FunctionK<F, G>,
+    public readonly self: Pull<G, O, void>,
+    public readonly nt: FunctionK<G, F>,
   ) {
     super();
   }
@@ -76,7 +76,7 @@ export type AlgEffect<F extends AnyK, R> = Eval<F, R>;
 
 export type Action<F extends AnyK, O, R> =
   | Output<F, O>
-  | Translate<F, any, O>
+  | Translate<any, F, O>
   | FlatMapOutput<F, any, O>
   | AlgEffect<F, R>
   | Uncons<F, O>;
@@ -85,14 +85,14 @@ export class Bind<F extends AnyK, O, X, R> extends Pull<F, O, R> {
   public readonly tag = 'bind';
   public constructor(
     public readonly step: Pull<F, O, X>,
-    public readonly cont: (r: Terminal<F, X>) => Pull<F, O, R>,
+    public readonly cont: (r: Terminal<X>) => Pull<F, O, R>,
   ) {
     super();
   }
 }
 
 export type View<F extends AnyK, O, R> =
-  | Terminal<F, R>
+  | Terminal<R>
   | Action<F, O, R>
   | Bind<F, O, any, R>;
 

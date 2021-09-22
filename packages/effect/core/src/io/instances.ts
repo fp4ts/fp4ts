@@ -62,8 +62,6 @@ import {
   raceOutcome_,
   racePair_,
   race_,
-  redeem,
-  redeemWith,
   redeemWith_,
   redeem_,
   tailRecM_,

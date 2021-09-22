@@ -16,6 +16,7 @@ module.exports = {
     '<rootDir>/effect/core/src',
     '<rootDir>/effect/kernel/src',
     '<rootDir>/effect/std/src',
+    '<rootDir>/stream/core/src',
   ],
   testEnvironment: 'node',
   moduleNameMapper: {

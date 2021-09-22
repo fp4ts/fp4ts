@@ -62,7 +62,7 @@ export const handleErrorWith_ = <F extends AnyK, O, R>(
   new Bind(pull, res => {
     if (res.tag !== 'fail') return res;
     try {
-      return h(res.e);
+      return h(res.error);
     } catch (e) {
       return new Fail(e as Error);
     }

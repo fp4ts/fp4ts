@@ -100,9 +100,13 @@ export const tailRecM_ = <A, B>(
       cur,
       () => (result = none),
       ab =>
-        ab.fold<void>(
-          a => (cur = f(a)),
-          b => (result = some(b)),
+        ab.fold(
+          a => {
+            cur = f(a);
+          },
+          b => {
+            result = some(b);
+          },
         ),
     );
   }

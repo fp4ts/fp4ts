@@ -1,4 +1,4 @@
-import { AnyK } from '@cats4ts/core';
+import { AnyK, Kind } from '@cats4ts/core';
 import { Either, Option } from '@cats4ts/cats-core/lib/data';
 import { Pull } from './algebra';
 import {
@@ -9,8 +9,9 @@ import {
   onComplete_,
 } from './operators';
 import { Chunk } from '../chunk';
-import { FunctionK } from '@cats4ts/cats-core';
+import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import {
+  compile_,
   flatMapOutput_,
   mapOutput_,
   translate_,
@@ -58,6 +59,11 @@ declare module './algebra' {
       this: Pull<F, O2, R2>,
       post: () => Pull<F, O2, R2>,
     ): Pull<F, O2, R2>;
+
+    compile<O2>(
+      this: Pull<F, O2, void>,
+      F: MonadError<F, Error>,
+    ): <B>(init: B, foldChunk: (b: B, chunk: Chunk<O2>) => B) => Kind<F, [B]>;
   }
 }
 
@@ -101,4 +107,8 @@ Object.defineProperty(Pull.prototype, 'attempt', {
 
 Pull.prototype.onComplete = function (post) {
   return onComplete_(this, post);
+};
+
+Pull.prototype.compile = function (F) {
+  return (init, foldChunk) => compile_(F)(this, init, foldChunk);
 };
