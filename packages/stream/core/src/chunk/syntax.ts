@@ -1,10 +1,13 @@
 import { List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { Chunk } from './algebra';
 import {
+  collect_,
   concat_,
   dropRight_,
   drop_,
   elem_,
+  filter_,
+  findIndex_,
   foldLeft_,
   isEmpty,
   lastOption,
@@ -31,8 +34,7 @@ declare module './algebra' {
     readonly toList: List<O>;
     readonly toVector: Vector<O>;
 
-    elem(idx: number): O;
-    '!!'(idx: number): O;
+    findIndex(pred: (o: O) => boolean): Option<number>;
 
     take(n: number): Chunk<O>;
     takeRight(n: number): Chunk<O>;
@@ -40,10 +42,16 @@ declare module './algebra' {
     dropRight(n: number): Chunk<O>;
     slice(offset: number, until: number): Chunk<O>;
 
+    elem(idx: number): O;
+    '!!'(idx: number): O;
+
     splitAt(idx: number): [Chunk<O>, Chunk<O>];
 
     concat<O2>(this: Chunk<O2>, that: Chunk<O2>): Chunk<O2>;
     '+++'<O2>(this: Chunk<O2>, that: Chunk<O2>): Chunk<O2>;
+
+    filter(pred: (o: O) => boolean): Chunk<O>;
+    collect<O2>(f: (o: O) => Option<O2>): Chunk<O2>;
 
     map<O2>(f: (o: O) => O2): Chunk<O2>;
 
@@ -89,11 +97,6 @@ Object.defineProperty(Chunk.prototype, 'toVector', {
   },
 });
 
-Chunk.prototype.elem = function (idx) {
-  return elem_(this, idx);
-};
-Chunk.prototype['!!'] = Chunk.prototype.elem;
-
 Chunk.prototype.slice = function (offset, until) {
   return slice_(this, offset, until);
 };
@@ -114,6 +117,15 @@ Chunk.prototype.dropRight = function (idx) {
   return dropRight_(this, idx);
 };
 
+Chunk.prototype.findIndex = function (pred) {
+  return findIndex_(this, pred);
+};
+
+Chunk.prototype.elem = function (idx) {
+  return elem_(this, idx);
+};
+Chunk.prototype['!!'] = Chunk.prototype.elem;
+
 Chunk.prototype.splitAt = function (idx) {
   return splitAt_(this, idx);
 };
@@ -122,6 +134,13 @@ Chunk.prototype.concat = function (that) {
   return concat_(this, that);
 };
 Chunk.prototype['+++'] = Chunk.prototype.concat;
+
+Chunk.prototype.filter = function (pred) {
+  return filter_(this, pred);
+};
+Chunk.prototype.collect = function (pred) {
+  return collect_(this, pred);
+};
 
 Chunk.prototype.map = function (f) {
   return map_(this, f);

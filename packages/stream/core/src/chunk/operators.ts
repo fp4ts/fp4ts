@@ -11,6 +11,7 @@ import {
   SingletonChunk,
   view,
 } from './algebra';
+import { fromArray, singleton } from './constructor';
 
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
@@ -45,6 +46,10 @@ export const drop: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
 export const dropRight: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
   dropRight_(c, n);
 
+export const findIndex: <O>(
+  pred: (o: O) => boolean,
+) => (c: Chunk<O>) => Option<number> = pred => c => findIndex_(c, pred);
+
 export const elem: (idx: number) => <O>(c: Chunk<O>) => O = idx => c =>
   elem_(c, idx);
 
@@ -61,6 +66,13 @@ export const splitAt: (
 export const concat: <O2>(
   c2: Chunk<O2>,
 ) => <O extends O2>(c1: Chunk<O>) => Chunk<O2> = c2 => c1 => concat_(c1, c2);
+
+export const filter: <O>(pred: (o: O) => boolean) => (c: Chunk<O>) => Chunk<O> =
+  pred => c => filter_(c, pred);
+
+export const collect: <O, O2>(
+  f: (o: O) => Option<O2>,
+) => (c: Chunk<O>) => Chunk<O2> = f => c => collect_(c, f);
 
 export const map: <O, O2>(f: (o: O) => O2) => (c: Chunk<O>) => Chunk<O2> =
   f => c =>
@@ -218,6 +230,44 @@ export const dropRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
   }
 };
 
+export const findIndex_ = <O>(
+  c: Chunk<O>,
+  pred: (o: O) => boolean,
+): Option<number> => {
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return None;
+    case 'singleton':
+      return pred(v.value) ? Some(0) : None;
+    case 'array': {
+      const idx = v.array.findIndex(pred);
+      return idx < 0 ? None : Some(idx);
+    }
+    case 'slice':
+      for (let i = 0, len = v.size; i < len; i++) {
+        if (pred(v.values[v.offset + i])) {
+          return Some(i);
+        }
+      }
+      return None;
+    case 'queue': {
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      let offset = 0;
+      while (true) {
+        const popped = chunks.popHead;
+        if (popped.isEmpty) return None;
+        [head, chunks] = popped.get;
+
+        const idxD = findIndex_(head, pred);
+        if (idxD.nonEmpty) return idxD.map(i => i + offset);
+        offset += head.size;
+      }
+    }
+  }
+};
+
 export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
   assert(idx < size(c), 'Chunk.elem IndexOutOfBounds');
   const v = view(c);
@@ -291,6 +341,50 @@ export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
           return new Queue(Vector(v1, v2));
       }
   }
+};
+
+export const filter_ = <O>(c: Chunk<O>, pred: (o: O) => boolean): Chunk<O> => {
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return EmptyChunk;
+    case 'singleton':
+      return pred(v.value) ? v : EmptyChunk;
+    case 'array':
+      return fromArray(v.array.filter(pred));
+    case 'slice': {
+      const results: O[] = [];
+      for (let i = v.offset, len = v.offset + v.length; i < len; i++) {
+        if (pred(v.values[i])) results.push(v.values[i]);
+      }
+      return fromArray(results);
+    }
+    case 'queue': {
+      let results: Chunk<O> = EmptyChunk;
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      while (true) {
+        const r = chunks.popHead;
+        if (r.isEmpty) return results;
+        [head, chunks] = r.get;
+        results = concat_(results, filter_(head, pred));
+      }
+    }
+  }
+};
+
+export const collect_ = <O, O2>(
+  c: Chunk<O>,
+  f: (o: O) => Option<O2>,
+): Chunk<O2> => {
+  const results: O2[] = [];
+  for (let i = 0, len = c.size; i < len; i++) {
+    f(elem_(c, i)).fold(
+      () => {},
+      o => results.push(o),
+    );
+  }
+  return fromArray(results);
 };
 
 export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {

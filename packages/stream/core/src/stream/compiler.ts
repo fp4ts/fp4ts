@@ -47,9 +47,7 @@ export class Compiler<F extends AnyK, A> {
   }
 
   public get string(): A extends string ? Kind<F, [string]> : never {
-    const result: Kind<F, [string]> = new Stream(
-      this.stream as Pull<F, string, void>,
-    )
+    const result: Kind<F, [string]> = new Stream(this.stream as any)
       .compileF(this.F)
       .to(Collector.string());
 

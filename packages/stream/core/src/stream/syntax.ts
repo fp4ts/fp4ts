@@ -1,6 +1,6 @@
-import { MonadError } from '@cats4ts/cats-core';
-import { Either, List, Vector } from '@cats4ts/cats-core/lib/data';
-import { AnyK } from '@cats4ts/core';
+import { AnyK, Kind } from '@cats4ts/core';
+import { MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
+import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { SyncIoK } from '@cats4ts/effect-core';
 
 import { Chunk } from '../chunk';
@@ -28,12 +28,31 @@ import {
   chunkAll,
   takeRight_,
   dropRight_,
+  takeWhile_,
+  dropWhile_,
+  headOption,
+  last,
+  lastOption,
+  init,
+  filter_,
+  filterNot_,
+  collect_,
+  collectWhile_,
+  collectFirst_,
+  fold_,
+  foldMap_,
+  foldMapK_,
 } from './operators';
 
 declare module './algebra' {
   interface Stream<F extends AnyK, A> {
     readonly head: Stream<F, A>;
+    readonly headOption: Stream<F, Option<A>>;
     readonly tail: Stream<F, A>;
+
+    readonly last: Stream<F, A>;
+    readonly lastOption: Stream<F, Option<A>>;
+    readonly init: Stream<F, A>;
 
     readonly repeat: Stream<F, A>;
 
@@ -42,8 +61,11 @@ declare module './algebra' {
 
     take(n: number): Stream<F, A>;
     takeRight(n: number): Stream<F, A>;
+    takeWhile(pred: (a: A) => boolean, takeFailure?: boolean): Stream<F, A>;
+
     drop(n: number): Stream<F, A>;
     dropRight(n: number): Stream<F, A>;
+    dropWhile(pred: (a: A) => boolean, dropFailure?: boolean): Stream<F, A>;
 
     concat<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
     '+++'<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
@@ -58,12 +80,23 @@ declare module './algebra' {
     readonly chunks: Stream<F, Chunk<A>>;
     readonly chunkAll: Stream<F, Chunk<A>>;
 
+    filter(pred: (a: A) => boolean): Stream<F, A>;
+    filterNot(pred: (a: A) => boolean): Stream<F, A>;
+
     as<B>(result: B): Stream<F, B>;
     map<B>(f: (a: A) => B): Stream<F, B>;
+    collect<B>(f: (a: A) => Option<B>): Stream<F, B>;
+    collectFirst<B>(f: (a: A) => Option<B>): Stream<F, B>;
+    collectWhile<B>(f: (a: A) => Option<B>): Stream<F, B>;
 
     flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
-
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
+
+    fold<B>(z: B, f: (b: B, a: A) => B): Stream<F, B>;
+    foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => Stream<F, M>;
+    foldMapK<G extends AnyK>(
+      G: MonoidK<G>,
+    ): <B>(f: (a: A) => Kind<G, [B]>) => Stream<F, Kind<G, [B]>>;
 
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
@@ -81,10 +114,32 @@ Object.defineProperty(Stream.prototype, 'head', {
     return head(this);
   },
 });
+Object.defineProperty(Stream.prototype, 'headOption', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Option<A>> {
+    return headOption(this);
+  },
+});
 
 Object.defineProperty(Stream.prototype, 'tail', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
     return tail(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'last', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+    return last(this);
+  },
+});
+Object.defineProperty(Stream.prototype, 'lastOption', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Option<A>> {
+    return lastOption(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'init', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+    return init(this);
   },
 });
 
@@ -108,23 +163,24 @@ Stream.prototype.take = function (n) {
 Stream.prototype.takeRight = function (n) {
   return takeRight_(this, n);
 };
+Stream.prototype.takeWhile = function (pred, takeFailure) {
+  return takeWhile_(this, pred, takeFailure);
+};
 
 Stream.prototype.drop = function (n) {
   return drop_(this, n);
 };
-
 Stream.prototype.dropRight = function (n) {
   return dropRight_(this, n);
+};
+Stream.prototype.dropWhile = function (pred, dropFailure) {
+  return dropWhile_(this, pred, dropFailure);
 };
 
 Stream.prototype.concat = function (that) {
   return concat_(this, that);
 };
 Stream.prototype['+++'] = Stream.prototype.concat;
-
-Stream.prototype.as = function (r) {
-  return map_(this, () => r);
-};
 
 Object.defineProperty(Stream.prototype, 'attempt', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
@@ -148,6 +204,26 @@ Object.defineProperty(Stream.prototype, 'chunkAll', {
   },
 });
 
+Stream.prototype.filter = function (pred) {
+  return filter_(this, pred);
+};
+Stream.prototype.filterNot = function (pred) {
+  return filterNot_(this, pred);
+};
+Stream.prototype.collect = function (f) {
+  return collect_(this, f);
+};
+Stream.prototype.collectFirst = function (f) {
+  return collectFirst_(this, f);
+};
+Stream.prototype.collectWhile = function (f) {
+  return collectWhile_(this, f);
+};
+
+Stream.prototype.as = function (r) {
+  return map_(this, () => r);
+};
+
 Stream.prototype.map = function (f) {
   return map_(this, f);
 };
@@ -161,6 +237,18 @@ Object.defineProperty(Stream.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Stream.prototype.fold = function (z, f) {
+  return fold_(this, z, f);
+};
+
+Stream.prototype.foldMap = function (M) {
+  return f => foldMap_(M)(this, f);
+};
+
+Stream.prototype.foldMapK = function (G) {
+  return f => foldMapK_(G)(this, f);
+};
 
 Stream.prototype.zip = function (that) {
   return zip_(this, that);

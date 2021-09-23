@@ -31,12 +31,47 @@ export const uncons: <F extends AnyK, O>(
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = pull =>
   new Uncons(pull);
 
+export const uncons1: <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<[O, Pull<F, O, void>]>> = p =>
+  pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(None),
+        ([hd, tl]) =>
+          hd.size === 1
+            ? P.pure(Some([hd['!!'](0), tl]))
+            : P.pure(Some([hd['!!'](0), cons(hd.drop(1), tl)])),
+      ),
+    ),
+  );
+
 export const unconsN: (
   n: number,
 ) => <F extends AnyK, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = n => p =>
   unconsN_(p, n);
+
+export const last = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+): Pull<F, never, Option<O>> => {
+  const go = (
+    p: Pull<F, O, void>,
+    prev: Option<O>,
+  ): Pull<F, never, Option<O>> =>
+    pipe(
+      uncons(p),
+      P.flatMap(opt =>
+        opt.fold(
+          () => P.pure(prev),
+          ([hd, tl]) => go(tl, hd.lastOption),
+        ),
+      ),
+    );
+  return go(p, None);
+};
 
 export const take: (
   n: number,
@@ -50,11 +85,36 @@ export const takeRight: (
   n => p =>
     takeRight_(p, n);
 
+export const takeWhile: <O>(
+  pred: (o: O) => boolean,
+  takeFailure?: boolean,
+) => <F extends AnyK>(
+  c: Pull<F, O, void>,
+) => Pull<F, O, Option<Pull<F, O, void>>> = (pred, takeFailure) => c =>
+  takeWhile_(c, pred, takeFailure);
+
 export const drop: (
   n: number,
 ) => <F extends AnyK, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<Pull<F, O, void>>> = n => p => drop_(p, n);
+
+export const dropWhile: <O>(
+  pred: (o: O) => boolean,
+  dropFailure?: boolean,
+) => <F extends AnyK>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<Pull<F, O, void>>> =
+  (pred, dropFailure = false) =>
+  p =>
+    dropWhile_(p, pred, dropFailure);
+
+export const find: <O>(
+  pred: (o: O) => boolean,
+) => <F extends AnyK>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<[O, Pull<F, O, void>]>> = pred => p =>
+  find_(p, pred);
 
 export const mapOutput: <O, P>(
   f: (o: O) => P,
@@ -70,6 +130,12 @@ export const translate: <F extends AnyK, G extends AnyK>(
   nt: FunctionK<F, G>,
 ) => <O>(pull: Pull<F, O, void>) => Pull<G, O, void> = nt => pull =>
   translate_(pull, nt);
+
+export const fold: <O, P>(
+  z: P,
+  f: (p: P, o: O) => P,
+) => <F extends AnyK>(p: Pull<F, O, void>) => Pull<F, never, P> = (z, f) => p =>
+  fold_(p, z, f);
 
 export const compile: <F extends AnyK>(
   F: MonadError<F, Error>,
@@ -159,6 +225,37 @@ export const takeRight_ = <F extends AnyK, O>(
   return n <= 0 ? P.pure(Chunk.empty) : go(p, Chunk.empty);
 };
 
+export const takeWhile_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  pred: (o: O) => boolean,
+  takeFailure: boolean = false,
+): Pull<F, O, Option<Pull<F, O, void>>> =>
+  pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(None),
+        ([hd, tl]) =>
+          hd
+            .findIndex(x => !pred(x))
+            .fold(
+              () =>
+                pipe(
+                  P.output(hd),
+                  P.flatMap(() => takeWhile_(tl, pred, takeFailure)),
+                ),
+              idx => {
+                const toTake = takeFailure ? idx + 1 : idx;
+                const [pfx, sfx] = hd.splitAt(toTake);
+                return P.flatMap_(P.output(pfx), () =>
+                  P.pure(Some(cons(sfx, tl))),
+                );
+              },
+            ),
+      ),
+    ),
+  );
+
 export const drop_ = <F extends AnyK, O>(
   p: Pull<F, O, void>,
   n: number,
@@ -180,6 +277,51 @@ export const drop_ = <F extends AnyK, O>(
           ),
         ),
       );
+
+export const dropWhile_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  pred: (o: O) => boolean,
+  dropFailure: boolean = false,
+): Pull<F, never, Option<Pull<F, O, void>>> =>
+  pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(None),
+        ([hd, tl]) =>
+          hd
+            .findIndex(o => !pred(o))
+            .fold(
+              () => dropWhile_(tl, pred),
+              idx => {
+                const toDrop = dropFailure ? idx + 1 : idx;
+                return P.pure(Some(cons(hd.drop(toDrop), tl)));
+              },
+            ),
+      ),
+    ),
+  );
+
+export const find_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  pred: (o: O) => boolean,
+): Pull<F, never, Option<[O, Pull<F, O, void>]>> =>
+  pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(None),
+        ([hd, tl]) =>
+          hd.findIndex(pred).fold(
+            () => find_(tl, pred),
+            idx => {
+              const rem = hd.drop(idx + 1);
+              return P.pure(Some([hd['!!'](idx), cons(rem, tl)]));
+            },
+          ),
+      ),
+    ),
+  );
 
 export const mapOutput_ = <F extends AnyK, O, P>(
   pull: Pull<F, O, void>,
@@ -204,6 +346,24 @@ export const flatMapOutput_ = <F extends AnyK, O, P>(
   pull: Pull<F, O, void>,
   f: (o: O) => Pull<F, P, void>,
 ): Pull<F, P, void> => new FlatMapOutput(pull, f);
+
+export const fold_ = <F extends AnyK, O, P>(
+  p: Pull<F, O, void>,
+  z: P,
+  f: (p: P, o: O) => P,
+): Pull<F, never, P> =>
+  pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(z),
+        ([hd, tl]) => {
+          const acc = hd.foldLeft(z, f);
+          return fold_(tl, acc, f);
+        },
+      ),
+    ),
+  );
 
 export const translate_ = <F extends AnyK, G extends AnyK, O>(
   pull: Pull<F, O, void>,
@@ -272,7 +432,7 @@ export const compile_ =
               case 'flatMapOutput':
               case 'uncons':
               case 'eval':
-                cont = v.cont;
+                cont = v.cont as Cont<unknown, any, never>;
                 return step;
 
               case 'bind':

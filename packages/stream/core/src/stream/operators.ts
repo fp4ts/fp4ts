@@ -1,4 +1,5 @@
-import { AnyK, id, pipe } from '@cats4ts/core';
+import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
 import {
   Either,
   Left,
@@ -7,7 +8,6 @@ import {
   Right,
   Some,
 } from '@cats4ts/cats-core/lib/data';
-import { MonadError } from '@cats4ts/cats-core';
 import { SyncIoK } from '@cats4ts/effect-core';
 
 import { Chunk } from '../chunk';
@@ -19,8 +19,25 @@ import { fromChunk, pure, suspend } from './constructor';
 export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   take_(s, 1);
 
+export const headOption: <F extends AnyK, A>(
+  s: Stream<F, A>,
+) => Stream<F, Option<A>> = s =>
+  new Stream(
+    s.pull.uncons1.flatMap(opt => Pull.output1(opt.map(([hd]) => hd))),
+  );
+
 export const tail: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   drop_(s, 1);
+
+export const last: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+  new Stream(s.pull.last.flatMap(Pull.outputOption1));
+
+export const lastOption: <F extends AnyK, A>(
+  s: Stream<F, A>,
+) => Stream<F, Option<A>> = s => new Stream(s.pull.last.flatMap(Pull.output1));
+
+export const init: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+  dropRight_(s, 1);
 
 export const repeat: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   s['+++'](suspend(() => repeat(s)));
@@ -55,6 +72,13 @@ export const takeRight: (
 ) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
   takeRight_(s, n);
 
+export const takeWhile: <A>(
+  pred: (a: A) => boolean,
+  takeFailure?: boolean,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> =
+  (pred, takeFailure) => s =>
+    takeWhile_(s, pred, takeFailure);
+
 export const drop: (
   n: number,
 ) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
@@ -64,6 +88,14 @@ export const dropRight: (
   n: number,
 ) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
   dropRight_(s, n);
+
+export const dropWhile: <A>(
+  pred: (a: A) => boolean,
+  dropFailure?: boolean,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> =
+  (pred, dropFailure = false) =>
+  s =>
+    dropWhile_(s, pred, dropFailure);
 
 export const concat: <F extends AnyK, A2>(
   s2: Stream<F, A2>,
@@ -109,6 +141,31 @@ export const chunkAll = <F extends AnyK, A>(
   return new Stream(loop(s.pull, Chunk.empty));
 };
 
+export const filter: <A>(
+  pred: (a: A) => boolean,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = pred => s =>
+  filter_(s, pred);
+
+export const filterNot: <A>(
+  pred: (a: A) => boolean,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = pred => s =>
+  filterNot_(s, pred);
+
+export const collect: <A, B>(
+  f: (a: A) => Option<B>,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
+  collect_(s, f);
+
+export const collectFirst: <A, B>(
+  f: (a: A) => Option<B>,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
+  collectFirst_(s, f);
+
+export const collectWhile: <A, B>(
+  f: (a: A) => Option<B>,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
+  collectWhile_(s, f);
+
 export const map: <A, B>(
   f: (a: A) => B,
 ) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s => map_(s, f);
@@ -120,6 +177,26 @@ export const flatMap: <F extends AnyK, A, B>(
 export const flatten: <F extends AnyK, A>(
   ss: Stream<F, Stream<F, A>>,
 ) => Stream<F, A> = ss => flatMap_(ss, id);
+
+export const fold: <A, B>(
+  z: B,
+  f: (b: B, a: A) => B,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = (z, f) => s =>
+  fold_(s, z, f);
+
+export const foldMap: <M>(
+  M: Monoid<M>,
+) => <F extends AnyK, A>(f: (a: A) => M) => (s: Stream<F, A>) => Stream<F, M> =
+  M => f => s =>
+    foldMap_(M)(s, f);
+
+export const foldMapK: <G extends AnyK>(
+  G: MonoidK<G>,
+) => <A, B>(
+  f: (a: A) => Kind<G, [B]>,
+) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, Kind<G, [B]>> =
+  G => f => s =>
+    foldMapK_(G)(s, f);
 
 export const zip: <F extends AnyK, B>(
   s2: Stream<F, B>,
@@ -159,6 +236,12 @@ export const takeRight_ = <F extends AnyK, A>(
   n: number,
 ): Stream<F, A> => new Stream(s.pull.takeRight(n).flatMap(Pull.output));
 
+export const takeWhile_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  p: (a: A) => boolean,
+  takeFailure: boolean = false,
+): Stream<F, A> => new Stream(s.pull.takeWhile(p, takeFailure).void);
+
 export const drop_ = <F extends AnyK, A>(
   s: Stream<F, A>,
   n: number,
@@ -187,6 +270,17 @@ export const dropRight_ = <F extends AnyK, A>(
   return n <= 0 ? s : new Stream(go(s.pull, Chunk.empty));
 };
 
+export const dropWhile_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  pred: (a: A) => boolean,
+  dropFailure: boolean = false,
+): Stream<F, A> =>
+  new Stream(
+    s.pull
+      .dropWhile(pred, dropFailure)
+      .flatMap(opt => opt.fold(() => Pull.done(), id)),
+  );
+
 export const concat_ = <F extends AnyK, A>(
   s1: Stream<F, A>,
   s2: Stream<F, A>,
@@ -197,6 +291,58 @@ export const handleErrorWith_ = <F extends AnyK, A>(
   h: (e: Error) => Stream<F, A>,
 ): Stream<F, A> => new Stream(s.pull.handleErrorWith(e => h(e).pull));
 
+export const filter_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  pred: (a: A) => boolean,
+): Stream<F, A> => mapChunks_(s, chunk => chunk.filter(pred));
+
+export const filterNot_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  pred: (a: A) => boolean,
+): Stream<F, A> => filter_(s, x => !pred(x));
+
+export const collect_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => Option<B>,
+): Stream<F, B> => mapChunks_(s, c => c.collect(f));
+
+export const collectFirst_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => Option<B>,
+): Stream<F, B> =>
+  new Stream(
+    s.pull
+      .mapOutput(f)
+      .find(x => x.nonEmpty)
+      .flatMap(opt =>
+        opt.fold(
+          () => Pull.done(),
+          ([hd]) => Pull.output1(hd.get),
+        ),
+      ),
+  );
+
+export const collectWhile_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => Option<B>,
+): Stream<F, B> =>
+  new Stream(s.pull.mapOutput(f).takeWhile(o => o.nonEmpty).void).map(
+    o => o.get,
+  );
+
+export const mapChunks_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (c: Chunk<A>) => Chunk<B>,
+): Stream<F, B> =>
+  repeatPull_(s, p =>
+    p.uncons.flatMap(opt =>
+      opt.fold(
+        () => Pull.pure(None),
+        ([hd, tl]) => Pull.output(f(hd)).map(() => Some(tl)),
+      ),
+    ),
+  );
+
 export const map_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
   f: (a: A) => B,
@@ -206,6 +352,25 @@ export const flatMap_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Stream<F, B>,
 ): Stream<F, B> => new Stream(s.pull.flatMapOutput(o => f(o).pull));
+
+export const fold_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  z: B,
+  f: (b: B, a: A) => B,
+): Stream<F, B> => new Stream(s.pull.fold(z, f).flatMap(Pull.output1));
+
+export const foldMap_ =
+  <M>(M: Monoid<M>) =>
+  <F extends AnyK, A>(s: Stream<F, A>, f: (a: A) => M): Stream<F, M> =>
+    fold_(s, M.empty, (m, a) => M.combine_(m, f(a)));
+
+export const foldMapK_ =
+  <G extends AnyK>(G: MonoidK<G>) =>
+  <F extends AnyK, A, B>(
+    s: Stream<F, A>,
+    f: (a: A) => Kind<G, [B]>,
+  ): Stream<F, Kind<G, [B]>> =>
+    fold_(s, G.emptyK(), (m, a) => G.combineK_(m, f(a)));
 
 export const zip_ = <F extends AnyK, A, B>(
   s1: Stream<F, A>,

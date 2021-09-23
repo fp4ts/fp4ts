@@ -74,11 +74,11 @@ declare module './algebra' {
     readonly nonEmpty: boolean;
 
     readonly head: A;
-    readonly headOption: A;
+    readonly headOption: Option<A>;
     readonly tail: List<A>;
 
     readonly last: A;
-    readonly lastOption: A;
+    readonly lastOption: Option<A>;
     readonly init: List<A>;
 
     readonly uncons: Option<[A, List<A>]>;

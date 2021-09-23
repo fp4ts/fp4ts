@@ -12,13 +12,19 @@ import { Chunk } from '../chunk';
 import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import {
   compile_,
+  dropWhile_,
   drop_,
+  find_,
   flatMapOutput_,
+  fold_,
+  last,
   mapOutput_,
   takeRight_,
+  takeWhile_,
   take_,
   translate_,
   uncons,
+  uncons1,
   unconsN_,
 } from './stream-projection';
 
@@ -28,22 +34,43 @@ declare module './algebra' {
       ? Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>
       : never;
 
+    readonly uncons1: R extends void
+      ? Pull<F, never, Option<[O, Pull<F, O, void>]>>
+      : never;
+
     unconsN(
       this: Pull<F, O, void>,
       n: number,
       allowFewer?: boolean,
     ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>;
 
+    readonly last: R extends void ? Pull<F, never, Option<O>> : never;
+
     take(
       this: Pull<F, O, void>,
       n: number,
     ): Pull<F, O, Option<Pull<F, O, void>>>;
     takeRight(this: Pull<F, O, void>, n: number): Pull<F, never, Chunk<O>>;
+    takeWhile(
+      this: Pull<F, O, void>,
+      pred: (o: O) => boolean,
+      takeFailure?: boolean,
+    ): Pull<F, O, Option<Pull<F, O, void>>>;
 
     drop(
       this: Pull<F, O, void>,
       n: number,
     ): Pull<F, never, Option<Pull<F, O, void>>>;
+    dropWhile(
+      this: Pull<F, O, void>,
+      pred: (o: O) => boolean,
+      dropFailure?: boolean,
+    ): Pull<F, never, Option<Pull<F, O, void>>>;
+
+    find(
+      this: Pull<F, O, void>,
+      pred: (o: O) => boolean,
+    ): Pull<F, never, Option<[O, Pull<F, O, void>]>>;
 
     mapOutput<O2, P>(
       this: Pull<F, O2, void>,
@@ -83,6 +110,12 @@ declare module './algebra' {
       post: () => Pull<F, O2, R2>,
     ): Pull<F, O2, R2>;
 
+    fold<P>(
+      this: Pull<F, O, void>,
+      z: P,
+      f: (p: P, o: O) => P,
+    ): Pull<F, never, P>;
+
     compile<O2>(
       this: Pull<F, O2, void>,
       F: MonadError<F, Error>,
@@ -98,20 +131,43 @@ Object.defineProperty(Pull.prototype, 'uncons', {
   },
 });
 
+Object.defineProperty(Pull.prototype, 'uncons1', {
+  get<F extends AnyK, O>(
+    this: Pull<F, O, void>,
+  ): Pull<F, never, Option<[O, Pull<F, O, void>]>> {
+    return uncons1(this);
+  },
+});
+
 Pull.prototype.unconsN = function (n, allowFewer) {
   return unconsN_(this, n, allowFewer);
 };
 
+Object.defineProperty(Pull.prototype, 'last', {
+  get<F extends AnyK, O>(this: Pull<F, O, void>): Pull<F, never, Option<O>> {
+    return last(this);
+  },
+});
+
 Pull.prototype.take = function (n) {
   return take_(this, n);
 };
-
 Pull.prototype.takeRight = function (n) {
   return takeRight_(this, n);
+};
+Pull.prototype.takeWhile = function (pred, takeFailure) {
+  return takeWhile_(this, pred, takeFailure);
 };
 
 Pull.prototype.drop = function (n) {
   return drop_(this, n);
+};
+Pull.prototype.dropWhile = function (pred, dropFailure) {
+  return dropWhile_(this, pred, dropFailure);
+};
+
+Pull.prototype.find = function (pred) {
+  return find_(this, pred);
 };
 
 Pull.prototype.mapOutput = function (f) {
@@ -149,6 +205,10 @@ Pull.prototype.handleErrorWith = function (h) {
 
 Pull.prototype.onComplete = function (post) {
   return onComplete_(this, post);
+};
+
+Pull.prototype.fold = function (z, f) {
+  return fold_(this, z, f);
 };
 
 Pull.prototype.compile = function (F) {
