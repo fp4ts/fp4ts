@@ -134,7 +134,7 @@ const runBenchmark =
       // Print out the report
       console.log(
         id,
-        measurements.slice(warmup).reduce((a, b) => a + b, 0) / 10,
+        measurements.slice(warmup).reduce((a, b) => a + b, 0) / iterations,
       );
     };
 

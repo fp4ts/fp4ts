@@ -1,12 +1,20 @@
 {
   "name": "@cats4ts/stream-core",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo",
+    "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
+  },
   "dependencies": {
     "@cats4ts/core": "*",
     "@cats4ts/cats-core": "*",
     "@cats4ts/effect-core": "*",
     "@cats4ts/effect-kernel": "*"
+  },
+  "devDependencies": {
+    "typescript": "4.4.2"
   }
 }

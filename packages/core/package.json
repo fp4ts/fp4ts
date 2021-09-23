@@ -1,6 +1,14 @@
 {
   "name": "@cats4ts/core",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo",
+    "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "typescript": "4.4.2"
+  }
 }

@@ -1,9 +1,15 @@
 {
   "name": "@cats4ts/effect-test-kit",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo",
+    "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
+  },
   "devDependencies": {
-    "@cats4ts/effect-kernel": "*"
+    "@cats4ts/effect-kernel": "*",
+    "typescript": "4.4.2"
   }
 }

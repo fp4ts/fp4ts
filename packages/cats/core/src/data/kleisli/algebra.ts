@@ -1,5 +1,7 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { FlatMap, Applicative, Functor } from '@cats4ts/cats-core';
+import { FlatMap } from '../../flat-map';
+import { Applicative } from '../../applicative';
+import { Functor } from '../../functor';
 
 export abstract class Kleisli<F extends AnyK, A, B> {
   private readonly __void!: void;

@@ -1,10 +1,8 @@
 import { $ } from '@cats4ts/core';
-import {
-  Functor,
-  FunctorFilter,
-  Foldable,
-  Traversable,
-} from '@cats4ts/cats-core';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Foldable } from '../../../foldable';
+import { Traversable } from '../../../traversable';
 
 import { HashMapK } from './hash-map';
 import {

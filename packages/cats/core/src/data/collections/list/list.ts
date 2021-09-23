@@ -1,17 +1,15 @@
 import { TyK, _ } from '@cats4ts/core';
-import {
-  Apply,
-  Applicative,
-  Alternative,
-  Foldable,
-  FlatMap,
-  Functor,
-  FunctorFilter,
-  Monad,
-  MonoidK,
-  SemigroupK,
-  Traversable,
-} from '@cats4ts/cats-core';
+import { Apply } from '../../../apply';
+import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
+import { Foldable } from '../../../foldable';
+import { FlatMap } from '../../../flat-map';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Monad } from '../../../monad';
+import { MonoidK } from '../../../monoid-k';
+import { SemigroupK } from '../../../semigroup-k';
+import { Traversable } from '../../../traversable';
 
 import { Either } from '../../either';
 import { Vector } from '../vector';
