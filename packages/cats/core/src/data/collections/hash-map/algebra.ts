@@ -2,6 +2,9 @@ import { ok as assert } from 'assert';
 
 export abstract class HashMap<K, V> {
   readonly __void!: void;
+
+  readonly _K!: () => K;
+  readonly _V!: () => V;
 }
 
 export class Inner<K, V> extends HashMap<K, V> {

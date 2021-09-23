@@ -1,6 +1,11 @@
 import { AnyK, Kind } from '@cats4ts/core';
 
-export abstract class Free<F extends AnyK, A> {}
+export abstract class Free<F extends AnyK, A> {
+  private readonly __void!: void;
+
+  private readonly _F!: (f: F) => F;
+  private readonly _A!: () => A;
+}
 
 export class Pure<F extends AnyK, A> extends Free<F, A> {
   public readonly tag = 'pure';

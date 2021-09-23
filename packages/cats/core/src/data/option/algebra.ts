@@ -1,5 +1,6 @@
 export abstract class Option<A> {
   readonly __void!: void;
+  readonly _A!: () => A;
 }
 
 export class Some<A> extends Option<A> {

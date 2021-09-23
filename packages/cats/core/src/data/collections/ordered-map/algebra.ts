@@ -1,5 +1,8 @@
 export abstract class OrderedMap<K, V> {
   readonly __void!: void;
+
+  readonly _K!: () => K;
+  readonly _V!: () => V;
 }
 
 export class Bin<K, V> extends OrderedMap<K, V> {

@@ -1,5 +1,7 @@
 export abstract class Either<E, A> {
   private readonly __void!: void;
+  private readonly _E!: () => E;
+  private readonly _A!: () => A;
 }
 
 export class Right<A> extends Either<never, A> {

@@ -1,5 +1,8 @@
 export class State<S, A> {
   private readonly __void!: void;
+
+  private readonly _S!: (s: S) => S;
+  private readonly _A!: () => A;
 }
 
 export class Pure<S, A> extends State<S, A> {

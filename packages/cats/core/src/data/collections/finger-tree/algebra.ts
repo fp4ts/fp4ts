@@ -3,6 +3,9 @@ import { ok as assert } from 'assert';
 // https://andrew.gibiansky.com/blog/haskell/finger-trees/
 export abstract class FingerTree<V, A> {
   readonly __void!: void;
+
+  readonly _V!: (v: V) => V;
+  readonly _A!: () => A;
 }
 
 export const Empty = new (class Empty extends FingerTree<any, never> {

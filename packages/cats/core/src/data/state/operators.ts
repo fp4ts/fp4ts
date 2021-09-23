@@ -121,7 +121,7 @@ export const tailRecM_ = <S, A, B>(
 
 export const runState_ = <S, A>(fa: State<S, A>, s: S): [S, A] => {
   type Frame = (a: unknown) => State<unknown, unknown>;
-  let _cur: State<unknown, unknown> = fa;
+  let _cur: State<any, unknown> = fa;
   let state: unknown = s;
   const stack: Frame[] = [];
 

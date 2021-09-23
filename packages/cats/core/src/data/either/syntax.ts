@@ -28,7 +28,7 @@ declare module './algebra' {
 
     getOrElse<A2>(this: Either<E, A2>, defaultValue: () => A2): A2;
 
-    flatMap<B, E2>(
+    flatMap<E2, B>(
       this: Either<E2, A>,
       f: (a: A) => Either<E2, B>,
     ): Either<E2, B>;
