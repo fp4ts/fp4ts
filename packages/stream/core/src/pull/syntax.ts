@@ -1,8 +1,7 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { Either, Option } from '@cats4ts/cats-core/lib/data';
+import { Option } from '@cats4ts/cats-core/lib/data';
 import { Pull } from './algebra';
 import {
-  attempt,
   flatMap_,
   handleErrorWith_,
   map_,
@@ -16,9 +15,11 @@ import {
   drop_,
   flatMapOutput_,
   mapOutput_,
+  takeRight_,
   take_,
   translate_,
   uncons,
+  unconsN_,
 } from './stream-projection';
 
 declare module './algebra' {
@@ -27,10 +28,17 @@ declare module './algebra' {
       ? Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>
       : never;
 
+    unconsN(
+      this: Pull<F, O, void>,
+      n: number,
+      allowFewer?: boolean,
+    ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>;
+
     take(
       this: Pull<F, O, void>,
       n: number,
     ): Pull<F, O, Option<Pull<F, O, void>>>;
+    takeRight(this: Pull<F, O, void>, n: number): Pull<F, never, Chunk<O>>;
 
     drop(
       this: Pull<F, O, void>,
@@ -70,8 +78,6 @@ declare module './algebra' {
       h: (e: Error) => Pull<F, O2, R2>,
     ): Pull<F, O2, R2>;
 
-    readonly attempt: Pull<F, O, Either<Error, R>>;
-
     onComplete<O2, R2>(
       this: Pull<F, O2, R2>,
       post: () => Pull<F, O2, R2>,
@@ -92,8 +98,16 @@ Object.defineProperty(Pull.prototype, 'uncons', {
   },
 });
 
+Pull.prototype.unconsN = function (n, allowFewer) {
+  return unconsN_(this, n, allowFewer);
+};
+
 Pull.prototype.take = function (n) {
   return take_(this, n);
+};
+
+Pull.prototype.takeRight = function (n) {
+  return takeRight_(this, n);
 };
 
 Pull.prototype.drop = function (n) {
@@ -132,12 +146,6 @@ Pull.prototype['>>>'] = function (f) {
 Pull.prototype.handleErrorWith = function (h) {
   return handleErrorWith_(this, h);
 };
-
-Object.defineProperty(Pull.prototype, 'attempt', {
-  get<F extends AnyK, O, R>(this: Pull<F, O, R>): Pull<F, O, Either<Error, R>> {
-    return attempt(this);
-  },
-});
 
 Pull.prototype.onComplete = function (post) {
   return onComplete_(this, post);

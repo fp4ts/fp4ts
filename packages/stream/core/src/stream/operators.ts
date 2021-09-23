@@ -1,4 +1,12 @@
-import { AnyK, id, Kind } from '@cats4ts/core';
+import { AnyK, id, pipe } from '@cats4ts/core';
+import {
+  Either,
+  Left,
+  None,
+  Option,
+  Right,
+  Some,
+} from '@cats4ts/cats-core/lib/data';
 import { MonadError } from '@cats4ts/cats-core';
 import { SyncIoK } from '@cats4ts/effect-core';
 
@@ -42,15 +50,64 @@ export const take: (
 ) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
   take_(s, n);
 
+export const takeRight: (
+  n: number,
+) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
+  takeRight_(s, n);
+
 export const drop: (
   n: number,
 ) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
   drop_(s, n);
 
+export const dropRight: (
+  n: number,
+) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
+  dropRight_(s, n);
+
 export const concat: <F extends AnyK, A2>(
   s2: Stream<F, A2>,
 ) => <A extends A2>(s1: Stream<F, A>) => Stream<F, A2> = s2 => s1 =>
   concat_(s1, s2);
+
+export const attempt = <F extends AnyK, A>(
+  s: Stream<F, A>,
+): Stream<F, Either<Error, A>> =>
+  pipe(
+    s,
+    map(x => Right(x) as Either<Error, A>),
+    handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
+  );
+
+export const handleErrorWith: <F extends AnyK, A2>(
+  h: (e: Error) => Stream<F, A2>,
+) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
+  handleErrorWith_(s, h);
+
+export const chunks: <F extends AnyK, A>(
+  s: Stream<F, A>,
+) => Stream<F, Chunk<A>> = s =>
+  repeatPull_(s, p =>
+    p.uncons.flatMap(opt =>
+      opt.fold(
+        () => Pull.pure(None),
+        ([hd, tl]) => Pull.output1(hd).map(() => Some(tl)),
+      ),
+    ),
+  );
+
+export const chunkAll = <F extends AnyK, A>(
+  s: Stream<F, A>,
+): Stream<F, Chunk<A>> => {
+  const loop = (p: Pull<F, A, void>, acc: Chunk<A>): Pull<F, Chunk<A>, void> =>
+    p.uncons.flatMap(opt =>
+      opt.fold(
+        () => Pull.output1(acc),
+        ([hd, tl]) => loop(tl, acc['+++'](hd)),
+      ),
+    );
+  return new Stream(loop(s.pull, Chunk.empty));
+};
 
 export const map: <A, B>(
   f: (a: A) => B,
@@ -97,6 +154,11 @@ export const take_ = <F extends AnyK, A>(
   n: number,
 ): Stream<F, A> => new Stream(s.pull.take(n).void);
 
+export const takeRight_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  n: number,
+): Stream<F, A> => new Stream(s.pull.takeRight(n).flatMap(Pull.output));
+
 export const drop_ = <F extends AnyK, A>(
   s: Stream<F, A>,
   n: number,
@@ -105,10 +167,35 @@ export const drop_ = <F extends AnyK, A>(
     s.pull.drop(n).flatMap(opt => opt.map(id).getOrElse(() => Pull.done())),
   );
 
+export const dropRight_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  n: number,
+): Stream<F, A> => {
+  const go = (p: Pull<F, A, void>, acc: Chunk<A>): Pull<F, A, void> =>
+    p.uncons.flatMap(opt =>
+      opt.fold(
+        () => Pull.done(),
+        ([hd, tl]) => {
+          const all = acc['+++'](hd);
+          return Pull.output(all.dropRight(n))['>>>'](() =>
+            go(tl, all.takeRight(n)),
+          );
+        },
+      ),
+    );
+
+  return n <= 0 ? s : new Stream(go(s.pull, Chunk.empty));
+};
+
 export const concat_ = <F extends AnyK, A>(
   s1: Stream<F, A>,
   s2: Stream<F, A>,
 ): Stream<F, A> => new Stream(s1.pull.flatMap(() => s2.pull));
+
+export const handleErrorWith_ = <F extends AnyK, A>(
+  s: Stream<F, A>,
+  h: (e: Error) => Stream<F, A>,
+): Stream<F, A> => new Stream(s.pull.handleErrorWith(e => h(e).pull));
 
 export const map_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
@@ -136,6 +223,11 @@ export const zipWith_ =
       () => Pull.done(),
       f,
     );
+
+export const repeatPull_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
+): Stream<F, B> => new Stream(Pull.loop(f)(s.pull));
 
 const _zipWith = <F extends AnyK, A, B, C>(
   s1: Stream<F, A>,

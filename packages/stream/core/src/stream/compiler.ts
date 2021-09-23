@@ -96,6 +96,10 @@ export class PureCompiler<A> {
     return this.underlying.fold(init, f).unsafeRunSync();
   }
 
+  public get drain(): void {
+    return this.underlying.drain.unsafeRunSync();
+  }
+
   public get last(): A {
     return this.underlying.last.unsafeRunSync();
   }

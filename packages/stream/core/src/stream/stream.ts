@@ -13,6 +13,7 @@ import {
   never,
   of,
   pure,
+  range,
   repeatEval,
   suspend,
   throwError,
@@ -36,6 +37,11 @@ interface StreamObj {
   repeatEval<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
 
   empty<F extends AnyK>(): Stream<F, never>;
+  range<F extends AnyK>(
+    from: number,
+    until: number,
+    step?: number,
+  ): Stream<F, number>;
   never<F extends AnyK>(F: Spawn<F, Error>): Stream<F, never>;
 
   fromArray<F extends AnyK, A>(xs: A[]): Stream<F, A>;
@@ -53,6 +59,7 @@ Stream.evalF = evalF;
 Stream.repeatEval = repeatEval;
 
 Stream.empty = empty;
+Stream.range = range;
 Stream.never = never;
 
 Stream.fromArray = fromArray;

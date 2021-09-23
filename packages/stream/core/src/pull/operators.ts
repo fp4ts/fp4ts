@@ -1,8 +1,8 @@
 import { AnyK, pipe } from '@cats4ts/core';
-import { Either, Right, Left } from '@cats4ts/cats-core/lib/data';
 
-import { pure } from './constructors';
-import { Bind, Fail, Pull, Succeed } from './algebra';
+import { pure, unit } from './constructors';
+import { Bind, Fail, Pull } from './algebra';
+import { Option } from '@cats4ts/cats-core/lib/data';
 
 export const toVoid: <F extends AnyK, O, R>(
   p: Pull<F, O, R>,
@@ -24,20 +24,19 @@ export const handleErrorWith: <F extends AnyK, O2, R2>(
   h => pull =>
     handleErrorWith_(pull, h);
 
-export const attempt = <F extends AnyK, O, R>(
-  pull: Pull<F, O, R>,
-): Pull<F, O, Either<Error, R>> =>
-  pipe(
-    pull,
-    map(x => Right(x) as Either<Error, R>),
-    handleErrorWith(e => new Succeed(Left(e) as Either<Error, R>)),
-  );
-
 export const onComplete: <F extends AnyK, O2, R2>(
   post: () => Pull<F, O2, R2>,
 ) => <O extends O2, R extends R2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> =
   post => pull =>
     onComplete_(pull, post);
+
+export const loop =
+  <F extends AnyK, O, R>(f: (r: R) => Pull<F, O, Option<R>>) =>
+  (r: R): Pull<F, O, void> =>
+    pipe(
+      f(r),
+      flatMap(r => r.fold(() => unit as Pull<F, O, void>, loop(f))),
+    );
 
 // -- Point-ful operators
 

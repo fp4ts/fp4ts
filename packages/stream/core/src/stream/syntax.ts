@@ -1,7 +1,8 @@
 import { MonadError } from '@cats4ts/cats-core';
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { Either, List, Vector } from '@cats4ts/cats-core/lib/data';
 import { AnyK } from '@cats4ts/core';
 import { SyncIoK } from '@cats4ts/effect-core';
+
 import { Chunk } from '../chunk';
 import { Stream } from './algebra';
 import { Compiler, PureCompiler } from './compiler';
@@ -21,6 +22,12 @@ import {
   zip_,
   zipWith_,
   repeat,
+  handleErrorWith_,
+  attempt,
+  chunks,
+  chunkAll,
+  takeRight_,
+  dropRight_,
 } from './operators';
 
 declare module './algebra' {
@@ -34,11 +41,24 @@ declare module './algebra' {
     prependChunk<B>(this: Stream<F, B>, x: Chunk<B>): Stream<F, B>;
 
     take(n: number): Stream<F, A>;
+    takeRight(n: number): Stream<F, A>;
     drop(n: number): Stream<F, A>;
+    dropRight(n: number): Stream<F, A>;
 
     concat<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
     '+++'<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
 
+    readonly attempt: Stream<F, Either<Error, A>>;
+
+    handleErrorWith<B>(
+      this: Stream<F, B>,
+      h: (e: Error) => Stream<F, B>,
+    ): Stream<F, B>;
+
+    readonly chunks: Stream<F, Chunk<A>>;
+    readonly chunkAll: Stream<F, Chunk<A>>;
+
+    as<B>(result: B): Stream<F, B>;
     map<B>(f: (a: A) => B): Stream<F, B>;
 
     flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
@@ -85,15 +105,48 @@ Stream.prototype.prependChunk = function (c) {
 Stream.prototype.take = function (n) {
   return take_(this, n);
 };
+Stream.prototype.takeRight = function (n) {
+  return takeRight_(this, n);
+};
 
 Stream.prototype.drop = function (n) {
   return drop_(this, n);
+};
+
+Stream.prototype.dropRight = function (n) {
+  return dropRight_(this, n);
 };
 
 Stream.prototype.concat = function (that) {
   return concat_(this, that);
 };
 Stream.prototype['+++'] = Stream.prototype.concat;
+
+Stream.prototype.as = function (r) {
+  return map_(this, () => r);
+};
+
+Object.defineProperty(Stream.prototype, 'attempt', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
+    return attempt(this);
+  },
+});
+
+Stream.prototype.handleErrorWith = function (h) {
+  return handleErrorWith_(this, h);
+};
+
+Object.defineProperty(Stream.prototype, 'chunks', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
+    return chunks(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'chunkAll', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
+    return chunkAll(this);
+  },
+});
 
 Stream.prototype.map = function (f) {
   return map_(this, f);

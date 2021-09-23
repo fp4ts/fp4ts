@@ -39,6 +39,7 @@ import {
   prepend_,
   reverse,
   show,
+  size,
   slice_,
   splitAt_,
   tail,
@@ -53,6 +54,8 @@ declare module './algebra' {
   interface Vector<A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
+
+    readonly size: number;
 
     readonly head: A;
     readonly headOption: Option<A>;
@@ -132,6 +135,12 @@ Object.defineProperty(Vector.prototype, 'isEmpty', {
 Object.defineProperty(Vector.prototype, 'nonEmpty', {
   get<A>(this: Vector<A>): boolean {
     return nonEmpty(this);
+  },
+});
+
+Object.defineProperty(Vector.prototype, 'size', {
+  get<A>(this: Vector<A>): number {
+    return size(this);
   },
 });
 

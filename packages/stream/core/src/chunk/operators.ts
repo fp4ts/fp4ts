@@ -1,11 +1,13 @@
-import { List, None, Option, Some, Vector } from '@cats4ts/cats-core/lib/data';
 import { pipe } from '@cats4ts/core';
+import { List, None, Option, Some, Vector } from '@cats4ts/cats-core/lib/data';
+
 import { ok as assert } from 'assert';
 import {
   ArrayChunk,
   ArraySlice,
   Chunk,
   EmptyChunk,
+  Queue,
   SingletonChunk,
   view,
 } from './algebra';
@@ -13,19 +15,7 @@ import {
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
 
-export const size = <O>(c: Chunk<O>): number => {
-  const v = view(c);
-  switch (v.tag) {
-    case 'empty':
-      return 0;
-    case 'singleton':
-      return 1;
-    case 'array':
-      return v.array.length;
-    case 'slice':
-      return v.length;
-  }
-};
+export const size = <O>(c: Chunk<O>): number => c.size;
 
 export const lastOption: <O>(c: Chunk<O>) => Option<O> = c => {
   const v = view(c);
@@ -38,14 +28,22 @@ export const lastOption: <O>(c: Chunk<O>) => Option<O> = c => {
       return Some(v.array[v.array.length - 1]);
     case 'slice':
       return Some(v.values[v.offset + v.length - 1]);
+    case 'queue':
+      return lastOption(v.queue.last);
   }
 };
 
 export const take: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
   take_(c, n);
 
+export const takeRight: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
+  takeRight_(c, n);
+
 export const drop: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
   drop_(c, n);
+
+export const dropRight: (n: number) => <O>(c: Chunk<O>) => Chunk<O> = n => c =>
+  dropRight_(c, n);
 
 export const elem: (idx: number) => <O>(c: Chunk<O>) => O = idx => c =>
   elem_(c, idx);
@@ -73,7 +71,7 @@ export const zipWith: <O1, O2, O3>(
   f: (o1: O1, o2: O2) => O3,
 ) => (c1: Chunk<O1>) => Chunk<O3> = (c2, f) => c1 => zipWith_(c1, c2, f);
 
-export const toArray: <O>(c: Chunk<O>) => O[] = c => {
+export const toArray = <O>(c: Chunk<O>): O[] => {
   const v = view(c);
   switch (v.tag) {
     case 'empty':
@@ -84,6 +82,17 @@ export const toArray: <O>(c: Chunk<O>) => O[] = c => {
       return v.array;
     case 'slice':
       return v.values.slice(v.offset, v.offset + v.length);
+    case 'queue': {
+      const arr: O[] = new Array(v.size);
+      let i = 0;
+      v.queue.foldLeft(undefined, (_, c) => {
+        for (let j = 0, len = c.size; j < len; j++, i++) {
+          arr[i] = elem_(c, j);
+        }
+        return undefined;
+      });
+      return arr;
+    }
   }
 };
 
@@ -110,6 +119,46 @@ export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
 
     case 'slice':
       return new ArraySlice(v.values, v.offset, n);
+
+    case 'queue': {
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      let offset = n;
+      while (true) {
+        [head, chunks] = chunks.popHead.get;
+        if (head.size <= offset) return take_(head, offset);
+        offset -= head.size;
+      }
+    }
+  }
+};
+
+export const takeRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
+  const s = size(c);
+  const v = view(c);
+  if (n <= 0) return EmptyChunk;
+  if (n >= s) return c;
+
+  switch (v.tag) {
+    case 'empty':
+    case 'singleton':
+      return v;
+    case 'array':
+      return new ArraySlice(v.array, v.array.length - n, n);
+
+    case 'slice':
+      return new ArraySlice(v.values, v.offset + v.length - n, n);
+
+    case 'queue': {
+      let last: Chunk<O>;
+      let chunks = v.queue;
+      let offset = n;
+      while (true) {
+        [last, chunks] = chunks.popLast.get;
+        if (last.size <= offset) return takeRight_(last, offset);
+        offset -= last.size;
+      }
+    }
   }
 };
 
@@ -127,6 +176,45 @@ export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       return new ArraySlice(v.array, n, v.array.length - n);
     case 'slice':
       return new ArraySlice(v.values, v.offset + n, v.length - n);
+    case 'queue': {
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      let offset = n;
+      while (true) {
+        [head, chunks] = chunks.popHead.get;
+        if (head.size <= offset)
+          return concat_(drop_(head, offset), new Queue(chunks));
+        offset -= head.size;
+      }
+    }
+  }
+};
+
+export const dropRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
+  const s = size(c);
+  const v = view(c);
+  if (n <= 0) return c;
+  if (n >= s) return EmptyChunk;
+
+  switch (v.tag) {
+    case 'empty':
+    case 'singleton':
+      return EmptyChunk;
+    case 'array':
+      return new ArraySlice(v.array, 0, v.array.length - n);
+    case 'slice':
+      return new ArraySlice(v.values, v.offset, v.length - n);
+    case 'queue': {
+      let last: Chunk<O>;
+      let chunks = v.queue;
+      let offset = n;
+      while (true) {
+        [last, chunks] = chunks.popLast.get;
+        if (last.size <= offset)
+          return concat_(dropRight_(last, offset), new Queue(chunks));
+        offset -= last.size;
+      }
+    }
   }
 };
 
@@ -140,8 +228,18 @@ export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
       return v.value;
     case 'slice':
       return v.values[v.offset + idx];
+    case 'queue': {
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      let offset = idx;
+      while (true) {
+        [head, chunks] = chunks.popHead.get;
+        if (head.size < idx) return elem_(head, offset);
+        offset -= head.size;
+      }
+    }
     default:
-      assert(false, 'Empty chunk cannot be indexed');
+      throw new Error('Empty chunk cannot be indexed');
   }
 };
 
@@ -170,11 +268,30 @@ export const splitAt_ = <O>(c: Chunk<O>, n: number): [Chunk<O>, Chunk<O>] => {
         new ArraySlice(v.values, v.offset, n),
         new ArraySlice(v.values, v.offset + n, v.length - n),
       ];
+    default:
+      throw new Error();
   }
 };
 
-export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> =>
-  new ArrayChunk([...toArray(c1), ...toArray(c2)]);
+export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
+  if (isEmpty(c1)) return c2;
+  if (isEmpty(c2)) return c1;
+  const v1 = view(c1);
+  const v2 = view(c2);
+
+  switch (v1.tag) {
+    case 'queue':
+      return new Queue(v1.queue.append(v2));
+
+    default:
+      switch (v2.tag) {
+        case 'queue':
+          return new Queue(v2.queue.prepend(v1));
+        default:
+          return new Queue(Vector(v1, v2));
+      }
+  }
+};
 
 export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
   const v = view(c);
@@ -185,12 +302,14 @@ export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
       return new SingletonChunk(f(v.value));
     case 'array':
       return new ArrayChunk(v.array.map(f));
-    case 'slice': {
-      const ret: O2[] = new Array(v.values.length);
-      for (let i = 0, len = v.values.length; i < len; i++) {
-        ret[i] = f(v.values[i]);
+    case 'slice':
+    case 'queue': {
+      const size = v.size;
+      const result: O2[] = new Array(size);
+      for (let i = 0; i < size; i++) {
+        result[i] = f(elem_(c, i));
       }
-      return new ArrayChunk(ret);
+      return new ArrayChunk(result);
     }
   }
 };
@@ -214,6 +333,8 @@ export const foldLeft_ = <O, B>(
         ret = f(ret, v.values[i]);
       }
       return ret;
+    case 'queue':
+      return v.queue.foldLeft(init, (b, c) => foldLeft_(c, b, f));
   }
 };
 
@@ -223,62 +344,10 @@ export const zipWith_ = <O1, O2, O3>(
   f: (o1: O1, o2: O2) => O3,
 ): Chunk<O3> => {
   if (c1 === EmptyChunk || c2 === EmptyChunk) return EmptyChunk;
-  const v1 = view(c1);
-  const v2 = view(c2);
-
-  switch (v1.tag) {
-    case 'singleton':
-      return new SingletonChunk(f(v1.value, elem_(v2, 0)));
-    case 'slice':
-      switch (v2.tag) {
-        case 'singleton':
-          return new SingletonChunk(f(elem_(v1, 0), v2.value));
-
-        case 'slice': {
-          const len = Math.min(v1.length, v2.values.length);
-          const ret: O3[] = new Array(len);
-          for (let i = 0; i < len; i++) {
-            ret[i] = f(v1.values[v1.offset + i], v2.values[v1.offset + i]);
-          }
-          return new ArrayChunk(ret);
-        }
-
-        case 'array': {
-          const len = Math.min(v1.length, v2.array.length);
-          const ret: O3[] = new Array(len);
-          for (let i = 0; i < len; i++) {
-            ret[i] = f(v1.values[v1.offset + i], v2.array[i]);
-          }
-          return new ArrayChunk(ret);
-        }
-
-        default:
-          throw new Error('impossible state');
-      }
-    case 'array':
-      switch (v2.tag) {
-        case 'slice': {
-          const len = Math.min(v1.array.length, v2.length);
-          const ret: O3[] = new Array(len);
-          for (let i = 0; i < len; i++) {
-            ret[i] = f(v1.array[i], v2.values[v2.offset + i]);
-          }
-          return new ArrayChunk(ret);
-        }
-
-        case 'array': {
-          const len = Math.min(v1.array.length, v2.array.length);
-          const ret: O3[] = new Array(len);
-          for (let i = 0; i < len; i++) {
-            ret[i] = f(v1.array[i], v2.array[i]);
-          }
-          return new ArrayChunk(ret);
-        }
-
-        default:
-          throw new Error('impossible state');
-      }
-    default:
-      throw new Error('impossible state');
+  const size = Math.min(c1.size, c2.size);
+  const result: O3[] = new Array(size);
+  for (let i = 0; i < size; i++) {
+    result[i] = f(elem_(c1, i), elem_(c2, i));
   }
+  return new ArrayChunk(result);
 };

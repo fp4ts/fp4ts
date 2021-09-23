@@ -29,6 +29,19 @@ export const evalF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A> =>
 export const repeatEval: <F extends AnyK, A>(fa: Kind<F, [A]>) => Stream<F, A> =
   s => repeat(evalF(s));
 
+export const range = <F extends AnyK>(
+  from: number,
+  until: number,
+  step: number = 1,
+): Stream<F, number> => {
+  const go = (i: number): Stream<F, number> =>
+    i < until
+      ? pure<F, number>(i)['+++'](suspend(() => go(i + step)))
+      : empty();
+
+  return go(from);
+};
+
 export const never: <F extends AnyK>(F: Spawn<F, Error>) => Stream<F, never> =
   F => evalF(F.never);
 

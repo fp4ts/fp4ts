@@ -2,6 +2,7 @@ import { List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { Chunk } from './algebra';
 import {
   concat_,
+  dropRight_,
   drop_,
   elem_,
   foldLeft_,
@@ -9,9 +10,9 @@ import {
   lastOption,
   map_,
   nonEmpty,
-  size,
   slice_,
   splitAt_,
+  takeRight_,
   take_,
   toArray,
   toList,
@@ -24,8 +25,6 @@ declare module './algebra' {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
-    readonly size: number;
-
     readonly lastOption: Option<O>;
 
     readonly toArray: O[];
@@ -36,7 +35,9 @@ declare module './algebra' {
     '!!'(idx: number): O;
 
     take(n: number): Chunk<O>;
+    takeRight(n: number): Chunk<O>;
     drop(n: number): Chunk<O>;
+    dropRight(n: number): Chunk<O>;
     slice(offset: number, until: number): Chunk<O>;
 
     splitAt(idx: number): [Chunk<O>, Chunk<O>];
@@ -61,12 +62,6 @@ Object.defineProperty(Chunk.prototype, 'isEmpty', {
 Object.defineProperty(Chunk.prototype, 'nonEmpty', {
   get<O>(this: Chunk<O>): boolean {
     return nonEmpty(this);
-  },
-});
-
-Object.defineProperty(Chunk.prototype, 'size', {
-  get<O>(this: Chunk<O>): number {
-    return size(this);
   },
 });
 
@@ -107,8 +102,16 @@ Chunk.prototype.take = function (idx) {
   return take_(this, idx);
 };
 
+Chunk.prototype.takeRight = function (idx) {
+  return takeRight_(this, idx);
+};
+
 Chunk.prototype.drop = function (idx) {
   return drop_(this, idx);
+};
+
+Chunk.prototype.dropRight = function (idx) {
+  return dropRight_(this, idx);
 };
 
 Chunk.prototype.splitAt = function (idx) {

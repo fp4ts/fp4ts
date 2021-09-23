@@ -1,6 +1,7 @@
 import { AnyK, Kind } from '@cats4ts/core';
 import { Option } from '@cats4ts/cats-core/lib/data';
 import { Temporal } from '@cats4ts/effect-kernel';
+
 import { Pull as PullBase } from './algebra';
 import { Chunk } from '../chunk';
 import {
@@ -14,6 +15,7 @@ import {
   suspend,
   throwError,
 } from './constructors';
+import { loop } from './operators';
 
 export type Pull<F extends AnyK, O, R> = PullBase<F, O, R>;
 
@@ -31,6 +33,10 @@ interface PullObj {
   outputOption1<F extends AnyK, O>(value: Option<O>): Pull<F, O, void>;
   output<F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void>;
   suspend<F extends AnyK, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
+
+  loop<F extends AnyK, O, R>(
+    f: (r: R) => Pull<F, O, Option<R>>,
+  ): (r: R) => Pull<F, O, void>;
 }
 
 Pull.pure = pure;
@@ -42,3 +48,5 @@ Pull.output1 = output1;
 Pull.outputOption1 = outputOption1;
 Pull.output = output;
 Pull.suspend = suspend;
+
+Pull.loop = loop;

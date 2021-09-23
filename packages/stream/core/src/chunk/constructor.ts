@@ -1,10 +1,4 @@
-import {
-  ArrayChunk,
-  ArraySlice,
-  Chunk,
-  EmptyChunk,
-  SingletonChunk,
-} from './algebra';
+import { ArrayChunk, Chunk, EmptyChunk, SingletonChunk } from './algebra';
 
 export const empty: Chunk<never> = EmptyChunk;
 

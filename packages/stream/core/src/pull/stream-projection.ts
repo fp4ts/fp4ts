@@ -31,11 +31,24 @@ export const uncons: <F extends AnyK, O>(
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = pull =>
   new Uncons(pull);
 
+export const unconsN: (
+  n: number,
+) => <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = n => p =>
+  unconsN_(p, n);
+
 export const take: (
   n: number,
 ) => <F extends AnyK, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, O, Option<Pull<F, O, void>>> = n => p => take_(p, n);
+
+export const takeRight: (
+  n: number,
+) => <F extends AnyK, O>(p: Pull<F, O, void>) => Pull<F, never, Chunk<O>> =
+  n => p =>
+    takeRight_(p, n);
 
 export const drop: (
   n: number,
@@ -69,6 +82,41 @@ export const compile: <F extends AnyK>(
 
 // -- Point-ful operators
 
+export const unconsN_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  n: number,
+  allowFewer: boolean = false,
+): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> => {
+  const go = (
+    p: Pull<F, O, void>,
+    remainder: number,
+    acc: Chunk<O>,
+  ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> =>
+    pipe(
+      uncons(p),
+      P.flatMap(opt =>
+        opt.fold(
+          () =>
+            allowFewer && acc.nonEmpty
+              ? P.pure(Some([acc, P.done()]))
+              : P.pure(None),
+          ([hd, tl]) => {
+            if (hd.size < remainder)
+              return go(tl, remainder - hd.size, acc['+++'](hd));
+            else if (hd.size === remainder)
+              return P.pure(Some([acc['+++'](hd), tl]));
+            else {
+              const [pref, suf] = hd.splitAt(remainder);
+              return P.pure(Some([acc['+++'](pref), cons(suf, tl)]));
+            }
+          },
+        ),
+      ),
+    );
+
+  return n <= 0 ? P.pure(Some([Chunk.empty, p])) : go(p, n, Chunk.empty);
+};
+
 export const take_ = <F extends AnyK, O>(
   p: Pull<F, O, void>,
   n: number,
@@ -92,6 +140,24 @@ export const take_ = <F extends AnyK, O>(
           ),
         ),
       );
+
+export const takeRight_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  n: number,
+): Pull<F, never, Chunk<O>> => {
+  const go = (p: Pull<F, O, void>, acc: Chunk<O>): Pull<F, never, Chunk<O>> =>
+    pipe(
+      unconsN_(p, n, true),
+      P.flatMap(opt =>
+        opt.fold(
+          () => P.pure(acc),
+          ([hd, tl]) => go(tl, acc.drop(hd.size)['+++'](hd)),
+        ),
+      ),
+    );
+
+  return n <= 0 ? P.pure(Chunk.empty) : go(p, Chunk.empty);
+};
 
 export const drop_ = <F extends AnyK, O>(
   p: Pull<F, O, void>,
@@ -210,7 +276,10 @@ export const compile_ =
                 return step;
 
               case 'bind':
-                free = new Bind(step.step, r => new Bind(step.cont(r), v.cont));
+                free = new Bind<G, X, any, void>(
+                  step.step,
+                  r => new Bind(step.cont(r), v.cont),
+                );
                 continue;
             }
           }
@@ -248,8 +317,13 @@ export const compile_ =
       }
 
       class UnconsRun<Y> extends StepRun<Y, [Chunk<Y>, Pull<G, Y, void>]> {
-        override out = (hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]> =>
-          go(translation, runner, this.cont(new Succeed(Some([hd, tl]))));
+        override out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]> {
+          return go(
+            translation,
+            runner,
+            this.cont(new Succeed(Some([hd, tl]))),
+          );
+        }
       }
 
       class FlatMapRun<Y> implements Run<G, Y, Kind<F, [End]>> {
@@ -353,15 +427,16 @@ export const compile_ =
     const initFk: FunctionK<F, F> = id;
 
     class OuterRun implements Run<F, O, Kind<F, [B]>> {
-      public constructor(private readonly acc: B) {}
+      public constructor(private acc: B) {}
 
       done = (): Kind<F, [B]> => F.pure(this.acc);
 
       fail = (e: Error) => F.throwError(e);
 
-      out = (hd: Chunk<O>, tl: Pull<F, O, void>): Kind<F, [B]> => {
+      out(hd: Chunk<O>, tl: Pull<F, O, void>): Kind<F, [B]> {
         try {
-          return go<F, O, B>(initFk, new OuterRun(foldChunk(this.acc, hd)), tl);
+          this.acc = foldChunk(this.acc, hd);
+          return go<F, O, B>(initFk, this, tl);
         } catch (error) {
           const tv = viewL(tl);
           switch (tv.tag) {
@@ -381,7 +456,7 @@ export const compile_ =
               return F.throwError(error as Error);
           }
         }
-      };
+      }
     }
 
     return go(initFk, new OuterRun(init), stream);

@@ -1,8 +1,9 @@
-import { AnyK } from '@cats4ts/core';
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { AnyK, throwError } from '@cats4ts/core';
+import { Either, Left, List, Right, Vector } from '@cats4ts/cats-core/lib/data';
 import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
 
 import { Stream } from '../stream';
+import { Chunk } from '../chunk';
 
 describe('Stream', () => {
   describe('type', () => {
@@ -144,6 +145,32 @@ describe('Stream', () => {
     });
   });
 
+  describe('takeRight', () => {
+    it('should return empty stream if empty', () => {
+      expect(Stream.empty().takeRight(5).compile.toList).toEqual(List.empty);
+    });
+
+    it('should return empty stream if non-positive number', () => {
+      expect(Stream(1, 2, 3).takeRight(-1).compile.toList).toEqual(List.empty);
+    });
+
+    it('should return last two values of the stream', () => {
+      expect(Stream(1, 2, 3).takeRight(2).compile.toList).toEqual(List(2, 3));
+    });
+
+    it('should return the entire stream', () => {
+      expect(Stream(1, 2, 3).takeRight(10_000).compile.toList).toEqual(
+        List(1, 2, 3),
+      );
+    });
+
+    it('should be stack safe', () => {
+      expect(Stream.range(0, 10_000).takeRight(10_000).compile.toArray).toEqual(
+        [...new Array(10_000).keys()],
+      );
+    });
+  });
+
   describe('drop', () => {
     it('should drop no elements when stream is empty', () => {
       expect(Stream.empty().drop(3).toList).toEqual(List.empty);
@@ -172,6 +199,151 @@ describe('Stream', () => {
         Stream.empty() as Stream<AnyK, number>,
       );
       expect(s.drop(10_000).compile.toArray).toEqual([]);
+    });
+  });
+
+  describe('dropRight', () => {
+    it('should return empty stream if empty', () => {
+      expect(Stream.empty().dropRight(5).compile.toList).toEqual(List.empty);
+    });
+
+    it('should identity stream', () => {
+      expect(Stream(1, 2, 3).dropRight(-1).compile.toList).toEqual(
+        List(1, 2, 3),
+      );
+    });
+
+    it('should return last value of the stream', () => {
+      expect(Stream(1, 2, 3).dropRight(1).compile.toList).toEqual(List(1, 2));
+    });
+
+    it('should drop the entire stream', () => {
+      expect(Stream(1, 2, 3).dropRight(10_000).compile.toList).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should be stack safe', () => {
+      expect(Stream.range(0, 10_000).dropRight(10_000).compile.toArray).toEqual(
+        [],
+      );
+    });
+  });
+
+  describe('attempt', () => {
+    it('should wrap values to Right when successful', () => {
+      expect(Stream(1, 2, 3).map(x => x * x).attempt.compile.toList).toEqual(
+        List(Right(1), Right(4), Right(9)),
+      );
+    });
+
+    it('should wrap capture erroneous chunk', () => {
+      expect(
+        Stream.throwError(new Error('test error')).attempt.compile.last,
+      ).toEqual(Left(new Error('test error')));
+    });
+
+    it('should isolate already executed chunks', () => {
+      expect(
+        Stream(1, 2, 3)
+          ['+++'](Stream.throwError(new Error('test error')))
+          .map(x => x * 2).attempt.compile.toList,
+      ).toEqual(
+        List<Either<Error, number>>(
+          Right(2),
+          Right(4),
+          Right(6),
+          Left(new Error('test error')),
+        ),
+      );
+    });
+  });
+
+  describe('handleErrorWith', () => {
+    it('should capture suspended error', () => {
+      const s = Stream.suspend(() => throwError(new Error('test error')));
+      expect(() => s.compile.drain).toThrow(new Error('test error'));
+    });
+
+    it('should propagate thrown error', () => {
+      const s = Stream.throwError(new Error('test error')).as<void>(undefined);
+      expect(() => s.compile.drain).toThrow(new Error('test error'));
+    });
+
+    it('should short circuit the execution', () => {
+      const s = Stream.throwError(new Error('test error')).flatMap(() =>
+        Stream(42),
+      );
+
+      expect(() => s.compile.drain).toThrow(new Error('test error'));
+    });
+
+    it('should return the result of the handler when an error is ocurred', () => {
+      expect(
+        Stream.evalF(
+          SyncIO.throwError(new Error('test error')),
+        ).handleErrorWith(() => Stream(42)).compile.last,
+      ).toBe(42);
+    });
+
+    it('should capture error thrown upstream', () => {
+      let error: Error;
+
+      Stream.evalF(SyncIO.throwError(new Error('test error'))).handleErrorWith(
+        e => {
+          error = e;
+          return Stream.empty();
+        },
+      ).compile.drain;
+
+      expect(error!).toEqual(new Error('test error'));
+    });
+
+    it('should capture exception from map function', () => {
+      let error: Error;
+
+      Stream(1, 2, 3, 4)
+        .map(x => (x === 1 ? throwError(new Error('test error')) : x))
+        .handleErrorWith(e => {
+          error = e;
+          return Stream();
+        }).compile.drain;
+
+      expect(error!).toEqual(new Error('test error'));
+    });
+
+    it('should throwaway the rest of the values from erroneous chunk', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .map(x => (x === 1 ? throwError(new Error('test error')) : x))
+          .handleErrorWith(() => Stream(-1)).compile.toList,
+      ).toEqual(List(-1));
+    });
+
+    it('should isolate streamed values on non-executed ones', () => {
+      expect(
+        Stream(1, 2, 3)
+          ['+++'](Stream(4, 5, 6))
+          .flatMap(x =>
+            x === 3 ? Stream(throwError(new Error())) : Stream(x * x),
+          )
+          .handleErrorWith(() => Stream(-1)).compile.toList,
+      ).toEqual(List(1, 4, -1));
+    });
+  });
+
+  describe('chunking', () => {
+    it('should promote chunks to values', () => {
+      expect(
+        Stream(1, 2, 3)['+++'](Stream(4, 5, 6)).chunks.compile.toList,
+      ).toEqual(List(Chunk(1, 2, 3), Chunk(4, 5, 6)));
+    });
+
+    it('should collect all values into a single chunk', () => {
+      expect(
+        Stream(1)['+++'](Stream(2))['+++'](Stream(3)).chunkAll.compile.last
+          .toArray,
+      ).toEqual([1, 2, 3]);
     });
   });
 
