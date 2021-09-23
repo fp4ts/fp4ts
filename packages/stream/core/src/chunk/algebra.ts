@@ -2,6 +2,8 @@ import { ok as assert } from 'assert';
 
 export abstract class Chunk<O> {
   readonly __void!: void;
+
+  readonly _O!: () => O;
 }
 
 export class SingletonChunk<O> extends Chunk<O> {

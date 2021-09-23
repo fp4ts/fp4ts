@@ -1,4 +1,4 @@
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { Chunk } from './algebra';
 import {
   concat_,
@@ -6,6 +6,7 @@ import {
   elem_,
   foldLeft_,
   isEmpty,
+  lastOption,
   map_,
   nonEmpty,
   size,
@@ -24,6 +25,8 @@ declare module './algebra' {
     readonly nonEmpty: boolean;
 
     readonly size: number;
+
+    readonly lastOption: Option<O>;
 
     readonly toArray: O[];
     readonly toList: List<O>;
@@ -64,6 +67,12 @@ Object.defineProperty(Chunk.prototype, 'nonEmpty', {
 Object.defineProperty(Chunk.prototype, 'size', {
   get<O>(this: Chunk<O>): number {
     return size(this);
+  },
+});
+
+Object.defineProperty(Chunk.prototype, 'lastOption', {
+  get<O>(this: Chunk<O>): Option<O> {
+    return lastOption(this);
   },
 });
 

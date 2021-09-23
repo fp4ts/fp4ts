@@ -1,17 +1,23 @@
+import { AnyK, Kind, TyK, _ } from '@cats4ts/core';
 import { List, Vector } from '@cats4ts/cats-core/lib/data';
-import { AnyK, TyK, _ } from '@cats4ts/core';
+
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
 import {
   empty,
+  evalF,
   fromArray,
   fromChunk,
   fromList,
   fromVector,
+  never,
   of,
   pure,
+  repeatEval,
   suspend,
+  throwError,
 } from './constructor';
+import { Spawn } from '@cats4ts/effect-kernel';
 
 export type Stream<F extends AnyK, A> = StreamBase<F, A>;
 
@@ -23,8 +29,15 @@ interface StreamObj {
   <F extends AnyK, A>(...xs: A[]): Stream<F, A>;
   pure<F extends AnyK, A>(x: A): Stream<F, A>;
   suspend<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
+  throwError<F extends AnyK>(e: Error): Stream<F, never>;
   of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
+
+  evalF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+  repeatEval<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+
   empty<F extends AnyK>(): Stream<F, never>;
+  never<F extends AnyK>(F: Spawn<F, Error>): Stream<F, never>;
+
   fromArray<F extends AnyK, A>(xs: A[]): Stream<F, A>;
   fromList<F extends AnyK, A>(xs: List<A>): Stream<F, A>;
   fromVector<F extends AnyK, A>(xs: Vector<A>): Stream<F, A>;
@@ -33,8 +46,15 @@ interface StreamObj {
 
 Stream.pure = pure;
 Stream.suspend = suspend;
+Stream.throwError = throwError;
 Stream.of = of;
+
+Stream.evalF = evalF;
+Stream.repeatEval = repeatEval;
+
 Stream.empty = empty;
+Stream.never = never;
+
 Stream.fromArray = fromArray;
 Stream.fromList = fromList;
 Stream.fromVector = fromVector;

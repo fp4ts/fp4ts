@@ -1,19 +1,21 @@
-import { AnyK, id, pipe, throwError } from '@cats4ts/core';
+import { AnyK, id, Kind } from '@cats4ts/core';
 import { MonadError } from '@cats4ts/cats-core';
-import { Option } from '@cats4ts/cats-core/lib/data';
 import { SyncIoK } from '@cats4ts/effect-core';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
 import { Compiler, PureCompiler } from './compiler';
-import { fromChunk, pure } from './constructor';
+import { fromChunk, pure, suspend } from './constructor';
 
 export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   take_(s, 1);
 
 export const tail: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   drop_(s, 1);
+
+export const repeat: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+  s['+++'](suspend(() => repeat(s)));
 
 export const cons: <F extends AnyK, A>(x: A, s: Stream<F, A>) => Stream<F, A> =
   (x, s) => prepend_(s, x);

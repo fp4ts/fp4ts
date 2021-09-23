@@ -29,8 +29,8 @@ export const attempt = <F extends AnyK, O, R>(
 ): Pull<F, O, Either<Error, R>> =>
   pipe(
     pull,
-    map(x => Right(x)),
-    handleErrorWith(e => new Succeed(Left(e))),
+    map(x => Right(x) as Either<Error, R>),
+    handleErrorWith(e => new Succeed(Left(e) as Either<Error, R>)),
   );
 
 export const onComplete: <F extends AnyK, O2, R2>(

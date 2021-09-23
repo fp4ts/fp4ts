@@ -38,6 +38,9 @@ export const Collector = Object.freeze({
 
   vector: <A>(): Collector<A, Vector<A>> =>
     Collector.make(() => new ChunkBuilder<A>().mapResult(x => x.toVector)),
+
+  string: (): Collector<string, string> =>
+    Collector.make(() => new StringBuilder()),
 });
 
 class ChunkBuilder<A> extends Builder<A, Chunk<A>> {
@@ -45,6 +48,15 @@ class ChunkBuilder<A> extends Builder<A, Chunk<A>> {
 
   override append(other: Chunk<A>) {
     this.result = this.result['+++'](other);
+    return this;
+  }
+}
+
+class StringBuilder<A> extends Builder<string, string> {
+  public override result: string = '';
+
+  override append(other: Chunk<string>) {
+    this.result = other.foldLeft(this.result, (x, y) => x + y);
     return this;
   }
 }

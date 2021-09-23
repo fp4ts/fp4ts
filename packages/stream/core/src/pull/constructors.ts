@@ -30,7 +30,7 @@ export const output1 = <F extends AnyK, O>(value: O): Pull<F, O, void> =>
 export const outputOption1 = <F extends AnyK, O>(
   opt: Option<O>,
 ): Pull<F, O, void> =>
-  opt.map(output1).getOrElse<Pull<F, O, void>>(() => done());
+  opt.map(x => output1<F, O>(x)).getOrElse<Pull<F, O, void>>(() => done());
 
 export const output = <F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void> =>
   chunk.isEmpty ? done() : new Output(chunk);

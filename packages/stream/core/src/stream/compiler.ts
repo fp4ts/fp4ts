@@ -1,9 +1,11 @@
 import { MonadError } from '@cats4ts/cats-core';
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { List, None, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { AnyK, Kind, pipe } from '@cats4ts/core';
 import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
+
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
+import { Stream } from './algebra';
 import { Collector } from './collectors';
 
 export class Compiler<F extends AnyK, A> {
@@ -13,12 +15,45 @@ export class Compiler<F extends AnyK, A> {
     private readonly stream: Pull<F, A, void>,
   ) {}
 
+  public get count(): Kind<F, [number]> {
+    return this.foldChunks(0, (acc, chunk) => acc + chunk.size);
+  }
+
+  public get drain(): Kind<F, [void]> {
+    return this.foldChunks(undefined, () => {});
+  }
+
   public foldChunks<B>(init: B, f: (b: B, chunk: Chunk<A>) => B): Kind<F, [B]> {
     return this.stream.compile(this.F)(init, f);
   }
 
   public fold<B>(init: B, f: (b: B, a: A) => B): Kind<F, [B]> {
     return this.foldChunks(init, (b, chunk) => chunk.foldLeft(b, f));
+  }
+
+  public get last(): Kind<F, [A]> {
+    return this.F.flatMap_(this.lastOption, opt =>
+      opt.fold(
+        () => this.F.throwError(new Error('EmptyStream.last')),
+        x => this.F.pure(x),
+      ),
+    );
+  }
+
+  public get lastOption(): Kind<F, [Option<A>]> {
+    return this.foldChunks(None as Option<A>, (prev, next) =>
+      prev.orElse(next.lastOption),
+    );
+  }
+
+  public get string(): A extends string ? Kind<F, [string]> : never {
+    const result: Kind<F, [string]> = new Stream(
+      this.stream as Pull<F, string, void>,
+    )
+      .compileF(this.F)
+      .to(Collector.string());
+
+    return result as any;
   }
 
   public to<A2, O>(this: Compiler<F, A2>, col: Collector<A2, O>): Kind<F, [O]> {
@@ -59,6 +94,18 @@ export class PureCompiler<A> {
 
   public fold<B>(init: B, f: (b: B, a: A) => B): B {
     return this.underlying.fold(init, f).unsafeRunSync();
+  }
+
+  public get last(): A {
+    return this.underlying.last.unsafeRunSync();
+  }
+
+  public get lastOption(): Option<A> {
+    return this.underlying.lastOption.unsafeRunSync();
+  }
+
+  public get string(): A extends string ? string : never {
+    return this.underlying.string.unsafeRunSync() as any;
   }
 
   public to<A2, O>(this: PureCompiler<A2>, col: Collector<A2, O>): O {

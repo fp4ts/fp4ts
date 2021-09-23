@@ -3,8 +3,7 @@ import { AnyK, Kind } from '@cats4ts/core';
 export class CancellationError extends Error {}
 
 export abstract class Outcome<F extends AnyK, E, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 }
 
 export class Success<F extends AnyK, A> extends Outcome<F, never, A> {

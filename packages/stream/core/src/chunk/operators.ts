@@ -1,4 +1,5 @@
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { List, None, Option, Some, Vector } from '@cats4ts/cats-core/lib/data';
+import { pipe } from '@cats4ts/core';
 import { ok as assert } from 'assert';
 import {
   ArrayChunk,
@@ -23,6 +24,20 @@ export const size = <O>(c: Chunk<O>): number => {
       return v.array.length;
     case 'slice':
       return v.length;
+  }
+};
+
+export const lastOption: <O>(c: Chunk<O>) => Option<O> = c => {
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return None;
+    case 'singleton':
+      return Some(v.value);
+    case 'array':
+      return Some(v.array[v.array.length - 1]);
+    case 'slice':
+      return Some(v.values[v.offset + v.length - 1]);
   }
 };
 
@@ -80,9 +95,40 @@ export const toVector: <O>(c: Chunk<O>) => Vector<O> = c =>
 
 // -- Point-ful operators
 
-export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => slice_(c, 0, n);
+export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
+  const s = size(c);
+  const v = view(c);
+  if (n <= 0) return EmptyChunk;
+  if (n >= s) return c;
 
-export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => slice_(c, n);
+  switch (v.tag) {
+    case 'empty':
+    case 'singleton':
+      return v;
+    case 'array':
+      return new ArraySlice(v.array, 0, n);
+
+    case 'slice':
+      return new ArraySlice(v.values, v.offset, n);
+  }
+};
+
+export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
+  const s = size(c);
+  const v = view(c);
+  if (n <= 0) return c;
+  if (n >= s) return EmptyChunk;
+
+  switch (v.tag) {
+    case 'empty':
+    case 'singleton':
+      return EmptyChunk;
+    case 'array':
+      return new ArraySlice(v.array, n, v.array.length - n);
+    case 'slice':
+      return new ArraySlice(v.values, v.offset + n, v.length - n);
+  }
+};
 
 export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
   assert(idx < size(c), 'Chunk.elem IndexOutOfBounds');
@@ -102,29 +148,8 @@ export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
 export const slice_ = <O>(
   c: Chunk<O>,
   offset: number,
-  until?: number,
-): Chunk<O> => {
-  const s = size(c);
-  until = until ?? s;
-  if (offset < 0) offset = 0;
-  if (until >= s) until = s;
-  if (offset >= until) return EmptyChunk;
-
-  const v = view(c);
-  switch (v.tag) {
-    case 'array':
-      return new ArraySlice(v.array, offset, until - offset);
-    case 'slice':
-      return new ArraySlice(
-        v.values,
-        v.offset + offset,
-        v.offset + until - offset,
-      );
-
-    default:
-      assert(false, 'impossible state');
-  }
-};
+  until: number,
+): Chunk<O> => pipe(c, drop(offset), take(until - offset));
 
 export const splitAt_ = <O>(c: Chunk<O>, n: number): [Chunk<O>, Chunk<O>] => {
   if (n <= 0) return [EmptyChunk, EmptyChunk];

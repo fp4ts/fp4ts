@@ -1,5 +1,7 @@
 import { AnyK } from '@cats4ts/core';
 import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
+
 import { Stream } from '../stream';
 
 describe('Stream', () => {
@@ -86,6 +88,31 @@ describe('Stream', () => {
     });
   });
 
+  describe('repeat', () => {
+    it('should repeat singleton list', () => {
+      expect(Stream(1).repeat.take(5).toList).toEqual(List(1, 1, 1, 1, 1));
+    });
+
+    it('should repeat nested stream', () => {
+      expect(
+        Stream(1)
+          .flatMap(x => Stream(x, x + 1))
+          .repeat.take(4).toList,
+      ).toEqual(List(1, 2, 1, 2));
+    });
+  });
+
+  describe('repeatEval', () => {
+    it('should repeat pulling from counter', () => {
+      let counter = 0;
+      const count = SyncIO.delay(() => counter++);
+
+      expect(Stream.repeatEval<SyncIoK, number>(count).take(5).toList).toEqual(
+        List(0, 1, 2, 3, 4),
+      );
+    });
+  });
+
   describe('take', () => {
     it('should take no elements when stream is empty', () => {
       expect(Stream.empty().take(3).toList).toEqual(List.empty);
@@ -157,6 +184,13 @@ describe('Stream', () => {
       expect(fibs.take(11).toList).toEqual(
         List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55),
       );
+    });
+  });
+
+  describe('benchmarks', () => {
+    it('should do sth', () => {
+      const xs = [...new Array(20_000).keys()];
+      Stream.fromArray(xs).flatMap(Stream).zip(Stream(1).repeat).compile.toList;
     });
   });
 });

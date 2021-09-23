@@ -20,12 +20,15 @@ import {
   tail,
   zip_,
   zipWith_,
+  repeat,
 } from './operators';
 
 declare module './algebra' {
   interface Stream<F extends AnyK, A> {
     readonly head: Stream<F, A>;
     readonly tail: Stream<F, A>;
+
+    readonly repeat: Stream<F, A>;
 
     prepend<B>(this: Stream<F, B>, x: B): Stream<F, B>;
     prependChunk<B>(this: Stream<F, B>, x: Chunk<B>): Stream<F, B>;
@@ -62,6 +65,12 @@ Object.defineProperty(Stream.prototype, 'head', {
 Object.defineProperty(Stream.prototype, 'tail', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
     return tail(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'repeat', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+    return repeat(this);
   },
 });
 
