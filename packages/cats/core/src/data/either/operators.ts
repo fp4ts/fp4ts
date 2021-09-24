@@ -1,4 +1,4 @@
-import { id } from '@cats4ts/core';
+import { id, throwError } from '@cats4ts/core';
 import { None, Option, Some } from '../option';
 import { Either, view } from './algebra';
 import { left, right } from './constructors';
@@ -8,6 +8,12 @@ export const fold: <E, A, B>(
   onRight: (a: A) => B,
 ) => (ea: Either<E, A>) => B = (onLeft, onRight) => ea =>
   fold_(ea, onLeft, onRight);
+
+export const get = <E, A>(ea: Either<E, A>): A =>
+  fold_(ea, () => throwError(new Error('Left.get')), id);
+
+export const getLeft = <E, A>(ea: Either<E, A>): E =>
+  fold_(ea, id, () => throwError(new Error('Right.getLeft')));
 
 export const isLeft = <E, A>(ea: Either<E, A>): boolean =>
   fold_(

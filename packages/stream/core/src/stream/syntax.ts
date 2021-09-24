@@ -60,6 +60,8 @@ import {
   filterWithPrevious_,
   changes,
   sliding_,
+  rethrow,
+  evalMap_,
 } from './operators';
 
 declare module './algebra' {
@@ -88,18 +90,6 @@ declare module './algebra' {
     concat<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
     '+++'<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
 
-    readonly attempt: Stream<F, Either<Error, A>>;
-
-    redeemWith<B>(
-      onFailure: (e: Error) => Stream<F, B>,
-      onSuccess: (a: A) => Stream<F, B>,
-    ): Stream<F, B>;
-
-    handleErrorWith<B>(
-      this: Stream<F, B>,
-      h: (e: Error) => Stream<F, B>,
-    ): Stream<F, B>;
-
     readonly chunks: Stream<F, Chunk<A>>;
     readonly chunkAll: Stream<F, Chunk<A>>;
     chunkLimit(limit: number): Stream<F, Chunk<A>>;
@@ -123,6 +113,7 @@ declare module './algebra' {
     as<B>(result: B): Stream<F, B>;
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
+    evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
 
     flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
@@ -160,6 +151,20 @@ declare module './algebra' {
       this: Stream<F, AA>,
       that: Stream<F, B>,
     ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
+
+    readonly attempt: Stream<F, Either<Error, A>>;
+
+    redeemWith<B>(
+      onFailure: (e: Error) => Stream<F, B>,
+      onSuccess: (a: A) => Stream<F, B>,
+    ): Stream<F, B>;
+
+    rethrow: A extends Either<Error, infer B> ? Stream<F, B> : never;
+
+    handleErrorWith<B>(
+      this: Stream<F, B>,
+      h: (e: Error) => Stream<F, B>,
+    ): Stream<F, B>;
 
     compile: F extends SyncIoK ? PureCompiler<A> : never;
     compileF(F: MonadError<F, Error>): Compiler<F, A>;
@@ -242,20 +247,6 @@ Stream.prototype.concat = function (that) {
 };
 Stream.prototype['+++'] = Stream.prototype.concat;
 
-Object.defineProperty(Stream.prototype, 'attempt', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
-    return attempt(this);
-  },
-});
-
-Stream.prototype.redeemWith = function (h, f) {
-  return redeemWith_(this, h, f);
-};
-
-Stream.prototype.handleErrorWith = function (h) {
-  return handleErrorWith_(this, h);
-};
-
 Object.defineProperty(Stream.prototype, 'chunks', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
     return chunks(this);
@@ -323,6 +314,10 @@ Stream.prototype.map = function (f) {
 
 Stream.prototype.mapAccumulate = function (s) {
   return f => mapAccumulate_(this, s, f);
+};
+
+Stream.prototype.evalMap = function (f) {
+  return evalMap_(this, f);
 };
 
 Stream.prototype.flatMap = function (f) {
@@ -395,6 +390,26 @@ Stream.prototype.zipAll = function (that) {
 
 Stream.prototype.zipAllWith = function (that) {
   return (pad1, pad2) => zipAllWith_(this, that, pad1, pad2);
+};
+
+Object.defineProperty(Stream.prototype, 'attempt', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
+    return attempt(this);
+  },
+});
+
+Stream.prototype.redeemWith = function (h, f) {
+  return redeemWith_(this, h, f);
+};
+
+Object.defineProperty(Stream.prototype, 'rethrow', {
+  get<F extends AnyK, A>(this: Stream<F, Either<Error, A>>): Stream<F, A> {
+    return rethrow(this);
+  },
+});
+
+Stream.prototype.handleErrorWith = function (h) {
+  return handleErrorWith_(this, h);
 };
 
 Object.defineProperty(Stream.prototype, 'compile', {

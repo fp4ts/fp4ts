@@ -1,10 +1,25 @@
-import { MonadError } from '@cats4ts/cats-core';
+import {
+  Applicative,
+  Apply,
+  FlatMap,
+  Functor,
+  Monad,
+  MonadError,
+} from '@cats4ts/cats-core';
 import { TyK, _ } from '@cats4ts/core';
 import { Sync } from '@cats4ts/effect-kernel';
 
 import { SyncIO as SyncIOBase } from './algebra';
 import { defer, delay, pure, throwError } from './constructors';
-import { syncIoMonadError, syncIoSync } from './instances';
+import {
+  syncIoApplicative,
+  syncIoApply,
+  syncIoFlatMap,
+  syncIoFunctor,
+  syncIoMonad,
+  syncIoMonadError,
+  syncIoSync,
+} from './instances';
 
 export type SyncIO<A> = SyncIOBase<A>;
 
@@ -21,6 +36,11 @@ interface SyncIOObj {
 
   // -- Instances
 
+  readonly Functor: Functor<SyncIoK>;
+  readonly Apply: Apply<SyncIoK>;
+  readonly Applicative: Applicative<SyncIoK>;
+  readonly FlatMap: FlatMap<SyncIoK>;
+  readonly Monad: Monad<SyncIoK>;
   readonly MonadError: MonadError<SyncIoK, Error>;
   readonly Sync: Sync<SyncIoK>;
 }
@@ -30,6 +50,31 @@ SyncIO.delay = delay;
 SyncIO.defer = defer;
 SyncIO.throwError = throwError;
 
+Object.defineProperty(SyncIO, 'Functor', {
+  get() {
+    return syncIoFunctor();
+  },
+});
+Object.defineProperty(SyncIO, 'Apply', {
+  get() {
+    return syncIoApply();
+  },
+});
+Object.defineProperty(SyncIO, 'Applicative', {
+  get() {
+    return syncIoApplicative();
+  },
+});
+Object.defineProperty(SyncIO, 'FlatMap', {
+  get() {
+    return syncIoFlatMap();
+  },
+});
+Object.defineProperty(SyncIO, 'Monad', {
+  get() {
+    return syncIoMonad();
+  },
+});
 Object.defineProperty(SyncIO, 'MonadError', {
   get() {
     return syncIoMonadError();

@@ -13,12 +13,22 @@ import {
   swapped,
   tap_,
   toOption,
+  isRight,
+  isLeft,
+  get,
+  getLeft,
 } from './operators';
 
 declare module './algebra' {
   interface Either<E, A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
+
+    readonly get: A;
+    readonly getLeft: E;
+
+    readonly isLeft: boolean;
+    readonly isRight: boolean;
 
     map<B>(f: (a: A) => B): Either<E, B>;
     tap(f: (a: A) => unknown): Either<E, A>;
@@ -61,6 +71,30 @@ Object.defineProperty(Either.prototype, 'isEmpty', {
 Object.defineProperty(Either.prototype, 'nonEmpty', {
   get<E, A>(this: Either<E, A>): boolean {
     return nonEmpty(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'get', {
+  get<E, A>(this: Either<E, A>): A {
+    return get(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'getLeft', {
+  get<E, A>(this: Either<E, A>): E {
+    return getLeft(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'isLeft', {
+  get<E, A>(this: Either<E, A>): boolean {
+    return isLeft(this);
+  },
+});
+
+Object.defineProperty(Either.prototype, 'isRight', {
+  get<E, A>(this: Either<E, A>): boolean {
+    return isRight(this);
   },
 });
 

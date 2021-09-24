@@ -15,7 +15,7 @@ import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
 import { Compiler, PureCompiler } from './compiler';
-import { fromChunk, pure, defer } from './constructor';
+import { fromChunk, pure, defer, throwError, evalF } from './constructor';
 
 export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   take_(s, 1);
@@ -102,26 +102,6 @@ export const concat: <F extends AnyK, A2>(
   s2: Stream<F, A2>,
 ) => <A extends A2>(s1: Stream<F, A>) => Stream<F, A2> = s2 => s1 =>
   concat_(s1, s2);
-
-export const attempt = <F extends AnyK, A>(
-  s: Stream<F, A>,
-): Stream<F, Either<Error, A>> =>
-  pipe(
-    s,
-    map(x => Right(x) as Either<Error, A>),
-    handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
-  );
-
-export const redeemWith: <F extends AnyK, A, B>(
-  onFailure: (e: Error) => Stream<F, B>,
-  onSuccess: (a: A) => Stream<F, B>,
-) => (s: Stream<F, A>) => Stream<F, B> = (onFailure, onSuccess) => s =>
-  redeemWith_(s, onFailure, onSuccess);
-
-export const handleErrorWith: <F extends AnyK, A2>(
-  h: (e: Error) => Stream<F, A2>,
-) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
-  handleErrorWith_(s, h);
 
 export const chunks: <F extends AnyK, A>(
   s: Stream<F, A>,
@@ -227,6 +207,10 @@ export const mapAccumulate: <S>(
 ) => <F extends AnyK, A extends AA>(s: Stream<F, A>) => Stream<F, [S, B]> =
   init => f => s =>
     mapAccumulate_(s, init, f);
+
+export const evalMap: <F extends AnyK, A, B>(
+  f: (a: A) => Kind<F, [B]>,
+) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalMap_(s, f);
 
 export const flatMap: <F extends AnyK, A, B>(
   f: (a: A) => Stream<F, B>,
@@ -361,6 +345,40 @@ export const zipAllWith: <F extends AnyK, B>(
 ) => <A extends A2>(s1: Stream<F, A>) => Stream<F, C> =
   s2 => (pad1, pad2) => f => s1 =>
     zipAllWith_(s1, s2, pad1, pad2)(f);
+
+export const attempt = <F extends AnyK, A>(
+  s: Stream<F, A>,
+): Stream<F, Either<Error, A>> =>
+  pipe(
+    s,
+    map(x => Right(x) as Either<Error, A>),
+    handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
+  );
+
+export const redeemWith: <F extends AnyK, A, B>(
+  onFailure: (e: Error) => Stream<F, B>,
+  onSuccess: (a: A) => Stream<F, B>,
+) => (s: Stream<F, A>) => Stream<F, B> = (onFailure, onSuccess) => s =>
+  redeemWith_(s, onFailure, onSuccess);
+
+export const rethrow = <F extends AnyK, A>(
+  s: Stream<F, Either<Error, A>>,
+): Stream<F, A> =>
+  pipe(
+    chunks(s),
+    flatMap(c => {
+      const firstError = c.findIndex(ea => ea.isLeft);
+      return firstError.fold(
+        () => fromChunk(c.map(ea => ea.get)),
+        i => throwError(c['!!'](i).getLeft),
+      );
+    }),
+  );
+
+export const handleErrorWith: <F extends AnyK, A2>(
+  h: (e: Error) => Stream<F, A2>,
+) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
+  handleErrorWith_(s, h);
 
 export const compile: <A>(s: Stream<SyncIoK, A>) => PureCompiler<A> = s =>
   new PureCompiler(s.pull);
@@ -698,6 +716,16 @@ export const mapAccumulate_ = <F extends AnyK, S, A, B>(
       return [s2, [s2, b]];
     }),
   );
+
+export const evalMap_ = <F extends AnyK, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => Kind<F, [B]>,
+): Stream<F, B> => flatMap_(s, x => evalF(f(x)));
+
+// export const evalMapChunk_ = <F extends AnyK, A, B>(
+//   s: Stream<F, A>,
+//   s: (a: Chunk<A>) => Kind<F, [Chunk<B>]>,
+// ): Stream<F, B> => {};
 
 export const flatMap_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
