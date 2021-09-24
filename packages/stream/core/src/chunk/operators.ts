@@ -78,6 +78,20 @@ export const map: <O, O2>(f: (o: O) => O2) => (c: Chunk<O>) => Chunk<O2> =
   f => c =>
     map_(c, f);
 
+export const forEach: <O>(f: (o: O) => void) => (c: Chunk<O>) => void =
+  f => c =>
+    forEach_(c, f);
+
+export const foldLeft: <O, O2>(
+  z: O2,
+  f: (o2: O2, o: O) => O2,
+) => (c: Chunk<O>) => O2 = (z, f) => c => foldLeft_(c, z, f);
+
+export const scanLeftCarry: <O, O2>(
+  z: O2,
+  f: (o2: O2, o: O) => O2,
+) => (c: Chunk<O>) => [Chunk<O2>, O2] = (z, f) => c => scanLeftCarry_(c, z, f);
+
 export const zipWith: <O1, O2, O3>(
   c2: Chunk<O2>,
   f: (o1: O1, o2: O2) => O3,
@@ -408,6 +422,25 @@ export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
   }
 };
 
+export const forEach_ = <O>(c: Chunk<O>, f: (o: O) => void): void => {
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return;
+    case 'singleton':
+      return f(v.value);
+    case 'array':
+      return v.array.forEach(f);
+    case 'slice':
+      for (let i = 0, len = v.size; i < len; i++) {
+        f(v.values[v.offset + i]);
+      }
+      return;
+    case 'queue':
+      return v.queue.forEach(c => forEach_(c, f));
+  }
+};
+
 export const foldLeft_ = <O, B>(
   c: Chunk<O>,
   init: B,
@@ -430,6 +463,24 @@ export const foldLeft_ = <O, B>(
     case 'queue':
       return v.queue.foldLeft(init, (b, c) => foldLeft_(c, b, f));
   }
+};
+
+export const scanLeftCarry_ = <O, O2>(
+  c: Chunk<O>,
+  z: O2,
+  f: (o2: O2, o: O) => O2,
+): [Chunk<O2>, O2] => {
+  const results: O2[] = new Array(c.size);
+  let carry = z;
+  let i = 0;
+
+  forEach_(c, x => {
+    carry = f(carry, x);
+    results[i] = carry;
+    i += 1;
+  });
+
+  return [fromArray(results), carry];
 };
 
 export const zipWith_ = <O1, O2, O3>(

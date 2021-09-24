@@ -8,6 +8,7 @@ import {
   concat_,
   foldLeft_,
   foldRight_,
+  forEach_,
   head,
   headOption,
   init,
@@ -69,6 +70,8 @@ declare module './algebra' {
       start: V,
       p: (v: V) => boolean,
     ) => Option<[FingerTree<V, A>, A, FingerTree<V, A>]>;
+
+    forEach(f: (a: A) => void): void;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldRight<B>(z: B, f: (b: B, a: A) => B): B;
@@ -177,6 +180,10 @@ FingerTree.prototype.splitAt = function <V, A>(
   M: Measured<A, V>,
 ) {
   return (start: V, p: (v: V) => boolean) => splitAt_(M)(this, start, p);
+};
+
+FingerTree.prototype.forEach = function (f) {
+  return forEach_(this, f);
 };
 
 FingerTree.prototype.foldLeft = function (z, f) {

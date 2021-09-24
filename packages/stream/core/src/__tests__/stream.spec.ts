@@ -50,7 +50,7 @@ describe('Stream', () => {
     it('should create a stream from a suspended stream', () => {
       const s1 = Stream(1, 2, 3, 4, 5);
 
-      expect(Stream.suspend(() => s1).toList).toEqual(List(1, 2, 3, 4, 5));
+      expect(Stream.defer(() => s1).toList).toEqual(List(1, 2, 3, 4, 5));
     });
   });
 
@@ -210,11 +210,11 @@ describe('Stream', () => {
   });
 
   describe('takeRight', () => {
-    it('should return empty stream if empty', () => {
+    it('should output no values if empty', () => {
       expect(Stream.empty().takeRight(5).compile.toList).toEqual(List.empty);
     });
 
-    it('should return empty stream if non-positive number', () => {
+    it('should output no values if non-positive number', () => {
       expect(Stream(1, 2, 3).takeRight(-1).compile.toList).toEqual(List.empty);
     });
 
@@ -293,7 +293,7 @@ describe('Stream', () => {
   });
 
   describe('dropRight', () => {
-    it('should return empty stream if empty', () => {
+    it('should output no values if empty', () => {
       expect(Stream.empty().dropRight(5).compile.toList).toEqual(List.empty);
     });
 
@@ -375,9 +375,47 @@ describe('Stream', () => {
     });
   });
 
+  describe('redeemWith', () => {
+    it('should transform successful values', () => {
+      expect(
+        Stream(1, 2, 3).redeemWith(
+          () => Stream(-1),
+          x => Stream(x * 2),
+        ).compile.toList,
+      ).toEqual(List(2, 4, 6));
+    });
+
+    it('should capture errors', () => {
+      let error: Error;
+
+      Stream(1, 2, 3)
+        ['+++'](Stream.throwError(new Error('test error')))
+        .redeemWith(
+          e => {
+            error = e;
+            return Stream.empty();
+          },
+          () => Stream.empty(),
+        ).compile.drain;
+
+      expect(error!).toEqual(new Error('test error'));
+    });
+
+    it('should transform erroneous values', () => {
+      expect(
+        Stream(1, 2, 3)
+          ['+++'](Stream.throwError(new Error('test error')))
+          .redeemWith(
+            () => Stream(-1),
+            x => Stream(x * 2),
+          ).compile.toList,
+      ).toEqual(List(2, 4, 6, -1));
+    });
+  });
+
   describe('handleErrorWith', () => {
     it('should capture suspended error', () => {
-      const s = Stream.suspend(() => throwError(new Error('test error')));
+      const s = Stream.defer(() => throwError(new Error('test error')));
       expect(() => s.compile.drain).toThrow(new Error('test error'));
     });
 
@@ -461,6 +499,70 @@ describe('Stream', () => {
           .toArray,
       ).toEqual([1, 2, 3]);
     });
+
+    it('should do not do any modifications to chunks that are smaller than the limit', () => {
+      expect(
+        Stream(1, 2)
+          ['+++'](Stream(4, 5)['+++'](Stream(5, 6)))
+          .chunkLimit(100)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [4, 5], [5, 6]));
+    });
+
+    it('should split larger chunks to be at most two elements', () => {
+      expect(
+        Stream(1, 2, 3)
+          ['+++'](Stream(4, 5)['+++'](Stream(6, 7, 8, 9)))
+          .chunkLimit(2)
+          .compile.toList.map(x => x.toArray),
+      ).toEqual(List([1, 2], [3], [4, 5], [6, 7], [8, 9]));
+    });
+
+    it('should  a single chunk', () => {
+      expect(Stream(1, 2, 3).chunkMin(0).compile.toList).toEqual(
+        List(Chunk(1, 2, 3)),
+      );
+    });
+
+    it('should emit three chunks with a reminder', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .chunkLimit(1)
+          .unchunks.chunkMin(2, true)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [3, 4], [5]));
+    });
+
+    it('should emit two chunks without a reminder', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .chunkLimit(1)
+          .unchunks.chunkMin(2, false)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [3, 4]));
+    });
+
+    it('should drop elements that do not fit multiple of N', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5, 6, 7)
+          .chunkN(2, false)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [3, 4], [5, 6]));
+    });
+
+    it('should include reminder as last smaller chunk', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5, 6, 7)
+          .chunkN(2, true)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [3, 4], [5, 6], [7]));
+    });
+
+    it('should re-emit all chunks as values', () => {
+      expect(Stream(1, 2, 3, 4, 5).chunkN(2).unchunks.toList).toEqual(
+        List(1, 2, 3, 4),
+      );
+    });
   });
 
   describe('filtering', () => {
@@ -532,13 +634,78 @@ describe('Stream', () => {
   });
 
   describe('unfolds', () => {
-    // TODO
+    it('should produce an empty stream', () => {
+      expect(Stream.unfold(0)(() => None).compile.toList).toEqual(List.empty);
+    });
+
+    it('should produce sequence of numbers from 0 to 5', () => {
+      expect(
+        Stream.unfold(0)(n => (n <= 5 ? Some([n, n + 1]) : None)).compile
+          .toList,
+      ).toEqual(List(0, 1, 2, 3, 4, 5));
+    });
+
+    it('should produce an empty stream from no chunks', () => {
+      expect(Stream.unfoldChunk(0)(() => None).compile.toList).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should produce stream of duplicated numbers from 0 to 5', () => {
+      expect(
+        Stream.unfoldChunk(0)(n => (n <= 5 ? Some([Chunk(n, n), n + 1]) : None))
+          .compile.toList,
+      ).toEqual(List(0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5));
+    });
+  });
+
+  describe('scan', () => {
+    it('should produce a initial value singleton list when stream is empty', () => {
+      expect(Stream.empty().scan(0, () => -1).compile.toList).toEqual(List(0));
+    });
+
+    it('should produce a rolling sum of streamed values', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5).scan(0, (x, y) => x + y).compile.toList,
+      ).toEqual(List(0, 1, 3, 6, 10, 15));
+    });
+  });
+
+  describe('scan1', () => {
+    it('should output no values if empty', () => {
+      expect(Stream.empty().scan1(() => -1).compile.toList).toEqual(List.empty);
+    });
+
+    it('should produce a rolling sum of streamed values', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5).scan1((x, y) => x + y).compile.toList,
+      ).toEqual(List(1, 3, 6, 10, 15));
+    });
+  });
+
+  describe('scanChunks', () => {
+    it('should output no values if empty', () => {
+      expect(
+        Stream.empty().scanChunks(0, (s, c) => [s, c]).compile.toList,
+      ).toEqual(List.empty);
+    });
+
+    it('should produce cumulative sums', () => {
+      expect(
+        Stream(1, 2, 3, 4)
+          .chunkN(2)
+          .unchunks.scanChunks(0, (s, c) => {
+            const [c2, s2] = c.scanLeftCarry(s, (x, y) => x + y);
+            return [s2, c2];
+          }).compile.toList,
+      ).toEqual(List(1, 3, 6, 10));
+    });
   });
 
   describe('examples', () => {
     it('should calculate fibonacci sequence', () => {
       const fibs: Stream<AnyK, number> = Stream(0, 1)['+++'](
-        Stream.suspend(() => fibs.zip(fibs.tail).map(([x, y]) => x + y)),
+        Stream.defer(() => fibs.zip(fibs.tail).map(([x, y]) => x + y)),
       );
 
       expect(fibs.take(11).toList).toEqual(

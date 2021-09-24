@@ -35,7 +35,7 @@ export const outputOption1 = <F extends AnyK, O>(
 export const output = <F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void> =>
   chunk.isEmpty ? done() : new Output(chunk);
 
-export const suspend = <F extends AnyK, O, R>(
+export const defer = <F extends AnyK, O, R>(
   thunk: () => Pull<F, O, R>,
 ): Pull<F, O, R> =>
   new Bind<F, O, any, R>(unit as Pull<any, never, void>, thunk);

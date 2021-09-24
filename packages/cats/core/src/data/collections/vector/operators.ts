@@ -155,6 +155,10 @@ export const tailRecM: <A>(
 ) => <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B> = a => f =>
   tailRecM_(a, f);
 
+export const forEach: <A>(f: (a: A) => void) => (xs: Vector<A>) => void =
+  f => xs =>
+    forEach_(xs, f);
+
 export const foldLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -320,6 +324,9 @@ export const tailRecM_ = <A, B>(
 
   return results;
 };
+
+export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>
+  FT.forEach_(xs._root, f);
 
 export const foldLeft_ = <A, B>(xs: Vector<A>, z: B, f: (b: B, a: A) => B): B =>
   FT.foldLeft_(xs._root, z, f);

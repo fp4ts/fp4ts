@@ -12,7 +12,7 @@ import {
   outputOption1,
   pure,
   sleep,
-  suspend,
+  defer,
   throwError,
 } from './constructors';
 import { loop } from './operators';
@@ -32,7 +32,7 @@ interface PullObj {
   output1<F extends AnyK, O>(value: O): Pull<F, O, void>;
   outputOption1<F extends AnyK, O>(value: Option<O>): Pull<F, O, void>;
   output<F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void>;
-  suspend<F extends AnyK, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
+  defer<F extends AnyK, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
 
   loop<F extends AnyK, O, R>(
     f: (r: R) => Pull<F, O, Option<R>>,
@@ -47,6 +47,6 @@ Pull.sleep = sleep;
 Pull.output1 = output1;
 Pull.outputOption1 = outputOption1;
 Pull.output = output;
-Pull.suspend = suspend;
+Pull.defer = defer;
 
 Pull.loop = loop;

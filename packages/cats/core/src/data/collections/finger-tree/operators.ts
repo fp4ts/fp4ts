@@ -189,6 +189,10 @@ export const splitAt: <V, A>(
 ) => (xs: FingerTree<V, A>) => Option<[FingerTree<V, A>, A, FingerTree<V, A>]> =
   M => (start, p) => xs => splitAt_(M)(xs, start, p);
 
+export const forEach: <A>(
+  f: (a: A) => void,
+) => <V>(xs: FingerTree<V, A>) => void = f => xs => forEach_(xs, f);
+
 export const foldLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -347,6 +351,24 @@ export const splitAt_ =
       _chunkToTree(M)(after),
     ]);
   };
+
+export const forEach_ = <V, A>(
+  v: FingerTree<V, A>,
+  f: (a: A) => void,
+): void => {
+  const ft = view(v);
+  switch (ft.tag) {
+    case 'empty':
+      return;
+    case 'single':
+      return f(ft.value);
+    case 'deep':
+      ft.prefix.forEach(f);
+      forEach_(ft.deep, ([, ...n]) => n.forEach(f));
+      ft.suffix.forEach(f);
+      return;
+  }
+};
 
 export const foldLeft_ = <V, A, B>(
   v: FingerTree<V, A>,

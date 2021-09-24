@@ -1,5 +1,5 @@
 import { AnyK, Kind, TyK, _ } from '@cats4ts/core';
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
@@ -15,8 +15,11 @@ import {
   pure,
   range,
   repeatEval,
-  suspend,
+  defer,
   throwError,
+  unfold,
+  unfoldChunk,
+  tailRecM,
 } from './constructor';
 import { Spawn } from '@cats4ts/effect-kernel';
 
@@ -29,7 +32,7 @@ export const Stream: StreamObj = function (...xs) {
 interface StreamObj {
   <F extends AnyK, A>(...xs: A[]): Stream<F, A>;
   pure<F extends AnyK, A>(x: A): Stream<F, A>;
-  suspend<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
+  defer<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
   throwError<F extends AnyK>(e: Error): Stream<F, never>;
   of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
 
@@ -44,6 +47,17 @@ interface StreamObj {
   ): Stream<F, number>;
   never<F extends AnyK>(F: Spawn<F, Error>): Stream<F, never>;
 
+  unfold<S>(
+    s: S,
+  ): <F extends AnyK, A>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
+  unfoldChunk<S>(
+    s: S,
+  ): <F extends AnyK, A>(f: (s: S) => Option<[Chunk<A>, S]>) => Stream<F, A>;
+
+  tailRecM<S>(
+    s: S,
+  ): <F extends AnyK, A>(f: (s: S) => Stream<F, Either<S, A>>) => Stream<F, A>;
+
   fromArray<F extends AnyK, A>(xs: A[]): Stream<F, A>;
   fromList<F extends AnyK, A>(xs: List<A>): Stream<F, A>;
   fromVector<F extends AnyK, A>(xs: Vector<A>): Stream<F, A>;
@@ -51,7 +65,7 @@ interface StreamObj {
 }
 
 Stream.pure = pure;
-Stream.suspend = suspend;
+Stream.defer = defer;
 Stream.throwError = throwError;
 Stream.of = of;
 
@@ -61,6 +75,11 @@ Stream.repeatEval = repeatEval;
 Stream.empty = empty;
 Stream.range = range;
 Stream.never = never;
+
+Stream.unfold = unfold;
+Stream.unfoldChunk = unfoldChunk;
+
+Stream.tailRecM = tailRecM;
 
 Stream.fromArray = fromArray;
 Stream.fromList = fromList;

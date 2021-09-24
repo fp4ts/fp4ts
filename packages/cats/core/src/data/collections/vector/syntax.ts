@@ -26,6 +26,7 @@ import {
   foldMap_,
   foldRight1_,
   foldRight_,
+  forEach_,
   head,
   headOption,
   init,
@@ -107,6 +108,8 @@ declare module './algebra' {
     flatMap<B>(f: (a: A) => Vector<B>): Vector<B>;
 
     readonly flatten: A extends Vector<infer B> ? Vector<B> : never | unknown;
+
+    forEach(f: (a: A) => void): void;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: Vector<B>, f: (z: B, x: B) => B): B;
@@ -282,6 +285,10 @@ Object.defineProperty(Vector.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Vector.prototype.forEach = function (f) {
+  return forEach_(this, f);
+};
 
 Vector.prototype.foldLeft = function (z, f) {
   return foldLeft_(this, z, f);

@@ -12,6 +12,7 @@ import { Chunk } from '../chunk';
 import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import {
   compile_,
+  cons,
   dropWhile_,
   drop_,
   find_,
@@ -19,17 +20,22 @@ import {
   fold_,
   last,
   mapOutput_,
+  scanChunksOpt_,
+  scanChunks_,
   takeRight_,
   takeWhile_,
   take_,
   translate_,
   uncons,
   uncons1,
+  unconsLimit_,
   unconsN_,
 } from './stream-projection';
 
 declare module './algebra' {
   interface Pull<F extends AnyK, O, R> {
+    cons<O2>(this: Pull<F, O2, void>, c: Chunk<O2>): Pull<F, O2, void>;
+
     readonly uncons: R extends void
       ? Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>
       : never;
@@ -42,6 +48,11 @@ declare module './algebra' {
       this: Pull<F, O, void>,
       n: number,
       allowFewer?: boolean,
+    ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>;
+
+    unconsLimit(
+      this: Pull<F, O, void>,
+      limit: number,
     ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>>;
 
     readonly last: R extends void ? Pull<F, never, Option<O>> : never;
@@ -116,12 +127,27 @@ declare module './algebra' {
       f: (p: P, o: O) => P,
     ): Pull<F, never, P>;
 
+    scanChunks<S, O2>(
+      this: Pull<F, O, void>,
+      s: S,
+      f: (s: S, o: Chunk<O>) => [S, Chunk<O2>],
+    ): Pull<F, O2, S>;
+    scanChunksOpt<S, OO, O2>(
+      this: Pull<F, OO, void>,
+      s: S,
+      f: (s: S) => Option<(o: Chunk<OO>) => [S, Chunk<O2>]>,
+    ): Pull<F, O2, S>;
+
     compile<O2>(
       this: Pull<F, O2, void>,
       F: MonadError<F, Error>,
     ): <B>(init: B, foldChunk: (b: B, chunk: Chunk<O2>) => B) => Kind<F, [B]>;
   }
 }
+
+Pull.prototype.cons = function (c) {
+  return cons(c, this);
+};
 
 Object.defineProperty(Pull.prototype, 'uncons', {
   get<F extends AnyK, O>(
@@ -141,6 +167,10 @@ Object.defineProperty(Pull.prototype, 'uncons1', {
 
 Pull.prototype.unconsN = function (n, allowFewer) {
   return unconsN_(this, n, allowFewer);
+};
+
+Pull.prototype.unconsLimit = function (limit) {
+  return unconsLimit_(this, limit);
 };
 
 Object.defineProperty(Pull.prototype, 'last', {
@@ -209,6 +239,14 @@ Pull.prototype.onComplete = function (post) {
 
 Pull.prototype.fold = function (z, f) {
   return fold_(this, z, f);
+};
+
+Pull.prototype.scanChunks = function (s, f) {
+  return scanChunks_(this, s, f);
+};
+
+Pull.prototype.scanChunksOpt = function (s, f) {
+  return scanChunksOpt_(this, s, f);
 };
 
 Pull.prototype.compile = function (F) {

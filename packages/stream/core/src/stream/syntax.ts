@@ -42,6 +42,15 @@ import {
   fold_,
   foldMap_,
   foldMapK_,
+  redeemWith_,
+  chunkLimit_,
+  chunkN_,
+  unchunks,
+  chunkMin_,
+  scan_,
+  scan1_,
+  scanChunks_,
+  scanChunksOpt_,
 } from './operators';
 
 declare module './algebra' {
@@ -72,6 +81,11 @@ declare module './algebra' {
 
     readonly attempt: Stream<F, Either<Error, A>>;
 
+    redeemWith<B>(
+      onFailure: (e: Error) => Stream<F, B>,
+      onSuccess: (a: A) => Stream<F, B>,
+    ): Stream<F, B>;
+
     handleErrorWith<B>(
       this: Stream<F, B>,
       h: (e: Error) => Stream<F, B>,
@@ -79,6 +93,10 @@ declare module './algebra' {
 
     readonly chunks: Stream<F, Chunk<A>>;
     readonly chunkAll: Stream<F, Chunk<A>>;
+    chunkLimit(limit: number): Stream<F, Chunk<A>>;
+    chunkMin(n: number, allowFewerTotal?: boolean): Stream<F, Chunk<A>>;
+    chunkN(n: number, allowFewer?: boolean): Stream<F, Chunk<A>>;
+    readonly unchunks: A extends Chunk<infer B> ? Stream<F, B> : never;
 
     filter(pred: (a: A) => boolean): Stream<F, A>;
     filterNot(pred: (a: A) => boolean): Stream<F, A>;
@@ -97,6 +115,18 @@ declare module './algebra' {
     foldMapK<G extends AnyK>(
       G: MonoidK<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Stream<F, Kind<G, [B]>>;
+
+    scan<B>(z: B, f: (b: B, a: A) => B): Stream<F, A>;
+    scan1<B>(this: Stream<F, B>, f: (x: B, y: B) => B): Stream<F, B>;
+
+    scanChunks<S, B>(
+      s: S,
+      f: (s: S, c: Chunk<A>) => [S, Chunk<B>],
+    ): Stream<F, B>;
+    scanChunksOpt<S, B>(
+      s: S,
+      f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
+    ): Stream<F, B>;
 
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
@@ -188,6 +218,10 @@ Object.defineProperty(Stream.prototype, 'attempt', {
   },
 });
 
+Stream.prototype.redeemWith = function (h, f) {
+  return redeemWith_(this, h, f);
+};
+
 Stream.prototype.handleErrorWith = function (h) {
   return handleErrorWith_(this, h);
 };
@@ -201,6 +235,24 @@ Object.defineProperty(Stream.prototype, 'chunks', {
 Object.defineProperty(Stream.prototype, 'chunkAll', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
     return chunkAll(this);
+  },
+});
+
+Stream.prototype.chunkLimit = function (limit) {
+  return chunkLimit_(this, limit);
+};
+
+Stream.prototype.chunkMin = function (n, allowFewerTotal) {
+  return chunkMin_(this, n, allowFewerTotal);
+};
+
+Stream.prototype.chunkN = function (n, allowFewer) {
+  return chunkN_(this, n, allowFewer);
+};
+
+Object.defineProperty(Stream.prototype, 'unchunks', {
+  get<F extends AnyK, A>(this: Stream<F, Chunk<A>>): Stream<F, A> {
+    return unchunks(this);
   },
 });
 
@@ -248,6 +300,22 @@ Stream.prototype.foldMap = function (M) {
 
 Stream.prototype.foldMapK = function (G) {
   return f => foldMapK_(G)(this, f);
+};
+
+Stream.prototype.scan = function (z, f) {
+  return scan_(this, z, f);
+};
+
+Stream.prototype.scan1 = function (f) {
+  return scan1_(this, f);
+};
+
+Stream.prototype.scanChunks = function (init, f) {
+  return scanChunks_(this, init, f);
+};
+
+Stream.prototype.scanChunksOpt = function (init, f) {
+  return scanChunksOpt_(this, init, f);
 };
 
 Stream.prototype.zip = function (that) {

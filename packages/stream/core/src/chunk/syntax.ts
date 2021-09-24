@@ -9,10 +9,12 @@ import {
   filter_,
   findIndex_,
   foldLeft_,
+  forEach_,
   isEmpty,
   lastOption,
   map_,
   nonEmpty,
+  scanLeftCarry_,
   slice_,
   splitAt_,
   takeRight_,
@@ -55,9 +57,12 @@ declare module './algebra' {
 
     map<O2>(f: (o: O) => O2): Chunk<O2>;
 
-    zipWith<O2, O3>(c2: Chunk<O2>, f: (o: O, o2: O2) => O3): Chunk<O3>;
-
+    forEach(f: (o: O) => void): void;
     foldLeft<O2, B>(this: Chunk<O2>, init: B, f: (b: B, o: O) => B): B;
+
+    scanLeftCarry<O2>(z: O2, f: (o2: O2, o: O) => O2): [Chunk<O2>, O2];
+
+    zipWith<O2, O3>(c2: Chunk<O2>, f: (o: O, o2: O2) => O3): Chunk<O3>;
   }
 }
 
@@ -146,10 +151,18 @@ Chunk.prototype.map = function (f) {
   return map_(this, f);
 };
 
-Chunk.prototype.zipWith = function (c2, f) {
-  return zipWith_(this, c2, f);
+Chunk.prototype.forEach = function (f) {
+  return forEach_(this, f);
 };
 
 Chunk.prototype.foldLeft = function (init, f) {
   return foldLeft_(this, init, f);
+};
+
+Chunk.prototype.scanLeftCarry = function (init, f) {
+  return scanLeftCarry_(this, init, f);
+};
+
+Chunk.prototype.zipWith = function (c2, f) {
+  return zipWith_(this, c2, f);
 };

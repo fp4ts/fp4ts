@@ -18,6 +18,7 @@ import {
 } from './algebra';
 import { Chunk } from '../chunk';
 import { CompositeFailure } from '../composite-failure';
+import { assert } from 'console';
 
 const P = { ...PO, ...PC };
 
@@ -53,6 +54,13 @@ export const unconsN: (
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = n => p =>
   unconsN_(p, n);
+
+export const unconsLimit: (
+  limit: number,
+) => <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = limit => p =>
+  unconsLimit_(p, limit);
 
 export const last = <F extends AnyK, O>(
   p: Pull<F, O, void>,
@@ -137,6 +145,21 @@ export const fold: <O, P>(
 ) => <F extends AnyK>(p: Pull<F, O, void>) => Pull<F, never, P> = (z, f) => p =>
   fold_(p, z, f);
 
+export const scanChunks: <S>(
+  s: S,
+) => <O, O2>(
+  f: (s: S, c: Chunk<O>) => [S, Chunk<O2>],
+) => <F extends AnyK>(p: Pull<F, O, void>) => Pull<F, O2, S> = s => f => p =>
+  scanChunks_(p, s, f);
+
+export const scanChunksOpt: <S>(
+  s: S,
+) => <OO, O2>(
+  f: (s: S) => Option<(c: Chunk<OO>) => [S, Chunk<O2>]>,
+) => <F extends AnyK, O extends OO>(p: Pull<F, O, void>) => Pull<F, O2, S> =
+  s => f => p =>
+    scanChunksOpt_(p, s, f);
+
 export const compile: <F extends AnyK>(
   F: MonadError<F, Error>,
 ) => <O, B>(
@@ -181,6 +204,26 @@ export const unconsN_ = <F extends AnyK, O>(
     );
 
   return n <= 0 ? P.pure(Some([Chunk.empty, p])) : go(p, n, Chunk.empty);
+};
+
+export const unconsLimit_ = <F extends AnyK, O>(
+  p: Pull<F, O, void>,
+  limit: number,
+): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> => {
+  assert(limit > 0, 'Chunk limit must be a positive value');
+  return pipe(
+    uncons(p),
+    P.flatMap(opt =>
+      opt.fold(
+        () => P.pure(None),
+        ([hd, tl]) => {
+          if (hd.size < limit) return P.pure(Some([hd, tl]));
+          const [pfx, sfx] = hd.splitAt(limit);
+          return P.pure(Some([pfx, cons(sfx, tl)]));
+        },
+      ),
+    ),
+  );
 };
 
 export const take_ = <F extends AnyK, O>(
@@ -364,6 +407,41 @@ export const fold_ = <F extends AnyK, O, P>(
       ),
     ),
   );
+
+export const scanChunks_ = <F extends AnyK, O, O2, S>(
+  p: Pull<F, O, void>,
+  s: S,
+  f: (s: S, c: Chunk<O>) => [S, Chunk<O2>],
+): Pull<F, O2, S> => scanChunksOpt_(p, s, s => Some(c => f(s, c)));
+
+export const scanChunksOpt_ = <F extends AnyK, O, O2, S>(
+  p: Pull<F, O, void>,
+  s: S,
+  f: (s: S) => Option<(c: Chunk<O>) => [S, Chunk<O2>]>,
+): Pull<F, O2, S> => {
+  const go = (p: Pull<F, O, void>, acc: S): Pull<F, O2, S> =>
+    f(acc).fold(
+      () => P.pure(acc),
+      g =>
+        pipe(
+          uncons(p),
+          P.flatMap(opt =>
+            opt.fold(
+              () => P.pure(acc),
+              ([hd, tl]) => {
+                const [s, c] = g(hd);
+                return pipe(
+                  P.output(c),
+                  P.flatMap(() => go(tl, s)),
+                );
+              },
+            ),
+          ),
+        ),
+    );
+
+  return go(p, s);
+};
 
 export const translate_ = <F extends AnyK, G extends AnyK, O>(
   pull: Pull<F, O, void>,

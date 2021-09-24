@@ -1,11 +1,11 @@
-import { AnyK, Kind } from '@cats4ts/core';
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { Spawn } from '@cats4ts/effect-kernel';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
-import { repeat } from './operators';
+import { concat_, flatMap, repeat } from './operators';
 
 export const pure = <F extends AnyK, A>(x: A): Stream<F, A> =>
   new Stream(Pull.output1(x));
@@ -13,9 +13,9 @@ export const pure = <F extends AnyK, A>(x: A): Stream<F, A> =>
 export const empty = <F extends AnyK>(): Stream<F, never> =>
   new Stream(Pull.done());
 
-export const suspend = <F extends AnyK, A>(
+export const defer = <F extends AnyK, A>(
   thunk: () => Stream<F, A>,
-): Stream<F, A> => new Stream(Pull.suspend(() => thunk().pull));
+): Stream<F, A> => new Stream(Pull.defer(() => thunk().pull));
 
 export const throwError: <F extends AnyK>(e: Error) => Stream<F, never> = e =>
   new Stream(Pull.throwError(e));
@@ -35,9 +35,7 @@ export const range = <F extends AnyK>(
   step: number = 1,
 ): Stream<F, number> => {
   const go = (i: number): Stream<F, number> =>
-    i < until
-      ? pure<F, number>(i)['+++'](suspend(() => go(i + step)))
-      : empty();
+    i < until ? pure<F, number>(i)['+++'](defer(() => go(i + step))) : empty();
 
   return go(from);
 };
@@ -55,6 +53,48 @@ export const fromArray = <F extends AnyK, A>(xs: A[]): Stream<F, A> => {
       return new Stream(Pull.output(Chunk.fromArray(xs)));
   }
 };
+
+export const unfold =
+  <S>(s: S) =>
+  <F extends AnyK, A>(f: (s: S) => Option<[A, S]>): Stream<F, A> => {
+    const loop = (s: S): Stream<F, A> =>
+      f(s).fold(
+        () => empty(),
+        ([a, next]) =>
+          concat_(
+            pure(a),
+            defer(() => loop(next)),
+          ),
+      );
+    return loop(s);
+  };
+
+export const unfoldChunk =
+  <S>(s: S) =>
+  <F extends AnyK, A>(f: (s: S) => Option<[Chunk<A>, S]>): Stream<F, A> =>
+    pipe(
+      unfold(s)<F, Chunk<A>>(f),
+      flatMap(x => fromChunk(x)),
+    );
+
+export const tailRecM: <S>(
+  s: S,
+) => <F extends AnyK, A>(f: (s: S) => Stream<F, Either<S, A>>) => Stream<F, A> =
+  s => f => tailRecM_(s, f);
+
+export const tailRecM_ = <F extends AnyK, S, A>(
+  s: S,
+  f: (s: S) => Stream<F, Either<S, A>>,
+): Stream<F, A> =>
+  pipe(
+    f(s),
+    flatMap(ea =>
+      ea.fold(
+        s => tailRecM_(s, f),
+        a => pure(a),
+      ),
+    ),
+  );
 
 export const fromList = <F extends AnyK, A>(xs: List<A>): Stream<F, A> =>
   fromArray(xs.toArray);
