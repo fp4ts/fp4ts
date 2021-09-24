@@ -613,7 +613,7 @@ export const compile_ =
         }
 
         case 'output':
-          return runner.out(v.values, cont(P.unit));
+          return F.flatMap_(F.unit, () => runner.out(v.values, cont(P.unit)));
 
         case 'flatMapOutput':
           return F.flatMap_(F.unit, () =>

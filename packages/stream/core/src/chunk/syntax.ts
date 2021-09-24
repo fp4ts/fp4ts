@@ -12,6 +12,7 @@ import {
   forEach_,
   isEmpty,
   lastOption,
+  mapAccumulate_,
   map_,
   nonEmpty,
   scanLeftCarry_,
@@ -56,6 +57,7 @@ declare module './algebra' {
     collect<O2>(f: (o: O) => Option<O2>): Chunk<O2>;
 
     map<O2>(f: (o: O) => O2): Chunk<O2>;
+    mapAccumulate<S>(s: S): <O2>(f: (s: S, o: O) => [S, O2]) => [S, Chunk<O2>];
 
     forEach(f: (o: O) => void): void;
     foldLeft<O2, B>(this: Chunk<O2>, init: B, f: (b: B, o: O) => B): B;
@@ -149,6 +151,10 @@ Chunk.prototype.collect = function (pred) {
 
 Chunk.prototype.map = function (f) {
   return map_(this, f);
+};
+
+Chunk.prototype.mapAccumulate = function (s) {
+  return f => mapAccumulate_(this, s, f);
 };
 
 Chunk.prototype.forEach = function (f) {

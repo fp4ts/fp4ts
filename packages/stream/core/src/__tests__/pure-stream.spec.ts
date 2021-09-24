@@ -6,12 +6,12 @@ import {
   Right,
   Some,
   Vector,
+  None,
 } from '@cats4ts/cats-core/lib/data';
 import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
 
 import { Stream } from '../stream';
 import { Chunk } from '../chunk';
-import { None } from '@cats4ts/cats-core/lib/data/option/algebra';
 
 describe('Stream', () => {
   describe('type', () => {
@@ -563,9 +563,37 @@ describe('Stream', () => {
         List(1, 2, 3, 4),
       );
     });
+
+    it('should create a sliding window with step > size', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .sliding(2, 3)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2], [4, 5]));
+    });
+
+    it('should create a sliding window with step < size', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .sliding(3, 2)
+          .compile.toList.map(c => c.toArray),
+      ).toEqual(List([1, 2, 3], [3, 4, 5]));
+    });
+
+    it('should be stack safe', () => {
+      const xs = [...new Array(10_000).keys()];
+      const ys = Stream.fromArray(xs).sliding(1).unchunks.compile.toArray;
+      expect(ys).toEqual(xs);
+    });
   });
 
   describe('filtering', () => {
+    it('should filter out duplicated values', () => {
+      expect(
+        Stream(1, 1, 2, 2, 2, 2, 3, 4, 4, 5).changes().compile.toList,
+      ).toEqual(List(1, 2, 3, 4, 5));
+    });
+
     it('should filter out all elements of the stream', () => {
       expect(Stream(1, 2, 3, 4, 5).filter(() => false).compile.toList).toEqual(
         List.empty,
@@ -699,6 +727,56 @@ describe('Stream', () => {
             return [s2, c2];
           }).compile.toList,
       ).toEqual(List(1, 3, 6, 10));
+    });
+  });
+
+  describe('zipping', () => {
+    it('should emit no values when lhs is empty', () => {
+      expect(Stream.empty().zip(Stream(1, 2, 3)).compile.toList).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should emit no values when rhs is empty', () => {
+      expect(Stream(1, 2, 3).zip(Stream.empty()).compile.toList).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should zip two streams', () => {
+      expect(Stream(1, 2, 3).zip(Stream(4, 5, 6)).compile.toList).toEqual(
+        List([1, 4], [2, 5], [3, 6]),
+      );
+    });
+
+    it('should pad lhs', () => {
+      expect(
+        Stream(1, 2).zipAll(Stream(4, 5, 6))(-1, -2).compile.toList,
+      ).toEqual(List([1, 4], [2, 5], [-1, 6]));
+    });
+
+    it('should pad rhs', () => {
+      expect(
+        Stream(1, 2, 3).zipAll(Stream(4, 5))(-1, -2).compile.toList,
+      ).toEqual(List([1, 4], [2, 5], [3, -2]));
+    });
+
+    it('should zip values with their indexes', () => {
+      expect(Stream(1, 2, 3, 4, 5).zipWithIndex.compile.toList).toEqual(
+        List([1, 0], [2, 1], [3, 2], [4, 3], [5, 4]),
+      );
+    });
+
+    it('should zip each of the values with its successor', () => {
+      expect(Stream(1, 2, 3).zipWithNext.compile.toList).toEqual(
+        List([1, Some(2)], [2, Some(3)], [3, None]),
+      );
+    });
+
+    it('should zip each of the values with its predecessor', () => {
+      expect(Stream(1, 2, 3).zipWithPrevious.compile.toList).toEqual(
+        List([None, 1], [Some(1), 2], [Some(2), 3]),
+      );
     });
   });
 

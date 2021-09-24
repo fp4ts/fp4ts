@@ -1,5 +1,5 @@
 import { Chunk as ChunkBase } from './algebra';
-import { empty, fromArray, singleton } from './constructor';
+import { empty, emptyQueue, fromArray, singleton } from './constructor';
 
 export type Chunk<O> = ChunkBase<O>;
 
@@ -12,8 +12,10 @@ interface ChunkObj {
   empty: Chunk<never>;
   singleton<O>(o: O): Chunk<O>;
   fromArray<O>(xs: O[]): Chunk<O>;
+  emptyQueue: Chunk<never>;
 }
 
 Chunk.empty = empty;
 Chunk.singleton = singleton;
 Chunk.fromArray = fromArray;
+Chunk.emptyQueue = emptyQueue;

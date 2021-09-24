@@ -5,6 +5,12 @@ export interface Eq<A> {
   readonly notEquals: (lhs: A, rhs: A) => boolean;
 }
 
+export const Eq = Object.freeze({
+  get primitive(): Eq<PrimitiveType> {
+    return primitiveEq();
+  },
+});
+
 // HKT
 
 export const EqURI = 'cats/eq';

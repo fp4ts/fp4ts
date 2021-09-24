@@ -11,7 +11,7 @@ import {
   SingletonChunk,
   view,
 } from './algebra';
-import { fromArray, singleton } from './constructor';
+import { emptyQueue, fromArray } from './constructor';
 
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
@@ -78,6 +78,12 @@ export const map: <O, O2>(f: (o: O) => O2) => (c: Chunk<O>) => Chunk<O2> =
   f => c =>
     map_(c, f);
 
+export const mapAccumulate: <S>(
+  s: S,
+) => <O, O2>(f: (s: S, o: O) => [S, O2]) => (c: Chunk<O>) => [S, Chunk<O2>] =
+  s => f => c =>
+    mapAccumulate_(c, s, f);
+
 export const forEach: <O>(f: (o: O) => void) => (c: Chunk<O>) => void =
   f => c =>
     forEach_(c, f);
@@ -131,10 +137,9 @@ export const toVector: <O>(c: Chunk<O>) => Vector<O> = c =>
 // -- Point-ful operators
 
 export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
-  const s = size(c);
   const v = view(c);
   if (n <= 0) return EmptyChunk;
-  if (n >= s) return c;
+  if (n >= c.size) return c;
 
   switch (v.tag) {
     case 'empty':
@@ -152,7 +157,7 @@ export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let offset = n;
       while (true) {
         [head, chunks] = chunks.popHead.get;
-        if (head.size <= offset) return take_(head, offset);
+        if (offset <= head.size) return take_(head, offset);
         offset -= head.size;
       }
     }
@@ -160,10 +165,9 @@ export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
 };
 
 export const takeRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
-  const s = size(c);
   const v = view(c);
   if (n <= 0) return EmptyChunk;
-  if (n >= s) return c;
+  if (n >= c.size) return c;
 
   switch (v.tag) {
     case 'empty':
@@ -181,7 +185,7 @@ export const takeRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let offset = n;
       while (true) {
         [last, chunks] = chunks.popLast.get;
-        if (last.size <= offset) return takeRight_(last, offset);
+        if (offset <= last.size) return takeRight_(last, offset);
         offset -= last.size;
       }
     }
@@ -206,10 +210,12 @@ export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let head: Chunk<O>;
       let chunks = v.queue;
       let offset = n;
+      let size = v.size;
       while (true) {
         [head, chunks] = chunks.popHead.get;
+        size -= head.size;
         if (head.size <= offset)
-          return concat_(drop_(head, offset), new Queue(chunks));
+          return concat_(drop_(head, offset), new Queue(chunks, size));
         offset -= head.size;
       }
     }
@@ -217,10 +223,9 @@ export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
 };
 
 export const dropRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
-  const s = size(c);
   const v = view(c);
   if (n <= 0) return c;
-  if (n >= s) return EmptyChunk;
+  if (n >= c.size) return EmptyChunk;
 
   switch (v.tag) {
     case 'empty':
@@ -234,10 +239,12 @@ export const dropRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let last: Chunk<O>;
       let chunks = v.queue;
       let offset = n;
+      let size = v.size;
       while (true) {
         [last, chunks] = chunks.popLast.get;
+        size -= last.size;
         if (last.size <= offset)
-          return concat_(dropRight_(last, offset), new Queue(chunks));
+          return concat_(dropRight_(last, offset), new Queue(chunks, size));
         offset -= last.size;
       }
     }
@@ -298,7 +305,7 @@ export const elem_ = <O>(c: Chunk<O>, idx: number): O => {
       let offset = idx;
       while (true) {
         [head, chunks] = chunks.popHead.get;
-        if (head.size < idx) return elem_(head, offset);
+        if (offset < head.size) return elem_(head, offset);
         offset -= head.size;
       }
     }
@@ -315,7 +322,7 @@ export const slice_ = <O>(
 
 export const splitAt_ = <O>(c: Chunk<O>, n: number): [Chunk<O>, Chunk<O>] => {
   if (n <= 0) return [EmptyChunk, EmptyChunk];
-  if (n >= size(c)) return [c, EmptyChunk];
+  if (n >= c.size) return [c, EmptyChunk];
   const v = view(c);
   switch (v.tag) {
     case 'empty':
@@ -332,8 +339,24 @@ export const splitAt_ = <O>(c: Chunk<O>, n: number): [Chunk<O>, Chunk<O>] => {
         new ArraySlice(v.values, v.offset, n),
         new ArraySlice(v.values, v.offset + n, v.length - n),
       ];
-    default:
-      throw new Error();
+    case 'queue': {
+      let prefix: Chunk<O> = emptyQueue;
+      let head: Chunk<O>;
+      let chunks = v.queue;
+      let offset = n;
+      let size = v.size;
+
+      while (true) {
+        [head, chunks] = chunks.popHead.get;
+        size -= head.size;
+        if (offset < head.size) {
+          const [pfx, sfx] = splitAt_(head, offset);
+          return [concat_(prefix, pfx), concat_(sfx, new Queue(chunks, size))];
+        }
+        offset -= head.size;
+        prefix = concat_(prefix, head);
+      }
+    }
   }
 };
 
@@ -345,14 +368,14 @@ export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
 
   switch (v1.tag) {
     case 'queue':
-      return new Queue(v1.queue.append(v2));
+      return new Queue(v1.queue.append(v2), v1.size + v2.size);
 
     default:
       switch (v2.tag) {
         case 'queue':
-          return new Queue(v2.queue.prepend(v1));
+          return new Queue(v2.queue.prepend(v1), v1.size + c2.size);
         default:
-          return new Queue(Vector(v1, v2));
+          return new Queue(Vector(v1, v2), v1.size + v2.size);
       }
   }
 };
@@ -420,6 +443,20 @@ export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
       return new ArrayChunk(result);
     }
   }
+};
+
+export const mapAccumulate_ = <S, O, O2>(
+  c: Chunk<O>,
+  s: S,
+  f: (s: S, o: O) => [S, O2],
+): [S, Chunk<O2>] => {
+  const result: O2[] = new Array(c.size);
+  let cur = s;
+  let idx = 0;
+  forEach_(c, o => {
+    [cur, result[idx++]] = f(cur, o);
+  });
+  return [cur, fromArray(result)];
 };
 
 export const forEach_ = <O>(c: Chunk<O>, f: (o: O) => void): void => {

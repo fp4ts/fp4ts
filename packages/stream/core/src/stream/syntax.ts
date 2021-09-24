@@ -1,5 +1,5 @@
-import { AnyK, Kind } from '@cats4ts/core';
-import { MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
+import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
+import { Eq, MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
 import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { SyncIoK } from '@cats4ts/effect-core';
 
@@ -51,6 +51,15 @@ import {
   scan1_,
   scanChunks_,
   scanChunksOpt_,
+  zipAll_,
+  zipAllWith_,
+  zipWithIndex,
+  mapAccumulate_,
+  zipWithNext,
+  zipWithPrevious,
+  filterWithPrevious_,
+  changes,
+  sliding_,
 } from './operators';
 
 declare module './algebra' {
@@ -97,15 +106,23 @@ declare module './algebra' {
     chunkMin(n: number, allowFewerTotal?: boolean): Stream<F, Chunk<A>>;
     chunkN(n: number, allowFewer?: boolean): Stream<F, Chunk<A>>;
     readonly unchunks: A extends Chunk<infer B> ? Stream<F, B> : never;
+    sliding(size: number, step?: number): Stream<F, Chunk<A>>;
+
+    changes(this: Stream<F, PrimitiveType>): Stream<F, A>;
+    changes(E: Eq<A>): Stream<F, A>;
 
     filter(pred: (a: A) => boolean): Stream<F, A>;
     filterNot(pred: (a: A) => boolean): Stream<F, A>;
 
-    as<B>(result: B): Stream<F, B>;
-    map<B>(f: (a: A) => B): Stream<F, B>;
+    filterWithPrevious(f: (prev: A, cur: A) => boolean): Stream<F, A>;
+
     collect<B>(f: (a: A) => Option<B>): Stream<F, B>;
     collectFirst<B>(f: (a: A) => Option<B>): Stream<F, B>;
     collectWhile<B>(f: (a: A) => Option<B>): Stream<F, B>;
+
+    as<B>(result: B): Stream<F, B>;
+    map<B>(f: (a: A) => B): Stream<F, B>;
+    mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
 
     flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
@@ -130,6 +147,19 @@ declare module './algebra' {
 
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
+
+    readonly zipWithIndex: Stream<F, [A, number]>;
+    readonly zipWithNext: Stream<F, [A, Option<A>]>;
+    readonly zipWithPrevious: Stream<F, [Option<A>, A]>;
+
+    zipAll<AA, B>(
+      this: Stream<F, AA>,
+      that: Stream<F, B>,
+    ): (pad1: AA, pad2: B) => Stream<F, [AA, B]>;
+    zipAllWith<AA, B>(
+      this: Stream<F, AA>,
+      that: Stream<F, B>,
+    ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
 
     compile: F extends SyncIoK ? PureCompiler<A> : never;
     compileF(F: MonadError<F, Error>): Compiler<F, A>;
@@ -256,11 +286,22 @@ Object.defineProperty(Stream.prototype, 'unchunks', {
   },
 });
 
+Stream.prototype.sliding = function (size, step) {
+  return sliding_(this, size, step);
+};
+
+Stream.prototype.changes = function (E = Eq.primitive) {
+  return changes(E as Eq<any>)(this);
+};
+
 Stream.prototype.filter = function (pred) {
   return filter_(this, pred);
 };
 Stream.prototype.filterNot = function (pred) {
   return filterNot_(this, pred);
+};
+Stream.prototype.filterWithPrevious = function (f) {
+  return filterWithPrevious_(this, f);
 };
 Stream.prototype.collect = function (f) {
   return collect_(this, f);
@@ -278,6 +319,10 @@ Stream.prototype.as = function (r) {
 
 Stream.prototype.map = function (f) {
   return map_(this, f);
+};
+
+Stream.prototype.mapAccumulate = function (s) {
+  return f => mapAccumulate_(this, s, f);
 };
 
 Stream.prototype.flatMap = function (f) {
@@ -324,6 +369,32 @@ Stream.prototype.zip = function (that) {
 
 Stream.prototype.zipWith = function (that, f) {
   return zipWith_(this, that)(f);
+};
+
+Object.defineProperty(Stream.prototype, 'zipWithIndex', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [A, number]> {
+    return zipWithIndex(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'zipWithNext', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [A, Option<A>]> {
+    return zipWithNext(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'zipWithPrevious', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [Option<A>, A]> {
+    return zipWithPrevious(this);
+  },
+});
+
+Stream.prototype.zipAll = function (that) {
+  return (pad1, pad2) => zipAll_(this, that, pad1, pad2);
+};
+
+Stream.prototype.zipAllWith = function (that) {
+  return (pad1, pad2) => zipAllWith_(this, that, pad1, pad2);
 };
 
 Object.defineProperty(Stream.prototype, 'compile', {

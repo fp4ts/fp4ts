@@ -52,10 +52,11 @@ export class ArraySlice<O> extends Chunk<O> {
 
 export class Queue<O> extends Chunk<O> {
   public readonly tag = 'queue';
-  public readonly size: number;
-  public constructor(public readonly queue: Vector<Chunk<O>>) {
+  public constructor(
+    public readonly queue: Vector<Chunk<O>>,
+    public readonly size: number,
+  ) {
     super();
-    this.size = queue.size;
   }
 }
 
