@@ -1,5 +1,11 @@
 import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
-import { Eq, MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
+import {
+  Applicative,
+  Eq,
+  MonadError,
+  Monoid,
+  MonoidK,
+} from '@cats4ts/cats-core';
 import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { SyncIoK } from '@cats4ts/effect-core';
 
@@ -62,6 +68,7 @@ import {
   sliding_,
   rethrow,
   evalMap_,
+  evalMapChunk_,
 } from './operators';
 
 declare module './algebra' {
@@ -114,6 +121,9 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
+    evalMapChunk(
+      F: Applicative<F>,
+    ): <B>(f: (a: A) => Kind<F, [B]>) => Stream<F, B>;
 
     flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
@@ -318,6 +328,10 @@ Stream.prototype.mapAccumulate = function (s) {
 
 Stream.prototype.evalMap = function (f) {
   return evalMap_(this, f);
+};
+
+Stream.prototype.evalMapChunk = function (F) {
+  return f => evalMapChunk_(F)(this, f);
 };
 
 Stream.prototype.flatMap = function (f) {

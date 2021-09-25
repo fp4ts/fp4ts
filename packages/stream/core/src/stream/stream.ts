@@ -20,6 +20,7 @@ import {
   unfold,
   unfoldChunk,
   tailRecM,
+  evalUnChunk,
 } from './constructor';
 import { Spawn } from '@cats4ts/effect-kernel';
 
@@ -37,6 +38,7 @@ interface StreamObj {
   of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
 
   evalF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+  evalUnChunk<F extends AnyK, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
   repeatEval<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
 
   empty<F extends AnyK>(): Stream<F, never>;
@@ -70,6 +72,7 @@ Stream.throwError = throwError;
 Stream.of = of;
 
 Stream.evalF = evalF;
+Stream.evalUnChunk = evalUnChunk;
 Stream.repeatEval = repeatEval;
 
 Stream.empty = empty;

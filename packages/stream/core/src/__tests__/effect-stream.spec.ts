@@ -35,16 +35,25 @@ describe('Effectful stream', () => {
     });
   });
 
-  // describe('evalMapChunk', () => {
-  //   it('should transform chunks using effectful transformation', () => {
-  //     expect(
-  //       StreamSync(1, 2, 3)
-  //         .chunkLimit(1)
-  //         .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
-  //         .compile.toList,
-  //     ).toEqual(List(2, 4, 8));
-  //   });
-  // });
+  describe('evalMapChunk', () => {
+    it('should transform chunks using effect-ful transformation', () => {
+      expect(
+        StreamSync(1, 2, 3)
+          .chunkLimit(1)
+          .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
+          .compile.toList,
+      ).toEqual(List(2, 4, 6));
+    });
+
+    it('should be stack safe', () => {
+      expect(
+        StreamSync(1)
+          .repeat.chunkN(100)
+          .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
+          .take(10_000).compile.toArray,
+      ).toEqual([...new Array(10_000).keys()].map(() => 2));
+    });
+  });
 
   describe('attempt', () => {
     it('should wrap values to Right when successful', () => {

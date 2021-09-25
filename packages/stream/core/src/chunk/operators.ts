@@ -1,4 +1,4 @@
-import { pipe } from '@cats4ts/core';
+import { AnyK, Kind, pipe } from '@cats4ts/core';
 import { List, None, Option, Some, Vector } from '@cats4ts/cats-core/lib/data';
 
 import { ok as assert } from 'assert';
@@ -11,7 +11,8 @@ import {
   SingletonChunk,
   view,
 } from './algebra';
-import { emptyQueue, fromArray } from './constructor';
+import { emptyQueue, fromArray, fromList } from './constructor';
+import { Applicative, Eval } from '@cats4ts/cats-core';
 
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
@@ -127,6 +128,12 @@ export const toArray = <O>(c: Chunk<O>): O[] => {
     }
   }
 };
+
+export const traverse: <F extends AnyK>(
+  F: Applicative<F>,
+) => <O, O2>(
+  f: (o: O) => Kind<F, [O2]>,
+) => (c: Chunk<O>) => Kind<F, [Chunk<O2>]> = F => f => c => traverse_(F)(c, f);
 
 export const toList: <O>(c: Chunk<O>) => List<O> = c =>
   List.fromArray(toArray(c));
@@ -533,3 +540,45 @@ export const zipWith_ = <O1, O2, O3>(
   }
   return new ArrayChunk(result);
 };
+
+export const traverse_ =
+  <F extends AnyK>(F: Applicative<F>) =>
+  <O, O2>(c: Chunk<O>, f: (o: O) => Kind<F, [O2]>): Kind<F, [Chunk<O2>]> => {
+    if (c.isEmpty) return F.pure(EmptyChunk);
+
+    // Max width of the tree -- max depth log_128(c.size)
+    const width = 128;
+
+    const loop = (start: number, end: number): Eval<Kind<F, [Chunk<O2>]>> => {
+      if (end - start <= width) {
+        // We've entered leaves of the tree
+        let first = F.map_(f(elem_(c, end - 1)), o2 => List(o2));
+        for (let idx = end - 2; start <= idx; idx--) {
+          first = F.map2_(f(elem_(c, idx)), first)((h, t) => t.prepend(h));
+        }
+        return Eval.now(F.map_(first, fromList));
+      } else {
+        const step = ((end - start) / width) | 0;
+
+        let fvector = Eval.defer(() => loop(start, start + step));
+
+        for (
+          let start0 = start + step, end0 = start0 + end;
+          start0 < end;
+          start0 += step, end0 += step
+        ) {
+          const end1 = Math.min(end, end0);
+          const start1 = start0;
+          fvector = fvector.flatMap(fv =>
+            F.map2Eval_(
+              fv,
+              Eval.defer(() => loop(start1, end1)),
+            )(concat_),
+          );
+        }
+        return fvector;
+      }
+    };
+
+    return loop(0, c.size).value;
+  };

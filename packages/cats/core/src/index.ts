@@ -14,6 +14,7 @@ export * from './defer';
 export * from './foldable';
 export * from './traversable';
 
+export * from './eval';
 export * from './eq';
 export * from './ord';
 export * from './hashable';

@@ -26,6 +26,10 @@ export const of = <F extends AnyK, A>(...xs: A[]): Stream<F, A> =>
 export const evalF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output1));
 
+export const evalUnChunk = <F extends AnyK, A>(
+  fa: Kind<F, [Chunk<A>]>,
+): Stream<F, A> => new Stream(Pull.evalF(fa).flatMap(Pull.output));
+
 export const repeatEval: <F extends AnyK, A>(fa: Kind<F, [A]>) => Stream<F, A> =
   s => repeat(evalF(s));
 

@@ -1,4 +1,5 @@
 import { Kind, AnyK } from '@cats4ts/core';
+import { Eval } from './eval';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
 
@@ -20,6 +21,15 @@ export interface Apply<F extends AnyK> extends Functor<F> {
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
   ) => <D>(f: (a: A, b: B) => D) => Kind<F, [D]>;
+
+  readonly map2Eval: <A, B, D>(
+    fb: Eval<Kind<F, [B]>>,
+    f: (a: A, b: B) => D,
+  ) => (fa: Kind<F, [A]>) => Eval<Kind<F, [D]>>;
+  readonly map2Eval_: <A, B>(
+    fa: Kind<F, [A]>,
+    fb: Eval<Kind<F, [B]>>,
+  ) => <D>(f: (a: A, b: B) => D) => Eval<Kind<F, [D]>>;
 
   readonly product: <B>(
     fb: Kind<F, [B]>,
@@ -64,6 +74,9 @@ export const Apply = Object.freeze({
       map2: (fb, f) => fa => self.map2_(fa, fb)(f),
       map2_: (fa, fb) => f =>
         self.map_(self.product_(fa, fb), ([a, b]) => f(a, b)),
+
+      map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
+      map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),
 
       productL: fb => fa => self.productL_(fa, fb),
       productL_: (fa, fb) => self.map_(self.product_(fa, fb), ([a]) => a),

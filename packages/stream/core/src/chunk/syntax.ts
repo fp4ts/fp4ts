@@ -1,4 +1,6 @@
+import { Applicative } from '@cats4ts/cats-core';
 import { List, Option, Vector } from '@cats4ts/cats-core/lib/data';
+import { AnyK, Kind } from '@cats4ts/core';
 import { Chunk } from './algebra';
 import {
   collect_,
@@ -23,6 +25,7 @@ import {
   toArray,
   toList,
   toVector,
+  traverse_,
   zipWith_,
 } from './operators';
 
@@ -65,6 +68,10 @@ declare module './algebra' {
     scanLeftCarry<O2>(z: O2, f: (o2: O2, o: O) => O2): [Chunk<O2>, O2];
 
     zipWith<O2, O3>(c2: Chunk<O2>, f: (o: O, o2: O2) => O3): Chunk<O3>;
+
+    traverse<F extends AnyK>(
+      F: Applicative<F>,
+    ): <O2>(f: (o: O) => Kind<F, [O2]>) => Kind<F, [Chunk<O2>]>;
   }
 }
 
@@ -171,4 +178,8 @@ Chunk.prototype.scanLeftCarry = function (init, f) {
 
 Chunk.prototype.zipWith = function (c2, f) {
   return zipWith_(this, c2, f);
+};
+
+Chunk.prototype.traverse = function (F) {
+  return f => traverse_(F)(this, f);
 };

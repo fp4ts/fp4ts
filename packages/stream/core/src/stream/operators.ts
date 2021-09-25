@@ -1,6 +1,12 @@
 import { ok as assert } from 'assert';
 import { AnyK, id, Kind, pipe } from '@cats4ts/core';
-import { Eq, MonadError, Monoid, MonoidK } from '@cats4ts/cats-core';
+import {
+  Applicative,
+  Eq,
+  MonadError,
+  Monoid,
+  MonoidK,
+} from '@cats4ts/cats-core';
 import {
   Either,
   Left,
@@ -15,7 +21,14 @@ import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
 import { Compiler, PureCompiler } from './compiler';
-import { fromChunk, pure, defer, throwError, evalF } from './constructor';
+import {
+  fromChunk,
+  pure,
+  defer,
+  throwError,
+  evalF,
+  evalUnChunk,
+} from './constructor';
 
 export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   take_(s, 1);
@@ -211,6 +224,12 @@ export const mapAccumulate: <S>(
 export const evalMap: <F extends AnyK, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalMap_(s, f);
+
+export const evalMapChunk: <F extends AnyK>(
+  F: Applicative<F>,
+) => <A, B>(f: (a: A) => Kind<F, [B]>) => (s: Stream<F, A>) => Stream<F, B> =
+  F => f => s =>
+    evalMapChunk_(F)(s, f);
 
 export const flatMap: <F extends AnyK, A, B>(
   f: (a: A) => Stream<F, B>,
@@ -722,10 +741,13 @@ export const evalMap_ = <F extends AnyK, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ): Stream<F, B> => flatMap_(s, x => evalF(f(x)));
 
-// export const evalMapChunk_ = <F extends AnyK, A, B>(
-//   s: Stream<F, A>,
-//   s: (a: Chunk<A>) => Kind<F, [Chunk<B>]>,
-// ): Stream<F, B> => {};
+export const evalMapChunk_ =
+  <F extends AnyK>(F: Applicative<F>) =>
+  <A, B>(s: Stream<F, A>, f: (a: A) => Kind<F, [B]>): Stream<F, B> =>
+    pipe(
+      chunks(s),
+      flatMap(c => evalUnChunk(c.traverse(F)(f))),
+    );
 
 export const flatMap_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
