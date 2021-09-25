@@ -9,6 +9,8 @@
       "@cats4ts/cats-free/lib/*": ["./cats/free/src/*"],
       "@cats4ts/cats-laws": ["./cats/laws/src"],
       "@cats4ts/cats-laws/lib/*": ["./cats/laws/src/*"],
+      "@cats4ts/cats-test-kit": ["./cats/test-kit/src"],
+      "@cats4ts/cats-test-kit/lib/*": ["./cats/test-kit/src/*"],
       "@cats4ts/core": ["./core/src"],
       "@cats4ts/core/lib/*": ["./core/src/*"],
       "@cats4ts/effect-core": ["./effect/core/src"],

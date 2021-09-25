@@ -1,4 +1,4 @@
-import { IsEq } from './results';
+import { IsEq } from './is-eq';
 
 declare global {
   interface Object {

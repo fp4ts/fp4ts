@@ -1,11 +1,9 @@
 import fc from 'fast-check';
 import { Eq } from '@cats4ts/cats-core';
 import { Option } from '@cats4ts/cats-core/lib/data';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-import * as Arbs from '../disciplines/arbitraries';
-import { checkAll } from '../jest-check-all';
-
-import '../syntax';
 import { ApplySuite } from '../disciplines/apply-suite';
 import { ApplyLaws } from '../apply-laws';
 
@@ -20,11 +18,11 @@ describe('Option Laws', () => {
   checkAll(
     'Option<number>',
     tests.apply(
-      Arbs.cats4tsOption(fc.integer()),
-      Arbs.cats4tsOption(fc.integer()),
-      Arbs.cats4tsOption(fc.integer()),
-      Arbs.cats4tsOption(fc.func<[number], number>(fc.integer())),
-      Arbs.cats4tsOption(fc.func<[number], number>(fc.integer())),
+      A.cats4tsOption(fc.integer()),
+      A.cats4tsOption(fc.integer()),
+      A.cats4tsOption(fc.integer()),
+      A.cats4tsOption(fc.func<[number], number>(fc.integer())),
+      A.cats4tsOption(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       eqOptionNumber,

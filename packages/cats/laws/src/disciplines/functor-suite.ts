@@ -1,9 +1,9 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats-core';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from '../functor-laws';
-import { forAll } from '../for-all';
 
 export class FunctorSuite<F extends AnyK, L extends FunctorLaws<F>> {
   public constructor(public readonly laws: L) {}
@@ -14,23 +14,20 @@ export class FunctorSuite<F extends AnyK, L extends FunctorLaws<F>> {
     arbC: Arbitrary<C>,
     EqFA: Eq<Kind<F, [A]>>,
     EqFC: Eq<Kind<F, [C]>>,
-  ): TestSuite => {
+  ): RuleSet => {
     const { covariantComposition, covariantIdentity } = this.laws;
-    return {
-      name: 'functor',
-      tests: [
-        ['covariant identity', forAll(arbFA, EqFA, covariantIdentity)],
-        [
-          'covariant composition',
-          forAll(
-            arbFA,
-            fc.func<[A], B>(arbB),
-            fc.func<[B], C>(arbC),
-            EqFC,
-            covariantComposition,
-          ),
-        ],
+    return new RuleSet('functor', [
+      ['covariant identity', forAll(arbFA, EqFA, covariantIdentity)],
+      [
+        'covariant composition',
+        forAll(
+          arbFA,
+          fc.func<[A], B>(arbB),
+          fc.func<[B], C>(arbC),
+          EqFC,
+          covariantComposition,
+        ),
       ],
-    };
+    ]);
   };
 }

@@ -1,7 +1,7 @@
 import { Apply, Eval } from '@cats4ts/cats-core';
+import { IsEq } from '@cats4ts/cats-test-kit';
 import { AnyK, compose, Kind, pipe } from '@cats4ts/core';
 import { FunctorLaws } from './functor-laws';
-import { IsEq } from './results';
 
 export class ApplyLaws<
   F extends AnyK,

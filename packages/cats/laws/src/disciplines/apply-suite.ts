@@ -1,10 +1,10 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { FunctorSuite } from './functor-suite';
 import { Eq } from '@cats4ts/cats-core';
-import { ApplyLaws } from '../apply-laws';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
-import { forAll } from '../for-all';
+import { ApplyLaws } from '../apply-laws';
+import { FunctorSuite } from './functor-suite';
 
 export class ApplySuite<
   F extends AnyK,
@@ -20,7 +20,7 @@ export class ApplySuite<
     arbC: Arbitrary<C>,
     EqFA: Eq<Kind<F, [A]>>,
     EqFC: Eq<Kind<F, [C]>>,
-  ): TestSuite => {
+  ): RuleSet => {
     const {
       applyComposition,
       map2ProductConsistency,
@@ -29,10 +29,9 @@ export class ApplySuite<
       productRConsistency,
     } = this.laws;
 
-    return {
-      name: 'apply',
-      parent: this.functor(arbFA, arbB, arbC, EqFA, EqFC),
-      tests: [
+    return new RuleSet(
+      'apply',
+      [
         [
           'apply composition',
           forAll(arbFA, arbFAtoB, arbFBtoC, EqFC, applyComposition),
@@ -66,6 +65,7 @@ export class ApplySuite<
           forAll(arbFA, arbFC, EqFC, productRConsistency),
         ],
       ],
-    };
+      { parent: this.functor(arbFA, arbB, arbC, EqFA, EqFC) },
+    );
   };
 }

@@ -1,7 +1,6 @@
 import { AnyK, compose, id, Kind, pipe } from '@cats4ts/core';
 import { Functor } from '@cats4ts/cats-core';
-
-import { IsEq } from './results';
+import { IsEq } from '@cats4ts/cats-test-kit';
 
 export class FunctorLaws<F extends AnyK, T extends Functor<F> = Functor<F>> {
   public constructor(readonly F: T) {}

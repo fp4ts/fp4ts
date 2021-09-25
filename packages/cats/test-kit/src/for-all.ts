@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Eq } from '@cats4ts/cats-core';
 import fc, { Arbitrary } from 'fast-check';
-import { IsEq } from './results';
+import { IsEq } from './rules';
 
 export function forAll<A0, R>(
   arb0: Arbitrary<A0>,
