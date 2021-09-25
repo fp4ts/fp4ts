@@ -12,6 +12,7 @@ module.exports = {
   roots: [
     '<rootDir>/cats/core/src',
     '<rootDir>/cats/free/src',
+    '<rootDir>/cats/laws/src',
     '<rootDir>/core/src',
     '<rootDir>/effect/core/src',
     '<rootDir>/effect/kernel/src',
@@ -24,6 +25,8 @@ module.exports = {
     '^@cats4ts/cats-core/lib/(.*)$': '<rootDir>/cats/core/src/$1/',
     '^@cats4ts/cats-free$': '<rootDir>/cats/free/src',
     '^@cats4ts/cats-free/lib/(.*)$': '<rootDir>/cats/free/src/$1/',
+    '^@cats4ts/cats-laws$': '<rootDir>/cats/laws/src',
+    '^@cats4ts/cats-laws/lib/(.*)$': '<rootDir>/cats/laws/src/$1/',
     '^@cats4ts/core$': '<rootDir>/core/src',
     '^@cats4ts/core/lib/(.*)$': '<rootDir>/core/src/$1/',
     '^@cats4ts/effect-core$': '<rootDir>/effect/core/src',

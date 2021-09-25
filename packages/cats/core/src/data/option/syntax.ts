@@ -1,3 +1,5 @@
+import { Eq } from '@cats4ts/cats-core';
+import { PrimitiveType } from '@cats4ts/core';
 import { Option } from './algebra';
 import {
   flatMap_,
@@ -11,6 +13,7 @@ import {
   get,
   orElse_,
   getOrElse_,
+  equals_,
 } from './operators';
 
 declare module './algebra' {
@@ -32,6 +35,9 @@ declare module './algebra' {
     readonly flatten: A extends Option<infer B> ? Option<B> : never | unknown;
 
     fold<B>(onNone: () => B, onSome: (a: A) => B): B;
+
+    equals<B extends PrimitiveType>(this: Option<B>, that: Option<B>): boolean;
+    equals<B>(this: Option<B>, E: Eq<B>, that: Option<B>): boolean;
   }
 }
 
@@ -109,4 +115,10 @@ Option.prototype.fold = function <A, B>(
   onSome: (a: A) => B,
 ): B {
   return fold_(this, onNone, onSome);
+};
+
+Option.prototype.equals = function (...args: any[]): any {
+  return args.length === 2
+    ? equals_(args[0])(this, args[1])
+    : equals_(Eq.primitive)(this, args[0]);
 };

@@ -6,7 +6,7 @@ import { Stream } from '../stream';
 
 const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
 
-describe('Effectful stream', () => {
+describe('Effect-ful stream', () => {
   describe('repeatEval', () => {
     it('should repeat pulling from counter', () => {
       let counter = 0;

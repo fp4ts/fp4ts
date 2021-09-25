@@ -1,3 +1,4 @@
+import { Eq } from '@cats4ts/cats-core';
 import { flow, id } from '@cats4ts/core';
 
 import { Either } from '../either';
@@ -126,3 +127,13 @@ export const fold_ = <A, B>(
     return onNone();
   }
 };
+
+export const equals_ =
+  <A>(E: Eq<A>) =>
+  (lhs: Option<A>, rhs: Option<A>): boolean => {
+    if (lhs === rhs) return true;
+    if (lhs.isEmpty && rhs.isEmpty) return true;
+    if (lhs.isEmpty) return false;
+    if (rhs.isEmpty) return false;
+    return E.equals(lhs.get, rhs.get);
+  };
