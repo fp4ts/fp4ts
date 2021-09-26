@@ -1,4 +1,6 @@
 import { id, throwError } from '@cats4ts/core';
+import { Eq } from '../../eq';
+
 import { None, Option, Some } from '../option';
 import { Either, view } from './algebra';
 import { left, right } from './constructors';
@@ -135,3 +137,15 @@ export const fold_ = <E, A, B>(
     return onLeft(v.value);
   }
 };
+
+export const equals_ =
+  <E2, A2>(EE: Eq<E2>, EA: Eq<A2>) =>
+  <E extends E2, A extends A2>(
+    lhs: Either<E, A>,
+    rhs: Either<E, A>,
+  ): boolean => {
+    if (lhs === rhs) return true;
+    if (lhs.isLeft && rhs.isLeft) return EE.equals(lhs.getLeft, rhs.getLeft);
+    if (lhs.isRight && rhs.isRight) return EA.equals(lhs.get, rhs.get);
+    return false;
+  };

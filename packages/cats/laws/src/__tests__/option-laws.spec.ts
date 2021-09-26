@@ -11,10 +11,7 @@ import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { AlternativeLaws } from '../alternative-laws';
 
 describe('Option Laws', () => {
-  const eqOptionPrimitive: Eq<Option<PrimitiveType>> = {
-    equals: (lhs, rhs) => lhs.equals(rhs),
-    notEquals: (lhs, rhs) => !lhs.equals(rhs),
-  };
+  const eqOptionPrimitive: Eq<Option<PrimitiveType>> = Option.Eq(Eq.primitive);
 
   const alternativeTests = AlternativeSuite(
     AlternativeLaws(Option.Alternative),
@@ -43,7 +40,7 @@ describe('Option Laws', () => {
 
   const tests = MonadSuite(MonadLaws(Option.Monad));
   checkAll(
-    'Option<number>',
+    'Monad<OptionK>',
     tests.monad(
       A.cats4tsOption(fc.integer()),
       A.cats4tsOption(fc.integer()),

@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
@@ -10,6 +11,7 @@ import { Monad } from '../../monad';
 
 import { OptionK } from './option';
 import {
+  equals_,
   flatMap_,
   flatTap_,
   flatten,
@@ -18,6 +20,10 @@ import {
   tailRecM_,
 } from './operators';
 import { none, pure } from './constructors';
+import { Option } from './option';
+
+export const optionEq = <A>(E: Eq<A>): Eq<Option<A>> =>
+  Eq.of({ equals: equals_(E) });
 
 export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = () =>
   SemigroupK.of({ combineK_: orElse_ });

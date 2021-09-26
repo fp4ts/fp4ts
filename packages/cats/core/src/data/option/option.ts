@@ -16,6 +16,7 @@ import {
   optionAlternative,
   optionApplicative,
   optionApply,
+  optionEq,
   optionFlatMap,
   optionFunctor,
   optionMonad,
@@ -23,6 +24,7 @@ import {
   optionSemigroupK,
 } from './instances';
 import { tailRecM } from './operators';
+import { Eq } from '@cats4ts/cats-core';
 
 // -- Object
 
@@ -57,6 +59,7 @@ export interface OptionObj {
   readonly Alternative: Alternative<OptionK>;
   readonly FlatMap: FlatMap<OptionK>;
   readonly Monad: Monad<OptionK>;
+  Eq<A>(E: Eq<A>): Eq<Option<A>>;
 }
 
 Option.pure = pure;
@@ -106,6 +109,7 @@ Object.defineProperty(Option, 'Monad', {
     return optionMonad();
   },
 });
+Option.Eq = optionEq;
 
 // -- HKT
 

@@ -5,12 +5,14 @@ import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { Eq } from '../../eq';
 
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';
 import {
   eitherApplicative,
   eitherApply,
+  eitherEq,
   eitherFlatMap,
   eitherFunctor,
   eitherMonad,
@@ -45,6 +47,7 @@ export interface EitherObj {
   Applicative<E>(): Applicative<$<EitherK, [E]>>;
   FlatMap<E>(): FlatMap<$<EitherK, [E]>>;
   Monad<E>(): Monad<$<EitherK, [E]>>;
+  Eq<E, A>(EE: Eq<E>, EA: Eq<A>): Eq<Either<E, A>>;
 }
 
 Either.right = right;
@@ -59,6 +62,7 @@ Either.Apply = eitherApply;
 Either.Applicative = eitherApplicative;
 Either.FlatMap = eitherFlatMap;
 Either.Monad = eitherMonad;
+Either.Eq = eitherEq;
 
 // HKT
 

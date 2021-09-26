@@ -1,4 +1,5 @@
 import { $ } from '@cats4ts/core';
+import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
@@ -6,9 +7,14 @@ import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
-import { EitherK } from './either';
-import { flatMap_, map_, or_, tailRecM_ } from './operators';
+import { Either, EitherK } from './either';
+import { flatMap_, map_, or_, tailRecM_, equals_ } from './operators';
 import { pure, rightUnit } from './constructors';
+
+export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
+  EE,
+  EA,
+) => Eq.of({ equals: equals_(EE, EA) });
 
 export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
   SemigroupK.of({ combineK_: or_ });
