@@ -4,8 +4,8 @@ import { Option } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-import { ApplicativeSuite } from '../disciplines/applicative-suite';
-import { ApplicativeLaws } from '../applicative-laws';
+import { MonadSuite } from '../disciplines/monad-suite';
+import { MonadLaws } from '../monad-laws';
 
 describe('Option Laws', () => {
   const eqOptionNumber: Eq<Option<number>> = {
@@ -13,11 +13,12 @@ describe('Option Laws', () => {
     notEquals: (lhs, rhs) => !lhs.equals(rhs),
   };
 
-  const tests = new ApplicativeSuite(new ApplicativeLaws(Option.Applicative));
+  const tests = MonadSuite(MonadLaws(Option.Monad));
 
   checkAll(
     'Option<number>',
-    tests.applicative(
+    tests.monad(
+      A.cats4tsOption(fc.integer()),
       A.cats4tsOption(fc.integer()),
       A.cats4tsOption(fc.integer()),
       A.cats4tsOption(fc.integer()),
@@ -26,6 +27,7 @@ describe('Option Laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
+      eqOptionNumber,
       eqOptionNumber,
       eqOptionNumber,
       eqOptionNumber,

@@ -5,17 +5,15 @@ import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from '../functor-laws';
 
-export class FunctorSuite<F extends AnyK, L extends FunctorLaws<F>> {
-  public constructor(public readonly laws: L) {}
-
-  public readonly functor = <A, B, C>(
+export const FunctorSuite = <F extends AnyK>(laws: FunctorLaws<F>) => ({
+  functor: <A, B, C>(
     arbFA: Arbitrary<Kind<F, [A]>>,
     arbB: Arbitrary<B>,
     arbC: Arbitrary<C>,
     EqFA: Eq<Kind<F, [A]>>,
     EqFC: Eq<Kind<F, [C]>>,
   ): RuleSet => {
-    const { covariantComposition, covariantIdentity } = this.laws;
+    const { covariantComposition, covariantIdentity } = laws;
     return new RuleSet('functor', [
       ['covariant identity', forAll(arbFA, EqFA, covariantIdentity)],
       [
@@ -29,5 +27,5 @@ export class FunctorSuite<F extends AnyK, L extends FunctorLaws<F>> {
         ),
       ],
     ]);
-  };
-}
+  },
+});

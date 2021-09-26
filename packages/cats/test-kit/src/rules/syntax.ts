@@ -2,7 +2,7 @@ import { IsEq } from './is-eq';
 
 declare global {
   interface Object {
-    '<=>'<A>(this: A, that: A): IsEq<A>;
+    '<=>'<A>(that: A): IsEq<A>;
   }
 }
 

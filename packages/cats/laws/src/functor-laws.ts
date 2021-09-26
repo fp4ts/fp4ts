@@ -2,22 +2,26 @@ import { AnyK, compose, id, Kind, pipe } from '@cats4ts/core';
 import { Functor } from '@cats4ts/cats-core';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
-export class FunctorLaws<F extends AnyK, T extends Functor<F> = Functor<F>> {
-  public constructor(readonly F: T) {}
+export interface FunctorLaws<F extends AnyK> {
+  covariantIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
 
-  public readonly covariantIdentity = <A>(
+  covariantComposition: <A, B, C>(
     fa: Kind<F, [A]>,
-  ): IsEq<Kind<F, [A]>> => {
-    const { F } = this;
-    return F.map_(fa, id)['<=>'](fa);
-  };
+    f: (a: A) => B,
+    g: (b: B) => C,
+  ) => IsEq<Kind<F, [C]>>;
+}
 
-  public readonly covariantComposition = <A, B, C>(
+export const FunctorLaws = <F extends AnyK>(F: Functor<F>): FunctorLaws<F> => ({
+  covariantIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> => {
+    return F.map_(fa, id)['<=>'](fa);
+  },
+
+  covariantComposition: <A, B, C>(
     fa: Kind<F, [A]>,
     f: (a: A) => B,
     g: (b: B) => C,
   ): IsEq<Kind<F, [C]>> => {
-    const { F } = this;
     return pipe(fa, F.map(f), F.map(g))['<=>'](F.map_(fa, compose(g, f)));
-  };
-}
+  },
+});
