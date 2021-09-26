@@ -10,10 +10,7 @@ import { EvalK } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
 
-export const evalDefer: Lazy<Defer<EvalK>> = () =>
-  instance<Defer<EvalK>>({
-    defer: defer,
-  });
+export const evalDefer: Lazy<Defer<EvalK>> = () => Defer.of({ defer });
 
 export const evalFunctor: Lazy<Functor<EvalK>> = () =>
   Functor.of({ map_: map_ });

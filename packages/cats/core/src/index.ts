@@ -13,6 +13,7 @@ export * from './monad-error';
 export * from './defer';
 export * from './foldable';
 export * from './traversable';
+export * from './defer';
 
 export * from './eval';
 export * from './eq';

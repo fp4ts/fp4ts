@@ -2,6 +2,7 @@ import { Lazy } from '@cats4ts/core';
 import {
   Applicative,
   Apply,
+  Defer,
   FlatMap,
   Functor,
   Monad,
@@ -12,6 +13,8 @@ import { Sync } from '@cats4ts/effect-kernel';
 import { SyncIoK } from './sync-io';
 import { defer, delay, pure, throwError } from './constructors';
 import { flatMap_, handleErrorWith_, map_ } from './operators';
+
+export const syncIoDefer: Lazy<Defer<SyncIoK>> = () => Defer.of({ defer });
 
 export const syncIoFunctor: Lazy<Functor<SyncIoK>> = () =>
   Functor.of({ map_: map_ });
@@ -48,6 +51,6 @@ export const syncIoMonadError: Lazy<MonadError<SyncIoK, Error>> = () =>
 
 export const syncIoSync: Lazy<Sync<SyncIoK>> = () => ({
   ...syncIoMonadError(),
+  ...syncIoDefer(),
   delay: delay,
-  defer: defer,
 });

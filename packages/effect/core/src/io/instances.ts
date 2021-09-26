@@ -1,4 +1,4 @@
-import { instance, Lazy } from '@cats4ts/core';
+import { Lazy } from '@cats4ts/core';
 import {
   Functor,
   Apply,
@@ -70,10 +70,7 @@ import {
   timeout_,
 } from './operators';
 
-export const ioDefer: Lazy<Defer<IoK>> = () =>
-  instance<Defer<IoK>>({
-    defer: defer,
-  });
+export const ioDefer: Lazy<Defer<IoK>> = () => Defer.of({ defer });
 
 export const ioFunctor: Lazy<Functor<IoK>> = () => Functor.of({ map_, tap_ });
 
