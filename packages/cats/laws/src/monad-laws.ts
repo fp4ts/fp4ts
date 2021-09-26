@@ -41,36 +41,28 @@ export const MonadLaws = <F extends AnyK>(F: Monad<F>): MonadLaws<F> => ({
   monadLeftIdentity: <A, B>(
     a: A,
     f: (a: A) => Kind<F, [B]>,
-  ): IsEq<Kind<F, [B]>> => {
-    return pipe(F.pure(a), F.flatMap(f))['<=>'](f(a));
-  },
+  ): IsEq<Kind<F, [B]>> => pipe(F.pure(a), F.flatMap(f))['<=>'](f(a)),
 
-  monadRightIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> => {
-    return F.flatMap_(fa, F.pure)['<=>'](fa);
-  },
+  monadRightIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
+    F.flatMap_(fa, F.pure)['<=>'](fa),
 
   kleisliLeftIdentity: <A, B>(
     a: A,
     f: (a: A) => Kind<F, [B]>,
-  ): IsEq<Kind<F, [B]>> => {
-    const ka = Kleisli<F, A, A>(F.pure)['>=>'](F)(Kleisli(f));
-    return ka.run(a)['<=>'](f(a));
-  },
+  ): IsEq<Kind<F, [B]>> =>
+    Kleisli<F, A, A>(F.pure)['>=>'](F)(Kleisli(f)).run(a)['<=>'](f(a)),
 
   kleisliRightIdentity: <A, B>(
     a: A,
     f: (a: A) => Kind<F, [B]>,
-  ): IsEq<Kind<F, [B]>> => {
-    const kb = Kleisli(f)['>=>'](F)(Kleisli(F.pure));
-    return kb.run(a)['<=>'](f(a));
-  },
+  ): IsEq<Kind<F, [B]>> =>
+    Kleisli(f)['>=>'](F)(Kleisli(F.pure)).run(a)['<=>'](f(a)),
 
   mapFlatMapCoherence: <A, B>(
     fa: Kind<F, [A]>,
     f: (a: A) => B,
-  ): IsEq<Kind<F, [B]>> => {
-    return F.flatMap_(fa, a => F.pure(f(a)))['<=>'](F.map_(fa, f));
-  },
+  ): IsEq<Kind<F, [B]>> =>
+    F.flatMap_(fa, a => F.pure(f(a)))['<=>'](F.map_(fa, f)),
 
   tailRecMStackSafety: (): IsEq<Kind<F, [number]>> => {
     const n = 50_000;

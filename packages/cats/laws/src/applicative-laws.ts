@@ -38,28 +38,23 @@ export const ApplicativeLaws = <F extends AnyK>(
 ): ApplicativeLaws<F> => ({
   ...ApplyLaws(F),
 
-  applicativeIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> => {
-    return pipe(
-      F.pure((a: A) => a),
-      F.ap(fa),
-    )['<=>'](fa);
-  },
+  applicativeIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
+    // prettier-ignore
+    pipe(F.pure((a: A) => a), F.ap(fa))['<=>'](fa),
 
-  applicativeHomomorphism: <A, B>(a: A, f: (a: A) => B): IsEq<Kind<F, [B]>> => {
-    return pipe(F.pure(f), F.ap(F.pure(a)))['<=>'](F.pure(f(a)));
-  },
+  applicativeHomomorphism: <A, B>(a: A, f: (a: A) => B): IsEq<Kind<F, [B]>> =>
+    pipe(F.pure(f), F.ap(F.pure(a)))['<=>'](F.pure(f(a))),
 
   applicativeInterchange: <A, B>(
     a: A,
     ff: Kind<F, [(a: A) => B]>,
-  ): IsEq<Kind<F, [B]>> => {
-    return F.ap_(ff, F.pure(a))['<=>'](
+  ): IsEq<Kind<F, [B]>> =>
+    F.ap_(ff, F.pure(a))['<=>'](
       pipe(
         F.pure((f: (a: A) => B) => f(a)),
         F.ap(ff),
       ),
-    );
-  },
+    ),
 
   applicativeMap: <A, B>(
     fa: Kind<F, [A]>,
@@ -84,16 +79,10 @@ export const ApplicativeLaws = <F extends AnyK>(
   apProductConsistent: <A, B>(
     fa: Kind<F, [A]>,
     ff: Kind<F, [(a: A) => B]>,
-  ): IsEq<Kind<F, [B]>> => {
-    return F.ap_(ff, fa)['<=>'](
-      pipe(
-        F.product_(ff, fa),
-        F.map(([f, a]) => f(a)),
-      ),
-    );
-  },
+  ): IsEq<Kind<F, [B]>> =>
+    // prettier-ignore
+    F.ap_(ff, fa)['<=>'](pipe(F.product_(ff, fa), F.map(([f, a]) => f(a)))),
 
-  applicativeUnit: <A>(a: A): IsEq<Kind<F, [A]>> => {
-    return F.map_(F.unit, () => a)['<=>'](F.pure(a));
-  },
+  applicativeUnit: <A>(a: A): IsEq<Kind<F, [A]>> =>
+    F.map_(F.unit, () => a)['<=>'](F.pure(a)),
 });

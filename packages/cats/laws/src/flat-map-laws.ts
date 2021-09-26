@@ -49,18 +49,16 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
     fa: Kind<F, [A]>,
     f: (a: A) => Kind<F, [B]>,
     g: (b: B) => Kind<F, [C]>,
-  ): IsEq<Kind<F, [C]>> => {
-    return pipe(fa, F.flatMap(f), F.flatMap(g))['<=>'](
+  ): IsEq<Kind<F, [C]>> =>
+    pipe(fa, F.flatMap(f), F.flatMap(g))['<=>'](
       F.flatMap_(fa, a => F.flatMap_(f(a), g)),
-    );
-  },
+    ),
 
   flatMapConsistentApply: <A, B>(
     ff: Kind<F, [(a: A) => B]>,
     fa: Kind<F, [A]>,
-  ): IsEq<Kind<F, [B]>> => {
-    return F.ap_(ff, fa)['<=>'](F.flatMap_(ff, f => F.map_(fa, a => f(a))));
-  },
+  ): IsEq<Kind<F, [B]>> =>
+    F.ap_(ff, fa)['<=>'](F.flatMap_(ff, f => F.map_(fa, a => f(a)))),
 
   kleisliAssociativity: <A, B, C, D>(
     a: A,
