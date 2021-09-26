@@ -6,6 +6,7 @@ import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
@@ -73,6 +74,12 @@ export const vectorApplicative: Lazy<Applicative<VectorK>> = () =>
   Applicative.of({
     ...vectorApply(),
     pure: pure,
+  });
+
+export const vectorAlternative: Lazy<Alternative<VectorK>> = () =>
+  Alternative.of({
+    ...vectorApplicative(),
+    ...vectorMonoidK(),
   });
 
 export const vectorFlatMap: Lazy<FlatMap<VectorK>> = () =>

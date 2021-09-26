@@ -1,4 +1,5 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Eq } from '@cats4ts/cats-core';
+import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -18,6 +19,7 @@ import {
   drop_,
   elemOption_,
   elem_,
+  equals_,
   flatMap_,
   flatten,
   foldLeft1_,
@@ -126,6 +128,8 @@ declare module './algebra' {
     ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Vector<A>]>;
 
     show(this: Vector<A>, S?: Show<A>): string;
+    equals(this: Vector<PrimitiveType>, that: Vector<PrimitiveType>): boolean;
+    equals<B>(this: Vector<B>, that: Vector<B>, E: Eq<B>): boolean;
   }
 }
 
@@ -320,4 +324,8 @@ Vector.prototype.traverse = function (G) {
 
 Vector.prototype.show = function (S = Show.fromToString()): any {
   return show(S)(this);
+};
+
+Vector.prototype.equals = function (that: any, E = Eq.primitive): any {
+  return equals_(E)(this, that);
 };

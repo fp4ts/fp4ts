@@ -7,7 +7,7 @@ export function checkAll(setName: string, rs: RuleSet): void {
     for (const { name, rules } of setsToRun) {
       describe(name, () => {
         for (const [testName, t] of rules) {
-          test(testName, t);
+          test(testName, t, 3000);
         }
       });
     }

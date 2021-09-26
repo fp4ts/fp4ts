@@ -5,6 +5,7 @@ import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from '../functor-laws';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FunctorSuite = <F extends AnyK>(laws: FunctorLaws<F>) => ({
   functor: <A, B, C>(
     arbFA: Arbitrary<Kind<F, [A]>>,

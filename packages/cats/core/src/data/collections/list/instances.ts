@@ -62,7 +62,7 @@ export const listApplicative: Lazy<Applicative<ListK>> = () =>
   Applicative.of({
     ...listApply(),
     pure: pure,
-    unit: empty,
+    unit: pure(undefined),
   });
 
 export const listAlternative: Lazy<Alternative<ListK>> = () =>

@@ -4,6 +4,7 @@ import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Apply } from '../../../apply';
+import { Alternative } from '../../../alternative';
 import { Applicative } from '../../../applicative';
 import { FlatMap } from '../../../flat-map';
 import { Monad } from '../../../monad';
@@ -16,6 +17,7 @@ import { List } from '../list';
 import { Vector as VectorBase } from './algebra';
 import { empty, fromArray, fromList, pure, singleton } from './constructors';
 import {
+  vectorAlternative,
   vectorApplicative,
   vectorApply,
   vectorFlatMap,
@@ -55,6 +57,7 @@ interface VectorObj {
   FunctorFilter: FunctorFilter<VectorK>;
   Apply: Apply<VectorK>;
   Applicative: Applicative<VectorK>;
+  Alternative: Alternative<VectorK>;
   FlatMap: FlatMap<VectorK>;
   Monad: Monad<VectorK>;
   Foldable: Foldable<VectorK>;
@@ -97,6 +100,11 @@ Object.defineProperty(Vector, 'Apply', {
 Object.defineProperty(Vector, 'Applicative', {
   get(): Applicative<VectorK> {
     return vectorApplicative();
+  },
+});
+Object.defineProperty(Vector, 'Alternative', {
+  get(): Alternative<VectorK> {
+    return vectorAlternative();
   },
 });
 Object.defineProperty(Vector, 'FlatMap', {

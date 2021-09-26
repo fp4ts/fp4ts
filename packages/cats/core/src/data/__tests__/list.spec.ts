@@ -1081,27 +1081,4 @@ describe('List', () => {
       ).toBe('[(1, 1), (2, 2), (3, 3)]');
     });
   });
-
-  describe('monad', () => {
-    it('should create a list of one element', () => {
-      const xs = List.pure(1);
-      expect(xs).toEqual(List(1));
-    });
-
-    test('left identity', () => {
-      const h = (x: number): List<number> => List(x * 2);
-      expect(List.pure(42).flatMap(h)).toEqual(h(42));
-    });
-
-    test('right identity', () => {
-      expect(List(1, 2, 3, 4).flatMap(List.pure)).toEqual(List(1, 2, 3, 4));
-    });
-
-    test('associativity', () => {
-      const h = (n: number): List<number> => List(n * 2);
-      const g = (n: number): List<number> => List(n, n);
-      const m = List(1, 2, 3);
-      expect(m.flatMap(h).flatMap(g)).toEqual(m.flatMap(x => h(x).flatMap(g)));
-    });
-  });
 });

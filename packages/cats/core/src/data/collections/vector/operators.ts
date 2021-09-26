@@ -1,4 +1,5 @@
 import { AnyK, id, Kind, pipe, throwError } from '@cats4ts/core';
+import { Eq } from '@cats4ts/cats-core';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -384,4 +385,12 @@ export const traverse_ =
     const consF = (x: A, ys: Kind<G, [Vector<B>]>): Kind<G, [Vector<B>]> =>
       G.map2_(ys, f(x))(prepend_);
     return foldRight_(xs, G.pure(empty as Vector<A>), consF);
+  };
+
+export const equals_ =
+  <A2>(E: Eq<A2>) =>
+  <A extends A2>(xs: Vector<A>, ys: Vector<A>): boolean => {
+    if (xs === ys) return true;
+    if (xs.size !== ys.size) return false;
+    return all_(zipWith_(xs, ys, E.equals), id);
   };
