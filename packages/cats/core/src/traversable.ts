@@ -3,42 +3,49 @@ import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';
 import { Functor, FunctorRequirements } from './functor';
+import {
+  UnorderedTraversable,
+  UnorderedTraversableRequirements,
+} from './unordered-traversable';
 
-export interface Traversable<F extends AnyK> extends Functor<F>, Foldable<F> {
+export interface Traversable<T extends AnyK>
+  extends Functor<T>,
+    Foldable<T>,
+    UnorderedTraversable<T> {
   readonly traverse: <G extends AnyK>(
     G: Applicative<G>,
   ) => <A, B>(
     f: (a: A) => Kind<G, [B]>,
-  ) => (fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+  ) => (fa: Kind<T, [A]>) => Kind<G, [Kind<T, [B]>]>;
   readonly traverse_: <G extends AnyK>(
     G: Applicative<G>,
   ) => <A, B>(
-    fa: Kind<F, [A]>,
+    fa: Kind<T, [A]>,
     f: (a: A) => Kind<G, [B]>,
-  ) => Kind<G, [Kind<F, [B]>]>;
+  ) => Kind<G, [Kind<T, [B]>]>;
 
   readonly sequence: <G extends AnyK>(
     G: Applicative<G>,
-  ) => <A>(fga: Kind<F, [Kind<G, [A]>]>) => Kind<G, [Kind<F, [A]>]>;
+  ) => <A>(fga: Kind<T, [Kind<G, [A]>]>) => Kind<G, [Kind<T, [A]>]>;
 
   readonly flatTraverse: <G extends AnyK>(
-    F: FlatMap<F>,
+    F: FlatMap<T>,
     G: Applicative<G>,
   ) => <A, B>(
-    f: (a: A) => Kind<G, [Kind<F, [B]>]>,
-  ) => (fa: Kind<F, [A]>) => Kind<G, [Kind<F, [B]>]>;
+    f: (a: A) => Kind<G, [Kind<T, [B]>]>,
+  ) => (fa: Kind<T, [A]>) => Kind<G, [Kind<T, [B]>]>;
   readonly flatTraverse_: <G extends AnyK>(
-    F: FlatMap<F>,
+    F: FlatMap<T>,
     G: Applicative<G>,
   ) => <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Kind<G, [Kind<F, [B]>]>,
-  ) => Kind<G, [Kind<F, [B]>]>;
+    fa: Kind<T, [A]>,
+    f: (a: A) => Kind<G, [Kind<T, [B]>]>,
+  ) => Kind<G, [Kind<T, [B]>]>;
 
   readonly flatSequence: <G extends AnyK>(
-    F: FlatMap<F>,
+    F: FlatMap<T>,
     G: Applicative<G>,
-  ) => <A>(fgfa: Kind<F, [Kind<G, [Kind<F, [A]>]>]>) => Kind<G, [Kind<F, [A]>]>;
+  ) => <A>(fgfa: Kind<T, [Kind<G, [Kind<T, [A]>]>]>) => Kind<G, [Kind<T, [A]>]>;
 }
 
 export type TraversableRequirements<T extends AnyK> = Pick<
@@ -47,7 +54,8 @@ export type TraversableRequirements<T extends AnyK> = Pick<
 > &
   FoldableRequirements<T> &
   FunctorRequirements<T> &
-  Partial<Traversable<T>>;
+  Partial<Traversable<T>> &
+  Partial<UnorderedTraversableRequirements<T>>;
 
 export const Traversable = Object.freeze({
   of: <T extends AnyK>(T: TraversableRequirements<T>): Traversable<T> => {
@@ -62,6 +70,10 @@ export const Traversable = Object.freeze({
 
       flatSequence: (F, G) => fgfa => self.flatTraverse_(F, G)(fgfa, id),
 
+      ...UnorderedTraversable.of({
+        unorderedTraverse_: T.unorderedTraverse_ ?? (G => self.traverse_(G)),
+        unorderedFoldMap_: T.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
+      }),
       ...Foldable.of(T),
       ...Functor.of(T),
       ...T,

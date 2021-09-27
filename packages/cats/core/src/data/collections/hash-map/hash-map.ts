@@ -1,8 +1,8 @@
 import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
-import { Foldable } from '../../../foldable';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
-import { Traversable } from '../../../traversable';
+import { UnorderedFoldable } from '../../../unordered-foldable';
+import { UnorderedTraversable } from '../../../unordered-traversable';
 import { Hashable, primitiveMD5Hashable } from '../../../hashable';
 
 import { List } from '../list';
@@ -10,10 +10,10 @@ import { List } from '../list';
 import { Empty, HashMap as HashMapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
 import {
-  mapFoldable,
+  mapUnorderedFoldable,
   mapFunctor,
   mapFunctorFilter,
-  mapTraversable,
+  mapUnorderedTraversable,
 } from './instances';
 
 export const HashMap: HashMapObj = function <K extends PrimitiveType, V>(
@@ -45,8 +45,8 @@ export interface HashMapObj {
 
   Functor<K>(): Functor<$<HashMapK, [K]>>;
   FunctorFilter<K>(): FunctorFilter<$<HashMapK, [K]>>;
-  Foldable<K>(): Foldable<$<HashMapK, [K]>>;
-  Traversable<K>(): Traversable<$<HashMapK, [K]>>;
+  UnorderedFoldable<K>(): UnorderedFoldable<$<HashMapK, [K]>>;
+  UnorderedTraversable<K>(): UnorderedTraversable<$<HashMapK, [K]>>;
 }
 
 HashMap.empty = Empty;
@@ -56,8 +56,8 @@ HashMap.fromList = fromList;
 
 HashMap.Functor = mapFunctor;
 HashMap.FunctorFilter = mapFunctorFilter;
-HashMap.Foldable = mapFoldable;
-HashMap.Traversable = mapTraversable;
+HashMap.UnorderedFoldable = mapUnorderedFoldable;
+HashMap.UnorderedTraversable = mapUnorderedTraversable;
 
 // HKT
 

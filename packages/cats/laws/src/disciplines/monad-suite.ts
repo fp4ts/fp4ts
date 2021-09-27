@@ -45,37 +45,33 @@ export const MonadSuite = <F extends AnyK>(laws: MonadLaws<F>) => {
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               monadLeftIdentity,
-            ),
+            )(EqFB),
           ],
-          ['monad right identity', forAll(arbFA, EqFA, monadRightIdentity)],
+          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
           [
             'monad kleisli left identity',
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               kleisliLeftIdentity,
-            ),
+            )(EqFB),
           ],
           [
             'monad kleisli right identity',
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               kleisliRightIdentity,
-            ),
+            )(EqFB),
           ],
           [
             'monad map coherence',
             forAll(
               arbFA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               mapFlatMapCoherence,
-            ),
+            )(EqFB),
           ],
           [
             'monad tailRecM stack safety',
@@ -149,37 +145,33 @@ export const MonadSuite = <F extends AnyK>(laws: MonadLaws<F>) => {
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               monadLeftIdentity,
-            ),
+            )(EqFB),
           ],
-          ['monad right identity', forAll(arbFA, EqFA, monadRightIdentity)],
+          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
           [
             'monad kleisli left identity',
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               kleisliLeftIdentity,
-            ),
+            )(EqFB),
           ],
           [
             'monad kleisli right identity',
             forAll(
               arbA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               kleisliRightIdentity,
-            ),
+            )(EqFB),
           ],
           [
             'monad map coherence',
             forAll(
               arbFA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               mapFlatMapCoherence,
-            ),
+            )(EqFB),
           ],
         ],
         {

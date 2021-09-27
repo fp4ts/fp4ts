@@ -43,13 +43,12 @@ export const FlatMapSuite = <F extends AnyK>(laws: FlatMapLaws<F>) => {
               arbFA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[B], Kind<F, [C]>>(arbFC),
-              EqFC,
               flatMapAssociativity,
-            ),
+            )(EqFC),
           ],
           [
             'flatMap consistent apply',
-            forAll(arbFAtoB, arbFA, EqFB, flatMapConsistentApply),
+            forAll(arbFAtoB, arbFA, flatMapConsistentApply)(EqFB),
           ],
           [
             'kleisli associativity',
@@ -58,27 +57,24 @@ export const FlatMapSuite = <F extends AnyK>(laws: FlatMapLaws<F>) => {
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[B], Kind<F, [C]>>(arbFC),
               fc.func<[C], Kind<F, [D]>>(arbFD),
-              EqFD,
               kleisliAssociativity,
-            ),
+            )(EqFD),
           ],
           [
             'flatMap from tailRecM consistency',
             forAll(
               arbA,
               fc.func<[A], Kind<F, [A]>>(arbFA),
-              EqFA,
               tailRecMConsistentFlatMap,
-            ),
+            )(EqFA),
           ],
           [
             'tailRecM consistent flatMap',
             forAll(
               arbFA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              EqFB,
               flatMapFromTailRecMConsistency,
-            ),
+            )(EqFB),
           ],
         ],
         {

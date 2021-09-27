@@ -15,6 +15,7 @@ export const evaluate = <A>(e: Eval<A>): A => {
 
   while (true) {
     const cur = view(_cur);
+    if (!cur) throw new Error();
 
     switch (cur.tag) {
       case 'now':

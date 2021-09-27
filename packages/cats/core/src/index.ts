@@ -13,6 +13,8 @@ export * from './monad-error';
 export * from './defer';
 export * from './foldable';
 export * from './traversable';
+export * from './unordered-foldable';
+export * from './unordered-traversable';
 export * from './defer';
 
 export * from './eval';

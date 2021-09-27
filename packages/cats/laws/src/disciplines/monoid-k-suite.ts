@@ -20,11 +20,11 @@ export const MonoidKSuite = <F extends AnyK>(laws: MonoidKLaws<F>) => {
         [
           [
             'monoidK left identity',
-            forAll(arbFA, EqFA, laws.monoidKLeftIdentity),
+            forAll(arbFA, laws.monoidKLeftIdentity)(EqFA),
           ],
           [
             'monoidK right identity',
-            forAll(arbFA, EqFA, laws.monoidKRightIdentity),
+            forAll(arbFA, laws.monoidKRightIdentity)(EqFA),
           ],
         ],
         { parent: self.semigroupK(arbFA, EqFA) },

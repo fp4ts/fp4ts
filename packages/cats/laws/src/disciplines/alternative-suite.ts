@@ -30,7 +30,7 @@ export const AlternativeSuite = <F extends AnyK>(laws: AlternativeLaws<F>) => {
         [
           [
             'alternative right absorption',
-            forAll(arbFAtoB, EqFA, laws.alternativeRightAbsorption),
+            forAll(arbFAtoB, laws.alternativeRightAbsorption)(EqFA),
           ],
           [
             'alternative left absorption',
@@ -38,9 +38,8 @@ export const AlternativeSuite = <F extends AnyK>(laws: AlternativeLaws<F>) => {
               arbFA,
               arbFA,
               fc.func<[A], B>(arbB),
-              EqFA,
               laws.alternativeLeftDistributivity,
-            ),
+            )(EqFA),
           ],
           [
             'alternative right absorption',
@@ -48,9 +47,8 @@ export const AlternativeSuite = <F extends AnyK>(laws: AlternativeLaws<F>) => {
               arbFA,
               arbFAtoB,
               arbFAtoB,
-              EqFA,
               laws.alternativeRightDistributivity,
-            ),
+            )(EqFA),
           ],
         ],
         {

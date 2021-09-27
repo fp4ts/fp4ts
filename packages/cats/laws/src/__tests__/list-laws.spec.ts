@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { Eq } from '@cats4ts/cats-core';
+import { AdditionMonoid, Eq } from '@cats4ts/cats-core';
 import { List } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -10,6 +10,8 @@ import { MonadSuite } from '../disciplines/monad-suite';
 import { MonadLaws } from '../monad-laws';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 import { FunctorFilterLaws } from '../functor-filter-laws';
+import { UnorderedFoldableLaws } from '../unordered-foldable-laws';
+import { UnorderedFoldableSuite } from '../disciplines/unordered-foldable-suite';
 
 describe('List laws', () => {
   const eqListNumber: Eq<List<number>> = Eq.of({
@@ -67,6 +69,18 @@ describe('List laws', () => {
       eqListNumber,
       eqListNumber,
       eqListNumber,
+    ),
+  );
+
+  const unorderedFoldableTests = UnorderedFoldableSuite(
+    UnorderedFoldableLaws(List.Foldable),
+  );
+  checkAll(
+    'UnorderedFoldable<List>',
+    unorderedFoldableTests.unorderedFoldable(
+      A.cats4tsList(fc.integer()),
+      AdditionMonoid,
+      Eq.primitive,
     ),
   );
 });

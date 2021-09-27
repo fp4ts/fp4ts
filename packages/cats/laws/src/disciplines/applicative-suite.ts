@@ -36,24 +36,24 @@ export const ApplicativeSuite = <F extends AnyK>(laws: ApplicativeLaws<F>) => {
       return new RuleSet(
         'applicative',
         [
-          ['applicative identity', forAll(arbFA, EqFA, applicativeIdentity)],
+          ['applicative identity', forAll(arbFA, applicativeIdentity)(EqFA)],
           [
             'applicative homomorphism',
-            forAll(arbA, fc.func<[A], B>(arbB), EqFB, applicativeHomomorphism),
+            forAll(arbA, fc.func<[A], B>(arbB), applicativeHomomorphism)(EqFB),
           ],
           [
             'applicative interchange',
-            forAll(arbA, arbFAtoB, EqFB, applicativeInterchange),
+            forAll(arbA, arbFAtoB, applicativeInterchange)(EqFB),
           ],
           [
             'applicative map',
-            forAll(arbFA, fc.func<[A], B>(arbB), EqFB, applicativeMap),
+            forAll(arbFA, fc.func<[A], B>(arbB), applicativeMap)(EqFB),
           ],
           [
             'applicative ap/product consistent',
-            forAll(arbFA, arbFAtoB, EqFB, apProductConsistent),
+            forAll(arbFA, arbFAtoB, apProductConsistent)(EqFB),
           ],
-          ['applicative unit', forAll(arbA, EqFA, applicativeUnit)],
+          ['applicative unit', forAll(arbA, applicativeUnit)(EqFA)],
         ],
         {
           parent: self.apply(

@@ -16,16 +16,15 @@ export const FunctorSuite = <F extends AnyK>(laws: FunctorLaws<F>) => ({
   ): RuleSet => {
     const { covariantComposition, covariantIdentity } = laws;
     return new RuleSet('functor', [
-      ['covariant identity', forAll(arbFA, EqFA, covariantIdentity)],
+      ['covariant identity', forAll(arbFA, covariantIdentity)(EqFA)],
       [
         'covariant composition',
         forAll(
           arbFA,
           fc.func<[A], B>(arbB),
           fc.func<[B], C>(arbC),
-          EqFC,
           covariantComposition,
-        ),
+        )(EqFC),
       ],
     ]);
   },

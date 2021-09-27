@@ -14,7 +14,7 @@ export const SemigroupKSuite = <F extends AnyK>(laws: SemigroupKLaws<F>) => ({
     new RuleSet('semigroupK', [
       [
         'semigroupK associativity',
-        forAll(arbFA, arbFA, arbFA, EqFA, laws.semigroupKAssociative),
+        forAll(arbFA, arbFA, arbFA, laws.semigroupKAssociative)(EqFA),
       ],
     ]),
 });

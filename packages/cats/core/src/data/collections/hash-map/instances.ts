@@ -1,8 +1,8 @@
 import { $ } from '@cats4ts/core';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
-import { Foldable } from '../../../foldable';
-import { Traversable } from '../../../traversable';
+import { UnorderedFoldable } from '../../../unordered-foldable';
+import { UnorderedTraversable } from '../../../unordered-traversable';
 
 import { HashMapK } from './hash-map';
 import {
@@ -10,9 +10,7 @@ import {
   any_,
   collect_,
   count_,
-  foldLeft_,
   foldMap_,
-  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -30,11 +28,11 @@ export const mapFunctorFilter: <K>() => FunctorFilter<$<HashMapK, [K]>> = () =>
     mapFilter_: collect_,
   });
 
-export const mapFoldable: <K>() => Foldable<$<HashMapK, [K]>> = () =>
-  Foldable.of({
-    foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
-    foldMap_: foldMap_,
+export const mapUnorderedFoldable: <K>() => UnorderedFoldable<
+  $<HashMapK, [K]>
+> = () =>
+  UnorderedFoldable.of({
+    unorderedFoldMap_: foldMap_,
     all_: all_,
     any_: any_,
     count_: count_,
@@ -43,11 +41,12 @@ export const mapFoldable: <K>() => Foldable<$<HashMapK, [K]>> = () =>
     size: size,
   });
 
-export const mapTraversable: <K>() => Traversable<$<HashMapK, [K]>> = () =>
-  Traversable.of({
-    ...mapFunctor(),
-    ...mapFoldable(),
+export const mapUnorderedTraversable: <K>() => UnorderedTraversable<
+  $<HashMapK, [K]>
+> = () =>
+  UnorderedTraversable.of({
+    ...mapUnorderedFoldable(),
 
-    traverse_: traverse_,
-    sequence: sequence,
+    unorderedTraverse_: traverse_,
+    unorderedSequence: sequence,
   });

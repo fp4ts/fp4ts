@@ -12,12 +12,12 @@ export const DeferSuite = <F extends AnyK>(laws: DeferLaws<F>) => ({
     EqFA: Eq<Kind<F, [A]>>,
   ): RuleSet =>
     new RuleSet('defer', [
-      ['defer identity', forAll(arbUtoFA, EqFA, laws.deferIdentity)],
+      ['defer identity', forAll(arbUtoFA, laws.deferIdentity)(EqFA)],
       [
         'defer dot not evaluate',
-        forAll(arbUtoFA, Eq.primitive, laws.deferDoesNotEvaluate),
+        forAll(arbUtoFA, laws.deferDoesNotEvaluate)(Eq.primitive),
       ],
-      ['defer is stack safe', forAll(arbUtoFA, EqFA, laws.deferIsStackSafe)],
-      ['defer is matches fix', forAll(arbUtoFA, EqFA, laws.deferMatchesFix)],
+      ['defer is stack safe', forAll(arbUtoFA, laws.deferIsStackSafe)(EqFA)],
+      ['defer is matches fix', forAll(arbUtoFA, laws.deferMatchesFix)(EqFA)],
     ]),
 });

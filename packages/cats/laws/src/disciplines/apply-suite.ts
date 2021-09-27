@@ -35,7 +35,7 @@ export const ApplySuite = <F extends AnyK>(laws: ApplyLaws<F>) => {
         [
           [
             'apply composition',
-            forAll(arbFA, arbFAtoB, arbFBtoC, EqFC, applyComposition),
+            forAll(arbFA, arbFAtoB, arbFBtoC, applyComposition)(EqFC),
           ],
           [
             'map2/product-map consistency',
@@ -43,9 +43,8 @@ export const ApplySuite = <F extends AnyK>(laws: ApplyLaws<F>) => {
               arbFA,
               arbFB,
               fc.func<[A, B], C>(arbC),
-              EqFC,
               map2ProductConsistency,
-            ),
+            )(EqFC),
           ],
           [
             'map2/map2Eval consistency',
@@ -53,17 +52,16 @@ export const ApplySuite = <F extends AnyK>(laws: ApplyLaws<F>) => {
               arbFA,
               arbFB,
               fc.func<[A, B], C>(arbC),
-              EqFC,
               map2EvalConsistency,
-            ),
+            )(EqFC),
           ],
           [
             'productL consistent map2',
-            forAll(arbFA, arbFC, EqFA, productLConsistency),
+            forAll(arbFA, arbFC, productLConsistency)(EqFA),
           ],
           [
             'productR consistent map2',
-            forAll(arbFA, arbFC, EqFC, productRConsistency),
+            forAll(arbFA, arbFC, productRConsistency)(EqFC),
           ],
         ],
         { parent: self.functor(arbFA, arbB, arbC, EqFA, EqFC) },

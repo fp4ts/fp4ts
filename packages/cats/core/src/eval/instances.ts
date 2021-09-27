@@ -1,4 +1,6 @@
-import { instance, Lazy } from '@cats4ts/core';
+import { Lazy } from '@cats4ts/core';
+import { Semigroup } from '../semigroup';
+import { Monoid } from '../monoid';
 import { Defer } from '../defer';
 import { Functor } from '../functor';
 import { Apply } from '../apply';
@@ -6,7 +8,7 @@ import { Applicative } from '../applicative';
 import { FlatMap } from '../flat-map';
 import { Monad } from '../monad';
 
-import { EvalK } from './eval';
+import { Eval, EvalK } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
 
@@ -39,4 +41,19 @@ export const evalMonad: Lazy<Monad<EvalK>> = () =>
   Monad.of({
     ...evalApplicative(),
     ...evalFlatMap(),
+  });
+
+interface EvalSemigroup<A> extends Semigroup<Eval<A>> {}
+
+export const evalSemigroup = <A>(A: Semigroup<A>): EvalSemigroup<A> =>
+  Semigroup.of({
+    combine_: (fx, fy) => flatMap_(fx, x => map_(fy, y => A.combine_(x, y))),
+  });
+
+interface EvalMonoid<A> extends Monoid<Eval<A>>, EvalSemigroup<A> {}
+
+export const evalMonoid = <A>(M: Monoid<A>): EvalMonoid<A> =>
+  Monoid.of({
+    empty: Eval.later(() => M.empty),
+    ...evalSemigroup(M),
   });
