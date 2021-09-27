@@ -8,6 +8,7 @@ import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
+import { FoldableSuite } from '../disciplines/foldable-suite';
 
 describe('List laws', () => {
   const eqListNumber: Eq<List<number>> = Eq.of({
@@ -90,6 +91,19 @@ describe('List laws', () => {
       Eval.Eq(Eval.Eq(eqListNumber)),
       Eval.Eq(eqListNumber),
       Eval.Eq(eqListNumber),
+    ),
+  );
+
+  const foldableTests = FoldableSuite(List.Foldable);
+  checkAll(
+    'Foldable<List>',
+    foldableTests.foldable(
+      A.cats4tsList(fc.integer()),
+      fc.integer(),
+      AdditionMonoid,
+      AdditionMonoid,
+      Eq.primitive,
+      Eq.primitive,
     ),
   );
 });

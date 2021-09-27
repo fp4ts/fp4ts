@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -20,16 +21,16 @@ import { Size } from './algebra';
 import {
   collect_,
   concat_,
+  elem_,
   flatMap_,
   flatten,
   foldLeft_,
-  foldRight_,
   map_,
   size,
   tailRecM_,
   traverse_,
 } from './operators';
-import { VectorK } from './vector';
+import { Vector, VectorK } from './vector';
 import { empty, pure } from './constructors';
 
 export const sizeMonoid: Monoid<Size> = {
@@ -101,7 +102,20 @@ export const vectorFoldable: Lazy<Foldable<VectorK>> = () =>
   Foldable.of({
     size: size,
     foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
+    foldRight_: <A, B>(
+      xs: Vector<A>,
+      eb: Eval<B>,
+      f: (a: A, b: Eval<B>) => Eval<B>,
+    ): Eval<B> => {
+      const loop = (i: number): Eval<B> =>
+        i < size(xs)
+          ? f(
+              elem_(xs, i),
+              Eval.defer(() => loop(i + 1)),
+            )
+          : eb;
+      return loop(0);
+    },
   });
 
 export const vectorTraversable: Lazy<Traversable<VectorK>> = () =>

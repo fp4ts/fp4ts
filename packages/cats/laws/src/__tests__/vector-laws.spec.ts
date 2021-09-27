@@ -8,6 +8,7 @@ import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
+import { FoldableSuite } from '../disciplines/foldable-suite';
 
 describe('Vector laws', () => {
   const eqVectorNumber: Eq<Vector<number>> = Eq.of({
@@ -92,6 +93,19 @@ describe('Vector laws', () => {
       Eval.Eq(Eval.Eq(eqVectorNumber)),
       Eval.Eq(eqVectorNumber),
       Eval.Eq(eqVectorNumber),
+    ),
+  );
+
+  const foldableTests = FoldableSuite(Vector.Foldable);
+  checkAll(
+    'Foldable<Vector>',
+    foldableTests.foldable(
+      A.cats4tsVector(fc.integer()),
+      fc.integer(),
+      AdditionMonoid,
+      AdditionMonoid,
+      Eq.primitive,
+      Eq.primitive,
     ),
   );
 });

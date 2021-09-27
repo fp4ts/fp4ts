@@ -1,3 +1,4 @@
+import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
@@ -75,7 +76,7 @@ export const arrayFoldable: () => Foldable<ArrayK> = () =>
       <A>(xs: A[], f: (a: A) => M) =>
         foldMap_(xs, f, M),
     foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
+    foldRight_: (xs, eb, f) => foldRight_(xs, eb, (a, eb) => f(a, eb)),
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,

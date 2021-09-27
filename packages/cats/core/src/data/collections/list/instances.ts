@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eval } from '../../../eval';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -11,7 +12,7 @@ import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 
-import { ListK } from './list';
+import { List, ListK } from './list';
 
 import { empty, pure } from './constructors';
 import {
@@ -25,6 +26,7 @@ import {
   foldLeft_,
   foldMap_,
   foldRight_,
+  fold_,
   isEmpty,
   map_,
   nonEmpty,
@@ -96,7 +98,24 @@ export const listFoldable: Lazy<Foldable<ListK>> = () =>
     count_: count_,
     foldMap_: foldMap_,
     foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
+    foldRight_: <A, B>(
+      xs: List<A>,
+      eb: Eval<B>,
+      f: (a: A, eb: Eval<B>) => Eval<B>,
+    ): Eval<B> => {
+      const loop = (xs: List<A>): Eval<B> =>
+        fold_(
+          xs,
+          () => eb,
+          (hd, tl) =>
+            f(
+              hd,
+              Eval.defer(() => loop(tl)),
+            ),
+        );
+
+      return loop(xs);
+    },
   });
 
 export const listTraversable: Lazy<Traversable<ListK>> = () =>

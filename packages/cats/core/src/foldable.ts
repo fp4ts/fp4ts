@@ -1,5 +1,6 @@
 import { Kind, instance, AnyK } from '@cats4ts/core';
 import { Monoid } from './monoid';
+import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
 
 export interface Foldable<F extends AnyK> extends UnorderedFoldable<F> {
@@ -10,14 +11,14 @@ export interface Foldable<F extends AnyK> extends UnorderedFoldable<F> {
   readonly foldLeft_: <A, B>(fa: Kind<F, [A]>, b: B, f: (b: B, a: A) => B) => B;
 
   readonly foldRight: <A, B>(
-    b: B,
-    f: (a: A, b: B) => B,
-  ) => (fa: Kind<F, [A]>) => B;
+    b: Eval<B>,
+    f: (a: A, b: Eval<B>) => Eval<B>,
+  ) => (fa: Kind<F, [A]>) => Eval<B>;
   readonly foldRight_: <A, B>(
     fa: Kind<F, [A]>,
-    b: B,
-    f: (a: A, b: B) => B,
-  ) => B;
+    b: Eval<B>,
+    f: (a: A, b: Eval<B>) => Eval<B>,
+  ) => Eval<B>;
 
   readonly foldMap: <M>(
     M: Monoid<M>,
