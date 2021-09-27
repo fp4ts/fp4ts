@@ -5,43 +5,50 @@ import {
   Eq,
   Functor,
   Monoid,
-  UnorderedTraversable,
+  Traversable,
 } from '@cats4ts/cats-core';
 import { Nested, Tuple2K } from '@cats4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
-import { UnorderedTraversableLaws } from '../unordered-traversable-laws';
-import { UnorderedFoldableSuite } from './unordered-foldable-suite';
+import { TraversableLaws } from '../traversable-laws';
+import { FoldableSuite } from './foldable-suite';
+import { FunctorSuite } from './functor-suite';
+import { UnorderedTraversableSuite } from './unordered-traversable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const UnorderedTraversableSuite = <T extends AnyK>(
-  T: UnorderedTraversable<T>,
-) => {
-  const laws = UnorderedTraversableLaws(T);
+export const TraversableSuite = <T extends AnyK>(T: Traversable<T>) => {
+  const laws = TraversableLaws(T);
   const self = {
-    ...UnorderedFoldableSuite(T),
+    ...FunctorSuite(T),
+    ...FoldableSuite(T),
+    ...UnorderedTraversableSuite(T),
 
-    unorderedTraversable: <A, B, C, F extends AnyK, G extends AnyK>(
+    traversable: <A, B, C, F extends AnyK, G extends AnyK>(
       arbTA: Arbitrary<Kind<T, [A]>>,
       arbFB: Arbitrary<Kind<F, [B]>>,
       arbGB: Arbitrary<Kind<G, [B]>>,
       arbGC: Arbitrary<Kind<G, [C]>>,
       arbB: Arbitrary<B>,
-      M: Monoid<A>,
+      arbC: Arbitrary<C>,
+      MA: Monoid<A>,
+      MB: Monoid<B>,
       T: Functor<T>,
       F: Applicative<F>,
       G: Applicative<G>,
       EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqTA: Eq<Kind<T, [A]>>,
       EqTB: Eq<Kind<T, [B]>>,
+      EqTC: Eq<Kind<T, [C]>>,
       EqFGTC: Eq<Kind<F, [Kind<G, [Kind<T, [C]>]>]>>,
       EqFTA: Eq<Kind<F, [Kind<T, [A]>]>>,
       EqGTA: Eq<Kind<G, [Kind<T, [A]>]>>,
     ): RuleSet =>
       new RuleSet(
-        'unordered traversable',
+        'traversable',
         [
           [
-            'unorderedTraversable identity',
+            'traversable identity',
             forAll(
               arbTA,
               fc.func<[A], B>(arbB),
@@ -49,34 +56,46 @@ export const UnorderedTraversableSuite = <T extends AnyK>(
             )(EqTB),
           ],
           [
-            'unorderedTraversable traversable sequential composition',
+            'traversable sequential coposition',
             forAll(
               arbTA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[B], Kind<G, [C]>>(arbGC),
-              laws.unorderedTraversableSequentialComposition(F, G),
+              laws.traverseSequentialComposition(F, G),
             )(Nested.Eq(EqFGTC)),
           ],
           [
-            'unorderedTraversable traversable parallel composition',
+            'traversable parallel composition',
             forAll(
               arbTA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[A], Kind<G, [B]>>(arbGB),
-              laws.unorderedTraversableParallelComposition(F, G),
+              laws.traverseParallelComposition(F, G),
             )(Tuple2K.Eq(EqFTA, EqGTA)),
           ],
-          [
-            'unorderedTraversable unordered sequence consistent',
-            forAll(
-              arbTA.chain(ta =>
-                arbFB.chain(fb => fc.constant(T.map_(ta, () => fb))),
-              ),
-              laws.unorderedSequenceConsistent(F),
-            )(EqFTA),
-          ],
         ],
-        { parent: self.unorderedFoldable(arbTA, M, EqA) },
+        {
+          parents: [
+            self.functor(arbTA, arbB, arbC, EqTA, EqTC),
+            self.foldable(arbTA, arbB, MA, MB, EqA, EqB),
+            self.unorderedTraversable(
+              arbTA,
+              arbFB,
+              arbGB,
+              arbGC,
+              arbB,
+              MA,
+              T,
+              F,
+              G,
+              EqA,
+              EqTB,
+              EqFGTC,
+              EqFTA,
+              EqGTA,
+            ),
+          ],
+        },
       ),
   };
   return self;

@@ -7,7 +7,6 @@ import { Monad } from '../../monad';
 
 import { Either } from '../either';
 
-import { Identity as IdentityBase } from './algebra';
 import { pure } from './constructors';
 import {
   identityApplicative,
@@ -18,7 +17,7 @@ import {
 } from './instances';
 import { tailRecM } from './operators';
 
-export type Identity<A> = IdentityBase<A>;
+export type Identity<A> = A;
 
 export const Identity: IdentityObj = function <A>(a: A): Identity<A> {
   return pure(a);

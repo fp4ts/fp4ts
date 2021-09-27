@@ -3,7 +3,7 @@ import { id } from '@cats4ts/core';
 import { Either } from '../either';
 
 import { pure } from './constructors';
-import { Identity } from './algebra';
+import { Identity } from './identity';
 
 export const map: <A, B>(f: (a: A) => B) => (fa: Identity<A>) => Identity<B> =
   f => fa =>
@@ -32,23 +32,23 @@ export const tailRecM: <A>(
 // -- Point-ful operators
 
 export const map_ = <A, B>(fa: Identity<A>, f: (a: A) => B): Identity<B> =>
-  pure(f(fa.get));
+  pure(f(fa));
 
 export const tap_ = <A>(fa: Identity<A>, f: (a: A) => unknown): Identity<A> => {
-  f(fa.get);
+  f(fa);
   return fa;
 };
 
 export const flatMap_ = <A, B>(
   fa: Identity<A>,
   f: (a: A) => Identity<B>,
-): Identity<B> => f(fa.get);
+): Identity<B> => f(fa);
 
 export const flatTap_ = <A>(
   fa: Identity<A>,
   f: (a: A) => Identity<unknown>,
 ): Identity<A> => {
-  f(fa.get);
+  f(fa);
   return fa;
 };
 
@@ -56,14 +56,14 @@ export const tailRecM_ = <A, B>(
   a: A,
   f: (a: A) => Identity<Either<A, B>>,
 ): Identity<B> => {
-  let cur: Either<A, B> = f(a).get;
+  let cur: Either<A, B> = f(a);
   let resolved: boolean = false;
   let result: B;
 
   while (!resolved) {
     cur.fold(
       a => {
-        cur = f(a).get;
+        cur = f(a);
       },
       b => {
         resolved = true;

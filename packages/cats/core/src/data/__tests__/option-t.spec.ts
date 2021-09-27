@@ -164,8 +164,7 @@ describe('OptionT', () => {
     });
 
     it('should change context to Either<string, *>', () => {
-      const nt: FunctionK<IdentityK, $<EitherK, [string]>> = fa =>
-        Right(fa.get);
+      const nt: FunctionK<IdentityK, $<EitherK, [string]>> = fa => Right(fa);
 
       expect(mkSome(42).mapK(nt).value).toEqual(Right(Some(42)));
     });

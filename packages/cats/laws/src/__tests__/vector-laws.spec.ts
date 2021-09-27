@@ -6,28 +6,12 @@ import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
-import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
-import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
-import { FoldableSuite } from '../disciplines/foldable-suite';
+import { TraversableSuite } from '../disciplines/traversable-suite';
 
 describe('Vector laws', () => {
   const eqVectorNumber: Eq<Vector<number>> = Eq.of({
     equals: (xs, ys) => xs.equals(ys),
   });
-
-  const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
-  checkAll(
-    'FunctorFilter<Vector>',
-    functorFilterTests.functorFilter(
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(A.cats4tsOption(fc.integer())),
-      fc.integer(),
-      fc.integer(),
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
-    ),
-  );
 
   const alternativeTests = AlternativeSuite(Vector.Alternative);
   checkAll(
@@ -67,45 +51,29 @@ describe('Vector laws', () => {
     ),
   );
 
-  const unorderedTraversableTests = UnorderedTraversableSuite(
-    Vector.Traversable,
-  );
+  const traversableTests = TraversableSuite(Vector.Traversable);
   checkAll(
-    'UnorderedTraversable<Vector>',
-    unorderedTraversableTests.unorderedTraversable<
-      number,
-      number,
-      number,
-      EvalK,
-      EvalK
-    >(
+    'Traversable<Vector>',
+    traversableTests.traversable<number, number, number, EvalK, EvalK>(
       A.cats4tsVector(fc.integer()),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       fc.integer(),
+      fc.integer(),
+      AdditionMonoid,
       AdditionMonoid,
       Vector.Functor,
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,
+      Eq.primitive,
+      eqVectorNumber,
+      eqVectorNumber,
       eqVectorNumber,
       Eval.Eq(Eval.Eq(eqVectorNumber)),
       Eval.Eq(eqVectorNumber),
       Eval.Eq(eqVectorNumber),
-    ),
-  );
-
-  const foldableTests = FoldableSuite(Vector.Foldable);
-  checkAll(
-    'Foldable<Vector>',
-    foldableTests.foldable(
-      A.cats4tsVector(fc.integer()),
-      fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
-      Eq.primitive,
-      Eq.primitive,
     ),
   );
 });

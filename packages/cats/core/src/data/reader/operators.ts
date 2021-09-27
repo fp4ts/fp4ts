@@ -138,4 +138,4 @@ export const tailRecM_ = <R, A, B>(
   );
 
 export const runReader_ = <R, A>(fa: Reader<R, A>, r: R): A =>
-  K.runM_(Identity.Monad)(fa._kleisli, r).get;
+  K.runM_(Identity.Monad)(fa._kleisli, r);

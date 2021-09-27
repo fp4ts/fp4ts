@@ -1,4 +1,5 @@
-import { Identity } from './algebra';
+import { id } from '@cats4ts/core';
+import { Identity } from './identity';
 
-export const pure: <A>(a: A) => Identity<A> = x => new Identity(x);
+export const pure: <A>(a: A) => Identity<A> = id;
 export const unit: Identity<void> = pure(undefined);

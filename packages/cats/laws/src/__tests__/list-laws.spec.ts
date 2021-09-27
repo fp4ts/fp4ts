@@ -6,28 +6,12 @@ import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
-import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
-import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
-import { FoldableSuite } from '../disciplines/foldable-suite';
+import { TraversableSuite } from '../disciplines/traversable-suite';
 
 describe('List laws', () => {
   const eqListNumber: Eq<List<number>> = Eq.of({
     equals: (xs, ys) => xs.equals(Eq.primitive, ys),
   });
-
-  const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
-  checkAll(
-    'FunctorFilter<List>',
-    functorFilterTests.functorFilter(
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(A.cats4tsOption(fc.integer())),
-      fc.integer(),
-      fc.integer(),
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
-    ),
-  );
 
   const alternativeTests = AlternativeSuite(List.Alternative);
   checkAll(
@@ -67,43 +51,29 @@ describe('List laws', () => {
     ),
   );
 
-  const unorderedTraversableTests = UnorderedTraversableSuite(List.Traversable);
+  const traversableTests = TraversableSuite(List.Traversable);
   checkAll(
-    'UnorderedTraversable<List>',
-    unorderedTraversableTests.unorderedTraversable<
-      number,
-      number,
-      number,
-      EvalK,
-      EvalK
-    >(
+    'traversable<List>',
+    traversableTests.traversable<number, number, number, EvalK, EvalK>(
       A.cats4tsList(fc.integer()),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       fc.integer(),
+      fc.integer(),
+      AdditionMonoid,
       AdditionMonoid,
       List.Functor,
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,
+      Eq.primitive,
+      eqListNumber,
+      eqListNumber,
       eqListNumber,
       Eval.Eq(Eval.Eq(eqListNumber)),
       Eval.Eq(eqListNumber),
       Eval.Eq(eqListNumber),
-    ),
-  );
-
-  const foldableTests = FoldableSuite(List.Foldable);
-  checkAll(
-    'Foldable<List>',
-    foldableTests.foldable(
-      A.cats4tsList(fc.integer()),
-      fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
-      Eq.primitive,
-      Eq.primitive,
     ),
   );
 });

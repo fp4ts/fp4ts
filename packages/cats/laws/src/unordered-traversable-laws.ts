@@ -19,9 +19,9 @@ export const UnorderedTraversableLaws = <T extends AnyK>(
   unorderedTraversableIdentity:
     (F: Functor<T>) =>
     <A, B>(fa: Kind<T, [A]>, f: (a: A) => B): IsEq<Kind<T, [B]>> =>
-      T.unorderedTraverse_<IdentityK>(Identity.Applicative)(fa, x =>
-        Identity(f(x)),
-      ).get['<=>'](F.map_(fa, f)),
+      T.unorderedTraverse_<IdentityK>(Identity.Applicative)(fa, x => f(x))[
+        '<=>'
+      ](F.map_(fa, f)),
 
   unorderedTraversableSequentialComposition:
     <M extends AnyK, N extends AnyK>(M: Applicative<M>, N: Applicative<N>) =>

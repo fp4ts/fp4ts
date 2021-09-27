@@ -246,7 +246,7 @@ describe('Kleisli', () => {
 
   describe('mapK', () => {
     it('should convert Identity context to Option', () => {
-      const nt: FunctionK<IdentityK, OptionK> = x => Some(x.get);
+      const nt: FunctionK<IdentityK, OptionK> = x => Some(x);
 
       const k = KleisliId((x: number) => Identity(x))
         .map(Identity.Functor)(x => x + 1)
