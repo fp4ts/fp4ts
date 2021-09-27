@@ -15,6 +15,11 @@ export const Eq = Object.freeze({
   get primitive(): Eq<PrimitiveType> {
     return primitiveEq();
   },
+
+  by: <A, B>(E: Eq<B>, f: (a: A) => B): Eq<A> =>
+    Eq.of<A>({
+      equals: (a, b) => E.equals(f(a), f(b)),
+    }),
 });
 
 // HKT

@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eq } from '../eq';
 import { Semigroup } from '../semigroup';
 import { Monoid } from '../monoid';
 import { Defer } from '../defer';
@@ -42,6 +43,10 @@ export const evalMonad: Lazy<Monad<EvalK>> = () =>
     ...evalApplicative(),
     ...evalFlatMap(),
   });
+
+interface EvalEq<A> extends Eq<Eval<A>> {}
+
+export const evalEq: <A>(E: Eq<A>) => EvalEq<A> = E => Eq.by(E, e => e.value);
 
 interface EvalSemigroup<A> extends Semigroup<Eval<A>> {}
 

@@ -1,6 +1,7 @@
 import { Kind, AnyK } from '@cats4ts/core';
 import { Functor } from './functor';
 import { Apply } from './apply';
+import { ComposedApplicative } from './composed';
 
 export interface Applicative<F extends AnyK> extends Apply<F> {
   readonly pure: <A>(a: A) => Kind<F, [A]>;
@@ -22,6 +23,11 @@ export const Applicative = Object.freeze({
     };
     return self;
   },
+
+  compose: <F extends AnyK, G extends AnyK>(
+    F: Applicative<F>,
+    G: Applicative<G>,
+  ): ComposedApplicative<F, G> => ComposedApplicative.of(F, G),
 
   deriveFunctor: <F extends AnyK>(F: ApplicativeRequirements<F>): Functor<F> =>
     Functor.of<F>({

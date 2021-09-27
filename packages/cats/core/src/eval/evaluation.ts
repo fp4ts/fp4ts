@@ -50,6 +50,8 @@ export const evaluate = <A>(e: Eval<A>): A => {
         );
         continue;
       }
+      default:
+        throw new Error();
     }
   }
 };

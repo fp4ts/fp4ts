@@ -1,4 +1,5 @@
 import { TyK, _ } from '@cats4ts/core';
+import { Eq } from '../eq';
 import { Semigroup } from '../semigroup';
 import { Monoid } from '../monoid';
 import { Defer } from '../defer';
@@ -14,6 +15,7 @@ import {
   evalApplicative,
   evalApply,
   evalDefer,
+  evalEq,
   evalFlatMap,
   evalFunctor,
   evalMonad,
@@ -46,6 +48,7 @@ interface EvalObj {
   readonly FlatMap: FlatMap<EvalK>;
   readonly Monad: Monad<EvalK>;
 
+  Eq<A>(E: Eq<A>): Eq<Eval<A>>;
   Semigroup<S>(S: Semigroup<S>): Semigroup<Eval<S>>;
   Monoid<M>(S: Monoid<M>): Monoid<Eval<M>>;
 }
@@ -89,6 +92,7 @@ Object.defineProperty(Eval, 'Monad', {
   },
 });
 
+Eval.Eq = evalEq;
 Eval.Semigroup = evalSemigroup;
 Eval.Monoid = evalMonoid;
 

@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { AdditionMonoid, Eq } from '@cats4ts/cats-core';
+import { AdditionMonoid, Eq, Eval, EvalK } from '@cats4ts/cats-core';
 import { List } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -10,8 +10,8 @@ import { MonadSuite } from '../disciplines/monad-suite';
 import { MonadLaws } from '../monad-laws';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 import { FunctorFilterLaws } from '../functor-filter-laws';
-import { UnorderedFoldableLaws } from '../unordered-foldable-laws';
-import { UnorderedFoldableSuite } from '../disciplines/unordered-foldable-suite';
+import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
+import { UnorderedTraversableLaws } from '../unordered-traversable-laws';
 
 describe('List laws', () => {
   const eqListNumber: Eq<List<number>> = Eq.of({
@@ -72,15 +72,32 @@ describe('List laws', () => {
     ),
   );
 
-  const unorderedFoldableTests = UnorderedFoldableSuite(
-    UnorderedFoldableLaws(List.Foldable),
+  const unorderedTraversableTests = UnorderedTraversableSuite(
+    UnorderedTraversableLaws(List.Traversable),
   );
   checkAll(
-    'UnorderedFoldable<List>',
-    unorderedFoldableTests.unorderedFoldable(
+    'UnorderedTraversable<List>',
+    unorderedTraversableTests.unorderedTraversable<
+      number,
+      number,
+      number,
+      EvalK,
+      EvalK
+    >(
       A.cats4tsList(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      fc.integer(),
       AdditionMonoid,
+      List.Functor,
+      Eval.Applicative,
+      Eval.Applicative,
       Eq.primitive,
+      eqListNumber,
+      Eval.Eq(Eval.Eq(eqListNumber)),
+      Eval.Eq(eqListNumber),
+      Eval.Eq(eqListNumber),
     ),
   );
 });
