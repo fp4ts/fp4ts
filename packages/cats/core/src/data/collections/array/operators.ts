@@ -154,7 +154,7 @@ export const tailRecM_ = <A, B>(a: A, f: (a: A) => Either<A, B>[]): B[] => {
 };
 
 export const foldMap_ = <M, A>(xs: A[], f: (a: A) => M, M: Monoid<M>): M =>
-  foldLeft_(map_(xs, f), M.empty, M.combine_);
+  foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
 
 export const foldLeft_ = <A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B =>
   xs.reduce(f, z);

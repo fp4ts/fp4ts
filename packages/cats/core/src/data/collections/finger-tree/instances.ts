@@ -32,5 +32,7 @@ export const nodeMeasured = <A, V>(
 export const listMeasured = <V, A>(M: Measured<A, V>): Measured<A[], V> => ({
   monoid: M.monoid,
   measure: (xs: A[]): V =>
-    xs.map(M.measure).reduce(M.monoid.combine_, M.monoid.empty),
+    xs
+      .map(M.measure)
+      .reduce((x, y) => M.monoid.combine_(x, () => y), M.monoid.empty),
 });

@@ -50,19 +50,19 @@ describe('Option', () => {
 
   describe('orElse', () => {
     it('should return None when both are None', () => {
-      expect(None.orElse(None)).toEqual(None);
+      expect(None.orElse(() => None)).toEqual(None);
     });
 
     it('should return lhs when both are Some', () => {
-      expect(Some(42)['<|>'](Some(43))).toEqual(Some(42));
+      expect(Some(42)['<|>'](() => Some(43))).toEqual(Some(42));
     });
 
     it('should return lhs when rhs is None', () => {
-      expect(Some(42)['<|>'](None)).toEqual(Some(42));
+      expect(Some(42)['<|>'](() => None)).toEqual(Some(42));
     });
 
     it('should return rhs when lhs is None', () => {
-      expect(None['<|>'](Some(43))).toEqual(Some(43));
+      expect(None['<|>'](() => Some(43))).toEqual(Some(43));
     });
   });
 

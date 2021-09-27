@@ -32,10 +32,9 @@ import {
 import { empty, pure } from './constructors';
 
 export const arraySemigroupK: () => SemigroupK<ArrayK> = () =>
-  SemigroupK.of({ combineK_: concat_ });
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
 
 export const arrayMonoidK: () => MonoidK<ArrayK> = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { algebra, ...rest } = arraySemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
 };

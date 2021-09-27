@@ -292,7 +292,7 @@ export const splitAt_ =
     // For a single element, we must check whether or not its
     // annotation makes the predicate true.
     if (ft.tag === 'single')
-      return p(combine_(start, M.measure(ft.value)))
+      return p(combine_(start, () => M.measure(ft.value)))
         ? Some([Empty, ft.value, Empty])
         : None;
 
@@ -301,12 +301,12 @@ export const splitAt_ =
     const { annotation: total, prefix, deep, suffix } = ft;
 
     // Make sure a split point exists.
-    if (!p(combine_(start, total)))
+    if (!p(combine_(start, () => total)))
       // Split point does not exists
       return None;
 
     const LM = listMeasured(M);
-    const startPref = combine_(start, LM.measure(prefix));
+    const startPref = combine_(start, () => LM.measure(prefix));
     // The split point is in the prefix.
     if (p(startPref)) {
       // Treat the prefix as a list and find where the split point is.
@@ -323,13 +323,13 @@ export const splitAt_ =
     const MN = nodeMeasured(M);
     const MFT = fingerTreeMeasured(MN);
     // The split point is in the deeper tree.
-    if (p(combine_(startPref, MFT.measure(deep)))) {
+    if (p(combine_(startPref, () => MFT.measure(deep)))) {
       // Find the split point in the deeper tree.
       // The split point is not as fine-grained as we want, as it works on Node<V, A>,
       // instead of just values of type A.
       return splitAt_(MN)(deep, startPref, p).flatMap(
         ([before, [, ...node], after]) => {
-          const start_ = combine_(startPref, MFT.measure(before));
+          const start_ = combine_(startPref, () => MFT.measure(before));
           // Convert the node at the split point into a list, and search for the
           // real split point within that list.
           return _splitList(M, node, p, start_).map(
@@ -344,7 +344,7 @@ export const splitAt_ =
     }
 
     // Otherwise, the split point is in the suffix.
-    const start_ = combine_(startPref, MFT.measure(deep));
+    const start_ = combine_(startPref, () => MFT.measure(deep));
     return _splitList(M, suffix, p, start_).map(([before, [x, ...after]]) => [
       _mkDeep(M)(prefix, deep, before),
       x,
@@ -452,7 +452,7 @@ const _mkDeep = <V, A>(M: Measured<A, V>) => {
       ML.measure(prefix),
       MFT.measure(deep),
       ML.measure(suffix),
-    ].reduce(combine_, empty);
+    ].reduce((x, y) => combine_(x, () => y), empty);
 
     return new Deep(annotation, prefix as Affix<A>, deep, suffix as Affix<A>);
   };
@@ -526,7 +526,7 @@ const _splitList = <V, A>(
   start: V,
 ): Option<[A[], A[]]> => {
   for (let i = 0, len = xs.length; i < len; i++) {
-    start = M.monoid.combine_(start, M.measure(xs[i]));
+    start = M.monoid.combine_(start, () => M.measure(xs[i]));
     if (p(start)) return Some([xs.slice(0, i), xs.slice(i)]);
   }
   return None;

@@ -34,12 +34,12 @@ declare module './algebra' {
     orElse<B, C extends B>(
       this: OptionT<F, C>,
       F: Monad<F>,
-    ): (that: OptionT<F, B>) => OptionT<F, B>;
+    ): (that: () => OptionT<F, B>) => OptionT<F, B>;
 
     orElseF<B, C extends B>(
       this: OptionT<F, C>,
       F: Monad<F>,
-    ): (that: Kind<F, [Option<B>]>) => OptionT<F, B>;
+    ): (that: () => Kind<F, [Option<B>]>) => OptionT<F, B>;
 
     getOrElse<B, C extends B>(
       this: OptionT<F, C>,

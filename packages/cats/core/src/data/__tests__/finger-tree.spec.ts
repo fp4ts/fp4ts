@@ -329,8 +329,8 @@ describe('FingerTree', () => {
     type Size = number;
     const sizeMonoid: Monoid<Size> = {
       empty: 0,
-      combine: y => x => x + y,
-      combine_: (x, y) => x + y,
+      combine: y => x => x + y(),
+      combine_: (x, y) => x + y(),
     };
 
     const sizeMeasured = <A>(): Measured<A, Size> => ({

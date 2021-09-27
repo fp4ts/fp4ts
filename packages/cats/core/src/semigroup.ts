@@ -1,6 +1,8 @@
+import { Lazy } from '@cats4ts/core';
+
 export interface Semigroup<S> {
-  readonly combine: (y: S) => (x: S) => S;
-  readonly combine_: (x: S, y: S) => S;
+  readonly combine: (y: Lazy<S>) => (x: S) => S;
+  readonly combine_: (x: S, y: Lazy<S>) => S;
 }
 
 export type SemigroupRequirements<A> = Pick<Semigroup<A>, 'combine_'> &
@@ -15,13 +17,13 @@ export const Semigroup = Object.freeze({
 // -- Builtin Semigroups
 
 export const DisjunctionSemigroup: Semigroup<boolean> = Semigroup.of({
-  combine_: (x, y) => x || y,
+  combine_: (x, y) => x || y(),
 });
 
 export const ConjunctionSemigroup: Semigroup<boolean> = Semigroup.of({
-  combine_: (x, y) => x && y,
+  combine_: (x, y) => x && y(),
 });
 
 export const AdditionSemigroup: Semigroup<number> = Semigroup.of({
-  combine_: (x, y) => x + y,
+  combine_: (x, y) => x + y(),
 });

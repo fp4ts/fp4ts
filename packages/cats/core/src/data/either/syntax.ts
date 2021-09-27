@@ -9,7 +9,7 @@ import {
   map_,
   nonEmpty,
   getOrElse_,
-  or_,
+  orElse_,
   swapped,
   tap_,
   toOption,
@@ -33,8 +33,14 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Either<E, B>;
     tap(f: (a: A) => unknown): Either<E, A>;
 
-    orElse<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
-    '<|>'<E2, A2>(this: Either<E2, A2>, y: Either<E2, A2>): Either<E2, A2>;
+    orElse<E2, A2>(
+      this: Either<E2, A2>,
+      y: () => Either<E2, A2>,
+    ): Either<E2, A2>;
+    '<|>'<E2, A2>(
+      this: Either<E2, A2>,
+      y: () => Either<E2, A2>,
+    ): Either<E2, A2>;
 
     getOrElse<A2>(this: Either<E, A2>, defaultValue: () => A2): A2;
 
@@ -112,11 +118,8 @@ Either.prototype.tap = function <E, A>(
   return tap_(this, f);
 };
 
-Either.prototype.orElse = function <E, A>(
-  this: Either<E, A>,
-  that: Either<E, A>,
-): Either<E, A> {
-  return or_(this, that);
+Either.prototype.orElse = function (that) {
+  return orElse_(this, that);
 };
 
 Either.prototype['<|>'] = Either.prototype.orElse;

@@ -34,8 +34,8 @@ import { empty, pure } from './constructors';
 
 export const sizeMonoid: Monoid<Size> = {
   empty: 0,
-  combine: y => x => x + y,
-  combine_: (x, y) => x + y,
+  combine: y => x => x + y(),
+  combine_: (x, y) => x + y(),
 };
 
 export const sizeMeasured: Measured<any, Size> = {
@@ -49,10 +49,10 @@ export const fingerTreeSizeMeasured: Measured<
 > = fingerTreeMeasured(sizeMeasured);
 
 export const vectorSemigroupK: Lazy<SemigroupK<VectorK>> = () =>
-  SemigroupK.of({ combineK_: concat_ });
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
 
 export const vectorMonoidK: Lazy<MonoidK<VectorK>> = () =>
-  MonoidK.of({ emptyK: () => empty, combineK_: concat_ });
+  MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) });
 
 export const vectorFunctor: Lazy<Functor<VectorK>> = () =>
   Functor.of({ map_: map_ });

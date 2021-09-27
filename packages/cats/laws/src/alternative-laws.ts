@@ -40,16 +40,18 @@ export const AlternativeLaws = <F extends AnyK>(
     fa2: Kind<F, [A]>,
     f: (a: A) => B,
   ): IsEq<Kind<F, [B]>> =>
-    pipe(F.combineK_(fa, fa2), F.map(f))['<=>'](
-      F.combineK_(F.map_(fa, f), F.map_(fa2, f)),
-    ),
+    pipe(
+      F.combineK_(fa, () => fa2),
+      F.map(f),
+    )['<=>'](F.combineK_(F.map_(fa, f), () => F.map_(fa2, f))),
 
   alternativeRightDistributivity: <A, B>(
     fa: Kind<F, [A]>,
     ff: Kind<F, [(a: A) => B]>,
     fg: Kind<F, [(a: A) => B]>,
   ): IsEq<Kind<F, [A]>> =>
-    pipe(F.combineK_(ff, fg), F.ap(fa))['<=>'](
-      F.combineK_(F.ap_(ff, fa), F.ap_(fg, fa)),
-    ),
+    pipe(
+      F.combineK_(ff, () => fg),
+      F.ap(fa),
+    )['<=>'](F.combineK_(F.ap_(ff, fa), () => F.ap_(fg, fa))),
 });

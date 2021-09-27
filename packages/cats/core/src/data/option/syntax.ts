@@ -25,8 +25,8 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Option<B>;
     tap(f: (a: A) => unknown): Option<A>;
 
-    orElse<A2>(this: Option<A2>, that: Option<A2>): Option<A2>;
-    '<|>'<A2>(this: Option<A2>, that: Option<A2>): Option<A2>;
+    orElse<A2>(this: Option<A2>, that: () => Option<A2>): Option<A2>;
+    '<|>'<A2>(this: Option<A2>, that: () => Option<A2>): Option<A2>;
 
     getOrElse<A2>(this: Option<A2>, defaultValue: () => A2): A2;
 
@@ -73,10 +73,7 @@ Option.prototype.tap = function <A>(
   return tap_(this, f);
 };
 
-Option.prototype.orElse = function <A>(
-  this: Option<A>,
-  that: Option<A>,
-): Option<A> {
+Option.prototype.orElse = function (that) {
   return orElse_(this, that);
 };
 

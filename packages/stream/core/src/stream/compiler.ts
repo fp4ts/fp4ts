@@ -42,7 +42,7 @@ export class Compiler<F extends AnyK, A> {
 
   public get lastOption(): Kind<F, [Option<A>]> {
     return this.foldChunks(None as Option<A>, (prev, next) =>
-      prev.orElse(next.lastOption),
+      prev.orElse(() => next.lastOption),
     );
   }
 

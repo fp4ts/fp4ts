@@ -562,7 +562,7 @@ export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(xs: List<A>, f: (a: A) => M): M =>
-    foldLeft_(xs, M.empty, (m, x) => M.combine_(m, f(x)));
+    foldLeft_(xs, M.empty, (m, x) => M.combine_(m, () => f(x)));
 
 export const foldMapK_ =
   <F extends AnyK>(F: MonoidK<F>) =>

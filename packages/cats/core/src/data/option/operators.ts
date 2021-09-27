@@ -33,7 +33,7 @@ export const tap: <A>(f: (a: A) => unknown) => (o: Option<A>) => Option<A> =
     tap_(o, f);
 
 export const orElse: <A2>(
-  y: Option<A2>,
+  y: () => Option<A2>,
 ) => <A extends A2>(x: Option<A>) => Option<A2> = y => x => orElse_(x, y);
 
 export const getOrElse: <A2>(
@@ -73,8 +73,8 @@ export const tap_ = <A>(o: Option<A>, f: (a: A) => unknown): Option<A> =>
     return x;
   });
 
-export const orElse_ = <A>(x: Option<A>, y: Option<A>): Option<A> =>
-  fold_(x, () => y, some);
+export const orElse_ = <A>(x: Option<A>, y: () => Option<A>): Option<A> =>
+  fold_(x, y, some);
 
 export const getOrElse_ = <A>(x: Option<A>, defaultValue: () => A): A =>
   fold_(x, defaultValue, id);

@@ -36,7 +36,7 @@ import {
 } from './operators';
 
 export const listSemigroupK: Lazy<SemigroupK<ListK>> = () =>
-  SemigroupK.of({ combineK_: concat_ });
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
 
 export const listMonoidK: Lazy<MonoidK<ListK>> = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

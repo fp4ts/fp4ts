@@ -14,8 +14,8 @@ export const MonoidKLaws = <F extends AnyK>(F: MonoidK<F>): MonoidKLaws<F> => ({
   ...SemigroupKLaws(F),
 
   monoidKLeftIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    F.combineK_(F.emptyK(), fa)['<=>'](fa),
+    F.combineK_(F.emptyK(), () => fa)['<=>'](fa),
 
   monoidKRightIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    fa['<=>'](F.combineK_(F.emptyK(), fa)),
+    fa['<=>'](F.combineK_(F.emptyK(), () => fa)),
 });

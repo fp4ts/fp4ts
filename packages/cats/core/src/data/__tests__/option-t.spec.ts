@@ -72,35 +72,39 @@ describe('OptionT', () => {
 
   describe('orElse', () => {
     it('should return left result on Some', () => {
-      expect(mkSome(42).orElse(F)(mkSome(43)).value).toEqual(
+      expect(mkSome(42).orElse(F)(() => mkSome(43)).value).toEqual(
         Identity(Some(42)),
       );
     });
 
     it('should return right result on None', () => {
-      expect(mkNone.orElse(F)(mkSome(43)).value).toEqual(Identity(Some(43)));
-    });
-
-    it('should return None when both sides are None', () => {
-      expect(mkNone.orElse(F)(mkNone).value).toEqual(Identity(None));
-    });
-  });
-
-  describe('orElseF', () => {
-    it('should return left result on Some', () => {
-      expect(mkSome(42).orElseF(F)(Identity(Some(43))).value).toEqual(
-        Identity(Some(42)),
-      );
-    });
-
-    it('should return right result on None', () => {
-      expect(mkNone.orElseF(F)(Identity(Some(43))).value).toEqual(
+      expect(mkNone.orElse(F)(() => mkSome(43)).value).toEqual(
         Identity(Some(43)),
       );
     });
 
     it('should return None when both sides are None', () => {
-      expect(mkNone.orElseF(F)(Identity(None)).value).toEqual(Identity(None));
+      expect(mkNone.orElse(F)(() => mkNone).value).toEqual(Identity(None));
+    });
+  });
+
+  describe('orElseF', () => {
+    it('should return left result on Some', () => {
+      expect(mkSome(42).orElseF(F)(() => Identity(Some(43))).value).toEqual(
+        Identity(Some(42)),
+      );
+    });
+
+    it('should return right result on None', () => {
+      expect(mkNone.orElseF(F)(() => Identity(Some(43))).value).toEqual(
+        Identity(Some(43)),
+      );
+    });
+
+    it('should return None when both sides are None', () => {
+      expect(mkNone.orElseF(F)(() => Identity(None)).value).toEqual(
+        Identity(None),
+      );
     });
   });
 

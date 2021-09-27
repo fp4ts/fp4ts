@@ -1,9 +1,14 @@
-import { Base, instance, Kind, AnyK } from '@cats4ts/core';
+import { Base, instance, Kind, AnyK, Lazy } from '@cats4ts/core';
 import { Semigroup } from './semigroup';
 
 export interface SemigroupK<F extends AnyK> extends Base<F> {
-  readonly combineK: <A>(y: Kind<F, [A]>) => (x: Kind<F, [A]>) => Kind<F, [A]>;
-  readonly combineK_: <A>(x: Kind<F, [A]>, y: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly combineK: <A>(
+    y: Lazy<Kind<F, [A]>>,
+  ) => (x: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly combineK_: <A>(
+    x: Kind<F, [A]>,
+    y: Lazy<Kind<F, [A]>>,
+  ) => Kind<F, [A]>;
 
   readonly algebra: <A>() => Semigroup<Kind<F, [A]>>;
 }
@@ -18,7 +23,7 @@ export const SemigroupK = Object.freeze({
     instance<SemigroupK<F>>({
       combineK: y => x => F.combineK_(x, y),
       algebra: () => ({
-        combine: F.combineK ?? (y => x => F.combineK_(y, x)),
+        combine: F.combineK ?? (y => x => F.combineK_(x, y)),
         combine_: F.combineK_,
       }),
       ...F,

@@ -1,5 +1,7 @@
 import { AnyK, id, Kind, pipe, throwError } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { ConjunctionMonoid, DisjunctionMonoid } from '../../../monoid';
+import { Eq } from '../../../eq';
+import { Eval } from '../../../eval';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -232,11 +234,13 @@ export const elem_ = <A>(xs: Vector<A>, idx: number): A =>
 export const elemOption_ = <A>(xs: Vector<A>, idx: number): Option<A> =>
   FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
 
-export const all_ = <A>(xs: Vector<A>, f: (a: A) => boolean): boolean =>
-  foldLeft_(xs, true as boolean, (x, y) => x && f(y));
+export const all_ = <A>(xs: Vector<A>, p: (a: A) => boolean): boolean =>
+  foldMap_(Eval.Monoid(ConjunctionMonoid))(xs, x => Eval.later(() => p(x)))
+    .value;
 
-export const any_ = <A>(xs: Vector<A>, f: (a: A) => boolean): boolean =>
-  foldLeft_(xs, false as boolean, (x, y) => x || f(y));
+export const any_ = <A>(xs: Vector<A>, p: (a: A) => boolean): boolean =>
+  foldMap_(Eval.Monoid(DisjunctionMonoid))(xs, x => Eval.later(() => p(x)))
+    .value;
 
 export const count_ = <A>(xs: Vector<A>, f: (a: A) => boolean): number =>
   foldLeft_(xs, 0, (c, x) => (f(x) ? c + 1 : c));
@@ -353,7 +357,7 @@ export const foldRight1_ = <A>(xs: Vector<A>, f: (x: A, z: A) => A): A =>
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(xs: Vector<A>, f: (a: A) => M): M =>
-    foldLeft_(xs, M.empty, (r, x) => M.combine_(r, f(x)));
+    foldLeft_(xs, M.empty, (r, x) => M.combine_(r, () => f(x)));
 
 export const foldMapK_ =
   <F extends AnyK>(F: MonoidK<F>) =>

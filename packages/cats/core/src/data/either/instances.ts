@@ -8,7 +8,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
 import { Either, EitherK } from './either';
-import { flatMap_, map_, or_, tailRecM_, equals_ } from './operators';
+import { flatMap_, map_, orElse_, tailRecM_, equals_ } from './operators';
 import { pure, rightUnit } from './constructors';
 
 export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
@@ -17,7 +17,7 @@ export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
 ) => Eq.of({ equals: equals_(EE, EA) });
 
 export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
-  SemigroupK.of({ combineK_: or_ });
+  SemigroupK.of({ combineK_: orElse_ });
 
 export const eitherFunctor: <E>() => Functor<$<EitherK, [E]>> = () =>
   Functor.of({ map_ });

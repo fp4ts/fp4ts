@@ -10,9 +10,12 @@ export interface Alternative<F extends AnyK>
   readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
 
   readonly orElse: <B>(
-    fb: Kind<F, [B]>,
+    fb: () => Kind<F, [B]>,
   ) => <A extends B>(fa: Kind<F, [A]>) => Kind<F, [B]>;
-  readonly orElse_: <A>(fa: Kind<F, [A]>, fb: Kind<F, [A]>) => Kind<F, [A]>;
+  readonly orElse_: <A>(
+    fa: Kind<F, [A]>,
+    fb: () => Kind<F, [A]>,
+  ) => Kind<F, [A]>;
 }
 
 export type AlternativeRequirements<F extends AnyK> =
@@ -21,7 +24,7 @@ export const Alternative = Object.freeze({
   of: <F extends AnyK>(F: AlternativeRequirements<F>): Alternative<F> => {
     const self: Alternative<F> = {
       many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> =>
-        self.combineK_(self.many1(fa), self.pure(List.empty as List<A>)),
+        self.combineK_(self.many1(fa), () => self.pure(List.empty as List<A>)),
 
       many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
 

@@ -41,7 +41,7 @@ export const Foldable = Object.freeze({
 
       foldMap: M => f => fa => self.foldMap_(M)(fa, f),
       foldMap_: M => (fa, f) =>
-        self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, f(x))),
+        self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, () => f(x))),
 
       ...UnorderedFoldable.of({
         unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),

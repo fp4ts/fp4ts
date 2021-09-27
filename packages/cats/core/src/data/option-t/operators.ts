@@ -28,7 +28,7 @@ export const map: <F extends AnyK>(
 export const orElse: <F extends AnyK>(
   F: Monad<F>,
 ) => <B>(
-  fb: OptionT<F, B>,
+  fb: () => OptionT<F, B>,
 ) => <A extends B>(fa: OptionT<F, A>) => OptionT<F, B> = F => fb => fa =>
   orElse_(F)(fa, fb);
 
@@ -94,19 +94,14 @@ export const map_ =
 
 export const orElse_ =
   <F extends AnyK>(F: Monad<F>) =>
-  <A>(fa: OptionT<F, A>, fb: OptionT<F, A>): OptionT<F, A> =>
-    orElseF_(F)(fa, fb.value);
+  <A>(fa: OptionT<F, A>, fb: () => OptionT<F, A>): OptionT<F, A> =>
+    orElseF_(F)(fa, () => fb().value);
 
 export const orElseF_ =
   <F extends AnyK>(F: Monad<F>) =>
-  <A>(fa: OptionT<F, A>, fb: Kind<F, [Option<A>]>): OptionT<F, A> =>
+  <A>(fa: OptionT<F, A>, fb: () => Kind<F, [Option<A>]>): OptionT<F, A> =>
     new OptionT(
-      F.flatMap_(fa.value, opt =>
-        opt.fold(
-          () => fb,
-          a => F.pure(Some(a)),
-        ),
-      ),
+      F.flatMap_(fa.value, opt => opt.fold(fb, a => F.pure(Some(a)))),
     );
 
 export const getOrElse_ =

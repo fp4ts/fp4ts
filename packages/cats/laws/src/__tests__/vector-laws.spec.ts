@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { Eq } from '@cats4ts/cats-core';
+import { AdditionMonoid, Eq, Eval, EvalK } from '@cats4ts/cats-core';
 import { Vector } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -10,6 +10,8 @@ import { MonadSuite } from '../disciplines/monad-suite';
 import { MonadLaws } from '../monad-laws';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 import { FunctorFilterLaws } from '../functor-filter-laws';
+import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
+import { UnorderedTraversableLaws } from '../unordered-traversable-laws';
 
 describe('Vector laws', () => {
   const eqVectorNumber: Eq<Vector<number>> = Eq.of({
@@ -69,6 +71,35 @@ describe('Vector laws', () => {
       eqVectorNumber,
       eqVectorNumber,
       eqVectorNumber,
+    ),
+  );
+
+  const unorderedTraversableTests = UnorderedTraversableSuite(
+    UnorderedTraversableLaws(Vector.Traversable),
+  );
+  checkAll(
+    'UnorderedTraversable<Vector>',
+    unorderedTraversableTests.unorderedTraversable<
+      number,
+      number,
+      number,
+      EvalK,
+      EvalK
+    >(
+      A.cats4tsVector(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      fc.integer(),
+      AdditionMonoid,
+      Vector.Functor,
+      Eval.Applicative,
+      Eval.Applicative,
+      Eq.primitive,
+      eqVectorNumber,
+      Eval.Eq(Eval.Eq(eqVectorNumber)),
+      Eval.Eq(eqVectorNumber),
+      Eval.Eq(eqVectorNumber),
     ),
   );
 });

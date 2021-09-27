@@ -52,7 +52,7 @@ interface EvalSemigroup<A> extends Semigroup<Eval<A>> {}
 
 export const evalSemigroup = <A>(A: Semigroup<A>): EvalSemigroup<A> =>
   Semigroup.of({
-    combine_: (fx, fy) => flatMap_(fx, x => map_(fy, y => A.combine_(x, y))),
+    combine_: (fx, fy) => map_(fx, x => A.combine_(x, () => fy().value)),
   });
 
 interface EvalMonoid<A> extends Monoid<Eval<A>>, EvalSemigroup<A> {}

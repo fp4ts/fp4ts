@@ -38,10 +38,10 @@ export const tap: <A>(
   f: (a: A) => unknown,
 ) => <E>(ea: Either<E, A>) => Either<E, A> = f => ea => tap_(ea, f);
 
-export const or: <E2, A2>(
-  y: Either<E2, A2>,
+export const orElse: <E2, A2>(
+  y: () => Either<E2, A2>,
 ) => <E extends E2, A extends A2>(x: Either<E, A>) => Either<E2, A2> = y => x =>
-  or_(x, y);
+  orElse_(x, y);
 
 export const getOrElse: <A2>(
   defaultValue: () => A2,
@@ -86,8 +86,10 @@ export const tap_ = <E, A>(
     return x;
   });
 
-export const or_ = <E, A>(x: Either<E, A>, y: Either<E, A>): Either<E, A> =>
-  fold_(x, () => y, right);
+export const orElse_ = <E, A>(
+  x: Either<E, A>,
+  y: () => Either<E, A>,
+): Either<E, A> => fold_(x, y, right);
 
 export const getOrElse_ = <E, A>(x: Either<E, A>, defaultValue: () => A): A =>
   fold_(x, defaultValue, id);

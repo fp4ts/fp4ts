@@ -18,5 +18,8 @@ export const SemigroupKLaws = <F extends AnyK>(
     b: Kind<F, [A]>,
     c: Kind<F, [A]>,
   ): IsEq<Kind<F, [A]>> =>
-    F.combineK_(F.combineK_(a, b), c)['<=>'](F.combineK_(a, F.combineK_(b, c))),
+    F.combineK_(
+      F.combineK_(a, () => b),
+      () => c,
+    )['<=>'](F.combineK_(a, () => F.combineK_(b, () => c))),
 });

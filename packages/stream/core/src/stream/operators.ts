@@ -763,7 +763,7 @@ export const fold_ = <F extends AnyK, A, B>(
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <F extends AnyK, A>(s: Stream<F, A>, f: (a: A) => M): Stream<F, M> =>
-    fold_(s, M.empty, (m, a) => M.combine_(m, f(a)));
+    fold_(s, M.empty, (m, a) => M.combine_(m, () => f(a)));
 
 export const foldMapK_ =
   <G extends AnyK>(G: MonoidK<G>) =>
@@ -771,7 +771,7 @@ export const foldMapK_ =
     s: Stream<F, A>,
     f: (a: A) => Kind<G, [B]>,
   ): Stream<F, Kind<G, [B]>> =>
-    fold_(s, G.emptyK(), (m, a) => G.combineK_(m, f(a)));
+    fold_(s, G.emptyK(), (m, a) => G.combineK_(m, () => f(a)));
 
 export const scan_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
