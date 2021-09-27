@@ -1,6 +1,6 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { Eq, FunctorFilter } from '@cats4ts/cats-core';
 import { Option } from '@cats4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -9,11 +9,10 @@ import { FunctorFilterLaws } from '../functor-filter-laws';
 import { FunctorSuite } from './functor-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FunctorFilterSuite = <F extends AnyK>(
-  laws: FunctorFilterLaws<F>,
-) => {
+export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
+  const laws = FunctorFilterLaws(F);
   const self = {
-    ...FunctorSuite(laws),
+    ...FunctorSuite(F),
 
     functorFilter: <A, B, C>(
       arbFA: Arbitrary<Kind<F, [A]>>,

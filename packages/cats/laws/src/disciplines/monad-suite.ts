@@ -1,6 +1,6 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { Eq, Monad } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonadLaws } from '../monad-laws';
@@ -8,10 +8,11 @@ import { ApplicativeSuite } from './applicative-suite';
 import { FlatMapSuite } from './flat-map-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const MonadSuite = <F extends AnyK>(laws: MonadLaws<F>) => {
+export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
+  const laws = MonadLaws(F);
   const self = {
-    ...ApplicativeSuite(laws),
-    ...FlatMapSuite(laws),
+    ...ApplicativeSuite(F),
+    ...FlatMapSuite(F),
 
     monad: <A, B, C, D>(
       arbFA: Arbitrary<Kind<F, [A]>>,

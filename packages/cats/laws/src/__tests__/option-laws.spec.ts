@@ -6,16 +6,12 @@ import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { MonadSuite } from '../disciplines/monad-suite';
-import { MonadLaws } from '../monad-laws';
 import { AlternativeSuite } from '../disciplines/alternative-suite';
-import { AlternativeLaws } from '../alternative-laws';
 
 describe('Option Laws', () => {
   const eqOptionPrimitive: Eq<Option<PrimitiveType>> = Option.Eq(Eq.primitive);
 
-  const alternativeTests = AlternativeSuite(
-    AlternativeLaws(Option.Alternative),
-  );
+  const alternativeTests = AlternativeSuite(Option.Alternative);
 
   checkAll(
     'Alternative<OptionK>',
@@ -38,7 +34,7 @@ describe('Option Laws', () => {
     ),
   );
 
-  const tests = MonadSuite(MonadLaws(Option.Monad));
+  const tests = MonadSuite(Option.Monad);
   checkAll(
     'Monad<OptionK>',
     tests.monad(

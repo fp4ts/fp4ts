@@ -1,15 +1,16 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { Apply, Eq } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { ApplyLaws } from '../apply-laws';
 import { FunctorSuite } from './functor-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const ApplySuite = <F extends AnyK>(laws: ApplyLaws<F>) => {
+export const ApplySuite = <F extends AnyK>(F: Apply<F>) => {
+  const laws = ApplyLaws(F);
   const self = {
-    ...FunctorSuite(laws),
+    ...FunctorSuite(F),
 
     apply: <A, B, C>(
       arbFA: Arbitrary<Kind<F, [A]>>,

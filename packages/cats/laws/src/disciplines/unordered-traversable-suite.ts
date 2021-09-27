@@ -1,6 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Applicative, Eq, Functor, Monoid } from '@cats4ts/cats-core';
+import {
+  Applicative,
+  Eq,
+  Functor,
+  Monoid,
+  UnorderedTraversable,
+} from '@cats4ts/cats-core';
 import { Nested, Tuple2K } from '@cats4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -9,10 +15,11 @@ import { UnorderedFoldableSuite } from './unordered-foldable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const UnorderedTraversableSuite = <T extends AnyK>(
-  laws: UnorderedTraversableLaws<T>,
+  T: UnorderedTraversable<T>,
 ) => {
+  const laws = UnorderedTraversableLaws(T);
   const self = {
-    ...UnorderedFoldableSuite(laws),
+    ...UnorderedFoldableSuite(T),
 
     unorderedTraversable: <A, B, C, F extends AnyK, G extends AnyK>(
       arbTA: Arbitrary<Kind<T, [A]>>,

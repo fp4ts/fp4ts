@@ -4,9 +4,7 @@ import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { DeferSuite } from '../disciplines/defer-suite';
-import { DeferLaws } from '../defer-laws';
 import { MonadSuite } from '../disciplines/monad-suite';
-import { MonadLaws } from '../monad-laws';
 
 describe('Eval Laws', () => {
   const eqEvalNumber: Eq<Eval<number>> = {
@@ -14,7 +12,7 @@ describe('Eval Laws', () => {
     notEquals: (a, b) => a.value !== b.value,
   };
 
-  const deferTests = DeferSuite(DeferLaws(Eval.Defer));
+  const deferTests = DeferSuite(Eval.Defer);
   checkAll(
     'Defer<Eval>',
     deferTests.defer(
@@ -23,7 +21,7 @@ describe('Eval Laws', () => {
     ),
   );
 
-  const tests = MonadSuite(MonadLaws(Eval.Monad));
+  const tests = MonadSuite(Eval.Monad);
   checkAll(
     'Monad<Eval>',
     tests.monad(

@@ -6,9 +6,7 @@ import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { MonadSuite } from '../disciplines/monad-suite';
-import { MonadLaws } from '../monad-laws';
 import { SemigroupKSuite } from '../disciplines/semigroup-k-suite';
-import { SemigroupKLaws } from '../semigroup-k-laws';
 
 describe('Either Laws', () => {
   const eqEitherStringPrimitive: Eq<Either<string, PrimitiveType>> = Either.Eq(
@@ -16,9 +14,7 @@ describe('Either Laws', () => {
     Eq.primitive,
   );
 
-  const semigroupKTests = SemigroupKSuite(
-    SemigroupKLaws(Either.SemigroupK<string>()),
-  );
+  const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
 
   checkAll(
     'SemigroupK<$<EitherK, [string]>>',
@@ -28,7 +24,7 @@ describe('Either Laws', () => {
     ),
   );
 
-  const tests = MonadSuite(MonadLaws(Either.Monad<string>()));
+  const tests = MonadSuite(Either.Monad<string>());
   checkAll(
     'Monad<$<EitherK, [string]>>',
     tests.monad(

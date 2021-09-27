@@ -4,23 +4,17 @@ import { Vector } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-import { AlternativeLaws } from '../alternative-laws';
 import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
-import { MonadLaws } from '../monad-laws';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
-import { FunctorFilterLaws } from '../functor-filter-laws';
 import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
-import { UnorderedTraversableLaws } from '../unordered-traversable-laws';
 
 describe('Vector laws', () => {
   const eqVectorNumber: Eq<Vector<number>> = Eq.of({
     equals: (xs, ys) => xs.equals(ys),
   });
 
-  const functorFilterTests = FunctorFilterSuite(
-    FunctorFilterLaws(Vector.FunctorFilter),
-  );
+  const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
   checkAll(
     'FunctorFilter<Vector>',
     functorFilterTests.functorFilter(
@@ -34,9 +28,7 @@ describe('Vector laws', () => {
     ),
   );
 
-  const alternativeTests = AlternativeSuite(
-    AlternativeLaws(Vector.Alternative),
-  );
+  const alternativeTests = AlternativeSuite(Vector.Alternative);
   checkAll(
     'Alternative<Vector>',
     alternativeTests.alternative(
@@ -54,7 +46,7 @@ describe('Vector laws', () => {
     ),
   );
 
-  const monadTests = MonadSuite(MonadLaws(Vector.Monad));
+  const monadTests = MonadSuite(Vector.Monad);
   checkAll(
     'Monad<Vector>',
     monadTests.monad(
@@ -75,7 +67,7 @@ describe('Vector laws', () => {
   );
 
   const unorderedTraversableTests = UnorderedTraversableSuite(
-    UnorderedTraversableLaws(Vector.Traversable),
+    Vector.Traversable,
   );
   checkAll(
     'UnorderedTraversable<Vector>',

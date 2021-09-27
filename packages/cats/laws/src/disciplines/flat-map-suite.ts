@@ -1,15 +1,16 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { Eq, FlatMap } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FlatMapLaws } from '../flat-map-laws';
 import { ApplySuite } from './apply-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FlatMapSuite = <F extends AnyK>(laws: FlatMapLaws<F>) => {
+export const FlatMapSuite = <F extends AnyK>(F: FlatMap<F>) => {
+  const laws = FlatMapLaws(F);
   const self = {
-    ...ApplySuite(laws),
+    ...ApplySuite(F),
 
     flatMap: <A, B, C, D>(
       arbFA: Arbitrary<Kind<F, [A]>>,
