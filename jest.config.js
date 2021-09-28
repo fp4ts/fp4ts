@@ -10,6 +10,7 @@ module.exports = {
     },
   },
   roots: [
+    '<rootDir>/cats/__tests__',
     '<rootDir>/cats/core/src',
     '<rootDir>/cats/free/src',
     '<rootDir>/cats/laws/src',

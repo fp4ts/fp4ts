@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "paths": {
+      "@cats4ts/cats": ["./cats"],
       "@cats4ts/cats-core": ["./cats/core/src"],
       "@cats4ts/cats-core/lib/*": ["./cats/core/src/*"],
       "@cats4ts/cats-free": ["./cats/free/src"],
@@ -25,6 +26,7 @@
       "@cats4ts/stream-core/lib/*": ["./stream/core/src/*"],
     },
     "rootDirs": [
+      "./cats",
       "./cats/core/src",
       "./cats/free/src",
       "./cats/laws/src",

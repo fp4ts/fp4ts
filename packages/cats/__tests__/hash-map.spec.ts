@@ -1,11 +1,9 @@
-import { List } from '../collections/list';
-import { Option, Some, None } from '../option';
-import { primitiveMD5Hashable } from '../../hashable';
-import { HashMap } from '../collections/hash-map';
-import { arrayMonoidK } from '../collections/array/instances';
+import { Hashable } from '@cats4ts/cats-core';
+import { List, Option, Some, None, HashMap } from '@cats4ts/cats-core/lib/data';
+import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
 
 describe('Map', () => {
-  const H = primitiveMD5Hashable();
+  const H = Hashable.primitiveMD5;
 
   const pairs: [number, string][] = [
     [1, 'test'],

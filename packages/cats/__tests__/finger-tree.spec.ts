@@ -1,9 +1,7 @@
-import { Monoid } from '../../monoid';
-import { Some, None } from '../option';
-import { List } from '../collections/list';
-import { FingerTree } from '../collections/finger-tree';
-import { Measured } from '../collections/finger-tree/measured';
-import { fingerTreeMeasured } from '../collections/finger-tree/instances';
+import { Monoid } from '@cats4ts/cats-core';
+import { Some, None, List, FingerTree } from '@cats4ts/cats-core/lib/data';
+import { Measured } from '@cats4ts/cats-core/lib/data/collections/finger-tree/measured';
+import { fingerTreeMeasured } from '@cats4ts/cats-core/lib/data/collections/finger-tree/instances';
 
 describe('FingerTree', () => {
   type Empty = void;

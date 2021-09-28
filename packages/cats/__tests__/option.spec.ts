@@ -1,5 +1,4 @@
-import { Right, Left } from '../either';
-import { Option, Some, None } from '../option';
+import { Right, Left, Option, Some, None } from '@cats4ts/cats-core/lib/data';
 
 describe('Option', () => {
   describe('type', () => {

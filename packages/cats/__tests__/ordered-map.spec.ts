@@ -1,10 +1,13 @@
-import { compose, id } from '@cats4ts/core';
-import { List } from '../collections/list';
-import { Option, Some, None } from '../option';
-import { Ord } from '../../ord';
-import { OrderedMap } from '../collections/ordered-map';
-import { arrayMonoidK } from '../collections/array/instances';
-import { hash, stringify } from 'fast-check';
+import { id } from '@cats4ts/core';
+import { Ord } from '@cats4ts/cats-core';
+import {
+  List,
+  Option,
+  Some,
+  None,
+  OrderedMap,
+} from '@cats4ts/cats-core/lib/data';
+import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
 
 describe('OrderedMap', () => {
   describe('types', () => {

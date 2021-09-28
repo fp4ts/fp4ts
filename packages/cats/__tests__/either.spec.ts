@@ -1,6 +1,5 @@
 import { id, throwError } from '@cats4ts/core';
-import { Either, Right, Left } from '../either';
-import { Some, None } from '../option';
+import { Either, Right, Left, Some, None } from '@cats4ts/cats-core/lib/data';
 
 describe('Either', () => {
   describe('type', () => {

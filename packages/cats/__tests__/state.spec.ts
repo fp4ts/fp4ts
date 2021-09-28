@@ -1,5 +1,4 @@
-import { Either, Right, Left } from '../either';
-import { State } from '../state';
+import { Either, Left, State } from '@cats4ts/cats-core/lib/data';
 
 describe('State', () => {
   describe('types', () => {

@@ -1,10 +1,15 @@
 import { id } from '@cats4ts/core';
-import { Either, Left, Right } from '../either';
-import { Option, Some, None } from '../option';
-import { arrayApplicative } from '../collections/array/instances';
-import { Vector } from '../collections/vector';
-import { List } from '../collections/list';
-import { primitiveEq } from '../../eq';
+import { Eq } from '@cats4ts/cats-core';
+import {
+  Either,
+  Left,
+  Right,
+  Option,
+  Some,
+  None,
+  Vector,
+  List,
+} from '@cats4ts/cats-core/lib/data';
 
 describe('List', () => {
   describe('type', () => {
@@ -152,7 +157,7 @@ describe('List', () => {
   });
 
   describe('equality', () => {
-    const E = primitiveEq();
+    const E = Eq.primitive;
     test('two empty lists to be the same', () => {
       expect(List.empty.equals(E, List.empty)).toBe(true);
     });
@@ -1034,9 +1039,11 @@ describe('List', () => {
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.traverse(arrayApplicative())(x => [x])[0].toArray).toEqual(
-        xs.toArray,
-      );
+      expect(
+        xs
+          .traverse(Vector.Applicative)(x => Vector(x))
+          ['!!'](0).toArray,
+      ).toEqual(xs.toArray);
     });
   });
 
@@ -1052,14 +1059,18 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
-        xs.flatTraverse(arrayApplicative())(x => [List(x)])[0].toArray,
+        xs
+          .flatTraverse(Vector.Applicative)(x => Vector(List(x)))
+          ['!!'](0).toArray,
       ).toEqual(xs.toArray);
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
-        xs.flatTraverse(arrayApplicative())(x => [List(x)])[0].toArray,
+        xs
+          .flatTraverse(Vector.Applicative)(x => Vector(List(x)))
+          ['!!'](0).toArray,
       ).toEqual(xs.toArray);
     });
   });

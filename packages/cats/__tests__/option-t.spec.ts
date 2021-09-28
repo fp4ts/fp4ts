@@ -1,11 +1,16 @@
 import { $, id } from '@cats4ts/core';
-import { FunctionK } from '../../function-k';
-
-import { Identity, IdentityK } from '../identity';
-import { Right, EitherK } from '../either';
-import { Some, None } from '../option';
-
-import { NoneF, OptionT, SomeF } from '../option-t';
+import { FunctionK } from '@cats4ts/cats-core';
+import {
+  Identity,
+  IdentityK,
+  Right,
+  EitherK,
+  Some,
+  None,
+  NoneF,
+  OptionT,
+  SomeF,
+} from '@cats4ts/cats-core/lib/data';
 
 describe('OptionT', () => {
   const mkSome = <A>(x: A) => SomeF(Identity.Applicative)(x);

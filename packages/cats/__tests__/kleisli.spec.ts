@@ -1,9 +1,15 @@
 import { id, throwError } from '@cats4ts/core';
-import { FunctionK } from '../../function-k';
-import { Identity, IdentityK } from '../identity';
-import { OptionK, Some, None, Option } from '../option';
-import { OptionT } from '../option-t';
-import { Kleisli } from '../kleisli';
+import { FunctionK } from '@cats4ts/cats-core';
+import {
+  Identity,
+  IdentityK,
+  OptionK,
+  Some,
+  None,
+  Option,
+  OptionT,
+  Kleisli,
+} from '@cats4ts/cats-core/lib/data';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>

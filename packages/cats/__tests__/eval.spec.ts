@@ -1,5 +1,5 @@
-import { Eval } from '../eval';
-import { Memoize } from '../eval/algebra';
+import { Eval } from '@cats4ts/cats-core';
+import { Memoize } from '@cats4ts/cats-core/lib/eval/algebra';
 
 describe('Eval', () => {
   describe('memoization', () => {

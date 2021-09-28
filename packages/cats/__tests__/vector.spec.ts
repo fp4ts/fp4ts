@@ -1,8 +1,13 @@
 import { id } from '@cats4ts/core';
-import { Some, None } from '../option';
-import { Either, Left, Right } from '../either';
-import { List } from '../collections/list';
-import { Vector } from '../collections/vector';
+import {
+  Some,
+  None,
+  Either,
+  Left,
+  Right,
+  List,
+  Vector,
+} from '@cats4ts/cats-core/lib/data';
 
 describe('Vector', () => {
   describe('type', () => {
