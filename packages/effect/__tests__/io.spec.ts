@@ -1,10 +1,8 @@
-import '../jest-extension';
+import '@cats4ts/effect-test-kit';
 import { id, pipe, throwError } from '@cats4ts/core';
-import { Either, Left, Right, Some, List } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, Right, Some, List } from '@cats4ts/cats';
 import { Semaphore } from '@cats4ts/effect-kernel';
-
-import { IO } from '../io';
-import { IOOutcome } from '../io-outcome';
+import { IO, IOOutcome } from '@cats4ts/effect-core';
 
 describe('IO', () => {
   describe('free monad', () => {

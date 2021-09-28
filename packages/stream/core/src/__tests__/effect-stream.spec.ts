@@ -1,6 +1,6 @@
 import { AnyK, throwError } from '@cats4ts/core';
-import { Either, Left, List, Right } from '@cats4ts/cats-core/lib/data';
-import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
+import { Either, Left, List, Right } from '@cats4ts/cats';
+import { SyncIO, SyncIoK } from '@cats4ts/effect';
 
 import { Stream } from '../stream';
 

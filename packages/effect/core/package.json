@@ -10,11 +10,10 @@
   },
   "dependencies": {
     "@cats4ts/core": "*",
-    "@cats4ts/cats-core": "*",
+    "@cats4ts/cats": "*",
     "@cats4ts/effect-kernel": "*"
   },
   "devDependencies": {
-    "@cats4ts/effect-test-kit": "*",
     "typescript": "4.4.2"
   }
 }

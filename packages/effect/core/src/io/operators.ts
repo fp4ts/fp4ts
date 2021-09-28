@@ -1,6 +1,5 @@
 import { flow, id, pipe, Kind, AnyK } from '@cats4ts/core';
-import { Traversable } from '@cats4ts/cats-core';
-import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
+import { Traversable, Either, Left, Right } from '@cats4ts/cats';
 import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
 import * as Sem from '@cats4ts/effect-kernel/lib/semaphore';
 

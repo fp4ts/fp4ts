@@ -1,5 +1,5 @@
 import { flow } from '@cats4ts/core';
-import { Either, Left, None, Option, Right } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, None, Option, Right } from '@cats4ts/cats';
 import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
 
 import {

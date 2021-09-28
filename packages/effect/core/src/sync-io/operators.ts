@@ -1,4 +1,4 @@
-import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, Right } from '@cats4ts/cats';
 import {
   Attempt,
   Continuation,

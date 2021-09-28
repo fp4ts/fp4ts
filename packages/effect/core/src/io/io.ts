@@ -8,8 +8,10 @@ import {
   Monad,
   MonadError,
   Traversable,
-} from '@cats4ts/cats-core';
-import { Either, Option } from '@cats4ts/cats-core/lib/data';
+  Either,
+  Option,
+} from '@cats4ts/cats';
+
 import {
   Poll,
   MonadCancel,

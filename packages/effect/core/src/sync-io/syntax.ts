@@ -1,4 +1,4 @@
-import { Either } from '@cats4ts/cats-core/lib/data';
+import { Either } from '@cats4ts/cats';
 import { SyncIO } from './algebra';
 import {
   attempt,

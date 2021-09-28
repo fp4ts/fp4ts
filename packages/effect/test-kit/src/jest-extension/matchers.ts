@@ -1,8 +1,7 @@
-import { Ticker, TestExecutionContext } from '@cats4ts/effect-test-kit';
+import { IO, IOOutcome, IORuntime } from '@cats4ts/effect-core';
 
-import { IO } from '../io';
-import { IOOutcome } from '../io-outcome';
-import * as IOR from '../unsafe/io-runtime';
+import { Ticker } from '../ticker';
+import { TestExecutionContext } from '../test-execution-context';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -33,7 +32,7 @@ async function tickTo(
   const receivedPromise: Promise<IOOutcome<unknown>> = new Promise(resolve =>
     receivedIO.unsafeRunAsyncOutcome(
       oc => resolve(oc),
-      new IOR.IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
+      new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
     ),
   );
 

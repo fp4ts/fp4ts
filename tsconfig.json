@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "paths": {
-      "@cats4ts/cats": ["./cats"],
+      "@cats4ts/cats": ["./cats/index.ts"],
       "@cats4ts/cats-core": ["./cats/core/src"],
       "@cats4ts/cats-core/lib/*": ["./cats/core/src/*"],
       "@cats4ts/cats-free": ["./cats/free/src"],
@@ -14,6 +14,7 @@
       "@cats4ts/cats-test-kit/lib/*": ["./cats/test-kit/src/*"],
       "@cats4ts/core": ["./core/src"],
       "@cats4ts/core/lib/*": ["./core/src/*"],
+      "@cats4ts/effect": ["./effect/index.ts"],
       "@cats4ts/effect-core": ["./effect/core/src"],
       "@cats4ts/effect-core/lib/*": ["./effect/core/src/*"],
       "@cats4ts/effect-kernel": ["./effect/kernel/src"],
@@ -31,6 +32,7 @@
       "./cats/free/src",
       "./cats/laws/src",
       "./core/src",
+      "./effect",
       "./effect/core/src",
       "./effect/kernel/src",
       "./effect/std/src",

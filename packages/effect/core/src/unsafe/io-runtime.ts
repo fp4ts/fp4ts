@@ -1,4 +1,4 @@
-import { Either, Some } from '@cats4ts/cats-core/lib/data';
+import { Either, Some } from '@cats4ts/cats';
 import {
   ExecutionContext,
   GlobalExecutionContext,

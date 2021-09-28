@@ -1,3 +1,4 @@
+import { TyK, _ } from '@cats4ts/core';
 import {
   Applicative,
   Apply,
@@ -5,8 +6,7 @@ import {
   Functor,
   Monad,
   MonadError,
-} from '@cats4ts/cats-core';
-import { TyK, _ } from '@cats4ts/core';
+} from '@cats4ts/cats';
 import { Sync } from '@cats4ts/effect-kernel';
 
 import { SyncIO as SyncIOBase } from './algebra';

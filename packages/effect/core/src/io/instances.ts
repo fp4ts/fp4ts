@@ -7,7 +7,7 @@ import {
   Applicative,
   MonadError,
   Defer,
-} from '@cats4ts/cats-core';
+} from '@cats4ts/cats';
 import {
   Async,
   Concurrent,

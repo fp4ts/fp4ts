@@ -1,5 +1,6 @@
-import { ticked, Ticker } from '@cats4ts/effect-test-kit';
-import { IOOutcome } from '../io-outcome';
+import { IOOutcome } from '@cats4ts/effect-core';
+import { ticked } from '../ticked';
+import { Ticker } from '../ticker';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

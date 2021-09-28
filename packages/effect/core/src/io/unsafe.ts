@@ -1,5 +1,5 @@
 import { flow } from '@cats4ts/core';
-import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, Right } from '@cats4ts/cats';
 import { CancellationError } from '@cats4ts/effect-kernel';
 
 import { IO } from './io';

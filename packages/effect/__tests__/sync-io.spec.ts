@@ -1,5 +1,5 @@
 import { pipe, throwError } from '@cats4ts/core';
-import { SyncIO } from '../sync-io';
+import { SyncIO } from '@cats4ts/effect-core';
 
 describe('SyncIO', () => {
   describe('free monad', () => {

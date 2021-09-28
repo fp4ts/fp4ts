@@ -1,4 +1,4 @@
-import { Either } from '@cats4ts/cats-core/lib/data';
+import { Either } from '@cats4ts/cats';
 import { ExecutionContext } from '@cats4ts/effect-kernel';
 
 import { IOFiber } from '../io-fiber';

@@ -7,7 +7,7 @@ import {
   Functor,
   Monad,
   MonadError,
-} from '@cats4ts/cats-core';
+} from '@cats4ts/cats';
 import { Sync } from '@cats4ts/effect-kernel';
 
 import { SyncIoK } from './sync-io';

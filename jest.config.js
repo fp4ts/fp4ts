@@ -16,6 +16,7 @@ module.exports = {
     '<rootDir>/cats/laws/src',
     '<rootDir>/cats/test-kit/src',
     '<rootDir>/core/src',
+    '<rootDir>/effect/__tests__',
     '<rootDir>/effect/core/src',
     '<rootDir>/effect/kernel/src',
     '<rootDir>/effect/std/src',

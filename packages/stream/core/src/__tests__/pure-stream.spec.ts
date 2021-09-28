@@ -1,5 +1,5 @@
 import { AnyK } from '@cats4ts/core';
-import { List, Some, Vector, None } from '@cats4ts/cats-core/lib/data';
+import { List, Some, Vector, None } from '@cats4ts/cats';
 
 import { Stream } from '../stream';
 import { Chunk } from '../chunk';

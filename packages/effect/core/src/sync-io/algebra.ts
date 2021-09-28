@@ -1,4 +1,4 @@
-import { Either } from '@cats4ts/cats-core/lib/data';
+import { Either } from '@cats4ts/cats';
 
 export abstract class SyncIO<A> {
   private readonly __void!: void;
