@@ -798,34 +798,30 @@ const _balance = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return n;
 
-  switch (_height(n.lhs) - _height(n.rhs)) {
+  const delta = _height(n.lhs) - _height(n.rhs);
+  switch (delta) {
     case 1:
     case 0:
     case -1:
       return n;
-
-    case 2: {
-      const lhs = n.lhs as Bin<K, V>;
-      if (_height(lhs.lhs) - _height(lhs.rhs) >= 0) {
-        return _rotateRight(n);
-      } else {
-        const newLhs = _rotateLeft(n.lhs as Bin<K, V>);
-        return _rotateRight(_mkBin(n.key, n.value, newLhs, n.rhs));
-      }
-    }
-
-    case -2: {
-      const rhs = n.rhs as Bin<K, V>;
-      if (_height(rhs.lhs) - _height(rhs.rhs) >= 0) {
-        const newRhs = _rotateRight(n.rhs as Bin<K, V>);
-        return _rotateLeft(_mkBin(n.key, n.value, n.lhs, newRhs));
-      } else {
-        return _rotateLeft(n);
-      }
-    }
-
     default:
-      throw new Error('Delta cannot be more than +/- 2');
+      if (delta > 0) {
+        const lhs = n.lhs as Bin<K, V>;
+        if (_height(lhs.lhs) - _height(lhs.rhs) >= 0) {
+          return _rotateRight(n);
+        } else {
+          const newLhs = _rotateLeft(n.lhs as Bin<K, V>);
+          return _rotateRight(_mkBin(n.key, n.value, newLhs, n.rhs));
+        }
+      } else {
+        const rhs = n.rhs as Bin<K, V>;
+        if (_height(rhs.lhs) - _height(rhs.rhs) >= 0) {
+          const newRhs = _rotateRight(n.rhs as Bin<K, V>);
+          return _rotateLeft(_mkBin(n.key, n.value, n.lhs, newRhs));
+        } else {
+          return _rotateLeft(n);
+        }
+      }
   }
 };
 

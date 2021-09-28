@@ -2,8 +2,7 @@ import { AnyK, Kind } from '@cats4ts/core';
 import { Sync } from './sync';
 
 export class Ref<F extends AnyK, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 
   private constructor(private readonly F: Sync<F>, private value: A) {}
 

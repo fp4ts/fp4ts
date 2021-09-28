@@ -44,8 +44,7 @@ class SetState<A> extends State<A> {
 type StateView<A> = UnsetState<A> | SetState<A>;
 
 export class Deferred<F extends AnyK, A> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 
   private constructor(
     private readonly F: Async<F>,

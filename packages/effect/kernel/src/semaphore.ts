@@ -6,8 +6,7 @@ import { Deferred } from './deferred';
 import { Async } from './async';
 
 class State<F extends AnyK> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 
   public constructor(
     public readonly queue: Deferred<F, void>[],
@@ -22,8 +21,7 @@ class State<F extends AnyK> {
 }
 
 export class Semaphore<F extends AnyK> {
-  // @ts-ignore
-  private readonly __void: void;
+  private readonly __void!: void;
 
   private constructor(
     private readonly F: Async<F>,
