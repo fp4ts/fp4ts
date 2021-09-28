@@ -6,34 +6,6 @@ import { IsEq } from '@cats4ts/cats-test-kit';
 import { ApplicativeLaws } from './applicative-laws';
 import { FlatMapLaws } from './flat-map-laws';
 
-export interface MonadLaws<F extends AnyK>
-  extends ApplicativeLaws<F>,
-    FlatMapLaws<F> {
-  monadLeftIdentity: <A, B>(
-    a: A,
-    f: (a: A) => Kind<F, [B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  monadRightIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-
-  kleisliLeftIdentity: <A, B>(
-    a: A,
-    f: (a: A) => Kind<F, [B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  kleisliRightIdentity: <A, B>(
-    a: A,
-    f: (a: A) => Kind<F, [B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  mapFlatMapCoherence: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => B,
-  ) => IsEq<Kind<F, [B]>>;
-
-  tailRecMStackSafety: () => IsEq<Kind<F, [number]>>;
-}
-
 export const MonadLaws = <F extends AnyK>(F: Monad<F>): MonadLaws<F> => ({
   ...ApplicativeLaws(F),
   ...FlatMapLaws(F),
@@ -71,3 +43,31 @@ export const MonadLaws = <F extends AnyK>(F: Monad<F>): MonadLaws<F> => ({
     return res['<=>'](F.pure(n));
   },
 });
+
+export interface MonadLaws<F extends AnyK>
+  extends ApplicativeLaws<F>,
+    FlatMapLaws<F> {
+  monadLeftIdentity: <A, B>(
+    a: A,
+    f: (a: A) => Kind<F, [B]>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  monadRightIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
+
+  kleisliLeftIdentity: <A, B>(
+    a: A,
+    f: (a: A) => Kind<F, [B]>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  kleisliRightIdentity: <A, B>(
+    a: A,
+    f: (a: A) => Kind<F, [B]>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  mapFlatMapCoherence: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => B,
+  ) => IsEq<Kind<F, [B]>>;
+
+  tailRecMStackSafety: () => IsEq<Kind<F, [number]>>;
+}
