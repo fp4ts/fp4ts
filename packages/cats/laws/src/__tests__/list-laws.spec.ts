@@ -7,11 +7,26 @@ import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
 import { TraversableSuite } from '../disciplines/traversable-suite';
+import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 
 describe('List laws', () => {
   const eqListNumber: Eq<List<number>> = Eq.of({
     equals: (xs, ys) => xs.equals(Eq.primitive, ys),
   });
+
+  const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
+  checkAll(
+    'FunctorFilter<List>',
+    functorFilterTests.functorFilter(
+      A.cats4tsList(fc.integer()),
+      A.cats4tsList(A.cats4tsOption(fc.integer())),
+      fc.integer(),
+      fc.integer(),
+      eqListNumber,
+      eqListNumber,
+      eqListNumber,
+    ),
+  );
 
   const alternativeTests = AlternativeSuite(List.Alternative);
   checkAll(

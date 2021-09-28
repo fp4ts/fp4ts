@@ -1,9 +1,10 @@
-import { id } from '@cats4ts/core';
+import { compose, id } from '@cats4ts/core';
 import { List } from '../collections/list';
 import { Option, Some, None } from '../option';
-import { primitiveOrd } from '../../ord';
+import { Ord } from '../../ord';
 import { OrderedMap } from '../collections/ordered-map';
 import { arrayMonoidK } from '../collections/array/instances';
+import { hash, stringify } from 'fast-check';
 
 describe('OrderedMap', () => {
   describe('types', () => {
@@ -15,7 +16,7 @@ describe('OrderedMap', () => {
     it('should disallow type expansion for unrelated types', () => {
       const m: OrderedMap<number, string> = OrderedMap([1, '2'], [2, '3']);
       // @ts-expect-error
-      m.lookup(primitiveOrd(), 'some-string-key');
+      m.lookup(Ord.primitive, 'some-string-key');
     });
   });
 
@@ -42,7 +43,7 @@ describe('OrderedMap', () => {
 
     it('should create an ordered map from an unordered List', () => {
       const xs = List(5, 1, 7, 8, 10, -5).map(x => [x, x] as [number, number]);
-      expect(OrderedMap.fromList(primitiveOrd(), xs).toArray).toEqual([
+      expect(OrderedMap.fromList(Ord.primitive, xs).toArray).toEqual([
         [-5, -5],
         [1, 1],
         [5, 5],
@@ -303,8 +304,8 @@ describe('OrderedMap', () => {
     const m = OrderedMap([1, 2], [2, 3]);
 
     it('should be true when the key exists', () => {
-      expect(m.contains(primitiveOrd(), 1)).toBe(true);
-      expect(m.contains(primitiveOrd(), 2)).toBe(true);
+      expect(m.contains(Ord.primitive, 1)).toBe(true);
+      expect(m.contains(Ord.primitive, 2)).toBe(true);
     });
 
     it('should be false when the key does not exists', () => {
@@ -410,7 +411,7 @@ describe('OrderedMap', () => {
 
   describe('union', () => {
     test('union of two empty maps to be empty', () => {
-      expect(OrderedMap.empty.union(primitiveOrd(), OrderedMap.empty)).toEqual(
+      expect(OrderedMap.empty.union(Ord.primitive, OrderedMap.empty)).toEqual(
         OrderedMap.empty,
       );
     });
@@ -586,7 +587,7 @@ describe('OrderedMap', () => {
   describe('symmetricDifference', () => {
     it('should return id when difference with empty map', () => {
       expect(
-        OrderedMap([1, 2], [2, 3])['\\//'](primitiveOrd(), OrderedMap.empty)
+        OrderedMap([1, 2], [2, 3])['\\//'](Ord.primitive, OrderedMap.empty)
           .toArray,
       ).toEqual([
         [1, 2],
@@ -612,12 +613,10 @@ describe('OrderedMap', () => {
     it('should filter out even values', () => {
       expect(
         OrderedMap([1, 1], [2, 2], [3, 3]).filter(x => x % 2 !== 0).toArray,
-      ).toEqual(
-        expect.arrayContaining([
-          [1, 1],
-          [3, 3],
-        ]),
-      );
+      ).toEqual([
+        [1, 1],
+        [3, 3],
+      ]);
     });
   });
 

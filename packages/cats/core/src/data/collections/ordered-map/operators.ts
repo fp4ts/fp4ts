@@ -4,6 +4,7 @@ import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 import { Show } from '../../../show';
 import { Ord, Compare } from '../../../ord';
+import { Eq } from '../../../eq';
 
 import { List } from '../list';
 import { Option, Some, None } from '../../option';
@@ -746,6 +747,24 @@ export const show_ = <K, V>(
   return entries === ''
     ? '[OrderedMap entries: {}]'
     : `[OrderedMap entries: { ${entries} }]`;
+};
+
+export const equals_ = <K, V>(
+  EK: Eq<K>,
+  EV: Eq<V>,
+  m1: OrderedMap<K, V>,
+  m2: OrderedMap<K, V>,
+): boolean => {
+  if (size(m1) !== size(m2)) return false;
+  const xs = toArray(m1);
+  const ys = toArray(m2);
+
+  for (let i = 0, len = xs.length; i < len; i++) {
+    if (EK.notEquals(xs[i][0], ys[i][0]) || EV.notEquals(xs[i][1], ys[i][1]))
+      return false;
+  }
+
+  return true;
 };
 
 // Private implementation

@@ -1,11 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
 import { PrimitiveType } from '@cats4ts/core';
-import { Eval } from '@cats4ts/cats-core';
+import { Eval, Ord } from '@cats4ts/cats-core';
 import {
   Either,
   Left,
   List,
   Option,
+  OrderedMap,
   Right,
   Vector,
 } from '@cats4ts/cats-core/lib/data';
@@ -75,6 +76,61 @@ export const cats4tsVector = <A>(
         const left = s0.chain(genSized);
         const right = s1.chain(genSized);
         recursive = left.chain(l => right.map(r => l['+++'](r)));
+        break;
+      }
+    }
+
+    return fc.frequency(
+      { arbitrary: recursive, weight: 3 },
+      { arbitrary: fromArray, weight: 1 },
+    );
+  });
+
+  return size.chain(genSized);
+};
+
+interface OrderedMapConstraints {
+  readonly minSize?: number;
+  readonly maxSize?: number;
+}
+export const cats4tsOrderedMap = <K, V>(
+  arbK: Arbitrary<K>,
+  arbV: Arbitrary<V>,
+  O: Ord<K>,
+  constraints: OrderedMapConstraints = {},
+): Arbitrary<OrderedMap<K, V>> => {
+  const minSize =
+    constraints.minSize != null && constraints.minSize >= 0
+      ? constraints.minSize
+      : 0;
+  const maxSize =
+    constraints.maxSize != null &&
+    constraints.maxSize <= Number.MAX_SAFE_INTEGER
+      ? constraints.maxSize
+      : Math.min(2 * minSize + 10, 0x7fffffff);
+  const size = fc.integer(minSize, maxSize);
+
+  const genSized = fc.memo((size: number) => {
+    const fromArray = fc
+      .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
+      .map(xs => OrderedMap.fromArray(O, xs));
+
+    let recursive: Arbitrary<OrderedMap<K, V>>;
+    switch (size) {
+      case 0:
+        recursive = fc.constant(OrderedMap.empty);
+        break;
+      case 1:
+        recursive = fc
+          .tuple(arbK, arbV)
+          .map(([k, v]) => OrderedMap.singleton(k, v));
+        break;
+      default: {
+        const s0 = fc.integer(1, size - 1);
+        const s1 = s0.map(s0 => size - s0);
+        const left = s0.chain(genSized);
+        const right = s1.chain(genSized);
+        recursive = left.chain(l => right.map(r => l.union(O, r)));
         break;
       }
     }

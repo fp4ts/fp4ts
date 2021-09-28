@@ -1,7 +1,7 @@
 import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
-import { Ord, primitiveOrd } from '../../../ord';
+import { Ord } from '../../../ord';
 import { Show } from '../../../show';
 import { Applicative } from '../../../applicative';
 
@@ -403,51 +403,51 @@ Object.defineProperty(OrderedMap.prototype, 'popMaxWithKey', {
 OrderedMap.prototype.contains = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? contains_(args[0], this, args[1])
-    : contains_(primitiveOrd(), this, args[0]);
+    : contains_(Ord.primitive, this, args[0]);
 };
 
 OrderedMap.prototype.get = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? get_(args[0], this, args[1])
-    : get_(primitiveOrd(), this, args[0]);
+    : get_(Ord.primitive, this, args[0]);
 };
 OrderedMap.prototype['!!'] = OrderedMap.prototype.get;
 
 OrderedMap.prototype.lookup = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? lookup_(args[0], this, args[1])
-    : lookup_(primitiveOrd(), this, args[0]);
+    : lookup_(Ord.primitive, this, args[0]);
 };
 OrderedMap.prototype['!?'] = OrderedMap.prototype.lookup;
 
 OrderedMap.prototype.insert = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? insert_(args[0], this, args[1], args[2])
-    : insert_(primitiveOrd(), this, args[0], args[1]);
+    : insert_(Ord.primitive, this, args[0], args[1]);
 };
 
 OrderedMap.prototype.insertWith = function (this: any, ...args: any[]): any {
   return args.length === 4
     ? insertWith_(args[0], this, args[1], args[2], args[3])
-    : insertWith_(primitiveOrd(), this, args[0], args[1], args[2]);
+    : insertWith_(Ord.primitive, this, args[0], args[1], args[2]);
 };
 
 OrderedMap.prototype.remove = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? remove_(args[0], this, args[1])
-    : remove_(primitiveOrd(), this, args[0]);
+    : remove_(Ord.primitive, this, args[0]);
 };
 
 OrderedMap.prototype.update = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? update_(args[0], this, args[1], args[2])
-    : update_(primitiveOrd(), this, args[0], args[1]);
+    : update_(Ord.primitive, this, args[0], args[1]);
 };
 
 OrderedMap.prototype.union = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? union_(args[0], this, args[1])
-    : union_(primitiveOrd(), this, args[0]);
+    : union_(Ord.primitive, this, args[0]);
 };
 
 OrderedMap.prototype['+++'] = OrderedMap.prototype.union;
@@ -455,25 +455,25 @@ OrderedMap.prototype['+++'] = OrderedMap.prototype.union;
 OrderedMap.prototype.unionWith = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? unionWith_(args[0], this, args[1], args[2])
-    : unionWith_(primitiveOrd(), this, args[0], args[1]);
+    : unionWith_(Ord.primitive, this, args[0], args[1]);
 };
 
 OrderedMap.prototype.intersect = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? intersect_(args[0], this, args[1])
-    : intersect_(primitiveOrd(), this, args[0]);
+    : intersect_(Ord.primitive, this, args[0]);
 };
 
 OrderedMap.prototype.intersectWith = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? intersectWith_(args[0], this, args[1], args[2])
-    : intersectWith_(primitiveOrd(), this, args[0], args[1]);
+    : intersectWith_(Ord.primitive, this, args[0], args[1]);
 };
 
 OrderedMap.prototype.difference = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? difference_(args[0], this, args[1])
-    : difference_(primitiveOrd(), this, args[0]);
+    : difference_(Ord.primitive, this, args[0]);
 };
 OrderedMap.prototype['\\'] = OrderedMap.prototype.difference;
 
@@ -483,7 +483,7 @@ OrderedMap.prototype.symmetricDifference = function (
 ): any {
   return args.length === 2
     ? symmetricDifference_(args[0], this, args[1])
-    : symmetricDifference_(primitiveOrd(), this, args[0]);
+    : symmetricDifference_(Ord.primitive, this, args[0]);
 };
 OrderedMap.prototype['\\//'] = OrderedMap.prototype.symmetricDifference;
 

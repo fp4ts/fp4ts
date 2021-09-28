@@ -5,38 +5,6 @@ import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from './functor-laws';
 
-export interface FunctorFilterLaws<F extends AnyK> extends FunctorLaws<F> {
-  mapFilterComposition: <A, B, C>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Option<B>,
-    g: (b: B) => Option<C>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  mapFilterMapConsistency: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => B,
-  ) => IsEq<Kind<F, [A]>>;
-
-  collectConsistentWithMapFilter: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Option<B>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  flattenOptionConsistentWithMapFilter: <A>(
-    ffa: Kind<F, [Option<A>]>,
-  ) => IsEq<Kind<F, [A]>>;
-
-  filterConsistentWithMapFilter: <A>(
-    fa: Kind<F, [A]>,
-    p: (a: A) => boolean,
-  ) => IsEq<Kind<F, [A]>>;
-
-  filterNotConsistentWithFilter: <A>(
-    fa: Kind<F, [A]>,
-    p: (a: A) => boolean,
-  ) => IsEq<Kind<F, [A]>>;
-}
-
 export const FunctorFilterLaws = <F extends AnyK>(
   F: FunctorFilter<F>,
 ): FunctorFilterLaws<F> => ({
@@ -79,3 +47,35 @@ export const FunctorFilterLaws = <F extends AnyK>(
   ): IsEq<Kind<F, [A]>> =>
     F.filterNot_(fa, p)['<=>'](F.filter_(fa, a => !p(a))),
 });
+
+export interface FunctorFilterLaws<F extends AnyK> extends FunctorLaws<F> {
+  mapFilterComposition: <A, B, C>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => Option<B>,
+    g: (b: B) => Option<C>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  mapFilterMapConsistency: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => B,
+  ) => IsEq<Kind<F, [A]>>;
+
+  collectConsistentWithMapFilter: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => Option<B>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  flattenOptionConsistentWithMapFilter: <A>(
+    ffa: Kind<F, [Option<A>]>,
+  ) => IsEq<Kind<F, [A]>>;
+
+  filterConsistentWithMapFilter: <A>(
+    fa: Kind<F, [A]>,
+    p: (a: A) => boolean,
+  ) => IsEq<Kind<F, [A]>>;
+
+  filterNotConsistentWithFilter: <A>(
+    fa: Kind<F, [A]>,
+    p: (a: A) => boolean,
+  ) => IsEq<Kind<F, [A]>>;
+}

@@ -7,11 +7,26 @@ import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 import { AlternativeSuite } from '../disciplines/alternative-suite';
 import { MonadSuite } from '../disciplines/monad-suite';
 import { TraversableSuite } from '../disciplines/traversable-suite';
+import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
 
 describe('Vector laws', () => {
   const eqVectorNumber: Eq<Vector<number>> = Eq.of({
     equals: (xs, ys) => xs.equals(ys),
   });
+
+  const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
+  checkAll(
+    'FunctorFilter<Vector>',
+    functorFilterTests.functorFilter(
+      A.cats4tsVector(fc.integer()),
+      A.cats4tsVector(A.cats4tsOption(fc.integer())),
+      fc.integer(),
+      fc.integer(),
+      eqVectorNumber,
+      eqVectorNumber,
+      eqVectorNumber,
+    ),
+  );
 
   const alternativeTests = AlternativeSuite(Vector.Alternative);
   checkAll(

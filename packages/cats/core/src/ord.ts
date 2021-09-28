@@ -15,6 +15,18 @@ export interface Ord<A> extends Eq<A> {
   readonly gte: (lhs: A, rhs: A) => boolean;
 }
 
+export const Ord = Object.freeze({
+  primitive: {
+    ...Eq.primitive,
+    compare: (lhs: PrimitiveType, rhs: PrimitiveType) =>
+      lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
+    lt: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs < rhs,
+    lte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs <= rhs,
+    gt: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs > rhs,
+    gte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs >= rhs,
+  },
+});
+
 // HKT
 
 export const OrdURI = 'cats/ord';
@@ -25,13 +37,3 @@ declare module '@cats4ts/core/lib/hkt/hkt' {
     [OrdURI]: Ord<Tys[0]>;
   }
 }
-
-export const primitiveOrd: Lazy<Ord<PrimitiveType>> = () => ({
-  ...primitiveEq(),
-  compare: (lhs, rhs) =>
-    lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
-  lt: (lhs, rhs) => lhs < rhs,
-  lte: (lhs, rhs) => lhs <= rhs,
-  gt: (lhs, rhs) => lhs > rhs,
-  gte: (lhs, rhs) => lhs >= rhs,
-});
