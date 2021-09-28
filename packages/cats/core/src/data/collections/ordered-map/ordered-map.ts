@@ -1,9 +1,11 @@
 import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
+import { Ord, primitiveOrd } from '../../../ord';
+import { SemigroupK } from '../../../semigroup-k';
+import { MonoidK } from '../../../monoid-k';
 import { Foldable } from '../../../foldable';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Traversable } from '../../../traversable';
-import { Ord, primitiveOrd } from '../../../ord';
 
 import { List } from '../list';
 
@@ -33,6 +35,8 @@ export interface OrderedMapObj {
 
   // -- Instances
 
+  SemigroupK: <K>(O: Ord<K>) => SemigroupK<$<OrderedMapK, [K]>>;
+  MonoidK: <K>(O: Ord<K>) => MonoidK<$<OrderedMapK, [K]>>;
   Functor: <K>() => Functor<$<OrderedMapK, [K]>>;
   FunctorFilter: <K>() => FunctorFilter<$<OrderedMapK, [K]>>;
   Foldable: <K>() => Foldable<$<OrderedMapK, [K]>>;

@@ -1,4 +1,7 @@
 import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
+import { Eq } from '../../../eq';
+import { SemigroupK } from '../../../semigroup-k';
+import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { UnorderedFoldable } from '../../../unordered-foldable';
@@ -10,10 +13,12 @@ import { List } from '../list';
 import { Empty, HashMap as HashMapBase } from './algebra';
 import { fromArray, fromList, of } from './constructors';
 import {
-  mapUnorderedFoldable,
-  mapFunctor,
-  mapFunctorFilter,
-  mapUnorderedTraversable,
+  hashMapUnorderedFoldable,
+  hashMapFunctor,
+  hashMapFunctorFilter,
+  hashMapUnorderedTraversable,
+  hashMapMonoidK,
+  hashMapSemigroupK,
 } from './instances';
 
 export const HashMap: HashMapObj = function <K extends PrimitiveType, V>(
@@ -43,6 +48,8 @@ export interface HashMapObj {
 
   // -- Instances
 
+  SemigroupK<K>(E: Eq<K>): SemigroupK<$<HashMapK, [K]>>;
+  MonoidK<K>(E: Eq<K>): MonoidK<$<HashMapK, [K]>>;
   Functor<K>(): Functor<$<HashMapK, [K]>>;
   FunctorFilter<K>(): FunctorFilter<$<HashMapK, [K]>>;
   UnorderedFoldable<K>(): UnorderedFoldable<$<HashMapK, [K]>>;
@@ -54,10 +61,12 @@ HashMap.of = of;
 HashMap.fromArray = fromArray;
 HashMap.fromList = fromList;
 
-HashMap.Functor = mapFunctor;
-HashMap.FunctorFilter = mapFunctorFilter;
-HashMap.UnorderedFoldable = mapUnorderedFoldable;
-HashMap.UnorderedTraversable = mapUnorderedTraversable;
+HashMap.SemigroupK = hashMapSemigroupK;
+HashMap.MonoidK = hashMapMonoidK;
+HashMap.Functor = hashMapFunctor;
+HashMap.FunctorFilter = hashMapFunctorFilter;
+HashMap.UnorderedFoldable = hashMapUnorderedFoldable;
+HashMap.UnorderedTraversable = hashMapUnorderedTraversable;
 
 // HKT
 

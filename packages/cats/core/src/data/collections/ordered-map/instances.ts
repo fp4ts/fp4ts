@@ -1,4 +1,7 @@
 import { $ } from '@cats4ts/core';
+import { Ord } from '../../../ord';
+import { SemigroupK } from '../../../semigroup-k';
+import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Foldable } from '../../../foldable';
@@ -19,7 +22,22 @@ import {
   sequence,
   size,
   traverse_,
+  union_,
 } from './operators';
+import { empty } from './constructors';
+
+export const orderedMapSemigroupK: <K>(
+  O: Ord<K>,
+) => SemigroupK<$<OrderedMapK, [K]>> = O =>
+  SemigroupK.of({ combineK_: (x, y) => union_(O, x, y()) });
+
+export const orderedMapMonoidK: <K>(
+  O: Ord<K>,
+) => SemigroupK<$<OrderedMapK, [K]>> = O =>
+  MonoidK.of({
+    emptyK: () => empty,
+    combineK_: (x, y) => union_(O, x, y()),
+  });
 
 export const orderedMapFunctor: <K>() => Functor<$<OrderedMapK, [K]>> = () =>
   Functor.of({ map_ });
