@@ -1,5 +1,10 @@
-import { id, throwError } from '@cats4ts/core';
+import fc from 'fast-check';
+import { id, throwError, PrimitiveType } from '@cats4ts/core';
+import { Eq } from '@cats4ts/cats-core';
 import { Either, Right, Left, Some, None } from '@cats4ts/cats-core/lib/data';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { SemigroupKSuite, MonadErrorSuite } from '@cats4ts/cats-laws';
 
 describe('Either', () => {
   describe('type', () => {
@@ -117,4 +122,42 @@ describe('Either', () => {
       expect(Left(42).toOption).toEqual(None);
     });
   });
+
+  const eqEitherStringPrimitive: Eq<Either<string, PrimitiveType>> = Either.Eq(
+    Eq.primitive,
+    Eq.primitive,
+  );
+
+  const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
+
+  checkAll(
+    'SemigroupK<$<EitherK, [string]>>',
+    semigroupKTests.semigroupK(
+      A.cats4tsEither(fc.string(), A.cats4tsPrimitive()),
+      eqEitherStringPrimitive,
+    ),
+  );
+
+  const tests = MonadErrorSuite(Either.MonadError<string>());
+  checkAll(
+    'Monad<$<EitherK, [string]>>',
+    tests.monadError(
+      A.cats4tsEither(fc.string(), fc.integer()),
+      A.cats4tsEither(fc.string(), fc.integer()),
+      A.cats4tsEither(fc.string(), fc.integer()),
+      A.cats4tsEither(fc.string(), fc.integer()),
+      A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
+      A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.string(),
+      eqEitherStringPrimitive,
+      eqEitherStringPrimitive,
+      eqEitherStringPrimitive,
+      Eq.primitive,
+      Eq.primitive,
+      E => Either.Eq(Eq.primitive, E),
+    ),
+  );
 });

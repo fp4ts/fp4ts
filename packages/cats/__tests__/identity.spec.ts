@@ -4,9 +4,7 @@ import { AdditionMonoid, Eq, Eval } from '@cats4ts/cats-core';
 import { Identity } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-
-import { MonadSuite } from '../disciplines/monad-suite';
-import { TraversableSuite } from '../disciplines/traversable-suite';
+import { MonadSuite, TraversableSuite } from '@cats4ts/cats-laws';
 
 describe('Identity Laws', () => {
   const eqIdPrim: Eq<Identity<PrimitiveType>> = Eq.primitive;

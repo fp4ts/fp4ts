@@ -3,10 +3,11 @@ import { AdditionMonoid, Eq, Eval } from '@cats4ts/cats-core';
 import { Const, Option } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-
-import { TraversableSuite } from '../disciplines/traversable-suite';
-import { ApplicativeSuite } from '../disciplines/applicative-suite';
-import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
+import {
+  TraversableSuite,
+  ApplicativeSuite,
+  FunctorFilterSuite,
+} from '@cats4ts/cats-laws';
 
 describe('Const Laws', () => {
   const eqContPrim: Eq<Const<number, number>> = Eq.primitive;

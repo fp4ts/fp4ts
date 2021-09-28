@@ -1,5 +1,6 @@
+import fc from 'fast-check';
 import { id } from '@cats4ts/core';
-import { Ord } from '@cats4ts/cats-core';
+import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@cats4ts/cats-core';
 import {
   List,
   Option,
@@ -8,6 +9,14 @@ import {
   OrderedMap,
 } from '@cats4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+
+import {
+  MonoidKSuite,
+  FunctorFilterSuite,
+  TraversableSuite,
+} from '@cats4ts/cats-laws';
 
 describe('OrderedMap', () => {
   describe('types', () => {
@@ -783,4 +792,61 @@ describe('OrderedMap', () => {
       ).toBe('[OrderedMap entries: { 1 => (2, 2), 2 => (3, 3) }]');
     });
   });
+
+  const eqOrderedMapPrimPrim = OrderedMap.Eq(Eq.primitive, Eq.primitive);
+
+  const monoidKTests = MonoidKSuite(OrderedMap.MonoidK(Ord.primitive));
+  checkAll(
+    'MonoidK<OrderedMap>',
+    monoidKTests.monoidK(
+      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
+      eqOrderedMapPrimPrim,
+    ),
+  );
+
+  const functorFilterTests = FunctorFilterSuite(
+    OrderedMap.FunctorFilter<number>(),
+  );
+  checkAll(
+    'FunctorFilter<OrderedMap>',
+    functorFilterTests.functorFilter(
+      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
+      A.cats4tsOrderedMap(
+        fc.integer(),
+        A.cats4tsOption(fc.integer()),
+        Ord.primitive,
+      ),
+      fc.integer(),
+      fc.integer(),
+      eqOrderedMapPrimPrim,
+      eqOrderedMapPrimPrim,
+      eqOrderedMapPrimPrim,
+    ),
+  );
+
+  const traversableTests = TraversableSuite(OrderedMap.Traversable<number>());
+  checkAll(
+    'Traversable<OrderedMap>',
+    traversableTests.traversable<number, number, number, EvalK, EvalK>(
+      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      A.cats4tsEval(fc.integer()),
+      fc.integer(),
+      fc.integer(),
+      AdditionMonoid,
+      AdditionMonoid,
+      OrderedMap.Functor(),
+      Eval.Applicative,
+      Eval.Applicative,
+      Eq.primitive,
+      Eq.primitive,
+      eqOrderedMapPrimPrim,
+      eqOrderedMapPrimPrim,
+      eqOrderedMapPrimPrim,
+      Eval.Eq(Eval.Eq(eqOrderedMapPrimPrim)),
+      Eval.Eq(eqOrderedMapPrimPrim),
+      Eval.Eq(eqOrderedMapPrimPrim),
+    ),
+  );
 });
