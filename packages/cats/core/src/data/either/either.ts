@@ -1,21 +1,25 @@
 import { $, TyK, _ } from '@cats4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
+import { ApplicativeError } from '../../applicative-error';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { MonadError } from '../../monad-error';
 import { Eq } from '../../eq';
 
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';
 import {
   eitherApplicative,
+  eitherApplicativeError,
   eitherApply,
   eitherEq,
   eitherFlatMap,
   eitherFunctor,
   eitherMonad,
+  eitherMonadError,
   eitherSemigroupK,
 } from './instances';
 import { tailRecM } from './operators';
@@ -45,8 +49,10 @@ export interface EitherObj {
   Functor<E>(): Functor<$<EitherK, [E]>>;
   Apply<E>(): Apply<$<EitherK, [E]>>;
   Applicative<E>(): Applicative<$<EitherK, [E]>>;
+  ApplicativeError<E>(): ApplicativeError<$<EitherK, [E]>, E>;
   FlatMap<E>(): FlatMap<$<EitherK, [E]>>;
   Monad<E>(): Monad<$<EitherK, [E]>>;
+  MonadError<E>(): MonadError<$<EitherK, [E]>, E>;
   Eq<E, A>(EE: Eq<E>, EA: Eq<A>): Eq<Either<E, A>>;
 }
 
@@ -60,8 +66,10 @@ Either.SemigroupK = eitherSemigroupK;
 Either.Functor = eitherFunctor;
 Either.Apply = eitherApply;
 Either.Applicative = eitherApplicative;
+Either.ApplicativeError = eitherApplicativeError;
 Either.FlatMap = eitherFlatMap;
 Either.Monad = eitherMonad;
+Either.MonadError = eitherMonadError;
 Either.Eq = eitherEq;
 
 // HKT

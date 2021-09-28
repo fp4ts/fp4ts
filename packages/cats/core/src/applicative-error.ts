@@ -37,6 +37,8 @@ export interface ApplicativeError<F extends AnyK, E> extends Applicative<F> {
     fa: Kind<F, [A]>,
     h: (e: E) => Kind<F, [void]>,
   ) => Kind<F, [A]>;
+
+  readonly fromEither: <A>(ea: Either<E, A>) => Kind<F, [A]>;
 }
 
 export type ApplicativeErrorRequirements<F extends AnyK, E> = Pick<
@@ -66,6 +68,8 @@ export const ApplicativeError = Object.freeze({
         self.handleErrorWith_(fa, e =>
           self.productR_(h(e), self.throwError(e)),
         ),
+
+      fromEither: ea => ea.fold(self.throwError, self.pure),
 
       ...Applicative.of(F),
       ...F,

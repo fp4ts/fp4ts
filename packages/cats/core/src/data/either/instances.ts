@@ -3,13 +3,22 @@ import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
+import { ApplicativeError } from '../../applicative-error';
 import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
+import { MonadError } from '../../monad-error';
 
 import { Either, EitherK } from './either';
-import { flatMap_, map_, orElse_, tailRecM_, equals_ } from './operators';
-import { pure, rightUnit } from './constructors';
+import {
+  flatMap_,
+  map_,
+  orElse_,
+  tailRecM_,
+  equals_,
+  fold_,
+} from './operators';
+import { left, pure, right, rightUnit } from './constructors';
 
 export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
   EE,
@@ -35,6 +44,16 @@ export const eitherApplicative: <E>() => Applicative<$<EitherK, [E]>> = () =>
     unit: rightUnit,
   });
 
+export const eitherApplicativeError: <E>() => ApplicativeError<
+  $<EitherK, [E]>,
+  E
+> = <E>() =>
+  ApplicativeError.of<$<EitherK, [E]>, E>({
+    ...eitherApplicative(),
+    throwError: left,
+    handleErrorWith_: (ea, h) => fold_(ea, h, right),
+  });
+
 export const eitherFlatMap: <E>() => FlatMap<$<EitherK, [E]>> = () =>
   FlatMap.of({ ...eitherApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
 
@@ -42,4 +61,12 @@ export const eitherMonad: <E>() => Monad<$<EitherK, [E]>> = () =>
   Monad.of({
     ...eitherApplicative(),
     ...eitherFlatMap(),
+  });
+
+export const eitherMonadError: <E>() => MonadError<$<EitherK, [E]>, E> = <
+  E,
+>() =>
+  MonadError.of<$<EitherK, [E]>, E>({
+    ...eitherApplicativeError(),
+    ...eitherMonad(),
   });

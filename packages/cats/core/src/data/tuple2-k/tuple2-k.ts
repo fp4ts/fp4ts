@@ -4,7 +4,6 @@ import { Functor } from '../../functor';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 
-import { Tuple2K as Tuple2KBase } from './algebra';
 import { liftK } from './constructors';
 import {
   tuple2KApplicative,
@@ -13,13 +12,16 @@ import {
   tuple2KFunctor,
 } from './instances';
 
-export type Tuple2K<F extends AnyK, G extends AnyK, A> = Tuple2KBase<F, G, A>;
+export type Tuple2K<F extends AnyK, G extends AnyK, A> = [
+  Kind<F, [A]>,
+  Kind<G, [A]>,
+];
 
 export const Tuple2K: Tuple2KObj = function <F extends AnyK, G extends AnyK, A>(
   fst: Kind<F, [A]>,
   snd: Kind<G, [A]>,
 ): Tuple2K<F, G, A> {
-  return new Tuple2KBase(fst, snd);
+  return [fst, snd];
 };
 
 interface Tuple2KObj {

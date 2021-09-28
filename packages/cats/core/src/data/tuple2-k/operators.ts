@@ -1,10 +1,12 @@
 import { AnyK } from '@cats4ts/core';
 import { FunctionK } from '../../function-k';
-import { Tuple2K } from './algebra';
+import { Tuple2K } from './tuple2-k';
 
-export const swapped = <F extends AnyK, G extends AnyK, A>(
-  fa: Tuple2K<F, G, A>,
-): Tuple2K<G, F, A> => new Tuple2K(fa.snd, fa.fst);
+export const swapped = <F extends AnyK, G extends AnyK, A>([fst, snd]: Tuple2K<
+  F,
+  G,
+  A
+>): Tuple2K<G, F, A> => [snd, fst];
 
 export const mapK: <G extends AnyK, H extends AnyK, A>(
   nt: FunctionK<G, H>,
@@ -14,6 +16,6 @@ export const mapK: <G extends AnyK, H extends AnyK, A>(
 // -- point-ful operators
 
 export const mapK_ = <F extends AnyK, G extends AnyK, H extends AnyK, A>(
-  fa: Tuple2K<F, G, A>,
+  [fst, snd]: Tuple2K<F, G, A>,
   nt: FunctionK<G, H>,
-): Tuple2K<F, H, A> => new Tuple2K(fa.fst, nt(fa.snd));
+): Tuple2K<F, H, A> => [fst, nt(snd)];

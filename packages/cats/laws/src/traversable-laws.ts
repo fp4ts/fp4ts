@@ -6,18 +6,20 @@ import { FoldableLaws } from './foldable-laws';
 import { FunctorLaws } from './functor-laws';
 import { UnorderedTraversableLaws } from './unordered-traversable-laws';
 
-export const TraversableLaws = <T extends AnyK>(T: Traversable<T>) => ({
+export const TraversableLaws = <T extends AnyK>(
+  T: Traversable<T>,
+): TraversableLaws<T> => ({
   ...FunctorLaws(T),
   ...FoldableLaws(T),
   ...UnorderedTraversableLaws(T),
 
-  traverseIdentity: <A, B>(
+  traversableIdentity: <A, B>(
     fa: Kind<T, [A]>,
     f: (a: A) => B,
   ): IsEq<Kind<T, [B]>> =>
     T.traverse_(Identity.Applicative)(fa, x => f(x))['<=>'](T.map_(fa, f)),
 
-  traverseSequentialComposition:
+  traversableSequentialComposition:
     <M extends AnyK, N extends AnyK>(M: Applicative<M>, N: Applicative<N>) =>
     <A, B, C>(
       ta: Kind<T, [A]>,
@@ -34,17 +36,18 @@ export const TraversableLaws = <T extends AnyK>(T: Traversable<T>) => ({
       return lhs['<=>'](rhs);
     },
 
-  traverseParallelComposition:
+  traversableParallelComposition:
     <M extends AnyK, N extends AnyK>(M: Applicative<M>, N: Applicative<N>) =>
     <A, B>(
       ta: Kind<T, [A]>,
       f: (a: A) => Kind<M, [B]>,
       g: (a: A) => Kind<N, [B]>,
     ): IsEq<Tuple2K<M, N, Kind<T, [B]>>> => {
-      const lhs = T.traverse_(Tuple2K.Applicative(M, N))(ta, a =>
-        Tuple2K(f(a), g(a)),
-      );
-      const rhs = Tuple2K(T.traverse_(M)(ta, f), T.traverse_(N)(ta, g));
+      const lhs = T.traverse_(Tuple2K.Applicative(M, N))(ta, a => [f(a), g(a)]);
+      const rhs: Tuple2K<M, N, Kind<T, [B]>> = [
+        T.traverse_(M)(ta, f),
+        T.traverse_(N)(ta, g),
+      ];
 
       return lhs['<=>'](rhs);
     },
@@ -54,12 +57,12 @@ export interface TraversableLaws<T extends AnyK>
   extends FunctorLaws<T>,
     FoldableLaws<T>,
     UnorderedTraversableLaws<T> {
-  traverseIdentity: <A, B>(
+  traversableIdentity: <A, B>(
     fa: Kind<T, [A]>,
     f: (a: A) => B,
   ) => IsEq<Kind<T, [B]>>;
 
-  traverseSequentialComposition: <M extends AnyK, N extends AnyK>(
+  traversableSequentialComposition: <M extends AnyK, N extends AnyK>(
     M: Applicative<M>,
     N: Applicative<N>,
   ) => <A, B, C>(
@@ -68,7 +71,7 @@ export interface TraversableLaws<T extends AnyK>
     g: (b: B) => Kind<N, [C]>,
   ) => IsEq<Nested<M, N, Kind<T, [C]>>>;
 
-  traverseParallelComposition: <M extends AnyK, N extends AnyK>(
+  traversableParallelComposition: <M extends AnyK, N extends AnyK>(
     M: Applicative<M>,
     N: Applicative<N>,
   ) => <A, B>(

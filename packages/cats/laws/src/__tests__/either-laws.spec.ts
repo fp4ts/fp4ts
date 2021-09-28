@@ -5,8 +5,8 @@ import { Either } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-import { MonadSuite } from '../disciplines/monad-suite';
 import { SemigroupKSuite } from '../disciplines/semigroup-k-suite';
+import { MonadErrorSuite } from '../disciplines/monad-error-suite';
 
 describe('Either Laws', () => {
   const eqEitherStringPrimitive: Eq<Either<string, PrimitiveType>> = Either.Eq(
@@ -24,10 +24,10 @@ describe('Either Laws', () => {
     ),
   );
 
-  const tests = MonadSuite(Either.Monad<string>());
+  const tests = MonadErrorSuite(Either.MonadError<string>());
   checkAll(
     'Monad<$<EitherK, [string]>>',
-    tests.monad(
+    tests.monadError(
       A.cats4tsEither(fc.string(), fc.integer()),
       A.cats4tsEither(fc.string(), fc.integer()),
       A.cats4tsEither(fc.string(), fc.integer()),
@@ -37,10 +37,13 @@ describe('Either Laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
+      fc.string(),
       eqEitherStringPrimitive,
       eqEitherStringPrimitive,
       eqEitherStringPrimitive,
-      eqEitherStringPrimitive,
+      Eq.primitive,
+      Eq.primitive,
+      E => Either.Eq(Eq.primitive, E),
     ),
   );
 });

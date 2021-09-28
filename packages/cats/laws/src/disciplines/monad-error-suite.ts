@@ -1,27 +1,20 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Eq, Monad } from '@cats4ts/cats-core';
+import { Eq, MonadError } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
-import { MonadLaws } from '../monad-laws';
-import { ApplicativeSuite } from './applicative-suite';
-import { FlatMapSuite } from './flat-map-suite';
+import { MonadErrorLaws } from '../monad-error-laws';
+import { ApplicativeErrorSuite } from './applicative-error-suite';
+import { MonadSuite } from './monad-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
-  const {
-    monadLeftIdentity,
-    monadRightIdentity,
-    kleisliLeftIdentity,
-    kleisliRightIdentity,
-    mapFlatMapCoherence,
-    tailRecMStackSafety,
-  } = MonadLaws(F);
+export const MonadErrorSuite = <F extends AnyK, E>(F: MonadError<F, E>) => {
+  const laws = MonadErrorLaws(F);
   const self = {
-    ...ApplicativeSuite(F),
-    ...FlatMapSuite(F),
+    ...ApplicativeErrorSuite(F),
+    ...MonadSuite(F),
 
-    monad: <A, B, C, D>(
+    monadError: <A, B, C, D>(
       arbFA: Arbitrary<Kind<F, [A]>>,
       arbFB: Arbitrary<Kind<F, [B]>>,
       arbFC: Arbitrary<Kind<F, [C]>>,
@@ -31,58 +24,58 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
+      arbE: Arbitrary<E>,
       EqFB: Eq<Kind<F, [B]>>,
       EqFC: Eq<Kind<F, [C]>>,
       EqFD: Eq<Kind<F, [D]>>,
+      EqA: Eq<A>,
+      EqE: Eq<E>,
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'monad',
+        'monad error',
         [
           [
-            'monad left identity',
+            'monadError left zero',
             forAll(
-              arbA,
+              arbE,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              monadLeftIdentity,
-            )(EqFB),
-          ],
-          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
-          [
-            'monad kleisli left identity',
-            forAll(
-              arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              kleisliLeftIdentity,
+              laws.monadErrorLeftZero,
             )(EqFB),
           ],
           [
-            'monad kleisli right identity',
-            forAll(
-              arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              kleisliRightIdentity,
-            )(EqFB),
+            'monadError rethrow . attempt',
+            forAll(arbFA, laws.rethrowAttempt)(mkEqF(EqA)),
           ],
           [
-            'monad map coherence',
+            'monadError redeemWith is derived from flatMap . attempt',
             forAll(
               arbFA,
+              fc.func<[E], Kind<F, [B]>>(arbFB),
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              mapFlatMapCoherence,
+              laws.redeemWithDerivedFromAttemptFlatMap,
             )(EqFB),
-          ],
-          [
-            'monad tailRecM stack safety',
-            () => {
-              const r = tailRecMStackSafety();
-              expect(EqFA.equals(r.lhs, r.rhs)).toBe(true);
-            },
           ],
         ],
         {
           parents: [
-            self.flatMap(
+            self.applicativeError(
+              arbFA,
+              arbFB,
+              arbFC,
+              arbFAtoB,
+              arbFBtoC,
+              arbA,
+              arbB,
+              arbC,
+              arbE,
+              EqFB,
+              EqFC,
+              EqA,
+              EqE,
+              mkEqF,
+            ),
+            self.monad(
               arbFA,
               arbFB,
               arbFC,
@@ -92,27 +85,16 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
               arbA,
               arbB,
               arbC,
-              EqFA,
+              mkEqF(EqA),
               EqFB,
               EqFC,
               EqFD,
-            ),
-            self.apply(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFAtoB,
-              arbFBtoC,
-              arbB,
-              arbC,
-              EqFA,
-              EqFC,
             ),
           ],
         },
       ),
 
-    stackUnsafeMonad: <A, B, C, D>(
+    stackUnsafeMonadError: <A, B, C, D>(
       arbFA: Arbitrary<Kind<F, [A]>>,
       arbFB: Arbitrary<Kind<F, [B]>>,
       arbFC: Arbitrary<Kind<F, [C]>>,
@@ -122,51 +104,58 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
+      arbE: Arbitrary<E>,
       EqFB: Eq<Kind<F, [B]>>,
       EqFC: Eq<Kind<F, [C]>>,
       EqFD: Eq<Kind<F, [D]>>,
+      EqA: Eq<A>,
+      EqE: Eq<E>,
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'monad',
+        'monad error',
         [
           [
-            'monad left identity',
+            'monadError left zero',
             forAll(
-              arbA,
+              arbE,
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              monadLeftIdentity,
-            )(EqFB),
-          ],
-          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
-          [
-            'monad kleisli left identity',
-            forAll(
-              arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              kleisliLeftIdentity,
+              laws.monadErrorLeftZero,
             )(EqFB),
           ],
           [
-            'monad kleisli right identity',
-            forAll(
-              arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              kleisliRightIdentity,
-            )(EqFB),
+            'monadError rethrow . attempt',
+            forAll(arbFA, laws.rethrowAttempt)(mkEqF(EqA)),
           ],
           [
-            'monad map coherence',
+            'monadError redeemWith is derived from flatMap . attempt',
             forAll(
               arbFA,
+              fc.func<[E], Kind<F, [B]>>(arbFB),
               fc.func<[A], Kind<F, [B]>>(arbFB),
-              mapFlatMapCoherence,
+              laws.redeemWithDerivedFromAttemptFlatMap,
             )(EqFB),
           ],
         ],
         {
           parents: [
-            self.flatMap(
+            self.applicativeError(
+              arbFA,
+              arbFB,
+              arbFC,
+              arbFAtoB,
+              arbFBtoC,
+              arbA,
+              arbB,
+              arbC,
+              arbE,
+              EqFB,
+              EqFC,
+              EqA,
+              EqE,
+              mkEqF,
+            ),
+            self.stackUnsafeMonad(
               arbFA,
               arbFB,
               arbFC,
@@ -176,21 +165,10 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
               arbA,
               arbB,
               arbC,
-              EqFA,
+              mkEqF(EqA),
               EqFB,
               EqFC,
               EqFD,
-            ),
-            self.apply(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFAtoB,
-              arbFBtoC,
-              arbB,
-              arbC,
-              EqFA,
-              EqFC,
             ),
           ],
         },

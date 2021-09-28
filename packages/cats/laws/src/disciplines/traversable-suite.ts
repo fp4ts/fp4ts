@@ -61,7 +61,7 @@ export const TraversableSuite = <T extends AnyK>(T: Traversable<T>) => {
               arbTA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[B], Kind<G, [C]>>(arbGC),
-              laws.traverseSequentialComposition(F, G),
+              laws.traversableSequentialComposition(F, G),
             )(Nested.Eq(EqFGTC)),
           ],
           [
@@ -70,7 +70,7 @@ export const TraversableSuite = <T extends AnyK>(T: Traversable<T>) => {
               arbTA,
               fc.func<[A], Kind<F, [B]>>(arbFB),
               fc.func<[A], Kind<G, [B]>>(arbGB),
-              laws.traverseParallelComposition(F, G),
+              laws.traversableParallelComposition(F, G),
             )(Tuple2K.Eq(EqFTA, EqGTA)),
           ],
         ],

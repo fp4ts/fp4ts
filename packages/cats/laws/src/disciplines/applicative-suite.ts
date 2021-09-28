@@ -8,7 +8,14 @@ import { ApplySuite } from './apply-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
-  const laws = ApplicativeLaws(F);
+  const {
+    applicativeIdentity,
+    applicativeHomomorphism,
+    applicativeInterchange,
+    applicativeMap,
+    apProductConsistent,
+    applicativeUnit,
+  } = ApplicativeLaws(F);
   const self = {
     ...ApplySuite(F),
 
@@ -24,17 +31,8 @@ export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
       EqFA: Eq<Kind<F, [A]>>,
       EqFB: Eq<Kind<F, [B]>>,
       EqFC: Eq<Kind<F, [C]>>,
-    ): RuleSet => {
-      const {
-        applicativeIdentity,
-        applicativeHomomorphism,
-        applicativeInterchange,
-        applicativeMap,
-        apProductConsistent,
-        applicativeUnit,
-      } = laws;
-
-      return new RuleSet(
+    ): RuleSet =>
+      new RuleSet(
         'applicative',
         [
           ['applicative identity', forAll(arbFA, applicativeIdentity)(EqFA)],
@@ -69,8 +67,7 @@ export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
             EqFC,
           ),
         },
-      );
-    },
+      ),
   };
   return self;
 };

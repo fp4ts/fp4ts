@@ -49,13 +49,14 @@ export const UnorderedTraversableLaws = <T extends AnyK>(
       f: (a: A) => Kind<M, [B]>,
       g: (a: A) => Kind<N, [B]>,
     ): IsEq<Tuple2K<M, N, Kind<T, [B]>>> => {
-      const lhs = T.unorderedTraverse_(Tuple2K.Applicative(M, N))(fa, a =>
-        Tuple2K(f(a), g(a)),
-      );
-      const rhs = Tuple2K(
+      const lhs = T.unorderedTraverse_(Tuple2K.Applicative(M, N))(fa, a => [
+        f(a),
+        g(a),
+      ]);
+      const rhs: Tuple2K<M, N, Kind<T, [B]>> = [
         T.unorderedTraverse_(M)(fa, f),
         T.unorderedTraverse_(N)(fa, g),
-      );
+      ];
 
       return lhs['<=>'](rhs);
     },
