@@ -1,4 +1,4 @@
-import fc, { hash, stringify } from 'fast-check';
+import fc from 'fast-check';
 import { $, id, TyK, _ } from '@cats4ts/core';
 import { FunctionK, Eq } from '@cats4ts/cats-core';
 import {
