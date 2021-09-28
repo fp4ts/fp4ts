@@ -1,68 +1,71 @@
 import fc from 'fast-check';
-import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@cats4ts/cats-core';
-import { OrderedMap } from '@cats4ts/cats-core/lib/data';
+import { AdditionMonoid, Eq, Eval, EvalK, Hashable } from '@cats4ts/cats-core';
+import { HashMap } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { MonoidKSuite } from '../disciplines/monoid-k-suite';
 import { FunctorFilterSuite } from '../disciplines/functor-filter-suite';
-import { TraversableSuite } from '../disciplines/traversable-suite';
+import { UnorderedTraversableSuite } from '../disciplines/unordered-traversable-suite';
 
-describe('OrderedMap laws', () => {
-  const eqOrderedMapPrimPrim = OrderedMap.Eq(Eq.primitive, Eq.primitive);
+describe('HashMap laws', () => {
+  const eqHashMapPrimPrim = HashMap.Eq(Eq.primitive, Eq.primitive);
 
-  const monoidKTests = MonoidKSuite(OrderedMap.MonoidK(Ord.primitive));
+  const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.primitiveMD5));
   checkAll(
-    'MonoidK<OrderedMap>',
+    'MonoidK<HashMap>',
     monoidKTests.monoidK(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
-      eqOrderedMapPrimPrim,
+      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
+      eqHashMapPrimPrim,
     ),
   );
 
   const functorFilterTests = FunctorFilterSuite(
-    OrderedMap.FunctorFilter<number>(),
+    HashMap.FunctorFilter<number>(),
   );
   checkAll(
-    'FunctorFilter<OrderedMap>',
+    'FunctorFilter<HashMap>',
     functorFilterTests.functorFilter(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
-      A.cats4tsOrderedMap(
+      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
+      A.cats4tsHashMap(
         fc.integer(),
         A.cats4tsOption(fc.integer()),
-        Ord.primitive,
+        Hashable.primitiveMD5,
       ),
       fc.integer(),
       fc.integer(),
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
+      eqHashMapPrimPrim,
+      eqHashMapPrimPrim,
+      eqHashMapPrimPrim,
     ),
   );
 
-  const traversableTests = TraversableSuite(OrderedMap.Traversable<number>());
+  const unorderedTraversableTests = UnorderedTraversableSuite(
+    HashMap.UnorderedTraversable<number>(),
+  );
   checkAll(
-    'Traversable<OrderedMap>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
+    'UnorderedTraversable<HashMap>',
+    unorderedTraversableTests.unorderedTraversable<
+      number,
+      number,
+      number,
+      EvalK,
+      EvalK
+    >(
+      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       A.cats4tsEval(fc.integer()),
       fc.integer(),
-      fc.integer(),
       AdditionMonoid,
-      AdditionMonoid,
-      OrderedMap.Functor(),
+      HashMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,
-      Eq.primitive,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      Eval.Eq(Eval.Eq(eqOrderedMapPrimPrim)),
-      Eval.Eq(eqOrderedMapPrimPrim),
-      Eval.Eq(eqOrderedMapPrimPrim),
+      eqHashMapPrimPrim,
+      Eval.Eq(Eval.Eq(eqHashMapPrimPrim)),
+      Eval.Eq(eqHashMapPrimPrim),
+      Eval.Eq(eqHashMapPrimPrim),
     ),
   );
 });

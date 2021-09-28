@@ -59,9 +59,9 @@ export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
       <M>(M: Monoid<M>) =>
       <K, V>(m: HashMap<K, V>, f: (v: V) => M) =>
         foldMap_(M)(m, x => f(x)),
-    all_: all_,
-    any_: any_,
-    count_: count_,
+    all_: (m, p) => all_(m, v => p(v)),
+    any_: (m, p) => any_(m, v => p(v)),
+    count_: (m, p) => count_(m, v => p(v)),
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,

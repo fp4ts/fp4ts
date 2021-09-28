@@ -10,11 +10,15 @@ export const empty: OrderedMap<never, never> = Empty;
 export const singleton = <K, V>(k: K, v: V): OrderedMap<K, V> =>
   new Bin(k, v, 1, empty, empty);
 
-export const fromArray = <K, V>(O: Ord<K>, xs: [K, V][]): OrderedMap<K, V> =>
-  xs.reduce((m, [k, v]) => insert_(O, m, k, v), empty as OrderedMap<K, V>);
+export const fromArray =
+  <K>(O: Ord<K>) =>
+  <V>(xs: [K, V][]): OrderedMap<K, V> =>
+    xs.reduce((m, [k, v]) => insert_(O, m, k, v), empty as OrderedMap<K, V>);
 
-export const fromList = <K, V>(O: Ord<K>, xs: List<[K, V]>): OrderedMap<K, V> =>
-  xs.foldLeft(empty as OrderedMap<K, V>, (m, [k, v]) => insert_(O, m, k, v));
+export const fromList =
+  <K>(O: Ord<K>) =>
+  <V>(xs: List<[K, V]>): OrderedMap<K, V> =>
+    xs.foldLeft(empty as OrderedMap<K, V>, (m, [k, v]) => insert_(O, m, k, v));
 
 export const fromSortedArray = <K, V>(xs0: [K, V][]): OrderedMap<K, V> => {
   const loop = (xs: [K, V][], start: number, end: number): OrderedMap<K, V> => {

@@ -6,6 +6,12 @@ export interface Hashable<A> extends Eq<A> {
   hash: (a: A) => string;
 }
 
+export const Hashable = Object.freeze({
+  get primitiveMD5(): Hashable<PrimitiveType> {
+    return primitiveMD5Hashable();
+  },
+});
+
 // HKT
 
 export const HashableURI = 'cats/hashable';

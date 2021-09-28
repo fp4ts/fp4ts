@@ -1,8 +1,9 @@
 import fc, { Arbitrary } from 'fast-check';
 import { PrimitiveType } from '@cats4ts/core';
-import { Eval, Ord } from '@cats4ts/cats-core';
+import { Eval, Hashable, Ord } from '@cats4ts/cats-core';
 import {
   Either,
+  HashMap,
   Left,
   List,
   Option,
@@ -114,6 +115,35 @@ export const cats4tsOrderedMap = <K, V>(
     .chain(size =>
       fc
         .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
-        .map(xs => OrderedMap.fromArray(O, xs)),
+        .map(OrderedMap.fromArray(O)),
+    );
+};
+
+interface HashMapConstraints {
+  readonly minSize?: number;
+  readonly maxSize?: number;
+}
+export const cats4tsHashMap = <K, V>(
+  arbK: Arbitrary<K>,
+  arbV: Arbitrary<V>,
+  H: Hashable<K>,
+  constraints: HashMapConstraints = {},
+): Arbitrary<HashMap<K, V>> => {
+  const minSize =
+    constraints.minSize != null && constraints.minSize >= 0
+      ? constraints.minSize
+      : 0;
+  const maxSize =
+    constraints.maxSize != null &&
+    constraints.maxSize <= Number.MAX_SAFE_INTEGER
+      ? constraints.maxSize
+      : Math.min(2 * minSize + 10, 0x7fffffff);
+
+  return fc
+    .integer(minSize, maxSize)
+    .chain(size =>
+      fc
+        .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
+        .map(HashMap.fromArray(H)),
     );
 };

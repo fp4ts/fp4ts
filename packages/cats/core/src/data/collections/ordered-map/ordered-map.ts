@@ -33,15 +33,15 @@ export type OrderedMap<K, V> = OrderedMapBase<K, V>;
 export const OrderedMap: OrderedMapObj = function <K extends PrimitiveType, V>(
   ...pairs: [K, V][]
 ): OrderedMap<K, V> {
-  return fromArray(Ord.primitive, pairs);
+  return fromArray<K>(Ord.primitive)(pairs);
 } as any;
 
 export interface OrderedMapObj {
   <K extends PrimitiveType, V>(...pairs: [K, V][]): OrderedMap<K, V>;
   empty: OrderedMap<never, never>;
   singleton<K, V>(k: K, v: V): OrderedMap<K, V>;
-  fromList<K, V>(O: Ord<K>, xs: List<[K, V]>): OrderedMap<K, V>;
-  fromArray<K, V>(O: Ord<K>, xs: [K, V][]): OrderedMap<K, V>;
+  fromList<K, V>(O: Ord<K>): <V>(xs: List<[K, V]>) => OrderedMap<K, V>;
+  fromArray<K>(O: Ord<K>): <V>(xs: [K, V][]) => OrderedMap<K, V>;
   fromSortedArray<K, V>(xs: [K, V][]): OrderedMap<K, V>;
 
   // -- Instances

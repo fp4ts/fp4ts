@@ -43,7 +43,7 @@ describe('OrderedMap', () => {
 
     it('should create an ordered map from an unordered List', () => {
       const xs = List(5, 1, 7, 8, 10, -5).map(x => [x, x] as [number, number]);
-      expect(OrderedMap.fromList(Ord.primitive, xs).toArray).toEqual([
+      expect(OrderedMap.fromList(Ord.primitive)(xs).toArray).toEqual([
         [-5, -5],
         [1, 1],
         [5, 5],
