@@ -1,5 +1,5 @@
-import { Eq } from '@cats4ts/cats-core';
 import { PrimitiveType } from '@cats4ts/core';
+import { Eq } from '../../eq';
 import { Option } from './algebra';
 import {
   flatMap_,

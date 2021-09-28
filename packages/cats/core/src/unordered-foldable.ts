@@ -1,10 +1,6 @@
 import { AnyK, Base, id, instance, Kind } from '@cats4ts/core';
-import {
-  AdditionMonoid,
-  ConjunctionMonoid,
-  DisjunctionMonoid,
-  Eval,
-} from '@cats4ts/cats-core';
+import { AdditionMonoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
+import { Eval } from './eval';
 
 import { Monoid } from './monoid';
 

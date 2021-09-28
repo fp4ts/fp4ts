@@ -1,6 +1,6 @@
-import { Eq } from '@cats4ts/cats-core';
 import { flow, id } from '@cats4ts/core';
 
+import { Eq } from '../../eq';
 import { Either } from '../either';
 
 import { Option, view } from './algebra';

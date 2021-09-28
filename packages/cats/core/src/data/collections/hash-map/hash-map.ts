@@ -19,6 +19,7 @@ import {
   hashMapUnorderedTraversable,
   hashMapMonoidK,
   hashMapSemigroupK,
+  hashMapEq,
 } from './instances';
 
 export const HashMap: HashMapObj = function <K extends PrimitiveType, V>(
@@ -31,23 +32,20 @@ export type HashMap<K, V> = HashMapBase<K, V>;
 
 export interface HashMapObj {
   <K extends PrimitiveType, V>(...pairs: [K, V][]): HashMap<K, V>;
-
   empty: HashMap<never, never>;
-
   of: <K2>(
     H: Hashable<K2>,
   ) => <K extends K2, V>(...pairs: [K, V][]) => HashMap<K2, V>;
-
   fromArray: <K2>(
     H: Hashable<K2>,
   ) => <K extends K2, V>(xs: [K, V][]) => HashMap<K2, V>;
-
   fromList: <K2>(
     H: Hashable<K2>,
   ) => <K extends K2, V>(xs: List<[K, V]>) => HashMap<K2, V>;
 
   // -- Instances
 
+  Eq<K, V>(EK: Eq<K>, EV: Eq<V>): Eq<HashMap<K, V>>;
   SemigroupK<K>(E: Eq<K>): SemigroupK<$<HashMapK, [K]>>;
   MonoidK<K>(E: Eq<K>): MonoidK<$<HashMapK, [K]>>;
   Functor<K>(): Functor<$<HashMapK, [K]>>;
@@ -61,6 +59,7 @@ HashMap.of = of;
 HashMap.fromArray = fromArray;
 HashMap.fromList = fromList;
 
+HashMap.Eq = hashMapEq;
 HashMap.SemigroupK = hashMapSemigroupK;
 HashMap.MonoidK = hashMapMonoidK;
 HashMap.Functor = hashMapFunctor;

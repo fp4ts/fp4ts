@@ -1,4 +1,5 @@
 import { TyK, _ } from '@cats4ts/core';
+import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
@@ -24,7 +25,6 @@ import {
   optionSemigroupK,
 } from './instances';
 import { tailRecM } from './operators';
-import { Eq } from '@cats4ts/cats-core';
 
 // -- Object
 

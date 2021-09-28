@@ -1,5 +1,5 @@
-import { Eq } from '@cats4ts/cats-core';
 import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';

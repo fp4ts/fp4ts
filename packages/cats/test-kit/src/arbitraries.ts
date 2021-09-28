@@ -108,38 +108,12 @@ export const cats4tsOrderedMap = <K, V>(
     constraints.maxSize <= Number.MAX_SAFE_INTEGER
       ? constraints.maxSize
       : Math.min(2 * minSize + 10, 0x7fffffff);
-  const size = fc.integer(minSize, maxSize);
 
-  const genSized = fc.memo((size: number) => {
-    const fromArray = fc
-      .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
-      .map(xs => OrderedMap.fromArray(O, xs));
-
-    let recursive: Arbitrary<OrderedMap<K, V>>;
-    switch (size) {
-      case 0:
-        recursive = fc.constant(OrderedMap.empty);
-        break;
-      case 1:
-        recursive = fc
-          .tuple(arbK, arbV)
-          .map(([k, v]) => OrderedMap.singleton(k, v));
-        break;
-      default: {
-        const s0 = fc.integer(1, size - 1);
-        const s1 = s0.map(s0 => size - s0);
-        const left = s0.chain(genSized);
-        const right = s1.chain(genSized);
-        recursive = left.chain(l => right.map(r => l.union(O, r)));
-        break;
-      }
-    }
-
-    return fc.frequency(
-      { arbitrary: recursive, weight: 3 },
-      { arbitrary: fromArray, weight: 1 },
+  return fc
+    .integer(minSize, maxSize)
+    .chain(size =>
+      fc
+        .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
+        .map(xs => OrderedMap.fromArray(O, xs)),
     );
-  });
-
-  return size.chain(genSized);
 };

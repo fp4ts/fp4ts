@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { AnyK, Kind, throwError } from '@cats4ts/core';
+import { id, pipe, AnyK, Kind, throwError } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Hashable } from '../../../hashable';
 import { Show } from '../../../show';
@@ -11,10 +11,10 @@ import { List } from '../list';
 import { Option, None, Some } from '../../option';
 
 import { Bucket, Empty, Inner, Leaf, HashMap, toNode } from './algebra';
-import { id, pipe } from '@cats4ts/core';
 
-const SIZE = 32;
-const MASK = 0b11111;
+const MAX_DEPTH = 5;
+const SIZE = 1 << MAX_DEPTH;
+const MASK = SIZE - 1;
 
 export const isEmpty: <K, V>(m: HashMap<K, V>) => boolean = m =>
   m === (Empty as HashMap<never, never>);
@@ -562,6 +562,69 @@ export const show_ = <K, V>(
   return entries === '' ? '[Map entries: {}]' : `[Map entries: { ${entries} }]`;
 };
 
+export const equals_ = <K, V>(
+  EK: Eq<K>,
+  EV: Eq<V>,
+  m1: HashMap<K, V>,
+  m2: HashMap<K, V>,
+): boolean => {
+  const go = (m1: HashMap<K, V>, m2: HashMap<K, V>, d: number): boolean => {
+    const n1 = toNode(m1);
+    const n2 = toNode(m2);
+
+    switch (n1.tag) {
+      case 'empty':
+        return n2.tag === 'empty';
+
+      case 'inner':
+        switch (n2.tag) {
+          case 'empty':
+          case 'leaf':
+            return false;
+
+          case 'inner':
+            for (let i = 0; i < SIZE; i++) {
+              if (!go(n1.children[i], n2.children[i], d + 1)) {
+                return false;
+              }
+            }
+            return true;
+        }
+
+      case 'leaf':
+        switch (n2.tag) {
+          case 'empty':
+          case 'inner':
+            return false;
+
+          case 'leaf': {
+            if (n1.buckets.length !== n2.buckets.length) return false;
+            if (d < MAX_DEPTH)
+              return (
+                EK.equals(n1.buckets[0][1], n2.buckets[0][1]) &&
+                EV.equals(n1.buckets[0][2], n2.buckets[0][2])
+              );
+
+            outer: for (let i = 0, len1 = n1.buckets.length; i < len1; i++) {
+              for (let j = 0, len2 = n2.buckets.length; j < len2; j++) {
+                const [, k1, v1] = n1.buckets[i];
+                const [, k2, v2] = n2.buckets[j];
+                if (EK.equals(k1, k2) && EV.equals(v1, v2))
+                  // if we've found a match, we can continue looking next n1 bucket
+                  continue outer;
+              }
+              // If we have not found a match for the n1 bucket, we can terminate early
+              return false;
+            }
+            // If we've found match for all buckets, we return true
+            return true;
+          }
+        }
+    }
+  };
+  return go(m1, m2, 0);
+};
+
 // -- Private implementation
 
 const _hash = <K>(H: Hashable<K>, k: K): number =>
@@ -589,17 +652,17 @@ const _lookup = <K, V>(
 
   switch (n.tag) {
     case 'empty':
-      assert(d <= 5, 'Maximum depths exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depths exceeded');
       return None;
 
     case 'inner': {
-      assert(d < 5, 'Maximum depths exceeded');
+      assert(d < MAX_DEPTH, 'Maximum depths exceeded');
       const idx = _index(h, d);
       return _lookup(E, n.children[idx], k, h, d + 1);
     }
 
     case 'leaf': {
-      assert(d <= 5, 'Maximum depths exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depths exceeded');
       for (let i = 0; i < n.buckets.length; i++) {
         const [, k2, v] = n.buckets[i];
         if (E.equals(k, k2)) return Some(v);
@@ -622,19 +685,19 @@ const _insert = <K, V>(
 
   switch (n.tag) {
     case 'empty':
-      assert(d <= 5, 'Maximum depth exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
       return _mkLeaf([[h, k, v]]);
 
     case 'inner': {
-      assert(d < 5, 'Maximum depth exceeded');
+      assert(d < MAX_DEPTH, 'Maximum depth exceeded');
       const children = [...n.children];
       const mask = _insertChildren(E, children, n.mask, k, v, h, d, u);
       return _mkInner(children, mask);
     }
 
     case 'leaf':
-      assert(d <= 5, 'Maximum depth exceeded');
-      return d < 5
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
+      return d < MAX_DEPTH
         ? _insertSplit(E, n, k, v, h, d, u)
         : _insertProbe(E, n, k, v, h, d, u);
   }
@@ -651,7 +714,7 @@ const _insertChildren = <K, V>(
   d: number,
   u: (v1: V, v2: V, k: K) => V,
 ): number => {
-  assert(d < 5, 'Maximum depth exceeded');
+  assert(d < MAX_DEPTH, 'Maximum depth exceeded');
   const index = _index(h, d);
   children[index] = _insert(E, children[index], k, v, h, d + 1, u);
   return mask | (1 << index);
@@ -666,7 +729,7 @@ const _insertSplit = <K, V>(
   d: number,
   u: (v1: V, v2: V, k: K) => V,
 ): HashMap<K, V> => {
-  assert(d < 5, 'Maximum depth exceeded');
+  assert(d < MAX_DEPTH, 'Maximum depth exceeded');
   assert(n.buckets.length === 1, 'Cannot have more than one bucket');
   const children: HashMap<K, V>[] = new Array(SIZE).fill(Empty);
   let mask = 0;
@@ -685,7 +748,7 @@ const _insertProbe = <K, V>(
   d: number,
   u: (v1: V, v2: V, k: K) => V,
 ): HashMap<K, V> => {
-  assert(d === 5, 'Should not probe unless in max depth');
+  assert(d === MAX_DEPTH, 'Should not probe unless in max depth');
   const newBuckets = [...n.buckets];
   for (let i = 0, len = n.buckets.length; i < len; i++) {
     if (E.equals(newBuckets[i][1], k)) {
@@ -709,11 +772,11 @@ const _update = <K, V>(
 
   switch (n.tag) {
     case 'empty':
-      assert(d <= 5, 'Maximum depth exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
       return n;
 
     case 'inner': {
-      assert(d < 5, 'Maximum depth exceeded');
+      assert(d < MAX_DEPTH, 'Maximum depth exceeded');
       const children = [...n.children];
       const index = _index(h, d);
       children[index] = _update(E, children[index], k, h, d + 1, u);
@@ -721,7 +784,7 @@ const _update = <K, V>(
     }
 
     case 'leaf': {
-      assert(d <= 5, 'Maximum depth exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
       const newBuckets = [...n.buckets];
       for (let i = 0, len = newBuckets.length; i < len; i++) {
         if (E.equals(newBuckets[i][1], k)) {
@@ -745,11 +808,11 @@ const _remove = <K, V>(
 
   switch (n.tag) {
     case 'empty':
-      assert(d <= 5, 'Maximum depth exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
       return n;
 
     case 'inner': {
-      assert(d < 5, 'Maximum depth exceeded');
+      assert(d < MAX_DEPTH, 'Maximum depth exceeded');
       const mask = n.mask;
       const children = [...n.children];
       const index = _index(h, d);
@@ -761,7 +824,7 @@ const _remove = <K, V>(
     }
 
     case 'leaf': {
-      assert(d <= 5, 'Maximum depth exceeded');
+      assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
       const buckets = n.buckets.filter(([, k2]) => E.notEquals(k, k2));
       return _mkLeaf(buckets);
     }
@@ -775,7 +838,7 @@ const _union = <K, V>(
   u: (v1: V, v2: V, k: K) => V,
   d: number,
 ): HashMap<K, V> => {
-  assert(d <= 5, 'Maximum depth exceeded');
+  assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
   const n1 = toNode(m1);
   const n2 = toNode(m2);
 
@@ -789,7 +852,7 @@ const _union = <K, V>(
           return n1;
 
         case 'inner': {
-          assert(d < 5, 'Maximum depth exceeded');
+          assert(d < MAX_DEPTH, 'Maximum depth exceeded');
           const newChildren: HashMap<K, V>[] = new Array(SIZE);
           let mask = 0;
           for (let i = 0; i < SIZE; i++) {
@@ -802,7 +865,7 @@ const _union = <K, V>(
         }
 
         case 'leaf':
-          assert(d < 5, 'Maximum depth exceeded');
+          assert(d < MAX_DEPTH, 'Maximum depth exceeded');
           return n2.buckets.reduce<HashMap<K, V>>(
             (nn, [h, k, v]) => _insert(E, nn, k, v, h, d, u),
             n1,
@@ -815,7 +878,7 @@ const _union = <K, V>(
           return n1;
 
         case 'inner':
-          assert(d < 5, 'Maximum depth exceeded');
+          assert(d < MAX_DEPTH, 'Maximum depth exceeded');
           return n1.buckets.reduce<HashMap<K, V>>(
             (nn, [h, k, v]) =>
               _insert(E, nn, k, v, h, d, (v2, v1, k) => u(v1, v2, k)),
@@ -823,7 +886,7 @@ const _union = <K, V>(
           );
 
         case 'leaf':
-          return d < 5
+          return d < MAX_DEPTH
             ? _mergeSplitLeafs(E, n1, n2, u, d)
             : _mergeProbeLeafs(E, n1, n2, u, d);
       }
@@ -837,7 +900,7 @@ const _mergeSplitLeafs = <K, V>(
   u: (v1: V, v2: V, k: K) => V,
   d: number,
 ): HashMap<K, V> => {
-  assert(d < 5, 'Maximum depth exceeded');
+  assert(d < MAX_DEPTH, 'Maximum depth exceeded');
   let ret: HashMap<K, V> = Empty as HashMap<never, never>;
   for (let i = 0, len = n1.buckets.length; i < len; i++) {
     const [h, k, v] = n1.buckets[i];
@@ -857,7 +920,7 @@ const _mergeProbeLeafs = <K, V>(
   u: (v1: V, v2: V, k: K) => V,
   d: number,
 ): HashMap<K, V> => {
-  assert(d === 5, 'Cannot probe unless maximum depth is reached');
+  assert(d === MAX_DEPTH, 'Cannot probe unless maximum depth is reached');
   const newBuckets = [...n1.buckets];
   const indexOfKey = (k: K): number =>
     n1.buckets.findIndex(([, k2]) => E.equals(k, k2));
@@ -883,7 +946,7 @@ const _intersect = <K, V1, V2, C>(
   d: number,
   f: (l: V1, r: V2, k: K) => C,
 ): HashMap<K, C> => {
-  assert(d <= 5, 'Maximum depth exceeded');
+  assert(d <= MAX_DEPTH, 'Maximum depth exceeded');
   const n1 = toNode(m1);
   const n2 = toNode(m2);
 
@@ -897,7 +960,7 @@ const _intersect = <K, V1, V2, C>(
           return Empty;
 
         case 'inner': {
-          assert(d < 5, 'Maximum depth exceeded');
+          assert(d < MAX_DEPTH, 'Maximum depth exceeded');
           const newChildren: HashMap<K, C>[] = new Array(SIZE);
           let mask = 0;
           for (let i = 0; i < SIZE; i++) {
@@ -932,7 +995,7 @@ const _intersect = <K, V1, V2, C>(
         }
 
         case 'leaf':
-          return d < 5
+          return d < MAX_DEPTH
             ? _intersectSingletonLeaves(E, n1, n2, d, f)
             : _intersectBottomLeaves(E, n1, n2, d, f);
       }
