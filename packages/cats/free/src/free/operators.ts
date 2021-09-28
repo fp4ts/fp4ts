@@ -1,6 +1,6 @@
 import { AnyK, Kind } from '@cats4ts/core';
 import { FunctionK, Monad } from '@cats4ts/cats-core';
-import { Left, Right } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
 
 import { FlatMap, Free, view } from './algebra';
 import { pure } from './constructors';
@@ -14,6 +14,12 @@ export const flatMap =
   <F extends AnyK, A, B>(f: (a: A) => Free<F, B>) =>
   (self: Free<F, A>): Free<F, B> =>
     flatMap_(self, f);
+
+export const tailRecM: <A, B>(
+  a: A,
+) => <F extends AnyK, B>(f: (a: A) => Free<F, Either<A, B>>) => Free<F, B> =
+  a => f =>
+    tailRecM_(a, f);
 
 export const mapK =
   <G extends AnyK>(G: Monad<G>) =>
@@ -32,6 +38,11 @@ export const flatMap_ = <F extends AnyK, A, B>(
   self: Free<F, A>,
   f: (a: A) => Free<F, B>,
 ): Free<F, B> => new FlatMap(self, f);
+
+export const tailRecM_ = <F extends AnyK, A, B>(
+  a: A,
+  f: (a: A) => Free<F, Either<A, B>>,
+): Free<F, B> => flatMap_(f(a), ea => ea.fold(a => tailRecM_(a, f), pure));
 
 export const mapK_ =
   <G extends AnyK>(G: Monad<G>) =>

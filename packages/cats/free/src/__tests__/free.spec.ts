@@ -1,7 +1,21 @@
-import { $, TyK, _ } from '@cats4ts/core';
-import { FunctionK } from '@cats4ts/cats-core';
-import { State, StateK } from '@cats4ts/cats-core/lib/data';
+import fc, { hash, stringify } from 'fast-check';
+import { $, id, TyK, _ } from '@cats4ts/core';
+import { FunctionK, Eq } from '@cats4ts/cats-core';
+import {
+  State,
+  StateK,
+  OptionK,
+  Option,
+  IdentityK,
+  Identity,
+} from '@cats4ts/cats-core/lib/data';
+import { MonadSuite } from '@cats4ts/cats-laws';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+
 import { Free } from '../free';
+
+import { cats4tsFree } from './free-arbitraries';
 
 class TestConsoleBase<A> {
   public readonly __void!: void;
@@ -64,18 +78,65 @@ describe('Free', () => {
     expect(a).toBeUndefined();
   });
 
-  it('should be stack safe', () => {
-    const size = 10_000;
-    const loop = (i: number): Free<TestConsoleK, void> =>
-      i < size
-        ? writeLine('').flatMap(() => loop(i + 1))
-        : Free.pure(undefined);
+  const eqFreeIdentityPrim: Eq<Free<IdentityK, number>> = Eq.by(
+    Eq.primitive,
+    f => f.mapK(Identity.Monad)(id),
+  );
 
-    const state = loop(0).mapK(State.Monad<S>())(nt);
+  const identityMonadTests = MonadSuite(Free.Monad<IdentityK>());
+  checkAll(
+    'Monad<$<Free, [IdentityK]>>',
+    identityMonadTests.monad(
+      cats4tsFree(fc.integer(), fc.integer()),
+      cats4tsFree(fc.integer(), fc.integer()),
+      cats4tsFree(fc.integer(), fc.integer()),
+      cats4tsFree(fc.integer(), fc.integer()),
+      cats4tsFree(
+        fc.func<[number], number>(fc.integer()),
+        fc.func<[number], number>(fc.integer()),
+      ),
+      cats4tsFree(
+        fc.func<[number], number>(fc.integer()),
+        fc.func<[number], number>(fc.integer()),
+      ),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      eqFreeIdentityPrim,
+      eqFreeIdentityPrim,
+      eqFreeIdentityPrim,
+      eqFreeIdentityPrim,
+    ),
+  );
 
-    expect(state.runState([[], []])).toEqual([
-      [[], [...new Array(size).keys()].map(() => '')],
-      undefined,
-    ]);
-  });
+  const eqFreeOptionPrim: Eq<Free<OptionK, number>> = Eq.by(
+    Option.Eq(Eq.primitive),
+    f => f.mapK(Option.Monad)(id),
+  );
+
+  const monadTests = MonadSuite(Free.Monad<OptionK>());
+  checkAll(
+    'Monad<$<Free, [OptionK]>>',
+    monadTests.monad(
+      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
+      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
+      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
+      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
+      cats4tsFree(
+        A.cats4tsOption(fc.func<[number], number>(fc.integer())),
+        fc.func<[number], number>(fc.integer()),
+      ),
+      cats4tsFree(
+        A.cats4tsOption(fc.func<[number], number>(fc.integer())),
+        fc.func<[number], number>(fc.integer()),
+      ),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      eqFreeOptionPrim,
+      eqFreeOptionPrim,
+      eqFreeOptionPrim,
+      eqFreeOptionPrim,
+    ),
+  );
 });

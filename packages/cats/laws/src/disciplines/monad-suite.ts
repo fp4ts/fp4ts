@@ -66,11 +66,7 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
           ],
           [
             'monad map coherence',
-            forAll(
-              arbFA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              mapFlatMapCoherence,
-            )(EqFB),
+            forAll(arbFA, fc.func<[A], B>(arbB), mapFlatMapCoherence)(EqFB),
           ],
           [
             'monad tailRecM stack safety',
