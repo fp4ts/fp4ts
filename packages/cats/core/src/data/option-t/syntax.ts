@@ -1,5 +1,5 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { FunctionK } from '../../function-k';
+import { FunctionK } from '../../arrow';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
 

@@ -4,7 +4,7 @@ import { Applicative } from '../../applicative';
 import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
-import { FunctionK } from '../../function-k';
+import { FunctionK } from '../../arrow';
 
 import { Either } from '../either';
 

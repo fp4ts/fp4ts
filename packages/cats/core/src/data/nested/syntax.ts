@@ -1,5 +1,5 @@
 import { AnyK } from '@cats4ts/core';
-import { FunctionK } from '../../function-k';
+import { FunctionK } from '../../arrow';
 
 import { Nested } from './algebra';
 import { mapK_ } from './operators';

@@ -1,4 +1,4 @@
-export * from './function-k';
+export * from './arrow';
 export * from './semigroup-k';
 export * from './monoid-k';
 export * from './applicative';

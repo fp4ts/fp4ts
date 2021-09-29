@@ -1,5 +1,5 @@
 import { AnyK } from '@cats4ts/core';
-import { FunctionK } from '../../function-k';
+import { FunctionK } from '../../arrow';
 import { Tuple2K } from './tuple2-k';
 
 export const swapped = <F extends AnyK, G extends AnyK, A>([fst, snd]: Tuple2K<
