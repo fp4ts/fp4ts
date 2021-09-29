@@ -12,6 +12,10 @@ import {
   Vector,
   Kleisli,
 } from '@cats4ts/cats-core/lib/data';
+import { MiniInt } from './mini-int';
+
+export const cats4tsMiniInt = (): Arbitrary<MiniInt> =>
+  fc.integer(MiniInt.MIN_MINI_INT, MiniInt.MAX_MINI_INT).map(MiniInt.wrapped);
 
 export const cats4tsPrimitive = (): Arbitrary<PrimitiveType> =>
   fc.oneof(fc.integer(), fc.float(), fc.string(), fc.boolean());

@@ -1,4 +1,4 @@
-import fc, { Arbitrary, hash, stringify } from 'fast-check';
+import fc from 'fast-check';
 import { $, AnyK, id, Kind, throwError } from '@cats4ts/core';
 import { FunctionK, Eq } from '@cats4ts/cats-core';
 import {
@@ -14,8 +14,6 @@ import {
   List,
   EitherK,
   Either,
-  Right,
-  Left,
 } from '@cats4ts/cats-core/lib/data';
 import {
   AlternativeSuite,
@@ -23,8 +21,14 @@ import {
   FunctorFilterSuite,
   MonadErrorSuite,
 } from '@cats4ts/cats-laws';
-import { checkAll, fn1Eq } from '@cats4ts/cats-test-kit';
+import {
+  checkAll,
+  fn1Eq,
+  MiniInt,
+  ExhaustiveCheck,
+} from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import * as ec from '@cats4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>
@@ -275,106 +279,106 @@ describe('Kleisli', () => {
   });
 
   const eqKleisli = <F extends AnyK, A, B>(
-    arbA: Arbitrary<A>,
+    EA: ExhaustiveCheck<A>,
     EqFB: Eq<Kind<F, [B]>>,
-  ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(arbA, EqFB), k => k.run.bind(k));
+  ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => k.run.bind(k));
 
   const contravariantTests = ContravariantSuite(
-    Kleisli.Contravariant<IdentityK, number>(),
+    Kleisli.Contravariant<IdentityK, MiniInt>(),
   );
   checkAll(
-    'Contravariant<Kleisli<IdentityK, number, number>>',
+    'Contravariant<Kleisli<IdentityK, MiniInt, number>>',
     contravariantTests.contravariant(
-      A.cats4tsKleisli<IdentityK, number, number>(fc.integer()),
+      A.cats4tsKleisli<IdentityK, MiniInt, number>(fc.integer()),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqKleisli(fc.integer(), Eq.primitive),
-      eqKleisli(fc.integer(), Eq.primitive),
+      eqKleisli(ec.miniInt(), Eq.primitive),
+      eqKleisli(ec.miniInt(), Eq.primitive),
     ),
   );
 
   const functorFilterTests = FunctorFilterSuite(
-    Kleisli.FunctorFilter<OptionK, number>(Option.FunctorFilter),
+    Kleisli.FunctorFilter<OptionK, MiniInt>(Option.FunctorFilter),
   );
   checkAll(
-    'FunctorFilter<Kleisli<OptionK, number, number>>',
+    'FunctorFilter<Kleisli<OptionK, MiniInt, number>>',
     functorFilterTests.functorFilter(
-      A.cats4tsKleisli<OptionK, number, number>(A.cats4tsOption(fc.integer())),
-      A.cats4tsKleisli<OptionK, number, Option<number>>(
+      A.cats4tsKleisli<OptionK, MiniInt, number>(A.cats4tsOption(fc.integer())),
+      A.cats4tsKleisli<OptionK, MiniInt, Option<number>>(
         A.cats4tsOption(A.cats4tsOption(fc.integer())),
       ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqKleisli(fc.integer(), Option.Eq(Eq.primitive)),
-      eqKleisli(fc.integer(), Option.Eq(Eq.primitive)),
-      eqKleisli(fc.integer(), Option.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), Option.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), Option.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), Option.Eq(Eq.primitive)),
     ),
   );
 
   const alternativeTests = AlternativeSuite(
-    Kleisli.Alternative<ListK, number>(List.Alternative),
+    Kleisli.Alternative<ListK, MiniInt>(List.Alternative),
   );
   checkAll(
-    'Alternative<Kleisli<ListK, number, number>>',
+    'Alternative<Kleisli<ListK, MiniInt, number>>',
     alternativeTests.alternative(
-      A.cats4tsKleisli<ListK, number, number>(A.cats4tsList(fc.integer())),
-      A.cats4tsKleisli<ListK, number, number>(A.cats4tsList(fc.integer())),
-      A.cats4tsKleisli<ListK, number, number>(A.cats4tsList(fc.integer())),
-      A.cats4tsKleisli<ListK, number, (_: number) => number>(
+      A.cats4tsKleisli<ListK, MiniInt, number>(A.cats4tsList(fc.integer())),
+      A.cats4tsKleisli<ListK, MiniInt, number>(A.cats4tsList(fc.integer())),
+      A.cats4tsKleisli<ListK, MiniInt, number>(A.cats4tsList(fc.integer())),
+      A.cats4tsKleisli<ListK, MiniInt, (_: number) => number>(
         A.cats4tsList(fc.func<[number], number>(fc.integer())),
       ),
-      A.cats4tsKleisli<ListK, number, (_: number) => number>(
+      A.cats4tsKleisli<ListK, MiniInt, (_: number) => number>(
         A.cats4tsList(fc.func<[number], number>(fc.integer())),
       ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqKleisli(fc.integer(), List.Eq(Eq.primitive)),
-      eqKleisli(fc.integer(), List.Eq(Eq.primitive)),
-      eqKleisli(fc.integer(), List.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), List.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), List.Eq(Eq.primitive)),
+      eqKleisli(ec.miniInt(), List.Eq(Eq.primitive)),
     ),
   );
 
   type EitherStringK = $<EitherK, [string]>;
   const monadErrorTests = MonadErrorSuite(
-    Kleisli.MonadError<EitherStringK, number, string>(
+    Kleisli.MonadError<EitherStringK, MiniInt, string>(
       Either.MonadError<string>(),
     ),
   );
   checkAll(
-    'MonadError<Kleisli<$<EitherK, [string]>, number, number>>',
+    'MonadError<Kleisli<$<EitherK, [string]>, MiniInt, number>>',
     monadErrorTests.stackUnsafeMonadError(
-      A.cats4tsKleisli<EitherStringK, number, number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, number>(
         A.cats4tsEither(fc.string(), fc.integer()),
       ),
-      A.cats4tsKleisli<EitherStringK, number, number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, number>(
         A.cats4tsEither(fc.string(), fc.integer()),
       ),
-      A.cats4tsKleisli<EitherStringK, number, number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, number>(
         A.cats4tsEither(fc.string(), fc.integer()),
       ),
-      A.cats4tsKleisli<EitherStringK, number, number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, number>(
         A.cats4tsEither(fc.string(), fc.integer()),
       ),
-      A.cats4tsKleisli<EitherStringK, number, (n: number) => number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, (n: number) => number>(
         A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
       ),
-      A.cats4tsKleisli<EitherStringK, number, (n: number) => number>(
+      A.cats4tsKleisli<EitherStringK, MiniInt, (n: number) => number>(
         A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
       ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
       fc.string(),
-      eqKleisli(fc.integer(), Either.Eq(Eq.primitive, Eq.primitive)),
-      eqKleisli(fc.integer(), Either.Eq(Eq.primitive, Eq.primitive)),
-      eqKleisli(fc.integer(), Either.Eq(Eq.primitive, Eq.primitive)),
+      eqKleisli(ec.miniInt(), Either.Eq(Eq.primitive, Eq.primitive)),
+      eqKleisli(ec.miniInt(), Either.Eq(Eq.primitive, Eq.primitive)),
+      eqKleisli(ec.miniInt(), Either.Eq(Eq.primitive, Eq.primitive)),
       Eq.primitive,
       Eq.primitive,
       <Y>(E: Eq<Y>) =>
-        eqKleisli(fc.integer(), Either.Eq(Eq.primitive, E)) as any,
+        eqKleisli(ec.miniInt(), Either.Eq(Eq.primitive, E)) as any,
     ),
   );
 });

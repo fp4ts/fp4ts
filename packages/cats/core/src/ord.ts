@@ -1,5 +1,5 @@
-import { Lazy, PrimitiveType } from '@cats4ts/core';
-import { Eq, primitiveEq } from './eq';
+import { PrimitiveType } from '@cats4ts/core';
+import { Eq } from './eq';
 
 export enum Compare {
   LT,
@@ -15,7 +15,29 @@ export interface Ord<A> extends Eq<A> {
   readonly gte: (lhs: A, rhs: A) => boolean;
 }
 
+type OrdRequirements<A> = Pick<Ord<A>, 'compare'> & Partial<Ord<A>>;
+
 export const Ord = Object.freeze({
+  of: <A>(O: OrdRequirements<A>): Ord<A> => {
+    const self: Ord<A> = {
+      lt: (lhs, rhs) => self.compare(lhs, rhs) === Compare.LT,
+      lte: (lhs, rhs) => self.equals(lhs, rhs) || self.lt(lhs, rhs),
+      gt: (lhs, rhs) => self.compare(lhs, rhs) === Compare.GT,
+      gte: (lhs, rhs) => self.equals(lhs, rhs) || self.gt(lhs, rhs),
+
+      ...Eq.of({
+        equals:
+          O.equals ?? ((lhs, rhs) => self.compare(lhs, rhs) === Compare.EQ),
+        ...O,
+      }),
+      ...O,
+    };
+    return self;
+  },
+
+  by: <A, B>(O: Ord<A>, f: (b: B) => A): Ord<B> =>
+    Ord.of({ compare: (lhs, rhs) => O.compare(f(lhs), f(rhs)) }),
+
   primitive: {
     ...Eq.primitive,
     compare: (lhs: PrimitiveType, rhs: PrimitiveType) =>
