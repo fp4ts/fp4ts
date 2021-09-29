@@ -674,6 +674,7 @@ describe('Map', () => {
       ),
       fc.integer(),
       fc.integer(),
+      fc.integer(),
       eqHashMapPrimPrim,
       eqHashMapPrimPrim,
       eqHashMapPrimPrim,

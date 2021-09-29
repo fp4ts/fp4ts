@@ -6,6 +6,7 @@ import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { Alternative } from '../../alternative';
 import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
@@ -32,6 +33,9 @@ export const optionMonoidK: Lazy<MonoidK<OptionK>> = () =>
   MonoidK.of({ emptyK: () => none, combineK_: orElse_ });
 
 export const optionFunctor: Lazy<Functor<OptionK>> = () => Functor.of({ map_ });
+
+export const optionFunctorFilter: Lazy<FunctorFilter<OptionK>> = () =>
+  FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_ });
 
 export const optionApply: Lazy<Apply<OptionK>> = () =>
   Apply.of({

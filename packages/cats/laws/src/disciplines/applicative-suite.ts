@@ -61,6 +61,7 @@ export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
             arbFC,
             arbFAtoB,
             arbFBtoC,
+            arbA,
             arbB,
             arbC,
             EqFA,

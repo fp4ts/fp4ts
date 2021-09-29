@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -21,11 +22,11 @@ import {
   collect_,
   concat_,
   count_,
+  equals_,
   flatMap_,
   flatten,
   foldLeft_,
   foldMap_,
-  foldRight_,
   fold_,
   isEmpty,
   map_,
@@ -36,6 +37,9 @@ import {
   tap_,
   traverse_,
 } from './operators';
+
+export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
+  Eq.of({ equals: (xs, ys) => equals_(E, xs, ys) });
 
 export const listSemigroupK: Lazy<SemigroupK<ListK>> = () =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });

@@ -28,6 +28,7 @@ export const TraversableSuite = <T extends AnyK>(T: Traversable<T>) => {
       arbFB: Arbitrary<Kind<F, [B]>>,
       arbGB: Arbitrary<Kind<G, [B]>>,
       arbGC: Arbitrary<Kind<G, [C]>>,
+      arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       MA: Monoid<A>,
@@ -76,7 +77,7 @@ export const TraversableSuite = <T extends AnyK>(T: Traversable<T>) => {
         ],
         {
           parents: [
-            self.functor(arbTA, arbB, arbC, EqTA, EqTC),
+            self.functor(arbTA, arbA, arbB, arbC, EqTA, EqTC),
             self.foldable(arbTA, arbB, MA, MB, EqA, EqB),
             self.unorderedTraversable(
               arbTA,

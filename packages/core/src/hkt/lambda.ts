@@ -72,6 +72,7 @@ type TupleTable<T extends unknown[], Args extends ArgsTable> = {
   0: T;
   1: T extends [infer A0] ? [ApplyArgs<A0, Args>] : never;
   2: T extends [infer A0, infer A1] ? [ApplyArgs<A0, Args>, ApplyArgs<A1, Args>] : never;
+  3: T extends [infer A0, infer A1, infer A2] ? [ApplyArgs<A0, Args>, ApplyArgs<A1, Args>, ApplyArgs<A2, Args>] : never;
 }
 
 // Make Lambda a HKT

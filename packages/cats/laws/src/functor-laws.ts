@@ -1,8 +1,11 @@
 import { AnyK, compose, id, Kind, pipe } from '@cats4ts/core';
 import { Functor } from '@cats4ts/cats-core';
 import { IsEq } from '@cats4ts/cats-test-kit';
+import { InvariantLaws } from './invariant-laws';
 
 export const FunctorLaws = <F extends AnyK>(F: Functor<F>): FunctorLaws<F> => ({
+  ...InvariantLaws(F),
+
   covariantIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
     F.map_(fa, id)['<=>'](fa),
 
@@ -18,7 +21,7 @@ export const FunctorLaws = <F extends AnyK>(F: Functor<F>): FunctorLaws<F> => ({
   },
 });
 
-export interface FunctorLaws<F extends AnyK> {
+export interface FunctorLaws<F extends AnyK> extends InvariantLaws<F> {
   covariantIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
 
   covariantComposition: <A, B, C>(

@@ -23,7 +23,6 @@ import {
   productL_,
   productR_,
   product_,
-  run_,
   tap_,
 } from './operators';
 
@@ -122,8 +121,6 @@ declare module './algebra' {
     lift<G extends AnyK>(
       G: Applicative<G>,
     ): Kleisli<λ<[α], $<G, [$<F, [α]>]>>, A, B>;
-
-    run<AA extends A>(a: AA): Kind<F, [B]>;
   }
 }
 
@@ -198,8 +195,4 @@ Kleisli.prototype.mapK = function (nt) {
 
 Kleisli.prototype.lift = function (G) {
   return lift_(this, G);
-};
-
-Kleisli.prototype.run = function (a) {
-  return run_(this, a);
 };

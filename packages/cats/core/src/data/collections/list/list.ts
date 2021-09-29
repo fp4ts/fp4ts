@@ -1,4 +1,5 @@
 import { TyK, _ } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
@@ -28,6 +29,7 @@ import {
   listFlatMap,
   listMonad,
   listAlternative,
+  listEq,
 } from './instances';
 import { tailRecM } from './operators';
 
@@ -60,6 +62,7 @@ interface ListObj {
   readonly Monad: Monad<ListK>;
   readonly Foldable: Foldable<ListK>;
   readonly Traversable: Traversable<ListK>;
+  Eq<A>(E: Eq<A>): Eq<List<A>>;
 }
 
 List.pure = pure;
@@ -124,6 +127,7 @@ Object.defineProperty(List, 'Traversable', {
     return listTraversable();
   },
 });
+List.Eq = listEq;
 
 // HKT
 

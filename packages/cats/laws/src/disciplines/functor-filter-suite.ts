@@ -17,6 +17,7 @@ export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
     functorFilter: <A, B, C>(
       arbFA: Arbitrary<Kind<F, [A]>>,
       arbFOptionA: Arbitrary<Kind<F, [Option<A>]>>,
+      arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       EqFA: Eq<Kind<F, [A]>>,
@@ -76,7 +77,7 @@ export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
             )(EqFA),
           ],
         ],
-        { parent: self.functor(arbFA, arbB, arbC, EqFA, EqFC) },
+        { parent: self.functor(arbFA, arbA, arbB, arbC, EqFA, EqFC) },
       ),
   };
   return self;

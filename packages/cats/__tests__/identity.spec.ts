@@ -39,6 +39,7 @@ describe('Identity Laws', () => {
       A.cats4tsEval(fc.integer()),
       fc.integer(),
       fc.integer(),
+      fc.integer(),
       AdditionMonoid,
       AdditionMonoid,
       Identity.Functor,

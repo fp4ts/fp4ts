@@ -6,6 +6,7 @@ import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { Alternative } from '../../alternative';
 import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 
@@ -20,6 +21,7 @@ import {
   optionEq,
   optionFlatMap,
   optionFunctor,
+  optionFunctorFilter,
   optionMonad,
   optionMonoidK,
   optionSemigroupK,
@@ -54,6 +56,7 @@ export interface OptionObj {
   readonly SemigroupK: SemigroupK<OptionK>;
   readonly MonoidK: MonoidK<OptionK>;
   readonly Functor: Functor<OptionK>;
+  readonly FunctorFilter: FunctorFilter<OptionK>;
   readonly Apply: Apply<OptionK>;
   readonly Applicative: Applicative<OptionK>;
   readonly Alternative: Alternative<OptionK>;
@@ -82,6 +85,11 @@ Object.defineProperty(Option, 'MonoidK', {
 Object.defineProperty(Option, 'Functor', {
   get(): Functor<OptionK> {
     return optionFunctor();
+  },
+});
+Object.defineProperty(Option, 'FunctorFilter', {
+  get(): FunctorFilter<OptionK> {
+    return optionFunctorFilter();
   },
 });
 Object.defineProperty(Option, 'Apply', {

@@ -85,6 +85,7 @@ export const FlatMapSuite = <F extends AnyK>(F: FlatMap<F>) => {
             arbFC,
             arbFAtoB,
             arbFBtoC,
+            arbA,
             arbB,
             arbC,
             EqFA,

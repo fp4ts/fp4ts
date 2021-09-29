@@ -7,6 +7,7 @@ export * from './flat-map-laws';
 export * from './foldable-laws';
 export * from './functor-filter-laws';
 export * from './functor-laws';
+export * from './invariant-laws';
 export * from './monad-error-laws';
 export * from './monad-laws';
 export * from './monoid-k-laws';

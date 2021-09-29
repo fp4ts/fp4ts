@@ -1,14 +1,15 @@
 import { $, AnyK, id, Kind, pipe, α, λ } from '@cats4ts/core';
+import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { FunctionK } from '../../function-k';
 
-import { Either, Left, Right } from '../either';
+import { Either } from '../either';
 
-import { FlatMapK, Kleisli, Adapt, AdaptF, view, Map } from './algebra';
-import { liftF, pure, suspend } from './constructors';
+import { Kleisli } from './algebra';
+import { suspend } from './constructors';
 
 export const dimap: <F extends AnyK>(
   F: Functor<F>,
@@ -59,7 +60,7 @@ export const tap: <F extends AnyK>(
   tap_(F)(fa, f);
 
 export const ap: <F extends AnyK>(
-  F: FlatMap<F>,
+  F: Apply<F>,
 ) => <A2, B>(
   fa: Kleisli<F, A2, B>,
 ) => <A1, C>(ff: Kleisli<F, A1, (b: B) => C>) => Kleisli<F, A1 & A2, C> =
@@ -67,7 +68,7 @@ export const ap: <F extends AnyK>(
     ap_(F)(ff, fa);
 
 export const map2: <F extends AnyK>(
-  F: FlatMap<F>,
+  F: Apply<F>,
 ) => <A2, B, C, D>(
   fb: Kleisli<F, A2, C>,
   f: (b: B, c: C) => D,
@@ -76,7 +77,7 @@ export const map2: <F extends AnyK>(
     map2_(F)(fa, fb)(f);
 
 export const product: <F extends AnyK>(
-  F: FlatMap<F>,
+  F: Apply<F>,
 ) => <A2, C>(
   fb: Kleisli<F, A2, C>,
 ) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, [B, C]> =
@@ -84,14 +85,14 @@ export const product: <F extends AnyK>(
     product_(F)(fa, fb);
 
 export const productL: <F extends AnyK>(
-  F: FlatMap<F>,
+  F: Apply<F>,
 ) => <A2, C>(
   fb: Kleisli<F, A2, C>,
 ) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, B> = F => fb => fa =>
   productL_(F)(fa, fb);
 
 export const productR: <F extends AnyK>(
-  F: FlatMap<F>,
+  F: Apply<F>,
 ) => <A2, C>(
   fb: Kleisli<F, A2, C>,
 ) => <A1, B>(fa: Kleisli<F, A1, B>) => Kleisli<F, A1 & A2, C> = F => fb => fa =>
@@ -148,16 +149,6 @@ export const lift: <G extends AnyK>(
   k: Kleisli<F, A, B>,
 ) => Kleisli<λ<[α], $<G, [$<F, [α]>]>>, A, B> = G => k => lift_(k, G);
 
-export const run: <A>(
-  a: A,
-) => <F extends AnyK, B>(k: Kleisli<F, A, B>) => Kind<F, [B]> = a => k =>
-  run_(k, a);
-
-export const runM: <F extends AnyK>(
-  M: Monad<F>,
-) => <A>(a: A) => <B>(k: Kleisli<F, A, B>) => Kind<F, [B]> = M => a => k =>
-  runM_(M)(k, a);
-
 // -- Point-ful operators
 
 export const dimap_ =
@@ -172,7 +163,7 @@ export const dimap_ =
 export const adapt_ = <F extends AnyK, A, AA, B>(
   fa: Kleisli<F, A, B>,
   f: (a: AA) => A,
-): Kleisli<F, AA, B> => new Adapt(fa, f);
+): Kleisli<F, AA, B> => new Kleisli(a => fa.run(f(a)));
 
 export const adaptF_ =
   <F extends AnyK>(F: FlatMap<F>) =>
@@ -180,7 +171,7 @@ export const adaptF_ =
     fa: Kleisli<F, A, B>,
     f: (a: AA) => Kind<F, [A]>,
   ): Kleisli<F, AA, B> =>
-    new AdaptF(F, fa, f);
+    new Kleisli(a => F.flatMap_(f(a), aa => fa.run(aa)));
 
 export const andThen_ =
   <F extends AnyK>(F: FlatMap<F>) =>
@@ -195,7 +186,7 @@ export const compose_ =
 export const map_ =
   <F extends AnyK>(F: Functor<F>) =>
   <A, B, C>(fa: Kleisli<F, A, B>, f: (b: B) => C): Kleisli<F, A, C> =>
-    new Map(F, fa, f);
+    new Kleisli(a => F.map_(fa.run(a), f));
 
 export const tap_ =
   <F extends AnyK>(F: Functor<F>) =>
@@ -206,42 +197,42 @@ export const tap_ =
     });
 
 export const ap_ =
-  <F extends AnyK>(F: FlatMap<F>) =>
+  <F extends AnyK>(F: Apply<F>) =>
   <A1, A2, B, C>(
     ff: Kleisli<F, A1, (b: B) => C>,
     fa: Kleisli<F, A2, B>,
   ): Kleisli<F, A1 & A2, C> =>
-    flatMap_(F)(ff, f => map_(F)(fa, a => f(a)));
+    suspend(a => F.ap_(ff.run(a), fa.run(a)));
 
 export const map2_ =
-  <F extends AnyK>(F: FlatMap<F>) =>
+  <F extends AnyK>(F: Apply<F>) =>
   <A1, A2, B, C>(fa: Kleisli<F, A1, B>, fb: Kleisli<F, A2, C>) =>
   <D>(f: (b: B, c: C) => D): Kleisli<F, A1 & A2, D> =>
-    flatMap_(F)(fa, b => map_(F)(fb, c => f(b, c)));
+    suspend(a => F.map2_(fa.run(a), fb.run(a))(f));
 
 export const product_ =
-  <F extends AnyK>(F: FlatMap<F>) =>
+  <F extends AnyK>(F: Apply<F>) =>
   <A1, A2, B, C>(
     fa: Kleisli<F, A1, B>,
     fb: Kleisli<F, A2, C>,
   ): Kleisli<F, A1 & A2, [B, C]> =>
-    flatMap_(F)(fa, b => map_(F)(fb, c => [b, c]));
+    suspend(a => F.product_(fa.run(a), fb.run(a)));
 
 export const productL_ =
-  <F extends AnyK>(F: FlatMap<F>) =>
+  <F extends AnyK>(F: Apply<F>) =>
   <A1, A2, B, C>(
     fa: Kleisli<F, A1, B>,
     fb: Kleisli<F, A2, C>,
   ): Kleisli<F, A1 & A2, B> =>
-    flatMap_(F)(fa, b => map_(F)(fb, () => b));
+    suspend(a => F.productL_(fa.run(a), fb.run(a)));
 
 export const productR_ =
-  <F extends AnyK>(F: FlatMap<F>) =>
+  <F extends AnyK>(F: Apply<F>) =>
   <A1, A2, B, C>(
     fa: Kleisli<F, A1, B>,
     fb: Kleisli<F, A2, C>,
   ): Kleisli<F, A1 & A2, C> =>
-    flatMap_(F)(fa, () => map_(F)(fb, c => c));
+    suspend(a => F.productR_(fa.run(a), fb.run(a)));
 
 export const flatMap_ =
   <F extends AnyK>(F: FlatMap<F>) =>
@@ -249,7 +240,7 @@ export const flatMap_ =
     fa: Kleisli<F, A1, B>,
     f: (b: B) => Kleisli<F, A2, C>,
   ): Kleisli<F, A1 & A2, C> =>
-    new FlatMapK(F, fa, f);
+    new Kleisli(a => F.flatMap_(fa.run(a), b => f(b).run(a)));
 
 export const flatMapF_ =
   <F extends AnyK>(F: FlatMap<F>) =>
@@ -257,7 +248,7 @@ export const flatMapF_ =
     fa: Kleisli<F, A, B>,
     f: (b: B) => Kind<F, [C]>,
   ): Kleisli<F, A, C> =>
-    flatMap_(F)(fa, b => liftF(f(b)));
+    new Kleisli(a => F.flatMap_(fa.run(a), f));
 
 export const flatTap_ =
   <F extends AnyK>(F: FlatMap<F>) =>
@@ -273,22 +264,17 @@ export const flatTapF_ =
     fa: Kleisli<F, A, B>,
     f: (b: B) => Kind<F, [unknown]>,
   ): Kleisli<F, A, B> =>
-    flatTap_(F)(fa, b => liftF(f(b)));
+    flatMapF_(F)(fa, x => F.map_(f(x), () => x));
 
 export const tailRecM_ =
   <F extends AnyK>(F: Monad<F>) =>
   <A, B, C>(b: B, f: (b: B) => Kleisli<F, A, Either<B, C>>): Kleisli<F, A, C> =>
-    flatMap_(F)(f(b), bc =>
-      bc.fold(
-        b => tailRecM_(F)(b, f),
-        c => pure(F)(c),
-      ),
-    );
+    new Kleisli(a => F.tailRecM(b)(x => f(x).run(a)));
 
 export const mapK_ = <F extends AnyK, G extends AnyK, A, B>(
   k: Kleisli<F, A, B>,
   nt: FunctionK<F, G>,
-): Kleisli<G, A, B> => suspend((a: A) => nt(run_(k, a)));
+): Kleisli<G, A, B> => suspend((a: A) => nt(k.run(a)));
 
 export const lift_: <F extends AnyK, G extends AnyK, A, B>(
   k: Kleisli<F, A, B>,
@@ -302,59 +288,4 @@ export const lift_: <F extends AnyK, G extends AnyK, A, B>(
   k: Kleisli<F, A, B>,
   G: Applicative<G>,
 ): Kleisli<λ<[α], $<G, [$<F, [α]>]>>, A, B> =>
-  suspend<λ<[α], $<G, [$<F, [α]>]>>, A, B>((a: A) => G.pure(run_(k, a)) as any);
-
-export const run_ = <F extends AnyK, A, B>(
-  k: Kleisli<F, A, B>,
-  a: A,
-): Kind<F, [B]> => {
-  const v = view(k);
-  switch (v.tag) {
-    case 'identity':
-      return v.F.pure(a);
-
-    case 'pure':
-      return v.F.pure(v.value);
-
-    case 'suspend':
-      return v.f(a);
-
-    case 'adapt':
-      return run_(v.self, v.f(a));
-
-    case 'adaptF':
-      return v.F.flatMap_(v.f(a), aa => run_(v.self, aa));
-
-    case 'map':
-      return v.F.map_(run_(v.self, a), b => v.f(b));
-
-    case 'flatMap':
-      return v.F.flatMap_(run_(v.self, a), b => run_(v.f(b), a));
-  }
-};
-
-export const runM_ = <F extends AnyK>(
-  M: Monad<F>,
-): (<A, B>(k: Kleisli<F, A, B>, a: A) => Kind<F, [B]>) => {
-  const loop = <A, B>(k: Kleisli<F, A, B>, a: A): Kind<F, [B]> =>
-    M.tailRecM([k, a] as [Kleisli<F, A, B>, A])(([k, a]) => {
-      const v = view(k);
-      switch (v.tag) {
-        case 'identity':
-          return M.pure(Right(a));
-        case 'pure':
-          return M.pure(Right(v.value));
-        case 'suspend':
-          return M.map_(v.f(a), Right);
-        case 'adapt':
-          return M.pure(Left([v.self, v.f(a)]));
-        case 'adaptF':
-          return M.map_(v.f(a), aa => Left([v.self, aa]));
-        case 'map':
-          return M.map_(loop(v.self, a), b => Right([v.f(b)]));
-        case 'flatMap':
-          return M.map_(loop(v.self, a), e => Left([v.f(e), a]));
-      }
-    });
-  return loop;
-};
+  suspend<λ<[α], $<G, [$<F, [α]>]>>, A, B>((a: A) => G.pure(k.run(a)) as any);

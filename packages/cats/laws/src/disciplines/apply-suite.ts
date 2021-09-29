@@ -18,6 +18,7 @@ export const ApplySuite = <F extends AnyK>(F: Apply<F>) => {
       arbFC: Arbitrary<Kind<F, [C]>>,
       arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
       arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
+      arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       EqFA: Eq<Kind<F, [A]>>,
@@ -65,7 +66,7 @@ export const ApplySuite = <F extends AnyK>(F: Apply<F>) => {
             forAll(arbFA, arbFC, productRConsistency)(EqFC),
           ],
         ],
-        { parent: self.functor(arbFA, arbB, arbC, EqFA, EqFC) },
+        { parent: self.functor(arbFA, arbA, arbB, arbC, EqFA, EqFC) },
       );
     },
   };

@@ -6,6 +6,8 @@ export * from './alternative';
 export * from './applicative-error';
 export * from './apply';
 export * from './flat-map';
+export * from './invariant';
+export * from './contravariant';
 export * from './functor';
 export * from './functor-filter';
 export * from './monad';

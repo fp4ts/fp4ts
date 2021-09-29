@@ -1,12 +1,12 @@
 import { AnyK, Kind } from '@cats4ts/core';
 import { Applicative } from '../../applicative';
 
-import { Identity, Kleisli, Pure, Suspend } from './algebra';
+import { Kleisli } from './algebra';
 
 export const pure =
   <F extends AnyK>(F: Applicative<F>) =>
   <B>(x: B): Kleisli<F, unknown, B> =>
-    new Pure(F, x);
+    new Kleisli(() => F.pure(x));
 
 export const unit = <F extends AnyK>(
   F: Applicative<F>,
@@ -18,8 +18,8 @@ export const liftF = <F extends AnyK, B>(
 
 export const suspend = <F extends AnyK, A, B>(
   f: (a: A) => Kind<F, [B]>,
-): Kleisli<F, A, B> => new Suspend(f);
+): Kleisli<F, A, B> => new Kleisli(f);
 
 export const identity = <F extends AnyK, A>(
   F: Applicative<F>,
-): Kleisli<F, A, A> => new Identity(F);
+): Kleisli<F, A, A> => new Kleisli(F.pure);

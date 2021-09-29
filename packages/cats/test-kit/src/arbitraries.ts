@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { PrimitiveType } from '@cats4ts/core';
+import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
 import { Eval, Hashable, Ord } from '@cats4ts/cats-core';
 import {
   Either,
@@ -10,6 +10,7 @@ import {
   OrderedMap,
   Right,
   Vector,
+  Kleisli,
 } from '@cats4ts/cats-core/lib/data';
 
 export const cats4tsPrimitive = (): Arbitrary<PrimitiveType> =>
@@ -147,3 +148,8 @@ export const cats4tsHashMap = <K, V>(
         .map(HashMap.fromArray(H)),
     );
 };
+
+export const cats4tsKleisli = <F extends AnyK, A, B>(
+  arbFB: Arbitrary<Kind<F, [B]>>,
+): Arbitrary<Kleisli<F, A, B>> =>
+  fc.func<[A], Kind<F, [B]>>(arbFB).map(Kleisli);

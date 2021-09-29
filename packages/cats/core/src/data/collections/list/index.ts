@@ -1,3 +1,3 @@
 import './syntax';
 
-export { List } from './list';
+export { List, ListK } from './list';

@@ -99,6 +99,7 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
               arbFC,
               arbFAtoB,
               arbFBtoC,
+              arbA,
               arbB,
               arbC,
               EqFA,
@@ -153,11 +154,7 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
           ],
           [
             'monad map coherence',
-            forAll(
-              arbFA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              mapFlatMapCoherence,
-            )(EqFB),
+            forAll(arbFA, fc.func<[A], B>(arbB), mapFlatMapCoherence)(EqFB),
           ],
         ],
         {
@@ -183,6 +180,7 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
               arbFC,
               arbFAtoB,
               arbFBtoC,
+              arbA,
               arbB,
               arbC,
               EqFA,
