@@ -4,6 +4,7 @@ export * from './identity';
 export * from './const';
 export * from './state';
 export * from './reader';
+export * from './try';
 
 export * from './kleisli';
 export * from './option-t';

@@ -40,7 +40,7 @@ export interface OrderedMapObj {
   <K extends PrimitiveType, V>(...pairs: [K, V][]): OrderedMap<K, V>;
   empty: OrderedMap<never, never>;
   singleton<K, V>(k: K, v: V): OrderedMap<K, V>;
-  fromList<K, V>(O: Ord<K>): <V>(xs: List<[K, V]>) => OrderedMap<K, V>;
+  fromList<K>(O: Ord<K>): <V>(xs: List<[K, V]>) => OrderedMap<K, V>;
   fromArray<K>(O: Ord<K>): <V>(xs: [K, V][]) => OrderedMap<K, V>;
   fromSortedArray<K, V>(xs: [K, V][]): OrderedMap<K, V>;
 

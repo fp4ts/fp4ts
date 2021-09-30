@@ -11,6 +11,7 @@ import {
   Right,
   Vector,
   Kleisli,
+  Try,
 } from '@cats4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -34,6 +35,9 @@ export const cats4tsEither = <E, A>(
   arbE: Arbitrary<E>,
   arbA: Arbitrary<A>,
 ): Arbitrary<Either<E, A>> => fc.oneof(arbE.map(Left), arbA.map(Right));
+
+export const cats4tsTry = <A>(arbA: Arbitrary<A>): Arbitrary<Try<A>> =>
+  fc.oneof(cats4tsError().map(Try.failure), arbA.map(Try.success));
 
 export const cats4tsEval = <A>(arbA: Arbitrary<A>): Arbitrary<Eval<A>> =>
   fc.oneof(

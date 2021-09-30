@@ -12,14 +12,30 @@ export const Eq = Object.freeze({
     ...E,
   }),
 
-  get primitive(): Eq<PrimitiveType> {
-    return primitiveEq();
-  },
-
   by: <A, B>(E: Eq<B>, f: (a: A) => B): Eq<A> =>
     Eq.of<A>({
       equals: (a, b) => E.equals(f(a), f(b)),
     }),
+
+  get primitive(): Eq<PrimitiveType> {
+    return primitiveEq();
+  },
+
+  Error: {
+    get allEqual(): Eq<Error> {
+      return Eq.of({ equals: () => true });
+    },
+    get strict(): Eq<Error> {
+      return Eq.of({
+        equals: (lhs, rhs) => {
+          if (lhs === rhs) return true;
+          if (lhs.constructor !== rhs.constructor) return false;
+          if (lhs.message !== rhs.message) return false;
+          return true;
+        },
+      });
+    },
+  },
 });
 
 // HKT
