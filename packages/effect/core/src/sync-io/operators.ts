@@ -1,4 +1,5 @@
 import { Either, Left, Right } from '@cats4ts/cats';
+import { pipe } from '@cats4ts/core';
 import {
   Attempt,
   Continuation,
@@ -9,6 +10,10 @@ import {
   SyncIO,
   view,
 } from './algebra';
+
+export const map: <A, B>(f: (a: A) => B) => (ioa: SyncIO<A>) => SyncIO<B> =
+  f => ioa =>
+    map_(ioa, f);
 
 export const attempt: <A>(ioa: SyncIO<A>) => SyncIO<Either<Error, A>> = ioa =>
   new Attempt(ioa);
@@ -108,7 +113,7 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 continue;
 
               case Continuation.AttemptK:
-                result = { tag: 'success', value: Right(v) };
+                v = Right(v);
                 continue;
 
               case undefined:
@@ -151,6 +156,19 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
 };
 
 // -- Point-ful operators
+
+export const redeem_ = <A, B>(
+  ioa: SyncIO<A>,
+  h: (e: Error) => B,
+  f: (a: A) => B,
+): SyncIO<B> =>
+  pipe(
+    ioa,
+    attempt,
+    map(ea => {
+      return ea.fold(h, f);
+    }),
+  );
 
 export const map_ = <A, B>(ioa: SyncIO<A>, f: (a: A) => B): SyncIO<B> =>
   new Map(ioa, f);

@@ -22,6 +22,7 @@ import { IO } from './algebra';
 import {
   async,
   async_,
+  canceled,
   defer,
   delay,
   fromPromise,
@@ -133,6 +134,7 @@ export const ioMonadError: Lazy<MonadError<IoK, Error>> = () =>
 
 export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = () => ({
   ...ioMonadError(),
+  canceled: canceled,
   uncancelable: uncancelable,
   onCancel: onCancel,
   finalize: finalize,

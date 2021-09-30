@@ -4,6 +4,8 @@ import { Outcome } from './outcome';
 import { Poll } from './poll';
 
 export interface MonadCancel<F extends AnyK, E> extends MonadError<F, E> {
+  readonly canceled: Kind<F, [void]>;
+
   readonly uncancelable: <A>(
     body: (poll: Poll<F>) => Kind<F, [A]>,
   ) => Kind<F, [A]>;

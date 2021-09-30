@@ -1,5 +1,10 @@
-import { pipe, throwError } from '@cats4ts/core';
+import fc from 'fast-check';
+import { id, pipe, throwError } from '@cats4ts/core';
+import { Eq, Either, Left, Right } from '@cats4ts/cats';
 import { SyncIO } from '@cats4ts/effect-core';
+import { forAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
 describe('SyncIO', () => {
   describe('free monad', () => {
@@ -21,6 +26,23 @@ describe('SyncIO', () => {
       expect(fa.unsafeRunSync()).toBe(undefined);
       expect(i).toBe(42);
     });
+  });
+
+  describe('error handling', () => {
+    it('should map successful value', () => {
+      expect(
+        SyncIO(() => 42)
+          .redeem(() => -1, id)
+          .unsafeRunSync(),
+      ).toBe(42);
+    });
+
+    test(
+      'attempt is redeem with Left for recover and Right for map',
+      forAll(A.cats4tsSyncIO(fc.integer()), ioa =>
+        ioa.attempt['<=>'](ioa.redeem<Either<Error, number>>(Left, Right)),
+      )(E.eqSyncIO(Either.Eq(Eq.Error.strict, Eq.primitive))),
+    );
   });
 
   it('should recover from error', () => {
