@@ -12,7 +12,7 @@ import { Sync } from '@cats4ts/effect-kernel';
 
 import { SyncIoK } from './sync-io';
 import { defer, delay, pure, throwError } from './constructors';
-import { flatMap_, handleErrorWith_, map_ } from './operators';
+import { flatMap_, handleErrorWith_, map_, tailRecM_ } from './operators';
 
 export const syncIoDefer: Lazy<Defer<SyncIoK>> = () => Defer.of({ defer });
 
@@ -36,7 +36,7 @@ export const syncIoFlatMap: Lazy<FlatMap<SyncIoK>> = () =>
   FlatMap.of({
     ...syncIoApply(),
     flatMap_: flatMap_,
-    tailRecM_: null as any,
+    tailRecM_: tailRecM_,
   });
 
 export const syncIoMonad: Lazy<Monad<SyncIoK>> = () =>

@@ -1,5 +1,5 @@
-import { Either, Left, Right } from '@cats4ts/cats';
 import { pipe } from '@cats4ts/core';
+import { Either, Left, Right } from '@cats4ts/cats';
 import {
   Attempt,
   Continuation,
@@ -10,13 +10,38 @@ import {
   SyncIO,
   view,
 } from './algebra';
+import { pure } from './constructors';
+
+export const attempt: <A>(ioa: SyncIO<A>) => SyncIO<Either<Error, A>> = ioa =>
+  new Attempt(ioa);
+
+export const redeemWith: <A, B>(
+  h: (e: Error) => SyncIO<B>,
+  f: (a: A) => SyncIO<B>,
+) => (ioa: SyncIO<A>) => SyncIO<B> = (h, f) => ioa => redeemWith_(ioa, h, f);
+
+export const handleError: <B>(
+  h: (e: Error) => B,
+) => <A extends B>(ioa: SyncIO<A>) => SyncIO<B> = h => ioa =>
+  handleError_(ioa, h);
+
+export const handleErrorWith: <B>(
+  h: (e: Error) => SyncIO<B>,
+) => <A extends B>(ioa: SyncIO<A>) => SyncIO<B> = h => ioa =>
+  handleErrorWith_(ioa, h);
 
 export const map: <A, B>(f: (a: A) => B) => (ioa: SyncIO<A>) => SyncIO<B> =
   f => ioa =>
     map_(ioa, f);
 
-export const attempt: <A>(ioa: SyncIO<A>) => SyncIO<Either<Error, A>> = ioa =>
-  new Attempt(ioa);
+export const flatMap: <A, B>(
+  f: (a: A) => SyncIO<B>,
+) => (ioa: SyncIO<A>) => SyncIO<B> = f => ioa => flatMap_(ioa, f);
+
+export const tailRecM: <S>(
+  s: S,
+) => <A>(f: (s: S) => SyncIO<Either<S, A>>) => SyncIO<A> = s => f =>
+  tailRecM_(s, f);
 
 export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
   let _cur: SyncIO<unknown> = ioa;
@@ -170,6 +195,27 @@ export const redeem_ = <A, B>(
     }),
   );
 
+export const redeemWith_ = <A, B>(
+  ioa: SyncIO<A>,
+  h: (e: Error) => SyncIO<B>,
+  f: (a: A) => SyncIO<B>,
+): SyncIO<B> =>
+  pipe(
+    ioa,
+    attempt,
+    flatMap(ea => ea.fold(h, f)),
+  );
+
+export const handleError_ = <A>(
+  ioa: SyncIO<A>,
+  h: (e: Error) => A,
+): SyncIO<A> => new HandleErrorWith(ioa, e => pure(h(e)));
+
+export const handleErrorWith_ = <A>(
+  ioa: SyncIO<A>,
+  h: (e: Error) => SyncIO<A>,
+): SyncIO<A> => new HandleErrorWith(ioa, h);
+
 export const map_ = <A, B>(ioa: SyncIO<A>, f: (a: A) => B): SyncIO<B> =>
   new Map(ioa, f);
 
@@ -178,7 +224,11 @@ export const flatMap_ = <A, B>(
   f: (a: A) => SyncIO<B>,
 ): SyncIO<B> => new FlatMap(ioa, f);
 
-export const handleErrorWith_ = <A>(
-  ioa: SyncIO<A>,
-  h: (e: Error) => SyncIO<A>,
-): SyncIO<A> => new HandleErrorWith(ioa, h);
+export const tailRecM_ = <S, A>(
+  s: S,
+  f: (s: S) => SyncIO<Either<S, A>>,
+): SyncIO<A> =>
+  pipe(
+    f(s),
+    flatMap(ea => ea.fold(s => tailRecM_(s, f), pure)),
+  );
