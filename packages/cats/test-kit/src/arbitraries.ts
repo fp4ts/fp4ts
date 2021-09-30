@@ -14,6 +14,13 @@ import {
 } from '@cats4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
+export const cats4tsError = (): Arbitrary<Error> =>
+  fc.oneof(
+    fc.string().map(m => new Error(m)),
+    fc.string().map(m => new TypeError(m)),
+    fc.string().map(m => new RangeError(m)),
+  );
+
 export const cats4tsMiniInt = (): Arbitrary<MiniInt> =>
   fc.integer(MiniInt.MIN_MINI_INT, MiniInt.MAX_MINI_INT).map(MiniInt.wrapped);
 
