@@ -1,3 +1,4 @@
+export * from './clock';
 export * from './monad-cancel';
 export * from './spawn';
 export * from './concurrent';

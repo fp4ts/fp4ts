@@ -15,10 +15,9 @@ import {
   Spawn,
   Sync,
   Temporal,
+  Clock,
 } from '@cats4ts/effect-kernel';
 
-import { IoK } from './io';
-import { IO } from './algebra';
 import {
   async,
   async_,
@@ -37,24 +36,25 @@ import {
   attempt,
   bothOutcome_,
   both_,
+  bracket,
   bracketFull,
+  bracketOutcome,
   bracketOutcome_,
   bracket_,
   delayBy_,
   executeOn_,
   finalize,
+  finalize_,
   flatMap_,
   flatTap_,
   flatten,
   fork,
-  handleError,
-  handleErrorWith,
   handleErrorWith_,
   handleError_,
   map2_,
   map_,
   onCancel,
-  onError,
+  onCancel_,
   onError_,
   parSequence,
   parSequenceN,
@@ -70,6 +70,7 @@ import {
   timeoutTo_,
   timeout_,
 } from './operators';
+import type { IO, IoK } from './io';
 
 export const ioDefer: Lazy<Defer<IoK>> = () => Defer.of({ defer });
 
@@ -132,22 +133,33 @@ export const ioMonadError: Lazy<MonadError<IoK, Error>> = () =>
     redeemWith_: redeemWith_,
   });
 
-export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = () => ({
-  ...ioMonadError(),
-  canceled: canceled,
-  uncancelable: uncancelable,
-  onCancel: onCancel,
-  finalize: finalize,
-  bracket: fa => use => release => bracket_(fa, use, release),
-  bracketOutcome: fa => use => release => bracketOutcome_(fa, use, release),
-  bracketFull: acquire => use => release => bracketFull(acquire, use, release),
-});
+export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = () =>
+  MonadCancel.of({
+    ...ioMonadError(),
+    canceled: canceled,
+    uncancelable: uncancelable,
+    onCancel: onCancel,
+    onCancel_: onCancel_,
+    finalize: finalize,
+    finalize_: finalize_,
+    bracket: bracket,
+    bracket_: bracket_,
+    bracketOutcome: bracketOutcome,
+    bracketOutcome_: bracketOutcome_,
+    bracketFull: bracketFull,
+  });
 
-export const ioSync: Lazy<Sync<IoK>> = () => ({
-  ...ioMonadError(),
-  ...ioDefer(),
-  delay: delay,
-});
+export const ioSync: Lazy<Sync<IoK>> = () =>
+  Sync.of({
+    ...ioMonadCancel(),
+    ...Clock.of({
+      applicative: ioSequentialApplicative(),
+      monotonic: delay(() => process.hrtime()[0]),
+      realTime: delay(() => Date.now()),
+    }),
+    ...ioDefer(),
+    delay: delay,
+  });
 
 export const ioSpawn: Lazy<Spawn<IoK, Error>> = () => ({
   ...ioMonadCancel(),

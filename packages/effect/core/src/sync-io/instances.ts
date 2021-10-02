@@ -8,9 +8,9 @@ import {
   Monad,
   MonadError,
 } from '@cats4ts/cats';
-import { Sync } from '@cats4ts/effect-kernel';
+import { Clock, Sync, MonadCancel } from '@cats4ts/effect-kernel';
 
-import { SyncIoK } from './sync-io';
+import { SyncIO, SyncIoK } from './sync-io';
 import { defer, delay, pure, throwError } from './constructors';
 import { flatMap_, handleErrorWith_, map_, tailRecM_ } from './operators';
 
@@ -50,7 +50,12 @@ export const syncIoMonadError: Lazy<MonadError<SyncIoK, Error>> = () =>
   });
 
 export const syncIoSync: Lazy<Sync<SyncIoK>> = () => ({
-  ...syncIoMonadError(),
+  ...MonadCancel.Uncancelable(syncIoMonadError()),
+  ...Clock.of({
+    applicative: syncIoApplicative(),
+    monotonic: SyncIO(() => process.hrtime()[0]),
+    realTime: SyncIO(() => Date.now()),
+  }),
   ...syncIoDefer(),
   delay: delay,
 });

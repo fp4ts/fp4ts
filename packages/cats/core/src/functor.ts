@@ -8,6 +8,8 @@ export interface Functor<F extends AnyK> extends Invariant<F> {
 
   readonly tap: <A>(f: (a: A) => unknown) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly tap_: <A>(fa: Kind<F, [A]>, f: (a: A) => unknown) => Kind<F, [A]>;
+
+  readonly void: <A>(fa: Kind<F, [A]>) => Kind<F, [void]>;
 }
 
 export type FunctorRequirements<F extends AnyK> = Pick<Functor<F>, 'map_'> &
@@ -22,6 +24,9 @@ export const Functor = Object.freeze({
 
       tap: f => fa => F.map_(fa, x => (f(x), x)),
       tap_: (fa, f) => F.map_(fa, x => (f(x), x)),
+
+      void: fa => F.map_(fa, () => undefined),
+
       ...F,
     }),
 

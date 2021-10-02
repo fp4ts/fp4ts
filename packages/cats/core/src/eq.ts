@@ -21,6 +21,14 @@ export const Eq = Object.freeze({
     return primitiveEq();
   },
 
+  get void(): Eq<void> {
+    return Eq.of({ equals: () => true });
+  },
+
+  get never(): Eq<never> {
+    return Eq.of({ equals: () => false });
+  },
+
   Error: {
     get allEqual(): Eq<Error> {
       return Eq.of({ equals: () => true });

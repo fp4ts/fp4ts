@@ -19,6 +19,8 @@
       "@cats4ts/effect-core/lib/*": ["./effect/core/src/*"],
       "@cats4ts/effect-kernel": ["./effect/kernel/src"],
       "@cats4ts/effect-kernel/lib/*": ["./effect/kernel/src/*"],
+      "@cats4ts/effect-laws": ["./effect/laws/src"],
+      "@cats4ts/effect-laws/lib/*": ["./effect/laws/src/*"],
       "@cats4ts/effect-std": ["./effect/std/src"],
       "@cats4ts/effect-std/lib/*": ["./effect/std/src/*"],
       "@cats4ts/effect-test-kit": ["./effect/test-kit/src"],
@@ -35,6 +37,7 @@
       "./effect",
       "./effect/core/src",
       "./effect/kernel/src",
+      "./effect/laws/src",
       "./effect/std/src",
       "./effect/test-kit/src",
       "./stream/core/src"

@@ -13,14 +13,25 @@ export interface Apply<F extends AnyK> extends Functor<F> {
     fa: Kind<F, [A]>,
   ) => Kind<F, [B]>;
 
-  readonly map2: <A, B, D>(
+  readonly map2: <A, B, C>(
     fb: Kind<F, [B]>,
-    f: (a: A, b: B) => D,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [D]>;
+    f: (a: A, b: B) => C,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [C]>;
   readonly map2_: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
-  ) => <D>(f: (a: A, b: B) => D) => Kind<F, [D]>;
+  ) => <C>(f: (a: A, b: B) => C) => Kind<F, [C]>;
+
+  readonly map3: <A, B, C, D>(
+    fb: Kind<F, [B]>,
+    fc: Kind<F, [C]>,
+    f: (a: A, b: B, c: C) => D,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [D]>;
+  readonly map3_: <A, B, C>(
+    fa: Kind<F, [A]>,
+    fb: Kind<F, [B]>,
+    fC: Kind<F, [C]>,
+  ) => <D>(f: (a: A, b: B, c: C) => D) => Kind<F, [D]>;
 
   readonly map2Eval: <A, B, D>(
     fb: Eval<Kind<F, [B]>>,
@@ -74,6 +85,12 @@ export const Apply = Object.freeze({
       map2: (fb, f) => fa => self.map2_(fa, fb)(f),
       map2_: (fa, fb) => f =>
         self.map_(self.product_(fa, fb), ([a, b]) => f(a, b)),
+
+      map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc)(f),
+      map3_: (fa, fb, fc) => f =>
+        self.map_(self.product_(fa, self.product_(fb, fc)), ([a, [b, c]]) =>
+          f(a, b, c),
+        ),
 
       map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
       map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),

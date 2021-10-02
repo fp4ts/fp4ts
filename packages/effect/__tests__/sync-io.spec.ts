@@ -2,9 +2,8 @@ import fc from 'fast-check';
 import { id, pipe, throwError } from '@cats4ts/core';
 import { Eq, Either, Left, Right } from '@cats4ts/cats';
 import { SyncIO } from '@cats4ts/effect-core';
-import { MonadErrorSuite } from '@cats4ts/cats-laws';
+import { SyncSuite } from '@cats4ts/effect-laws';
 import { checkAll, forAll } from '@cats4ts/cats-test-kit';
-import * as AA from '@cats4ts/cats-test-kit/lib/arbitraries';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
@@ -149,10 +148,10 @@ describe('SyncIO', () => {
     });
   });
 
-  const monadErrorTests = MonadErrorSuite(SyncIO.MonadError);
+  const SyncTests = SyncSuite(SyncIO.Sync);
   checkAll(
-    'MonadError<SyncIO>',
-    monadErrorTests.monadError(
+    'Sync<SyncIO>',
+    SyncTests.syncUncancelable(
       A.cats4tsSyncIO(fc.integer()),
       A.cats4tsSyncIO(fc.integer()),
       A.cats4tsSyncIO(fc.integer()),
@@ -162,12 +161,10 @@ describe('SyncIO', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      AA.cats4tsError(),
       E.eqSyncIO(Eq.primitive),
       E.eqSyncIO(Eq.primitive),
       E.eqSyncIO(Eq.primitive),
       Eq.primitive,
-      Eq.Error.strict,
       EE => E.eqSyncIO(EE),
     ),
   );
