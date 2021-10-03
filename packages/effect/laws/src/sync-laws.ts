@@ -1,6 +1,7 @@
 import { AnyK, Kind, throwError } from '@cats4ts/core';
-import { IsEq } from '@cats4ts/cats-test-kit';
 import { Sync } from '@cats4ts/effect-kernel';
+import { IsEq } from '@cats4ts/cats-test-kit';
+
 import { ClockLaws } from './clock-laws';
 import { MonadCancelLaws } from './monad-cancel-laws';
 

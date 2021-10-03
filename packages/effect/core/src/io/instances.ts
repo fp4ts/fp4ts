@@ -186,6 +186,11 @@ export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = () => ({
 
 export const ioTemporal: Lazy<Temporal<IoK, Error>> = () => ({
   ...ioConcurrent(),
+  ...Clock.of({
+    applicative: ioSequentialApplicative(),
+    monotonic: delay(() => process.hrtime()[0]),
+    realTime: delay(() => Date.now()),
+  }),
   sleep: sleep,
   delayBy: delayBy_,
   timeoutTo: timeoutTo_,

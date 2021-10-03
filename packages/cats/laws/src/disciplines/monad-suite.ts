@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, Monad } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { exec, forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonadLaws } from '../monad-laws';
 import { ApplicativeSuite } from './applicative-suite';
@@ -76,15 +76,7 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
           ],
           [
             'monad tailRecM stack safety',
-            () => {
-              const res = tailRecMStackSafety();
-              const E = mkEqF(Eq.primitive);
-              if (typeof E === 'function') {
-                return expect(E(res)).resolves.toBe(true);
-              }
-              const { lhs, rhs } = res;
-              return expect(E.equals(lhs, rhs)).toBe(true);
-            },
+            exec(tailRecMStackSafety)(mkEqF(Eq.primitive)),
           ],
         ],
         {

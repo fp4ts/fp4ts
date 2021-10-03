@@ -1,4 +1,5 @@
 export * from './rules';
+export * from './exec';
 export * from './for-all';
 export * from './check-all';
 export * from './rule-set';

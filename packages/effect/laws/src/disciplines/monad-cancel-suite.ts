@@ -2,8 +2,9 @@ import { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { MonadErrorSuite } from '@cats4ts/cats-laws';
-import { forAll, RuleSet, Rule, IsEq } from '@cats4ts/cats-test-kit';
 import { MonadCancel } from '@cats4ts/effect-kernel';
+import { forAll, RuleSet, Rule, IsEq } from '@cats4ts/cats-test-kit';
+
 import { MonadCancelLaws } from '../monad-cancel-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
