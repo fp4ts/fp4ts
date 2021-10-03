@@ -8,23 +8,22 @@ import * as E from '@cats4ts/effect-test-kit/lib/eq';
 import * as AA from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 describe('IO Laws', () => {
-  it('should do nothing yet', () => {});
-  // const monadCancelTests = MonadCancelSuite(IO.MonadCancel);
-  // checkAll(
-  //   'MonadCancel<IO>',
-  //   monadCancelTests.monadCancel(
-  //     fc.integer(),
-  //     fc.string(),
-  //     fc.string(),
-  //     fc.string(),
-  //     AA.cats4tsError(),
-  //     Eq.primitive,
-  //     Eq.primitive,
-  //     Eq.primitive,
-  //     Eq.primitive,
-  //     Eq.Error.strict,
-  //     A.cats4tsIO,
-  //     E.eqIO,
-  //   ),
-  // );
+  const monadCancelTests = MonadCancelSuite(IO.MonadCancel);
+  checkAll(
+    'MonadCancel<IO>',
+    monadCancelTests.monadCancel(
+      fc.integer(),
+      fc.string(),
+      fc.string(),
+      fc.string(),
+      AA.cats4tsError(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.Error.strict,
+      A.cats4tsIO,
+      E.eqIO,
+    ),
+  );
 });

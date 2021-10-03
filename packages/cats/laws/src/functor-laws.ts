@@ -16,7 +16,6 @@ export const FunctorLaws = <F extends AnyK>(F: Functor<F>): FunctorLaws<F> => ({
   ): IsEq<Kind<F, [C]>> => {
     const lhs = pipe(fa, F.map(f), F.map(g));
     const rhs = F.map_(fa, compose(g, f));
-    // console.log(lhs, rhs);
     return lhs['<=>'](rhs);
   },
 });

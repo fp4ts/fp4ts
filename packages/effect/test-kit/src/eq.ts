@@ -12,8 +12,8 @@ export const eqIO = <A>(
   autoSuspendThreshold: number = Infinity,
 ): ((r: IsEq<IO<A>>) => Promise<boolean>) => {
   const _Eq = Either.Eq(Eq.Error.strict, E);
-  const MAX_AWAITS = 5;
-  const DELAY = 20;
+  const MAX_AWAITS = 10;
+  const DELAY = 5;
 
   return async ({ lhs, rhs }) => {
     let lhsResult: Either<Error, A> | undefined;

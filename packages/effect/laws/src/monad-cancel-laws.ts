@@ -53,7 +53,7 @@ export const MonadCancelLaws = <F extends AnyK, E>(
         F.uncancelable(() => fin1),
       ),
       fin2,
-    )['<=>'](F.onCancel_(F.onCancel_(fa, fin1), fin1)),
+    )['<=>'](F.onCancel_(F.onCancel_(fa, fin1), fin2)),
 
   uncancelableFinalizers: (fin: Kind<F, [void]>): IsEq<Kind<F, [void]>> =>
     F.onCancel_(

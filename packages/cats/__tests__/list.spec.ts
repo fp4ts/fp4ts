@@ -977,12 +977,11 @@ describe('List', () => {
       expect(List(1, 2, 3).scanLeft1(add)).toEqual(List(1, 3, 6));
     });
 
-    // TODO: Fix
-    // it('should be left associate', () => {
-    //   expect(List(1, 2, 3).scanLeft1((x, y) => `(${x} ${y})`)).toEqual(
-    //     List('1', '(1 2)', '((1 2) 3)'),
-    //   );
-    // });
+    it('should be left associate', () => {
+      expect(List('1', '2', '3').scanLeft1((x, y) => `(${x} ${y})`)).toEqual(
+        List('1', '(1 2)', '((1 2) 3)'),
+      );
+    });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
@@ -1024,12 +1023,11 @@ describe('List', () => {
       expect(List(1, 2, 3).scanRight1(add)).toEqual(List(6, 5, 3));
     });
 
-    // TODO: Fix types
-    // it('should be left associate', () => {
-    //   expect(List(1, 2, 3).scanRight1((x, y) => `(${x} ${y})`)).toEqual(
-    //     List('(1 (2 (3 )))', '(2 (3 ))', '(3 )', ''),
-    //   );
-    // });
+    it('should be left associate', () => {
+      expect(List('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`)).toEqual(
+        List('(1 (2 3))', '(2 3)', '3'),
+      );
+    });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);

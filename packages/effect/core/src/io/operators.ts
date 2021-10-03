@@ -458,13 +458,7 @@ export const handleErrorWith_: <A>(
 ) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f);
 
 export const onError_ = <A>(ioa: IO<A>, f: (e: Error) => IO<void>): IO<A> =>
-  handleErrorWith_(ioa, e =>
-    pipe(
-      f(e),
-      attempt,
-      flatMap(() => throwError(e)),
-    ),
-  );
+  handleErrorWith_(ioa, e => flatMap_(f(e), () => throwError(e)));
 
 export const redeem_ = <A, B>(
   ioa: IO<A>,

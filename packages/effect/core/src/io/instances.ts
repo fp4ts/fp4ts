@@ -7,6 +7,7 @@ import {
   Applicative,
   MonadError,
   Defer,
+  Right,
 } from '@cats4ts/cats';
 import {
   Async,
@@ -166,7 +167,7 @@ export const ioSpawn: Lazy<Spawn<IoK, Error>> = () => ({
   applicative: ioParallelApplicative(),
   fork: fork,
   never: never,
-  suspend: null as any,
+  suspend: async_(cb => delay(() => cb(Right(undefined)))),
   racePair: racePair_,
   raceOutcome: raceOutcome_,
   race: race_,
