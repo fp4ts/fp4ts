@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Apply, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { ApplyLaws } from '../apply-laws';
 import { FunctorSuite } from './functor-suite';
@@ -13,16 +13,15 @@ export const ApplySuite = <F extends AnyK>(F: Apply<F>) => {
     ...FunctorSuite(F),
 
     apply: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet => {
       const {
         applyComposition,
@@ -37,36 +36,41 @@ export const ApplySuite = <F extends AnyK>(F: Apply<F>) => {
         [
           [
             'apply composition',
-            forAll(arbFA, arbFAtoB, arbFBtoC, applyComposition)(EqFC),
+            forAll(
+              mkArbF(arbA),
+              mkArbF(fc.func<[A], B>(arbB)),
+              mkArbF(fc.func<[B], C>(arbC)),
+              applyComposition,
+            )(mkEqF(EqC)),
           ],
           [
             'map2/product-map consistency',
             forAll(
-              arbFA,
-              arbFB,
+              mkArbF(arbA),
+              mkArbF(arbB),
               fc.func<[A, B], C>(arbC),
               map2ProductConsistency,
-            )(EqFC),
+            )(mkEqF(EqC)),
           ],
           [
             'map2/map2Eval consistency',
             forAll(
-              arbFA,
-              arbFB,
+              mkArbF(arbA),
+              mkArbF(arbB),
               fc.func<[A, B], C>(arbC),
               map2EvalConsistency,
-            )(EqFC),
+            )(mkEqF(EqC)),
           ],
           [
             'productL consistent map2',
-            forAll(arbFA, arbFC, productLConsistency)(EqFA),
+            forAll(mkArbF(arbA), mkArbF(arbC), productLConsistency)(mkEqF(EqA)),
           ],
           [
             'productR consistent map2',
-            forAll(arbFA, arbFC, productRConsistency)(EqFC),
+            forAll(mkArbF(arbA), mkArbF(arbC), productRConsistency)(mkEqF(EqC)),
           ],
         ],
-        { parent: self.functor(arbFA, arbA, arbB, arbC, EqFA, EqFC) },
+        { parent: self.functor(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       );
     },
   };

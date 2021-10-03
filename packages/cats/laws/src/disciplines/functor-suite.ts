@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, Functor } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from '../functor-laws';
 import { InvariantSuite } from './invariant-suite';
@@ -13,29 +13,35 @@ export const FunctorSuite = <F extends AnyK>(F: Functor<F>) => {
     ...InvariantSuite(F),
 
     functor: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet => {
       const { covariantComposition, covariantIdentity } = laws;
       return new RuleSet(
         'functor',
         [
-          ['covariant identity', forAll(arbFA, covariantIdentity)(EqFA)],
+          [
+            'covariant identity',
+            forAll(mkArbF(arbA), covariantIdentity)(mkEqF(EqA)),
+          ],
           [
             'covariant composition',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], B>(arbB),
               fc.func<[B], C>(arbC),
               covariantComposition,
-            )(EqFC),
+            )(mkEqF(EqC)),
           ],
         ],
-        { parent: self.invariant(arbFA, arbA, arbB, arbC, EqFA, EqFC) },
+        { parent: self.invariant(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       );
     },
   };

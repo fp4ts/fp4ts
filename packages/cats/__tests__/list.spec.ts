@@ -1110,14 +1110,14 @@ describe('List', () => {
   checkAll(
     'FunctorFilter<List>',
     functorFilterTests.functorFilter(
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(A.cats4tsOption(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsList,
+      List.Eq,
     ),
   );
 
@@ -1125,17 +1125,14 @@ describe('List', () => {
   checkAll(
     'Alternative<List>',
     alternativeTests.alternative(
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.func<[number], number>(fc.integer())),
-      A.cats4tsList(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsList,
+      List.Eq,
     ),
   );
 
@@ -1143,19 +1140,16 @@ describe('List', () => {
   checkAll(
     'Monad<List>',
     monadTests.monad(
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.integer()),
-      A.cats4tsList(fc.func<[number], number>(fc.integer())),
-      A.cats4tsList(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsList,
+      List.Eq,
     ),
   );
 
@@ -1163,10 +1157,6 @@ describe('List', () => {
   checkAll(
     'traversable<List>',
     traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      A.cats4tsList(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -1177,12 +1167,13 @@ describe('List', () => {
       Eval.Applicative,
       Eq.primitive,
       Eq.primitive,
-      eqListNumber,
-      eqListNumber,
-      eqListNumber,
-      Eval.Eq(Eval.Eq(eqListNumber)),
-      Eval.Eq(eqListNumber),
-      Eval.Eq(eqListNumber),
+      Eq.primitive,
+      A.cats4tsList,
+      List.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

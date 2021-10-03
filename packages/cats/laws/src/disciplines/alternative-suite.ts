@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Alternative, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 import { AlternativeLaws } from '../alternative-laws';
 import { MonoidKSuite } from './monoid-k-suite';
 import { ApplicativeSuite } from './applicative-suite';
@@ -14,60 +14,50 @@ export const AlternativeSuite = <F extends AnyK>(F: Alternative<F>) => {
     ...ApplicativeSuite(F),
 
     alternative: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'alternative',
         [
           [
             'alternative right absorption',
-            forAll(arbFAtoB, laws.alternativeRightAbsorption)(EqFA),
+            forAll(
+              mkArbF(fc.func<[A], B>(arbB)),
+              laws.alternativeRightAbsorption,
+            )(mkEqF(EqA)),
           ],
           [
             'alternative left absorption',
             forAll(
-              arbFA,
-              arbFA,
+              mkArbF(arbA),
+              mkArbF(arbA),
               fc.func<[A], B>(arbB),
               laws.alternativeLeftDistributivity,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
           [
             'alternative right absorption',
             forAll(
-              arbFA,
-              arbFAtoB,
-              arbFAtoB,
+              mkArbF(arbA),
+              mkArbF(fc.func<[A], B>(arbB)),
+              mkArbF(fc.func<[A], B>(arbB)),
               laws.alternativeRightDistributivity,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
         ],
         {
           parents: [
-            self.monoidK(arbFA, EqFA),
-            self.applicative(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFAtoB,
-              arbFBtoC,
-              arbA,
-              arbB,
-              arbC,
-              EqFA,
-              EqFB,
-              EqFC,
-            ),
+            self.monoidK(arbA, EqA, mkArbF, mkEqF),
+            self.applicative(arbA, arbB, arbC, EqA, EqB, EqC, mkArbF, mkEqF),
           ],
         },
       ),

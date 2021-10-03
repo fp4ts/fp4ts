@@ -2,7 +2,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, FunctorFilter } from '@cats4ts/cats-core';
 import { Option } from '@cats4ts/cats-core/lib/data';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { FunctorFilterLaws } from '../functor-filter-laws';
@@ -15,14 +15,16 @@ export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
     ...FunctorSuite(F),
 
     functorFilter: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFOptionA: Arbitrary<Kind<F, [Option<A>]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'functor filter',
@@ -30,54 +32,54 @@ export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
           [
             'mapFilter map filter composition',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
               fc.func<[B], Option<C>>(A.cats4tsOption(arbC)),
               laws.mapFilterComposition,
-            )(EqFC),
+            )(mkEqF(EqC)),
           ],
           [
             'mapFilter map filter consistency',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], B>(arbB),
               laws.mapFilterMapConsistency,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'mapFilter collect consistent with map filter',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
               laws.collectConsistentWithMapFilter,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'mapFilter flatten option consistent with map filter identity',
             forAll(
-              arbFOptionA,
+              mkArbF(A.cats4tsOption(arbA)),
               fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
               laws.collectConsistentWithMapFilter,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
           [
             'mapFilter filter consistent with map filter',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], boolean>(fc.boolean()),
               laws.filterConsistentWithMapFilter,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
           [
             'filterNot consistent with filter',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[A], boolean>(fc.boolean()),
               laws.filterNotConsistentWithFilter,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
         ],
-        { parent: self.functor(arbFA, arbA, arbB, arbC, EqFA, EqFC) },
+        { parent: self.functor(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       ),
   };
   return self;

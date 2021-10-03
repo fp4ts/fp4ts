@@ -644,22 +644,18 @@ describe('Vector', () => {
     });
   });
 
-  const eqVectorNumber: Eq<Vector<number>> = Eq.of({
-    equals: (xs, ys) => xs.equals(ys),
-  });
-
   const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
   checkAll(
     'FunctorFilter<Vector>',
     functorFilterTests.functorFilter(
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(A.cats4tsOption(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsVector,
+      Vector.Eq,
     ),
   );
 
@@ -667,17 +663,14 @@ describe('Vector', () => {
   checkAll(
     'Alternative<Vector>',
     alternativeTests.alternative(
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.func<[number], number>(fc.integer())),
-      A.cats4tsVector(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsVector,
+      Vector.Eq,
     ),
   );
 
@@ -685,19 +678,16 @@ describe('Vector', () => {
   checkAll(
     'Monad<Vector>',
     monadTests.monad(
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsVector(fc.func<[number], number>(fc.integer())),
-      A.cats4tsVector(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsVector,
+      Vector.Eq,
     ),
   );
 
@@ -705,10 +695,6 @@ describe('Vector', () => {
   checkAll(
     'Traversable<Vector>',
     traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      A.cats4tsVector(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -719,12 +705,13 @@ describe('Vector', () => {
       Eval.Applicative,
       Eq.primitive,
       Eq.primitive,
-      eqVectorNumber,
-      eqVectorNumber,
-      eqVectorNumber,
-      Eval.Eq(Eval.Eq(eqVectorNumber)),
-      Eval.Eq(eqVectorNumber),
-      Eval.Eq(eqVectorNumber),
+      Eq.primitive,
+      A.cats4tsVector,
+      Vector.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

@@ -1,8 +1,12 @@
-import '@cats4ts/effect-test-kit';
+import '@cats4ts/effect-test-kit/lib/jest-extension';
+import fc from 'fast-check';
 import { id, pipe, throwError } from '@cats4ts/core';
-import { Either, Left, Right, Some, List } from '@cats4ts/cats';
+import { Either, Left, Right, Some, List, Eq } from '@cats4ts/cats';
 import { Semaphore } from '@cats4ts/effect-kernel';
 import { IO, IOOutcome } from '@cats4ts/effect-core';
+import { forAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
 describe('IO', () => {
   describe('free monad', () => {
@@ -35,6 +39,58 @@ describe('IO', () => {
   });
 
   describe('error handling', () => {
+    test(
+      'attempt is redeem with Left for recover and Right for map',
+      forAll(A.cats4tsIO(fc.integer()), io =>
+        io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
+      )(E.eqIO(Either.Eq(Eq.Error.strict, Eq.primitive as Eq<number>))),
+    );
+
+    test(
+      'attempt is flattened redeemWith',
+      forAll(
+        A.cats4tsIO(fc.integer()),
+        fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
+        fc.func<[number], IO<string>>(A.cats4tsIO(fc.string())),
+        (io, recover, bind) =>
+          io.attempt
+            .flatMap(ea => ea.fold(recover, bind))
+            ['<=>'](io.redeemWith(recover, bind)),
+      )(E.eqIO(Eq.primitive)),
+    );
+
+    test(
+      'attempt is flattened redeemWith',
+      forAll(
+        A.cats4tsIO(fc.integer()),
+        fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
+        fc.func<[number], IO<string>>(A.cats4tsIO(fc.string())),
+        (io, recover, bind) =>
+          io.attempt
+            .flatMap(ea => ea.fold(recover, bind))
+            ['<=>'](io.redeemWith(recover, bind)),
+      )(E.eqIO(Eq.primitive)),
+    );
+
+    test(
+      'redeem subsumes handleError',
+      forAll(
+        A.cats4tsIO(fc.integer()),
+        fc.func<[Error], number>(fc.integer()),
+        (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
+      )(E.eqIO(Eq.primitive)),
+    );
+
+    test(
+      'redeemWith subsumes handleErrorWith',
+      forAll(
+        A.cats4tsIO(fc.integer()),
+        fc.func<[Error], IO<number>>(A.cats4tsIO(fc.integer())),
+        (io, recover) =>
+          io.redeemWith(recover, IO.pure)['<=>'](io.handleErrorWith(recover)),
+      )(E.eqIO(Eq.primitive)),
+    );
+
     it.ticked('should capture suspended error', async ticker => {
       const io = IO(() => throwError(Error('test error')));
       await expect(io).toFailWith(new Error('test error'), ticker);
@@ -344,6 +400,14 @@ describe('IO', () => {
       await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
+    it.ticked('should never complete if lhs never completes', async ticker => {
+      await expect(IO.both(IO.never, IO.pure(42)).void).toNeverComplete(ticker);
+    });
+
+    it.ticked('should never complete if rhs never completes', async ticker => {
+      await expect(IO.both(IO.pure(42), IO.never).void).toNeverComplete(ticker);
+    });
+
     it.ticked('should propagate cancelation', async ticker => {
       const io = pipe(
         IO.Do,
@@ -524,33 +588,6 @@ describe('IO', () => {
       await expect(io).toCompleteWith(undefined, ticker);
       expect(cleanup).toHaveBeenCalled();
     });
-
-    // it.ticked(
-    //   'should not trigger cancelation cleanup of async when wrapped in uncancelable',
-    //   async ticker => {
-    //     let executed = false;
-
-    //     const target = IO.uncancelable(() =>
-    //       IO.async_(() =>
-    //         IO.pure(
-    //           IO(() => {
-    //             executed = true;
-    //           }),
-    //         ),
-    //       ),
-    //     );
-
-    //     const io = pipe(
-    //       IO.Do,
-    //       IO.bindTo('f', () => IO.fork(target)),
-    //       IO.bind(() => IO(() => ticker.tickAll())),
-    //       IO.flatMap(({ f }) => f.cancel),
-    //     );
-
-    //     await expect(io).toCompleteAs(undefined, ticker);
-    //     expect(executed).toBe(true);
-    //   },
-    // );
 
     it.ticked(
       'should end with canceled outcome when canceled in uncancelable block',

@@ -241,9 +241,8 @@ describe('Try', () => {
   const semigroupKTests = SemigroupKSuite(Try.SemigroupK);
   checkAll(
     'SemigroupK<Try>',
-    semigroupKTests.semigroupK(
-      A.cats4tsTry(fc.integer()),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
+    semigroupKTests.semigroupK(fc.integer(), Eq.primitive, A.cats4tsTry, E =>
+      Try.Eq(Eq.Error.allEqual, E),
     ),
   );
 
@@ -251,14 +250,14 @@ describe('Try', () => {
   checkAll(
     'FunctorFilter<Try>',
     functorFilterTests.functorFilter(
-      A.cats4tsTry(fc.integer()),
-      A.cats4tsTry(A.cats4tsOption(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsTry,
+      E => Try.Eq(Eq.Error.allEqual, E),
     ),
   );
 
@@ -266,22 +265,18 @@ describe('Try', () => {
   checkAll(
     'MonadError<Try>',
     monadErrorTests.monadError(
-      A.cats4tsTry(fc.integer()),
-      A.cats4tsTry(fc.integer()),
-      A.cats4tsTry(fc.integer()),
-      A.cats4tsTry(fc.integer()),
-      A.cats4tsTry(fc.func<[number], number>(fc.integer())),
-      A.cats4tsTry(fc.func<[number], number>(fc.integer())),
+      fc.integer(),
       fc.integer(),
       fc.integer(),
       fc.integer(),
       A.cats4tsError(),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
-      Try.Eq(Eq.Error.allEqual, Eq.primitive),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
       Eq.primitive,
       Eq.Error.strict,
-      E => Try.Eq(Eq.Error.allEqual, E),
+      A.cats4tsTry,
+      E => Try.Eq(Eq.Error.strict, E),
     ),
   );
 });

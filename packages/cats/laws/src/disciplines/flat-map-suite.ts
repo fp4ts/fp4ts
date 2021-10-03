@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, FlatMap } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FlatMapLaws } from '../flat-map-laws';
 import { ApplySuite } from './apply-suite';
@@ -13,19 +13,18 @@ export const FlatMapSuite = <F extends AnyK>(F: FlatMap<F>) => {
     ...ApplySuite(F),
 
     flatMap: <A, B, C, D>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFD: Arbitrary<Kind<F, [D]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
-      EqFD: Eq<Kind<F, [D]>>,
+      arbD: Arbitrary<D>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      EqD: Eq<D>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet => {
       const {
         flatMapAssociativity,
@@ -41,57 +40,48 @@ export const FlatMapSuite = <F extends AnyK>(F: FlatMap<F>) => {
           [
             'flatMap associativity',
             forAll(
-              arbFA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              fc.func<[B], Kind<F, [C]>>(arbFC),
+              mkArbF(arbA),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[B], Kind<F, [C]>>(mkArbF(arbC)),
               flatMapAssociativity,
-            )(EqFC),
+            )(mkEqF(EqC)),
           ],
           [
             'flatMap consistent apply',
-            forAll(arbFAtoB, arbFA, flatMapConsistentApply)(EqFB),
+            forAll(
+              mkArbF(fc.func<[A], B>(arbB)),
+              mkArbF(arbA),
+              flatMapConsistentApply,
+            )(mkEqF(EqB)),
           ],
           [
             'kleisli associativity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              fc.func<[B], Kind<F, [C]>>(arbFC),
-              fc.func<[C], Kind<F, [D]>>(arbFD),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[B], Kind<F, [C]>>(mkArbF(arbC)),
+              fc.func<[C], Kind<F, [D]>>(mkArbF(arbD)),
               kleisliAssociativity,
-            )(EqFD),
+            )(mkEqF(EqD)),
           ],
           [
             'flatMap from tailRecM consistency',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [A]>>(arbFA),
+              fc.func<[A], Kind<F, [A]>>(mkArbF(arbA)),
               tailRecMConsistentFlatMap,
-            )(EqFA),
+            )(mkEqF(EqA)),
           ],
           [
             'tailRecM consistent flatMap',
             forAll(
-              arbFA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              mkArbF(arbA),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               flatMapFromTailRecMConsistency,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
         ],
-        {
-          parent: self.apply(
-            arbFA,
-            arbFB,
-            arbFC,
-            arbFAtoB,
-            arbFBtoC,
-            arbA,
-            arbB,
-            arbC,
-            EqFA,
-            EqFC,
-          ),
-        },
+        { parent: self.apply(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       );
     },
   };

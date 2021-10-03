@@ -1,10 +1,22 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind, snd } from '@cats4ts/core';
 import { List, Ord, OrderedMap } from '@cats4ts/cats';
-import { SyncIO } from '@cats4ts/effect-core';
+import { SyncIO, IO } from '@cats4ts/effect-core';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-import { GenK, KindGenerator, SyncGenerators } from './kind-generators';
+import {
+  AsyncGenerators,
+  GenK,
+  KindGenerator,
+  SyncGenerators,
+} from './kind-generators';
+import { TestExecutionContext } from './test-execution-context';
+
+export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
+  cats4tsKind(
+    arbA,
+    AsyncGenerators(IO.Async, A.cats4tsError(), cats4tsExecutionContext()),
+  );
 
 export const cats4tsSyncIO = <A>(arbA: Arbitrary<A>): Arbitrary<SyncIO<A>> =>
   cats4tsKind(arbA, SyncGenerators(SyncIO.Sync, A.cats4tsError()));
@@ -36,3 +48,6 @@ export const cats4tsKind = <F extends AnyK, A>(
 
   return gen;
 };
+
+export const cats4tsExecutionContext = (): Arbitrary<TestExecutionContext> =>
+  fc.constant(new TestExecutionContext());

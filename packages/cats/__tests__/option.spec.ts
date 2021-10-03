@@ -141,21 +141,14 @@ describe('Option', () => {
   checkAll(
     'Alternative<OptionK>',
     alternativeTests.alternative(
-      A.cats4tsOption(A.cats4tsPrimitive()),
-      A.cats4tsOption(A.cats4tsPrimitive()),
-      A.cats4tsOption(A.cats4tsPrimitive()),
-      A.cats4tsOption(
-        fc.func<[PrimitiveType], PrimitiveType>(A.cats4tsPrimitive()),
-      ),
-      A.cats4tsOption(
-        fc.func<[PrimitiveType], PrimitiveType>(A.cats4tsPrimitive()),
-      ),
-      A.cats4tsPrimitive(),
-      A.cats4tsPrimitive(),
-      A.cats4tsPrimitive(),
-      eqOptionPrimitive,
-      eqOptionPrimitive,
-      eqOptionPrimitive,
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsOption,
+      Option.Eq,
     ),
   );
 
@@ -163,19 +156,16 @@ describe('Option', () => {
   checkAll(
     'Monad<OptionK>',
     tests.monad(
-      A.cats4tsOption(fc.integer()),
-      A.cats4tsOption(fc.integer()),
-      A.cats4tsOption(fc.integer()),
-      A.cats4tsOption(fc.integer()),
-      A.cats4tsOption(fc.func<[number], number>(fc.integer())),
-      A.cats4tsOption(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqOptionPrimitive,
-      eqOptionPrimitive,
-      eqOptionPrimitive,
-      eqOptionPrimitive,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsOption,
+      Option.Eq,
     ),
   );
 });

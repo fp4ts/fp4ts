@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { ApplicativeError, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { ApplicativeErrorLaws } from '../applicative-error-laws';
@@ -17,20 +17,18 @@ export const ApplicativeErrorSuite = <F extends AnyK, E>(
     ...ApplicativeSuite(F),
 
     applicativeError: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       arbE: Arbitrary<E>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
       EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
       EqE: Eq<E>,
-      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'applicative error',
@@ -39,7 +37,7 @@ export const ApplicativeErrorSuite = <F extends AnyK, E>(
             'applicativeError throwing handleErrorWith',
             forAll(
               arbE,
-              fc.func<[E], Kind<F, [A]>>(arbFA),
+              fc.func<[E], Kind<F, [A]>>(mkArbF(arbA)),
               laws.applicativeErrorHandleWith,
             )(mkEqF(EqA)),
           ],
@@ -47,7 +45,7 @@ export const ApplicativeErrorSuite = <F extends AnyK, E>(
             'applicativeError pure handleErrorWith',
             forAll(
               arbA,
-              fc.func<[E], Kind<F, [A]>>(arbFA),
+              fc.func<[E], Kind<F, [A]>>(mkArbF(arbA)),
               laws.handleErrorWithPure,
             )(mkEqF(EqA)),
           ],
@@ -89,28 +87,33 @@ export const ApplicativeErrorSuite = <F extends AnyK, E>(
             'applicativeError pure onError',
             forAll(
               arbA,
-              fc.func<[E], Kind<F, [void]>>(arbFA.map(F.map(() => undefined))),
+              fc.func<[E], Kind<F, [void]>>(mkArbF(arbA).map(F.void)),
               laws.onErrorPure,
             )(mkEqF(EqA)),
           ],
           [
             'applicativeError throwing onError',
-            forAll(arbFA, arbE, arbFB, laws.onErrorThrow)(EqFB),
+            forAll(
+              mkArbF(arbA),
+              arbE,
+              mkArbF(arbB),
+              laws.onErrorThrow,
+            )(mkEqF(EqB)),
           ],
           [
             'applicativeError redeem is derived from map . attempt',
             forAll(
-              arbFA,
+              mkArbF(arbA),
               fc.func<[E], B>(arbB),
               fc.func<[A], B>(arbB),
               laws.redeemDerivedFromAttemptMap,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'applicativeError throwError distributes over ap left',
             forAll(
               arbE,
-              fc.func<[E], Kind<F, [A]>>(arbFA),
+              fc.func<[E], Kind<F, [A]>>(mkArbF(arbA)),
               laws.throwErrorDistributesOverApLeft,
             )(mkEqF(EqA)),
           ],
@@ -118,24 +121,21 @@ export const ApplicativeErrorSuite = <F extends AnyK, E>(
             'applicativeError throwError distributes over ap right',
             forAll(
               arbE,
-              fc.func<[E], Kind<F, [A]>>(arbFA),
+              fc.func<[E], Kind<F, [A]>>(mkArbF(arbA)),
               laws.throwErrorDistributesOverApRight,
             )(mkEqF(EqA)),
           ],
         ],
         {
           parent: self.applicative(
-            arbFA,
-            arbFB,
-            arbFC,
-            arbFAtoB,
-            arbFBtoC,
             arbA,
             arbB,
             arbC,
-            mkEqF(EqA),
-            EqFB,
-            EqFC,
+            EqA,
+            EqB,
+            EqC,
+            mkArbF,
+            mkEqF,
           ),
         },
       ),

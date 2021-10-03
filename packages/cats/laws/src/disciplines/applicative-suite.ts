@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Applicative, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { ApplicativeLaws } from '../applicative-laws';
 import { ApplySuite } from './apply-suite';
@@ -20,54 +20,59 @@ export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
     ...ApplySuite(F),
 
     applicative: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'applicative',
         [
-          ['applicative identity', forAll(arbFA, applicativeIdentity)(EqFA)],
+          [
+            'applicative identity',
+            forAll(mkArbF(arbA), applicativeIdentity)(mkEqF(EqA)),
+          ],
           [
             'applicative homomorphism',
-            forAll(arbA, fc.func<[A], B>(arbB), applicativeHomomorphism)(EqFB),
+            forAll(
+              arbA,
+              fc.func<[A], B>(arbB),
+              applicativeHomomorphism,
+            )(mkEqF(EqB)),
           ],
           [
             'applicative interchange',
-            forAll(arbA, arbFAtoB, applicativeInterchange)(EqFB),
+            forAll(
+              arbA,
+              mkArbF(fc.func<[A], B>(arbB)),
+              applicativeInterchange,
+            )(mkEqF(EqB)),
           ],
           [
             'applicative map',
-            forAll(arbFA, fc.func<[A], B>(arbB), applicativeMap)(EqFB),
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A], B>(arbB),
+              applicativeMap,
+            )(mkEqF(EqB)),
           ],
           [
             'applicative ap/product consistent',
-            forAll(arbFA, arbFAtoB, apProductConsistent)(EqFB),
+            forAll(
+              mkArbF(arbA),
+              mkArbF(fc.func<[A], B>(arbB)),
+              apProductConsistent,
+            )(mkEqF(EqB)),
           ],
-          ['applicative unit', forAll(arbA, applicativeUnit)(EqFA)],
+          ['applicative unit', forAll(arbA, applicativeUnit)(mkEqF(EqA))],
         ],
-        {
-          parent: self.apply(
-            arbFA,
-            arbFB,
-            arbFC,
-            arbFAtoB,
-            arbFBtoC,
-            arbA,
-            arbB,
-            arbC,
-            EqFA,
-            EqFC,
-          ),
-        },
+        { parent: self.apply(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       ),
   };
   return self;

@@ -25,19 +25,23 @@ declare global {
 it.ticked = (
   message: string,
   testBody: (ticker: Ticker) => any | Promise<any>,
+  timeout?: number,
 ) => {
   it(
     message,
     ticked(ticker => testBody(ticker)),
+    timeout,
   );
 };
 
 test.ticked = (
   message: string,
   testBody: (ticker: Ticker) => any | Promise<any>,
+  timeout?: number,
 ) => {
   test(
     message,
     ticked(ticker => testBody(ticker)),
+    timeout,
   );
 };

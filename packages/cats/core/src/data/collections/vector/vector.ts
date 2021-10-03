@@ -1,4 +1,5 @@
 import { TyK, _ } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
@@ -20,6 +21,7 @@ import {
   vectorAlternative,
   vectorApplicative,
   vectorApply,
+  vectorEq,
   vectorFlatMap,
   vectorFoldable,
   vectorFunctor,
@@ -51,6 +53,7 @@ interface VectorObj {
 
   // -- Instances
 
+  Eq<A>(E: Eq<A>): Eq<Vector<A>>;
   SemigroupK: SemigroupK<VectorK>;
   MonoidK: MonoidK<VectorK>;
   Functor: Functor<VectorK>;
@@ -72,6 +75,7 @@ Vector.fromList = fromList;
 
 Vector.tailRecM = tailRecM;
 
+Vector.Eq = vectorEq;
 Object.defineProperty(Vector, 'SemigroupK', {
   get(): SemigroupK<VectorK> {
     return vectorSemigroupK();

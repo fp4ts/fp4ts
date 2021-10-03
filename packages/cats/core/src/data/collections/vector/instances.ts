@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
 import { SemigroupK } from '../../../semigroup-k';
@@ -22,6 +23,7 @@ import {
   collect_,
   concat_,
   elem_,
+  equals_,
   flatMap_,
   flatten,
   foldLeft_,
@@ -48,6 +50,9 @@ export const fingerTreeSizeMeasured: Measured<
   FingerTree<Size, any>,
   Size
 > = fingerTreeMeasured(sizeMeasured);
+
+export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
+  Eq.of({ equals: equals_(E) });
 
 export const vectorSemigroupK: Lazy<SemigroupK<VectorK>> = () =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });

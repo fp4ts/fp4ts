@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { AdditionMonoid, Eq, Eval } from '@cats4ts/cats-core';
-import { Const, Option } from '@cats4ts/cats-core/lib/data';
+import { Const } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 import {
@@ -10,22 +10,18 @@ import {
 } from '@cats4ts/cats-laws';
 
 describe('Const Laws', () => {
-  const eqContPrim: Eq<Const<number, number>> = Eq.primitive;
-
   const functorFilterTests = FunctorFilterSuite(Const.FunctorFilter<number>());
   checkAll(
     'Monad<Const>',
     functorFilterTests.functorFilter(
       fc.integer(),
-      fc
-        .func<[number], Option<number>>(A.cats4tsOption(fc.integer()))
-        .map(Const.pure(AdditionMonoid)),
       fc.integer(),
       fc.integer(),
-      fc.integer(),
-      eqContPrim,
-      eqContPrim,
-      eqContPrim,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => x.map(Const.pure(AdditionMonoid)),
+      () => Eq.primitive,
     ),
   );
 
@@ -36,14 +32,11 @@ describe('Const Laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      fc.func<[number], number>(fc.integer()).map(Const.pure(AdditionMonoid)),
-      fc.func<[number], number>(fc.integer()).map(Const.pure(AdditionMonoid)),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      eqContPrim,
-      eqContPrim,
-      eqContPrim,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => x.map(Const.pure(AdditionMonoid)),
+      () => Eq.primitive,
     ),
   );
 
@@ -51,10 +44,6 @@ describe('Const Laws', () => {
   checkAll(
     'Traversable<Const>',
     traversableTests.traversable(
-      fc.integer(),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -65,12 +54,13 @@ describe('Const Laws', () => {
       Eval.Applicative,
       Eq.primitive,
       Eq.primitive,
-      eqContPrim,
-      eqContPrim,
-      eqContPrim,
-      Eval.Eq(Eval.Eq(eqContPrim)),
-      Eval.Eq(eqContPrim),
-      Eval.Eq(eqContPrim),
+      Eq.primitive,
+      x => x.map(Const.pure(AdditionMonoid)),
+      () => Eq.primitive,
+      A.cats4tsEval,
+      Eval.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

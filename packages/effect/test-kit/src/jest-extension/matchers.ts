@@ -12,6 +12,7 @@ declare global {
       toCompleteWith(result: unknown, ticker: Ticker): Promise<unknown>;
       toFailWith(error: Error, ticker: Ticker): Promise<unknown>;
       toCancel(ticker: Ticker): Promise<unknown>;
+      toNeverComplete(ticket: Ticker): Promise<unknown>;
     }
   }
 }
@@ -106,5 +107,33 @@ expect.extend({
 
   toCancel(receivedIO: IO<unknown>, ec: TestExecutionContext) {
     return tickTo.apply(this, [receivedIO, IOOutcome.canceled(), ec]);
+  },
+
+  async toNeverComplete(receivedIO: IO<unknown>, ec: TestExecutionContext) {
+    let hasCompleted: boolean = false;
+    const receivedPromise: Promise<IOOutcome<unknown>> = new Promise(resolve =>
+      receivedIO.unsafeRunAsyncOutcome(oc => {
+        hasCompleted = true;
+        resolve(oc);
+      }, new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity })),
+    );
+
+    ec.tickAll();
+
+    // Let the IO finish
+    await new Promise(resolve => setTimeout(resolve, 100));
+    if (hasCompleted) {
+      const receivedOutcome = await receivedPromise;
+      return {
+        pass: false,
+        message: () =>
+          `Expected IO not to complete, but it completed with ${receivedOutcome}`,
+      };
+    } else {
+      return {
+        pass: true,
+        message: () => `Expected IO to complete, but it didn't`,
+      };
+    }
   },
 });

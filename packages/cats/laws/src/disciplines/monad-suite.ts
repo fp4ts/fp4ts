@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, Monad } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonadLaws } from '../monad-laws';
 import { ApplicativeSuite } from './applicative-suite';
@@ -22,19 +22,18 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
     ...FlatMapSuite(F),
 
     monad: <A, B, C, D>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFD: Arbitrary<Kind<F, [D]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
-      EqFD: Eq<Kind<F, [D]>>,
+      arbD: Arbitrary<D>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      EqD: Eq<D>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'monad',
@@ -43,86 +42,83 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
             'monad left identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               monadLeftIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
-          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
+          [
+            'monad right identity',
+            forAll(mkArbF(arbA), monadRightIdentity)(mkEqF(EqA)),
+          ],
           [
             'monad kleisli left identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               kleisliLeftIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'monad kleisli right identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               kleisliRightIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'monad map coherence',
-            forAll(arbFA, fc.func<[A], B>(arbB), mapFlatMapCoherence)(EqFB),
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A], B>(arbB),
+              mapFlatMapCoherence,
+            )(mkEqF(EqB)),
           ],
           [
             'monad tailRecM stack safety',
             () => {
-              const r = tailRecMStackSafety();
-              expect(EqFA.equals(r.lhs, r.rhs)).toBe(true);
+              const res = tailRecMStackSafety();
+              const E = mkEqF(Eq.primitive);
+              if (typeof E === 'function') {
+                return expect(E(res)).resolves.toBe(true);
+              }
+              const { lhs, rhs } = res;
+              return expect(E.equals(lhs, rhs)).toBe(true);
             },
           ],
         ],
         {
           parents: [
             self.flatMap(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFD,
-              arbFAtoB,
-              arbFBtoC,
               arbA,
               arbB,
               arbC,
-              EqFA,
-              EqFB,
-              EqFC,
-              EqFD,
+              arbD,
+              EqA,
+              EqB,
+              EqC,
+              EqD,
+              mkArbF,
+              mkEqF,
             ),
-            self.apply(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFAtoB,
-              arbFBtoC,
-              arbA,
-              arbB,
-              arbC,
-              EqFA,
-              EqFC,
-            ),
+            self.applicative(arbA, arbB, arbC, EqA, EqB, EqC, mkArbF, mkEqF),
           ],
         },
       ),
 
     stackUnsafeMonad: <A, B, C, D>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbFC: Arbitrary<Kind<F, [C]>>,
-      arbFD: Arbitrary<Kind<F, [D]>>,
-      arbFAtoB: Arbitrary<Kind<F, [(a: A) => B]>>,
-      arbFBtoC: Arbitrary<Kind<F, [(b: B) => C]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFB: Eq<Kind<F, [B]>>,
-      EqFC: Eq<Kind<F, [C]>>,
-      EqFD: Eq<Kind<F, [D]>>,
+      arbD: Arbitrary<D>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
+      EqD: Eq<D>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'monad',
@@ -131,61 +127,54 @@ export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
             'monad left identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               monadLeftIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
-          ['monad right identity', forAll(arbFA, monadRightIdentity)(EqFA)],
+          [
+            'monad right identity',
+            forAll(mkArbF(arbA), monadRightIdentity)(mkEqF(EqA)),
+          ],
           [
             'monad kleisli left identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               kleisliLeftIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'monad kleisli right identity',
             forAll(
               arbA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               kleisliRightIdentity,
-            )(EqFB),
+            )(mkEqF(EqB)),
           ],
           [
             'monad map coherence',
-            forAll(arbFA, fc.func<[A], B>(arbB), mapFlatMapCoherence)(EqFB),
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A], B>(arbB),
+              mapFlatMapCoherence,
+            )(mkEqF(EqB)),
           ],
         ],
         {
           parents: [
             self.flatMap(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFD,
-              arbFAtoB,
-              arbFBtoC,
               arbA,
               arbB,
               arbC,
-              EqFA,
-              EqFB,
-              EqFC,
-              EqFD,
+              arbD,
+              EqA,
+              EqB,
+              EqC,
+              EqD,
+              mkArbF,
+              mkEqF,
             ),
-            self.apply(
-              arbFA,
-              arbFB,
-              arbFC,
-              arbFAtoB,
-              arbFBtoC,
-              arbA,
-              arbB,
-              arbC,
-              EqFA,
-              EqFC,
-            ),
+            self.applicative(arbA, arbB, arbC, EqA, EqB, EqC, mkArbF, mkEqF),
           ],
         },
       ),

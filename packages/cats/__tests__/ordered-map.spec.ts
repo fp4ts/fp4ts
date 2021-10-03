@@ -793,14 +793,14 @@ describe('OrderedMap', () => {
     });
   });
 
-  const eqOrderedMapPrimPrim = OrderedMap.Eq(Eq.primitive, Eq.primitive);
-
   const monoidKTests = MonoidKSuite(OrderedMap.MonoidK(Ord.primitive));
   checkAll(
     'MonoidK<OrderedMap>',
     monoidKTests.monoidK(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
-      eqOrderedMapPrimPrim,
+      fc.integer(),
+      Eq.primitive,
+      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      E => OrderedMap.Eq(Eq.primitive, E),
     ),
   );
 
@@ -810,18 +810,14 @@ describe('OrderedMap', () => {
   checkAll(
     'FunctorFilter<OrderedMap>',
     functorFilterTests.functorFilter(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
-      A.cats4tsOrderedMap(
-        fc.integer(),
-        A.cats4tsOption(fc.integer()),
-        Ord.primitive,
-      ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      E => OrderedMap.Eq(Eq.primitive, E),
     ),
   );
 
@@ -829,10 +825,6 @@ describe('OrderedMap', () => {
   checkAll(
     'Traversable<OrderedMap>',
     traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      A.cats4tsOrderedMap(fc.integer(), fc.integer(), Ord.primitive),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -843,12 +835,13 @@ describe('OrderedMap', () => {
       Eval.Applicative,
       Eq.primitive,
       Eq.primitive,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      eqOrderedMapPrimPrim,
-      Eval.Eq(Eval.Eq(eqOrderedMapPrimPrim)),
-      Eval.Eq(eqOrderedMapPrimPrim),
-      Eval.Eq(eqOrderedMapPrimPrim),
+      Eq.primitive,
+      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      E => OrderedMap.Eq(Eq.primitive, E),
+      A.cats4tsEval,
+      Eval.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

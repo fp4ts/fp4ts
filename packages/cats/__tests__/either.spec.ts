@@ -123,18 +123,15 @@ describe('Either', () => {
     });
   });
 
-  const eqEitherStringPrimitive: Eq<Either<string, PrimitiveType>> = Either.Eq(
-    Eq.primitive,
-    Eq.primitive,
-  );
-
   const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
 
   checkAll(
     'SemigroupK<$<EitherK, [string]>>',
     semigroupKTests.semigroupK(
-      A.cats4tsEither(fc.string(), A.cats4tsPrimitive()),
-      eqEitherStringPrimitive,
+      A.cats4tsPrimitive(),
+      Eq.primitive,
+      x => A.cats4tsEither(fc.string(), x),
+      E => Either.Eq(Eq.primitive, E),
     ),
   );
 
@@ -142,21 +139,17 @@ describe('Either', () => {
   checkAll(
     'Monad<$<EitherK, [string]>>',
     tests.monadError(
-      A.cats4tsEither(fc.string(), fc.integer()),
-      A.cats4tsEither(fc.string(), fc.integer()),
-      A.cats4tsEither(fc.string(), fc.integer()),
-      A.cats4tsEither(fc.string(), fc.integer()),
-      A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
-      A.cats4tsEither(fc.string(), fc.func<[number], number>(fc.integer())),
+      fc.integer(),
       fc.integer(),
       fc.integer(),
       fc.integer(),
       fc.string(),
-      eqEitherStringPrimitive,
-      eqEitherStringPrimitive,
-      eqEitherStringPrimitive,
       Eq.primitive,
       Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => A.cats4tsEither(fc.string(), x),
       E => Either.Eq(Eq.primitive, E),
     ),
   );

@@ -649,14 +649,14 @@ describe('Map', () => {
     });
   });
 
-  const eqHashMapPrimPrim = HashMap.Eq(Eq.primitive, Eq.primitive);
-
   const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.primitiveMD5));
   checkAll(
-    'MonoidK<HashMap>',
+    'MonoidK<$<HashMapK, [number]>>',
     monoidKTests.monoidK(
-      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
-      eqHashMapPrimPrim,
+      fc.integer(),
+      Eq.primitive,
+      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      E => HashMap.Eq(Eq.primitive, E),
     ),
   );
 
@@ -664,20 +664,16 @@ describe('Map', () => {
     HashMap.FunctorFilter<number>(),
   );
   checkAll(
-    'FunctorFilter<HashMap>',
+    'FunctorFilter<$<HashMapK, [number]>>',
     functorFilterTests.functorFilter(
-      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
-      A.cats4tsHashMap(
-        fc.integer(),
-        A.cats4tsOption(fc.integer()),
-        Hashable.primitiveMD5,
-      ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqHashMapPrimPrim,
-      eqHashMapPrimPrim,
-      eqHashMapPrimPrim,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      E => HashMap.Eq(Eq.primitive, E),
     ),
   );
 
@@ -685,7 +681,7 @@ describe('Map', () => {
     HashMap.UnorderedTraversable<number>(),
   );
   checkAll(
-    'UnorderedTraversable<HashMap>',
+    'UnorderedTraversable<$<HashMapK, [number]>>',
     unorderedTraversableTests.unorderedTraversable<
       number,
       number,
@@ -693,20 +689,22 @@ describe('Map', () => {
       EvalK,
       EvalK
     >(
-      A.cats4tsHashMap(fc.integer(), fc.integer(), Hashable.primitiveMD5),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
       fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
       AdditionMonoid,
       HashMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,
-      Eq.primitive,
-      eqHashMapPrimPrim,
-      Eval.Eq(Eval.Eq(eqHashMapPrimPrim)),
-      Eval.Eq(eqHashMapPrimPrim),
-      Eval.Eq(eqHashMapPrimPrim),
+      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      E => HashMap.Eq(Eq.primitive, E),
+      A.cats4tsEval,
+      Eval.Eq,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

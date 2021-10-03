@@ -87,56 +87,39 @@ describe('Free', () => {
   checkAll(
     'Monad<$<Free, [IdentityK]>>',
     identityMonadTests.monad(
-      cats4tsFree(fc.integer(), fc.integer()),
-      cats4tsFree(fc.integer(), fc.integer()),
-      cats4tsFree(fc.integer(), fc.integer()),
-      cats4tsFree(fc.integer(), fc.integer()),
-      cats4tsFree(
-        fc.func<[number], number>(fc.integer()),
-        fc.func<[number], number>(fc.integer()),
-      ),
-      cats4tsFree(
-        fc.func<[number], number>(fc.integer()),
-        fc.func<[number], number>(fc.integer()),
-      ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqFreeIdentityPrim,
-      eqFreeIdentityPrim,
-      eqFreeIdentityPrim,
-      eqFreeIdentityPrim,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => cats4tsFree(x, x),
+      <X>(E: Eq<X>) =>
+        Eq.by<Free<IdentityK, X>, Identity<X>>(E, f =>
+          f.mapK(Identity.Monad)(id),
+        ),
     ),
-  );
-
-  const eqFreeOptionPrim: Eq<Free<OptionK, number>> = Eq.by(
-    Option.Eq(Eq.primitive),
-    f => f.mapK(Option.Monad)(id),
   );
 
   const monadTests = MonadSuite(Free.Monad<OptionK>());
   checkAll(
     'Monad<$<Free, [OptionK]>>',
     monadTests.monad(
-      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
-      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
-      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
-      cats4tsFree(A.cats4tsOption(fc.integer()), fc.integer()),
-      cats4tsFree(
-        A.cats4tsOption(fc.func<[number], number>(fc.integer())),
-        fc.func<[number], number>(fc.integer()),
-      ),
-      cats4tsFree(
-        A.cats4tsOption(fc.func<[number], number>(fc.integer())),
-        fc.func<[number], number>(fc.integer()),
-      ),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqFreeOptionPrim,
-      eqFreeOptionPrim,
-      eqFreeOptionPrim,
-      eqFreeOptionPrim,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => cats4tsFree(A.cats4tsOption(x), x),
+      <X>(E: Eq<X>) =>
+        Eq.by<Free<OptionK, X>, Option<X>>(Option.Eq(E), f =>
+          f.mapK(Option.Monad)(id),
+        ),
     ),
   );
 });

@@ -22,20 +22,22 @@ export const UnorderedTraversableSuite = <T extends AnyK>(
     ...UnorderedFoldableSuite(T),
 
     unorderedTraversable: <A, B, C, F extends AnyK, G extends AnyK>(
-      arbTA: Arbitrary<Kind<T, [A]>>,
-      arbFB: Arbitrary<Kind<F, [B]>>,
-      arbGB: Arbitrary<Kind<G, [B]>>,
-      arbGC: Arbitrary<Kind<G, [C]>>,
+      arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
+      arbC: Arbitrary<C>,
+      EqA: Eq<A>,
+      EqB: Eq<B>,
+      EqC: Eq<C>,
       M: Monoid<A>,
       T: Functor<T>,
       F: Applicative<F>,
       G: Applicative<G>,
-      EqA: Eq<A>,
-      EqTB: Eq<Kind<T, [B]>>,
-      EqFGTC: Eq<Kind<F, [Kind<G, [Kind<T, [C]>]>]>>,
-      EqFTA: Eq<Kind<F, [Kind<T, [A]>]>>,
-      EqGTA: Eq<Kind<G, [Kind<T, [A]>]>>,
+      mkArbT: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<T, [X]>>,
+      mkEqT: <X>(E: Eq<X>) => Eq<Kind<T, [X]>>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
+      mkArbG: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<G, [X]>>,
+      mkEqG: <X>(E: Eq<X>) => Eq<Kind<G, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'unordered traversable',
@@ -43,40 +45,40 @@ export const UnorderedTraversableSuite = <T extends AnyK>(
           [
             'unorderedTraversable identity',
             forAll(
-              arbTA,
+              mkArbT(arbA),
               fc.func<[A], B>(arbB),
               laws.unorderedTraversableIdentity(T),
-            )(EqTB),
+            )(mkEqT(EqB)),
           ],
           [
             'unorderedTraversable traversable sequential composition',
             forAll(
-              arbTA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              fc.func<[B], Kind<G, [C]>>(arbGC),
+              mkArbT(arbA),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[B], Kind<G, [C]>>(mkArbG(arbC)),
               laws.unorderedTraversableSequentialComposition(F, G),
-            )(Nested.Eq(EqFGTC)),
+            )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
           ],
           [
             'unorderedTraversable traversable parallel composition',
             forAll(
-              arbTA,
-              fc.func<[A], Kind<F, [B]>>(arbFB),
-              fc.func<[A], Kind<G, [B]>>(arbGB),
+              mkArbT(arbA),
+              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[A], Kind<G, [B]>>(mkArbG(arbB)),
               laws.unorderedTraversableParallelComposition(F, G),
-            )(Tuple2K.Eq(EqFTA, EqGTA)),
+            )(Tuple2K.Eq(mkEqF(mkEqT(EqB)), mkEqG(mkEqT(EqB)))),
           ],
           [
             'unorderedTraversable unordered sequence consistent',
             forAll(
-              arbTA.chain(ta =>
-                arbFB.chain(fb => fc.constant(T.map_(ta, () => fb))),
+              mkArbT(arbA).chain(ta =>
+                mkArbF(arbB).chain(fb => fc.constant(T.map_(ta, () => fb))),
               ),
               laws.unorderedSequenceConsistent(F),
-            )(EqFTA),
+            )(mkEqF(mkEqT(EqA))),
           ],
         ],
-        { parent: self.unorderedFoldable(arbTA, M, EqA) },
+        { parent: self.unorderedFoldable(arbA, EqA, M, mkArbT) },
       ),
   };
   return self;

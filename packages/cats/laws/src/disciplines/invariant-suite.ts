@@ -2,7 +2,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Invariant, Eq } from '@cats4ts/cats-core';
 import { InvariantLaws } from '../invariant-laws';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const InvariantSuite = <F extends AnyK>(F: Invariant<F>) => {
@@ -10,25 +10,31 @@ export const InvariantSuite = <F extends AnyK>(F: Invariant<F>) => {
 
   return {
     invariant: <A, B, C>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
-      EqFA: Eq<Kind<F, [A]>>,
-      EqFC: Eq<Kind<F, [C]>>,
+      EqA: Eq<A>,
+      EqC: Eq<C>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet('invariant', [
-        ['invariant identity', forAll(arbFA, laws.invariantIdentity)(EqFA)],
+        [
+          'invariant identity',
+          forAll(mkArbF(arbA), laws.invariantIdentity)(mkEqF(EqA)),
+        ],
         [
           'invariant composition',
           forAll(
-            arbFA,
+            mkArbF(arbA),
             fc.func<[A], B>(arbB),
             fc.func<[B], C>(arbC),
             fc.func<[B], A>(arbA),
             fc.func<[C], B>(arbB),
             laws.invariantComposition,
-          )(EqFC),
+          )(mkEqF(EqC)),
         ],
       ]),
   };

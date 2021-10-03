@@ -9,7 +9,7 @@ export const ClockSuite = <F extends AnyK>(F: Clock<F>) => {
   const laws = ClockLaws(F);
 
   return {
-    clock: (mkEqF: <X>(EX: Eq<X>) => Eq<Kind<F, [X]>>): RuleSet =>
+    clock: (mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>): RuleSet =>
       new RuleSet('clock', [
         [
           'clock monotonicity',

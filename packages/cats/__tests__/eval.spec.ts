@@ -68,37 +68,26 @@ describe('Eval', () => {
     });
   });
 
-  const eqEvalNumber: Eq<Eval<number>> = {
-    equals: (a, b) => a.value === b.value,
-    notEquals: (a, b) => a.value !== b.value,
-  };
-
   const deferTests = DeferSuite(Eval.Defer);
   checkAll(
     'Defer<Eval>',
-    deferTests.defer(
-      fc.func<[], Eval<number>>(A.cats4tsEval(fc.integer())),
-      eqEvalNumber,
-    ),
+    deferTests.defer(fc.integer(), Eq.primitive, A.cats4tsEval, Eval.Eq),
   );
 
   const tests = MonadSuite(Eval.Monad);
   checkAll(
     'Monad<Eval>',
     tests.monad(
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.integer()),
-      A.cats4tsEval(fc.func<[number], number>(fc.integer())),
-      A.cats4tsEval(fc.func<[number], number>(fc.integer())),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      eqEvalNumber,
-      eqEvalNumber,
-      eqEvalNumber,
-      eqEvalNumber,
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsEval,
+      Eval.Eq,
     ),
   );
 });

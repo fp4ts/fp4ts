@@ -12,34 +12,39 @@ export const UnorderedFoldableSuite = <F extends AnyK>(
   const laws = UnorderedFoldableLaws(F);
   return {
     unorderedFoldable: <A>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      M: Monoid<A>,
+      arbA: Arbitrary<A>,
       EqA: Eq<A>,
+      M: Monoid<A>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet('unordered foldable', [
         [
           'unorderedFoldable unorderedFold consistent with unorderedFoldMap',
-          forAll(arbFA, a =>
+          forAll(mkArbF(arbA), a =>
             laws.unorderedFoldConsistentWithUnorderedFoldMap(a, M),
           )(EqA),
         ],
         [
           'unorderedFoldable all consistent with any',
           forAll(
-            arbFA,
+            mkArbF(arbA),
             fc.func<[A], boolean>(fc.boolean()),
             laws.allConsistentWithAny,
           ),
         ],
-        ['unorderedFoldable any is lazy', forAll(arbFA, laws.anyLazy)],
-        ['unorderedFoldable all is lazy', forAll(arbFA, laws.allLazy)],
+        ['unorderedFoldable any is lazy', forAll(mkArbF(arbA), laws.anyLazy)],
+        ['unorderedFoldable all is lazy', forAll(mkArbF(arbA), laws.allLazy)],
         [
           'unorderedFoldable all empty',
-          forAll(arbFA, fc.func<[A], boolean>(fc.boolean()), laws.allEmpty),
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], boolean>(fc.boolean()),
+            laws.allEmpty,
+          ),
         ],
         [
           'unorderedFoldable nonEmpty reference',
-          forAll(arbFA, laws.nonEmptyRef)(Eq.primitive),
+          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.primitive),
         ],
       ]),
   };

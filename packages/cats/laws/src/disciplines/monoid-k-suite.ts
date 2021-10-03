@@ -1,7 +1,7 @@
 import { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Eq, MonoidK } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonoidKLaws } from '../monoid-k-laws';
 import { SemigroupKSuite } from './semigroup-k-suite';
@@ -13,22 +13,26 @@ export const MonoidKSuite = <F extends AnyK>(F: MonoidK<F>) => {
     ...SemigroupKSuite(F),
 
     monoidK: <A>(
-      arbFA: Arbitrary<Kind<F, [A]>>,
-      EqFA: Eq<Kind<F, [A]>>,
+      arbA: Arbitrary<A>,
+      EqA: Eq<A>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet(
         'monoidK',
         [
           [
             'monoidK left identity',
-            forAll(arbFA, laws.monoidKLeftIdentity)(EqFA),
+            forAll(mkArbF(arbA), laws.monoidKLeftIdentity)(mkEqF(EqA)),
           ],
           [
             'monoidK right identity',
-            forAll(arbFA, laws.monoidKRightIdentity)(EqFA),
+            forAll(mkArbF(arbA), laws.monoidKRightIdentity)(mkEqF(EqA)),
           ],
         ],
-        { parent: self.semigroupK(arbFA, EqFA) },
+        { parent: self.semigroupK(arbA, EqA, mkArbF, mkEqF) },
       ),
   };
   return self;

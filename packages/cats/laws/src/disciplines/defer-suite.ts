@@ -1,7 +1,7 @@
-import { Arbitrary } from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { AnyK, Kind } from '@cats4ts/core';
 import { Defer, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { DeferLaws } from '../defer-laws';
 
@@ -10,17 +10,42 @@ export const DeferSuite = <F extends AnyK>(F: Defer<F>) => {
   const laws = DeferLaws(F);
   return {
     defer: <A>(
-      arbUtoFA: Arbitrary<() => Kind<F, [A]>>,
-      EqFA: Eq<Kind<F, [A]>>,
+      arbA: Arbitrary<A>,
+      EqA: Eq<A>,
+      mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+      mkEqF: <X>(
+        E: Eq<X>,
+      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
     ): RuleSet =>
       new RuleSet('defer', [
-        ['defer identity', forAll(arbUtoFA, laws.deferIdentity)(EqFA)],
+        [
+          'defer identity',
+          forAll(
+            fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
+            laws.deferIdentity,
+          )(mkEqF(EqA)),
+        ],
         [
           'defer dot not evaluate',
-          forAll(arbUtoFA, laws.deferDoesNotEvaluate)(Eq.primitive),
+          forAll(
+            fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
+            laws.deferDoesNotEvaluate,
+          )(Eq.primitive),
         ],
-        ['defer is stack safe', forAll(arbUtoFA, laws.deferIsStackSafe)(EqFA)],
-        ['defer is matches fix', forAll(arbUtoFA, laws.deferMatchesFix)(EqFA)],
+        [
+          'defer is stack safe',
+          forAll(
+            fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
+            laws.deferIsStackSafe,
+          )(mkEqF(EqA)),
+        ],
+        [
+          'defer is matches fix',
+          forAll(
+            fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
+            laws.deferMatchesFix,
+          )(mkEqF(EqA)),
+        ],
       ]),
   };
 };
