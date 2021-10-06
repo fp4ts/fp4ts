@@ -81,6 +81,13 @@ export class TestExecutionContext implements ExecutionContext, Ticker {
     }
   }
 
+  public reset(): void {
+    this.lastFailure = undefined;
+    this.clock = 0;
+    this.lastId = 0;
+    this._tasks = [];
+  }
+
   private get tasks() {
     return {
       isEmpty: (): boolean => {

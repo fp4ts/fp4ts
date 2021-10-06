@@ -6,10 +6,8 @@ import { AsyncSuite } from '@cats4ts/effect-laws';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
-import { TestExecutionContext } from '@cats4ts/effect-test-kit';
 
-describe('IO Laws', () => {
-  const testEC = new TestExecutionContext();
+describe.ticked('IO Laws', ticker => {
   const spawnTests = AsyncSuite(IO.Async);
   checkAll(
     'Async<IO>',
@@ -18,14 +16,14 @@ describe('IO Laws', () => {
       fc.string(),
       fc.string(),
       fc.string(),
-      testEC,
+      ticker as any,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       E.eqIOOutcome(Eq.primitive),
       A.cats4tsIO,
-      EqX => E.eqIO(EqX, testEC),
+      EqX => E.eqIO(EqX, ticker as any),
     ),
   );
 });
