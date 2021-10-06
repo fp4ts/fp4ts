@@ -3,14 +3,14 @@ import { SyncIO, IO, IORuntime, IOOutcome } from '@cats4ts/effect-core';
 import { Outcome, ExecutionContext } from '@cats4ts/effect-kernel';
 import { Pure } from '@cats4ts/effect-core/lib/io/algebra';
 
-import { TestExecutionContext } from './test-execution-context';
+import { Ticker } from './ticker';
 
 export const eqSyncIO = <A>(E: Eq<A>): Eq<SyncIO<A>> =>
   Eq.by(Try.Eq(Eq.Error.strict, E), x => Try(() => x.unsafeRunSync()));
 
 export const eqIO = <A>(
   E: Eq<A>,
-  ec: TestExecutionContext = new TestExecutionContext(),
+  ec: Ticker,
   autoSuspendThreshold: number = Infinity,
 ): Eq<IO<A>> => {
   const _Eq = Option.Eq(Either.Eq(Eq.Error.strict, E));
@@ -19,10 +19,10 @@ export const eqIO = <A>(
     let result: Option<Either<Error, A>> = None;
     ioa.unsafeRunAsync(
       ea => (result = Some(ea)),
-      new IORuntime(ec, () => {}, { autoSuspendThreshold }),
+      new IORuntime(ec.ctx, () => {}, { autoSuspendThreshold }),
     );
 
-    ec.tickAll();
+    ec.ctx.tickAll();
 
     return result;
   });

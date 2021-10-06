@@ -16,7 +16,7 @@ interface State {
   readonly tasks: Task[];
 }
 
-export class TestExecutionContext implements ExecutionContext, Ticker {
+export class TestExecutionContext implements ExecutionContext {
   private lastFailure?: Error;
   private clock: number = 0;
   private lastId: number = 0;

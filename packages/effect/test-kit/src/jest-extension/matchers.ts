@@ -28,16 +28,16 @@ async function tickTo(
   this: MatcherContext,
   receivedIO: IO<unknown>,
   expected: IOOutcome<unknown>,
-  ec: TestExecutionContext,
+  ticker: Ticker,
 ) {
   let received: IOOutcome<unknown> | undefined;
 
   receivedIO.unsafeRunAsyncOutcome(
     oc => (received = oc),
-    new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
+    new IORuntime(ticker.ctx, () => {}, { autoSuspendThreshold: Infinity }),
   );
 
-  ec.tickAll();
+  ticker.ctx.tickAll();
 
   const result = this.equals(received, expected);
 
@@ -88,38 +88,34 @@ async function tickTo(
 expect.extend({
   tickTo,
 
-  toCompleteWith(
-    receivedIO: IO<unknown>,
-    expected: unknown,
-    ec: TestExecutionContext,
-  ) {
+  toCompleteWith(receivedIO: IO<unknown>, expected: unknown, ticker: Ticker) {
     return tickTo.apply(this, [
       receivedIO,
       IOOutcome.success(IO.pure(expected)),
-      ec,
+      ticker,
     ]);
   },
 
-  toFailWith(
-    receivedIO: IO<unknown>,
-    expected: Error,
-    ec: TestExecutionContext,
-  ) {
-    return tickTo.apply(this, [receivedIO, IOOutcome.failure(expected), ec]);
+  toFailWith(receivedIO: IO<unknown>, expected: Error, ticker: Ticker) {
+    return tickTo.apply(this, [
+      receivedIO,
+      IOOutcome.failure(expected),
+      ticker,
+    ]);
   },
 
-  toCancel(receivedIO: IO<unknown>, ec: TestExecutionContext) {
+  toCancel(receivedIO: IO<unknown>, ec: Ticker) {
     return tickTo.apply(this, [receivedIO, IOOutcome.canceled(), ec]);
   },
 
-  toNeverTerminate(receivedIO: IO<unknown>, ec: TestExecutionContext) {
+  toNeverTerminate(receivedIO: IO<unknown>, ticker: Ticker) {
     let outcome: IOOutcome<unknown> | undefined;
 
     receivedIO.unsafeRunAsyncOutcome(oc => {
       outcome = oc;
-    }, new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }));
+    }, new IORuntime(ticker.ctx, () => {}, { autoSuspendThreshold: Infinity }));
 
-    ec.tickAll();
+    ticker.ctx.tickAll();
 
     if (outcome) {
       return {

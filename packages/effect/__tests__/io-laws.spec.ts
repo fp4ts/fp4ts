@@ -16,14 +16,14 @@ describe.ticked('IO Laws', ticker => {
       fc.string(),
       fc.string(),
       fc.string(),
-      ticker as any,
+      ticker.ctx,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       E.eqIOOutcome(Eq.primitive),
       A.cats4tsIO,
-      EqX => E.eqIO(EqX, ticker as any),
+      EqX => E.eqIO(EqX, ticker),
     ),
   );
 });

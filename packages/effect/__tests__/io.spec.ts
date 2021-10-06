@@ -39,15 +39,20 @@ describe('IO', () => {
   });
 
   describe('error handling', () => {
-    test(
+    test.ticked(
       'attempt is redeem with Left for recover and Right for map',
-      forAll(A.cats4tsIO(fc.integer()), io =>
-        io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
-      )(E.eqIO(Either.Eq(Eq.Error.strict, Eq.primitive as Eq<number>))),
+      ticker =>
+        forAll(A.cats4tsIO(fc.integer()), io =>
+          io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
+        )(
+          E.eqIO(
+            Either.Eq(Eq.Error.strict, Eq.primitive as Eq<number>),
+            ticker,
+          ),
+        )(),
     );
 
-    test(
-      'attempt is flattened redeemWith',
+    test.ticked('attempt is flattened redeemWith', ticker =>
       forAll(
         A.cats4tsIO(fc.integer()),
         fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
@@ -56,11 +61,10 @@ describe('IO', () => {
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqIO(Eq.primitive)),
+      )(E.eqIO(Eq.primitive, ticker))(),
     );
 
-    test(
-      'attempt is flattened redeemWith',
+    test.ticked('attempt is flattened redeemWith', ticker =>
       forAll(
         A.cats4tsIO(fc.integer()),
         fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
@@ -69,26 +73,24 @@ describe('IO', () => {
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqIO(Eq.primitive)),
+      )(E.eqIO(Eq.primitive, ticker))(),
     );
 
-    test(
-      'redeem subsumes handleError',
+    test.ticked('redeem subsumes handleError', ticker =>
       forAll(
         A.cats4tsIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
         (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
-      )(E.eqIO(Eq.primitive)),
+      )(E.eqIO(Eq.primitive, ticker))(),
     );
 
-    test(
-      'redeemWith subsumes handleErrorWith',
+    test.ticked('redeemWith subsumes handleErrorWith', ticker =>
       forAll(
         A.cats4tsIO(fc.integer()),
         fc.func<[Error], IO<number>>(A.cats4tsIO(fc.integer())),
         (io, recover) =>
           io.redeemWith(recover, IO.pure)['<=>'](io.handleErrorWith(recover)),
-      )(E.eqIO(Eq.primitive)),
+      )(E.eqIO(Eq.primitive, ticker))(),
     );
 
     it.ticked('should capture suspended error', ticker => {
@@ -259,7 +261,7 @@ describe('IO', () => {
       const ioa = pipe(
         IO.Do,
         IO.bindTo('f', () => IO.canceled.fork),
-        IO.bind(() => IO(() => ticker.tickAll())),
+        IO.bind(() => IO(() => ticker.ctx.tickAll())),
         IO.bind(({ f }) => f.cancel),
       ).void;
 
@@ -307,11 +309,11 @@ describe('IO', () => {
         const io = pipe(
           IO.Do,
           IO.bindTo('f', () => async.fork),
-          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.ctx.tickAll())),
           IO.bind(IO(() => cb(Right(42)))),
-          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.ctx.tickAll())),
           IO.bind(IO(() => cb(Right(43)))),
-          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.ctx.tickAll())),
           IO.bind(IO(() => cb(Left(new Error('test error'))))),
         ).flatMap(({ f }) => f.join);
 
@@ -402,9 +404,9 @@ describe('IO', () => {
       const io = pipe(
         IO.Do,
         IO.bindTo('f', IO.both(IO.never, IO.never).fork),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
         IO.bind(({ f }) => f.cancel),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
       ).flatMap(({ f }) => f.join);
 
       expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
@@ -423,9 +425,9 @@ describe('IO', () => {
               IO.never.onCancel(r.set(true)),
             ).fork,
         ),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
         IO.bind(({ fiber }) => fiber.cancel),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
         IO.bindTo('l2', ({ l }) => l.get()),
         IO.bindTo('r2', ({ r }) => r.get()),
       ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
@@ -522,7 +524,7 @@ describe('IO', () => {
               IO.never.onCancel(r.set(true)),
             ).fork,
         ),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
         IO.bind(({ fiber }) => fiber.cancel),
         IO.bindTo('l2', ({ l }) => l.get()),
         IO.bindTo('r2', ({ r }) => r.get()),
@@ -558,7 +560,7 @@ describe('IO', () => {
       const io = pipe(
         IO.Do,
         IO.bindTo('f', () => target.fork),
-        IO.bind(() => IO(() => ticker.tickAll())),
+        IO.bind(() => IO(() => ticker.ctx.tickAll())),
       ).flatMap(({ f }) => f.cancel);
 
       expect(io).toCompleteWith(undefined, ticker);
@@ -651,7 +653,7 @@ describe('IO', () => {
           'fiber',
           body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
         ),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
         IO.bind(({ fiber }) => fiber.cancel),
       ).flatMap(({ fiber }) => fiber.join);
 
@@ -810,7 +812,7 @@ describe('IO', () => {
       const io = pipe(
         IO.Do,
         IO.bindTo('fiber', body.fork),
-        IO.bind(IO(() => ticker.tickAll())), // start async task
+        IO.bind(IO(() => ticker.ctx.tickAll())), // start async task
       ).flatMap(({ fiber }) => fiber.cancel); // cancel after the async task is running;
 
       expect(io).toCompleteWith(undefined, ticker);
@@ -878,9 +880,9 @@ describe('IO', () => {
             ),
           ),
           IO.bindTo('dFiber', ({ def }) => def.get().fork),
-          IO.bind(IO(() => ticker.tickAll())), // start waiting for the result of cancelation
+          IO.bind(IO(() => ticker.ctx.tickAll())), // start waiting for the result of cancelation
           IO.bindTo('bFiber', ({ bracket }) => bracket.fork),
-          IO.bind(IO(() => ticker.tickAll())), // start `use` with resource
+          IO.bind(IO(() => ticker.ctx.tickAll())), // start `use` with resource
           IO.bind(({ bFiber }) => bFiber.cancel),
         ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
 
@@ -939,7 +941,7 @@ describe('IO', () => {
       const io = pipe(
         IO.Do,
         IO.bindTo('fiber', () => traverse.fork),
-        IO.bind(() => IO(() => ticker.tickAll())),
+        IO.bind(() => IO(() => ticker.ctx.tickAll())),
       ).flatMap(({ fiber }) => fiber.cancel);
 
       expect(io).toCompleteWith(undefined, ticker);
@@ -956,7 +958,7 @@ describe('IO', () => {
       const io = pipe(
         IO.Do,
         IO.bindTo('fiber', () => traverse.fork),
-        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(IO(() => ticker.ctx.tickAll())),
       ).flatMap(({ fiber }) => fiber.cancel);
 
       expect(io).toCompleteWith(undefined, ticker);
@@ -996,9 +998,9 @@ describe('IO', () => {
           IO.bindTo('sem', Semaphore.withPermits(IO.Async)(1)),
           IO.bindTo('f1', ({ sem }) => sem.withPermit(IO.never).fork),
           IO.bindTo('f2', ({ sem }) => sem.withPermit(IO.never).fork),
-          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.ctx.tickAll())),
           IO.bind(({ sem }) => sem.withPermit(IO(cont)).fork),
-          IO.bind(IO(() => ticker.tickAll())),
+          IO.bind(IO(() => ticker.ctx.tickAll())),
         ).flatMap(({ f2 }) => f2.cancel);
 
         expect(io).toCompleteWith(undefined, ticker);

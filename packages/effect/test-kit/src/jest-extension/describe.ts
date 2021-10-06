@@ -14,7 +14,7 @@ describe.ticked = (name: string, body) => {
   describe(
     name,
     ticked(ticker => {
-      beforeEach(() => ticker.reset());
+      beforeEach(() => ticker.ctx.reset());
 
       body(ticker);
     }),

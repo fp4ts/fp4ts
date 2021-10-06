@@ -1,6 +1,7 @@
-export interface Ticker {
-  tickOne(): boolean;
-  tick(ms: number): void;
-  tickAll(untilTime?: number): void;
-  reset(): void;
+import { TestExecutionContext } from './test-execution-context';
+
+export class Ticker {
+  public constructor(
+    public readonly ctx: TestExecutionContext = new TestExecutionContext(),
+  ) {}
 }
