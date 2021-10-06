@@ -8,11 +8,11 @@ declare global {
   namespace jest {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Matchers<R> {
-      tickTo(oc: IOOutcome<unknown>, ticker: Ticker): Promise<unknown>;
-      toCompleteWith(result: unknown, ticker: Ticker): Promise<unknown>;
-      toFailWith(error: Error, ticker: Ticker): Promise<unknown>;
-      toCancel(ticker: Ticker): Promise<unknown>;
-      toNeverComplete(ticket: Ticker): Promise<unknown>;
+      tickTo(oc: IOOutcome<unknown>, ticker: Ticker): unknown;
+      toCompleteWith(result: unknown, ticker: Ticker): unknown;
+      toFailWith(error: Error, ticker: Ticker): unknown;
+      toCancel(ticker: Ticker): unknown;
+      toNeverTerminate(ticket: Ticker): unknown;
     }
   }
 }
@@ -30,28 +30,27 @@ async function tickTo(
   expected: IOOutcome<unknown>,
   ec: TestExecutionContext,
 ) {
-  const receivedPromise: Promise<IOOutcome<unknown>> = new Promise(resolve =>
-    receivedIO.unsafeRunAsyncOutcome(
-      oc => resolve(oc),
-      new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
-    ),
+  let received: IOOutcome<unknown> | undefined;
+
+  receivedIO.unsafeRunAsyncOutcome(
+    oc => (received = oc),
+    new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }),
   );
 
   ec.tickAll();
 
-  const received = await receivedPromise;
   const result = this.equals(received, expected);
 
   const message = expected.fold(
     () =>
-      received.fold(
+      received?.fold(
         () => 'be canceled, but was',
         e => `be canceled, but failed with ${this.utils.printReceived(`${e}`)}`,
         r =>
           `be canceled, but completed with ${this.utils.printReceived(`${r}`)}`,
-      ),
+      ) ?? 'be canceled, but it never terminated',
     e =>
-      received.fold(
+      received?.fold(
         () => `fail with ${this.utils.printExpected(`${e}`)}, but was canceled`,
         e2 =>
           `fail with ${this.utils.printExpected(
@@ -61,9 +60,10 @@ async function tickTo(
           `fail with ${this.utils.printExpected(
             `${e}`,
           )}, but completed with ${this.utils.printReceived(`${r2}`)}`,
-      ),
+      ) ??
+      `fail with ${this.utils.printExpected(`${e}`)}, but it never terminated`,
     r =>
-      received.fold(
+      received?.fold(
         () =>
           `complete with ${this.utils.printExpected(`${r}`)}, but was canceled`,
         e2 =>
@@ -74,7 +74,10 @@ async function tickTo(
           `complete with ${this.utils.printExpected(
             `${r}`,
           )}, but completed with ${this.utils.printReceived(`${r2}`)}`,
-      ),
+      ) ??
+      `complete with ${this.utils.printExpected(
+        `${r}`,
+      )}, but it never terminated`,
   );
 
   return result
@@ -109,25 +112,20 @@ expect.extend({
     return tickTo.apply(this, [receivedIO, IOOutcome.canceled(), ec]);
   },
 
-  async toNeverComplete(receivedIO: IO<unknown>, ec: TestExecutionContext) {
-    let hasCompleted: boolean = false;
-    const receivedPromise: Promise<IOOutcome<unknown>> = new Promise(resolve =>
-      receivedIO.unsafeRunAsyncOutcome(oc => {
-        hasCompleted = true;
-        resolve(oc);
-      }, new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity })),
-    );
+  toNeverTerminate(receivedIO: IO<unknown>, ec: TestExecutionContext) {
+    let outcome: IOOutcome<unknown> | undefined;
+
+    receivedIO.unsafeRunAsyncOutcome(oc => {
+      outcome = oc;
+    }, new IORuntime(ec, () => {}, { autoSuspendThreshold: Infinity }));
 
     ec.tickAll();
 
-    // Let the IO finish
-    await new Promise(resolve => setTimeout(resolve, 100));
-    if (hasCompleted) {
-      const receivedOutcome = await receivedPromise;
+    if (outcome) {
       return {
         pass: false,
         message: () =>
-          `Expected IO not to complete, but it completed with ${receivedOutcome}`,
+          `Expected IO not to complete, but it completed with ${outcome}`,
       };
     } else {
       return {

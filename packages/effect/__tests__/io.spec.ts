@@ -10,11 +10,11 @@ import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
 describe('IO', () => {
   describe('free monad', () => {
-    it.ticked('should produce a pure value', async ticker => {
-      await expect(IO.pure(42)).toCompleteWith(42, ticker);
+    it.ticked('should produce a pure value', ticker => {
+      expect(IO.pure(42)).toCompleteWith(42, ticker);
     });
 
-    it.ticked('should sequence two effects', async ticker => {
+    it.ticked('should sequence two effects', ticker => {
       let i: number = 0;
 
       const fa = pipe(
@@ -25,16 +25,16 @@ describe('IO', () => {
         ),
       );
 
-      await expect(fa).toCompleteWith(undefined, ticker);
+      expect(fa).toCompleteWith(undefined, ticker);
       expect(i).toBe(42);
     });
 
-    it.ticked('should preserve monad identity on async', async ticker => {
+    it.ticked('should preserve monad identity on async', ticker => {
       const io1 = IO.async_(cb => IO(() => cb(Right(42))));
       const io2 = io1.flatMap(i => IO.pure(i));
 
-      await expect(io1).toCompleteWith(42, ticker);
-      await expect(io2).toCompleteWith(42, ticker);
+      expect(io1).toCompleteWith(42, ticker);
+      expect(io2).toCompleteWith(42, ticker);
     });
   });
 
@@ -91,84 +91,84 @@ describe('IO', () => {
       )(E.eqIO(Eq.primitive)),
     );
 
-    it.ticked('should capture suspended error', async ticker => {
+    it.ticked('should capture suspended error', ticker => {
       const io = IO(() => throwError(Error('test error')));
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should resume async IO with failure', async ticker => {
+    it.ticked('should resume async IO with failure', ticker => {
       const io = IO.async_(cb => IO(() => cb(Left(new Error('test error')))));
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should propagate thrown error', async ticker => {
+    it.ticked('should propagate thrown error', ticker => {
       const io = IO.throwError(new Error('test error')).void;
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should short circuit the execution on error', async ticker => {
+    it.ticked('should short circuit the execution on error', ticker => {
       const fn = jest.fn();
       const io = IO.throwError(new Error('test error')).flatMap(() => IO(fn));
 
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
       expect(fn).not.toHaveBeenCalled();
     });
 
-    it.ticked('should handle thrown error', async ticker => {
+    it.ticked('should handle thrown error', ticker => {
       const io = IO.throwError(new Error('test error')).attempt;
-      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
+      expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
-    it.ticked('should catch error thrown in redeem recovery', async ticker => {
+    it.ticked('should catch error thrown in redeem recovery', ticker => {
       const io = IO.throwError(new Error('test error')).redeem(
         () => throwError(new Error('thrown error')),
         () => 42,
       ).attempt;
 
-      await expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
+      expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
     });
 
-    it.ticked('should recover from errors using redeemWith', async ticker => {
+    it.ticked('should recover from errors using redeemWith', ticker => {
       const io = IO.throwError(new Error()).redeemWith(
         () => IO.pure(42),
         () => IO.pure(43),
       );
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
     });
 
-    it.ticked('should bind success values using redeemWith', async ticker => {
+    it.ticked('should bind success values using redeemWith', ticker => {
       const io = IO.unit.redeemWith(
         () => IO.pure(42),
         () => IO.pure(43),
       );
-      await expect(io).toCompleteWith(43, ticker);
+      expect(io).toCompleteWith(43, ticker);
     });
 
-    it.ticked('should catch error thrown in map', async ticker => {
+    it.ticked('should catch error thrown in map', ticker => {
       const io = IO.unit.map(() => throwError(new Error('test error'))).attempt;
 
-      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
+      expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
-    it.ticked('should catch error thrown in flatMap', async ticker => {
+    it.ticked('should catch error thrown in flatMap', ticker => {
       const io = IO.unit.flatMap(() =>
         throwError(new Error('test error')),
       ).attempt;
 
-      await expect(io).toCompleteWith(Left(new Error('test error')), ticker);
+      expect(io).toCompleteWith(Left(new Error('test error')), ticker);
     });
 
-    it.ticked('should catch error thrown in handleErrorWith', async ticker => {
+    it.ticked('should catch error thrown in handleErrorWith', ticker => {
       const io = IO.throwError(new Error('test error')).handleErrorWith(() =>
         throwError(new Error('thrown error')),
       ).attempt;
 
-      await expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
+      expect(io).toCompleteWith(Left(new Error('thrown error')), ticker);
     });
 
     it.ticked(
       'should throw first bracket release error if use effect succeeded',
-      async ticker => {
+      ticker => {
         const inner = IO.unit.bracket(() => IO.unit)(() =>
           IO.throwError(new Error('first error')),
         );
@@ -177,24 +177,24 @@ describe('IO', () => {
           IO.throwError(new Error('second error')),
         ).attempt;
 
-        await expect(io).toCompleteWith(Left(new Error('first error')), ticker);
+        expect(io).toCompleteWith(Left(new Error('first error')), ticker);
       },
     );
   });
 
   describe('side effect suspension', () => {
-    it.ticked('should not memoize effects', async ticker => {
+    it.ticked('should not memoize effects', ticker => {
       let counter = 42;
       const io = IO(() => {
         counter += 1;
         return counter;
       });
 
-      await expect(io).toCompleteWith(43, ticker);
-      await expect(io).toCompleteWith(44, ticker);
+      expect(io).toCompleteWith(43, ticker);
+      expect(io).toCompleteWith(44, ticker);
     });
 
-    it.ticked('should execute suspended effect on each use', async ticker => {
+    it.ticked('should execute suspended effect on each use', ticker => {
       let counter = 42;
       const x = IO(() => {
         counter += 1;
@@ -207,64 +207,55 @@ describe('IO', () => {
         IO.bindTo('b', () => x),
       ).map(({ a, b }) => [a, b] as [number, number]);
 
-      await expect(io).toCompleteWith([43, 44], ticker);
+      expect(io).toCompleteWith([43, 44], ticker);
     });
   });
 
   describe('fibers', () => {
-    it.ticked('should fork and join a fiber', async ticker => {
+    it.ticked('should fork and join a fiber', ticker => {
       const io = IO.pure(42)
         .map(x => x + 1)
         .fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(IOOutcome.success(IO.pure(43)), ticker);
+      expect(io).toCompleteWith(IOOutcome.success(IO.pure(43)), ticker);
     });
 
-    it.ticked('should fork and join a failed fiber', async ticker => {
+    it.ticked('should fork and join a failed fiber', ticker => {
       const io = IO.throwError(new Error('test error')).fork.flatMap(
         f => f.join,
       );
 
-      await expect(io).toCompleteWith(
+      expect(io).toCompleteWith(
         IOOutcome.failure(new Error('test error')),
         ticker,
       );
     });
 
-    it.ticked(
-      'should fork and ignore a non-terminating fiber',
-      async ticker => {
-        const io = IO.never.fork.map(() => 42);
-        await expect(io).toCompleteWith(42, ticker);
-      },
-    );
+    it.ticked('should fork and ignore a non-terminating fiber', ticker => {
+      const io = IO.never.fork.map(() => 42);
+      expect(io).toCompleteWith(42, ticker);
+    });
 
-    it.ticked(
-      'should start a fiber and continue with its results',
-      async ticker => {
-        const io = IO.pure(42)
-          .fork.flatMap(f => f.join)
-          .flatMap(oc =>
-            oc.fold(
-              () => IO.pure(0),
-              () => IO.pure(-1),
-              id,
-            ),
-          );
+    it.ticked('should start a fiber and continue with its results', ticker => {
+      const io = IO.pure(42)
+        .fork.flatMap(f => f.join)
+        .flatMap(oc =>
+          oc.fold(
+            () => IO.pure(0),
+            () => IO.pure(-1),
+            id,
+          ),
+        );
 
-        await expect(io).toCompleteWith(42, ticker);
-      },
-    );
+      expect(io).toCompleteWith(42, ticker);
+    });
 
-    it.ticked(
-      'should produce canceled outcome when fiber canceled',
-      async ticker => {
-        const io = IO.canceled.fork.flatMap(f => f.join);
-        await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
-      },
-    );
+    it.ticked('should produce canceled outcome when fiber canceled', ticker => {
+      const io = IO.canceled.fork.flatMap(f => f.join);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+    });
 
-    it.ticked('should cancel already canceled fiber', async ticker => {
+    it.ticked('should cancel already canceled fiber', ticker => {
       const ioa = pipe(
         IO.Do,
         IO.bindTo('f', () => IO.canceled.fork),
@@ -272,39 +263,39 @@ describe('IO', () => {
         IO.bind(({ f }) => f.cancel),
       ).void;
 
-      await expect(ioa).toCompleteWith(undefined, ticker);
+      expect(ioa).toCompleteWith(undefined, ticker);
     });
   });
 
   describe('async', () => {
-    it.ticked('should resume async continuation', async ticker => {
+    it.ticked('should resume async continuation', ticker => {
       const io = IO.async_(cb => IO(() => cb(Right(42))));
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
     });
 
     it.ticked(
       'should resume async continuation and bind its results',
-      async ticker => {
+      ticker => {
         const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).map(
           x => x + 2,
         );
 
-        await expect(io).toCompleteWith(44, ticker);
+        expect(io).toCompleteWith(44, ticker);
       },
     );
 
-    it.ticked('should produce a failure when bind fails', async ticker => {
+    it.ticked('should produce a failure when bind fails', ticker => {
       const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).flatMap(() =>
         IO.throwError(new Error('test error')),
       ).void;
 
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
     it.ticked(
       'should resume only once even if cb called multiple times',
-      async ticker => {
+      ticker => {
         let cb: (ea: Either<Error, number>) => void;
 
         const async = IO.async_<number>(cb0 =>
@@ -324,13 +315,13 @@ describe('IO', () => {
           IO.bind(IO(() => cb(Left(new Error('test error'))))),
         ).flatMap(({ f }) => f.join);
 
-        await expect(io).toCompleteWith(IOOutcome.success(IO.pure(42)), ticker);
+        expect(io).toCompleteWith(IOOutcome.success(IO.pure(42)), ticker);
       },
     );
 
     it.ticked(
       'should cancel and complete a fiber while finalizer on poll',
-      async ticker => {
+      ticker => {
         const ioa = IO.uncancelable(poll =>
           IO.canceled
             .flatMap(() => poll(IO.unit))
@@ -338,11 +329,11 @@ describe('IO', () => {
             .fork.flatMap(f => f.join),
         );
 
-        await expect(ioa).toCompleteWith(IOOutcome.canceled(), ticker);
+        expect(ioa).toCompleteWith(IOOutcome.canceled(), ticker);
       },
     );
 
-    it.ticked('should allow miss-ordering of completions', async ticker => {
+    it.ticked('should allow miss-ordering of completions', ticker => {
       let outerR: number = 0;
       let innerR: number = 0;
 
@@ -366,48 +357,48 @@ describe('IO', () => {
         }),
       );
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
       expect([innerR, outerR]).toEqual([2, 1]);
     });
   });
 
   describe('both', () => {
-    it.ticked('should complete when both fibers complete', async ticker => {
+    it.ticked('should complete when both fibers complete', ticker => {
       const io = IO.both(IO.pure(42), IO.pure(43));
-      await expect(io).toCompleteWith([42, 43], ticker);
+      expect(io).toCompleteWith([42, 43], ticker);
     });
 
-    it.ticked('should fail if lhs fiber fails', async ticker => {
+    it.ticked('should fail if lhs fiber fails', ticker => {
       const io = IO.both(IO.throwError(new Error('left error')), IO.pure(43));
-      await expect(io).toFailWith(new Error('left error'), ticker);
+      expect(io).toFailWith(new Error('left error'), ticker);
     });
 
-    it.ticked('should fail if rhs fiber fails', async ticker => {
+    it.ticked('should fail if rhs fiber fails', ticker => {
       const io = IO.both(IO.pure(42), IO.throwError(new Error('right error')));
-      await expect(io).toFailWith(new Error('right error'), ticker);
+      expect(io).toFailWith(new Error('right error'), ticker);
     });
 
-    it.ticked('should cancel if lhs cancels', async ticker => {
+    it.ticked('should cancel if lhs cancels', ticker => {
       const io = IO.both(IO.canceled, IO.pure(43)).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
-    it.ticked('should cancel if rhs cancels', async ticker => {
+    it.ticked('should cancel if rhs cancels', ticker => {
       const io = IO.both(IO.pure(42), IO.canceled).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
-    it.ticked('should never complete if lhs never completes', async ticker => {
-      await expect(IO.both(IO.never, IO.pure(42)).void).toNeverComplete(ticker);
+    it.ticked('should never complete if lhs never completes', ticker => {
+      expect(IO.both(IO.never, IO.pure(42)).void).toNeverTerminate(ticker);
     });
 
-    it.ticked('should never complete if rhs never completes', async ticker => {
-      await expect(IO.both(IO.pure(42), IO.never).void).toNeverComplete(ticker);
+    it.ticked('should never complete if rhs never completes', ticker => {
+      expect(IO.both(IO.pure(42), IO.never).void).toNeverTerminate(ticker);
     });
 
-    it.ticked('should propagate cancelation', async ticker => {
+    it.ticked('should propagate cancelation', ticker => {
       const io = pipe(
         IO.Do,
         IO.bindTo('f', IO.both(IO.never, IO.never).fork),
@@ -416,10 +407,10 @@ describe('IO', () => {
         IO.bind(IO(() => ticker.tickAll())),
       ).flatMap(({ f }) => f.join);
 
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
-    it.ticked('should cancel both fibers', async ticker => {
+    it.ticked('should cancel both fibers', ticker => {
       const io = pipe(
         IO.Do,
         IO.bindTo('l', IO.ref<boolean>(false)),
@@ -439,104 +430,86 @@ describe('IO', () => {
         IO.bindTo('r2', ({ r }) => r.get()),
       ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
 
-      await expect(io).toCompleteWith([true, true], ticker);
+      expect(io).toCompleteWith([true, true], ticker);
     });
   });
 
   describe('race', () => {
-    it.ticked('should complete with faster, lhs', async ticker => {
+    it.ticked('should complete with faster, lhs', ticker => {
       const io = IO.race(
         IO.pure(42),
         IO.sleep(100).flatMap(() => IO.pure(43)),
       );
 
-      await expect(io).toCompleteWith(Left(42), ticker);
+      expect(io).toCompleteWith(Left(42), ticker);
     });
 
-    it.ticked('should complete with faster, rhs', async ticker => {
+    it.ticked('should complete with faster, rhs', ticker => {
       const io = IO.race(
         IO.sleep(100).flatMap(() => IO.pure(42)),
         IO.pure(43),
       );
 
-      await expect(io).toCompleteWith(Right(43), ticker);
+      expect(io).toCompleteWith(Right(43), ticker);
     });
 
-    it.ticked('should fail if lhs fails', async ticker => {
+    it.ticked('should fail if lhs fails', ticker => {
       const io = IO.race(IO.throwError(new Error('left error')), IO.pure(43));
-      await expect(io).toFailWith(new Error('left error'), ticker);
+      expect(io).toFailWith(new Error('left error'), ticker);
     });
 
-    it.ticked('should fail if rhs fails', async ticker => {
+    it.ticked('should fail if rhs fails', ticker => {
       const io = IO.race(IO.pure(42), IO.throwError(new Error('right error')));
-      await expect(io).toFailWith(new Error('right error'), ticker);
+      expect(io).toFailWith(new Error('right error'), ticker);
     });
 
-    it.ticked(
-      'should fail if lhs fails and rhs never completes',
-      async ticker => {
-        const io = IO.race(IO.throwError(new Error('left error')), IO.never);
-        await expect(io).toFailWith(new Error('left error'), ticker);
-      },
-    );
+    it.ticked('should fail if lhs fails and rhs never completes', ticker => {
+      const io = IO.race(IO.throwError(new Error('left error')), IO.never);
+      expect(io).toFailWith(new Error('left error'), ticker);
+    });
 
-    it.ticked(
-      'should fail if rhs fails and lhs never completes',
-      async ticker => {
-        const io = IO.race(IO.never, IO.throwError(new Error('right error')));
-        await expect(io).toFailWith(new Error('right error'), ticker);
-      },
-    );
+    it.ticked('should fail if rhs fails and lhs never completes', ticker => {
+      const io = IO.race(IO.never, IO.throwError(new Error('right error')));
+      expect(io).toFailWith(new Error('right error'), ticker);
+    });
 
-    it.ticked(
-      'should complete with lhs when rhs never completes',
-      async ticker => {
-        const io = IO.race(IO.pure(42), IO.never);
-        await expect(io).toCompleteWith(Left(42), ticker);
-      },
-    );
+    it.ticked('should complete with lhs when rhs never completes', ticker => {
+      const io = IO.race(IO.pure(42), IO.never);
+      expect(io).toCompleteWith(Left(42), ticker);
+    });
 
-    it.ticked(
-      'should complete with rhs when lhs never completes',
-      async ticker => {
-        const io = IO.race(IO.never, IO.pure(43));
-        await expect(io).toCompleteWith(Right(43), ticker);
-      },
-    );
+    it.ticked('should complete with rhs when lhs never completes', ticker => {
+      const io = IO.race(IO.never, IO.pure(43));
+      expect(io).toCompleteWith(Right(43), ticker);
+    });
 
-    it.ticked('should be canceled when both sides canceled', async ticker => {
+    it.ticked('should be canceled when both sides canceled', ticker => {
       const io = IO.race(IO.canceled, IO.canceled).fork.flatMap(f => f.join);
 
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
-    it.ticked(
-      'should succeed if lhs succeeds and rhs cancels',
-      async ticker => {
-        const io = IO.race(IO.pure(42), IO.canceled);
-        await expect(io).toCompleteWith(Left(42), ticker);
-      },
-    );
+    it.ticked('should succeed if lhs succeeds and rhs cancels', ticker => {
+      const io = IO.race(IO.pure(42), IO.canceled);
+      expect(io).toCompleteWith(Left(42), ticker);
+    });
 
-    it.ticked(
-      'should succeed if rhs succeeds and lhs cancels',
-      async ticker => {
-        const io = IO.race(IO.canceled, IO.pure(43));
-        await expect(io).toCompleteWith(Right(43), ticker);
-      },
-    );
+    it.ticked('should succeed if rhs succeeds and lhs cancels', ticker => {
+      const io = IO.race(IO.canceled, IO.pure(43));
+      expect(io).toCompleteWith(Right(43), ticker);
+    });
 
-    it.ticked('should fail if lhs fails and rhs cancels', async ticker => {
+    it.ticked('should fail if lhs fails and rhs cancels', ticker => {
       const io = IO.race(IO.throwError(new Error('test error')), IO.canceled);
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should fail if rhs fails and lhs cancels', async ticker => {
+    it.ticked('should fail if rhs fails and lhs cancels', ticker => {
       const io = IO.race(IO.canceled, IO.throwError(new Error('test error')));
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should cancel both fibers when canceled', async ticker => {
+    it.ticked('should cancel both fibers when canceled', ticker => {
       const io = pipe(
         IO.Do,
         IO.bindTo('l', IO.ref(false)),
@@ -555,25 +528,29 @@ describe('IO', () => {
         IO.bindTo('r2', ({ r }) => r.get()),
       ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
 
-      await expect(io).toCompleteWith([true, true], ticker);
+      expect(io).toCompleteWith([true, true], ticker);
     });
   });
 
   describe('cancelation', () => {
-    it.ticked('should cancel never after forking', async ticker => {
-      const io = IO.never.fork.flatMap(f => f.cancel['>>>'](f.join));
-
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+    it.ticked('should never terminate', ticker => {
+      expect(IO.never).toNeverTerminate(ticker);
     });
 
-    it.ticked('should cancel infinite chain of binds', async ticker => {
+    it.ticked('should cancel never after forking', ticker => {
+      const io = IO.never.fork.flatMap(f => f.cancel['>>>'](f.join));
+
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+    });
+
+    it.ticked('should cancel infinite chain of binds', ticker => {
       const infinite: IO<void> = IO.unit.flatMap(() => infinite);
       const io = infinite.fork.flatMap(f => f.cancel['>>>'](f.join));
 
-      await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
-    it.ticked('should trigger cancelation cleanup of async', async ticker => {
+    it.ticked('should trigger cancelation cleanup of async', ticker => {
       const cleanup = jest.fn();
 
       const target = IO.async(() => IO.pure(Some(IO(cleanup))));
@@ -584,70 +561,67 @@ describe('IO', () => {
         IO.bind(() => IO(() => ticker.tickAll())),
       ).flatMap(({ f }) => f.cancel);
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
       expect(cleanup).toHaveBeenCalled();
     });
 
     it.ticked(
       'should end with canceled outcome when canceled in uncancelable block',
-      async ticker => {
+      ticker => {
         const io = IO.uncancelable(() => IO.canceled);
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
       },
     );
 
-    it.ticked(
-      'should cancel bind of canceled uncancelable block',
-      async ticker => {
-        const cont = jest.fn();
-        const io = IO.uncancelable(() => IO.canceled).flatMap(() => IO(cont));
+    it.ticked('should cancel bind of canceled uncancelable block', ticker => {
+      const cont = jest.fn();
+      const io = IO.uncancelable(() => IO.canceled).flatMap(() => IO(cont));
 
-        await expect(io).toCancel(ticker);
-        expect(cont).not.toHaveBeenCalled();
-      },
-    );
+      expect(io).toCancel(ticker);
+      expect(cont).not.toHaveBeenCalled();
+    });
 
-    it.ticked('should execute onCancel block', async ticker => {
+    it.ticked('should execute onCancel block', ticker => {
       const cleanup = jest.fn();
 
       const io = IO.uncancelable(poll =>
         IO.canceled.flatMap(() => poll(IO.unit).onCancel(IO(cleanup))),
       );
 
-      await expect(io).toCancel(ticker);
+      expect(io).toCancel(ticker);
       expect(cleanup).toHaveBeenCalled();
     });
 
     it.ticked(
       'should break out of uncancelable when canceled before poll',
-      async ticker => {
+      ticker => {
         const cont = jest.fn();
 
         const io = IO.uncancelable(poll =>
           IO.canceled.flatMap(() => poll(IO.unit)).flatMap(() => IO(cont)),
         );
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(cont).not.toHaveBeenCalled();
       },
     );
 
     it.ticked(
       'should not execute onCancel block when canceled within uncancelable',
-      async ticker => {
+      ticker => {
         const cleanup = jest.fn();
 
         const io = IO.uncancelable(() =>
           IO.canceled.flatMap(() => IO.unit.onCancel(IO(cleanup))),
         );
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(cleanup).not.toHaveBeenCalled();
       },
     );
 
-    it.ticked('should unmask only the current fiber', async ticker => {
+    it.ticked('should unmask only the current fiber', ticker => {
       const cont = jest.fn();
 
       const io = IO.uncancelable(outerPoll => {
@@ -658,39 +632,36 @@ describe('IO', () => {
         return inner.fork.flatMap(f => f.join).void;
       });
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
       expect(cont).toHaveBeenCalled();
     });
 
-    it.ticked(
-      'should run three finalizers while async suspended',
-      async ticker => {
-        const results: number[] = [];
-        const pushResult: (x: number) => IO<void> = x =>
-          IO(() => {
-            results.push(x);
-          });
+    it.ticked('should run three finalizers while async suspended', ticker => {
+      const results: number[] = [];
+      const pushResult: (x: number) => IO<void> = x =>
+        IO(() => {
+          results.push(x);
+        });
 
-        const body = IO.async<never>(() => IO.pure(Some(pushResult(1))));
+      const body = IO.async<never>(() => IO.pure(Some(pushResult(1))));
 
-        const io = pipe(
-          IO.Do,
-          IO.bindTo(
-            'fiber',
-            body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
-          ),
-          IO.bind(IO(() => ticker.tickAll())),
-          IO.bind(({ fiber }) => fiber.cancel),
-        ).flatMap(({ fiber }) => fiber.join);
+      const io = pipe(
+        IO.Do,
+        IO.bindTo(
+          'fiber',
+          body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
+        ),
+        IO.bind(IO(() => ticker.tickAll())),
+        IO.bind(({ fiber }) => fiber.cancel),
+      ).flatMap(({ fiber }) => fiber.join);
 
-        await expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
-        expect(results).toEqual([1, 2, 3]);
-      },
-    );
+      expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
+      expect(results).toEqual([1, 2, 3]);
+    });
 
     it.ticked(
       'should apply nested polls when called in correct order',
-      async ticker => {
+      ticker => {
         const cont = jest.fn();
 
         const io = IO.uncancelable(outerPoll =>
@@ -699,14 +670,14 @@ describe('IO', () => {
           ),
         );
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(cont).toHaveBeenCalled();
       },
     );
 
     it.ticked(
       'should not apply nested polls when called in incorrect order',
-      async ticker => {
+      ticker => {
         const cont = jest.fn();
 
         const io = IO.uncancelable(outerPoll =>
@@ -715,61 +686,61 @@ describe('IO', () => {
           ),
         );
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(cont).not.toHaveBeenCalled();
       },
     );
 
-    it.ticked('should ignore repeated poll calls', async ticker => {
+    it.ticked('should ignore repeated poll calls', ticker => {
       const cont = jest.fn();
 
       const io = IO.uncancelable(poll =>
         IO.uncancelable(() => poll(poll(IO.canceled)).flatMap(() => IO(cont))),
       );
 
-      await expect(io).toCancel(ticker);
+      expect(io).toCancel(ticker);
       expect(cont).toHaveBeenCalled();
     });
   });
 
   describe('finalizers', () => {
-    it.ticked('finalizer should not run on success', async ticker => {
+    it.ticked('finalizer should not run on success', ticker => {
       const fin = jest.fn();
 
       const io = IO.pure(42).onCancel(IO(fin));
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
       expect(fin).not.toHaveBeenCalled();
     });
 
-    it.ticked('should run finalizer on success', async ticker => {
+    it.ticked('should run finalizer on success', ticker => {
       const fin = jest.fn();
 
       const io = IO.pure(42).finalize(() => IO(fin));
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
-    it.ticked('should run finalizer on failure', async ticker => {
+    it.ticked('should run finalizer on failure', ticker => {
       const fin = jest.fn();
 
       const io = IO.throwError(new Error('test error')).finalize(() => IO(fin));
 
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
       expect(fin).toHaveBeenCalled();
     });
 
-    it.ticked('should run finalizer on cancelation', async ticker => {
+    it.ticked('should run finalizer on cancelation', ticker => {
       const fin = jest.fn();
 
       const io = IO.canceled.finalize(() => IO(fin));
 
-      await expect(io).toCancel(ticker);
+      expect(io).toCancel(ticker);
       expect(fin).toHaveBeenCalled();
     });
 
-    it.ticked('should run multiple finalizers', async ticker => {
+    it.ticked('should run multiple finalizers', ticker => {
       const inner = jest.fn();
       const outer = jest.fn();
 
@@ -777,12 +748,12 @@ describe('IO', () => {
         .finalize(() => IO(inner))
         .finalize(() => IO(outer));
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalled();
       expect(outer).toHaveBeenCalled();
     });
 
-    it.ticked('should run multiple finalizers exactly once', async ticker => {
+    it.ticked('should run multiple finalizers exactly once', ticker => {
       const inner = jest.fn();
       const outer = jest.fn();
 
@@ -790,12 +761,12 @@ describe('IO', () => {
         .finalize(() => IO(inner))
         .finalize(() => IO(outer));
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
       expect(inner).toHaveBeenCalledTimes(1);
       expect(outer).toHaveBeenCalledTimes(1);
     });
 
-    it.ticked('should run finalizer on async success', async ticker => {
+    it.ticked('should run finalizer on async success', ticker => {
       const fin = jest.fn();
 
       const io = IO.pure(42)
@@ -808,19 +779,19 @@ describe('IO', () => {
           ),
         );
 
-      await expect(io).toCompleteWith(42, ticker);
+      expect(io).toCompleteWith(42, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
-    it.ticked('should retain errors through finalizers', async ticker => {
+    it.ticked('should retain errors through finalizers', ticker => {
       const io = IO.throwError(new Error('test error'))
         .finalize(() => IO.unit)
         .finalize(() => IO.unit);
 
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should run an async finalizer of async IO', async ticker => {
+    it.ticked('should run an async finalizer of async IO', ticker => {
       const fin = jest.fn();
 
       const body = IO.async(() =>
@@ -842,39 +813,39 @@ describe('IO', () => {
         IO.bind(IO(() => ticker.tickAll())), // start async task
       ).flatMap(({ fiber }) => fiber.cancel); // cancel after the async task is running;
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
       expect(fin).toHaveBeenCalled();
     });
 
     it.ticked(
       'should not run finalizer of canceled uncancelable succeeds',
-      async ticker => {
+      ticker => {
         const fin = jest.fn();
 
         const io = IO.uncancelable(() => IO.canceled.map(() => 42)).onCancel(
           IO(fin),
         );
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(fin).not.toHaveBeenCalled();
       },
     );
 
     it.ticked(
       'should not run finalizer of canceled uncancelable fails',
-      async ticker => {
+      ticker => {
         const fin = jest.fn();
 
         const io = IO.uncancelable(() =>
           IO.canceled.flatMap(() => IO.throwError(new Error('test error'))),
         ).onCancel(IO(fin));
 
-        await expect(io).toCancel(ticker);
+        expect(io).toCancel(ticker);
         expect(fin).not.toHaveBeenCalled();
       },
     );
 
-    it.ticked('should run finalizer on failed bracket use', async ticker => {
+    it.ticked('should run finalizer on failed bracket use', ticker => {
       const io = pipe(
         IO.Do,
         IO.bindTo('ref', IO.ref(false)),
@@ -888,12 +859,12 @@ describe('IO', () => {
         ),
       ).flatMap(({ ref }) => ref.get());
 
-      await expect(io).toCompleteWith(true, ticker);
+      expect(io).toCompleteWith(true, ticker);
     });
 
     it.ticked(
       'should cancel never completing use of acquired resource',
-      async ticker => {
+      ticker => {
         const io = pipe(
           IO.Do,
           IO.bindTo('def', IO.deferred<void>()),
@@ -913,41 +884,41 @@ describe('IO', () => {
           IO.bind(({ bFiber }) => bFiber.cancel),
         ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
 
-        await expect(io).toCompleteWith(IOOutcome.success(IO.unit), ticker);
+        expect(io).toCompleteWith(IOOutcome.success(IO.unit), ticker);
       },
     );
   });
 
   describe('stack-safety', () => {
-    it.ticked('should evaluate 10,000 consecutive binds', async ticker => {
+    it.ticked('should evaluate 10,000 consecutive binds', ticker => {
       const loop: (i: number) => IO<void> = i =>
         i < 10_000 ? IO.unit.flatMap(() => loop(i + 1)).map(id) : IO.unit;
 
-      await expect(loop(0)).toCompleteWith(undefined, ticker);
+      expect(loop(0)).toCompleteWith(undefined, ticker);
     });
 
-    it.ticked('should evaluate 10,000 error handler binds', async ticker => {
+    it.ticked('should evaluate 10,000 error handler binds', ticker => {
       const loop: (i: number) => IO<void> = i =>
         i < 10_000
           ? IO.unit.flatMap(() => loop(i + 1)).handleErrorWith(IO.throwError)
           : IO.throwError(new Error('test error'));
 
       const io = loop(0).handleErrorWith(() => IO.unit);
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
     });
 
-    it.ticked('should evaluate 10,000 consecutive attempts', async ticker => {
+    it.ticked('should evaluate 10,000 consecutive attempts', ticker => {
       let acc: IO<unknown> = IO.unit;
 
       for (let i = 0; i < 10_000; i++) acc = acc.attempt;
 
       const io = acc.flatMap(() => IO.unit);
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
     });
   });
 
   describe('parTraverseN', () => {
-    it.ticked('should propagate errors', async ticker => {
+    it.ticked('should propagate errors', ticker => {
       const io = pipe(
         List(1, 2, 3),
         IO.parTraverseN(
@@ -956,10 +927,10 @@ describe('IO', () => {
         )(x => (x === 2 ? throwError(new Error('test error')) : IO.unit)),
       );
 
-      await expect(io).toFailWith(new Error('test error'), ticker);
+      expect(io).toFailWith(new Error('test error'), ticker);
     });
 
-    it.ticked('should be cancelable', async ticker => {
+    it.ticked('should be cancelable', ticker => {
       const traverse = pipe(
         List(1, 2, 3),
         IO.parTraverseN(List.Traversable, 2)(() => IO.never),
@@ -971,10 +942,10 @@ describe('IO', () => {
         IO.bind(() => IO(() => ticker.tickAll())),
       ).flatMap(({ fiber }) => fiber.cancel);
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
     });
 
-    it.ticked('should cancel all running tasks', async ticker => {
+    it.ticked('should cancel all running tasks', ticker => {
       const fins = List(jest.fn(), jest.fn(), jest.fn());
 
       const traverse = pipe(
@@ -988,7 +959,7 @@ describe('IO', () => {
         IO.bind(IO(() => ticker.tickAll())),
       ).flatMap(({ fiber }) => fiber.cancel);
 
-      await expect(io).toCompleteWith(undefined, ticker);
+      expect(io).toCompleteWith(undefined, ticker);
       expect(fins.elem(0)).toHaveBeenCalled();
       expect(fins.elem(1)).toHaveBeenCalled();
       expect(fins.elem(2)).not.toHaveBeenCalled();
@@ -996,7 +967,7 @@ describe('IO', () => {
 
     it.ticked(
       'should not execute un-started IOs when earlier one failed',
-      async ticker => {
+      ticker => {
         const fin = jest.fn();
         const cont = jest.fn();
         const ts = List(
@@ -1009,7 +980,7 @@ describe('IO', () => {
 
         const io = pipe(ts, IO.parTraverseN(List.Traversable, 2)(id));
 
-        await expect(io).toFailWith(new Error('test test'), ticker);
+        expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();
         expect(cont).not.toHaveBeenCalled();
       },
@@ -1017,7 +988,7 @@ describe('IO', () => {
 
     it.ticked(
       'should not release the permit when release gets canceled',
-      async ticker => {
+      ticker => {
         const cont = jest.fn();
 
         const io = pipe(
@@ -1030,7 +1001,7 @@ describe('IO', () => {
           IO.bind(IO(() => ticker.tickAll())),
         ).flatMap(({ f2 }) => f2.cancel);
 
-        await expect(io).toCompleteWith(undefined, ticker);
+        expect(io).toCompleteWith(undefined, ticker);
         expect(cont).not.toHaveBeenCalled();
       },
     );
