@@ -349,7 +349,7 @@ describe('IO', () => {
       const outer = IO.async_<number>(cb1 => {
         const inner = IO.async_<number>(cb2 =>
           IO(() => cb1(Right(1)))
-            .flatMap(() => IO.readExecutionContext)
+            ['>>>'](IO.readExecutionContext)
             .flatMap(ec => IO(() => ec.executeAsync(() => cb2(Right(2))))),
         );
 
@@ -367,8 +367,7 @@ describe('IO', () => {
       );
 
       await expect(io).toCompleteWith(undefined, ticker);
-      expect(innerR).toBe(1);
-      expect(outerR).toBe(2);
+      expect([innerR, outerR]).toEqual([2, 1]);
     });
   });
 

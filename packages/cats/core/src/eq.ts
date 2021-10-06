@@ -17,6 +17,9 @@ export const Eq = Object.freeze({
       equals: (a, b) => E.equals(f(a), f(b)),
     }),
 
+  fromUniversalEquals: <A>(): Eq<A> =>
+    Eq.of({ equals: (lhs, rhs) => lhs === rhs }),
+
   get primitive(): Eq<PrimitiveType> {
     return primitiveEq();
   },

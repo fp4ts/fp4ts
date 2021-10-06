@@ -1,9 +1,10 @@
 import { Eq, Try, Either, IdentityK } from '@cats4ts/cats';
 import { SyncIO, IO, IORuntime, IOOutcome } from '@cats4ts/effect-core';
-import { Outcome } from '@cats4ts/effect-kernel';
+import { Outcome, ExecutionContext } from '@cats4ts/effect-kernel';
 import { IsEq } from '@cats4ts/cats-test-kit';
-import { TestExecutionContext } from './test-execution-context';
 import { Pure } from '@cats4ts/effect-core/lib/io/algebra';
+
+import { TestExecutionContext } from './test-execution-context';
 
 export const eqSyncIO = <A>(E: Eq<A>): Eq<SyncIO<A>> =>
   Eq.by(Try.Eq(Eq.Error.strict, E), x => Try(() => x.unsafeRunSync()));
@@ -14,21 +15,10 @@ export const eqIO = <A>(
   autoSuspendThreshold: number = Infinity,
 ): ((r: IsEq<IO<A>>) => Promise<boolean>) => {
   const _Eq = Either.Eq(Eq.Error.strict, E);
-  const MAX_AWAITS = 10;
-  const DELAY = 5;
 
   return async ({ lhs, rhs }) => {
     let lhsResult: Either<Error, A> | undefined;
     let rhsResult: Either<Error, A> | undefined;
-
-    const awaitResults = async (i: number): Promise<void> => {
-      // Ensure to insert an async boundary
-      await new Promise(resolve => setImmediate(resolve));
-      if (lhsResult || rhsResult || i >= MAX_AWAITS) return;
-      ec.tickAll();
-      await new Promise(resolve => setTimeout(resolve, DELAY));
-      return awaitResults(i + 1);
-    };
 
     lhs.unsafeRunAsync(
       ea => (lhsResult = ea),
@@ -41,8 +31,6 @@ export const eqIO = <A>(
     );
 
     ec.tickAll();
-
-    await awaitResults(0);
 
     if (lhsResult === rhsResult) return true;
     if (!lhsResult) return false;
@@ -62,3 +50,6 @@ export const eqIOOutcome = <A>(E: Eq<A>): Eq<IOOutcome<A>> =>
       },
     ),
   );
+
+export const eqExecutionContext: Eq<ExecutionContext> =
+  Eq.fromUniversalEquals();

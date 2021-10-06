@@ -43,6 +43,7 @@ export class TestExecutionContext implements ExecutionContext, Ticker {
   }
 
   public reportFailure(e: Error): void {
+    // console.error(e);
     this.lastFailure = e;
   }
 

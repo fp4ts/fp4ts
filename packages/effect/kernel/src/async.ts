@@ -18,6 +18,8 @@ export interface Async<F extends AnyK> extends Sync<F>, Temporal<F, Error> {
 
   readonly never: Kind<F, [never]>;
 
+  readonly readExecutionContext: Kind<F, [ExecutionContext]>;
+
   readonly executeOn: <A>(
     fa: Kind<F, [A]>,
     ec: ExecutionContext,

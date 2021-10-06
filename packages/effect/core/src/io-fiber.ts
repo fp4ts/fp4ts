@@ -335,12 +335,8 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
           this.conts.push(IOA.Continuation.RunOnK);
           this.schedule(this, ec);
 
-          _cur = IOA.Suspend;
-          continue;
-        }
-
-        case 'suspend':
           return;
+        }
 
         case 'IOEndFiber':
           throw new Error('Uncaught end of fiber');

@@ -175,11 +175,6 @@ export class IOContGet<A> extends IO<A> {
   }
 }
 
-export const Suspend = new (class Suspend extends IO<never> {
-  public readonly tag = 'suspend';
-})();
-export type Suspend = typeof Suspend;
-
 export const IOEndFiber = new (class IOEnd extends IO<never> {
   public readonly tag = 'IOEndFiber';
 })();
@@ -206,7 +201,6 @@ export type IOView<A> =
   | Sleep
   | UnmaskRunLoop<A>
   | ExecuteOn<A>
-  | Suspend
   | IOEndFiber;
 
 export const view = <A>(_: IO<A>): IOView<A> => _ as any;

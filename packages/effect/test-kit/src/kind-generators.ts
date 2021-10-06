@@ -227,7 +227,7 @@ export const SpawnGenerators = <F extends AnyK, E>(
     baseGen: <A>(arbA: Arbitrary<A>) =>
       List<[string, Arbitrary<Kind<F, [A]>>]>(
         ['suspend', genSuspend(arbA)],
-        // ['never', genNever(arbA)]
+        ['never', fc.constant(F.never)],
       )['+++'](monadCancelGens.baseGen(arbA)),
 
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>

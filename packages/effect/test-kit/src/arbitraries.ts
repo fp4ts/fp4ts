@@ -11,11 +11,16 @@ import {
   SyncGenerators,
 } from './kind-generators';
 import { TestExecutionContext } from './test-execution-context';
+import { ExecutionContext } from '@cats4ts/effect';
 
 export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
   cats4tsKind(
     arbA,
-    AsyncGenerators(IO.Async, A.cats4tsError(), cats4tsExecutionContext()),
+    AsyncGenerators(
+      IO.Async,
+      A.cats4tsError(),
+      cats4tsExecutionContext(new TestExecutionContext()),
+    ),
   );
 
 export const cats4tsSyncIO = <A>(arbA: Arbitrary<A>): Arbitrary<SyncIO<A>> =>
@@ -49,5 +54,12 @@ export const cats4tsKind = <F extends AnyK, A>(
   return gen;
 };
 
-export const cats4tsExecutionContext = (): Arbitrary<TestExecutionContext> =>
-  fc.constant(new TestExecutionContext());
+export const cats4tsExecutionContext = (
+  ec: ExecutionContext,
+): Arbitrary<ExecutionContext> =>
+  fc.constant({
+    executeAsync: thunk => ec.executeAsync(thunk),
+    sleep: (ms, thunk) => ec.sleep(ms, thunk),
+    currentTimeMillis: () => ec.currentTimeMillis(),
+    reportFailure: e => ec.reportFailure(e),
+  } as ExecutionContext);
