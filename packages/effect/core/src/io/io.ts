@@ -41,6 +41,7 @@ import {
   pure,
   readExecutionContext,
   sleep,
+  suspend,
   throwError,
   uncancelable,
   unit,
@@ -120,6 +121,8 @@ interface IOObj {
   never: IO<never>;
 
   canceled: IO<void>;
+
+  suspend: IO<void>;
 
   ref: <A>(a: A) => IO<Ref.Ref<IoK, A>>;
 
@@ -265,6 +268,8 @@ IO.unit = unit;
 IO.never = never;
 
 IO.canceled = canceled;
+
+IO.suspend = suspend;
 
 IO.ref = x => Ref.of(IO.Sync)(x);
 

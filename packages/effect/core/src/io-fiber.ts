@@ -335,6 +335,11 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
           return;
         }
 
+        case 'suspend':
+          this.resumeIO = IO.pure(undefined);
+          this.schedule(this, this.currentEC);
+          return;
+
         case 'IOEndFiber':
           throw new Error('Uncaught end of fiber');
       }

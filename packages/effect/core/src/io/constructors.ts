@@ -14,6 +14,7 @@ import {
   Sleep,
   Uncancelable,
   IOCont,
+  Suspend,
 } from './algebra';
 import { flatMap_ } from './operators';
 import { IoK } from './io';
@@ -61,6 +62,8 @@ export const async_ = <A>(
 export const never: IO<never> = async(() => pure(None));
 
 export const canceled: IO<void> = Canceled;
+
+export const suspend: IO<void> = Suspend;
 
 export const uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A> = ioa =>
   new Uncancelable(ioa);

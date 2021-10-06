@@ -47,6 +47,11 @@ export class Defer<A> extends IO<A> {
   }
 }
 
+export const Suspend = new (class Suspend extends IO<void> {
+  public readonly tag = 'suspend';
+})();
+export type Suspend = typeof Suspend;
+
 export class Map<E, A> extends IO<A> {
   public readonly tag = 'map';
   public constructor(
@@ -185,6 +190,7 @@ export type IOView<A> =
   | Fail
   | Delay<A>
   | Defer<A>
+  | Suspend
   | Map<any, A>
   | FlatMap<any, A>
   | HandleErrorWith<A>

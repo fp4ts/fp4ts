@@ -3,7 +3,7 @@ import { AnyK, Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { MonadErrorSuite } from '@cats4ts/cats-laws';
 import { MonadCancel } from '@cats4ts/effect-kernel';
-import { forAll, RuleSet, Rule, IsEq } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet, Rule, IsEq, exec } from '@cats4ts/cats-test-kit';
 
 import { MonadCancelLaws } from '../monad-cancel-laws';
 
@@ -130,14 +130,10 @@ export const MonadCancelSuite = <F extends AnyK, E>(F: MonadCancel<F, E>) => {
             'monadCancel uncancelable is identity',
             forAll(mkArbF(arbA), laws.uncancelableIdentity)(mkEqF(EqA)),
           ],
-          // [
-          //   'monadCancel canceled unit identity',
-          //   () => {
-          //     const { lhs, rhs } = laws.canceledUnitIdentity();
-          //     // TODO: Fix
-          //     expect(mkEqF(Eq.primitive).equals(lhs, rhs)).toBe(true);
-          //   },
-          // ],
+          [
+            'monadCancel canceled unit identity',
+            exec(laws.canceledUnitIdentity)(mkEqF(Eq.primitive)),
+          ],
         ],
         {
           parent: self.monadError(
