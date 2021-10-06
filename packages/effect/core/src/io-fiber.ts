@@ -167,22 +167,16 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
           _cur = IO.pure(undefined);
           continue;
 
-        case 'async': {
-          const prevFinalizing = this.finalizing;
-          let receivedResult = false;
+        case 'ioCont': {
+          const body = cur.body;
 
-          const cb: (ea: Either<Error, unknown>) => void = ea => {
-            if (receivedResult) return;
-            receivedResult = true;
-            // Drop the callback if we have been completed while suspended
-            if (this.outcome != null) return;
+          const state = new IOA.ContState(this.finalizing);
 
-            // Ensure to insert an async boundary to break execution from
-            // other fibers
-            this.resume(() => {
+          const cb = (ea: Either<Error, unknown>): void => {
+            const resume = () => {
               // If we have not been canceled while suspended, or the task is
               // uncancelable, continue with the execution
-              if (prevFinalizing === this.finalizing) {
+              if (state.wasFinalizing === this.finalizing) {
                 if (!this.shouldFinalize()) {
                   const next = ea.fold(IO.throwError, IO.pure);
                   this.resumeIO = next;
@@ -192,24 +186,66 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
                   // ourselves asynchronously
                   return this.cancelAsync();
                 }
+                // We were canceled while suspended, so just drop the callback
+                // result
               }
-              // We were canceled while suspended, so just drop the callback
-              // result
-            });
+            };
+
+            const wasInPhase = state.phase;
+            state.result = ea;
+            state.phase = IOA.ContStatePhase.Result;
+            if (wasInPhase === IOA.ContStatePhase.Waiting) {
+              this.resume(resume);
+            }
           };
 
-          const next = IO.uncancelable<A>(poll =>
-            cur.body(cb).flatMap(fin =>
-              // Ensure to attach the finalizer if returned
-              fin.fold(
-                () => poll(IOA.Suspend),
-                fin => poll(IOA.Suspend).onCancel(fin),
-              ),
-            ),
-          );
+          const get: IO<unknown> = new IOA.IOContGet(state);
+
+          const next = body(IO.MonadCancel)(cb, get, id);
 
           _cur = next;
           continue;
+        }
+
+        case 'ioContGet': {
+          const state = cur.state;
+
+          const fin = IO(() => {
+            if (state.phase === IOA.ContStatePhase.Waiting)
+              state.phase = IOA.ContStatePhase.Initial;
+          });
+
+          this.finalizers.push(fin);
+          this.conts.push(IOA.Continuation.OnCancelK);
+
+          if (state.phase === IOA.ContStatePhase.Initial) {
+            state.phase = IOA.ContStatePhase.Waiting;
+
+            state.wasFinalizing = this.finalizing;
+
+            if (this.shouldFinalize()) {
+              this.cancelAsync();
+            }
+          } else {
+            const cont = () => {
+              if (state.phase !== IOA.ContStatePhase.Result)
+                return this.resume(cont);
+
+              if (!this.shouldFinalize()) {
+                const result = state.result!;
+                const next = result.fold(
+                  e => IO.throwError(e),
+                  r => IO.pure(r),
+                );
+                this.resumeIO = next;
+                this.schedule(this, this.currentEC);
+              } else if (this.outcome == null) {
+                this.cancelAsync();
+              }
+            };
+            cont();
+          }
+          return;
         }
 
         case 'uncancelable': {
@@ -442,7 +478,7 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
               continue;
 
             case IOA.Continuation.RunOnK:
-              return this.runOnK();
+              return this.executeOnSuccessK(r);
 
             case IOA.Continuation.CancelationLoopK:
               return this.cancelationLoopSuccessK();
@@ -488,7 +524,7 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
               continue;
 
             case IOA.Continuation.RunOnK:
-              return this.runOnK();
+              return this.executeOnFailureK(e);
 
             case IOA.Continuation.CancelationLoopK:
               return this.cancelationLoopFailureK(e);
@@ -538,9 +574,18 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
     this.masks += 1;
   }
 
-  private runOnK(): IO<unknown> {
+  private executeOnSuccessK(r: unknown): IO<unknown> {
     const prevEC = this.cxts.pop()!;
     this.currentEC = prevEC;
+    this.resumeIO = IO.pure(r);
+    this.schedule(this, prevEC);
+    return IOA.IOEndFiber;
+  }
+
+  private executeOnFailureK(e: Error): IO<unknown> {
+    const prevEC = this.cxts.pop()!;
+    this.currentEC = prevEC;
+    this.resumeIO = IO.throwError(e);
     this.schedule(this, prevEC);
     return IOA.IOEndFiber;
   }

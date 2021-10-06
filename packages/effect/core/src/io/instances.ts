@@ -28,6 +28,7 @@ import {
   fromPromise,
   never,
   pure,
+  readExecutionContext,
   sleep,
   throwError,
   uncancelable,
@@ -203,6 +204,7 @@ export const ioAsync: Lazy<Async<IoK>> = () => ({
   async: async,
   async_: async_,
   never: never,
+  readExecutionContext: readExecutionContext,
   executeOn: executeOn_,
   fromPromise: fromPromise,
 });

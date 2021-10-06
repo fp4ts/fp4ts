@@ -1,9 +1,8 @@
-import { flow } from '@cats4ts/core';
-import { Either, Left, None, Option, Right } from '@cats4ts/cats';
-import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
+import { AnyK, flow, Kind } from '@cats4ts/core';
+import { Either, Left, None, Option, Right, FunctionK } from '@cats4ts/cats';
+import { ExecutionContext, Poll, MonadCancel } from '@cats4ts/effect-kernel';
 
 import {
-  Async,
   Canceled,
   CurrentTimeMillis,
   Defer,
@@ -14,8 +13,9 @@ import {
   ReadEC,
   Sleep,
   Uncancelable,
+  IOCont,
 } from './algebra';
-import { flatMap_, map_ } from './operators';
+import { flatMap_ } from './operators';
 import { IoK } from './io';
 
 export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
@@ -35,11 +35,28 @@ export const readExecutionContext: IO<ExecutionContext> = ReadEC;
 
 export const async = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => IO<Option<IO<void>>>,
-): IO<A> => new Async(k);
+): IO<A> =>
+  new IOCont(
+    <G extends AnyK>(G: MonadCancel<G, Error>) =>
+      (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
+        G.uncancelable(poll =>
+          G.flatMap_(lift(k(resume)), opt =>
+            opt.fold(
+              () => poll(get),
+              fin => G.onCancel_(poll(get), lift(fin)),
+            ),
+          ),
+        ),
+  );
 
 export const async_ = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => IO<void>,
-): IO<A> => new Async(resume => defer(() => map_(k(resume), () => None)));
+): IO<A> =>
+  new IOCont(
+    <G extends AnyK>(G: MonadCancel<G, Error>) =>
+      (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
+        G.uncancelable(poll => G.flatMap_(lift(k(resume)), () => poll(get))),
+  );
 
 export const never: IO<never> = async(() => pure(None));
 

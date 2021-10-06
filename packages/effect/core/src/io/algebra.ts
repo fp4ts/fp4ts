@@ -1,5 +1,5 @@
 import { Either, Option } from '@cats4ts/cats';
-import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
+import { ExecutionContext, Poll, Cont } from '@cats4ts/effect-kernel';
 
 import { IoK } from './io';
 import { IOFiber } from '../io-fiber';
@@ -93,17 +93,6 @@ export const ReadEC = new (class ReadEC extends IO<ExecutionContext> {
 })();
 export type ReadEC = typeof ReadEC;
 
-export class Async<A> extends IO<A> {
-  public readonly tag = 'async';
-  public constructor(
-    public readonly body: (
-      cb: (ea: Either<Error, A>) => void,
-    ) => IO<Option<IO<void>>>,
-  ) {
-    super();
-  }
-}
-
 export class Fork<A> extends IO<IOFiber<A>> {
   public readonly tag = 'fork';
   public constructor(public readonly ioa: IO<A>) {
@@ -172,6 +161,20 @@ export class UnmaskRunLoop<A> extends IO<A> {
   }
 }
 
+export class IOCont<K, R> extends IO<R> {
+  public readonly tag = 'ioCont';
+  public constructor(public readonly body: Cont<IoK, K, R>) {
+    super();
+  }
+}
+
+export class IOContGet<A> extends IO<A> {
+  public readonly tag = 'ioContGet';
+  public constructor(public readonly state: ContState) {
+    super();
+  }
+}
+
 export const Suspend = new (class Suspend extends IO<never> {
   public readonly tag = 'suspend';
 })();
@@ -193,7 +196,8 @@ export type IOView<A> =
   | Attempt<Either<Error, A>>
   | CurrentTimeMillis
   | ReadEC
-  | Async<A>
+  | IOCont<any, A>
+  | IOContGet<A>
   | Fork<A>
   | Canceled
   | OnCancel<A>
@@ -225,4 +229,18 @@ export enum Continuation {
   UnmaskK,
   RunOnK,
   CancelationLoopK,
+}
+
+export enum ContStatePhase {
+  Initial,
+  Waiting,
+  Result,
+}
+
+export class ContState {
+  public constructor(
+    public wasFinalizing: boolean,
+    public phase: ContStatePhase = ContStatePhase.Initial,
+    public result?: Either<Error, unknown>,
+  ) {}
 }
