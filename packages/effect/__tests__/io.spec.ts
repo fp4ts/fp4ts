@@ -4,9 +4,10 @@ import { id, pipe, throwError } from '@cats4ts/core';
 import { Either, Left, Right, Some, List, Eq } from '@cats4ts/cats';
 import { Semaphore } from '@cats4ts/effect-kernel';
 import { IO, IOOutcome } from '@cats4ts/effect-core';
-import { forAll } from '@cats4ts/cats-test-kit';
+import { checkAll, forAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
+import { AsyncSuite } from '@cats4ts/effect-laws';
 
 describe('IO', () => {
   describe('free monad', () => {
@@ -1006,6 +1007,27 @@ describe('IO', () => {
         expect(io).toCompleteWith(undefined, ticker);
         expect(cont).not.toHaveBeenCalled();
       },
+    );
+  });
+
+  describe.ticked('Laws', ticker => {
+    const spawnTests = AsyncSuite(IO.Async);
+    checkAll(
+      'Async<IO>',
+      spawnTests.async(
+        fc.integer(),
+        fc.string(),
+        fc.string(),
+        fc.string(),
+        ticker.ctx,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        E.eqIOOutcome(Eq.primitive),
+        A.cats4tsIO,
+        EqX => E.eqIO(EqX, ticker),
+      ),
     );
   });
 });

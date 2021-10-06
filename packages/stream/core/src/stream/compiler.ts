@@ -82,7 +82,7 @@ export class PureCompiler<A> {
   private readonly __void!: void;
   private readonly underlying: Compiler<SyncIoK, A>;
 
-  public constructor(private readonly stream: Pull<SyncIoK, A, void>) {
+  public constructor(stream: Pull<SyncIoK, A, void>) {
     this.underlying = new Compiler(SyncIO.MonadError, stream);
   }
 

@@ -1,31 +1,37 @@
-import { RuleSet } from './rule-set';
+import { OrderedMap } from '@cats4ts/cats-core/lib/data';
+import { Rule, RuleSet } from './rule-set';
 
 export function checkAll(setName: string, rs: RuleSet): void {
   describe(setName, () => {
     const setsToRun = collectSuites(rs);
 
-    for (const { name, rules } of setsToRun) {
+    for (const [name, rules] of setsToRun) {
       describe(name, () => {
         for (const [testName, t] of rules) {
-          test(testName, t, 60_000);
+          test(testName, t, 5_000);
         }
       });
     }
   });
 }
 
-const collectSuites = (rs: RuleSet): RuleSet[] => {
-  const sets: RuleSet[] = [];
-  if (rs.parentProps.parent) {
-    sets.push(...collectSuites(rs.parentProps.parent));
-  }
+const collectSuites = (rs: RuleSet): [string, Rule[]][] => {
+  const loop = (
+    acc: OrderedMap<string, Rule[]>,
+    rs: RuleSet,
+  ): OrderedMap<string, Rule[]> => {
+    acc = acc.insert(rs.name, rs.rules);
 
-  if (rs.parentProps.parents) {
-    for (const rsi of rs.parentProps.parents) {
-      sets.push(...collectSuites(rsi));
+    if (rs.parentProps.parents) {
+      return rs.parentProps.parents.reduce(loop, acc);
     }
-  }
 
-  sets.push(rs);
-  return sets;
+    if (rs.parentProps.parent) {
+      return loop(acc, rs.parentProps.parent);
+    }
+
+    return acc;
+  };
+
+  return loop(OrderedMap.empty, rs).toArray;
 };

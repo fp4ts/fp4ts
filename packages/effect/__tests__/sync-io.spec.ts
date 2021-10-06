@@ -161,7 +161,7 @@ describe('SyncIO', () => {
       Eq.primitive,
       Eq.primitive,
       A.cats4tsSyncIO,
-      EE => E.eqSyncIO(EE),
+      E.eqSyncIO,
     ),
   );
 });
