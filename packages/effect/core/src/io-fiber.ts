@@ -227,23 +227,20 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
               this.cancelAsync();
             }
           } else {
-            const cont = () => {
+            const loop = () => {
               if (state.phase !== IOA.ContStatePhase.Result)
-                return this.resume(cont);
+                return this.resume(loop);
 
               if (!this.shouldFinalize()) {
                 const result = state.result!;
-                const next = result.fold(
-                  e => IO.throwError(e),
-                  r => IO.pure(r),
-                );
+                const next = result.fold(IO.throwError, IO.pure);
                 this.resumeIO = next;
                 this.schedule(this, this.currentEC);
               } else if (this.outcome == null) {
                 this.cancelAsync();
               }
             };
-            cont();
+            loop();
           }
           return;
         }

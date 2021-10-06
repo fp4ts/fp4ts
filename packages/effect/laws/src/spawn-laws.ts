@@ -199,18 +199,20 @@ export const SpawnLaws = <F extends AnyK, E>(
       fa,
       F.fork,
       F.flatMap(f => f.join),
-      F.flatMap(oc => {
-        const result = oc.fold(
-          () => F.productR_(F.canceled, F.never),
-          F.throwError,
-          id,
-        );
-        const finalized = F.onCancel_(result, f(Outcome.canceled()));
-        const handled = F.onError_(finalized, e =>
-          F.handleError_(f(Outcome.failure(e)), () => {}),
-        );
-        return F.flatTap_(handled, a => f(Outcome.success(F.pure(a))));
-      }),
+      F.flatMap(oc =>
+        F.uncancelable(poll => {
+          const result = oc.fold(
+            () => F.productR_(F.canceled, F.never),
+            F.throwError,
+            id,
+          );
+          const finalized = F.onCancel_(poll(result), f(Outcome.canceled()));
+          const handled = F.onError_(finalized, e =>
+            F.handleError_(f(Outcome.failure(e)), () => {}),
+          );
+          return F.flatTap_(handled, a => f(Outcome.success(F.pure(a))));
+        }),
+      ),
     )['<=>'](F.finalize_(fa, f));
   },
 
@@ -226,7 +228,7 @@ export const SpawnLaws = <F extends AnyK, E>(
       F.fork,
       F.flatMap(f =>
         F.productR_(
-          F.uncancelable(() => F.canceled),
+          F.uncancelable(() => f.cancel),
           f.join,
         ),
       ),
