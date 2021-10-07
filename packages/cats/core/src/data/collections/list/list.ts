@@ -1,5 +1,6 @@
 import { TyK, _ } from '@cats4ts/core';
 import { Eq } from '../../../eq';
+import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
@@ -30,6 +31,7 @@ import {
   listMonad,
   listAlternative,
   listEq,
+  listAlign,
 } from './instances';
 import { tailRecM } from './operators';
 
@@ -53,6 +55,7 @@ interface ListObj {
 
   readonly SemigroupK: SemigroupK<ListK>;
   readonly MonoidK: MonoidK<ListK>;
+  readonly Align: Align<ListK>;
   readonly Functor: Functor<ListK>;
   readonly FunctorFilter: FunctorFilter<ListK>;
   readonly Apply: Apply<ListK>;
@@ -80,6 +83,11 @@ Object.defineProperty(List, 'SemigroupK', {
 Object.defineProperty(List, 'MonoidK', {
   get(): MonoidK<ListK> {
     return listMonoidK();
+  },
+});
+Object.defineProperty(List, 'Align', {
+  get(): Align<ListK> {
+    return listAlign();
   },
 });
 Object.defineProperty(List, 'Functor', {

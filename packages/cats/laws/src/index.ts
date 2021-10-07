@@ -1,3 +1,4 @@
+export * from './align-laws';
 export * from './alternative-laws';
 export * from './applicative-error-laws';
 export * from './applicative-laws';

@@ -6,6 +6,7 @@ import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
+import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
@@ -20,6 +21,7 @@ import { Measured } from '../finger-tree/measured';
 
 import { Size } from './algebra';
 import {
+  align_,
   collect_,
   concat_,
   elem_,
@@ -62,6 +64,9 @@ export const vectorMonoidK: Lazy<MonoidK<VectorK>> = () =>
 
 export const vectorFunctor: Lazy<Functor<VectorK>> = () =>
   Functor.of({ map_: map_ });
+
+export const vectorAlign: Lazy<Align<VectorK>> = () =>
+  Align.of({ align_: align_, functor: vectorFunctor() });
 
 export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = () =>
   FunctorFilter.of({

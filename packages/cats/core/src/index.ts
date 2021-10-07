@@ -1,4 +1,5 @@
 export * from './arrow';
+export * from './align';
 export * from './semigroup-k';
 export * from './monoid-k';
 export * from './applicative';

@@ -18,6 +18,7 @@ import {
   MonadSuite,
   TraversableSuite,
   FunctorFilterSuite,
+  AlignSuite,
 } from '@cats4ts/cats-laws';
 
 describe('List', () => {
@@ -740,10 +741,10 @@ describe('List', () => {
     });
   });
 
-  describe('zipPad', () => {
+  describe('zipAll', () => {
     it('should fill default value on left', () => {
       expect(
-        List.empty.zipPad(
+        List.empty.zipAll(
           List(42),
           () => 1,
           () => 2,
@@ -753,7 +754,7 @@ describe('List', () => {
 
     it('should fill default value on right', () => {
       expect(
-        List(42).zipPad(
+        List(42).zipAll(
           List.empty,
           () => 1,
           () => 2,
@@ -763,7 +764,7 @@ describe('List', () => {
 
     it('should zip two single element lists', () => {
       expect(
-        List(42).zipPad(
+        List(42).zipAll(
           List(43),
           () => 1,
           () => 2,
@@ -774,7 +775,7 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
-        xs.zipPad(
+        xs.zipAll(
           xs,
           () => 1,
           () => 2,
@@ -819,12 +820,12 @@ describe('List', () => {
     });
   });
 
-  describe('zipWithPad', () => {
+  describe('zipAllWith', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should fill default value on left', () => {
       expect(
-        List.empty.zipWithPad(
+        List.empty.zipAllWith(
           List(42),
           () => 1,
           () => 2,
@@ -835,7 +836,7 @@ describe('List', () => {
 
     it('should fill default value on right', () => {
       expect(
-        List(42).zipWithPad(
+        List(42).zipAllWith(
           List.empty,
           () => 1,
           () => 2,
@@ -846,7 +847,7 @@ describe('List', () => {
 
     it('should zip two single element lists', () => {
       expect(
-        List(42).zipWithPad(
+        List(42).zipAllWith(
           List(43),
           () => 1,
           () => 2,
@@ -858,7 +859,7 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
-        xs.zipWithPad(
+        xs.zipAllWith(
           xs,
           () => 1,
           () => 2,
@@ -1100,9 +1101,22 @@ describe('List', () => {
     });
   });
 
-  const eqListNumber: Eq<List<number>> = Eq.of({
-    equals: (xs, ys) => xs.equals(Eq.primitive, ys),
-  });
+  const alignTests = AlignSuite(List.Align);
+  checkAll(
+    'Align<List>',
+    alignTests.align(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsList,
+      List.Eq,
+    ),
+  );
 
   const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
   checkAll(

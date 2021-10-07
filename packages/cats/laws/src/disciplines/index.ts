@@ -1,3 +1,4 @@
+export * from './align-suite';
 export * from './alternative-suite';
 export * from './applicative-error-suite';
 export * from './applicative-suite';

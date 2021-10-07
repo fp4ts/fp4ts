@@ -5,11 +5,13 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
 
+import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { List } from '../list';
 
 import { Vector } from './algebra';
 import {
+  align_,
   all_,
   any_,
   append_,
@@ -51,6 +53,9 @@ import {
   toArray,
   toList,
   traverse_,
+  zipWithIndex,
+  zipWith_,
+  zip_,
 } from './operators';
 
 declare module './algebra' {
@@ -110,6 +115,11 @@ declare module './algebra' {
     flatMap<B>(f: (a: A) => Vector<B>): Vector<B>;
 
     readonly flatten: A extends Vector<infer B> ? Vector<B> : never | unknown;
+
+    align<B>(ys: Vector<B>): Vector<Ior<A, B>>;
+    zip<B>(ys: Vector<B>): Vector<[A, B]>;
+    readonly zipWithIndex: Vector<[A, number]>;
+    zipWith<B, C>(ys: Vector<B>, f: (a: A, b: B) => C): Vector<C>;
 
     forEach(f: (a: A) => void): void;
 
@@ -289,6 +299,24 @@ Object.defineProperty(Vector.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Vector.prototype.align = function (that) {
+  return align_(this, that);
+};
+
+Vector.prototype.zip = function (that) {
+  return zip_(this, that);
+};
+
+Object.defineProperty(Vector.prototype, 'zipWithIndex', {
+  get<A>(this: Vector<A>): Vector<[A, number]> {
+    return zipWithIndex(this);
+  },
+});
+
+Vector.prototype.zipWith = function (that, f) {
+  return zipWith_(this, that)(f);
+};
 
 Vector.prototype.forEach = function (f) {
   return forEach_(this, f);

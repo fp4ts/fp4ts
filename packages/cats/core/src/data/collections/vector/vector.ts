@@ -4,6 +4,7 @@ import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
+import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Alternative } from '../../../alternative';
 import { Applicative } from '../../../applicative';
@@ -18,6 +19,7 @@ import { List } from '../list';
 import { Vector as VectorBase } from './algebra';
 import { empty, fromArray, fromList, pure, singleton } from './constructors';
 import {
+  vectorAlign,
   vectorAlternative,
   vectorApplicative,
   vectorApply,
@@ -54,17 +56,18 @@ interface VectorObj {
   // -- Instances
 
   Eq<A>(E: Eq<A>): Eq<Vector<A>>;
-  SemigroupK: SemigroupK<VectorK>;
-  MonoidK: MonoidK<VectorK>;
-  Functor: Functor<VectorK>;
-  FunctorFilter: FunctorFilter<VectorK>;
-  Apply: Apply<VectorK>;
-  Applicative: Applicative<VectorK>;
-  Alternative: Alternative<VectorK>;
-  FlatMap: FlatMap<VectorK>;
-  Monad: Monad<VectorK>;
-  Foldable: Foldable<VectorK>;
-  Traversable: Traversable<VectorK>;
+  readonly SemigroupK: SemigroupK<VectorK>;
+  readonly MonoidK: MonoidK<VectorK>;
+  readonly Functor: Functor<VectorK>;
+  readonly Align: Align<VectorK>;
+  readonly FunctorFilter: FunctorFilter<VectorK>;
+  readonly Apply: Apply<VectorK>;
+  readonly Applicative: Applicative<VectorK>;
+  readonly Alternative: Alternative<VectorK>;
+  readonly FlatMap: FlatMap<VectorK>;
+  readonly Monad: Monad<VectorK>;
+  readonly Foldable: Foldable<VectorK>;
+  readonly Traversable: Traversable<VectorK>;
 }
 
 Vector.pure = pure;
@@ -89,6 +92,11 @@ Object.defineProperty(Vector, 'MonoidK', {
 Object.defineProperty(Vector, 'Functor', {
   get(): Functor<VectorK> {
     return vectorFunctor();
+  },
+});
+Object.defineProperty(Vector, 'Align', {
+  get(): Align<VectorK> {
+    return vectorAlign();
   },
 });
 Object.defineProperty(Vector, 'FunctorFilter', {

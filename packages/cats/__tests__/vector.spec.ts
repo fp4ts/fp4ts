@@ -18,6 +18,7 @@ import {
   MonadSuite,
   TraversableSuite,
   FunctorFilterSuite,
+  AlignSuite,
 } from '@cats4ts/cats-laws';
 
 describe('Vector', () => {
@@ -594,6 +595,50 @@ describe('Vector', () => {
     });
   });
 
+  describe('zip', () => {
+    it('should produce an empty vector when zipped with empty vector on lhs', () => {
+      expect(Vector.empty.zip(Vector(42))).toEqual(Vector.empty);
+    });
+
+    it('should produce an empty Vector when zipped with empty Vector on rhs', () => {
+      expect(Vector(42).zip(Vector.empty)).toEqual(Vector.empty);
+    });
+
+    it('should zip two single element Vectors', () => {
+      expect(Vector(42).zip(Vector(43))).toEqual(Vector([42, 43]));
+    });
+  });
+
+  describe('zipWithIndex', () => {
+    it('should produce an empty Vector out of empty Vector', () => {
+      expect(Vector.empty.zipWithIndex).toEqual(Vector.empty);
+    });
+
+    it('should index the values in the Vector', () => {
+      expect(Vector(1, 2, 3).zipWithIndex.toArray).toEqual([
+        [1, 0],
+        [2, 1],
+        [3, 2],
+      ]);
+    });
+  });
+
+  describe('zipWith', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should produce an empty Vector when zipped with empty Vector on lhs', () => {
+      expect(Vector.empty.zipWith(Vector(42), add)).toEqual(Vector.empty);
+    });
+
+    it('should produce an empty Vector when zipped with empty Vector on rhs', () => {
+      expect(Vector(42).zipWith(Vector.empty, add)).toEqual(Vector.empty);
+    });
+
+    it('should zip two single element Vectors', () => {
+      expect(Vector(42).zipWith(Vector(43), add)).toEqual(Vector(85));
+    });
+  });
+
   describe('foldLeft', () => {
     const add = (x: number, y: number): number => x + y;
 
@@ -643,6 +688,23 @@ describe('Vector', () => {
       );
     });
   });
+
+  const alignTests = AlignSuite(Vector.Align);
+  checkAll(
+    'Align<Vector>',
+    alignTests.align(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsVector,
+      Vector.Eq,
+    ),
+  );
 
   const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
   checkAll(

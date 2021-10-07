@@ -5,6 +5,7 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 
+import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
 
@@ -193,16 +194,20 @@ export const foldMapK: <F extends AnyK>(
   F => f => xs =>
     foldMapK_(F)(xs, f);
 
+export const align: <B>(ys: List<B>) => <A>(xs: List<A>) => List<Ior<A, B>> =
+  ys => xs =>
+    align_(xs, ys);
+
 export const zip: <B>(ys: List<B>) => <A>(xs: List<A>) => List<[A, B]> =
   ys => xs =>
     zip_(xs, ys);
 
-export const zipPad: <A2, B>(
+export const zipAll: <A2, B>(
   ys: List<B>,
   defaultX: () => A2,
   defaultY: () => B,
 ) => <A extends A2>(xs: List<A>) => List<[A2, B]> = (ys, dx, dy) => xs =>
-  zipPad_(xs, ys, dx, dy);
+  zipAll_(xs, ys, dx, dy);
 
 export const zipWithIndex = <A>(xs: List<A>): List<[A, number]> => {
   if (isEmpty(xs)) return nil;
@@ -225,13 +230,13 @@ export const zipWith: <A, B, C>(
   f: (a: A, b: B) => C,
 ) => (xs: List<A>) => List<C> = (ys, f) => xs => zipWith_(xs, ys, f);
 
-export const zipWithPad: <A, B, C>(
+export const zipAllWith: <A, B, C>(
   ys: List<B>,
   defaultX: () => A,
   defaultY: () => B,
   f: (a: A, b: B) => C,
 ) => (xs: List<A>) => List<C> = (ys, dx, dy, f) => xs =>
-  zipWithPad_(xs, ys, dx, dy, f);
+  zipAllWith_(xs, ys, dx, dy, f);
 
 export const collect: <A, B>(
   f: (a: A) => Option<B>,
@@ -569,15 +574,24 @@ export const foldMapK_ =
   <A, B>(xs: List<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(xs, f);
 
+export const align_ = <A, B>(xs: List<A>, ys: List<B>): List<Ior<A, B>> =>
+  zipAllWith_(
+    map_(xs, Some),
+    map_(ys, Some),
+    () => None,
+    () => None,
+    (oa, ob) => Ior.fromOptions(oa, ob).get,
+  );
+
 export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
   zipWith_(xs, ys, (x, y) => [x, y]);
 
-export const zipPad_ = <A, B>(
+export const zipAll_ = <A, B>(
   xs: List<A>,
   ys: List<B>,
   defaultX: () => A,
   defaultY: () => B,
-): List<[A, B]> => zipWithPad_(xs, ys, defaultX, defaultY, (x, y) => [x, y]);
+): List<[A, B]> => zipAllWith_(xs, ys, defaultX, defaultY, (x, y) => [x, y]);
 
 export const zipWith_ = <A, B, C>(
   xs: List<A>,
@@ -600,7 +614,7 @@ export const zipWith_ = <A, B, C>(
   return result;
 };
 
-export const zipWithPad_ = <A, B, C>(
+export const zipAllWith_ = <A, B, C>(
   xs: List<A>,
   ys: List<B>,
   defaultX: () => A,

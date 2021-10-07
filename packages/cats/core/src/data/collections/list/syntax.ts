@@ -5,6 +5,7 @@ import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 
+import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { Either } from '../../either';
 import { Vector } from '../vector';
@@ -61,11 +62,12 @@ import {
   toVector,
   traverse_,
   uncons,
-  zipPad_,
+  zipAll_,
   zipWithIndex,
-  zipWithPad_,
+  zipAllWith_,
   zipWith_,
   zip_,
+  align_,
 } from './operators';
 
 declare module './algebra' {
@@ -131,16 +133,17 @@ declare module './algebra' {
     foldMapK: <F extends AnyK>(
       F: MonoidK<F>,
     ) => <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+    align<B>(ys: List<B>): List<Ior<A, B>>;
     zip: <B>(ys: List<B>) => List<[A, B]>;
     zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
     readonly zipWithIndex: List<[A, number]>;
-    zipPad: <B, A2>(
+    zipAll: <B, A2>(
       this: List<A2>,
       ys: List<B>,
       defaultL: () => A2,
       defaultR: () => B,
     ) => List<[A2, B]>;
-    zipWithPad: <B, C, A2>(
+    zipAllWith: <B, C, A2>(
       this: List<A2>,
       ys: List<B>,
       defaultL: () => A2,
@@ -415,18 +418,15 @@ List.prototype.foldMapK = function <F extends AnyK, A>(
   return f => foldMapK_(F)(this, f);
 };
 
-List.prototype.zip = function <A, B>(
-  this: List<A>,
-  that: List<B>,
-): List<[A, B]> {
+List.prototype.align = function (that) {
+  return align_(this, that);
+};
+
+List.prototype.zip = function (that) {
   return zip_(this, that);
 };
 
-List.prototype.zipWith = function <A, B, C>(
-  this: List<A>,
-  that: List<B>,
-  f: (a: A, b: B) => C,
-): List<C> {
+List.prototype.zipWith = function (that, f) {
   return zipWith_(this, that, f);
 };
 
@@ -436,23 +436,12 @@ Object.defineProperty(List.prototype, 'zipWithIndex', {
   },
 });
 
-List.prototype.zipPad = function <A, B>(
-  this: List<A>,
-  that: List<B>,
-  defaultL: () => A,
-  defaultR: () => B,
-): List<[A, B]> {
-  return zipPad_(this, that, defaultL, defaultR);
+List.prototype.zipAll = function (that, defaultL, defaultR) {
+  return zipAll_(this, that, defaultL, defaultR);
 };
 
-List.prototype.zipWithPad = function <A, B, C>(
-  this: List<A>,
-  that: List<B>,
-  defaultL: () => A,
-  defaultR: () => B,
-  f: (a: A, b: B) => C,
-): List<C> {
-  return zipWithPad_(this, that, defaultL, defaultR, f);
+List.prototype.zipAllWith = function (that, defaultL, defaultR, f) {
+  return zipAllWith_(this, that, defaultL, defaultR, f);
 };
 
 List.prototype.collect = function <A, B>(

@@ -1,4 +1,5 @@
 import { Lazy } from '@cats4ts/core';
+import { Align } from '../../../align';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { SemigroupK } from '../../../semigroup-k';
@@ -17,6 +18,7 @@ import { List, ListK } from './list';
 
 import { empty, pure } from './constructors';
 import {
+  align_,
   all_,
   any_,
   collect_,
@@ -36,6 +38,7 @@ import {
   tailRecM_,
   tap_,
   traverse_,
+  zipAll_,
 } from './operators';
 
 export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
@@ -49,6 +52,19 @@ export const listMonoidK: Lazy<MonoidK<ListK>> = () => {
   const { algebra, ...rest } = listSemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
 };
+
+export const listAlign: Lazy<Align<ListK>> = () =>
+  Align.of({
+    functor: listFunctor(),
+    align_: align_,
+    zipAll: (xs, ys, a, b) =>
+      zipAll_(
+        xs,
+        ys,
+        () => a,
+        () => b,
+      ),
+  });
 
 export const listFunctor: Lazy<Functor<ListK>> = () => Functor.of({ map_ });
 

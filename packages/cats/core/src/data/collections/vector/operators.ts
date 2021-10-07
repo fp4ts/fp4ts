@@ -7,8 +7,9 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
 
+import { Ior } from '../../ior';
 import { Either } from '../../either';
-import { Option } from '../../option';
+import { Option, Some, None } from '../../option';
 import { List } from '../list';
 
 import * as FT from '../finger-tree/functional';
@@ -157,6 +158,24 @@ export const tailRecM: <A>(
   a: A,
 ) => <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B> = a => f =>
   tailRecM_(a, f);
+
+export const align: <B>(
+  ys: Vector<B>,
+) => <A>(xs: Vector<A>) => Vector<Ior<A, B>> = ys => xs => align_(xs, ys);
+
+export const zip: <B>(ys: Vector<B>) => <A>(xs: Vector<A>) => Vector<[A, B]> =
+  ys => xs =>
+    zip_(xs, ys);
+
+export const zipWithIndex = <A>(xs: Vector<A>): Vector<[A, number]> => {
+  let idx = 0;
+  return map_(xs, x => [x, idx++]);
+};
+
+export const zipWith: <A, B, C>(
+  ys: Vector<B>,
+  f: (a: A, b: B) => C,
+) => (xs: Vector<A>) => Vector<C> = (ys, f) => xs => zipWith_(xs, ys)(f);
 
 export const forEach: <A>(f: (a: A) => void) => (xs: Vector<A>) => void =
   f => xs =>
@@ -364,24 +383,41 @@ export const foldMapK_ =
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(xs, f);
 
-export const zip_ = <A, B>(xs: Vector<A>, ys: Vector<B>): Vector<[A, B]> =>
-  zipWith_(xs, ys, (x, y) => [x, y]);
-
-export const zipWith_ = <A, B, C>(
+export const align_ = <A, B>(
   xs: Vector<A>,
   ys: Vector<B>,
-  f: (a: A, b: B) => C,
-): Vector<C> => {
-  let result: Vector<C> = empty;
-  while (nonEmpty(xs) && nonEmpty(ys)) {
-    const [xhd, xtl] = xs.popHead.get;
-    const [yhd, ytl] = ys.popHead.get;
-    result = append_(result, f(xhd, yhd));
+): Vector<Ior<A, B>> => {
+  let result: Vector<Ior<A, B>> = empty;
+  while (nonEmpty(xs) || nonEmpty(ys)) {
+    const [xhd, xtl] = xs.popHead
+      .map(([hd, tl]) => [Some(hd), tl] as [Option<A>, Vector<A>])
+      .getOrElse(() => [None, empty]);
+    const [yhd, ytl] = ys.popHead
+      .map(([hd, tl]) => [Some(hd), tl] as [Option<B>, Vector<B>])
+      .getOrElse(() => [None, empty]);
+    result = append_(result, Ior.fromOptions(xhd, yhd).get);
     xs = xtl;
     ys = ytl;
   }
   return result;
 };
+
+export const zip_ = <A, B>(xs: Vector<A>, ys: Vector<B>): Vector<[A, B]> =>
+  zipWith_(xs, ys)((x, y) => [x, y]);
+
+export const zipWith_ =
+  <A, B>(xs: Vector<A>, ys: Vector<B>) =>
+  <C>(f: (a: A, b: B) => C): Vector<C> => {
+    let result: Vector<C> = empty;
+    while (nonEmpty(xs) && nonEmpty(ys)) {
+      const [xhd, xtl] = xs.popHead.get;
+      const [yhd, ytl] = ys.popHead.get;
+      result = append_(result, f(xhd, yhd));
+      xs = xtl;
+      ys = ytl;
+    }
+    return result;
+  };
 
 export const traverse_ =
   <G extends AnyK>(G: Applicative<G>) =>
@@ -396,5 +432,5 @@ export const equals_ =
   <A extends A2>(xs: Vector<A>, ys: Vector<A>): boolean => {
     if (xs === ys) return true;
     if (xs.size !== ys.size) return false;
-    return all_(zipWith_(xs, ys, E.equals), id);
+    return all_(zipWith_(xs, ys)(E.equals), id);
   };

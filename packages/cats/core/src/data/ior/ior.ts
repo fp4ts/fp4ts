@@ -18,7 +18,7 @@ export interface IorObj {
   Left<A>(a: A): Ior<A, never>;
   Right<B>(b: B): Ior<never, B>;
   Both<A, B>(a: A, b: B): Ior<A, B>;
-  fromOption<A, B>(left: Option<A>, right: Option<B>): Option<Ior<A, B>>;
+  fromOptions<A, B>(left: Option<A>, right: Option<B>): Option<Ior<A, B>>;
   fromEither<A, B>(ea: Either<A, B>): Ior<A, B>;
 
   tailRecM<AA>(
@@ -36,7 +36,7 @@ export interface IorObj {
 Ior.Left = left;
 Ior.Right = right;
 Ior.Both = both;
-Ior.fromOption = fromOptions;
+Ior.fromOptions = fromOptions;
 Ior.fromEither = fromEither;
 Ior.tailRecM = tailRecM;
 
