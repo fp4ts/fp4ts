@@ -3,12 +3,13 @@ import { Eq } from '../../eq';
 import { Option } from '../option';
 import { Either } from '../either';
 import { Monad } from '../../monad';
+import { MonadError } from '../../monad-error';
 import { Semigroup } from '../../semigroup';
 import { Bifunctor } from '../../bifunctor';
 
 import { Ior as IorBase } from './algebra';
 import { both, fromEither, fromOptions, left, right } from './constructors';
-import { iorBifunctor, iorEq, iorMonad } from './instances';
+import { iorBifunctor, iorEq, iorMonad, iorMonadError } from './instances';
 import { tailRecM } from './operators';
 
 export type Ior<A, B> = IorBase<A, B>;
@@ -31,6 +32,7 @@ export interface IorObj {
   Eq<A, B>(EqA: Eq<A>, EqB: Eq<B>): Eq<Ior<A, B>>;
   readonly Bifunctor: Bifunctor<IorK>;
   Monad<A>(S: Semigroup<A>): Monad<$<IorK, [A]>>;
+  MonadError<A>(S: Semigroup<A>): MonadError<$<IorK, [A]>, A>;
 }
 
 Ior.Left = left;
@@ -42,6 +44,7 @@ Ior.tailRecM = tailRecM;
 
 Ior.Eq = iorEq;
 Ior.Monad = iorMonad;
+Ior.MonadError = iorMonadError;
 Object.defineProperty(Ior, 'Bifunctor', {
   get(): Bifunctor<IorK> {
     return iorBifunctor();
