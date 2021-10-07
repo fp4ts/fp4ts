@@ -1,8 +1,6 @@
 import { AnyK } from '@cats4ts/core';
 import { List, Some, Vector, None } from '@cats4ts/cats';
-
-import { Stream } from '../stream';
-import { Chunk } from '../chunk';
+import { Stream, Chunk } from '@cats4ts/stream-core';
 
 describe('Pure Stream', () => {
   describe('type', () => {

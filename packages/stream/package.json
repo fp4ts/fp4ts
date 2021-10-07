@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/effect",
+  "name": "@cats4ts/stream",
   "version": "1.0.0",
   "main": "./index.js",
   "typings": "./index.d.ts",
@@ -11,14 +11,15 @@
   "dependencies": {
     "@cats4ts/cats": "*",
     "@cats4ts/core": "*",
-    "@cats4ts/effect-core": "*",
-    "@cats4ts/effect-kernel": "*"
+    "@cats4ts/effect": "*",
+    "@cats4ts/stream-core": "*"
   },
   "devDependencies": {
     "@cats4ts/cats-laws": "*",
     "@cats4ts/cats-test-kit": "*",
     "@cats4ts/effect-laws": "*",
     "@cats4ts/effect-test-kit": "*",
+    "@cats4ts/stream-test-kit": "*",
     "fast-check": "^2.17.0",
     "typescript": "4.4.2"
   }

@@ -25,8 +25,11 @@
       "@cats4ts/effect-std/lib/*": ["./effect/std/src/*"],
       "@cats4ts/effect-test-kit": ["./effect/test-kit/src"],
       "@cats4ts/effect-test-kit/lib/*": ["./effect/test-kit/src/*"],
+      "@cats4ts/stream": ["./stream/index.ts"],
       "@cats4ts/stream-core": ["./stream/core/src"],
       "@cats4ts/stream-core/lib/*": ["./stream/core/src/*"],
+      "@cats4ts/stream-test-kit": ["./stream/test-kit/src"],
+      "@cats4ts/stream-test-kit/lib/*": ["./stream/test-kit/src/*"],
     },
     "rootDirs": [
       "./cats",
@@ -40,7 +43,9 @@
       "./effect/laws/src",
       "./effect/std/src",
       "./effect/test-kit/src",
-      "./stream/core/src"
+      "./stream/",
+      "./stream/core/src",
+      "./stream/test-kit/src"
     ]
   }
 }

@@ -6,6 +6,7 @@
     "./packages/core",
     "./packages/effect/*",
     "./packages/effect",
+    "./packages/stream",
     "./packages/stream/*"
   ],
   "version": "1.0.0",

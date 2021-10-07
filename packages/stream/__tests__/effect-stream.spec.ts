@@ -1,8 +1,7 @@
 import { AnyK, throwError } from '@cats4ts/core';
 import { Either, Left, List, Right } from '@cats4ts/cats';
 import { SyncIO, SyncIoK } from '@cats4ts/effect';
-
-import { Stream } from '../stream';
+import { Stream } from '@cats4ts/stream-core';
 
 const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
 
