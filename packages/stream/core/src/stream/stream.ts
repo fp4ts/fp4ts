@@ -1,5 +1,5 @@
-import { AnyK, Kind, TyK, _ } from '@cats4ts/core';
-import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
+import { $, AnyK, Kind, TyK, _ } from '@cats4ts/core';
+import { Either, List, Option, Vector } from '@cats4ts/cats';
 
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
@@ -22,7 +22,25 @@ import {
   tailRecM,
   evalUnChunk,
 } from './constructor';
-import { Spawn } from '@cats4ts/effect-kernel';
+import { Spawn } from '@cats4ts/effect';
+import {
+  Align,
+  Defer,
+  Functor,
+  FunctorFilter,
+  Monad,
+  MonadError,
+  MonoidK,
+} from '@cats4ts/cats';
+import {
+  streamAlign,
+  streamDefer,
+  streamFunctor,
+  streamFunctorFilter,
+  streamMonad,
+  streamMonadError,
+  streamMonoidK,
+} from './instances';
 
 export type Stream<F extends AnyK, A> = StreamBase<F, A>;
 
@@ -64,6 +82,16 @@ interface StreamObj {
   fromList<F extends AnyK, A>(xs: List<A>): Stream<F, A>;
   fromVector<F extends AnyK, A>(xs: Vector<A>): Stream<F, A>;
   fromChunk<F extends AnyK, A>(chunk: Chunk<A>): Stream<F, A>;
+
+  // -- Instances
+
+  MonoidK<F extends AnyK>(): MonoidK<$<StreamK, [F]>>;
+  Defer<F extends AnyK>(): Defer<$<StreamK, [F]>>;
+  Functor<F extends AnyK>(): Functor<$<StreamK, [F]>>;
+  Align<F extends AnyK>(): Align<$<StreamK, [F]>>;
+  FunctorFilter<F extends AnyK>(): FunctorFilter<$<StreamK, [F]>>;
+  Monad<F extends AnyK>(): Monad<$<StreamK, [F]>>;
+  MonadError<F extends AnyK>(): MonadError<$<StreamK, [F]>, Error>;
 }
 
 Stream.pure = pure;
@@ -88,6 +116,14 @@ Stream.fromArray = fromArray;
 Stream.fromList = fromList;
 Stream.fromVector = fromVector;
 Stream.fromChunk = fromChunk;
+
+Stream.MonoidK = streamMonoidK;
+Stream.Defer = streamDefer;
+Stream.Functor = streamFunctor;
+Stream.Align = streamAlign;
+Stream.FunctorFilter = streamFunctorFilter;
+Stream.Monad = streamMonad;
+Stream.MonadError = streamMonadError;
 
 // -- HKT
 

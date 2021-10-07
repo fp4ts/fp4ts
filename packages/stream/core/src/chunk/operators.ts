@@ -1,5 +1,13 @@
 import { AnyK, Kind, pipe } from '@cats4ts/core';
-import { List, None, Option, Some, Vector } from '@cats4ts/cats-core/lib/data';
+import {
+  List,
+  None,
+  Option,
+  Some,
+  Vector,
+  Applicative,
+  Eval,
+} from '@cats4ts/cats';
 
 import { ok as assert } from 'assert';
 import {
@@ -12,7 +20,6 @@ import {
   view,
 } from './algebra';
 import { emptyQueue, fromArray, fromList } from './constructor';
-import { Applicative, Eval } from '@cats4ts/cats-core';
 
 export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
 export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;

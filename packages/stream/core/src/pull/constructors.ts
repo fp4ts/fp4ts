@@ -1,6 +1,6 @@
-import { Option } from '@cats4ts/cats-core/lib/data';
 import { AnyK, Kind } from '@cats4ts/core';
-import { Temporal } from '@cats4ts/effect-kernel';
+import { Option } from '@cats4ts/cats';
+import { Temporal } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Eval, Fail, Pull, Succeed, Terminal, Output, Bind } from './algebra';

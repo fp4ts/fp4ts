@@ -1,5 +1,6 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { Option } from '@cats4ts/cats-core/lib/data';
+import { Option, FunctionK, MonadError } from '@cats4ts/cats';
+
 import { Pull } from './algebra';
 import {
   flatMap_,
@@ -9,7 +10,6 @@ import {
   toVoid,
 } from './operators';
 import { Chunk } from '../chunk';
-import { FunctionK, MonadError } from '@cats4ts/cats-core';
 import {
   compile_,
   cons,

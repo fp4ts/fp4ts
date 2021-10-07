@@ -5,8 +5,12 @@ import {
   MonadError,
   Monoid,
   MonoidK,
-} from '@cats4ts/cats-core';
-import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
+  Either,
+  List,
+  Option,
+  Vector,
+  Ior,
+} from '@cats4ts/cats';
 import { SyncIoK } from '@cats4ts/effect-core';
 
 import { Chunk } from '../chunk';
@@ -69,6 +73,7 @@ import {
   rethrow,
   evalMap_,
   evalMapChunk_,
+  align_,
 } from './operators';
 
 declare module './algebra' {
@@ -146,6 +151,7 @@ declare module './algebra' {
       f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
     ): Stream<F, B>;
 
+    align<B>(that: Stream<F, B>): Stream<F, Ior<A, B>>;
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
 
@@ -370,6 +376,10 @@ Stream.prototype.scanChunks = function (init, f) {
 
 Stream.prototype.scanChunksOpt = function (init, f) {
   return scanChunksOpt_(this, init, f);
+};
+
+Stream.prototype.align = function (that) {
+  return align_(this, that);
 };
 
 Stream.prototype.zip = function (that) {

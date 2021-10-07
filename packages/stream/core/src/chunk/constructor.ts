@@ -1,4 +1,5 @@
-import { List, Vector } from '@cats4ts/cats-core/lib/data';
+import { List, Vector } from '@cats4ts/cats';
+
 import {
   ArrayChunk,
   Chunk,

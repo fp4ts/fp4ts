@@ -1,6 +1,6 @@
 import { AnyK, Kind, pipe } from '@cats4ts/core';
-import { Either, List, Option, Vector } from '@cats4ts/cats-core/lib/data';
-import { Spawn } from '@cats4ts/effect-kernel';
+import { Either, List, Option, Vector } from '@cats4ts/cats';
+import { Spawn } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';

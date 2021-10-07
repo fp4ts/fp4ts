@@ -6,16 +6,15 @@ import {
   MonadError,
   Monoid,
   MonoidK,
-} from '@cats4ts/cats-core';
-import {
   Either,
   Left,
   None,
   Option,
   Right,
   Some,
-} from '@cats4ts/cats-core/lib/data';
-import { SyncIoK } from '@cats4ts/effect-core';
+  Ior,
+} from '@cats4ts/cats';
+import { SyncIoK } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
@@ -285,6 +284,10 @@ export const scanChunksOpt: <S>(
 ) => <F extends AnyK, A extends AA>(s: Stream<F, A>) => Stream<F, B> =
   init => f => s =>
     scanChunksOpt_(s, init, f);
+
+export const align: <F extends AnyK, B>(
+  s2: Stream<F, B>,
+) => <A>(s1: Stream<F, A>) => Stream<F, Ior<A, B>> = s2 => s1 => align_(s1, s2);
 
 export const zip: <F extends AnyK, B>(
   s2: Stream<F, B>,
@@ -808,6 +811,17 @@ export const scanChunksOpt_ = <F extends AnyK, S, A, B>(
   init: S,
   f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
 ): Stream<F, B> => new Stream(s.pull.scanChunksOpt(init, f).void);
+
+export const align_ = <F extends AnyK, A, B>(
+  s1: Stream<F, A>,
+  s2: Stream<F, B>,
+): Stream<F, Ior<A, B>> =>
+  zipAllWith_(
+    map_(s1, Some),
+    map_(s2, Some),
+    None,
+    None,
+  )((oa, ob) => Ior.fromOptions(oa, ob).get);
 
 export const zip_ = <F extends AnyK, A, B>(
   s1: Stream<F, A>,

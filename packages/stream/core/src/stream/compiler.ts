@@ -1,7 +1,6 @@
-import { MonadError } from '@cats4ts/cats-core';
-import { List, None, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { AnyK, Kind, pipe } from '@cats4ts/core';
-import { SyncIO, SyncIoK } from '@cats4ts/effect-core';
+import { MonadError, List, None, Option, Vector } from '@cats4ts/cats';
+import { SyncIO, SyncIoK } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';

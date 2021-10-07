@@ -1,6 +1,6 @@
-import { Applicative } from '@cats4ts/cats-core';
-import { List, Option, Vector } from '@cats4ts/cats-core/lib/data';
 import { AnyK, Kind } from '@cats4ts/core';
+import { Applicative, List, Option, Vector } from '@cats4ts/cats';
+
 import { Chunk } from './algebra';
 import {
   collect_,

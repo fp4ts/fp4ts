@@ -1,6 +1,6 @@
 import { AnyK, Kind } from '@cats4ts/core';
-import { FunctionK } from '@cats4ts/cats-core';
-import { Option } from '@cats4ts/cats-core/lib/data';
+import { FunctionK, Option } from '@cats4ts/cats';
+
 import { Chunk } from '../chunk/algebra';
 
 export abstract class Pull<F extends AnyK, O, R> {

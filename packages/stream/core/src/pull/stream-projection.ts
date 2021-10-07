@@ -1,6 +1,5 @@
 import { AnyK, id, Kind, pipe } from '@cats4ts/core';
-import { FunctionK, MonadError } from '@cats4ts/cats-core';
-import { None, Option, Some } from '@cats4ts/cats-core/lib/data';
+import { FunctionK, MonadError, None, Option, Some } from '@cats4ts/cats';
 
 import * as PO from './operators';
 import * as PC from './constructors';

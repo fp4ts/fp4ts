@@ -1,8 +1,8 @@
 import { AnyK, pipe } from '@cats4ts/core';
+import { Option } from '@cats4ts/cats';
 
 import { pure, unit } from './constructors';
 import { Bind, Fail, Pull } from './algebra';
-import { Option } from '@cats4ts/cats-core/lib/data';
 
 export const toVoid: <F extends AnyK, O, R>(
   p: Pull<F, O, R>,

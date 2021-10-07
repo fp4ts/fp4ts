@@ -1,5 +1,5 @@
-import { Vector } from '@cats4ts/cats-core/lib/data';
 import { ok as assert } from 'assert';
+import { Vector } from '@cats4ts/cats';
 
 export abstract class Chunk<O> {
   readonly __void!: void;
