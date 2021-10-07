@@ -59,9 +59,9 @@ export const map: <B, D>(g: (b: B) => D) => <A>(ior: Ior<A, B>) => Ior<A, D> =
   g => ior =>
     map_(ior, g);
 
-export const mapLeft: <A, C>(
+export const leftMap: <A, C>(
   f: (a: A) => C,
-) => <B>(ior: Ior<A, B>) => Ior<C, B> = f => ior => mapLeft_(ior, f);
+) => <B>(ior: Ior<A, B>) => Ior<C, B> = f => ior => leftMap_(ior, f);
 
 export const bimap: <A, B, C, D>(
   f: (a: A) => C,
@@ -104,7 +104,7 @@ export const fold: <A, B, C>(
 export const map_ = <A, B, D>(ior: Ior<A, B>, g: (b: B) => D): Ior<A, D> =>
   bimap_(ior, id, g);
 
-export const mapLeft_ = <A, B, C>(ior: Ior<A, B>, f: (a: A) => C): Ior<C, B> =>
+export const leftMap_ = <A, B, C>(ior: Ior<A, B>, f: (a: A) => C): Ior<C, B> =>
   bimap_(ior, f, id);
 
 export const bimap_ = <A, B, C, D>(

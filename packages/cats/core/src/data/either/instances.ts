@@ -1,9 +1,10 @@
-import { $ } from '@cats4ts/core';
+import { $, Lazy } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
+import { Bifunctor } from '../../bifunctor';
 import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
@@ -17,6 +18,8 @@ import {
   tailRecM_,
   equals_,
   fold_,
+  bimap_,
+  leftMap_,
 } from './operators';
 import { left, pure, right, rightUnit } from './constructors';
 
@@ -30,6 +33,9 @@ export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
 
 export const eitherFunctor: <E>() => Functor<$<EitherK, [E]>> = () =>
   Functor.of({ map_ });
+
+export const eitherBifunctor: Lazy<Bifunctor<EitherK>> = () =>
+  Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ });
 
 export const eitherApply: <E>() => Apply<$<EitherK, [E]>> = () =>
   Apply.of({

@@ -34,6 +34,15 @@ export const map: <A, B>(
   f: (a: A) => B,
 ) => <E>(ea: Either<E, A>) => Either<E, B> = f => ea => map_(ea, f);
 
+export const leftMap: <E, E2>(
+  f: (e: E) => E2,
+) => <A>(ea: Either<E, A>) => Either<E2, A> = f => ea => leftMap_(ea, f);
+
+export const bimap: <E, A, E2, B>(
+  f: (e: E) => E2,
+  g: (a: A) => B,
+) => (ea: Either<E, A>) => Either<E2, B> = (f, g) => ea => bimap_(ea, f, g);
+
 export const tap: <A>(
   f: (a: A) => unknown,
 ) => <E>(ea: Either<E, A>) => Either<E, A> = f => ea => tap_(ea, f);
@@ -75,7 +84,7 @@ export const toOption = <A>(ea: Either<unknown, A>): Option<A> =>
 // -- Point-ful operators
 
 export const map_ = <E, A, B>(ea: Either<E, A>, f: (a: A) => B): Either<E, B> =>
-  fold_<E, A, Either<E, B>>(ea, left, x => right(f(x)));
+  bimap_(ea, id, f);
 
 export const tap_ = <E, A>(
   ea: Either<E, A>,
@@ -85,6 +94,22 @@ export const tap_ = <E, A>(
     f(x);
     return x;
   });
+
+export const leftMap_ = <E, E2, A>(
+  ea: Either<E, A>,
+  f: (e: E) => E2,
+): Either<E2, A> => bimap_(ea, f, id);
+
+export const bimap_ = <E, A, E2, B>(
+  ea: Either<E, A>,
+  f: (e: E) => E2,
+  g: (a: A) => B,
+): Either<E2, B> =>
+  fold_<E, A, Either<E2, B>>(
+    ea,
+    e => left(f(e)),
+    a => right(g(a)),
+  );
 
 export const orElse_ = <E, A>(
   x: Either<E, A>,

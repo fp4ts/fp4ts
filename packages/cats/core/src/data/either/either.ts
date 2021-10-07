@@ -3,6 +3,7 @@ import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
 import { Apply } from '../../apply';
+import { Bifunctor } from '../../bifunctor';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
@@ -15,6 +16,7 @@ import {
   eitherApplicative,
   eitherApplicativeError,
   eitherApply,
+  eitherBifunctor,
   eitherEq,
   eitherFlatMap,
   eitherFunctor,
@@ -47,6 +49,7 @@ export interface EitherObj {
   // -- Instances
   SemigroupK<E>(): SemigroupK<$<EitherK, [E]>>;
   Functor<E>(): Functor<$<EitherK, [E]>>;
+  readonly Bifunctor: Bifunctor<EitherK>;
   Apply<E>(): Apply<$<EitherK, [E]>>;
   Applicative<E>(): Applicative<$<EitherK, [E]>>;
   ApplicativeError<E>(): ApplicativeError<$<EitherK, [E]>, E>;
@@ -64,6 +67,11 @@ Either.tailRecM = tailRecM;
 
 Either.SemigroupK = eitherSemigroupK;
 Either.Functor = eitherFunctor;
+Object.defineProperty(Either, 'Bifunctor', {
+  get(): Bifunctor<EitherK> {
+    return eitherBifunctor();
+  },
+});
 Either.Apply = eitherApply;
 Either.Applicative = eitherApplicative;
 Either.ApplicativeError = eitherApplicativeError;

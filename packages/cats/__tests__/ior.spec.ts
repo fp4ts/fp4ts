@@ -3,7 +3,7 @@ import { Eq, Semigroup } from '@cats4ts/cats-core';
 import { Option, Either, Left, Right, Ior } from '@cats4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-import { MonadSuite } from '@cats4ts/cats-laws';
+import { BifunctorSuite, MonadSuite } from '@cats4ts/cats-laws';
 
 describe('Ior', () => {
   test(
@@ -89,6 +89,23 @@ describe('Ior', () => {
     forAll(A.cats4tsIor(fc.integer(), fc.string()), i =>
       i.toEither.toOption['<=>'](i.right),
     )(Option.Eq(Eq.primitive)),
+  );
+
+  const bifunctorTests = BifunctorSuite(Ior.Bifunctor);
+  checkAll(
+    'Bifunctor<Iok>',
+    bifunctorTests.bifunctor(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsIor,
+      Ior.Eq,
+    ),
   );
 
   const monadTests = MonadSuite(Ior.Monad(Semigroup.addition));

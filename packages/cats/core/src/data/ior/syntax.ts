@@ -16,7 +16,7 @@ import {
   isBoth,
   isLeft,
   isRight,
-  mapLeft_,
+  leftMap_,
   map_,
   pad,
   swapped,
@@ -46,7 +46,7 @@ declare module './algebra' {
     readonly pad: [Option<A>, Option<B>];
 
     map<D>(g: (b: B) => D): Ior<A, D>;
-    mapLeft<C>(f: (a: A) => C): Ior<C, B>;
+    leftMap<C>(f: (a: A) => C): Ior<C, B>;
     bimap<C, D>(f: (a: A) => C, g: (b: B) => D): Ior<C, D>;
 
     flatMap<AA>(
@@ -136,8 +136,8 @@ Object.defineProperty(Ior.prototype, 'pad', {
 Ior.prototype.map = function (g) {
   return map_(this, g);
 };
-Ior.prototype.mapLeft = function (f) {
-  return mapLeft_(this, f);
+Ior.prototype.leftMap = function (f) {
+  return leftMap_(this, f);
 };
 Ior.prototype.bimap = function (f, g) {
   return bimap_(this, f, g);

@@ -17,6 +17,8 @@ import {
   isLeft,
   get,
   getLeft,
+  leftMap_,
+  bimap_,
 } from './operators';
 
 declare module './algebra' {
@@ -32,6 +34,10 @@ declare module './algebra' {
 
     map<B>(f: (a: A) => B): Either<E, B>;
     tap(f: (a: A) => unknown): Either<E, A>;
+
+    leftMap<E2>(f: (e: E) => E2): Either<E2, A>;
+
+    bimap<E2, B>(f: (e: E) => E2, g: (a: A) => B): Either<E2, A>;
 
     orElse<E2, A2>(
       this: Either<E2, A2>,
@@ -104,18 +110,20 @@ Object.defineProperty(Either.prototype, 'isRight', {
   },
 });
 
-Either.prototype.map = function <E, A, B>(
-  this: Either<E, A>,
-  f: (a: A) => B,
-): Either<E, B> {
+Either.prototype.map = function (f) {
   return map_(this, f);
 };
 
-Either.prototype.tap = function <E, A>(
-  this: Either<E, A>,
-  f: (a: A) => unknown,
-): Either<E, A> {
+Either.prototype.tap = function (f) {
   return tap_(this, f);
+};
+
+Either.prototype.leftMap = function (f) {
+  return leftMap_(this, f);
+};
+
+Either.prototype.bimap = function (f, g) {
+  return bimap_(this, f, g);
 };
 
 Either.prototype.orElse = function (that) {

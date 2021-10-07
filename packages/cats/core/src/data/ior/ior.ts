@@ -4,14 +4,15 @@ import { Option } from '../option';
 import { Either } from '../either';
 import { Monad } from '../../monad';
 import { Semigroup } from '../../semigroup';
+import { Bifunctor } from '../../bifunctor';
 
 import { Ior as IorBase } from './algebra';
 import { both, fromEither, fromOptions, left, right } from './constructors';
-import { iorEq, iorMonad } from './instances';
+import { iorBifunctor, iorEq, iorMonad } from './instances';
 import { tailRecM } from './operators';
 
 export type Ior<A, B> = IorBase<A, B>;
-export const Ior: IorObj = function () {};
+export const Ior: IorObj = function () {} as any;
 
 export interface IorObj {
   Left<A>(a: A): Ior<A, never>;
@@ -28,6 +29,7 @@ export interface IorObj {
 
   // -- Instances
   Eq<A, B>(EqA: Eq<A>, EqB: Eq<B>): Eq<Ior<A, B>>;
+  readonly Bifunctor: Bifunctor<IorK>;
   Monad<A>(S: Semigroup<A>): Monad<$<IorK, [A]>>;
 }
 
@@ -40,6 +42,11 @@ Ior.tailRecM = tailRecM;
 
 Ior.Eq = iorEq;
 Ior.Monad = iorMonad;
+Object.defineProperty(Ior, 'Bifunctor', {
+  get(): Bifunctor<IorK> {
+    return iorBifunctor();
+  },
+});
 
 // -- HKT
 

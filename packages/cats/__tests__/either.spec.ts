@@ -4,7 +4,11 @@ import { Eq } from '@cats4ts/cats-core';
 import { Either, Right, Left, Some, None } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-import { SemigroupKSuite, MonadErrorSuite } from '@cats4ts/cats-laws';
+import {
+  SemigroupKSuite,
+  MonadErrorSuite,
+  BifunctorSuite,
+} from '@cats4ts/cats-laws';
 
 describe('Either', () => {
   describe('type', () => {
@@ -124,7 +128,6 @@ describe('Either', () => {
   });
 
   const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
-
   checkAll(
     'SemigroupK<$<EitherK, [string]>>',
     semigroupKTests.semigroupK(
@@ -132,6 +135,23 @@ describe('Either', () => {
       Eq.primitive,
       x => A.cats4tsEither(fc.string(), x),
       E => Either.Eq(Eq.primitive, E),
+    ),
+  );
+
+  const bifunctorTests = BifunctorSuite(Either.Bifunctor);
+  checkAll(
+    'Bifunctor<Either>',
+    bifunctorTests.bifunctor(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsEither,
+      Either.Eq,
     ),
   );
 
