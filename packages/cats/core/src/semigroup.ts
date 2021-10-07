@@ -12,6 +12,22 @@ export const Semigroup = Object.freeze({
     combine: y => x => S.combine_(x, y),
     ...S,
   }),
+
+  get string(): Semigroup<string> {
+    return Semigroup.of({ combine_: (x, y) => x + y() });
+  },
+
+  get disjunction(): Semigroup<boolean> {
+    return Semigroup.of({ combine_: (x, y) => x || y() });
+  },
+
+  get conjunction(): Semigroup<boolean> {
+    return Semigroup.of({ combine_: (x, y) => x && y() });
+  },
+
+  get addition(): Semigroup<number> {
+    return Semigroup.of({ combine_: (x, y) => x + y() });
+  },
 });
 
 // -- Builtin Semigroups

@@ -47,6 +47,12 @@ export const Eq = Object.freeze({
       });
     },
   },
+
+  tuple2<A, B>(A: Eq<A>, B: Eq<B>): Eq<[A, B]> {
+    return Eq.of({
+      equals: ([la, lb], [ra, rb]) => A.equals(la, ra) && B.equals(lb, rb),
+    });
+  },
 });
 
 // HKT
