@@ -84,6 +84,15 @@ export const combine: <AA, BB>(
   (SA, SB) => ior2 => ior1 =>
     combine_(SA, SB)(ior1, ior2);
 
+export const merge: <AA>(
+  S: Semigroup<AA>,
+) => <A extends AA>(ior: Ior<A, A>) => AA = S => ior =>
+  fold_(ior, id, id, (a1, a2) => S.combine_(a1, () => a2));
+
+export const mergeWith: <A>(f: (l: A, r: A) => A) => (ior: Ior<A, A>) => A =
+  f => ior =>
+    mergeWith_(ior, f);
+
 export const tailRecM: <AA>(
   S: Semigroup<AA>,
 ) => <S>(
@@ -157,15 +166,19 @@ export const combine_ =
       ),
     );
 
+export const mergeWith_ = <A>(ior: Ior<A, A>, f: (l: A, r: A) => A): A =>
+  fold_(ior, id, id, f);
+
 export const tailRecM_ =
   <AA>(S: Semigroup<AA>) =>
   <A extends AA, S, B>(s: S, f: (s: S) => Ior<A, Either<S, B>>): Ior<AA, B> => {
     let cur: Ior<AA, Either<S, B>> = f(s);
     let result: Ior<AA, B> | undefined;
     while (!result) {
+      // prettier-ignore
       fold_<AA, Either<S, B>, void>(
         cur,
-        a => (result = left(a)),
+        a  => (result = left(a)),
         ea =>
           ea.fold<S, B, void>(
             s => (cur = f(s)),
@@ -176,13 +189,9 @@ export const tailRecM_ =
             s =>
               fold_<A, Either<S, B>, void>(
                 f(s),
-                aa => (cur = left(S.combine_(a, () => aa))),
-                x => (cur = both(a, x)),
-                (aa, x) =>
-                  (cur = both(
-                    S.combine_(a, () => aa),
-                    x,
-                  )),
+                aa      => (cur = left(S.combine_(a, () => aa))),
+                x       => (cur = both(a, x)),
+                (aa, x) => (cur = both(S.combine_(a, () => aa), x)),
               ),
             b => (result = both(a, b)),
           ),

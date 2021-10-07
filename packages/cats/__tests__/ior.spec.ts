@@ -66,6 +66,30 @@ describe('Ior', () => {
   );
 
   test(
+    'merge',
+    forAll(
+      A.cats4tsIor(fc.integer(), fc.integer()),
+      i =>
+        i.merge(Semigroup.addition) ===
+        i.left.getOrElse(() => 0) + i.right.getOrElse(() => 0),
+    ),
+  );
+
+  test(
+    'mergeWith',
+    forAll(
+      A.cats4tsIor(fc.integer(), fc.integer()),
+      fc.func<[number, number], number>(fc.integer()),
+      (i, f) =>
+        i.mergeWith(f) ===
+        i.onlyBoth
+          .map(([l, r]) => f(l, r))
+          ['<|>'](() => i.left)
+          ['<|>'](() => i.right).get,
+    ),
+  );
+
+  test(
     'combine right',
     forAll(
       A.cats4tsIor(fc.integer(), fc.string()),

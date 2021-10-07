@@ -18,6 +18,8 @@ import {
   isRight,
   leftMap_,
   map_,
+  merge,
+  mergeWith_,
   pad,
   swapped,
   toEither,
@@ -58,6 +60,9 @@ declare module './algebra' {
       SA: Semigroup<AA>,
       SB: Semigroup<BB>,
     ): (that: Ior<AA, BB>) => Ior<AA, BB>;
+
+    merge<AA>(this: Ior<AA, AA>, S: Semigroup<AA>): AA;
+    mergeWith<AA>(this: Ior<AA, AA>, f: (l: AA, r: AA) => AA): AA;
 
     fold<C>(
       onLeft: (a: A) => C,
@@ -149,6 +154,13 @@ Ior.prototype.flatMap = function (S) {
 
 Ior.prototype.combine = function (SA, SB) {
   return that => combine_(SA, SB)(this, that);
+};
+
+Ior.prototype.merge = function (S) {
+  return merge(S)(this);
+};
+Ior.prototype.mergeWith = function (f) {
+  return mergeWith_(this, f);
 };
 
 Ior.prototype.fold = function (onLeft, onRight, onBoth) {
