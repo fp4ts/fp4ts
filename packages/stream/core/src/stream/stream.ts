@@ -49,7 +49,7 @@ export const Stream: StreamObj = function (...xs) {
 };
 
 interface StreamObj {
-  <F extends AnyK, A>(...xs: A[]): Stream<F, A>;
+  <F extends AnyK, A = never>(...xs: A[]): Stream<F, A>;
   pure<F extends AnyK, A>(x: A): Stream<F, A>;
   defer<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
   throwError<F extends AnyK>(e: Error): Stream<F, never>;

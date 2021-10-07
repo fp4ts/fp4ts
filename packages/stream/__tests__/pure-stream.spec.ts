@@ -1,6 +1,15 @@
+import fc from 'fast-check';
 import { AnyK } from '@cats4ts/core';
-import { List, Some, Vector, None } from '@cats4ts/cats';
+import { List, Some, Vector, None, Eq } from '@cats4ts/cats';
 import { Stream, Chunk } from '@cats4ts/stream-core';
+import {
+  AlignSuite,
+  FunctorFilterSuite,
+  MonadSuite,
+  MonoidKSuite,
+} from '@cats4ts/cats-laws';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
 
 describe('Pure Stream', () => {
   describe('type', () => {
@@ -629,4 +638,67 @@ describe('Pure Stream', () => {
       );
     });
   });
+
+  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<AnyK, X>> =>
+    Eq.by(List.Eq(EqX), s => s.compile.toList);
+
+  const monoidKTests = MonoidKSuite(Stream.MonoidK<AnyK>());
+  checkAll(
+    'MonoidK<$<StreamK, [AnyK]>>',
+    monoidKTests.monoidK(
+      fc.integer(),
+      Eq.primitive,
+      A.cats4tsPureStreamGenerator,
+      pureEqStream,
+    ),
+  );
+
+  const alignTests = AlignSuite(Stream.Align<AnyK>());
+  checkAll(
+    'Align<$<StreamK, [AnyK]>>',
+    alignTests.align(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsPureStreamGenerator,
+      pureEqStream,
+    ),
+  );
+
+  const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<AnyK>());
+  checkAll(
+    'FunctorFilter<$<StreamK, [AnyK]>',
+    functorFilterTests.functorFilter(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsPureStreamGenerator,
+      pureEqStream,
+    ),
+  );
+
+  const monadTests = MonadSuite(Stream.Monad<AnyK>());
+  checkAll(
+    'Monad<$<StreamK, [AnyK]>>',
+    monadTests.monad(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.cats4tsPureStreamGenerator,
+      pureEqStream,
+    ),
+  );
 });

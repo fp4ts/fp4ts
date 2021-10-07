@@ -13,6 +13,8 @@ import {
 import { TestExecutionContext } from './test-execution-context';
 import { ExecutionContext } from '@cats4ts/effect';
 
+export * from '@cats4ts/cats-test-kit';
+
 export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
   cats4tsKind(
     arbA,

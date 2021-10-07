@@ -276,7 +276,7 @@ export const findIndex_ = <O>(
     case 'singleton':
       return pred(v.value) ? Some(0) : None;
     case 'array': {
-      const idx = v.array.findIndex(pred);
+      const idx = v.array.findIndex(o => pred(o));
       return idx < 0 ? None : Some(idx);
     }
     case 'slice':
@@ -402,7 +402,7 @@ export const filter_ = <O>(c: Chunk<O>, pred: (o: O) => boolean): Chunk<O> => {
     case 'singleton':
       return pred(v.value) ? v : EmptyChunk;
     case 'array':
-      return fromArray(v.array.filter(pred));
+      return fromArray(v.array.filter(o => pred(o)));
     case 'slice': {
       const results: O[] = [];
       for (let i = v.offset, len = v.offset + v.length; i < len; i++) {
@@ -446,7 +446,7 @@ export const map_ = <O, O2>(c: Chunk<O>, f: (o: O) => O2): Chunk<O2> => {
     case 'singleton':
       return new SingletonChunk(f(v.value));
     case 'array':
-      return new ArrayChunk(v.array.map(f));
+      return new ArrayChunk(v.array.map(x => f(x)));
     case 'slice':
     case 'queue': {
       const size = v.size;
@@ -481,7 +481,7 @@ export const forEach_ = <O>(c: Chunk<O>, f: (o: O) => void): void => {
     case 'singleton':
       return f(v.value);
     case 'array':
-      return v.array.forEach(f);
+      return v.array.forEach(x => f(x));
     case 'slice':
       for (let i = 0, len = v.size; i < len; i++) {
         f(v.values[v.offset + i]);
@@ -504,7 +504,7 @@ export const foldLeft_ = <O, B>(
     case 'singleton':
       return f(init, v.value);
     case 'array':
-      return v.array.reduce(f, init);
+      return v.array.reduce((b, o) => f(b, o), init);
     case 'slice':
       let ret: B = init;
       for (let i = 0, len = v.values.length; i < len; i++) {
