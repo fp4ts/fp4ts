@@ -689,6 +689,78 @@ describe('Vector', () => {
     });
   });
 
+  describe('scanLeft', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should return an initial result when Vector is empty', () => {
+      expect(Vector.empty.scanLeft(0, add)).toEqual(Vector(0));
+    });
+
+    it('should accumulate sums of the values', () => {
+      expect(Vector(1, 2, 3).scanLeft(0, add).toArray).toEqual([0, 1, 3, 6]);
+    });
+
+    it('should be left associate', () => {
+      expect(
+        Vector(1, 2, 3).scanLeft('', (x, y) => `(${x} ${y})`).toArray,
+      ).toEqual(['', '( 1)', '(( 1) 2)', '((( 1) 2) 3)']);
+    });
+  });
+
+  describe('scanLeft1', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should throw error when vector is empty', () => {
+      expect(() => Vector.empty.scanLeft1(add)).toThrow();
+    });
+
+    it('should accumulate sums of the values', () => {
+      expect(Vector(1, 2, 3).scanLeft1(add).toArray).toEqual([1, 3, 6]);
+    });
+
+    it('should be left associate', () => {
+      expect(
+        Vector('1', '2', '3').scanLeft1((x, y) => `(${x} ${y})`).toArray,
+      ).toEqual(['1', '(1 2)', '((1 2) 3)']);
+    });
+  });
+
+  describe('scanRight', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should return an initial result when list is empty', () => {
+      expect(Vector.empty.scanRight(0, add)).toEqual(Vector(0));
+    });
+
+    it('should accumulate sums of the values', () => {
+      expect(Vector(1, 2, 3).scanRight(0, add).toArray).toEqual([6, 5, 3, 0]);
+    });
+
+    it('should be right associate', () => {
+      expect(
+        Vector(1, 2, 3).scanRight('', (x, y) => `(${x} ${y})`).toArray,
+      ).toEqual(['(1 (2 (3 )))', '(2 (3 ))', '(3 )', '']);
+    });
+  });
+
+  describe('scanRight1', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should throw when vector is empty', () => {
+      expect(() => Vector.empty.scanRight1(add)).toThrow();
+    });
+
+    it('should accumulate sums of the values', () => {
+      expect(Vector(1, 2, 3).scanRight1(add).toArray).toEqual([6, 5, 3]);
+    });
+
+    it('should be right associate', () => {
+      expect(
+        Vector('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`).toArray,
+      ).toEqual(['(1 (2 3))', '(2 3)', '3']);
+    });
+  });
+
   const alignTests = AlignSuite(Vector.Align);
   checkAll(
     'Align<Vector>',

@@ -42,7 +42,7 @@ export class ArraySlice<O> extends Chunk<O> {
     assert(
       offset >= 0 &&
         offset <= values.length &&
-        length >= 0 &&
+        length > 0 &&
         length <= values.length &&
         offset + length <= values.length,
     );

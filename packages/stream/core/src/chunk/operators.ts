@@ -21,8 +21,8 @@ import {
 } from './algebra';
 import { emptyQueue, fromArray, fromList } from './constructor';
 
-export const isEmpty = <O>(c: Chunk<O>): boolean => c === EmptyChunk;
-export const nonEmpty = <O>(c: Chunk<O>): boolean => c !== EmptyChunk;
+export const isEmpty = <O>(c: Chunk<O>): boolean => c.size === 0;
+export const nonEmpty = <O>(c: Chunk<O>): boolean => !isEmpty(c);
 
 export const size = <O>(c: Chunk<O>): number => c.size;
 
@@ -169,9 +169,11 @@ export const take_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let head: Chunk<O>;
       let chunks = v.queue;
       let offset = n;
+      let acc: Chunk<O> = EmptyChunk;
       while (true) {
         [head, chunks] = chunks.popHead.get;
-        if (offset <= head.size) return take_(head, offset);
+        if (offset <= head.size) return acc['+++'](take_(head, offset));
+        acc = acc['+++'](head);
         offset -= head.size;
       }
     }
@@ -197,10 +199,12 @@ export const takeRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       let last: Chunk<O>;
       let chunks = v.queue;
       let offset = n;
+      let acc: Chunk<O> = EmptyChunk;
       while (true) {
         [last, chunks] = chunks.popLast.get;
-        if (offset <= last.size) return takeRight_(last, offset);
+        if (offset <= last.size) return takeRight_(last, offset)['+++'](acc);
         offset -= last.size;
+        acc = last['+++'](acc);
       }
     }
   }
@@ -228,7 +232,7 @@ export const drop_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       while (true) {
         [head, chunks] = chunks.popHead.get;
         size -= head.size;
-        if (head.size <= offset)
+        if (offset <= head.size)
           return concat_(drop_(head, offset), new Queue(chunks, size));
         offset -= head.size;
       }
@@ -257,8 +261,8 @@ export const dropRight_ = <O>(c: Chunk<O>, n: number): Chunk<O> => {
       while (true) {
         [last, chunks] = chunks.popLast.get;
         size -= last.size;
-        if (last.size <= offset)
-          return concat_(dropRight_(last, offset), new Queue(chunks, size));
+        if (offset <= last.size)
+          return concat_(new Queue(chunks, size), dropRight_(last, offset));
         offset -= last.size;
       }
     }
@@ -382,12 +386,14 @@ export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
 
   switch (v1.tag) {
     case 'queue':
-      return new Queue(v1.queue.append(v2), v1.size + v2.size);
+      return v2.tag === 'queue'
+        ? new Queue(v1.queue['+++'](v2.queue), v1.size + v2.size)
+        : new Queue(v1.queue.append(v2), v1.size + v2.size);
 
     default:
       switch (v2.tag) {
         case 'queue':
-          return new Queue(v2.queue.prepend(v1), v1.size + c2.size);
+          return new Queue(v2.queue.prepend(v1), v1.size + v2.size);
         default:
           return new Queue(Vector(v1, v2), v1.size + v2.size);
       }

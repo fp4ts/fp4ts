@@ -1,4 +1,4 @@
-import { flow, id } from '@cats4ts/core';
+import { flow, id, throwError } from '@cats4ts/core';
 
 import { Eq } from '../../eq';
 import { Either } from '../either';
@@ -16,13 +16,7 @@ export const isEmpty = <A>(o: Option<A>): boolean =>
 export const nonEmpty = <A>(o: Option<A>): boolean => !isEmpty(o);
 
 export const get = <A>(o: Option<A>): A =>
-  fold_(
-    o,
-    () => {
-      throw new Error('None.get');
-    },
-    id,
-  );
+  fold_(o, () => throwError(new Error('None.get')), id);
 
 export const map: <A, B>(f: (a: A) => B) => (o: Option<A>) => Option<B> =
   f => o =>

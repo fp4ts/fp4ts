@@ -14,7 +14,7 @@ import { List } from '../list';
 
 import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
-import { empty } from './constructors';
+import { empty, pure } from './constructors';
 import { fingerTreeSizeMeasured, sizeMeasured } from './instances';
 
 const FT_ = {
@@ -210,6 +210,25 @@ export const foldMapK: <F extends AnyK>(
   F => f => xs =>
     foldMapK_(F)(xs, f);
 
+export const scanLeft: <A, B>(
+  z: B,
+  f: (b: B, x: A) => B,
+) => (xs: Vector<A>) => Vector<B> = (z, f) => xs => scanLeft_(xs, z, f);
+
+export const scanLeft1: <AA>(
+  f: (x: AA, y: AA) => AA,
+) => <A extends AA>(xs: Vector<A>) => Vector<AA> = f => xs => scanLeft1_(xs, f);
+
+export const scanRight: <A, B>(
+  z: B,
+  f: (x: A, b: B) => B,
+) => (xs: Vector<A>) => Vector<B> = (z, f) => xs => scanRight_(xs, z, f);
+
+export const scanRight1: <AA>(
+  f: (x: AA, y: AA) => AA,
+) => <A extends AA>(xs: Vector<A>) => Vector<AA> = f => xs =>
+  scanRight1_(xs, f);
+
 export const traverse: <G extends AnyK>(
   G: Applicative<G>,
 ) => <A, B>(
@@ -382,6 +401,46 @@ export const foldMapK_ =
   <F extends AnyK>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(xs, f);
+
+export const scanLeft_ = <A, B>(
+  xs: Vector<A>,
+  z: B,
+  f: (b: B, x: A) => B,
+): Vector<B> =>
+  foldLeft_(xs, [pure(z), z] as [Vector<B>, B], ([zs, z], x) => {
+    const next = f(z, x);
+    return [append_(zs, next), next] as [Vector<B>, B];
+  })[0];
+
+export const scanLeft1_ = <A>(
+  xs: Vector<A>,
+  f: (x: A, y: A) => A,
+): Vector<A> => {
+  const [hd, tl] = popHead(xs).getOrElse(() =>
+    throwError(new Error('Vector.empty.scanLeft1')),
+  );
+  return scanLeft_(tl, hd, f);
+};
+
+export const scanRight_ = <A, B>(
+  xs: Vector<A>,
+  z: B,
+  f: (x: A, b: B) => B,
+): Vector<B> =>
+  foldRight_(xs, [pure(z), z] as [Vector<B>, B], (x, [zs, z]) => {
+    const next = f(x, z);
+    return [prepend_(zs, next), next] as [Vector<B>, B];
+  })[0];
+
+export const scanRight1_ = <A>(
+  xs: Vector<A>,
+  f: (x: A, y: A) => A,
+): Vector<A> => {
+  const [last, tl] = popLast(xs).getOrElse(() =>
+    throwError(new Error('Vector.empty.scanRight1')),
+  );
+  return scanRight_(tl, last, f);
+};
 
 export const align_ = <A, B>(
   xs: Vector<A>,

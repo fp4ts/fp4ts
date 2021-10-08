@@ -1001,7 +1001,7 @@ describe('List', () => {
       expect(List(1, 2, 3).scanRight(0, add)).toEqual(List(6, 5, 3, 0));
     });
 
-    it('should be left associate', () => {
+    it('should be right associate', () => {
       expect(List(1, 2, 3).scanRight('', (x, y) => `(${x} ${y})`)).toEqual(
         List('(1 (2 (3 )))', '(2 (3 ))', '(3 )', ''),
       );
@@ -1024,7 +1024,7 @@ describe('List', () => {
       expect(List(1, 2, 3).scanRight1(add)).toEqual(List(6, 5, 3));
     });
 
-    it('should be left associate', () => {
+    it('should be right associate', () => {
       expect(List('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`)).toEqual(
         List('(1 (2 3))', '(2 3)', '3'),
       );
