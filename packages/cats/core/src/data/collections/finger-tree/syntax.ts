@@ -13,6 +13,7 @@ import {
   headOption,
   init,
   isEmpty,
+  iterator,
   last,
   lastOption,
   nonEmpty,
@@ -49,6 +50,8 @@ declare module './algebra' {
 
     readonly toList: List<A>;
     readonly toArray: A[];
+    readonly iterator: Iterator<A>;
+    [Symbol.iterator](): Iterator<A>;
 
     prepend<B>(
       this: FingerTree<V, B>,
@@ -153,6 +156,16 @@ Object.defineProperty(FingerTree.prototype, 'toArray', {
     return toArray(this);
   },
 });
+
+Object.defineProperty(FingerTree.prototype, 'iterator', {
+  get<V, A>(this: FingerTree<V, A>) {
+    return iterator(this);
+  },
+});
+
+FingerTree.prototype[Symbol.iterator] = function () {
+  return iterator(this);
+};
 
 FingerTree.prototype.prepend = function <V, A>(
   this: FingerTree<V, A>,

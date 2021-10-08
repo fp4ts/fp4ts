@@ -1,4 +1,4 @@
-import { Kind, id, pipe, AnyK, throwError } from '@cats4ts/core';
+import { Kind, id, pipe, AnyK, throwError, Iter } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
@@ -78,6 +78,19 @@ export const toVector = <A>(xs: List<A>): Vector<A> => {
     xs = tail(xs);
   }
   return results;
+};
+
+export const iterator = <A>(xs: List<A>): Iterator<A> => {
+  let it: List<A> = xs;
+  return Iter.lift(() =>
+    it.fold<IteratorResult<A>>(
+      () => Iter.Result.done,
+      (hd, tl) => {
+        it = tl;
+        return Iter.Result.pure(hd);
+      },
+    ),
+  );
 };
 
 export const equals: <A2>(

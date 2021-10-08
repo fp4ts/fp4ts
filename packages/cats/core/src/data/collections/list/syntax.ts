@@ -68,6 +68,7 @@ import {
   zipWith_,
   zip_,
   align_,
+  iterator,
 } from './operators';
 
 declare module './algebra' {
@@ -89,6 +90,9 @@ declare module './algebra' {
 
     readonly toArray: A[];
     readonly toVector: Vector<A>;
+
+    readonly iterator: Iterator<A>;
+    [Symbol.iterator](): Iterator<A>;
 
     readonly reverse: List<A>;
 
@@ -242,6 +246,16 @@ Object.defineProperty(List.prototype, 'toVector', {
     return toVector(this);
   },
 });
+
+Object.defineProperty(List.prototype, 'iterator', {
+  get<A>(this: List<A>): Iterator<A> {
+    return iterator(this);
+  },
+});
+
+List.prototype[Symbol.iterator] = function () {
+  return iterator(this);
+};
 
 Object.defineProperty(List.prototype, 'reverse', {
   get<A>(this: List<A>): List<A> {

@@ -14,7 +14,7 @@ import { List } from '../list';
 
 import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
-import { empty, pure } from './constructors';
+import { empty, fromArray, pure } from './constructors';
 import { fingerTreeSizeMeasured, sizeMeasured } from './instances';
 
 const FT_ = {
@@ -62,6 +62,8 @@ export const toList = <A>(v: Vector<A>): List<A> =>
 
 export const toArray = <A>(v: Vector<A>): A[] =>
   foldLeft_(v, [] as A[], (xs, x) => [...xs, x]);
+
+export const iterator = <A>(v: Vector<A>): Iterator<A> => FT.iterator(v._root);
 
 export const popHead = <A>(v: Vector<A>): Option<[A, Vector<A>]> =>
   FT_.popHead(v._root).map(([hd, tl]) => [hd, new Vector(tl)]);
@@ -339,33 +341,27 @@ export const flatMap_ = <A, B>(
   f: (a: A) => Vector<B>,
 ): Vector<B> => foldLeft_(xs, empty as Vector<B>, (zs, x) => concat_(zs, f(x)));
 
-export const tailRecM_ = <A, B>(
-  a: A,
-  f: (a: A) => Vector<Either<A, B>>,
-): Vector<B> => {
-  const stack: Vector<Either<A, B>>[] = [f(a)];
-  let results: Vector<B> = empty;
+export const tailRecM_ = <S, A>(
+  s: S,
+  f: (a: S) => Vector<Either<S, A>>,
+): Vector<A> => {
+  const results: A[] = [];
+  let stack = List(f(s).iterator);
 
-  while (stack.length > 0) {
-    const xs = stack[stack.length - 1];
-    if (isEmpty(xs)) {
-      stack.pop();
-      continue;
+  while (stack.nonEmpty) {
+    const [hd, tl] = stack.uncons.get;
+    const next = hd.next();
+
+    if (next.done) {
+      stack = tl;
+    } else if (next.value.isRight) {
+      results.push(next.value.get);
+    } else {
+      stack = tl.prepend(hd).prepend(f(next.value.getLeft).iterator);
     }
-
-    const [hd, tl] = popHead(xs).get;
-    stack[stack.length - 1] = tl;
-    hd.fold(
-      a => {
-        stack.push(f(a));
-      },
-      b => {
-        results = append_(results, b);
-      },
-    );
   }
 
-  return results;
+  return fromArray(results);
 };
 
 export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>

@@ -40,37 +40,37 @@ export const cats4tsStreamChunkGenerator = <O>(
 ): Arbitrary<Chunk<O>> => {
   const maxDepth = 5;
 
-  const { chunk } = fc.letrec(tie => ({
-    empty: fc.constant(Chunk.empty),
-    singleton: arbO.map(Chunk.singleton),
-    array: fc.array(arbO).map(Chunk.fromArray),
-    arraySlice: fc
-      .array(arbO)
-      .chain(xs =>
+  const base = fc.frequency(
+    { weight: 1, arbitrary: fc.constant(Chunk.empty) },
+    { weight: 5, arbitrary: arbO.chain(x => fc.constant(Chunk.singleton(x))) },
+    {
+      weight: 20,
+      arbitrary: fc.oneof(
+        fc.array(arbO).chain(xs => fc.constant(Chunk.fromArray(xs))),
         fc
-          .integer(0, Math.floor(xs.length / 2))
-          .chain(offset =>
+          .array(arbO)
+          .chain(xs =>
             fc
-              .integer(0, xs.length - offset)
-              .map(len => Chunk.fromArray(xs).slice(offset, len)),
+              .integer(0, Math.floor(xs.length / 2))
+              .chain(offset =>
+                fc
+                  .integer(0, xs.length - offset)
+                  .map(len => Chunk.fromArray(xs).slice(offset, len)),
+              ),
           ),
       ),
-    queue: fc
-      .tuple(
-        tie('chunk') as Arbitrary<Chunk<O>>,
-        tie('chunk') as Arbitrary<Chunk<O>>,
-      )
-      .map(([pfx, sfx]) => pfx['+++'](Chunk.emptyQueue)['+++'](sfx)),
-    chunk: fc.frequency(
-      { maxDepth },
-      { weight: 1, arbitrary: tie('empty') },
-      { weight: 1, arbitrary: tie('singleton') },
-      {
-        weight: 30,
-        arbitrary: fc.oneof(tie('array'), tie('arraySlice'), tie('queue')),
-      },
-    ),
-  }));
+    },
+  );
 
-  return chunk as Arbitrary<Chunk<O>>;
+  const queue = fc.memo((depth: number): Arbitrary<Chunk<O>> => {
+    if (depth >= maxDepth) return base;
+    return fc
+      .tuple(gen(depth + 1), gen(depth + 1))
+      .map(([pfx, sfx]) => pfx['+++'](Chunk.emptyQueue)['+++'](sfx));
+  });
+
+  const gen = (depth: number): Arbitrary<Chunk<O>> =>
+    fc.oneof(base, queue(depth));
+
+  return gen(0);
 };

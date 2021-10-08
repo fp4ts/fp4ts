@@ -35,6 +35,7 @@ import {
   headOption,
   init,
   isEmpty,
+  iterator,
   last,
   lastOption,
   map_,
@@ -82,6 +83,9 @@ declare module './algebra' {
 
     readonly toList: List<A>;
     readonly toArray: A[];
+
+    readonly iterator: Iterator<A>;
+    [Symbol.iterator](): Iterator<A>;
 
     readonly reverse: Vector<A>;
 
@@ -229,6 +233,16 @@ Object.defineProperty(Vector.prototype, 'toArray', {
     return toArray(this);
   },
 });
+
+Object.defineProperty(Vector.prototype, 'iterator', {
+  get<A>(this: Vector<A>): Iterator<A> {
+    return iterator(this);
+  },
+});
+
+Vector.prototype[Symbol.iterator] = function () {
+  return iterator(this);
+};
 
 Object.defineProperty(Vector.prototype, 'reverse', {
   get<A>(this: Vector<A>): Vector<A> {

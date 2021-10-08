@@ -250,6 +250,22 @@ describe('FingerTree', () => {
     });
   });
 
+  describe('iterator', () => {
+    it('should convert empty finger tree to an empty array', () => {
+      expect([...FingerTree.empty()]).toEqual([]);
+    });
+
+    it('should convert finger tree of 5 values into an array of 5 values', () => {
+      expect([...FingerTree(M)(1, 2, 3, 4, 5)]).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it('should be stack safe', () => {
+      expect([
+        ...FingerTree.fromArray(M)([...new Array(10_000).keys()]),
+      ]).toEqual([...new Array(10_000).keys()]);
+    });
+  });
+
   describe('splitAt', () => {
     it('should return none when tree is empty', () => {
       expect(FingerTree.empty().splitAt(M)(undefined, () => true)).toEqual(

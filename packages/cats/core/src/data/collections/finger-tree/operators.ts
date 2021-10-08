@@ -1,4 +1,4 @@
-import { throwError } from '@cats4ts/core';
+import { Iter, throwError } from '@cats4ts/core';
 
 import { Option, None, Some } from '../../option';
 import { List } from '../list';
@@ -351,6 +351,25 @@ export const splitAt_ =
       _chunkToTree(M)(after),
     ]);
   };
+
+export const iterator = <V, A>(v: FingerTree<V, A>): Iterator<A> => {
+  const ft = view(v);
+  switch (ft.tag) {
+    case 'empty':
+      return Iter.empty;
+    case 'single':
+      return Iter.singleton(ft.value);
+    case 'deep': {
+      const r = Iter.flatMap_(iterator(ft.deep), ([, ...n]) =>
+        (n as A[])[Symbol.iterator](),
+      );
+      return Iter.concat_(
+        ft.prefix[Symbol.iterator](),
+        Iter.concat_(r, ft.suffix[Symbol.iterator]()),
+      );
+    }
+  }
+};
 
 export const forEach_ = <V, A>(
   v: FingerTree<V, A>,

@@ -4,35 +4,6 @@ import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { ApplyLaws } from './apply-laws';
 
-export interface ApplicativeLaws<F extends AnyK> extends ApplyLaws<F> {
-  applicativeIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-
-  applicativeHomomorphism: <A, B>(a: A, f: (a: A) => B) => IsEq<Kind<F, [B]>>;
-
-  applicativeInterchange: <A, B>(
-    a: A,
-    ff: Kind<F, [(a: A) => B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  applicativeMap: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => B,
-  ) => IsEq<Kind<F, [B]>>;
-
-  applicativeComposition: <A, B, C>(
-    fa: Kind<F, [A]>,
-    fab: Kind<F, [(a: A) => B]>,
-    fbc: Kind<F, [(a: B) => C]>,
-  ) => IsEq<Kind<F, [C]>>;
-
-  apProductConsistent: <A, B>(
-    fa: Kind<F, [A]>,
-    ff: Kind<F, [(a: A) => B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  applicativeUnit: <A>(a: A) => IsEq<Kind<F, [A]>>;
-}
-
 export const ApplicativeLaws = <F extends AnyK>(
   F: Applicative<F>,
 ): ApplicativeLaws<F> => ({
@@ -86,3 +57,32 @@ export const ApplicativeLaws = <F extends AnyK>(
   applicativeUnit: <A>(a: A): IsEq<Kind<F, [A]>> =>
     F.map_(F.unit, () => a)['<=>'](F.pure(a)),
 });
+
+export interface ApplicativeLaws<F extends AnyK> extends ApplyLaws<F> {
+  applicativeIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
+
+  applicativeHomomorphism: <A, B>(a: A, f: (a: A) => B) => IsEq<Kind<F, [B]>>;
+
+  applicativeInterchange: <A, B>(
+    a: A,
+    ff: Kind<F, [(a: A) => B]>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  applicativeMap: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => B,
+  ) => IsEq<Kind<F, [B]>>;
+
+  applicativeComposition: <A, B, C>(
+    fa: Kind<F, [A]>,
+    fab: Kind<F, [(a: A) => B]>,
+    fbc: Kind<F, [(a: B) => C]>,
+  ) => IsEq<Kind<F, [C]>>;
+
+  apProductConsistent: <A, B>(
+    fa: Kind<F, [A]>,
+    ff: Kind<F, [(a: A) => B]>,
+  ) => IsEq<Kind<F, [B]>>;
+
+  applicativeUnit: <A>(a: A) => IsEq<Kind<F, [A]>>;
+}

@@ -1,4 +1,4 @@
-import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { AnyK, id, Iter, Kind, pipe, throwError } from '@cats4ts/core';
 import {
   List,
   None,
@@ -92,6 +92,12 @@ export const mapAccumulate: <S>(
   s => f => c =>
     mapAccumulate_(c, s, f);
 
+export const flatMap: <O, O2>(
+  f: (o: O) => Chunk<O2>,
+) => (c: Chunk<O>) => Chunk<O2> = f => c => flatMap_(c, f);
+
+export const flatten = <O>(c: Chunk<Chunk<O>>): Chunk<O> => flatMap_(c, id);
+
 export const forEach: <O>(f: (o: O) => void) => (c: Chunk<O>) => void =
   f => c =>
     forEach_(c, f);
@@ -101,10 +107,42 @@ export const foldLeft: <O, O2>(
   f: (o2: O2, o: O) => O2,
 ) => (c: Chunk<O>) => O2 = (z, f) => c => foldLeft_(c, z, f);
 
+export const foldRight: <O, O2>(
+  z: Eval<O2>,
+  f: (o: O, o2: Eval<O2>) => Eval<O2>,
+) => (c: Chunk<O>) => Eval<O2> = (z, f) => c => foldRight_(c, z, f);
+
+export const scanLeft: <O, O2>(
+  z: O2,
+  f: (o2: O2, o: O) => O2,
+) => (c: Chunk<O>) => Chunk<O2> = (z, f) => c => scanLeft_(c, z, f);
+
 export const scanLeftCarry: <O, O2>(
   z: O2,
   f: (o2: O2, o: O) => O2,
 ) => (c: Chunk<O>) => [Chunk<O2>, O2] = (z, f) => c => scanLeftCarry_(c, z, f);
+
+export const iterator = <O>(c: Chunk<O>): Iterator<O> => {
+  const v = view(c);
+  switch (v.tag) {
+    case 'empty':
+      return Iter.empty;
+    case 'singleton':
+      return Iter.singleton(v.value);
+    case 'array':
+      return v.array[Symbol.iterator]();
+    case 'slice': {
+      let i = 0;
+      return Iter.lift(() =>
+        i < v.length
+          ? Iter.Result.pure(v.values[i++ + v.offset])
+          : Iter.Result.done,
+      );
+    }
+    case 'queue':
+      return Iter.flatMap_(v.queue.iterator, iterator);
+  }
+};
 
 export const zipWith: <O1, O2, O3>(
   c2: Chunk<O2>,
@@ -479,6 +517,17 @@ export const mapAccumulate_ = <S, O, O2>(
   return [cur, fromArray(result)];
 };
 
+export const flatMap_ = <O, O2>(
+  c: Chunk<O>,
+  f: (o: O) => Chunk<O2>,
+): Chunk<O2> => {
+  if (isEmpty(c)) return EmptyChunk;
+
+  let result: Chunk<O2> = emptyQueue;
+  forEach_(c, o => (result = result['+++'](f(o))));
+  return result;
+};
+
 export const forEach_ = <O>(c: Chunk<O>, f: (o: O) => void): void => {
   const v = view(c);
   switch (v.tag) {
@@ -513,13 +562,47 @@ export const foldLeft_ = <O, B>(
       return v.array.reduce((b, o) => f(b, o), init);
     case 'slice':
       let ret: B = init;
-      for (let i = 0, len = v.values.length; i < len; i++) {
-        ret = f(ret, v.values[i]);
+      for (let i = 0, len = v.length; i < len; i++) {
+        ret = f(ret, v.values[v.offset + i]);
       }
       return ret;
     case 'queue':
       return v.queue.foldLeft(init, (b, c) => foldLeft_(c, b, f));
   }
+};
+
+export const foldRight_ = <O, B>(
+  c: Chunk<O>,
+  init: Eval<B>,
+  f: (o: O, eb: Eval<B>) => Eval<B>,
+): Eval<B> => {
+  const loop = (idx: number): Eval<B> =>
+    idx < c.size
+      ? f(
+          elem_(c, idx),
+          Eval.defer(() => loop(idx + 1)),
+        )
+      : init;
+  return loop(0);
+};
+
+export const scanLeft_ = <O, O2>(
+  c: Chunk<O>,
+  z: O2,
+  f: (o2: O2, o: O) => O2,
+): Chunk<O2> => {
+  const results: O2[] = new Array(c.size + 1);
+  results[0] = z;
+  let carry = z;
+  let i = 1;
+
+  forEach_(c, x => {
+    carry = f(carry, x);
+    results[i] = carry;
+    i += 1;
+  });
+
+  return fromArray(results);
 };
 
 export const scanLeftCarry_ = <O, O2>(

@@ -106,6 +106,22 @@ describe('List', () => {
     });
   });
 
+  describe('iterator', () => {
+    it('should convert the empty list to an empty array', () => {
+      expect([...List.empty]).toEqual([]);
+    });
+
+    it('should convert a list of three elements to an three element array', () => {
+      expect([...List(1, 2, 3)]).toEqual([1, 2, 3]);
+    });
+
+    it('should be stack safe', () => {
+      expect([...List.fromArray([...new Array(10_000).keys()])]).toEqual([
+        ...new Array(10_000).keys(),
+      ]);
+    });
+  });
+
   describe('head', () => {
     it('should throw when list is empty', () => {
       expect(() => List.empty.head).toThrow();
