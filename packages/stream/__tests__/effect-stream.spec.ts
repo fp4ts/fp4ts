@@ -1,8 +1,18 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
+import fc from 'fast-check';
 import { AnyK, throwError } from '@cats4ts/core';
-import { Either, Left, List, Right } from '@cats4ts/cats';
+import { Eq, Either, Left, List, Right } from '@cats4ts/cats';
 import { IO, IoK, SyncIO, SyncIoK } from '@cats4ts/effect';
 import { Stream } from '@cats4ts/stream-core';
+import {
+  AlignSuite,
+  FunctorFilterSuite,
+  MonadErrorSuite,
+  MonoidKSuite,
+} from '@cats4ts/cats-laws';
+import { checkAll } from '@cats4ts/cats-test-kit';
+import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
+import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
 const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
 
@@ -244,10 +254,7 @@ describe('Effect-ful stream', () => {
     it.ticked('should succeed on second retry', ticker => {
       let i = 0;
       const s = Stream.retry(IO.Temporal)(
-        IO(() => {
-          if (i++ < 2) throw new Error('test error');
-          return 42;
-        }),
+        IO(() => (i++ < 2 ? throwError(new Error('test error')) : 42)),
         20,
         n => n * 2,
         3,
@@ -269,5 +276,75 @@ describe('Effect-ful stream', () => {
         ticker,
       );
     });
+  });
+
+  describe.ticked('Laws', ticker => {
+    const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IoK, X>> =>
+      Eq.by(
+        E.eqIO(List.Eq(EqX), ticker),
+        s => s.compileF(IO.MonadError).toList,
+      );
+
+    const monoidKTests = MonoidKSuite(Stream.MonoidK<IoK>());
+    checkAll(
+      'MonoidK<$<StreamK, [IoK]>>',
+      monoidKTests.monoidK(
+        fc.integer(),
+        Eq.primitive,
+        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        ioEqStream,
+      ),
+    );
+
+    const alignTests = AlignSuite(Stream.Align<IoK>());
+    checkAll(
+      'Align<$<StreamK, [IoK]>>',
+      alignTests.align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        ioEqStream,
+      ),
+    );
+
+    const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<IoK>());
+    checkAll(
+      'FunctorFilter<$<StreamK, [IoK]>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        ioEqStream,
+      ),
+    );
+
+    const monadErrorTests = MonadErrorSuite(Stream.MonadError<AnyK>());
+    checkAll(
+      'MonadError<$<StreamK, [AnyK]>>',
+      monadErrorTests.monadError(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        A.cats4tsError(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.Error.strict,
+        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        ioEqStream,
+      ),
+    );
   });
 });

@@ -1,6 +1,7 @@
 import fc from 'fast-check';
 import { AnyK } from '@cats4ts/core';
 import { List, Some, Vector, None, Eq } from '@cats4ts/cats';
+import { SyncIoK } from '@cats4ts/effect';
 import { Stream, Chunk } from '@cats4ts/stream-core';
 import {
   AlignSuite,
@@ -194,7 +195,7 @@ describe('Pure Stream', () => {
       const xs = [...new Array(10_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
-        Stream.empty() as Stream<AnyK, number>,
+        Stream.empty() as Stream<SyncIoK, number>,
       );
       expect(s.take(10_000).compile.toArray).toEqual(xs);
     });

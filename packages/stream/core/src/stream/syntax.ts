@@ -469,13 +469,13 @@ Stream.prototype.compileF = function (F) {
 };
 
 Object.defineProperty(Stream.prototype, 'toList', {
-  get<A>(this: Stream<AnyK, A>): List<A> {
+  get<A>(this: Stream<SyncIoK, A>): List<A> {
     return this.compile.toList;
   },
 });
 
 Object.defineProperty(Stream.prototype, 'toVector', {
-  get<A>(this: Stream<AnyK, A>): Vector<A> {
+  get<A>(this: Stream<SyncIoK, A>): Vector<A> {
     return this.compile.toVector;
   },
 });

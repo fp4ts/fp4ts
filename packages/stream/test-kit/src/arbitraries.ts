@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK } from '@cats4ts/core';
+import { AnyK, Kind } from '@cats4ts/core';
 import { Stream, Chunk } from '@cats4ts/stream-core';
 
 export * from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -31,6 +31,26 @@ export const cats4tsPureStreamGenerator = <A>(
               Stream.empty() as Stream<AnyK, A>,
             ),
           ),
+      ),
+    },
+  );
+
+export const cats4tsEffectStreamGenerator = <F extends AnyK, A>(
+  arbA: Arbitrary<A>,
+  arbFA: Arbitrary<Kind<F, [A]>>,
+): Arbitrary<Stream<F, A>> =>
+  fc.frequency(
+    { weight: 1, arbitrary: fc.constant(Stream.empty<F>()) },
+    {
+      weight: 20,
+      arbitrary: fc.oneof(
+        fc.array(arbA).map(xs => Stream.fromArray<F, A>(xs).take(10)),
+        fc
+          .array(arbA)
+          .map(xs =>
+            Stream.fromArray<F, A>(xs).chunkLimit(1).unchunks.take(10),
+          ),
+        arbFA.map(Stream.evalF),
       ),
     },
   );

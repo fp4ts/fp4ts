@@ -1,4 +1,4 @@
-import { AnyK, id, Iter, Kind, pipe, throwError } from '@cats4ts/core';
+import { AnyK, id, Iter, Kind, pipe } from '@cats4ts/core';
 import {
   List,
   None,
