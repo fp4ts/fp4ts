@@ -524,87 +524,123 @@ export const compile_ =
       }
     };
 
+    interface GoContext<G extends AnyK, X, End> {
+      readonly translation: FunctionK<G, F>;
+      readonly runner: Run<G, X, Kind<F, [End]>>;
+      readonly stream: Pull<G, X, void>;
+    }
+
+    class TranslateRun_<H extends AnyK, G extends AnyK, X, End>
+      implements Run<H, X, Kind<F, [End]>>
+    {
+      public constructor(
+        private readonly ctx: GoContext<G, X, End>,
+        private readonly fk: FunctionK<H, G>,
+        private readonly cont: Cont<void, G, X>,
+      ) {}
+
+      done = () => go(this.ctx.translation, this.ctx.runner, this.cont(P.unit));
+
+      fail = (e: Error) =>
+        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
+
+      out = (hd: Chunk<X>, tl: Pull<H, X, void>) =>
+        this.ctx.runner.out(
+          hd,
+          new Bind(new Translate(tl, this.fk), this.cont),
+        );
+    }
+
+    abstract class StepRun<Y, S, G extends AnyK, X, End>
+      implements Run<G, Y, Kind<F, [End]>>
+    {
+      public constructor(
+        protected readonly ctx: GoContext<G, X, End>,
+        protected readonly cont: Cont<Option<S>, G, X>,
+      ) {}
+
+      done = () =>
+        go(this.ctx.translation, this.ctx.runner, this.cont(new Succeed(None)));
+
+      fail = (e: Error) =>
+        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
+
+      abstract out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]>;
+    }
+
+    class UnconsRun<Y, G extends AnyK, X, End> extends StepRun<
+      Y,
+      [Chunk<Y>, Pull<G, Y, void>],
+      G,
+      X,
+      End
+    > {
+      override out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]> {
+        return go(
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Succeed(Some([hd, tl]))),
+        );
+      }
+    }
+
+    class FlatMapRun<Y, G extends AnyK, X, End>
+      implements Run<G, Y, Kind<F, [End]>>
+    {
+      public constructor(
+        private readonly ctx: GoContext<G, X, End>,
+        private readonly cont: Cont<void, G, X>,
+        private readonly fun: (t: Y) => Pull<G, X, void>,
+      ) {}
+
+      private unconsed = (
+        hd: Chunk<Y>,
+        tl: Pull<G, Y, void>,
+      ): Pull<G, X, void> => {
+        const go = (idx: number): Pull<G, X, void> => {
+          if (idx === hd.size) return flatMapOutput_(tl, this.fun);
+          try {
+            return new Bind<G, X, void, void>(this.fun(hd['!!'](idx)), t => {
+              switch (t.tag) {
+                case 'succeed':
+                  return go(idx + 1);
+                case 'fail':
+                  return t;
+              }
+            });
+          } catch (error) {
+            return new Fail(error as Error);
+          }
+        };
+
+        return go(0);
+      };
+
+      done = () => go(this.ctx.translation, this.ctx.runner, this.cont(P.unit));
+
+      fail = (e: Error) =>
+        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
+
+      out = (hd: Chunk<Y>, tl: Pull<G, Y, void>) =>
+        go(
+          this.ctx.translation,
+          this.ctx.runner,
+          new Bind(this.unconsed(hd, tl), this.cont),
+        );
+    }
+
     const go = <G extends AnyK, X, End>(
       translation: FunctionK<G, F>,
       runner: Run<G, X, Kind<F, [End]>>,
       stream: Pull<G, X, void>,
     ): Kind<F, [End]> => {
-      class TranslateRun<H extends AnyK> implements Run<H, X, Kind<F, [End]>> {
-        public constructor(
-          private readonly fk: FunctionK<H, G>,
-          private readonly cont: Cont<void, G, X>,
-        ) {}
-
-        done = () => go(translation, runner, this.cont(P.unit));
-
-        fail = (e: Error) => go(translation, runner, this.cont(new Fail(e)));
-
-        out = (hd: Chunk<X>, tl: Pull<H, X, void>) =>
-          runner.out(hd, new Bind(new Translate(tl, this.fk), this.cont));
-      }
-
-      abstract class StepRun<Y, S> implements Run<G, Y, Kind<F, [End]>> {
-        public constructor(protected readonly cont: Cont<Option<S>, G, X>) {}
-
-        done = () => go(translation, runner, this.cont(new Succeed(None)));
-
-        fail = (e: Error) => go(translation, runner, this.cont(new Fail(e)));
-
-        abstract out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]>;
-      }
-
-      class UnconsRun<Y> extends StepRun<Y, [Chunk<Y>, Pull<G, Y, void>]> {
-        override out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]> {
-          return go(
-            translation,
-            runner,
-            this.cont(new Succeed(Some([hd, tl]))),
-          );
-        }
-      }
-
-      class FlatMapRun<Y> implements Run<G, Y, Kind<F, [End]>> {
-        public constructor(
-          private readonly cont: Cont<void, G, X>,
-          private readonly fun: (t: Y) => Pull<G, X, void>,
-        ) {}
-
-        private unconsed = (
-          hd: Chunk<Y>,
-          tl: Pull<G, Y, void>,
-        ): Pull<G, X, void> => {
-          const go = (idx: number): Pull<G, X, void> => {
-            if (idx === hd.size) return flatMapOutput_(tl, this.fun);
-            try {
-              return new Bind<G, X, void, void>(this.fun(hd['!!'](idx)), t => {
-                switch (t.tag) {
-                  case 'succeed':
-                    return go(idx + 1);
-                  case 'fail':
-                    return t;
-                }
-              });
-            } catch (error) {
-              return new Fail(error as Error);
-            }
-          };
-
-          return go(0);
-        };
-
-        done = () => go(translation, runner, this.cont(P.unit));
-
-        fail = (e: Error) => go(translation, runner, this.cont(new Fail(e)));
-
-        out = (hd: Chunk<Y>, tl: Pull<G, Y, void>) =>
-          go(translation, runner, new Bind(this.unconsed(hd, tl), this.cont));
-      }
-
+      const ctx: GoContext<G, X, End> = { translation, runner, stream };
       const v = viewL(stream);
       switch (v.tag) {
         case 'translate': {
           const composed: FunctionK<AnyK, F> = a => translation(v.nt(a));
-          const runner: Run<AnyK, X, Kind<F, [End]>> = new TranslateRun(
+          const runner: Run<AnyK, X, Kind<F, [End]>> = new TranslateRun_(
+            ctx,
             v.nt,
             cont,
           );
@@ -616,7 +652,7 @@ export const compile_ =
 
         case 'flatMapOutput':
           return F.flatMap_(F.unit, () =>
-            go(translation, new FlatMapRun(cont, v.fun), v.self),
+            go(translation, new FlatMapRun(ctx, cont, v.fun), v.self),
           );
 
         case 'uncons': {
@@ -635,7 +671,7 @@ export const compile_ =
             F.flatMap(ea =>
               ea.fold(
                 e => go(translation, runner, c(new Fail(e))),
-                f => f(new UnconsRun(c)),
+                f => f(new UnconsRun(ctx, c)),
               ),
             ),
           );
