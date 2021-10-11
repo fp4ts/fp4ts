@@ -1,11 +1,21 @@
-import { AnyK, Kind, pipe } from '@cats4ts/core';
-import { Either, List, Option, Vector } from '@cats4ts/cats';
-import { Spawn } from '@cats4ts/effect';
+import { ok as assert } from 'assert';
+import { AnyK, constant, Kind, pipe } from '@cats4ts/core';
+import { Either, List, Option, Some, Vector } from '@cats4ts/cats';
+import { Spawn, Temporal } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
-import { concat_, flatMap, repeat } from './operators';
+import {
+  attempts,
+  concat_,
+  flatMap,
+  last,
+  repeat,
+  rethrow,
+  take,
+  takeWhile,
+} from './operators';
 
 export const pure = <F extends AnyK, A>(x: A): Stream<F, A> =>
   new Stream(Pull.output1(x));
@@ -26,12 +36,46 @@ export const of = <F extends AnyK, A>(...xs: A[]): Stream<F, A> =>
 export const evalF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output1));
 
+export const execF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, never> =>
+  new Stream(Pull.evalF(fa).void);
+
 export const evalUnChunk = <F extends AnyK, A>(
   fa: Kind<F, [Chunk<A>]>,
 ): Stream<F, A> => new Stream(Pull.evalF(fa).flatMap(Pull.output));
 
 export const repeatEval: <F extends AnyK, A>(fa: Kind<F, [A]>) => Stream<F, A> =
   s => repeat(evalF(s));
+
+export const sleep =
+  <F extends AnyK>(F: Temporal<F, Error>) =>
+  (ms: number): Stream<F, void> =>
+    evalF(F.sleep(ms));
+
+export const retry =
+  <F extends AnyK>(F: Temporal<F, Error>) =>
+  <A>(
+    fa: Kind<F, [A]>,
+    delay: number,
+    nextDelay: (n: number) => number,
+    maxAttempts: number,
+    retriable: (e: Error) => boolean = () => true,
+  ): Stream<F, A> => {
+    assert(maxAttempts > 0, 'max attempts must be >0');
+
+    const delays = unfold(delay)<F, number>(d => Some([d, nextDelay(d)]));
+
+    return pipe(
+      evalF(fa),
+      attempts(F)(delays),
+      take(maxAttempts),
+      takeWhile(
+        ea => ea.fold(retriable, constant(false)),
+        /* takeFailure: */ true,
+      ),
+      last,
+      rethrow,
+    );
+  };
 
 export const range = <F extends AnyK>(
   from: number,

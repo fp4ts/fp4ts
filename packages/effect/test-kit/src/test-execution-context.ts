@@ -1,5 +1,4 @@
 import { ExecutionContext } from '@cats4ts/effect-kernel';
-import { Ticker } from './ticker';
 
 class Task {
   public constructor(
@@ -43,7 +42,6 @@ export class TestExecutionContext implements ExecutionContext {
   }
 
   public reportFailure(e: Error): void {
-    // console.error(e);
     this.lastFailure = e;
   }
 
@@ -60,7 +58,7 @@ export class TestExecutionContext implements ExecutionContext {
     return true;
   }
 
-  public tick(ms: number): void {
+  public tick(ms: number = 0): void {
     this.clock += ms;
     let t: Task | undefined;
 

@@ -1,6 +1,7 @@
+import '@cats4ts/effect-test-kit/lib/jest-extension';
 import { AnyK, throwError } from '@cats4ts/core';
 import { Either, Left, List, Right } from '@cats4ts/cats';
-import { SyncIO, SyncIoK } from '@cats4ts/effect';
+import { IO, IoK, SyncIO, SyncIoK } from '@cats4ts/effect';
 import { Stream } from '@cats4ts/stream-core';
 
 const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
@@ -31,6 +32,28 @@ describe('Effect-ful stream', () => {
           x === 3 ? SyncIO.throwError(new Error('test error')) : SyncIO.pure(x),
         ).attempt.compile.toArray,
       ).toEqual([Right(1), Right(2), Left(new Error('test error'))]);
+    });
+
+    it.ticked('should take three attempts', ticker => {
+      let i = 0;
+      expect(
+        Stream.evalF<IoK, number>(
+          IO(() => {
+            if (i++ % 2 === 0) throwError(new Error('test error'));
+            return i;
+          }),
+        )
+          .attempts(IO.Temporal)(Stream(1).repeat)
+          .take(3)
+          .compileF(IO.MonadError).toList,
+      ).toCompleteWith(
+        List<Either<Error, number>>(
+          Left(new Error('test error')),
+          Right(2),
+          Left(new Error('test error')),
+        ),
+        ticker,
+      );
     });
   });
 
@@ -210,6 +233,41 @@ describe('Effect-ful stream', () => {
           )
           .handleErrorWith(() => Stream(-1)).compile.toList,
       ).toEqual(List(1, 4, -1));
+    });
+
+    it.ticked('should return success value', ticker => {
+      const s = Stream.retry(IO.Temporal)(IO.pure(42), 20, n => n * 2, 3);
+
+      expect(s.compileF(IO.MonadError).last).toCompleteWith(42, ticker);
+    });
+
+    it.ticked('should succeed on second retry', ticker => {
+      let i = 0;
+      const s = Stream.retry(IO.Temporal)(
+        IO(() => {
+          if (i++ < 2) throw new Error('test error');
+          return 42;
+        }),
+        20,
+        n => n * 2,
+        3,
+      );
+
+      expect(s.compileF(IO.MonadError).last).toCompleteWith(42, ticker);
+    });
+
+    it.ticked('should throw an error when retry limit exceeded', ticker => {
+      const s = Stream.retry(IO.Temporal)(
+        IO.throwError(new Error('test error')),
+        20,
+        n => n * 2,
+        3,
+      );
+
+      expect(s.compileF(IO.MonadError).last).toFailWith(
+        new Error('test error'),
+        ticker,
+      );
     });
   });
 });

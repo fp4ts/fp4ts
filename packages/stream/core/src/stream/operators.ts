@@ -3,6 +3,7 @@ import { AnyK, id, Kind, pipe } from '@cats4ts/core';
 import {
   Applicative,
   Eq,
+  Functor,
   MonadError,
   Monoid,
   MonoidK,
@@ -14,7 +15,7 @@ import {
   Some,
   Ior,
 } from '@cats4ts/cats';
-import { SyncIoK } from '@cats4ts/effect';
+import { Temporal, SyncIoK } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
@@ -27,7 +28,8 @@ import {
   throwError,
   evalF,
   evalUnChunk,
-} from './constructor';
+  sleep,
+} from './constructors';
 
 export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   take_(s, 1);
@@ -74,6 +76,11 @@ export const prependChunk: <A2>(
 ) => <F extends AnyK, A extends A2>(s: Stream<F, A>) => Stream<F, A2> =
   c => s =>
     prependChunk_(s, c);
+
+export const drain = <F extends AnyK, A>(s: Stream<F, A>): Stream<F, never> =>
+  repeatPull_(s, p =>
+    p.uncons.flatMap(uc => Pull.pure(uc.map(([, pp]) => pp))),
+  );
 
 export const take: (
   n: number,
@@ -223,6 +230,11 @@ export const mapAccumulate: <S>(
 export const evalMap: <F extends AnyK, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalMap_(s, f);
+
+export const evalTap: <F extends AnyK>(
+  F: Functor<F>,
+) => <A>(f: (a: A) => Kind<F, [unknown]>) => (s: Stream<F, A>) => Stream<F, A> =
+  F => f => s => evalTap_(F)(s, f);
 
 export const evalMapChunk: <F extends AnyK>(
   F: Applicative<F>,
@@ -377,6 +389,13 @@ export const attempt = <F extends AnyK, A>(
     handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
   );
 
+export const attempts: <F extends AnyK>(
+  F: Temporal<F, Error>,
+) => (
+  delays: Stream<F, number>,
+) => <A>(s: Stream<F, A>) => Stream<F, Either<Error, A>> = F => delays => s =>
+  attempts_(F)(s, delays);
+
 export const redeemWith: <F extends AnyK, A, B>(
   onFailure: (e: Error) => Stream<F, B>,
   onSuccess: (a: A) => Stream<F, B>,
@@ -480,6 +499,21 @@ export const concat_ = <F extends AnyK, A>(
   s1: Stream<F, A>,
   s2: Stream<F, A>,
 ): Stream<F, A> => new Stream(s1.pull.flatMap(() => s2.pull));
+
+export const attempts_ =
+  <F extends AnyK>(F: Temporal<F, Error>) =>
+  <A>(
+    s: Stream<F, A>,
+    delays: Stream<F, number>,
+  ): Stream<F, Either<Error, A>> =>
+    concat_(
+      attempt(s),
+      pipe(
+        delays,
+        flatMap(sleep(F)),
+        flatMap(() => attempt(s)),
+      ),
+    );
 
 export const redeemWith_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
@@ -743,6 +777,11 @@ export const evalMap_ = <F extends AnyK, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Kind<F, [B]>,
 ): Stream<F, B> => flatMap_(s, x => evalF(f(x)));
+
+export const evalTap_ =
+  <F extends AnyK>(F: Functor<F>) =>
+  <A>(s: Stream<F, A>, f: (a: A) => Kind<F, [unknown]>): Stream<F, A> =>
+    evalMap_(s, x => F.map_(f(x), () => x));
 
 export const evalMapChunk_ =
   <F extends AnyK>(F: Applicative<F>) =>

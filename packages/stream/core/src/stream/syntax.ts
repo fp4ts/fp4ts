@@ -2,6 +2,7 @@ import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
 import {
   Applicative,
   Eq,
+  Functor,
   MonadError,
   Monoid,
   MonoidK,
@@ -11,7 +12,7 @@ import {
   Vector,
   Ior,
 } from '@cats4ts/cats';
-import { SyncIoK } from '@cats4ts/effect-core';
+import { SyncIoK, Temporal } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Stream } from './algebra';
@@ -74,6 +75,9 @@ import {
   evalMap_,
   evalMapChunk_,
   align_,
+  evalTap_,
+  attempts_,
+  drain,
 } from './operators';
 
 declare module './algebra' {
@@ -87,6 +91,7 @@ declare module './algebra' {
     readonly init: Stream<F, A>;
 
     readonly repeat: Stream<F, A>;
+    readonly drain: Stream<F, never>;
 
     prepend<B>(this: Stream<F, B>, x: B): Stream<F, B>;
     prependChunk<B>(this: Stream<F, B>, x: Chunk<B>): Stream<F, B>;
@@ -126,6 +131,7 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
+    evalTap(F: Functor<F>): (f: (a: A) => Kind<F, [unknown]>) => Stream<F, A>;
     evalMapChunk(
       F: Applicative<F>,
     ): <B>(f: (a: A) => Kind<F, [B]>) => Stream<F, B>;
@@ -169,6 +175,9 @@ declare module './algebra' {
     ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
 
     readonly attempt: Stream<F, Either<Error, A>>;
+    attempts<F extends AnyK>(
+      F: Temporal<F, Error>,
+    ): (delays: Stream<F, number>) => Stream<F, Either<Error, A>>;
 
     redeemWith<B>(
       onFailure: (e: Error) => Stream<F, B>,
@@ -227,6 +236,12 @@ Object.defineProperty(Stream.prototype, 'init', {
 Object.defineProperty(Stream.prototype, 'repeat', {
   get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
     return repeat(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'drain', {
+  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, never> {
+    return drain(this);
   },
 });
 
@@ -335,6 +350,9 @@ Stream.prototype.mapAccumulate = function (s) {
 Stream.prototype.evalMap = function (f) {
   return evalMap_(this, f);
 };
+Stream.prototype.evalTap = function (F) {
+  return f => evalTap_(F)(this, f);
+};
 
 Stream.prototype.evalMapChunk = function (F) {
   return f => evalMapChunk_(F)(this, f);
@@ -421,6 +439,10 @@ Object.defineProperty(Stream.prototype, 'attempt', {
     return attempt(this);
   },
 });
+
+Stream.prototype.attempts = function (F) {
+  return delays => attempts_(F)(this, delays);
+};
 
 Stream.prototype.redeemWith = function (h, f) {
   return redeemWith_(this, h, f);

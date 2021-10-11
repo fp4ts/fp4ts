@@ -22,7 +22,7 @@ import {
   redeemWith_,
   rethrow,
 } from './operators';
-import { defer, empty, pure, tailRecM_, throwError } from './constructor';
+import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
 export const streamMonoidK: <F extends AnyK>() => MonoidK<$<StreamK, [F]>> =
   () => MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty });

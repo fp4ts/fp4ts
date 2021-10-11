@@ -65,6 +65,10 @@ describe('Pure Stream', () => {
       expect(xs[1]).toHaveBeenCalled();
       expect(xs[2]).not.toHaveBeenCalled();
     });
+
+    it('should emit no values when drained', () => {
+      expect(Stream(1, 2, 3).drain.compile.toList).toEqual(List.empty);
+    });
   });
 
   describe('head', () => {

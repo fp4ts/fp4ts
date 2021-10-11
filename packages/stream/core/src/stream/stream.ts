@@ -1,5 +1,6 @@
 import { $, AnyK, Kind, TyK, _ } from '@cats4ts/core';
 import { Either, List, Option, Vector } from '@cats4ts/cats';
+import { Temporal } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
@@ -21,7 +22,10 @@ import {
   unfoldChunk,
   tailRecM,
   evalUnChunk,
-} from './constructor';
+  sleep,
+  retry,
+  execF,
+} from './constructors';
 import { Spawn } from '@cats4ts/effect';
 import {
   Align,
@@ -56,8 +60,21 @@ interface StreamObj {
   of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
 
   evalF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+  execF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, never>;
   evalUnChunk<F extends AnyK, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
   repeatEval<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+
+  sleep<F extends AnyK>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
+
+  retry<F extends AnyK>(
+    F: Temporal<F, Error>,
+  ): <A>(
+    fa: Kind<F, [A]>,
+    delay: number,
+    nextDelay: (n: number) => number,
+    maxAttempts: number,
+    retriable?: (e: Error) => boolean,
+  ) => Stream<F, A>;
 
   empty<F extends AnyK>(): Stream<F, never>;
   range<F extends AnyK>(
@@ -100,8 +117,11 @@ Stream.throwError = throwError;
 Stream.of = of;
 
 Stream.evalF = evalF;
+Stream.execF = execF;
 Stream.evalUnChunk = evalUnChunk;
 Stream.repeatEval = repeatEval;
+Stream.sleep = sleep;
+Stream.retry = retry;
 
 Stream.empty = empty;
 Stream.range = range;

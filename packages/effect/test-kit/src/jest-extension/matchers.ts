@@ -24,7 +24,7 @@ type MatcherContext = typeof expect['extend'] extends JestExtends<infer Context>
   ? Context
   : never;
 
-async function tickTo(
+function tickTo(
   this: MatcherContext,
   receivedIO: IO<unknown>,
   expected: IOOutcome<unknown>,
