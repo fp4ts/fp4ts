@@ -1,5 +1,5 @@
 import { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { Temporal, Outcome } from '@cats4ts/effect-kernel';
 import { IsEq, RuleSet } from '@cats4ts/cats-test-kit';
@@ -8,7 +8,7 @@ import { ClockSuite } from './clock-suite';
 import { SpawnSuite } from './spawn-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const TemporalSuite = <F extends AnyK, E>(F: Temporal<F, E>) => {
+export const TemporalSuite = <F, E>(F: Temporal<F, E>) => {
   const self = {
     ...ClockSuite(F),
     ...SpawnSuite(F),

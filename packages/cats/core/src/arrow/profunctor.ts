@@ -1,6 +1,6 @@
-import { Base, AnyK, Kind, instance, id } from '@cats4ts/core';
+import { Base, Kind, instance, id } from '@cats4ts/core';
 
-export interface Profunctor<F extends AnyK> extends Base<F> {
+export interface Profunctor<F> extends Base<F> {
   readonly dimap: <A, B, C, D>(
     f: (c: C) => A,
     g: (b: B) => D,
@@ -35,13 +35,10 @@ export interface Profunctor<F extends AnyK> extends Base<F> {
   ) => Kind<F, [A, BB]>;
 }
 
-export type ProfunctorRequirements<F extends AnyK> = Pick<
-  Profunctor<F>,
-  'dimap_'
-> &
+export type ProfunctorRequirements<F> = Pick<Profunctor<F>, 'dimap_'> &
   Partial<Profunctor<F>>;
 export const Profunctor = Object.freeze({
-  of: <F extends AnyK>(F: ProfunctorRequirements<F>): Profunctor<F> => {
+  of: <F>(F: ProfunctorRequirements<F>): Profunctor<F> => {
     const self: Profunctor<F> = instance<Profunctor<F>>({
       dimap: (f, g) => fab => F.dimap_(fab, f, g),
 

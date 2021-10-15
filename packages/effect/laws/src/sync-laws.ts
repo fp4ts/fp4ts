@@ -1,19 +1,25 @@
-import { AnyK, Kind, throwError } from '@cats4ts/core';
+import { Kind, throwError } from '@cats4ts/core';
 import { Sync } from '@cats4ts/effect-kernel';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { ClockLaws } from './clock-laws';
 import { MonadCancelLaws } from './monad-cancel-laws';
 
-export const SyncLaws = <F extends AnyK>(F: Sync<F>): SyncLaws<F> => ({
+export const SyncLaws = <F>(F: Sync<F>): SyncLaws<F> => ({
   ...MonadCancelLaws(F),
   ...ClockLaws(F),
 
   delayedValueIsPure: <A>(a: A): IsEq<Kind<F, [A]>> =>
-    F.delay(() => a)['<=>'](F.pure(a)),
+    new IsEq(
+      F.delay(() => a),
+      F.pure(a),
+    ),
 
   delayedThrowIsThrowError: (e: Error): IsEq<Kind<F, [never]>> =>
-    F.delay(() => throwError(e))['<=>'](F.throwError(e)),
+    new IsEq(
+      F.delay(() => throwError(e)),
+      F.throwError(e),
+    ),
 
   unsequencedDelayIsNoop: <A>(a: A, f: (a: A) => A): IsEq<Kind<F, [A]>> => {
     const isWith = F.delay(() => {
@@ -28,7 +34,7 @@ export const SyncLaws = <F extends AnyK>(F: Sync<F>): SyncLaws<F> => ({
       return F.delay(() => cur);
     });
 
-    return F.flatten(isWith)['<=>'](F.flatten(isWithout));
+    return new IsEq(F.flatten(isWith), F.flatten(isWithout));
   },
 
   repeatedDelayNotMemoized: <A>(a: A, f: (a: A) => A): IsEq<Kind<F, [A]>> => {
@@ -45,13 +51,11 @@ export const SyncLaws = <F extends AnyK>(F: Sync<F>): SyncLaws<F> => ({
       return F.delay(() => (cur = f(f(cur))));
     });
 
-    return F.flatten(isWith)['<=>'](F.flatten(isWithout));
+    return new IsEq(F.flatten(isWith), F.flatten(isWithout));
   },
 });
 
-export interface SyncLaws<F extends AnyK>
-  extends MonadCancelLaws<F, Error>,
-    ClockLaws<F> {
+export interface SyncLaws<F> extends MonadCancelLaws<F, Error>, ClockLaws<F> {
   delayedValueIsPure: <A>(a: A) => IsEq<Kind<F, [A]>>;
 
   delayedThrowIsThrowError: (e: Error) => IsEq<Kind<F, [never]>>;

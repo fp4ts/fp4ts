@@ -1,6 +1,6 @@
-import { $, AnyK, Kind, TyK, _ } from '@cats4ts/core';
+import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
 import { Either, List, Option, Vector } from '@cats4ts/cats';
-import { Temporal } from '@cats4ts/effect';
+import { Temporal, SyncIoK } from '@cats4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
@@ -46,27 +46,27 @@ import {
   streamMonoidK,
 } from './instances';
 
-export type Stream<F extends AnyK, A> = StreamBase<F, A>;
+export type Stream<F, A> = StreamBase<F, A>;
 
 export const Stream: StreamObj = function (...xs) {
   return fromArray(xs);
 };
 
 interface StreamObj {
-  <F extends AnyK, A = never>(...xs: A[]): Stream<F, A>;
-  pure<F extends AnyK, A>(x: A): Stream<F, A>;
-  defer<F extends AnyK, A>(thunk: () => Stream<F, A>): Stream<F, A>;
-  throwError<F extends AnyK>(e: Error): Stream<F, never>;
-  of<F extends AnyK, A>(...xs: A[]): Stream<F, A>;
+  <F = SyncIoK, A = never>(...xs: A[]): Stream<F, A>;
+  pure<F = SyncIoK, A = never>(x: A): Stream<F, A>;
+  defer<F = SyncIoK, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
+  throwError<F = SyncIoK>(e: Error): Stream<F, never>;
+  of<F = SyncIoK, A = never>(...xs: A[]): Stream<F, A>;
 
-  evalF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
-  execF<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, never>;
-  evalUnChunk<F extends AnyK, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
-  repeatEval<F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A>;
+  evalF<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
+  execF<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
+  evalUnChunk<F = SyncIoK, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
+  repeatEval<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
 
-  sleep<F extends AnyK>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
+  sleep<F>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
 
-  retry<F extends AnyK>(
+  retry<F>(
     F: Temporal<F, Error>,
   ): <A>(
     fa: Kind<F, [A]>,
@@ -76,39 +76,43 @@ interface StreamObj {
     retriable?: (e: Error) => boolean,
   ) => Stream<F, A>;
 
-  empty<F extends AnyK>(): Stream<F, never>;
-  range<F extends AnyK>(
+  empty<F = SyncIoK>(): Stream<F, never>;
+  range<F = SyncIoK>(
     from: number,
     until: number,
     step?: number,
   ): Stream<F, number>;
-  never<F extends AnyK>(F: Spawn<F, Error>): Stream<F, never>;
+  never<F = SyncIoK>(F: Spawn<F, Error>): Stream<F, never>;
 
   unfold<S>(
     s: S,
-  ): <F extends AnyK, A>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
+  ): <F = SyncIoK, A = never>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
   unfoldChunk<S>(
     s: S,
-  ): <F extends AnyK, A>(f: (s: S) => Option<[Chunk<A>, S]>) => Stream<F, A>;
+  ): <F = SyncIoK, A = never>(
+    f: (s: S) => Option<[Chunk<A>, S]>,
+  ) => Stream<F, A>;
 
   tailRecM<S>(
     s: S,
-  ): <F extends AnyK, A>(f: (s: S) => Stream<F, Either<S, A>>) => Stream<F, A>;
+  ): <F = SyncIoK, A = never>(
+    f: (s: S) => Stream<F, Either<S, A>>,
+  ) => Stream<F, A>;
 
-  fromArray<F extends AnyK, A>(xs: A[]): Stream<F, A>;
-  fromList<F extends AnyK, A>(xs: List<A>): Stream<F, A>;
-  fromVector<F extends AnyK, A>(xs: Vector<A>): Stream<F, A>;
-  fromChunk<F extends AnyK, A>(chunk: Chunk<A>): Stream<F, A>;
+  fromArray<F = SyncIoK, A = never>(xs: A[]): Stream<F, A>;
+  fromList<F = SyncIoK, A = never>(xs: List<A>): Stream<F, A>;
+  fromVector<F = SyncIoK, A = never>(xs: Vector<A>): Stream<F, A>;
+  fromChunk<F = SyncIoK, A = never>(chunk: Chunk<A>): Stream<F, A>;
 
   // -- Instances
 
-  MonoidK<F extends AnyK>(): MonoidK<$<StreamK, [F]>>;
-  Defer<F extends AnyK>(): Defer<$<StreamK, [F]>>;
-  Functor<F extends AnyK>(): Functor<$<StreamK, [F]>>;
-  Align<F extends AnyK>(): Align<$<StreamK, [F]>>;
-  FunctorFilter<F extends AnyK>(): FunctorFilter<$<StreamK, [F]>>;
-  Monad<F extends AnyK>(): Monad<$<StreamK, [F]>>;
-  MonadError<F extends AnyK>(): MonadError<$<StreamK, [F]>, Error>;
+  MonoidK<F>(): MonoidK<$<StreamK, [F]>>;
+  Defer<F>(): Defer<$<StreamK, [F]>>;
+  Functor<F>(): Functor<$<StreamK, [F]>>;
+  Align<F>(): Align<$<StreamK, [F]>>;
+  FunctorFilter<F>(): FunctorFilter<$<StreamK, [F]>>;
+  Monad<F>(): Monad<$<StreamK, [F]>>;
+  MonadError<F>(): MonadError<$<StreamK, [F]>, Error>;
 }
 
 Stream.pure = pure;
@@ -147,12 +151,6 @@ Stream.MonadError = streamMonadError;
 
 // -- HKT
 
-export const StreamURI = 'cats4ts/stream/core/stream';
-export type StreamURI = typeof StreamURI;
-export type StreamK = TyK<StreamURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [StreamURI]: Tys[0] extends AnyK ? Stream<Tys[0], Tys[1]> : any;
-  }
+export interface StreamK extends TyK<[unknown, unknown]> {
+  [$type]: Stream<TyVar<this, 0>, TyVar<this, 1>>;
 }

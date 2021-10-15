@@ -1,7 +1,7 @@
-import { AnyK, Base, Kind } from '@cats4ts/core';
+import { Base, Kind } from '@cats4ts/core';
 import { FunctionK, Show } from '@cats4ts/cats-core';
 
-export interface Console<F extends AnyK> extends Base<F> {
+export interface Console<F> extends Base<F> {
   readonly readLine: Kind<F, [string]>;
 
   print<A>(a: A): Kind<F, [void]>;
@@ -16,5 +16,5 @@ export interface Console<F extends AnyK> extends Base<F> {
   errorLn<A>(a: A): Kind<F, [void]>;
   errorLn<A>(S: Show<A>, a: A): Kind<F, [void]>;
 
-  mapK<G extends AnyK>(nt: FunctionK<F, G>): Console<G>;
+  mapK<G>(nt: FunctionK<F, G>): Console<G>;
 }

@@ -1,10 +1,10 @@
-import { AnyK, compose, Kind, pipe } from '@cats4ts/core';
+import { compose, Kind, pipe } from '@cats4ts/core';
 import { Apply, Eval } from '@cats4ts/cats-core';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from './functor-laws';
 
-export interface ApplyLaws<F extends AnyK> extends FunctorLaws<F> {
+export interface ApplyLaws<F> extends FunctorLaws<F> {
   applyComposition: <A, B, C>(
     fa: Kind<F, [A]>,
     fab: Kind<F, [(a: A) => B]>,
@@ -34,7 +34,7 @@ export interface ApplyLaws<F extends AnyK> extends FunctorLaws<F> {
   ) => IsEq<Kind<F, [B]>>;
 }
 
-export const ApplyLaws = <F extends AnyK>(F: Apply<F>): ApplyLaws<F> => ({
+export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
   ...FunctorLaws(F),
 
   applyComposition: <A, B, C>(
@@ -45,7 +45,8 @@ export const ApplyLaws = <F extends AnyK>(F: Apply<F>): ApplyLaws<F> => ({
     const comp: (g: (b: B) => C) => (f: (a: A) => B) => (a: A) => C = g => f =>
       compose(g, f);
 
-    return pipe(fbc, F.ap(F.ap_(fab, fa)))['<=>'](
+    return new IsEq(
+      pipe(fbc, F.ap(F.ap_(fab, fa))),
       pipe(fbc, F.map(comp), F.ap(fab), F.ap(fa)),
     );
   },
@@ -55,24 +56,33 @@ export const ApplyLaws = <F extends AnyK>(F: Apply<F>): ApplyLaws<F> => ({
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => C,
   ): IsEq<Kind<F, [C]>> =>
-    F.map_(F.product_(fa, fb), ([a, b]) => f(a, b))['<=>'](F.map2_(fa, fb)(f)),
+    new IsEq(
+      F.map_(F.product_(fa, fb), ([a, b]) => f(a, b)),
+      F.map2_(fa, fb)(f),
+    ),
 
   map2EvalConsistency: <A, B, C>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => C,
   ): IsEq<Kind<F, [C]>> =>
-    F.map2_(fa, fb)(f)['<=>'](F.map2Eval_(fa, Eval.now(fb))(f).value),
+    new IsEq(F.map2_(fa, fb)(f), F.map2Eval_(fa, Eval.now(fb))(f).value),
 
   productLConsistency: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
   ): IsEq<Kind<F, [A]>> =>
-    F.productL_(fa, fb)['<=>'](F.map2_(fa, fb)((a, _) => a)),
+    new IsEq(
+      F.productL_(fa, fb),
+      F.map2_(fa, fb)((a, _) => a),
+    ),
 
   productRConsistency: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
   ): IsEq<Kind<F, [B]>> =>
-    F.productR_(fa, fb)['<=>'](F.map2_(fa, fb)((_, b) => b)),
+    new IsEq(
+      F.productR_(fa, fb),
+      F.map2_(fa, fb)((_, b) => b),
+    ),
 });

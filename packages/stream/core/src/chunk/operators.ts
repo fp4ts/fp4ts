@@ -1,4 +1,4 @@
-import { AnyK, id, Iter, Kind, pipe } from '@cats4ts/core';
+import { id, Iter, Kind, pipe } from '@cats4ts/core';
 import {
   List,
   None,
@@ -174,7 +174,7 @@ export const toArray = <O>(c: Chunk<O>): O[] => {
   }
 };
 
-export const traverse: <F extends AnyK>(
+export const traverse: <F>(
   F: Applicative<F>,
 ) => <O, O2>(
   f: (o: O) => Kind<F, [O2]>,
@@ -638,7 +638,7 @@ export const zipWith_ = <O1, O2, O3>(
 };
 
 export const traverse_ =
-  <F extends AnyK>(F: Applicative<F>) =>
+  <F>(F: Applicative<F>) =>
   <O, O2>(c: Chunk<O>, f: (o: O) => Kind<F, [O2]>): Kind<F, [Chunk<O2>]> => {
     if (c.isEmpty) return F.pure(EmptyChunk);
 

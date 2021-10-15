@@ -165,7 +165,7 @@ describe('OptionT', () => {
 
   describe('mapK', () => {
     it('should do nothing when mapping over identity', () => {
-      expect(mkSome(42).mapK(id)).toEqual(mkSome(42));
+      expect(mkSome(42).mapK<IdentityK>(id)).toEqual(mkSome(42));
     });
 
     it('should change context to Either<string, *>', () => {

@@ -1,12 +1,11 @@
-import { AnyK } from '@cats4ts/core';
 import { FunctionK } from '../../arrow';
 
 import { Nested } from './algebra';
 import { mapK_ } from './operators';
 
 declare module './algebra' {
-  interface Nested<F extends AnyK, G extends AnyK, A> {
-    mapK<H extends AnyK>(nt: FunctionK<F, H>): Nested<H, G, A>;
+  interface Nested<F, G, A> {
+    mapK<H>(nt: FunctionK<F, H>): Nested<H, G, A>;
   }
 }
 

@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { List } from '../list';
 
 import { FingerTree as FingerTreeBase } from './algebra';
@@ -32,12 +32,6 @@ FingerTree.fromList = fromList;
 
 // -- HKT
 
-export const FingerTreeURI = 'cats/data/collections/finger-tree';
-export type FingerTreeURI = typeof FingerTreeURI;
-export type FingerTreeK = TyK<FingerTreeURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [FingerTreeURI]: FingerTree<Tys[0], Tys[1]>;
-  }
+export interface FingerTreeK extends TyK<[unknown, unknown]> {
+  [$type]: FingerTree<TyVar<this, 0>, TyVar<this, 1>>;
 }

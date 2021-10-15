@@ -1,4 +1,4 @@
-import { AnyK, id, Kind, pipe, throwError } from '@cats4ts/core';
+import { id, Kind, pipe, throwError } from '@cats4ts/core';
 import { ConjunctionMonoid, DisjunctionMonoid } from '../../../monoid';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
@@ -206,7 +206,7 @@ export const foldMap: <M>(
 ) => <A>(f: (a: A) => M) => (xs: Vector<A>) => M = M => f => xs =>
   foldMap_(M)(xs, f);
 
-export const foldMapK: <F extends AnyK>(
+export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <A, B>(f: (a: A) => Kind<F, [B]>) => (xs: Vector<A>) => Kind<F, [B]> =
   F => f => xs =>
@@ -231,7 +231,7 @@ export const scanRight1: <AA>(
 ) => <A extends AA>(xs: Vector<A>) => Vector<AA> = f => xs =>
   scanRight1_(xs, f);
 
-export const traverse: <G extends AnyK>(
+export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(
   f: (a: A) => Kind<G, [B]>,
@@ -239,7 +239,7 @@ export const traverse: <G extends AnyK>(
   traverse_(G)(xs, f);
 
 export const sequence =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <A>(xxs: Vector<Kind<G, [A]>>): Kind<G, [Vector<A>]> =>
     traverse_(G)(xxs, id);
 
@@ -394,7 +394,7 @@ export const foldMap_ =
     foldLeft_(xs, M.empty, (r, x) => M.combine_(r, () => f(x)));
 
 export const foldMapK_ =
-  <F extends AnyK>(F: MonoidK<F>) =>
+  <F>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(xs, f);
 
@@ -475,7 +475,7 @@ export const zipWith_ =
   };
 
 export const traverse_ =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Vector<B>]> => {
     const consF = (x: A, ys: Kind<G, [Vector<B>]>): Kind<G, [Vector<B>]> =>
       G.map2_(ys, f(x))(prepend_);

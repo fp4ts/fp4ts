@@ -1,13 +1,11 @@
-import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@cats4ts/core';
 import { Either, Right, Left } from '@cats4ts/cats';
 import { Spawn, Outcome } from '@cats4ts/effect-kernel';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { MonadCancelLaws } from './monad-cancel-laws';
 
-export const SpawnLaws = <F extends AnyK, E>(
-  F: Spawn<F, E>,
-): SpawnLaws<F, E> => ({
+export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   ...MonadCancelLaws(F),
 
   raceDerivesFromRacePairLeft: <A, B>(
@@ -57,7 +55,7 @@ export const SpawnLaws = <F extends AnyK, E>(
       ),
     );
 
-    return F.race<A, B>(fa, F.never)['<=>'](result);
+    return new IsEq(F.race<A, B>(fa, F.never), result);
   },
 
   raceDerivesFromRacePairRight: <A, B>(
@@ -107,32 +105,39 @@ export const SpawnLaws = <F extends AnyK, E>(
       ),
     );
 
-    return F.race<A, B>(F.never, fb)['<=>'](result);
+    return new IsEq(F.race<A, B>(F.never, fb), result);
   },
 
   raceCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<never, A>]>> =>
-    F.race(
-      pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
-      F.canceled,
-    )['<=>'](F.map_(fa, Left)),
+    new IsEq(
+      F.race(
+        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+        F.canceled,
+      ),
+      F.map_(fa, Left),
+    ),
 
   raceCanceledIdentityRight: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<A, never>]>> =>
-    F.race(
-      F.canceled,
-      pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
-    )['<=>'](F.map_(fa, Right)),
+    new IsEq(
+      F.race(
+        F.canceled,
+        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+      ),
+      F.map_(fa, Right),
+    ),
 
   raceNeverNonCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<never, A>]>> =>
-    F.race(
-      pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
-      F.never,
-    )['<=>'](
+    new IsEq(
+      F.race(
+        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+        F.never,
+      ),
       pipe(
         fa,
         F.flatMap(r => F.pure(Left(r))),
@@ -144,10 +149,11 @@ export const SpawnLaws = <F extends AnyK, E>(
   raceNeverNonCanceledIdentityRight: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<A, never>]>> =>
-    F.race(
-      F.never,
-      pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
-    )['<=>'](
+    new IsEq(
+      F.race(
+        F.never,
+        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+      ),
       pipe(
         fa,
         F.flatMap(r => F.pure(Right(r))),
@@ -159,35 +165,47 @@ export const SpawnLaws = <F extends AnyK, E>(
   fiberPureIsOutcomeCompletedPure: <A>(
     a: A,
   ): IsEq<Kind<F, [Outcome<F, E, A>]>> =>
-    pipe(
-      F.pure(a),
-      F.fork,
-      F.flatMap(f => f.join),
-    )['<=>'](F.pure(Outcome.success(F.pure(a)))),
+    new IsEq(
+      pipe(
+        F.pure(a),
+        F.fork,
+        F.flatMap(f => f.join),
+      ),
+      F.pure(Outcome.success(F.pure(a))),
+    ),
 
   fiberErrorIsOutcomeErrored: (e: E): IsEq<Kind<F, [Outcome<F, E, never>]>> =>
-    pipe(
-      F.throwError(e),
-      F.fork,
-      F.flatMap(f => f.join),
-    )['<=>'](F.pure(Outcome.failure(e))),
+    new IsEq(
+      pipe(
+        F.throwError(e),
+        F.fork,
+        F.flatMap(f => f.join),
+      ),
+      F.pure(Outcome.failure(e)),
+    ),
 
   fiberCancelationIsOutcomeCanceled: (): IsEq<Kind<F, [Outcome<F, E, void>]>> =>
-    pipe(
-      F.canceled,
-      F.fork,
-      F.flatMap(f => f.join),
-    )['<=>'](F.pure(Outcome.canceled())),
+    new IsEq(
+      pipe(
+        F.canceled,
+        F.fork,
+        F.flatMap(f => f.join),
+      ),
+      F.pure(Outcome.canceled()),
+    ),
 
   fiberNeverIsNever: (): IsEq<Kind<F, [never]>> =>
-    pipe(
+    new IsEq(
+      pipe(
+        F.never,
+        F.fork,
+        F.flatMap(f => f.join),
+      ),
       F.never,
-      F.fork,
-      F.flatMap(f => f.join),
-    )['<=>'](F.never),
+    ),
 
   fiberForkOfNeverIsUnit: (): IsEq<Kind<F, [void]>> =>
-    pipe(F.never, F.fork, F.void)['<=>'](F.unit),
+    new IsEq(pipe(F.never, F.fork, F.void), F.unit),
 
   fiberJoinIsFinalize: <A>(
     fa0: Kind<F, [A]>,
@@ -195,56 +213,71 @@ export const SpawnLaws = <F extends AnyK, E>(
   ): IsEq<Kind<F, [void]>> => {
     const fa = pipe(fa0, F.flatMap(F.pure), F.handleErrorWith<A>(F.throwError));
 
-    return pipe(
-      fa,
-      F.fork,
-      F.flatMap(f => f.join),
-      F.flatMap(oc =>
-        F.uncancelable(poll => {
-          const result = oc.fold(
-            () => F.productR_(F.canceled, F.never),
-            F.throwError,
-            id,
-          );
-          const finalized = F.onCancel_(poll(result), f(Outcome.canceled()));
-          const handled = F.onError_(finalized, e =>
-            F.handleError_(f(Outcome.failure(e)), () => {}),
-          );
-          return F.flatTap_(handled, a => f(Outcome.success(F.pure(a))));
-        }),
+    return new IsEq(
+      pipe(
+        fa,
+        F.fork,
+        F.flatMap(f => f.join),
+        F.flatMap(oc =>
+          F.uncancelable(poll => {
+            const result = oc.fold(
+              () => F.productR_(F.canceled, F.never),
+              F.throwError,
+              id,
+            );
+            const finalized = F.onCancel_(poll(result), f(Outcome.canceled()));
+            const handled = F.onError_(finalized, e =>
+              F.handleError_(f(Outcome.failure(e)), () => {}),
+            );
+            return F.flatTap_(handled, a => f(Outcome.success(F.pure(a))));
+          }),
+        ),
       ),
-    )['<=>'](F.finalize_(fa, f));
+      F.finalize_(fa, f),
+    );
   },
 
   neverDominatesOverFlatMap: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    F.flatMap_(F.never, () => fa)['<=>'](F.never),
+    new IsEq(
+      F.flatMap_(F.never, () => fa),
+      F.never,
+    ),
 
   uncancelableRaceNotInherited: (): IsEq<Kind<F, [void]>> =>
-    F.void(F.uncancelable(() => F.race(F.never, F.canceled)))['<=>'](F.never),
+    new IsEq(
+      F.void(F.uncancelable(() => F.race(F.never, F.canceled))),
+      F.never,
+    ),
 
   uncancelableCancelCancels: (): IsEq<Kind<F, [void]>> =>
-    pipe(
-      F.never,
-      F.fork,
-      F.flatMap(f =>
-        F.productR_(
-          F.uncancelable(() => f.cancel),
-          f.join,
-        ),
-      ),
-    )['<=>'](F.pure<Outcome<F, E, void>>(Outcome.canceled<F>())),
-
-  uncancelableForkIsCancelable: (): IsEq<Kind<F, [void]>> =>
-    F.uncancelable(() =>
+    new IsEq(
       pipe(
         F.never,
         F.fork,
-        F.flatMap(f => F.productR_(f.cancel, f.join)),
+        F.flatMap(f =>
+          F.productR_(
+            F.uncancelable(() => f.cancel),
+            f.join,
+          ),
+        ),
       ),
-    )['<=>'](F.pure<Outcome<F, E, void>>(Outcome.canceled<F>())),
+      F.pure<Outcome<F, E, void>>(Outcome.canceled<F>()),
+    ),
+
+  uncancelableForkIsCancelable: (): IsEq<Kind<F, [void]>> =>
+    new IsEq(
+      F.uncancelable(() =>
+        pipe(
+          F.never,
+          F.fork,
+          F.flatMap(f => F.productR_(f.cancel, f.join)),
+        ),
+      ),
+      F.pure<Outcome<F, E, void>>(Outcome.canceled<F>()),
+    ),
 });
 
-export interface SpawnLaws<F extends AnyK, E> extends MonadCancelLaws<F, E> {
+export interface SpawnLaws<F, E> extends MonadCancelLaws<F, E> {
   raceDerivesFromRacePairLeft: <A, B>(
     fa: Kind<F, [A]>,
   ) => IsEq<Kind<F, [Either<A, B>]>>;

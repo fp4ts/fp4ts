@@ -1,4 +1,4 @@
-import { $, AnyK, Kind, α, λ } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { FunctionK } from '../../arrow';
 import { Applicative } from '../../applicative';
 import { Functor } from '../../functor';
@@ -27,7 +27,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Kleisli<F extends AnyK, A, B> {
+  interface Kleisli<F, A, B> {
     dimap<AA extends A, BB>(
       this: Kleisli<F, A, BB>,
       F: Functor<F>,
@@ -117,10 +117,8 @@ declare module './algebra' {
       F: FlatMap<F>,
     ): Kleisli<F, A & A2, C>;
 
-    mapK<G extends AnyK>(nt: FunctionK<F, G>): Kleisli<G, A, B>;
-    lift<G extends AnyK>(
-      G: Applicative<G>,
-    ): Kleisli<λ<[α], $<G, [$<F, [α]>]>>, A, B>;
+    mapK<G>(nt: FunctionK<F, G>): Kleisli<G, A, B>;
+    lift<G>(G: Applicative<G>): Kleisli<[G, F], A, B>;
   }
 }
 

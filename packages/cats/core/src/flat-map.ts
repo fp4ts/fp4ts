@@ -1,8 +1,8 @@
-import { id, Kind, AnyK } from '@cats4ts/core';
+import { id, Kind } from '@cats4ts/core';
 import { Apply } from './apply';
 import { Either } from './data';
 
-export interface FlatMap<F extends AnyK> extends Apply<F> {
+export interface FlatMap<F> extends Apply<F> {
   readonly flatMap: <A, B>(
     f: (a: A) => Kind<F, [B]>,
   ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
@@ -30,13 +30,13 @@ export interface FlatMap<F extends AnyK> extends Apply<F> {
   ) => Kind<F, [B]>;
 }
 
-export type FlatMapRequirements<F extends AnyK> = Pick<
+export type FlatMapRequirements<F> = Pick<
   FlatMap<F>,
   'flatMap_' | 'map_' | 'tailRecM_'
 > &
   Partial<FlatMap<F>>;
 export const FlatMap = Object.freeze({
-  of: <F extends AnyK>(F: FlatMapRequirements<F>): FlatMap<F> => {
+  of: <F>(F: FlatMapRequirements<F>): FlatMap<F> => {
     const self: FlatMap<F> = {
       flatMap: f => fa => self.flatMap_(fa, f),
 
@@ -55,7 +55,7 @@ export const FlatMap = Object.freeze({
     return self;
   },
 
-  deriveApply: <F extends AnyK>(F: FlatMapRequirements<F>): Apply<F> =>
+  deriveApply: <F>(F: FlatMapRequirements<F>): Apply<F> =>
     Apply.of<F>({
       ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
       ...F,

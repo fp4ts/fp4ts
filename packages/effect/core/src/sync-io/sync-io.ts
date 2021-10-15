@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import {
   Applicative,
   Apply,
@@ -88,12 +88,6 @@ Object.defineProperty(SyncIO, 'Sync', {
 
 // -- HKT
 
-export const SyncIoURI = 'cats4ts/effect/sync-io';
-export type SyncIoURI = typeof SyncIoURI;
-export type SyncIoK = TyK<SyncIoURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [SyncIoURI]: SyncIO<Tys[0]>;
-  }
+export interface SyncIoK extends TyK<[unknown]> {
+  [$type]: SyncIO<TyVar<this, 0>>;
 }

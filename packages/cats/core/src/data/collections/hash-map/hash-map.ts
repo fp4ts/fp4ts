@@ -1,4 +1,4 @@
-import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
+import { $, TyK, PrimitiveType, $type, TyVar } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -69,12 +69,6 @@ HashMap.UnorderedTraversable = hashMapUnorderedTraversable;
 
 // HKT
 
-export const HashMapURI = 'cats/data/collections/hash-map';
-export type HashMapURI = typeof HashMapURI;
-export type HashMapK = TyK<HashMapURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [HashMapURI]: HashMap<Tys[0], Tys[1]>;
-  }
+export interface HashMapK extends TyK<[unknown, unknown]> {
+  [$type]: HashMap<TyVar<this, 0>, TyVar<this, 1>>;
 }

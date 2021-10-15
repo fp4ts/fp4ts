@@ -1,8 +1,8 @@
-import { AnyK, id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@cats4ts/core';
 import { Category } from './category';
 import { Strong } from './strong';
 
-export interface Arrow<F extends AnyK> extends Category<F>, Strong<F> {
+export interface Arrow<F> extends Category<F>, Strong<F> {
   readonly lift: <A, B>(f: (a: A) => B) => Kind<F, [A, B]>;
 
   readonly split: <C, D>(
@@ -22,13 +22,13 @@ export interface Arrow<F extends AnyK> extends Category<F>, Strong<F> {
   ) => Kind<F, [A, [B, C]]>;
 }
 
-export type ArrowRequirements<F extends AnyK> = Pick<
+export type ArrowRequirements<F> = Pick<
   Arrow<F>,
   'lift' | 'first' | 'compose_'
 > &
   Partial<Arrow<F>>;
 export const Arrow = Object.freeze({
-  of: <F extends AnyK>(F: ArrowRequirements<F>): Arrow<F> => {
+  of: <F>(F: ArrowRequirements<F>): Arrow<F> => {
     const self: Arrow<F> = {
       split: g => f => self.split_(f, g),
       split_: (f, g) => self.andThen_(self.first(f), self.second(g)),

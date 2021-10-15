@@ -1,17 +1,17 @@
-import { Kind, AnyK } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Monoid } from './monoid';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 
-export interface MonoidK<F extends AnyK> extends SemigroupK<F> {
+export interface MonoidK<F> extends SemigroupK<F> {
   readonly emptyK: <A>() => Kind<F, [A]>;
 
   readonly algebra: <A>() => Monoid<Kind<F, [A]>>;
 }
-export type MonoidKRequirements<F extends AnyK> = Pick<MonoidK<F>, 'emptyK'> &
+export type MonoidKRequirements<F> = Pick<MonoidK<F>, 'emptyK'> &
   SemigroupKRequirements<F> &
   Partial<MonoidK<F>>;
 export const MonoidK = Object.freeze({
-  of: <F extends AnyK>(F: MonoidKRequirements<F>): MonoidK<F> => ({
+  of: <F>(F: MonoidKRequirements<F>): MonoidK<F> => ({
     ...SemigroupK.of(F),
     ...F,
 

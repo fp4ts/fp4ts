@@ -1,19 +1,19 @@
-import { $, AnyK, Kind } from '@cats4ts/core';
+import { $, Kind } from '@cats4ts/core';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Eq } from '../../eq';
 import { Nested } from './algebra';
 import { NestedK } from './nested';
 
-export const nestedEq = <F extends AnyK, G extends AnyK, A>(
+export const nestedEq = <F, G, A>(
   EFGA: Eq<Kind<F, [Kind<G, [A]>]>>,
 ): Eq<Nested<F, G, A>> =>
   Eq.by<Nested<F, G, A>, Kind<F, [Kind<G, [A]>]>>(EFGA, x => x.value);
 
-export const nestedFunctor: <F extends AnyK, G extends AnyK>(
+export const nestedFunctor: <F, G>(
   F: Functor<F>,
   G: Functor<G>,
-) => Functor<$<NestedK, [F, G]>> = <F extends AnyK, G extends AnyK>(
+) => Functor<$<NestedK, [F, G]>> = <F, G>(
   F: Functor<F>,
   G: Functor<G>,
 ): Functor<$<NestedK, [F, G]>> => {
@@ -22,10 +22,10 @@ export const nestedFunctor: <F extends AnyK, G extends AnyK>(
   return Functor.of({ map_: (fa, f) => new Nested(FG.map_(fa.value, f)) });
 };
 
-export const nestedApplicative: <F extends AnyK, G extends AnyK>(
+export const nestedApplicative: <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
-) => Applicative<$<NestedK, [F, G]>> = <F extends AnyK, G extends AnyK>(
+) => Applicative<$<NestedK, [F, G]>> = <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
 ): Applicative<$<NestedK, [F, G]>> => {

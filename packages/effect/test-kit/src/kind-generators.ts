@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@cats4ts/core';
 import {
   List,
   Applicative,
@@ -17,11 +17,11 @@ import {
 } from '@cats4ts/effect-kernel';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
-export interface GenK<F extends AnyK> {
+export interface GenK<F> {
   <A>(arbA: Arbitrary<A>): Arbitrary<Kind<F, [A]>>;
 }
 
-export interface KindGenerator<F extends AnyK> {
+export interface KindGenerator<F> {
   readonly baseGen: <A>(
     arbA: Arbitrary<A>,
   ) => List<[string, Arbitrary<Kind<F, [A]>>]>;
@@ -31,7 +31,7 @@ export interface KindGenerator<F extends AnyK> {
   ) => List<[string, Arbitrary<Kind<F, [A]>>]>;
 }
 
-export const ApplicativeGenerators = <F extends AnyK>(
+export const ApplicativeGenerators = <F>(
   F: Applicative<F>,
 ): KindGenerator<F> => {
   const genMap = <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
@@ -46,9 +46,7 @@ export const ApplicativeGenerators = <F extends AnyK>(
   };
 };
 
-export const MonadGenerators = <F extends AnyK>(
-  F: Monad<F>,
-): KindGenerator<F> => {
+export const MonadGenerators = <F>(F: Monad<F>): KindGenerator<F> => {
   const applicativeGenerators = ApplicativeGenerators(F);
 
   const genFlatMap = <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
@@ -66,7 +64,7 @@ export const MonadGenerators = <F extends AnyK>(
   };
 };
 
-export const ApplicativeErrorGenerators = <F extends AnyK, E>(
+export const ApplicativeErrorGenerators = <F, E>(
   F: ApplicativeError<F, E>,
   arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
@@ -92,7 +90,7 @@ export const ApplicativeErrorGenerators = <F extends AnyK, E>(
   };
 };
 
-export const MonadErrorGenerators = <F extends AnyK, E>(
+export const MonadErrorGenerators = <F, E>(
   F: MonadError<F, E>,
   arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
@@ -111,7 +109,7 @@ export const MonadErrorGenerators = <F extends AnyK, E>(
   };
 };
 
-export const SyncGenerators = <F extends AnyK>(
+export const SyncGenerators = <F>(
   F: Sync<F>,
   arbE: Arbitrary<Error>,
 ): KindGenerator<F> => {
@@ -127,7 +125,7 @@ export const SyncGenerators = <F extends AnyK>(
   };
 };
 
-export const MonadCancelGenerators = <F extends AnyK, E>(
+export const MonadCancelGenerators = <F, E>(
   F: MonadCancel<F, E>,
   arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
@@ -161,7 +159,7 @@ export const MonadCancelGenerators = <F extends AnyK, E>(
   };
 };
 
-export const SpawnGenerators = <F extends AnyK, E>(
+export const SpawnGenerators = <F, E>(
   F: Spawn<F, E>,
   arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
@@ -239,7 +237,7 @@ export const SpawnGenerators = <F extends AnyK, E>(
   };
 };
 
-export const TemporalGenerators = <F extends AnyK, E>(
+export const TemporalGenerators = <F, E>(
   F: Temporal<F, E>,
   arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
@@ -260,7 +258,7 @@ export const TemporalGenerators = <F extends AnyK, E>(
   };
 };
 
-export const AsyncGenerators = <F extends AnyK>(
+export const AsyncGenerators = <F>(
   F: Async<F>,
   arbE: Arbitrary<Error>,
   arbEC: Arbitrary<ExecutionContext>,

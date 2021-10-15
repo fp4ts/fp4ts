@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { id, pipe, AnyK, Kind, throwError } from '@cats4ts/core';
+import { id, pipe, Kind, throwError } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Hashable } from '../../../hashable';
 import { Show } from '../../../show';
@@ -192,21 +192,21 @@ export const foldMap: <M>(
   M => f => map =>
     foldMap_(M)(map, f);
 
-export const foldMapK: <F extends AnyK>(
+export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, [B]>,
 ) => (map: HashMap<K, V>) => Kind<F, [B]> = F => f => map =>
   foldMapK_(F)(map, f);
 
-export const traverse: <G extends AnyK>(
+export const traverse: <G>(
   G: Applicative<G>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, [B]>,
 ) => (m: HashMap<K, V>) => Kind<G, [HashMap<K, B>]> = G => f => m =>
   traverse_(G)(m, f);
 
-export const sequence: <G extends AnyK>(
+export const sequence: <G>(
   G: Applicative<G>,
 ) => <K, V>(m: HashMap<K, Kind<G, [V]>>) => Kind<G, [HashMap<K, V>]> = G => m =>
   traverse_(G)(m, id);
@@ -500,12 +500,12 @@ export const foldMap_ =
     foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, () => f(v, k)));
 
 export const foldMapK_ =
-  <F extends AnyK>(F: MonoidK<F>) =>
+  <F>(F: MonoidK<F>) =>
   <K, V, B>(m: HashMap<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
     foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, () => f(v, k)));
 
 export const traverse_ =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <K, V, B>(
     m: HashMap<K, V>,
     f: (v: V, k: K) => Kind<G, [B]>,

@@ -1,12 +1,12 @@
 import { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, SemigroupK } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { SemigroupKLaws } from '../semigroup-k-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const SemigroupKSuite = <F extends AnyK>(F: SemigroupK<F>) => {
+export const SemigroupKSuite = <F>(F: SemigroupK<F>) => {
   const laws = SemigroupKLaws(F);
   return {
     semigroupK: <A>(

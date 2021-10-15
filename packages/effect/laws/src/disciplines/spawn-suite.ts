@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Either } from '@cats4ts/cats';
 import { Spawn, Outcome } from '@cats4ts/effect-kernel';
 import { exec, forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
@@ -8,7 +8,7 @@ import { SpawnLaws } from '../spawn-laws';
 import { MonadCancelSuite } from './monad-cancel-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const SpawnSuite = <F extends AnyK, E>(F: Spawn<F, E>) => {
+export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
   const laws = SpawnLaws(F);
 
   const self = {

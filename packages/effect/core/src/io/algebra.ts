@@ -1,4 +1,4 @@
-import { Either, Option } from '@cats4ts/cats';
+import { Either } from '@cats4ts/cats';
 import { ExecutionContext, Poll, Cont } from '@cats4ts/effect-kernel';
 
 import { IoK } from './io';

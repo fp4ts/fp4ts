@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, FunctorFilter } from '@cats4ts/cats-core';
 import { Option } from '@cats4ts/cats-core/lib/data';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
@@ -9,7 +9,7 @@ import { FunctorFilterLaws } from '../functor-filter-laws';
 import { FunctorSuite } from './functor-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FunctorFilterSuite = <F extends AnyK>(F: FunctorFilter<F>) => {
+export const FunctorFilterSuite = <F>(F: FunctorFilter<F>) => {
   const laws = FunctorFilterLaws(F);
   const self = {
     ...FunctorSuite(F),

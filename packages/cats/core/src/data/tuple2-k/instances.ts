@@ -1,4 +1,4 @@
-import { $, AnyK, Kind } from '@cats4ts/core';
+import { $, Kind } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';
@@ -6,7 +6,7 @@ import { Applicative } from '../../applicative';
 
 import { Tuple2K, Tuple2kK } from './tuple2-k';
 
-export const tuple2KEq: <F extends AnyK, G extends AnyK, A>(
+export const tuple2KEq: <F, G, A>(
   EF: Eq<Kind<F, [A]>>,
   EG: Eq<Kind<G, [A]>>,
 ) => Eq<Tuple2K<F, G, A>> = (EF, EG) =>
@@ -15,7 +15,7 @@ export const tuple2KEq: <F extends AnyK, G extends AnyK, A>(
       EF.equals(lhs[0], rhs[0]) && EG.equals(lhs[1], rhs[1]),
   });
 
-export const tuple2KFunctor: <F extends AnyK, G extends AnyK>(
+export const tuple2KFunctor: <F, G>(
   F: Functor<F>,
   G: Functor<G>,
 ) => Functor<$<Tuple2kK, [F, G]>> = (F, G) =>
@@ -23,7 +23,7 @@ export const tuple2KFunctor: <F extends AnyK, G extends AnyK>(
     map_: (fa, f) => [F.map_(fa[0], f), G.map_(fa[1], f)],
   });
 
-export const tuple2KApply: <F extends AnyK, G extends AnyK>(
+export const tuple2KApply: <F, G>(
   F: Apply<F>,
   G: Apply<G>,
 ) => Apply<$<Tuple2kK, [F, G]>> = (F, G) =>
@@ -36,7 +36,7 @@ export const tuple2KApply: <F extends AnyK, G extends AnyK>(
     },
   });
 
-export const tuple2KApplicative: <F extends AnyK, G extends AnyK>(
+export const tuple2KApplicative: <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
 ) => Applicative<$<Tuple2kK, [F, G]>> = (F, G) =>

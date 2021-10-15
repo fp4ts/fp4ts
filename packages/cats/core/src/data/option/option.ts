@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
@@ -121,12 +121,6 @@ Option.Eq = optionEq;
 
 // -- HKT
 
-export const OptionURI = 'cats/data/option';
-export type OptionURI = typeof OptionURI;
-export type OptionK = TyK<OptionURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [OptionURI]: Option<Tys[0]>;
-  }
+export interface OptionK extends TyK<[unknown]> {
+  [$type]: Option<TyVar<this, 1>>;
 }

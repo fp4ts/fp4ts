@@ -1,4 +1,4 @@
-import { AnyK, Kind, throwError, id, pipe } from '@cats4ts/core';
+import { Kind, throwError, id, pipe } from '@cats4ts/core';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -248,20 +248,20 @@ export const foldMap: <M>(
 ) => <K, V>(f: (v: V, k: K) => M) => (m: OrderedMap<K, V>) => M = M => f => m =>
   foldMap_(M)(m, f);
 
-export const foldMapK: <F extends AnyK>(
+export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, [B]>,
 ) => (m: OrderedMap<K, V>) => Kind<F, [B]> = F => f => m => foldMapK_(F)(m, f);
 
-export const traverse: <G extends AnyK>(
+export const traverse: <G>(
   G: Applicative<G>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, [B]>,
 ) => (m: OrderedMap<K, V>) => Kind<G, [OrderedMap<K, B>]> = G => f => m =>
   traverse_(G)(m, f);
 
-export const sequence: <G extends AnyK>(
+export const sequence: <G>(
   G: Applicative<G>,
 ) => <K, V>(m: OrderedMap<K, Kind<G, [V]>>) => Kind<G, [OrderedMap<K, V>]> =
   G => m =>
@@ -706,7 +706,7 @@ export const foldMap_ =
     foldLeft_(map_(m, f), M.empty, (x, y) => M.combine_(x, () => y));
 
 export const foldMapK_ =
-  <F extends AnyK>(F: MonoidK<F>) =>
+  <F>(F: MonoidK<F>) =>
   <K, V, B>(
     m: OrderedMap<K, V>,
     f: (v: V, k: K) => Kind<F, [B]>,
@@ -714,7 +714,7 @@ export const foldMapK_ =
     foldMap_(F.algebra())(m, f);
 
 export const traverse_ =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <K, V, B>(
     m: OrderedMap<K, V>,
     f: (v: V, k: K) => Kind<G, [B]>,

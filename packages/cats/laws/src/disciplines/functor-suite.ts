@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Functor } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -7,7 +7,7 @@ import { FunctorLaws } from '../functor-laws';
 import { InvariantSuite } from './invariant-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FunctorSuite = <F extends AnyK>(F: Functor<F>) => {
+export const FunctorSuite = <F>(F: Functor<F>) => {
   const laws = FunctorLaws(F);
   const self = {
     ...InvariantSuite(F),

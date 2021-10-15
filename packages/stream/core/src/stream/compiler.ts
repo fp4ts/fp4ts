@@ -1,4 +1,4 @@
-import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@cats4ts/core';
 import { MonadError, List, None, Option, Vector } from '@cats4ts/cats';
 import { SyncIO, SyncIoK } from '@cats4ts/effect';
 
@@ -7,7 +7,7 @@ import { Pull } from '../pull';
 import { Stream } from './algebra';
 import { Collector } from './collectors';
 
-export class Compiler<F extends AnyK, A> {
+export class Compiler<F, A> {
   private readonly __void!: void;
   public constructor(
     private readonly F: MonadError<F, Error>,

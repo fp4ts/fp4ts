@@ -1,4 +1,4 @@
-import { $, AnyK } from '@cats4ts/core';
+import { $ } from '@cats4ts/core';
 import {
   Align,
   Defer,
@@ -24,28 +24,27 @@ import {
 } from './operators';
 import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
-export const streamMonoidK: <F extends AnyK>() => MonoidK<$<StreamK, [F]>> =
-  () => MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty });
+export const streamMonoidK: <F>() => MonoidK<$<StreamK, [F]>> = () =>
+  MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty });
 
-export const streamDefer: <F extends AnyK>() => Defer<$<StreamK, [F]>> = () =>
+export const streamDefer: <F>() => Defer<$<StreamK, [F]>> = () =>
   Defer.of({ defer: defer });
 
-export const streamFunctor: <F extends AnyK>() => Functor<$<StreamK, [F]>> =
-  () => Functor.of({ map_: map_ });
+export const streamFunctor: <F>() => Functor<$<StreamK, [F]>> = () =>
+  Functor.of({ map_: map_ });
 
-export const streamAlign: <F extends AnyK>() => Align<$<StreamK, [F]>> = () =>
+export const streamAlign: <F>() => Align<$<StreamK, [F]>> = () =>
   Align.of({ functor: streamFunctor(), align_: align_ });
 
-export const streamFunctorFilter: <F extends AnyK>() => FunctorFilter<
-  $<StreamK, [F]>
-> = () =>
-  FunctorFilter.of({
-    ...streamFunctor(),
-    mapFilter_: collect_,
-    collect_: collect_,
-  });
+export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamK, [F]>> =
+  () =>
+    FunctorFilter.of({
+      ...streamFunctor(),
+      mapFilter_: collect_,
+      collect_: collect_,
+    });
 
-export const streamMonad: <F extends AnyK>() => Monad<$<StreamK, [F]>> = () =>
+export const streamMonad: <F>() => Monad<$<StreamK, [F]>> = () =>
   Monad.of({
     ...streamFunctor(),
     pure: pure,
@@ -54,15 +53,13 @@ export const streamMonad: <F extends AnyK>() => Monad<$<StreamK, [F]>> = () =>
     tailRecM_: tailRecM_,
   });
 
-export const streamMonadError: <F extends AnyK>() => MonadError<
-  $<StreamK, [F]>,
-  Error
-> = () =>
-  MonadError.of({
-    ...streamMonad(),
-    throwError: throwError,
-    handleErrorWith_: handleErrorWith_,
-    attempt: attempt,
-    redeemWith_: redeemWith_,
-    rethrow: rethrow,
-  });
+export const streamMonadError: <F>() => MonadError<$<StreamK, [F]>, Error> =
+  () =>
+    MonadError.of({
+      ...streamMonad(),
+      throwError: throwError,
+      handleErrorWith_: handleErrorWith_,
+      attempt: attempt,
+      redeemWith_: redeemWith_,
+      rethrow: rethrow,
+    });

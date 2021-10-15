@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { Functor } from '../../functor';
@@ -113,12 +113,6 @@ Object.defineProperty(Try, 'MonadError', {
 
 // -- HKT
 
-const TryURI = '@cats4ts/cats/core/data/try';
-type TryURI = typeof TryURI;
-export type TryK = TyK<TryURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [TryURI]: Try<Tys[0]>;
-  }
+export interface TryK extends TyK<[unknown]> {
+  [$type]: Try<TyVar<this, 0>>;
 }

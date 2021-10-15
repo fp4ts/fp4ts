@@ -1,4 +1,4 @@
-import { Kind, id, AnyK } from '@cats4ts/core';
+import { Kind, id } from '@cats4ts/core';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';
@@ -8,33 +8,33 @@ import {
   UnorderedTraversableRequirements,
 } from './unordered-traversable';
 
-export interface Traversable<T extends AnyK>
+export interface Traversable<T>
   extends Functor<T>,
     Foldable<T>,
     UnorderedTraversable<T> {
-  readonly traverse: <G extends AnyK>(
+  readonly traverse: <G>(
     G: Applicative<G>,
   ) => <A, B>(
     f: (a: A) => Kind<G, [B]>,
   ) => (fa: Kind<T, [A]>) => Kind<G, [Kind<T, [B]>]>;
-  readonly traverse_: <G extends AnyK>(
+  readonly traverse_: <G>(
     G: Applicative<G>,
   ) => <A, B>(
     fa: Kind<T, [A]>,
     f: (a: A) => Kind<G, [B]>,
   ) => Kind<G, [Kind<T, [B]>]>;
 
-  readonly sequence: <G extends AnyK>(
+  readonly sequence: <G>(
     G: Applicative<G>,
   ) => <A>(fga: Kind<T, [Kind<G, [A]>]>) => Kind<G, [Kind<T, [A]>]>;
 
-  readonly flatTraverse: <G extends AnyK>(
+  readonly flatTraverse: <G>(
     F: FlatMap<T>,
     G: Applicative<G>,
   ) => <A, B>(
     f: (a: A) => Kind<G, [Kind<T, [B]>]>,
   ) => (fa: Kind<T, [A]>) => Kind<G, [Kind<T, [B]>]>;
-  readonly flatTraverse_: <G extends AnyK>(
+  readonly flatTraverse_: <G>(
     F: FlatMap<T>,
     G: Applicative<G>,
   ) => <A, B>(
@@ -42,23 +42,20 @@ export interface Traversable<T extends AnyK>
     f: (a: A) => Kind<G, [Kind<T, [B]>]>,
   ) => Kind<G, [Kind<T, [B]>]>;
 
-  readonly flatSequence: <G extends AnyK>(
+  readonly flatSequence: <G>(
     F: FlatMap<T>,
     G: Applicative<G>,
   ) => <A>(fgfa: Kind<T, [Kind<G, [Kind<T, [A]>]>]>) => Kind<G, [Kind<T, [A]>]>;
 }
 
-export type TraversableRequirements<T extends AnyK> = Pick<
-  Traversable<T>,
-  'traverse_'
-> &
+export type TraversableRequirements<T> = Pick<Traversable<T>, 'traverse_'> &
   FoldableRequirements<T> &
   FunctorRequirements<T> &
   Partial<Traversable<T>> &
   Partial<UnorderedTraversableRequirements<T>>;
 
 export const Traversable = Object.freeze({
-  of: <T extends AnyK>(T: TraversableRequirements<T>): Traversable<T> => {
+  of: <T>(T: TraversableRequirements<T>): Traversable<T> => {
     const self: Traversable<T> = {
       traverse: G => f => fa => self.traverse_(G)(fa, f),
 

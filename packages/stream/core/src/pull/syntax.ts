@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Option, FunctionK, MonadError } from '@cats4ts/cats';
 
 import { Pull } from './algebra';
@@ -33,7 +33,7 @@ import {
 } from './stream-projection';
 
 declare module './algebra' {
-  interface Pull<F extends AnyK, O, R> {
+  interface Pull<F, O, R> {
     cons<O2>(this: Pull<F, O2, void>, c: Chunk<O2>): Pull<F, O2, void>;
 
     readonly uncons: R extends void
@@ -93,10 +93,7 @@ declare module './algebra' {
       f: (o: O2) => Pull<F, P, void>,
     ): Pull<F, P, void>;
 
-    translate<G extends AnyK>(
-      this: Pull<F, O, void>,
-      nt: FunctionK<F, G>,
-    ): Pull<G, O, void>;
+    translate<G>(this: Pull<F, O, void>, nt: FunctionK<F, G>): Pull<G, O, void>;
 
     readonly void: Pull<F, O, void>;
 
@@ -150,7 +147,7 @@ Pull.prototype.cons = function (c) {
 };
 
 Object.defineProperty(Pull.prototype, 'uncons', {
-  get<F extends AnyK, O>(
+  get<F, O>(
     this: Pull<F, O, void>,
   ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> {
     return uncons(this);
@@ -158,7 +155,7 @@ Object.defineProperty(Pull.prototype, 'uncons', {
 });
 
 Object.defineProperty(Pull.prototype, 'uncons1', {
-  get<F extends AnyK, O>(
+  get<F, O>(
     this: Pull<F, O, void>,
   ): Pull<F, never, Option<[O, Pull<F, O, void>]>> {
     return uncons1(this);
@@ -174,7 +171,7 @@ Pull.prototype.unconsLimit = function (limit) {
 };
 
 Object.defineProperty(Pull.prototype, 'last', {
-  get<F extends AnyK, O>(this: Pull<F, O, void>): Pull<F, never, Option<O>> {
+  get<F, O>(this: Pull<F, O, void>): Pull<F, never, Option<O>> {
     return last(this);
   },
 });
@@ -213,7 +210,7 @@ Pull.prototype.translate = function (nt) {
 };
 
 Object.defineProperty(Pull.prototype, 'void', {
-  get<F extends AnyK, O, R>(this: Pull<F, O, R>): Pull<F, O, void> {
+  get<F, O, R>(this: Pull<F, O, R>): Pull<F, O, void> {
     return toVoid(this);
   },
 });

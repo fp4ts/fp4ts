@@ -48,7 +48,6 @@ export const listSemigroupK: Lazy<SemigroupK<ListK>> = () =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
 
 export const listMonoidK: Lazy<MonoidK<ListK>> = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { algebra, ...rest } = listSemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
 };

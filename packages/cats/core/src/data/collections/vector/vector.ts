@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -142,12 +142,6 @@ Object.defineProperty(Vector, 'Traversable', {
 
 // -- HKT
 
-export const VectorURI = 'cats/data/collections/vector';
-export type VectorURI = typeof VectorURI;
-export type VectorK = TyK<VectorURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [VectorURI]: Vector<Tys[0]>;
-  }
+export interface VectorK extends TyK<[unknown]> {
+  [$type]: Vector<TyVar<this, 0>>;
 }

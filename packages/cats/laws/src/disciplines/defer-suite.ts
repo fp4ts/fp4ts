@@ -1,12 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Defer, Eq } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { DeferLaws } from '../defer-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const DeferSuite = <F extends AnyK>(F: Defer<F>) => {
+export const DeferSuite = <F>(F: Defer<F>) => {
   const laws = DeferLaws(F);
   return {
     defer: <A>(

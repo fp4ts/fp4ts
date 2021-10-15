@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Align } from '../../../align';
 import { Apply } from '../../../apply';
@@ -139,12 +139,6 @@ List.Eq = listEq;
 
 // HKT
 
-export const ListURI = 'cats/data/collections/list';
-export type ListURI = typeof ListURI;
-export type ListK = TyK<ListURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ListURI]: List<Tys[0]>;
-  }
+export interface ListK extends TyK<[unknown]> {
+  [$type]: List<TyVar<this, 0>>;
 }

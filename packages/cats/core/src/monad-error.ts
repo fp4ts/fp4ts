@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Monad, MonadRequirements } from './monad';
 import {
   ApplicativeError,
@@ -6,9 +6,7 @@ import {
 } from './applicative-error';
 import { Either } from './data';
 
-export interface MonadError<F extends AnyK, E>
-  extends ApplicativeError<F, E>,
-    Monad<F> {
+export interface MonadError<F, E> extends ApplicativeError<F, E>, Monad<F> {
   readonly redeemWith: <A, B>(
     h: (e: E) => Kind<F, [B]>,
     f: (a: A) => Kind<F, [B]>,
@@ -32,14 +30,12 @@ export interface MonadError<F extends AnyK, E>
   ) => Kind<F, [A]>;
 }
 
-export type MonadErrorRequirements<F extends AnyK, E> = MonadRequirements<F> &
+export type MonadErrorRequirements<F, E> = MonadRequirements<F> &
   ApplicativeErrorRequirements<F, E> &
   Partial<MonadError<F, E>>;
 
 export const MonadError = Object.freeze({
-  of: <F extends AnyK, E>(
-    F: MonadErrorRequirements<F, E>,
-  ): MonadError<F, E> => {
+  of: <F, E>(F: MonadErrorRequirements<F, E>): MonadError<F, E> => {
     const self: MonadError<F, E> = {
       redeemWith: (h, f) => fa => self.redeemWith_(fa, h, f),
       redeemWith_: (fa, h, f) =>

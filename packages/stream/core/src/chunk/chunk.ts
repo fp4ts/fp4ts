@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import {
   Alternative,
   Either,
@@ -92,12 +92,6 @@ Object.defineProperty(Chunk, 'Traversable', {
 
 // -- HKT
 
-const ChunkURI = '@cats4ts/stream/core/chunk';
-type ChunkURI = typeof ChunkURI;
-export type ChunkK = TyK<ChunkURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ChunkURI]: Chunk<Tys[0]>;
-  }
+export interface ChunkK extends TyK<[unknown]> {
+  [$type]: Chunk<TyVar<this, 0>>;
 }

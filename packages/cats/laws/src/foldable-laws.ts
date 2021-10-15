@@ -1,12 +1,10 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eval, Foldable, Monoid } from '@cats4ts/cats-core';
 
 import { UnorderedFoldableLaws } from './unordered-foldable-laws';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
-export const FoldableLaws = <F extends AnyK>(
-  F: Foldable<F>,
-): FoldableLaws<F> => ({
+export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   ...UnorderedFoldableLaws(F),
 
   foldRightLazy: <A>(fa: Kind<F, [A]>): boolean => {
@@ -43,7 +41,7 @@ export const FoldableLaws = <F extends AnyK>(
     },
 });
 
-export interface FoldableLaws<F extends AnyK> extends UnorderedFoldableLaws<F> {
+export interface FoldableLaws<F> extends UnorderedFoldableLaws<F> {
   foldRightLazy: <A>(fa: Kind<F, [A]>) => boolean;
 
   leftFoldConsistentWithFoldMap: <B>(

@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 
 import { Free } from '../free';
 
@@ -7,7 +7,7 @@ interface FreeConstraints {
   readonly minDepth?: number;
   readonly maxDepth?: number;
 }
-export const cats4tsFree = <F extends AnyK, A>(
+export const cats4tsFree = <F, A>(
   arbFA: Arbitrary<Kind<F, [A]>>,
   arbA: Arbitrary<A>,
   constraints: FreeConstraints = {},

@@ -1,4 +1,4 @@
-import { flow, id, pipe, Kind, AnyK } from '@cats4ts/core';
+import { flow, id, pipe, Kind } from '@cats4ts/core';
 import { Traversable, Either, Left, Right } from '@cats4ts/cats';
 import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
 import * as Sem from '@cats4ts/effect-kernel/lib/semaphore';
@@ -155,31 +155,31 @@ export const redeemWith: <A, B>(
 ) => (ioa: IO<A>) => IO<B> = (onFailure, onSuccess) => ioa =>
   redeemWith_(ioa, onFailure, onSuccess);
 
-export const traverse: <T extends AnyK>(
+export const traverse: <T>(
   T: Traversable<T>,
 ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>> =
   T => f => ts =>
     traverse_(T, ts, f);
 
 export const sequence =
-  <T extends AnyK>(T: Traversable<T>) =>
+  <T>(T: Traversable<T>) =>
   <A>(ioas: Kind<T, [IO<A>]>): IO<Kind<T, [A]>> =>
     traverse_(T, ioas, id);
 
-export const parTraverse: <T extends AnyK>(
+export const parTraverse: <T>(
   T: Traversable<T>,
 ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>> =
   T => f => ts =>
     parTraverse_(T, ts, f);
 
-export const parSequenceN: <T extends AnyK>(
+export const parSequenceN: <T>(
   T: Traversable<T>,
   maxConcurrent: number,
 ) => <A>(iot: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>> =
   (T, maxConcurrent) => iot =>
     parSequenceN_(T, iot, maxConcurrent);
 
-export const parTraverseN: <T extends AnyK, C2>(
+export const parTraverseN: <T, C2>(
   T: Traversable<T>,
   maxConcurrent: number,
 ) => <A, B>(
@@ -188,11 +188,11 @@ export const parTraverseN: <T extends AnyK, C2>(
   parTraverseN_(T, as, f, ms);
 
 export const parSequence =
-  <T extends AnyK>(T: Traversable<T>) =>
+  <T>(T: Traversable<T>) =>
   <A>(iot: Kind<T, [IO<A>]>): IO<Kind<T, [A]>> =>
     parTraverse_(T, iot, id);
 
-export const parTraverseOutcome: <T extends AnyK>(
+export const parTraverseOutcome: <T>(
   T: Traversable<T>,
 ) => <A, B>(
   f: (a: A) => IO<B>,
@@ -200,11 +200,11 @@ export const parTraverseOutcome: <T extends AnyK>(
   parTraverseOutcome_(T, as, f);
 
 export const parSequenceOutcome =
-  <T extends AnyK>(T: Traversable<T>) =>
+  <T>(T: Traversable<T>) =>
   <A>(iot: Kind<T, [IO<A>]>): IO<Kind<T, [IOOutcome<A>]>> =>
     parTraverseOutcome_(T, iot, id);
 
-export const parTraverseOutcomeN: <T extends AnyK>(
+export const parTraverseOutcomeN: <T>(
   T: Traversable<T>,
   maxConcurrent: number,
 ) => <A, B>(
@@ -482,14 +482,14 @@ export const redeemWith_ = <A, B>(
     flatMap(ea => ea.fold(onFailure, onSuccess)),
   );
 
-export const traverse_ = <T extends AnyK, A, B>(
+export const traverse_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,
 ): IO<Kind<T, [B]>> =>
   defer(() => T.traverse(ioSequentialApplicative())(f)(ts));
 
-export const parSequenceN_: <T extends AnyK, A>(
+export const parSequenceN_: <T, A>(
   T: Traversable<T>,
   ioas: Kind<T, [IO<A>]>,
   maxConcurrent: number,
@@ -591,13 +591,13 @@ export const map2_ = <A, B, C>(
     ),
   );
 
-export const parTraverse_ = <T extends AnyK, A, B>(
+export const parTraverse_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,
 ): IO<Kind<T, [B]>> => defer(() => T.traverse(ioParallelApplicative())(f)(ts));
 
-export const parTraverseN_ = <T extends AnyK, A, B>(
+export const parTraverseN_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,
@@ -608,7 +608,7 @@ export const parTraverseN_ = <T extends AnyK, A, B>(
     flatMap(sem => parTraverse_(T, ts, x => sem.withPermit(f(x)))),
   );
 
-export const parTraverseOutcome_ = <T extends AnyK, A, B>(
+export const parTraverseOutcome_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,
@@ -635,7 +635,7 @@ export const parTraverseOutcome_ = <T extends AnyK, A, B>(
     );
   });
 
-export const parTraverseOutcomeN_ = <T extends AnyK, A, B>(
+export const parTraverseOutcomeN_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,

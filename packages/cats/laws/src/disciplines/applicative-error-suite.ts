@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { ApplicativeError, Eq } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -9,9 +9,7 @@ import { ApplicativeSuite } from './applicative-suite';
 import { Either } from '@cats4ts/cats-core/lib/data';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const ApplicativeErrorSuite = <F extends AnyK, E>(
-  F: ApplicativeError<F, E>,
-) => {
+export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
   const laws = ApplicativeErrorLaws(F);
   const self = {
     ...ApplicativeSuite(F),

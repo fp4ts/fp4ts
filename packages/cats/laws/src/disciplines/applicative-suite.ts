@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Applicative, Eq } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -7,7 +7,7 @@ import { ApplicativeLaws } from '../applicative-laws';
 import { ApplySuite } from './apply-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const ApplicativeSuite = <F extends AnyK>(F: Applicative<F>) => {
+export const ApplicativeSuite = <F>(F: Applicative<F>) => {
   const {
     applicativeIdentity,
     applicativeHomomorphism,

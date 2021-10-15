@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Foldable, Monoid } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -7,7 +7,7 @@ import { FoldableLaws } from '../foldable-laws';
 import { UnorderedFoldableSuite } from './unordered-foldable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FoldableSuite = <F extends AnyK>(F: Foldable<F>) => {
+export const FoldableSuite = <F>(F: Foldable<F>) => {
   const laws = FoldableLaws(F);
 
   const self = {

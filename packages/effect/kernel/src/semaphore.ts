@@ -1,11 +1,11 @@
 import { ok as assert } from 'assert';
-import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@cats4ts/core';
 
 import { Ref } from './ref';
 import { Deferred } from './deferred';
 import { Async } from './async';
 
-class State<F extends AnyK> {
+class State<F> {
   private readonly __void!: void;
 
   public constructor(
@@ -20,7 +20,7 @@ class State<F extends AnyK> {
     new State(queue, permits);
 }
 
-export class Semaphore<F extends AnyK> {
+export class Semaphore<F> {
   private readonly __void!: void;
 
   private constructor(
@@ -79,7 +79,7 @@ export class Semaphore<F extends AnyK> {
     );
 
   public static readonly withPermits =
-    <F extends AnyK>(F: Async<F>) =>
+    <F>(F: Async<F>) =>
     (permits: number): Kind<F, [Semaphore<F>]> => {
       assert(permits > 0, 'maxPermits must be > 0');
       return pipe(
@@ -90,21 +90,21 @@ export class Semaphore<F extends AnyK> {
 }
 
 export const of =
-  <F extends AnyK>(F: Async<F>) =>
+  <F>(F: Async<F>) =>
   (permits: number): Kind<F, [Semaphore<F>]> =>
     Semaphore.withPermits(F)(permits);
 
-export const acquire: <F extends AnyK>(sem: Semaphore<F>) => Kind<F, [void]> =
-  sem => sem.acquire();
+export const acquire: <F>(sem: Semaphore<F>) => Kind<F, [void]> = sem =>
+  sem.acquire();
 
-export const release: <F extends AnyK>(sem: Semaphore<F>) => Kind<F, [void]> =
-  sem => sem.release();
+export const release: <F>(sem: Semaphore<F>) => Kind<F, [void]> = sem =>
+  sem.release();
 
-export const withPermit: <F extends AnyK>(
+export const withPermit: <F>(
   sem: Semaphore<F>,
 ) => <A>(fa: Kind<F, [A]>) => Kind<F, [A]> = sem => fa => withPermit_(sem, fa);
 
-export const withPermit_: <F extends AnyK, A>(
+export const withPermit_: <F, A>(
   sem: Semaphore<F>,
   fa: Kind<F, [A]>,
 ) => Kind<F, [A]> = (sem, fa) => sem.withPermit(fa);

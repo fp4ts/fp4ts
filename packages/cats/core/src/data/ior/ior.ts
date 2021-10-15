@@ -1,4 +1,4 @@
-import { $, TyK, _ } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { Option } from '../option';
 import { Either } from '../either';
@@ -53,12 +53,6 @@ Object.defineProperty(Ior, 'Bifunctor', {
 
 // -- HKT
 
-const IorURI = '@cats4ts/cats/core/data/ior';
-type IorURI = typeof IorURI;
-export type IorK = TyK<IorURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [IorURI]: Ior<Tys[0], Tys[1]>;
-  }
+export interface IorK extends TyK<[unknown, unknown]> {
+  [$type]: Ior<TyVar<this, 0>, TyVar<this, 1>>;
 }

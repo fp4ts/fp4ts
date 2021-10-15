@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, MonadError } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -8,7 +8,7 @@ import { ApplicativeErrorSuite } from './applicative-error-suite';
 import { MonadSuite } from './monad-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const MonadErrorSuite = <F extends AnyK, E>(F: MonadError<F, E>) => {
+export const MonadErrorSuite = <F, E>(F: MonadError<F, E>) => {
   const laws = MonadErrorLaws(F);
   const self = {
     ...ApplicativeErrorSuite(F),

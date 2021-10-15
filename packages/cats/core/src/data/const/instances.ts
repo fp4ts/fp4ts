@@ -1,4 +1,4 @@
-import { $, AnyK, Kind } from '@cats4ts/core';
+import { $, Kind } from '@cats4ts/core';
 import { Semigroup } from '../../semigroup';
 import { Monoid } from '../../monoid';
 import { SemigroupK } from '../../semigroup-k';
@@ -58,7 +58,7 @@ export const constTraversable: <A>() => Traversable<$<ConstK, [A]>> = <A>() =>
     ...constFoldable<A>(),
 
     traverse_:
-      <G extends AnyK>(G: Applicative<G>) =>
+      <G>(G: Applicative<G>) =>
       <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [C]>) =>
         G.pure(fa),
   });

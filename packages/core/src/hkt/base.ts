@@ -1,5 +1,3 @@
-import { AnyK } from './ctor';
-
-export interface Base<F extends AnyK> {
+export interface Base<F> {
   _F: F;
 }

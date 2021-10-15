@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, FlatMap } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -7,7 +7,7 @@ import { FlatMapLaws } from '../flat-map-laws';
 import { ApplySuite } from './apply-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FlatMapSuite = <F extends AnyK>(F: FlatMap<F>) => {
+export const FlatMapSuite = <F>(F: FlatMap<F>) => {
   const laws = FlatMapLaws(F);
   const self = {
     ...ApplySuite(F),

@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Align } from '@cats4ts/cats-core';
 import { Ior } from '@cats4ts/cats-core/lib/data';
 
@@ -7,7 +7,7 @@ import { AlignLaws } from '../align-laws';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const AlignSuite = <F extends AnyK>(F: Align<F>) => {
+export const AlignSuite = <F>(F: Align<F>) => {
   const laws = AlignLaws(F);
 
   return {

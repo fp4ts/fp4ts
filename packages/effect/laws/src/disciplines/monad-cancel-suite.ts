@@ -1,5 +1,5 @@
 import { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { MonadErrorSuite } from '@cats4ts/cats-laws';
 import { MonadCancel } from '@cats4ts/effect-kernel';
@@ -8,7 +8,7 @@ import { forAll, RuleSet, Rule, IsEq, exec } from '@cats4ts/cats-test-kit';
 import { MonadCancelLaws } from '../monad-cancel-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const MonadCancelSuite = <F extends AnyK, E>(F: MonadCancel<F, E>) => {
+export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
   const laws = MonadCancelLaws(F);
 
   const makeShared = <A>(

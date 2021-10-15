@@ -1,4 +1,4 @@
-import { $, TyK, _, PrimitiveType } from '@cats4ts/core';
+import { $, TyK, PrimitiveType, $type, TyVar } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Ord } from '../../../ord';
 import { SemigroupK } from '../../../semigroup-k';
@@ -71,12 +71,6 @@ OrderedMap.Traversable = orderedMapTraversable;
 
 // HKT
 
-export const OrderedMapURI = 'cats/data/collections/ordered-map';
-export type OrderedMapURI = typeof OrderedMapURI;
-export type OrderedMapK = TyK<OrderedMapURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [OrderedMapURI]: OrderedMap<Tys[0], Tys[1]>;
-  }
+export interface OrderedMapK extends TyK<[unknown, unknown]> {
+  [$type]: OrderedMap<TyVar<this, 0>, TyVar<this, 1>>;
 }

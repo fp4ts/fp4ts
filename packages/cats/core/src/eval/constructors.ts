@@ -1,4 +1,4 @@
-import { Always, Later, Eval, Now, Defer, Memoize } from './algebra';
+import { Always, Later, Eval, Now, Defer } from './algebra';
 
 export const pure = <A>(a: A): Eval<A> => new Now(a);
 

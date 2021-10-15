@@ -1,10 +1,10 @@
-import { AnyK, id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@cats4ts/core';
 import { Either } from '../data';
 
 import { Arrow, ArrowRequirements } from './arrow';
 import { Choice, ChoiceRequirements } from './choice';
 
-export interface ArrowChoice<F extends AnyK> extends Arrow<F>, Choice<F> {
+export interface ArrowChoice<F> extends Arrow<F>, Choice<F> {
   readonly choose: <A, B, C, D>(
     f: Kind<F, [A, C]>,
     g: Kind<F, [B, D]>,
@@ -19,15 +19,12 @@ export interface ArrowChoice<F extends AnyK> extends Arrow<F>, Choice<F> {
   ) => Kind<F, [Either<C, A>, Either<C, B>]>;
 }
 
-export type ArrowChoiceRequirements<F extends AnyK> = Pick<
-  ArrowChoice<F>,
-  'choose'
-> &
+export type ArrowChoiceRequirements<F> = Pick<ArrowChoice<F>, 'choose'> &
   ArrowRequirements<F> &
   ChoiceRequirements<F> &
   Partial<ArrowChoice<F>>;
 export const ArrowChoice = Object.freeze({
-  of: <F extends AnyK>(F: ArrowChoiceRequirements<F>): ArrowChoice<F> => {
+  of: <F>(F: ArrowChoiceRequirements<F>): ArrowChoice<F> => {
     const self: ArrowChoice<F> = {
       left: fab => self.choose(fab, self.lift(id)),
       right: fab => self.choose(self.lift(id), fab),

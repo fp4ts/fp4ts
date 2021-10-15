@@ -1,13 +1,13 @@
-import { $, AnyK, Kind } from '@cats4ts/core';
+import { $, Kind } from '@cats4ts/core';
 import { Eval } from '../../../eval';
 import { Eq } from '../../../eq';
 import { Ord } from '../../../ord';
 import { Monoid } from '../../../monoid';
+import { Applicative } from '../../../applicative';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
-import { Applicative } from '../../../applicative';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 
@@ -99,7 +99,7 @@ export const orderedMapTraversable: <K>() => Traversable<$<OrderedMapK, [K]>> =
       ...orderedMapFoldable(),
 
       traverse_:
-        <G extends AnyK>(G: Applicative<G>) =>
+        <G>(G: Applicative<G>) =>
         <K, V, B>(m: OrderedMap<K, V>, f: (x: V) => Kind<G, [B]>) =>
           traverse_(G)(m, x => f(x)),
       sequence: sequence,

@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { $, AnyK, id, Kind, throwError } from '@cats4ts/core';
+import { $, id, Kind, throwError } from '@cats4ts/core';
 import { FunctionK, Eq } from '@cats4ts/cats-core';
 import {
   Identity,
@@ -9,6 +9,7 @@ import {
   None,
   Option,
   OptionT,
+  OptionTK,
   Kleisli,
   ListK,
   List,
@@ -272,19 +273,23 @@ describe('Kleisli', () => {
         .map(Option.Functor)(x => x + 1)
         .dimap(Option.Functor)(() => 42)(x => x * 2)
         .lift(Identity.Monad)
-        .mapK(OptionT);
+        .mapK<OptionTK>(<X>(x: Identity<Option<X>>) =>
+          OptionT<IdentityK, X>(x),
+        );
 
-      expect(k.run(null)).toEqual(OptionT(Identity(Some(88))));
+      expect(k.run(null)).toEqual(
+        OptionT<IdentityK, number>(Identity(Some(88))),
+      );
     });
   });
 
-  const eqKleisli = <F extends AnyK, A, B>(
+  const eqKleisli = <F, A, B>(
     EA: ExhaustiveCheck<A>,
     EqFB: Eq<Kind<F, [B]>>,
   ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => k.run.bind(k));
 
   const contravariantTests = ContravariantSuite(
-    Kleisli.Contravariant<IdentityK, MiniInt>(),
+    Kleisli.Contravariant<IdentityK, number>(),
   );
   checkAll(
     'Contravariant<Kleisli<IdentityK, MiniInt, number>>',
@@ -294,10 +299,11 @@ describe('Kleisli', () => {
       A.cats4tsMiniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      () => A.cats4tsKleisli<IdentityK, MiniInt, number>(fc.integer()),
+      <X>(_: Arbitrary<X>) =>
+        A.cats4tsKleisli<IdentityK, X, number>(fc.integer()),
 
-      // hacky? We are not really using the value
-      () => eqKleisli(ec.miniInt(), Eq.primitive),
+      // TODO: hacky? We are not really using the value
+      () => eqKleisli(ec.miniInt() as any, Eq.primitive),
     ),
   );
 

@@ -1,11 +1,11 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Bifunctor, Eq } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 import { BifunctorLaws } from '../bifunctor-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const BifunctorSuite = <F extends AnyK>(F: Bifunctor<F>) => {
+export const BifunctorSuite = <F>(F: Bifunctor<F>) => {
   const laws = BifunctorLaws(F);
 
   return {

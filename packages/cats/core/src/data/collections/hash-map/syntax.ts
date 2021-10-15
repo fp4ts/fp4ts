@@ -1,4 +1,4 @@
-import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind, PrimitiveType } from '@cats4ts/core';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -236,11 +236,11 @@ declare module './algebra' {
     foldRight<B>(z: B, f: (v: V, b: B, k: K) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (v: V, k: K) => M) => M;
-    foldMapK<F extends AnyK>(
+    foldMapK<F>(
       F: MonoidK<F>,
     ): <B>(f: (v: V, k: K) => Kind<F, [B]>) => Kind<F, [B]>;
 
-    traverse<G extends AnyK>(
+    traverse<G>(
       G: Applicative<G>,
     ): <B>(f: (v: V, k: K) => Kind<G, [B]>) => Kind<G, [HashMap<K, B>]>;
 
@@ -462,14 +462,14 @@ HashMap.prototype.foldMap = function <K, V, M>(
   return f => foldMap_(M)(this, f);
 };
 
-HashMap.prototype.foldMapK = function <F extends AnyK, K, V>(
+HashMap.prototype.foldMapK = function <F, K, V>(
   this: HashMap<K, V>,
   F: MonoidK<F>,
 ): <B>(f: (v: V, k: K) => Kind<F, [B]>) => Kind<F, [B]> {
   return f => foldMapK_(F)(this, f);
 };
 
-HashMap.prototype.traverse = function <G extends AnyK, K, V>(
+HashMap.prototype.traverse = function <G, K, V>(
   this: HashMap<K, V>,
   G: Applicative<G>,
 ): <B>(f: (v: V, k: K) => Kind<G, [B]>) => Kind<G, [HashMap<K, B>]> {

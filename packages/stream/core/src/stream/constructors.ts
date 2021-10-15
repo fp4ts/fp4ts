@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { AnyK, constant, Kind, pipe } from '@cats4ts/core';
+import { constant, Kind, pipe } from '@cats4ts/core';
 import { Either, List, Option, Some, Vector } from '@cats4ts/cats';
 import { Spawn, Temporal } from '@cats4ts/effect';
 
@@ -17,42 +17,37 @@ import {
   takeWhile,
 } from './operators';
 
-export const pure = <F extends AnyK, A>(x: A): Stream<F, A> =>
-  new Stream(Pull.output1(x));
+export const pure = <F, A>(x: A): Stream<F, A> => new Stream(Pull.output1(x));
 
-export const empty = <F extends AnyK>(): Stream<F, never> =>
-  new Stream(Pull.done());
+export const empty = <F>(): Stream<F, never> => new Stream(Pull.done());
 
-export const defer = <F extends AnyK, A>(
-  thunk: () => Stream<F, A>,
-): Stream<F, A> => new Stream(Pull.defer(() => thunk().pull));
+export const defer = <F, A>(thunk: () => Stream<F, A>): Stream<F, A> =>
+  new Stream(Pull.defer(() => thunk().pull));
 
-export const throwError: <F extends AnyK>(e: Error) => Stream<F, never> = e =>
+export const throwError: <F>(e: Error) => Stream<F, never> = e =>
   new Stream(Pull.throwError(e));
 
-export const of = <F extends AnyK, A>(...xs: A[]): Stream<F, A> =>
-  fromArray(xs);
+export const of = <F, A>(...xs: A[]): Stream<F, A> => fromArray(xs);
 
-export const evalF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, A> =>
+export const evalF = <F, A>(fa: Kind<F, [A]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output1));
 
-export const execF = <F extends AnyK, A>(fa: Kind<F, [A]>): Stream<F, never> =>
+export const execF = <F, A>(fa: Kind<F, [A]>): Stream<F, never> =>
   new Stream(Pull.evalF(fa).void);
 
-export const evalUnChunk = <F extends AnyK, A>(
-  fa: Kind<F, [Chunk<A>]>,
-): Stream<F, A> => new Stream(Pull.evalF(fa).flatMap(Pull.output));
+export const evalUnChunk = <F, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A> =>
+  new Stream(Pull.evalF(fa).flatMap(Pull.output));
 
-export const repeatEval: <F extends AnyK, A>(fa: Kind<F, [A]>) => Stream<F, A> =
-  s => repeat(evalF(s));
+export const repeatEval: <F, A>(fa: Kind<F, [A]>) => Stream<F, A> = s =>
+  repeat(evalF(s));
 
 export const sleep =
-  <F extends AnyK>(F: Temporal<F, Error>) =>
+  <F>(F: Temporal<F, Error>) =>
   (ms: number): Stream<F, void> =>
     evalF(F.sleep(ms));
 
 export const retry =
-  <F extends AnyK>(F: Temporal<F, Error>) =>
+  <F>(F: Temporal<F, Error>) =>
   <A>(
     fa: Kind<F, [A]>,
     delay: number,
@@ -77,7 +72,7 @@ export const retry =
     );
   };
 
-export const range = <F extends AnyK>(
+export const range = <F>(
   from: number,
   until: number,
   step: number = 1,
@@ -88,10 +83,10 @@ export const range = <F extends AnyK>(
   return go(from);
 };
 
-export const never: <F extends AnyK>(F: Spawn<F, Error>) => Stream<F, never> =
-  F => evalF(F.never);
+export const never: <F>(F: Spawn<F, Error>) => Stream<F, never> = F =>
+  evalF(F.never);
 
-export const fromArray = <F extends AnyK, A>(xs: A[]): Stream<F, A> => {
+export const fromArray = <F, A>(xs: A[]): Stream<F, A> => {
   switch (xs.length) {
     case 0:
       return empty();
@@ -104,7 +99,7 @@ export const fromArray = <F extends AnyK, A>(xs: A[]): Stream<F, A> => {
 
 export const unfold =
   <S>(s: S) =>
-  <F extends AnyK, A>(f: (s: S) => Option<[A, S]>): Stream<F, A> => {
+  <F, A>(f: (s: S) => Option<[A, S]>): Stream<F, A> => {
     const loop = (s: S): Stream<F, A> =>
       f(s).fold(
         () => empty(),
@@ -119,7 +114,7 @@ export const unfold =
 
 export const unfoldChunk =
   <S>(s: S) =>
-  <F extends AnyK, A>(f: (s: S) => Option<[Chunk<A>, S]>): Stream<F, A> =>
+  <F, A>(f: (s: S) => Option<[Chunk<A>, S]>): Stream<F, A> =>
     pipe(
       unfold(s)<F, Chunk<A>>(f),
       flatMap(x => fromChunk(x)),
@@ -127,10 +122,10 @@ export const unfoldChunk =
 
 export const tailRecM: <S>(
   s: S,
-) => <F extends AnyK, A>(f: (s: S) => Stream<F, Either<S, A>>) => Stream<F, A> =
-  s => f => tailRecM_(s, f);
+) => <F, A>(f: (s: S) => Stream<F, Either<S, A>>) => Stream<F, A> = s => f =>
+  tailRecM_(s, f);
 
-export const tailRecM_ = <F extends AnyK, S, A>(
+export const tailRecM_ = <F, S, A>(
   s: S,
   f: (s: S) => Stream<F, Either<S, A>>,
 ): Stream<F, A> =>
@@ -144,11 +139,11 @@ export const tailRecM_ = <F extends AnyK, S, A>(
     ),
   );
 
-export const fromList = <F extends AnyK, A>(xs: List<A>): Stream<F, A> =>
+export const fromList = <F, A>(xs: List<A>): Stream<F, A> =>
   fromArray(xs.toArray);
 
-export const fromVector = <F extends AnyK, A>(xs: Vector<A>): Stream<F, A> =>
+export const fromVector = <F, A>(xs: Vector<A>): Stream<F, A> =>
   fromArray(xs.toArray);
 
-export const fromChunk = <F extends AnyK, A>(chunk: Chunk<A>): Stream<F, A> =>
+export const fromChunk = <F, A>(chunk: Chunk<A>): Stream<F, A> =>
   new Stream(Pull.output(chunk));

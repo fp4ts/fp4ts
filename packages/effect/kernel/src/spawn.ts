@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Applicative } from '@cats4ts/cats-core';
 import { Either } from '@cats4ts/cats-core/lib/data';
 
@@ -6,7 +6,7 @@ import { Fiber } from './fiber';
 import { MonadCancel } from './monad-cancel';
 import { Outcome } from './outcome';
 
-export interface Spawn<F extends AnyK, E> extends MonadCancel<F, E> {
+export interface Spawn<F, E> extends MonadCancel<F, E> {
   readonly applicative: Applicative<F>;
 
   readonly fork: <A>(fa: Kind<F, [A]>) => Kind<F, [Fiber<F, E, A>]>;

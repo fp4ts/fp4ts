@@ -21,7 +21,6 @@ import {
 describe('OrderedMap', () => {
   describe('types', () => {
     it('should be covariant', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const m: OrderedMap<number, number> = OrderedMap.empty;
     });
 

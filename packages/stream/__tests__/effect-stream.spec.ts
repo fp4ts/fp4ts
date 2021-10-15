@@ -1,6 +1,6 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { AnyK, throwError } from '@cats4ts/core';
+import { throwError } from '@cats4ts/core';
 import { Eq, Either, Left, List, Right } from '@cats4ts/cats';
 import { IO, IoK, SyncIO, SyncIoK } from '@cats4ts/effect';
 import { Stream } from '@cats4ts/stream-core';
@@ -53,7 +53,7 @@ describe('Effect-ful stream', () => {
             return i;
           }),
         )
-          .attempts(IO.Temporal)(Stream(1).repeat)
+          .attempts(IO.Temporal)(Stream<IoK, number>(1).repeat)
           .take(3)
           .compileF(IO.MonadError).toList,
       ).toCompleteWith(
@@ -96,7 +96,8 @@ describe('Effect-ful stream', () => {
 
     it('should wrap capture erroneous chunk', () => {
       expect(
-        Stream.throwError(new Error('test error')).attempt.compile.last,
+        Stream.throwError<SyncIoK>(new Error('test error')).attempt.compile
+          .last,
       ).toEqual(Left(new Error('test error')));
     });
 
@@ -163,7 +164,7 @@ describe('Effect-ful stream', () => {
 
     it('should throw an error when left value encountered', () => {
       expect(
-        Stream<AnyK, Either<Error, number>>(
+        Stream<SyncIoK, Either<Error, number>>(
           Right(1),
           Right(2),
           Left(new Error('test, error')),
@@ -194,7 +195,7 @@ describe('Effect-ful stream', () => {
 
     it('should return the result of the handler when an error is ocurred', () => {
       expect(
-        Stream.evalF(
+        Stream.evalF<SyncIoK>(
           SyncIO.throwError(new Error('test error')),
         ).handleErrorWith(() => Stream(42)).compile.last,
       ).toBe(42);
@@ -203,12 +204,12 @@ describe('Effect-ful stream', () => {
     it('should capture error thrown upstream', () => {
       let error: Error;
 
-      Stream.evalF(SyncIO.throwError(new Error('test error'))).handleErrorWith(
-        e => {
-          error = e;
-          return Stream.empty();
-        },
-      ).compile.drain;
+      Stream.evalF<SyncIoK>(
+        SyncIO.throwError(new Error('test error')),
+      ).handleErrorWith(e => {
+        error = e;
+        return Stream.empty();
+      }).compile.drain;
 
       expect(error!).toEqual(new Error('test error'));
     });
@@ -328,9 +329,9 @@ describe('Effect-ful stream', () => {
       ),
     );
 
-    const monadErrorTests = MonadErrorSuite(Stream.MonadError<AnyK>());
+    const monadErrorTests = MonadErrorSuite(Stream.MonadError<IoK>());
     checkAll(
-      'MonadError<$<StreamK, [AnyK]>>',
+      'MonadError<$<StreamK, [IoK]>>',
       monadErrorTests.monadError(
         fc.integer(),
         fc.integer(),

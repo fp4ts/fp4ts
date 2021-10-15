@@ -1,5 +1,6 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
+import { SyncIoK } from '@cats4ts/effect';
 import { Stream, Chunk } from '@cats4ts/stream-core';
 
 export * from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -7,7 +8,7 @@ export * from '@cats4ts/effect-test-kit/lib/arbitraries';
 
 export const cats4tsPureStreamGenerator = <A>(
   arbA: Arbitrary<A>,
-): Arbitrary<Stream<AnyK, A>> =>
+): Arbitrary<Stream<SyncIoK, A>> =>
   fc.frequency(
     { weight: 1, arbitrary: fc.constant(Stream.empty()) },
     {
@@ -20,7 +21,7 @@ export const cats4tsPureStreamGenerator = <A>(
           .map(xss =>
             xss.reduce(
               (acc, xs) => acc['+++'](Stream.fromArray(xs)),
-              Stream.empty() as Stream<AnyK, A>,
+              Stream.empty() as Stream<SyncIoK, A>,
             ),
           ),
         fc
@@ -28,14 +29,14 @@ export const cats4tsPureStreamGenerator = <A>(
           .map(xss =>
             xss.reduce(
               (acc, xs) => Stream.fromArray(xs)['+++'](acc),
-              Stream.empty() as Stream<AnyK, A>,
+              Stream.empty() as Stream<SyncIoK, A>,
             ),
           ),
       ),
     },
   );
 
-export const cats4tsEffectStreamGenerator = <F extends AnyK, A>(
+export const cats4tsEffectStreamGenerator = <F, A>(
   arbA: Arbitrary<A>,
   arbFA: Arbitrary<Kind<F, [A]>>,
 ): Arbitrary<Stream<F, A>> =>

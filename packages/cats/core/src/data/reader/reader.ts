@@ -1,4 +1,4 @@
-import { $, TyK, _ } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@cats4ts/core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -55,12 +55,6 @@ Reader.Monad = readerMonad;
 
 // HKT
 
-export const ReaderURI = 'cats/data/reader';
-export type ReaderURI = typeof ReaderURI;
-export type ReaderK = TyK<ReaderURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ReaderURI]: Reader<Tys[0], Tys[1]>;
-  }
+export interface ReaderK extends TyK<[unknown, unknown]> {
+  [$type]: Reader<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -1,8 +1,8 @@
-import { Kind, AnyK, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@cats4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { Either, Right, Left } from './data';
 
-export interface ApplicativeError<F extends AnyK, E> extends Applicative<F> {
+export interface ApplicativeError<F, E> extends Applicative<F> {
   readonly throwError: <A>(e: E) => Kind<F, [A]>;
 
   readonly handleError: <B>(
@@ -41,7 +41,7 @@ export interface ApplicativeError<F extends AnyK, E> extends Applicative<F> {
   readonly fromEither: <A>(ea: Either<E, A>) => Kind<F, [A]>;
 }
 
-export type ApplicativeErrorRequirements<F extends AnyK, E> = Pick<
+export type ApplicativeErrorRequirements<F, E> = Pick<
   ApplicativeError<F, E>,
   'throwError' | 'handleErrorWith_'
 > &
@@ -49,9 +49,7 @@ export type ApplicativeErrorRequirements<F extends AnyK, E> = Pick<
   Partial<ApplicativeError<F, E>>;
 
 export const ApplicativeError = Object.freeze({
-  of: <F extends AnyK, E>(
-    F: ApplicativeErrorRequirements<F, E>,
-  ): ApplicativeError<F, E> => {
+  of: <F, E>(F: ApplicativeErrorRequirements<F, E>): ApplicativeError<F, E> => {
     const self: ApplicativeError<F, E> = {
       handleError: f => fa => self.handleError_(fa, f),
       handleError_: (fa, f) => self.handleErrorWith_(fa, e => self.pure(f(e))),

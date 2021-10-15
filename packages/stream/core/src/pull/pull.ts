@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Option } from '@cats4ts/cats';
 import { Temporal } from '@cats4ts/effect';
 
@@ -17,26 +17,22 @@ import {
 } from './constructors';
 import { loop } from './operators';
 
-export type Pull<F extends AnyK, O, R> = PullBase<F, O, R>;
+export type Pull<F, O, R> = PullBase<F, O, R>;
 
 export const Pull: PullObj = function () {};
 
 interface PullObj {
-  pure<F extends AnyK, R>(r: R): Pull<F, never, R>;
-  done<F extends AnyK>(): Pull<F, never, void>;
-  throwError<F extends AnyK>(e: Error): Pull<F, never, never>;
-  evalF<F extends AnyK, R>(value: Kind<F, [R]>): Pull<F, never, R>;
-  sleep<F extends AnyK>(
-    t: Temporal<F, Error>,
-  ): (ms: number) => Pull<F, never, void>;
-  output1<F extends AnyK, O>(value: O): Pull<F, O, void>;
-  outputOption1<F extends AnyK, O>(value: Option<O>): Pull<F, O, void>;
-  output<F extends AnyK, O>(chunk: Chunk<O>): Pull<F, O, void>;
-  defer<F extends AnyK, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
+  pure<F, R>(r: R): Pull<F, never, R>;
+  done<F>(): Pull<F, never, void>;
+  throwError<F>(e: Error): Pull<F, never, never>;
+  evalF<F, R>(value: Kind<F, [R]>): Pull<F, never, R>;
+  sleep<F>(t: Temporal<F, Error>): (ms: number) => Pull<F, never, void>;
+  output1<F, O>(value: O): Pull<F, O, void>;
+  outputOption1<F, O>(value: Option<O>): Pull<F, O, void>;
+  output<F, O>(chunk: Chunk<O>): Pull<F, O, void>;
+  defer<F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
 
-  loop<F extends AnyK, O, R>(
-    f: (r: R) => Pull<F, O, Option<R>>,
-  ): (r: R) => Pull<F, O, void>;
+  loop<F, O, R>(f: (r: R) => Pull<F, O, Option<R>>): (r: R) => Pull<F, O, void>;
 }
 
 Pull.pure = pure;

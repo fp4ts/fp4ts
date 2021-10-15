@@ -55,17 +55,6 @@ export const Eq = Object.freeze({
   },
 });
 
-// HKT
-
-export const EqURI = 'cats/eq';
-export type EqURI = typeof EqURI;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [EqURI]: Eq<Tys[0]>;
-  }
-}
-
 // Instances
 
 export const primitiveEq: Lazy<Eq<PrimitiveType>> = () => ({

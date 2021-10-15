@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { Sync } from '@cats4ts/effect-kernel';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
@@ -10,7 +10,7 @@ import { MonadCancelSuite } from './monad-cancel-suite';
 import { ClockSuite } from './clock-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const SyncSuite = <F extends AnyK>(F: Sync<F>) => {
+export const SyncSuite = <F>(F: Sync<F>) => {
   const laws = SyncLaws(F);
 
   const self = {

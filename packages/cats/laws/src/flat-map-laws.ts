@@ -1,4 +1,4 @@
-import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@cats4ts/core';
 import { FlatMap } from '@cats4ts/cats-core';
 import {
   Kleisli,
@@ -12,7 +12,7 @@ import { IsEq } from '@cats4ts/cats-test-kit';
 
 import { ApplyLaws } from './apply-laws';
 
-export interface FlatMapLaws<F extends AnyK> extends ApplyLaws<F> {
+export interface FlatMapLaws<F> extends ApplyLaws<F> {
   flatMapAssociativity: <A, B, C>(
     fa: Kind<F, [A]>,
     f: (a: A) => Kind<F, [B]>,
@@ -42,7 +42,7 @@ export interface FlatMapLaws<F extends AnyK> extends ApplyLaws<F> {
   ) => IsEq<Kind<F, [B]>>;
 }
 
-export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
+export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
   ...ApplyLaws(F),
 
   flatMapAssociativity: <A, B, C>(
@@ -50,7 +50,8 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
     f: (a: A) => Kind<F, [B]>,
     g: (b: B) => Kind<F, [C]>,
   ): IsEq<Kind<F, [C]>> =>
-    pipe(fa, F.flatMap(f), F.flatMap(g))['<=>'](
+    new IsEq(
+      pipe(fa, F.flatMap(f), F.flatMap(g)),
       F.flatMap_(fa, a => F.flatMap_(f(a), g)),
     ),
 
@@ -58,7 +59,10 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
     ff: Kind<F, [(a: A) => B]>,
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [B]>> =>
-    F.ap_(ff, fa)['<=>'](F.flatMap_(ff, f => F.map_(fa, a => f(a)))),
+    new IsEq(
+      F.ap_(ff, fa),
+      F.flatMap_(ff, f => F.map_(fa, a => f(a))),
+    ),
 
   kleisliAssociativity: <A, B, C, D>(
     a: A,
@@ -71,7 +75,7 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
     const l = kf['>=>'](F)(kg)['>=>'](F)(kh).run(a);
     const r = kf['>=>'](F)(kg['>=>'](F)(kh)).run(a);
 
-    return l['<=>'](r);
+    return new IsEq(l, r);
   },
 
   tailRecMConsistentFlatMap: <A>(
@@ -83,7 +87,7 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
         i > 0 ? F.map_(f(a0), a1 => Left([a1, i - 1])) : F.map_(f(a0), Right),
       );
 
-    return loop(1)['<=>'](F.flatMap_(loop(0), f));
+    return new IsEq(loop(1), F.flatMap_(loop(0), f));
   },
 
   flatMapFromTailRecMConsistency: <A, B>(
@@ -97,6 +101,6 @@ export const FlatMapLaws = <F extends AnyK>(F: FlatMap<F>): FlatMapLaws<F> => ({
       ),
     );
 
-    return F.flatMap_(fa, f)['<=>'](tailRecMFlatMap);
+    return new IsEq(F.flatMap_(fa, f), tailRecMFlatMap);
   },
 });

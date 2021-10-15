@@ -1,37 +1,35 @@
-import { AnyK, pipe } from '@cats4ts/core';
+import { pipe } from '@cats4ts/core';
 import { Option } from '@cats4ts/cats';
 
 import { pure, unit } from './constructors';
 import { Bind, Fail, Pull } from './algebra';
 
-export const toVoid: <F extends AnyK, O, R>(
-  p: Pull<F, O, R>,
-) => Pull<F, O, void> = p => map_(p, () => {});
+export const toVoid: <F, O, R>(p: Pull<F, O, R>) => Pull<F, O, void> = p =>
+  map_(p, () => {});
 
 export const map: <R, R2>(
   f: (r: R) => R2,
-) => <F extends AnyK, O>(pull: Pull<F, O, R>) => Pull<F, O, R2> = f => pull =>
-  map_(pull, f);
+) => <F, O>(pull: Pull<F, O, R>) => Pull<F, O, R2> = f => pull => map_(pull, f);
 
-export const flatMap: <F extends AnyK, O2, R, R2>(
+export const flatMap: <F, O2, R, R2>(
   f: (r: R) => Pull<F, O2, R2>,
 ) => <O extends O2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> = f => pull =>
   flatMap_(pull, f);
 
-export const handleErrorWith: <F extends AnyK, O2, R2>(
+export const handleErrorWith: <F, O2, R2>(
   h: (e: Error) => Pull<F, O2, R2>,
 ) => <O extends O2, R extends R2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> =
   h => pull =>
     handleErrorWith_(pull, h);
 
-export const onComplete: <F extends AnyK, O2, R2>(
+export const onComplete: <F, O2, R2>(
   post: () => Pull<F, O2, R2>,
 ) => <O extends O2, R extends R2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> =
   post => pull =>
     onComplete_(pull, post);
 
 export const loop =
-  <F extends AnyK, O, R>(f: (r: R) => Pull<F, O, Option<R>>) =>
+  <F, O, R>(f: (r: R) => Pull<F, O, Option<R>>) =>
   (r: R): Pull<F, O, void> =>
     pipe(
       f(r),
@@ -40,12 +38,12 @@ export const loop =
 
 // -- Point-ful operators
 
-export const map_ = <F extends AnyK, O, R, R2>(
+export const map_ = <F, O, R, R2>(
   pull: Pull<F, O, R>,
   f: (r: R) => R2,
 ): Pull<F, O, R2> => flatMap_(pull, r => pure(f(r)));
 
-export const flatMap_ = <F extends AnyK, O, R, R2>(
+export const flatMap_ = <F, O, R, R2>(
   pull: Pull<F, O, R>,
   f: (r: R) => Pull<F, O, R2>,
 ): Pull<F, O, R2> =>
@@ -58,7 +56,7 @@ export const flatMap_ = <F extends AnyK, O, R, R2>(
     }
   });
 
-export const handleErrorWith_ = <F extends AnyK, O, R>(
+export const handleErrorWith_ = <F, O, R>(
   pull: Pull<F, O, R>,
   h: (e: Error) => Pull<F, O, R>,
 ): Pull<F, O, R> =>
@@ -71,7 +69,7 @@ export const handleErrorWith_ = <F extends AnyK, O, R>(
     }
   });
 
-export const onComplete_ = <F extends AnyK, O, R, R2>(
+export const onComplete_ = <F, O, R, R2>(
   pull: Pull<F, O, R>,
   post: () => Pull<F, O, R2>,
 ): Pull<F, O, R2> =>

@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { FunctionK } from '../../arrow';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
@@ -22,7 +22,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface OptionT<F extends AnyK, A> {
+  interface OptionT<F, A> {
     isEmpty(F: Functor<F>): Kind<F, [boolean]>;
     nonEmpty(F: Functor<F>): Kind<F, [boolean]>;
 
@@ -73,7 +73,7 @@ declare module './algebra' {
       onSome: (a: B) => Kind<F, [C]>,
     ) => Kind<F, [C]>;
 
-    mapK<G extends AnyK>(nt: FunctionK<F, G>): OptionT<G, A>;
+    mapK<G>(nt: FunctionK<F, G>): OptionT<G, A>;
   }
 }
 
@@ -109,7 +109,7 @@ OptionT.prototype.flatMap = function (F) {
   return f => flatMap_(F)(this, f);
 };
 
-OptionT.prototype.flatten = function <F extends AnyK, A>(
+OptionT.prototype.flatten = function <F, A>(
   this: OptionT<F, OptionT<F, A>>,
   F: Monad<F>,
 ) {

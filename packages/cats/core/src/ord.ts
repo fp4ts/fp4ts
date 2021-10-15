@@ -48,14 +48,3 @@ export const Ord = Object.freeze({
     gte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs >= rhs,
   },
 });
-
-// HKT
-
-export const OrdURI = 'cats/ord';
-export type OrdURI = typeof OrdURI;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [OrdURI]: Ord<Tys[0]>;
-  }
-}

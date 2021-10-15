@@ -1,7 +1,7 @@
-import { $, AnyK, Base, id, instance, Kind, α, λ } from '@cats4ts/core';
+import { $, Base, Fix, id, instance, Kind, α, λ } from '@cats4ts/core';
 import { Functor } from './functor';
 
-export interface Bifunctor<F extends AnyK> extends Base<F> {
+export interface Bifunctor<F> extends Base<F> {
   readonly bimap: <A, B, C, D>(
     f: (a: A) => C,
     g: (b: B) => D,
@@ -12,7 +12,7 @@ export interface Bifunctor<F extends AnyK> extends Base<F> {
     g: (b: B) => D,
   ) => Kind<F, [C, D]>;
 
-  readonly leftFunctor: <X>() => Functor<λ<[α], $<F, [α, X]>>>;
+  readonly leftFunctor: <X>() => Functor<λ<F, [α, Fix<X>]>>;
   readonly rightFunctor: <X>() => Functor<$<F, [X]>>;
 
   readonly map: <B, D>(
@@ -32,23 +32,20 @@ export interface Bifunctor<F extends AnyK> extends Base<F> {
   ) => Kind<F, [C, B]>;
 }
 
-export type BifunctorRequirements<F extends AnyK> = Pick<
-  Bifunctor<F>,
-  'bimap_'
-> &
+export type BifunctorRequirements<F> = Pick<Bifunctor<F>, 'bimap_'> &
   Partial<Bifunctor<F>>;
 export const Bifunctor = Object.freeze({
-  of: <F extends AnyK>(F: BifunctorRequirements<F>): Bifunctor<F> => {
+  of: <F>(F: BifunctorRequirements<F>): Bifunctor<F> => {
     const self: Bifunctor<F> = instance<Bifunctor<F>>({
       bimap: (f, g) => fab => self.bimap_(fab, f, g),
 
       leftFunctor: <X>() =>
-        Functor.of<λ<[α], $<F, [α, X]>>>({
-          map_: (fa, f) => self.leftMap_(fa as any, f) as any,
+        Functor.of<λ<F, [α, Fix<X>]>>({
+          map_: (fa, f) => self.leftMap_(fa, f),
         }),
       rightFunctor: <X>() =>
         Functor.of<$<F, [X]>>({
-          map_: (fa, f) => self.map_(fa as any, f) as any,
+          map_: (fa, f) => self.map_(fa, f),
         }),
 
       map: g => fab => self.map_(fab, g),

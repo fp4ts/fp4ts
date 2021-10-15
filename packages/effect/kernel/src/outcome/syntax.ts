@@ -1,9 +1,9 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Outcome } from './algebra';
 import { fold_ } from './operators';
 
 declare module './algebra' {
-  interface Outcome<F extends AnyK, E, A> {
+  interface Outcome<F, E, A> {
     fold<B>(
       onCancel: () => B,
       onFailure: (e: E) => B,
@@ -12,7 +12,7 @@ declare module './algebra' {
   }
 }
 
-Outcome.prototype.fold = function <F extends AnyK, E, A, B>(
+Outcome.prototype.fold = function <F, E, A, B>(
   this: Outcome<F, E, A>,
   onCancel: () => B,
   onFailure: (e: E) => B,

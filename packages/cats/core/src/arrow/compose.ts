@@ -1,8 +1,8 @@
-import { $, AnyK, instance, Kind, α, λ } from '@cats4ts/core';
+import { instance, Kind, α, λ } from '@cats4ts/core';
 import { SemigroupK } from '../semigroup-k';
 import { Semigroup } from '../semigroup';
 
-export interface Compose<F extends AnyK> {
+export interface Compose<F> {
   readonly compose: <A, B>(
     g: Kind<F, [A, B]>,
   ) => <C>(f: Kind<F, [B, C]>) => Kind<F, [A, C]>;
@@ -19,14 +19,14 @@ export interface Compose<F extends AnyK> {
     g: Kind<F, [B, C]>,
   ) => Kind<F, [A, B]>;
 
-  readonly algebraK: () => SemigroupK<λ<[α], $<F, [α, α]>>>;
+  readonly algebraK: () => SemigroupK<λ<F, [α, α]>>;
   readonly algebra: <A>() => Semigroup<Kind<F, [A, A]>>;
 }
 
-export type ComposeRequirements<F extends AnyK> = Pick<Compose<F>, 'compose_'> &
+export type ComposeRequirements<F> = Pick<Compose<F>, 'compose_'> &
   Partial<Compose<F>>;
 export const Compose = Object.freeze({
-  of: <F extends AnyK>(F: ComposeRequirements<F>): Compose<F> => {
+  of: <F>(F: ComposeRequirements<F>): Compose<F> => {
     const self: Compose<F> = instance<Compose<F>>({
       compose: g => f => self.compose_(f, g),
 
@@ -34,9 +34,8 @@ export const Compose = Object.freeze({
       andThen_: (f, g) => self.compose_(g, f),
 
       algebraK: () =>
-        SemigroupK.of({
-          combineK_: <A>(fx: Kind<F, [A, A]>, fy: () => Kind<F, [A, A]>) =>
-            self.compose_(fx, fy()),
+        SemigroupK.of<λ<F, [α, α]>>({
+          combineK_: (fx, fy) => self.compose_(fx, fy()),
         }),
 
       algebra: () =>

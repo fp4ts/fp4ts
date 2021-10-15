@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Applicative } from '../../../applicative';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
@@ -134,7 +134,7 @@ declare module './algebra' {
     foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
     foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
-    foldMapK: <F extends AnyK>(
+    foldMapK: <F>(
       F: MonoidK<F>,
     ) => <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
     align<B>(ys: List<B>): List<Ior<A, B>>;
@@ -161,13 +161,13 @@ declare module './algebra' {
     scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
     scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
     scanRight1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
-    traverse: <G extends AnyK>(
+    traverse: <G>(
       G: Applicative<G>,
     ) => <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]>;
     sequence: A extends Kind<any, [infer B]>
-      ? <G extends AnyK>(G: Applicative<G>) => Kind<G, [List<B>]>
+      ? <G>(G: Applicative<G>) => Kind<G, [List<B>]>
       : never | unknown;
-    flatTraverse: <G extends AnyK>(
+    flatTraverse: <G>(
       G: Applicative<G>,
     ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
 
@@ -425,7 +425,7 @@ List.prototype.foldMap = function <A, M>(
   return f => foldMap_(M)(this, f);
 };
 
-List.prototype.foldMapK = function <F extends AnyK, A>(
+List.prototype.foldMapK = function <F, A>(
   this: List<A>,
   F: MonoidK<F>,
 ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
@@ -509,21 +509,21 @@ List.prototype.scanRight1 = function <A>(
   return scanRight1_(this, f);
 };
 
-List.prototype.traverse = function <G extends AnyK, A>(
+List.prototype.traverse = function <G, A>(
   this: List<A>,
   G: Applicative<G>,
 ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]> {
   return f => traverse_(G)(this, f);
 };
 
-List.prototype.sequence = function <G extends AnyK, A>(
+List.prototype.sequence = function <G, A>(
   this: List<Kind<G, [A]>>,
   G: Applicative<G>,
 ): Kind<G, [List<A>]> {
   return sequence(G)(this);
 };
 
-List.prototype.flatTraverse = function <G extends AnyK, A>(
+List.prototype.flatTraverse = function <G, A>(
   G: Applicative<G>,
 ): <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]> {
   return f => flatTraverse_(G, this, f);

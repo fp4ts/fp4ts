@@ -1,11 +1,9 @@
-import { Kind, AnyK } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';
 
-export interface Alternative<F extends AnyK>
-  extends Applicative<F>,
-    MonoidK<F> {
+export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
   readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
   readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
 
@@ -18,10 +16,11 @@ export interface Alternative<F extends AnyK>
   ) => Kind<F, [A]>;
 }
 
-export type AlternativeRequirements<F extends AnyK> =
-  ApplicativeRequirements<F> & MonoidKRequirements<F> & Partial<Alternative<F>>;
+export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
+  MonoidKRequirements<F> &
+  Partial<Alternative<F>>;
 export const Alternative = Object.freeze({
-  of: <F extends AnyK>(F: AlternativeRequirements<F>): Alternative<F> => {
+  of: <F>(F: AlternativeRequirements<F>): Alternative<F> => {
     const self: Alternative<F> = {
       many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> =>
         self.combineK_(self.many1(fa), () => self.pure(List.empty as List<A>)),

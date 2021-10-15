@@ -1,4 +1,4 @@
-import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind, PrimitiveType } from '@cats4ts/core';
 import {
   Applicative,
   Eq,
@@ -81,7 +81,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Stream<F extends AnyK, A> {
+  interface Stream<F, A> {
     readonly head: Stream<F, A>;
     readonly headOption: Stream<F, Option<A>>;
     readonly tail: Stream<F, A>;
@@ -141,7 +141,7 @@ declare module './algebra' {
 
     fold<B>(z: B, f: (b: B, a: A) => B): Stream<F, B>;
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => Stream<F, M>;
-    foldMapK<G extends AnyK>(
+    foldMapK<G>(
       G: MonoidK<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Stream<F, Kind<G, [B]>>;
 
@@ -175,7 +175,7 @@ declare module './algebra' {
     ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
 
     readonly attempt: Stream<F, Either<Error, A>>;
-    attempts<F extends AnyK>(
+    attempts<F>(
       F: Temporal<F, Error>,
     ): (delays: Stream<F, number>) => Stream<F, Either<Error, A>>;
 
@@ -200,47 +200,47 @@ declare module './algebra' {
 }
 
 Object.defineProperty(Stream.prototype, 'head', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return head(this);
   },
 });
 Object.defineProperty(Stream.prototype, 'headOption', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Option<A>> {
+  get<F, A>(this: Stream<F, A>): Stream<F, Option<A>> {
     return headOption(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'tail', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return tail(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'last', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return last(this);
   },
 });
 Object.defineProperty(Stream.prototype, 'lastOption', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Option<A>> {
+  get<F, A>(this: Stream<F, A>): Stream<F, Option<A>> {
     return lastOption(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'init', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return init(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'repeat', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, A> {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return repeat(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'drain', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, never> {
+  get<F, A>(this: Stream<F, A>): Stream<F, never> {
     return drain(this);
   },
 });
@@ -279,13 +279,13 @@ Stream.prototype.concat = function (that) {
 Stream.prototype['+++'] = Stream.prototype.concat;
 
 Object.defineProperty(Stream.prototype, 'chunks', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
+  get<F, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
     return chunks(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'chunkAll', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
+  get<F, A>(this: Stream<F, A>): Stream<F, Chunk<A>> {
     return chunkAll(this);
   },
 });
@@ -303,7 +303,7 @@ Stream.prototype.chunkN = function (n, allowFewer) {
 };
 
 Object.defineProperty(Stream.prototype, 'unchunks', {
-  get<F extends AnyK, A>(this: Stream<F, Chunk<A>>): Stream<F, A> {
+  get<F, A>(this: Stream<F, Chunk<A>>): Stream<F, A> {
     return unchunks(this);
   },
 });
@@ -363,7 +363,7 @@ Stream.prototype.flatMap = function (f) {
 };
 
 Object.defineProperty(Stream.prototype, 'flatten', {
-  get<F extends AnyK, A>(this: Stream<F, Stream<F, A>>): Stream<F, A> {
+  get<F, A>(this: Stream<F, Stream<F, A>>): Stream<F, A> {
     return flatten(this);
   },
 });
@@ -409,19 +409,19 @@ Stream.prototype.zipWith = function (that, f) {
 };
 
 Object.defineProperty(Stream.prototype, 'zipWithIndex', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [A, number]> {
+  get<F, A>(this: Stream<F, A>): Stream<F, [A, number]> {
     return zipWithIndex(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'zipWithNext', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [A, Option<A>]> {
+  get<F, A>(this: Stream<F, A>): Stream<F, [A, Option<A>]> {
     return zipWithNext(this);
   },
 });
 
 Object.defineProperty(Stream.prototype, 'zipWithPrevious', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, [Option<A>, A]> {
+  get<F, A>(this: Stream<F, A>): Stream<F, [Option<A>, A]> {
     return zipWithPrevious(this);
   },
 });
@@ -435,7 +435,7 @@ Stream.prototype.zipAllWith = function (that) {
 };
 
 Object.defineProperty(Stream.prototype, 'attempt', {
-  get<F extends AnyK, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
+  get<F, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
     return attempt(this);
   },
 });
@@ -449,7 +449,7 @@ Stream.prototype.redeemWith = function (h, f) {
 };
 
 Object.defineProperty(Stream.prototype, 'rethrow', {
-  get<F extends AnyK, A>(this: Stream<F, Either<Error, A>>): Stream<F, A> {
+  get<F, A>(this: Stream<F, Either<Error, A>>): Stream<F, A> {
     return rethrow(this);
   },
 });

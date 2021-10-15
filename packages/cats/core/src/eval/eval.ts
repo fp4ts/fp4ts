@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Eq } from '../eq';
 import { Semigroup } from '../semigroup';
 import { Monoid } from '../monoid';
@@ -98,12 +98,6 @@ Eval.Monoid = evalMonoid;
 
 // -- HKT
 
-const EvalURI = '@cats4ts/cats/core/eval';
-type EvalURI = typeof EvalURI;
-export type EvalK = TyK<EvalURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [EvalURI]: Eval<Tys[0]>;
-  }
+export interface EvalK extends TyK<[unknown]> {
+  [$type]: Eval<TyVar<this, 0>>;
 }

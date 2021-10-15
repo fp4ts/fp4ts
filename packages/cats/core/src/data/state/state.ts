@@ -1,4 +1,4 @@
-import { $, TyK, _ } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@cats4ts/core';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
@@ -68,12 +68,6 @@ State.Monad = stateMonad;
 
 // HKT
 
-export const StateURI = 'cats/data/state';
-export type StateURI = typeof StateURI;
-export type StateK = TyK<StateURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [StateURI]: State<Tys[0], Tys[1]>;
-  }
+export interface StateK extends TyK<[unknown, unknown]> {
+  [$type]: State<TyVar<this, 0>, TyVar<this, 1>>;
 }

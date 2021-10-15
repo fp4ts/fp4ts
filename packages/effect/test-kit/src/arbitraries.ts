@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind, snd } from '@cats4ts/core';
+import { Kind, snd } from '@cats4ts/core';
 import { List, Ord, OrderedMap } from '@cats4ts/cats';
 import { SyncIO, IO } from '@cats4ts/effect-core';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -28,7 +28,7 @@ export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
 export const cats4tsSyncIO = <A>(arbA: Arbitrary<A>): Arbitrary<SyncIO<A>> =>
   cats4tsKind(arbA, SyncGenerators(SyncIO.Sync, A.cats4tsError()));
 
-export const cats4tsKind = <F extends AnyK, A>(
+export const cats4tsKind = <F, A>(
   arbA: Arbitrary<A>,
   KG: KindGenerator<F>,
 ): Arbitrary<Kind<F, [A]>> => {

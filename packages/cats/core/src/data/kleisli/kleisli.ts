@@ -1,4 +1,4 @@
-import { $, AnyK, Kind, TyK, _, α, λ } from '@cats4ts/core';
+import { $, $type, Fix, Kind, TyK, TyVar, α, λ } from '@cats4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';
@@ -32,58 +32,46 @@ import {
   kleisliSemigroupK,
 } from './instances';
 
-export type Kleisli<F extends AnyK, A, B> = KleisliBase<F, A, B>;
+export type Kleisli<F, A, B> = KleisliBase<F, A, B>;
 
 export const Kleisli: KleisliObj = function (f) {
   return suspend(f);
 };
 
 interface KleisliObj {
-  <F extends AnyK, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
+  <F, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
 
-  pure<F extends AnyK>(F: Applicative<F>): <B>(x: B) => Kleisli<F, unknown, B>;
+  pure<F>(F: Applicative<F>): <B>(x: B) => Kleisli<F, unknown, B>;
 
-  liftF<F extends AnyK, B>(fb: Kind<F, [B]>): Kleisli<F, unknown, B>;
+  liftF<F, B>(fb: Kind<F, [B]>): Kleisli<F, unknown, B>;
 
-  suspend<F extends AnyK, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
+  suspend<F, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
 
-  unit<F extends AnyK>(F: Applicative<F>): Kleisli<F, unknown, void>;
+  unit<F>(F: Applicative<F>): Kleisli<F, unknown, void>;
 
-  identity<F extends AnyK, A>(F: Applicative<F>): Kleisli<F, A, A>;
+  identity<F, A>(F: Applicative<F>): Kleisli<F, A, A>;
 
-  tailRecM<F extends AnyK>(
+  tailRecM<F>(
     F: Monad<F>,
   ): <A>(
     a: A,
   ) => <B, C>(f: (a: A) => Kleisli<F, B, Either<A, C>>) => Kleisli<F, B, C>;
 
   // -- Instances
-  SemigroupK<F extends AnyK, A>(
-    F: SemigroupK<F>,
-  ): SemigroupK<$<KleisliK, [F, A]>>;
-  MonoidK<F extends AnyK, A>(F: MonoidK<F>): MonoidK<$<KleisliK, [F, A]>>;
-  Contravariant<F extends AnyK, B>(): Contravariant<
-    λ<[α], $<KleisliK, [F, α, B]>>
-  >;
-  Functor<F extends AnyK, A>(F: Functor<F>): Functor<$<KleisliK, [F, A]>>;
-  FunctorFilter<F extends AnyK, A>(
-    F: FunctorFilter<F>,
-  ): FunctorFilter<$<KleisliK, [F, A]>>;
-  Apply<F extends AnyK, A>(F: FlatMap<F>): Apply<$<KleisliK, [F, A]>>;
-  Applicative<F extends AnyK, A>(
-    F: Applicative<F>,
-  ): Applicative<$<KleisliK, [F, A]>>;
-  Alternative<F extends AnyK, A>(
-    F: Alternative<F>,
-  ): Alternative<$<KleisliK, [F, A]>>;
-  ApplicativeError<F extends AnyK, A, E>(
+  SemigroupK<F, A>(F: SemigroupK<F>): SemigroupK<$<KleisliK, [F, A]>>;
+  MonoidK<F, A>(F: MonoidK<F>): MonoidK<$<KleisliK, [F, A]>>;
+  Contravariant<F, B>(): Contravariant<λ<KleisliK, [Fix<F>, α, Fix<B>]>>;
+  Functor<F, A>(F: Functor<F>): Functor<$<KleisliK, [F, A]>>;
+  FunctorFilter<F, A>(F: FunctorFilter<F>): FunctorFilter<$<KleisliK, [F, A]>>;
+  Apply<F, A>(F: FlatMap<F>): Apply<$<KleisliK, [F, A]>>;
+  Applicative<F, A>(F: Applicative<F>): Applicative<$<KleisliK, [F, A]>>;
+  Alternative<F, A>(F: Alternative<F>): Alternative<$<KleisliK, [F, A]>>;
+  ApplicativeError<F, A, E>(
     F: ApplicativeError<F, E>,
   ): ApplicativeError<$<KleisliK, [F, A]>, E>;
-  FlatMap<F extends AnyK, A>(F: Monad<F>): FlatMap<$<KleisliK, [F, A]>>;
-  Monad<F extends AnyK, A>(F: Monad<F>): Monad<$<KleisliK, [F, A]>>;
-  MonadError<F extends AnyK, A, E>(
-    F: MonadError<F, E>,
-  ): MonadError<$<KleisliK, [F, A]>, E>;
+  FlatMap<F, A>(F: Monad<F>): FlatMap<$<KleisliK, [F, A]>>;
+  Monad<F, A>(F: Monad<F>): Monad<$<KleisliK, [F, A]>>;
+  MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliK, [F, A]>, E>;
 }
 
 Kleisli.pure = pure;
@@ -108,12 +96,6 @@ Kleisli.MonadError = kleisliMonadError;
 
 // -- HKT
 
-export const KleisliURI = 'cats/data/kleisli';
-export type KleisliURI = typeof KleisliURI;
-export type KleisliK = TyK<KleisliURI, [_, _, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [KleisliURI]: Tys[0] extends AnyK ? Kleisli<Tys[0], Tys[1], Tys[2]> : any;
-  }
+export interface KleisliK extends TyK<[unknown, unknown, unknown]> {
+  [$type]: Kleisli<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

@@ -1,4 +1,4 @@
-import { AnyK, Kind, TyK, _ } from '@cats4ts/core';
+import { $type, Kind, TyK, TyVar } from '@cats4ts/core';
 import {
   Applicative,
   Apply,
@@ -144,54 +144,54 @@ interface IOObj {
     iob: IO<B>,
   ) => IO<[IOOutcome<A>, IOOutcome<B>]>;
 
-  sequence: <T extends AnyK>(
+  sequence: <T>(
     T: Traversable<T>,
   ) => <A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
 
-  traverse: <T extends AnyK>(
+  traverse: <T>(
     T: Traversable<T>,
   ) => <A, B>(
     f: (a: A) => IO<B>,
   ) => <S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
 
-  traverse_: <T extends AnyK, A, B>(
+  traverse_: <T, A, B>(
     T: Traversable<T>,
     ts: Kind<T, [A]>,
     f: (a: A) => IO<B>,
   ) => IO<Kind<T, [B]>>;
 
-  parSequence: <T extends AnyK>(
+  parSequence: <T>(
     T: Traversable<T>,
   ) => <C2, A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
 
-  parTraverse: <T extends AnyK>(
+  parTraverse: <T>(
     T: Traversable<T>,
   ) => <A, B>(
     f: (a: A) => IO<B>,
   ) => <C2, S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
-  parTraverse_: <T extends AnyK, A, B>(
+  parTraverse_: <T, A, B>(
     T: Traversable<T>,
     ts: Kind<T, [A]>,
     f: (a: A) => IO<B>,
   ) => IO<Kind<T, [B]>>;
 
-  parSequenceN: <T extends AnyK>(
+  parSequenceN: <T>(
     T: Traversable<T>,
     maxConcurrent: number,
   ) => <C2, A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
-  parSequenceN_: <T extends AnyK, A>(
+  parSequenceN_: <T, A>(
     T: Traversable<T>,
     iots: Kind<T, [IO<A>]>,
     maxConcurrent: number,
   ) => IO<Kind<T, [A]>>;
 
-  parTraverseN: <T extends AnyK>(
+  parTraverseN: <T>(
     T: Traversable<T>,
     maxConcurrent: number,
   ) => <A, B>(
     f: (a: A) => IO<B>,
   ) => <C2, S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
-  parTraverseN_: <T extends AnyK, A, B>(
+  parTraverseN_: <T, A, B>(
     T: Traversable<T>,
     ts: Kind<T, [A]>,
     f: (a: A) => IO<B>,
@@ -385,12 +385,6 @@ Object.defineProperty(IO, 'Async', {
 
 // HKT
 
-export const IoURI = 'effect-io/io';
-export type IoURI = typeof IoURI;
-export type IoK = TyK<IoURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [IoURI]: IO<Tys[0]>;
-  }
+export interface IoK extends TyK<[unknown]> {
+  [$type]: IO<TyVar<this, 0>>;
 }

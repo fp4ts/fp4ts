@@ -1,9 +1,9 @@
-import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@cats4ts/core';
 import { MonadError, MonadErrorRequirements } from '@cats4ts/cats-core';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
 
-export interface MonadCancel<F extends AnyK, E> extends MonadError<F, E> {
+export interface MonadCancel<F, E> extends MonadError<F, E> {
   readonly canceled: Kind<F, [void]>;
 
   readonly uncancelable: <A>(
@@ -55,7 +55,7 @@ export interface MonadCancel<F extends AnyK, E> extends MonadError<F, E> {
   ) => Kind<F, [B]>;
 }
 
-export type MonadCancelRequirements<F extends AnyK, E> = Pick<
+export type MonadCancelRequirements<F, E> = Pick<
   MonadCancel<F, E>,
   'canceled' | 'uncancelable' | 'onCancel_'
 > &
@@ -63,9 +63,7 @@ export type MonadCancelRequirements<F extends AnyK, E> = Pick<
   Partial<MonadCancel<F, E>>;
 
 export const MonadCancel = Object.freeze({
-  of: <F extends AnyK, E>(
-    F: MonadCancelRequirements<F, E>,
-  ): MonadCancel<F, E> => {
+  of: <F, E>(F: MonadCancelRequirements<F, E>): MonadCancel<F, E> => {
     const self: MonadCancel<F, E> = {
       onCancel: fin => fa => self.onCancel_(fa, fin),
 
@@ -110,9 +108,7 @@ export const MonadCancel = Object.freeze({
     return self;
   },
 
-  Uncancelable: <F extends AnyK, E>(
-    F: MonadErrorRequirements<F, E>,
-  ): MonadCancel<F, E> =>
+  Uncancelable: <F, E>(F: MonadErrorRequirements<F, E>): MonadCancel<F, E> =>
     MonadCancel.of({
       canceled: F.unit ?? F.pure(undefined),
 

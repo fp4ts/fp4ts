@@ -1,11 +1,11 @@
-import { $, AnyK, Kind } from '@cats4ts/core';
+import { $, Kind } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Monoid } from '../../../monoid';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
-import { FunctorFilter } from '../../../functor-filter';
 import { Applicative } from '../../../applicative';
+import { FunctorFilter } from '../../../functor-filter';
 import { UnorderedFoldable } from '../../../unordered-foldable';
 import { UnorderedTraversable } from '../../../unordered-traversable';
 
@@ -74,7 +74,7 @@ export const hashMapUnorderedTraversable: <K>() => UnorderedTraversable<
     ...hashMapUnorderedFoldable(),
 
     unorderedTraverse_:
-      <G extends AnyK>(G: Applicative<G>) =>
+      <G>(G: Applicative<G>) =>
       <K, V, B>(m: HashMap<K, V>, f: (v: V) => Kind<G, [B]>) =>
         traverse_(G)(m, x => f(x)),
     unorderedSequence: sequence,

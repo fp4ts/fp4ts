@@ -1,4 +1,4 @@
-import { $, TyK, _ } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@cats4ts/core';
 import { Monoid } from '../../monoid';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
@@ -6,8 +6,6 @@ import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
-import { FlatMap } from '../../flat-map';
-import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
@@ -62,12 +60,6 @@ Const.Traversable = constTraversable;
 
 // -- HKT
 
-const ConstURI = '@cats4ts/cats/core/data/const';
-type ConstURI = typeof ConstURI;
-export type ConstK = TyK<ConstURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ConstURI]: Const<Tys[0], Tys[1]>;
-  }
+export interface ConstK extends TyK<[unknown, unknown]> {
+  [$type]: Const<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { $, id, TyK, _ } from '@cats4ts/core';
+import { $, $type, id, TyK, TyVar } from '@cats4ts/core';
 import { FunctionK, Eq } from '@cats4ts/cats-core';
 import {
   State,
@@ -33,14 +33,8 @@ class WriteLine extends TestConsoleBase<string> {
 }
 
 type TestConsole<A> = ReadLine | WriteLine;
-const TestConsoleURI = 'tests/free/test-console';
-type TestConsoleURI = typeof TestConsoleURI;
-type TestConsoleK = TyK<TestConsoleURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [TestConsoleURI]: TestConsole<Tys[0]>;
-  }
+interface TestConsoleK extends TyK<[unknown]> {
+  [$type]: TestConsole<TyVar<this, 0>>;
 }
 
 describe('Free', () => {
@@ -65,7 +59,7 @@ describe('Free', () => {
   const readLine = lift(ReadLine);
 
   it('should translate to state', () => {
-    const program: Free<TestConsoleK, void> = Free.suspend(
+    const program: Free<TestConsoleK, void> = Free.suspend<TestConsoleK, void>(
       new WriteLine('What is your name?'),
     )
       .flatMap(() => readLine)

@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Monad } from '@cats4ts/cats-core';
 import { exec, forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -8,7 +8,7 @@ import { ApplicativeSuite } from './applicative-suite';
 import { FlatMapSuite } from './flat-map-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const MonadSuite = <F extends AnyK>(F: Monad<F>) => {
+export const MonadSuite = <F>(F: Monad<F>) => {
   const {
     monadLeftIdentity,
     monadRightIdentity,

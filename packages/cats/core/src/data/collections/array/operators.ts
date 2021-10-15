@@ -1,4 +1,4 @@
-import { Kind, id, AnyK } from '@cats4ts/core';
+import { Kind, id } from '@cats4ts/core';
 import { Monoid } from '../../../monoid';
 import { Applicative } from '../../../applicative';
 
@@ -77,24 +77,24 @@ export const foldRight: <A, B>(z: B, f: (a: A, b: B) => B) => (xs: A[]) => B =
   (z, f) => xs =>
     foldRight_(xs, z, f);
 
-export const traverse: <G extends AnyK>(
+export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(f: (a: A) => Kind<G, [B]>) => (xs: A[]) => Kind<G, [B[]]> =
   G => f => xs =>
     traverse_(G)(xs, f);
 
-export const sequence: <G extends AnyK>(
+export const sequence: <G>(
   G: Applicative<G>,
 ) => <A>(gs: Kind<G, [A]>[]) => Kind<G, [A[]]> = G => gs =>
   traverse_(G)(gs, id);
 
-export const flatTraverse: <G extends AnyK>(
+export const flatTraverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(f: (a: A) => Kind<G, [B[]]>) => (xs: A[]) => Kind<G, [B[]]> =
   G => f => xs =>
     flatTraverse_(G, xs, f);
 
-export const flatSequence: <G extends AnyK>(
+export const flatSequence: <G>(
   G: Applicative<G>,
 ) => <A>(xgs: Kind<G, [A[]]>[]) => Kind<G, [A[]]> = G => xgs =>
   flatTraverse_(G, xgs, id);
@@ -163,7 +163,7 @@ export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
   xs.reduceRight((b, a) => f(a, b), z);
 
 export const traverse_ =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A) => Kind<G, [B]>): Kind<G, [B[]]> =>
     // TODO: Fix
     xs.reduceRight(
@@ -171,7 +171,7 @@ export const traverse_ =
       G.pure([] as B[]),
     );
 
-export const flatTraverse_ = <G extends AnyK, A, B>(
+export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
   xs: A[],
   f: (a: A) => Kind<G, [B[]]>,

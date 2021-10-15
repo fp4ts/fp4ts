@@ -1,89 +1,49 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import { _, α, β, TParam } from './hole';
-import { AnyK, TyK } from './ctor';
 import { Kind } from './kind';
+import { TyK, TyVar } from './ctor';
+import { $fixed, $type } from './symbols';
+
+export type Fix<X extends unknown = unknown> = [$fixed, X];
+export declare const α: unique symbol;
+export type α = typeof α;
+export declare const β: unique symbol;
+export type β = typeof β;
+
+declare const $index: unique symbol;
+export interface _<N extends number = 0> {
+  [$index]: N;
+}
+export type _0 = _<0>;
+export type _1 = _<1>;
+export type _2 = _<2>;
+export type _3 = _<3>;
+
+type TyArg = Fix | α | β | _<number>;
 
 // prettier-ignore
-export type λ<Args extends TParam[], R extends AnyK> =
-  Args extends { length: infer L }
-    ? L extends keyof ArgumentsToTypeVariables
-      ? TyK<LambdaURI, [Lambda<Args, R>, ...ArgumentsToTypeVariables[L]]>
-      : never
-    : never;
+type ResolveTyVars<Ctx extends TyK, Vars extends unknown[]> =
+  Vars extends [α, ...infer Rest]
+    ? [TyVar<Ctx, 0>, ...ResolveTyVars<Ctx, Rest>]
+  : Vars extends [β, ...infer Rest]
+    ? [TyVar<Ctx, 1>, ...ResolveTyVars<Ctx, Rest>]
+  : Vars extends [_<infer N>, ...infer Rest]
+    ? [TyVar<Ctx, N>, ...ResolveTyVars<Ctx, Rest>]
+  : Vars extends [Fix<infer X>, ...infer Rest]
+    ? [X, ...ResolveTyVars<Ctx, Rest>]
+  : Vars extends []
+    ? []
+  : never;
 
-type ArgumentsToTypeVariables = {
-  0: [];
-  1: [_];
-  2: [_, _];
-};
-
-type Lambda<Args extends TParam[], R extends AnyK> = {
-  Lambda: {
-    _Args: Args;
-    _R: R;
+export type Applied<F, Vars extends unknown[]> = {
+  Fixed: {
+    [$type]: F;
+    [$fixed]: Vars;
   };
 };
 
-// prettier-ignore
-type ApplyLambda<L extends Lambda<any, any>, Tys extends unknown[]> =
-  [L] extends [Lambda<infer Args, infer Result>]
-    ? Args extends { length: infer L }
-      ? L extends keyof BuildArgsTable<Args>
-        ? ApplyArgs<Result, BuildArgsTable<Tys>[L]>
-        : never
-      : never
-    : never;
+export type $<F, Vars extends unknown[]> = Applied<F, Vars>;
 
-// prettier-ignore
-type BuildArgsTable<Tys extends unknown[]> = {
-  0: {},
-  1: Tys extends [infer A] ? { [α]: A } : never;
-  2: Tys extends [infer A, infer B] ? { [α]: A, [β]: B } : never;
-};
-
-type ArgsTable = {} | { [α]: any } | { [α]: any; [β]: any };
-
-// https://github.com/pelotom/hkts/blob/master/src/index.ts
-// prettier-ignore
-type ApplyArgs<Result, Args extends ArgsTable> = (
-  Result extends keyof Args
-    ? { [indirect]: Args[Result] }
-  : Result extends TyK<infer F, infer Tvs>
-    ? Tvs extends { length: infer L }
-      ? L extends keyof TupleTable<Tvs, Args>
-        ? { [indirect]: Kind<TyK<F, TupleTable<Tvs, Args>[L]>, []> }
-        : never
-  : Result extends unknown[] & { length: infer L }
-    ? L extends keyof TupleTable<Result, Args>
-      ? { [indirect]: TupleTable<Result, Args>[L] }
-      : never
-  : Result extends (infer A)[]
-    ? { [indirect]: ApplyArgs<A, Args>[] }
-    : never
-  : Result extends object
-    ? { [indirect]: { [k in keyof Result]: ApplyArgs<Result[k], Args> } }
-  : { [indirect]: Result }
-)[typeof indirect];
-
-declare const indirect: unique symbol;
-
-// prettier-ignore
-type TupleTable<T extends unknown[], Args extends ArgsTable> = {
-  0: T;
-  1: T extends [infer A0] ? [ApplyArgs<A0, Args>] : never;
-  2: T extends [infer A0, infer A1] ? [ApplyArgs<A0, Args>, ApplyArgs<A1, Args>] : never;
-  3: T extends [infer A0, infer A1, infer A2] ? [ApplyArgs<A0, Args>, ApplyArgs<A1, Args>, ApplyArgs<A2, Args>] : never;
+export interface $$<F, Vars extends TyArg[]> extends TyK {
+  readonly [$type]: Kind<F, ResolveTyVars<this, Vars>>;
 }
 
-// Make Lambda a HKT
-
-const LambdaURI = 'core/hkt/lambda-type';
-type LambdaURI = typeof LambdaURI;
-
-declare module './hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [LambdaURI]: Tys extends [Lambda<any, any>, ...infer Rest]
-      ? ApplyLambda<Tys[0], Rest>
-      : any;
-  }
-}
+export type λ<F, Vars extends TyArg[]> = $$<F, Vars>;

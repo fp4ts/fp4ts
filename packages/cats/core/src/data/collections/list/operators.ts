@@ -1,4 +1,4 @@
-import { Kind, id, pipe, AnyK, throwError, Iter } from '@cats4ts/core';
+import { Kind, id, pipe, throwError, Iter } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
@@ -201,7 +201,7 @@ export const foldMap: <M>(
 ) => <A>(f: (a: A) => M) => (xs: List<A>) => M = M => f => xs =>
   foldMap_(M)(xs, f);
 
-export const foldMapK: <F extends AnyK>(
+export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <A, B>(f: (a: A) => Kind<F, [B]>) => (xs: List<A>) => Kind<F, [B]> =
   F => f => xs =>
@@ -280,24 +280,24 @@ export const scanRight: <A, B>(
 export const scanRight1: <A>(f: (x: A, y: A) => A) => (xs: List<A>) => List<A> =
   f => xs => scanRight1_(xs, f);
 
-export const traverse: <G extends AnyK>(
+export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(f: (a: A) => Kind<G, [B]>) => (xs: List<A>) => Kind<G, [List<B>]> =
   G => f => xs =>
     traverse_(G)(xs, f);
 
-export const flatTraverse: <G extends AnyK>(
+export const flatTraverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(
   f: (a: A) => Kind<G, [List<B>]>,
 ) => (xs: List<A>) => Kind<G, [List<B>]> = G => f => xs =>
   flatTraverse_(G, xs, f);
 
-export const sequence: <G extends AnyK>(
+export const sequence: <G>(
   G: Applicative<G>,
 ) => <A>(gxs: List<Kind<G, [A]>>) => Kind<G, [List<A>]> = G => traverse(G)(id);
 
-export const flatSequence: <G extends AnyK>(
+export const flatSequence: <G>(
   G: Applicative<G>,
 ) => <A>(gxs: List<Kind<G, [List<A>]>>) => Kind<G, [List<A>]> = G =>
   flatTraverse(G)(id);
@@ -583,7 +583,7 @@ export const foldMap_ =
     foldLeft_(xs, M.empty, (m, x) => M.combine_(m, () => f(x)));
 
 export const foldMapK_ =
-  <F extends AnyK>(F: MonoidK<F>) =>
+  <F>(F: MonoidK<F>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(xs, f);
 
@@ -799,14 +799,14 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 };
 
 export const traverse_ =
-  <G extends AnyK>(G: Applicative<G>) =>
+  <G>(G: Applicative<G>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> => {
     const consF = (x: A, ys: Kind<G, [List<B>]>): Kind<G, [List<B>]> =>
       G.map2_(ys, f(x))(prepend_);
     return foldRight_(xs, G.pure(empty as List<B>), consF);
   };
 
-export const flatTraverse_ = <G extends AnyK, A, B>(
+export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
   xs: List<A>,
   f: (a: A) => Kind<G, [List<B>]>,

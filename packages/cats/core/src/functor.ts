@@ -1,8 +1,8 @@
-import { instance, Kind, AnyK } from '@cats4ts/core';
+import { instance, Kind } from '@cats4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
 
-export interface Functor<F extends AnyK> extends Invariant<F> {
+export interface Functor<F> extends Invariant<F> {
   readonly map: <A, B>(f: (a: A) => B) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
   readonly map_: <A, B>(fa: Kind<F, [A]>, f: (a: A) => B) => Kind<F, [B]>;
 
@@ -12,10 +12,10 @@ export interface Functor<F extends AnyK> extends Invariant<F> {
   readonly void: <A>(fa: Kind<F, [A]>) => Kind<F, [void]>;
 }
 
-export type FunctorRequirements<F extends AnyK> = Pick<Functor<F>, 'map_'> &
+export type FunctorRequirements<F> = Pick<Functor<F>, 'map_'> &
   Partial<Functor<F>>;
 export const Functor = Object.freeze({
-  of: <F extends AnyK>(F: FunctorRequirements<F>): Functor<F> =>
+  of: <F>(F: FunctorRequirements<F>): Functor<F> =>
     instance<Functor<F>>({
       map: f => fa => F.map_(fa, f),
 
@@ -30,8 +30,6 @@ export const Functor = Object.freeze({
       ...F,
     }),
 
-  compose: <F extends AnyK, G extends AnyK>(
-    F: Functor<F>,
-    G: Functor<G>,
-  ): ComposedFunctor<F, G> => ComposedFunctor.of(F, G),
+  compose: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> =>
+    ComposedFunctor.of(F, G),
 });

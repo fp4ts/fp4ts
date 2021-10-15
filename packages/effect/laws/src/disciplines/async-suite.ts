@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { Outcome, Async, ExecutionContext } from '@cats4ts/effect-kernel';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
@@ -12,7 +12,7 @@ import { TemporalSuite } from './temporal-suite';
 import { SyncSuite } from './sync-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const AsyncSuite = <F extends AnyK>(F: Async<F>) => {
+export const AsyncSuite = <F>(F: Async<F>) => {
   const laws = AsyncLaws(F);
 
   const self = {

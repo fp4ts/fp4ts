@@ -7,14 +7,3 @@ export const Show = {
     show: x => `${x}`,
   }),
 };
-
-// HKT
-
-export const ShowURI = 'cats/show';
-export type ShowURI = typeof ShowURI;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ShowURI]: Show<Tys[0]>;
-  }
-}

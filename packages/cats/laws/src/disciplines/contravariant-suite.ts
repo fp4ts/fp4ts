@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Contravariant, Eq } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
@@ -7,7 +7,7 @@ import { ContravariantLaws } from '../contravariant-laws';
 import { InvariantSuite } from './invariant-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const ContravariantSuite = <F extends AnyK>(F: Contravariant<F>) => {
+export const ContravariantSuite = <F>(F: Contravariant<F>) => {
   const laws = ContravariantLaws(F);
 
   const self = {

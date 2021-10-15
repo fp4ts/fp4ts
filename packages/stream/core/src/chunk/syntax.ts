@@ -1,4 +1,4 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eval, Applicative, List, Option, Vector } from '@cats4ts/cats';
 
 import { Chunk } from './algebra';
@@ -82,7 +82,7 @@ declare module './algebra' {
 
     zipWith<O2, O3>(c2: Chunk<O2>, f: (o: O, o2: O2) => O3): Chunk<O3>;
 
-    traverse<F extends AnyK>(
+    traverse<F>(
       F: Applicative<F>,
     ): <O2>(f: (o: O) => Kind<F, [O2]>) => Kind<F, [Chunk<O2>]>;
   }

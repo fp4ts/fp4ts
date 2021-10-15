@@ -1,7 +1,7 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Invariant } from './invariant';
 
-export interface Contravariant<F extends AnyK> extends Invariant<F> {
+export interface Contravariant<F> extends Invariant<F> {
   readonly contramap: <A, B>(
     f: (b: B) => A,
   ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
@@ -14,14 +14,14 @@ export interface Contravariant<F extends AnyK> extends Invariant<F> {
   ) => (fb: Kind<F, [B]>) => Kind<F, [A]>;
 }
 
-export type ContravariantRequirements<F extends AnyK> = Pick<
+export type ContravariantRequirements<F> = Pick<
   Contravariant<F>,
   'contramap_'
 > &
   Partial<Contravariant<F>>;
 
 export const Contravariant = Object.freeze({
-  of: <F extends AnyK>(F: ContravariantRequirements<F>): Contravariant<F> => {
+  of: <F>(F: ContravariantRequirements<F>): Contravariant<F> => {
     const self: Contravariant<F> = {
       contramap: f => fa => self.contramap_(fa, f),
 

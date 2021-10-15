@@ -1,4 +1,4 @@
-import { $, TyK, _ } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@cats4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
@@ -82,12 +82,6 @@ Either.Eq = eitherEq;
 
 // HKT
 
-export const EitherURI = 'cats/data/either';
-export type EitherURI = typeof EitherURI;
-export type EitherK = TyK<EitherURI, [_, _]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [EitherURI]: Either<Tys[0], Tys[1]>;
-  }
+export interface EitherK extends TyK<[unknown, unknown]> {
+  [$type]: Either<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -1,8 +1,8 @@
-import { Kind, id, AnyK } from '@cats4ts/core';
+import { Kind, id } from '@cats4ts/core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 
-export interface FunctorFilter<F extends AnyK> extends Functor<F> {
+export interface FunctorFilter<F> extends Functor<F> {
   readonly mapFilter: <A, B>(
     f: (a: A) => Option<B>,
   ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
@@ -35,7 +35,7 @@ export interface FunctorFilter<F extends AnyK> extends Functor<F> {
   ) => Kind<F, [A]>;
 }
 
-export type FunctorFilterRequirements<F extends AnyK> = Pick<
+export type FunctorFilterRequirements<F> = Pick<
   FunctorFilter<F>,
   'mapFilter_'
 > &
@@ -43,7 +43,7 @@ export type FunctorFilterRequirements<F extends AnyK> = Pick<
   Partial<FunctorFilter<F>>;
 
 export const FunctorFilter = Object.freeze({
-  of: <F extends AnyK>(F: FunctorFilterRequirements<F>): FunctorFilter<F> => {
+  of: <F>(F: FunctorFilterRequirements<F>): FunctorFilter<F> => {
     const self: FunctorFilter<F> = {
       mapFilter: f => fa => self.mapFilter_(fa, f),
 

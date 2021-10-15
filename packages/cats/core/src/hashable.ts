@@ -12,17 +12,6 @@ export const Hashable = Object.freeze({
   },
 });
 
-// HKT
-
-export const HashableURI = 'cats/hashable';
-export type HashableURI = typeof HashableURI;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [HashableURI]: Hashable<Tys[0]>;
-  }
-}
-
 // Instances
 
 export const primitiveMD5Hashable: Lazy<Hashable<PrimitiveType>> = () => ({

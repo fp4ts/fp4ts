@@ -1,5 +1,5 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Alternative, Eq } from '@cats4ts/cats-core';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 import { AlternativeLaws } from '../alternative-laws';
@@ -7,7 +7,7 @@ import { MonoidKSuite } from './monoid-k-suite';
 import { ApplicativeSuite } from './applicative-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const AlternativeSuite = <F extends AnyK>(F: Alternative<F>) => {
+export const AlternativeSuite = <F>(F: Alternative<F>) => {
   const laws = AlternativeLaws(F);
   const self = {
     ...MonoidKSuite(F),

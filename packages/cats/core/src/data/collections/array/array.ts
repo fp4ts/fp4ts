@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { empty, of } from './constructors';
 
 interface ArrayObj {
@@ -18,12 +18,6 @@ Array.empty = empty;
 
 // HKT
 
-export const ArrayURI = 'cats/data/collections/array';
-export type ArrayURI = typeof ArrayURI;
-export type ArrayK = TyK<ArrayURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [ArrayURI]: Array<Tys[0]>;
-  }
+export interface ArrayK extends TyK<[unknown]> {
+  [$type]: Array<TyVar<this, 0>>;
 }

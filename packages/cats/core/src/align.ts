@@ -1,10 +1,10 @@
-import { AnyK, Base, instance, Kind } from '@cats4ts/core';
+import { Base, instance, Kind } from '@cats4ts/core';
 
 import { Functor } from './functor';
 import { Semigroup } from './semigroup';
 import { Ior, Option } from './data';
 
-export interface Align<F extends AnyK> extends Base<F> {
+export interface Align<F> extends Base<F> {
   readonly functor: Functor<F>;
 
   align: <B>(fb: Kind<F, [B]>) => <A>(fa: Kind<F, [A]>) => Kind<F, [Ior<A, B>]>;
@@ -60,13 +60,10 @@ export interface Align<F extends AnyK> extends Base<F> {
   ) => Kind<F, [[A, B]]>;
 }
 
-export type AlignRequirements<F extends AnyK> = Pick<
-  Align<F>,
-  'align_' | 'functor'
-> &
+export type AlignRequirements<F> = Pick<Align<F>, 'align_' | 'functor'> &
   Partial<Align<F>>;
 export const Align = Object.freeze({
-  of: <F extends AnyK>(F: AlignRequirements<F>): Align<F> => {
+  of: <F>(F: AlignRequirements<F>): Align<F> => {
     const self: Align<F> = instance<Align<F>>({
       align: fb => fa => self.align_(fa, fb),
 

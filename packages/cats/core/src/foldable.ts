@@ -1,9 +1,9 @@
-import { Kind, instance, AnyK } from '@cats4ts/core';
+import { Kind, instance } from '@cats4ts/core';
 import { Monoid } from './monoid';
 import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
 
-export interface Foldable<F extends AnyK> extends UnorderedFoldable<F> {
+export interface Foldable<F> extends UnorderedFoldable<F> {
   readonly foldLeft: <A, B>(
     b: B,
     f: (b: B, a: A) => B,
@@ -28,14 +28,14 @@ export interface Foldable<F extends AnyK> extends UnorderedFoldable<F> {
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
 }
 
-export type FoldableRequirements<F extends AnyK> = Pick<
+export type FoldableRequirements<F> = Pick<
   Foldable<F>,
   'foldLeft_' | 'foldRight_'
 > &
   Partial<Foldable<F>> &
   Partial<UnorderedFoldable<F>>;
 export const Foldable = Object.freeze({
-  of: <F extends AnyK>(F: FoldableRequirements<F>): Foldable<F> => {
+  of: <F>(F: FoldableRequirements<F>): Foldable<F> => {
     const self: Foldable<F> = instance<Foldable<F>>({
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldRight: (z, f) => fa => self.foldRight_(fa, z, f),

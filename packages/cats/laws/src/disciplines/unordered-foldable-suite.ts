@@ -1,14 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq, Monoid, UnorderedFoldable } from '@cats4ts/cats-core';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { UnorderedFoldableLaws } from '../unordered-foldable-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const UnorderedFoldableSuite = <F extends AnyK>(
-  F: UnorderedFoldable<F>,
-) => {
+export const UnorderedFoldableSuite = <F>(F: UnorderedFoldable<F>) => {
   const laws = UnorderedFoldableLaws(F);
   return {
     unorderedFoldable: <A>(

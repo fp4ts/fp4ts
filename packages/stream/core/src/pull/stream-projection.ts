@@ -1,4 +1,4 @@
-import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@cats4ts/core';
 import { FunctionK, MonadError, None, Option, Some } from '@cats4ts/cats';
 
 import * as PO from './operators';
@@ -21,17 +21,17 @@ import { assert } from 'console';
 
 const P = { ...PO, ...PC };
 
-export const cons = <F extends AnyK, O>(
+export const cons = <F, O>(
   c: Chunk<O>,
   p: Pull<F, O, void>,
 ): Pull<F, O, void> => (c.isEmpty ? p : P.flatMap_(P.output(c), () => p));
 
-export const uncons: <F extends AnyK, O>(
+export const uncons: <F, O>(
   pull: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = pull =>
   new Uncons(pull);
 
-export const uncons1: <F extends AnyK, O>(
+export const uncons1: <F, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<[O, Pull<F, O, void>]>> = p =>
   pipe(
@@ -49,21 +49,19 @@ export const uncons1: <F extends AnyK, O>(
 
 export const unconsN: (
   n: number,
-) => <F extends AnyK, O>(
+) => <F, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = n => p =>
   unconsN_(p, n);
 
 export const unconsLimit: (
   limit: number,
-) => <F extends AnyK, O>(
+) => <F, O>(
   p: Pull<F, O, void>,
 ) => Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> = limit => p =>
   unconsLimit_(p, limit);
 
-export const last = <F extends AnyK, O>(
-  p: Pull<F, O, void>,
-): Pull<F, never, Option<O>> => {
+export const last = <F, O>(p: Pull<F, O, void>): Pull<F, never, Option<O>> => {
   const go = (
     p: Pull<F, O, void>,
     prev: Option<O>,
@@ -82,58 +80,52 @@ export const last = <F extends AnyK, O>(
 
 export const take: (
   n: number,
-) => <F extends AnyK, O>(
-  p: Pull<F, O, void>,
-) => Pull<F, O, Option<Pull<F, O, void>>> = n => p => take_(p, n);
+) => <F, O>(p: Pull<F, O, void>) => Pull<F, O, Option<Pull<F, O, void>>> =
+  n => p =>
+    take_(p, n);
 
 export const takeRight: (
   n: number,
-) => <F extends AnyK, O>(p: Pull<F, O, void>) => Pull<F, never, Chunk<O>> =
-  n => p =>
-    takeRight_(p, n);
+) => <F, O>(p: Pull<F, O, void>) => Pull<F, never, Chunk<O>> = n => p =>
+  takeRight_(p, n);
 
 export const takeWhile: <O>(
   pred: (o: O) => boolean,
   takeFailure?: boolean,
-) => <F extends AnyK>(
-  c: Pull<F, O, void>,
-) => Pull<F, O, Option<Pull<F, O, void>>> = (pred, takeFailure) => c =>
-  takeWhile_(c, pred, takeFailure);
+) => <F>(c: Pull<F, O, void>) => Pull<F, O, Option<Pull<F, O, void>>> =
+  (pred, takeFailure) => c =>
+    takeWhile_(c, pred, takeFailure);
 
 export const drop: (
   n: number,
-) => <F extends AnyK, O>(
-  p: Pull<F, O, void>,
-) => Pull<F, never, Option<Pull<F, O, void>>> = n => p => drop_(p, n);
+) => <F, O>(p: Pull<F, O, void>) => Pull<F, never, Option<Pull<F, O, void>>> =
+  n => p =>
+    drop_(p, n);
 
 export const dropWhile: <O>(
   pred: (o: O) => boolean,
   dropFailure?: boolean,
-) => <F extends AnyK>(
-  p: Pull<F, O, void>,
-) => Pull<F, never, Option<Pull<F, O, void>>> =
+) => <F>(p: Pull<F, O, void>) => Pull<F, never, Option<Pull<F, O, void>>> =
   (pred, dropFailure = false) =>
   p =>
     dropWhile_(p, pred, dropFailure);
 
 export const find: <O>(
   pred: (o: O) => boolean,
-) => <F extends AnyK>(
-  p: Pull<F, O, void>,
-) => Pull<F, never, Option<[O, Pull<F, O, void>]>> = pred => p =>
-  find_(p, pred);
+) => <F>(p: Pull<F, O, void>) => Pull<F, never, Option<[O, Pull<F, O, void>]>> =
+  pred => p => find_(p, pred);
 
 export const mapOutput: <O, P>(
   f: (o: O) => P,
-) => <F extends AnyK>(pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
+) => <F>(pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
   mapOutput_(pull, f);
 
-export const mapFlatMapOutput: <F extends AnyK, O, P>(
+export const mapFlatMapOutput: <F, O, P>(
   f: (o: O) => Pull<F, P, void>,
 ) => (pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
   flatMapOutput_(pull, f);
 
-export const translate: <F extends AnyK, G extends AnyK>(
+export const translate: <F, G>(
   nt: FunctionK<F, G>,
 ) => <O>(pull: Pull<F, O, void>) => Pull<G, O, void> = nt => pull =>
   translate_(pull, nt);
@@ -141,25 +133,24 @@ export const translate: <F extends AnyK, G extends AnyK>(
 export const fold: <O, P>(
   z: P,
   f: (p: P, o: O) => P,
-) => <F extends AnyK>(p: Pull<F, O, void>) => Pull<F, never, P> = (z, f) => p =>
+) => <F>(p: Pull<F, O, void>) => Pull<F, never, P> = (z, f) => p =>
   fold_(p, z, f);
 
 export const scanChunks: <S>(
   s: S,
 ) => <O, O2>(
   f: (s: S, c: Chunk<O>) => [S, Chunk<O2>],
-) => <F extends AnyK>(p: Pull<F, O, void>) => Pull<F, O2, S> = s => f => p =>
+) => <F>(p: Pull<F, O, void>) => Pull<F, O2, S> = s => f => p =>
   scanChunks_(p, s, f);
 
 export const scanChunksOpt: <S>(
   s: S,
 ) => <OO, O2>(
   f: (s: S) => Option<(c: Chunk<OO>) => [S, Chunk<O2>]>,
-) => <F extends AnyK, O extends OO>(p: Pull<F, O, void>) => Pull<F, O2, S> =
-  s => f => p =>
-    scanChunksOpt_(p, s, f);
+) => <F, O extends OO>(p: Pull<F, O, void>) => Pull<F, O2, S> = s => f => p =>
+  scanChunksOpt_(p, s, f);
 
-export const compile: <F extends AnyK>(
+export const compile: <F>(
   F: MonadError<F, Error>,
 ) => <O, B>(
   init: B,
@@ -170,7 +161,7 @@ export const compile: <F extends AnyK>(
 
 // -- Point-ful operators
 
-export const unconsN_ = <F extends AnyK, O>(
+export const unconsN_ = <F, O>(
   p: Pull<F, O, void>,
   n: number,
   allowFewer: boolean = false,
@@ -205,7 +196,7 @@ export const unconsN_ = <F extends AnyK, O>(
   return n <= 0 ? P.pure(Some([Chunk.empty, p])) : go(p, n, Chunk.empty);
 };
 
-export const unconsLimit_ = <F extends AnyK, O>(
+export const unconsLimit_ = <F, O>(
   p: Pull<F, O, void>,
   limit: number,
 ): Pull<F, never, Option<[Chunk<O>, Pull<F, O, void>]>> => {
@@ -225,7 +216,7 @@ export const unconsLimit_ = <F extends AnyK, O>(
   );
 };
 
-export const take_ = <F extends AnyK, O>(
+export const take_ = <F, O>(
   p: Pull<F, O, void>,
   n: number,
 ): Pull<F, O, Option<Pull<F, O, void>>> =>
@@ -249,7 +240,7 @@ export const take_ = <F extends AnyK, O>(
         ),
       );
 
-export const takeRight_ = <F extends AnyK, O>(
+export const takeRight_ = <F, O>(
   p: Pull<F, O, void>,
   n: number,
 ): Pull<F, never, Chunk<O>> => {
@@ -267,7 +258,7 @@ export const takeRight_ = <F extends AnyK, O>(
   return n <= 0 ? P.pure(Chunk.empty) : go(p, Chunk.empty);
 };
 
-export const takeWhile_ = <F extends AnyK, O>(
+export const takeWhile_ = <F, O>(
   p: Pull<F, O, void>,
   pred: (o: O) => boolean,
   takeFailure: boolean = false,
@@ -298,7 +289,7 @@ export const takeWhile_ = <F extends AnyK, O>(
     ),
   );
 
-export const drop_ = <F extends AnyK, O>(
+export const drop_ = <F, O>(
   p: Pull<F, O, void>,
   n: number,
 ): Pull<F, never, Option<Pull<F, O, void>>> =>
@@ -320,7 +311,7 @@ export const drop_ = <F extends AnyK, O>(
         ),
       );
 
-export const dropWhile_ = <F extends AnyK, O>(
+export const dropWhile_ = <F, O>(
   p: Pull<F, O, void>,
   pred: (o: O) => boolean,
   dropFailure: boolean = false,
@@ -344,7 +335,7 @@ export const dropWhile_ = <F extends AnyK, O>(
     ),
   );
 
-export const find_ = <F extends AnyK, O>(
+export const find_ = <F, O>(
   p: Pull<F, O, void>,
   pred: (o: O) => boolean,
 ): Pull<F, never, Option<[O, Pull<F, O, void>]>> =>
@@ -365,7 +356,7 @@ export const find_ = <F extends AnyK, O>(
     ),
   );
 
-export const mapOutput_ = <F extends AnyK, O, P>(
+export const mapOutput_ = <F, O, P>(
   pull: Pull<F, O, void>,
   f: (o: O) => P,
 ): Pull<F, P, void> => {
@@ -384,12 +375,12 @@ export const mapOutput_ = <F extends AnyK, O, P>(
   return go(pull);
 };
 
-export const flatMapOutput_ = <F extends AnyK, O, P>(
+export const flatMapOutput_ = <F, O, P>(
   pull: Pull<F, O, void>,
   f: (o: O) => Pull<F, P, void>,
 ): Pull<F, P, void> => new FlatMapOutput(pull, f);
 
-export const fold_ = <F extends AnyK, O, P>(
+export const fold_ = <F, O, P>(
   p: Pull<F, O, void>,
   z: P,
   f: (p: P, o: O) => P,
@@ -407,13 +398,13 @@ export const fold_ = <F extends AnyK, O, P>(
     ),
   );
 
-export const scanChunks_ = <F extends AnyK, O, O2, S>(
+export const scanChunks_ = <F, O, O2, S>(
   p: Pull<F, O, void>,
   s: S,
   f: (s: S, c: Chunk<O>) => [S, Chunk<O2>],
 ): Pull<F, O2, S> => scanChunksOpt_(p, s, s => Some(c => f(s, c)));
 
-export const scanChunksOpt_ = <F extends AnyK, O, O2, S>(
+export const scanChunksOpt_ = <F, O, O2, S>(
   p: Pull<F, O, void>,
   s: S,
   f: (s: S) => Option<(c: Chunk<O>) => [S, Chunk<O2>]>,
@@ -442,31 +433,31 @@ export const scanChunksOpt_ = <F extends AnyK, O, O2, S>(
   return go(p, s);
 };
 
-export const translate_ = <F extends AnyK, G extends AnyK, O>(
+export const translate_ = <F, G, O>(
   pull: Pull<F, O, void>,
   nt: FunctionK<F, G>,
 ): Pull<G, O, void> => new Translate(pull, nt);
 
 // -- Compilation
 
-type Cont<Y, G extends AnyK, X> = (t: Terminal<Y>) => Pull<G, X, void>;
+type Cont<Y, G, X> = (t: Terminal<Y>) => Pull<G, X, void>;
 
-interface Run<G extends AnyK, X, End> {
+interface Run<G, X, End> {
   done(): End;
   fail(e: Error): End;
   out(hd: Chunk<X>, tl: Pull<G, X, void>): End;
 }
 
-type CallRun<G extends AnyK, X, End> = (r: Run<G, X, End>) => End;
+type CallRun<G, X, End> = (r: Run<G, X, End>) => End;
 
 export const compile_ =
-  <F extends AnyK>(F: MonadError<F, Error>) =>
+  <F>(F: MonadError<F, Error>) =>
   <O, B>(
     stream: Pull<F, O, void>,
     init: B,
     foldChunk: (b: B, c: Chunk<O>) => B,
   ): Kind<F, [B]> => {
-    class BuildRun<G extends AnyK, X, End>
+    class BuildRun<G, X, End>
       implements Run<G, X, Kind<F, [CallRun<G, X, Kind<G, [End]>>]>>
     {
       fail = (e: Error) => F.throwError(e);
@@ -475,11 +466,11 @@ export const compile_ =
         F.pure((r: Run<G, X, Kind<F, [End]>>) => r.out(hd, tl));
     }
 
-    type ViewL<G extends AnyK, X> = Action<G, X, unknown> | Terminal<unknown>;
+    type ViewL<G, X> = Action<G, X, unknown> | Terminal<unknown>;
 
     let cont: Cont<unknown, any, never>;
 
-    const viewL = <G extends AnyK, X>(free0: Pull<G, X, void>): ViewL<G, X> => {
+    const viewL = <G, X>(free0: Pull<G, X, void>): ViewL<G, X> => {
       let free: Pull<G, X, void> = free0;
       while (true) {
         const v = view(free);
@@ -524,15 +515,13 @@ export const compile_ =
       }
     };
 
-    interface GoContext<G extends AnyK, X, End> {
+    interface GoContext<G, X, End> {
       readonly translation: FunctionK<G, F>;
       readonly runner: Run<G, X, Kind<F, [End]>>;
       readonly stream: Pull<G, X, void>;
     }
 
-    class TranslateRun_<H extends AnyK, G extends AnyK, X, End>
-      implements Run<H, X, Kind<F, [End]>>
-    {
+    class TranslateRun_<H, G, X, End> implements Run<H, X, Kind<F, [End]>> {
       public constructor(
         private readonly ctx: GoContext<G, X, End>,
         private readonly fk: FunctionK<H, G>,
@@ -551,7 +540,7 @@ export const compile_ =
         );
     }
 
-    abstract class StepRun<Y, S, G extends AnyK, X, End>
+    abstract class StepRun<Y, S, G, X, End>
       implements Run<G, Y, Kind<F, [End]>>
     {
       public constructor(
@@ -568,7 +557,7 @@ export const compile_ =
       abstract out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]>;
     }
 
-    class UnconsRun<Y, G extends AnyK, X, End> extends StepRun<
+    class UnconsRun<Y, G, X, End> extends StepRun<
       Y,
       [Chunk<Y>, Pull<G, Y, void>],
       G,
@@ -584,9 +573,7 @@ export const compile_ =
       }
     }
 
-    class FlatMapRun<Y, G extends AnyK, X, End>
-      implements Run<G, Y, Kind<F, [End]>>
-    {
+    class FlatMapRun<Y, G, X, End> implements Run<G, Y, Kind<F, [End]>> {
       public constructor(
         private readonly ctx: GoContext<G, X, End>,
         private readonly cont: Cont<void, G, X>,
@@ -629,7 +616,7 @@ export const compile_ =
         );
     }
 
-    const go = <G extends AnyK, X, End>(
+    const go = <G, X, End>(
       translation: FunctionK<G, F>,
       runner: Run<G, X, Kind<F, [End]>>,
       stream: Pull<G, X, void>,
@@ -638,8 +625,8 @@ export const compile_ =
       const v = viewL(stream);
       switch (v.tag) {
         case 'translate': {
-          const composed: FunctionK<AnyK, F> = a => translation(v.nt(a));
-          const runner: Run<AnyK, X, Kind<F, [End]>> = new TranslateRun_(
+          const composed: FunctionK<unknown, F> = a => translation(v.nt(a));
+          const runner: Run<unknown, X, Kind<F, [End]>> = new TranslateRun_(
             ctx,
             v.nt,
             cont,

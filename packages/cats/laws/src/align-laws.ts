@@ -1,15 +1,16 @@
-import { AnyK, Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@cats4ts/core';
 import { Align } from '@cats4ts/cats-core';
 import { Ior } from '@cats4ts/cats-core/lib/data';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
-export const AlignLaws = <F extends AnyK>(F: Align<F>): AlignLaws<F> => ({
+export const AlignLaws = <F>(F: Align<F>): AlignLaws<F> => ({
   alignAssociativity: <A, B, C>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
     fc: Kind<F, [C]>,
   ): IsEq<Kind<F, [Ior<Ior<A, B>, C>]>> =>
-    pipe(fa, F.align(fb), F.align(fc))['<=>'](
+    new IsEq(
+      pipe(fa, F.align(fb), F.align(fc)),
       pipe(F.align_(fa, F.align_(fb, fc)), F.functor.map(assoc)),
     ),
 
@@ -19,7 +20,8 @@ export const AlignLaws = <F extends AnyK>(F: Align<F>): AlignLaws<F> => ({
     f: (a: A) => C,
     g: (c: B) => D,
   ): IsEq<Kind<F, [Ior<C, D>]>> =>
-    pipe(fa, F.functor.map(f), F.align(F.functor.map_(fb, g)))['<=>'](
+    new IsEq(
+      pipe(fa, F.functor.map(f), F.align(F.functor.map_(fb, g))),
       pipe(
         F.align_(fa, fb),
         F.functor.map(ior => ior.bimap(f, g)),
@@ -31,7 +33,7 @@ export const AlignLaws = <F extends AnyK>(F: Align<F>): AlignLaws<F> => ({
     fb: Kind<F, [B]>,
     f: (ior: Ior<A, B>) => C,
   ): IsEq<Kind<F, [C]>> =>
-    F.alignWith_(fa, fb)(f)['<=>'](pipe(F.align_(fa, fb), F.functor.map(f))),
+    new IsEq(F.alignWith_(fa, fb)(f), pipe(F.align_(fa, fb), F.functor.map(f))),
 });
 
 const assoc = <A, B, C>(ior: Ior<A, Ior<B, C>>): Ior<Ior<A, B>, C> =>
@@ -51,7 +53,7 @@ const assoc = <A, B, C>(ior: Ior<A, Ior<B, C>>): Ior<Ior<A, B>, C> =>
       ),
   );
 
-export interface AlignLaws<F extends AnyK> {
+export interface AlignLaws<F> {
   alignAssociativity: <A, B, C>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,

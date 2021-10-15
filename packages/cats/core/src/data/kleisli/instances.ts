@@ -1,4 +1,4 @@
-import { $, AnyK, _, α, λ } from '@cats4ts/core';
+import { $, Fix, α, λ } from '@cats4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Contravariant } from '../../contravariant';
@@ -26,17 +26,17 @@ import {
 } from './operators';
 import { liftF, pure, suspend } from './constructors';
 
-export const kleisliSemigroupK: <F extends AnyK, A>(
+export const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,
-) => SemigroupK<$<KleisliK, [F, A]>> = <F extends AnyK, A>(F: SemigroupK<F>) =>
+) => SemigroupK<$<KleisliK, [F, A]>> = <F, A>(F: SemigroupK<F>) =>
   SemigroupK.of<$<KleisliK, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: () => Kleisli<F, A, B>) =>
       suspend((a: A) => F.combineK_<B>(x.run(a), () => y().run(a))),
   });
 
-export const kleisliMonoidK: <F extends AnyK, A>(
+export const kleisliMonoidK: <F, A>(
   F: MonoidK<F>,
-) => MonoidK<$<KleisliK, [F, A]>> = <F extends AnyK, A>(F: MonoidK<F>) =>
+) => MonoidK<$<KleisliK, [F, A]>> = <F, A>(F: MonoidK<F>) =>
   MonoidK.of<$<KleisliK, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: () => Kleisli<F, A, B>) =>
       suspend((a: A) => F.combineK_<B>(x.run(a), () => y().run(a))),
@@ -44,21 +44,21 @@ export const kleisliMonoidK: <F extends AnyK, A>(
     emptyK: () => liftF(F.emptyK()),
   });
 
-export const kleisliContravariant: <F extends AnyK, B>() => Contravariant<
-  λ<[α], $<KleisliK, [F, α, B]>>
+export const kleisliContravariant: <F, B>() => Contravariant<
+  λ<KleisliK, [Fix<F>, α, Fix<B>]>
 > = () =>
   Contravariant.of({
     contramap_: (fa, f) => adapt_(fa, f) as any,
   });
 
-export const kleisliFunctor: <F extends AnyK, A>(
+export const kleisliFunctor: <F, A>(
   F: Functor<F>,
 ) => Functor<$<KleisliK, [F, A]>> = F =>
   Functor.of({
     map_: map_(F),
   });
 
-export const kleisliFunctorFilter: <F extends AnyK, A>(
+export const kleisliFunctorFilter: <F, A>(
   F: FunctorFilter<F>,
 ) => FunctorFilter<$<KleisliK, [F, A]>> = F =>
   FunctorFilter.of({
@@ -66,19 +66,18 @@ export const kleisliFunctorFilter: <F extends AnyK, A>(
     mapFilter_: (fa, f) => suspend(a => F.mapFilter_(fa.run(a), f)),
   });
 
-export const kleisliApply: <F extends AnyK, A>(
-  F: Apply<F>,
-) => Apply<$<KleisliK, [F, A]>> = F =>
-  Apply.of({
-    ...kleisliFunctor(F),
-    ap_: ap_(F),
-    map2_: map2_(F),
-    product_: product_(F),
-    productL_: productL_(F),
-    productR_: productR_(F),
-  });
+export const kleisliApply: <F, A>(F: Apply<F>) => Apply<$<KleisliK, [F, A]>> =
+  F =>
+    Apply.of({
+      ...kleisliFunctor(F),
+      ap_: ap_(F),
+      map2_: map2_(F),
+      product_: product_(F),
+      productL_: productL_(F),
+      productR_: productR_(F),
+    });
 
-export const kleisliApplicative: <F extends AnyK, A>(
+export const kleisliApplicative: <F, A>(
   F: Applicative<F>,
 ) => Applicative<$<KleisliK, [F, A]>> = F =>
   Applicative.of({
@@ -87,7 +86,7 @@ export const kleisliApplicative: <F extends AnyK, A>(
     pure: pure(F),
   });
 
-export const kleisliAlternative: <F extends AnyK, A>(
+export const kleisliAlternative: <F, A>(
   F: Alternative<F>,
 ) => Alternative<$<KleisliK, [F, A]>> = F =>
   Alternative.of({
@@ -95,9 +94,9 @@ export const kleisliAlternative: <F extends AnyK, A>(
     ...kleisliApplicative(F),
   });
 
-export const kleisliApplicativeError: <F extends AnyK, A, E>(
+export const kleisliApplicativeError: <F, A, E>(
   F: ApplicativeError<F, E>,
-) => ApplicativeError<$<KleisliK, [F, A]>, E> = <F extends AnyK, A, E>(
+) => ApplicativeError<$<KleisliK, [F, A]>, E> = <F, A, E>(
   F: ApplicativeError<F, E>,
 ) =>
   ApplicativeError.of<$<KleisliK, [F, A]>, E>({
@@ -107,7 +106,7 @@ export const kleisliApplicativeError: <F extends AnyK, A, E>(
       suspend((a: A) => F.handleErrorWith_(fa.run(a), e => f(e).run(a))),
   });
 
-export const kleisliFlatMap: <F extends AnyK, A>(
+export const kleisliFlatMap: <F, A>(
   F: Monad<F>,
 ) => FlatMap<$<KleisliK, [F, A]>> = F =>
   FlatMap.of({
@@ -116,15 +115,14 @@ export const kleisliFlatMap: <F extends AnyK, A>(
     tailRecM_: tailRecM_(F),
   });
 
-export const kleisliMonad: <F extends AnyK, A>(
-  F: Monad<F>,
-) => Monad<$<KleisliK, [F, A]>> = F =>
-  Monad.of({
-    ...kleisliApplicative(F),
-    ...kleisliFlatMap(F),
-  });
+export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliK, [F, A]>> =
+  F =>
+    Monad.of({
+      ...kleisliApplicative(F),
+      ...kleisliFlatMap(F),
+    });
 
-export const kleisliMonadError: <F extends AnyK, A, E>(
+export const kleisliMonadError: <F, A, E>(
   F: MonadError<F, E>,
 ) => MonadError<$<KleisliK, [F, A]>, E> = F =>
   MonadError.of({

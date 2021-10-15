@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { AnyK, id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@cats4ts/core';
 import {
   Applicative,
   Eq,
@@ -31,100 +31,84 @@ import {
   sleep,
 } from './constructors';
 
-export const head: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
-  take_(s, 1);
+export const head: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => take_(s, 1);
 
-export const headOption: <F extends AnyK, A>(
-  s: Stream<F, A>,
-) => Stream<F, Option<A>> = s =>
+export const headOption: <F, A>(s: Stream<F, A>) => Stream<F, Option<A>> = s =>
   new Stream(
     s.pull.uncons1.flatMap(opt => Pull.output1(opt.map(([hd]) => hd))),
   );
 
-export const tail: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
-  drop_(s, 1);
+export const tail: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => drop_(s, 1);
 
-export const last: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+export const last: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   new Stream(s.pull.last.flatMap(Pull.outputOption1));
 
-export const lastOption: <F extends AnyK, A>(
-  s: Stream<F, A>,
-) => Stream<F, Option<A>> = s => new Stream(s.pull.last.flatMap(Pull.output1));
+export const lastOption: <F, A>(s: Stream<F, A>) => Stream<F, Option<A>> = s =>
+  new Stream(s.pull.last.flatMap(Pull.output1));
 
-export const init: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+export const init: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   dropRight_(s, 1);
 
-export const repeat: <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = s =>
+export const repeat: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   s['+++'](defer(() => repeat(s)));
 
-export const cons: <F extends AnyK, A>(x: A, s: Stream<F, A>) => Stream<F, A> =
-  (x, s) => prepend_(s, x);
+export const cons: <F, A>(x: A, s: Stream<F, A>) => Stream<F, A> = (x, s) =>
+  prepend_(s, x);
 
-export const consChunk: <F extends AnyK, A>(
-  c: Chunk<A>,
-  s: Stream<F, A>,
-) => Stream<F, A> = (c, s) => prependChunk_(s, c);
+export const consChunk: <F, A>(c: Chunk<A>, s: Stream<F, A>) => Stream<F, A> = (
+  c,
+  s,
+) => prependChunk_(s, c);
 
 export const prepend: <A2>(
   x: A2,
-) => <F extends AnyK, A extends A2>(s: Stream<F, A>) => Stream<F, A2> =
-  x => s =>
-    prepend_(s, x);
+) => <F, A extends A2>(s: Stream<F, A>) => Stream<F, A2> = x => s =>
+  prepend_(s, x);
 
 export const prependChunk: <A2>(
   c: Chunk<A2>,
-) => <F extends AnyK, A extends A2>(s: Stream<F, A>) => Stream<F, A2> =
-  c => s =>
-    prependChunk_(s, c);
+) => <F, A extends A2>(s: Stream<F, A>) => Stream<F, A2> = c => s =>
+  prependChunk_(s, c);
 
-export const drain = <F extends AnyK, A>(s: Stream<F, A>): Stream<F, never> =>
+export const drain = <F, A>(s: Stream<F, A>): Stream<F, never> =>
   repeatPull_(s, p =>
     p.uncons.flatMap(uc => Pull.pure(uc.map(([, pp]) => pp))),
   );
 
-export const take: (
-  n: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
-  take_(s, n);
+export const take: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
+  n => s =>
+    take_(s, n);
 
-export const takeRight: (
-  n: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
-  takeRight_(s, n);
+export const takeRight: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
+  n => s => takeRight_(s, n);
 
 export const takeWhile: <A>(
   pred: (a: A) => boolean,
   takeFailure?: boolean,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> =
-  (pred, takeFailure) => s =>
-    takeWhile_(s, pred, takeFailure);
+) => <F>(s: Stream<F, A>) => Stream<F, A> = (pred, takeFailure) => s =>
+  takeWhile_(s, pred, takeFailure);
 
-export const drop: (
-  n: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
-  drop_(s, n);
+export const drop: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
+  n => s =>
+    drop_(s, n);
 
-export const dropRight: (
-  n: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, A> = n => s =>
-  dropRight_(s, n);
+export const dropRight: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
+  n => s => dropRight_(s, n);
 
 export const dropWhile: <A>(
   pred: (a: A) => boolean,
   dropFailure?: boolean,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> =
+) => <F>(s: Stream<F, A>) => Stream<F, A> =
   (pred, dropFailure = false) =>
   s =>
     dropWhile_(s, pred, dropFailure);
 
-export const concat: <F extends AnyK, A2>(
+export const concat: <F, A2>(
   s2: Stream<F, A2>,
 ) => <A extends A2>(s1: Stream<F, A>) => Stream<F, A2> = s2 => s1 =>
   concat_(s1, s2);
 
-export const chunks: <F extends AnyK, A>(
-  s: Stream<F, A>,
-) => Stream<F, Chunk<A>> = s =>
+export const chunks: <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> = s =>
   repeatPull_(s, p =>
     p.uncons.flatMap(opt =>
       opt.fold(
@@ -134,9 +118,7 @@ export const chunks: <F extends AnyK, A>(
     ),
   );
 
-export const chunkAll = <F extends AnyK, A>(
-  s: Stream<F, A>,
-): Stream<F, Chunk<A>> => {
+export const chunkAll = <F, A>(s: Stream<F, A>): Stream<F, Chunk<A>> => {
   const loop = (p: Pull<F, A, void>, acc: Chunk<A>): Pull<F, Chunk<A>, void> =>
     p.uncons.flatMap(opt =>
       opt.fold(
@@ -149,13 +131,13 @@ export const chunkAll = <F extends AnyK, A>(
 
 export const chunkLimit: (
   limit: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> = limit => s =>
+) => <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> = limit => s =>
   chunkLimit_(s, limit);
 
 export const chunkMin: (
   n: number,
   allowFewerTotal?: boolean,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
+) => <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
   (n, allowFewerTotal = true) =>
   s =>
     chunkMin_(s, n, allowFewerTotal);
@@ -163,156 +145,139 @@ export const chunkMin: (
 export const chunkN: (
   n: number,
   allowFewer?: boolean,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
+) => <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
   (n, allowFewer = false) =>
   s =>
     chunkN_(s, n, allowFewer);
 
-export const unchunks = <F extends AnyK, A>(
-  s: Stream<F, Chunk<A>>,
-): Stream<F, A> => flatMap_(s, c => fromChunk(c));
+export const unchunks = <F, A>(s: Stream<F, Chunk<A>>): Stream<F, A> =>
+  flatMap_(s, c => fromChunk(c));
 
 export const sliding: (
   size: number,
   step?: number,
-) => <F extends AnyK, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
+) => <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> =
   (size, step = 1) =>
   s =>
     sliding_(s, size, step);
 
-export const changes: <A>(
-  E: Eq<A>,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = E => s =>
-  filterWithPrevious_(s, E.notEquals);
+export const changes: <A>(E: Eq<A>) => <F>(s: Stream<F, A>) => Stream<F, A> =
+  E => s =>
+    filterWithPrevious_(s, E.notEquals);
 
 export const filter: <A>(
   pred: (a: A) => boolean,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = pred => s =>
-  filter_(s, pred);
+) => <F>(s: Stream<F, A>) => Stream<F, A> = pred => s => filter_(s, pred);
 
 export const filterNot: <A>(
   pred: (a: A) => boolean,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = pred => s =>
-  filterNot_(s, pred);
+) => <F>(s: Stream<F, A>) => Stream<F, A> = pred => s => filterNot_(s, pred);
 
 export const filterWithPrevious: <A>(
   f: (prev: A, next: A) => boolean,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, A> = f => s =>
-  filterWithPrevious_(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, A> = f => s => filterWithPrevious_(s, f);
 
 export const collect: <A, B>(
   f: (a: A) => Option<B>,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
-  collect_(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => collect_(s, f);
 
 export const collectFirst: <A, B>(
   f: (a: A) => Option<B>,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
-  collectFirst_(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => collectFirst_(s, f);
 
 export const collectWhile: <A, B>(
   f: (a: A) => Option<B>,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s =>
-  collectWhile_(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => collectWhile_(s, f);
 
 export const map: <A, B>(
   f: (a: A) => B,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = f => s => map_(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => map_(s, f);
 
 export const mapAccumulate: <S>(
   init: S,
 ) => <AA, B>(
   f: (s: S, aa: AA) => [S, B],
-) => <F extends AnyK, A extends AA>(s: Stream<F, A>) => Stream<F, [S, B]> =
-  init => f => s =>
-    mapAccumulate_(s, init, f);
+) => <F, A extends AA>(s: Stream<F, A>) => Stream<F, [S, B]> = init => f => s =>
+  mapAccumulate_(s, init, f);
 
-export const evalMap: <F extends AnyK, A, B>(
+export const evalMap: <F, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalMap_(s, f);
 
-export const evalTap: <F extends AnyK>(
+export const evalTap: <F>(
   F: Functor<F>,
 ) => <A>(f: (a: A) => Kind<F, [unknown]>) => (s: Stream<F, A>) => Stream<F, A> =
   F => f => s => evalTap_(F)(s, f);
 
-export const evalMapChunk: <F extends AnyK>(
+export const evalMapChunk: <F>(
   F: Applicative<F>,
 ) => <A, B>(f: (a: A) => Kind<F, [B]>) => (s: Stream<F, A>) => Stream<F, B> =
   F => f => s =>
     evalMapChunk_(F)(s, f);
 
-export const flatMap: <F extends AnyK, A, B>(
+export const flatMap: <F, A, B>(
   f: (a: A) => Stream<F, B>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => flatMap_(s, f);
 
-export const flatten: <F extends AnyK, A>(
-  ss: Stream<F, Stream<F, A>>,
-) => Stream<F, A> = ss => flatMap_(ss, id);
+export const flatten: <F, A>(ss: Stream<F, Stream<F, A>>) => Stream<F, A> =
+  ss => flatMap_(ss, id);
 
 export const fold: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = (z, f) => s =>
-  fold_(s, z, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = (z, f) => s => fold_(s, z, f);
 
 export const foldMap: <M>(
   M: Monoid<M>,
-) => <F extends AnyK, A>(f: (a: A) => M) => (s: Stream<F, A>) => Stream<F, M> =
+) => <F, A>(f: (a: A) => M) => (s: Stream<F, A>) => Stream<F, M> =
   M => f => s =>
     foldMap_(M)(s, f);
 
-export const foldMapK: <G extends AnyK>(
+export const foldMapK: <G>(
   G: MonoidK<G>,
 ) => <A, B>(
   f: (a: A) => Kind<G, [B]>,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, Kind<G, [B]>> =
-  G => f => s =>
-    foldMapK_(G)(s, f);
+) => <F>(s: Stream<F, A>) => Stream<F, Kind<G, [B]>> = G => f => s =>
+  foldMapK_(G)(s, f);
 
 export const scan: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = (z, f) => s =>
-  scan_(s, z, f);
+) => <F>(s: Stream<F, A>) => Stream<F, B> = (z, f) => s => scan_(s, z, f);
 
 export const scan1: <A2>(
   f: (x: A2, y: A2) => A2,
-) => <F extends AnyK, A extends A2>(s: Stream<F, A>) => Stream<F, A2> =
-  f => s =>
-    scan1_(s, f);
+) => <F, A extends A2>(s: Stream<F, A>) => Stream<F, A2> = f => s =>
+  scan1_(s, f);
 
 export const scanChunks: <S>(
   init: S,
 ) => <A, B>(
   f: (s: S, c: Chunk<A>) => [S, Chunk<B>],
-) => <F extends AnyK>(s: Stream<F, A>) => Stream<F, B> = init => f => s =>
+) => <F>(s: Stream<F, A>) => Stream<F, B> = init => f => s =>
   scanChunks_(s, init, f);
 
 export const scanChunksOpt: <S>(
   init: S,
 ) => <AA, B>(
   f: (s: S) => Option<(c: Chunk<AA>) => [S, Chunk<B>]>,
-) => <F extends AnyK, A extends AA>(s: Stream<F, A>) => Stream<F, B> =
-  init => f => s =>
-    scanChunksOpt_(s, init, f);
+) => <F, A extends AA>(s: Stream<F, A>) => Stream<F, B> = init => f => s =>
+  scanChunksOpt_(s, init, f);
 
-export const align: <F extends AnyK, B>(
+export const align: <F, B>(
   s2: Stream<F, B>,
 ) => <A>(s1: Stream<F, A>) => Stream<F, Ior<A, B>> = s2 => s1 => align_(s1, s2);
 
-export const zip: <F extends AnyK, B>(
+export const zip: <F, B>(
   s2: Stream<F, B>,
 ) => <A>(s1: Stream<F, A>) => Stream<F, [A, B]> = s2 => s1 => zip_(s1, s2);
 
-export const zipWith: <F extends AnyK, A, B, C>(
+export const zipWith: <F, A, B, C>(
   s2: Stream<F, B>,
   f: (a: A, b: B) => C,
 ) => (s1: Stream<F, A>) => Stream<F, C> = (s2, f) => s1 => zipWith_(s1, s2)(f);
 
-export const zipWithIndex = <F extends AnyK, A>(
-  s: Stream<F, A>,
-): Stream<F, [A, number]> =>
+export const zipWithIndex = <F, A>(s: Stream<F, A>): Stream<F, [A, number]> =>
   pipe(
     s,
     scanChunks(0)((index, chunk: Chunk<A>) => {
@@ -321,7 +286,7 @@ export const zipWithIndex = <F extends AnyK, A>(
     }),
   );
 
-export const zipWithNext = <F extends AnyK, A>(
+export const zipWithNext = <F, A>(
   s: Stream<F, A>,
 ): Stream<F, [A, Option<A>]> => {
   const go = (p: Pull<F, A, void>, last: A): Pull<F, [A, Option<A>], void> =>
@@ -348,7 +313,7 @@ export const zipWithNext = <F extends AnyK, A>(
   );
 };
 
-export const zipWithPrevious = <F extends AnyK, A>(
+export const zipWithPrevious = <F, A>(
   s: Stream<F, A>,
 ): Stream<F, [Option<A>, A]> =>
   pipe(
@@ -360,7 +325,7 @@ export const zipWithPrevious = <F extends AnyK, A>(
     map(([, r]) => r),
   );
 
-export const zipAll: <F extends AnyK, B>(
+export const zipAll: <F, B>(
   s2: Stream<F, B>,
 ) => <A2>(
   pad1: A2,
@@ -369,7 +334,7 @@ export const zipAll: <F extends AnyK, B>(
   s2 => (pad1, pad2) => s1 =>
     zipAll_(s1, s2, pad1, pad2);
 
-export const zipAllWith: <F extends AnyK, B>(
+export const zipAllWith: <F, B>(
   s2: Stream<F, B>,
 ) => <A2>(
   pad1: A2,
@@ -380,31 +345,27 @@ export const zipAllWith: <F extends AnyK, B>(
   s2 => (pad1, pad2) => f => s1 =>
     zipAllWith_(s1, s2, pad1, pad2)(f);
 
-export const attempt = <F extends AnyK, A>(
-  s: Stream<F, A>,
-): Stream<F, Either<Error, A>> =>
+export const attempt = <F, A>(s: Stream<F, A>): Stream<F, Either<Error, A>> =>
   pipe(
     s,
     map(x => Right(x) as Either<Error, A>),
     handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
   );
 
-export const attempts: <F extends AnyK>(
+export const attempts: <F>(
   F: Temporal<F, Error>,
 ) => (
   delays: Stream<F, number>,
 ) => <A>(s: Stream<F, A>) => Stream<F, Either<Error, A>> = F => delays => s =>
   attempts_(F)(s, delays);
 
-export const redeemWith: <F extends AnyK, A, B>(
+export const redeemWith: <F, A, B>(
   onFailure: (e: Error) => Stream<F, B>,
   onSuccess: (a: A) => Stream<F, B>,
 ) => (s: Stream<F, A>) => Stream<F, B> = (onFailure, onSuccess) => s =>
   redeemWith_(s, onFailure, onSuccess);
 
-export const rethrow = <F extends AnyK, A>(
-  s: Stream<F, Either<Error, A>>,
-): Stream<F, A> =>
+export const rethrow = <F, A>(s: Stream<F, Either<Error, A>>): Stream<F, A> =>
   pipe(
     chunks(s),
     flatMap(c => {
@@ -416,7 +377,7 @@ export const rethrow = <F extends AnyK, A>(
     }),
   );
 
-export const handleErrorWith: <F extends AnyK, A2>(
+export const handleErrorWith: <F, A2>(
   h: (e: Error) => Stream<F, A2>,
 ) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
   handleErrorWith_(s, h);
@@ -424,50 +385,38 @@ export const handleErrorWith: <F extends AnyK, A2>(
 export const compile: <A>(s: Stream<SyncIoK, A>) => PureCompiler<A> = s =>
   new PureCompiler(s.pull);
 
-export const compileF: <F extends AnyK>(
+export const compileF: <F>(
   F: MonadError<F, Error>,
 ) => <A>(s: Stream<F, A>) => Compiler<F, A> = F => s => new Compiler(F, s.pull);
 
 // -- Point-ful operators
 
-export const prepend_ = <F extends AnyK, A>(
-  s: Stream<F, A>,
-  c: A,
-): Stream<F, A> => concat_(pure(c), s);
+export const prepend_ = <F, A>(s: Stream<F, A>, c: A): Stream<F, A> =>
+  concat_(pure(c), s);
 
-export const prependChunk_ = <F extends AnyK, A>(
+export const prependChunk_ = <F, A>(
   s: Stream<F, A>,
   c: Chunk<A>,
 ): Stream<F, A> => concat_(fromChunk(c), s);
 
-export const take_ = <F extends AnyK, A>(
-  s: Stream<F, A>,
-  n: number,
-): Stream<F, A> => new Stream(s.pull.take(n).void);
+export const take_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
+  new Stream(s.pull.take(n).void);
 
-export const takeRight_ = <F extends AnyK, A>(
-  s: Stream<F, A>,
-  n: number,
-): Stream<F, A> => new Stream(s.pull.takeRight(n).flatMap(Pull.output));
+export const takeRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
+  new Stream(s.pull.takeRight(n).flatMap(Pull.output));
 
-export const takeWhile_ = <F extends AnyK, A>(
+export const takeWhile_ = <F, A>(
   s: Stream<F, A>,
   p: (a: A) => boolean,
   takeFailure: boolean = false,
 ): Stream<F, A> => new Stream(s.pull.takeWhile(p, takeFailure).void);
 
-export const drop_ = <F extends AnyK, A>(
-  s: Stream<F, A>,
-  n: number,
-): Stream<F, A> =>
+export const drop_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
   new Stream(
     s.pull.drop(n).flatMap(opt => opt.map(id).getOrElse(() => Pull.done())),
   );
 
-export const dropRight_ = <F extends AnyK, A>(
-  s: Stream<F, A>,
-  n: number,
-): Stream<F, A> => {
+export const dropRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> => {
   const go = (p: Pull<F, A, void>, acc: Chunk<A>): Pull<F, A, void> =>
     p.uncons.flatMap(opt =>
       opt.fold(
@@ -484,7 +433,7 @@ export const dropRight_ = <F extends AnyK, A>(
   return n <= 0 ? s : new Stream(go(s.pull, Chunk.empty));
 };
 
-export const dropWhile_ = <F extends AnyK, A>(
+export const dropWhile_ = <F, A>(
   s: Stream<F, A>,
   pred: (a: A) => boolean,
   dropFailure: boolean = false,
@@ -495,13 +444,13 @@ export const dropWhile_ = <F extends AnyK, A>(
       .flatMap(opt => opt.fold(() => Pull.done(), id)),
   );
 
-export const concat_ = <F extends AnyK, A>(
+export const concat_ = <F, A>(
   s1: Stream<F, A>,
   s2: Stream<F, A>,
 ): Stream<F, A> => new Stream(s1.pull.flatMap(() => s2.pull));
 
 export const attempts_ =
-  <F extends AnyK>(F: Temporal<F, Error>) =>
+  <F>(F: Temporal<F, Error>) =>
   <A>(
     s: Stream<F, A>,
     delays: Stream<F, number>,
@@ -515,7 +464,7 @@ export const attempts_ =
       ),
     );
 
-export const redeemWith_ = <F extends AnyK, A, B>(
+export const redeemWith_ = <F, A, B>(
   s: Stream<F, A>,
   onFailure: (e: Error) => Stream<F, B>,
   onSuccess: (a: A) => Stream<F, B>,
@@ -526,12 +475,12 @@ export const redeemWith_ = <F extends AnyK, A, B>(
     flatMap(ea => ea.fold(onFailure, onSuccess)),
   );
 
-export const handleErrorWith_ = <F extends AnyK, A>(
+export const handleErrorWith_ = <F, A>(
   s: Stream<F, A>,
   h: (e: Error) => Stream<F, A>,
 ): Stream<F, A> => new Stream(s.pull.handleErrorWith(e => h(e).pull));
 
-export const chunkLimit_ = <F extends AnyK, A>(
+export const chunkLimit_ = <F, A>(
   s: Stream<F, A>,
   limit: number,
 ): Stream<F, Chunk<A>> =>
@@ -544,7 +493,7 @@ export const chunkLimit_ = <F extends AnyK, A>(
     ),
   );
 
-export const chunkMin_ = <F extends AnyK, A>(
+export const chunkMin_ = <F, A>(
   s: Stream<F, A>,
   n: number,
   allowFewerTotal: boolean = true,
@@ -575,7 +524,7 @@ export const chunkMin_ = <F extends AnyK, A>(
   );
 };
 
-export const chunkN_ = <F extends AnyK, A>(
+export const chunkN_ = <F, A>(
   s: Stream<F, A>,
   n: number,
   allowFewer: boolean = false,
@@ -589,7 +538,7 @@ export const chunkN_ = <F extends AnyK, A>(
     ),
   );
 
-export const sliding_ = <F extends AnyK, A>(
+export const sliding_ = <F, A>(
   s: Stream<F, A>,
   size: number,
   step: number = 1,
@@ -664,17 +613,17 @@ export const sliding_ = <F extends AnyK, A>(
   return new Stream(resultPull);
 };
 
-export const filter_ = <F extends AnyK, A>(
+export const filter_ = <F, A>(
   s: Stream<F, A>,
   pred: (a: A) => boolean,
 ): Stream<F, A> => mapChunks_(s, chunk => chunk.filter(pred));
 
-export const filterNot_ = <F extends AnyK, A>(
+export const filterNot_ = <F, A>(
   s: Stream<F, A>,
   pred: (a: A) => boolean,
 ): Stream<F, A> => filter_(s, x => !pred(x));
 
-export const filterWithPrevious_ = <F extends AnyK, A>(
+export const filterWithPrevious_ = <F, A>(
   s: Stream<F, A>,
   f: (prev: A, cur: A) => boolean,
 ): Stream<F, A> => {
@@ -714,12 +663,12 @@ export const filterWithPrevious_ = <F extends AnyK, A>(
   );
 };
 
-export const collect_ = <F extends AnyK, A, B>(
+export const collect_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Option<B>,
 ): Stream<F, B> => mapChunks_(s, c => c.collect(f));
 
-export const collectFirst_ = <F extends AnyK, A, B>(
+export const collectFirst_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Option<B>,
 ): Stream<F, B> =>
@@ -735,7 +684,7 @@ export const collectFirst_ = <F extends AnyK, A, B>(
       ),
   );
 
-export const collectWhile_ = <F extends AnyK, A, B>(
+export const collectWhile_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Option<B>,
 ): Stream<F, B> =>
@@ -743,7 +692,7 @@ export const collectWhile_ = <F extends AnyK, A, B>(
     o => o.get,
   );
 
-export const mapChunks_ = <F extends AnyK, A, B>(
+export const mapChunks_ = <F, A, B>(
   s: Stream<F, A>,
   f: (c: Chunk<A>) => Chunk<B>,
 ): Stream<F, B> =>
@@ -756,12 +705,10 @@ export const mapChunks_ = <F extends AnyK, A, B>(
     ),
   );
 
-export const map_ = <F extends AnyK, A, B>(
-  s: Stream<F, A>,
-  f: (a: A) => B,
-): Stream<F, B> => new Stream(s.pull.mapOutput(f));
+export const map_ = <F, A, B>(s: Stream<F, A>, f: (a: A) => B): Stream<F, B> =>
+  new Stream(s.pull.mapOutput(f));
 
-export const mapAccumulate_ = <F extends AnyK, S, A, B>(
+export const mapAccumulate_ = <F, S, A, B>(
   s: Stream<F, A>,
   init: S,
   f: (s: S, a: A) => [S, B],
@@ -773,30 +720,30 @@ export const mapAccumulate_ = <F extends AnyK, S, A, B>(
     }),
   );
 
-export const evalMap_ = <F extends AnyK, A, B>(
+export const evalMap_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Kind<F, [B]>,
 ): Stream<F, B> => flatMap_(s, x => evalF(f(x)));
 
 export const evalTap_ =
-  <F extends AnyK>(F: Functor<F>) =>
+  <F>(F: Functor<F>) =>
   <A>(s: Stream<F, A>, f: (a: A) => Kind<F, [unknown]>): Stream<F, A> =>
     evalMap_(s, x => F.map_(f(x), () => x));
 
 export const evalMapChunk_ =
-  <F extends AnyK>(F: Applicative<F>) =>
+  <F>(F: Applicative<F>) =>
   <A, B>(s: Stream<F, A>, f: (a: A) => Kind<F, [B]>): Stream<F, B> =>
     pipe(
       chunks(s),
       flatMap(c => evalUnChunk(c.traverse(F)(f))),
     );
 
-export const flatMap_ = <F extends AnyK, A, B>(
+export const flatMap_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Stream<F, B>,
 ): Stream<F, B> => new Stream(s.pull.flatMapOutput(o => f(o).pull));
 
-export const fold_ = <F extends AnyK, A, B>(
+export const fold_ = <F, A, B>(
   s: Stream<F, A>,
   z: B,
   f: (b: B, a: A) => B,
@@ -804,25 +751,25 @@ export const fold_ = <F extends AnyK, A, B>(
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
-  <F extends AnyK, A>(s: Stream<F, A>, f: (a: A) => M): Stream<F, M> =>
+  <F, A>(s: Stream<F, A>, f: (a: A) => M): Stream<F, M> =>
     fold_(s, M.empty, (m, a) => M.combine_(m, () => f(a)));
 
 export const foldMapK_ =
-  <G extends AnyK>(G: MonoidK<G>) =>
-  <F extends AnyK, A, B>(
+  <G>(G: MonoidK<G>) =>
+  <F, A, B>(
     s: Stream<F, A>,
     f: (a: A) => Kind<G, [B]>,
   ): Stream<F, Kind<G, [B]>> =>
     fold_(s, G.emptyK(), (m, a) => G.combineK_(m, () => f(a)));
 
-export const scan_ = <F extends AnyK, A, B>(
+export const scan_ = <F, A, B>(
   s: Stream<F, A>,
   z: B,
   f: (b: B, a: A) => B,
 ): Stream<F, B> =>
   new Stream<F, B>(Pull.output1(z)['>>>'](() => _scan(s.pull, z, f)));
 
-export const scan1_ = <F extends AnyK, A>(
+export const scan1_ = <F, A>(
   s: Stream<F, A>,
   f: (x: A, y: A) => A,
 ): Stream<F, A> =>
@@ -839,19 +786,19 @@ export const scan1_ = <F extends AnyK, A>(
     ),
   );
 
-export const scanChunks_ = <F extends AnyK, S, A, B>(
+export const scanChunks_ = <F, S, A, B>(
   s: Stream<F, A>,
   init: S,
   f: (s: S, c: Chunk<A>) => [S, Chunk<B>],
 ): Stream<F, B> => scanChunksOpt_(s, init, s => Some(c => f(s, c)));
 
-export const scanChunksOpt_ = <F extends AnyK, S, A, B>(
+export const scanChunksOpt_ = <F, S, A, B>(
   s: Stream<F, A>,
   init: S,
   f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
 ): Stream<F, B> => new Stream(s.pull.scanChunksOpt(init, f).void);
 
-export const align_ = <F extends AnyK, A, B>(
+export const align_ = <F, A, B>(
   s1: Stream<F, A>,
   s2: Stream<F, B>,
 ): Stream<F, Ior<A, B>> =>
@@ -862,13 +809,13 @@ export const align_ = <F extends AnyK, A, B>(
     None,
   )((oa, ob) => Ior.fromOptions(oa, ob).get);
 
-export const zip_ = <F extends AnyK, A, B>(
+export const zip_ = <F, A, B>(
   s1: Stream<F, A>,
   s2: Stream<F, B>,
 ): Stream<F, [A, B]> => zipWith_(s1, s2)((a, b) => [a, b]);
 
 export const zipWith_ =
-  <F extends AnyK, A, B>(s1: Stream<F, A>, s2: Stream<F, B>) =>
+  <F, A, B>(s1: Stream<F, A>, s2: Stream<F, B>) =>
   <C>(f: (a: A, b: B) => C): Stream<F, C> =>
     _zipWith(
       s1,
@@ -879,7 +826,7 @@ export const zipWith_ =
       f,
     );
 
-export const zipAll_ = <F extends AnyK, A, B>(
+export const zipAll_ = <F, A, B>(
   s1: Stream<F, A>,
   s2: Stream<F, B>,
   pad1: A,
@@ -887,12 +834,7 @@ export const zipAll_ = <F extends AnyK, A, B>(
 ): Stream<F, [A, B]> => zipAllWith_(s1, s2, pad1, pad2)((a, b) => [a, b]);
 
 export const zipAllWith_ =
-  <F extends AnyK, A, B>(
-    s1: Stream<F, A>,
-    s2: Stream<F, B>,
-    pad1: A,
-    pad2: B,
-  ) =>
+  <F, A, B>(s1: Stream<F, A>, s2: Stream<F, B>, pad1: A, pad2: B) =>
   <C>(f: (a: A, b: B) => C): Stream<F, C> => {
     const cont1 = (hd: Chunk<A>, tl: Stream<F, A>): Pull<F, C, void> =>
       Pull.output(hd.map(o1 => f(o1, pad2)))['>>>'](() => contLeft(tl));
@@ -909,14 +851,14 @@ export const zipAllWith_ =
     return _zipWith<F, A, B, C>(s1, s2, cont1, cont2, contRight, f);
   };
 
-export const repeatPull_ = <F extends AnyK, A, B>(
+export const repeatPull_ = <F, A, B>(
   s: Stream<F, A>,
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
 ): Stream<F, B> => new Stream(Pull.loop(f)(s.pull));
 
 // -- Private implementation
 
-export const _scan = <F extends AnyK, A, B>(
+export const _scan = <F, A, B>(
   p: Pull<F, A, void>,
   z: B,
   f: (b: B, a: A) => B,
@@ -931,7 +873,7 @@ export const _scan = <F extends AnyK, A, B>(
     ),
   );
 
-const _zipWith = <F extends AnyK, A, B, C>(
+const _zipWith = <F, A, B, C>(
   s1: Stream<F, A>,
   s2: Stream<F, B>,
   k1: (c: Chunk<A>, s: Stream<F, A>) => Pull<F, C, void>,

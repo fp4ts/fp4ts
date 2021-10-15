@@ -1,4 +1,4 @@
-import { AnyK, flow, Kind } from '@cats4ts/core';
+import { flow, Kind } from '@cats4ts/core';
 import { Either, Left, None, Option, Right, FunctionK } from '@cats4ts/cats';
 import { ExecutionContext, Poll, MonadCancel } from '@cats4ts/effect-kernel';
 
@@ -38,7 +38,7 @@ export const async = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => IO<Option<IO<void>>>,
 ): IO<A> =>
   new IOCont(
-    <G extends AnyK>(G: MonadCancel<G, Error>) =>
+    <G>(G: MonadCancel<G, Error>) =>
       (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
         G.uncancelable(poll =>
           G.flatMap_(lift(k(resume)), opt =>
@@ -54,7 +54,7 @@ export const async_ = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => IO<void>,
 ): IO<A> =>
   new IOCont(
-    <G extends AnyK>(G: MonadCancel<G, Error>) =>
+    <G>(G: MonadCancel<G, Error>) =>
       (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
         G.uncancelable(poll => G.flatMap_(lift(k(resume)), () => poll(get))),
   );

@@ -1,11 +1,11 @@
 import fc, { Arbitrary } from 'fast-check';
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Invariant, Eq } from '@cats4ts/cats-core';
 import { InvariantLaws } from '../invariant-laws';
 import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const InvariantSuite = <F extends AnyK>(F: Invariant<F>) => {
+export const InvariantSuite = <F>(F: Invariant<F>) => {
   const laws = InvariantLaws(F);
 
   return {

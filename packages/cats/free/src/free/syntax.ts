@@ -1,15 +1,15 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { FunctionK, Monad } from '@cats4ts/cats-core';
 import { Free } from './algebra';
 import { flatMap_, map_, mapK_ } from './operators';
 
 declare module './algebra' {
-  interface Free<F extends AnyK, A> {
+  interface Free<F, A> {
     map<B>(f: (a: A) => B): Free<F, B>;
 
     flatMap<B>(this: Free<F, A>, f: (a: A) => Free<F, B>): Free<F, B>;
 
-    mapK<G extends AnyK>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]>;
+    mapK<G>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]>;
   }
 }
 

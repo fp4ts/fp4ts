@@ -1,12 +1,9 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 
 import { Option } from '../option';
 
-export class OptionT<F extends AnyK, A> {
+export class OptionT<F, A> {
   private readonly __void!: void;
-
-  private readonly _A!: () => A;
-  private readonly _F!: (_: F) => F;
 
   public constructor(public readonly value: Kind<F, [Option<A>]>) {}
 }

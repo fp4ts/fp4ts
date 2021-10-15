@@ -1,4 +1,4 @@
-import { TyK, _ } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@cats4ts/core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -88,12 +88,6 @@ Object.defineProperty(Identity, 'Traversable', {
 
 // HKT
 
-export const IdentityURI = 'cats/data/identity';
-export type IdentityURI = typeof IdentityURI;
-export type IdentityK = TyK<IdentityURI, [_]>;
-
-declare module '@cats4ts/core/lib/hkt/hkt' {
-  interface URItoKind<Tys extends unknown[]> {
-    [IdentityURI]: Identity<Tys[0]>;
-  }
+export interface IdentityK extends TyK<[unknown]> {
+  [$type]: TyVar<this, 0>;
 }

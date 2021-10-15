@@ -1,4 +1,4 @@
-import { AnyK, Kind, Lazy } from '@cats4ts/core';
+import { Kind, Lazy } from '@cats4ts/core';
 import { Eval } from '../../eval';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';
@@ -49,7 +49,7 @@ export const identityTraversable: Lazy<Traversable<IdentityK>> = () =>
     ...identityFoldable(),
     ...identityFunctor(),
     traverse_:
-      <G extends AnyK>(G: Applicative<G>) =>
+      <G>(G: Applicative<G>) =>
       <A, B>(fa: Identity<A>, f: (a: A) => Kind<G, [B]>) =>
         f(fa),
   });

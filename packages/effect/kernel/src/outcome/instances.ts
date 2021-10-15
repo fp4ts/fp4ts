@@ -1,10 +1,10 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 
 import { Outcome } from './algebra';
 import { fold_ } from './operators';
 
-export const outcomeEq = <F extends AnyK, E, A>(
+export const outcomeEq = <F, E, A>(
   EqE: Eq<E>,
   EqFA: Eq<Kind<F, [A]>>,
 ): Eq<Outcome<F, E, A>> =>

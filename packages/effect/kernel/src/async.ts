@@ -1,11 +1,11 @@
-import { Kind, AnyK } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Either, Option } from '@cats4ts/cats-core/lib/data';
 
 import { ExecutionContext } from './execution-context';
 import { Sync } from './sync';
 import { Temporal } from './temporal';
 
-export interface Async<F extends AnyK> extends Sync<F>, Temporal<F, Error> {
+export interface Async<F> extends Sync<F>, Temporal<F, Error> {
   readonly async: <A>(
     k: (
       cb: (ea: Either<Error, A>) => void,

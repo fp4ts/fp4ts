@@ -1,4 +1,4 @@
-import { Kind, flow, id, pipe, AnyK } from '@cats4ts/core';
+import { Kind, flow, id, pipe } from '@cats4ts/core';
 import { None, Option, Right, Some } from '@cats4ts/cats-core/lib/data';
 
 import { Ref } from './ref';
@@ -43,7 +43,7 @@ class SetState<A> extends State<A> {
 
 type StateView<A> = UnsetState<A> | SetState<A>;
 
-export class Deferred<F extends AnyK, A> {
+export class Deferred<F, A> {
   private readonly __void!: void;
 
   private constructor(
@@ -119,7 +119,7 @@ export class Deferred<F extends AnyK, A> {
   };
 
   public static of =
-    <F extends AnyK>(F: Async<F>) =>
+    <F>(F: Async<F>) =>
     <A>(a?: A): Kind<F, [Deferred<F, A>]> => {
       const state: State<A> = a ? new SetState(a) : new UnsetState([]);
       return pipe(
@@ -129,20 +129,18 @@ export class Deferred<F extends AnyK, A> {
     };
 }
 
-export const of: <F extends AnyK>(
+export const of: <F>(
   F: Async<F>,
 ) => <A = unknown>(a?: A) => Kind<F, [Deferred<F, A>]> = F => x =>
   Deferred.of(F)(x);
 
-export const get: <F extends AnyK, A>(dfa: Deferred<F, A>) => Kind<F, [A]> =
-  dfa => dfa.get();
+export const get: <F, A>(dfa: Deferred<F, A>) => Kind<F, [A]> = dfa =>
+  dfa.get();
 
 export const complete: <A>(
   a: A,
-) => <F extends AnyK>(dfa: Deferred<F, A>) => Kind<F, [void]> = a => dfa =>
+) => <F>(dfa: Deferred<F, A>) => Kind<F, [void]> = a => dfa =>
   complete_(dfa, a);
 
-export const complete_ = <F extends AnyK, A>(
-  dfa: Deferred<F, A>,
-  a: A,
-): Kind<F, [void]> => dfa.complete(a);
+export const complete_ = <F, A>(dfa: Deferred<F, A>, a: A): Kind<F, [void]> =>
+  dfa.complete(a);

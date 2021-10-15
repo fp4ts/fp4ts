@@ -1,25 +1,8 @@
-import { AnyK, id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@cats4ts/core';
 import { Monoid, UnorderedFoldable } from '@cats4ts/cats-core';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
-export interface UnorderedFoldableLaws<F extends AnyK> {
-  unorderedFoldConsistentWithUnorderedFoldMap: <A>(
-    fa: Kind<F, [A]>,
-    M: Monoid<A>,
-  ) => IsEq<A>;
-
-  allConsistentWithAny: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
-
-  anyLazy: <A>(fa: Kind<F, [A]>) => boolean;
-
-  allLazy: <A>(fa: Kind<F, [A]>) => boolean;
-
-  allEmpty: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
-
-  nonEmptyRef: <A>(fa: Kind<F, [A]>) => IsEq<boolean>;
-}
-
-export const UnorderedFoldableLaws = <F extends AnyK>(
+export const UnorderedFoldableLaws = <F>(
   F: UnorderedFoldable<F>,
 ): UnorderedFoldableLaws<F> => ({
   unorderedFoldConsistentWithUnorderedFoldMap: <A>(
@@ -62,3 +45,20 @@ export const UnorderedFoldableLaws = <F extends AnyK>(
   nonEmptyRef: <A>(fa: Kind<F, [A]>): IsEq<boolean> =>
     new IsEq(F.nonEmpty(fa), !F.isEmpty(fa)),
 });
+
+export interface UnorderedFoldableLaws<F> {
+  unorderedFoldConsistentWithUnorderedFoldMap: <A>(
+    fa: Kind<F, [A]>,
+    M: Monoid<A>,
+  ) => IsEq<A>;
+
+  allConsistentWithAny: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+
+  anyLazy: <A>(fa: Kind<F, [A]>) => boolean;
+
+  allLazy: <A>(fa: Kind<F, [A]>) => boolean;
+
+  allEmpty: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+
+  nonEmptyRef: <A>(fa: Kind<F, [A]>) => IsEq<boolean>;
+}

@@ -1,10 +1,10 @@
-import { AnyK, Base, id, instance, Kind } from '@cats4ts/core';
+import { Base, id, instance, Kind } from '@cats4ts/core';
 import { AdditionMonoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
 import { Eval } from './eval';
 
 import { Monoid } from './monoid';
 
-export interface UnorderedFoldable<F extends AnyK> extends Base<F> {
+export interface UnorderedFoldable<F> extends Base<F> {
   readonly unorderedFoldMap: <M>(
     M: Monoid<M>,
   ) => <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
@@ -28,15 +28,13 @@ export interface UnorderedFoldable<F extends AnyK> extends Base<F> {
   readonly size: <A>(fa: Kind<F, [A]>) => number;
 }
 
-export type UnorderedFoldableRequirements<F extends AnyK> = Pick<
+export type UnorderedFoldableRequirements<F> = Pick<
   UnorderedFoldable<F>,
   'unorderedFoldMap_'
 > &
   Partial<UnorderedFoldable<F>>;
 export const UnorderedFoldable = Object.freeze({
-  of: <F extends AnyK>(
-    F: UnorderedFoldableRequirements<F>,
-  ): UnorderedFoldable<F> => {
+  of: <F>(F: UnorderedFoldableRequirements<F>): UnorderedFoldable<F> => {
     const self: UnorderedFoldable<F> = instance<UnorderedFoldable<F>>({
       unorderedFoldMap: M => f => fa => F.unorderedFoldMap_(M)(fa, f),
 

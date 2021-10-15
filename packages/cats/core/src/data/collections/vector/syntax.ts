@@ -1,4 +1,4 @@
-import { AnyK, Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind, PrimitiveType } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
@@ -137,16 +137,14 @@ declare module './algebra' {
     foldRight1<B>(this: Vector<B>, f: (x: B, z: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
-    foldMapK<F extends AnyK>(
-      F: MonoidK<F>,
-    ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+    foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
 
     scanLeft<B>(z: B, f: (b: B, x: A) => B): Vector<B>;
     scanLeft1<B>(this: Vector<B>, f: (x: B, y: B) => B): Vector<B>;
     scanRight<B>(z: B, f: (x: A, b: B) => B): Vector<B>;
     scanRight1<B>(this: Vector<B>, f: (x: B, y: B) => B): Vector<B>;
 
-    traverse<G extends AnyK>(
+    traverse<G>(
       G: Applicative<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Vector<A>]>;
 

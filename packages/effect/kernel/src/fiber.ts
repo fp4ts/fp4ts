@@ -1,7 +1,7 @@
-import { AnyK, Kind } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Outcome } from './outcome';
 
-export interface Fiber<F extends AnyK, E, A> {
+export interface Fiber<F, E, A> {
   readonly join: Kind<F, [Outcome<F, E, A>]>;
   readonly joinWith: <B>(
     this: Fiber<F, E, B>,

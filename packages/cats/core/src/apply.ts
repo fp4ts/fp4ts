@@ -1,9 +1,9 @@
-import { Kind, AnyK } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eval } from './eval';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
 
-export interface Apply<F extends AnyK> extends Functor<F> {
+export interface Apply<F> extends Functor<F> {
   readonly ap: <A>(
     fa: Kind<F, [A]>,
   ) => <B>(ff: Kind<F, [(a: A) => B]>) => Kind<F, [B]>;
@@ -67,11 +67,11 @@ export interface Apply<F extends AnyK> extends Functor<F> {
   ) => Kind<F, [B]>;
 }
 
-export type ApplyRequirements<F extends AnyK> = Pick<Apply<F>, 'ap_'> &
+export type ApplyRequirements<F> = Pick<Apply<F>, 'ap_'> &
   FunctorRequirements<F> &
   Partial<Apply<F>>;
 export const Apply = Object.freeze({
-  of: <F extends AnyK>(F: ApplyRequirements<F>): Apply<F> => {
+  of: <F>(F: ApplyRequirements<F>): Apply<F> => {
     const self: Apply<F> = {
       ap: fa => ff => self.ap_(ff, fa),
 
@@ -108,8 +108,6 @@ export const Apply = Object.freeze({
     return self;
   },
 
-  compose: <F extends AnyK, G extends AnyK>(
-    F: Apply<F>,
-    G: Apply<G>,
-  ): ComposedApply<F, G> => ComposedApply.of(F, G),
+  compose: <F, G>(F: Apply<F>, G: Apply<G>): ComposedApply<F, G> =>
+    ComposedApply.of(F, G),
 });
