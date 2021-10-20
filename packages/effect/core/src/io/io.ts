@@ -36,6 +36,7 @@ import {
   defer,
   deferPromise,
   delay,
+  fromEither,
   fromPromise,
   never,
   pure,
@@ -103,6 +104,7 @@ interface IOObj {
   deferPromise: <A>(thunk: () => Promise<A>) => IO<A>;
 
   fromPromise: <A>(iop: IO<Promise<A>>) => IO<A>;
+  fromEither: <A>(ea: Either<Error, A>) => IO<A>;
 
   throwError: (e: Error) => IO<never>;
 
@@ -114,7 +116,7 @@ interface IOObj {
     k: (cb: (ea: Either<Error, A>) => void) => IO<Option<IO<void>>>,
   ) => IO<A>;
 
-  async_: <A>(k: (cb: (ea: Either<Error, A>) => void) => IO<void>) => IO<A>;
+  async_: <A>(k: (cb: (ea: Either<Error, A>) => void) => void) => IO<A>;
 
   unit: IO<void>;
 
@@ -150,9 +152,7 @@ interface IOObj {
 
   traverse: <T>(
     T: Traversable<T>,
-  ) => <A, B>(
-    f: (a: A) => IO<B>,
-  ) => <S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
 
   traverse_: <T, A, B>(
     T: Traversable<T>,
@@ -166,9 +166,7 @@ interface IOObj {
 
   parTraverse: <T>(
     T: Traversable<T>,
-  ) => <A, B>(
-    f: (a: A) => IO<B>,
-  ) => <C2, S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
   parTraverse_: <T, A, B>(
     T: Traversable<T>,
     ts: Kind<T, [A]>,
@@ -178,7 +176,7 @@ interface IOObj {
   parSequenceN: <T>(
     T: Traversable<T>,
     maxConcurrent: number,
-  ) => <C2, A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
+  ) => <A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
   parSequenceN_: <T, A>(
     T: Traversable<T>,
     iots: Kind<T, [IO<A>]>,
@@ -188,9 +186,7 @@ interface IOObj {
   parTraverseN: <T>(
     T: Traversable<T>,
     maxConcurrent: number,
-  ) => <A, B>(
-    f: (a: A) => IO<B>,
-  ) => <C2, S2, R2, E2>(ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
+  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
   parTraverseN_: <T, A, B>(
     T: Traversable<T>,
     ts: Kind<T, [A]>,
@@ -252,6 +248,7 @@ IO.defer = defer;
 IO.deferPromise = deferPromise;
 
 IO.fromPromise = fromPromise;
+IO.fromEither = fromEither;
 
 IO.throwError = throwError;
 

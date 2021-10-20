@@ -1,13 +1,14 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { id, pipe, throwError } from '@cats4ts/core';
+import { fst, id, pipe, throwError } from '@cats4ts/core';
 import { Either, Left, Right, Some, List, Eq } from '@cats4ts/cats';
 import { Semaphore } from '@cats4ts/effect-kernel';
 import { IO, IOOutcome } from '@cats4ts/effect-core';
-import { checkAll, forAll } from '@cats4ts/cats-test-kit';
+import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
 import { AsyncSuite } from '@cats4ts/effect-laws';
+import { None } from '@cats4ts/cats-core/lib/data/option/algebra';
 
 describe('IO', () => {
   describe('free monad', () => {
@@ -31,7 +32,7 @@ describe('IO', () => {
     });
 
     it.ticked('should preserve monad identity on async', ticker => {
-      const io1 = IO.async_(cb => IO(() => cb(Right(42))));
+      const io1 = IO.async_(cb => cb(Right(42)));
       const io2 = io1.flatMap(i => IO.pure(i));
 
       expect(io1).toCompleteWith(42, ticker);
@@ -100,7 +101,7 @@ describe('IO', () => {
     });
 
     it.ticked('should resume async IO with failure', ticker => {
-      const io = IO.async_(cb => IO(() => cb(Left(new Error('test error')))));
+      const io = IO.async_(cb => cb(Left(new Error('test error'))));
       expect(io).toFailWith(new Error('test error'), ticker);
     });
 
@@ -272,7 +273,7 @@ describe('IO', () => {
 
   describe('async', () => {
     it.ticked('should resume async continuation', ticker => {
-      const io = IO.async_(cb => IO(() => cb(Right(42))));
+      const io = IO.async_(cb => cb(Right(42)));
 
       expect(io).toCompleteWith(42, ticker);
     });
@@ -280,16 +281,14 @@ describe('IO', () => {
     it.ticked(
       'should resume async continuation and bind its results',
       ticker => {
-        const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).map(
-          x => x + 2,
-        );
+        const io = IO.async_<number>(cb => cb(Right(42))).map(x => x + 2);
 
         expect(io).toCompleteWith(44, ticker);
       },
     );
 
     it.ticked('should produce a failure when bind fails', ticker => {
-      const io = IO.async_<number>(cb => IO(() => cb(Right(42)))).flatMap(() =>
+      const io = IO.async_<number>(cb => cb(Right(42))).flatMap(() =>
         IO.throwError(new Error('test error')),
       ).void;
 
@@ -301,9 +300,10 @@ describe('IO', () => {
       ticker => {
         let cb: (ea: Either<Error, number>) => void;
 
-        const async = IO.async_<number>(cb0 =>
+        const async = IO.async<number>(cb0 =>
           IO(() => {
             cb = cb0;
+            return None;
           }),
         );
 
@@ -340,17 +340,18 @@ describe('IO', () => {
       let outerR: number = 0;
       let innerR: number = 0;
 
-      const outer = IO.async_<number>(cb1 => {
-        const inner = IO.async_<number>(cb2 =>
+      const outer = IO.async<number>(cb1 => {
+        const inner = IO.async<number>(cb2 =>
           IO(() => cb1(Right(1)))
             ['>>>'](IO.readExecutionContext)
-            .flatMap(ec => IO(() => ec.executeAsync(() => cb2(Right(2))))),
+            .flatMap(ec => IO(() => ec.executeAsync(() => cb2(Right(2)))))
+            .map(() => None),
         );
 
         return inner.flatMap(i =>
           IO(() => {
             innerR = i;
-          }),
+          }).map(() => None),
         );
       });
 
@@ -800,11 +801,13 @@ describe('IO', () => {
       const body = IO.async(() =>
         IO(() =>
           Some(
-            IO.async_<void>(cb =>
-              IO.readExecutionContext.flatMap(ec =>
-                // enforce async completion
-                IO(() => ec.executeAsync(() => cb(Either.rightUnit))),
-              ),
+            IO.async<void>(cb =>
+              IO.readExecutionContext
+                .flatMap(ec =>
+                  // enforce async completion
+                  IO(() => ec.executeAsync(() => cb(Either.rightUnit))),
+                )
+                .map(() => None),
             ),
           ).tap(fin),
         ),
@@ -974,7 +977,10 @@ describe('IO', () => {
         const fin = jest.fn();
         const cont = jest.fn();
         const ts = List(
-          IO.defer(() => IO.throwError(new Error('test test'))),
+          IO.defer(() => {
+            console.log('THROWING');
+            return IO.throwError(new Error('test test'));
+          }),
           IO.never,
           IO.never.onCancel(IO(fin)),
           IO(cont),

@@ -12,3 +12,4 @@ export * from './poll';
 export * from './semaphore';
 export * from './execution-context';
 export * from './cont';
+export * from './resource';

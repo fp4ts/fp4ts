@@ -51,12 +51,14 @@ export const async = <A>(
   );
 
 export const async_ = <A>(
-  k: (cb: (ea: Either<Error, A>) => void) => IO<void>,
+  k: (cb: (ea: Either<Error, A>) => void) => void,
 ): IO<A> =>
   new IOCont(
     <G>(G: MonadCancel<G, Error>) =>
       (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
-        G.uncancelable(poll => G.flatMap_(lift(k(resume)), () => poll(get))),
+        G.uncancelable(poll =>
+          G.flatMap_(lift(delay(() => k(resume))), () => poll(get)),
+        ),
   );
 
 export const never: IO<never> = async(() => pure(None));
@@ -78,6 +80,9 @@ export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
       thunk().then(onSuccess, onFailure);
     }),
   );
+
+export const fromEither = <A>(ea: Either<Error, A>): IO<A> =>
+  ea.fold(throwError, pure);
 
 export const fromPromise = <A>(iop: IO<Promise<A>>): IO<A> =>
   flatMap_(iop, p =>

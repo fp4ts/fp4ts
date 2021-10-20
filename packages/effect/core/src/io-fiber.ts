@@ -2,12 +2,11 @@ import { flow, id, pipe } from '@cats4ts/core';
 import { Either, Left, Right, Some } from '@cats4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@cats4ts/effect-kernel';
 
-import { IO } from './io';
+import { IO, IoK } from './io';
 
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
 import { IOOutcome } from './io-outcome';
-import { IoK } from './io/io';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -16,7 +15,7 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> implements Fiber<IoK, Error, A> {
+export class IOFiber<A> extends Fiber<IoK, Error, A> {
   private outcome?: IOOutcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
@@ -41,6 +40,7 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
     startEC: ExecutionContext,
     runtime: IORuntime,
   ) {
+    super();
     this.resumeIO = startIO;
     this.currentEC = startEC;
     this.cxts.push(startEC);
@@ -51,16 +51,6 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
 
   public get join(): IO<IOOutcome<A>> {
     return this._join;
-  }
-
-  public joinWith<B>(this: Fiber<IoK, Error, B>, onCancel: IO<B>): IO<B> {
-    return this.join.flatMap(oc =>
-      oc.fold(() => onCancel, IO.throwError as (e: Error) => IO<B>, id),
-    );
-  }
-
-  public get joinWithNever(): IO<A> {
-    return this.joinWith(IO.never);
   }
 
   public get cancel(): IO<void> {
@@ -363,7 +353,7 @@ export class IOFiber<A> implements Fiber<IoK, Error, A> {
       this.canceled = true;
 
       return this.isUnmasked()
-        ? IO.async_<void>(cb => IO(() => this.cancelAsync(cb)))
+        ? IO.async_(cb => this.cancelAsync(cb))
         : this.join.void;
     }),
   );

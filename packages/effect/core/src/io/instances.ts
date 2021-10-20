@@ -74,6 +74,8 @@ import {
   timeout_,
 } from './operators';
 import type { IO, IoK } from './io';
+import { Ref } from '@cats4ts/effect-kernel/lib/ref';
+import { Deferred } from '@cats4ts/effect-kernel/lib/deferred';
 
 export const ioDefer: Lazy<Defer<IoK>> = () => Defer.of({ defer });
 
@@ -179,6 +181,9 @@ export const ioSpawn: Lazy<Spawn<IoK, Error>> = () => ({
 
 export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = () => ({
   ...ioSpawn(),
+  ref: a => Ref.of(ioAsync())(a),
+  deferred: () => Deferred.of(ioAsync())(),
+
   parTraverse: parTraverse,
   parSequence: parSequence,
 

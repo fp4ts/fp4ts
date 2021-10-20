@@ -1,6 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind, snd } from '@cats4ts/core';
-import { List, Ord, OrderedMap } from '@cats4ts/cats';
+import { List, Ord, OrderedMap, Functor } from '@cats4ts/cats';
+import { ExecutionContext, Resource } from '@cats4ts/effect-kernel';
 import { SyncIO, IO } from '@cats4ts/effect-core';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
@@ -11,9 +12,35 @@ import {
   SyncGenerators,
 } from './kind-generators';
 import { TestExecutionContext } from './test-execution-context';
-import { ExecutionContext } from '@cats4ts/effect';
 
-export * from '@cats4ts/cats-test-kit';
+export * from '@cats4ts/cats-test-kit/lib/arbitraries';
+
+export const cats4tsResource =
+  <F>(F: Functor<F>) =>
+  <A>(
+    arbA: Arbitrary<A>,
+    mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+  ): Arbitrary<Resource<F, A>> => {
+    const arbAllocate: Arbitrary<Resource<F, A>> = mkArbF(arbA).chain(alloc =>
+      mkArbF(fc.constant(undefined as void)).map(dispose =>
+        Resource<F>(F)(F.map_(alloc, a => [a, dispose])),
+      ),
+    );
+
+    const arbFlatMap: Arbitrary<Resource<F, A>> = arbAllocate.map(r =>
+      r.flatMap(a => Resource.pure(a)),
+    );
+
+    const arbEval: Arbitrary<Resource<F, A>> = mkArbF(arbA).map(Resource.evalF);
+    const genPure: Arbitrary<Resource<F, A>> = arbA.map(Resource.pure);
+
+    return fc.frequency(
+      { weight: 5, arbitrary: arbAllocate },
+      { weight: 1, arbitrary: arbFlatMap },
+      { weight: 1, arbitrary: arbEval },
+      { weight: 1, arbitrary: genPure },
+    );
+  };
 
 export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
   cats4tsKind(

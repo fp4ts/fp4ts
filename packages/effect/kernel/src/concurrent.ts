@@ -1,8 +1,13 @@
 import { Kind } from '@cats4ts/core';
 import { Traversable } from '@cats4ts/cats-core';
 import { Spawn } from './spawn';
+import { Ref } from './ref';
+import { Deferred } from './deferred';
 
 export interface Concurrent<F, E> extends Spawn<F, E> {
+  readonly ref: <A>(a: A) => Kind<F, [Ref<F, A>]>;
+  readonly deferred: <A>() => Kind<F, [Deferred<F, A>]>;
+
   readonly parTraverse: <T>(
     T: Traversable<T>,
   ) => <A, B>(

@@ -537,8 +537,8 @@ export const map2_ = <A, B, C>(
       bindTo('a', ({ fiberA, fiberB }) =>
         pipe(
           poll(fiberA.join),
-          onCancel(fiberA.cancel),
           onCancel(fiberB.cancel),
+          onCancel(fiberA.cancel),
           flatMap(oc =>
             oc.fold(
               () =>
