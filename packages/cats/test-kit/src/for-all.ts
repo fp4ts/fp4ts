@@ -175,10 +175,10 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
 ): () => void;
 export function forAll(...args: any[]): any {
   const [predicate] = args.splice(-1);
-  const run = async (E?: any) => {
-    await fc.assert(
+  const run = (E?: any) => {
+    fc.assert(
       // @ts-ignore
-      fc.asyncProperty(...[...args, async (...args0) => {
+      fc.property(...[...args, (...args0) => {
         if (!E) return predicate(...args0);
         if (typeof E === 'function') return E(predicate(...args0));
         const { lhs, rhs } = predicate(...args0);

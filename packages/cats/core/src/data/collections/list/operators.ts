@@ -800,11 +800,8 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> => {
-    const consF = (x: A, ys: Kind<G, [List<B>]>): Kind<G, [List<B>]> =>
-      G.map2_(ys, f(x))(prepend_);
-    return foldRight_(xs, G.pure(empty as List<B>), consF);
-  };
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
+    toVector(xs).traverse(G)(f);
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

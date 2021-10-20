@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { id } from '@cats4ts/core';
 import { AdditionMonoid, Eq, Eval, EvalK } from '@cats4ts/cats-core';
 import {
+  Identity,
   Either,
   Left,
   Right,
@@ -1052,14 +1053,20 @@ describe('List', () => {
     });
   });
 
-  describe('traverse & sequence', () => {
-    // it('should map list of numbers to array of a single list', () => {
-    //   expect(
-    //     List(1, 2, 3)
-    //       .map(x => [x])
-    //       .sequence(arrayApplicative()),
-    //   ).toEqual([List(1, 2, 3)]);
-    // });
+  describe('traverse', () => {
+    it('should return empty list when empty', () => {
+      expect(List().traverse(Identity.Applicative)(id)).toEqual(List.empty);
+    });
+
+    it('should invoke elements in order', () => {
+      const arr: number[] = [];
+      List(1, 2, 3, 4, 5).traverse(Identity.Applicative)(x => {
+        arr.push(x);
+        return x;
+      });
+
+      expect(arr).toEqual([1, 2, 3, 4, 5]);
+    });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
@@ -1071,15 +1078,7 @@ describe('List', () => {
     });
   });
 
-  describe('flatTraverse & flatSequence', () => {
-    // it('should map list of numbers to array of a single list', () => {
-    //   expect(
-    //     List(1, 2, 3)
-    //       .map(x => [List(x)])
-    //       .flatSequence(arrayApplicative()),
-    //   ).toEqual([List(1, 2, 3)]);
-    // });
-
+  describe('flatTraverse', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
