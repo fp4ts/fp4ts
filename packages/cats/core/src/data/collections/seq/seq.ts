@@ -11,6 +11,7 @@ import {
   fromVector,
   of,
   pure,
+  range,
   singleton,
 } from './constructors';
 
@@ -69,10 +70,9 @@ export interface Seq<A> extends Iterable<A> {
 
   readonly flattenSeq: A extends Seq<infer B> ? Seq<B> : never | unknown;
 
-  // fold: <B>(onNil: () => B, onCons: (head: A, tail: Seq<A>) => B) => B;
-  // foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
+  foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
   // foldLeft1: <B>(this: Seq<B>, f: (x: B, a: B) => B) => B;
-  // foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
+  foldRight<B>(z: B, f: (a: A, b: B) => B): B;
   // foldRight1: <B>(this: Seq<B>, f: (x: B, a: B) => B) => B;
   // foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
   // foldMapK: <F>(
@@ -127,6 +127,8 @@ interface SeqObj {
   fromList<A>(xs: List<A>): Seq<A>;
   fromVector<A>(xs: Vector<A>): Seq<A>;
   fromIterator<A>(xs: Iterator<A>): Seq<A>;
+
+  range(from: number, to: number): Seq<number>;
 }
 
 Object.defineProperty(Seq, 'empty', {
@@ -167,5 +169,10 @@ Object.defineProperty(Seq, 'fromVector', {
 Object.defineProperty(Seq, 'fromIterator', {
   get() {
     return fromIterator;
+  },
+});
+Object.defineProperty(Seq, 'range', {
+  get() {
+    return range;
   },
 });

@@ -26,3 +26,11 @@ export const fromIterator = <A>(xs: Iterator<A>): Vector<A> => {
   }
   return result;
 };
+
+export const range = (from: number, to: number): Vector<number> => {
+  let result: Vector<number> = empty;
+  for (let i = from; i < to; i++) {
+    result = append_(result, i);
+  }
+  return result;
+};

@@ -22,6 +22,7 @@ import {
   handleError_,
   map_,
   onCancel_,
+  surround_,
   useKleisli_,
   use_,
 } from './operators';
@@ -31,18 +32,24 @@ declare module './algebra' {
   interface Resource<F, A> {
     use(
       F: MonadCancel<F, Error>,
-    ): <A, B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+    ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
     use_(F: MonadCancel<F, Error>): Kind<F, [void]>;
 
     useKleisli(
       F: MonadCancel<F, Error>,
     ): <B>(k: Kleisli<F, A, B>) => Kind<F, [B]>;
 
+    surround(F: MonadCancel<F, Error>): <B>(fb: Kind<F, [B]>) => Kind<F, [B]>;
+
     map<B>(f: (a: A) => B): Resource<F, B>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Resource<F, B>;
     evalTap(f: (a: A) => Kind<F, [unknown]>): Resource<F, A>;
+
     flatMap<B>(f: (a: A) => Resource<F, B>): Resource<F, B>;
-    readonly flatten: A extends Resource<F, infer B> ? Resource<F, A> : never;
+    readonly flatten: A extends Resource<F, infer B> ? Resource<F, B> : never;
+
+    '>>>'<B>(that: Resource<F, B>): Resource<F, B>;
+    '<<<'<B>(that: Resource<F, B>): Resource<F, B>;
 
     combine<B>(
       this: Resource<F, B>,
@@ -95,6 +102,10 @@ Resource.prototype.useKleisli = function (F) {
   return k => useKleisli_(F)(this, k);
 };
 
+Resource.prototype.surround = function (F) {
+  return fb => surround_(F)(this, fb);
+};
+
 Resource.prototype.map = function (f) {
   return map_(this, f);
 };
@@ -113,6 +124,14 @@ Object.defineProperty(Resource.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Resource.prototype['>>>'] = function (that) {
+  return this.flatMap(() => that);
+};
+
+Resource.prototype['<<<'] = function (that) {
+  return this.flatMap(a => that.map(() => a));
+};
 
 Resource.prototype.combine = function (A) {
   return that => combine_(A)(this, that);

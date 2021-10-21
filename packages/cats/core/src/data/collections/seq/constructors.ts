@@ -11,3 +11,6 @@ export const fromList: <A>(xs: List<A>) => Seq<A> = id;
 export const fromVector: <A>(xs: Vector<A>) => Seq<A> = id;
 export const fromIterator: <A>(xs: Iterator<A>) => Seq<A> = xs =>
   Vector.fromIterator(xs);
+
+export const range = (from: number, to: number): Seq<number> =>
+  Vector.range(from, to);

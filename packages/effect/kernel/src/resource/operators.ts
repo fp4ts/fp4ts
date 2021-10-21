@@ -32,6 +32,18 @@ export const use: <F>(
   F => f => r =>
     use_(F)(r, f);
 
+export const useKleisli: <F>(
+  F: MonadCancel<F, Error>,
+) => <A, B>(k: Kleisli<F, A, B>) => (r: Resource<F, A>) => Kind<F, [B]> =
+  F => k => r =>
+    useKleisli_(F)(r, k);
+
+export const surround: <F>(
+  F: MonadCancel<F, Error>,
+) => <B>(fb: Kind<F, [B]>) => <A>(r: Resource<F, A>) => Kind<F, [B]> =
+  F => fb => r =>
+    surround_(F)(r, fb);
+
 export const map: <A, B>(
   f: (a: A) => B,
 ) => <F>(r: Resource<F, A>) => Resource<F, B> = f => r => map_(r, f);
@@ -314,6 +326,11 @@ export const useKleisli_ =
   <F>(F: MonadCancel<F, Error>) =>
   <A, B>(r: Resource<F, A>, k: Kleisli<F, A, B>): Kind<F, [B]> =>
     use_(F)(r, k.run);
+
+export const surround_ =
+  <F>(F: MonadCancel<F, Error>) =>
+  <A, B>(r: Resource<F, A>, fb: Kind<F, [B]>): Kind<F, [B]> =>
+    use_(F)(r, () => fb);
 
 export const map_ = <F, A, B>(
   r: Resource<F, A>,

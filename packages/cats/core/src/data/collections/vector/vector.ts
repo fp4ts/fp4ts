@@ -23,6 +23,7 @@ import {
   fromIterator,
   fromList,
   pure,
+  range,
   singleton,
 } from './constructors';
 import {
@@ -59,6 +60,8 @@ interface VectorObj {
   fromList<A>(xs: List<A>): Vector<A>;
   fromIterator<A>(xs: Iterator<A>): Vector<A>;
 
+  range(from: number, to: number): Vector<number>;
+
   tailRecM<A>(a: A): <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B>;
 
   // -- Instances
@@ -84,6 +87,8 @@ Vector.empty = empty;
 Vector.fromArray = fromArray;
 Vector.fromList = fromList;
 Vector.fromIterator = fromIterator;
+
+Vector.range = range;
 
 Vector.tailRecM = tailRecM;
 
