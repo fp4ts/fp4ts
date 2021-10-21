@@ -673,9 +673,9 @@ describe('Vector', () => {
     });
 
     it('should be stack safe', () => {
-      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      const xs = Vector.fromArray([...new Array(50_000).keys()]);
       expect(xs.foldLeft(0, add)).toEqual(
-        [...new Array(10_000).keys()].reduce(add, 0),
+        [...new Array(50_000).keys()].reduce(add, 0),
       );
     });
   });

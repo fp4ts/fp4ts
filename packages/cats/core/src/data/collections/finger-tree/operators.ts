@@ -360,12 +360,33 @@ export const iterator = <V, A>(v: FingerTree<V, A>): Iterator<A> => {
     case 'single':
       return Iter.singleton(ft.value);
     case 'deep': {
-      const r = Iter.flatMap_(iterator(ft.deep), ([, ...n]) =>
-        (n as A[])[Symbol.iterator](),
+      const r = Iter.flatMap_(
+        iterator(ft.deep),
+        ([, ...n]) => (n as A[]).iterator,
       );
       return Iter.concat_(
-        ft.prefix[Symbol.iterator](),
-        Iter.concat_(r, ft.suffix[Symbol.iterator]()),
+        ft.prefix.iterator,
+        Iter.concat_(r, ft.suffix.iterator),
+      );
+    }
+  }
+};
+
+export const reverseIterator = <V, A>(v: FingerTree<V, A>): Iterator<A> => {
+  const ft = view(v);
+  switch (ft.tag) {
+    case 'empty':
+      return Iter.empty;
+    case 'single':
+      return Iter.singleton(ft.value);
+    case 'deep': {
+      const r = Iter.flatMap_(
+        reverseIterator(ft.deep),
+        ([, ...n]) => (n as A[]).reverseIterator,
+      );
+      return Iter.concat_(
+        ft.suffix.reverseIterator,
+        Iter.concat_(r, ft.prefix.reverseIterator),
       );
     }
   }

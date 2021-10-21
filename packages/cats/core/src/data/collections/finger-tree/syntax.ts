@@ -20,6 +20,7 @@ import {
   popHead,
   popLast,
   prepend_,
+  reverseIterator,
   splitAt_,
   tail,
   toArray,
@@ -51,6 +52,7 @@ declare module './algebra' {
     readonly toList: List<A>;
     readonly toArray: A[];
     readonly iterator: Iterator<A>;
+    readonly reverseIterator: Iterator<A>;
     [Symbol.iterator](): Iterator<A>;
 
     prepend<B>(
@@ -160,6 +162,12 @@ Object.defineProperty(FingerTree.prototype, 'toArray', {
 Object.defineProperty(FingerTree.prototype, 'iterator', {
   get<V, A>(this: FingerTree<V, A>) {
     return iterator(this);
+  },
+});
+
+Object.defineProperty(FingerTree.prototype, 'reverseIterator', {
+  get<V, A>(this: FingerTree<V, A>) {
+    return reverseIterator(this);
   },
 });
 

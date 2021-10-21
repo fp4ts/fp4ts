@@ -9,6 +9,8 @@ import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { Either } from '../../either';
 import { Vector } from '../vector';
+import { Seq } from '../seq';
+import * as S from '../seq/functional';
 
 import { List } from './algebra';
 import {
@@ -69,10 +71,11 @@ import {
   zip_,
   align_,
   iterator,
+  reverseIterator,
 } from './operators';
 
 declare module './algebra' {
-  interface List<A> {
+  interface List<A> extends Seq<A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
@@ -92,6 +95,7 @@ declare module './algebra' {
     readonly toVector: Vector<A>;
 
     readonly iterator: Iterator<A>;
+    readonly reverseIterator: Iterator<A>;
     [Symbol.iterator](): Iterator<A>;
 
     readonly reverse: List<A>;
@@ -124,13 +128,13 @@ declare module './algebra' {
     filter: (p: (a: A) => boolean) => List<A>;
     map: <B>(f: (a: A) => B) => List<B>;
 
-    flatMap: <B>(f: (a: A) => List<B>) => List<B>;
+    flatMap<B>(f: (a: A) => List<B>): List<B>;
 
     readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
 
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
     foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
-    foldLeft1: <B = A>(f: (x: B, a: B) => B) => B;
+    foldLeft1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
     foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
     foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
@@ -253,6 +257,12 @@ Object.defineProperty(List.prototype, 'iterator', {
   },
 });
 
+Object.defineProperty(List.prototype, 'reverseIterator', {
+  get<A>(this: List<A>): Iterator<A> {
+    return reverseIterator(this);
+  },
+});
+
 List.prototype[Symbol.iterator] = function () {
   return iterator(this);
 };
@@ -283,8 +293,10 @@ List.prototype.prepend = function <A>(this: List<A>, x: A): List<A> {
   return prepend_(this, x);
 };
 
-List.prototype.concat = function <A>(this: List<A>, that: List<A>): List<A> {
-  return concat_<A>(this, that);
+List.prototype.concat = function (this, that) {
+  return that instanceof List
+    ? concat_(this, that)
+    : (S.concat_(this, that) as any);
 };
 
 List.prototype['+++'] = function <A>(this: List<A>, that: List<A>): List<A> {
@@ -367,6 +379,9 @@ List.prototype.map = function <A, B>(this: List<A>, f: (a: A) => B): List<B> {
   return map_(this, f);
 };
 
+List.prototype.flatMapSeq = function (f) {
+  return S.flatMapSeq_(this, f);
+};
 List.prototype.flatMap = function <A, B>(
   this: List<A>,
   f: (a: A) => List<B>,
@@ -377,6 +392,12 @@ List.prototype.flatMap = function <A, B>(
 Object.defineProperty(List.prototype, 'flatten', {
   get<A>(this: List<List<A>>): List<A> {
     return flatten(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'flattenSeq', {
+  get<A>(this: List<Seq<A>>): Seq<A> {
+    return S.flattenSeq(this);
   },
 });
 

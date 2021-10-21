@@ -8,6 +8,8 @@ import { Show } from '../../../show';
 import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { List } from '../list';
+import { Seq } from '../seq';
+import * as S from '../seq/functional';
 
 import { Vector } from './algebra';
 import {
@@ -44,6 +46,7 @@ import {
   popLast,
   prepend_,
   reverse,
+  reverseIterator,
   scanLeft1_,
   scanLeft_,
   scanRight1_,
@@ -64,7 +67,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Vector<A> {
+  interface Vector<A> extends Seq<A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
@@ -85,6 +88,7 @@ declare module './algebra' {
     readonly toArray: A[];
 
     readonly iterator: Iterator<A>;
+    readonly reverseIterator: Iterator<A>;
     [Symbol.iterator](): Iterator<A>;
 
     readonly reverse: Vector<A>;
@@ -238,6 +242,12 @@ Object.defineProperty(Vector.prototype, 'iterator', {
   },
 });
 
+Object.defineProperty(Vector.prototype, 'reverseIterator', {
+  get<A>(this: Vector<A>): Iterator<A> {
+    return reverseIterator(this);
+  },
+});
+
 Vector.prototype[Symbol.iterator] = function () {
   return iterator(this);
 };
@@ -261,7 +271,9 @@ Vector.prototype.snoc = Vector.prototype.append;
 Vector.prototype['::+'] = Vector.prototype.append;
 
 Vector.prototype.concat = function (that) {
-  return concat_(this, that);
+  return that instanceof Vector
+    ? concat_(this, that)
+    : (S.concat_(this, that) as any);
 };
 Vector.prototype['+++'] = Vector.prototype.concat;
 
@@ -311,6 +323,9 @@ Vector.prototype.map = function (f) {
   return map_(this, f);
 };
 
+Vector.prototype.flatMapSeq = function (f) {
+  return S.flatMapSeq_(this, f);
+};
 Vector.prototype.flatMap = function (f) {
   return flatMap_(this, f);
 };
@@ -318,6 +333,11 @@ Vector.prototype.flatMap = function (f) {
 Object.defineProperty(Vector.prototype, 'flatten', {
   get<A>(this: Vector<Vector<A>>): Vector<A> {
     return flatten(this);
+  },
+});
+Object.defineProperty(Vector.prototype, 'flattenSeq', {
+  get<A>(this: Vector<Seq<A>>): Seq<A> {
+    return S.flattenSeq(this);
   },
 });
 

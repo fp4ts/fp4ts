@@ -17,7 +17,14 @@ import { Either } from '../../either';
 import { List } from '../list';
 
 import { Vector as VectorBase } from './algebra';
-import { empty, fromArray, fromList, pure, singleton } from './constructors';
+import {
+  empty,
+  fromArray,
+  fromIterator,
+  fromList,
+  pure,
+  singleton,
+} from './constructors';
 import {
   vectorAlign,
   vectorAlternative,
@@ -50,6 +57,7 @@ interface VectorObj {
 
   fromArray<A>(xs: A[]): Vector<A>;
   fromList<A>(xs: List<A>): Vector<A>;
+  fromIterator<A>(xs: Iterator<A>): Vector<A>;
 
   tailRecM<A>(a: A): <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B>;
 
@@ -75,6 +83,7 @@ Vector.singleton = singleton;
 Vector.empty = empty;
 Vector.fromArray = fromArray;
 Vector.fromList = fromList;
+Vector.fromIterator = fromIterator;
 
 Vector.tailRecM = tailRecM;
 

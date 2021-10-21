@@ -1069,7 +1069,7 @@ describe('List', () => {
     });
 
     it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
+      const xs = List.fromArray([...new Array(20_000).keys()]);
       expect(
         xs
           .traverse(Vector.Applicative)(x => Vector(x))

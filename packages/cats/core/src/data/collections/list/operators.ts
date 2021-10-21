@@ -12,6 +12,7 @@ import { Option, None, Some } from '../../option';
 import { Cons, List, view } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { Vector } from '../vector';
+import { Chain } from '../chain';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -92,6 +93,9 @@ export const iterator = <A>(xs: List<A>): Iterator<A> => {
     ),
   );
 };
+
+export const reverseIterator = <A>(xs: List<A>): Iterator<A> =>
+  iterator(reverse(xs));
 
 export const equals: <A2>(
   E: Eq<A2>,
@@ -801,7 +805,7 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
-    toVector(xs).traverse(G)(f);
+    G.map_(Chain.traverseViaChain(G)(xs, f), ys => ys.toList);
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

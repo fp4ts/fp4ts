@@ -2,6 +2,8 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind, PrimitiveType } from '@cats4ts/core';
 import { Eval, Hashable, Ord } from '@cats4ts/cats-core';
 import {
+  Seq,
+  Chain,
   Either,
   HashMap,
   Left,
@@ -115,6 +117,53 @@ export const cats4tsVector = <A>(
   });
 
   return size.chain(genSized);
+};
+
+export const cats4tsSeq = <A>(arbA: Arbitrary<A>): Arbitrary<Seq<A>> => {
+  const maxDepth = 5;
+
+  const base = fc.frequency(
+    { weight: 1, arbitrary: fc.constant(Seq.empty) },
+    { weight: 5, arbitrary: arbA.chain(x => fc.constant(Seq.singleton(x))) },
+    {
+      weight: 20,
+      arbitrary: fc.array(arbA).chain(xs => fc.constant(Seq.fromArray(xs))),
+    },
+  );
+
+  const recursive = fc.memo((depth: number): Arbitrary<Seq<A>> => {
+    if (depth >= maxDepth) return base;
+    return fc
+      .tuple(gen(depth + 1), gen(depth + 1))
+      .map(([pfx, sfx]) => pfx['+++'](Seq.empty)['+++'](sfx));
+  });
+
+  const gen = (depth: number): Arbitrary<Seq<A>> =>
+    fc.oneof(base, recursive(depth));
+
+  return gen(0);
+};
+
+export const cats4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
+  const maxDepth = 10;
+
+  const base = fc.frequency(
+    { weight: 1, arbitrary: fc.constant(Chain.empty) },
+    { weight: 5, arbitrary: arbA.map(Chain.singleton) },
+    { weight: 20, arbitrary: fc.array(arbA).map(Chain.fromArray) },
+  );
+
+  const recursive = fc.memo((depth: number): Arbitrary<Chain<A>> => {
+    if (depth >= maxDepth) return base;
+    return fc
+      .tuple(gen(depth + 1), gen(depth + 1))
+      .map(([pfx, sfx]) => pfx['+++'](Chain.empty)['+++'](sfx));
+  });
+
+  const gen = (depth: number): Arbitrary<Chain<A>> =>
+    fc.oneof(base, recursive(depth));
+
+  return gen(0);
 };
 
 interface OrderedMapConstraints {

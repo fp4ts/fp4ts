@@ -1,4 +1,7 @@
+import { Iter } from '@cats4ts/core';
 import { Monoid } from '../../../monoid';
+import { Some, None } from '../../option';
+import { IndexedSeq } from '../indexed-seq';
 import {
   concat_,
   drop_,
@@ -13,7 +16,7 @@ import {
 } from './operators';
 
 declare global {
-  interface Array<T> {
+  interface Array<T> extends IndexedSeq<T> {
     head: T;
     tail: T[];
 
@@ -59,6 +62,27 @@ Object.defineProperty(Array.prototype, 'nonEmpty', {
   },
 });
 
+Object.defineProperty(Array.prototype, 'size', {
+  get<A>(this: A[]): number {
+    return this.length;
+  },
+});
+
+Object.defineProperty(Array.prototype, 'iterator', {
+  get<A>(this: A[]): Iterator<A> {
+    return this[Symbol.iterator]();
+  },
+});
+
+Object.defineProperty(Array.prototype, 'reverseIterator', {
+  get<A>(this: A[]): Iterator<A> {
+    let i = this.length - 1;
+    return Iter.lift(() =>
+      i >= 0 ? Iter.Result.pure(this[i--]) : Iter.Result.done,
+    );
+  },
+});
+
 Array.prototype.take = function <A>(this: A[], n: number): A[] {
   return take_(this, n);
 };
@@ -69,6 +93,15 @@ Array.prototype.drop = function <A>(this: A[], n: number): A[] {
 
 Array.prototype['+++'] = function <A>(this: A[], that: A[]): Array<A> {
   return concat_(this, that);
+};
+
+Array.prototype.elem = function (idx) {
+  return this[idx];
+};
+Array.prototype['!!'] = Array.prototype.elem;
+
+Array.prototype.elemOption = function (idx) {
+  return idx >= 0 && idx < this.length ? Some(this[idx]) : None;
 };
 
 Array.prototype.foldMap = function <A, M>(

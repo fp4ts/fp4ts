@@ -11,6 +11,7 @@ import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, Some, None } from '../../option';
 import { List } from '../list';
+import { Chain } from '../chain';
 
 import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
@@ -64,6 +65,8 @@ export const toArray = <A>(v: Vector<A>): A[] =>
   foldLeft_(v, [] as A[], (xs, x) => [...xs, x]);
 
 export const iterator = <A>(v: Vector<A>): Iterator<A> => FT.iterator(v._root);
+export const reverseIterator = <A>(v: Vector<A>): Iterator<A> =>
+  FT.reverseIterator(v._root);
 
 export const popHead = <A>(v: Vector<A>): Option<[A, Vector<A>]> =>
   FT_.popHead(v._root).map(([hd, tl]) => [hd, new Vector(tl)]);
@@ -476,47 +479,8 @@ export const zipWith_ =
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: Vector<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Vector<B>]> => {
-    if (isEmpty(xs)) return G.pure(empty);
-
-    // Max width of the tree -- max depth log_128(c.size)
-    const width = 128;
-
-    const loop = (start: number, end: number): Eval<Kind<G, [Vector<B>]>> => {
-      if (end - start <= width) {
-        // We've entered leaves of the tree
-        let first = Eval.delay(() =>
-          G.map_(f(elem_(xs, end - 1)), b => List(b)),
-        );
-        for (let idx = end - 2; start <= idx; idx--) {
-          const right = first;
-          const a = elem_(xs, idx);
-          first = Eval.defer(() =>
-            G.map2Eval_(f(a), right)((h, t) => t.prepend(h)),
-          );
-        }
-        return first.map(f => G.map_(f, fromList));
-      } else {
-        const step = ((end - start) / width) | 0;
-
-        let fvector = Eval.defer(() => loop(start, start + step));
-
-        for (
-          let start0 = start + step, end0 = start0 + end;
-          start0 < end;
-          start0 += step, end0 += step
-        ) {
-          const end1 = Math.min(end, end0);
-          const start1 = start0;
-          const right = loop(start1, end1);
-          fvector = fvector.flatMap(fv => G.map2Eval_(fv, right)(concat_));
-        }
-        return fvector;
-      }
-    };
-
-    return loop(0, size(xs)).value;
-  };
+  <A, B>(xs: Vector<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Vector<B>]> =>
+    G.map_(Chain.traverseViaChain(G)(xs, f), xs => xs.toVector);
 
 export const equals_ =
   <A2>(E: Eq<A2>) =>

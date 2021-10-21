@@ -15,9 +15,18 @@ import { Traversable } from '../../../traversable';
 
 import { Either } from '../../either';
 import { Vector } from '../vector';
+import { Seq } from '../seq';
 
 import { List as ListBase } from './algebra';
-import { empty, fromArray, fromVector, of, pure } from './constructors';
+import {
+  empty,
+  fromArray,
+  fromIterator,
+  fromSeq,
+  fromVector,
+  of,
+  pure,
+} from './constructors';
 import {
   listApplicative,
   listApply,
@@ -47,9 +56,11 @@ interface ListObj {
   pure: <A>(x: A) => List<A>;
   empty: List<never>;
   of: <A>(...xs: A[]) => List<A>;
-  fromArray: <A>(xs: A[]) => List<A>;
-  fromVector: <A>(xs: Vector<A>) => List<A>;
-  tailRecM: <A>(a: A) => <B>(f: (a: A) => List<Either<A, B>>) => List<B>;
+  fromArray<A>(xs: A[]): List<A>;
+  fromIterator<A>(it: Iterator<A>): List<A>;
+  fromSeq<A>(it: Seq<A>): List<A>;
+  fromVector<A>(xs: Vector<A>): List<A>;
+  tailRecM<A>(a: A): <B>(f: (a: A) => List<Either<A, B>>) => List<B>;
 
   // -- Instances
 
@@ -73,6 +84,8 @@ List.empty = empty;
 List.of = of;
 List.fromArray = fromArray;
 List.fromVector = fromVector;
+List.fromSeq = fromSeq;
+List.fromIterator = fromIterator;
 List.tailRecM = tailRecM;
 
 Object.defineProperty(List, 'SemigroupK', {

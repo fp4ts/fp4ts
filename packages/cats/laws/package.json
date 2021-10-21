@@ -9,10 +9,10 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "devDependencies": {
-    "@cats4ts/core": "*",
     "@cats4ts/cats-core": "*",
     "@cats4ts/cats-test-kit": "*",
-    "fast-check": "^2.17.0",
+    "@cats4ts/core": "*",
+    "fast-check": "^2.18.0",
     "typescript": "4.4.2"
   }
 }
