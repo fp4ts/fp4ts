@@ -1,3 +1,5 @@
+import { pure as one, done } from './iterator-result';
+
 export const singleton = <A>(x: A): Iterator<A> => {
   let done = false;
   return {
@@ -22,3 +24,7 @@ export const lift = <A>(next: () => IteratorResult<A>): Iterator<A> => ({
 });
 
 export const fromArray = <A>(xs: A[]): Iterator<A> => xs[Symbol.iterator]();
+export const fromArrayReversed = <A>(xs: A[]): Iterator<A> => {
+  let it = xs.length - 1;
+  return lift(() => (it >= 0 ? one(xs[it++]) : done));
+};

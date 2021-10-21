@@ -1,6 +1,6 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { Eq, List, Either } from '@cats4ts/cats';
+import { Eq, List } from '@cats4ts/cats';
 import { MonadCancelSuite } from '@cats4ts/effect-laws';
 import { IO, IoK } from '@cats4ts/effect-core';
 import { Resource } from '@cats4ts/effect-kernel';
@@ -40,53 +40,6 @@ describe('Resource', () => {
         );
         return new IsEq(released, as.map(fst));
       })(List.Eq(Eq.primitive))();
-    });
-
-    it.ticked('should testttt', ticker => {
-      const as: List<[number, Either<Error, void>]> = List(
-        [0, Either.rightUnit],
-        [1, Either.rightUnit],
-      );
-
-      let released: List<number> = List.empty;
-      const r = as.traverse(Instance)(([a, e]) =>
-        Resource.make(IO.Functor)(
-          IO(() => a),
-          a =>
-            IO(() => (released = released.prepend(a)))['>>>'](IO.fromEither(e)),
-        ),
-      );
-
-      expect(r.use_(IO.MonadCancel).attempt.void).toCompleteWith(
-        undefined,
-        ticker,
-      );
-      expect(released.toArray).toEqual(as.map(fst).toArray);
-    });
-
-    it.ticked('should do something', ticker => {
-      const xs = List<[number, Either<Error, void>]>(
-        [0, Either.rightUnit],
-        [1, Either.rightUnit],
-      );
-
-      let released: List<number> = List.empty;
-      const lhs = Resource.make(IO.Functor)(
-        IO(() => 0),
-        a => IO(() => (released = released.prepend(a)))['>>>'](IO.unit),
-      );
-      const rhs = Resource.make(IO.Functor)(
-        IO(() => 1),
-        a => IO(() => (released = released.prepend(a)))['>>>'](IO.unit),
-      );
-
-      const r = lhs.flatMap(() => rhs.map(() => {}));
-
-      expect(r.use_(IO.MonadCancel).attempt.void).toCompleteWith(
-        undefined,
-        ticker,
-      );
-      expect(released.toArray).toEqual([0, 1]);
     });
   });
 

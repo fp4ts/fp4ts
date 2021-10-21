@@ -14,6 +14,11 @@ export const concat: <AA>(
 ) => <A extends AA>(lhs: Iterator<A>) => Iterator<AA> = rhs => lhs =>
   concat_(lhs, rhs);
 
+export const zipWithIndex = <A>(it: Iterator<A>): Iterator<[A, number]> => {
+  let idx = 0;
+  return map_(it, x => [x, idx++]);
+};
+
 // -- Point-ful operators
 
 export const map_ = <A, B>(it: Iterator<A>, f: (a: A) => B): Iterator<B> =>
@@ -40,3 +45,35 @@ export const flatMap_ = <A, B>(
 
 export const concat_ = <A>(lhs: Iterator<A>, rhs: Iterator<A>): Iterator<A> =>
   lift(() => IR.orElse_(lhs.next(), () => rhs.next()));
+
+export const zip_ = <A, B>(
+  lhs: Iterator<A>,
+  rhs: Iterator<B>,
+): Iterator<[A, B]> => zipWith_(lhs, rhs)((l, r) => [l, r]);
+
+export const zipWith_ =
+  <A, B>(lhs: Iterator<A>, rhs: Iterator<B>) =>
+  <C>(f: (a: A, b: B) => C): Iterator<C> =>
+    lift(() => IR.flatMap_(lhs.next(), l => IR.map_(rhs.next(), r => f(l, r))));
+
+export const zipAllWith_ =
+  <A, B>(
+    lhs: Iterator<A>,
+    rhs: Iterator<B>,
+    defaultL: () => A,
+    defaultR: () => B,
+  ) =>
+  <C>(f: (a: A, b: B) => C): Iterator<C> =>
+    lift(() => {
+      const l = lhs.next();
+      const r = rhs.next();
+      if (l.done && r.done) return IR.done;
+      return IR.flatMap_(
+        IR.orElse_(l, () => IR.pure(defaultL())),
+        l =>
+          IR.map_(
+            IR.orElse_(r, () => IR.pure(defaultR())),
+            r => f(l, r),
+          ),
+      );
+    });

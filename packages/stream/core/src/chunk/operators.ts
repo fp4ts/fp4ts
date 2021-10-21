@@ -640,7 +640,7 @@ export const zipWith_ = <O1, O2, O3>(
 export const traverse_ =
   <F>(F: Applicative<F>) =>
   <O, O2>(c: Chunk<O>, f: (o: O) => Kind<F, [O2]>): Kind<F, [Chunk<O2>]> => {
-    if (c.isEmpty) return F.pure(EmptyChunk);
+    if (isEmpty(c)) return F.pure(EmptyChunk);
 
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;

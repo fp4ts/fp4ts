@@ -18,6 +18,11 @@ export const map_ = <A, B>(
   f: (a: A) => B,
 ): IteratorResult<B> => (r.done ? pure(f(r.value)) : done);
 
+export const flatMap_ = <A, B>(
+  r: IteratorResult<A>,
+  f: (a: A) => IteratorResult<B>,
+): IteratorResult<B> => (r.done ? f(r.value) : done);
+
 export const orElse_ = <A>(
   lhs: IteratorResult<A>,
   rhs: () => IteratorResult<A>,

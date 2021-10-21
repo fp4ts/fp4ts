@@ -5,8 +5,7 @@ import { IO } from '@cats4ts/effect-core';
 
 const size = 1000;
 
-const evalAsync = (n: number): IO<number> =>
-  IO.async_(cb => IO(() => cb(Right(n))));
+const evalAsync = (n: number): IO<number> => IO.async_(cb => cb(Right(n)));
 
 pipe(
   benchmark.group('async')(
