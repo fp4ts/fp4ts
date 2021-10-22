@@ -40,8 +40,11 @@ export const lastOption = <K, V>(m: OrderedMap<K, V>): Option<V> => max(m);
 export const size = <K, V>(m: OrderedMap<K, V>): number =>
   foldLeft_(m, 0, c => c + 1);
 
-export const toArray = <K, V>(m: OrderedMap<K, V>): [K, V][] =>
-  foldLeft_(m, [] as [K, V][], (xs, x, k) => [...xs, [k, x]]);
+export const toArray = <K, V>(m: OrderedMap<K, V>): [K, V][] => {
+  const result: [K, V][] = [];
+  forEach_(m, (v, k) => result.push([k, v]));
+  return result;
+};
 
 export const toList = <K, V>(m: OrderedMap<K, V>): List<[K, V]> =>
   foldRight_(m, List.empty as List<[K, V]>, (x, xs, k) => xs.prepend([k, x]));
@@ -224,6 +227,10 @@ export const tap: <K, V>(
 export const collect: <K, V, B>(
   f: (v: V, k: K) => Option<B>,
 ) => (m: OrderedMap<K, V>) => OrderedMap<K, B> = f => m => collect_(m, f);
+
+export const forEach: <K, V>(
+  f: (v: V, k: K) => void,
+) => (m: OrderedMap<K, V>) => void = f => m => forEach_(m, f);
 
 export const foldLeft: <K, V, B>(
   z: B,
@@ -650,6 +657,18 @@ export const collect_ = <K, V, B>(
     () => _balance(_link(collect_(n.lhs, f), collect_(n.rhs, f))),
     v => _balance(_mkBin(n.key, v, collect_(n.lhs, f), collect_(n.rhs, f))),
   );
+};
+
+export const forEach_ = <K, V>(
+  m: OrderedMap<K, V>,
+  f: (v: V, k: K) => void,
+): void => {
+  const n = toNode(m);
+  if (n.tag === 'empty') return;
+
+  forEach_(n.lhs, f);
+  f(n.value, n.key);
+  forEach_(n.rhs, f);
 };
 
 export const foldLeft_ = <K, V, B>(

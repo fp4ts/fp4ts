@@ -191,13 +191,13 @@ describe('Vector', () => {
     });
 
     it('should add an additional element to the head of the vector', () => {
-      expect(Vector(1, 2, 3, 4).prepend(0).toArray).toEqual(
+      expect(Vector(1, 2, 3, 4).cons(0).toArray).toEqual(
         Vector(0, 1, 2, 3, 4).toArray,
       );
     });
 
     it('should prepend multiple elements', () => {
-      expect(Vector.empty.prepend(0).prepend(1).prepend(2).toArray).toEqual([
+      expect(Vector.empty.prepend(0).prepend(1)['+::'](2).toArray).toEqual([
         2, 1, 0,
       ]);
     });
@@ -219,13 +219,13 @@ describe('Vector', () => {
     });
 
     it('should add an additional element to the head of the vector', () => {
-      expect(Vector(1, 2, 3, 4).append(0).toArray).toEqual(
+      expect(Vector(1, 2, 3, 4).snoc(0).toArray).toEqual(
         Vector(1, 2, 3, 4, 0).toArray,
       );
     });
 
     it('should append multiple elements', () => {
-      expect(Vector.empty.append(0).append(1).append(2).toArray).toEqual([
+      expect(Vector.empty.append(0).append(1)['::+'](2).toArray).toEqual([
         0, 1, 2,
       ]);
     });

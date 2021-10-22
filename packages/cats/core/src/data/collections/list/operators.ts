@@ -332,14 +332,21 @@ export const notEquals_ = <A>(E: Eq<A>, xs: List<A>, ys: List<A>): boolean =>
 export const prepend_ = <A>(xs: List<A>, x: A): List<A> => cons(x, xs);
 
 export const append_ = <A>(xs: List<A>, x: A): List<A> => {
-  if (isEmpty(xs)) return cons(x, nil);
-  const hd = xs as Cons<A>;
-  let cur = hd;
-  while (nonEmpty(cur._tail)) {
-    cur = cur._tail as Cons<A>;
+  if (isEmpty(xs)) return pure(x);
+  const result = new Cons(head(xs), nil);
+  let tlx = result;
+  let cur = tail(xs);
+
+  while (nonEmpty(cur)) {
+    const tmp = new Cons(head(cur), nil);
+    tlx._tail = tmp;
+    tlx = tmp;
+    cur = tail(cur);
   }
-  cur._tail = new Cons(x, nil);
-  return hd;
+
+  tlx._tail = pure(x);
+
+  return result;
 };
 
 export const concat_ = <A>(xs: List<A>, ys: List<A>): List<A> => {

@@ -65,8 +65,12 @@ export const init: <A>(xs: Vector<A>) => Vector<A> = xs =>
 export const toList = <A>(v: Vector<A>): List<A> =>
   foldRight_(v, List.empty as List<A>, (x, xs) => xs.prepend(x));
 
-export const toArray = <A>(v: Vector<A>): A[] =>
-  foldLeft_(v, [] as A[], (xs, x) => [...xs, x]);
+export const toArray = <A>(xs: Vector<A>): A[] => {
+  const result = new Array(size(xs));
+  let i = 0;
+  forEach_(xs, x => (result[i++] = x));
+  return result;
+};
 
 export const iterator = <A>(v: Vector<A>): Iterator<A> => FT.iterator(v._root);
 export const reverseIterator = <A>(v: Vector<A>): Iterator<A> =>

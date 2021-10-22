@@ -229,12 +229,44 @@ describe('List', () => {
   });
 
   describe('prepend', () => {
-    it('should add a element to an empty list', () => {
+    it('should prepend an element to an empty vector', () => {
       expect(List.empty.prepend(42)).toEqual(List(42));
     });
 
-    it('should add a element to a list', () => {
-      expect(List(1, 2).prepend(42)).toEqual(List(42, 1, 2));
+    it('should add an additional element to the head of the List', () => {
+      expect(List(1, 2, 3, 4).cons(0)).toEqual(List(0, 1, 2, 3, 4));
+    });
+
+    it('should prepend multiple elements', () => {
+      expect(List.empty.prepend(0).prepend(1)['+::'](2)).toEqual(List(2, 1, 0));
+    });
+
+    it('should be stack safe', () => {
+      const xs = [...new Array(10_000).keys()];
+      const v = xs.reduce((xs, x) => xs.prepend(x), List.empty as List<number>);
+
+      expect(v.toArray).toEqual(xs.reverse());
+    });
+  });
+
+  describe('append', () => {
+    it('should append an element to an empty List', () => {
+      expect(List.empty.append(42)).toEqual(List(42));
+    });
+
+    it('should add an additional element to the head of the List', () => {
+      expect(List(1, 2, 3, 4).snoc(0)).toEqual(List(1, 2, 3, 4, 0));
+    });
+
+    it('should append multiple elements', () => {
+      expect(List.empty.append(0).append(1)['::+'](2)).toEqual(List(0, 1, 2));
+    });
+
+    it('should be stack safe', () => {
+      const xs = [...new Array(10_000).keys()];
+      const v = xs.reduce((xs, x) => xs.append(x), List.empty as List<number>);
+
+      expect(v.toArray).toEqual(xs);
     });
   });
 
