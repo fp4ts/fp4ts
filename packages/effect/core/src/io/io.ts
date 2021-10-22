@@ -10,6 +10,7 @@ import {
   Traversable,
   Either,
   Option,
+  Parallel,
 } from '@cats4ts/cats';
 
 import {
@@ -75,6 +76,7 @@ import {
   ioMonad,
   ioMonadCancel,
   ioMonadError,
+  ioParallel,
   ioParallelApplicative,
   ioParallelApply,
   ioSequentialApplicative,
@@ -232,6 +234,7 @@ interface IOObj {
   readonly MonadCancel: MonadCancel<IoK, Error>;
   readonly Sync: Sync<IoK>;
   readonly Spawn: Spawn<IoK, Error>;
+  readonly Parallel: Parallel<IoK, IoK>;
   readonly Concurrent: Concurrent<IoK, Error>;
   readonly Temporal: Temporal<IoK, Error>;
   readonly Async: Async<IoK>;
@@ -362,6 +365,11 @@ Object.defineProperty(IO, 'Sync', {
 Object.defineProperty(IO, 'Spawn', {
   get(): Spawn<IoK, Error> {
     return ioSpawn();
+  },
+});
+Object.defineProperty(IO, 'Parallel', {
+  get(): Parallel<IoK, IoK> {
+    return ioParallel();
   },
 });
 Object.defineProperty(IO, 'Concurrent', {

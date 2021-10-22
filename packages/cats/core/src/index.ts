@@ -20,6 +20,7 @@ export * from './unordered-foldable';
 export * from './unordered-traversable';
 export * from './defer';
 export * from './bifunctor';
+export * from './parallel';
 
 export * from './eval';
 export * from './eq';

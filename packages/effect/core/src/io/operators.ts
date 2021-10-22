@@ -1,5 +1,5 @@
 import { flow, id, pipe, Kind } from '@cats4ts/core';
-import { Traversable, Either, Left, Right } from '@cats4ts/cats';
+import { Traversable, Either } from '@cats4ts/cats';
 import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
 import * as Sem from '@cats4ts/effect-kernel/lib/semaphore';
 
@@ -32,6 +32,7 @@ import {
 import { bind, bindTo, Do } from './do';
 import {
   ioAsync,
+  ioParallel,
   ioParallelApplicative,
   ioSequentialApplicative,
 } from './instances';
@@ -370,96 +371,7 @@ export const map2_ = <A, B, C>(
   ioa: IO<A>,
   iob: IO<B>,
   f: (a: A, b: B) => C,
-): IO<C> =>
-  uncancelable(poll =>
-    pipe(
-      Do,
-      bindTo('fiberA', fork(ioa)),
-      bindTo('fiberB', fork(iob)),
-
-      bind(({ fiberA, fiberB }) =>
-        pipe(
-          fiberB.join,
-          flatMap(oc =>
-            oc.fold(
-              () => fiberA.cancel,
-              () => fiberA.cancel,
-              () => unit,
-            ),
-          ),
-          fork,
-        ),
-      ),
-      bind(({ fiberA, fiberB }) =>
-        pipe(
-          fiberA.join,
-          flatMap(oc =>
-            oc.fold(
-              () => fiberB.cancel,
-              () => fiberB.cancel,
-              () => unit,
-            ),
-          ),
-          fork,
-        ),
-      ),
-
-      bindTo('a', ({ fiberA, fiberB }) =>
-        pipe(
-          poll(fiberA.join),
-          onCancel(fiberB.cancel),
-          onCancel(fiberA.cancel),
-          flatMap(oc =>
-            oc.fold(
-              () =>
-                flatMap_(fiberB.cancel, () =>
-                  pipe(
-                    fiberB.join,
-                    flatMap(oc =>
-                      oc.fold(
-                        () => flatMap_(canceled, () => never),
-                        e => throwError(e),
-                        () => flatMap_(canceled, () => never),
-                      ),
-                    ),
-                    poll,
-                  ),
-                ),
-              e => flatMap_(fiberB.cancel, () => throwError(e)),
-              a => a,
-            ),
-          ),
-        ),
-      ),
-
-      bindTo('b', ({ fiberA, fiberB }) =>
-        pipe(
-          poll(fiberB.join),
-          onCancel(fiberB.cancel),
-          flatMap(oc =>
-            oc.fold(
-              () =>
-                pipe(
-                  fiberA.join,
-                  flatMap(oc =>
-                    oc.fold(
-                      () => flatMap_(canceled, () => never),
-                      e => throwError(e),
-                      () => flatMap_(canceled, () => never),
-                    ),
-                  ),
-                  poll,
-                ),
-              e => throwError(e),
-              b => b,
-            ),
-          ),
-        ),
-      ),
-
-      map(({ a, b }) => f(a, b)),
-    ),
-  );
+): IO<C> => ioParallel().applicative.map2_(ioa, iob)(f);
 
 export const parTraverse_ = <T, A, B>(
   T: Traversable<T>,

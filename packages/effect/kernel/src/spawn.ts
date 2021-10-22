@@ -1,5 +1,12 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { Either, Left, Right } from '@cats4ts/cats';
+import { Kind, pipe, tupled } from '@cats4ts/core';
+import {
+  Applicative,
+  Parallel,
+  FunctionK,
+  Either,
+  Left,
+  Right,
+} from '@cats4ts/cats';
 
 import { Poll } from './poll';
 import { Fiber } from './fiber';
@@ -233,6 +240,118 @@ export const Spawn = Object.freeze({
       ...MonadCancel.of(F),
       ...F,
     };
+    return self;
+  },
+
+  parallelForSpawn: <M, E>(M: Spawn<M, E>): Parallel<M, M> =>
+    Parallel.of({
+      applicative: Spawn.parallelApplicative(M),
+      monad: M,
+      sequential: FunctionK.id(),
+      parallel: FunctionK.id(),
+    }),
+
+  parallelApplicative: <F, E>(F: Spawn<F, E>): Applicative<F> => {
+    const self: Applicative<F> = Applicative.of({
+      pure: F.pure,
+
+      ap_: (ff, fa) => F.map2_(ff, fa)((f, a) => f(a)),
+
+      product_: (fa, fb) => F.map2_(fa, fb)(tupled),
+
+      map2_:
+        <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+        <C>(f: (a: A, b: B) => C) =>
+          F.uncancelable(poll =>
+            pipe(
+              F.Do,
+              F.bindTo('fiberA', F.fork(fa)),
+              F.bindTo('fiberB', F.fork(fb)),
+
+              F.bind(({ fiberA, fiberB }) =>
+                pipe(
+                  fiberB.join,
+                  F.flatMap(oc =>
+                    oc.fold(
+                      () => fiberA.cancel,
+                      () => fiberA.cancel,
+                      () => F.unit,
+                    ),
+                  ),
+                  F.fork,
+                ),
+              ),
+              F.bind(({ fiberA, fiberB }) =>
+                pipe(
+                  fiberA.join,
+                  F.flatMap(oc =>
+                    oc.fold(
+                      () => fiberB.cancel,
+                      () => fiberB.cancel,
+                      () => F.unit,
+                    ),
+                  ),
+                  F.fork,
+                ),
+              ),
+
+              F.bindTo('a', ({ fiberA, fiberB }) =>
+                pipe(
+                  poll(fiberA.join),
+                  F.onCancel(fiberB.cancel),
+                  F.onCancel(fiberA.cancel),
+                  F.flatMap(oc =>
+                    oc.fold(
+                      () =>
+                        F.flatMap_(fiberB.cancel, () =>
+                          pipe(
+                            fiberB.join,
+                            F.flatMap(oc =>
+                              oc.fold(
+                                () => F.flatMap_(F.canceled, () => F.never),
+                                e => F.throwError(e),
+                                () => F.flatMap_(F.canceled, () => F.never),
+                              ),
+                            ),
+                            poll,
+                          ),
+                        ),
+                      e => F.flatMap_(fiberB.cancel, () => F.throwError(e)),
+                      a => a,
+                    ),
+                  ),
+                ),
+              ),
+
+              F.bindTo('b', ({ fiberA, fiberB }) =>
+                pipe(
+                  poll(fiberB.join),
+                  F.onCancel(fiberB.cancel),
+                  F.flatMap(oc =>
+                    oc.fold(
+                      () =>
+                        pipe(
+                          fiberA.join,
+                          F.flatMap(oc =>
+                            oc.fold(
+                              () => F.flatMap_(F.canceled, () => F.never),
+                              e => F.throwError(e),
+                              () => F.flatMap_(F.canceled, () => F.never),
+                            ),
+                          ),
+                          poll,
+                        ),
+                      e => F.throwError(e),
+                      b => b,
+                    ),
+                  ),
+                ),
+              ),
+
+              F.map(({ a, b }) => f(a, b)),
+            ),
+          ),
+    });
     return self;
   },
 });
