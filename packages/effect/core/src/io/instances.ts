@@ -197,18 +197,20 @@ export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() => ({
-  ...ioConcurrent(),
-  ...Clock.of({
-    applicative: ioSequentialApplicative(),
-    monotonic: delay(() => process.hrtime()[0]),
-    realTime: delay(() => Date.now()),
+export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() =>
+  Temporal.of({
+    ...ioConcurrent(),
+    ...Clock.of({
+      applicative: ioSequentialApplicative(),
+      monotonic: delay(() => process.hrtime()[0]),
+      realTime: delay(() => Date.now()),
+    }),
+    sleep: sleep,
+    delayBy_: delayBy_,
+    timeoutTo_: timeoutTo_,
+    timeout_: timeout_,
   }),
-  sleep: sleep,
-  delayBy: delayBy_,
-  timeoutTo: timeoutTo_,
-  timeout: timeout_,
-}));
+);
 
 export const ioAsync: Lazy<Async<IoK>> = lazyVal(() => ({
   ...ioSync(),
