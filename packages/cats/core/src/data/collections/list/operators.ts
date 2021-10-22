@@ -13,6 +13,7 @@ import { Cons, List, view } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
+import { listFoldable } from './instances';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -263,6 +264,10 @@ export const collectWhile: <A, B>(
   f: (a: A) => Option<B>,
 ) => (xs: List<A>) => List<B> = f => xs => collectWhile_(xs, f);
 
+export const forEach: <A>(f: (a: A) => void) => (xs: List<A>) => void =
+  f => xs =>
+    forEach_(xs, f);
+
 export const partition: <A, L, R>(
   f: (a: A) => Either<L, R>,
 ) => (xs: List<A>) => [List<L>, List<R>] = f => xs => partition_(xs, f);
@@ -326,6 +331,17 @@ export const notEquals_ = <A>(E: Eq<A>, xs: List<A>, ys: List<A>): boolean =>
 
 export const prepend_ = <A>(xs: List<A>, x: A): List<A> => cons(x, xs);
 
+export const append_ = <A>(xs: List<A>, x: A): List<A> => {
+  if (isEmpty(xs)) return cons(x, nil);
+  const hd = xs as Cons<A>;
+  let cur = hd;
+  while (nonEmpty(cur._tail)) {
+    cur = cur._tail as Cons<A>;
+  }
+  cur._tail = new Cons(x, nil);
+  return hd;
+};
+
 export const concat_ = <A>(xs: List<A>, ys: List<A>): List<A> => {
   if (isEmpty(xs)) return ys;
   if (isEmpty(ys)) return xs;
@@ -342,15 +358,14 @@ export const concat_ = <A>(xs: List<A>, ys: List<A>): List<A> => {
   return result;
 };
 
-export const elem_ = <A>(xs: List<A>, idx: number): A => {
-  while (idx-- > 0) {
-    xs = tail(xs);
-  }
-  if (isEmpty(xs)) throw new Error('Index out of bounds');
-  return head(xs);
-};
+export const elem_ = <A>(xs: List<A>, idx: number): A =>
+  elemOption_(xs, idx).fold(
+    () => throwError(new RangeError('Index Out Of Bounds')),
+    id,
+  );
 
 export const elemOption_ = <A>(xs: List<A>, idx: number): Option<A> => {
+  if (idx < 0) return None;
   while (idx-- > 0) {
     xs = tail(xs);
   }
@@ -716,6 +731,13 @@ export const collectWhile_ = <A, B>(
   return h ?? nil;
 };
 
+export const forEach_ = <A>(xs: List<A>, f: (a: A) => void): void => {
+  while (nonEmpty(xs)) {
+    f(head(xs));
+    xs = tail(xs);
+  }
+};
+
 export const partition_ = <A, L, R>(
   xs: List<A>,
   f: (a: A) => Either<L, R>,
@@ -805,7 +827,7 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
-    G.map_(Chain.traverseViaChain(G)(xs, f), ys => ys.toList);
+    G.map_(Chain.traverseViaChain(G, listFoldable())(xs, f), ys => ys.toList);
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

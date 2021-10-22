@@ -264,21 +264,25 @@ describe('List', () => {
   });
 
   describe('elem', () => {
+    it('should return None when index is negative', () => {
+      expect(List(42)['!?'](-1)).toEqual(None);
+    });
+
     it('should return first element of a single element list', () => {
-      expect(List(42).elem(0)).toBe(42);
+      expect(List(42)['!!'](0)).toBe(42);
     });
 
     it('should return second element of a two element list', () => {
-      expect(List(42, 43).elem(1)).toBe(43);
+      expect(List(42, 43)['!!'](1)).toBe(43);
     });
 
     it('should throw when index out of bounds referenced', () => {
-      expect(() => List(42, 43).elem(10000)).toThrow();
+      expect(() => List(42, 43)['!!'](10000)).toThrow();
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.elem(9_999)).toBe(9_999);
+      expect(xs['!!'](9_999)).toBe(9_999);
     });
   });
 
@@ -510,6 +514,50 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs.filter(() => true).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('collect', () => {
+    const collectEven = (n: number): Option<number> =>
+      n % 2 === 0 ? Some(n) : None;
+
+    it('should return an empty list out of empty list', () => {
+      expect(List.empty.collect(collectEven)).toEqual(List.empty);
+    });
+
+    it('should collect even numbers', () => {
+      expect(List(1, 2, 3, 4).collect(collectEven)).toEqual(List(2, 4));
+    });
+
+    it('should return an empty array', () => {
+      expect(List(1, 3, 5).collect(collectEven)).toEqual(List.empty);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.collect(Some).toArray).toEqual(xs.toArray);
+    });
+  });
+
+  describe('collectWhile', () => {
+    const collectEven = (n: number): Option<number> =>
+      n % 2 === 0 ? Some(n) : None;
+
+    it('should return an empty list out of empty list', () => {
+      expect(List.empty.collectWhile(collectEven)).toEqual(List.empty);
+    });
+
+    it('should collect prefix of even numbers', () => {
+      expect(List(2, 3, 4).collectWhile(collectEven)).toEqual(List(2));
+    });
+
+    it('should return an empty array', () => {
+      expect(List(1, 3, 5).collectWhile(collectEven)).toEqual(List.empty);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.collectWhile(Some).toArray).toEqual(xs.toArray);
     });
   });
 
@@ -758,6 +806,42 @@ describe('List', () => {
     });
   });
 
+  describe('zipWithIndex', () => {
+    it('should produce an empty list out of empty list', () => {
+      expect(List.empty.zipWithIndex).toEqual(List.empty);
+    });
+
+    it('should index the values in the list', () => {
+      expect(List(1, 2, 3).zipWithIndex).toEqual(List([1, 0], [2, 1], [3, 2]));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.zipWithIndex.toArray).toEqual(xs.toArray.map(x => [x, x]));
+    });
+  });
+
+  describe('zipWith', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should produce an empty list when zipped with empty list on lhs', () => {
+      expect(List.empty.zipWith(List(42), add)).toEqual(List.empty);
+    });
+
+    it('should produce an empty list when zipped with empty list on rhs', () => {
+      expect(List(42).zipWith(List.empty, add)).toEqual(List.empty);
+    });
+
+    it('should zip two single element lists', () => {
+      expect(List(42).zipWith(List(43), add)).toEqual(List(85));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.zipWith(xs, add).toArray).toEqual(xs.toArray.map(x => x + x));
+    });
+  });
+
   describe('zipAll', () => {
     it('should fill default value on left', () => {
       expect(
@@ -798,42 +882,6 @@ describe('List', () => {
           () => 2,
         ).toArray,
       ).toEqual(xs.toArray.map(x => [x, x]));
-    });
-  });
-
-  describe('zipWithIndex', () => {
-    it('should produce an empty list out of empty list', () => {
-      expect(List.empty.zipWithIndex).toEqual(List.empty);
-    });
-
-    it('should index the values in the list', () => {
-      expect(List(1, 2, 3).zipWithIndex).toEqual(List([1, 0], [2, 1], [3, 2]));
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.zipWithIndex.toArray).toEqual(xs.toArray.map(x => [x, x]));
-    });
-  });
-
-  describe('zipWith', () => {
-    const add = (x: number, y: number): number => x + y;
-
-    it('should produce an empty list when zipped with empty list on lhs', () => {
-      expect(List.empty.zipWith(List(42), add)).toEqual(List.empty);
-    });
-
-    it('should produce an empty list when zipped with empty list on rhs', () => {
-      expect(List(42).zipWith(List.empty, add)).toEqual(List.empty);
-    });
-
-    it('should zip two single element lists', () => {
-      expect(List(42).zipWith(List(43), add)).toEqual(List(85));
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.zipWith(xs, add).toArray).toEqual(xs.toArray.map(x => x + x));
     });
   });
 
@@ -886,47 +934,19 @@ describe('List', () => {
     });
   });
 
-  describe('collect', () => {
-    const collectEven = (n: number): Option<number> =>
-      n % 2 === 0 ? Some(n) : None;
+  describe('forEach', () => {
+    it('should not invoke a callback when empty', () => {
+      const fn = jest.fn();
+      List.empty.forEach(fn);
 
-    it('should return an empty list out of empty list', () => {
-      expect(List.empty.collect(collectEven)).toEqual(List.empty);
+      expect(fn).not.toHaveBeenCalled();
     });
 
-    it('should collect even numbers', () => {
-      expect(List(1, 2, 3, 4).collect(collectEven)).toEqual(List(2, 4));
-    });
+    it('should call with each element in order', () => {
+      const xs: number[] = [];
+      List(1, 2, 3, 4, 5).forEach(x => xs.push(x));
 
-    it('should return an empty array', () => {
-      expect(List(1, 3, 5).collect(collectEven)).toEqual(List.empty);
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.collect(Some).toArray).toEqual(xs.toArray);
-    });
-  });
-
-  describe('collectWhile', () => {
-    const collectEven = (n: number): Option<number> =>
-      n % 2 === 0 ? Some(n) : None;
-
-    it('should return an empty list out of empty list', () => {
-      expect(List.empty.collectWhile(collectEven)).toEqual(List.empty);
-    });
-
-    it('should collect prefix of even numbers', () => {
-      expect(List(2, 3, 4).collectWhile(collectEven)).toEqual(List(2));
-    });
-
-    it('should return an empty array', () => {
-      expect(List(1, 3, 5).collectWhile(collectEven)).toEqual(List.empty);
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.collectWhile(Some).toArray).toEqual(xs.toArray);
+      expect(xs).toEqual([1, 2, 3, 4, 5]);
     });
   });
 

@@ -24,6 +24,8 @@ export const constant: <A>(a: A) => () => A = x => () => x;
 export const fst: <A, B>(x: [A, B]) => A = ([a]) => a;
 export const snd: <A, B>(x: [A, B]) => B = ([, b]) => b;
 
+export const tupled = <A extends unknown[]>(...args: A): A => args;
+
 export const flip: <A, B, C>(f: (a: A, b: B) => C) => (b: B, a: A) => C =
   f => (b, a) =>
     f(a, b);

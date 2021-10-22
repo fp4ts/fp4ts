@@ -1,7 +1,7 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { fst, pipe, snd } from '@cats4ts/core';
-import { Eq, List, Seq, Either, Left, Right } from '@cats4ts/cats';
+import { Eq, List, Vector, Either, Left, Right } from '@cats4ts/cats';
 import { MonadCancelSuite } from '@cats4ts/effect-laws';
 import { IO, IoK } from '@cats4ts/effect-core';
 import { Resource } from '@cats4ts/effect-kernel';
@@ -216,7 +216,7 @@ describe('Resource', () => {
 
   describe('stack safety', () => {
     test.ticked('use over binds - 1', ticker => {
-      const ioa = Seq.range(0, 10_000)
+      const ioa = Vector.range(0, 10_000)
         .foldLeft(Resource.evalF<IoK, void>(IO.unit), r =>
           r.flatMap(() => Resource.evalF<IoK, void>(IO.unit)),
         )

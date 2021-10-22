@@ -360,13 +360,12 @@ export const iterator = <V, A>(v: FingerTree<V, A>): Iterator<A> => {
     case 'single':
       return Iter.singleton(ft.value);
     case 'deep': {
-      const r = Iter.flatMap_(
-        iterator(ft.deep),
-        ([, ...n]) => (n as A[]).iterator,
+      const r = Iter.flatMap_(iterator(ft.deep), ([, ...n]) =>
+        (n as A[])[Symbol.iterator](),
       );
       return Iter.concat_(
-        ft.prefix.iterator,
-        Iter.concat_(r, ft.suffix.iterator),
+        ft.prefix[Symbol.iterator](),
+        Iter.concat_(r, ft.suffix[Symbol.iterator]()),
       );
     }
   }
@@ -380,13 +379,12 @@ export const reverseIterator = <V, A>(v: FingerTree<V, A>): Iterator<A> => {
     case 'single':
       return Iter.singleton(ft.value);
     case 'deep': {
-      const r = Iter.flatMap_(
-        reverseIterator(ft.deep),
-        ([, ...n]) => (n as A[]).reverseIterator,
+      const r = Iter.flatMap_(reverseIterator(ft.deep), ([, ...n]) =>
+        Iter.fromArrayReversed(n as A[]),
       );
       return Iter.concat_(
-        ft.suffix.reverseIterator,
-        Iter.concat_(r, ft.prefix.reverseIterator),
+        Iter.fromArrayReversed(ft.suffix),
+        Iter.concat_(r, Iter.fromArrayReversed(ft.prefix)),
       );
     }
   }
@@ -424,11 +422,11 @@ export const foldLeft_ = <V, A, B>(
       return f(z, ft.value);
 
     case 'deep': {
-      const prefix = ft.prefix.reduce(f, z);
+      const prefix = ft.prefix.reduce((y, x) => f(y, x), z);
       const deep = foldLeft_(ft.deep, prefix, (result, [, ...n]) =>
-        n.reduce(f, result),
+        n.reduce((y, x) => f(y, x), result),
       );
-      return ft.suffix.reduce(f, deep);
+      return ft.suffix.reduce((y, x) => f(y, x), deep);
     }
   }
 };

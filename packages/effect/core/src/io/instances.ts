@@ -7,7 +7,6 @@ import {
   Applicative,
   MonadError,
   Defer,
-  Right,
 } from '@cats4ts/cats';
 import {
   Async,

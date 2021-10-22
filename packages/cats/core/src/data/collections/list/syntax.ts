@@ -9,8 +9,6 @@ import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { Either } from '../../either';
 import { Vector } from '../vector';
-import { Seq } from '../seq';
-import * as S from '../seq/functional';
 
 import { List } from './algebra';
 import {
@@ -52,7 +50,6 @@ import {
   scanLeft_,
   scanRight1_,
   scanRight_,
-  sequence,
   show_,
   size,
   slice_,
@@ -72,12 +69,16 @@ import {
   align_,
   iterator,
   reverseIterator,
+  append_,
+  forEach_,
 } from './operators';
 
 declare module './algebra' {
-  interface List<A> extends Seq<A> {
+  interface List<A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
+
+    readonly size: number;
 
     readonly head: A;
     readonly headOption: Option<A>;
@@ -87,11 +88,12 @@ declare module './algebra' {
     readonly lastOption: Option<A>;
     readonly init: List<A>;
 
+    readonly popHead: Option<[A, List<A>]>;
     readonly uncons: Option<[A, List<A>]>;
-
-    readonly size: number;
+    readonly popLast: Option<[A, List<A>]>;
 
     readonly toArray: A[];
+    readonly toList: List<A>;
     readonly toVector: Vector<A>;
 
     readonly iterator: Iterator<A>;
@@ -102,7 +104,15 @@ declare module './algebra' {
 
     equals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
     notEquals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
+
     prepend<B>(this: List<B>, x: B): List<B>;
+    cons<B>(this: List<B>, x: B): List<B>;
+    '+::'<B>(this: List<B>, x: B): List<B>;
+
+    append<B>(this: List<B>, x: B): List<B>;
+    snoc<B>(this: List<B>, x: B): List<B>;
+    '::+'<B>(this: List<B>, x: B): List<B>;
+
     concat<B>(this: List<B>, xs: List<B>): List<B>;
     '+++'<B>(this: List<B>, xs: List<B>): List<B>;
 
@@ -126,56 +136,63 @@ declare module './algebra' {
     splitAt(idx: number): [List<A>, List<A>];
 
     filter: (p: (a: A) => boolean) => List<A>;
+    collect: <B>(f: (a: A) => Option<B>) => List<B>;
+    collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
     map: <B>(f: (a: A) => B) => List<B>;
 
     flatMap<B>(f: (a: A) => List<B>): List<B>;
 
-    readonly flatten: A extends List<infer B> ? List<B> : never | unknown;
+    readonly flatten: A extends List<infer B> ? List<B> : never;
+
+    align<B>(ys: List<B>): List<Ior<A, B>>;
+    zip<B>(ys: List<B>): List<[A, B]>;
+    zipWith<B, C>(ys: List<B>, f: (a: A, b: B) => C): List<C>;
+
+    readonly zipWithIndex: List<[A, number]>;
+
+    zipAll<AA, B>(
+      this: List<AA>,
+      ys: List<B>,
+      defaultL: () => AA,
+      defaultR: () => B,
+    ): List<[AA, B]>;
+
+    zipAllWith<AA, B, C>(
+      this: List<AA>,
+      ys: List<B>,
+      defaultL: () => AA,
+      defaultR: () => B,
+      f: (a: AA, b: B) => C,
+    ): List<C>;
+
+    forEach(f: (a: A) => void): void;
+
+    partition<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>];
 
     fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
-    foldLeft: <B>(z: B, f: (b: B, a: A) => B) => B;
-    foldLeft1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
-    foldRight: <B>(z: B, f: (a: A, b: B) => B) => B;
-    foldRight1: <B>(this: List<B>, f: (x: B, a: B) => B) => B;
-    foldMap: <M>(M: Monoid<M>) => (f: (a: A) => M) => M;
-    foldMapK: <F>(
-      F: MonoidK<F>,
-    ) => <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
-    align<B>(ys: List<B>): List<Ior<A, B>>;
-    zip: <B>(ys: List<B>) => List<[A, B]>;
-    zipWith: <B, C>(ys: List<B>, f: (a: A, b: B) => C) => List<C>;
-    readonly zipWithIndex: List<[A, number]>;
-    zipAll: <B, A2>(
-      this: List<A2>,
-      ys: List<B>,
-      defaultL: () => A2,
-      defaultR: () => B,
-    ) => List<[A2, B]>;
-    zipAllWith: <B, C, A2>(
-      this: List<A2>,
-      ys: List<B>,
-      defaultL: () => A2,
-      defaultR: () => B,
-      f: (a: A2, b: B) => C,
-    ) => List<C>;
-    collect: <B>(f: (a: A) => Option<B>) => List<B>;
-    collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
-    partition: <L, R>(f: (a: A) => Either<L, R>) => [List<L>, List<R>];
-    scanLeft: <B>(z: B, f: (b: B, a: A) => B) => List<B>;
-    scanLeft1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
-    scanRight: <B>(z: B, f: (a: A, b: B) => B) => List<B>;
-    scanRight1: <B>(this: List<B>, f: (x: B, y: B) => B) => List<B>;
-    traverse: <G>(
+
+    foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
+    foldLeft1<B>(this: List<B>, f: (x: B, a: B) => B): B;
+    foldRight<B>(z: B, f: (a: A, b: B) => B): B;
+    foldRight1<B>(this: List<B>, f: (x: B, a: B) => B): B;
+
+    foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+
+    scanLeft<B>(z: B, f: (b: B, a: A) => B): List<B>;
+    scanLeft1<B>(this: List<B>, f: (x: B, y: B) => B): List<B>;
+    scanRight<B>(z: B, f: (a: A, b: B) => B): List<B>;
+    scanRight1<B>(this: List<B>, f: (x: B, y: B) => B): List<B>;
+
+    traverse<G>(
       G: Applicative<G>,
-    ) => <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]>;
-    sequence: A extends Kind<any, [infer B]>
-      ? <G>(G: Applicative<G>) => Kind<G, [List<B>]>
-      : never | unknown;
+    ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]>;
+
     flatTraverse: <G>(
       G: Applicative<G>,
     ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
 
-    show(this: List<A>, S?: Show<A>): string;
+    show<B>(this: List<B>, S?: Show<B>): string;
   }
 }
 
@@ -245,6 +262,12 @@ Object.defineProperty(List.prototype, 'toArray', {
   },
 });
 
+Object.defineProperty(List.prototype, 'toList', {
+  get<A>(this: List<A>): List<A> {
+    return this;
+  },
+});
+
 Object.defineProperty(List.prototype, 'toVector', {
   get<A>(this: List<A>): Vector<A> {
     return toVector(this);
@@ -292,16 +315,19 @@ List.prototype.notEquals = function <A>(
 List.prototype.prepend = function <A>(this: List<A>, x: A): List<A> {
   return prepend_(this, x);
 };
+List.prototype.cons = List.prototype.prepend;
+List.prototype['+::'] = List.prototype.prepend;
+
+List.prototype.append = function <A>(this: List<A>, x: A): List<A> {
+  return append_(this, x);
+};
+List.prototype.snoc = List.prototype.append;
+List.prototype['::+'] = List.prototype.append;
 
 List.prototype.concat = function (this, that) {
-  return that instanceof List
-    ? concat_(this, that)
-    : (S.concat_(this, that) as any);
+  return concat_(this, that);
 };
-
-List.prototype['+++'] = function <A>(this: List<A>, that: List<A>): List<A> {
-  return this.concat(that);
-};
+List.prototype['+++'] = List.prototype.concat;
 
 List.prototype.elem = function <A>(this: List<A>, idx: number): A {
   return elem_(this, idx);
@@ -379,9 +405,6 @@ List.prototype.map = function <A, B>(this: List<A>, f: (a: A) => B): List<B> {
   return map_(this, f);
 };
 
-List.prototype.flatMapSeq = function (f) {
-  return S.flatMapSeq_(this, f);
-};
 List.prototype.flatMap = function <A, B>(
   this: List<A>,
   f: (a: A) => List<B>,
@@ -392,12 +415,6 @@ List.prototype.flatMap = function <A, B>(
 Object.defineProperty(List.prototype, 'flatten', {
   get<A>(this: List<List<A>>): List<A> {
     return flatten(this);
-  },
-});
-
-Object.defineProperty(List.prototype, 'flattenSeq', {
-  get<A>(this: List<Seq<A>>): Seq<A> {
-    return S.flattenSeq(this);
   },
 });
 
@@ -486,6 +503,10 @@ List.prototype.collect = function <A, B>(
   return collect_(this, f);
 };
 
+List.prototype.forEach = function (f) {
+  return forEach_(this, f);
+};
+
 List.prototype.collectWhile = function <A, B>(
   this: List<A>,
   f: (a: A) => Option<B>,
@@ -535,13 +556,6 @@ List.prototype.traverse = function <G, A>(
   G: Applicative<G>,
 ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]> {
   return f => traverse_(G)(this, f);
-};
-
-List.prototype.sequence = function <G, A>(
-  this: List<Kind<G, [A]>>,
-  G: Applicative<G>,
-): Kind<G, [List<A>]> {
-  return sequence(G)(this);
 };
 
 List.prototype.flatTraverse = function <G, A>(

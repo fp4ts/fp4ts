@@ -1,4 +1,4 @@
-import { Lazy } from '@cats4ts/core';
+import { id, Lazy } from '@cats4ts/core';
 import { Align } from '../../../align';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
@@ -24,6 +24,7 @@ import {
   collect_,
   concat_,
   count_,
+  elemOption_,
   equals_,
   flatMap_,
   flatten,
@@ -31,6 +32,7 @@ import {
   foldMap_,
   fold_,
   isEmpty,
+  iterator,
   map_,
   nonEmpty,
   sequence,
@@ -135,6 +137,9 @@ export const listFoldable: Lazy<Foldable<ListK>> = () =>
 
       return loop(xs);
     },
+    elem_: elemOption_,
+    iterator: iterator,
+    toList: id,
   });
 
 export const listTraversable: Lazy<Traversable<ListK>> = () =>

@@ -5,4 +5,3 @@ export * from './ordered-map';
 export * from './vector';
 export * from './finger-tree';
 export * from './chain';
-export * from './seq';

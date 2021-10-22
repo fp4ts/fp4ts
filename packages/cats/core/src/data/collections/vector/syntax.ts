@@ -1,4 +1,4 @@
-import { Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
@@ -6,10 +6,9 @@ import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
 
 import { Ior } from '../../ior';
+import { Either } from '../../either';
 import { Option } from '../../option';
 import { List } from '../list';
-import { Seq } from '../seq';
-import * as S from '../seq/functional';
 
 import { Vector } from './algebra';
 import {
@@ -17,6 +16,8 @@ import {
   all_,
   any_,
   append_,
+  collectWhile_,
+  collect_,
   concat_,
   count_,
   dropRight_,
@@ -24,6 +25,7 @@ import {
   elemOption_,
   elem_,
   equals_,
+  filter_,
   flatMap_,
   flatten,
   foldLeft1_,
@@ -42,6 +44,7 @@ import {
   lastOption,
   map_,
   nonEmpty,
+  partition_,
   popHead,
   popLast,
   prepend_,
@@ -61,13 +64,15 @@ import {
   toArray,
   toList,
   traverse_,
+  zipAllWith_,
+  zipAll_,
   zipWithIndex,
   zipWith_,
   zip_,
 } from './operators';
 
 declare module './algebra' {
-  interface Vector<A> extends Seq<A> {
+  interface Vector<A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
@@ -84,14 +89,18 @@ declare module './algebra' {
     readonly popHead: Option<[A, Vector<A>]>;
     readonly popLast: Option<[A, Vector<A>]>;
 
-    readonly toList: List<A>;
     readonly toArray: A[];
+    readonly toList: List<A>;
+    readonly toVector: Vector<A>;
 
     readonly iterator: Iterator<A>;
     readonly reverseIterator: Iterator<A>;
     [Symbol.iterator](): Iterator<A>;
 
     readonly reverse: Vector<A>;
+
+    equals<B>(this: Vector<B>, E: Eq<B>, xs: Vector<B>): boolean;
+    notEquals<B>(this: Vector<B>, E: Eq<B>, xs: Vector<B>): boolean;
 
     prepend<B>(this: Vector<B>, b: B): Vector<B>;
     cons<B>(this: Vector<B>, b: B): Vector<B>;
@@ -106,6 +115,7 @@ declare module './algebra' {
 
     elem(idx: number): A;
     '!!'(idx: number): A;
+
     elemOption(idx: number): Option<A>;
     '!?'(idx: number): Option<A>;
 
@@ -122,18 +132,38 @@ declare module './algebra' {
     slice(from: number, until: number): Vector<A>;
     splitAt(idx: number): [Vector<A>, Vector<A>];
 
+    filter(p: (a: A) => boolean): Vector<A>;
+    collect<B>(f: (a: A) => Option<B>): Vector<B>;
+    collectWhile<B>(f: (a: A) => Option<B>): Vector<B>;
     map<B>(f: (a: A) => B): Vector<B>;
 
     flatMap<B>(f: (a: A) => Vector<B>): Vector<B>;
 
-    readonly flatten: A extends Vector<infer B> ? Vector<B> : never | unknown;
+    readonly flatten: A extends Vector<infer B> ? Vector<B> : never;
 
     align<B>(ys: Vector<B>): Vector<Ior<A, B>>;
     zip<B>(ys: Vector<B>): Vector<[A, B]>;
-    readonly zipWithIndex: Vector<[A, number]>;
     zipWith<B, C>(ys: Vector<B>, f: (a: A, b: B) => C): Vector<C>;
 
+    readonly zipWithIndex: Vector<[A, number]>;
+
+    zipAll<AA, B>(
+      this: Vector<AA>,
+      that: Vector<B>,
+      defaultL: () => AA,
+      defaultR: () => B,
+    ): Vector<[AA, B]>;
+    zipAllWith<AA, B, C>(
+      this: Vector<AA>,
+      that: Vector<B>,
+      defaultL: () => AA,
+      defaultR: () => B,
+      f: (a: A, b: B) => C,
+    ): Vector<C>;
+
     forEach(f: (a: A) => void): void;
+
+    partition<L, R>(f: (a: A) => Either<L, R>): [Vector<L>, Vector<R>];
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: Vector<B>, f: (z: B, x: B) => B): B;
@@ -152,9 +182,7 @@ declare module './algebra' {
       G: Applicative<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Vector<A>]>;
 
-    show(this: Vector<A>, S?: Show<A>): string;
-    equals(this: Vector<PrimitiveType>, that: Vector<PrimitiveType>): boolean;
-    equals<B>(this: Vector<B>, that: Vector<B>, E: Eq<B>): boolean;
+    show<B>(this: Vector<B>, S?: Show<B>): string;
   }
 }
 
@@ -224,15 +252,21 @@ Object.defineProperty(Vector.prototype, 'popLast', {
   },
 });
 
+Object.defineProperty(Vector.prototype, 'toArray', {
+  get<A>(this: Vector<A>): A[] {
+    return toArray(this);
+  },
+});
+
 Object.defineProperty(Vector.prototype, 'toList', {
   get<A>(this: Vector<A>): List<A> {
     return toList(this);
   },
 });
 
-Object.defineProperty(Vector.prototype, 'toArray', {
-  get<A>(this: Vector<A>): A[] {
-    return toArray(this);
+Object.defineProperty(Vector.prototype, 'toVector', {
+  get<A>(this: Vector<A>): Vector<A> {
+    return this;
   },
 });
 
@@ -258,6 +292,13 @@ Object.defineProperty(Vector.prototype, 'reverse', {
   },
 });
 
+Vector.prototype.equals = function (E, that) {
+  return equals_(E)(this, that);
+};
+Vector.prototype.notEquals = function (E, that) {
+  return !this.equals(E, that);
+};
+
 Vector.prototype.prepend = function (x) {
   return prepend_(this, x);
 };
@@ -271,9 +312,7 @@ Vector.prototype.snoc = Vector.prototype.append;
 Vector.prototype['::+'] = Vector.prototype.append;
 
 Vector.prototype.concat = function (that) {
-  return that instanceof Vector
-    ? concat_(this, that)
-    : (S.concat_(this, that) as any);
+  return concat_(this, that);
 };
 Vector.prototype['+++'] = Vector.prototype.concat;
 
@@ -319,13 +358,22 @@ Vector.prototype.splitAt = function (idx) {
   return splitAt_(this, idx);
 };
 
+Vector.prototype.collect = function (f) {
+  return collect_(this, f);
+};
+
+Vector.prototype.collectWhile = function (f) {
+  return collectWhile_(this, f);
+};
+
+Vector.prototype.filter = function (f) {
+  return filter_(this, f);
+};
+
 Vector.prototype.map = function (f) {
   return map_(this, f);
 };
 
-Vector.prototype.flatMapSeq = function (f) {
-  return S.flatMapSeq_(this, f);
-};
 Vector.prototype.flatMap = function (f) {
   return flatMap_(this, f);
 };
@@ -333,11 +381,6 @@ Vector.prototype.flatMap = function (f) {
 Object.defineProperty(Vector.prototype, 'flatten', {
   get<A>(this: Vector<Vector<A>>): Vector<A> {
     return flatten(this);
-  },
-});
-Object.defineProperty(Vector.prototype, 'flattenSeq', {
-  get<A>(this: Vector<Seq<A>>): Seq<A> {
-    return S.flattenSeq(this);
   },
 });
 
@@ -359,8 +402,20 @@ Vector.prototype.zipWith = function (that, f) {
   return zipWith_(this, that)(f);
 };
 
+Vector.prototype.zipAll = function (that, defaultL, defaultR) {
+  return zipAll_(this, that, defaultL, defaultR);
+};
+
+Vector.prototype.zipAllWith = function (that, defaultL, defaultR, f) {
+  return zipAllWith_(this, that, defaultL, defaultR)(f);
+};
+
 Vector.prototype.forEach = function (f) {
   return forEach_(this, f);
+};
+
+Vector.prototype.partition = function (f) {
+  return partition_(this, f);
 };
 
 Vector.prototype.foldLeft = function (z, f) {
@@ -409,8 +464,4 @@ Vector.prototype.traverse = function (G) {
 
 Vector.prototype.show = function (S = Show.fromToString()): any {
   return show(S)(this);
-};
-
-Vector.prototype.equals = function (that: any, E = Eq.primitive): any {
-  return equals_(E)(this, that);
 };

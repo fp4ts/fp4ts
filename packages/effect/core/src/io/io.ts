@@ -162,7 +162,7 @@ interface IOObj {
 
   parSequence: <T>(
     T: Traversable<T>,
-  ) => <C2, A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
+  ) => <A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
 
   parTraverse: <T>(
     T: Traversable<T>,

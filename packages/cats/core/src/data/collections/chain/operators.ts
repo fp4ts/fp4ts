@@ -1,17 +1,15 @@
-import '../array';
 import { Kind, fst, snd, throwError, Iter } from '@cats4ts/core';
+import { Foldable } from '../../../foldable';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Eval } from '../../../eval';
 import { Option, None, Some } from '../../option';
 
-import { IndexedSeq } from '../indexed-seq';
 import { List } from '../list';
 import { Vector } from '../vector';
-import { Seq } from '../seq';
 
-import { Chain, Concat, Empty, NonEmpty, view, Wrap } from './algebra';
-import { empty, fromSeq, pure } from './constructors';
+import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
+import { empty, fromList, fromVector, pure } from './constructors';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
 
@@ -55,8 +53,10 @@ export const popHead = <A>(c: Chain<A>): Option<[A, Chain<A>]> => {
         break;
 
       case 'wrap': {
-        const [hd, tl] = cur.values.popHead.get;
-        sfx = (sfx ? concat_(fromSeq(tl), sfx) : fromSeq(tl)) as NonEmpty<A>;
+        const [hd, tl] = cur.F.toVector<A>(cur.values).popHead.get;
+        sfx = (
+          sfx ? concat_(fromVector(tl), sfx) : fromVector(tl)
+        ) as NonEmpty<A>;
         result = [hd, sfx];
         break;
       }
@@ -88,8 +88,10 @@ export const popLast = <A>(c: Chain<A>): Option<[A, Chain<A>]> => {
         break;
 
       case 'wrap': {
-        const [lst, ini] = cur.values.popLast.get;
-        pfx = (pfx ? concat_(pfx, fromSeq(ini)) : fromSeq(ini)) as NonEmpty<A>;
+        const [lst, ini] = cur.F.toVector<A>(cur.values).popLast.get;
+        pfx = (
+          pfx ? concat_(pfx, fromVector(ini)) : fromVector(ini)
+        ) as NonEmpty<A>;
         result = [lst, pfx];
         break;
       }
@@ -140,7 +142,7 @@ export const iterator = <A>(c: Chain<A>): Iterator<A> => {
           case 'singleton':
             return Iter.Result.pure(v.value);
           case 'wrap':
-            cur = v.values.iterator;
+            cur = v.F.iterator<A>(v.values);
             continue iterLoop;
           case 'concat':
             stack = stack.prepend(v.rhs).prepend(v.lhs);
@@ -172,7 +174,7 @@ export const reversedIterator = <A>(c: Chain<A>): Iterator<A> => {
           case 'singleton':
             return Iter.Result.pure(v.value);
           case 'wrap':
-            cur = v.values.reverseIterator;
+            cur = v.F.toVector<A>(v.values).reverseIterator;
             continue iterLoop;
           case 'concat':
             stack = stack.prepend(v.lhs).prepend(v.rhs);
@@ -203,7 +205,7 @@ export const foldRight: <A, B>(
 ) => (xs: Chain<A>) => B = (z, f) => xs => foldRight_(xs, z, f);
 
 export const zipWithIndex = <A>(xs: Chain<A>): Chain<[A, number]> =>
-  new Wrap(Vector.fromIterator(Iter.zipWithIndex(iterator(xs))));
+  fromVector(Vector.fromIterator(Iter.zipWithIndex(iterator(xs))));
 
 export const zipWith: <A, B, C>(
   ys: Chain<B>,
@@ -225,13 +227,10 @@ export const toList = <A>(xs: Chain<A>): List<A> =>
 export const toVector = <A>(xs: Chain<A>): Vector<A> =>
   Vector.fromIterator(iterator(xs));
 
-export const toSeq = <A>(xs: Chain<A>): Seq<A> =>
-  Seq.fromIterator(iterator(xs));
-
 export const traverseViaChain =
-  <G>(G: Applicative<G>) =>
-  <A, B>(xs: IndexedSeq<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> => {
-    if (xs.isEmpty) return G.pure(empty);
+  <G, F>(G: Applicative<G>, F: Foldable<F>) =>
+  <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> => {
+    if (F.isEmpty(xs)) return G.pure(empty);
 
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
@@ -239,15 +238,15 @@ export const traverseViaChain =
     const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
-        let first = Eval.delay(() => G.map_(f(xs['!!'](end - 1)), List));
+        let first = Eval.delay(() => G.map_(f(F.elem_(xs, end - 1).get), List));
         for (let idx = end - 2; start <= idx; idx--) {
-          const a = xs['!!'](idx);
+          const a = F.elem_(xs, idx).get;
           const right = first;
           first = Eval.defer(() =>
             G.map2Eval_(f(a), right)((h, t) => t.prepend(h)),
           );
         }
-        return first.map(gls => G.map_(gls, fromSeq));
+        return first.map(gls => G.map_(gls, fromList));
       } else {
         const step = ((end - start) / width) | 0;
 
@@ -266,7 +265,7 @@ export const traverseViaChain =
       }
     };
 
-    return loop(0, xs.size).value;
+    return loop(0, F.size(xs)).value;
   };
 
 // -- Point-ful operators
@@ -323,12 +322,14 @@ export const foldRight_ = <A, B>(
 export const zipWith_ =
   <A, B>(xs: Chain<A>, ys: Chain<B>) =>
   <C>(f: (a: A, b: B) => C): Chain<C> =>
-    new Wrap(Vector.fromIterator(Iter.zipWith_(iterator(xs), iterator(ys))(f)));
+    fromVector(
+      Vector.fromIterator(Iter.zipWith_(iterator(xs), iterator(ys))(f)),
+    );
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Chain<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> =>
-    traverseViaChain(G)(toArray(xs), f);
+    traverseViaChain(G, Vector.Foldable)(toVector(xs), f);
 
 export const equals_ =
   <A>(E: Eq<A>) =>

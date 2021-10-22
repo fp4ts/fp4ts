@@ -1,7 +1,9 @@
-import { Kind, instance } from '@cats4ts/core';
+import { Kind, instance, tupled, Iter } from '@cats4ts/core';
 import { Monoid } from './monoid';
+import { Monad } from './monad';
 import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
+import { List, Vector, Option, Some, None, Either, Left, Right } from './data';
 
 export interface Foldable<F> extends UnorderedFoldable<F> {
   readonly foldLeft: <A, B>(
@@ -26,6 +28,27 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
   readonly foldMap_: <M>(
     M: Monoid<M>,
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
+
+  readonly foldM: <G>(
+    G: Monad<G>,
+  ) => <A, B>(
+    z: B,
+    f: (b: B, a: A) => Kind<G, [B]>,
+  ) => (fa: Kind<F, [A]>) => Kind<G, [B]>;
+  readonly foldM_: <G>(
+    G: Monad<G>,
+  ) => <A, B>(
+    fa: Kind<F, [A]>,
+    z: B,
+    f: (b: B, a: A) => Kind<G, [B]>,
+  ) => Kind<G, [B]>;
+
+  readonly elem: (idx: number) => <A>(fa: Kind<F, [A]>) => Option<A>;
+  readonly elem_: <A>(fa: Kind<F, [A]>, idx: number) => Option<A>;
+
+  readonly iterator: <A>(fa: Kind<F, [A]>) => Iterator<A>;
+  readonly toList: <A>(fa: Kind<F, [A]>) => List<A>;
+  readonly toVector: <A>(fa: Kind<F, [A]>) => Vector<A>;
 }
 
 export type FoldableRequirements<F> = Pick<
@@ -44,6 +67,58 @@ export const Foldable = Object.freeze({
       foldMap_: M => (fa, f) =>
         self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, () => f(x))),
 
+      foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
+      foldM_: G => (fa, z, f) => {
+        const src = Source.fromFoldable(self)(fa);
+        return G.tailRecM(tupled(z, src))(([b, src]) =>
+          src.uncons.fold(
+            () => G.pure(Right(b)),
+            ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src.value))),
+          ),
+        );
+      },
+
+      elem: idx => fa => self.elem_(fa, idx),
+      elem_: <A>(fa: Kind<F, [A]>, idx: number) => {
+        if (idx < 0) return None;
+        return self
+          .foldM_(Either.Monad<A>())(fa, 0, (i, a) =>
+            i === idx ? Left(a) : Right(i + 1),
+          )
+          .fold(
+            a => Some(a),
+            () => None,
+          );
+      },
+
+      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => {
+        let src = Eval.now(Source.fromFoldable(self)(fa));
+        return Iter.lift(() => {
+          const next = src.value.uncons;
+          if (next.isEmpty) return Iter.Result.done;
+
+          const [a, src_] = next.get;
+          src = src_;
+          return Iter.Result.pure(a);
+        });
+      },
+
+      toList: <A>(fa: Kind<F, [A]>) =>
+        List.fromArray(
+          self.foldLeft_(fa, [] as A[], (as, a) => {
+            as.push(a);
+            return as;
+          }),
+        ),
+
+      toVector: <A>(fa: Kind<F, [A]>) =>
+        Vector.fromArray(
+          self.foldLeft_(fa, [] as A[], (as, a) => {
+            as.push(a);
+            return as;
+          }),
+        ),
+
       ...UnorderedFoldable.of({
         unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
         ...F,
@@ -52,4 +127,24 @@ export const Foldable = Object.freeze({
     });
     return self;
   },
+});
+
+interface Source<A> {
+  readonly uncons: Option<[A, Eval<Source<A>>]>;
+}
+const Source = Object.freeze({
+  get empty(): Source<never> {
+    return { uncons: None };
+  },
+
+  cons: <A>(a: A, src: Eval<Source<A>>): Source<A> => ({
+    uncons: Some([a, src]),
+  }),
+
+  fromFoldable:
+    <F>(F: Foldable<F>) =>
+    <A>(fa: Kind<F, [A]>): Source<A> =>
+      F.foldRight_(fa, Eval.now<Source<A>>(Source.empty), (a, evalSrc) =>
+        Eval.delay(() => Source.cons(a, evalSrc)),
+      ).value,
 });

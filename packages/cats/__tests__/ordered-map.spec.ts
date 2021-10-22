@@ -1,4 +1,4 @@
-import fc from 'fast-check';
+import fc, { hash, stringify } from 'fast-check';
 import { id } from '@cats4ts/core';
 import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@cats4ts/cats-core';
 import {
@@ -7,6 +7,7 @@ import {
   Some,
   None,
   OrderedMap,
+  Identity,
 } from '@cats4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@cats4ts/cats-test-kit';

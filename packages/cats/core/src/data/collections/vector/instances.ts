@@ -1,4 +1,4 @@
-import { Lazy } from '@cats4ts/core';
+import { id, Lazy } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
@@ -22,14 +22,21 @@ import { Measured } from '../finger-tree/measured';
 import { Size } from './algebra';
 import {
   align_,
+  all_,
+  any_,
   collect_,
   concat_,
+  count_,
+  elemOption_,
   elem_,
   equals_,
   flatMap_,
   flatten,
   foldLeft_,
+  isEmpty,
+  iterator,
   map_,
+  nonEmpty,
   size,
   tailRecM_,
   traverse_,
@@ -110,7 +117,12 @@ export const vectorMonad: Lazy<Monad<VectorK>> = () =>
 
 export const vectorFoldable: Lazy<Foldable<VectorK>> = () =>
   Foldable.of({
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
     size: size,
+    all_: all_,
+    any_: any_,
+    count_: count_,
     foldLeft_: foldLeft_,
     foldRight_: <A, B>(
       xs: Vector<A>,
@@ -126,6 +138,9 @@ export const vectorFoldable: Lazy<Foldable<VectorK>> = () =>
           : eb;
       return loop(0);
     },
+    elem_: elemOption_,
+    iterator: iterator,
+    toVector: id,
   });
 
 export const vectorTraversable: Lazy<Traversable<VectorK>> = () =>

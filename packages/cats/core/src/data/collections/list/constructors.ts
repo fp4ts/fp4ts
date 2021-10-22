@@ -1,4 +1,3 @@
-import { Seq } from '../seq';
 import { Vector } from '../vector';
 import { Cons, List, Nil } from './algebra';
 
@@ -27,8 +26,6 @@ export const fromIterator = <A>(it: Iterator<A>): List<A> => {
   }
   return hd;
 };
-
-export const fromSeq = <A>(xs: Seq<A>): List<A> => fromIterator(xs.iterator);
 
 export const fromArray = <A>(xs: A[]): List<A> => {
   let results: List<A> = empty;

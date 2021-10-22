@@ -1,4 +1,4 @@
-import { id, Kind, pipe, throwError } from '@cats4ts/core';
+import { id, Kind, pipe, throwError, tupled } from '@cats4ts/core';
 import { ConjunctionMonoid, DisjunctionMonoid } from '../../../monoid';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
@@ -15,8 +15,12 @@ import { Chain } from '../chain';
 
 import * as FT from '../finger-tree/functional';
 import { Vector } from './algebra';
-import { empty, fromArray, fromList, pure } from './constructors';
-import { fingerTreeSizeMeasured, sizeMeasured } from './instances';
+import { empty, fromArray, pure } from './constructors';
+import {
+  fingerTreeSizeMeasured,
+  sizeMeasured,
+  vectorFoldable,
+} from './instances';
 
 const FT_ = {
   popHead: FT.popHead(sizeMeasured),
@@ -275,7 +279,7 @@ export const elem_ = <A>(xs: Vector<A>, idx: number): A =>
   );
 
 export const elemOption_ = <A>(xs: Vector<A>, idx: number): Option<A> =>
-  FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
+  idx < 0 ? None : FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
 
 export const all_ = <A>(xs: Vector<A>, p: (a: A) => boolean): boolean =>
   foldMap_(Eval.Monoid(ConjunctionMonoid))(xs, x => Eval.later(() => p(x)))
@@ -322,9 +326,6 @@ export const splitAt_ = <A>(
   );
 };
 
-export const filter_ = <A>(xs: Vector<A>, p: (a: A) => boolean): Vector<A> =>
-  foldLeft_(xs, empty as Vector<A>, (ys, x) => (p(x) ? append_(ys, x) : ys));
-
 export const collect_ = <A, B>(
   xs: Vector<A>,
   f: (a: A) => Option<B>,
@@ -335,6 +336,23 @@ export const collect_ = <A, B>(
       y => append_(ys, y),
     ),
   );
+
+export const collectWhile_ = <A, B>(
+  xs: Vector<A>,
+  f: (a: A) => Option<B>,
+): Vector<B> => {
+  let ys: Vector<B> = empty;
+  const it = iterator(xs);
+  for (let next = it.next(); !next.done; next = it.next()) {
+    const result = f(next.value);
+    if (result.isEmpty) break;
+    ys = append_(ys, result.get);
+  }
+  return ys;
+};
+
+export const filter_ = <A>(xs: Vector<A>, p: (a: A) => boolean): Vector<A> =>
+  foldLeft_(xs, empty as Vector<A>, (ys, x) => (p(x) ? append_(ys, x) : ys));
 
 export const map_ = <A, B>(xs: Vector<A>, f: (a: A) => B): Vector<B> =>
   foldLeft_(xs, empty as Vector<B>, (ys, x) => append_(ys, f(x)));
@@ -369,6 +387,22 @@ export const tailRecM_ = <S, A>(
 
 export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>
   FT.forEach_(xs._root, f);
+
+export const partition_ = <A, L, R>(
+  xs: Vector<A>,
+  f: (a: A) => Either<L, R>,
+): [Vector<L>, Vector<R>] => {
+  let ls: Vector<L> = empty;
+  let rs: Vector<R> = empty;
+  const it = iterator(xs);
+  for (let next = it.next(); !next.done; next = it.next()) {
+    f(next.value).fold(
+      l => (ls = append_(ls, l)) as unknown,
+      r => (rs = append_(rs, r)) as unknown,
+    );
+  }
+  return [ls, rs];
+};
 
 export const foldLeft_ = <A, B>(xs: Vector<A>, z: B, f: (b: B, a: A) => B): B =>
   FT.foldLeft_(xs._root, z, f);
@@ -477,10 +511,41 @@ export const zipWith_ =
     return result;
   };
 
+export const zipAll_ = <A, B>(
+  xs: Vector<A>,
+  ys: Vector<B>,
+  defaultL: () => A,
+  defaultR: () => B,
+): Vector<[A, B]> => zipAllWith_(xs, ys, defaultL, defaultR)(tupled);
+
+export const zipAllWith_ =
+  <A, B>(xs: Vector<A>, ys: Vector<B>, defaultL: () => A, defaultR: () => B) =>
+  <C>(f: (a: A, b: B) => C): Vector<C> => {
+    let result: Vector<C> = empty;
+    while (nonEmpty(xs) || nonEmpty(ys)) {
+      const [xhd, xtl] = xs.popHead
+        .map(([hd, tl]) => [Some(hd), tl] as [Option<A>, Vector<A>])
+        .getOrElse(() => [None, empty]);
+      const [yhd, ytl] = ys.popHead
+        .map(([hd, tl]) => [Some(hd), tl] as [Option<B>, Vector<B>])
+        .getOrElse(() => [None, empty]);
+      result = append_(
+        result,
+        f(xhd.getOrElse(defaultL), yhd.getOrElse(defaultR)),
+      );
+      xs = xtl;
+      ys = ytl;
+    }
+    return result;
+  };
+
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Vector<B>]> =>
-    G.map_(Chain.traverseViaChain(G)(xs, f), xs => xs.toVector);
+    G.map_(
+      Chain.traverseViaChain(G, vectorFoldable())(xs, f),
+      xs => xs.toVector,
+    );
 
 export const equals_ =
   <A2>(E: Eq<A2>) =>

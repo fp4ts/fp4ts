@@ -5,19 +5,32 @@ import { forAll, IsEq } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 describe('Chain', () => {
+  describe('types', () => {
+    it('should be covariant', () => {
+      const c: Chain<number> = Chain.empty;
+    });
+
+    it('should not allow for unrelated type widening', () => {
+      const c: Chain<number> = Chain.empty;
+
+      // @ts-expect-error
+      c.append('string');
+    });
+  });
+
   test(
     'headOption',
     forAll(
-      A.cats4tsSeq(fc.integer()),
-      xs => new IsEq(Chain.fromSeq(xs).headOption, xs.headOption),
+      A.cats4tsVector(fc.integer()),
+      xs => new IsEq(Chain.fromVector(xs).headOption, xs.headOption),
     )(Option.Eq(Eq.primitive)),
   );
 
   test(
     'lastOption',
     forAll(
-      A.cats4tsSeq(fc.integer()),
-      xs => new IsEq(Chain.fromSeq(xs).lastOption, xs.lastOption),
+      A.cats4tsVector(fc.integer()),
+      xs => new IsEq(Chain.fromVector(xs).lastOption, xs.lastOption),
     )(Option.Eq(Eq.primitive)),
   );
 

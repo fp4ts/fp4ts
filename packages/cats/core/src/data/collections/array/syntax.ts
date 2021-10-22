@@ -1,7 +1,7 @@
 import { Iter } from '@cats4ts/core';
 import { Monoid } from '../../../monoid';
-import { Some, None } from '../../option';
-import { IndexedSeq } from '../indexed-seq';
+// import { Some, None } from '../../option';
+// import { IndexedSeq } from '../indexed-seq';
 import {
   concat_,
   drop_,
@@ -16,7 +16,7 @@ import {
 } from './operators';
 
 declare global {
-  interface Array<T> extends IndexedSeq<T> {
+  interface Array<T> {
     head: T;
     tail: T[];
 
@@ -95,14 +95,14 @@ Array.prototype['+++'] = function <A>(this: A[], that: A[]): Array<A> {
   return concat_(this, that);
 };
 
-Array.prototype.elem = function (idx) {
-  return this[idx];
-};
-Array.prototype['!!'] = Array.prototype.elem;
+// Array.prototype.elem = function (idx) {
+//   return this[idx];
+// };
+// Array.prototype['!!'] = Array.prototype.elem;
 
-Array.prototype.elemOption = function (idx) {
-  return idx >= 0 && idx < this.length ? Some(this[idx]) : None;
-};
+// Array.prototype.elemOption = function (idx) {
+//   return idx >= 0 && idx < this.length ? Some(this[idx]) : None;
+// };
 
 Array.prototype.foldMap = function <A, M>(
   this: A[],

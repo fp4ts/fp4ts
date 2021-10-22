@@ -23,7 +23,7 @@ import {
   isEmpty,
   map_,
   nonEmpty,
-  popMax,
+  popMin,
   sequence,
   size,
   traverse_,
@@ -70,7 +70,7 @@ export const orderedMapFoldable: <K>() => Foldable<$<OrderedMapK, [K]>> = () =>
       f: (v: V, eb: Eval<B>) => Eval<B>,
     ): Eval<B> => {
       const loop = (m: OrderedMap<K, V>): Eval<B> =>
-        popMax(m).fold(
+        popMin(m).fold(
           () => z,
           ([hd, tl]) =>
             f(

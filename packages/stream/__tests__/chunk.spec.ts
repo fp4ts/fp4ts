@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { AdditionMonoid, Eval, Eq, List, Vector } from '@cats4ts/cats';
 import { Chunk } from '@cats4ts/stream-core';
-import { checkAll, forAll } from '@cats4ts/cats-test-kit';
+import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
@@ -61,10 +61,10 @@ describe('chunk', () => {
       A.cats4tsStreamChunkGenerator(fc.integer()),
       A.cats4tsStreamChunkGenerator(fc.integer()),
       (c1, c2) =>
-        c1['+++'](Chunk.empty)
-          ['+++'](c2)
-          ['+++'](Chunk.empty)
-          .toList['<=>'](c1.toList['+++'](c2.toList)),
+        new IsEq<List<number>>(
+          c1['+++'](Chunk.empty)['+++'](c2)['+++'](Chunk.empty).toList,
+          c1.toList.concat(c2.toList),
+        ),
     )(List.Eq(Eq.primitive)),
   );
 

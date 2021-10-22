@@ -1,5 +1,6 @@
 import { ok as assert } from 'assert';
-import { Seq } from '../seq';
+import { Kind } from '@cats4ts/core';
+import { Foldable } from '../../../foldable';
 
 export abstract class Chain<A> {
   readonly __void!: void;
@@ -27,15 +28,18 @@ export class Concat<A> extends Chain<A> {
   }
 }
 
-export class Wrap<A> extends Chain<A> {
+export class Wrap<F, A> extends Chain<A> {
   public readonly tag = 'wrap';
-  public constructor(public readonly values: Seq<A>) {
+  public constructor(
+    public readonly F: Foldable<F>,
+    public readonly values: Kind<F, [A]>,
+  ) {
     super();
-    assert(values.size > 0, 'Wrap cannot wrap an empty vector');
+    assert(F.size(values) > 0, 'Wrap cannot wrap an empty vector');
   }
 }
 
-export type NonEmpty<A> = Singleton<A> | Concat<A> | Wrap<A>;
+export type NonEmpty<A> = Singleton<A> | Concat<A> | Wrap<unknown, A>;
 export type View<A> = Empty | NonEmpty<A>;
 
 export const view = <A>(_: Chain<A>): View<A> => _ as any;

@@ -1,6 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, Foldable, Monoid } from '@cats4ts/cats-core';
+import { Option, List, Vector } from '@cats4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FoldableLaws } from '../foldable-laws';
@@ -44,6 +45,35 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
               fc.func<[A], B>(arbB),
               laws.rightFoldConsistentWithFoldMap(MB),
             )(EqB),
+          ],
+          [
+            'foldable foldM identity',
+            forAll(
+              mkArbF(arbA),
+              arbB,
+              fc.func<[B, A], B>(arbB),
+              laws.foldMIdentity,
+            )(EqB),
+          ],
+          [
+            'foldable elem reference',
+            forAll(
+              mkArbF(arbA),
+              fc.integer(-2, 20),
+              laws.elemRef,
+            )(Option.Eq(EqA)),
+          ],
+          [
+            'foldable toList reference',
+            forAll(mkArbF(arbA), laws.toListRef)(List.Eq(EqA)),
+          ],
+          [
+            'foldable toVector reference',
+            forAll(mkArbF(arbA), laws.toVectorRef)(Vector.Eq(EqA)),
+          ],
+          [
+            'foldable list from iterator is toList',
+            forAll(mkArbF(arbA), laws.listFromIteratorIsToList)(List.Eq(EqA)),
           ],
         ],
         { parent: self.unorderedFoldable(arbA, EqA, MA, mkArbF) },

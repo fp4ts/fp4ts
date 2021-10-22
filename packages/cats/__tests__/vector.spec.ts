@@ -9,6 +9,7 @@ import {
   Right,
   List,
   Vector,
+  Identity,
 } from '@cats4ts/cats-core/lib/data';
 import { checkAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
@@ -237,6 +238,22 @@ describe('Vector', () => {
       );
 
       expect(v.toArray).toEqual(xs);
+    });
+  });
+
+  describe('elemOption', () => {
+    it('should return None when index is less than zero', () => {
+      expect(Vector(1, 2, 3)['!?'](-1)).toEqual(None);
+    });
+
+    it('should return indexed element', () => {
+      expect(Vector(1, 2, 3)['!?'](0)).toEqual(Some(1));
+      expect(Vector(1, 2, 3)['!?'](1)).toEqual(Some(2));
+      expect(Vector(1, 2, 3)['!?'](2)).toEqual(Some(3));
+    });
+
+    it('should return None when index is beyond the bounds', () => {
+      expect(Vector.empty['!?'](1_000)).toEqual(None);
     });
   });
 
@@ -655,6 +672,118 @@ describe('Vector', () => {
     });
   });
 
+  describe('zipAll', () => {
+    it('should fill default value on left', () => {
+      expect(
+        Vector.empty.zipAll(
+          Vector(42),
+          () => 1,
+          () => 2,
+        ).toArray,
+      ).toEqual([[1, 42]]);
+    });
+
+    it('should fill default value on right', () => {
+      expect(
+        Vector(42).zipAll(
+          Vector.empty,
+          () => 1,
+          () => 2,
+        ).toArray,
+      ).toEqual([[42, 2]]);
+    });
+
+    it('should zip two single element Vectors', () => {
+      expect(
+        Vector(42).zipAll(
+          Vector(43),
+          () => 1,
+          () => 2,
+        ).toArray,
+      ).toEqual([[42, 43]]);
+    });
+  });
+
+  describe('zipAllWith', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should fill default value on left', () => {
+      expect(
+        Vector.empty.zipAllWith(
+          Vector(42),
+          () => 1,
+          () => 2,
+          add,
+        ).toArray,
+      ).toEqual([43]);
+    });
+
+    it('should fill default value on right', () => {
+      expect(
+        Vector(42).zipAllWith(
+          Vector.empty,
+          () => 1,
+          () => 2,
+          add,
+        ).toArray,
+      ).toEqual([44]);
+    });
+
+    it('should zip two single element Vectors', () => {
+      expect(
+        Vector(42).zipAllWith(
+          Vector(43),
+          () => 1,
+          () => 2,
+          add,
+        ).toArray,
+      ).toEqual([85]);
+    });
+  });
+
+  describe('forEach', () => {
+    it('should not invoke a callback when empty', () => {
+      const fn = jest.fn();
+      Vector.empty.forEach(fn);
+
+      expect(fn).not.toHaveBeenCalled();
+    });
+
+    it('should call with each element in order', () => {
+      const xs: number[] = [];
+      Vector(1, 2, 3, 4, 5).forEach(x => xs.push(x));
+
+      expect(xs).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
+
+  describe('partition', () => {
+    it('should partition empty Vector to tuple of empty Vectors', () => {
+      const [l, r] = Vector.empty.partition(() => Left(null));
+      expect([l.toArray, r.toArray]).toEqual([[], []]);
+    });
+
+    it('should return left partition', () => {
+      const [l, r] = Vector(1, 2, 3).partition(Left);
+      expect([l.toArray, r.toArray]).toEqual([[1, 2, 3], []]);
+    });
+
+    it('should return right partition', () => {
+      const [l, r] = Vector(1, 2, 3).partition(Right);
+      expect([l.toArray, r.toArray]).toEqual([[], [1, 2, 3]]);
+    });
+
+    it('should make partition of odd and even numbers', () => {
+      const [l, r] = Vector(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(x =>
+        x % 2 === 0 ? Right(x) : Left(x),
+      );
+      expect([l.toArray, r.toArray]).toEqual([
+        [1, 3, 5, 7, 9],
+        [2, 4, 6, 8],
+      ]);
+    });
+  });
+
   describe('foldLeft', () => {
     const add = (x: number, y: number): number => x + y;
 
@@ -669,13 +798,6 @@ describe('Vector', () => {
     it('should be left associative', () => {
       expect(Vector(1, 2, 3).foldLeft('()', (r, a) => `(${r} ${a})`)).toBe(
         '(((() 1) 2) 3)',
-      );
-    });
-
-    it('should be stack safe', () => {
-      const xs = Vector.fromArray([...new Array(50_000).keys()]);
-      expect(xs.foldLeft(0, add)).toEqual(
-        [...new Array(50_000).keys()].reduce(add, 0),
       );
     });
   });
@@ -774,6 +896,31 @@ describe('Vector', () => {
       expect(
         Vector('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`).toArray,
       ).toEqual(['(1 (2 3))', '(2 3)', '3']);
+    });
+  });
+
+  describe('traverse', () => {
+    it('should return empty list when empty', () => {
+      expect(Vector().traverse(Identity.Applicative)(id)).toEqual(Vector.empty);
+    });
+
+    it('should invoke elements in order', () => {
+      const arr: number[] = [];
+      Vector(1, 2, 3, 4, 5).traverse(Identity.Applicative)(x => {
+        arr.push(x);
+        return x;
+      });
+
+      expect(arr).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(20_000).keys()]);
+      expect(
+        xs
+          .traverse(List.Applicative)(x => List(x))
+          ['!!'](0).toArray,
+      ).toEqual(xs.toArray);
     });
   });
 

@@ -4,7 +4,6 @@ import { Applicative } from '../../../applicative';
 import { Option } from '../../option';
 import { Vector } from '../vector';
 import { List } from '../list';
-import { Seq } from '../seq';
 import { Chain } from './algebra';
 import {
   append_,
@@ -28,7 +27,6 @@ import {
   tail,
   toArray,
   toList,
-  toSeq,
   toVector,
   traverse_,
   uncons,
@@ -57,7 +55,6 @@ declare module './algebra' {
     readonly toArray: A[];
     readonly toVector: Vector<A>;
     readonly toList: List<A>;
-    readonly toSeq: Seq<A>;
 
     readonly size: number;
 
@@ -158,11 +155,7 @@ Object.defineProperty(Chain.prototype, 'toList', {
     return toList(this);
   },
 });
-Object.defineProperty(Chain.prototype, 'toSeq', {
-  get<A>(this: Chain<A>): Seq<A> {
-    return toSeq(this);
-  },
-});
+
 Object.defineProperty(Chain.prototype, 'size', {
   get<A>(this: Chain<A>): number {
     return size(this);
