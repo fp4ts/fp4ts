@@ -1,4 +1,4 @@
-import { $, constant, Lazy } from '@cats4ts/core';
+import { $, constant, Lazy, lazyVal } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { Semigroup } from '../../semigroup';
 import { Monad } from '../../monad';
@@ -35,5 +35,6 @@ export const iorMonadError: <A>(
     ...iorMonad(S),
   });
 
-export const iorBifunctor: Lazy<Bifunctor<IorK>> = () =>
-  Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ });
+export const iorBifunctor: Lazy<Bifunctor<IorK>> = lazyVal(() =>
+  Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ }),
+);

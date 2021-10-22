@@ -1,4 +1,4 @@
-import { $, Kind } from '@cats4ts/core';
+import { $, Kind, lazyVal } from '@cats4ts/core';
 import { Eval } from '../../../eval';
 import { Eq } from '../../../eq';
 import { Ord } from '../../../ord';
@@ -50,50 +50,54 @@ export const orderedMapMonoidK: <K>(O: Ord<K>) => MonoidK<$<OrderedMapK, [K]>> =
       combineK_: (x, y) => union_(O, x, y()),
     });
 
-export const orderedMapFunctor: <K>() => Functor<$<OrderedMapK, [K]>> = () =>
-  Functor.of({ map_: (fa, f) => map_(fa, x => f(x)) });
+export const orderedMapFunctor: <K>() => Functor<$<OrderedMapK, [K]>> = lazyVal(
+  () => Functor.of({ map_: (fa, f) => map_(fa, x => f(x)) }),
+);
 
 export const orderedMapFunctorFilter: <K>() => FunctorFilter<
   $<OrderedMapK, [K]>
-> = () =>
+> = lazyVal(() =>
   FunctorFilter.of({
     ...orderedMapFunctor(),
     mapFilter_: (fa, p) => collect_(fa, x => p(x)),
-  });
+  }),
+);
 
-export const orderedMapFoldable: <K>() => Foldable<$<OrderedMapK, [K]>> = () =>
-  Foldable.of({
-    foldLeft_: (m, z, f) => foldLeft_(m, z, (z, x) => f(z, x)),
-    foldRight_: <K, V, B>(
-      m0: OrderedMap<K, V>,
-      z: Eval<B>,
-      f: (v: V, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (m: OrderedMap<K, V>): Eval<B> =>
-        popMin(m).fold(
-          () => z,
-          ([hd, tl]) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-      return loop(m0);
-    },
-    foldMap_:
-      <M>(M: Monoid<M>) =>
-      <K, V>(m: OrderedMap<K, V>, f: (x: V) => M) =>
-        foldMap_(M)(m, x => f(x)),
-    all_: (m, p) => all_(m, x => p(x)),
-    any_: (m, p) => any_(m, x => p(x)),
-    count_: (m, p) => count_(m, x => p(x)),
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: size,
-  });
+export const orderedMapFoldable: <K>() => Foldable<$<OrderedMapK, [K]>> =
+  lazyVal(() =>
+    Foldable.of({
+      foldLeft_: (m, z, f) => foldLeft_(m, z, (z, x) => f(z, x)),
+      foldRight_: <K, V, B>(
+        m0: OrderedMap<K, V>,
+        z: Eval<B>,
+        f: (v: V, eb: Eval<B>) => Eval<B>,
+      ): Eval<B> => {
+        const loop = (m: OrderedMap<K, V>): Eval<B> =>
+          popMin(m).fold(
+            () => z,
+            ([hd, tl]) =>
+              f(
+                hd,
+                Eval.defer(() => loop(tl)),
+              ),
+          );
+        return loop(m0);
+      },
+      foldMap_:
+        <M>(M: Monoid<M>) =>
+        <K, V>(m: OrderedMap<K, V>, f: (x: V) => M) =>
+          foldMap_(M)(m, x => f(x)),
+      all_: (m, p) => all_(m, x => p(x)),
+      any_: (m, p) => any_(m, x => p(x)),
+      count_: (m, p) => count_(m, x => p(x)),
+      isEmpty: isEmpty,
+      nonEmpty: nonEmpty,
+      size: size,
+    }),
+  );
 
 export const orderedMapTraversable: <K>() => Traversable<$<OrderedMapK, [K]>> =
-  () =>
+  lazyVal(() =>
     Traversable.of({
       ...orderedMapFunctor(),
       ...orderedMapFoldable(),
@@ -103,4 +107,5 @@ export const orderedMapTraversable: <K>() => Traversable<$<OrderedMapK, [K]>> =
         <K, V, B>(m: OrderedMap<K, V>, f: (x: V) => Kind<G, [B]>) =>
           traverse_(G)(m, x => f(x)),
       sequence: sequence,
-    });
+    }),
+  );

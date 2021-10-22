@@ -1,4 +1,4 @@
-import { $ } from '@cats4ts/core';
+import { $, lazyVal } from '@cats4ts/core';
 import {
   Align,
   Defer,
@@ -24,37 +24,43 @@ import {
 } from './operators';
 import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
-export const streamMonoidK: <F>() => MonoidK<$<StreamK, [F]>> = () =>
-  MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty });
+export const streamMonoidK: <F>() => MonoidK<$<StreamK, [F]>> = lazyVal(() =>
+  MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty }),
+);
 
-export const streamDefer: <F>() => Defer<$<StreamK, [F]>> = () =>
-  Defer.of({ defer: defer });
+export const streamDefer: <F>() => Defer<$<StreamK, [F]>> = lazyVal(() =>
+  Defer.of({ defer: defer }),
+);
 
-export const streamFunctor: <F>() => Functor<$<StreamK, [F]>> = () =>
-  Functor.of({ map_: map_ });
+export const streamFunctor: <F>() => Functor<$<StreamK, [F]>> = lazyVal(() =>
+  Functor.of({ map_: map_ }),
+);
 
-export const streamAlign: <F>() => Align<$<StreamK, [F]>> = () =>
-  Align.of({ functor: streamFunctor(), align_: align_ });
+export const streamAlign: <F>() => Align<$<StreamK, [F]>> = lazyVal(() =>
+  Align.of({ functor: streamFunctor(), align_: align_ }),
+);
 
 export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamK, [F]>> =
-  () =>
+  lazyVal(() =>
     FunctorFilter.of({
       ...streamFunctor(),
       mapFilter_: collect_,
       collect_: collect_,
-    });
+    }),
+  );
 
-export const streamMonad: <F>() => Monad<$<StreamK, [F]>> = () =>
+export const streamMonad: <F>() => Monad<$<StreamK, [F]>> = lazyVal(() =>
   Monad.of({
     ...streamFunctor(),
     pure: pure,
     flatMap_: flatMap_,
     flatten: flatten,
     tailRecM_: tailRecM_,
-  });
+  }),
+);
 
 export const streamMonadError: <F>() => MonadError<$<StreamK, [F]>, Error> =
-  () =>
+  lazyVal(() =>
     MonadError.of({
       ...streamMonad(),
       throwError: throwError,
@@ -62,4 +68,5 @@ export const streamMonadError: <F>() => MonadError<$<StreamK, [F]>, Error> =
       attempt: attempt,
       redeemWith_: redeemWith_,
       rethrow: rethrow,
-    });
+    }),
+  );

@@ -1,4 +1,4 @@
-import { $, Lazy } from '@cats4ts/core';
+import { $, Lazy, lazyVal } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
@@ -28,27 +28,33 @@ export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
   EA,
 ) => Eq.of({ equals: equals_(EE, EA) });
 
-export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = () =>
-  SemigroupK.of({ combineK_: orElse_ });
+export const eitherSemigroupK: <E>() => SemigroupK<$<EitherK, [E]>> = lazyVal(
+  () => SemigroupK.of({ combineK_: orElse_ }),
+);
 
-export const eitherFunctor: <E>() => Functor<$<EitherK, [E]>> = () =>
-  Functor.of({ map_ });
+export const eitherFunctor: <E>() => Functor<$<EitherK, [E]>> = lazyVal(() =>
+  Functor.of({ map_ }),
+);
 
-export const eitherBifunctor: Lazy<Bifunctor<EitherK>> = () =>
-  Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ });
+export const eitherBifunctor: Lazy<Bifunctor<EitherK>> = lazyVal(() =>
+  Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ }),
+);
 
-export const eitherApply: <E>() => Apply<$<EitherK, [E]>> = () =>
+export const eitherApply: <E>() => Apply<$<EitherK, [E]>> = lazyVal(() =>
   Apply.of({
     ...eitherFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const eitherApplicative: <E>() => Applicative<$<EitherK, [E]>> = () =>
-  Applicative.of({
-    ...eitherApply(),
-    pure: pure,
-    unit: rightUnit,
-  });
+export const eitherApplicative: <E>() => Applicative<$<EitherK, [E]>> = lazyVal(
+  () =>
+    Applicative.of({
+      ...eitherApply(),
+      pure: pure,
+      unit: rightUnit,
+    }),
+);
 
 export const eitherApplicativeError: <E>() => ApplicativeError<
   $<EitherK, [E]>,
@@ -60,14 +66,16 @@ export const eitherApplicativeError: <E>() => ApplicativeError<
     handleErrorWith_: (ea, h) => fold_(ea, h, right),
   });
 
-export const eitherFlatMap: <E>() => FlatMap<$<EitherK, [E]>> = () =>
-  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
+export const eitherFlatMap: <E>() => FlatMap<$<EitherK, [E]>> = lazyVal(() =>
+  FlatMap.of({ ...eitherApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
+);
 
-export const eitherMonad: <E>() => Monad<$<EitherK, [E]>> = () =>
+export const eitherMonad: <E>() => Monad<$<EitherK, [E]>> = lazyVal(() =>
   Monad.of({
     ...eitherApplicative(),
     ...eitherFlatMap(),
-  });
+  }),
+);
 
 export const eitherMonadError: <E>() => MonadError<$<EitherK, [E]>, E> = <
   E,

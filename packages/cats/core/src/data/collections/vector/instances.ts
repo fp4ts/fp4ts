@@ -1,4 +1,4 @@
-import { id, Lazy } from '@cats4ts/core';
+import { id, Lazy, lazyVal } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
@@ -63,59 +63,69 @@ export const fingerTreeSizeMeasured: Measured<
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
 
-export const vectorSemigroupK: Lazy<SemigroupK<VectorK>> = () =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
+export const vectorSemigroupK: Lazy<SemigroupK<VectorK>> = lazyVal(() =>
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
+);
 
-export const vectorMonoidK: Lazy<MonoidK<VectorK>> = () =>
-  MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) });
+export const vectorMonoidK: Lazy<MonoidK<VectorK>> = lazyVal(() =>
+  MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) }),
+);
 
-export const vectorFunctor: Lazy<Functor<VectorK>> = () =>
-  Functor.of({ map_: map_ });
+export const vectorFunctor: Lazy<Functor<VectorK>> = lazyVal(() =>
+  Functor.of({ map_: map_ }),
+);
 
-export const vectorAlign: Lazy<Align<VectorK>> = () =>
-  Align.of({ align_: align_, functor: vectorFunctor() });
+export const vectorAlign: Lazy<Align<VectorK>> = lazyVal(() =>
+  Align.of({ align_: align_, functor: vectorFunctor() }),
+);
 
-export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = () =>
+export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = lazyVal(() =>
   FunctorFilter.of({
     mapFilter_: collect_,
     collect_: collect_,
     ...vectorFunctor(),
-  });
+  }),
+);
 
-export const vectorApply: Lazy<Apply<VectorK>> = () =>
+export const vectorApply: Lazy<Apply<VectorK>> = lazyVal(() =>
   Apply.of({
     ...vectorFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const vectorApplicative: Lazy<Applicative<VectorK>> = () =>
+export const vectorApplicative: Lazy<Applicative<VectorK>> = lazyVal(() =>
   Applicative.of({
     ...vectorApply(),
     pure: pure,
-  });
+  }),
+);
 
-export const vectorAlternative: Lazy<Alternative<VectorK>> = () =>
+export const vectorAlternative: Lazy<Alternative<VectorK>> = lazyVal(() =>
   Alternative.of({
     ...vectorApplicative(),
     ...vectorMonoidK(),
-  });
+  }),
+);
 
-export const vectorFlatMap: Lazy<FlatMap<VectorK>> = () =>
+export const vectorFlatMap: Lazy<FlatMap<VectorK>> = lazyVal(() =>
   FlatMap.of({
     ...vectorApply(),
     map_: map_,
     flatMap_: flatMap_,
     flatten: flatten,
     tailRecM_: tailRecM_,
-  });
+  }),
+);
 
-export const vectorMonad: Lazy<Monad<VectorK>> = () =>
+export const vectorMonad: Lazy<Monad<VectorK>> = lazyVal(() =>
   Monad.of({
     ...vectorFlatMap(),
     ...vectorApplicative(),
-  });
+  }),
+);
 
-export const vectorFoldable: Lazy<Foldable<VectorK>> = () =>
+export const vectorFoldable: Lazy<Foldable<VectorK>> = lazyVal(() =>
   Foldable.of({
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
@@ -141,12 +151,14 @@ export const vectorFoldable: Lazy<Foldable<VectorK>> = () =>
     elem_: elemOption_,
     iterator: iterator,
     toVector: id,
-  });
+  }),
+);
 
-export const vectorTraversable: Lazy<Traversable<VectorK>> = () =>
+export const vectorTraversable: Lazy<Traversable<VectorK>> = lazyVal(() =>
   Traversable.of({
     ...vectorFoldable(),
     ...vectorFunctor(),
 
     traverse_: traverse_,
-  });
+  }),
+);

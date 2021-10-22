@@ -1,4 +1,4 @@
-import { $, Kind } from '@cats4ts/core';
+import { $, Kind, lazyVal } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Monoid } from '../../../monoid';
 import { SemigroupK } from '../../../semigroup-k';
@@ -41,19 +41,21 @@ export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapK, [K]>> = E =>
     combineK_: (x, y) => union_(E, x, y()),
   });
 
-export const hashMapFunctor: <K>() => Functor<$<HashMapK, [K]>> = () =>
-  Functor.of({ map_: (m, f) => map_(m, v => f(v)) });
+export const hashMapFunctor: <K>() => Functor<$<HashMapK, [K]>> = lazyVal(() =>
+  Functor.of({ map_: (m, f) => map_(m, v => f(v)) }),
+);
 
 export const hashMapFunctorFilter: <K>() => FunctorFilter<$<HashMapK, [K]>> =
-  () =>
+  lazyVal(() =>
     FunctorFilter.of({
       ...hashMapFunctor(),
       mapFilter_: (m, f) => collect_(m, v => f(v)),
-    });
+    }),
+  );
 
 export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
   $<HashMapK, [K]>
-> = () =>
+> = lazyVal(() =>
   UnorderedFoldable.of({
     unorderedFoldMap_:
       <M>(M: Monoid<M>) =>
@@ -65,11 +67,12 @@ export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,
-  });
+  }),
+);
 
 export const hashMapUnorderedTraversable: <K>() => UnorderedTraversable<
   $<HashMapK, [K]>
-> = () =>
+> = lazyVal(() =>
   UnorderedTraversable.of({
     ...hashMapUnorderedFoldable(),
 
@@ -78,4 +81,5 @@ export const hashMapUnorderedTraversable: <K>() => UnorderedTraversable<
       <K, V, B>(m: HashMap<K, V>, f: (v: V) => Kind<G, [B]>) =>
         traverse_(G)(m, x => f(x)),
     unorderedSequence: sequence,
-  });
+  }),
+);

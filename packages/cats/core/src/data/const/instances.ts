@@ -1,4 +1,4 @@
-import { $, Kind } from '@cats4ts/core';
+import { $, Kind, lazyVal } from '@cats4ts/core';
 import { Semigroup } from '../../semigroup';
 import { Monoid } from '../../monoid';
 import { SemigroupK } from '../../semigroup-k';
@@ -25,12 +25,14 @@ export const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstK, [A]>> = A =>
     combineK_: (x, y) => A.combine_(x, y),
   });
 
-export const constFunctor: <A>() => Functor<$<ConstK, [A]>> = <A>() =>
-  Functor.of({ map_: retag<A>() });
+export const constFunctor: <A>() => Functor<$<ConstK, [A]>> = lazyVal(<A>() =>
+  Functor.of({ map_: retag<A>() }),
+);
 
-export const constFunctorFilter: <A>() => FunctorFilter<$<ConstK, [A]>> = <
-  A,
->() => FunctorFilter.of({ ...constFunctor(), mapFilter_: retag<A>() });
+export const constFunctorFilter: <A>() => FunctorFilter<$<ConstK, [A]>> =
+  lazyVal(<A>() =>
+    FunctorFilter.of({ ...constFunctor(), mapFilter_: retag<A>() }),
+  );
 
 export const constApply: <A>(A: Monoid<A>) => Apply<$<ConstK, [A]>> = <A>(
   A: Monoid<A>,
@@ -49,8 +51,9 @@ export const constApplicative: <A>(
     pure: pure(A),
   });
 
-export const constFoldable: <A>() => Foldable<$<ConstK, [A]>> = () =>
-  Foldable.of({ foldLeft_: (_, z) => z, foldRight_: (_, ez) => ez });
+export const constFoldable: <A>() => Foldable<$<ConstK, [A]>> = lazyVal(() =>
+  Foldable.of({ foldLeft_: (_, z) => z, foldRight_: (_, ez) => ez }),
+);
 
 export const constTraversable: <A>() => Traversable<$<ConstK, [A]>> = <A>() =>
   Traversable.of({

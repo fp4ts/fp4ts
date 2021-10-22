@@ -1,4 +1,4 @@
-import { Lazy } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@cats4ts/core';
 import { Eq } from '../eq';
 import { Semigroup } from '../semigroup';
 import { Monoid } from '../monoid';
@@ -13,36 +13,41 @@ import { Eval, EvalK } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
 
-export const evalDefer: Lazy<Defer<EvalK>> = () => Defer.of({ defer });
+export const evalDefer: Lazy<Defer<EvalK>> = lazyVal(() => Defer.of({ defer }));
 
-export const evalFunctor: Lazy<Functor<EvalK>> = () =>
-  Functor.of({ map_: map_ });
+export const evalFunctor: Lazy<Functor<EvalK>> = lazyVal(() =>
+  Functor.of({ map_: map_ }),
+);
 
-export const evalApply: Lazy<Apply<EvalK>> = () =>
+export const evalApply: Lazy<Apply<EvalK>> = lazyVal(() =>
   Apply.of({
     ...evalFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const evalApplicative: Lazy<Applicative<EvalK>> = () =>
+export const evalApplicative: Lazy<Applicative<EvalK>> = lazyVal(() =>
   Applicative.of({
     ...evalFunctor(),
     ...evalApply(),
     pure: pure,
-  });
+  }),
+);
 
-export const evalFlatMap: Lazy<FlatMap<EvalK>> = () =>
+export const evalFlatMap: Lazy<FlatMap<EvalK>> = lazyVal(() =>
   FlatMap.of({
     ...evalApply(),
     flatMap_: flatMap_,
     tailRecM_: tailRecM_,
-  });
+  }),
+);
 
-export const evalMonad: Lazy<Monad<EvalK>> = () =>
+export const evalMonad: Lazy<Monad<EvalK>> = lazyVal(() =>
   Monad.of({
     ...evalApplicative(),
     ...evalFlatMap(),
-  });
+  }),
+);
 
 interface EvalEq<A> extends Eq<Eval<A>> {}
 

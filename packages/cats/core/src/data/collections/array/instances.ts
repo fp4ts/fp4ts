@@ -1,3 +1,4 @@
+import { lazyVal } from '@cats4ts/core';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
@@ -38,47 +39,57 @@ import { empty, pure } from './constructors';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
-export const arraySemigroupK: () => SemigroupK<ArrayK> = () =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
+export const arraySemigroupK: () => SemigroupK<ArrayK> = lazyVal(() =>
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
+);
 
-export const arrayMonoidK: () => MonoidK<ArrayK> = () => {
+export const arrayMonoidK: () => MonoidK<ArrayK> = lazyVal(() => {
   const { algebra, ...rest } = arraySemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
-};
+});
 
-export const arrayAlign: () => Align<ArrayK> = () =>
-  Align.of({ functor: arrayFunctor(), align_: align_ });
+export const arrayAlign: () => Align<ArrayK> = lazyVal(() =>
+  Align.of({ functor: arrayFunctor(), align_: align_ }),
+);
 
-export const arrayFunctor: () => Functor<ArrayK> = () => Functor.of({ map_ });
+export const arrayFunctor: () => Functor<ArrayK> = lazyVal(() =>
+  Functor.of({ map_ }),
+);
 
-export const arrayFunctorFilter: () => FunctorFilter<ArrayK> = () =>
+export const arrayFunctorFilter: () => FunctorFilter<ArrayK> = lazyVal(() =>
   FunctorFilter.of({
     ...arrayFunctor(),
     mapFilter_: collect_,
-  });
+  }),
+);
 
-export const arrayApply: () => Apply<ArrayK> = () =>
+export const arrayApply: () => Apply<ArrayK> = lazyVal(() =>
   Apply.of<ArrayK>({
     ...arrayFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
-  });
+  }),
+);
 
-export const arrayApplicative: () => Applicative<ArrayK> = () =>
-  Applicative.of({ ...arrayApply(), pure: pure, unit: [undefined] });
+export const arrayApplicative: () => Applicative<ArrayK> = lazyVal(() =>
+  Applicative.of({ ...arrayApply(), pure: pure, unit: [undefined] }),
+);
 
-export const arrayAlternative: () => Alternative<ArrayK> = () =>
-  Alternative.of({ ...arrayApplicative(), ...arrayMonoidK() });
+export const arrayAlternative: () => Alternative<ArrayK> = lazyVal(() =>
+  Alternative.of({ ...arrayApplicative(), ...arrayMonoidK() }),
+);
 
-export const arrayFlatMap: () => FlatMap<ArrayK> = () =>
-  FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
+export const arrayFlatMap: () => FlatMap<ArrayK> = lazyVal(() =>
+  FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
+);
 
-export const arrayMonad: () => Monad<ArrayK> = () =>
+export const arrayMonad: () => Monad<ArrayK> = lazyVal(() =>
   Monad.of({
     ...arrayApplicative(),
     ...arrayFlatMap(),
-  });
+  }),
+);
 
-export const arrayFoldable: () => Foldable<ArrayK> = () =>
+export const arrayFoldable: () => Foldable<ArrayK> = lazyVal(() =>
   Foldable.of({
     all_: all_,
     any_: any_,
@@ -105,12 +116,14 @@ export const arrayFoldable: () => Foldable<ArrayK> = () =>
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,
-  });
+  }),
+);
 
-export const arrayTraversable: () => Traversable<ArrayK> = () =>
+export const arrayTraversable: () => Traversable<ArrayK> = lazyVal(() =>
   Traversable.of({
     ...arrayFunctor(),
     ...arrayFoldable(),
     traverse_: traverse_,
     sequence: sequence,
-  });
+  }),
+);

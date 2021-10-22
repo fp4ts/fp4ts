@@ -1,4 +1,4 @@
-import { Lazy } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@cats4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
@@ -26,46 +26,56 @@ import { Option } from './option';
 export const optionEq = <A>(E: Eq<A>): Eq<Option<A>> =>
   Eq.of({ equals: equals_(E) });
 
-export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = () =>
-  SemigroupK.of({ combineK_: orElse_ });
+export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = lazyVal(() =>
+  SemigroupK.of({ combineK_: orElse_ }),
+);
 
-export const optionMonoidK: Lazy<MonoidK<OptionK>> = () =>
-  MonoidK.of({ emptyK: () => none, combineK_: orElse_ });
+export const optionMonoidK: Lazy<MonoidK<OptionK>> = lazyVal(() =>
+  MonoidK.of({ emptyK: () => none, combineK_: orElse_ }),
+);
 
-export const optionFunctor: Lazy<Functor<OptionK>> = () => Functor.of({ map_ });
+export const optionFunctor: Lazy<Functor<OptionK>> = lazyVal(() =>
+  Functor.of({ map_ }),
+);
 
-export const optionFunctorFilter: Lazy<FunctorFilter<OptionK>> = () =>
-  FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_ });
+export const optionFunctorFilter: Lazy<FunctorFilter<OptionK>> = lazyVal(() =>
+  FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_ }),
+);
 
-export const optionApply: Lazy<Apply<OptionK>> = () =>
+export const optionApply: Lazy<Apply<OptionK>> = lazyVal(() =>
   Apply.of({
     ...optionFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const optionApplicative: Lazy<Applicative<OptionK>> = () =>
+export const optionApplicative: Lazy<Applicative<OptionK>> = lazyVal(() =>
   Applicative.of({
     ...optionApply(),
     pure: pure,
-  });
+  }),
+);
 
-export const optionAlternative: Lazy<Alternative<OptionK>> = () =>
+export const optionAlternative: Lazy<Alternative<OptionK>> = lazyVal(() =>
   Alternative.of({
     ...optionApplicative(),
     ...optionMonoidK(),
-  });
+  }),
+);
 
-export const optionFlatMap: Lazy<FlatMap<OptionK>> = () =>
+export const optionFlatMap: Lazy<FlatMap<OptionK>> = lazyVal(() =>
   FlatMap.of({
     ...optionApply(),
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
     tailRecM_: tailRecM_,
-  });
+  }),
+);
 
-export const optionMonad: Lazy<Monad<OptionK>> = () =>
+export const optionMonad: Lazy<Monad<OptionK>> = lazyVal(() =>
   Monad.of({
     ...optionApplicative(),
     ...optionFlatMap(),
-  });
+  }),
+);

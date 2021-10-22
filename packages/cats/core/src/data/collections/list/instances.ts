@@ -1,4 +1,4 @@
-import { id, Lazy } from '@cats4ts/core';
+import { id, Lazy, lazyVal } from '@cats4ts/core';
 import { Align } from '../../../align';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
@@ -46,15 +46,16 @@ import {
 export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
   Eq.of({ equals: (xs, ys) => equals_(E, xs, ys) });
 
-export const listSemigroupK: Lazy<SemigroupK<ListK>> = () =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
+export const listSemigroupK: Lazy<SemigroupK<ListK>> = lazyVal(() =>
+  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
+);
 
-export const listMonoidK: Lazy<MonoidK<ListK>> = () => {
+export const listMonoidK: Lazy<MonoidK<ListK>> = lazyVal(() => {
   const { algebra, ...rest } = listSemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
-};
+});
 
-export const listAlign: Lazy<Align<ListK>> = () =>
+export const listAlign: Lazy<Align<ListK>> = lazyVal(() =>
   Align.of({
     functor: listFunctor(),
     align_: align_,
@@ -65,51 +66,60 @@ export const listAlign: Lazy<Align<ListK>> = () =>
         () => a,
         () => b,
       ),
-  });
+  }),
+);
 
-export const listFunctor: Lazy<Functor<ListK>> = () => Functor.of({ map_ });
+export const listFunctor: Lazy<Functor<ListK>> = lazyVal(() =>
+  Functor.of({ map_ }),
+);
 
-export const listFunctorFilter: Lazy<FunctorFilter<ListK>> = () =>
+export const listFunctorFilter: Lazy<FunctorFilter<ListK>> = lazyVal(() =>
   FunctorFilter.of({
     ...listFunctor(),
     mapFilter_: collect_,
-  });
+  }),
+);
 
-export const listApply: Lazy<Apply<ListK>> = () =>
+export const listApply: Lazy<Apply<ListK>> = lazyVal(() =>
   Apply.of({
     ...listFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const listApplicative: Lazy<Applicative<ListK>> = () =>
+export const listApplicative: Lazy<Applicative<ListK>> = lazyVal(() =>
   Applicative.of({
     ...listApply(),
     pure: pure,
     unit: pure(undefined),
-  });
+  }),
+);
 
-export const listAlternative: Lazy<Alternative<ListK>> = () =>
+export const listAlternative: Lazy<Alternative<ListK>> = lazyVal(() =>
   Alternative.of({
     ...listApplicative(),
     ...listMonoidK(),
-  });
+  }),
+);
 
-export const listFlatMap: Lazy<FlatMap<ListK>> = () =>
+export const listFlatMap: Lazy<FlatMap<ListK>> = lazyVal(() =>
   FlatMap.of({
     ...listApply(),
     flatMap_: flatMap_,
     flatTap_: tap_,
     flatten: flatten,
     tailRecM_: tailRecM_,
-  });
+  }),
+);
 
-export const listMonad: Lazy<Monad<ListK>> = () =>
+export const listMonad: Lazy<Monad<ListK>> = lazyVal(() =>
   Monad.of({
     ...listApplicative(),
     ...listFlatMap(),
-  });
+  }),
+);
 
-export const listFoldable: Lazy<Foldable<ListK>> = () =>
+export const listFoldable: Lazy<Foldable<ListK>> = lazyVal(() =>
   Foldable.of({
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
@@ -140,12 +150,14 @@ export const listFoldable: Lazy<Foldable<ListK>> = () =>
     elem_: elemOption_,
     iterator: iterator,
     toList: id,
-  });
+  }),
+);
 
-export const listTraversable: Lazy<Traversable<ListK>> = () =>
+export const listTraversable: Lazy<Traversable<ListK>> = lazyVal(() =>
   Traversable.of({
     ...listFoldable(),
     ...listFunctor(),
     traverse_: traverse_,
     sequence: sequence,
-  });
+  }),
+);

@@ -1,4 +1,4 @@
-import { Kind, Lazy } from '@cats4ts/core';
+import { Kind, Lazy, lazyVal } from '@cats4ts/core';
 import { Eval } from '../../eval';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';
@@ -13,38 +13,44 @@ import { flatMap_, map_, tailRecM_ } from './operators';
 import { pure, unit } from './constructors';
 import { Identity } from './identity';
 
-export const identityFunctor: Lazy<Functor<IdentityK>> = () =>
-  Functor.of({ map_ });
+export const identityFunctor: Lazy<Functor<IdentityK>> = lazyVal(() =>
+  Functor.of({ map_ }),
+);
 
-export const identityApply: Lazy<Apply<IdentityK>> = () =>
+export const identityApply: Lazy<Apply<IdentityK>> = lazyVal(() =>
   Apply.of({
     ...identityFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-  });
+  }),
+);
 
-export const identityApplicative: Lazy<Applicative<IdentityK>> = () =>
+export const identityApplicative: Lazy<Applicative<IdentityK>> = lazyVal(() =>
   Applicative.of({
     ...identityApply(),
     pure: pure,
     unit: unit,
-  });
+  }),
+);
 
-export const identityFlatMap: Lazy<FlatMap<IdentityK>> = () =>
-  FlatMap.of({ ...identityApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
+export const identityFlatMap: Lazy<FlatMap<IdentityK>> = lazyVal(() =>
+  FlatMap.of({ ...identityApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
+);
 
-export const identityMonad: Lazy<Monad<IdentityK>> = () =>
+export const identityMonad: Lazy<Monad<IdentityK>> = lazyVal(() =>
   Monad.of({
     ...identityApplicative(),
     ...identityFlatMap(),
-  });
+  }),
+);
 
-export const identityFoldable: Lazy<Foldable<IdentityK>> = () =>
+export const identityFoldable: Lazy<Foldable<IdentityK>> = lazyVal(() =>
   Foldable.of({
     foldLeft_: (fa, b, f) => f(b, fa),
     foldRight_: (fa, eb, f) => Eval.defer(() => f(fa, eb)),
-  });
+  }),
+);
 
-export const identityTraversable: Lazy<Traversable<IdentityK>> = () =>
+export const identityTraversable: Lazy<Traversable<IdentityK>> = lazyVal(() =>
   Traversable.of({
     ...identityFoldable(),
     ...identityFunctor(),
@@ -52,4 +58,5 @@ export const identityTraversable: Lazy<Traversable<IdentityK>> = () =>
       <G>(G: Applicative<G>) =>
       <A, B>(fa: Identity<A>, f: (a: A) => Kind<G, [B]>) =>
         f(fa),
-  });
+  }),
+);
