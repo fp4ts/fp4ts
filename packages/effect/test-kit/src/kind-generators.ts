@@ -287,7 +287,7 @@ export const AsyncGenerators = <F>(
     );
 
   const genExecuteOn = <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
-    deeper(arbA).chain(fa => arbEC.map(ec => F.executeOn(fa, ec)));
+    deeper(arbA).chain(fa => arbEC.map(ec => F.executeOn_(fa, ec)));
 
   return {
     baseGen: <A>(arbA: Arbitrary<A>) =>

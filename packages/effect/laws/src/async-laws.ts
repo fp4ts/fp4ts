@@ -104,24 +104,24 @@ export const AsyncLaws = <F>(F: Async<F>): AsyncLaws<F> => ({
     ec: ExecutionContext,
   ): IsEq<Kind<F, [ExecutionContext]>> =>
     new IsEq(
-      F.executeOn(F.readExecutionContext, ec),
-      F.executeOn(F.pure(ec), ec),
+      F.executeOn_(F.readExecutionContext, ec),
+      F.executeOn_(F.pure(ec), ec),
     ),
 
   executeOnPureIdentity: <A>(a: A, ec: ExecutionContext): IsEq<Kind<F, [A]>> =>
-    new IsEq(F.executeOn(F.pure(a), ec), F.pure(a)),
+    new IsEq(F.executeOn_(F.pure(a), ec), F.pure(a)),
 
   executeOnThrowError: (
     e: Error,
     ec: ExecutionContext,
   ): IsEq<Kind<F, [never]>> =>
-    new IsEq(F.executeOn(F.throwError(e), ec), F.throwError(e)),
+    new IsEq(F.executeOn_(F.throwError(e), ec), F.throwError(e)),
 
   executeOnCanceledIdentity: (ec: ExecutionContext): IsEq<Kind<F, [void]>> =>
-    new IsEq(F.executeOn(F.canceled, ec), F.canceled),
+    new IsEq(F.executeOn_(F.canceled, ec), F.canceled),
 
   executeOnNeverIdentity: (ec: ExecutionContext): IsEq<Kind<F, [never]>> =>
-    new IsEq(F.executeOn(F.never, ec), F.never),
+    new IsEq(F.executeOn_(F.never, ec), F.never),
 });
 
 export interface AsyncLaws<F> extends SyncLaws<F>, TemporalLaws<F, Error> {

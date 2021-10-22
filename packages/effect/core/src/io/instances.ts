@@ -25,6 +25,7 @@ import {
   async,
   async_,
   canceled,
+  cont,
   defer,
   delay,
   fromPromise,
@@ -54,17 +55,10 @@ import {
   fork,
   handleErrorWith_,
   handleError_,
-  map2_,
   map_,
   onCancel,
   onCancel_,
   onError_,
-  parSequence,
-  parSequenceN,
-  parSequenceN_,
-  parTraverse,
-  parTraverseN,
-  parTraverseN_,
   racePair_,
   redeemWith_,
   redeem_,
@@ -81,35 +75,16 @@ export const ioFunctor: Lazy<Functor<IoK>> = lazyVal(() =>
   Functor.of({ map_, tap_ }),
 );
 
-export const ioParallelApply: Lazy<Apply<IoK>> = lazyVal(() =>
-  Apply.of({
-    ...ioFunctor(),
-    ap_: (ff, fa) => map2_(ff, fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: IO<A>, fb: IO<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        map2_(fa, fb, f),
-  }),
-);
-
-export const ioParallelApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
-  Applicative.of({
-    ...ioParallelApply(),
-    pure: pure,
-    unit,
-  }),
-);
-
-export const ioSequentialApply: Lazy<Apply<IoK>> = lazyVal(() =>
+export const ioApply: Lazy<Apply<IoK>> = lazyVal(() =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const ioSequentialApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
+export const ioApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
   Applicative.of({
-    ...ioSequentialApply(),
+    ...ioApply(),
     pure: pure,
     unit,
   }),
@@ -117,7 +92,7 @@ export const ioSequentialApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
 
 export const ioFlatMap: Lazy<FlatMap<IoK>> = lazyVal(() =>
   FlatMap.of({
-    ...ioSequentialApply(),
+    ...ioApply(),
     flatMap_: flatMap_,
     flatTap_: flatTap_,
     flatten: flatten,
@@ -127,7 +102,7 @@ export const ioFlatMap: Lazy<FlatMap<IoK>> = lazyVal(() =>
 
 export const ioMonad: Lazy<Monad<IoK>> = lazyVal(() =>
   Monad.of({
-    ...ioSequentialApplicative(),
+    ...ioApplicative(),
     ...ioFlatMap(),
   }),
 );
@@ -166,7 +141,7 @@ export const ioSync: Lazy<Sync<IoK>> = lazyVal(() =>
   Sync.of({
     ...ioMonadCancel(),
     ...Clock.of({
-      applicative: ioSequentialApplicative(),
+      applicative: ioApplicative(),
       monotonic: delay(() => process.hrtime()[0]),
       realTime: delay(() => Date.now()),
     }),
@@ -201,7 +176,7 @@ export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() =>
   Temporal.of({
     ...ioConcurrent(),
     ...Clock.of({
-      applicative: ioSequentialApplicative(),
+      applicative: ioApplicative(),
       monotonic: delay(() => process.hrtime()[0]),
       realTime: delay(() => Date.now()),
     }),
@@ -212,13 +187,16 @@ export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioAsync: Lazy<Async<IoK>> = lazyVal(() => ({
-  ...ioSync(),
-  ...ioTemporal(),
-  async: async,
-  async_: async_,
-  never: never,
-  readExecutionContext: readExecutionContext,
-  executeOn: executeOn_,
-  fromPromise: fromPromise,
-}));
+export const ioAsync: Lazy<Async<IoK>> = lazyVal(() =>
+  Async.of({
+    ...ioSync(),
+    ...ioTemporal(),
+    async,
+    async_,
+    never,
+    readExecutionContext,
+    executeOn_,
+    fromPromise,
+    cont: cont,
+  }),
+);

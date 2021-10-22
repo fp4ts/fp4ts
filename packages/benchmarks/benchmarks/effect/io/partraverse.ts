@@ -24,7 +24,7 @@ pipe(
   benchmark('parTraverse', async () => {
     const arr = List.fromArray([...new Array(size).keys()]);
 
-    await IO.parTraverse_(List.Traversable, arr, () =>
+    await IO.parTraverse_(List.Traversable)(arr, () =>
       consumeTicks(ticks),
     ).unsafeRunToPromise();
   }),

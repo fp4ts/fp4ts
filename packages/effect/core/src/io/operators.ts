@@ -5,7 +5,7 @@ import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 
-import { IoK } from './io';
+import type { IoK } from './io';
 import {
   Attempt,
   ExecuteOn,
@@ -18,23 +18,14 @@ import {
   RacePair,
 } from './algebra';
 import {
-  canceled,
   defer,
-  never,
   pure,
   readExecutionContext,
   sleep,
   throwError,
   uncancelable,
-  unit,
 } from './constructors';
-import { bind, bindTo, Do } from './do';
-import {
-  ioAsync,
-  ioParallel,
-  ioParallelApplicative,
-  ioSequentialApplicative,
-} from './instances';
+import { ioAsync, ioParallel, ioApplicative } from './instances';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
@@ -333,8 +324,7 @@ export const traverse_ = <T, A, B>(
   T: Traversable<T>,
   ts: Kind<T, [A]>,
   f: (a: A) => IO<B>,
-): IO<Kind<T, [B]>> =>
-  defer(() => T.traverse(ioSequentialApplicative())(f)(ts));
+): IO<Kind<T, [B]>> => defer(() => T.traverse(ioApplicative())(f)(ts));
 
 export const parSequenceN_: <T>(
   T: Traversable<T>,

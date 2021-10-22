@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { $type, Kind, TyK, TyVar } from '@cats4ts/core';
 import {
   Applicative,
@@ -66,7 +67,6 @@ import {
   traverse,
   traverse_,
 } from './operators';
-import { bind, bindTo, Do } from './do';
 import {
   ioAsync,
   ioConcurrent,
@@ -77,10 +77,8 @@ import {
   ioMonadCancel,
   ioMonadError,
   ioParallel,
-  ioParallelApplicative,
-  ioParallelApply,
-  ioSequentialApplicative,
-  ioSequentialApply,
+  ioApplicative,
+  ioApply,
   ioSpawn,
   ioSync,
   ioTemporal,
@@ -203,10 +201,8 @@ interface IOObj {
 
   // Do notation
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   Do: IO<{}>;
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   bindTo: <N extends string, S extends {}, B>(
     name: N,
     iob: IO<B> | ((s: S) => IO<B>),
@@ -214,7 +210,6 @@ interface IOObj {
     ios: IO<S>,
   ) => IO<{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }>;
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   bind: <S extends {}, B>(
     iob: IO<B> | ((s: S) => IO<B>),
   ) => (ios: IO<S>) => IO<S>;
@@ -223,10 +218,8 @@ interface IOObj {
 
   readonly Defer: Defer<IoK>;
   readonly Functor: Functor<IoK>;
-  readonly ParallelApply: Apply<IoK>;
-  readonly ParallelApplicative: Applicative<IoK>;
-  readonly SequentialApply: Apply<IoK>;
-  readonly SequentialApplicative: Applicative<IoK>;
+  readonly Apply: Apply<IoK>;
+  readonly Applicative: Applicative<IoK>;
   readonly FlatMap: FlatMap<IoK>;
   readonly Monad: Monad<IoK>;
   readonly MonadError: MonadError<IoK, Error>;
@@ -302,9 +295,21 @@ IO.parTraverseN_ = parTraverseN_;
 
 IO.bracketFull = bracketFull;
 
-IO.Do = Do;
-IO.bindTo = bindTo;
-IO.bind = bind;
+Object.defineProperty(IO, 'Do', {
+  get() {
+    return ioAsync().Do;
+  },
+});
+Object.defineProperty(IO, 'bindTo', {
+  get() {
+    return ioAsync().bindTo;
+  },
+});
+Object.defineProperty(IO, 'bind', {
+  get() {
+    return ioAsync().bind;
+  },
+});
 
 Object.defineProperty(IO, 'Defer', {
   get(): Defer<IoK> {
@@ -316,24 +321,14 @@ Object.defineProperty(IO, 'Functor', {
     return ioFunctor();
   },
 });
-Object.defineProperty(IO, 'ParallelApply', {
+Object.defineProperty(IO, 'Apply', {
   get(): Apply<IoK> {
-    return ioParallelApply();
+    return ioApply();
   },
 });
-Object.defineProperty(IO, 'ParallelApplicative', {
+Object.defineProperty(IO, 'Applicative', {
   get(): Applicative<IoK> {
-    return ioParallelApplicative();
-  },
-});
-Object.defineProperty(IO, 'SequentialApply', {
-  get(): Apply<IoK> {
-    return ioSequentialApply();
-  },
-});
-Object.defineProperty(IO, 'SequentialApplicative', {
-  get(): Applicative<IoK> {
-    return ioSequentialApplicative();
+    return ioApplicative();
   },
 });
 Object.defineProperty(IO, 'FlatMap', {

@@ -1,6 +1,11 @@
 import { flow, Kind } from '@cats4ts/core';
 import { Either, Left, None, Option, Right, FunctionK } from '@cats4ts/cats';
-import { ExecutionContext, Poll, MonadCancel } from '@cats4ts/effect-kernel';
+import {
+  ExecutionContext,
+  Poll,
+  MonadCancel,
+  Cont,
+} from '@cats4ts/effect-kernel';
 
 import {
   Canceled,
@@ -16,8 +21,9 @@ import {
   IOCont,
   Suspend,
 } from './algebra';
-import { flatMap_ } from './operators';
-import { IoK } from './io';
+import { flatMap_, map_ } from './operators';
+import type { IoK } from './io';
+import { ioAsync } from './instances';
 
 export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
 
@@ -53,12 +59,11 @@ export const async = <A>(
 export const async_ = <A>(
   k: (cb: (ea: Either<Error, A>) => void) => void,
 ): IO<A> =>
-  new IOCont(
-    <G>(G: MonadCancel<G, Error>) =>
-      (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
-        G.uncancelable(poll =>
-          G.flatMap_(lift(delay(() => k(resume))), () => poll(get)),
-        ),
+  async<A>(cb =>
+    map_(
+      delay(() => k(cb)),
+      () => None,
+    ),
   );
 
 export const never: IO<never> = async(() => pure(None));
@@ -73,13 +78,7 @@ export const uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A> = ioa =>
 export const sleep = (ms: number): IO<void> => new Sleep(ms);
 
 export const deferPromise = <A>(thunk: () => Promise<A>): IO<A> =>
-  async_(resume =>
-    delay(() => {
-      const onSuccess: (x: A) => void = flow(Right, resume);
-      const onFailure: (e: Error) => void = flow(Left, resume);
-      thunk().then(onSuccess, onFailure);
-    }),
-  );
+  fromPromise(defer(() => pure(thunk())));
 
 export const fromEither = <A>(ea: Either<Error, A>): IO<A> =>
   ea.fold(throwError, pure);
@@ -94,3 +93,5 @@ export const fromPromise = <A>(iop: IO<Promise<A>>): IO<A> =>
       }),
     ),
   );
+
+export const cont = <K, R>(body: Cont<IoK, K, R>): IO<R> => new IOCont(body);
