@@ -926,10 +926,9 @@ describe('IO', () => {
     it.ticked('should propagate errors', ticker => {
       const io = pipe(
         List(1, 2, 3),
-        IO.parTraverseN(
-          List.Traversable,
-          2,
-        )(x => (x === 2 ? throwError(new Error('test error')) : IO.unit)),
+        IO.parTraverseN(List.Traversable)(2, x =>
+          x === 2 ? throwError(new Error('test error')) : IO.unit,
+        ),
       );
 
       expect(io).toFailWith(new Error('test error'), ticker);
@@ -938,7 +937,7 @@ describe('IO', () => {
     it.ticked('should be cancelable', ticker => {
       const traverse = pipe(
         List(1, 2, 3),
-        IO.parTraverseN(List.Traversable, 2)(() => IO.never),
+        IO.parTraverseN(List.Traversable)(2, () => IO.never),
       );
 
       const io = pipe(
@@ -955,7 +954,7 @@ describe('IO', () => {
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(List.Traversable, 2)(fin => IO.never.onCancel(IO(fin))),
+        IO.parTraverseN(List.Traversable)(2, fin => IO.never.onCancel(IO(fin))),
       );
 
       const io = pipe(
@@ -983,7 +982,7 @@ describe('IO', () => {
           IO(cont),
         );
 
-        const io = pipe(ts, IO.parTraverseN(List.Traversable, 2)(id));
+        const io = pipe(ts, IO.parTraverseN(List.Traversable)(2, id));
 
         expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();

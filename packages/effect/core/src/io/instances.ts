@@ -61,8 +61,10 @@ import {
   onError_,
   parSequence,
   parSequenceN,
+  parSequenceN_,
   parTraverse,
   parTraverseN,
+  parTraverseN_,
   racePair_,
   redeemWith_,
   redeem_,
@@ -187,17 +189,13 @@ export const ioParallel: Lazy<Parallel<IoK, IoK>> = lazyVal(() =>
   Spawn.parallelForSpawn(ioSpawn()),
 );
 
-export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() => ({
-  ...ioSpawn(),
-  ref: a => Ref.of(ioAsync())(a),
-  deferred: () => Deferred.of(ioAsync())(),
-
-  parTraverse: parTraverse,
-  parSequence: parSequence,
-
-  parTraverseN: parTraverseN,
-  parSequenceN: parSequenceN,
-}));
+export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() =>
+  Concurrent.of({
+    ...ioSpawn(),
+    ref: a => Ref.of(ioAsync())(a),
+    deferred: <A>() => Deferred.of(ioAsync())<A>(),
+  }),
+);
 
 export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() => ({
   ...ioConcurrent(),

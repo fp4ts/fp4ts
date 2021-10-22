@@ -169,32 +169,31 @@ interface IOObj {
   parTraverse: <T>(
     T: Traversable<T>,
   ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
-  parTraverse_: <T, A, B>(
+  parTraverse_: <T>(
     T: Traversable<T>,
-    ts: Kind<T, [A]>,
-    f: (a: A) => IO<B>,
-  ) => IO<Kind<T, [B]>>;
+  ) => <A, B>(ts: Kind<T, [A]>, f: (a: A) => IO<B>) => IO<Kind<T, [B]>>;
 
   parSequenceN: <T>(
     T: Traversable<T>,
+  ) => (
     maxConcurrent: number,
   ) => <A>(iots: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>>;
-  parSequenceN_: <T, A>(
+  parSequenceN_: <T>(
     T: Traversable<T>,
-    iots: Kind<T, [IO<A>]>,
-    maxConcurrent: number,
-  ) => IO<Kind<T, [A]>>;
+  ) => <A>(iots: Kind<T, [IO<A>]>, maxConcurrent: number) => IO<Kind<T, [A]>>;
 
   parTraverseN: <T>(
     T: Traversable<T>,
+  ) => <A, B>(
     maxConcurrent: number,
-  ) => <A, B>(f: (a: A) => IO<B>) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
-  parTraverseN_: <T, A, B>(
-    T: Traversable<T>,
-    ts: Kind<T, [A]>,
     f: (a: A) => IO<B>,
+  ) => (ts: Kind<T, [A]>) => IO<Kind<T, [B]>>;
+  parTraverseN_: <T>(
+    T: Traversable<T>,
+  ) => <A>(
+    ts: Kind<T, [A]>,
     maxConcurrent: number,
-  ) => IO<Kind<T, [B]>>;
+  ) => <B>(f: (a: A) => IO<B>) => IO<Kind<T, [B]>>;
 
   bracketFull: <A, B>(
     acquire: (poll: Poll<IoK>) => IO<A>,

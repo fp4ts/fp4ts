@@ -3,7 +3,7 @@ import { Kind, pipe } from '@cats4ts/core';
 
 import { Ref } from './ref';
 import { Deferred } from './deferred';
-import { Async } from './async';
+import { Concurrent } from './concurrent';
 
 class State<F> {
   private readonly __void!: void;
@@ -20,18 +20,18 @@ class State<F> {
     new State(queue, permits);
 }
 
-export class Semaphore<F> {
+export class Semaphore<F, E = Error> {
   private readonly __void!: void;
 
   private constructor(
-    private readonly F: Async<F>,
+    private readonly F: Concurrent<F, E>,
     private readonly state: Ref<F, State<F>>,
   ) {}
 
   public readonly acquire = (): Kind<F, [void]> =>
     this.F.uncancelable(poll =>
       pipe(
-        Deferred.of(this.F)<void>(),
+        this.F.deferred<void>(),
         this.F.flatMap(wait => {
           const cancel = this.state.update(state =>
             state.copy({ queue: state.queue.filter(x => x !== wait) }),
@@ -79,18 +79,18 @@ export class Semaphore<F> {
     );
 
   public static readonly withPermits =
-    <F>(F: Async<F>) =>
+    <F, E = Error>(F: Concurrent<F, E>) =>
     (permits: number): Kind<F, [Semaphore<F>]> => {
       assert(permits > 0, 'maxPermits must be > 0');
       return pipe(
-        Ref.of(F)(new State<F>([], permits)),
+        F.ref(new State<F>([], permits)),
         F.map(state => new Semaphore(F, state)),
       );
     };
 }
 
 export const of =
-  <F>(F: Async<F>) =>
+  <F, E = Error>(F: Concurrent<F, E>) =>
   (permits: number): Kind<F, [Semaphore<F>]> =>
     Semaphore.withPermits(F)(permits);
 
