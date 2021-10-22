@@ -17,6 +17,8 @@ import {
   Temporal,
   Clock,
 } from '@cats4ts/effect-kernel';
+import { Ref } from '@cats4ts/effect-kernel/lib/ref';
+import { Deferred } from '@cats4ts/effect-kernel/lib/deferred';
 
 import {
   async,
@@ -36,8 +38,6 @@ import {
 } from './constructors';
 import {
   attempt,
-  bothOutcome_,
-  both_,
   bracket,
   bracketFull,
   bracketOutcome,
@@ -62,9 +62,7 @@ import {
   parSequenceN,
   parTraverse,
   parTraverseN,
-  raceOutcome_,
   racePair_,
-  race_,
   redeemWith_,
   redeem_,
   tailRecM_,
@@ -73,8 +71,6 @@ import {
   timeout_,
 } from './operators';
 import type { IO, IoK } from './io';
-import { Ref } from '@cats4ts/effect-kernel/lib/ref';
-import { Deferred } from '@cats4ts/effect-kernel/lib/deferred';
 
 export const ioDefer: Lazy<Defer<IoK>> = lazyVal(() => Defer.of({ defer }));
 
@@ -176,18 +172,15 @@ export const ioSync: Lazy<Sync<IoK>> = lazyVal(() =>
   }),
 );
 
-export const ioSpawn: Lazy<Spawn<IoK, Error>> = lazyVal(() => ({
-  ...ioMonadCancel(),
-  applicative: ioParallelApplicative(),
-  fork: fork,
-  never: never,
-  suspend: suspend,
-  racePair: racePair_,
-  raceOutcome: raceOutcome_,
-  race: race_,
-  both: both_,
-  bothOutcome: bothOutcome_,
-}));
+export const ioSpawn: Lazy<Spawn<IoK, Error>> = lazyVal(() =>
+  Spawn.of({
+    ...ioMonadCancel(),
+    fork: fork,
+    never: never,
+    suspend: suspend,
+    racePair_: racePair_,
+  }),
+);
 
 export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() => ({
   ...ioSpawn(),

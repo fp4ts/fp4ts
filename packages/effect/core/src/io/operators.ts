@@ -236,80 +236,13 @@ export const timeoutTo_ = <A>(ioa: IO<A>, ms: number, fallback: IO<A>): IO<A> =>
 export const executeOn_ = <A>(ioa: IO<A>, ec: ExecutionContext): IO<A> =>
   new ExecuteOn(ioa, ec);
 
-export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<Either<A, B>> => {
-  const cont = <X, Y>(
-    poll: Poll<IoK>,
-    oc: IOOutcome<X>,
-    f: IOFiber<Y>,
-  ): IO<Either<X, Y>> =>
-    oc.fold(
-      (): IO<Either<X, Y>> =>
-        pipe(
-          poll(f.join),
-          onCancel(f.cancel),
-          flatMap(oc =>
-            oc.fold(
-              () => flatMap_(poll(canceled), () => never),
-              ey => throwError(ey),
-              fy => map_(fy, Right),
-            ),
-          ),
-        ),
-      ex => flatMap_(f.cancel, () => throwError(ex)),
-      fx =>
-        pipe(
-          f.cancel,
-          flatMap(() => f.join),
-          flatMap(oc =>
-            oc.fold(
-              () => map_(fx, Left),
-              ey => throwError(ey),
-              () => map_(fx, Left),
-            ),
-          ),
-        ),
-    );
-
-  return uncancelable(poll =>
-    pipe(
-      poll(racePair_(ioa, iob)),
-      flatMap(ea =>
-        ea.fold(
-          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
-            pipe(
-              cont(poll, oc, f),
-              map(ea => ea.swapped),
-            ),
-        ),
-      ),
-    ),
-  );
-};
+export const race_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<Either<A, B>> =>
+  ioAsync().race_(ioa, iob);
 
 export const raceOutcome_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<Either<IOOutcome<A>, IOOutcome<B>>> =>
-  uncancelable(() =>
-    pipe(
-      racePair_(ioa, iob),
-      flatMap(ea =>
-        ea.fold(
-          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
-            pipe(
-              f.cancel,
-              map(() => Left(oc) as Either<IOOutcome<A>, IOOutcome<B>>),
-            ),
-          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
-            pipe(
-              f.cancel,
-              map(() => Right(oc)),
-            ),
-        ),
-      ),
-    ),
-  );
+): IO<Either<IOOutcome<A>, IOOutcome<B>>> => ioAsync().raceOutcome_(ioa, iob);
 
 export const racePair_ = <A, B>(
   ioa: IO<A>,
@@ -317,76 +250,13 @@ export const racePair_ = <A, B>(
 ): IO<Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>> =>
   new RacePair(ioa, iob);
 
-export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> => {
-  const cont = <X, Y>(
-    poll: Poll<IoK>,
-    oc: IOOutcome<X>,
-    f: IOFiber<Y>,
-  ): IO<[X, Y]> =>
-    oc.fold(
-      () =>
-        pipe(
-          f.cancel,
-          flatMap(() => poll(canceled)),
-          flatMap(() => never),
-        ),
-      ex => flatMap_(f.cancel, () => throwError(ex)),
-      fx =>
-        pipe(
-          poll(f.join),
-          onCancel(f.cancel),
-          flatMap(oc =>
-            oc.fold(
-              () => flatMap_(poll(canceled), () => never),
-              ey => throwError(ey),
-              fy => flatMap_(fx, x => map_(fy, y => [x, y])),
-            ),
-          ),
-        ),
-    );
-
-  return uncancelable(poll =>
-    pipe(
-      poll(racePair_(ioa, iob)),
-      flatMap(ea =>
-        ea.fold(
-          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) => cont(poll, oc, f),
-          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
-            pipe(
-              cont(poll, oc, f),
-              map(([b, a]) => [a, b]),
-            ),
-        ),
-      ),
-    ),
-  );
-};
+export const both_ = <A, B>(ioa: IO<A>, iob: IO<B>): IO<[A, B]> =>
+  ioAsync().both_(ioa, iob);
 
 export const bothOutcome_ = <A, B>(
   ioa: IO<A>,
   iob: IO<B>,
-): IO<[IOOutcome<A>, IOOutcome<B>]> =>
-  uncancelable(poll =>
-    pipe(
-      poll(racePair_(ioa, iob)),
-      flatMap(ea =>
-        ea.fold(
-          ([oc, f]: [IOOutcome<A>, IOFiber<B>]) =>
-            pipe(
-              poll(f.join),
-              onCancel(f.cancel),
-              map(oc2 => [oc, oc2]),
-            ),
-          ([f, oc]: [IOFiber<A>, IOOutcome<B>]) =>
-            pipe(
-              poll(f.join),
-              onCancel(f.cancel),
-              map(oc2 => [oc2, oc]),
-            ),
-        ),
-      ),
-    ),
-  );
+): IO<[IOOutcome<A>, IOOutcome<B>]> => ioAsync().bothOutcome_(ioa, iob);
 
 export const finalize_ = <A>(
   ioa: IO<A>,

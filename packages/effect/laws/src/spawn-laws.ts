@@ -13,7 +13,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   ): IsEq<Kind<F, [Either<A, B>]>> => {
     const result: Kind<F, [Either<A, B>]> = F.uncancelable(poll =>
       pipe(
-        F.racePair<A, B>(fa, F.never),
+        F.racePair_<A, B>(fa, F.never),
         F.flatMap(ea =>
           ea.fold(
             ([oc, f]) =>
@@ -55,7 +55,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
       ),
     );
 
-    return new IsEq(F.race<A, B>(fa, F.never), result);
+    return new IsEq(F.race_<A, B>(fa, F.never), result);
   },
 
   raceDerivesFromRacePairRight: <A, B>(
@@ -63,7 +63,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   ): IsEq<Kind<F, [Either<A, B>]>> => {
     const result: Kind<F, [Either<A, B>]> = F.uncancelable(poll =>
       pipe(
-        F.racePair<A, B>(F.never, fb),
+        F.racePair_<A, B>(F.never, fb),
         F.flatMap(ea =>
           ea.fold(
             ([oc, f]) =>
@@ -105,14 +105,14 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
       ),
     );
 
-    return new IsEq(F.race<A, B>(F.never, fb), result);
+    return new IsEq(F.race_<A, B>(F.never, fb), result);
   },
 
   raceCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<never, A>]>> =>
     new IsEq(
-      F.race(
+      F.race_(
         pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
         F.canceled,
       ),
@@ -123,7 +123,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<A, never>]>> =>
     new IsEq(
-      F.race(
+      F.race_(
         F.canceled,
         pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
       ),
@@ -134,7 +134,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<never, A>]>> =>
     new IsEq(
-      F.race(
+      F.race_(
         pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
         F.never,
       ),
@@ -150,7 +150,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [Either<A, never>]>> =>
     new IsEq(
-      F.race(
+      F.race_(
         F.never,
         pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
       ),
@@ -245,7 +245,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
 
   uncancelableRaceNotInherited: (): IsEq<Kind<F, [void]>> =>
     new IsEq(
-      F.void(F.uncancelable(() => F.race(F.never, F.canceled))),
+      F.void(F.uncancelable(() => F.race_(F.never, F.canceled))),
       F.never,
     ),
 

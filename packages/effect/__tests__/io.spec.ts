@@ -1,14 +1,13 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { fst, id, pipe, throwError } from '@cats4ts/core';
-import { Either, Left, Right, Some, List, Eq } from '@cats4ts/cats';
+import { id, pipe, throwError } from '@cats4ts/core';
+import { Either, Left, Right, Some, List, Eq, None } from '@cats4ts/cats';
 import { Semaphore } from '@cats4ts/effect-kernel';
 import { IO, IOOutcome } from '@cats4ts/effect-core';
-import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
+import { checkAll, forAll } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
 import { AsyncSuite } from '@cats4ts/effect-laws';
-import { None } from '@cats4ts/cats-core/lib/data/option/algebra';
 
 describe('IO', () => {
   describe('free monad', () => {

@@ -191,7 +191,7 @@ export const SpawnGenerators = <F, E>(
       deeper(arbA).chain(fb =>
         fc.boolean().map(cancel =>
           pipe(
-            F.racePair(fa, fb),
+            F.racePair_(fa, fb),
             F.flatMap(ea =>
               ea.fold(
                 ([oc, f]) =>

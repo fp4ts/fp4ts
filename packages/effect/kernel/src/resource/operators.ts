@@ -449,7 +449,7 @@ export const both_ =
       make(F)(bothFinalizers, ref =>
         pipe(
           ref.get(),
-          F.flatMap(([lhs, rhs]) => F.both(lhs, rhs)),
+          F.flatMap(([lhs, rhs]) => F.both_(lhs, rhs)),
           F.void,
         ),
       ),
@@ -457,7 +457,7 @@ export const both_ =
         const lhsStore: Update = f => store.update(([l, r]) => [f(l), r]);
         const rhsStore: Update = f => store.update(([l, r]) => [l, f(r)]);
 
-        return F.both(allocate(lhs, lhsStore), allocate(rhs, rhsStore));
+        return F.both_(allocate(lhs, lhsStore), allocate(rhs, rhsStore));
       }),
     );
   };
