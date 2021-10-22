@@ -27,9 +27,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
       EqC: Eq<C>,
       EqD: Eq<D>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'sync',

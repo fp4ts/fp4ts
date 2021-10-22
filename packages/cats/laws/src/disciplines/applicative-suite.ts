@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Applicative, Eq } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { ApplicativeLaws } from '../applicative-laws';
 import { ApplySuite } from './apply-suite';
@@ -27,9 +27,7 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
       EqB: Eq<B>,
       EqC: Eq<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'applicative',

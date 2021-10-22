@@ -2,7 +2,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, FunctorFilter } from '@cats4ts/cats-core';
 import { Option } from '@cats4ts/cats-core/lib/data';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { FunctorFilterLaws } from '../functor-filter-laws';
@@ -22,9 +22,7 @@ export const FunctorFilterSuite = <F>(F: FunctorFilter<F>) => {
       EqB: Eq<B>,
       EqC: Eq<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'functor filter',

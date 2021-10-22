@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, MonadError } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonadErrorLaws } from '../monad-error-laws';
 import { ApplicativeErrorSuite } from './applicative-error-suite';
@@ -26,9 +26,7 @@ export const MonadErrorSuite = <F, E>(F: MonadError<F, E>) => {
       EqD: Eq<D>,
       EqE: Eq<E>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'monad error',
@@ -97,9 +95,7 @@ export const MonadErrorSuite = <F, E>(F: MonadError<F, E>) => {
       EqD: Eq<D>,
       EqE: Eq<E>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'monad error',

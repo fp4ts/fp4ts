@@ -31,9 +31,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
       EqD: Eq<D>,
       EqOutcome: Eq<Outcome<F, Error, A>>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'async',

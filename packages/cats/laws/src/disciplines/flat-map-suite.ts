@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, FlatMap } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FlatMapLaws } from '../flat-map-laws';
 import { ApplySuite } from './apply-suite';
@@ -22,9 +22,7 @@ export const FlatMapSuite = <F>(F: FlatMap<F>) => {
       EqC: Eq<C>,
       EqD: Eq<D>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet => {
       const {
         flatMapAssociativity,

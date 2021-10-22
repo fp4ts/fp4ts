@@ -14,9 +14,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
   const makeShared = <A>(
     arbFA: Arbitrary<Kind<F, [A]>>,
     EqA: Eq<A>,
-    mkEqF: <X>(
-      E: Eq<X>,
-    ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+    mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
   ): Rule[] => [
     [
       'monadCancel uncancelable-poll is identity',
@@ -72,9 +70,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
       EqD: Eq<D>,
       EqE: Eq<E>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'monad cancel',
@@ -118,9 +114,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
       EqD: Eq<D>,
       EqE: Eq<E>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'monad cancel',

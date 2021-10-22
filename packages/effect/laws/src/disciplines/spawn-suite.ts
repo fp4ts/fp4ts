@@ -27,9 +27,7 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
       EqE: Eq<E>,
       EqOutcome: Eq<Outcome<F, E, A>>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'spawn',

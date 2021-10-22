@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, Functor } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { FunctorLaws } from '../functor-laws';
 import { InvariantSuite } from './invariant-suite';
@@ -19,9 +19,7 @@ export const FunctorSuite = <F>(F: Functor<F>) => {
       EqA: Eq<A>,
       EqC: Eq<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet => {
       const { covariantComposition, covariantIdentity } = laws;
       return new RuleSet(

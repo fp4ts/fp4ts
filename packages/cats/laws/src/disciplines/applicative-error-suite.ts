@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { ApplicativeError, Eq } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 
 import { ApplicativeErrorLaws } from '../applicative-error-laws';
@@ -24,9 +24,7 @@ export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
       EqC: Eq<C>,
       EqE: Eq<E>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'applicative error',

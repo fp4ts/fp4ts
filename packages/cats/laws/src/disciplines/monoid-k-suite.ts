@@ -1,7 +1,7 @@
 import { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq, MonoidK } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 
 import { MonoidKLaws } from '../monoid-k-laws';
 import { SemigroupKSuite } from './semigroup-k-suite';
@@ -16,9 +16,7 @@ export const MonoidKSuite = <F>(F: MonoidK<F>) => {
       arbA: Arbitrary<A>,
       EqA: Eq<A>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'monoidK',

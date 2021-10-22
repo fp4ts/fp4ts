@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Alternative, Eq } from '@cats4ts/cats-core';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
 import { AlternativeLaws } from '../alternative-laws';
 import { MonoidKSuite } from './monoid-k-suite';
 import { ApplicativeSuite } from './applicative-suite';
@@ -21,9 +21,7 @@ export const AlternativeSuite = <F>(F: Alternative<F>) => {
       EqB: Eq<B>,
       EqC: Eq<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(
-        E: Eq<X>,
-      ) => Eq<Kind<F, [X]>> | ((r: IsEq<Kind<F, [X]>>) => Promise<boolean>),
+      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'alternative',
