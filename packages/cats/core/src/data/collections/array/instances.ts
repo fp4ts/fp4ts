@@ -1,9 +1,12 @@
+import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
+import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
@@ -13,15 +16,16 @@ import { FunctorFilter } from '../../../functor-filter';
 
 import { ArrayK } from './array';
 import {
+  align_,
   all_,
   any_,
   collect_,
   concat_,
   count_,
+  equals_,
   flatMap_,
   foldLeft_,
   foldMap_,
-  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -32,6 +36,8 @@ import {
 } from './operators';
 import { empty, pure } from './constructors';
 
+export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
+
 export const arraySemigroupK: () => SemigroupK<ArrayK> = () =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) });
 
@@ -40,9 +46,12 @@ export const arrayMonoidK: () => MonoidK<ArrayK> = () => {
   return MonoidK.of({ ...rest, emptyK: () => empty });
 };
 
+export const arrayAlign: () => Align<ArrayK> = () =>
+  Align.of({ functor: arrayFunctor(), align_: align_ });
+
 export const arrayFunctor: () => Functor<ArrayK> = () => Functor.of({ map_ });
 
-export const arrayFilterFunctor: () => FunctorFilter<ArrayK> = () =>
+export const arrayFunctorFilter: () => FunctorFilter<ArrayK> = () =>
   FunctorFilter.of({
     ...arrayFunctor(),
     mapFilter_: collect_,
@@ -55,7 +64,10 @@ export const arrayApply: () => Apply<ArrayK> = () =>
   });
 
 export const arrayApplicative: () => Applicative<ArrayK> = () =>
-  Applicative.of({ ...arrayApply(), pure: pure, unit: [] });
+  Applicative.of({ ...arrayApply(), pure: pure, unit: [undefined] });
+
+export const arrayAlternative: () => Alternative<ArrayK> = () =>
+  Alternative.of({ ...arrayApplicative(), ...arrayMonoidK() });
 
 export const arrayFlatMap: () => FlatMap<ArrayK> = () =>
   FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ });
@@ -76,7 +88,20 @@ export const arrayFoldable: () => Foldable<ArrayK> = () =>
       <A>(xs: A[], f: (a: A) => M) =>
         foldMap_(xs, f, M),
     foldLeft_: foldLeft_,
-    foldRight_: (xs, eb, f) => foldRight_(xs, eb, (a, eb) => f(a, eb)),
+    foldRight_: <A, B>(
+      xs: A[],
+      eb: Eval<B>,
+      f: (a: A, eb: Eval<B>) => Eval<B>,
+    ): Eval<B> => {
+      const loop = (i: number): Eval<B> =>
+        i >= xs.length
+          ? eb
+          : f(
+              xs[i],
+              Eval.defer(() => loop(i + 1)),
+            );
+      return loop(0);
+    },
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,

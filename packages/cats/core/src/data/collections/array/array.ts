@@ -1,20 +1,121 @@
 import { $type, TyK, TyVar } from '@cats4ts/core';
+import { Eq } from '../../../eq';
+import { SemigroupK } from '../../../semigroup-k';
+import { MonoidK } from '../../../monoid-k';
+import { Align } from '../../../align';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
+import { Apply } from '../../../apply';
+import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
+import { FlatMap } from '../../../flat-map';
+import { Monad } from '../../../monad';
+import { Foldable } from '../../../foldable';
+import { Traversable } from '../../../traversable';
+
 import { empty, of } from './constructors';
+import {
+  arrayAlign,
+  arrayAlternative,
+  arrayApplicative,
+  arrayApply,
+  arrayEq,
+  arrayFlatMap,
+  arrayFoldable,
+  arrayFunctor,
+  arrayFunctorFilter,
+  arrayMonad,
+  arrayMonoidK,
+  arraySemigroupK,
+  arrayTraversable,
+} from './instances';
 
-interface ArrayObj {
-  <A>(...xs: A[]): A[];
+declare global {
+  interface ArrayConstructor {
+    empty: Array<never>;
+    of<T>(...xs: T[]): Array<T>;
 
-  empty: Array<never>;
-  of: <A>(...xs: A[]) => A[];
+    // -- Instances
+    Eq<A>(A: Eq<A>): Eq<A[]>;
+    SemigroupK: SemigroupK<ArrayK>;
+    MonoidK: MonoidK<ArrayK>;
+    Align: Align<ArrayK>;
+    Functor: Functor<ArrayK>;
+    FunctorFilter: FunctorFilter<ArrayK>;
+    Apply: Apply<ArrayK>;
+    Applicative: Applicative<ArrayK>;
+    Alternative: Alternative<ArrayK>;
+    FlatMap: FlatMap<ArrayK>;
+    Monad: Monad<ArrayK>;
+    Foldable: Foldable<ArrayK>;
+    Traversable: Traversable<ArrayK>;
+  }
 }
 
-export type Array<A> = A[];
-
-export const Array: ArrayObj = function (...xs) {
-  return xs;
-};
 Array.of = of;
 Array.empty = empty;
+
+Array.Eq = arrayEq;
+Object.defineProperty(Array, 'SemigroupK', {
+  get(): SemigroupK<ArrayK> {
+    return arraySemigroupK();
+  },
+});
+Object.defineProperty(Array, 'MonoidK', {
+  get(): MonoidK<ArrayK> {
+    return arrayMonoidK();
+  },
+});
+Object.defineProperty(Array, 'Align', {
+  get(): Align<ArrayK> {
+    return arrayAlign();
+  },
+});
+Object.defineProperty(Array, 'Functor', {
+  get(): Functor<ArrayK> {
+    return arrayFunctor();
+  },
+});
+Object.defineProperty(Array, 'FunctorFilter', {
+  get(): FunctorFilter<ArrayK> {
+    return arrayFunctorFilter();
+  },
+});
+Object.defineProperty(Array, 'Apply', {
+  get(): Apply<ArrayK> {
+    return arrayApply();
+  },
+});
+Object.defineProperty(Array, 'Applicative', {
+  get(): Applicative<ArrayK> {
+    return arrayApplicative();
+  },
+});
+Object.defineProperty(Array, 'Alternative', {
+  get(): Alternative<ArrayK> {
+    return arrayAlternative();
+  },
+});
+Object.defineProperty(Array, 'FlatMap', {
+  get(): FlatMap<ArrayK> {
+    return arrayFlatMap();
+  },
+});
+Object.defineProperty(Array, 'Monad', {
+  get(): Monad<ArrayK> {
+    return arrayMonad();
+  },
+});
+Object.defineProperty(Array, 'Foldable', {
+  get(): Foldable<ArrayK> {
+    return arrayFoldable();
+  },
+});
+Object.defineProperty(Array, 'Traversable', {
+  get(): Traversable<ArrayK> {
+    return arrayTraversable();
+  },
+});
 
 // HKT
 

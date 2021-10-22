@@ -1,9 +1,14 @@
 import { Kind, id } from '@cats4ts/core';
+import { Eq } from '../../../eq';
 import { Monoid } from '../../../monoid';
 import { Applicative } from '../../../applicative';
 
+import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { Either } from '../../either';
+import { Chain } from '../chain';
+import { List } from '../list';
+import { arrayFoldable } from './instances';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -107,16 +112,19 @@ export const drop_ = <A>(xs: A[], n: number): A[] => xs.slice(n);
 
 export const concat_: <A>(xs: A[], ys: A[]) => A[] = (xs, ys) => xs.concat(ys);
 
-export const all_ = <A>(xs: A[], p: (a: A) => boolean): boolean => xs.every(p);
-export const any_ = <A>(xs: A[], p: (a: A) => boolean): boolean => xs.some(p);
+export const all_ = <A>(xs: A[], p: (a: A) => boolean): boolean =>
+  xs.every(x => p(x));
+export const any_ = <A>(xs: A[], p: (a: A) => boolean): boolean =>
+  xs.some(x => p(x));
 
 export const count_ = <A>(xs: A[], p: (a: A) => boolean): number =>
   xs.reduce((c, x) => (p(x) ? c + 1 : c), 0);
 
-export const filter_ = <A>(xs: A[], p: (a: A) => boolean): A[] => xs.filter(p);
+export const filter_ = <A>(xs: A[], p: (a: A) => boolean): A[] =>
+  xs.filter(x => p(x));
 
 export const map_: <A, B>(xs: A[], f: (a: A) => B) => B[] = (xs, f) =>
-  xs.map(f);
+  xs.map(x => f(x));
 
 export const tap_: <A>(xs: A[], f: (a: A) => unknown) => A[] = (xs, f) =>
   xs.map(x => {
@@ -136,18 +144,23 @@ export const collect_ = <A, B>(xs: A[], f: (a: A) => Option<B>): B[] => {
 };
 
 export const flatMap_: <A, B>(xs: A[], f: (a: A) => B[]) => B[] = (xs, f) =>
-  xs.flatMap(f);
+  xs.flatMap(x => f(x));
 
-export const tailRecM_ = <A, B>(a: A, f: (a: A) => Either<A, B>[]): B[] => {
-  const results: B[] = [];
-  const stack: Either<A, B>[] = f(a);
+export const tailRecM_ = <S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] => {
+  const results: A[] = [];
+  let stack = List(f(s)[Symbol.iterator]());
 
-  while (stack.length > 0) {
-    const head = stack.pop()!;
-    head.fold(
-      a => stack.push(...f(a).reverse()),
-      b => results.push(b),
-    );
+  while (stack.nonEmpty) {
+    const [hd, tl] = stack.uncons.get;
+    const next = hd.next();
+
+    if (next.done) {
+      stack = tl;
+    } else if (next.value.isRight) {
+      results.push(next.value.get);
+    } else {
+      stack = tl.prepend(hd).prepend(f(next.value.getLeft)[Symbol.iterator]());
+    }
   }
 
   return results;
@@ -157,19 +170,33 @@ export const foldMap_ = <M, A>(xs: A[], f: (a: A) => M, M: Monoid<M>): M =>
   foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
 
 export const foldLeft_ = <A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B =>
-  xs.reduce(f, z);
+  xs.reduce((y, x) => f(y, x), z);
 
 export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
   xs.reduceRight((b, a) => f(a, b), z);
 
+export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
+  const results: Ior<A, B>[] = [];
+  let i = 0;
+  let j = 0;
+  const xL = xs.length;
+  const yL = ys.length;
+  for (; i < xL && j < yL; i++, j++) {
+    results.push(Ior.Both(xs[i], ys[j]));
+  }
+  for (; i < xL; i++) {
+    results.push(Ior.Left(xs[i]));
+  }
+  for (; j < yL; j++) {
+    results.push(Ior.Right(ys[j]));
+  }
+  return results;
+};
+
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    // TODO: Fix
-    xs.reduceRight(
-      (gbs: Kind<G, [B[]]>, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, b]),
-      G.pure([] as B[]),
-    );
+    G.map_(Chain.traverseViaChain(G, arrayFoldable())(xs, f), c => c.toArray);
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
@@ -180,3 +207,13 @@ export const flatTraverse_ = <G, A, B>(
     (gbs: Kind<G, [B[]]>, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, ...b]),
     G.pure([] as B[]),
   );
+
+export const equals_ =
+  <AA>(E: Eq<AA>) =>
+  <A extends AA>(lhs: A[], rhs: A[]): boolean => {
+    if (lhs.length !== rhs.length) return false;
+    for (let i = 0, len = lhs.length; i < len; i++) {
+      if (E.notEquals(lhs[i], rhs[i])) return false;
+    }
+    return true;
+  };

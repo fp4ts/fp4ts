@@ -1,3 +1,1 @@
-import './syntax';
-
-export { Array } from './array';
+export { ArrayK } from './array';
