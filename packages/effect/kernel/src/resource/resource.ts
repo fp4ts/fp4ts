@@ -1,14 +1,32 @@
 import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
-import { Functor, ApplicativeError, Either } from '@cats4ts/cats';
+import {
+  Functor,
+  ApplicativeError,
+  Applicative,
+  Monad,
+  Either,
+} from '@cats4ts/cats';
 
 import { Poll } from '../poll';
+import { Async } from '../async';
+import { Clock } from '../clock';
+import { Temporal } from '../temporal';
+import { Concurrent } from '../concurrent';
 import { Spawn } from '../spawn';
 import { Sync } from '../sync';
-import { Async } from '../async';
 import { MonadCancel } from '../monad-cancel';
 
 import { Resource as ResourceBase } from './algebra';
-import { resourceAsync, resourceMonadCancel } from './instances';
+import {
+  resourceApplicative,
+  resourceAsync,
+  resourceClock,
+  resourceConcurrent,
+  resourceMonad,
+  resourceMonadCancel,
+  resourceSync,
+  resourceTemporal,
+} from './instances';
 import {
   allocate,
   allocateCase,
@@ -95,10 +113,16 @@ interface ResourceObj {
 
   // -- Instances
 
-  Async<F>(F: Async<F>): Async<$<ResourceK, [F]>>;
+  Applicative<F>(): Applicative<$<ResourceK, [F]>>;
+  Monad<F>(): Monad<$<ResourceK, [F]>>;
   MonadCancel<F>(
     F: MonadCancel<F, Error>,
   ): MonadCancel<$<ResourceK, [F]>, Error>;
+  Clock<F>(F: Clock<F>): Clock<$<ResourceK, [F]>>;
+  Concurrent<F>(F: Concurrent<F, Error>): Concurrent<$<ResourceK, [F]>, Error>;
+  Temporal<F>(F: Temporal<F, Error>): Temporal<$<ResourceK, [F]>, Error>;
+  Sync<F>(F: Sync<F>): Sync<$<ResourceK, [F]>>;
+  Async<F>(F: Async<F>): Async<$<ResourceK, [F]>>;
 }
 
 Resource.pure = pure;
@@ -120,8 +144,15 @@ Resource.defer = defer;
 Resource.suspend = suspend;
 Resource.never = never;
 
-Resource.Async = resourceAsync;
+Resource.Applicative = resourceApplicative;
+Resource.Monad = resourceMonad;
 Resource.MonadCancel = resourceMonadCancel;
+Resource.Clock = resourceClock;
+Resource.Concurrent = resourceConcurrent;
+Resource.Temporal = resourceTemporal;
+Resource.Sync = resourceSync;
+Resource.Async = resourceAsync;
+Resource.Async = resourceAsync;
 
 // -- HKT
 

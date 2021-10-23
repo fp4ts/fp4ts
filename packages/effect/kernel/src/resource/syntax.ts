@@ -81,7 +81,9 @@ declare module './algebra' {
     both(
       F: Concurrent<F, Error>,
     ): <B>(that: Resource<F, B>) => Resource<F, [A, B]>;
-    race(F: Async<F>): <B>(that: Resource<F, B>) => Resource<F, Either<A, B>>;
+    race(
+      F: Concurrent<F, Error>,
+    ): <B>(that: Resource<F, B>) => Resource<F, Either<A, B>>;
     fork(
       F: Concurrent<F, Error>,
     ): Resource<F, Fiber<$<ResourceK, [F]>, Error, A>>;

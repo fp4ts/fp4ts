@@ -27,7 +27,7 @@ import {
 } from './constructors';
 import { ExitCase } from './exit-case';
 import { ResourceK } from './resource';
-import { resourceAsync } from './instances';
+import { resourceConcurrent } from './instances';
 
 export const use: <F>(
   F: MonadCancel<F, Error>,
@@ -146,6 +146,13 @@ export const both: <F>(
   rhs: Resource<F, B>,
 ) => <A>(lhs: Resource<F, A>) => Resource<F, [A, B]> = F => rhs => lhs =>
   both_(F)(lhs, rhs);
+
+export const race: <F>(
+  F: Concurrent<F, Error>,
+) => <B>(
+  rb: Resource<F, B>,
+) => <A>(ra: Resource<F, A>) => Resource<F, Either<A, B>> = F => rb => ra =>
+  race_(F)(ra, rb);
 
 export const fork =
   <F>(F: Concurrent<F, Error>) =>
@@ -466,9 +473,9 @@ export const both_ =
   };
 
 export const race_ =
-  <F>(F: Async<F>) =>
+  <F>(F: Concurrent<F, Error>) =>
   <A, B>(ra: Resource<F, A>, rb: Resource<F, B>): Resource<F, Either<A, B>> =>
-    resourceAsync(F).race_(ra, rb);
+    resourceConcurrent(F).race_(ra, rb);
 
 export const fold_ =
   <F>(F: MonadCancel<F, Error>) =>
