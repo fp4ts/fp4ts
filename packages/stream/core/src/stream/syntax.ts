@@ -78,6 +78,8 @@ import {
   evalTap_,
   attempts_,
   drain,
+  evalCollect_,
+  evalScan_,
 } from './operators';
 
 declare module './algebra' {
@@ -131,6 +133,7 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
+    evalCollect<B>(f: (a: A) => Kind<F, [Option<B>]>): Stream<F, B>;
     evalTap(F: Functor<F>): (f: (a: A) => Kind<F, [unknown]>) => Stream<F, A>;
     evalMapChunk(
       F: Applicative<F>,
@@ -147,6 +150,8 @@ declare module './algebra' {
 
     scan<B>(z: B, f: (b: B, a: A) => B): Stream<F, A>;
     scan1<B>(this: Stream<F, B>, f: (x: B, y: B) => B): Stream<F, B>;
+
+    evalScan<B>(z: B, f: (b: B, a: A) => Kind<F, [B]>): Stream<F, B>;
 
     scanChunks<S, B>(
       s: S,
@@ -350,6 +355,9 @@ Stream.prototype.mapAccumulate = function (s) {
 Stream.prototype.evalMap = function (f) {
   return evalMap_(this, f);
 };
+Stream.prototype.evalCollect = function (f) {
+  return evalCollect_(this, f);
+};
 Stream.prototype.evalTap = function (F) {
   return f => evalTap_(F)(this, f);
 };
@@ -386,6 +394,10 @@ Stream.prototype.scan = function (z, f) {
 
 Stream.prototype.scan1 = function (f) {
   return scan1_(this, f);
+};
+
+Stream.prototype.evalScan = function (z, f) {
+  return evalScan_(this, z, f);
 };
 
 Stream.prototype.scanChunks = function (init, f) {

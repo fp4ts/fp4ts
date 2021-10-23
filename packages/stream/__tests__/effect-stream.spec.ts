@@ -1,7 +1,17 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { throwError } from '@cats4ts/core';
-import { Eq, Either, Left, List, Right } from '@cats4ts/cats';
+import { id, throwError } from '@cats4ts/core';
+import {
+  Eq,
+  Either,
+  Left,
+  List,
+  Vector,
+  Right,
+  Some,
+  None,
+  Option,
+} from '@cats4ts/cats';
 import { IO, IoK, SyncIO, SyncIoK } from '@cats4ts/effect';
 import { Stream } from '@cats4ts/stream-core';
 import {
@@ -10,7 +20,7 @@ import {
   MonadErrorSuite,
   MonoidKSuite,
 } from '@cats4ts/cats-laws';
-import { checkAll } from '@cats4ts/cats-test-kit';
+import { forAll, checkAll, IsEq } from '@cats4ts/cats-test-kit';
 import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
 
@@ -84,6 +94,43 @@ describe('Effect-ful stream', () => {
           .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
           .take(10_000).compile.toArray,
       ).toEqual([...new Array(10_000).keys()].map(() => 2));
+    });
+  });
+
+  describe('evalCollect', () => {
+    it('should consume only even numbers', () => {
+      expect(
+        Stream(1, 2, 3, 4, 5).evalCollect(x =>
+          SyncIO(() => (x % 2 === 0 ? Some(x) : None)),
+        ).compile.toArray,
+      ).toEqual([2, 4]);
+    });
+
+    test(
+      'evalCollect is evalMap and collect identity',
+      forAll(
+        A.cats4tsEffectStreamGenerator<SyncIoK, number>(
+          fc.integer(),
+          A.cats4tsSyncIO(fc.integer()),
+        ),
+        fc.func<[number], Option<string>>(A.cats4tsOption(fc.string())),
+        (s, f) =>
+          new IsEq(
+            s.evalCollect(x => SyncIO(() => f(x))).attempt.compile.toList,
+            s
+              .evalMap(x => SyncIO(() => f(x)))
+              .collect(id).attempt.compile.toList,
+          ),
+      )(List.Eq(Either.Eq(Eq.Error.strict, Eq.primitive))),
+    );
+  });
+
+  describe('evalScan', () => {
+    it('should create cumulative addition of the stream', () => {
+      expect(
+        Stream(1, 2, 3, 4).evalScan(0, (acc, i) => SyncIO(() => acc + i))
+          .compile.toArray,
+      ).toEqual([0, 1, 3, 6, 10]);
     });
   });
 
@@ -276,6 +323,45 @@ describe('Effect-ful stream', () => {
         new Error('test error'),
         ticker,
       );
+    });
+
+    it.ticked('should retry the stream in 1-second intervals', ticker => {
+      let i = 0;
+      let results: Vector<Either<Error, any>> = Vector.empty;
+      const s = Stream.evalF<IoK, void>(IO.sleep(1_000))
+        .drain['+++'](
+          Stream.retry(IO.Temporal)(
+            IO(() => i++)['>>>'](IO.throwError(new Error('test error'))),
+            1_000,
+            id,
+            3,
+          ),
+        )
+        .attempt.evalMap(ea => IO(() => (results = results['::+'](ea))));
+
+      const io = s.compileF(IO.MonadError).drain;
+      io.unsafeRunToPromise({
+        config: { autoSuspendThreshold: Infinity },
+        executionContext: ticker.ctx,
+        shutdown: () => {},
+      });
+
+      // after 1 second:
+      //  first throwing action have been executed and threw
+      ticker.ctx.tick();
+      ticker.ctx.tick(1_000);
+      expect(i).toBe(1);
+
+      // after 2 seconds:
+      //  second throwing action have been executed and threw
+      ticker.ctx.tick(1_000);
+      expect(i).toBe(2);
+
+      // after 3 seconds:
+      //  third throwing action have been executed and threw. Here we exhaust retry limit and yield the only erroneous value
+      ticker.ctx.tick(1_000);
+      expect(i).toBe(3);
+      expect(results.toArray).toEqual([Left(new Error('test error'))]);
     });
   });
 

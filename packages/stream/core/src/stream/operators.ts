@@ -204,6 +204,10 @@ export const evalMap: <F, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalMap_(s, f);
 
+export const evalCollect: <F, A, B>(
+  f: (a: A) => Kind<F, [Option<B>]>,
+) => (s: Stream<F, A>) => Stream<F, B> = f => s => evalCollect_(s, f);
+
 export const evalTap: <F>(
   F: Functor<F>,
 ) => <A>(f: (a: A) => Kind<F, [unknown]>) => (s: Stream<F, A>) => Stream<F, A> =
@@ -249,6 +253,11 @@ export const scan1: <A2>(
   f: (x: A2, y: A2) => A2,
 ) => <F, A extends A2>(s: Stream<F, A>) => Stream<F, A2> = f => s =>
   scan1_(s, f);
+
+export const evalScan: <F, A, B>(
+  z: B,
+  f: (b: B, a: A) => Kind<F, [B]>,
+) => (s: Stream<F, A>) => Stream<F, B> = (z, f) => s => evalScan_(s, z, f);
 
 export const scanChunks: <S>(
   init: S,
@@ -725,6 +734,11 @@ export const evalMap_ = <F, A, B>(
   f: (a: A) => Kind<F, [B]>,
 ): Stream<F, B> => flatMap_(s, x => evalF(f(x)));
 
+export const evalCollect_ = <F, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => Kind<F, [Option<B>]>,
+): Stream<F, B> => pipe(evalMap_(s, f), collect(id));
+
 export const evalTap_ =
   <F>(F: Functor<F>) =>
   <A>(s: Stream<F, A>, f: (a: A) => Kind<F, [unknown]>): Stream<F, A> =>
@@ -785,6 +799,25 @@ export const scan1_ = <F, A>(
       ),
     ),
   );
+
+export const evalScan_ = <F, A, B>(
+  s: Stream<F, A>,
+  z: B,
+  f: (b: B, a: A) => Kind<F, [B]>,
+): Stream<F, B> => {
+  const go = (z: B, p: Pull<F, A, void>): Pull<F, B, void> =>
+    p.uncons1.flatMap(opt =>
+      opt.fold(
+        () => Pull.done(),
+        ([hd, tl]) =>
+          Pull.evalF(f(z, hd)).flatMap(b =>
+            Pull.output1(b)['>>>'](() => go(b, tl)),
+          ),
+      ),
+    );
+
+  return new Stream(Pull.output1<F, B>(z)['>>>'](() => go(z, s.pull)));
+};
 
 export const scanChunks_ = <F, S, A, B>(
   s: Stream<F, A>,
