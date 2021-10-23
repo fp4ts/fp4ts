@@ -57,13 +57,15 @@ export const syncIoMonadError: Lazy<MonadError<SyncIoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const syncIoSync: Lazy<Sync<SyncIoK>> = lazyVal(() => ({
-  ...MonadCancel.Uncancelable(syncIoMonadError()),
-  ...Clock.of({
-    applicative: syncIoApplicative(),
-    monotonic: SyncIO(() => process.hrtime()[0]),
-    realTime: SyncIO(() => Date.now()),
+export const syncIoSync: Lazy<Sync<SyncIoK>> = lazyVal(() =>
+  Sync.of({
+    ...MonadCancel.Uncancelable(syncIoMonadError()),
+    ...Clock.of({
+      applicative: syncIoApplicative(),
+      monotonic: SyncIO(() => process.hrtime()[0]),
+      realTime: SyncIO(() => Date.now()),
+    }),
+    ...syncIoDefer(),
+    delay: delay,
   }),
-  ...syncIoDefer(),
-  delay: delay,
-}));
+);

@@ -2,6 +2,7 @@ import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
 import { Either, List, Option, Vector } from '@cats4ts/cats';
 import { Temporal, SyncIoK } from '@cats4ts/effect';
 
+import { PureK } from '../pure';
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
 import {
@@ -53,16 +54,16 @@ export const Stream: StreamObj = function (...xs) {
 };
 
 interface StreamObj {
-  <F = SyncIoK, A = never>(...xs: A[]): Stream<F, A>;
-  pure<F = SyncIoK, A = never>(x: A): Stream<F, A>;
-  defer<F = SyncIoK, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
-  throwError<F = SyncIoK>(e: Error): Stream<F, never>;
-  of<F = SyncIoK, A = never>(...xs: A[]): Stream<F, A>;
+  <F = PureK, A = never>(...xs: A[]): Stream<F, A>;
+  pure<F = PureK, A = never>(x: A): Stream<F, A>;
+  defer<F = PureK, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
+  throwError<F = PureK>(e: Error): Stream<F, never>;
+  of<F = PureK, A = never>(...xs: A[]): Stream<F, A>;
 
-  evalF<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
-  execF<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
-  evalUnChunk<F = SyncIoK, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
-  repeatEval<F = SyncIoK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
+  evalF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
+  execF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
+  evalUnChunk<F = PureK, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
+  repeatEval<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
 
   sleep<F>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
 
@@ -76,33 +77,31 @@ interface StreamObj {
     retriable?: (e: Error) => boolean,
   ) => Stream<F, A>;
 
-  empty<F = SyncIoK>(): Stream<F, never>;
-  range<F = SyncIoK>(
+  empty<F = PureK>(): Stream<F, never>;
+  range<F = PureK>(
     from: number,
     until: number,
     step?: number,
   ): Stream<F, number>;
-  never<F = SyncIoK>(F: Spawn<F, Error>): Stream<F, never>;
+  never<F = PureK>(F: Spawn<F, Error>): Stream<F, never>;
 
   unfold<S>(
     s: S,
-  ): <F = SyncIoK, A = never>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
+  ): <F = PureK, A = never>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
   unfoldChunk<S>(
     s: S,
-  ): <F = SyncIoK, A = never>(
-    f: (s: S) => Option<[Chunk<A>, S]>,
-  ) => Stream<F, A>;
+  ): <F = PureK, A = never>(f: (s: S) => Option<[Chunk<A>, S]>) => Stream<F, A>;
 
   tailRecM<S>(
     s: S,
-  ): <F = SyncIoK, A = never>(
+  ): <F = PureK, A = never>(
     f: (s: S) => Stream<F, Either<S, A>>,
   ) => Stream<F, A>;
 
-  fromArray<F = SyncIoK, A = never>(xs: A[]): Stream<F, A>;
-  fromList<F = SyncIoK, A = never>(xs: List<A>): Stream<F, A>;
-  fromVector<F = SyncIoK, A = never>(xs: Vector<A>): Stream<F, A>;
-  fromChunk<F = SyncIoK, A = never>(chunk: Chunk<A>): Stream<F, A>;
+  fromArray<F = PureK, A = never>(xs: A[]): Stream<F, A>;
+  fromList<F = PureK, A = never>(xs: List<A>): Stream<F, A>;
+  fromVector<F = PureK, A = never>(xs: Vector<A>): Stream<F, A>;
+  fromChunk<F = PureK, A = never>(chunk: Chunk<A>): Stream<F, A>;
 
   // -- Instances
 

@@ -20,10 +20,10 @@ import {
   Uncancelable,
   IOCont,
   Suspend,
+  CurrentTimeMicros,
 } from './algebra';
 import { flatMap_, map_ } from './operators';
 import type { IoK } from './io';
-import { ioAsync } from './instances';
 
 export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
 
@@ -35,6 +35,8 @@ export const defer: <A>(thunk: () => IO<A>) => IO<A> = thunk =>
   new Defer(thunk);
 
 export const throwError: (error: Error) => IO<never> = error => new Fail(error);
+
+export const currentTimeMicros: IO<number> = CurrentTimeMicros;
 
 export const currentTimeMillis: IO<number> = CurrentTimeMillis;
 

@@ -87,6 +87,12 @@ export class Attempt<A> extends IO<Either<Error, A>> {
   }
 }
 
+export const CurrentTimeMicros =
+  new (class CurrentTimeMicros extends IO<number> {
+    public readonly tag = 'currentTimeMicros';
+  })();
+export type CurrentTimeMicros = typeof CurrentTimeMicros;
+
 export const CurrentTimeMillis =
   new (class CurrentTimeMillis extends IO<number> {
     public readonly tag = 'currentTimeMillis';
@@ -195,6 +201,7 @@ export type IOView<A> =
   | FlatMap<any, A>
   | HandleErrorWith<A>
   | Attempt<Either<Error, A>>
+  | CurrentTimeMicros
   | CurrentTimeMillis
   | ReadEC
   | IOCont<any, A>

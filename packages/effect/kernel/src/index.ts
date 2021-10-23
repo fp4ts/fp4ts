@@ -5,6 +5,7 @@ export * from './concurrent';
 export * from './temporal';
 export * from './sync';
 export * from './async';
+export * from './unique';
 
 export * from './fiber';
 export * from './outcome';

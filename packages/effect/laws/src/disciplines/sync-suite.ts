@@ -8,12 +8,14 @@ import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
 import { SyncLaws } from '../sync-laws';
 import { MonadCancelSuite } from './monad-cancel-suite';
 import { ClockSuite } from './clock-suite';
+import { UniqueSuite } from './unique-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const SyncSuite = <F>(F: Sync<F>) => {
   const laws = SyncLaws(F);
 
   const self = {
+    ...UniqueSuite(F),
     ...ClockSuite(F),
     ...MonadCancelSuite(F),
 
@@ -62,6 +64,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
         ],
         {
           parents: [
+            self.unique(mkEqF),
             self.clock(mkEqF),
             self.monadCancel(
               arbA,

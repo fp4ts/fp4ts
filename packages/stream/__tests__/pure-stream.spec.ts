@@ -1,7 +1,6 @@
 import fc from 'fast-check';
 import { List, Some, Vector, None, Eq } from '@cats4ts/cats';
-import { SyncIoK } from '@cats4ts/effect';
-import { Stream, Chunk } from '@cats4ts/stream-core';
+import { Stream, Chunk, PureK } from '@cats4ts/stream-core';
 import {
   AlignSuite,
   FunctorFilterSuite,
@@ -194,7 +193,7 @@ describe('Pure Stream', () => {
       const xs = [...new Array(10_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
-        Stream.empty() as Stream<SyncIoK, number>,
+        Stream.empty() as Stream<PureK, number>,
       );
       expect(s.take(10_000).compile.toArray).toEqual(xs);
     });
@@ -277,7 +276,7 @@ describe('Pure Stream', () => {
       const xs = [...new Array(10_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
-        Stream.empty() as Stream<SyncIoK, number>,
+        Stream.empty() as Stream<PureK, number>,
       );
       expect(s.drop(10_000).compile.toArray).toEqual([]);
     });
@@ -633,7 +632,7 @@ describe('Pure Stream', () => {
 
   describe('examples', () => {
     it('should calculate fibonacci sequence', () => {
-      const fibs: Stream<SyncIoK, number> = Stream(0, 1)['+++'](
+      const fibs: Stream<PureK, number> = Stream(0, 1)['+++'](
         Stream.defer(() => fibs.zip(fibs.tail).map(([x, y]) => x + y)),
       );
 
@@ -643,12 +642,12 @@ describe('Pure Stream', () => {
     });
   });
 
-  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<SyncIoK, X>> =>
+  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureK, X>> =>
     Eq.by(List.Eq(EqX), s => s.compile.toList);
 
-  const monoidKTests = MonoidKSuite(Stream.MonoidK<SyncIoK>());
+  const monoidKTests = MonoidKSuite(Stream.MonoidK<PureK>());
   checkAll(
-    'MonoidK<$<StreamK, [AnyK]>>',
+    'MonoidK<$<StreamK, [PureK]>>',
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
@@ -657,9 +656,9 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const alignTests = AlignSuite(Stream.Align<SyncIoK>());
+  const alignTests = AlignSuite(Stream.Align<PureK>());
   checkAll(
-    'Align<$<StreamK, [AnyK]>>',
+    'Align<$<StreamK, [PureK]>>',
     alignTests.align(
       fc.integer(),
       fc.integer(),
@@ -674,11 +673,9 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(
-    Stream.FunctorFilter<SyncIoK>(),
-  );
+  const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<PureK>());
   checkAll(
-    'FunctorFilter<$<StreamK, [AnyK]>',
+    'FunctorFilter<$<StreamK, [PureK]>',
     functorFilterTests.functorFilter(
       fc.integer(),
       fc.integer(),
@@ -691,9 +688,9 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Stream.Monad<SyncIoK>());
+  const monadTests = MonadSuite(Stream.Monad<PureK>());
   checkAll(
-    'Monad<$<StreamK, [AnyK]>>',
+    'Monad<$<StreamK, [PureK]>>',
     monadTests.monad(
       fc.integer(),
       fc.integer(),

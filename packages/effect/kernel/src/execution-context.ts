@@ -1,6 +1,7 @@
 export interface ExecutionContext {
   readonly executeAsync: (thunk: () => void) => void;
   readonly sleep: (ms: number, thunk: () => void) => () => void;
+  readonly currentTimeMicros: () => number;
   readonly currentTimeMillis: () => number;
   readonly reportFailure: (e: Error) => void;
 }
@@ -11,6 +12,7 @@ export const GlobalExecutionContext: ExecutionContext = Object.freeze({
     const ref = setTimeout(thunk, ms);
     return () => clearTimeout(ref);
   },
+  currentTimeMicros: (): number => process.hrtime()[0],
   currentTimeMillis: (): number => Date.now(),
   reportFailure: (e: Error): void => console.error(e),
 });

@@ -391,6 +391,21 @@ export const handleErrorWith: <F, A2>(
 ) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
   handleErrorWith_(s, h);
 
+export const covary =
+  <F2>() =>
+  <F extends F2, A>(s: Stream<F, A>): Stream<F2, A> =>
+    s;
+
+export const covaryOutput =
+  <B>() =>
+  <F, A extends B>(s: Stream<F, A>): Stream<F, B> =>
+    s;
+
+export const covaryAll =
+  <F2, B>() =>
+  <F extends F2, A extends B>(s: Stream<F, A>): Stream<F2, B> =>
+    s;
+
 export const compile: <A>(s: Stream<SyncIoK, A>) => PureCompiler<A> = s =>
   new PureCompiler(s.pull);
 

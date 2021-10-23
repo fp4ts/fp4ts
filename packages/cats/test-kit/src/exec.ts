@@ -1,10 +1,8 @@
 import { IsEq } from './rules';
 import { Eq } from '@cats4ts/cats-core';
 
-export function exec<A0, R>(
-  predicate: () => IsEq<R>,
-): (E: Eq<R> | ((r: IsEq<R>) => Promise<boolean>)) => () => Promise<void>;
-export function exec(predicate: () => boolean | Promise<boolean>): () => void;
+export function exec<R>(predicate: () => IsEq<R>): (E: Eq<R>) => () => void;
+export function exec(predicate: () => boolean): () => void;
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function exec(predicate: any): any {
   const run = async (E?: any) => {

@@ -2,12 +2,14 @@ import { Kind, throwError } from '@cats4ts/core';
 import { Sync } from '@cats4ts/effect-kernel';
 import { IsEq } from '@cats4ts/cats-test-kit';
 
+import { UniqueLaws } from './unique-laws';
 import { ClockLaws } from './clock-laws';
 import { MonadCancelLaws } from './monad-cancel-laws';
 
 export const SyncLaws = <F>(F: Sync<F>): SyncLaws<F> => ({
   ...MonadCancelLaws(F),
   ...ClockLaws(F),
+  ...UniqueLaws(F),
 
   delayedValueIsPure: <A>(a: A): IsEq<Kind<F, [A]>> =>
     new IsEq(
@@ -55,7 +57,10 @@ export const SyncLaws = <F>(F: Sync<F>): SyncLaws<F> => ({
   },
 });
 
-export interface SyncLaws<F> extends MonadCancelLaws<F, Error>, ClockLaws<F> {
+export interface SyncLaws<F>
+  extends MonadCancelLaws<F, Error>,
+    ClockLaws<F>,
+    UniqueLaws<F> {
   delayedValueIsPure: <A>(a: A) => IsEq<Kind<F, [A]>>;
 
   delayedThrowIsThrowError: (e: Error) => IsEq<Kind<F, [never]>>;

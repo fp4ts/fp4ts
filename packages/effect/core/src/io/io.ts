@@ -34,6 +34,7 @@ import {
   async,
   async_,
   canceled,
+  currentTimeMicros,
   currentTimeMillis,
   defer,
   deferPromise,
@@ -108,6 +109,7 @@ interface IOObj {
 
   throwError: (e: Error) => IO<never>;
 
+  currentTimeMicros: IO<number>;
   currentTimeMillis: IO<number>;
 
   readExecutionContext: IO<ExecutionContext>;
@@ -247,6 +249,7 @@ IO.fromEither = fromEither;
 
 IO.throwError = throwError;
 
+IO.currentTimeMicros = currentTimeMicros;
 IO.currentTimeMillis = currentTimeMillis;
 
 IO.readExecutionContext = readExecutionContext;

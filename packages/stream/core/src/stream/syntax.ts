@@ -80,7 +80,11 @@ import {
   drain,
   evalCollect_,
   evalScan_,
+  covary,
+  covaryOutput,
+  covaryAll,
 } from './operators';
+import { PureK } from '../pure';
 
 declare module './algebra' {
   interface Stream<F, A> {
@@ -196,11 +200,15 @@ declare module './algebra' {
       h: (e: Error) => Stream<F, B>,
     ): Stream<F, B>;
 
-    compile: F extends SyncIoK ? PureCompiler<A> : never;
+    covary<F2>(this: Stream<F2, A>): Stream<F2, A>;
+    covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
+    covaryAll<F2, B>(this: Stream<F2, B>): Stream<F2, B>;
+
+    compile: F extends PureK ? PureCompiler<A> : never;
     compileF(F: MonadError<F, Error>): Compiler<F, A>;
 
-    toList: F extends SyncIoK ? List<A> : never;
-    toVector: F extends SyncIoK ? Vector<A> : never;
+    toList: F extends PureK ? List<A> : never;
+    toVector: F extends PureK ? Vector<A> : never;
   }
 }
 
@@ -470,6 +478,16 @@ Stream.prototype.handleErrorWith = function (h) {
   return handleErrorWith_(this, h);
 };
 
+Stream.prototype.covary = function () {
+  return covary()(this) as any;
+};
+Stream.prototype.covaryOutput = function () {
+  return covaryOutput()(this) as any;
+};
+Stream.prototype.covaryAll = function () {
+  return covaryAll()(this) as any;
+};
+
 Object.defineProperty(Stream.prototype, 'compile', {
   get<A>(this: Stream<SyncIoK, A>): PureCompiler<A> {
     return compile(this);
@@ -481,13 +499,13 @@ Stream.prototype.compileF = function (F) {
 };
 
 Object.defineProperty(Stream.prototype, 'toList', {
-  get<A>(this: Stream<SyncIoK, A>): List<A> {
+  get<A>(this: Stream<PureK, A>): List<A> {
     return this.compile.toList;
   },
 });
 
 Object.defineProperty(Stream.prototype, 'toVector', {
-  get<A>(this: Stream<SyncIoK, A>): Vector<A> {
+  get<A>(this: Stream<PureK, A>): Vector<A> {
     return this.compile.toVector;
   },
 });

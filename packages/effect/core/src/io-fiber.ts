@@ -131,6 +131,10 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           _cur = cur.ioa;
           continue;
 
+        case 'currentTimeMicros':
+          _cur = IO.pure(this.currentEC.currentTimeMicros());
+          continue;
+
         case 'currentTimeMillis':
           _cur = IO.pure(this.currentEC.currentTimeMillis());
           continue;

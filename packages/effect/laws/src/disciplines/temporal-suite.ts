@@ -2,7 +2,7 @@ import { Arbitrary } from 'fast-check';
 import { Kind } from '@cats4ts/core';
 import { Eq } from '@cats4ts/cats';
 import { Temporal, Outcome } from '@cats4ts/effect-kernel';
-import { IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { RuleSet } from '@cats4ts/cats-test-kit';
 
 import { ClockSuite } from './clock-suite';
 import { SpawnSuite } from './spawn-suite';

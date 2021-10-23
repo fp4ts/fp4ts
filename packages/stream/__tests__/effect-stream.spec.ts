@@ -32,25 +32,35 @@ describe('Effect-ful stream', () => {
       let counter = 0;
       const count = SyncIO.delay(() => counter++);
 
-      expect(Stream.repeatEval<SyncIoK, number>(count).take(5).toList).toEqual(
-        List(0, 1, 2, 3, 4),
-      );
+      expect(
+        Stream.repeatEval<SyncIoK, number>(count)
+          .take(5)
+          .compileF(SyncIO.MonadError)
+          .toList.unsafeRunSync(),
+      ).toEqual(List(0, 1, 2, 3, 4));
     });
   });
 
   describe('evalMap', () => {
     it('should transform the stream', () => {
       expect(
-        StreamSync(1, 2, 3, 4, 5).evalMap(x => SyncIO(() => x * 2)).compile
-          .toList,
+        StreamSync(1, 2, 3, 4, 5)
+          .evalMap(x => SyncIO(() => x * 2))
+          .compileF(SyncIO.MonadError)
+          .toList.unsafeRunSync(),
       ).toEqual(List(2, 4, 6, 8, 10));
     });
 
     it('should rethrow the error when effect throws', () => {
       expect(
-        StreamSync(1, 2, 3, 4).evalMap(x =>
-          x === 3 ? SyncIO.throwError(new Error('test error')) : SyncIO.pure(x),
-        ).attempt.compile.toArray,
+        StreamSync(1, 2, 3, 4)
+          .evalMap(x =>
+            x === 3
+              ? SyncIO.throwError(new Error('test error'))
+              : SyncIO.pure(x),
+          )
+          .attempt.compileF(SyncIO.MonadError)
+          .toArray.unsafeRunSync(),
       ).toEqual([Right(1), Right(2), Left(new Error('test error'))]);
     });
 
@@ -83,7 +93,8 @@ describe('Effect-ful stream', () => {
         StreamSync(1, 2, 3)
           .chunkLimit(1)
           .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
-          .compile.toList,
+          .compileF(SyncIO.MonadError)
+          .toList.unsafeRunSync(),
       ).toEqual(List(2, 4, 6));
     });
 
@@ -92,7 +103,9 @@ describe('Effect-ful stream', () => {
         StreamSync(1)
           .repeat.chunkN(100)
           .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
-          .take(10_000).compile.toArray,
+          .take(10_000)
+          .compileF(SyncIO.MonadError)
+          .toArray.unsafeRunSync(),
       ).toEqual([...new Array(10_000).keys()].map(() => 2));
     });
   });
@@ -100,9 +113,11 @@ describe('Effect-ful stream', () => {
   describe('evalCollect', () => {
     it('should consume only even numbers', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).evalCollect(x =>
-          SyncIO(() => (x % 2 === 0 ? Some(x) : None)),
-        ).compile.toArray,
+        Stream(1, 2, 3, 4, 5)
+          .covary<SyncIoK>()
+          .evalCollect(x => SyncIO(() => (x % 2 === 0 ? Some(x) : None)))
+          .compileF(SyncIO.MonadError)
+          .toArray.unsafeRunSync(),
       ).toEqual([2, 4]);
     });
 
@@ -116,20 +131,35 @@ describe('Effect-ful stream', () => {
         fc.func<[number], Option<string>>(A.cats4tsOption(fc.string())),
         (s, f) =>
           new IsEq(
-            s.evalCollect(x => SyncIO(() => f(x))).attempt.compile.toList,
-            s
-              .evalMap(x => SyncIO(() => f(x)))
-              .collect(id).attempt.compile.toList,
+            s.evalCollect(x => SyncIO(() => f(x))).attempt,
+            s.evalMap(x => SyncIO(() => f(x))).collect(id).attempt,
           ),
-      )(List.Eq(Either.Eq(Eq.Error.strict, Eq.primitive))),
+      )(
+        Eq.by(List.Eq(Either.Eq(Eq.Error.strict, Eq.primitive)), s =>
+          s.compileF(SyncIO.MonadError).toList.unsafeRunSync(),
+        ),
+      ),
     );
   });
 
   describe('evalScan', () => {
     it('should create cumulative addition of the stream', () => {
       expect(
-        Stream(1, 2, 3, 4).evalScan(0, (acc, i) => SyncIO(() => acc + i))
-          .compile.toArray,
+        Stream(1, 2, 3, 4)
+          .covary<SyncIoK>()
+          .evalScan(0, (acc, i) => SyncIO(() => acc + i))
+          .compileF(SyncIO.MonadError)
+          .toArray.unsafeRunSync(),
+      ).toEqual([0, 1, 3, 6, 10]);
+    });
+
+    it('should extend the type', () => {
+      expect(
+        Stream(1, 2, 3, 4)
+          .covary<SyncIoK>()
+          .evalScan(0, (acc, i) => SyncIO(() => acc + i))
+          .compileF(SyncIO.MonadError)
+          .toArray.unsafeRunSync(),
       ).toEqual([0, 1, 3, 6, 10]);
     });
   });
@@ -143,8 +173,9 @@ describe('Effect-ful stream', () => {
 
     it('should wrap capture erroneous chunk', () => {
       expect(
-        Stream.throwError<SyncIoK>(new Error('test error')).attempt.compile
-          .last,
+        Stream.throwError<SyncIoK>(new Error('test error'))
+          .attempt.compileF(SyncIO.MonadError)
+          .last.unsafeRunSync(),
       ).toEqual(Left(new Error('test error')));
     });
 
@@ -216,7 +247,10 @@ describe('Effect-ful stream', () => {
           Right(2),
           Left(new Error('test, error')),
           Right(4),
-        ).rethrow.handleErrorWith(() => Stream(-1)).compile.toList,
+        )
+          .rethrow.handleErrorWith(() => Stream(-1))
+          .compileF(SyncIO.MonadError)
+          .toList.unsafeRunSync(),
       ).toEqual(List(-1));
     });
   });
@@ -242,21 +276,23 @@ describe('Effect-ful stream', () => {
 
     it('should return the result of the handler when an error is ocurred', () => {
       expect(
-        Stream.evalF<SyncIoK>(
-          SyncIO.throwError(new Error('test error')),
-        ).handleErrorWith(() => Stream(42)).compile.last,
+        Stream.evalF<SyncIoK>(SyncIO.throwError(new Error('test error')))
+          .handleErrorWith(() => Stream(42))
+          .compileF(SyncIO.MonadError)
+          .last.unsafeRunSync(),
       ).toBe(42);
     });
 
     it('should capture error thrown upstream', () => {
       let error: Error;
 
-      Stream.evalF<SyncIoK>(
-        SyncIO.throwError(new Error('test error')),
-      ).handleErrorWith(e => {
-        error = e;
-        return Stream.empty();
-      }).compile.drain;
+      Stream.evalF<SyncIoK>(SyncIO.throwError(new Error('test error')))
+        .handleErrorWith(e => {
+          error = e;
+          return Stream.empty();
+        })
+        .compileF(SyncIO.MonadError)
+        .drain.unsafeRunSync();
 
       expect(error!).toEqual(new Error('test error'));
     });

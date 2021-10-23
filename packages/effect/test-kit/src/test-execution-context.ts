@@ -37,6 +37,10 @@ export class TestExecutionContext implements ExecutionContext {
     return cancel;
   }
 
+  public currentTimeMicros(): number {
+    return this.clock;
+  }
+
   public currentTimeMillis(): number {
     return this.clock;
   }
