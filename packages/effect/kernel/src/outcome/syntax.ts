@@ -1,9 +1,12 @@
 import { Kind } from '@cats4ts/core';
+import { FunctionK } from '@cats4ts/cats';
 import { Outcome } from './algebra';
-import { fold_ } from './operators';
+import { fold_, mapK_ } from './operators';
 
 declare module './algebra' {
   interface Outcome<F, E, A> {
+    mapK<G>(nt: FunctionK<F, G>): Outcome<G, E, A>;
+
     fold<B>(
       onCancel: () => B,
       onFailure: (e: E) => B,
@@ -11,6 +14,10 @@ declare module './algebra' {
     ): B;
   }
 }
+
+Outcome.prototype.mapK = function (nt) {
+  return mapK_(this, nt);
+};
 
 Outcome.prototype.fold = function <F, E, A, B>(
   this: Outcome<F, E, A>,

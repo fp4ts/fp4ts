@@ -1,10 +1,18 @@
 import '@cats4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { fst, pipe, snd } from '@cats4ts/core';
-import { Eq, List, Vector, Either, Left, Right } from '@cats4ts/cats';
-import { MonadCancelSuite } from '@cats4ts/effect-laws';
+import { $, fst, pipe, snd } from '@cats4ts/core';
+import {
+  FunctionK,
+  Eq,
+  List,
+  Vector,
+  Either,
+  Left,
+  Right,
+} from '@cats4ts/cats';
+import { AsyncSuite } from '@cats4ts/effect-laws';
 import { IO, IoK } from '@cats4ts/effect-core';
-import { Resource } from '@cats4ts/effect-kernel';
+import { Resource, ResourceK, Outcome } from '@cats4ts/effect-kernel';
 import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@cats4ts/effect-test-kit/lib/eq';
 import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
@@ -450,22 +458,32 @@ describe('Resource', () => {
   });
 
   describe.ticked('Laws', ticker => {
-    const resourceIOMonadCancel = Resource.MonadCancel(IO.MonadCancel);
-    const monadCancelTests = MonadCancelSuite(resourceIOMonadCancel);
+    const resourceIOAsync = Resource.Async(IO.Async);
+    const asyncTests = AsyncSuite(resourceIOAsync);
 
     checkAll(
-      'MonadCancel<$<Resource, [IoK]>, Error>',
-      monadCancelTests.monadCancel(
+      'Async<$<Resource, [IoK]>, Error>',
+      asyncTests.async(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        A.cats4tsError(),
+        ticker.ctx,
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        Eq.Error.strict,
+        Eq.by(
+          Outcome.Eq<IoK, Error, number>(
+            Eq.Error.strict,
+            E.eqIO(Eq.primitive, ticker),
+          ),
+          (r: Outcome<$<ResourceK, [IoK]>, Error, number>) => {
+            const nt: FunctionK<$<ResourceK, [IoK]>, IoK> = x =>
+              x.use(IO.MonadCancel)(IO.pure);
+            return r.mapK(nt);
+          },
+        ),
         x => A.cats4tsResource(IO.Functor)(x, A.cats4tsIO),
         <X>(EqX: Eq<X>) =>
           Eq.by(E.eqIO(EqX, ticker), (r: Resource<IoK, X>) =>

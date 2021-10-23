@@ -1,6 +1,7 @@
 import { $, Kind } from '@cats4ts/core';
 import { Monoid, ApplicativeError, Either, Kleisli } from '@cats4ts/cats';
 
+import { Async } from '../async';
 import { MonadCancel } from '../monad-cancel';
 import { Concurrent } from '../concurrent';
 import { Outcome } from '../outcome';
@@ -22,6 +23,7 @@ import {
   handleError_,
   map_,
   onCancel_,
+  race_,
   surround_,
   useKleisli_,
   use_,
@@ -79,6 +81,7 @@ declare module './algebra' {
     both(
       F: Concurrent<F, Error>,
     ): <B>(that: Resource<F, B>) => Resource<F, [A, B]>;
+    race(F: Async<F>): <B>(that: Resource<F, B>) => Resource<F, Either<A, B>>;
     fork(
       F: Concurrent<F, Error>,
     ): Resource<F, Fiber<$<ResourceK, [F]>, Error, A>>;
@@ -156,6 +159,9 @@ Resource.prototype.finalize = function (F) {
 
 Resource.prototype.both = function (F) {
   return that => both_(F)(this, that);
+};
+Resource.prototype.race = function (F) {
+  return that => race_(F)(this, that);
 };
 Resource.prototype.fork = function (F) {
   return fork(F)(this);

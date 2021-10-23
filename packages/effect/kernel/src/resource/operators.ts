@@ -1,4 +1,4 @@
-import { $, compose, fst, id, Kind, pipe, snd } from '@cats4ts/core';
+import { $, compose, fst, id, Kind, pipe, snd, tupled } from '@cats4ts/core';
 import {
   Kleisli,
   List,
@@ -9,10 +9,12 @@ import {
   ApplicativeError,
 } from '@cats4ts/cats';
 
+import { Async } from '../async';
 import { Concurrent } from '../concurrent';
 import { MonadCancel } from '../monad-cancel';
 import { Fiber } from '../fiber';
 import { Outcome } from '../outcome';
+import { ExecutionContext } from '../execution-context';
 
 import { FlatMap, Resource, view } from './algebra';
 import {
@@ -25,6 +27,7 @@ import {
 } from './constructors';
 import { ExitCase } from './exit-case';
 import { ResourceK } from './resource';
+import { resourceAsync } from './instances';
 
 export const use: <F>(
   F: MonadCancel<F, Error>,
@@ -154,12 +157,12 @@ export const fork =
         readonly confirmedFinalizeOnComplete: boolean = false,
       ) {}
 
-      public copy(props: Omit<Partial<State>, 'copy'> = {}): State {
-        return new State(
-          props.fin,
-          props.finalizeOnComplete,
-          props.confirmedFinalizeOnComplete,
-        );
+      public copy({
+        fin = this.fin,
+        finalizeOnComplete = this.finalizeOnComplete,
+        confirmedFinalizeOnComplete = this.confirmedFinalizeOnComplete,
+      }: Omit<Partial<State>, 'copy'> = {}): State {
+        return new State(fin, finalizeOnComplete, confirmedFinalizeOnComplete);
       }
     }
 
@@ -462,6 +465,11 @@ export const both_ =
     );
   };
 
+export const race_ =
+  <F>(F: Async<F>) =>
+  <A, B>(ra: Resource<F, A>, rb: Resource<F, B>): Resource<F, Either<A, B>> =>
+    resourceAsync(F).race_(ra, rb);
+
 export const fold_ =
   <F>(F: MonadCancel<F, Error>) =>
   <A, B>(
@@ -507,3 +515,12 @@ export const fold_ =
 
     return loop(r, List.empty);
   };
+
+export const executeOn_ =
+  <F>(F: Async<F>) =>
+  <A>(r: Resource<F, A>, ec: ExecutionContext): Resource<F, A> =>
+    allocateFull(poll =>
+      F.map_(poll(F.executeOn_(allocated(F)(r), ec)), ([a, fin]) =>
+        tupled(a, (_: ExitCase) => fin),
+      ),
+    );

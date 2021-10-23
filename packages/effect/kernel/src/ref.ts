@@ -1,74 +1,91 @@
 import { Kind } from '@cats4ts/core';
+import { FunctionK } from '@cats4ts/cats';
 import { Sync } from './sync';
 
-export class Ref<F, A> {
+export abstract class Ref<F, A> {
   private readonly __void!: void;
 
-  private constructor(private readonly F: Sync<F>, private value: A) {}
+  public abstract get(): Kind<F, [A]>;
 
-  public readonly get: () => Kind<F, [A]> = () =>
-    this.F.delay(() => this.value);
+  public abstract set(x: A): Kind<F, [void]>;
 
-  public readonly set: (a: A) => Kind<F, [void]> = x =>
-    this.F.delay(() => {
-      this.value = x;
-    });
+  public abstract update(f: (a: A) => A): Kind<F, [void]>;
 
-  public readonly update: (f: (a: A) => A) => Kind<F, [void]> = f =>
-    this.F.delay(() => {
-      this.value = f(this.value);
-    });
+  public abstract updateAndGet(f: (a: A) => A): Kind<F, [A]>;
 
-  public readonly updateAndGet: (f: (a: A) => A) => Kind<F, [A]> = f =>
-    this.F.delay(() => (this.value = f(this.value)));
+  public abstract modify<B>(f: (a: A) => [A, B]): Kind<F, [B]>;
 
-  public readonly modify: <B>(f: (a: A) => [A, B]) => Kind<F, [B]> = f =>
-    this.F.delay(() => {
-      const [x, r] = f(this.value);
-      this.value = x;
-      return r;
-    });
+  public mapK<G>(nt: FunctionK<F, G>): Ref<G, A> {
+    return new TransformerRef(nt, this);
+  }
 
   public static readonly of =
     <F>(F: Sync<F>) =>
     <B>(x: B): Kind<F, [Ref<F, B>]> =>
-      F.delay(() => new Ref(F, x));
+      F.delay(() => new SyncRef(F, x));
 }
 
-// Point-free
+// Private
 
-export const of: <F>(F: Sync<F>) => <A>(a: A) => Kind<F, [Ref<F, A>]> = F =>
-  Ref.of(F);
+class SyncRef<F, A> extends Ref<F, A> {
+  public constructor(private readonly F: Sync<F>, private value: A) {
+    super();
+  }
 
-export const get: <F, A>(ra: Ref<F, A>) => Kind<F, [A]> = ra => ra.get();
+  public get(): Kind<F, [A]> {
+    return this.F.delay(() => this.value);
+  }
 
-export const set: <A>(a: A) => <F>(ra: Ref<F, A>) => Kind<F, [void]> =
-  a => ra =>
-    set_(ra, a);
+  public set(x: A): Kind<F, [void]> {
+    return this.F.delay(() => {
+      this.value = x;
+    });
+  }
 
-export const update: <A>(
-  f: (a: A) => A,
-) => <F>(ra: Ref<F, A>) => Kind<F, [void]> = f => ra => update_(ra, f);
+  public update(f: (a: A) => A): Kind<F, [void]> {
+    return this.F.delay(() => {
+      this.value = f(this.value);
+    });
+  }
 
-export const updateAndGet: <A>(
-  f: (a: A) => A,
-) => <F>(ref: Ref<F, A>) => Kind<F, [A]> = f => ra => updateAndGet_(ra, f);
+  public updateAndGet(f: (a: A) => A): Kind<F, [A]> {
+    return this.F.delay(() => (this.value = f(this.value)));
+  }
 
-export const modify: <A, B>(
-  f: (a: A) => [A, B],
-) => <F>(ra: Ref<F, A>) => Kind<F, [B]> = f => ra => modify_(ra, f);
+  public modify<B>(f: (a: A) => [A, B]): Kind<F, [B]> {
+    return this.F.delay(() => {
+      const [x, r] = f(this.value);
+      this.value = x;
+      return r;
+    });
+  }
+}
 
-// Point-ful
+class TransformerRef<G, F, A> extends Ref<G, A> {
+  public constructor(
+    private readonly nt: FunctionK<F, G>,
+    private readonly underlying: Ref<F, A>,
+  ) {
+    super();
+  }
 
-export const set_: <F, A>(ra: Ref<F, A>, a: A) => Kind<F, [void]> = (ra, a) =>
-  ra.set(a);
-export const update_: <F, A>(ra: Ref<F, A>, f: (a: A) => A) => Kind<F, [void]> =
-  (ra, f) => ra.update(f);
-export const updateAndGet_: <F, A>(
-  ra: Ref<F, A>,
-  f: (a: A) => A,
-) => Kind<F, [A]> = (ra, f) => ra.updateAndGet(f);
-export const modify_: <F, A, B>(
-  ra: Ref<F, A>,
-  f: (a: A) => [A, B],
-) => Kind<F, [B]> = (ra, f) => ra.modify(f);
+  public override get(): Kind<G, [A]> {
+    return this.nt(this.underlying.get());
+  }
+
+  public override set(x: A): Kind<G, [void]> {
+    return this.nt(this.underlying.set(x));
+  }
+
+  public override update(f: (a: A) => A): Kind<G, [void]> {
+    return this.nt(this.underlying.update(f));
+  }
+
+  public override updateAndGet(f: (a: A) => A): Kind<G, [A]> {
+    return this.nt(this.underlying.updateAndGet(f));
+  }
+
+  public override modify<B>(f: (a: A) => [A, B]): Kind<G, [B]> {
+    return this.nt(this.underlying.modify(f));
+  }
+}

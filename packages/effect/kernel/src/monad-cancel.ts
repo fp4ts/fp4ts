@@ -1,5 +1,11 @@
+import { $ } from '@cats4ts/core';
 import { id, Kind, pipe } from '@cats4ts/core';
-import { MonadError, MonadErrorRequirements } from '@cats4ts/cats-core';
+import {
+  Kleisli,
+  KleisliK,
+  MonadError,
+  MonadErrorRequirements,
+} from '@cats4ts/cats';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
 
@@ -117,5 +123,29 @@ export const MonadCancel = Object.freeze({
       uncancelable: body => body(id),
 
       ...F,
+    }),
+
+  monadCancelForKleisli: <F, R, E>(
+    F: MonadCancel<F, E>,
+  ): MonadCancel<$<KleisliK, [F, R]>, E> =>
+    MonadCancel.of({
+      ...Kleisli.MonadError(F),
+
+      onCancel_: (fa, fin) => Kleisli(r => F.onCancel_(fa.run(r), fin.run(r))),
+
+      canceled: Kleisli.liftF(F.canceled),
+
+      uncancelable: <A>(
+        body: (poll: Poll<$<KleisliK, [F, R]>>) => Kleisli<F, R, A>,
+      ): Kleisli<F, R, A> =>
+        Kleisli(r =>
+          F.uncancelable(nat => {
+            const natT: Poll<$<KleisliK, [F, R]>> = <X>(
+              frx: Kleisli<F, R, X>,
+            ): Kleisli<F, R, X> => Kleisli(r => nat(frx.run(r)));
+
+            return body(natT).run(r);
+          }),
+        ),
     }),
 });

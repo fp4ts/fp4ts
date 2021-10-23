@@ -23,9 +23,9 @@ import {
   Temporal,
   Async,
   ExecutionContext,
+  Ref,
+  Deferred,
 } from '@cats4ts/effect-kernel';
-import * as Ref from '@cats4ts/effect-kernel/lib/ref';
-import * as D from '@cats4ts/effect-kernel/lib/deferred';
 
 import { IOOutcome } from '../io-outcome';
 
@@ -126,9 +126,9 @@ interface IOObj {
 
   suspend: IO<void>;
 
-  ref: <A>(a: A) => IO<Ref.Ref<IoK, A>>;
+  ref: <A>(a: A) => IO<Ref<IoK, A>>;
 
-  deferred: <A>(a?: A) => IO<D.Deferred<IoK, A>>;
+  deferred: <A>() => IO<Deferred<IoK, A>>;
 
   uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A>;
 
@@ -263,9 +263,9 @@ IO.canceled = canceled;
 
 IO.suspend = suspend;
 
-IO.ref = x => Ref.of(IO.Sync)(x);
+IO.ref = x => ioAsync().ref(x);
 
-IO.deferred = x => D.of(IO.Async)(x);
+IO.deferred = () => ioAsync().deferred();
 
 IO.uncancelable = uncancelable;
 

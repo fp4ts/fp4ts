@@ -1,5 +1,7 @@
 import { Kind } from '@cats4ts/core';
+import { FunctionK } from '@cats4ts/cats';
 import { Outcome, view } from './algebra';
+import { canceled, failure, success } from './constructors';
 
 export const fold: <F, E, A, B>(
   onCancel: () => B,
@@ -7,6 +9,19 @@ export const fold: <F, E, A, B>(
   onSuccess: (fa: Kind<F, [A]>) => B,
 ) => (oc: Outcome<F, E, A>) => B = (onCancel, onFailure, onSuccess) => oc =>
   fold_(oc, onCancel, onFailure, onSuccess);
+
+// -- Point-ful operators
+
+export const mapK_ = <F, G, E, A>(
+  oc: Outcome<F, E, A>,
+  nt: FunctionK<F, G>,
+): Outcome<G, E, A> =>
+  fold_<F, E, A, Outcome<G, E, A>>(
+    oc,
+    () => canceled<G>(),
+    e => failure<G, E>(e),
+    fa => success<G, A>(nt(fa)),
+  );
 
 export const fold_ = <F, E, A, B>(
   _oc: Outcome<F, E, A>,

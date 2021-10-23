@@ -13,3 +13,5 @@ export * from './semaphore';
 export * from './execution-context';
 export * from './cont';
 export * from './resource';
+export * from './ref';
+export * from './deferred';

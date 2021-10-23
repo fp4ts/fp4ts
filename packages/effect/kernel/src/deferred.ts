@@ -1,8 +1,40 @@
 import { Kind, flow, id, pipe } from '@cats4ts/core';
-import { None, Option, Right, Some } from '@cats4ts/cats-core/lib/data';
+import { FunctionK, None, Option, Right, Some } from '@cats4ts/cats';
 
 import { Ref } from './ref';
 import { Async } from './async';
+
+export abstract class Deferred<F, A>
+  implements DeferredSource<F, A>, DeferredSink<F, A>
+{
+  private readonly __void!: void;
+
+  public abstract get(): Kind<F, [A]>;
+
+  public abstract complete(result: A): Kind<F, [void]>;
+
+  public mapK<G>(nt: FunctionK<F, G>): Deferred<G, A> {
+    return new TransformerDeferred(nt, this);
+  }
+
+  public static of =
+    <F>(F: Async<F>) =>
+    <A>(a?: A): Kind<F, [Deferred<F, A>]> => {
+      const state: State<A> = a ? new SetState(a) : new UnsetState([]);
+      return pipe(
+        Ref.of(F)(state),
+        F.map(state => new AsyncDeferred<F, A>(F, state)),
+      );
+    };
+}
+
+interface DeferredSource<F, A> {
+  get(): Kind<F, [A]>;
+}
+
+interface DeferredSink<F, A> {
+  complete(result: A): Kind<F, [void]>;
+}
 
 type ResumeReader<A> = (a: A) => void;
 
@@ -43,15 +75,15 @@ class SetState<A> extends State<A> {
 
 type StateView<A> = UnsetState<A> | SetState<A>;
 
-export class Deferred<F, A> {
-  private readonly __void!: void;
-
-  private constructor(
+class AsyncDeferred<F, A> extends Deferred<F, A> {
+  public constructor(
     private readonly F: Async<F>,
     private readonly state: Ref<F, State<A>>,
-  ) {}
+  ) {
+    super();
+  }
 
-  public readonly get = (): Kind<F, [A]> => {
+  public override get(): Kind<F, [A]> {
     const deleteReader = (reader: ResumeReader<A>): Kind<F, [void]> =>
       this.F.defer(() =>
         this.state.update(
@@ -94,9 +126,9 @@ export class Deferred<F, A> {
         ),
       ),
     );
-  };
+  }
 
-  public readonly complete = (result: A): Kind<F, [void]> => {
+  public override complete(result: A): Kind<F, [void]> {
     const notifyReaders = (readers: ResumeReader<A>[]): Kind<F, [void]> =>
       this.F.defer(() =>
         pipe(
@@ -116,31 +148,22 @@ export class Deferred<F, A> {
         this.F.flatten,
       ),
     );
-  };
-
-  public static of =
-    <F>(F: Async<F>) =>
-    <A>(a?: A): Kind<F, [Deferred<F, A>]> => {
-      const state: State<A> = a ? new SetState(a) : new UnsetState([]);
-      return pipe(
-        Ref.of(F)(state),
-        F.map(state => new Deferred<F, A>(F, state)),
-      );
-    };
+  }
 }
 
-export const of: <F>(
-  F: Async<F>,
-) => <A = unknown>(a?: A) => Kind<F, [Deferred<F, A>]> = F => x =>
-  Deferred.of(F)(x);
+class TransformerDeferred<G, F, A> extends Deferred<G, A> {
+  public constructor(
+    private readonly nt: FunctionK<F, G>,
+    private readonly underlying: Deferred<F, A>,
+  ) {
+    super();
+  }
 
-export const get: <F, A>(dfa: Deferred<F, A>) => Kind<F, [A]> = dfa =>
-  dfa.get();
+  public get(): Kind<G, [A]> {
+    return this.nt(this.underlying.get());
+  }
 
-export const complete: <A>(
-  a: A,
-) => <F>(dfa: Deferred<F, A>) => Kind<F, [void]> = a => dfa =>
-  complete_(dfa, a);
-
-export const complete_ = <F, A>(dfa: Deferred<F, A>, a: A): Kind<F, [void]> =>
-  dfa.complete(a);
+  public complete(result: A): Kind<G, [void]> {
+    return this.nt(this.underlying.complete(result));
+  }
+}

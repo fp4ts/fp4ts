@@ -1,14 +1,29 @@
-import { $, id, Kind } from '@cats4ts/core';
-import { Functor, ApplicativeError, Either } from '@cats4ts/cats';
+import { $, $type, id, Kind, pipe, tupled, TyK, TyVar } from '@cats4ts/core';
+import {
+  Functor,
+  ApplicativeError,
+  Either,
+  Kleisli,
+  FunctionK,
+  KleisliK,
+} from '@cats4ts/cats';
 
-import { Spawn } from '../spawn';
-import { Sync } from '../sync';
 import { MonadCancel } from '../monad-cancel';
+import { Sync } from '../sync';
+import { Spawn } from '../spawn';
+import { Clock } from '../clock';
+import { Concurrent } from '../concurrent';
+import { Temporal } from '../temporal';
+import { Async } from '../async';
 import { Poll } from '../poll';
+import { Cont } from '../cont';
+import { Ref } from '../ref';
+import { Deferred } from '../deferred';
+import { ExecutionContext } from '../execution-context';
 
 import { Allocate, Eval, Pure, Resource } from './algebra';
 import { ExitCase } from './exit-case';
-import { allocated, flatMap_, flatten } from './operators';
+import { allocated, flatMap_, flatten, map_ } from './operators';
 import { ResourceK } from './resource';
 
 export const pure = <F, A>(a: A): Resource<F, A> => new Pure(a);
@@ -19,6 +34,11 @@ export const liftF = <F, A>(fa: Kind<F, [Resource<F, A>]>): Resource<F, A> =>
   flatMap_(evalF(fa), id);
 
 export const evalF = <F, A>(fa: Kind<F, [A]>): Resource<F, A> => new Eval(fa);
+
+export const liftK =
+  <F>(): FunctionK<F, $<ResourceK, [F]>> =>
+  <A>(fa: Kind<F, [A]>): Resource<F, A> =>
+    evalF(fa);
 
 export const allocate =
   <F>(F: Functor<F>) =>
@@ -100,3 +120,92 @@ export const defer =
 
 export const suspend = <F>(F: Spawn<F, Error>): Resource<F, void> =>
   evalF(F.suspend);
+
+export const never = <F>(F: Spawn<F, Error>): Resource<F, never> =>
+  evalF(F.never);
+
+export const deferred =
+  <F>(F: Concurrent<F, Error>) =>
+  <A>(): Resource<F, Deferred<$<ResourceK, [F]>, A>> =>
+    map_(evalF<F, Deferred<F, A>>(F.deferred<A>()), d => d.mapK(liftK<F>()));
+
+export const ref =
+  <F>(F: Concurrent<F, Error>) =>
+  <A>(a: A): Resource<F, Ref<$<ResourceK, [F]>, A>> =>
+    map_(evalF<F, Ref<F, A>>(F.ref<A>(a)), r => r.mapK(liftK<F>()));
+
+export const monotonic = <F>(F: Clock<F>): Resource<F, number> =>
+  evalF(F.monotonic);
+
+export const realTime = <F>(F: Clock<F>): Resource<F, number> =>
+  evalF(F.realTime);
+
+export const sleep =
+  <F>(F: Temporal<F, Error>) =>
+  (ms: number): Resource<F, void> =>
+    evalF(F.sleep(ms));
+
+export const cont =
+  <F>(F: Async<F>) =>
+  <K, R>(body: Cont<$<ResourceK, [F]>, K, R>): Resource<F, R> =>
+    allocateFull(poll =>
+      poll(
+        F.cont<K, (r: R, ec: ExitCase) => Kind<F, [void]>>(
+          <G>(G: MonadCancel<G, Error>) =>
+            (
+              resume: (ea: Either<Error, K>) => void,
+              get: Kind<G, [K]>,
+              lift: FunctionK<F, G>,
+            ) => {
+              type D = $<KleisliK, [G, Ref<G, Kind<F, [void]>>]>;
+
+              const lift2: FunctionK<$<ResourceK, [F]>, D> = rfa =>
+                Kleisli(r =>
+                  G.flatMap_(lift(allocated(F)(rfa)), ([a, fin]) =>
+                    G.map_(
+                      r.update(fv =>
+                        F.finalize_(fv, oc =>
+                          oc.fold(
+                            () => F.unit,
+                            () => fin,
+                            () => fin,
+                          ),
+                        ),
+                      ),
+                      () => a,
+                    ),
+                  ),
+                );
+
+              return pipe(
+                G.Do,
+                G.bindTo('r', lift(F.map_(F.ref(F.unit), x => x.mapK(lift)))),
+
+                G.bindTo('a', ({ r }) =>
+                  G.finalize_(
+                    body<D>(MonadCancel.monadCancelForKleisli(G))(
+                      resume,
+                      Kleisli.liftF<G, K>(get),
+                      lift2,
+                    ).run(r),
+                    oc =>
+                      oc.fold(
+                        () => G.flatMap_(r.get(), lift),
+                        () => G.flatMap_(r.get(), lift),
+                        () => G.unit,
+                      ),
+                  ),
+                ),
+
+                G.bindTo('fin', ({ r }) => r.get()),
+
+                G.map(({ a, fin }) => tupled(a, (_: ExitCase) => fin)),
+              );
+            },
+        ),
+      ),
+    );
+
+export const readExecutionContext = <F>(
+  F: Async<F>,
+): Resource<F, ExecutionContext> => evalF(F.readExecutionContext);

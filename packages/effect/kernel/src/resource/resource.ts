@@ -4,10 +4,11 @@ import { Functor, ApplicativeError, Either } from '@cats4ts/cats';
 import { Poll } from '../poll';
 import { Spawn } from '../spawn';
 import { Sync } from '../sync';
+import { Async } from '../async';
 import { MonadCancel } from '../monad-cancel';
 
 import { Resource as ResourceBase } from './algebra';
-import { resourceMonadCancel } from './instances';
+import { resourceAsync, resourceMonadCancel } from './instances';
 import {
   allocate,
   allocateCase,
@@ -19,6 +20,7 @@ import {
   liftF,
   make,
   makeFull,
+  never,
   pure,
   suspend,
   tailRecM,
@@ -89,9 +91,11 @@ interface ResourceObj {
   delay<F>(F: Sync<F>): <A>(thunk: () => A) => Resource<F, A>;
   defer<F>(F: Sync<F>): <A>(thunk: () => Resource<F, A>) => Resource<F, A>;
   suspend<F>(F: Spawn<F, Error>): Resource<F, void>;
+  never<F>(F: Spawn<F, Error>): Resource<F, never>;
 
   // -- Instances
 
+  Async<F>(F: Async<F>): Async<$<ResourceK, [F]>>;
   MonadCancel<F>(
     F: MonadCancel<F, Error>,
   ): MonadCancel<$<ResourceK, [F]>, Error>;
@@ -114,7 +118,9 @@ Resource.uncancelable = uncancelable;
 Resource.delay = delay;
 Resource.defer = defer;
 Resource.suspend = suspend;
+Resource.never = never;
 
+Resource.Async = resourceAsync;
 Resource.MonadCancel = resourceMonadCancel;
 
 // -- HKT
