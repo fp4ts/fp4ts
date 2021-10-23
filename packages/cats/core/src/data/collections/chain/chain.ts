@@ -1,7 +1,15 @@
 import { Kind, $type, TyK, TyVar } from '@cats4ts/core';
 import { Foldable } from '../../../foldable';
 import { Eq } from '../../../eq';
+import { Align } from '../../../align';
+import { MonoidK } from '../../../monoid-k';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
 import { Applicative } from '../../../applicative';
+import { Alternative } from '../../../alternative';
+import { Monad } from '../../../monad';
+import { Traversable } from '../../../traversable';
+import { Either } from '../../either';
 import { Vector } from '../vector';
 import { List } from '../list';
 
@@ -14,14 +22,24 @@ import {
   of,
   pure,
   singleton,
+  tailRecM,
 } from './constructors';
 import { traverseViaChain } from './operators';
-import { chainEq } from './instances';
+import {
+  chainAlign,
+  chainAlternative,
+  chainEq,
+  chainFunctor,
+  chainFunctorFilter,
+  chainMonad,
+  chainMonoidK,
+  chainTraversable,
+} from './instances';
 
 export type Chain<A> = ChainBase<A>;
-export const Chain: ChainObj = function (...xs) {
+export const Chain: ChainObj = function (...xs: any[]) {
   return fromArray(xs);
-};
+} as any;
 
 interface ChainObj {
   <A>(...xs: A[]): Chain<A>;
@@ -36,9 +54,17 @@ interface ChainObj {
     G: Applicative<G>,
     F: Foldable<F>,
   ): <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) => Kind<G, [Chain<B>]>;
+  tailRecM<S>(s: S): <A>(f: (s: S) => Chain<Either<S, A>>) => Chain<A>;
 
   // -- Instances
   Eq<A>(E: Eq<A>): Eq<Chain<A>>;
+  readonly Align: Align<ChainK>;
+  readonly MonoidK: MonoidK<ChainK>;
+  readonly Functor: Functor<ChainK>;
+  readonly FunctorFilter: FunctorFilter<ChainK>;
+  readonly Alternative: Alternative<ChainK>;
+  readonly Monad: Monad<ChainK>;
+  readonly Traversable: Traversable<ChainK>;
 }
 
 Chain.pure = pure;
@@ -49,8 +75,44 @@ Chain.fromArray = fromArray;
 Chain.fromList = fromList;
 Chain.fromVector = fromVector;
 Chain.traverseViaChain = traverseViaChain;
+Chain.tailRecM = tailRecM;
 
 Chain.Eq = chainEq;
+Object.defineProperty(Chain, 'Align', {
+  get() {
+    return chainAlign();
+  },
+});
+Object.defineProperty(Chain, 'MonoidK', {
+  get() {
+    return chainMonoidK();
+  },
+});
+Object.defineProperty(Chain, 'Functor', {
+  get() {
+    return chainFunctor();
+  },
+});
+Object.defineProperty(Chain, 'FunctorFilter', {
+  get() {
+    return chainFunctorFilter();
+  },
+});
+Object.defineProperty(Chain, 'Alternative', {
+  get() {
+    return chainAlternative();
+  },
+});
+Object.defineProperty(Chain, 'Monad', {
+  get() {
+    return chainMonad();
+  },
+});
+Object.defineProperty(Chain, 'Traversable', {
+  get() {
+    return chainTraversable();
+  },
+});
 
 // HKT
 

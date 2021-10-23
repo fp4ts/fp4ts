@@ -102,8 +102,8 @@ declare module './algebra' {
 
     readonly reverse: List<A>;
 
-    equals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
-    notEquals<B>(this: List<B>, E: Eq<B>, xs: List<B>): boolean;
+    equals<B>(this: List<B>, E: Eq<B>, that: List<B>): boolean;
+    notEquals<B>(this: List<B>, E: Eq<B>, that: List<B>): boolean;
 
     prepend<B>(this: List<B>, x: B): List<B>;
     cons<B>(this: List<B>, x: B): List<B>;

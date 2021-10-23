@@ -119,12 +119,15 @@ export const cats4tsVector = <A>(
 };
 
 export const cats4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
-  const maxDepth = 10;
+  const maxDepth = 5;
 
   const base = fc.frequency(
     { weight: 1, arbitrary: fc.constant(Chain.empty) },
-    { weight: 5, arbitrary: arbA.map(Chain.singleton) },
-    { weight: 20, arbitrary: fc.array(arbA).map(Chain.fromArray) },
+    { weight: 5, arbitrary: arbA.chain(x => fc.constant(Chain.singleton(x))) },
+    {
+      weight: 20,
+      arbitrary: fc.array(arbA).chain(xs => fc.constant(Chain.fromArray(xs))),
+    },
   );
 
   const recursive = fc.memo((depth: number): Arbitrary<Chain<A>> => {
