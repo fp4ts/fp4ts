@@ -1,4 +1,4 @@
-import { List, Vector, Either } from '@cats4ts/cats';
+import { List, Chain, Either } from '@cats4ts/cats';
 
 import {
   ArrayChunk,
@@ -17,7 +17,7 @@ export const fromArray = <O>(os: O[]): Chunk<O> =>
 
 export const fromList = <O>(os: List<O>): Chunk<O> => fromArray(os.toArray);
 
-export const emptyQueue: Chunk<never> = new Queue(Vector.empty, 0);
+export const emptyQueue: Chunk<never> = new Queue(Chain.empty, 0);
 
 export const tailRecM: <S>(
   s: S,

@@ -1,10 +1,11 @@
 import { id, Iter, Kind, pipe } from '@cats4ts/core';
 import {
   List,
+  Vector,
+  Chain,
   None,
   Option,
   Some,
-  Vector,
   Applicative,
   Eval,
 } from '@cats4ts/cats';
@@ -433,7 +434,7 @@ export const concat_ = <O>(c1: Chunk<O>, c2: Chunk<O>): Chunk<O> => {
         case 'queue':
           return new Queue(v2.queue.prepend(v1), v1.size + v2.size);
         default:
-          return new Queue(Vector(v1, v2), v1.size + v2.size);
+          return new Queue(Chain(v1, v2), v1.size + v2.size);
       }
   }
 };

@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Vector } from '@cats4ts/cats';
+import { Chain } from '@cats4ts/cats';
 
 export abstract class Chunk<O> {
   readonly __void!: void;
@@ -53,7 +53,7 @@ export class ArraySlice<O> extends Chunk<O> {
 export class Queue<O> extends Chunk<O> {
   public readonly tag = 'queue';
   public constructor(
-    public readonly queue: Vector<Chunk<O>>,
+    public readonly queue: Chain<Chunk<O>>,
     public readonly size: number,
   ) {
     super();
