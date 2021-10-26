@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import {
   Alternative,
   Functor,
@@ -6,7 +6,7 @@ import {
   Monad,
   MonoidK,
   Traversable,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { ChunkK } from './chunk';
 import { empty, singleton, tailRecM_ } from './constructor';

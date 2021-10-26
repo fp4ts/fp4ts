@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Free, Pure, Suspend } from './algebra';
 
 export const pure = <F, A>(a: A): Free<F, A> => new Pure(a);

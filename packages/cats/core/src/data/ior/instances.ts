@@ -1,4 +1,4 @@
-import { $, constant, Lazy, lazyVal } from '@cats4ts/core';
+import { $, constant, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { Semigroup } from '../../semigroup';
 import { Monad } from '../../monad';

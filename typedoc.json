@@ -20,7 +20,7 @@
     "./packages/stream/index.ts"
   ],
   "out": "./docs",
-  "name": "cats4ts",
+  "name": "fp4ts",
   "categorizeByGroup": false,
   "internalNamespace": "Unexported"
 }

@@ -1,4 +1,4 @@
-import { Iter, throwError } from '@cats4ts/core';
+import { Iter, throwError } from '@fp4ts/core';
 
 import { Option, None, Some } from '../../option';
 import { List } from '../list';

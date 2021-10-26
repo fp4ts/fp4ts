@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq, MonadError } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq, MonadError } from '@fp4ts/cats-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { MonadErrorLaws } from '../monad-error-laws';
 import { ApplicativeErrorSuite } from './applicative-error-suite';

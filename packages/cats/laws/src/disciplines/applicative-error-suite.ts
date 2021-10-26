@@ -1,12 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { ApplicativeError, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { Kind } from '@fp4ts/core';
+import { ApplicativeError, Eq } from '@fp4ts/cats-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { ApplicativeErrorLaws } from '../applicative-error-laws';
 import { ApplicativeSuite } from './applicative-suite';
-import { Either } from '@cats4ts/cats-core/lib/data';
+import { Either } from '@fp4ts/cats-core/lib/data';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
@@ -75,7 +75,7 @@ export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
           [
             'applicativeError attempt . fromEither is consistent with pure',
             forAll(
-              A.cats4tsEither(arbE, arbA),
+              A.fp4tsEither(arbE, arbA),
               laws.attemptFromEitherConsistentWithPure,
             )(mkEqF(Either.Eq(EqE, EqA))),
           ],

@@ -1,4 +1,4 @@
-import { Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { Either, Right, Left } from './data';
 

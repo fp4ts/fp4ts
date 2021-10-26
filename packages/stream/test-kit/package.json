@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/stream-test-kit",
+  "name": "@fp4ts/stream-test-kit",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,12 +9,12 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "devDependencies": {
-    "@cats4ts/cats": "*",
-    "@cats4ts/cats-test-kit": "*",
-    "@cats4ts/core": "*",
-    "@cats4ts/effect": "*",
-    "@cats4ts/effect-test-kit": "*",
-    "@cats4ts/stream-core": "*",
+    "@fp4ts/cats": "*",
+    "@fp4ts/cats-test-kit": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/effect": "*",
+    "@fp4ts/effect-test-kit": "*",
+    "@fp4ts/stream-core": "*",
     "fast-check": "^2.18.0",
     "typescript": "4.4.2"
   }

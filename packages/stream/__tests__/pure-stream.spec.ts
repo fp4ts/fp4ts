@@ -1,14 +1,14 @@
 import fc from 'fast-check';
-import { List, Some, Vector, None, Eq } from '@cats4ts/cats';
-import { Stream, Chunk, PureK } from '@cats4ts/stream-core';
+import { List, Some, Vector, None, Eq } from '@fp4ts/cats';
+import { Stream, Chunk, PureK } from '@fp4ts/stream-core';
 import {
   AlignSuite,
   FunctorFilterSuite,
   MonadSuite,
   MonoidKSuite,
-} from '@cats4ts/cats-laws';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-laws';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 
 describe('Pure Stream', () => {
   describe('type', () => {
@@ -651,7 +651,7 @@ describe('Pure Stream', () => {
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      A.cats4tsPureStreamGenerator,
+      A.fp4tsPureStreamGenerator,
       pureEqStream,
     ),
   );
@@ -668,7 +668,7 @@ describe('Pure Stream', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsPureStreamGenerator,
+      A.fp4tsPureStreamGenerator,
       pureEqStream,
     ),
   );
@@ -683,7 +683,7 @@ describe('Pure Stream', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsPureStreamGenerator,
+      A.fp4tsPureStreamGenerator,
       pureEqStream,
     ),
   );
@@ -700,7 +700,7 @@ describe('Pure Stream', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsPureStreamGenerator,
+      A.fp4tsPureStreamGenerator,
       pureEqStream,
     ),
   );

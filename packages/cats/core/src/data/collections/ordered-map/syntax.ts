@@ -1,4 +1,4 @@
-import { Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Ord } from '../../../ord';

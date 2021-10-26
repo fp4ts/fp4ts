@@ -1,9 +1,9 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq, FunctorFilter } from '@cats4ts/cats-core';
-import { Option } from '@cats4ts/cats-core/lib/data';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { Kind } from '@fp4ts/core';
+import { Eq, FunctorFilter } from '@fp4ts/cats-core';
+import { Option } from '@fp4ts/cats-core/lib/data';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { FunctorFilterLaws } from '../functor-filter-laws';
 import { FunctorSuite } from './functor-suite';
@@ -31,8 +31,8 @@ export const FunctorFilterSuite = <F>(F: FunctorFilter<F>) => {
             'mapFilter map filter composition',
             forAll(
               mkArbF(arbA),
-              fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
-              fc.func<[B], Option<C>>(A.cats4tsOption(arbC)),
+              fc.func<[A], Option<B>>(A.fp4tsOption(arbB)),
+              fc.func<[B], Option<C>>(A.fp4tsOption(arbC)),
               laws.mapFilterComposition,
             )(mkEqF(EqC)),
           ],
@@ -48,15 +48,15 @@ export const FunctorFilterSuite = <F>(F: FunctorFilter<F>) => {
             'mapFilter collect consistent with map filter',
             forAll(
               mkArbF(arbA),
-              fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
+              fc.func<[A], Option<B>>(A.fp4tsOption(arbB)),
               laws.collectConsistentWithMapFilter,
             )(mkEqF(EqB)),
           ],
           [
             'mapFilter flatten option consistent with map filter identity',
             forAll(
-              mkArbF(A.cats4tsOption(arbA)),
-              fc.func<[A], Option<B>>(A.cats4tsOption(arbB)),
+              mkArbF(A.fp4tsOption(arbA)),
+              fc.func<[A], Option<B>>(A.fp4tsOption(arbB)),
               laws.collectConsistentWithMapFilter,
             )(mkEqF(EqA)),
           ],

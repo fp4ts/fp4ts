@@ -1,9 +1,9 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
-import { Sync } from '@cats4ts/effect-kernel';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
+import { Sync } from '@fp4ts/effect-kernel';
+import { forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { SyncLaws } from '../sync-laws';
 import { MonadCancelSuite } from './monad-cancel-suite';
@@ -41,7 +41,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
           [
             'sync delayed throw is throwError',
             forAll(
-              A.cats4tsError(),
+              A.fp4tsError(),
               laws.delayedThrowIsThrowError,
             )(mkEqF(Eq.never)),
           ],
@@ -71,7 +71,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
               arbB,
               arbC,
               arbD,
-              A.cats4tsError(),
+              A.fp4tsError(),
               EqA,
               EqB,
               EqC,
@@ -106,7 +106,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
           [
             'sync delayed throw is throwError',
             forAll(
-              A.cats4tsError(),
+              A.fp4tsError(),
               laws.delayedThrowIsThrowError,
             )(mkEqF(Eq.never)),
           ],
@@ -135,7 +135,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
               arbB,
               arbC,
               arbD,
-              A.cats4tsError(),
+              A.fp4tsError(),
               EqA,
               EqB,
               EqC,

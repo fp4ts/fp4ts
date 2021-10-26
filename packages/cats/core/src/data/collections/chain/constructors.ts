@@ -1,5 +1,5 @@
 import '../array/array';
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Foldable } from '../../../foldable';
 import { Either } from '../../either';
 import { Vector } from '../vector';

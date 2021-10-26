@@ -1,4 +1,4 @@
-import { $, $type, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@fp4ts/core';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';

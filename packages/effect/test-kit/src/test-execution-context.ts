@@ -1,4 +1,4 @@
-import { ExecutionContext } from '@cats4ts/effect-kernel';
+import { ExecutionContext } from '@fp4ts/effect-kernel';
 
 class Task {
   public constructor(

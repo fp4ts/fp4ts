@@ -1,6 +1,6 @@
-import { Kind } from '@cats4ts/core';
-import { SemigroupK } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { SemigroupK } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const SemigroupKLaws = <F>(F: SemigroupK<F>): SemigroupKLaws<F> => ({
   semigroupKAssociative: <A>(

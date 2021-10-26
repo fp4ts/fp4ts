@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { Clock } from '@cats4ts/effect-kernel';
+import { Kind } from '@fp4ts/core';
+import { Clock } from '@fp4ts/effect-kernel';
 
 export const ClockLaws = <F>(F: Clock<F>): ClockLaws<F> => ({
   monotonicity: () =>

@@ -1,7 +1,7 @@
 import '../../benchmarking';
 import { ok as assert } from 'assert';
-import { pipe } from '@cats4ts/core';
-import { Vector, List } from '@cats4ts/cats-core/lib/data';
+import { pipe } from '@fp4ts/core';
+import { Vector, List } from '@fp4ts/cats-core/lib/data';
 
 const size = 10_000;
 

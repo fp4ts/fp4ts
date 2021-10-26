@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Either } from '../data';
 import { Category, CategoryRequirements } from './category';
 

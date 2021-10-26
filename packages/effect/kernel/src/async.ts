@@ -1,5 +1,5 @@
-import { flow, Kind } from '@cats4ts/core';
-import { FunctionK, Either, Right, Left, Option, None } from '@cats4ts/cats';
+import { flow, Kind } from '@fp4ts/core';
+import { FunctionK, Either, Right, Left, Option, None } from '@fp4ts/cats';
 
 import { Cont } from './cont';
 import { ExecutionContext } from './execution-context';

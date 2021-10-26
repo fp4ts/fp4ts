@@ -1,6 +1,6 @@
-import { Kind } from '@cats4ts/core';
-import { FunctionK, Monad } from '@cats4ts/cats-core';
-import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
+import { Kind } from '@fp4ts/core';
+import { FunctionK, Monad } from '@fp4ts/cats-core';
+import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 
 import { FlatMap, Free, view } from './algebra';
 import { pure } from './constructors';

@@ -1,4 +1,4 @@
-import { Base, instance, Kind } from '@cats4ts/core';
+import { Base, instance, Kind } from '@fp4ts/core';
 import { FunctionK } from './arrow';
 import { Applicative } from './applicative';
 import { Monad } from './monad';

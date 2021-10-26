@@ -1,9 +1,9 @@
 import fc from 'fast-check';
-import { Eq, Eval } from '@cats4ts/cats-core';
-import { Memoize } from '@cats4ts/cats-core/lib/eval/algebra';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-import { DeferSuite, MonadSuite } from '@cats4ts/cats-laws';
+import { Eq, Eval } from '@fp4ts/cats-core';
+import { Memoize } from '@fp4ts/cats-core/lib/eval/algebra';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { DeferSuite, MonadSuite } from '@fp4ts/cats-laws';
 
 describe('Eval', () => {
   describe('memoization', () => {
@@ -71,7 +71,7 @@ describe('Eval', () => {
   const deferTests = DeferSuite(Eval.Defer);
   checkAll(
     'Defer<Eval>',
-    deferTests.defer(fc.integer(), Eq.primitive, A.cats4tsEval, Eval.Eq),
+    deferTests.defer(fc.integer(), Eq.primitive, A.fp4tsEval, Eval.Eq),
   );
 
   const tests = MonadSuite(Eval.Monad);
@@ -86,7 +86,7 @@ describe('Eval', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

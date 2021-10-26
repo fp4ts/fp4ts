@@ -1,4 +1,4 @@
-import { id, Lazy, lazyVal } from '@cats4ts/core';
+import { id, Lazy, lazyVal } from '@fp4ts/core';
 import { None, Option, Some } from '../data';
 import { evaluate } from './evaluation';
 

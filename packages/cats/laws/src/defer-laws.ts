@@ -1,6 +1,6 @@
-import { Kind } from '@cats4ts/core';
-import { Defer } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Defer } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const DeferLaws = <F>(F: Defer<F>): DeferLaws<F> => ({
   deferIdentity: <A>(ffa: () => Kind<F, [A]>): IsEq<Kind<F, [A]>> =>

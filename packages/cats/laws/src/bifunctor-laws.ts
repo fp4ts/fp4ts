@@ -1,6 +1,6 @@
-import { flow, id, Kind, pipe } from '@cats4ts/core';
-import { Bifunctor } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { flow, id, Kind, pipe } from '@fp4ts/core';
+import { Bifunctor } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const BifunctorLaws = <F>(F: Bifunctor<F>): BifunctorLaws<F> => ({
   bifunctorIdentity: <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [A, B]>> =>

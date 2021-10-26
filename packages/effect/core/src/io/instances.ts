@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import {
   Functor,
   Apply,
@@ -8,7 +8,7 @@ import {
   MonadError,
   Defer,
   Parallel,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 import {
   Async,
   Concurrent,
@@ -17,9 +17,9 @@ import {
   Sync,
   Temporal,
   Clock,
-} from '@cats4ts/effect-kernel';
-import { Ref } from '@cats4ts/effect-kernel/lib/ref';
-import { Deferred } from '@cats4ts/effect-kernel/lib/deferred';
+} from '@fp4ts/effect-kernel';
+import { Ref } from '@fp4ts/effect-kernel/lib/ref';
+import { Deferred } from '@fp4ts/effect-kernel/lib/deferred';
 
 import {
   async,

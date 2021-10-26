@@ -1,4 +1,4 @@
-import { Kind, id, pipe, throwError, Iter } from '@cats4ts/core';
+import { Kind, id, pipe, throwError, Iter } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';

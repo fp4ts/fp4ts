@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Lazy, PrimitiveType } from '@cats4ts/core';
+import { Lazy, PrimitiveType } from '@fp4ts/core';
 import { Eq, primitiveEq } from './eq';
 
 /**

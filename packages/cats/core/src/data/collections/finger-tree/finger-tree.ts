@@ -1,4 +1,4 @@
-import { $type, TyK, TyVar } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@fp4ts/core';
 import { List } from '../list';
 
 import { FingerTree as FingerTreeBase } from './algebra';

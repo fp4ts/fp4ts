@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { id } from '@cats4ts/core';
-import { AdditionMonoid, Eq, Eval, EvalK } from '@cats4ts/cats-core';
+import { id } from '@fp4ts/core';
+import { AdditionMonoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
 import {
   Identity,
   Either,
@@ -11,16 +11,16 @@ import {
   None,
   Vector,
   List,
-} from '@cats4ts/cats-core/lib/data';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-core/lib/data';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
   MonadSuite,
   TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('List', () => {
   describe('type', () => {
@@ -1180,7 +1180,7 @@ describe('List', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsList,
+      A.fp4tsList,
       List.Eq,
     ),
   );
@@ -1195,7 +1195,7 @@ describe('List', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsList,
+      A.fp4tsList,
       List.Eq,
     ),
   );
@@ -1210,7 +1210,7 @@ describe('List', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsList,
+      A.fp4tsList,
       List.Eq,
     ),
   );
@@ -1227,7 +1227,7 @@ describe('List', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsList,
+      A.fp4tsList,
       List.Eq,
     ),
   );
@@ -1247,11 +1247,11 @@ describe('List', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsList,
+      A.fp4tsList,
       List.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

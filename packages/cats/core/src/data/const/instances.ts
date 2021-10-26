@@ -1,4 +1,4 @@
-import { $, Kind, lazyVal } from '@cats4ts/core';
+import { $, Kind, lazyVal } from '@fp4ts/core';
 import { Semigroup } from '../../semigroup';
 import { Monoid } from '../../monoid';
 import { SemigroupK } from '../../semigroup-k';

@@ -1,4 +1,4 @@
-import { $, compose, fst, id, Kind, pipe, snd, tupled } from '@cats4ts/core';
+import { $, compose, fst, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
 import {
   Kleisli,
   List,
@@ -7,7 +7,7 @@ import {
   Left,
   Monoid,
   ApplicativeError,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { Async } from '../async';
 import { Concurrent } from '../concurrent';

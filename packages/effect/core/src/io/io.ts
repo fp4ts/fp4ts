@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { $type, Kind, TyK, TyVar } from '@cats4ts/core';
+import { $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
@@ -12,7 +12,7 @@ import {
   Either,
   Option,
   Parallel,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import {
   Poll,
@@ -25,7 +25,7 @@ import {
   ExecutionContext,
   Ref,
   Deferred,
-} from '@cats4ts/effect-kernel';
+} from '@fp4ts/effect-kernel';
 
 import { IOOutcome } from '../io-outcome';
 

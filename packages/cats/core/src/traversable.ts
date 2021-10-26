@@ -1,4 +1,4 @@
-import { Kind, id } from '@cats4ts/core';
+import { Kind, id } from '@fp4ts/core';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';

@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Tuple2K } from './tuple2-k';
 
 export const liftK = <F, G, A>(

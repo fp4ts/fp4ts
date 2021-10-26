@@ -1,7 +1,7 @@
-import { id, Kind } from '@cats4ts/core';
-import { FunctorFilter } from '@cats4ts/cats-core';
-import { None, Option, Some } from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { id, Kind } from '@fp4ts/core';
+import { FunctorFilter } from '@fp4ts/cats-core';
+import { None, Option, Some } from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { FunctorLaws } from './functor-laws';
 

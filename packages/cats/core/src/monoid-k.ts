@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Monoid } from './monoid';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 

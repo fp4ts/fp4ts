@@ -1,4 +1,4 @@
-import { instance, Kind } from '@cats4ts/core';
+import { instance, Kind } from '@fp4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
 

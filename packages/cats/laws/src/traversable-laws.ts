@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { Applicative, Traversable } from '@cats4ts/cats-core';
-import { Identity, Nested, Tuple2K } from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Applicative, Traversable } from '@fp4ts/cats-core';
+import { Identity, Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 import { FoldableLaws } from './foldable-laws';
 import { FunctorLaws } from './functor-laws';
 import { UnorderedTraversableLaws } from './unordered-traversable-laws';

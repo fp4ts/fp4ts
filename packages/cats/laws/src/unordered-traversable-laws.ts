@@ -1,13 +1,13 @@
-import { $, id, Kind } from '@cats4ts/core';
-import { Applicative, Functor, UnorderedTraversable } from '@cats4ts/cats-core';
+import { $, id, Kind } from '@fp4ts/core';
+import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityK,
   Nested,
   NestedK,
   Tuple2K,
-} from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+} from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { UnorderedFoldableLaws } from './unordered-foldable-laws';
 

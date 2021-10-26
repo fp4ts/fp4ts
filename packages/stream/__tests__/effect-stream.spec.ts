@@ -1,6 +1,6 @@
-import '@cats4ts/effect-test-kit/lib/jest-extension';
+import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { id, throwError } from '@cats4ts/core';
+import { id, throwError } from '@fp4ts/core';
 import {
   Eq,
   Either,
@@ -11,18 +11,18 @@ import {
   Some,
   None,
   Option,
-} from '@cats4ts/cats';
-import { IO, IoK, SyncIO, SyncIoK } from '@cats4ts/effect';
-import { Stream } from '@cats4ts/stream-core';
+} from '@fp4ts/cats';
+import { IO, IoK, SyncIO, SyncIoK } from '@fp4ts/effect';
+import { Stream } from '@fp4ts/stream-core';
 import {
   AlignSuite,
   FunctorFilterSuite,
   MonadErrorSuite,
   MonoidKSuite,
-} from '@cats4ts/cats-laws';
-import { forAll, checkAll, IsEq } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
-import * as E from '@cats4ts/effect-test-kit/lib/eq';
+} from '@fp4ts/cats-laws';
+import { forAll, checkAll, IsEq } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
+import * as E from '@fp4ts/effect-test-kit/lib/eq';
 
 const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
 
@@ -124,11 +124,11 @@ describe('Effect-ful stream', () => {
     test(
       'evalCollect is evalMap and collect identity',
       forAll(
-        A.cats4tsEffectStreamGenerator<SyncIoK, number>(
+        A.fp4tsEffectStreamGenerator<SyncIoK, number>(
           fc.integer(),
-          A.cats4tsSyncIO(fc.integer()),
+          A.fp4tsSyncIO(fc.integer()),
         ),
-        fc.func<[number], Option<string>>(A.cats4tsOption(fc.string())),
+        fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
         (s, f) =>
           new IsEq(
             s.evalCollect(x => SyncIO(() => f(x))).attempt,
@@ -414,7 +414,7 @@ describe('Effect-ful stream', () => {
       monoidKTests.monoidK(
         fc.integer(),
         Eq.primitive,
-        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
         ioEqStream,
       ),
     );
@@ -431,7 +431,7 @@ describe('Effect-ful stream', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
         ioEqStream,
       ),
     );
@@ -446,7 +446,7 @@ describe('Effect-ful stream', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
         ioEqStream,
       ),
     );
@@ -459,13 +459,13 @@ describe('Effect-ful stream', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        A.cats4tsError(),
+        A.fp4tsError(),
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
         Eq.Error.strict,
-        arbX => A.cats4tsEffectStreamGenerator(arbX, A.cats4tsIO(arbX)),
+        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
         ioEqStream,
       ),
     );

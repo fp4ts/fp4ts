@@ -7,7 +7,7 @@ import {
   pipe,
   id,
   tupled,
-} from '@cats4ts/core';
+} from '@fp4ts/core';
 import { Foldable } from '../../../foldable';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';

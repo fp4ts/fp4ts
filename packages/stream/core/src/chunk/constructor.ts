@@ -1,4 +1,4 @@
-import { List, Chain, Either } from '@cats4ts/cats';
+import { List, Chain, Either } from '@fp4ts/cats';
 
 import {
   ArrayChunk,

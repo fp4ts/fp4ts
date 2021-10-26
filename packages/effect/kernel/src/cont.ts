@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { FunctionK, Either } from '@cats4ts/cats';
+import { Kind } from '@fp4ts/core';
+import { FunctionK, Either } from '@fp4ts/cats';
 import { MonadCancel } from './monad-cancel';
 
 export interface Cont<F, K, R> {

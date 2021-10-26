@@ -1,5 +1,5 @@
-import { TyK, Kind, $type, TyVar } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
+import { TyK, Kind, $type, TyVar } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
 import { Outcome as OutcomeBase } from './algebra';
 import { canceled, failure, success } from './constructors';
 import { outcomeEq } from './instances';

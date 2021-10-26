@@ -1,8 +1,8 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq, Foldable, Monoid } from '@cats4ts/cats-core';
-import { Option, List, Vector } from '@cats4ts/cats-core/lib/data';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq, Foldable, Monoid } from '@fp4ts/cats-core';
+import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { FoldableLaws } from '../foldable-laws';
 import { UnorderedFoldableSuite } from './unordered-foldable-suite';

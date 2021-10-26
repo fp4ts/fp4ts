@@ -1,9 +1,9 @@
 import { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
-import { MonadErrorSuite } from '@cats4ts/cats-laws';
-import { MonadCancel } from '@cats4ts/effect-kernel';
-import { forAll, RuleSet, Rule, IsEq, exec } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
+import { MonadErrorSuite } from '@fp4ts/cats-laws';
+import { MonadCancel } from '@fp4ts/effect-kernel';
+import { forAll, RuleSet, Rule, IsEq, exec } from '@fp4ts/cats-test-kit';
 
 import { MonadCancelLaws } from '../monad-cancel-laws';
 

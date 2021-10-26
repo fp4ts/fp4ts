@@ -1,6 +1,6 @@
 import fc, { hash, stringify } from 'fast-check';
-import { id } from '@cats4ts/core';
-import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@cats4ts/cats-core';
+import { id } from '@fp4ts/core';
+import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@fp4ts/cats-core';
 import {
   List,
   Option,
@@ -8,16 +8,16 @@ import {
   None,
   OrderedMap,
   Identity,
-} from '@cats4ts/cats-core/lib/data';
-import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-core/lib/data';
+import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
   MonoidKSuite,
   FunctorFilterSuite,
   TraversableSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('OrderedMap', () => {
   describe('types', () => {
@@ -799,7 +799,7 @@ describe('OrderedMap', () => {
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
       E => OrderedMap.Eq(Eq.primitive, E),
     ),
   );
@@ -816,7 +816,7 @@ describe('OrderedMap', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
       E => OrderedMap.Eq(Eq.primitive, E),
     ),
   );
@@ -836,11 +836,11 @@ describe('OrderedMap', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.cats4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
       E => OrderedMap.Eq(Eq.primitive, E),
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

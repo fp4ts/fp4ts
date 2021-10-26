@@ -1,7 +1,7 @@
 import { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq, MonoidK } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq, MonoidK } from '@fp4ts/cats-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { MonoidKLaws } from '../monoid-k-laws';
 import { SemigroupKSuite } from './semigroup-k-suite';

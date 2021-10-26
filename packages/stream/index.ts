@@ -1,1 +1,1 @@
-export * from '@cats4ts/stream-core';
+export * from '@fp4ts/stream-core';

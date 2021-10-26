@@ -1,11 +1,11 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Stream, Chunk, PureK } from '@cats4ts/stream-core';
+import { Kind } from '@fp4ts/core';
+import { Stream, Chunk, PureK } from '@fp4ts/stream-core';
 
-export * from '@cats4ts/cats-test-kit/lib/arbitraries';
-export * from '@cats4ts/effect-test-kit/lib/arbitraries';
+export * from '@fp4ts/cats-test-kit/lib/arbitraries';
+export * from '@fp4ts/effect-test-kit/lib/arbitraries';
 
-export const cats4tsPureStreamGenerator = <A>(
+export const fp4tsPureStreamGenerator = <A>(
   arbA: Arbitrary<A>,
 ): Arbitrary<Stream<PureK, A>> =>
   fc.frequency(
@@ -35,7 +35,7 @@ export const cats4tsPureStreamGenerator = <A>(
     },
   );
 
-export const cats4tsEffectStreamGenerator = <F, A>(
+export const fp4tsEffectStreamGenerator = <F, A>(
   arbA: Arbitrary<A>,
   arbFA: Arbitrary<Kind<F, [A]>>,
 ): Arbitrary<Stream<F, A>> =>
@@ -55,7 +55,7 @@ export const cats4tsEffectStreamGenerator = <F, A>(
     },
   );
 
-export const cats4tsStreamChunkGenerator = <O>(
+export const fp4tsStreamChunkGenerator = <O>(
   arbO: Arbitrary<O>,
 ): Arbitrary<Chunk<O>> => {
   const maxDepth = 5;

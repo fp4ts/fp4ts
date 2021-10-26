@@ -1,4 +1,4 @@
-import { $type, TyK, TyVar } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@fp4ts/core';
 import {
   Alternative,
   Either,
@@ -7,7 +7,7 @@ import {
   Monad,
   MonoidK,
   Traversable,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { Chunk as ChunkBase } from './algebra';
 import {

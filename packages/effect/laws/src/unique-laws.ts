@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { Applicative } from '@cats4ts/cats';
-import { Unique } from '@cats4ts/effect-kernel';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Applicative } from '@fp4ts/cats';
+import { Unique } from '@fp4ts/effect-kernel';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const UniqueLaws = <F>(
   F: Unique<F> & Applicative<F>,

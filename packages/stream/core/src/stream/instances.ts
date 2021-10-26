@@ -1,4 +1,4 @@
-import { $, lazyVal } from '@cats4ts/core';
+import { $, lazyVal } from '@fp4ts/core';
 import {
   Align,
   Defer,
@@ -7,7 +7,7 @@ import {
   Monad,
   MonadError,
   MonoidK,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { StreamK } from './stream';
 import {

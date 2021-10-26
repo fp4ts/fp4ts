@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';

@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';

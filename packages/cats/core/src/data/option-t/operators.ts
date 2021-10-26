@@ -1,4 +1,4 @@
-import { id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@fp4ts/core';
 import { FunctionK } from '../../arrow';
 import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';

@@ -1,14 +1,14 @@
 import fc from 'fast-check';
-import { id, throwError, PrimitiveType } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
-import { Either, Right, Left, Some, None } from '@cats4ts/cats-core/lib/data';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { id, throwError, PrimitiveType } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-core';
+import { Either, Right, Left, Some, None } from '@fp4ts/cats-core/lib/data';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   SemigroupKSuite,
   MonadErrorSuite,
   BifunctorSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('Either', () => {
   describe('type', () => {
@@ -131,9 +131,9 @@ describe('Either', () => {
   checkAll(
     'SemigroupK<$<EitherK, [string]>>',
     semigroupKTests.semigroupK(
-      A.cats4tsPrimitive(),
+      A.fp4tsPrimitive(),
       Eq.primitive,
-      x => A.cats4tsEither(fc.string(), x),
+      x => A.fp4tsEither(fc.string(), x),
       E => Either.Eq(Eq.primitive, E),
     ),
   );
@@ -150,7 +150,7 @@ describe('Either', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsEither,
+      A.fp4tsEither,
       Either.Eq,
     ),
   );
@@ -169,7 +169,7 @@ describe('Either', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.cats4tsEither(fc.string(), x),
+      x => A.fp4tsEither(fc.string(), x),
       E => Either.Eq(Eq.primitive, E),
     ),
   );

@@ -1,4 +1,4 @@
-import { Kind, α, λ } from '@cats4ts/core';
+import { Kind, α, λ } from '@fp4ts/core';
 import { MonoidK } from '../monoid-k';
 import { Monoid } from '../monoid';
 import { Compose, ComposeRequirements } from './compose';

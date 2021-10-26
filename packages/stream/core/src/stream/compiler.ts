@@ -1,6 +1,6 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { MonadError, List, None, Option, Vector } from '@cats4ts/cats';
-import { SyncIO, SyncIoK } from '@cats4ts/effect';
+import { Kind, pipe } from '@fp4ts/core';
+import { MonadError, List, None, Option, Vector } from '@fp4ts/cats';
+import { SyncIO, SyncIoK } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';

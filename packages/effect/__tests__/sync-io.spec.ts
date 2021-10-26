@@ -1,11 +1,11 @@
 import fc from 'fast-check';
-import { id, pipe, throwError } from '@cats4ts/core';
-import { Eq, Either, Left, Right } from '@cats4ts/cats';
-import { SyncIO } from '@cats4ts/effect-core';
-import { SyncSuite } from '@cats4ts/effect-laws';
-import { checkAll, forAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
-import * as E from '@cats4ts/effect-test-kit/lib/eq';
+import { id, pipe, throwError } from '@fp4ts/core';
+import { Eq, Either, Left, Right } from '@fp4ts/cats';
+import { SyncIO } from '@fp4ts/effect-core';
+import { SyncSuite } from '@fp4ts/effect-laws';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@fp4ts/effect-test-kit/lib/eq';
 
 describe('SyncIO', () => {
   describe('free monad', () => {
@@ -58,7 +58,7 @@ describe('SyncIO', () => {
 
     test(
       'attempt is redeem with Left for recover and Right for map',
-      forAll(A.cats4tsSyncIO(fc.integer()), io =>
+      forAll(A.fp4tsSyncIO(fc.integer()), io =>
         io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
       )(E.eqSyncIO(Either.Eq(Eq.Error.strict, Eq.primitive))),
     );
@@ -66,9 +66,9 @@ describe('SyncIO', () => {
     test(
       'attempt is flattened redeemWith',
       forAll(
-        A.cats4tsSyncIO(fc.integer()),
-        fc.func<[Error], SyncIO<string>>(A.cats4tsSyncIO(fc.string())),
-        fc.func<[number], SyncIO<string>>(A.cats4tsSyncIO(fc.string())),
+        A.fp4tsSyncIO(fc.integer()),
+        fc.func<[Error], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
+        fc.func<[number], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         (io, recover, bind) =>
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
@@ -79,9 +79,9 @@ describe('SyncIO', () => {
     test(
       'redeem is flattened redeemWith',
       forAll(
-        A.cats4tsSyncIO(fc.integer()),
-        fc.func<[Error], SyncIO<string>>(A.cats4tsSyncIO(fc.string())),
-        fc.func<[number], SyncIO<string>>(A.cats4tsSyncIO(fc.string())),
+        A.fp4tsSyncIO(fc.integer()),
+        fc.func<[Error], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
+        fc.func<[number], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         (io, recover, bind) =>
           io
             .redeem(recover, bind)
@@ -93,7 +93,7 @@ describe('SyncIO', () => {
     test(
       'redeem subsumes handleError',
       forAll(
-        A.cats4tsSyncIO(fc.integer()),
+        A.fp4tsSyncIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
         (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
       )(E.eqSyncIO(Eq.primitive)),
@@ -102,8 +102,8 @@ describe('SyncIO', () => {
     test(
       'redeemWith subsumes handleErrorWith',
       forAll(
-        A.cats4tsSyncIO(fc.integer()),
-        fc.func<[Error], SyncIO<number>>(A.cats4tsSyncIO(fc.integer())),
+        A.fp4tsSyncIO(fc.integer()),
+        fc.func<[Error], SyncIO<number>>(A.fp4tsSyncIO(fc.integer())),
         (io, recover) =>
           io
             .redeemWith(recover, SyncIO.pure)
@@ -160,7 +160,7 @@ describe('SyncIO', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsSyncIO,
+      A.fp4tsSyncIO,
       E.eqSyncIO,
     ),
   );

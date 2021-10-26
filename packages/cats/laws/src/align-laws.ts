@@ -1,7 +1,7 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { Align } from '@cats4ts/cats-core';
-import { Ior } from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind, pipe } from '@fp4ts/core';
+import { Align } from '@fp4ts/cats-core';
+import { Ior } from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const AlignLaws = <F>(F: Align<F>): AlignLaws<F> => ({
   alignAssociativity: <A, B, C>(

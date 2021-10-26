@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { MonadCancel } from '@cats4ts/effect-kernel';
-import { MonadErrorLaws } from '@cats4ts/cats-laws';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { MonadCancel } from '@fp4ts/effect-kernel';
+import { MonadErrorLaws } from '@fp4ts/cats-laws';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const MonadCancelLaws = <F, E>(
   F: MonadCancel<F, E>,

@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 
 export class Kleisli<F, A, B> {
   private readonly __void!: void;

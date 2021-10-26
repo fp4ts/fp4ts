@@ -1,6 +1,6 @@
-import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
-import { Either, List, Option, Vector } from '@cats4ts/cats';
-import { Temporal, SyncIoK } from '@cats4ts/effect';
+import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { Either, List, Option, Vector } from '@fp4ts/cats';
+import { Temporal, SyncIoK } from '@fp4ts/effect';
 
 import { PureK } from '../pure';
 import { Chunk } from '../chunk';
@@ -27,7 +27,7 @@ import {
   retry,
   execF,
 } from './constructors';
-import { Spawn } from '@cats4ts/effect';
+import { Spawn } from '@fp4ts/effect';
 import {
   Align,
   Defer,
@@ -36,7 +36,7 @@ import {
   Monad,
   MonadError,
   MonoidK,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 import {
   streamAlign,
   streamDefer,

@@ -1,4 +1,4 @@
-import { Kind, instance, tupled, Iter } from '@cats4ts/core';
+import { Kind, instance, tupled, Iter } from '@fp4ts/core';
 import { Monoid } from './monoid';
 import { Monad } from './monad';
 import { Eval } from './eval';

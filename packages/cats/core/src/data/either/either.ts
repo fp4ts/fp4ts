@@ -1,4 +1,4 @@
-import { $, $type, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@fp4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';

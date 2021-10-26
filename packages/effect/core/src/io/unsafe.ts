@@ -1,6 +1,6 @@
-import { flow } from '@cats4ts/core';
-import { Either, Left, Right } from '@cats4ts/cats';
-import { CancellationError } from '@cats4ts/effect-kernel';
+import { flow } from '@fp4ts/core';
+import { Either, Left, Right } from '@fp4ts/cats';
+import { CancellationError } from '@fp4ts/effect-kernel';
 
 import { IO } from './io';
 import { IOFiber } from '../io-fiber';

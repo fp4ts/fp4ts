@@ -1,4 +1,4 @@
-import { Temporal } from '@cats4ts/effect-kernel';
+import { Temporal } from '@fp4ts/effect-kernel';
 
 import { ClockLaws } from './clock-laws';
 import { SpawnLaws } from './spawn-laws';

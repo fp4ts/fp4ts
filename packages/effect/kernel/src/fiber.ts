@@ -1,4 +1,4 @@
-import { id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import { Outcome } from './outcome';
 import { MonadCancel } from './monad-cancel';
 import { Spawn } from './spawn';

@@ -1,4 +1,4 @@
-import { instance, Kind, α, λ } from '@cats4ts/core';
+import { instance, Kind, α, λ } from '@fp4ts/core';
 import { SemigroupK } from '../semigroup-k';
 import { Semigroup } from '../semigroup';
 

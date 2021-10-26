@@ -1,4 +1,4 @@
-import { $type, TyK } from '@cats4ts/core';
+import { $type, TyK } from '@fp4ts/core';
 
 export type Pure<A> = never;
 

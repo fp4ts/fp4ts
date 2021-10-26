@@ -1,11 +1,11 @@
-import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Functor,
   ApplicativeError,
   Applicative,
   Monad,
   Either,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { Poll } from '../poll';
 import { Async } from '../async';

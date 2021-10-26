@@ -1,14 +1,14 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import {
   Applicative,
   Eq,
   Functor,
   Monoid,
   Traversable,
-} from '@cats4ts/cats-core';
-import { Nested, Tuple2K } from '@cats4ts/cats-core/lib/data';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+} from '@fp4ts/cats-core';
+import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { TraversableLaws } from '../traversable-laws';
 import { FoldableSuite } from './foldable-suite';

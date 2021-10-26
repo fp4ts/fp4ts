@@ -1,4 +1,4 @@
-import { Base, id, instance, Kind } from '@cats4ts/core';
+import { Base, id, instance, Kind } from '@fp4ts/core';
 import { AdditionMonoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
 import { Eval } from './eval';
 

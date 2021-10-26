@@ -1,4 +1,4 @@
-import { id } from '@cats4ts/core';
+import { id } from '@fp4ts/core';
 import { Identity } from './identity';
 
 export const pure: <A>(a: A) => Identity<A> = id;

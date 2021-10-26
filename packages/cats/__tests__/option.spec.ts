@@ -1,11 +1,11 @@
 import fc from 'fast-check';
-import { PrimitiveType } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
-import { Right, Left, Option, Some, None } from '@cats4ts/cats-core/lib/data';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { PrimitiveType } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-core';
+import { Right, Left, Option, Some, None } from '@fp4ts/cats-core/lib/data';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { MonadSuite, AlternativeSuite } from '@cats4ts/cats-laws';
+import { MonadSuite, AlternativeSuite } from '@fp4ts/cats-laws';
 
 describe('Option', () => {
   describe('type', () => {
@@ -147,7 +147,7 @@ describe('Option', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsOption,
+      A.fp4tsOption,
       Option.Eq,
     ),
   );
@@ -164,7 +164,7 @@ describe('Option', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsOption,
+      A.fp4tsOption,
       Option.Eq,
     ),
   );

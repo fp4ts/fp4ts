@@ -1,8 +1,8 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq, Either } from '@cats4ts/cats';
-import { Spawn, Outcome } from '@cats4ts/effect-kernel';
-import { exec, forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq, Either } from '@fp4ts/cats';
+import { Spawn, Outcome } from '@fp4ts/effect-kernel';
+import { exec, forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { SpawnLaws } from '../spawn-laws';
 import { MonadCancelSuite } from './monad-cancel-suite';

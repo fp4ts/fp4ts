@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { $, $type, id, TyK, TyVar } from '@cats4ts/core';
-import { FunctionK, Eq } from '@cats4ts/cats-core';
+import { $, $type, id, TyK, TyVar } from '@fp4ts/core';
+import { FunctionK, Eq } from '@fp4ts/cats-core';
 import {
   State,
   StateK,
@@ -8,14 +8,14 @@ import {
   Option,
   IdentityK,
   Identity,
-} from '@cats4ts/cats-core/lib/data';
-import { MonadSuite } from '@cats4ts/cats-laws';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-core/lib/data';
+import { MonadSuite } from '@fp4ts/cats-laws';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { Free } from '../free';
 
-import { cats4tsFree } from './free-arbitraries';
+import { fp4tsFree } from './free-arbitraries';
 
 class TestConsoleBase<A> {
   public readonly __void!: void;
@@ -89,7 +89,7 @@ describe('Free', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => cats4tsFree(x, x),
+      x => fp4tsFree(x, x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<IdentityK, X>, Identity<X>>(E, f =>
           f.mapK(Identity.Monad)(id),
@@ -109,7 +109,7 @@ describe('Free', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => cats4tsFree(A.cats4tsOption(x), x),
+      x => fp4tsFree(A.fp4tsOption(x), x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<OptionK, X>, Option<X>>(Option.Eq(E), f =>
           f.mapK(Option.Monad)(id),

@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { FunctionK, Monad } from '@cats4ts/cats-core';
+import { Kind } from '@fp4ts/core';
+import { FunctionK, Monad } from '@fp4ts/cats-core';
 import { Free } from './algebra';
 import { flatMap_, map_, mapK_ } from './operators';
 

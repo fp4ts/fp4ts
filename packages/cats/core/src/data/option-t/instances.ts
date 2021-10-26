@@ -1,4 +1,4 @@
-import { $ } from '@cats4ts/core';
+import { $ } from '@fp4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';

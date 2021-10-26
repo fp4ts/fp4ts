@@ -1,5 +1,5 @@
-import { pipe } from '@cats4ts/core';
-import { Option } from '@cats4ts/cats';
+import { pipe } from '@fp4ts/core';
+import { Option } from '@fp4ts/cats';
 
 import { pure, unit } from './constructors';
 import { Bind, Fail, Pull } from './algebra';

@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Applicative } from '../../../applicative';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';

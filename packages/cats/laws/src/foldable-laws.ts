@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { Eval, Foldable, Monoid } from '@cats4ts/cats-core';
+import { Kind } from '@fp4ts/core';
+import { Eval, Foldable, Monoid } from '@fp4ts/cats-core';
 import {
   List,
   Vector,
@@ -10,10 +10,10 @@ import {
   Either,
   Left,
   Right,
-} from '@cats4ts/cats-core/lib/data';
+} from '@fp4ts/cats-core/lib/data';
 
 import { UnorderedFoldableLaws } from './unordered-foldable-laws';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   ...UnorderedFoldableLaws(F),

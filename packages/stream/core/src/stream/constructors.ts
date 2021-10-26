@@ -1,7 +1,7 @@
 import { ok as assert } from 'assert';
-import { constant, Kind, pipe } from '@cats4ts/core';
-import { Either, List, Option, Some, Vector } from '@cats4ts/cats';
-import { Spawn, Temporal } from '@cats4ts/effect';
+import { constant, Kind, pipe } from '@fp4ts/core';
+import { Either, List, Option, Some, Vector } from '@fp4ts/cats';
+import { Spawn, Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';

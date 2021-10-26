@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { throwError } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats-core';
+import { throwError } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-core';
 import {
   Try,
   Success,
@@ -9,14 +9,14 @@ import {
   None,
   Left,
   Right,
-} from '@cats4ts/cats-core/lib/data';
+} from '@fp4ts/cats-core/lib/data';
 import {
   FunctorFilterSuite,
   MonadErrorSuite,
   SemigroupKSuite,
-} from '@cats4ts/cats-laws';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-laws';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Try', () => {
   describe('type', () => {
@@ -241,7 +241,7 @@ describe('Try', () => {
   const semigroupKTests = SemigroupKSuite(Try.SemigroupK);
   checkAll(
     'SemigroupK<Try>',
-    semigroupKTests.semigroupK(fc.integer(), Eq.primitive, A.cats4tsTry, E =>
+    semigroupKTests.semigroupK(fc.integer(), Eq.primitive, A.fp4tsTry, E =>
       Try.Eq(Eq.Error.allEqual, E),
     ),
   );
@@ -256,7 +256,7 @@ describe('Try', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsTry,
+      A.fp4tsTry,
       E => Try.Eq(Eq.Error.allEqual, E),
     ),
   );
@@ -269,13 +269,13 @@ describe('Try', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      A.cats4tsError(),
+      A.fp4tsError(),
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
       Eq.Error.strict,
-      A.cats4tsTry,
+      A.fp4tsTry,
       E => Try.Eq(Eq.Error.strict, E),
     ),
   );

@@ -1,5 +1,5 @@
-import { $, lazyVal } from '@cats4ts/core';
-import { Monad } from '@cats4ts/cats-core';
+import { $, lazyVal } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
 
 import { FreeK } from './free';
 import { flatMap_, map_, tailRecM_ } from './operators';

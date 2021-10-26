@@ -1,4 +1,4 @@
-import { OrderedMap } from '@cats4ts/cats-core/lib/data';
+import { OrderedMap } from '@fp4ts/cats-core/lib/data';
 import { Rule, RuleSet } from './rule-set';
 
 export function checkAll(setName: string, rs: RuleSet): void {

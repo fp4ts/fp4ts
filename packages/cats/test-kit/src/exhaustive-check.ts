@@ -1,4 +1,4 @@
-import { List } from '@cats4ts/cats-core/lib/data';
+import { List } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
 export class ExhaustiveCheck<A> {

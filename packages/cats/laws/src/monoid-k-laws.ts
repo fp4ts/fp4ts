@@ -1,6 +1,6 @@
-import { Kind } from '@cats4ts/core';
-import { MonoidK } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { MonoidK } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SemigroupKLaws } from './semigroup-k-laws';
 

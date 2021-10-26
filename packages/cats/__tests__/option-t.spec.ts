@@ -1,5 +1,5 @@
-import { $, id } from '@cats4ts/core';
-import { FunctionK } from '@cats4ts/cats-core';
+import { $, id } from '@fp4ts/core';
+import { FunctionK } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityK,
@@ -10,7 +10,7 @@ import {
   NoneF,
   OptionT,
   SomeF,
-} from '@cats4ts/cats-core/lib/data';
+} from '@fp4ts/cats-core/lib/data';
 
 describe('OptionT', () => {
   const mkSome = <A>(x: A) => SomeF(Identity.Applicative)(x);

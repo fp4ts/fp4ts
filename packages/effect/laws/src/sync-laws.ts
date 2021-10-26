@@ -1,6 +1,6 @@
-import { Kind, throwError } from '@cats4ts/core';
-import { Sync } from '@cats4ts/effect-kernel';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind, throwError } from '@fp4ts/core';
+import { Sync } from '@fp4ts/effect-kernel';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { UniqueLaws } from './unique-laws';
 import { ClockLaws } from './clock-laws';

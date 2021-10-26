@@ -1,4 +1,4 @@
-import { Base, instance, Kind, Lazy } from '@cats4ts/core';
+import { Base, instance, Kind, Lazy } from '@fp4ts/core';
 import { Semigroup } from './semigroup';
 
 /**

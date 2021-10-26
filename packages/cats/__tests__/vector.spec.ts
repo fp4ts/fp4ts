@@ -1,6 +1,6 @@
 import fc from 'fast-check';
-import { id } from '@cats4ts/core';
-import { AdditionMonoid, Eq, Eval, EvalK } from '@cats4ts/cats-core';
+import { id } from '@fp4ts/core';
+import { AdditionMonoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
 import {
   Some,
   None,
@@ -10,9 +10,9 @@ import {
   List,
   Vector,
   Identity,
-} from '@cats4ts/cats-core/lib/data';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-core/lib/data';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
   AlternativeSuite,
@@ -20,7 +20,7 @@ import {
   TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('Vector', () => {
   describe('type', () => {
@@ -936,7 +936,7 @@ describe('Vector', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsVector,
+      A.fp4tsVector,
       Vector.Eq,
     ),
   );
@@ -951,7 +951,7 @@ describe('Vector', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsVector,
+      A.fp4tsVector,
       Vector.Eq,
     ),
   );
@@ -966,7 +966,7 @@ describe('Vector', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsVector,
+      A.fp4tsVector,
       Vector.Eq,
     ),
   );
@@ -983,7 +983,7 @@ describe('Vector', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsVector,
+      A.fp4tsVector,
       Vector.Eq,
     ),
   );
@@ -1003,11 +1003,11 @@ describe('Vector', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsVector,
+      A.fp4tsVector,
       Vector.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

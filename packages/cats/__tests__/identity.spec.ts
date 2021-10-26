@@ -1,10 +1,10 @@
 import fc from 'fast-check';
-import { id } from '@cats4ts/core';
-import { AdditionMonoid, Eq, Eval } from '@cats4ts/cats-core';
-import { Identity } from '@cats4ts/cats-core/lib/data';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-import { MonadSuite, TraversableSuite } from '@cats4ts/cats-laws';
+import { id } from '@fp4ts/core';
+import { AdditionMonoid, Eq, Eval } from '@fp4ts/cats-core';
+import { Identity } from '@fp4ts/cats-core/lib/data';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { MonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
 
 describe('Identity Laws', () => {
   const monadTests = MonadSuite(Identity.Monad);
@@ -41,9 +41,9 @@ describe('Identity Laws', () => {
       Eq.primitive,
       id,
       id,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

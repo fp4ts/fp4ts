@@ -1,15 +1,15 @@
 import fc from 'fast-check';
-import { Eq, AdditionMonoid, Eval } from '@cats4ts/cats-core';
-import { Chain, Option } from '@cats4ts/cats-core/lib/data';
+import { Eq, AdditionMonoid, Eval } from '@fp4ts/cats-core';
+import { Chain, Option } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
   AlternativeSuite,
   FunctorFilterSuite,
   MonadSuite,
   TraversableSuite,
-} from '@cats4ts/cats-laws';
-import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-laws';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Chain', () => {
   describe('types', () => {
@@ -28,7 +28,7 @@ describe('Chain', () => {
   test(
     'headOption',
     forAll(
-      A.cats4tsVector(fc.integer()),
+      A.fp4tsVector(fc.integer()),
       xs => new IsEq(Chain.fromVector(xs).headOption, xs.headOption),
     )(Option.Eq(Eq.primitive)),
   );
@@ -36,14 +36,14 @@ describe('Chain', () => {
   test(
     'lastOption',
     forAll(
-      A.cats4tsVector(fc.integer()),
+      A.fp4tsVector(fc.integer()),
       xs => new IsEq(Chain.fromVector(xs).lastOption, xs.lastOption),
     )(Option.Eq(Eq.primitive)),
   );
 
   test(
     'size to be consistent with toList.size',
-    forAll(A.cats4tsChain(fc.integer()), c => c.size === c.toList.size),
+    forAll(A.fp4tsChain(fc.integer()), c => c.size === c.toList.size),
   );
 
   it('should do something', () => {
@@ -63,7 +63,7 @@ describe('Chain', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        A.cats4tsChain,
+        A.fp4tsChain,
         Chain.Eq,
       ),
     );
@@ -78,7 +78,7 @@ describe('Chain', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        A.cats4tsChain,
+        A.fp4tsChain,
         Chain.Eq,
       ),
     );
@@ -93,7 +93,7 @@ describe('Chain', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        A.cats4tsChain,
+        A.fp4tsChain,
         Chain.Eq,
       ),
     );
@@ -110,7 +110,7 @@ describe('Chain', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        A.cats4tsChain,
+        A.fp4tsChain,
         Chain.Eq,
       ),
     );
@@ -130,11 +130,11 @@ describe('Chain', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        A.cats4tsChain,
+        A.fp4tsChain,
         Chain.Eq,
-        A.cats4tsEval,
+        A.fp4tsEval,
         Eval.Eq,
-        A.cats4tsEval,
+        A.fp4tsEval,
         Eval.Eq,
       ),
     );

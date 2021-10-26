@@ -1,6 +1,6 @@
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind, throwError } from '@cats4ts/core';
-import { FunctionK, Eq } from '@cats4ts/cats-core';
+import { $, id, Kind, throwError } from '@fp4ts/core';
+import { FunctionK, Eq } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityK,
@@ -15,21 +15,21 @@ import {
   List,
   EitherK,
   Either,
-} from '@cats4ts/cats-core/lib/data';
+} from '@fp4ts/cats-core/lib/data';
 import {
   AlternativeSuite,
   ContravariantSuite,
   FunctorFilterSuite,
   MonadErrorSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 import {
   checkAll,
   fn1Eq,
   MiniInt,
   ExhaustiveCheck,
-} from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@cats4ts/cats-test-kit/lib/exhaustive-check';
+} from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>
@@ -294,13 +294,13 @@ describe('Kleisli', () => {
   checkAll(
     'Contravariant<Kleisli<IdentityK, MiniInt, number>>',
     contravariantTests.contravariant(
-      A.cats4tsMiniInt(),
-      A.cats4tsMiniInt(),
-      A.cats4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
       <X>(_: Arbitrary<X>) =>
-        A.cats4tsKleisli<IdentityK, X, number>(fc.integer()),
+        A.fp4tsKleisli<IdentityK, X, number>(fc.integer()),
 
       // TODO: hacky? We are not really using the value
       () => eqKleisli(ec.miniInt() as any, Eq.primitive),
@@ -320,7 +320,7 @@ describe('Kleisli', () => {
       Eq.primitive,
       Eq.primitive,
       <X>(x: Arbitrary<X>) =>
-        A.cats4tsKleisli<OptionK, MiniInt, X>(A.cats4tsOption(x)),
+        A.fp4tsKleisli<OptionK, MiniInt, X>(A.fp4tsOption(x)),
       <X>(E: Eq<X>) =>
         eqKleisli<OptionK, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
     ),
@@ -338,8 +338,7 @@ describe('Kleisli', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      <X>(x: Arbitrary<X>) =>
-        A.cats4tsKleisli<ListK, MiniInt, X>(A.cats4tsList(x)),
+      <X>(x: Arbitrary<X>) => A.fp4tsKleisli<ListK, MiniInt, X>(A.fp4tsList(x)),
       <X>(E: Eq<X>) => eqKleisli<ListK, MiniInt, X>(ec.miniInt(), List.Eq(E)),
     ),
   );
@@ -364,8 +363,8 @@ describe('Kleisli', () => {
       Eq.primitive,
       Eq.primitive,
       <X>(x: Arbitrary<X>) =>
-        A.cats4tsKleisli<EitherStringK, MiniInt, X>(
-          A.cats4tsEither(fc.string(), x),
+        A.fp4tsKleisli<EitherStringK, MiniInt, X>(
+          A.fp4tsEither(fc.string(), x),
         ),
       <X>(E: Eq<X>) =>
         eqKleisli<EitherStringK, MiniInt, X>(

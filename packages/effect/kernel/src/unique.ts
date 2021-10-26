@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
 
 export interface Unique<F> {
   unique: Kind<F, [UniqueToken]>;

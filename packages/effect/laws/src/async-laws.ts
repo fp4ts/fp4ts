@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { Right, Left, None, Some } from '@cats4ts/cats';
-import { Async, ExecutionContext } from '@cats4ts/effect-kernel';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Right, Left, None, Some } from '@fp4ts/cats';
+import { Async, ExecutionContext } from '@fp4ts/effect-kernel';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SyncLaws } from './sync-laws';
 import { TemporalLaws } from './temporal-laws';

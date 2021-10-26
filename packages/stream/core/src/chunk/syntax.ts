@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { Eval, Applicative, List, Option, Vector } from '@cats4ts/cats';
+import { Kind } from '@fp4ts/core';
+import { Eval, Applicative, List, Option, Vector } from '@fp4ts/cats';
 
 import { Chunk } from './algebra';
 import {

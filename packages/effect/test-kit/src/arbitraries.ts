@@ -1,9 +1,9 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind, snd } from '@cats4ts/core';
-import { List, Ord, OrderedMap, Functor } from '@cats4ts/cats';
-import { ExecutionContext, Resource } from '@cats4ts/effect-kernel';
-import { SyncIO, IO } from '@cats4ts/effect-core';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { Kind, snd } from '@fp4ts/core';
+import { List, Ord, OrderedMap, Functor } from '@fp4ts/cats';
+import { ExecutionContext, Resource } from '@fp4ts/effect-kernel';
+import { SyncIO, IO } from '@fp4ts/effect-core';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
   AsyncGenerators,
@@ -13,9 +13,9 @@ import {
 } from './kind-generators';
 import { TestExecutionContext } from './test-execution-context';
 
-export * from '@cats4ts/cats-test-kit/lib/arbitraries';
+export * from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-export const cats4tsResource =
+export const fp4tsResource =
   <F>(F: Functor<F>) =>
   <A>(
     arbA: Arbitrary<A>,
@@ -42,20 +42,20 @@ export const cats4tsResource =
     );
   };
 
-export const cats4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
-  cats4tsKind(
+export const fp4tsIO = <A>(arbA: Arbitrary<A>): Arbitrary<IO<A>> =>
+  fp4tsKind(
     arbA,
     AsyncGenerators(
       IO.Async,
-      A.cats4tsError(),
-      cats4tsExecutionContext(new TestExecutionContext()),
+      A.fp4tsError(),
+      fp4tsExecutionContext(new TestExecutionContext()),
     ),
   );
 
-export const cats4tsSyncIO = <A>(arbA: Arbitrary<A>): Arbitrary<SyncIO<A>> =>
-  cats4tsKind(arbA, SyncGenerators(SyncIO.Sync, A.cats4tsError()));
+export const fp4tsSyncIO = <A>(arbA: Arbitrary<A>): Arbitrary<SyncIO<A>> =>
+  fp4tsKind(arbA, SyncGenerators(SyncIO.Sync, A.fp4tsError()));
 
-export const cats4tsKind = <F, A>(
+export const fp4tsKind = <F, A>(
   arbA: Arbitrary<A>,
   KG: KindGenerator<F>,
 ): Arbitrary<Kind<F, [A]>> => {
@@ -83,7 +83,7 @@ export const cats4tsKind = <F, A>(
   return gen;
 };
 
-export const cats4tsExecutionContext = (
+export const fp4tsExecutionContext = (
   ec: ExecutionContext,
 ): Arbitrary<ExecutionContext> =>
   fc.constant({

@@ -1,4 +1,4 @@
-import { id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@fp4ts/core';
 
 export interface FunctionK<F, G> {
   <A>(fa: Kind<F, [A]>): Kind<G, [A]>;

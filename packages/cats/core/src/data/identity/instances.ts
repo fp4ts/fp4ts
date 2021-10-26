@@ -1,4 +1,4 @@
-import { Kind, Lazy, lazyVal } from '@cats4ts/core';
+import { Kind, Lazy, lazyVal } from '@fp4ts/core';
 import { Eval } from '../../eval';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';

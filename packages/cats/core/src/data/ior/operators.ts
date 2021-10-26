@@ -1,4 +1,4 @@
-import { compose, constant, id } from '@cats4ts/core';
+import { compose, constant, id } from '@fp4ts/core';
 import { Option, Some, None } from '../option';
 import { Either, Left, Right } from '../either';
 import { Eq } from '../../eq';

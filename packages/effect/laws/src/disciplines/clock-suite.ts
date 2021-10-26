@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
-import { Clock } from '@cats4ts/effect-kernel';
-import { RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
+import { Clock } from '@fp4ts/effect-kernel';
+import { RuleSet } from '@fp4ts/cats-test-kit';
 import { ClockLaws } from '../clock-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

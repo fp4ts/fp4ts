@@ -1,4 +1,4 @@
-import { Kind, id } from '@cats4ts/core';
+import { Kind, id } from '@fp4ts/core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 

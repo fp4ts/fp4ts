@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 
 export abstract class Free<F, A> {
   private readonly __void!: void;

@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
@@ -7,8 +7,8 @@ import {
   Functor,
   Monad,
   MonadError,
-} from '@cats4ts/cats';
-import { Clock, Sync, MonadCancel } from '@cats4ts/effect-kernel';
+} from '@fp4ts/cats';
+import { Clock, Sync, MonadCancel } from '@fp4ts/effect-kernel';
 
 import { SyncIO, SyncIoK } from './sync-io';
 import { defer, delay, pure, throwError } from './constructors';

@@ -1,4 +1,4 @@
-import { $, $type, id, Kind, pipe, tupled, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, id, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
 import {
   Functor,
   ApplicativeError,
@@ -6,7 +6,7 @@ import {
   Kleisli,
   FunctionK,
   KleisliK,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { MonadCancel } from '../monad-cancel';
 import { Sync } from '../sync';

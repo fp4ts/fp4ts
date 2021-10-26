@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/cats-core",
+  "name": "@fp4ts/cats-core",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,7 +9,7 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@cats4ts/core": "*"
+    "@fp4ts/core": "*"
   },
   "devDependencies": {
     "typescript": "4.4.2"

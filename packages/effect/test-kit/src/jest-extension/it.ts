@@ -1,4 +1,4 @@
-import { IOOutcome } from '@cats4ts/effect-core';
+import { IOOutcome } from '@fp4ts/effect-core';
 import { ticked } from '../ticked';
 import { Ticker } from '../ticker';
 

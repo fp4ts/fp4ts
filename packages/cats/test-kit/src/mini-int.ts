@@ -1,6 +1,6 @@
 import { ok as assert } from 'assert';
-import { Monoid, Eq, Ord } from '@cats4ts/cats-core';
-import { List } from '@cats4ts/cats-core/lib/data';
+import { Monoid, Eq, Ord } from '@fp4ts/cats-core';
+import { List } from '@fp4ts/cats-core/lib/data';
 
 const intShift = 28;
 

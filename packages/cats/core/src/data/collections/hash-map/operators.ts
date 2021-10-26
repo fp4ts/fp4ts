@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { id, pipe, Kind, throwError } from '@cats4ts/core';
+import { id, pipe, Kind, throwError } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Hashable } from '../../../hashable';
 import { Show } from '../../../show';

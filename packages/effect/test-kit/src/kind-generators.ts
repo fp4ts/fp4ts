@@ -1,12 +1,12 @@
 import fc, { Arbitrary } from 'fast-check';
-import { id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import {
   List,
   Applicative,
   ApplicativeError,
   Monad,
   MonadError,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 import {
   Sync,
   MonadCancel,
@@ -14,8 +14,8 @@ import {
   Temporal,
   Async,
   ExecutionContext,
-} from '@cats4ts/effect-kernel';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/effect-kernel';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 export interface GenK<F> {
   <A>(arbA: Arbitrary<A>): Arbitrary<Kind<F, [A]>>;
@@ -267,9 +267,9 @@ export const AsyncGenerators = <F>(
   const syncGens = SyncGenerators(F, arbE);
 
   const genAsync = <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
-    A.cats4tsEither(arbE, arbA).chain(result =>
+    A.fp4tsEither(arbE, arbA).chain(result =>
       deeper(
-        A.cats4tsOption(
+        A.fp4tsOption(
           deeper(arbA).map(fa => F.map_<A, void>(fa, () => undefined)),
         ),
       ).map(fo =>

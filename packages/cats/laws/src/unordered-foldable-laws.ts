@@ -1,6 +1,6 @@
-import { id, Kind } from '@cats4ts/core';
-import { Monoid, UnorderedFoldable } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { id, Kind } from '@fp4ts/core';
+import { Monoid, UnorderedFoldable } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const UnorderedFoldableLaws = <F>(
   F: UnorderedFoldable<F>,

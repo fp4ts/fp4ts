@@ -1,7 +1,7 @@
-import { id, Kind, pipe } from '@cats4ts/core';
-import { Either, Right, Left } from '@cats4ts/cats';
-import { Spawn, Outcome } from '@cats4ts/effect-kernel';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { id, Kind, pipe } from '@fp4ts/core';
+import { Either, Right, Left } from '@fp4ts/cats';
+import { Spawn, Outcome } from '@fp4ts/effect-kernel';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { MonadCancelLaws } from './monad-cancel-laws';
 

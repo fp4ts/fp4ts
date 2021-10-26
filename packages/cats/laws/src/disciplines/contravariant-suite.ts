@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Contravariant, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Contravariant, Eq } from '@fp4ts/cats-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ContravariantLaws } from '../contravariant-laws';
 import { InvariantSuite } from './invariant-suite';

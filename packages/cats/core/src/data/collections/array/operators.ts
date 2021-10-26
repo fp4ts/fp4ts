@@ -1,4 +1,4 @@
-import { Kind, id } from '@cats4ts/core';
+import { Kind, id } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Monoid } from '../../../monoid';
 import { Applicative } from '../../../applicative';

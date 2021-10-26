@@ -1,5 +1,5 @@
-import { Either } from '@cats4ts/cats';
-import { ExecutionContext } from '@cats4ts/effect-kernel';
+import { Either } from '@fp4ts/cats';
+import { ExecutionContext } from '@fp4ts/effect-kernel';
 
 import { IOFiber } from '../io-fiber';
 

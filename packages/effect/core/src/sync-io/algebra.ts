@@ -1,4 +1,4 @@
-import { Either } from '@cats4ts/cats';
+import { Either } from '@fp4ts/cats';
 
 export abstract class SyncIO<A> {
   private readonly __void!: void;

@@ -1,7 +1,7 @@
 import '../../../benchmarking';
-import { pipe } from '@cats4ts/core';
-import { Either, List, Some } from '@cats4ts/cats-core/lib/data';
-import { IO } from '@cats4ts/effect-core';
+import { pipe } from '@fp4ts/core';
+import { Either, List, Some } from '@fp4ts/cats-core/lib/data';
+import { IO } from '@fp4ts/effect-core';
 
 const size = 1000;
 const ticks = 1000;

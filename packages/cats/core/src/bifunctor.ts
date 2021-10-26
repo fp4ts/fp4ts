@@ -1,4 +1,4 @@
-import { $, Base, Fix, id, instance, Kind, α, λ } from '@cats4ts/core';
+import { $, Base, Fix, id, instance, Kind, α, λ } from '@fp4ts/core';
 import { Functor } from './functor';
 
 /**

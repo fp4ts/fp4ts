@@ -1,5 +1,5 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { FlatMap } from '@cats4ts/cats-core';
+import { Kind, pipe } from '@fp4ts/core';
+import { FlatMap } from '@fp4ts/cats-core';
 import {
   Kleisli,
   Left,
@@ -7,8 +7,8 @@ import {
   Option,
   Right,
   Some,
-} from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+} from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplyLaws } from './apply-laws';
 

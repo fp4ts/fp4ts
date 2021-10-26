@@ -1,7 +1,7 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { ApplicativeError } from '@cats4ts/cats-core';
-import { Either, Left, Right } from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind, pipe } from '@fp4ts/core';
+import { ApplicativeError } from '@fp4ts/cats-core';
+import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplicativeLaws } from './applicative-laws';
 

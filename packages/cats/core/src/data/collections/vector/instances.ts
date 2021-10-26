@@ -1,4 +1,4 @@
-import { id, Lazy, lazyVal } from '@cats4ts/core';
+import { id, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Monoid } from '../../../monoid';

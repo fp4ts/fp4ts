@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Canceled, Failure, Outcome, Success } from './algebra';
 
 export const success = <F, A>(fa: Kind<F, [A]>): Outcome<F, never, A> =>

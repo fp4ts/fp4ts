@@ -1,4 +1,4 @@
-import { $, Kind, lazyVal } from '@cats4ts/core';
+import { $, Kind, lazyVal } from '@fp4ts/core';
 import { Eval } from '../../../eval';
 import { Eq } from '../../../eq';
 import { Ord } from '../../../ord';

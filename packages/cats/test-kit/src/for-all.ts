@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Eq } from '@cats4ts/cats-core';
+import { Eq } from '@fp4ts/cats-core';
 import fc, { Arbitrary } from 'fast-check';
 import { IsEq } from './rules';
 

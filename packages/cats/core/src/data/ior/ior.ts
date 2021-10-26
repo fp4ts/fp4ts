@@ -1,4 +1,4 @@
-import { $, $type, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { Option } from '../option';
 import { Either } from '../either';

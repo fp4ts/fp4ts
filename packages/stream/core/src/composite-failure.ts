@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { List } from '@cats4ts/cats';
+import { List } from '@fp4ts/cats';
 
 export class CompositeFailure extends Error {
   public constructor(

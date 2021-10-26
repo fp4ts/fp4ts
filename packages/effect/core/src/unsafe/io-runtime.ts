@@ -1,8 +1,5 @@
-import { Either, Some } from '@cats4ts/cats';
-import {
-  ExecutionContext,
-  GlobalExecutionContext,
-} from '@cats4ts/effect-kernel';
+import { Either, Some } from '@fp4ts/cats';
+import { ExecutionContext, GlobalExecutionContext } from '@fp4ts/effect-kernel';
 
 import { IO } from '../io';
 

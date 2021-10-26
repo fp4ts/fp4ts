@@ -1,10 +1,10 @@
 import '../../benchmarking';
 import { ok as assert } from 'assert';
-import { pipe } from '@cats4ts/core';
+import { pipe } from '@fp4ts/core';
 import {
   HashMap as CatsMap,
   OrderedMap as CatsOrderedMap,
-} from '@cats4ts/cats-core/lib/data';
+} from '@fp4ts/cats-core/lib/data';
 
 const size = 10_000;
 const values: number[] = [...new Array(size).keys()];

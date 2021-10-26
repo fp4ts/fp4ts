@@ -1,5 +1,5 @@
-import { $, Kind } from '@cats4ts/core';
-import { Monoid, ApplicativeError, Either, Kleisli } from '@cats4ts/cats';
+import { $, Kind } from '@fp4ts/core';
+import { Monoid, ApplicativeError, Either, Kleisli } from '@fp4ts/cats';
 
 import { Async } from '../async';
 import { MonadCancel } from '../monad-cancel';
@@ -28,7 +28,7 @@ import {
   useKleisli_,
   use_,
 } from './operators';
-import { ResourceK } from '@cats4ts/effect';
+import { ResourceK } from '@fp4ts/effect';
 
 declare module './algebra' {
   interface Resource<F, A> {

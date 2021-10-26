@@ -1,4 +1,4 @@
-import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
+import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';

@@ -1,7 +1,7 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Bifunctor, Eq } from '@cats4ts/cats-core';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Bifunctor, Eq } from '@fp4ts/cats-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import { BifunctorLaws } from '../bifunctor-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

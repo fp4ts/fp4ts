@@ -1,4 +1,4 @@
-import { id, Kind } from '@cats4ts/core';
+import { id, Kind } from '@fp4ts/core';
 import { Either } from '../data';
 
 import { Arrow, ArrowRequirements } from './arrow';

@@ -1,4 +1,4 @@
-import { Base, instance, Kind } from '@cats4ts/core';
+import { Base, instance, Kind } from '@fp4ts/core';
 
 /**
  * @category Type Class

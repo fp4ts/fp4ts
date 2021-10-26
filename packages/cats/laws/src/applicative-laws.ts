@@ -1,6 +1,6 @@
-import { compose, Kind, pipe } from '@cats4ts/core';
-import { Applicative } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { compose, Kind, pipe } from '@fp4ts/core';
+import { Applicative } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplyLaws } from './apply-laws';
 

@@ -1,6 +1,6 @@
-import { compose, id, Kind, pipe } from '@cats4ts/core';
-import { Functor } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { compose, id, Kind, pipe } from '@fp4ts/core';
+import { Functor } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 import { InvariantLaws } from './invariant-laws';
 
 export const FunctorLaws = <F>(F: Functor<F>): FunctorLaws<F> => ({

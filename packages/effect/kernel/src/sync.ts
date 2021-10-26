@@ -1,5 +1,5 @@
-import { Kind, id } from '@cats4ts/core';
-import { Defer } from '@cats4ts/cats-core';
+import { Kind, id } from '@fp4ts/core';
+import { Defer } from '@fp4ts/cats-core';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 import { Clock, ClockRequirements } from './clock';
 import { UniqueToken, Unique } from './unique';

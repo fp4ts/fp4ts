@@ -1,8 +1,8 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Invariant, Eq } from '@cats4ts/cats-core';
+import { Kind } from '@fp4ts/core';
+import { Invariant, Eq } from '@fp4ts/cats-core';
 import { InvariantLaws } from '../invariant-laws';
-import { forAll, RuleSet } from '@cats4ts/cats-test-kit';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const InvariantSuite = <F>(F: Invariant<F>) => {

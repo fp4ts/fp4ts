@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/cats-test-kit",
+  "name": "@fp4ts/cats-test-kit",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,8 +9,8 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "devDependencies": {
-    "@cats4ts/cats-core": "*",
-    "@cats4ts/core": "*",
+    "@fp4ts/cats-core": "*",
+    "@fp4ts/core": "*",
     "fast-check": "^2.18.0",
     "jest": "^27.3.1",
     "typescript": "4.4.2"

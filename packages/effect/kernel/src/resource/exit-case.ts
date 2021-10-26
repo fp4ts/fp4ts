@@ -1,4 +1,4 @@
-import { Applicative } from '@cats4ts/cats';
+import { Applicative } from '@fp4ts/cats';
 import { Outcome } from '../outcome';
 
 export abstract class ExitCase {

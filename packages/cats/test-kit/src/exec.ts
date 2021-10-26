@@ -1,5 +1,5 @@
 import { IsEq } from './rules';
-import { Eq } from '@cats4ts/cats-core';
+import { Eq } from '@fp4ts/cats-core';
 
 export function exec<R>(predicate: () => IsEq<R>): (E: Eq<R>) => () => void;
 export function exec(predicate: () => boolean): () => void;

@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { FunctionK } from '@cats4ts/cats';
+import { Kind } from '@fp4ts/core';
+import { FunctionK } from '@fp4ts/cats';
 import { Sync } from './sync';
 
 export abstract class Ref<F, A> {

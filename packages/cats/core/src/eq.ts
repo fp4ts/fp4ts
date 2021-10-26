@@ -1,4 +1,4 @@
-import { Lazy, PrimitiveType } from '@cats4ts/core';
+import { Lazy, PrimitiveType } from '@fp4ts/core';
 
 /**
  * @category Type Class

@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/core",
+  "name": "@fp4ts/core",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

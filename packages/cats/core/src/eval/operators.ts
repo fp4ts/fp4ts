@@ -1,4 +1,4 @@
-import { id } from '@cats4ts/core';
+import { id } from '@fp4ts/core';
 import { Either } from '../data';
 import { Eval, FlatMap, Now } from './algebra';
 import { pure } from './constructors';

@@ -1,5 +1,5 @@
-import { $, $type, Kind, TyK, TyVar } from '@cats4ts/core';
-import { Monad } from '@cats4ts/cats-core';
+import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
 
 import { Free as FreeBase } from './algebra';
 import { pure, suspend } from './constructors';

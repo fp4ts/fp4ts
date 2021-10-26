@@ -1,11 +1,11 @@
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
-import { Outcome, Async, ExecutionContext } from '@cats4ts/effect-kernel';
-import { forAll, IsEq, RuleSet } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
-import * as E from '@cats4ts/effect-test-kit/lib/eq';
-import * as AA from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
+import { Outcome, Async, ExecutionContext } from '@fp4ts/effect-kernel';
+import { forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@fp4ts/effect-test-kit/lib/eq';
+import * as AA from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { AsyncLaws } from '../async-laws';
 import { TemporalSuite } from './temporal-suite';
@@ -47,7 +47,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
           [
             'async left is uncancelable sequenced throwError',
             forAll(
-              AA.cats4tsError(),
+              AA.fp4tsError(),
               mkArbF(fc.constant(undefined)),
               laws.asyncLeftIsUncancelableSequencedThrowError,
             )(mkEqF(Eq.never)),
@@ -67,7 +67,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
           [
             'async cancel is un-sequenced on throw',
             forAll(
-              AA.cats4tsError(),
+              AA.fp4tsError(),
               mkArbF(fc.constant(undefined)),
               laws.asyncCancelIsUnsequencedOnThrow,
             )(mkEqF(Eq.never)),
@@ -82,7 +82,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
           [
             'async executeOn local pure',
             forAll(
-              A.cats4tsExecutionContext(ec),
+              A.fp4tsExecutionContext(ec),
               laws.executeOnLocalPure,
             )(mkEqF(E.eqExecutionContext)),
           ],
@@ -90,29 +90,29 @@ export const AsyncSuite = <F>(F: Async<F>) => {
             'async executeOn pure identity',
             forAll(
               arbA,
-              A.cats4tsExecutionContext(ec),
+              A.fp4tsExecutionContext(ec),
               laws.executeOnPureIdentity,
             )(mkEqF(EqA)),
           ],
           [
             'async executeOn throwError',
             forAll(
-              AA.cats4tsError(),
-              A.cats4tsExecutionContext(ec),
+              AA.fp4tsError(),
+              A.fp4tsExecutionContext(ec),
               laws.executeOnThrowError,
             )(mkEqF(Eq.never)),
           ],
           [
             'async executeOn canceled identity',
             forAll(
-              A.cats4tsExecutionContext(ec),
+              A.fp4tsExecutionContext(ec),
               laws.executeOnCanceledIdentity,
             )(mkEqF(Eq.void)),
           ],
           [
             'async executeOn never identity',
             forAll(
-              A.cats4tsExecutionContext(ec),
+              A.fp4tsExecutionContext(ec),
               laws.executeOnNeverIdentity,
             )(mkEqF(Eq.never)),
           ],
@@ -124,7 +124,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
               arbB,
               arbC,
               arbD,
-              AA.cats4tsError(),
+              AA.fp4tsError(),
               EqA,
               EqB,
               EqC,

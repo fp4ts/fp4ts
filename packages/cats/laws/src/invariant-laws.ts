@@ -1,6 +1,6 @@
-import { compose, id, Kind, pipe } from '@cats4ts/core';
-import { Invariant } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { compose, id, Kind, pipe } from '@fp4ts/core';
+import { Invariant } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const InvariantLaws = <F>(F: Invariant<F>): InvariantLaws<F> => ({
   invariantIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>

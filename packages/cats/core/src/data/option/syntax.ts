@@ -1,4 +1,4 @@
-import { PrimitiveType } from '@cats4ts/core';
+import { PrimitiveType } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { Option } from './algebra';
 import {

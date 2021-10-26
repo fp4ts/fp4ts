@@ -1,5 +1,5 @@
-import { $, lazyVal } from '@cats4ts/core';
-import { Applicative, Monad } from '@cats4ts/cats';
+import { $, lazyVal } from '@fp4ts/core';
+import { Applicative, Monad } from '@fp4ts/cats';
 import { Async } from '../async';
 import { Clock } from '../clock';
 import { Temporal } from '../temporal';

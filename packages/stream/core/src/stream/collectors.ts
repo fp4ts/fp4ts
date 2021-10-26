@@ -1,4 +1,4 @@
-import { List, Vector } from '@cats4ts/cats';
+import { List, Vector } from '@fp4ts/cats';
 import { Chunk } from '../chunk';
 
 export interface Collector<A, Out> {

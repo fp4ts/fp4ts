@@ -1,7 +1,7 @@
-import { Eq, Option, Some, None, Try, Either, IdentityK } from '@cats4ts/cats';
-import { SyncIO, IO, IORuntime, IOOutcome } from '@cats4ts/effect-core';
-import { Outcome, ExecutionContext } from '@cats4ts/effect-kernel';
-import { Pure } from '@cats4ts/effect-core/lib/io/algebra';
+import { Eq, Option, Some, None, Try, Either, IdentityK } from '@fp4ts/cats';
+import { SyncIO, IO, IORuntime, IOOutcome } from '@fp4ts/effect-core';
+import { Outcome, ExecutionContext } from '@fp4ts/effect-kernel';
+import { Pure } from '@fp4ts/effect-core/lib/io/algebra';
 
 import { Ticker } from './ticker';
 

@@ -1,4 +1,4 @@
-import { Outcome } from '@cats4ts/effect-kernel';
+import { Outcome } from '@fp4ts/effect-kernel';
 import { IO } from './io';
 import { IoK } from './io/io';
 

@@ -1,4 +1,4 @@
-import { Either, Left, State } from '@cats4ts/cats-core/lib/data';
+import { Either, Left, State } from '@fp4ts/cats-core/lib/data';
 
 describe('State', () => {
   describe('types', () => {

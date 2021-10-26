@@ -1,5 +1,5 @@
-import { Base, Kind } from '@cats4ts/core';
-import { FunctionK, Show } from '@cats4ts/cats-core';
+import { Base, Kind } from '@fp4ts/core';
+import { FunctionK, Show } from '@fp4ts/cats-core';
 
 export interface Console<F> extends Base<F> {
   readonly readLine: Kind<F, [string]>;

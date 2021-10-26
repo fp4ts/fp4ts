@@ -1,4 +1,4 @@
-import { id, Kind, pipe, throwError, tupled } from '@cats4ts/core';
+import { id, Kind, pipe, throwError, tupled } from '@fp4ts/core';
 import { ConjunctionMonoid, DisjunctionMonoid } from '../../../monoid';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';

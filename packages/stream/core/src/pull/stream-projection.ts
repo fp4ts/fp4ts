@@ -1,5 +1,5 @@
-import { id, Kind, pipe } from '@cats4ts/core';
-import { FunctionK, MonadError, None, Option, Some } from '@cats4ts/cats';
+import { id, Kind, pipe } from '@fp4ts/core';
+import { FunctionK, MonadError, None, Option, Some } from '@fp4ts/cats';
 
 import * as PO from './operators';
 import * as PC from './constructors';

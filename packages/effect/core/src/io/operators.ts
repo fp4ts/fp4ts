@@ -1,6 +1,6 @@
-import { id, pipe, Kind } from '@cats4ts/core';
-import { Parallel, Traversable, Either } from '@cats4ts/cats';
-import { ExecutionContext, Poll } from '@cats4ts/effect-kernel';
+import { id, pipe, Kind } from '@fp4ts/core';
+import { Parallel, Traversable, Either } from '@fp4ts/cats';
+import { ExecutionContext, Poll } from '@fp4ts/effect-kernel';
 
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';

@@ -1,8 +1,8 @@
 import '../../../benchmarking';
 
-import { pipe } from '@cats4ts/core';
-import { Right } from '@cats4ts/cats-core/lib/data';
-import { IO } from '@cats4ts/effect-core';
+import { pipe } from '@fp4ts/core';
+import { Right } from '@fp4ts/cats-core/lib/data';
+import { IO } from '@fp4ts/effect-core';
 
 const size = 100_000;
 

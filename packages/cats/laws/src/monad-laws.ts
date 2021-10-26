@@ -1,7 +1,7 @@
-import { Kind, pipe } from '@cats4ts/core';
-import { Monad } from '@cats4ts/cats-core';
-import { Kleisli, Left, Right } from '@cats4ts/cats-core/lib/data';
-import { IsEq } from '@cats4ts/cats-test-kit';
+import { Kind, pipe } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
+import { Kleisli, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplicativeLaws } from './applicative-laws';
 import { FlatMapLaws } from './flat-map-laws';

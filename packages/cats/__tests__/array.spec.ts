@@ -1,15 +1,15 @@
 import fc from 'fast-check';
-import '@cats4ts/cats-core/lib/data/collections/array/array';
-import { Eq, Eval, EvalK, AdditionMonoid } from '@cats4ts/cats-core';
+import '@fp4ts/cats-core/lib/data/collections/array/array';
+import { Eq, Eval, EvalK, AdditionMonoid } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
   FunctorFilterSuite,
   MonadSuite,
   TraversableSuite,
-} from '@cats4ts/cats-laws';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+} from '@fp4ts/cats-laws';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Array laws', () => {
   const alignTests = AlignSuite(Array.Align);
@@ -93,9 +93,9 @@ describe('Array laws', () => {
       Eq.primitive,
       fc.array,
       Array.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

@@ -1,4 +1,4 @@
-import { $, TyK, PrimitiveType, $type, TyVar } from '@cats4ts/core';
+import { $, TyK, PrimitiveType, $type, TyVar } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';

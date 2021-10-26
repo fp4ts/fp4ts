@@ -1,4 +1,4 @@
-import { Kind, pipe, tupled } from '@cats4ts/core';
+import { Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Applicative,
   Parallel,
@@ -6,7 +6,7 @@ import {
   Either,
   Left,
   Right,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { Poll } from './poll';
 import { Fiber } from './fiber';

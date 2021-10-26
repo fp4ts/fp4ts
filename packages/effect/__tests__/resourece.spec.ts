@@ -1,31 +1,23 @@
-import '@cats4ts/effect-test-kit/lib/jest-extension';
+import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { $, fst, pipe, snd } from '@cats4ts/core';
-import {
-  FunctionK,
-  Eq,
-  List,
-  Vector,
-  Either,
-  Left,
-  Right,
-} from '@cats4ts/cats';
-import { AsyncSuite } from '@cats4ts/effect-laws';
-import { IO, IoK } from '@cats4ts/effect-core';
-import { Resource, ResourceK, Outcome } from '@cats4ts/effect-kernel';
-import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
-import * as E from '@cats4ts/effect-test-kit/lib/eq';
-import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
+import { $, fst, pipe, snd } from '@fp4ts/core';
+import { FunctionK, Eq, List, Vector, Either, Left, Right } from '@fp4ts/cats';
+import { IO, IoK } from '@fp4ts/effect-core';
+import { AsyncSuite } from '@fp4ts/effect-laws';
+import { Resource, ResourceK, Outcome } from '@fp4ts/effect-kernel';
+import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@fp4ts/effect-test-kit/lib/eq';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 
 describe('Resource', () => {
   describe('$<ResourceK, [IO]>', () => {
     const Instance = Resource.MonadCancel(IO.Async);
 
     it.ticked('should release resources in reversed order', ticker => {
-      const arb = A.cats4tsList(
+      const arb = A.fp4tsList(
         fc.tuple(
           fc.integer(),
-          A.cats4tsEither(A.cats4tsError(), fc.constant<void>(undefined)),
+          A.fp4tsEither(A.fp4tsError(), fc.constant<void>(undefined)),
         ),
       );
 
@@ -140,7 +132,7 @@ describe('Resource', () => {
 
   test.ticked('eval', ticker =>
     forAll(
-      A.cats4tsIO(fc.integer()),
+      A.fp4tsIO(fc.integer()),
       fa =>
         new IsEq(
           Resource.evalF<IoK, number>(fa).use(IO.MonadCancel)(IO.pure),
@@ -151,7 +143,7 @@ describe('Resource', () => {
 
   test.ticked('evalMap', ticker =>
     forAll(
-      fc.func<[number], IO<number>>(A.cats4tsIO(fc.integer())),
+      fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
           Resource.evalF<IoK, number>(IO.pure(0))
@@ -164,7 +156,7 @@ describe('Resource', () => {
 
   test.ticked('evalTap', ticker =>
     forAll(
-      fc.func<[number], IO<number>>(A.cats4tsIO(fc.integer())),
+      fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
           Resource.evalF<IoK, number>(IO.pure(0))
@@ -484,7 +476,7 @@ describe('Resource', () => {
             return r.mapK(nt);
           },
         ),
-        x => A.cats4tsResource(IO.Functor)(x, A.cats4tsIO),
+        x => A.fp4tsResource(IO.Functor)(x, A.fp4tsIO),
         <X>(EqX: Eq<X>) =>
           Eq.by(E.eqIO(EqX, ticker), (r: Resource<IoK, X>) =>
             r.use(IO.MonadCancel)(IO.pure),

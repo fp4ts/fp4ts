@@ -1,4 +1,4 @@
-import { $, lazyVal } from '@cats4ts/core';
+import { $, lazyVal } from '@fp4ts/core';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';

@@ -1,4 +1,4 @@
-import { Kind, PrimitiveType } from '@cats4ts/core';
+import { Kind, PrimitiveType } from '@fp4ts/core';
 import {
   Applicative,
   Eq,
@@ -11,8 +11,8 @@ import {
   Option,
   Vector,
   Ior,
-} from '@cats4ts/cats';
-import { SyncIoK, Temporal } from '@cats4ts/effect';
+} from '@fp4ts/cats';
+import { SyncIoK, Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Stream } from './algebra';

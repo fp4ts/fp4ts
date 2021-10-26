@@ -1,5 +1,5 @@
-import { Kind, flow, id, pipe } from '@cats4ts/core';
-import { FunctionK, None, Option, Right, Some } from '@cats4ts/cats';
+import { Kind, flow, id, pipe } from '@fp4ts/core';
+import { FunctionK, None, Option, Right, Some } from '@fp4ts/cats';
 
 import { Ref } from './ref';
 import { Async } from './async';

@@ -1,13 +1,13 @@
-import '@cats4ts/effect-test-kit/lib/jest-extension';
+import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { id, pipe, throwError } from '@cats4ts/core';
-import { Either, Left, Right, Some, List, Eq, None } from '@cats4ts/cats';
-import { Semaphore } from '@cats4ts/effect-kernel';
-import { IO, IOOutcome } from '@cats4ts/effect-core';
-import { checkAll, forAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/effect-test-kit/lib/arbitraries';
-import * as E from '@cats4ts/effect-test-kit/lib/eq';
-import { AsyncSuite } from '@cats4ts/effect-laws';
+import { id, pipe, throwError } from '@fp4ts/core';
+import { Either, Left, Right, Some, List, Eq, None } from '@fp4ts/cats';
+import { Semaphore } from '@fp4ts/effect-kernel';
+import { IO, IOOutcome } from '@fp4ts/effect-core';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
+import * as E from '@fp4ts/effect-test-kit/lib/eq';
+import { AsyncSuite } from '@fp4ts/effect-laws';
 
 describe('IO', () => {
   describe('free monad', () => {
@@ -43,7 +43,7 @@ describe('IO', () => {
     test.ticked(
       'attempt is redeem with Left for recover and Right for map',
       ticker =>
-        forAll(A.cats4tsIO(fc.integer()), io =>
+        forAll(A.fp4tsIO(fc.integer()), io =>
           io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
         )(
           E.eqIO(
@@ -55,9 +55,9 @@ describe('IO', () => {
 
     test.ticked('attempt is flattened redeemWith', ticker =>
       forAll(
-        A.cats4tsIO(fc.integer()),
-        fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
-        fc.func<[number], IO<string>>(A.cats4tsIO(fc.string())),
+        A.fp4tsIO(fc.integer()),
+        fc.func<[Error], IO<string>>(A.fp4tsIO(fc.string())),
+        fc.func<[number], IO<string>>(A.fp4tsIO(fc.string())),
         (io, recover, bind) =>
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
@@ -67,9 +67,9 @@ describe('IO', () => {
 
     test.ticked('attempt is flattened redeemWith', ticker =>
       forAll(
-        A.cats4tsIO(fc.integer()),
-        fc.func<[Error], IO<string>>(A.cats4tsIO(fc.string())),
-        fc.func<[number], IO<string>>(A.cats4tsIO(fc.string())),
+        A.fp4tsIO(fc.integer()),
+        fc.func<[Error], IO<string>>(A.fp4tsIO(fc.string())),
+        fc.func<[number], IO<string>>(A.fp4tsIO(fc.string())),
         (io, recover, bind) =>
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
@@ -79,7 +79,7 @@ describe('IO', () => {
 
     test.ticked('redeem subsumes handleError', ticker =>
       forAll(
-        A.cats4tsIO(fc.integer()),
+        A.fp4tsIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
         (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
       )(E.eqIO(Eq.primitive, ticker))(),
@@ -87,8 +87,8 @@ describe('IO', () => {
 
     test.ticked('redeemWith subsumes handleErrorWith', ticker =>
       forAll(
-        A.cats4tsIO(fc.integer()),
-        fc.func<[Error], IO<number>>(A.cats4tsIO(fc.integer())),
+        A.fp4tsIO(fc.integer()),
+        fc.func<[Error], IO<number>>(A.fp4tsIO(fc.integer())),
         (io, recover) =>
           io.redeemWith(recover, IO.pure)['<=>'](io.handleErrorWith(recover)),
       )(E.eqIO(Eq.primitive, ticker))(),
@@ -1026,7 +1026,7 @@ describe('IO', () => {
         Eq.primitive,
         Eq.primitive,
         E.eqIOOutcome(Eq.primitive),
-        A.cats4tsIO,
+        A.fp4tsIO,
         EqX => E.eqIO(EqX, ticker),
       ),
     );

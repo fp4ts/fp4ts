@@ -1,14 +1,14 @@
 import fc from 'fast-check';
-import { AdditionMonoid, Eq, Eval, EvalK, Hashable } from '@cats4ts/cats-core';
-import { List, Option, Some, None, HashMap } from '@cats4ts/cats-core/lib/data';
-import { arrayMonoidK } from '@cats4ts/cats-core/lib/data/collections/array/instances';
-import { checkAll } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/cats-test-kit/lib/arbitraries';
+import { AdditionMonoid, Eq, Eval, EvalK, Hashable } from '@fp4ts/cats-core';
+import { List, Option, Some, None, HashMap } from '@fp4ts/cats-core/lib/data';
+import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   MonoidKSuite,
   FunctorFilterSuite,
   UnorderedTraversableSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('Map', () => {
   const H = Hashable.primitiveMD5;
@@ -655,7 +655,7 @@ describe('Map', () => {
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
       E => HashMap.Eq(Eq.primitive, E),
     ),
   );
@@ -672,7 +672,7 @@ describe('Map', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
       E => HashMap.Eq(Eq.primitive, E),
     ),
   );
@@ -699,11 +699,11 @@ describe('Map', () => {
       HashMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,
-      x => A.cats4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
       E => HashMap.Eq(Eq.primitive, E),
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

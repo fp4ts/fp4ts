@@ -1,4 +1,4 @@
-import { id, throwError } from '@cats4ts/core';
+import { id, throwError } from '@fp4ts/core';
 import { Eq } from '../../eq';
 
 import { None, Option, Some } from '../option';

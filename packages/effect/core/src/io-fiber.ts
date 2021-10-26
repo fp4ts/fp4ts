@@ -1,6 +1,6 @@
-import { flow, id, pipe } from '@cats4ts/core';
-import { Either, Left, Right, Some } from '@cats4ts/cats';
-import { ExecutionContext, Fiber, Poll } from '@cats4ts/effect-kernel';
+import { flow, id, pipe } from '@fp4ts/core';
+import { Either, Left, Right, Some } from '@fp4ts/cats';
+import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
 
 import { IO, IoK } from './io';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/stream-core",
+  "name": "@fp4ts/stream-core",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,9 +9,9 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@cats4ts/core": "*",
-    "@cats4ts/cats": "*",
-    "@cats4ts/effect": "*"
+    "@fp4ts/core": "*",
+    "@fp4ts/cats": "*",
+    "@fp4ts/effect": "*"
   },
   "devDependencies": {
     "typescript": "4.4.2"

@@ -1,20 +1,20 @@
 import fc from 'fast-check';
-import { AdditionMonoid, Eval, Eq, List, Vector } from '@cats4ts/cats';
-import { Chunk } from '@cats4ts/stream-core';
-import { checkAll, forAll, IsEq } from '@cats4ts/cats-test-kit';
-import * as A from '@cats4ts/stream-test-kit/lib/arbitraries';
+import { AdditionMonoid, Eval, Eq, List, Vector } from '@fp4ts/cats';
+import { Chunk } from '@fp4ts/stream-core';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
   MonadSuite,
   MonoidKSuite,
   TraversableSuite,
-} from '@cats4ts/cats-laws';
+} from '@fp4ts/cats-laws';
 
 describe('chunk', () => {
   test(
     'size',
     forAll(
-      A.cats4tsStreamChunkGenerator(fc.integer()),
+      A.fp4tsStreamChunkGenerator(fc.integer()),
       c => c.size === c.toList.size,
     ),
   );
@@ -22,35 +22,35 @@ describe('chunk', () => {
   test(
     'isEmpty',
     forAll(
-      A.cats4tsStreamChunkGenerator(fc.integer()),
+      A.fp4tsStreamChunkGenerator(fc.integer()),
       c => c.isEmpty === c.toList.isEmpty,
     ),
   );
 
   test(
     'take',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.take(n).toList['<=>'](c.toList.take(n)),
     )(List.Eq(Eq.primitive)),
   );
 
   test(
     'takeRight',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.takeRight(n).toList['<=>'](c.toList.takeRight(n)),
     )(List.Eq(Eq.primitive)),
   );
 
   test(
     'drop',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.drop(n).toList['<=>'](c.toList.drop(n)),
     )(List.Eq(Eq.primitive)),
   );
 
   test(
     'dropRight',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.dropRight(n).toList['<=>'](c.toList.dropRight(n)),
     )(List.Eq(Eq.primitive)),
   );
@@ -58,8 +58,8 @@ describe('chunk', () => {
   test(
     'concat',
     forAll(
-      A.cats4tsStreamChunkGenerator(fc.integer()),
-      A.cats4tsStreamChunkGenerator(fc.integer()),
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      A.fp4tsStreamChunkGenerator(fc.integer()),
       (c1, c2) =>
         new IsEq<List<number>>(
           c1['+++'](Chunk.empty)['+++'](c2)['+++'](Chunk.empty).toList,
@@ -70,7 +70,7 @@ describe('chunk', () => {
 
   test(
     'scanLeft',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), c => {
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), c => {
       const step = (acc: Vector<number>, next: number): Vector<number> =>
         acc.append(next);
       const init: Vector<number> = Vector.empty;
@@ -83,7 +83,7 @@ describe('chunk', () => {
 
   test(
     'scanLeftCarry',
-    forAll(A.cats4tsStreamChunkGenerator(fc.integer()), c => {
+    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), c => {
       const step = (acc: Vector<number>, next: number): Vector<number> =>
         acc.append(next);
       const init: Vector<number> = Vector.empty;
@@ -121,7 +121,7 @@ describe('chunk', () => {
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      A.cats4tsStreamChunkGenerator,
+      A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
   );
@@ -136,7 +136,7 @@ describe('chunk', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsStreamChunkGenerator,
+      A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
   );
@@ -153,7 +153,7 @@ describe('chunk', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsStreamChunkGenerator,
+      A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
   );
@@ -173,11 +173,11 @@ describe('chunk', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.cats4tsStreamChunkGenerator,
+      A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
-      A.cats4tsEval,
+      A.fp4tsEval,
       Eval.Eq,
     ),
   );

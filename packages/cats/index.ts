@@ -2,5 +2,5 @@
  * @module cats
  */
 
-export * from '@cats4ts/cats-core';
-export * from '@cats4ts/cats-core/lib/data';
+export * from '@fp4ts/cats-core';
+export * from '@fp4ts/cats-core/lib/data';

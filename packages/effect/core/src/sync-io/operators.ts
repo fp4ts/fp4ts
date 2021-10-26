@@ -1,5 +1,5 @@
-import { pipe } from '@cats4ts/core';
-import { Either, Left, Right } from '@cats4ts/cats';
+import { pipe } from '@fp4ts/core';
+import { Either, Left, Right } from '@fp4ts/cats';
 import {
   Attempt,
   Continuation,

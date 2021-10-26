@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';

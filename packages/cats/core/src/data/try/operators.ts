@@ -1,4 +1,4 @@
-import { compose, constant, id, throwError } from '@cats4ts/core';
+import { compose, constant, id, throwError } from '@fp4ts/core';
 import { Option, None, Some } from '../option';
 import { Either, Left, Right } from '../either';
 

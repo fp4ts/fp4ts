@@ -1,4 +1,4 @@
-import { $type, TyK, TyVar } from '@cats4ts/core';
+import { $type, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
@@ -6,8 +6,8 @@ import {
   Functor,
   Monad,
   MonadError,
-} from '@cats4ts/cats';
-import { Sync } from '@cats4ts/effect-kernel';
+} from '@fp4ts/cats';
+import { Sync } from '@fp4ts/effect-kernel';
 
 import { SyncIO as SyncIOBase } from './algebra';
 import { defer, delay, pure, throwError } from './constructors';

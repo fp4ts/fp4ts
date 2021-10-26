@@ -1,4 +1,4 @@
-import { Kind } from '@cats4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Eval } from './eval';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';

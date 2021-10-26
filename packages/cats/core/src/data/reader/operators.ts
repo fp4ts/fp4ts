@@ -1,4 +1,4 @@
-import { id, pipe } from '@cats4ts/core';
+import { id, pipe } from '@fp4ts/core';
 
 import * as K from '../kleisli/functional';
 import { Identity } from '../identity';

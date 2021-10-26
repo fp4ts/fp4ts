@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/effect-std",
+  "name": "@fp4ts/effect-std",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,8 +9,8 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@cats4ts/core": "*",
-    "@cats4ts/cats-core": "*"
+    "@fp4ts/core": "*",
+    "@fp4ts/cats-core": "*"
   },
   "devDependencies": {
     "typescript": "4.4.2"

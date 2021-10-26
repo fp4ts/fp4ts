@@ -1,4 +1,4 @@
-import { id, Iter, Kind, pipe } from '@cats4ts/core';
+import { id, Iter, Kind, pipe } from '@fp4ts/core';
 import {
   List,
   Vector,
@@ -8,7 +8,7 @@ import {
   Some,
   Applicative,
   Eval,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 
 import { ok as assert } from 'assert';
 import {

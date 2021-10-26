@@ -1,7 +1,7 @@
-import { Kind } from '@cats4ts/core';
-import { Applicative, Eq } from '@cats4ts/cats';
-import { Unique } from '@cats4ts/effect-kernel';
-import { exec, RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Applicative, Eq } from '@fp4ts/cats';
+import { Unique } from '@fp4ts/effect-kernel';
+import { exec, RuleSet } from '@fp4ts/cats-test-kit';
 import { UniqueLaws } from '../unique-laws';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

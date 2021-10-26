@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Chain } from '@cats4ts/cats';
+import { Chain } from '@fp4ts/cats';
 
 export abstract class Chunk<O> {
   readonly __void!: void;

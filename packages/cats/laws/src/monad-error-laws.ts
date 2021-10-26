@@ -1,6 +1,6 @@
-import { MonadError } from '@cats4ts/cats-core';
-import { IsEq } from '@cats4ts/cats-test-kit';
-import { Kind } from '@cats4ts/core';
+import { MonadError } from '@fp4ts/cats-core';
+import { IsEq } from '@fp4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
 import { ApplicativeErrorLaws } from './applicative-error-laws';
 import { MonadLaws } from './monad-laws';
 

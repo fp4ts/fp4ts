@@ -1,4 +1,4 @@
-import { id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { Functor } from '../../functor';

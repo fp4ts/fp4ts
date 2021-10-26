@@ -1,6 +1,6 @@
-import { Kind } from '@cats4ts/core';
-import { Option } from '@cats4ts/cats';
-import { Temporal } from '@cats4ts/effect';
+import { Kind } from '@fp4ts/core';
+import { Option } from '@fp4ts/cats';
+import { Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Eval, Fail, Pull, Succeed, Terminal, Output, Bind } from './algebra';

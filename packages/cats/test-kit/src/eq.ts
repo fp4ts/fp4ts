@@ -1,4 +1,4 @@
-import { Eq } from '@cats4ts/cats-core';
+import { Eq } from '@fp4ts/cats-core';
 import { ExhaustiveCheck } from './exhaustive-check';
 
 export const fn1Eq = <A, B>(

@@ -1,11 +1,11 @@
-import { flow, Kind } from '@cats4ts/core';
-import { Either, Left, None, Option, Right, FunctionK } from '@cats4ts/cats';
+import { flow, Kind } from '@fp4ts/core';
+import { Either, Left, None, Option, Right, FunctionK } from '@fp4ts/cats';
 import {
   ExecutionContext,
   Poll,
   MonadCancel,
   Cont,
-} from '@cats4ts/effect-kernel';
+} from '@fp4ts/effect-kernel';
 
 import {
   Canceled,

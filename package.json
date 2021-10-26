@@ -32,6 +32,6 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.json",
     "clean": "rm -rf dist docs tsconfig.tsbuildinfo",
     "docs": "typedoc",
-    "lint": "eslint ./src"
+    "lint": "eslint ./packages"
   }
 }

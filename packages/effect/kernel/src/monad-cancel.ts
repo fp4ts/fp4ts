@@ -1,11 +1,11 @@
-import { $ } from '@cats4ts/core';
-import { id, Kind, pipe } from '@cats4ts/core';
+import { $ } from '@fp4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Kleisli,
   KleisliK,
   MonadError,
   MonadErrorRequirements,
-} from '@cats4ts/cats';
+} from '@fp4ts/cats';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
 

@@ -1,5 +1,5 @@
-import { Kind } from '@cats4ts/core';
-import { Applicative } from '@cats4ts/cats-core';
+import { Kind } from '@fp4ts/core';
+import { Applicative } from '@fp4ts/cats-core';
 
 export interface Clock<F> {
   readonly applicative: Applicative<F>;

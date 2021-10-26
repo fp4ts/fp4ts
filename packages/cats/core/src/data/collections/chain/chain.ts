@@ -1,4 +1,4 @@
-import { Kind, $type, TyK, TyVar } from '@cats4ts/core';
+import { Kind, $type, TyK, TyVar } from '@fp4ts/core';
 import { Foldable } from '../../../foldable';
 import { Eq } from '../../../eq';
 import { Align } from '../../../align';

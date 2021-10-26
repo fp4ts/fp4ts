@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Kind, pipe } from '@cats4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 
 import { Ref } from './ref';
 import { Deferred } from './deferred';

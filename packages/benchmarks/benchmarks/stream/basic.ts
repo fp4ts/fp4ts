@@ -1,6 +1,6 @@
 import '../../benchmarking';
-import { pipe } from '@cats4ts/core';
-import { Stream } from '@cats4ts/stream-core';
+import { pipe } from '@fp4ts/core';
+import { Stream } from '@fp4ts/stream-core';
 
 pipe(
   benchmark('zipping', () => {

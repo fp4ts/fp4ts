@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@cats4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eval } from '../../../eval';
 import { Eq } from '../../../eq';
 import { Align } from '../../../align';

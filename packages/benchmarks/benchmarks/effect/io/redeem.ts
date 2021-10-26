@@ -1,6 +1,6 @@
 import '../../../benchmarking';
-import { id, pipe } from '@cats4ts/core';
-import { IO } from '@cats4ts/effect-core';
+import { id, pipe } from '@fp4ts/core';
+import { IO } from '@fp4ts/effect-core';
 
 const size = 100_000;
 

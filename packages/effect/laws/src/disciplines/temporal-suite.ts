@@ -1,8 +1,8 @@
 import { Arbitrary } from 'fast-check';
-import { Kind } from '@cats4ts/core';
-import { Eq } from '@cats4ts/cats';
-import { Temporal, Outcome } from '@cats4ts/effect-kernel';
-import { RuleSet } from '@cats4ts/cats-test-kit';
+import { Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats';
+import { Temporal, Outcome } from '@fp4ts/effect-kernel';
+import { RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ClockSuite } from './clock-suite';
 import { SpawnSuite } from './spawn-suite';

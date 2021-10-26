@@ -1,4 +1,4 @@
-import { Reader } from '@cats4ts/cats-core/lib/data';
+import { Reader } from '@fp4ts/cats-core/lib/data';
 
 describe('Reader', () => {
   describe('types', () => {

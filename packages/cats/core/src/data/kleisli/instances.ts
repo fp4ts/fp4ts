@@ -1,4 +1,4 @@
-import { $, Fix, α, λ } from '@cats4ts/core';
+import { $, Fix, α, λ } from '@fp4ts/core';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Contravariant } from '../../contravariant';

@@ -1,5 +1,5 @@
 {
-  "name": "@cats4ts/cats",
+  "name": "@fp4ts/cats",
   "version": "1.0.0",
   "main": "./index.js",
   "typings": "./index.d.ts",
@@ -9,12 +9,12 @@
     "compile": "yarn clean && yarn tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@cats4ts/cats-core": "*",
-    "@cats4ts/core": "*"
+    "@fp4ts/cats-core": "*",
+    "@fp4ts/core": "*"
   },
   "devDependencies": {
-    "@cats4ts/cats-laws": "*",
-    "@cats4ts/cats-test-kit": "*",
+    "@fp4ts/cats-laws": "*",
+    "@fp4ts/cats-test-kit": "*",
     "fast-check": "^2.18.0",
     "typescript": "4.4.2"
   }

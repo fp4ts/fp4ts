@@ -1,4 +1,4 @@
-import { flow, id, throwError } from '@cats4ts/core';
+import { flow, id, throwError } from '@fp4ts/core';
 
 import { Eq } from '../../eq';
 import { Either } from '../either';

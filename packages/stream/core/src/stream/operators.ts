@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { id, Kind, pipe } from '@cats4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Applicative,
   Eq,
@@ -14,8 +14,8 @@ import {
   Right,
   Some,
   Ior,
-} from '@cats4ts/cats';
-import { Temporal, SyncIoK } from '@cats4ts/effect';
+} from '@fp4ts/cats';
+import { Temporal, SyncIoK } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
