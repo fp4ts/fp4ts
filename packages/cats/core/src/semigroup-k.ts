@@ -1,6 +1,9 @@
 import { Base, instance, Kind, Lazy } from '@cats4ts/core';
 import { Semigroup } from './semigroup';
 
+/**
+ * @category Type Class
+ */
 export interface SemigroupK<F> extends Base<F> {
   readonly combineK: <A>(
     y: Lazy<Kind<F, [A]>>,

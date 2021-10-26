@@ -96,6 +96,10 @@ Kleisli.MonadError = kleisliMonadError;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface KleisliK extends TyK<[unknown, unknown, unknown]> {
   [$type]: Kleisli<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

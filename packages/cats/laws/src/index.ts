@@ -1,3 +1,6 @@
+/**
+ * @module cats/laws
+ */
 export * from './align-laws';
 export * from './alternative-laws';
 export * from './applicative-error-laws';

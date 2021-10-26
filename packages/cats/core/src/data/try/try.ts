@@ -113,6 +113,10 @@ Object.defineProperty(Try, 'MonadError', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface TryK extends TyK<[unknown]> {
   [$type]: Try<TyVar<this, 0>>;
 }

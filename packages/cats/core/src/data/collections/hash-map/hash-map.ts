@@ -69,6 +69,10 @@ HashMap.UnorderedTraversable = hashMapUnorderedTraversable;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface HashMapK extends TyK<[unknown, unknown]> {
   [$type]: HashMap<TyVar<this, 0>, TyVar<this, 1>>;
 }

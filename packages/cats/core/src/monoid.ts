@@ -6,6 +6,9 @@ import {
   DisjunctionSemigroup,
 } from './semigroup';
 
+/**
+ * @category Type Class
+ */
 export interface Monoid<M> extends Semigroup<M> {
   readonly empty: M;
 }

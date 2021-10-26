@@ -1,3 +1,7 @@
+/**
+ * @module cats/core/data
+ */
+
 export * from './either';
 export * from './option';
 export * from './identity';

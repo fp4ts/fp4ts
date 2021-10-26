@@ -98,6 +98,9 @@ Eval.Monoid = evalMonoid;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ */
 export interface EvalK extends TyK<[unknown]> {
   [$type]: Eval<TyVar<this, 0>>;
 }

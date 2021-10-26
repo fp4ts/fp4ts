@@ -1,0 +1,26 @@
+{
+  "entryPoints": [
+    "./packages/cats/core/src/index.ts",
+    "./packages/cats/core/src/data/index.ts",
+    "./packages/cats/free/src/index.ts",
+    "./packages/cats/laws/src/index.ts",
+    "./packages/cats/index.ts",
+    "./packages/cats/test-kit/src/arbitraries.ts",
+    "./packages/cats/test-kit/src/index.ts",
+    "./packages/core/src/index.ts",
+    "./packages/effect/core/src/index.ts",
+    "./packages/effect/kernel/src/index.ts",
+    "./packages/effect/laws/src/index.ts",
+    "./packages/effect/index.ts",
+    "./packages/effect/test-kit/src/arbitraries.ts",
+    "./packages/effect/test-kit/src/index.ts",
+    "./packages/stream/core/src/index.ts",
+    "./packages/stream/test-kit/src/arbitraries.ts",
+    "./packages/stream/test-kit/src/index.ts",
+    "./packages/stream/index.ts"
+  ],
+  "out": "./docs",
+  "name": "cats4ts",
+  "categorizeByGroup": false,
+  "internalNamespace": "Unexported"
+}

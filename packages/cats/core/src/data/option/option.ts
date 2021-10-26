@@ -121,6 +121,10 @@ Option.Eq = optionEq;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface OptionK extends TyK<[unknown]> {
   [$type]: Option<TyVar<this, 1>>;
 }

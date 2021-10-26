@@ -2,6 +2,9 @@ import { Kind } from '@cats4ts/core';
 import { Monoid } from './monoid';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 
+/**
+ * @category Type Class
+ */
 export interface MonoidK<F> extends SemigroupK<F> {
   readonly emptyK: <A>() => Kind<F, [A]>;
 

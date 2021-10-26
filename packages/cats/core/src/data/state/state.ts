@@ -68,6 +68,10 @@ State.Monad = stateMonad;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface StateK extends TyK<[unknown, unknown]> {
   [$type]: State<TyVar<this, 0>, TyVar<this, 1>>;
 }

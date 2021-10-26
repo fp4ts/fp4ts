@@ -1,3 +1,6 @@
+/**
+ * @module effect/core
+ */
 export * from './io';
 export * from './sync-io';
 export * from './exit-code';

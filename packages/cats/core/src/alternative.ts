@@ -3,6 +3,9 @@ import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
   readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
   readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;

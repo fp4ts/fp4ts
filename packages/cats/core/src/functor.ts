@@ -2,6 +2,9 @@ import { instance, Kind } from '@cats4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
 
+/**
+ * @category Type Class
+ */
 export interface Functor<F> extends Invariant<F> {
   readonly map: <A, B>(f: (a: A) => B) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
   readonly map_: <A, B>(fa: Kind<F, [A]>, f: (a: A) => B) => Kind<F, [B]>;

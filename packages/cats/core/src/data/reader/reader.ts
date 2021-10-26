@@ -55,6 +55,10 @@ Reader.Monad = readerMonad;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface ReaderK extends TyK<[unknown, unknown]> {
   [$type]: Reader<TyVar<this, 0>, TyVar<this, 1>>;
 }

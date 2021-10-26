@@ -1,3 +1,7 @@
+/**
+ * @module cats/test-kit
+ */
+
 export * from './rules';
 export * from './exec';
 export * from './for-all';

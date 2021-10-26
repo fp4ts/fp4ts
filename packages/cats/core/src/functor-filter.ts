@@ -2,6 +2,9 @@ import { Kind, id } from '@cats4ts/core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 
+/**
+ * @category Type Class
+ */
 export interface FunctorFilter<F> extends Functor<F> {
   readonly mapFilter: <A, B>(
     f: (a: A) => Option<B>,

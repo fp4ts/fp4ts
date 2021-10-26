@@ -82,6 +82,10 @@ Either.Eq = eitherEq;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface EitherK extends TyK<[unknown, unknown]> {
   [$type]: Either<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -88,6 +88,10 @@ Object.defineProperty(Identity, 'Traversable', {
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface IdentityK extends TyK<[unknown]> {
   [$type]: TyVar<this, 0>;
 }

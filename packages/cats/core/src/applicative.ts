@@ -3,6 +3,9 @@ import { Functor } from './functor';
 import { Apply } from './apply';
 import { ComposedApplicative } from './composed';
 
+/**
+ * @category Type Class
+ */
 export interface Applicative<F> extends Apply<F> {
   readonly pure: <A>(a: A) => Kind<F, [A]>;
   readonly unit: Kind<F, [void]>;

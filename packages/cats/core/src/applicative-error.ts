@@ -2,6 +2,9 @@ import { Kind, pipe } from '@cats4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { Either, Right, Left } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface ApplicativeError<F, E> extends Applicative<F> {
   readonly throwError: <A>(e: E) => Kind<F, [A]>;
 

@@ -4,6 +4,9 @@ import { Eval } from './eval';
 
 import { Monoid } from './monoid';
 
+/**
+ * @category Type Class
+ */
 export interface UnorderedFoldable<F> extends Base<F> {
   readonly unorderedFoldMap: <M>(
     M: Monoid<M>,

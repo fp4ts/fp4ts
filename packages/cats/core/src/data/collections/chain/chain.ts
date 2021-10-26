@@ -36,7 +36,13 @@ import {
   chainTraversable,
 } from './instances';
 
+/**
+ * @category Collection
+ */
 export type Chain<A> = ChainBase<A>;
+/**
+ * @category Collection
+ */
 export const Chain: ChainObj = function (...xs: any[]) {
   return fromArray(xs);
 } as any;
@@ -116,6 +122,10 @@ Object.defineProperty(Chain, 'Traversable', {
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface ChainK extends TyK<[unknown]> {
   [$type]: Chain<TyVar<this, 0>>;
 }

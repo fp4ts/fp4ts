@@ -53,6 +53,10 @@ Object.defineProperty(Ior, 'Bifunctor', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface IorK extends TyK<[unknown, unknown]> {
   [$type]: Ior<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -2,6 +2,9 @@ import { instance, Kind, α, λ } from '@cats4ts/core';
 import { SemigroupK } from '../semigroup-k';
 import { Semigroup } from '../semigroup';
 
+/**
+ * @category Type Class
+ */
 export interface Compose<F> {
   readonly compose: <A, B>(
     g: Kind<F, [A, B]>,

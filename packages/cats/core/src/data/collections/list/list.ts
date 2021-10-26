@@ -148,6 +148,10 @@ List.Eq = listEq;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface ListK extends TyK<[unknown]> {
   [$type]: List<TyVar<this, 0>>;
 }

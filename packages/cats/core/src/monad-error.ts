@@ -6,6 +6,9 @@ import {
 } from './applicative-error';
 import { Either } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface MonadError<F, E> extends ApplicativeError<F, E>, Monad<F> {
   readonly redeemWith: <A, B>(
     h: (e: E) => Kind<F, [B]>,

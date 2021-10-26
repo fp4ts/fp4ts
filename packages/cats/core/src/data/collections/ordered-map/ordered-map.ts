@@ -71,6 +71,10 @@ OrderedMap.Traversable = orderedMapTraversable;
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface OrderedMapK extends TyK<[unknown, unknown]> {
   [$type]: OrderedMap<TyVar<this, 0>, TyVar<this, 1>>;
 }

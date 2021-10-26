@@ -2,6 +2,9 @@ import crypto from 'crypto';
 import { Lazy, PrimitiveType } from '@cats4ts/core';
 import { Eq, primitiveEq } from './eq';
 
+/**
+ * @category Type Class
+ */
 export interface Hashable<A> extends Eq<A> {
   hash: (a: A) => string;
 }

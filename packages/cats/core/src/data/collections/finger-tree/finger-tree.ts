@@ -32,6 +32,10 @@ FingerTree.fromList = fromList;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface FingerTreeK extends TyK<[unknown, unknown]> {
   [$type]: FingerTree<TyVar<this, 0>, TyVar<this, 1>>;
 }

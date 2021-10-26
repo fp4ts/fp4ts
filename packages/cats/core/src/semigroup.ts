@@ -1,5 +1,8 @@
 import { Lazy } from '@cats4ts/core';
 
+/**
+ * @category Type Class
+ */
 export interface Semigroup<S> {
   readonly combine: (y: Lazy<S>) => (x: S) => S;
   readonly combine_: (x: S, y: Lazy<S>) => S;

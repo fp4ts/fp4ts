@@ -4,6 +4,9 @@ import { Functor } from './functor';
 import { Semigroup } from './semigroup';
 import { Ior, Option } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface Align<F> extends Base<F> {
   readonly functor: Functor<F>;
 

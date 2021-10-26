@@ -44,6 +44,10 @@ Tuple2K.Applicative = tuple2KApplicative;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface Tuple2kK extends TyK<[unknown, unknown, unknown]> {
   [$type]: Tuple2K<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

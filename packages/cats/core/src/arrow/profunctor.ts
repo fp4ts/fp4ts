@@ -1,5 +1,8 @@
 import { Base, Kind, instance, id } from '@cats4ts/core';
 
+/**
+ * @category Type Class
+ */
 export interface Profunctor<F> extends Base<F> {
   readonly dimap: <A, B, C, D>(
     f: (c: C) => A,

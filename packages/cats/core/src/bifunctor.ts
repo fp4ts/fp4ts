@@ -1,6 +1,9 @@
 import { $, Base, Fix, id, instance, Kind, α, λ } from '@cats4ts/core';
 import { Functor } from './functor';
 
+/**
+ * @category Type Class
+ */
 export interface Bifunctor<F> extends Base<F> {
   readonly bimap: <A, B, C, D>(
     f: (a: A) => C,

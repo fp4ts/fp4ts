@@ -1,3 +1,6 @@
+/**
+ * @module effect/kernel
+ */
 export * from './clock';
 export * from './monad-cancel';
 export * from './spawn';

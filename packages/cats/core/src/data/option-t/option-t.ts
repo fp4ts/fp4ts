@@ -87,6 +87,10 @@ OptionT.Monad = optionTMonad;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface OptionTK extends TyK<[unknown, unknown]> {
   [$type]: OptionT<TyVar<this, 0>, TyVar<this, 1>>;
 }

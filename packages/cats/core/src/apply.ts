@@ -3,6 +3,9 @@ import { Eval } from './eval';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
 
+/**
+ * @category Type Class
+ */
 export interface Apply<F> extends Functor<F> {
   readonly ap: <A>(
     fa: Kind<F, [A]>,

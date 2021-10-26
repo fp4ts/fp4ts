@@ -119,6 +119,10 @@ Object.defineProperty(Array, 'Traversable', {
 
 // HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface ArrayK extends TyK<[unknown]> {
   [$type]: Array<TyVar<this, 0>>;
 }

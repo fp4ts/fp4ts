@@ -5,6 +5,9 @@ import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
 import { Functor } from './functor';
 
+/**
+ * @category Type Class
+ */
 export interface Monad<F> extends FlatMap<F>, Applicative<F> {
   readonly Do: Kind<F, [{}]>;
 

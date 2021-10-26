@@ -5,6 +5,9 @@ import {
   UnorderedFoldableRequirements,
 } from './unordered-foldable';
 
+/**
+ * @category Type Class
+ */
 export interface UnorderedTraversable<T> extends UnorderedFoldable<T> {
   readonly unorderedTraverse: <G>(
     G: Applicative<G>,

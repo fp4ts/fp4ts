@@ -1,3 +1,6 @@
+/**
+ * @module cats/core
+ */
 export * from './arrow';
 export * from './align';
 export * from './semigroup-k';

@@ -2,6 +2,9 @@ import { id, Kind } from '@cats4ts/core';
 import { Category } from './category';
 import { Strong } from './strong';
 
+/**
+ * @category Type Class
+ */
 export interface Arrow<F> extends Category<F>, Strong<F> {
   readonly lift: <A, B>(f: (a: A) => B) => Kind<F, [A, B]>;
 

@@ -4,6 +4,9 @@ import { Either } from '../data';
 import { Arrow, ArrowRequirements } from './arrow';
 import { Choice, ChoiceRequirements } from './choice';
 
+/**
+ * @category Type Class
+ */
 export interface ArrowChoice<F> extends Arrow<F>, Choice<F> {
   readonly choose: <A, B, C, D>(
     f: Kind<F, [A, C]>,

@@ -1,4 +1,5 @@
 export abstract class Try<A> {
+  /** @hidden */
   private readonly __void!: void;
 }
 

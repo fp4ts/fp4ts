@@ -6,6 +6,9 @@ import { Traversable } from './traversable';
 import { ApplicativeError } from './applicative-error';
 import { MonadError } from './monad-error';
 
+/**
+ * @category Type Class
+ */
 export interface Parallel<M, F> extends Base<M> {
   readonly applicative: Applicative<F>;
 

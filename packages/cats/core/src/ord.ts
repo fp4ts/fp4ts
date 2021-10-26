@@ -7,6 +7,9 @@ export enum Compare {
   EQ,
 }
 
+/**
+ * @category Type Class
+ */
 export interface Ord<A> extends Eq<A> {
   readonly compare: (lhs: A, rhs: A) => Compare;
   readonly lt: (lhs: A, rhs: A) => boolean;

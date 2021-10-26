@@ -1,5 +1,8 @@
 import { Lazy, PrimitiveType } from '@cats4ts/core';
 
+/**
+ * @category Type Class
+ */
 export interface Eq<A> {
   readonly equals: (lhs: A, rhs: A) => boolean;
   readonly notEquals: (lhs: A, rhs: A) => boolean;

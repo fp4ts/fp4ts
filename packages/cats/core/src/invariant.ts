@@ -1,5 +1,8 @@
 import { Base, instance, Kind } from '@cats4ts/core';
 
+/**
+ * @category Type Class
+ */
 export interface Invariant<F> extends Base<F> {
   readonly imap: <A, B>(
     f: (a: A) => B,

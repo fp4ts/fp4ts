@@ -156,6 +156,10 @@ Object.defineProperty(Vector, 'Traversable', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
 export interface VectorK extends TyK<[unknown]> {
   [$type]: Vector<TyVar<this, 0>>;
 }

@@ -2,6 +2,9 @@ import { Kind } from '@cats4ts/core';
 import { Either } from '../data';
 import { Category, CategoryRequirements } from './category';
 
+/**
+ * @category Type Class
+ */
 export interface Choice<F> extends Category<F> {
   readonly choice: <A, B, C>(
     f: Kind<F, [A, C]>,

@@ -1,6 +1,9 @@
 import { Kind } from '@cats4ts/core';
 import { Invariant } from './invariant';
 
+/**
+ * @category Type Class
+ */
 export interface Contravariant<F> extends Invariant<F> {
   readonly contramap: <A, B>(
     f: (b: B) => A,

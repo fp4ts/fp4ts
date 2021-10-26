@@ -60,6 +60,10 @@ Const.Traversable = constTraversable;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface ConstK extends TyK<[unknown, unknown]> {
   [$type]: Const<TyVar<this, 0>, TyVar<this, 1>>;
 }

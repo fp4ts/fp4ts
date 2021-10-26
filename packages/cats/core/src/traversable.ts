@@ -8,6 +8,9 @@ import {
   UnorderedTraversableRequirements,
 } from './unordered-traversable';
 
+/**
+ * @category Type Class
+ */
 export interface Traversable<T>
   extends Functor<T>,
     Foldable<T>,

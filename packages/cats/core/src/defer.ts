@@ -1,5 +1,8 @@
 import { Base, Kind, instance } from '@cats4ts/core';
 
+/**
+ * @category Type Class
+ */
 export interface Defer<F> extends Base<F> {
   readonly defer: <A>(fa: () => Kind<F, [A]>) => Kind<F, [A]>;
 

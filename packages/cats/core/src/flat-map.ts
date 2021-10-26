@@ -2,6 +2,9 @@ import { id, Kind } from '@cats4ts/core';
 import { Apply } from './apply';
 import { Either } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface FlatMap<F> extends Apply<F> {
   readonly flatMap: <A, B>(
     f: (a: A) => Kind<F, [B]>,

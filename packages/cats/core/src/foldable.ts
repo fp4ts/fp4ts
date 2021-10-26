@@ -5,6 +5,9 @@ import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
 import { List, Vector, Option, Some, None, Either, Left, Right } from './data';
 
+/**
+ * @category Type Class
+ */
 export interface Foldable<F> extends UnorderedFoldable<F> {
   readonly foldLeft: <A, B>(
     b: B,
