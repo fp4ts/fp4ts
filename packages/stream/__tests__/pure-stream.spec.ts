@@ -66,7 +66,7 @@ describe('Pure Stream', () => {
     });
 
     it('should emit no values when drained', () => {
-      expect(Stream(1, 2, 3).drain.compile.toList).toEqual(List.empty);
+      expect(Stream(1, 2, 3).drain.compile().toList).toEqual(List.empty);
     });
   });
 
@@ -114,29 +114,31 @@ describe('Pure Stream', () => {
 
   describe('last', () => {
     it('should return nothing when stream is empty', () => {
-      expect(Stream.empty().last.compile.toList).toEqual(List.empty);
+      expect(Stream.empty().last.compile().toList).toEqual(List.empty);
     });
 
     it('should return last element of a singleton stream', () => {
-      expect(Stream(42).last.compile.toList).toEqual(List(42));
+      expect(Stream(42).last.compile().toList).toEqual(List(42));
     });
 
     it('should return last element of a stream', () => {
-      expect(Stream(1, 2, 3).last.compile.toList).toEqual(List(3));
+      expect(Stream(1, 2, 3).last.compile().toList).toEqual(List(3));
     });
   });
 
   describe('lastOption', () => {
     it('should return None when stream is empty', () => {
-      expect(Stream.empty().lastOption.compile.toList).toEqual(List(None));
+      expect(Stream.empty().lastOption.compile().toList).toEqual(List(None));
     });
 
     it('should return last element of a singleton stream', () => {
-      expect(Stream(42).lastOption.compile.toList).toEqual(List(Some(42)));
+      expect(Stream(42).lastOption.compile().toList).toEqual(List(Some(42)));
     });
 
     it('should return last element of a stream', () => {
-      expect(Stream(1, 2, 3).lastOption.compile.toList).toEqual(List(Some(3)));
+      expect(Stream(1, 2, 3).lastOption.compile().toList).toEqual(
+        List(Some(3)),
+      );
     });
   });
 
@@ -195,58 +197,68 @@ describe('Pure Stream', () => {
         (ss, i) => ss['+++'](Stream(i)),
         Stream.empty() as Stream<PureK, number>,
       );
-      expect(s.take(10_000).compile.toArray).toEqual(xs);
+      expect(s.take(10_000).compile().toArray).toEqual(xs);
     });
   });
 
   describe('takeRight', () => {
     it('should output no values if empty', () => {
-      expect(Stream.empty().takeRight(5).compile.toList).toEqual(List.empty);
+      expect(Stream.empty().takeRight(5).compile().toList).toEqual(List.empty);
     });
 
     it('should output no values if non-positive number', () => {
-      expect(Stream(1, 2, 3).takeRight(-1).compile.toList).toEqual(List.empty);
+      expect(Stream(1, 2, 3).takeRight(-1).compile().toList).toEqual(
+        List.empty,
+      );
     });
 
     it('should return last two values of the stream', () => {
-      expect(Stream(1, 2, 3).takeRight(2).compile.toList).toEqual(List(2, 3));
+      expect(Stream(1, 2, 3).takeRight(2).compile().toList).toEqual(List(2, 3));
     });
 
     it('should return the entire stream', () => {
-      expect(Stream(1, 2, 3).takeRight(10_000).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).takeRight(10_000).compile().toList).toEqual(
         List(1, 2, 3),
       );
     });
 
     it('should be stack safe', () => {
-      expect(Stream.range(0, 10_000).takeRight(10_000).compile.toArray).toEqual(
-        [...new Array(10_000).keys()],
-      );
+      expect(
+        Stream.range(0, 10_000).takeRight(10_000).compile().toArray,
+      ).toEqual([...new Array(10_000).keys()]);
     });
   });
 
   describe('takeWhile', () => {
     it('should take no elements when predicate returns false', () => {
-      expect(Stream(1, 2, 3).takeWhile(() => false).compile.toList).toEqual(
-        List.empty,
-      );
+      expect(
+        Stream(1, 2, 3)
+          .takeWhile(() => false)
+          .compile().toList,
+      ).toEqual(List.empty);
     });
 
     it('should take single elements when taking a failure', () => {
       expect(
-        Stream(1, 2, 3).takeWhile(() => false, true).compile.toList,
+        Stream(1, 2, 3)
+          .takeWhile(() => false, true)
+          .compile().toList,
       ).toEqual(List(1));
     });
 
     it('should take even numbers', () => {
       expect(
-        Stream(2, 4, 8, 9).takeWhile(x => x % 2 === 0).compile.toList,
+        Stream(2, 4, 8, 9)
+          .takeWhile(x => x % 2 === 0)
+          .compile().toList,
       ).toEqual(List(2, 4, 8));
     });
 
     it('should take even numbers and first odd number', () => {
       expect(
-        Stream(2, 4, 8, 9).takeWhile(x => x % 2 === 0, true).compile.toList,
+        Stream(2, 4, 8, 9)
+          .takeWhile(x => x % 2 === 0, true)
+          .compile().toList,
       ).toEqual(List(2, 4, 8, 9));
     });
   });
@@ -278,60 +290,68 @@ describe('Pure Stream', () => {
         (ss, i) => ss['+++'](Stream(i)),
         Stream.empty() as Stream<PureK, number>,
       );
-      expect(s.drop(10_000).compile.toArray).toEqual([]);
+      expect(s.drop(10_000).compile().toArray).toEqual([]);
     });
   });
 
   describe('dropRight', () => {
     it('should output no values if empty', () => {
-      expect(Stream.empty().dropRight(5).compile.toList).toEqual(List.empty);
+      expect(Stream.empty().dropRight(5).compile().toList).toEqual(List.empty);
     });
 
     it('should identity stream', () => {
-      expect(Stream(1, 2, 3).dropRight(-1).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).dropRight(-1).compile().toList).toEqual(
         List(1, 2, 3),
       );
     });
 
     it('should return last value of the stream', () => {
-      expect(Stream(1, 2, 3).dropRight(1).compile.toList).toEqual(List(1, 2));
+      expect(Stream(1, 2, 3).dropRight(1).compile().toList).toEqual(List(1, 2));
     });
 
     it('should drop the entire stream', () => {
-      expect(Stream(1, 2, 3).dropRight(10_000).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).dropRight(10_000).compile().toList).toEqual(
         List.empty,
       );
     });
 
     it('should be stack safe', () => {
-      expect(Stream.range(0, 10_000).dropRight(10_000).compile.toArray).toEqual(
-        [],
-      );
+      expect(
+        Stream.range(0, 10_000).dropRight(10_000).compile().toArray,
+      ).toEqual([]);
     });
   });
 
   describe('dropWhile', () => {
     it('should drop no elements when predicate returns false', () => {
-      expect(Stream(1, 2, 3).dropWhile(() => false).compile.toList).toEqual(
-        List(1, 2, 3),
-      );
+      expect(
+        Stream(1, 2, 3)
+          .dropWhile(() => false)
+          .compile().toList,
+      ).toEqual(List(1, 2, 3));
     });
 
     it('should drop single elements when dropping a failure', () => {
       expect(
-        Stream(1, 2, 3).dropWhile(() => false, true).compile.toList,
+        Stream(1, 2, 3)
+          .dropWhile(() => false, true)
+          .compile().toList,
       ).toEqual(List(2, 3));
     });
 
     it('should drop even numbers', () => {
       expect(
-        Stream(2, 4, 8, 9).dropWhile(x => x % 2 === 0).compile.toList,
+        Stream(2, 4, 8, 9)
+          .dropWhile(x => x % 2 === 0)
+          .compile().toList,
       ).toEqual(List(9));
     });
 
     it('should drop even numbers and first odd number', () => {
       expect(
-        Stream(2, 4, 8, 9).dropWhile(x => x % 2 === 0, true).compile.toList,
+        Stream(2, 4, 8, 9)
+          .dropWhile(x => x % 2 === 0, true)
+          .compile().toList,
       ).toEqual(List.empty);
     });
   });
@@ -339,13 +359,13 @@ describe('Pure Stream', () => {
   describe('chunking', () => {
     it('should promote chunks to values', () => {
       expect(
-        Stream(1, 2, 3)['+++'](Stream(4, 5, 6)).chunks.compile.toList,
+        Stream(1, 2, 3)['+++'](Stream(4, 5, 6)).chunks.compile().toList,
       ).toEqual(List(Chunk(1, 2, 3), Chunk(4, 5, 6)));
     });
 
     it('should collect all values into a single chunk', () => {
       expect(
-        Stream(1)['+++'](Stream(2))['+++'](Stream(3)).chunkAll.compile.last
+        Stream(1)['+++'](Stream(2))['+++'](Stream(3)).chunkAll.compile().last
           .toArray,
       ).toEqual([1, 2, 3]);
     });
@@ -355,7 +375,8 @@ describe('Pure Stream', () => {
         Stream(1, 2)
           ['+++'](Stream(4, 5)['+++'](Stream(5, 6)))
           .chunkLimit(100)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [4, 5], [5, 6]));
     });
 
@@ -364,12 +385,13 @@ describe('Pure Stream', () => {
         Stream(1, 2, 3)
           ['+++'](Stream(4, 5)['+++'](Stream(6, 7, 8, 9)))
           .chunkLimit(2)
-          .compile.toList.map(x => x.toArray),
+          .compile()
+          .toList.map(x => x.toArray),
       ).toEqual(List([1, 2], [3], [4, 5], [6, 7], [8, 9]));
     });
 
     it('should  a single chunk', () => {
-      expect(Stream(1, 2, 3).chunkMin(0).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).chunkMin(0).compile().toList).toEqual(
         List(Chunk(1, 2, 3)),
       );
     });
@@ -379,7 +401,8 @@ describe('Pure Stream', () => {
         Stream(1, 2, 3, 4, 5)
           .chunkLimit(1)
           .unchunks.chunkMin(2, true)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [3, 4], [5]));
     });
 
@@ -388,7 +411,8 @@ describe('Pure Stream', () => {
         Stream(1, 2, 3, 4, 5)
           .chunkLimit(1)
           .unchunks.chunkMin(2, false)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [3, 4]));
     });
 
@@ -396,7 +420,8 @@ describe('Pure Stream', () => {
       expect(
         Stream(1, 2, 3, 4, 5, 6, 7)
           .chunkN(2, false)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [3, 4], [5, 6]));
     });
 
@@ -404,7 +429,8 @@ describe('Pure Stream', () => {
       expect(
         Stream(1, 2, 3, 4, 5, 6, 7)
           .chunkN(2, true)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [3, 4], [5, 6], [7]));
     });
 
@@ -418,7 +444,8 @@ describe('Pure Stream', () => {
       expect(
         Stream(1, 2, 3, 4, 5)
           .sliding(2, 3)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2], [4, 5]));
     });
 
@@ -426,13 +453,14 @@ describe('Pure Stream', () => {
       expect(
         Stream(1, 2, 3, 4, 5)
           .sliding(3, 2)
-          .compile.toList.map(c => c.toArray),
+          .compile()
+          .toList.map(c => c.toArray),
       ).toEqual(List([1, 2, 3], [3, 4, 5]));
     });
 
     it('should be stack safe', () => {
       const xs = [...new Array(10_000).keys()];
-      const ys = Stream.fromArray(xs).sliding(1).unchunks.compile.toArray;
+      const ys = Stream.fromArray(xs).sliding(1).unchunks.compile().toArray;
       expect(ys).toEqual(xs);
     });
   });
@@ -440,123 +468,150 @@ describe('Pure Stream', () => {
   describe('filtering', () => {
     it('should filter out duplicated values', () => {
       expect(
-        Stream(1, 1, 2, 2, 2, 2, 3, 4, 4, 5).changes().compile.toList,
+        Stream(1, 1, 2, 2, 2, 2, 3, 4, 4, 5).changes().compile().toList,
       ).toEqual(List(1, 2, 3, 4, 5));
     });
 
     it('should filter out all elements of the stream', () => {
-      expect(Stream(1, 2, 3, 4, 5).filter(() => false).compile.toList).toEqual(
-        List.empty,
-      );
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .filter(() => false)
+          .compile().toList,
+      ).toEqual(List.empty);
     });
 
     it('should filter out even elements of the list', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).filter(x => x % 2 === 0).compile.toList,
+        Stream(1, 2, 3, 4, 5)
+          .filter(x => x % 2 === 0)
+          .compile().toList,
       ).toEqual(List(2, 4));
     });
 
     it('should filter out odd elements of the list', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).filterNot(x => x % 2 === 0).compile.toList,
+        Stream(1, 2, 3, 4, 5)
+          .filterNot(x => x % 2 === 0)
+          .compile().toList,
       ).toEqual(List(1, 3, 5));
     });
 
     it('should collect even values as strings', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).collect(x => (x % 2 === 0 ? Some(`${x}`) : None))
-          .compile.toList,
+        Stream(1, 2, 3, 4, 5)
+          .collect(x => (x % 2 === 0 ? Some(`${x}`) : None))
+          .compile().toList,
       ).toEqual(List('2', '4'));
     });
 
     it('should collect first even value', () => {
       expect(
-        Stream(1, 3, 5, 6).collectFirst(x =>
-          x % 2 === 0 ? Some(`${x}`) : None,
-        ).compile.toList,
+        Stream(1, 3, 5, 6)
+          .collectFirst(x => (x % 2 === 0 ? Some(`${x}`) : None))
+          .compile().toList,
       ).toEqual(List('6'));
     });
 
     it('should collect even elements until first odd one occurs', () => {
       expect(
-        Stream(2, 4, 6, 8, 9).collectWhile(x =>
-          x % 2 === 0 ? Some(`${x}`) : None,
-        ).compile.toList,
+        Stream(2, 4, 6, 8, 9)
+          .collectWhile(x => (x % 2 === 0 ? Some(`${x}`) : None))
+          .compile().toList,
       ).toEqual(List('2', '4', '6', '8'));
     });
   });
 
   describe('folds', () => {
     it('should return initial value when empty', () => {
-      expect(Stream.empty().fold(0, (x, y) => x + y).compile.last).toBe(0);
+      expect(
+        Stream.empty()
+          .fold(0, (x, y) => x + y)
+          .compile().last,
+      ).toBe(0);
     });
 
     it('should add up all numbers of the stream', () => {
-      expect(Stream(1, 2, 3, 4, 5).fold(0, (x, y) => x + y).compile.last).toBe(
-        15,
-      );
+      expect(
+        Stream(1, 2, 3, 4, 5)
+          .fold(0, (x, y) => x + y)
+          .compile().last,
+      ).toBe(15);
     });
 
     it('should foldMap using a list monoid', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).foldMap(List.MonoidK.algebra<number>())(List)
-          .compile.last,
+        Stream(1, 2, 3, 4, 5)
+          .foldMap(List.MonoidK.algebra<number>())(List)
+          .compile().last,
       ).toEqual(List(1, 2, 3, 4, 5));
     });
 
     it('should foldMap using a list monoidK', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).foldMapK(List.MonoidK)(List).compile.last,
+        Stream(1, 2, 3, 4, 5).foldMapK(List.MonoidK)(List).compile().last,
       ).toEqual(List(1, 2, 3, 4, 5));
     });
   });
 
   describe('unfolds', () => {
     it('should produce an empty stream', () => {
-      expect(Stream.unfold(0)(() => None).compile.toList).toEqual(List.empty);
+      expect(Stream.unfold(0)(() => None).compile().toList).toEqual(List.empty);
     });
 
     it('should produce sequence of numbers from 0 to 5', () => {
       expect(
-        Stream.unfold(0)(n => (n <= 5 ? Some([n, n + 1]) : None)).compile
+        Stream.unfold(0)(n => (n <= 5 ? Some([n, n + 1]) : None)).compile()
           .toList,
       ).toEqual(List(0, 1, 2, 3, 4, 5));
     });
 
     it('should produce an empty stream from no chunks', () => {
-      expect(Stream.unfoldChunk(0)(() => None).compile.toList).toEqual(
+      expect(Stream.unfoldChunk(0)(() => None).compile().toList).toEqual(
         List.empty,
       );
     });
 
     it('should produce stream of duplicated numbers from 0 to 5', () => {
       expect(
-        Stream.unfoldChunk(0)(n => (n <= 5 ? Some([Chunk(n, n), n + 1]) : None))
-          .compile.toList,
+        Stream.unfoldChunk(0)(n =>
+          n <= 5 ? Some([Chunk(n, n), n + 1]) : None,
+        ).compile().toList,
       ).toEqual(List(0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5));
     });
   });
 
   describe('scan', () => {
     it('should produce a initial value singleton list when stream is empty', () => {
-      expect(Stream.empty().scan(0, () => -1).compile.toList).toEqual(List(0));
+      expect(
+        Stream.empty()
+          .scan(0, () => -1)
+          .compile().toList,
+      ).toEqual(List(0));
     });
 
     it('should produce a rolling sum of streamed values', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).scan(0, (x, y) => x + y).compile.toList,
+        Stream(1, 2, 3, 4, 5)
+          .scan(0, (x, y) => x + y)
+          .compile().toList,
       ).toEqual(List(0, 1, 3, 6, 10, 15));
     });
   });
 
   describe('scan1', () => {
     it('should output no values if empty', () => {
-      expect(Stream.empty().scan1(() => -1).compile.toList).toEqual(List.empty);
+      expect(
+        Stream.empty()
+          .scan1(() => -1)
+          .compile().toList,
+      ).toEqual(List.empty);
     });
 
     it('should produce a rolling sum of streamed values', () => {
       expect(
-        Stream(1, 2, 3, 4, 5).scan1((x, y) => x + y).compile.toList,
+        Stream(1, 2, 3, 4, 5)
+          .scan1((x, y) => x + y)
+          .compile().toList,
       ).toEqual(List(1, 3, 6, 10, 15));
     });
   });
@@ -564,7 +619,9 @@ describe('Pure Stream', () => {
   describe('scanChunks', () => {
     it('should output no values if empty', () => {
       expect(
-        Stream.empty().scanChunks(0, (s, c) => [s, c]).compile.toList,
+        Stream.empty()
+          .scanChunks(0, (s, c) => [s, c])
+          .compile().toList,
       ).toEqual(List.empty);
     });
 
@@ -575,56 +632,57 @@ describe('Pure Stream', () => {
           .unchunks.scanChunks(0, (s, c) => {
             const [c2, s2] = c.scanLeftCarry(s, (x, y) => x + y);
             return [s2, c2];
-          }).compile.toList,
+          })
+          .compile().toList,
       ).toEqual(List(1, 3, 6, 10));
     });
   });
 
   describe('zipping', () => {
     it('should emit no values when lhs is empty', () => {
-      expect(Stream.empty().zip(Stream(1, 2, 3)).compile.toList).toEqual(
+      expect(Stream.empty().zip(Stream(1, 2, 3)).compile().toList).toEqual(
         List.empty,
       );
     });
 
     it('should emit no values when rhs is empty', () => {
-      expect(Stream(1, 2, 3).zip(Stream.empty()).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).zip(Stream.empty()).compile().toList).toEqual(
         List.empty,
       );
     });
 
     it('should zip two streams', () => {
-      expect(Stream(1, 2, 3).zip(Stream(4, 5, 6)).compile.toList).toEqual(
+      expect(Stream(1, 2, 3).zip(Stream(4, 5, 6)).compile().toList).toEqual(
         List([1, 4], [2, 5], [3, 6]),
       );
     });
 
     it('should pad lhs', () => {
       expect(
-        Stream(1, 2).zipAll(Stream(4, 5, 6))(-1, -2).compile.toList,
+        Stream(1, 2).zipAll(Stream(4, 5, 6))(-1, -2).compile().toList,
       ).toEqual(List([1, 4], [2, 5], [-1, 6]));
     });
 
     it('should pad rhs', () => {
       expect(
-        Stream(1, 2, 3).zipAll(Stream(4, 5))(-1, -2).compile.toList,
+        Stream(1, 2, 3).zipAll(Stream(4, 5))(-1, -2).compile().toList,
       ).toEqual(List([1, 4], [2, 5], [3, -2]));
     });
 
     it('should zip values with their indexes', () => {
-      expect(Stream(1, 2, 3, 4, 5).zipWithIndex.compile.toList).toEqual(
+      expect(Stream(1, 2, 3, 4, 5).zipWithIndex.compile().toList).toEqual(
         List([1, 0], [2, 1], [3, 2], [4, 3], [5, 4]),
       );
     });
 
     it('should zip each of the values with its successor', () => {
-      expect(Stream(1, 2, 3).zipWithNext.compile.toList).toEqual(
+      expect(Stream(1, 2, 3).zipWithNext.compile().toList).toEqual(
         List([1, Some(2)], [2, Some(3)], [3, None]),
       );
     });
 
     it('should zip each of the values with its predecessor', () => {
-      expect(Stream(1, 2, 3).zipWithPrevious.compile.toList).toEqual(
+      expect(Stream(1, 2, 3).zipWithPrevious.compile().toList).toEqual(
         List([None, 1], [Some(1), 2], [Some(2), 3]),
       );
     });
@@ -643,7 +701,7 @@ describe('Pure Stream', () => {
   });
 
   const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureK, X>> =>
-    Eq.by(List.Eq(EqX), s => s.compile.toList);
+    Eq.by(List.Eq(EqX), s => s.compile().toList);
 
   const monoidKTests = MonoidKSuite(Stream.MonoidK<PureK>());
   checkAll(

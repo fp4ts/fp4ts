@@ -1,5 +1,11 @@
 import { Kind } from '@fp4ts/core';
-import { Option, FunctionK, MonadError } from '@fp4ts/cats';
+import {
+  Option,
+  FunctionK,
+  IdentityK,
+  Applicative,
+  MonadError,
+} from '@fp4ts/cats';
 
 import { Pull } from './algebra';
 import {
@@ -135,6 +141,8 @@ declare module './algebra' {
       f: (s: S) => Option<(o: Chunk<OO>) => [S, Chunk<O2>]>,
     ): Pull<F, O2, S>;
 
+    covaryId<G>(this: Pull<IdentityK, O, R>, G: Applicative<G>): Pull<G, O, R>;
+
     compile<O2>(
       this: Pull<F, O2, void>,
       F: MonadError<F, Error>,
@@ -244,6 +252,10 @@ Pull.prototype.scanChunks = function (s, f) {
 
 Pull.prototype.scanChunksOpt = function (s, f) {
   return scanChunksOpt_(this, s, f);
+};
+
+Pull.prototype.covaryId = function (G) {
+  return translate_(this, G.pure);
 };
 
 Pull.prototype.compile = function (F) {

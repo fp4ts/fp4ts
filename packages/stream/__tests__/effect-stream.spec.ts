@@ -35,7 +35,7 @@ describe('Effect-ful stream', () => {
       expect(
         Stream.repeatEval<SyncIoK, number>(count)
           .take(5)
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toList.unsafeRunSync(),
       ).toEqual(List(0, 1, 2, 3, 4));
     });
@@ -46,7 +46,7 @@ describe('Effect-ful stream', () => {
       expect(
         StreamSync(1, 2, 3, 4, 5)
           .evalMap(x => SyncIO(() => x * 2))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toList.unsafeRunSync(),
       ).toEqual(List(2, 4, 6, 8, 10));
     });
@@ -59,7 +59,7 @@ describe('Effect-ful stream', () => {
               ? SyncIO.throwError(new Error('test error'))
               : SyncIO.pure(x),
           )
-          .attempt.compileF(SyncIO.MonadError)
+          .attempt.compileSync()
           .toArray.unsafeRunSync(),
       ).toEqual([Right(1), Right(2), Left(new Error('test error'))]);
     });
@@ -75,7 +75,7 @@ describe('Effect-ful stream', () => {
         )
           .attempts(IO.Temporal)(Stream<IoK, number>(1).repeat)
           .take(3)
-          .compileF(IO.MonadError).toList,
+          .compileConcurrent().toList,
       ).toCompleteWith(
         List<Either<Error, number>>(
           Left(new Error('test error')),
@@ -93,7 +93,7 @@ describe('Effect-ful stream', () => {
         StreamSync(1, 2, 3)
           .chunkLimit(1)
           .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toList.unsafeRunSync(),
       ).toEqual(List(2, 4, 6));
     });
@@ -104,7 +104,7 @@ describe('Effect-ful stream', () => {
           .repeat.chunkN(100)
           .unchunks.evalMapChunk(SyncIO.Applicative)(x => SyncIO(() => x * 2))
           .take(10_000)
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toArray.unsafeRunSync(),
       ).toEqual([...new Array(10_000).keys()].map(() => 2));
     });
@@ -116,7 +116,7 @@ describe('Effect-ful stream', () => {
         Stream(1, 2, 3, 4, 5)
           .covary<SyncIoK>()
           .evalCollect(x => SyncIO(() => (x % 2 === 0 ? Some(x) : None)))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toArray.unsafeRunSync(),
       ).toEqual([2, 4]);
     });
@@ -136,7 +136,7 @@ describe('Effect-ful stream', () => {
           ),
       )(
         Eq.by(List.Eq(Either.Eq(Eq.Error.strict, Eq.primitive)), s =>
-          s.compileF(SyncIO.MonadError).toList.unsafeRunSync(),
+          s.compileSync().toList.unsafeRunSync(),
         ),
       ),
     );
@@ -148,7 +148,7 @@ describe('Effect-ful stream', () => {
         Stream(1, 2, 3, 4)
           .covary<SyncIoK>()
           .evalScan(0, (acc, i) => SyncIO(() => acc + i))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toArray.unsafeRunSync(),
       ).toEqual([0, 1, 3, 6, 10]);
     });
@@ -158,7 +158,7 @@ describe('Effect-ful stream', () => {
         Stream(1, 2, 3, 4)
           .covary<SyncIoK>()
           .evalScan(0, (acc, i) => SyncIO(() => acc + i))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toArray.unsafeRunSync(),
       ).toEqual([0, 1, 3, 6, 10]);
     });
@@ -166,15 +166,17 @@ describe('Effect-ful stream', () => {
 
   describe('attempt', () => {
     it('should wrap values to Right when successful', () => {
-      expect(Stream(1, 2, 3).map(x => x * x).attempt.compile.toList).toEqual(
-        List(Right(1), Right(4), Right(9)),
-      );
+      expect(
+        Stream(1, 2, 3)
+          .map(x => x * x)
+          .attempt.compile().toList,
+      ).toEqual(List(Right(1), Right(4), Right(9)));
     });
 
     it('should wrap capture erroneous chunk', () => {
       expect(
         Stream.throwError<SyncIoK>(new Error('test error'))
-          .attempt.compileF(SyncIO.MonadError)
+          .attempt.compileSync()
           .last.unsafeRunSync(),
       ).toEqual(Left(new Error('test error')));
     });
@@ -183,7 +185,8 @@ describe('Effect-ful stream', () => {
       expect(
         Stream(1, 2, 3)
           ['+++'](Stream.throwError(new Error('test error')))
-          .map(x => x * 2).attempt.compile.toList,
+          .map(x => x * 2)
+          .attempt.compile().toList,
       ).toEqual(
         List<Either<Error, number>>(
           Right(2),
@@ -198,10 +201,12 @@ describe('Effect-ful stream', () => {
   describe('redeemWith', () => {
     it('should transform successful values', () => {
       expect(
-        Stream(1, 2, 3).redeemWith(
-          () => Stream(-1),
-          x => Stream(x * 2),
-        ).compile.toList,
+        Stream(1, 2, 3)
+          .redeemWith(
+            () => Stream(-1),
+            x => Stream(x * 2),
+          )
+          .compile().toList,
       ).toEqual(List(2, 4, 6));
     });
 
@@ -216,7 +221,8 @@ describe('Effect-ful stream', () => {
             return Stream.empty();
           },
           () => Stream.empty(),
-        ).compile.drain;
+        )
+        .compile().drain;
 
       expect(error!).toEqual(new Error('test error'));
     });
@@ -228,7 +234,8 @@ describe('Effect-ful stream', () => {
           .redeemWith(
             () => Stream(-1),
             x => Stream(x * 2),
-          ).compile.toList,
+          )
+          .compile().toList,
       ).toEqual(List(2, 4, 6, -1));
     });
   });
@@ -236,7 +243,7 @@ describe('Effect-ful stream', () => {
   describe('rethrow', () => {
     it('should strip away the Right values', () => {
       expect(
-        Stream(Right(1), Right(2), Right(3)).rethrow.compile.toList,
+        Stream(Right(1), Right(2), Right(3)).rethrow.compile().toList,
       ).toEqual(List(1, 2, 3));
     });
 
@@ -249,7 +256,7 @@ describe('Effect-ful stream', () => {
           Right(4),
         )
           .rethrow.handleErrorWith(() => Stream(-1))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .toList.unsafeRunSync(),
       ).toEqual(List(-1));
     });
@@ -258,12 +265,12 @@ describe('Effect-ful stream', () => {
   describe('handleErrorWith', () => {
     it('should capture suspended error', () => {
       const s = Stream.defer(() => throwError(new Error('test error')));
-      expect(() => s.compile.drain).toThrow(new Error('test error'));
+      expect(() => s.compile().drain).toThrow(new Error('test error'));
     });
 
     it('should propagate thrown error', () => {
       const s = Stream.throwError(new Error('test error')).as<void>(undefined);
-      expect(() => s.compile.drain).toThrow(new Error('test error'));
+      expect(() => s.compile().drain).toThrow(new Error('test error'));
     });
 
     it('should short circuit the execution', () => {
@@ -271,17 +278,28 @@ describe('Effect-ful stream', () => {
         Stream(42),
       );
 
-      expect(() => s.compile.drain).toThrow(new Error('test error'));
+      expect(() => s.compile().drain).toThrow(new Error('test error'));
     });
 
     it('should return the result of the handler when an error is ocurred', () => {
       expect(
         Stream.evalF<SyncIoK>(SyncIO.throwError(new Error('test error')))
           .handleErrorWith(() => Stream(42))
-          .compileF(SyncIO.MonadError)
+          .compileSync()
           .last.unsafeRunSync(),
       ).toBe(42);
     });
+
+    it.ticked(
+      'should return the result of the handler when an error is ocurred',
+      ticker => {
+        expect(
+          Stream.evalF<IoK>(IO.throwError(new Error('test error')))
+            .handleErrorWith(() => Stream(42))
+            .compileConcurrent().last,
+        ).toCompleteWith(42, ticker);
+      },
+    );
 
     it('should capture error thrown upstream', () => {
       let error: Error;
@@ -291,7 +309,7 @@ describe('Effect-ful stream', () => {
           error = e;
           return Stream.empty();
         })
-        .compileF(SyncIO.MonadError)
+        .compileSync()
         .drain.unsafeRunSync();
 
       expect(error!).toEqual(new Error('test error'));
@@ -305,7 +323,8 @@ describe('Effect-ful stream', () => {
         .handleErrorWith(e => {
           error = e;
           return Stream();
-        }).compile.drain;
+        })
+        .compile().drain;
 
       expect(error!).toEqual(new Error('test error'));
     });
@@ -314,7 +333,8 @@ describe('Effect-ful stream', () => {
       expect(
         Stream(1, 2, 3, 4, 5)
           .map(x => (x === 1 ? throwError(new Error('test error')) : x))
-          .handleErrorWith(() => Stream(-1)).compile.toList,
+          .handleErrorWith(() => Stream(-1))
+          .compile().toList,
       ).toEqual(List(-1));
     });
 
@@ -325,14 +345,15 @@ describe('Effect-ful stream', () => {
           .flatMap(x =>
             x === 3 ? Stream(throwError(new Error())) : Stream(x * x),
           )
-          .handleErrorWith(() => Stream(-1)).compile.toList,
+          .handleErrorWith(() => Stream(-1))
+          .compile().toList,
       ).toEqual(List(1, 4, -1));
     });
 
     it.ticked('should return success value', ticker => {
       const s = Stream.retry(IO.Temporal)(IO.pure(42), 20, n => n * 2, 3);
 
-      expect(s.compileF(IO.MonadError).last).toCompleteWith(42, ticker);
+      expect(s.compileConcurrent().last).toCompleteWith(42, ticker);
     });
 
     it.ticked('should succeed on second retry', ticker => {
@@ -344,7 +365,7 @@ describe('Effect-ful stream', () => {
         3,
       );
 
-      expect(s.compileF(IO.MonadError).last).toCompleteWith(42, ticker);
+      expect(s.compileConcurrent().last).toCompleteWith(42, ticker);
     });
 
     it.ticked('should throw an error when retry limit exceeded', ticker => {
@@ -355,7 +376,7 @@ describe('Effect-ful stream', () => {
         3,
       );
 
-      expect(s.compileF(IO.MonadError).last).toFailWith(
+      expect(s.compileConcurrent().last).toFailWith(
         new Error('test error'),
         ticker,
       );
@@ -375,7 +396,7 @@ describe('Effect-ful stream', () => {
         )
         .attempt.evalMap(ea => IO(() => (results = results['::+'](ea))));
 
-      const io = s.compileF(IO.MonadError).drain;
+      const io = s.compileConcurrent().drain;
       io.unsafeRunToPromise({
         config: { autoSuspendThreshold: Infinity },
         executionContext: ticker.ctx,
@@ -403,10 +424,7 @@ describe('Effect-ful stream', () => {
 
   describe.ticked('Laws', ticker => {
     const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IoK, X>> =>
-      Eq.by(
-        E.eqIO(List.Eq(EqX), ticker),
-        s => s.compileF(IO.MonadError).toList,
-      );
+      Eq.by(E.eqIO(List.Eq(EqX), ticker), s => s.compileConcurrent().toList);
 
     const monoidKTests = MonoidKSuite(Stream.MonoidK<IoK>());
     checkAll(

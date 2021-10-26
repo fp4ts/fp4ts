@@ -4,7 +4,6 @@ import {
   Applicative,
   Eq,
   Functor,
-  MonadError,
   Monoid,
   MonoidK,
   Either,
@@ -15,12 +14,13 @@ import {
   Some,
   Ior,
 } from '@fp4ts/cats';
-import { Temporal, SyncIoK } from '@fp4ts/effect';
+import { Temporal, Sync, Concurrent } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
+import { Compiler } from '../compiler';
+
 import { Stream } from './algebra';
-import { Compiler, PureCompiler } from './compiler';
 import {
   fromChunk,
   pure,
@@ -30,6 +30,7 @@ import {
   evalUnChunk,
   sleep,
 } from './constructors';
+import { CompileOps } from './compile-ops';
 
 export const head: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => take_(s, 1);
 
@@ -406,12 +407,20 @@ export const covaryAll =
   <F extends F2, A extends B>(s: Stream<F, A>): Stream<F2, B> =>
     s;
 
-export const compile: <A>(s: Stream<SyncIoK, A>) => PureCompiler<A> = s =>
-  new PureCompiler(s.pull);
+export const compile = <F, G, A>(
+  s: Stream<F, A>,
+  compiler: Compiler<F, G>,
+): CompileOps<F, G, A> => new CompileOps(s.pull, compiler);
 
-export const compileF: <F>(
-  F: MonadError<F, Error>,
-) => <A>(s: Stream<F, A>) => Compiler<F, A> = F => s => new Compiler(F, s.pull);
+export const compileSync = <F, A>(
+  s: Stream<F, A>,
+  F: Sync<F>,
+): CompileOps<F, F, A> => new CompileOps(s.pull, Compiler.targetSync(F));
+
+export const compileConcurrent = <F, A>(
+  s: Stream<F, A>,
+  F: Concurrent<F, Error>,
+): CompileOps<F, F, A> => new CompileOps(s.pull, Compiler.targetConcurrent(F));
 
 // -- Point-ful operators
 

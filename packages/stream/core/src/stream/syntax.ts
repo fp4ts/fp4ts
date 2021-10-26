@@ -3,7 +3,6 @@ import {
   Applicative,
   Eq,
   Functor,
-  MonadError,
   Monoid,
   MonoidK,
   Either,
@@ -11,18 +10,26 @@ import {
   Option,
   Vector,
   Ior,
+  IdentityK,
 } from '@fp4ts/cats';
-import { SyncIoK, Temporal } from '@fp4ts/effect';
+import {
+  SyncIO,
+  SyncIoK,
+  IO,
+  IoK,
+  Sync,
+  Concurrent,
+  Temporal,
+} from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Stream } from './algebra';
-import { Compiler, PureCompiler } from './compiler';
+import { Compiler } from '../compiler';
 import {
   concat_,
   map_,
   flatMap_,
   flatten,
-  compileF,
   compile,
   take_,
   prepend_,
@@ -83,8 +90,11 @@ import {
   covary,
   covaryOutput,
   covaryAll,
+  compileSync,
+  compileConcurrent,
 } from './operators';
 import { PureK } from '../pure';
+import { CompileOps } from './compile-ops';
 
 declare module './algebra' {
   interface Stream<F, A> {
@@ -204,8 +214,14 @@ declare module './algebra' {
     covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
     covaryAll<F2, B>(this: Stream<F2, B>): Stream<F2, B>;
 
-    compile: F extends PureK ? PureCompiler<A> : never;
-    compileF(F: MonadError<F, Error>): Compiler<F, A>;
+    compile(this: Stream<PureK, A>): CompileOps<PureK, IdentityK, A>;
+    compile<G>(compiler: Compiler<F, G>): CompileOps<F, G, A>;
+
+    compileSync(this: Stream<SyncIoK, A>): CompileOps<SyncIoK, SyncIoK, A>;
+    compileSync(F: Sync<F>): CompileOps<F, F, A>;
+
+    compileConcurrent(this: Stream<IoK, A>): CompileOps<IoK, IoK, A>;
+    compileConcurrent(F: Concurrent<F, Error>): CompileOps<F, F, A>;
 
     toList: F extends PureK ? List<A> : never;
     toVector: F extends PureK ? Vector<A> : never;
@@ -488,24 +504,26 @@ Stream.prototype.covaryAll = function () {
   return covaryAll()(this) as any;
 };
 
-Object.defineProperty(Stream.prototype, 'compile', {
-  get<A>(this: Stream<SyncIoK, A>): PureCompiler<A> {
-    return compile(this);
-  },
-});
+Stream.prototype.compile = function (compiler = Compiler.Pure) {
+  return compile(this, compiler);
+};
 
-Stream.prototype.compileF = function (F) {
-  return compileF(F)(this);
+Stream.prototype.compileSync = function (F = SyncIO.Sync) {
+  return compileSync(this, F as any);
+};
+
+Stream.prototype.compileConcurrent = function (F = IO.Concurrent) {
+  return compileConcurrent(this, F as any);
 };
 
 Object.defineProperty(Stream.prototype, 'toList', {
   get<A>(this: Stream<PureK, A>): List<A> {
-    return this.compile.toList;
+    return this.compile().toList;
   },
 });
 
 Object.defineProperty(Stream.prototype, 'toVector', {
   get<A>(this: Stream<PureK, A>): Vector<A> {
-    return this.compile.toVector;
+    return this.compile().toVector;
   },
 });
