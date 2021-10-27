@@ -20,7 +20,7 @@ export interface MonadError<F, E> extends ApplicativeError<F, E>, Monad<F> {
     f: (a: A) => Kind<F, [B]>,
   ) => Kind<F, [B]>;
 
-  readonly rethrow: <A, EE extends E>(
+  readonly rethrow: <A, EE extends E = E>(
     fea: Kind<F, [Either<EE, A>]>,
   ) => Kind<F, [A]>;
 

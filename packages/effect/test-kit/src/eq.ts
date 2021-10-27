@@ -30,7 +30,7 @@ export const eqIO = <A>(
 
 export const eqIOOutcome = <A>(E: Eq<A>): Eq<IOOutcome<A>> =>
   Eq.by(Outcome.Eq(Eq.Error.strict, E), oc =>
-    oc.fold<Outcome<IdentityK, Error, A>>(
+    oc.fold(
       () => Outcome.canceled(),
       Outcome.failure,
       ioa => {

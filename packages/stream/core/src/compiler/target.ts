@@ -1,5 +1,5 @@
 import { Kind } from '@fp4ts/core';
-import { Ref, Resource, MonadCancel } from '@fp4ts/effect';
+import { Ref, UniqueToken, Resource, MonadCancel } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
@@ -7,6 +7,7 @@ import { concurrentTarget, syncTarget } from './instances';
 
 export interface CompilerTarget<F> {
   readonly F: MonadCancel<F, Error>;
+  readonly unique: Kind<F, [UniqueToken]>;
   readonly ref: <A>(a: A) => Kind<F, [Ref<F, A>]>;
 
   readonly compile: <O, Out>(
@@ -18,7 +19,10 @@ export interface CompilerTarget<F> {
     init: Out,
   ) => (foldChunk: (out: Out, c: Chunk<O>) => Out) => Kind<F, [Out]>;
 }
-export type TargetRequirements<F> = Pick<CompilerTarget<F>, 'F' | 'ref'> &
+export type TargetRequirements<F> = Pick<
+  CompilerTarget<F>,
+  'F' | 'ref' | 'unique'
+> &
   Partial<CompilerTarget<F>>;
 export const CompilerTarget = Object.freeze({
   of: <F>(F: TargetRequirements<F>): CompilerTarget<F> => {

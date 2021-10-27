@@ -54,8 +54,8 @@ export const compilerIdentityInstance: Lazy<Compiler<IdentityK, IdentityK>> =
 // -- Target Instances
 
 export const syncTarget = <F>(F: Sync<F>): CompilerTarget<F> =>
-  CompilerTarget.of({ F, ref: Ref.of(F) });
+  CompilerTarget.of({ F, ref: Ref.of(F), unique: F.unique });
 
 export const concurrentTarget = <F>(
   F: Concurrent<F, Error>,
-): CompilerTarget<F> => CompilerTarget.of({ F, ref: F.ref });
+): CompilerTarget<F> => CompilerTarget.of({ F, ref: F.ref, unique: F.unique });

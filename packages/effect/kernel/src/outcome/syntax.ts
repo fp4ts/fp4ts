@@ -7,11 +7,11 @@ declare module './algebra' {
   interface Outcome<F, E, A> {
     mapK<G>(nt: FunctionK<F, G>): Outcome<G, E, A>;
 
-    fold<B>(
-      onCancel: () => B,
-      onFailure: (e: E) => B,
-      onSuccess: (fa: Kind<F, [A]>) => B,
-    ): B;
+    fold<B1, B2 = B1, B3 = B2>(
+      onCancel: () => B1,
+      onFailure: (e: E) => B2,
+      onSuccess: (fa: Kind<F, [A]>) => B3,
+    ): B1 | B2 | B3;
   }
 }
 
@@ -19,11 +19,6 @@ Outcome.prototype.mapK = function (nt) {
   return mapK_(this, nt);
 };
 
-Outcome.prototype.fold = function <F, E, A, B>(
-  this: Outcome<F, E, A>,
-  onCancel: () => B,
-  onFailure: (e: E) => B,
-  onSuccess: (fa: Kind<F, [A]>) => B,
-): B {
+Outcome.prototype.fold = function (onCancel, onFailure, onSuccess) {
   return fold_(this, onCancel, onFailure, onSuccess);
 };

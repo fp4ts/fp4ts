@@ -11,10 +11,10 @@ export interface Temporal<F, E> extends Concurrent<F, E>, Clock<F> {
   readonly andWait: (ms: number) => <A>(fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly andWait_: <A>(fa: Kind<F, [A]>, ms: number) => Kind<F, [A]>;
 
-  readonly timeoutTo: <AA>(
+  readonly timeoutTo: <A>(
     ms: number,
-    fallback: Kind<F, [AA]>,
-  ) => <A extends AA>(fa: Kind<F, [A]>) => Kind<F, [A]>;
+    fallback: Kind<F, [A]>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly timeoutTo_: <A>(
     fa: Kind<F, [A]>,
     ms: number,

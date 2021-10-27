@@ -12,6 +12,7 @@ import {
   defer,
   deferred,
   delay,
+  evalF,
   monotonic,
   never,
   pure,
@@ -69,6 +70,7 @@ export const resourceConcurrent: <F>(
 ) => Concurrent<$<ResourceK, [F]>, Error> = F =>
   Concurrent.of({
     ...resourceMonadCancel(F),
+    unique: evalF(F.unique),
     ref: ref(F),
     deferred: deferred(F),
     fork: fork(F),

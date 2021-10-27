@@ -17,9 +17,10 @@ import {
   Sync,
   Temporal,
   Clock,
+  UniqueToken,
+  Ref,
+  Deferred,
 } from '@fp4ts/effect-kernel';
-import { Ref } from '@fp4ts/effect-kernel/lib/ref';
-import { Deferred } from '@fp4ts/effect-kernel/lib/deferred';
 
 import {
   async,
@@ -69,7 +70,7 @@ import {
   timeoutTo_,
   timeout_,
 } from './operators';
-import type { IO, IoK } from './io';
+import type { IoK } from './io';
 
 export const ioDefer: Lazy<Defer<IoK>> = lazyVal(() => Defer.of({ defer }));
 
@@ -155,6 +156,7 @@ export const ioSync: Lazy<Sync<IoK>> = lazyVal(() =>
 export const ioSpawn: Lazy<Spawn<IoK, Error>> = lazyVal(() =>
   Spawn.of({
     ...ioMonadCancel(),
+    unique: delay(() => new UniqueToken()),
     fork: fork,
     never: never,
     suspend: suspend,

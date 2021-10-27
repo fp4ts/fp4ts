@@ -11,9 +11,10 @@ import {
 import { Poll } from './poll';
 import { Fiber } from './fiber';
 import { Outcome } from './outcome';
+import { Unique, UniqueRequirements } from './unique';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 
-export interface Spawn<F, E> extends MonadCancel<F, E> {
+export interface Spawn<F, E> extends MonadCancel<F, E>, Unique<F> {
   readonly fork: <A>(fa: Kind<F, [A]>) => Kind<F, [Fiber<F, E, A>]>;
   readonly never: Kind<F, [never]>;
   readonly suspend: Kind<F, [void]>;
@@ -84,6 +85,7 @@ export type SpawnRequirements<F, E> = Pick<
   'fork' | 'never' | 'suspend' | 'racePair_'
 > &
   MonadCancelRequirements<F, E> &
+  UniqueRequirements<F> &
   Partial<Spawn<F, E>>;
 export const Spawn = Object.freeze({
   of: <F, E>(F: SpawnRequirements<F, E>): Spawn<F, E> => {
@@ -152,10 +154,7 @@ export const Spawn = Object.freeze({
                 ([oc, f]) =>
                   pipe(
                     f.cancel,
-                    self.map(
-                      () =>
-                        Left(oc) as Either<Outcome<F, E, A>, Outcome<F, E, B>>,
-                    ),
+                    self.map(() => Left(oc)),
                   ),
                 ([f, oc]) =>
                   pipe(
@@ -301,7 +300,7 @@ export const Spawn = Object.freeze({
                   F.onCancel(fiberB.cancel),
                   F.onCancel(fiberA.cancel),
                   F.flatMap(oc =>
-                    oc.fold(
+                    oc.fold<Kind<F, [A]>>(
                       () =>
                         F.flatMap_(fiberB.cancel, () =>
                           pipe(
@@ -328,7 +327,7 @@ export const Spawn = Object.freeze({
                   poll(fiberB.join),
                   F.onCancel(fiberB.cancel),
                   F.flatMap(oc =>
-                    oc.fold(
+                    oc.fold<Kind<F, [B]>>(
                       () =>
                         pipe(
                           fiberA.join,

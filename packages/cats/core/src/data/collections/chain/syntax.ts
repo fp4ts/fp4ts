@@ -13,6 +13,7 @@ import {
   collectWhile_,
   collect_,
   concat_,
+  deleteFirst_,
   equals_,
   filter_,
   flatMap_,
@@ -89,6 +90,7 @@ declare module './algebra' {
     concat<B>(this: Chain<B>, that: Chain<B>): Chain<B>;
     '+++'<B>(this: Chain<B>, that: Chain<B>): Chain<B>;
 
+    deleteFirst(p: (a: A) => boolean): Option<[A, Chain<A>]>;
     filter(p: (a: A) => boolean): Chain<A>;
     collect<B>(f: (a: A) => Option<B>): Chain<B>;
     collectWhile<B>(f: (a: A) => Option<B>): Chain<B>;
@@ -236,6 +238,9 @@ Chain.prototype.concat = function (that) {
 };
 Chain.prototype['+++'] = Chain.prototype.concat;
 
+Chain.prototype.deleteFirst = function (f) {
+  return deleteFirst_(this, f);
+};
 Chain.prototype.filter = function (f) {
   return filter_(this, f);
 };

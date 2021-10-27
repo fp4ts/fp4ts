@@ -10,9 +10,9 @@ export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
   readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
   readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
 
-  readonly orElse: <B>(
-    fb: () => Kind<F, [B]>,
-  ) => <A extends B>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly orElse: <A>(
+    fb: () => Kind<F, [A]>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly orElse_: <A>(
     fa: Kind<F, [A]>,
     fb: () => Kind<F, [A]>,

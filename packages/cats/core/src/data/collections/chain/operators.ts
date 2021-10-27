@@ -18,7 +18,7 @@ import { Option, None, Some } from '../../option';
 import { List } from '../list';
 import { Vector } from '../vector';
 
-import { Chain, Concat, Empty, NonEmpty, view, Wrap } from './algebra';
+import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
 import { empty, fromList, fromVector, pure } from './constructors';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
@@ -203,6 +203,10 @@ export const concat: <AA>(
   y: Chain<AA>,
 ) => <A extends AA>(x: Chain<A>) => Chain<AA> = y => x => concat_(x, y);
 
+export const deleteFirst: <A>(
+  f: (a: A) => boolean,
+) => (xs: Chain<A>) => Option<[A, Chain<A>]> = f => xs => deleteFirst_(xs, f);
+
 export const filter: <A>(f: (a: A) => boolean) => (xs: Chain<A>) => Chain<A> =
   f => xs =>
     filter_(xs, f);
@@ -326,6 +330,23 @@ export const concat_ = <A>(x: Chain<A>, y: Chain<A>): Chain<A> => {
   if (xx.tag === 'empty') return yy;
   if (yy.tag === 'empty') return xx;
   return new Concat(xx, yy);
+};
+
+export const deleteFirst_ = <A>(
+  xs: Chain<A>,
+  f: (a: A) => boolean,
+): Option<[A, Chain<A>]> => {
+  let acc: Chain<A> = empty;
+  let rem: Chain<A> = xs;
+  let cur: A;
+
+  while (nonEmpty(rem)) {
+    [cur, rem] = uncons(rem).get;
+    if (f(cur)) return Some([cur, concat_(acc, rem)]);
+    acc = append_(acc, cur);
+  }
+
+  return None;
 };
 
 export const filter_ = <A>(xs: Chain<A>, p: (a: A) => boolean): Chain<A> =>

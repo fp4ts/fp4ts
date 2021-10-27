@@ -100,8 +100,8 @@ export const attempt =
             F.attempt,
             F.map(ea =>
               ea.fold(
-                e => [Left(e) as Either<Error, A>, (_: ExitCase) => F.unit],
-                ([a, release]) => [Right(a) as Either<Error, A>, release],
+                e => [Left(e), (_: ExitCase) => F.unit],
+                ([a, release]) => [Right(a), release],
               ),
             ),
           ),
@@ -113,7 +113,7 @@ export const attempt =
           flatMap(() => attempt(F)(v.self)),
           flatMap(ea =>
             ea.fold(
-              error => pure(Left(error) as Either<Error, A>),
+              error => pure(Left(error)),
               e => attempt(F)(v.f(e)),
             ),
           ),

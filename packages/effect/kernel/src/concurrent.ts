@@ -119,11 +119,7 @@ export const Concurrent = Object.freeze({
 
                 self.map(({ back, fiberA, fiberB }) =>
                   back.fold(
-                    oc =>
-                      Left(tupled(oc, fiberB)) as Either<
-                        [Outcome<F, E, A>, Fiber<F, E, B>],
-                        [Fiber<F, E, A>, Outcome<F, E, B>]
-                      >,
+                    oc => Left(tupled(oc, fiberB)),
                     oc => Right(tupled(fiberA, oc)),
                   ),
                 ),

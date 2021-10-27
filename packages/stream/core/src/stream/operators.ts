@@ -358,7 +358,7 @@ export const zipAllWith: <F, B>(
 export const attempt = <F, A>(s: Stream<F, A>): Stream<F, Either<Error, A>> =>
   pipe(
     s,
-    map(x => Right(x) as Either<Error, A>),
+    map(x => Right(x)),
     handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
   );
 

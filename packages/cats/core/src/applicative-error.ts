@@ -6,16 +6,16 @@ import { Either, Right, Left } from './data';
  * @category Type Class
  */
 export interface ApplicativeError<F, E> extends Applicative<F> {
-  readonly throwError: <A>(e: E) => Kind<F, [A]>;
+  readonly throwError: <A = never>(e: E) => Kind<F, [A]>;
 
-  readonly handleError: <B>(
-    f: (a: E) => B,
-  ) => <A extends B>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly handleError: <A>(
+    f: (a: E) => A,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly handleError_: <A>(fa: Kind<F, [A]>, f: (a: E) => A) => Kind<F, [A]>;
 
-  readonly handleErrorWith: <B>(
-    f: (a: E) => Kind<F, [B]>,
-  ) => <A extends B>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  readonly handleErrorWith: <A>(
+    f: (a: E) => Kind<F, [A]>,
+  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly handleErrorWith_: <A>(
     fa: Kind<F, [A]>,
     f: (a: E) => Kind<F, [A]>,
