@@ -152,11 +152,11 @@ export const tailRecM_ = <E, A, B>(
   return result;
 };
 
-export const fold_ = <E, A, B>(
+export const fold_ = <E, A, B1, B2 = B1>(
   ea: Either<E, A>,
-  onLeft: (e: E) => B,
-  onRight: (a: A) => B,
-): B => {
+  onLeft: (e: E) => B1,
+  onRight: (a: A) => B2,
+): B1 | B2 => {
   const v = view(ea);
   if (v.tag === 'right') {
     return onRight(v.value);

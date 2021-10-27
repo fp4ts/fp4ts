@@ -10,7 +10,7 @@ export const right = <B>(b: B): Ior<never, B> => new Right(b);
 export const both = <A, B>(a: A, b: B): Ior<A, B> => new Both(a, b);
 
 export const fromEither = <A, B>(ea: Either<A, B>): Ior<A, B> =>
-  ea.fold<A, B, Ior<A, B>>(left, right);
+  ea.fold(left, right);
 
 export const fromOptions = <A, B>(
   lhs: Option<A>,

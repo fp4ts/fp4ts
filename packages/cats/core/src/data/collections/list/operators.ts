@@ -521,11 +521,11 @@ export const flatMap_ = <A, B>(xs: List<A>, f: (a: A) => List<B>): List<B> => {
   return h ?? nil;
 };
 
-export const fold_ = <A, B>(
+export const fold_ = <A, B1, B2 = B1>(
   xs: List<A>,
-  onNil: () => B,
-  onCons: (head: A, tail: List<A>) => B,
-): B => {
+  onNil: () => B1,
+  onCons: (head: A, tail: List<A>) => B2,
+): B1 | B2 => {
   const l = view(xs);
   return l.tag === 'cons' ? onCons(l._head, l._tail) : onNil();
 };

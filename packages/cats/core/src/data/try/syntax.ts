@@ -44,7 +44,10 @@ declare module './algebra' {
     recover<B>(this: Try<B>, f: (e: Error) => B): Try<B>;
     recoverWith<B>(this: Try<B>, f: (e: Error) => Try<B>): Try<B>;
 
-    fold<B>(onFailure: (e: Error) => B, onSuccess: (a: A) => B): B;
+    fold<B1, B2 = B1>(
+      onFailure: (e: Error) => B1,
+      onSuccess: (a: A) => B2,
+    ): B1 | B2;
   }
 }
 

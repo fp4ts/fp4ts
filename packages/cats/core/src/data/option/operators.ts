@@ -91,7 +91,7 @@ export const tailRecM_ = <A, B>(
   let result: Option<B> | undefined;
 
   while (!result) {
-    fold_<Either<A, B>, void>(
+    fold_(
       cur,
       () => (result = none),
       ab =>
@@ -109,11 +109,11 @@ export const tailRecM_ = <A, B>(
   return result;
 };
 
-export const fold_ = <A, B>(
+export const fold_ = <A, B1, B2 = B1>(
   o: Option<A>,
-  onNone: () => B,
-  onSome: (a: A) => B,
-): B => {
+  onNone: () => B1,
+  onSome: (a: A) => B2,
+): B1 | B2 => {
   const v = view(o);
   if (v.tag === 'some') {
     return onSome(v.value);

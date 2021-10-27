@@ -176,18 +176,18 @@ export const tailRecM_ =
     let result: Ior<AA, B> | undefined;
     while (!result) {
       // prettier-ignore
-      fold_<AA, Either<S, B>, void>(
+      fold_(
         cur,
         a  => (result = left(a)),
         ea =>
-          ea.fold<S, B, void>(
+          ea.fold<void>(
             s => (cur = f(s)),
             b => (result = right(b)),
           ),
         (a, ea) =>
           ea.fold(
             s =>
-              fold_<A, Either<S, B>, void>(
+              fold_(
                 f(s),
                 aa      => (cur = left(S.combine_(a, () => aa))),
                 x       => (cur = both(a, x)),
@@ -200,12 +200,12 @@ export const tailRecM_ =
     return result;
   };
 
-export const fold_ = <A, B, C>(
+export const fold_ = <A, B, C1, C2 = C1, C3 = C2>(
   ior: Ior<A, B>,
-  onLeft: (a: A) => C,
-  onRight: (b: B) => C,
-  onBoth: (a: A, b: B) => C,
-): C => {
+  onLeft: (a: A) => C1,
+  onRight: (b: B) => C2,
+  onBoth: (a: A, b: B) => C3,
+): C1 | C2 | C3 => {
   const v = view(ior);
   switch (v.tag) {
     case 'left':

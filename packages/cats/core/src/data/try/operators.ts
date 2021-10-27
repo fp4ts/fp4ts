@@ -124,11 +124,11 @@ export const recoverWith_ = <A>(t: Try<A>, f: (e: Error) => Try<A>): Try<A> => {
   }
 };
 
-export const fold_ = <A, B>(
+export const fold_ = <A, B1, B2 = B1>(
   fa: Try<A>,
-  onFailure: (e: Error) => B,
-  onSuccess: (a: A) => B,
-): B => {
+  onFailure: (e: Error) => B1,
+  onSuccess: (a: A) => B2,
+): B1 | B2 => {
   const t = view(fa);
   return t.tag === 'failure' ? onFailure(t.error) : onSuccess(t.value);
 };

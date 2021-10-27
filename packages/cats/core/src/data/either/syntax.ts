@@ -59,15 +59,9 @@ declare module './algebra' {
       f: (a: A) => Either<E2, unknown>,
     ): Either<E2, A>;
 
-    readonly flatten: A extends Either<E, infer B>
-      ? Either<E, B>
-      : never | unknown;
+    readonly flatten: A extends Either<E, infer B> ? Either<E, B> : never;
 
-    fold<E2, A2, B>(
-      this: Either<E2, A2>,
-      onLeft: (e: E2) => B,
-      onRight: (a: A2) => B,
-    ): B;
+    fold<B1, B2 = B1>(onLeft: (e: E) => B1, onRight: (a: A) => B2): B1 | B2;
 
     readonly swapped: Either<A, E>;
     readonly toOption: Option<A>;
@@ -159,11 +153,7 @@ Object.defineProperty(Either.prototype, 'flatten', {
   },
 });
 
-Either.prototype.fold = function <E, A, B>(
-  this: Either<E, A>,
-  onLeft: (e: E) => B,
-  onRight: (a: A) => B,
-): B {
+Either.prototype.fold = function (onLeft, onRight) {
   return fold_(this, onLeft, onRight);
 };
 

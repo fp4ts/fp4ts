@@ -169,7 +169,10 @@ declare module './algebra' {
 
     partition<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>];
 
-    fold: <B>(onNil: () => B, onCons: (head: A, tail: List<A>) => B) => B;
+    fold: <B1, B2 = B1>(
+      onNil: () => B1,
+      onCons: (head: A, tail: List<A>) => B2,
+    ) => B1 | B2;
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: List<B>, f: (x: B, a: B) => B): B;
@@ -418,11 +421,7 @@ Object.defineProperty(List.prototype, 'flatten', {
   },
 });
 
-List.prototype.fold = function <A, B>(
-  this: List<A>,
-  onNil: () => B,
-  onCons: (h: A, t: List<A>) => B,
-): B {
+List.prototype.fold = function (onNil, onCons) {
   return fold_(this, onNil, onCons);
 };
 

@@ -64,11 +64,11 @@ declare module './algebra' {
     merge<AA>(this: Ior<AA, AA>, S: Semigroup<AA>): AA;
     mergeWith<AA>(this: Ior<AA, AA>, f: (l: AA, r: AA) => AA): AA;
 
-    fold<C>(
-      onLeft: (a: A) => C,
-      onRight: (b: B) => C,
-      onBoth: (a: A, b: B) => C,
-    ): C;
+    fold<C1, C2 = C1, C3 = C2>(
+      onLeft: (a: A) => C1,
+      onRight: (b: B) => C2,
+      onBoth: (a: A, b: B) => C3,
+    ): C1 | C2 | C3;
   }
 }
 

@@ -32,9 +32,9 @@ declare module './algebra' {
 
     flatMap<B>(f: (a: A) => Option<B>): Option<B>;
     flatTap(f: (a: A) => Option<unknown>): Option<A>;
-    readonly flatten: A extends Option<infer B> ? Option<B> : never | unknown;
+    readonly flatten: A extends Option<infer B> ? Option<B> : never;
 
-    fold<B>(onNone: () => B, onSome: (a: A) => B): B;
+    fold<B1, B2 = B1>(onNone: () => B1, onSome: (a: A) => B2): B1 | B2;
 
     equals<B extends PrimitiveType>(this: Option<B>, that: Option<B>): boolean;
     equals<B>(this: Option<B>, E: Eq<B>, that: Option<B>): boolean;
@@ -106,11 +106,7 @@ Object.defineProperty(Option.prototype, 'flatten', {
   },
 });
 
-Option.prototype.fold = function <A, B>(
-  this: Option<A>,
-  onNone: () => B,
-  onSome: (a: A) => B,
-): B {
+Option.prototype.fold = function (onNone, onSome) {
   return fold_(this, onNone, onSome);
 };
 

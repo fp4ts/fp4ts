@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { id, throwError, PrimitiveType } from '@fp4ts/core';
+import { id, throwError } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-core';
 import { Either, Right, Left, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -26,6 +26,16 @@ describe('Either', () => {
       const ea: Either<number, never> = Left(42);
       // @ts-expect-error
       ea.flatMap(() => Left('error'));
+    });
+
+    it('should infer identity fold type', () => {
+      const ea: Either<string, number> = Right(42);
+      const ea2: Either<string, number> = ea.fold(Left, Right);
+    });
+
+    it('should widen the never type to number', () => {
+      const ea: Either<string, never> = Left('nope');
+      const ea2: Either<string, number> = ea['<|>'](() => Right(22));
     });
   });
 
