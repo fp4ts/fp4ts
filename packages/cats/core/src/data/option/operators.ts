@@ -1,7 +1,8 @@
-import { flow, id, throwError } from '@fp4ts/core';
+import { constant, flow, id, throwError } from '@fp4ts/core';
 
 import { Eq } from '../../eq';
 import { Either } from '../either';
+import { List } from '../collections/list';
 
 import { Option, view } from './algebra';
 import { none, some } from './constructors';
@@ -17,6 +18,9 @@ export const nonEmpty = <A>(o: Option<A>): boolean => !isEmpty(o);
 
 export const get = <A>(o: Option<A>): A =>
   fold_(o, () => throwError(new Error('None.get')), id);
+
+export const toList = <A>(o: Option<A>): List<A> =>
+  fold_(o, constant(List.empty), List);
 
 export const map: <A, B>(f: (a: A) => B) => (o: Option<A>) => Option<B> =
   f => o =>

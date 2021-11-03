@@ -1,5 +1,6 @@
 import { PrimitiveType } from '@fp4ts/core';
 import { Eq } from '../../eq';
+import { List } from '../collections/list';
 import { Option } from './algebra';
 import {
   flatMap_,
@@ -14,6 +15,7 @@ import {
   orElse_,
   getOrElse_,
   equals_,
+  toList,
 } from './operators';
 
 declare module './algebra' {
@@ -21,6 +23,8 @@ declare module './algebra' {
     readonly get: A;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
+
+    readonly toList: List<A>;
 
     map<B>(f: (a: A) => B): Option<B>;
     tap(f: (a: A) => unknown): Option<A>;
@@ -56,6 +60,12 @@ Object.defineProperty(Option.prototype, 'isEmpty', {
 Object.defineProperty(Option.prototype, 'nonEmpty', {
   get<A>(this: Option<A>): boolean {
     return nonEmpty(this);
+  },
+});
+
+Object.defineProperty(Option.prototype, 'toList', {
+  get<A>(this: Option<A>): List<A> {
+    return toList(this);
   },
 });
 

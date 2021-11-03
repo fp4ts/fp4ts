@@ -10,7 +10,14 @@ import {
   IdentityK,
   List,
 } from '@fp4ts/cats';
-import { Ref, Outcome, UniqueToken, ExitCase, Poll } from '@fp4ts/effect';
+import {
+  Ref,
+  Outcome,
+  UniqueToken,
+  ExitCase,
+  Poll,
+  Fiber,
+} from '@fp4ts/effect';
 
 import { CompositeFailure } from '../composite-failure';
 import { CompilerTarget } from '../compiler';
@@ -94,6 +101,21 @@ export class Scope<F> {
     );
   }
 
+  public descendsFrom(scopeId: UniqueToken): boolean {
+    return this.findSelfOrAncestor(scopeId).nonEmpty;
+  }
+
+  public get openAncestor(): Kind<F, [Scope<F>]> {
+    const { F } = this.target;
+    return this.parent.fold(
+      () => F.pure(this),
+      parent =>
+        F.flatMap_(parent.state.get(), s =>
+          s.tag === 'open' ? F.pure(parent) : parent.openAncestor,
+        ),
+    );
+  }
+
   public interruptibleEval<A>(
     fa: Kind<F, [A]>,
   ): Kind<F, [Either<InterruptionOutcome, A>]> {
@@ -104,6 +126,31 @@ export class Scope<F> {
           ea.leftMap(e => Outcome.failure<F, Error>(e)),
         ),
       iCtx => iCtx.evalF(fa),
+    );
+  }
+
+  public interruptWhen(
+    haltWhen: Kind<F, [Either<Error, void>]>,
+  ): Kind<F, [Fiber<F, Error, void>]> {
+    const { F } = this.target;
+
+    return this.interruptible.fold(
+      () =>
+        F.pure(
+          new (class extends Fiber<F, Error, void> {
+            public readonly cancel = F.unit;
+            public readonly join = F.pure(Outcome.success(F.unit));
+          })(),
+        ),
+      iCtx => {
+        const outcome: Kind<F, [InterruptionOutcome]> = F.map_(haltWhen, ea =>
+          ea.fold(
+            e => Outcome.failure(e),
+            () => Outcome.success(iCtx.interruptRoot),
+          ),
+        );
+        return iCtx.completeWhen(outcome);
+      },
     );
   }
 

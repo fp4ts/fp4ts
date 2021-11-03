@@ -1,16 +1,30 @@
-import { id, Kind, pipe } from '@fp4ts/core';
-import { FunctionK, MonadError, None, Option, Some } from '@fp4ts/cats';
+import { id, Kind, pipe, throwError } from '@fp4ts/core';
+import {
+  FunctionK,
+  MonadError,
+  Either,
+  Option,
+  None,
+  Some,
+  List,
+} from '@fp4ts/cats';
+import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import * as PO from './operators';
 import * as PC from './constructors';
 import {
   Action,
   Bind,
+  CanceledScope,
+  CloseScope,
   Fail,
+  FailedScope,
   FlatMapOutput,
+  InScope,
   Interrupted,
   Pull,
   Succeed,
+  SucceedScope,
   Terminal,
   Translate,
   Uncons,
@@ -151,6 +165,13 @@ export const scanChunksOpt: <S>(
   f: (s: S) => Option<(c: Chunk<OO>) => [S, Chunk<O2>]>,
 ) => <F, O extends OO>(p: Pull<F, O, void>) => Pull<F, O2, S> = s => f => p =>
   scanChunksOpt_(p, s, f);
+
+export const scope = <F, O>(pull: Pull<F, O, void>): Pull<F, O, void> =>
+  new InScope(pull, false);
+
+export const interruptScope = <F, O>(
+  pull: Pull<F, O, void>,
+): Pull<F, O, void> => new InScope(pull, true);
 
 export const compile: <F>(
   F: MonadError<F, Error>,
@@ -450,6 +471,7 @@ export const compile_ =
     init: B,
     initScope: Scope<F>,
     foldChunk: (b: B, c: Chunk<O>) => B,
+    extendLastTopLevelScope: boolean = false,
   ): Kind<F, [B]> => {
     type Cont<Y, G, X> = (t: Terminal<Y>) => Pull<G, X, void>;
 
@@ -493,10 +515,11 @@ export const compile_ =
           case 'flatMapOutput':
           case 'uncons':
           case 'eval':
-          case 'inScope':
+          case 'interruptWhen':
           case 'succeedScope':
           case 'canceledScope':
           case 'failedScope':
+          case 'inScope':
             cont = id;
             return v;
 
@@ -505,6 +528,7 @@ export const compile_ =
             switch (step.tag) {
               case 'succeed':
               case 'fail':
+              case 'interrupted':
                 free = v.cont(step);
                 continue;
 
@@ -514,10 +538,11 @@ export const compile_ =
               case 'uncons':
               case 'eval':
               case 'eval':
-              case 'inScope':
+              case 'interruptWhen':
               case 'succeedScope':
               case 'canceledScope':
               case 'failedScope':
+              case 'inScope':
                 cont = v.cont as Cont<unknown, any, never>;
                 return step;
 
@@ -535,7 +560,7 @@ export const compile_ =
 
     interface GoContext<G, X, End> {
       readonly scope: Scope<F>;
-      readonly extendsTopLevelScope: Option<Scope<F>>;
+      readonly extendedTopLevelScope: Option<Scope<F>>;
       readonly translation: FunctionK<G, F>;
       readonly runner: Run<G, X, Kind<F, [End]>>;
       readonly stream: Pull<G, X, void>;
@@ -551,7 +576,7 @@ export const compile_ =
       done = (scope: Scope<F>) =>
         go(
           scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(P.unit),
@@ -562,7 +587,7 @@ export const compile_ =
       interrupted = (inter: Interrupted) =>
         go(
           this.ctx.scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
@@ -574,6 +599,52 @@ export const compile_ =
           scope,
           new Bind(new Translate(tl, this.fk), this.cont),
         );
+    }
+
+    class ContRunner<G, X, End> implements Run<G, X, Kind<F, [End]>> {
+      public constructor(
+        private readonly ctx: GoContext<G, X, End>,
+        private readonly cont: Cont<void, G, X>,
+      ) {}
+
+      done = (doneScope: Scope<F>) =>
+        go(
+          doneScope,
+          this.ctx.extendedTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(P.unit),
+        );
+
+      fail = (e: Error) =>
+        go(
+          this.ctx.scope,
+          this.ctx.extendedTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Fail(e)),
+        );
+
+      interrupted = (inter: Interrupted) =>
+        go(
+          this.ctx.scope,
+          this.ctx.extendedTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(inter),
+        );
+
+      out = (hd: Chunk<X>, scope: Scope<F>, tail: Pull<G, X, void>) => {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        let cur: Run<G, X, Kind<F, [End]>> = this;
+        let acc: Pull<G, X, void> = tail;
+
+        while (cur instanceof ContRunner) {
+          acc = new Bind(acc, cur.cont);
+          cur = cur.ctx.runner;
+        }
+        return cur.out(hd, scope, acc);
+      };
     }
 
     abstract class StepRun<Y, S, G, X, End>
@@ -588,7 +659,7 @@ export const compile_ =
         interruptGuard(doneScope, this.ctx, this.cont, () =>
           go(
             doneScope,
-            this.ctx.extendsTopLevelScope,
+            this.ctx.extendedTopLevelScope,
             this.ctx.translation,
             this.ctx.runner,
             this.cont(new Succeed(None)),
@@ -598,7 +669,7 @@ export const compile_ =
       fail = (e: Error) =>
         go(
           this.ctx.scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
@@ -607,7 +678,7 @@ export const compile_ =
       interrupted = (inter: Interrupted) =>
         go(
           this.ctx.scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
@@ -635,7 +706,7 @@ export const compile_ =
         return interruptGuard(outScope, this.ctx, this.cont, () =>
           go(
             outScope,
-            this.ctx.extendsTopLevelScope,
+            this.ctx.extendedTopLevelScope,
             this.ctx.translation,
             this.ctx.runner,
             this.cont(new Succeed(Some([hd, tl]))),
@@ -681,7 +752,7 @@ export const compile_ =
         interruptGuard(scope, this.ctx, this.cont, () =>
           go(
             scope,
-            this.ctx.extendsTopLevelScope,
+            this.ctx.extendedTopLevelScope,
             this.ctx.translation,
             this.ctx.runner,
             this.cont(P.unit),
@@ -691,7 +762,7 @@ export const compile_ =
       fail = (e: Error) =>
         go(
           this.ctx.scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
@@ -700,7 +771,7 @@ export const compile_ =
       interrupted = (inter: Interrupted) =>
         go(
           this.ctx.scope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
@@ -709,7 +780,7 @@ export const compile_ =
       out = (hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) =>
         go(
           outScope,
-          this.ctx.extendsTopLevelScope,
+          this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           new Bind(this.unconsed(hd, tl), this.cont),
@@ -733,7 +804,7 @@ export const compile_ =
             );
             return go(
               scope,
-              ctx.extendsTopLevelScope,
+              ctx.extendedTopLevelScope,
               ctx.translation,
               ctx.runner,
               view(result),
@@ -742,16 +813,125 @@ export const compile_ =
         ),
       );
 
+    const goCloseScope = <G, X, End>(
+      close: CloseScope,
+      cont: Cont<void, G, X>,
+      ctx: GoContext<G, X, End>,
+    ): Kind<F, [End]> => {
+      const addError = (error: Error, res: Terminal<void>): Terminal<void> => {
+        switch (res.tag) {
+          case 'succeed':
+            return new Fail(error);
+          case 'fail':
+            return new Fail(CompositeFailure.from(error, res.error));
+          case 'interrupted':
+            throw new Error('Impossible state');
+        }
+      };
+
+      const cont_ = (res: Terminal<void>): Pull<G, X, void> =>
+        close.exitCase.fold(
+          () => cont(res),
+          error => cont(addError(error, res)),
+          () => cont(res),
+        );
+
+      const closeTerminal = (
+        r: Either<Error, void>,
+        ancestor: Scope<F>,
+      ): Terminal<void> =>
+        close.interruption.fold(
+          () =>
+            r.fold(
+              e => new Fail(e),
+              rr => new Succeed(rr),
+            ),
+          ({ context, deferredError }) => {
+            const err1 = () =>
+              CompositeFailure.fromList(
+                r.swapped.toOption.toList['+++'](deferredError.toList),
+              );
+
+            return ancestor.descendsFrom(context)
+              ? new Interrupted(context, err1())
+              : err1().fold(
+                  () => P.unit,
+                  error => new Fail(error),
+                );
+          },
+        );
+
+      return F.flatMap_(ctx.scope.findInLineage(close.scopeId), optToClose =>
+        optToClose.fold(
+          () => {
+            const result = close.interruption.getOrElse(() => P.unit);
+            return go<G, X, End>(
+              ctx.scope,
+              ctx.extendedTopLevelScope,
+              ctx.translation,
+              ctx.runner,
+              cont_(result),
+            );
+          },
+          toClose => {
+            if (toClose.isRoot)
+              // impossible
+              return go<G, X, End>(
+                ctx.scope,
+                ctx.extendedTopLevelScope,
+                ctx.translation,
+                ctx.runner,
+                cont_(P.unit),
+              );
+
+            if (extendLastTopLevelScope && toClose.level === 1)
+              return pipe(
+                ctx.extendedTopLevelScope.fold(
+                  () => F.unit,
+                  s => s.close(ExitCase.Succeeded),
+                ),
+                F.productR(toClose.openAncestor),
+                F.flatMap(ancestor =>
+                  go(
+                    ancestor,
+                    Some(toClose),
+                    ctx.translation,
+                    ctx.runner,
+                    cont_(P.unit),
+                  ),
+                ),
+              );
+
+            return pipe(
+              F.Do,
+              F.bindTo('r', toClose.close(close.exitCase)),
+              F.bindTo('ancestor', toClose.openAncestor),
+              F.flatMap(({ r, ancestor }) => {
+                const res = closeTerminal(r, ancestor);
+                return go(
+                  ancestor,
+                  ctx.extendedTopLevelScope,
+                  ctx.translation,
+                  ctx.runner,
+                  cont_(res),
+                );
+              }),
+            );
+          },
+        ),
+      );
+    };
+
     const go = <G, X, End>(
       scope: Scope<F>,
-      extendsTopLevelScope: Option<Scope<F>>,
+      extendedTopLevelScope: Option<Scope<F>>,
       translation: FunctionK<G, F>,
       runner: Run<G, X, Kind<F, [End]>>,
       stream: Pull<G, X, void>,
     ): Kind<F, [End]> => {
       const ctx: GoContext<G, X, End> = {
         scope,
-        extendsTopLevelScope,
+        extendedTopLevelScope,
         translation,
         runner,
         stream,
@@ -766,7 +946,7 @@ export const compile_ =
             v.nt,
             cont,
           );
-          return go(scope, extendsTopLevelScope, composed, runner, v.self);
+          return go(scope, extendedTopLevelScope, composed, runner, v.self);
         }
 
         case 'output':
@@ -778,7 +958,7 @@ export const compile_ =
           return F.flatMap_(F.unit, () =>
             go(
               scope,
-              extendsTopLevelScope,
+              extendedTopLevelScope,
               translation,
               new FlatMapRun(ctx, cont, v.fun),
               v.self,
@@ -793,7 +973,7 @@ export const compile_ =
             F.flatMap(() =>
               go<G, X, CallRun<G, X, Kind<F, [End]>>>(
                 scope,
-                extendsTopLevelScope,
+                extendedTopLevelScope,
                 translation,
                 new BuildRun<G, unknown, End>(),
                 u.self,
@@ -805,7 +985,7 @@ export const compile_ =
                 e =>
                   go(
                     scope,
-                    extendsTopLevelScope,
+                    extendedTopLevelScope,
                     translation,
                     runner,
                     c(new Fail(e)),
@@ -832,7 +1012,7 @@ export const compile_ =
 
               return go(
                 scope,
-                extendsTopLevelScope,
+                extendedTopLevelScope,
                 translation,
                 runner,
                 cont(result),
@@ -840,13 +1020,93 @@ export const compile_ =
             }),
           );
 
+        case 'interruptWhen': {
+          const onScope = scope.acquireResource(
+            () => scope.interruptWhen(translation(v.haltOnSignal)),
+            f => f.cancel,
+          );
+
+          const cont_ = F.flatMap_(onScope, outcome => {
+            const result = outcome.fold(
+              () => new Interrupted(scope.id, None),
+              e => new Fail(e),
+              ea =>
+                ea.fold(
+                  scopeId => new Interrupted(scopeId, None),
+                  () => new Succeed(undefined as void),
+                ),
+            );
+
+            return go(
+              scope,
+              extendedTopLevelScope,
+              translation,
+              runner,
+              cont(result),
+            );
+          });
+
+          return interruptGuard(scope, ctx, cont, () => cont_);
+        }
+
         case 'succeedScope':
         case 'canceledScope':
         case 'failedScope':
-          throw new Error('Not implemented');
+          return goCloseScope(v, cont, ctx);
 
-        case 'inScope':
-          throw new Error('Not implemented');
+        case 'inScope': {
+          const endScope = (
+            scopeId: UniqueToken,
+            result: Terminal<void>,
+          ): Pull<G, X, void> => {
+            switch (result.tag) {
+              case 'succeed':
+                return new SucceedScope(scopeId);
+              case 'fail':
+                return new FailedScope(scopeId, result.error);
+              case 'interrupted':
+                return new CanceledScope(scopeId, result);
+            }
+          };
+
+          const maybeCloseExtendScope: Kind<F, [Option<Scope<F>>]> =
+            scope.isRoot && extendedTopLevelScope.nonEmpty
+              ? extendedTopLevelScope.fold(
+                  () =>
+                    throwError(
+                      new Error(
+                        'Impossible, we just checked that the option is not empty',
+                      ),
+                    ),
+                  scope =>
+                    F.map_(
+                      F.rethrow(scope.close(ExitCase.Succeeded)),
+                      () => None,
+                    ),
+                )
+              : F.pure(extendedTopLevelScope);
+
+          const tail = F.flatMap_(maybeCloseExtendScope, newExtendedScope =>
+            pipe(
+              scope.open(v.useInterruption),
+              F.rethrow,
+              F.flatMap(childScope => {
+                const bb = new Bind<G, X, void, void>(v.self, r =>
+                  endScope(childScope.id, r),
+                );
+                return go(
+                  childScope,
+                  newExtendedScope,
+                  translation,
+                  new ContRunner(ctx, cont),
+                  bb,
+                );
+              }),
+            ),
+          );
+
+          return interruptGuard(scope, ctx, cont, () => tail);
+        }
 
         case 'succeed':
           return runner.done(scope);
@@ -887,10 +1147,11 @@ export const compile_ =
             case 'flatMapOutput':
             case 'uncons':
             case 'translate':
-            case 'inScope':
+            case 'interruptWhen':
             case 'succeedScope':
             case 'canceledScope':
             case 'failedScope':
+            case 'inScope':
               return go<F, O, B>(
                 outScope,
                 None,

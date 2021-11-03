@@ -92,6 +92,9 @@ import {
   covaryAll,
   compileSync,
   compileConcurrent,
+  interruptWhen_,
+  scope,
+  interruptScope,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -209,6 +212,14 @@ declare module './algebra' {
       this: Stream<F, B>,
       h: (e: Error) => Stream<F, B>,
     ): Stream<F, B>;
+
+    interruptWhen<F2>(
+      this: Stream<F2, A>,
+      haltOnSignal: Kind<F, [Either<Error, void>]>,
+    ): Stream<F, A>;
+
+    readonly scope: Stream<F, A>;
+    readonly interruptScope: Stream<F, A>;
 
     covary<F2>(this: Stream<F2, A>): Stream<F2, A>;
     covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
@@ -493,6 +504,22 @@ Object.defineProperty(Stream.prototype, 'rethrow', {
 Stream.prototype.handleErrorWith = function (h) {
   return handleErrorWith_(this, h);
 };
+
+Stream.prototype.interruptWhen = function (haltOnSignal) {
+  return interruptWhen_(this, haltOnSignal);
+};
+
+Object.defineProperty(Stream.prototype, 'scope', {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
+    return scope(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'interruptScope', {
+  get<F, A>(this: Stream<F, A>): Stream<F, A> {
+    return interruptScope(this);
+  },
+});
 
 Stream.prototype.covary = function () {
   return covary()(this) as any;

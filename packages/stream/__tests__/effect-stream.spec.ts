@@ -422,6 +422,100 @@ describe('Effect-ful stream', () => {
     });
   });
 
+  it.ticked(
+    'should evaluate effect when halt signal does not complete and cancels the the signal',
+    ticker => {
+      let evaluated: boolean = false;
+      let canceledEffect: boolean = false;
+      let canceledSignal: boolean = false;
+      const s = Stream.evalF<IoK, void>(
+        IO.sleep(2_000)
+          ['>>>'](IO(() => (evaluated = true)).void)
+          .onCancel(IO(() => (canceledEffect = true)).void),
+      ).interruptWhen(
+        IO.sleep(3_000).attempt.onCancel(
+          IO(() => (canceledSignal = true)).void,
+        ),
+      );
+
+      const io = s.compileConcurrent().drain;
+      io.unsafeRunToPromise({
+        config: { autoSuspendThreshold: Infinity },
+        executionContext: ticker.ctx,
+        shutdown: () => {},
+      });
+
+      // after 1 second:
+      //  effect should not be evaluated and neither of the tasks should be canceled
+      ticker.ctx.tick();
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(false);
+      expect(canceledEffect).toBe(false);
+      expect(canceledSignal).toBe(false);
+
+      // after 2 seconds:
+      //  effect should be evaluated and the signal should be canceled
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(true);
+      expect(canceledEffect).toBe(false);
+      expect(canceledSignal).toBe(true);
+
+      // after 3 seconds:
+      //  effect should be evaluated and the signal should be canceled
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(true);
+      expect(canceledEffect).toBe(false);
+      expect(canceledSignal).toBe(true);
+    },
+  );
+
+  it.ticked(
+    'should not evaluate effect when halt signal completes before the effect does',
+    ticker => {
+      let evaluated: boolean = false;
+      let canceledEffect: boolean = false;
+      let canceledSignal: boolean = false;
+      const s = Stream.evalF<IoK, void>(
+        IO.sleep(3_000)
+          ['>>>'](IO(() => (evaluated = true)).void)
+          .onCancel(IO(() => (canceledEffect = true)).void),
+      ).interruptWhen(
+        IO.sleep(2_000).attempt.onCancel(
+          IO(() => (canceledSignal = true)).void,
+        ),
+      );
+
+      const io = s.compileConcurrent().drain;
+      io.unsafeRunToPromise({
+        config: { autoSuspendThreshold: Infinity },
+        executionContext: ticker.ctx,
+        shutdown: () => {},
+      });
+
+      // after 1 second:
+      //  effect should not be evaluated and neither of the tasks should be canceled
+      ticker.ctx.tick();
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(false);
+      expect(canceledEffect).toBe(false);
+      expect(canceledSignal).toBe(false);
+
+      // after 2 seconds:
+      //  signal should complete and the effect should be canceled
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(false);
+      expect(canceledEffect).toBe(true);
+      expect(canceledSignal).toBe(false);
+
+      // after 3 seconds:
+      //  effect should be evaluated and the signal should be canceled
+      ticker.ctx.tick(1_000);
+      expect(evaluated).toBe(false);
+      expect(canceledEffect).toBe(true);
+      expect(canceledSignal).toBe(false);
+    },
+  );
+
   describe.ticked('Laws', ticker => {
     const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IoK, X>> =>
       Eq.by(E.eqIO(List.Eq(EqX), ticker), s => s.compileConcurrent().toList);

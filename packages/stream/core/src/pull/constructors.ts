@@ -1,9 +1,18 @@
 import { Kind } from '@fp4ts/core';
-import { Option } from '@fp4ts/cats';
+import { Either, Option } from '@fp4ts/cats';
 import { Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
-import { Eval, Fail, Pull, Succeed, Terminal, Output, Bind } from './algebra';
+import {
+  Eval,
+  Fail,
+  Pull,
+  Succeed,
+  Terminal,
+  Output,
+  Bind,
+  InterruptWhen,
+} from './algebra';
 
 export const pure = <F, R>(r: R): Pull<F, never, R> =>
   new Succeed(r) as Pull<any, never, R>;
@@ -33,3 +42,7 @@ export const output = <F, O>(chunk: Chunk<O>): Pull<F, O, void> =>
 
 export const defer = <F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R> =>
   new Bind<F, O, any, R>(unit as Pull<any, never, void>, thunk);
+
+export const interruptWhen = <F, O>(
+  haltOnSignal: Kind<F, [Either<Error, void>]>,
+): Pull<F, O, void> => new InterruptWhen(haltOnSignal);

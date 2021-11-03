@@ -25,10 +25,12 @@ import {
   find_,
   flatMapOutput_,
   fold_,
+  interruptScope,
   last,
   mapOutput_,
   scanChunksOpt_,
   scanChunks_,
+  scope,
   takeRight_,
   takeWhile_,
   take_,
@@ -141,6 +143,9 @@ declare module './algebra' {
       s: S,
       f: (s: S) => Option<(o: Chunk<OO>) => [S, Chunk<O2>]>,
     ): Pull<F, O2, S>;
+
+    scope(this: Pull<F, O, void>): Pull<F, O, void>;
+    interruptScope(this: Pull<F, O, void>): Pull<F, O, void>;
 
     covaryId<G>(this: Pull<IdentityK, O, R>, G: Applicative<G>): Pull<G, O, R>;
 
@@ -257,6 +262,14 @@ Pull.prototype.scanChunks = function (s, f) {
 
 Pull.prototype.scanChunksOpt = function (s, f) {
   return scanChunksOpt_(this, s, f);
+};
+
+Pull.prototype.scope = function () {
+  return scope(this);
+};
+
+Pull.prototype.interruptScope = function () {
+  return interruptScope(this);
 };
 
 Pull.prototype.covaryId = function (G) {

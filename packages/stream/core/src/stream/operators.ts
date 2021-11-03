@@ -392,6 +392,12 @@ export const handleErrorWith: <F, A2>(
 ) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
   handleErrorWith_(s, h);
 
+export const scope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
+  new Stream(s.pull.scope());
+
+export const interruptScope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
+  new Stream(s.pull.interruptScope());
+
 export const covary =
   <F2>() =>
   <F extends F2, A>(s: Stream<F, A>): Stream<F2, A> =>
@@ -912,6 +918,15 @@ export const repeatPull_ = <F, A, B>(
   s: Stream<F, A>,
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
 ): Stream<F, B> => new Stream(Pull.loop(f)(s.pull));
+
+export const interruptWhen_ = <F, A>(
+  s: Stream<F, A>,
+  haltOnSignal: Kind<F, [Either<Error, void>]>,
+): Stream<F, A> =>
+  pipe(
+    new Stream(Pull.interruptWhen(haltOnSignal)['>>>'](() => s.pull)),
+    interruptScope,
+  );
 
 // -- Private implementation
 

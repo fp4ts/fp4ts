@@ -1,5 +1,5 @@
 import { Kind } from '@fp4ts/core';
-import { FunctionK, Option, None, Some } from '@fp4ts/cats';
+import { FunctionK, Either, Option, None, Some } from '@fp4ts/cats';
 import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk/algebra';
@@ -79,11 +79,10 @@ export class Eval<F, R> extends Pull<F, never, R> {
   }
 }
 
-export class InScope<F, O> extends Pull<F, O, void> {
-  public readonly tag = 'inScope';
+export class InterruptWhen<F> extends Pull<F, never, void> {
+  public readonly tag = 'interruptWhen';
   public constructor(
-    public readonly self: Pull<F, O, void>,
-    public readonly useInterruption: boolean,
+    public readonly haltOnSignal: Kind<F, [Either<Error, void>]>,
   ) {
     super();
   }
@@ -120,14 +119,25 @@ export class FailedScope extends Pull<unknown, never, void> {
 
 export type CloseScope = SucceedScope | CanceledScope | FailedScope;
 
-export type AlgEffect<F, O, R> = Eval<F, R> | InScope<F, O> | CloseScope;
+export type AlgEffect<F, R> = Eval<F, R> | InterruptWhen<F> | CloseScope;
+
+export class InScope<F, O> extends Pull<F, O, void> {
+  public readonly tag = 'inScope';
+  public constructor(
+    public readonly self: Pull<F, O, void>,
+    public readonly useInterruption: boolean,
+  ) {
+    super();
+  }
+}
 
 export type Action<F, O, R> =
   | Output<F, O>
   | Translate<any, F, O>
   | FlatMapOutput<F, any, O>
-  | AlgEffect<F, O, R>
-  | Uncons<F, O>;
+  | AlgEffect<F, R>
+  | Uncons<F, O>
+  | InScope<F, O>;
 
 export class Bind<F, O, X, R> extends Pull<F, O, R> {
   public readonly tag = 'bind';
