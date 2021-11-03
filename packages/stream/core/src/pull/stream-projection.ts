@@ -490,6 +490,10 @@ export const compile_ =
           case 'flatMapOutput':
           case 'uncons':
           case 'eval':
+          case 'inScope':
+          case 'succeedScope':
+          case 'canceledScope':
+          case 'failedScope':
             cont = id;
             return v;
 
@@ -506,6 +510,11 @@ export const compile_ =
               case 'flatMapOutput':
               case 'uncons':
               case 'eval':
+              case 'eval':
+              case 'inScope':
+              case 'succeedScope':
+              case 'canceledScope':
+              case 'failedScope':
                 cont = v.cont as Cont<unknown, any, never>;
                 return step;
 
@@ -798,6 +807,14 @@ export const compile_ =
             ),
           );
 
+        case 'succeedScope':
+        case 'canceledScope':
+        case 'failedScope':
+          throw new Error('Not implemented');
+
+        case 'inScope':
+          throw new Error('Not implemented');
+
         case 'succeed':
           return runner.done(scope);
 
@@ -835,6 +852,10 @@ export const compile_ =
             case 'flatMapOutput':
             case 'uncons':
             case 'translate':
+            case 'inScope':
+            case 'succeedScope':
+            case 'canceledScope':
+            case 'failedScope':
               return go<F, O, B>(
                 outScope,
                 None,

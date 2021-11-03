@@ -12,8 +12,7 @@ export const unit: Terminal<void> = pure(undefined) as Terminal<void>;
 
 export const done = <F>(): Pull<F, never, void> => pure(undefined);
 
-export const throwError = <F>(e: Error): Pull<F, never, never> =>
-  new Fail(e) as Pull<any, never, never>;
+export const throwError = <F>(e: Error): Pull<F, never, never> => new Fail(e);
 
 export const evalF = <F, R>(value: Kind<F, [R]>): Pull<F, never, R> =>
   new Eval(value);

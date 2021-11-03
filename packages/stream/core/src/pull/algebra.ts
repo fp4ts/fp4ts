@@ -1,6 +1,6 @@
 import { Kind } from '@fp4ts/core';
-import { FunctionK, Option } from '@fp4ts/cats';
-import { UniqueToken } from '@fp4ts/effect';
+import { FunctionK, Option, None, Some } from '@fp4ts/cats';
+import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk/algebra';
 
@@ -79,13 +79,54 @@ export class Eval<F, R> extends Pull<F, never, R> {
   }
 }
 
-export type AlgEffect<F, R> = Eval<F, R>;
+export class InScope<F, O> extends Pull<F, O, void> {
+  public readonly tag = 'inScope';
+  public constructor(
+    public readonly self: Pull<F, O, void>,
+    public readonly useInterruption: boolean,
+  ) {
+    super();
+  }
+}
+
+export class SucceedScope extends Pull<unknown, never, void> {
+  public readonly tag = 'succeedScope';
+  public readonly exitCase: ExitCase = ExitCase.Succeeded;
+  public readonly interruption: Option<Interrupted> = None;
+  public constructor(public readonly scopeId: UniqueToken) {
+    super();
+  }
+}
+
+export class CanceledScope extends Pull<unknown, never, void> {
+  public readonly tag = 'canceledScope';
+  public readonly exitCase: ExitCase = ExitCase.Canceled;
+  public readonly interruption: Option<Interrupted>;
+  public constructor(public readonly scopeId: UniqueToken, inter: Interrupted) {
+    super();
+    this.interruption = Some(inter);
+  }
+}
+
+export class FailedScope extends Pull<unknown, never, void> {
+  public readonly tag = 'failedScope';
+  public readonly exitCase: ExitCase;
+  public readonly interruption: Option<Interrupted> = None;
+  public constructor(public readonly scopeId: UniqueToken, error: Error) {
+    super();
+    this.exitCase = ExitCase.Errored(error);
+  }
+}
+
+export type CloseScope = SucceedScope | CanceledScope | FailedScope;
+
+export type AlgEffect<F, O, R> = Eval<F, R> | InScope<F, O> | CloseScope;
 
 export type Action<F, O, R> =
   | Output<F, O>
   | Translate<any, F, O>
   | FlatMapOutput<F, any, O>
-  | AlgEffect<F, R>
+  | AlgEffect<F, O, R>
   | Uncons<F, O>;
 
 export class Bind<F, O, X, R> extends Pull<F, O, R> {

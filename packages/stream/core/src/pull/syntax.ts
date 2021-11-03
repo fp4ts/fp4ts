@@ -146,12 +146,12 @@ declare module './algebra' {
 
     compile<F2, O2>(
       this: Pull<F2, O2, void>,
-      F: MonadError<F, Error>,
+      F: MonadError<F2, Error>,
     ): <B>(
       init: B,
       initScope: Scope<F2>,
       foldChunk: (b: B, chunk: Chunk<O2>) => B,
-    ) => Kind<F, [B]>;
+    ) => Kind<F2, [B]>;
   }
 }
 
