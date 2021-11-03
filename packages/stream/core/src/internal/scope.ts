@@ -94,6 +94,19 @@ export class Scope<F> {
     );
   }
 
+  public interruptibleEval<A>(
+    fa: Kind<F, [A]>,
+  ): Kind<F, [Either<InterruptionOutcome, A>]> {
+    const { F } = this.target;
+    return this.interruptible.fold(
+      () =>
+        F.map_(F.attempt(fa), ea =>
+          ea.leftMap(e => Outcome.failure<F, Error>(e)),
+        ),
+      iCtx => iCtx.evalF(fa),
+    );
+  }
+
   public open(interruptible: boolean): Kind<F, [Either<Error, Scope<F>>]> {
     const { F } = this.target;
     const createScope: Kind<F, [Scope<F>]> = F.flatMap_(
@@ -385,20 +398,6 @@ export class Scope<F> {
     }
     return cur;
   }
-
-  private interruptibleEval = <A>(
-    fa: Kind<F, [A]>,
-  ): Kind<F, [Either<InterruptionOutcome, A>]> => {
-    const { F } = this.target;
-
-    return this.interruptible.fold(
-      () =>
-        F.map_(F.attempt(fa), ea =>
-          ea.leftMap(e => Outcome.failure<F, Error>(e)),
-        ),
-      iCtx => iCtx.evalF(fa),
-    );
-  };
 }
 
 type ScopeState<F> = Open<F> | Closed;
