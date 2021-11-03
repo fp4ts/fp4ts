@@ -1,6 +1,6 @@
 import { Kind } from '@fp4ts/core';
 import { Either, Option } from '@fp4ts/cats';
-import { Temporal } from '@fp4ts/effect';
+import { Poll, ExitCase, MonadCancel, Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import {
@@ -12,6 +12,7 @@ import {
   Output,
   Bind,
   InterruptWhen,
+  Acquire,
 } from './algebra';
 
 export const pure = <F, R>(r: R): Pull<F, never, R> =>
@@ -46,3 +47,16 @@ export const defer = <F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R> =>
 export const interruptWhen = <F, O>(
   haltOnSignal: Kind<F, [Either<Error, void>]>,
 ): Pull<F, O, void> => new InterruptWhen(haltOnSignal);
+
+export const acquire = <F, R>(
+  resource: Kind<F, [R]>,
+  release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+): Pull<F, never, R> => new Acquire(resource, release, /* cancelable */ false);
+
+export const acquireCancelable =
+  <F>(F: MonadCancel<F, Error>) =>
+  <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Pull<F, never, R> =>
+    new Acquire(F.uncancelable(acquire), release, /* cancelable */ true);

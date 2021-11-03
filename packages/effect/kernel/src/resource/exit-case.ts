@@ -34,6 +34,8 @@ export abstract class ExitCase {
 }
 
 const Succeeded = new (class Succeeded extends ExitCase {
+  private readonly tag = 'succeeded';
+
   public fold<B1, B2 = B1, B3 = B2>(
     onCanceled: () => B1,
     onErrored: (e: Error) => B2,
@@ -49,6 +51,8 @@ const Succeeded = new (class Succeeded extends ExitCase {
 type Succeeded = typeof Succeeded;
 
 class Errored extends ExitCase {
+  private readonly tag = 'errored';
+
   public constructor(public readonly error: Error) {
     super();
   }
@@ -67,6 +71,7 @@ class Errored extends ExitCase {
 }
 
 const Canceled = new (class Canceled extends ExitCase {
+  private readonly tag = 'canceled';
   public fold<B1, B2 = B1, B3 = B2>(
     onCanceled: () => B1,
     onErrored: (e: Error) => B2,

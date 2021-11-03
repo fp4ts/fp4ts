@@ -79,6 +79,17 @@ export class Eval<F, R> extends Pull<F, never, R> {
   }
 }
 
+export class Acquire<F, R> extends Pull<F, never, R> {
+  public readonly tag = 'acquire';
+  public constructor(
+    public readonly resource: Kind<F, [R]>,
+    public readonly release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+    public readonly cancelable: boolean,
+  ) {
+    super();
+  }
+}
+
 export class InterruptWhen<F> extends Pull<F, never, void> {
   public readonly tag = 'interruptWhen';
   public constructor(
@@ -119,7 +130,11 @@ export class FailedScope extends Pull<unknown, never, void> {
 
 export type CloseScope = SucceedScope | CanceledScope | FailedScope;
 
-export type AlgEffect<F, R> = Eval<F, R> | InterruptWhen<F> | CloseScope;
+export type AlgEffect<F, R> =
+  | Acquire<F, R>
+  | Eval<F, R>
+  | InterruptWhen<F>
+  | CloseScope;
 
 export class InScope<F, O> extends Pull<F, O, void> {
   public readonly tag = 'inScope';

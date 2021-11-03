@@ -1,6 +1,6 @@
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Either, List, Option, Vector } from '@fp4ts/cats';
-import { Temporal, SyncIoK } from '@fp4ts/effect';
+import { Poll, ExitCase, MonadCancel, Temporal } from '@fp4ts/effect';
 
 import { PureK } from '../pure';
 import { Chunk } from '../chunk';
@@ -26,6 +26,10 @@ import {
   sleep,
   retry,
   execF,
+  bracketFullWeak,
+  bracketFull,
+  bracketWeak,
+  bracket,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -103,6 +107,27 @@ interface StreamObj {
   fromVector<F = PureK, A = never>(xs: Vector<A>): Stream<F, A>;
   fromChunk<F = PureK, A = never>(chunk: Chunk<A>): Stream<F, A>;
 
+  bracket<F, R>(
+    resource: Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Stream<F, R>;
+  bracketWeak<F, R>(
+    resource: Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Stream<F, R>;
+  bracketFull<F>(
+    F: MonadCancel<F, Error>,
+  ): <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ) => Stream<F, R>;
+  bracketFullWeak<F>(
+    F: MonadCancel<F, Error>,
+  ): <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ) => Stream<F, R>;
+
   // -- Instances
 
   MonoidK<F>(): MonoidK<$<StreamK, [F]>>;
@@ -139,6 +164,11 @@ Stream.fromArray = fromArray;
 Stream.fromList = fromList;
 Stream.fromVector = fromVector;
 Stream.fromChunk = fromChunk;
+
+Stream.bracket = bracket;
+Stream.bracketWeak = bracketWeak;
+Stream.bracketFull = bracketFull;
+Stream.bracketFullWeak = bracketFullWeak;
 
 Stream.MonoidK = streamMonoidK;
 Stream.Defer = streamDefer;

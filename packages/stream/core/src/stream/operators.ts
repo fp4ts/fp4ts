@@ -929,7 +929,9 @@ export const interruptWhen_ = <F, A>(
   haltOnSignal: Kind<F, [Either<Error, void>]>,
 ): Stream<F, A> =>
   pipe(
-    new Stream(Pull.interruptWhen(haltOnSignal)['>>>'](() => s.pull)),
+    Pull.interruptWhen(haltOnSignal)
+      ['>>>'](() => s.pull)
+      .stream(),
     interruptScope,
   );
 

@@ -5,6 +5,7 @@ import { UniqueToken, ExitCase } from '@fp4ts/effect';
 import * as PO from './operators';
 import * as PC from './constructors';
 import {
+  Acquire,
   Action,
   Bind,
   CanceledScope,
@@ -515,13 +516,14 @@ export const compile_ =
           case 'flatMapOutput':
           case 'uncons':
           case 'eval':
+          case 'acquire':
           case 'interruptWhen':
           case 'succeedScope':
           case 'canceledScope':
           case 'failedScope':
           case 'inScope':
             cont = id;
-            return v;
+            return v as ViewL<G, X>;
 
           case 'bind': {
             const step = view(v.step);
@@ -537,7 +539,7 @@ export const compile_ =
               case 'flatMapOutput':
               case 'uncons':
               case 'eval':
-              case 'eval':
+              case 'acquire':
               case 'interruptWhen':
               case 'inScope':
               case 'succeedScope':
@@ -594,7 +596,7 @@ export const compile_ =
         case 'canceledScope':
         case 'failedScope': {
           const cl: Pull<G, X, void> = new CanceledScope(view.scopeId, inter);
-          return new Bind<G, X, void, void>(cl, t => cont(t));
+          return new Bind<G, X, void, void>(cl, cont);
         }
 
         case 'translate':
@@ -602,7 +604,7 @@ export const compile_ =
         case 'flatMapOutput':
         case 'uncons':
         case 'eval':
-        case 'eval':
+        case 'acquire':
         case 'interruptWhen':
         case 'inScope':
           return cont(inter);
@@ -910,6 +912,41 @@ export const compile_ =
         }),
       );
 
+    const goAcquire = <G, X, R, End>(
+      acquire: Acquire<G, R>,
+      cont: Cont<R, G, X>,
+      ctx: GoContext<G, X, End>,
+    ): Kind<F, [End]> => {
+      const onScope = ctx.scope.acquireResource<R>(
+        poll =>
+          acquire.cancelable
+            ? poll(ctx.translation(acquire.resource))
+            : ctx.translation(acquire.resource),
+        (resource, ec) => ctx.translation(acquire.release(resource, ec)),
+      );
+
+      const cont_ = F.flatMap_(onScope, oc => {
+        const result = oc.fold(
+          () => new Interrupted(ctx.scope.id, None),
+          e => new Fail(e),
+          ea =>
+            ea.fold(
+              scopeId => new Interrupted(scopeId, None),
+              result => new Succeed(result),
+            ),
+        );
+        return go(
+          ctx.scope,
+          ctx.extendedTopLevelScope,
+          ctx.translation,
+          ctx.runner,
+          cont(result),
+        );
+      });
+
+      return interruptGuard(ctx.scope, ctx, cont, () => cont_);
+    };
+
     const goInterruptWhen = <G, X, End>(
       haltOnSignal: Kind<F, [Either<Error, void>]>,
       cont: Cont<void, G, X>,
@@ -1157,6 +1194,9 @@ export const compile_ =
         case 'eval':
           return goEval(v, cont, ctx);
 
+        case 'acquire':
+          return goAcquire(v, cont, ctx);
+
         case 'interruptWhen':
           return goInterruptWhen(translation(v.haltOnSignal), cont, ctx);
 
@@ -1202,11 +1242,12 @@ export const compile_ =
         } catch (error) {
           const tv = viewL(tl);
           switch (tv.tag) {
-            case 'eval':
+            case 'translate':
             case 'output':
             case 'flatMapOutput':
             case 'uncons':
-            case 'translate':
+            case 'eval':
+            case 'acquire':
             case 'interruptWhen':
             case 'succeedScope':
             case 'canceledScope':

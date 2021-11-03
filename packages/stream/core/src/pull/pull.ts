@@ -1,6 +1,6 @@
 import { Kind } from '@fp4ts/core';
 import { Either, Option } from '@fp4ts/cats';
-import { Temporal } from '@fp4ts/effect';
+import { Poll, ExitCase, MonadCancel, Temporal } from '@fp4ts/effect';
 
 import { Pull as PullBase } from './algebra';
 import { Chunk } from '../chunk';
@@ -15,6 +15,8 @@ import {
   defer,
   throwError,
   interruptWhen,
+  acquire,
+  acquireCancelable,
 } from './constructors';
 import { loop } from './operators';
 
@@ -33,6 +35,16 @@ interface PullObj {
   output<F, O>(chunk: Chunk<O>): Pull<F, O, void>;
   defer<F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
 
+  acquire<F, R>(
+    resource: Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Pull<F, never, R>;
+  acquireCancelable<F>(
+    F: MonadCancel<F, Error>,
+  ): <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ) => Pull<F, never, R>;
   interruptWhen<F, O>(
     haltOnSignal: Kind<F, [Either<Error, void>]>,
   ): Pull<F, O, void>;
@@ -50,6 +62,8 @@ Pull.outputOption1 = outputOption1;
 Pull.output = output;
 Pull.defer = defer;
 
+Pull.acquire = acquire;
+Pull.acquireCancelable = acquireCancelable;
 Pull.interruptWhen = interruptWhen;
 
 Pull.loop = loop;

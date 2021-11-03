@@ -123,8 +123,8 @@ declare module './algebra' {
     dropRight(n: number): Stream<F, A>;
     dropWhile(pred: (a: A) => boolean, dropFailure?: boolean): Stream<F, A>;
 
-    concat<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
-    '+++'<B>(this: Stream<F, B>, that: Stream<F, B>): Stream<F, B>;
+    concat<F2, B>(this: Stream<F2, B>, that: Stream<F2, B>): Stream<F2, B>;
+    '+++'<F2, B>(this: Stream<F2, B>, that: Stream<F2, B>): Stream<F2, B>;
 
     readonly chunks: Stream<F, Chunk<A>>;
     readonly chunkAll: Stream<F, Chunk<A>>;
@@ -156,7 +156,7 @@ declare module './algebra' {
       F: Applicative<F>,
     ): <B>(f: (a: A) => Kind<F, [B]>) => Stream<F, B>;
 
-    flatMap<B>(f: (a: A) => Stream<F, B>): Stream<F, B>;
+    flatMap<F2, B>(f: (a: A) => Stream<F2, B>): Stream<F2, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
 
     fold<B>(z: B, f: (b: B, a: A) => B): Stream<F, B>;
@@ -208,15 +208,15 @@ declare module './algebra' {
 
     rethrow: A extends Either<Error, infer B> ? Stream<F, B> : never;
 
-    handleErrorWith<B>(
-      this: Stream<F, B>,
-      h: (e: Error) => Stream<F, B>,
-    ): Stream<F, B>;
+    handleErrorWith<F2, B>(
+      this: Stream<F2, B>,
+      h: (e: Error) => Stream<F2, B>,
+    ): Stream<F2, B>;
 
     interruptWhen<F2>(
       this: Stream<F2, A>,
-      haltOnSignal: Kind<F, [Either<Error, void>]>,
-    ): Stream<F, A>;
+      haltOnSignal: Kind<F2, [Either<Error, void>]>,
+    ): Stream<F2, A>;
 
     readonly scope: Stream<F, A>;
     readonly interruptScope: Stream<F, A>;

@@ -1,7 +1,7 @@
 import { ok as assert } from 'assert';
 import { constant, Kind, pipe } from '@fp4ts/core';
 import { Either, List, Option, Some, Vector } from '@fp4ts/cats';
-import { Spawn, Temporal } from '@fp4ts/effect';
+import { ExitCase, Poll, MonadCancel, Spawn, Temporal } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
@@ -13,6 +13,7 @@ import {
   last,
   repeat,
   rethrow,
+  scope,
   take,
   takeWhile,
 } from './operators';
@@ -147,3 +148,32 @@ export const fromVector = <F, A>(xs: Vector<A>): Stream<F, A> =>
 
 export const fromChunk = <F, A>(chunk: Chunk<A>): Stream<F, A> =>
   new Stream(Pull.output(chunk));
+
+export const bracket = <F, R>(
+  resource: Kind<F, [R]>,
+  release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+): Stream<F, R> => bracketWeak(resource, release).scope;
+
+export const bracketWeak = <F, R>(
+  resource: Kind<F, [R]>,
+  release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+): Stream<F, R> =>
+  new Stream(Pull.acquire(resource, release).flatMap(Pull.output1));
+
+export const bracketFull =
+  <F>(F: MonadCancel<F, Error>) =>
+  <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Stream<F, R> =>
+    scope(bracketFullWeak(F)(acquire, release));
+
+export const bracketFullWeak =
+  <F>(F: MonadCancel<F, Error>) =>
+  <R>(
+    acquire: (p: Poll<F>) => Kind<F, [R]>,
+    release: (r: R, ec: ExitCase) => Kind<F, [void]>,
+  ): Stream<F, R> =>
+    new Stream(
+      Pull.acquireCancelable(F)(acquire, release).flatMap(Pull.output1),
+    );
