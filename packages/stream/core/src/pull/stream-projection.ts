@@ -8,6 +8,7 @@ import {
   Bind,
   Fail,
   FlatMapOutput,
+  Interrupted,
   Pull,
   Succeed,
   Terminal,
@@ -481,6 +482,7 @@ export const compile_ =
         switch (v.tag) {
           case 'succeed':
           case 'fail':
+          case 'interrupted':
             return v;
 
           case 'translate':
@@ -628,6 +630,9 @@ export const compile_ =
                   return go(idx + 1);
                 case 'fail':
                   return t;
+                case 'interrupted':
+                  // TODO
+                  throw new Error('Not implemented');
               }
             });
           } catch (error) {
@@ -666,6 +671,33 @@ export const compile_ =
         );
     }
 
+    const interruptGuard =
+      <G, X, End>(
+        scope: Scope<F>,
+        ctx: GoContext<G, X, End>,
+        view: Cont<never, G, X>,
+      ) =>
+      (next: () => Kind<F, [End]>): Kind<F, [End]> =>
+        F.flatMap_(scope.isInterrupted, optOc =>
+          optOc.fold(
+            () => next(),
+            oc => {
+              const result = oc.fold(
+                () => new Interrupted(scope.id, None),
+                e => new Fail(e),
+                scopeId => new Interrupted(scopeId, None),
+              );
+              return go(
+                scope,
+                ctx.extendsTopLevelScope,
+                ctx.translation,
+                ctx.runner,
+                view(result),
+              );
+            },
+          ),
+        );
+
     const go = <G, X, End>(
       scope: Scope<F>,
       extendsTopLevelScope: Option<Scope<F>>,
@@ -680,6 +712,7 @@ export const compile_ =
         runner,
         stream,
       };
+
       const v = viewL(stream);
       switch (v.tag) {
         case 'translate': {
@@ -770,6 +803,10 @@ export const compile_ =
 
         case 'fail':
           return runner.fail(v.error);
+
+        case 'interrupted':
+          // return runner.interrupted(v);
+          throw new Error('Not implemented');
       }
     };
 
@@ -810,6 +847,13 @@ export const compile_ =
             case 'fail':
               return F.throwError(
                 CompositeFailure.from(tv.error, error as Error),
+              );
+            case 'interrupted':
+              return F.throwError(
+                tv.deferredError.fold(
+                  () => error as Error,
+                  e2 => CompositeFailure.from(e2, error as Error),
+                ),
               );
             default:
               return F.throwError(error as Error);

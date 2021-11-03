@@ -1,5 +1,6 @@
 import { Kind } from '@fp4ts/core';
 import { FunctionK, Option } from '@fp4ts/cats';
+import { UniqueToken } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk/algebra';
 
@@ -21,7 +22,17 @@ export class Fail extends Pull<unknown, never, never> {
   }
 }
 
-export type Terminal<R> = Succeed<R> | Fail;
+export class Interrupted extends Pull<unknown, never, never> {
+  public readonly tag = 'interrupted';
+  public constructor(
+    public readonly context: UniqueToken,
+    public readonly deferredError: Option<Error>,
+  ) {
+    super();
+  }
+}
+
+export type Terminal<R> = Succeed<R> | Fail | Interrupted;
 
 export class Output<F, O> extends Pull<F, O, void> {
   public readonly tag = 'output';

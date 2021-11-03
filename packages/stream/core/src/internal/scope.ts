@@ -62,6 +62,13 @@ export class Scope<F> {
     return level;
   }
 
+  public get isInterrupted(): Kind<F, [Option<InterruptionOutcome>]> {
+    return this.interruptible.fold(
+      () => this.target.F.pure(None),
+      iCtx => iCtx.ref.get(),
+    );
+  }
+
   public findStepScope(scopeId: UniqueToken): Kind<F, [Option<Scope<F>>]> {
     const { F } = this.target;
 
