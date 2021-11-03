@@ -1,5 +1,5 @@
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { Identity, IdentityK } from '@fp4ts/cats';
+import { Identity, IdentityK, None, Some } from '@fp4ts/cats';
 import { Ref, Sync, Concurrent, SyncIO } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
@@ -7,6 +7,7 @@ import { Pull } from '../pull';
 import { PureK } from '../pure';
 import { Compiler } from './compiler';
 import { CompilerTarget } from './target';
+import { InterruptContext } from '../internal';
 
 export const compilerTargetInstance = <F>(
   T: CompilerTarget<F>,
@@ -54,8 +55,19 @@ export const compilerIdentityInstance: Lazy<Compiler<IdentityK, IdentityK>> =
 // -- Target Instances
 
 export const syncTarget = <F>(F: Sync<F>): CompilerTarget<F> =>
-  CompilerTarget.of({ F, ref: Ref.of(F), unique: F.unique });
+  CompilerTarget.of({
+    F,
+    ref: Ref.of(F),
+    unique: F.unique,
+    interruptContext: () => None,
+  });
 
 export const concurrentTarget = <F>(
   F: Concurrent<F, Error>,
-): CompilerTarget<F> => CompilerTarget.of({ F, ref: F.ref, unique: F.unique });
+): CompilerTarget<F> =>
+  CompilerTarget.of({
+    F,
+    ref: F.ref,
+    unique: F.unique,
+    interruptContext: root => Some(InterruptContext.create(F)(root, F.unit)),
+  });

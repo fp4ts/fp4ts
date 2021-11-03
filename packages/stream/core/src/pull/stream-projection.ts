@@ -18,6 +18,7 @@ import {
 import { Chunk } from '../chunk';
 import { CompositeFailure } from '../composite-failure';
 import { assert } from 'console';
+import { Scope } from '../internal';
 
 const P = { ...PO, ...PC };
 
@@ -154,10 +155,11 @@ export const compile: <F>(
   F: MonadError<F, Error>,
 ) => <O, B>(
   init: B,
+  initScope: Scope<F>,
   foldChunk: (b: B, c: Chunk<O>) => B,
 ) => (stream: Pull<F, O, void>) => Kind<F, [B]> =
-  F => (init, foldChunk) => stream =>
-    compile_(F)(stream, init, foldChunk);
+  F => (init, initScope, foldChunk) => stream =>
+    compile_(F)(stream, init, initScope, foldChunk);
 
 // -- Point-ful operators
 
@@ -442,28 +444,28 @@ export const translate_ = <F, G, O>(
 
 type Cont<Y, G, X> = (t: Terminal<Y>) => Pull<G, X, void>;
 
-interface Run<G, X, End> {
-  done(): End;
-  fail(e: Error): End;
-  out(hd: Chunk<X>, tl: Pull<G, X, void>): End;
-}
-
-type CallRun<G, X, End> = (r: Run<G, X, End>) => End;
-
 export const compile_ =
   <F>(F: MonadError<F, Error>) =>
   <O, B>(
     stream: Pull<F, O, void>,
     init: B,
+    initScope: Scope<F>,
     foldChunk: (b: B, c: Chunk<O>) => B,
   ): Kind<F, [B]> => {
+    interface Run<G, X, End> {
+      done(scope: Scope<F>): End;
+      fail(e: Error): End;
+      out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>): End;
+    }
+    type CallRun<G, X, End> = (r: Run<G, X, End>) => End;
     class BuildRun<G, X, End>
       implements Run<G, X, Kind<F, [CallRun<G, X, Kind<G, [End]>>]>>
     {
       fail = (e: Error) => F.throwError(e);
-      done = () => F.pure((r: Run<G, X, Kind<F, [End]>>) => r.done());
-      out = (hd: Chunk<X>, tl: Pull<G, X, void>) =>
-        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.out(hd, tl));
+      done = (scope: Scope<F>) =>
+        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.done(scope));
+      out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>) =>
+        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.out(hd, scope, tl));
     }
 
     type ViewL<G, X> = Action<G, X, unknown> | Terminal<unknown>;
@@ -519,6 +521,7 @@ export const compile_ =
       readonly translation: FunctionK<G, F>;
       readonly runner: Run<G, X, Kind<F, [End]>>;
       readonly stream: Pull<G, X, void>;
+      readonly scope: Scope<F>;
     }
 
     class TranslateRun_<H, G, X, End> implements Run<H, X, Kind<F, [End]>> {
@@ -528,14 +531,21 @@ export const compile_ =
         private readonly cont: Cont<void, G, X>,
       ) {}
 
-      done = () => go(this.ctx.translation, this.ctx.runner, this.cont(P.unit));
+      done = (scope: Scope<F>) =>
+        go(scope, this.ctx.translation, this.ctx.runner, this.cont(P.unit));
 
       fail = (e: Error) =>
-        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
+        go(
+          this.ctx.scope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Fail(e)),
+        );
 
-      out = (hd: Chunk<X>, tl: Pull<H, X, void>) =>
+      out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) =>
         this.ctx.runner.out(
           hd,
+          scope,
           new Bind(new Translate(tl, this.fk), this.cont),
         );
     }
@@ -548,13 +558,27 @@ export const compile_ =
         protected readonly cont: Cont<Option<S>, G, X>,
       ) {}
 
-      done = () =>
-        go(this.ctx.translation, this.ctx.runner, this.cont(new Succeed(None)));
+      done = (scope: Scope<F>) =>
+        go(
+          scope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Succeed(None)),
+        );
 
       fail = (e: Error) =>
-        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
+        go(
+          this.ctx.scope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Fail(e)),
+        );
 
-      abstract out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]>;
+      abstract out(
+        hd: Chunk<Y>,
+        scope: Scope<F>,
+        tl: Pull<G, Y, void>,
+      ): Kind<F, [End]>;
     }
 
     class UnconsRun<Y, G, X, End> extends StepRun<
@@ -564,8 +588,13 @@ export const compile_ =
       X,
       End
     > {
-      override out(hd: Chunk<Y>, tl: Pull<G, Y, void>): Kind<F, [End]> {
+      override out(
+        hd: Chunk<Y>,
+        scope: Scope<F>,
+        tl: Pull<G, Y, void>,
+      ): Kind<F, [End]> {
         return go(
+          scope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Succeed(Some([hd, tl]))),
@@ -603,13 +632,20 @@ export const compile_ =
         return go(0);
       };
 
-      done = () => go(this.ctx.translation, this.ctx.runner, this.cont(P.unit));
+      done = (scope: Scope<F>) =>
+        go(scope, this.ctx.translation, this.ctx.runner, this.cont(P.unit));
 
       fail = (e: Error) =>
-        go(this.ctx.translation, this.ctx.runner, this.cont(new Fail(e)));
-
-      out = (hd: Chunk<Y>, tl: Pull<G, Y, void>) =>
         go(
+          this.ctx.scope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(new Fail(e)),
+        );
+
+      out = (hd: Chunk<Y>, scope: Scope<F>, tl: Pull<G, Y, void>) =>
+        go(
+          scope,
           this.ctx.translation,
           this.ctx.runner,
           new Bind(this.unconsed(hd, tl), this.cont),
@@ -617,11 +653,12 @@ export const compile_ =
     }
 
     const go = <G, X, End>(
+      scope: Scope<F>,
       translation: FunctionK<G, F>,
       runner: Run<G, X, Kind<F, [End]>>,
       stream: Pull<G, X, void>,
     ): Kind<F, [End]> => {
-      const ctx: GoContext<G, X, End> = { translation, runner, stream };
+      const ctx: GoContext<G, X, End> = { scope, translation, runner, stream };
       const v = viewL(stream);
       switch (v.tag) {
         case 'translate': {
@@ -631,15 +668,17 @@ export const compile_ =
             v.nt,
             cont,
           );
-          return go(composed, runner, v.self);
+          return go(scope, composed, runner, v.self);
         }
 
         case 'output':
-          return F.flatMap_(F.unit, () => runner.out(v.values, cont(P.unit)));
+          return F.flatMap_(F.unit, () =>
+            runner.out(v.values, scope, cont(P.unit)),
+          );
 
         case 'flatMapOutput':
           return F.flatMap_(F.unit, () =>
-            go(translation, new FlatMapRun(ctx, cont, v.fun), v.self),
+            go(scope, translation, new FlatMapRun(ctx, cont, v.fun), v.self),
           );
 
         case 'uncons': {
@@ -649,6 +688,7 @@ export const compile_ =
             F.unit,
             F.flatMap(() =>
               go<G, X, CallRun<G, X, Kind<F, [End]>>>(
+                scope,
                 translation,
                 new BuildRun<G, unknown, End>(),
                 u.self,
@@ -657,7 +697,7 @@ export const compile_ =
             F.attempt,
             F.flatMap(ea =>
               ea.fold(
-                e => go(translation, runner, c(new Fail(e))),
+                e => go(scope, translation, runner, c(new Fail(e))),
                 f => f(new UnconsRun(ctx, c)),
               ),
             ),
@@ -670,14 +710,14 @@ export const compile_ =
             F.attempt,
             F.flatMap(ea =>
               ea.fold(
-                e => go(translation, runner, cont(new Fail(e))),
-                r => go(translation, runner, cont(new Succeed(r))),
+                e => go(scope, translation, runner, cont(new Fail(e))),
+                r => go(scope, translation, runner, cont(new Succeed(r))),
               ),
             ),
           );
 
         case 'succeed':
-          return runner.done();
+          return runner.done(scope);
 
         case 'fail':
           return runner.fail(v.error);
@@ -689,14 +729,14 @@ export const compile_ =
     class OuterRun implements Run<F, O, Kind<F, [B]>> {
       public constructor(private acc: B) {}
 
-      done = (): Kind<F, [B]> => F.pure(this.acc);
+      done = (scope: Scope<F>): Kind<F, [B]> => F.pure(this.acc);
 
       fail = (e: Error) => F.throwError(e);
 
-      out(hd: Chunk<O>, tl: Pull<F, O, void>): Kind<F, [B]> {
+      out(hd: Chunk<O>, scope: Scope<F>, tl: Pull<F, O, void>): Kind<F, [B]> {
         try {
           this.acc = foldChunk(this.acc, hd);
-          return go<F, O, B>(initFk, this, tl);
+          return go<F, O, B>(scope, initFk, this, tl);
         } catch (error) {
           const tv = viewL(tl);
           switch (tv.tag) {
@@ -705,7 +745,12 @@ export const compile_ =
             case 'flatMapOutput':
             case 'uncons':
             case 'translate':
-              return go<F, O, B>(initFk, this, cont(new Fail(error as Error)));
+              return go<F, O, B>(
+                scope,
+                initFk,
+                this,
+                cont(new Fail(error as Error)),
+              );
             case 'succeed':
               return F.throwError(error as Error);
             case 'fail':
@@ -719,5 +764,5 @@ export const compile_ =
       }
     }
 
-    return go(initFk, new OuterRun(init), stream);
+    return go(initScope, initFk, new OuterRun(init), stream);
   };

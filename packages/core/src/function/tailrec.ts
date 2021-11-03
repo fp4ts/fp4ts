@@ -5,7 +5,6 @@ type Arguments<F extends (...args: any[]) => any> = F extends (
   : never;
 
 // https://gist.github.com/Gozala/1697037
-// eslint-disable-next-line @typescript-eslint/ban-types
 export function tailrec<F extends (...args: any[]) => any>(f: F): F {
   let result: ReturnType<F>;
   let running = false;

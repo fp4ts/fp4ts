@@ -7,6 +7,7 @@ import {
   MonadError,
 } from '@fp4ts/cats';
 
+import { Scope } from '../internal';
 import { Pull } from './algebra';
 import {
   flatMap_,
@@ -143,10 +144,14 @@ declare module './algebra' {
 
     covaryId<G>(this: Pull<IdentityK, O, R>, G: Applicative<G>): Pull<G, O, R>;
 
-    compile<O2>(
-      this: Pull<F, O2, void>,
+    compile<F2, O2>(
+      this: Pull<F2, O2, void>,
       F: MonadError<F, Error>,
-    ): <B>(init: B, foldChunk: (b: B, chunk: Chunk<O2>) => B) => Kind<F, [B]>;
+    ): <B>(
+      init: B,
+      initScope: Scope<F2>,
+      foldChunk: (b: B, chunk: Chunk<O2>) => B,
+    ) => Kind<F, [B]>;
   }
 }
 
@@ -259,5 +264,6 @@ Pull.prototype.covaryId = function (G) {
 };
 
 Pull.prototype.compile = function (F) {
-  return (init, foldChunk) => compile_(F)(this, init, foldChunk);
+  return (init, initScope, foldChunk) =>
+    compile_(F)(this, init, initScope, foldChunk);
 };

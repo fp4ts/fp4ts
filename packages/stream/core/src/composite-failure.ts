@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { List } from '@fp4ts/cats';
+import { List, Option, Some, None } from '@fp4ts/cats';
 
 export class CompositeFailure extends Error {
   public constructor(
@@ -16,5 +16,16 @@ export class CompositeFailure extends Error {
     tl: List<Error> = List.empty,
   ): CompositeFailure {
     return new CompositeFailure(fst, tl.prepend(snd));
+  }
+
+  public static fromList(xs: List<Error>): Option<Error> {
+    return xs.uncons.fold(
+      () => None,
+      ([fst, tl]) =>
+        tl.uncons.fold(
+          () => Some(fst),
+          ([snd, rest]) => Some(new CompositeFailure(fst, rest.prepend(snd))),
+        ),
+    );
   }
 }

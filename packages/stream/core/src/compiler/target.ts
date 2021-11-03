@@ -1,7 +1,9 @@
 import { Kind } from '@fp4ts/core';
+import { Option } from '@fp4ts/cats';
 import { Ref, UniqueToken, Resource, MonadCancel } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
+import { InterruptContext, Scope } from '../internal';
 import { Pull } from '../pull';
 import { concurrentTarget, syncTarget } from './instances';
 
@@ -9,6 +11,9 @@ export interface CompilerTarget<F> {
   readonly F: MonadCancel<F, Error>;
   readonly unique: Kind<F, [UniqueToken]>;
   readonly ref: <A>(a: A) => Kind<F, [Ref<F, A>]>;
+  readonly interruptContext: (
+    root: UniqueToken,
+  ) => Option<Kind<F, [InterruptContext<F>]>>;
 
   readonly compile: <O, Out>(
     init: Out,
@@ -21,7 +26,7 @@ export interface CompilerTarget<F> {
 }
 export type TargetRequirements<F> = Pick<
   CompilerTarget<F>,
-  'F' | 'ref' | 'unique'
+  'F' | 'ref' | 'unique' | 'interruptContext'
 > &
   Partial<CompilerTarget<F>>;
 export const CompilerTarget = Object.freeze({
@@ -29,14 +34,10 @@ export const CompilerTarget = Object.freeze({
     const self: CompilerTarget<F> = {
       compile: (init, foldChunk) => pull =>
         self.compile_(pull, init)(foldChunk),
-      // compile_: () => throwError(new Error('Not implemented')),
       compile_: (pull, init) => foldChunk =>
-        // Resource.make(self.F)(Scope.newRoot(self.F), (scope, ec) =>
-        //   self.F.rethrow(scope.close(ec)),
-        // ).use(self.F)(scope => pull.compile(self.F)(init, foldChunk)),
-        Resource.make(self.F)(self.F.unit, () => self.F.unit).use(self.F)(() =>
-          pull.compile(self.F)(init, foldChunk),
-        ),
+        Resource.make(self.F)(Scope.newRoot(self), (scope, ec) =>
+          self.F.rethrow(scope.close(ec)),
+        ).use(self.F)(scope => pull.compile(self.F)(init, scope, foldChunk)),
 
       ...F,
     };
