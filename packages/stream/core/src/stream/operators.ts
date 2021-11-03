@@ -35,17 +35,15 @@ import { CompileOps } from './compile-ops';
 export const head: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => take_(s, 1);
 
 export const headOption: <F, A>(s: Stream<F, A>) => Stream<F, Option<A>> = s =>
-  new Stream(
-    s.pull.uncons1.flatMap(opt => Pull.output1(opt.map(([hd]) => hd))),
-  );
+  s.pull.uncons1.flatMap(opt => Pull.output1(opt.map(([hd]) => hd))).stream();
 
 export const tail: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => drop_(s, 1);
 
 export const last: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
-  new Stream(s.pull.last.flatMap(Pull.outputOption1));
+  s.pull.last.flatMap(Pull.outputOption1).stream();
 
 export const lastOption: <F, A>(s: Stream<F, A>) => Stream<F, Option<A>> = s =>
-  new Stream(s.pull.last.flatMap(Pull.output1));
+  s.pull.last.flatMap(Pull.output1).stream();
 
 export const init: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   dropRight_(s, 1);
@@ -127,7 +125,7 @@ export const chunkAll = <F, A>(s: Stream<F, A>): Stream<F, Chunk<A>> => {
         ([hd, tl]) => loop(tl, acc['+++'](hd)),
       ),
     );
-  return new Stream(loop(s.pull, Chunk.empty));
+  return loop(s.pull, Chunk.empty).stream();
 };
 
 export const chunkLimit: (
@@ -313,14 +311,14 @@ export const zipWithNext = <F, A>(
       ),
     );
 
-  return new Stream(
-    s.pull.uncons1.flatMap(opt =>
+  return s.pull.uncons1
+    .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
         ([hd, tl]) => go(tl, hd),
       ),
-    ),
-  );
+    )
+    .stream();
 };
 
 export const zipWithPrevious = <F, A>(
@@ -439,21 +437,22 @@ export const prependChunk_ = <F, A>(
 ): Stream<F, A> => concat_(fromChunk(c), s);
 
 export const take_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
-  new Stream(s.pull.take(n).void);
+  s.pull.take(n).void.stream();
 
 export const takeRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
-  new Stream(s.pull.takeRight(n).flatMap(Pull.output));
+  s.pull.takeRight(n).flatMap(Pull.output).stream();
 
 export const takeWhile_ = <F, A>(
   s: Stream<F, A>,
   p: (a: A) => boolean,
   takeFailure: boolean = false,
-): Stream<F, A> => new Stream(s.pull.takeWhile(p, takeFailure).void);
+): Stream<F, A> => s.pull.takeWhile(p, takeFailure).void.stream();
 
 export const drop_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> =>
-  new Stream(
-    s.pull.drop(n).flatMap(opt => opt.map(id).getOrElse(() => Pull.done())),
-  );
+  s.pull
+    .drop(n)
+    .flatMap(opt => opt.map(id).getOrElse(() => Pull.done()))
+    .stream();
 
 export const dropRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> => {
   const go = (p: Pull<F, A, void>, acc: Chunk<A>): Pull<F, A, void> =>
@@ -469,7 +468,7 @@ export const dropRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> => {
       ),
     );
 
-  return n <= 0 ? s : new Stream(go(s.pull, Chunk.empty));
+  return n <= 0 ? s : go(s.pull, Chunk.empty).stream();
 };
 
 export const dropWhile_ = <F, A>(
@@ -477,11 +476,10 @@ export const dropWhile_ = <F, A>(
   pred: (a: A) => boolean,
   dropFailure: boolean = false,
 ): Stream<F, A> =>
-  new Stream(
-    s.pull
-      .dropWhile(pred, dropFailure)
-      .flatMap(opt => opt.fold(() => Pull.done(), id)),
-  );
+  s.pull
+    .dropWhile(pred, dropFailure)
+    .flatMap(opt => opt.fold(() => Pull.done(), id))
+    .stream();
 
 export const concat_ = <F, A>(
   s1: Stream<F, A>,
@@ -517,7 +515,7 @@ export const redeemWith_ = <F, A, B>(
 export const handleErrorWith_ = <F, A>(
   s: Stream<F, A>,
   h: (e: Error) => Stream<F, A>,
-): Stream<F, A> => new Stream(s.pull.handleErrorWith(e => h(e).pull));
+): Stream<F, A> => new Stream(s.pull.scope().handleErrorWith(e => h(e).pull));
 
 export const chunkLimit_ = <F, A>(
   s: Stream<F, A>,
@@ -550,8 +548,8 @@ export const chunkMin_ = <F, A>(
       ),
     );
 
-  return new Stream(
-    s.pull.uncons.flatMap(opt =>
+  return s.pull.uncons
+    .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
         ([hd, tl]) =>
@@ -559,8 +557,8 @@ export const chunkMin_ = <F, A>(
             ? Pull.output1(hd)['>>>'](() => go(tl, Chunk.empty))
             : go(tl, hd),
       ),
-    ),
-  );
+    )
+    .stream();
 };
 
 export const chunkN_ = <F, A>(
@@ -649,7 +647,7 @@ export const sliding_ = <F, A>(
         )
       : stepNotSmallerThanSize(s.pull, Chunk.emptyQueue);
 
-  return new Stream(resultPull);
+  return resultPull.stream();
 };
 
 export const filter_ = <F, A>(
@@ -692,14 +690,14 @@ export const filterWithPrevious_ = <F, A>(
       ),
     );
 
-  return new Stream(
-    s.pull.uncons1.flatMap(opt =>
+  return s.pull.uncons1
+    .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
         ([hd, tl]) => Pull.output1(hd)['>>>'](() => go(tl, hd)),
       ),
-    ),
-  );
+    )
+    .stream();
 };
 
 export const collect_ = <F, A, B>(
@@ -711,23 +709,26 @@ export const collectFirst_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Option<B>,
 ): Stream<F, B> =>
-  new Stream(
-    s.pull
-      .mapOutput(f)
-      .find(x => x.nonEmpty)
-      .flatMap(opt =>
-        opt.fold(
-          () => Pull.done(),
-          ([hd]) => Pull.output1(hd.get),
-        ),
+  s.pull
+    .mapOutput(f)
+    .find(x => x.nonEmpty)
+    .flatMap(opt =>
+      opt.fold(
+        () => Pull.done(),
+        ([hd]) => Pull.output1(hd.get),
       ),
-  );
+    )
+    .stream();
 
 export const collectWhile_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Option<B>,
 ): Stream<F, B> =>
-  new Stream(s.pull.mapOutput(f).takeWhile(o => o.nonEmpty).void).map(
+  map_(
+    s.pull
+      .mapOutput(f)
+      .takeWhile(o => o.nonEmpty)
+      .void.stream(),
     o => o.get,
   );
 
@@ -745,7 +746,7 @@ export const mapChunks_ = <F, A, B>(
   );
 
 export const map_ = <F, A, B>(s: Stream<F, A>, f: (a: A) => B): Stream<F, B> =>
-  new Stream(s.pull.mapOutput(f));
+  s.pull.mapOutput(f).streamNoScope();
 
 export const mapAccumulate_ = <F, S, A, B>(
   s: Stream<F, A>,
@@ -785,13 +786,13 @@ export const evalMapChunk_ =
 export const flatMap_ = <F, A, B>(
   s: Stream<F, A>,
   f: (a: A) => Stream<F, B>,
-): Stream<F, B> => new Stream(s.pull.flatMapOutput(o => f(o).pull));
+): Stream<F, B> => s.pull.flatMapOutput(o => f(o).pull).streamNoScope();
 
 export const fold_ = <F, A, B>(
   s: Stream<F, A>,
   z: B,
   f: (b: B, a: A) => B,
-): Stream<F, B> => new Stream(s.pull.fold(z, f).flatMap(Pull.output1));
+): Stream<F, B> => s.pull.fold(z, f).flatMap(Pull.output1).stream();
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
@@ -811,14 +812,16 @@ export const scan_ = <F, A, B>(
   z: B,
   f: (b: B, a: A) => B,
 ): Stream<F, B> =>
-  new Stream<F, B>(Pull.output1(z)['>>>'](() => _scan(s.pull, z, f)));
+  Pull.output1<F, B>(z)
+    ['>>>'](() => _scan(s.pull, z, f))
+    .stream();
 
 export const scan1_ = <F, A>(
   s: Stream<F, A>,
   f: (x: A, y: A) => A,
 ): Stream<F, A> =>
-  new Stream(
-    s.pull.uncons.flatMap(opt =>
+  s.pull.uncons
+    .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
         ([hd, tl]) => {
@@ -827,8 +830,8 @@ export const scan1_ = <F, A>(
           return Pull.output1(z)['>>>'](() => _scan(tl.cons(sfx), z, f));
         },
       ),
-    ),
-  );
+    )
+    .stream();
 
 export const evalScan_ = <F, A, B>(
   s: Stream<F, A>,
@@ -846,7 +849,9 @@ export const evalScan_ = <F, A, B>(
       ),
     );
 
-  return new Stream(Pull.output1<F, B>(z)['>>>'](() => go(z, s.pull)));
+  return Pull.output1<F, B>(z)
+    ['>>>'](() => go(z, s.pull))
+    .stream();
 };
 
 export const scanChunks_ = <F, S, A, B>(
@@ -859,7 +864,7 @@ export const scanChunksOpt_ = <F, S, A, B>(
   s: Stream<F, A>,
   init: S,
   f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
-): Stream<F, B> => new Stream(s.pull.scanChunksOpt(init, f).void);
+): Stream<F, B> => s.pull.scanChunksOpt(init, f).void.stream();
 
 export const align_ = <F, A, B>(
   s1: Stream<F, A>,
@@ -917,7 +922,7 @@ export const zipAllWith_ =
 export const repeatPull_ = <F, A, B>(
   s: Stream<F, A>,
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
-): Stream<F, B> => new Stream(Pull.loop(f)(s.pull));
+): Stream<F, B> => Pull.loop(f)(s.pull).stream();
 
 export const interruptWhen_ = <F, A>(
   s: Stream<F, A>,

@@ -8,6 +8,7 @@ import {
 } from '@fp4ts/cats';
 
 import { Scope } from '../internal';
+import { Stream } from '../stream/algebra';
 import { Pull } from './algebra';
 import {
   flatMap_,
@@ -31,6 +32,8 @@ import {
   scanChunksOpt_,
   scanChunks_,
   scope,
+  stream,
+  streamNoScope,
   takeRight_,
   takeWhile_,
   take_,
@@ -43,6 +46,9 @@ import {
 
 declare module './algebra' {
   interface Pull<F, O, R> {
+    stream<F2, O2>(this: Pull<F2, O2, void>): Stream<F2, O2>;
+    streamNoScope<F2, O2>(this: Pull<F2, O2, void>): Stream<F2, O2>;
+
     cons<O2>(this: Pull<F, O2, void>, c: Chunk<O2>): Pull<F, O2, void>;
 
     readonly uncons: R extends void
@@ -159,6 +165,14 @@ declare module './algebra' {
     ) => Kind<F2, [B]>;
   }
 }
+
+Pull.prototype.stream = function () {
+  return stream(this);
+};
+
+Pull.prototype.streamNoScope = function () {
+  return streamNoScope(this);
+};
 
 Pull.prototype.cons = function (c) {
   return cons(c, this);

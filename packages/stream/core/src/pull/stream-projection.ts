@@ -1,13 +1,5 @@
 import { id, Kind, pipe, throwError } from '@fp4ts/core';
-import {
-  FunctionK,
-  MonadError,
-  Either,
-  Option,
-  None,
-  Some,
-  List,
-} from '@fp4ts/cats';
+import { FunctionK, MonadError, Either, Option, None, Some } from '@fp4ts/cats';
 import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import * as PO from './operators';
@@ -35,8 +27,15 @@ import { Chunk } from '../chunk';
 import { CompositeFailure } from '../composite-failure';
 import { assert } from 'console';
 import { Scope } from '../internal';
+import { Stream } from '../stream/algebra';
 
 const P = { ...PO, ...PC };
+
+export const stream = <F, O>(pull: Pull<F, O, void>): Stream<F, O> =>
+  new Stream(scope(pull));
+
+export const streamNoScope = <F, O>(pull: Pull<F, O, void>): Stream<F, O> =>
+  new Stream(pull);
 
 export const cons = <F, O>(
   c: Chunk<O>,
