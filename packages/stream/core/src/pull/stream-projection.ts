@@ -457,6 +457,7 @@ export const compile_ =
       done(scope: Scope<F>): End;
       fail(e: Error): End;
       out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>): End;
+      interrupted(inter: Interrupted): End;
     }
 
     type CallRun<G, X, End> = (r: Run<G, X, End>) => End;
@@ -469,6 +470,8 @@ export const compile_ =
         F.pure((r: Run<G, X, Kind<F, [End]>>) => r.done(scope));
       out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>) =>
         F.pure((r: Run<G, X, Kind<F, [End]>>) => r.out(hd, scope, tl));
+      interrupted = (i: Interrupted) =>
+        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.interrupted(i));
     }
 
     type ViewL<G, X> = Action<G, X, unknown> | Terminal<unknown>;
@@ -556,6 +559,15 @@ export const compile_ =
 
       fail = (e: Error) => this.ctx.runner.fail(e);
 
+      interrupted = (inter: Interrupted) =>
+        go(
+          this.ctx.scope,
+          this.ctx.extendsTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(inter),
+        );
+
       out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) =>
         this.ctx.runner.out(
           hd,
@@ -590,6 +602,15 @@ export const compile_ =
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
+        );
+
+      interrupted = (inter: Interrupted) =>
+        go(
+          this.ctx.scope,
+          this.ctx.extendsTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(inter),
         );
 
       abstract out(
@@ -674,6 +695,15 @@ export const compile_ =
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
+        );
+
+      interrupted = (inter: Interrupted) =>
+        go(
+          this.ctx.scope,
+          this.ctx.extendsTopLevelScope,
+          this.ctx.translation,
+          this.ctx.runner,
+          this.cont(inter),
         );
 
       out = (hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) =>
@@ -825,8 +855,7 @@ export const compile_ =
           return runner.fail(v.error);
 
         case 'interrupted':
-          // return runner.interrupted(v);
-          throw new Error('Not implemented');
+          return runner.interrupted(v);
       }
     };
 
@@ -838,6 +867,9 @@ export const compile_ =
       done = (): Kind<F, [B]> => F.pure(this.acc);
 
       fail = (e: Error) => F.throwError(e);
+
+      interrupted = (inter: Interrupted) =>
+        inter.deferredError.fold(() => F.pure(this.acc), F.throwError);
 
       out(
         hd: Chunk<O>,
