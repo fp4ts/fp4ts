@@ -6,10 +6,9 @@ import { IO, IoK, ExitCase, Ref } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { Counter } from './counter';
+import { TestError } from './test-error';
 
-describe('Bracket', () => {
-  class TestError extends Error {}
-
+describe('Stream Bracket', () => {
   const Acquired = { tag: 'acquired' };
   type Acquired = typeof Acquired;
   const Released = { tag: 'acquired' };
