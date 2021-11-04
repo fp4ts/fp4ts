@@ -97,6 +97,8 @@ import {
   interruptScope,
   through_,
   through2_,
+  interruptWhenTrue_,
+  delayBy_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -225,6 +227,15 @@ declare module './algebra' {
       h: (e: Error) => Stream<F2, B>,
     ): Stream<F2, B>;
 
+    delayBy<F2>(
+      this: Stream<F2, A>,
+      F: Temporal<F2, Error>,
+    ): (ms: number) => Stream<F2, A>;
+
+    interruptWhenTrue<F2>(
+      this: Stream<F2, A>,
+      F: Concurrent<F2, Error>,
+    ): (haltOnTrue: Stream<F2, boolean>) => Stream<F2, A>;
     interruptWhen<F2>(
       this: Stream<F2, A>,
       haltOnSignal: Kind<F2, [Either<Error, void>]>,
@@ -525,6 +536,13 @@ Stream.prototype.handleErrorWith = function (h) {
   return handleErrorWith_(this, h);
 };
 
+Stream.prototype.delayBy = function (F) {
+  return ms => delayBy_(F)(this, ms);
+};
+
+Stream.prototype.interruptWhenTrue = function (F) {
+  return haltWhenTrue => interruptWhenTrue_(F)(this, haltWhenTrue);
+};
 Stream.prototype.interruptWhen = function (haltOnSignal) {
   return interruptWhen_(this, haltOnSignal);
 };

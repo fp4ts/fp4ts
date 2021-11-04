@@ -1,8 +1,9 @@
 import { ok as assert } from 'assert';
-import { constant, Kind, pipe } from '@fp4ts/core';
+import { constant, id, Kind, pipe } from '@fp4ts/core';
 import { Either, List, Option, Some, Vector } from '@fp4ts/cats';
 import { ExitCase, Poll, MonadCancel, Spawn, Temporal } from '@fp4ts/effect';
 
+import { PureK } from '../pure';
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
@@ -10,8 +11,9 @@ import {
   attempts,
   concat_,
   flatMap,
+  flatMap_,
   last,
-  repeat,
+  repeat as repeatOp,
   rethrow,
   scope,
   take,
@@ -36,11 +38,20 @@ export const evalF = <F, A>(fa: Kind<F, [A]>): Stream<F, A> =>
 export const execF = <F, A>(fa: Kind<F, [A]>): Stream<F, never> =>
   new Stream(Pull.evalF(fa).void);
 
+export const force = <F, A>(fs: Kind<F, [Stream<F, A>]>): Stream<F, A> =>
+  flatMap_(evalF(fs), id);
+
 export const evalUnChunk = <F, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output));
 
+export const repeat = <A>(value: A): Stream<PureK, A> =>
+  concat_(
+    pure(value),
+    defer(() => repeat(value)),
+  );
+
 export const repeatEval: <F, A>(fa: Kind<F, [A]>) => Stream<F, A> = s =>
-  repeat(evalF(s));
+  repeatOp(evalF(s));
 
 export const sleep =
   <F>(F: Temporal<F, Error>) =>

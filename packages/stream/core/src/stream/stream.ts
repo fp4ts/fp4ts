@@ -30,6 +30,8 @@ import {
   bracketFull,
   bracketWeak,
   bracket,
+  force,
+  repeat,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -66,7 +68,9 @@ interface StreamObj {
 
   evalF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
   execF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
+  force<F = PureK, A = never>(fs: Kind<F, [Stream<F, A>]>): Stream<F, A>;
   evalUnChunk<F = PureK, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
+  repeat<A>(value: A): Stream<PureK, A>;
   repeatEval<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
 
   sleep<F>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
@@ -146,7 +150,9 @@ Stream.of = of;
 
 Stream.evalF = evalF;
 Stream.execF = execF;
+Stream.force = force;
 Stream.evalUnChunk = evalUnChunk;
+Stream.repeat = repeat;
 Stream.repeatEval = repeatEval;
 Stream.sleep = sleep;
 Stream.retry = retry;

@@ -29,6 +29,8 @@ import {
   evalF,
   evalUnChunk,
   sleep,
+  force,
+  bracket,
 } from './constructors';
 import { CompileOps } from './compile-ops';
 
@@ -49,7 +51,10 @@ export const init: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   dropRight_(s, 1);
 
 export const repeat: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
-  s['+++'](defer(() => repeat(s)));
+  concat_(
+    s,
+    defer(() => repeat(s)),
+  );
 
 export const cons: <F, A>(x: A, s: Stream<F, A>) => Stream<F, A> = (x, s) =>
   prepend_(s, x);
@@ -362,6 +367,22 @@ export const zipAllWith: <F, B>(
   s2 => (pad1, pad2) => f => s1 =>
     zipAllWith_(s1, s2, pad1, pad2)(f);
 
+export const repeatPull: <F, A, B>(
+  f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
+) => (s: Stream<F, A>) => Stream<F, B> = f => s => repeatPull_(s, f);
+
+export const interruptWhenTrue: <F>(
+  F: Concurrent<F, Error>,
+) => (
+  haltWhenTrue: Stream<F, boolean>,
+) => <A>(s: Stream<F, A>) => Stream<F, A> = F => haltWhenTrue => s =>
+  interruptWhenTrue_(F)(s, haltWhenTrue);
+
+export const interruptWhen: <F>(
+  haltOnSignal: Kind<F, [Either<Error, void>]>,
+) => <A>(s: Stream<F, A>) => Stream<F, A> = haltOnSignal => s =>
+  interruptWhen_(s, haltOnSignal);
+
 export const attempt = <F, A>(s: Stream<F, A>): Stream<F, Either<Error, A>> =>
   pipe(
     s,
@@ -398,6 +419,11 @@ export const handleErrorWith: <F, A2>(
   h: (e: Error) => Stream<F, A2>,
 ) => <A extends A2>(s: Stream<F, A>) => Stream<F, A2> = h => s =>
   handleErrorWith_(s, h);
+
+export const delayBy: <F>(
+  F: Temporal<F, Error>,
+) => (ms: number) => <A>(s: Stream<F, A>) => Stream<F, A> = F => ms => s =>
+  delayBy_(F)(s, ms);
 
 export const scope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
   new Stream(s.pull.scope());
@@ -943,6 +969,54 @@ export const repeatPull_ = <F, A, B>(
   s: Stream<F, A>,
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
 ): Stream<F, B> => Pull.loop(f)(s.pull).stream();
+
+export const delayBy_ =
+  <F>(F: Temporal<F, Error>) =>
+  <A>(s: Stream<F, A>, ms: number): Stream<F, A> =>
+    concat_(drain(sleep(F)(ms)), s);
+
+export const interruptWhenTrue_ =
+  <F>(F: Concurrent<F, Error>) =>
+  <A>(s: Stream<F, A>, haltWhenTrue: Stream<F, boolean>): Stream<F, A> =>
+    force(
+      pipe(
+        F.Do,
+        F.bindTo('interruptL', F.deferred<void>()),
+        F.bindTo('interruptR', F.deferred<void>()),
+        F.bindTo('backResult', F.deferred<Either<Error, void>>()),
+        F.map(({ interruptL, interruptR, backResult }) => {
+          const watch = pipe(
+            haltWhenTrue,
+            filter(id),
+            take(1),
+            interruptWhen(F.attempt(interruptR.get())),
+            s => compileConcurrent(s, F).drain,
+          );
+
+          const wakeWatch = F.finalize_(watch, oc => {
+            const r = oc.fold(
+              () => Either.rightUnit,
+              e => Left(e),
+              () => Either.rightUnit,
+            );
+            return F.productR_(backResult.complete(r), interruptL.complete());
+          });
+
+          const stopWatch = F.productR_(
+            interruptR.complete(),
+            F.flatMap_(backResult.get(), ea => ea.fold(F.throwError, F.pure)),
+          );
+          const backWatch = bracket(
+            F.fork(F.attempt(wakeWatch)),
+            () => stopWatch,
+          );
+
+          return flatMap_(backWatch, () =>
+            interruptWhen_(s, F.attempt(interruptL.get())),
+          );
+        }),
+      ),
+    );
 
 export const interruptWhen_ = <F, A>(
   s: Stream<F, A>,
