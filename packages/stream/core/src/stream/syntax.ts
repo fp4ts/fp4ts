@@ -99,6 +99,7 @@ import {
   through2_,
   interruptWhenTrue_,
   delayBy_,
+  concurrently_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -243,6 +244,11 @@ declare module './algebra' {
 
     readonly scope: Stream<F, A>;
     readonly interruptScope: Stream<F, A>;
+
+    concurrently<F2>(
+      this: Stream<F2, A>,
+      F: Concurrent<F2, Error>,
+    ): <B>(that: Stream<F2, B>) => Stream<F2, A>;
 
     covary<F2>(this: Stream<F2, A>): Stream<F2, A>;
     covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
@@ -558,6 +564,10 @@ Object.defineProperty(Stream.prototype, 'interruptScope', {
     return interruptScope(this);
   },
 });
+
+Stream.prototype.concurrently = function (F) {
+  return that => concurrently_(F)(this, that);
+};
 
 Stream.prototype.covary = function () {
   return covary()(this) as any;

@@ -431,6 +431,12 @@ export const scope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
 export const interruptScope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
   new Stream(s.pull.interruptScope());
 
+export const concurrently: <F>(
+  F: Concurrent<F, Error>,
+) => <B>(s2: Stream<F, B>) => <A>(s1: Stream<F, A>) => Stream<F, A> =
+  F => s2 => s1 =>
+    concurrently_(F)(s1, s2);
+
 export const covary =
   <F2>() =>
   <F extends F2, A>(s: Stream<F, A>): Stream<F2, A> =>
@@ -1028,6 +1034,47 @@ export const interruptWhen_ = <F, A>(
       .stream(),
     interruptScope,
   );
+
+export const concurrently_ =
+  <F>(F: Concurrent<F, Error>) =>
+  <A, B>(s1: Stream<F, A>, s2: Stream<F, B>): Stream<F, A> => {
+    const fStream = pipe(
+      F.Do,
+      F.bindTo('interrupt', F.deferred<void>()),
+      F.bindTo('backResult', F.deferred<Either<Error, void>>()),
+      F.map(({ interrupt, backResult }) => {
+        const watch = <X>(str: Stream<F, X>) =>
+          interruptWhen_(str, F.attempt(interrupt.get()));
+
+        const compileBack: Kind<F, [void]> = pipe(
+          watch(s2),
+          s_ => compileConcurrent(s_, F).drain,
+          F.finalize(oc =>
+            oc.fold(
+              () => backResult.complete(Either.rightUnit),
+              e =>
+                F.productR_(backResult.complete(Left(e)), interrupt.complete()),
+              () => backResult.complete(Either.rightUnit),
+            ),
+          ),
+        );
+
+        const stopBack: Kind<F, [void]> = F.productR_(
+          interrupt.complete(),
+          F.flatMap_<Either<Error, void>, void>(backResult.get(), ea =>
+            ea.fold(F.throwError, F.pure),
+          ),
+        );
+
+        return flatMap_(
+          bracket(F.fork(F.attempt(compileBack)), () => stopBack),
+          () => watch(s1),
+        );
+      }),
+    );
+
+    return flatten(evalF(fStream));
+  };
 
 // -- Private implementation
 

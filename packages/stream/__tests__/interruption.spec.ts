@@ -1,10 +1,10 @@
 import fc from 'fast-check';
+import { id } from '@fp4ts/core';
 import { Eq, List, Either, Some, None } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
-import { id } from '@fp4ts/core';
 
 describe('Stream interruption', () => {
   const eraseTestError = (err: Error): IO<void> =>
