@@ -12,7 +12,7 @@ import {
   None,
   Option,
 } from '@fp4ts/cats';
-import { IO, IoK, SyncIO, SyncIoK, ExitCase } from '@fp4ts/effect';
+import { IO, IoK, SyncIO, SyncIoK } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import {
   AlignSuite,
@@ -477,57 +477,6 @@ describe('Effect-ful stream', () => {
 
     const io = s.compileConcurrent().drain;
     expect(io).toCompleteWith(undefined, ticker);
-    expect(canceled).toBe(true);
-  });
-
-  it.ticked('should call finalizer on bracket full when success', ticker => {
-    let ec: ExitCase | undefined;
-    const s = Stream.bracketFull(IO.MonadCancel)(
-      () => IO.pure(42),
-      (_, ec_) => IO(() => (ec = ec_)).void,
-    );
-
-    const io = s.compileConcurrent().last;
-    expect(io).toCompleteWith(42, ticker);
-    expect(ec).toEqual(ExitCase.Succeeded);
-  });
-
-  it.ticked('should call finalizer on bracket full when failed', ticker => {
-    let ec: ExitCase | undefined;
-    const s = Stream.bracketFull(IO.MonadCancel)(
-      () => IO.unit,
-      (_, ec_) => IO(() => (ec = ec_)).void,
-    ).evalMap(() => IO.throwError(new Error('test error')));
-
-    const io = s.compileConcurrent().drain;
-    expect(io).toFailWith(new Error('test error'), ticker);
-    expect(ec).toEqual(ExitCase.Errored(new Error('test error')));
-  });
-
-  it.ticked('should call finalizer on bracket full when finalized', ticker => {
-    let ec: ExitCase | undefined;
-    let canceled = false;
-    const s = Stream.bracketFull(IO.MonadCancel)(
-      () => IO.unit,
-      (_, ec_) => IO(() => (ec = ec_)).void,
-    )
-      .evalMap(() => IO.never.onCancel(IO(() => (canceled = true)).void))
-      .interruptWhen(IO.sleep(2_000).attempt);
-
-    const io = s.compileConcurrent().drain;
-    io.unsafeRunToPromise({
-      config: { autoSuspendThreshold: Infinity },
-      executionContext: ticker.ctx,
-      shutdown: () => {},
-    });
-
-    ticker.ctx.tick();
-    ticker.ctx.tick(1_000);
-    expect(ec).toBeUndefined();
-    expect(canceled).toBe(false);
-
-    ticker.ctx.tick(1_000);
-    expect(ec).toEqual(ExitCase.Canceled);
     expect(canceled).toBe(true);
   });
 

@@ -1,7 +1,8 @@
+import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { throwError } from '@fp4ts/core';
 import { List } from '@fp4ts/cats';
-import { IO, IoK, Ref } from '@fp4ts/effect';
+import { IO, IoK, ExitCase, Ref } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { Counter } from './counter';
@@ -270,5 +271,115 @@ describe('Bracket', () => {
             ),
         )
         .unsafeRunToPromise());
+  });
+
+  describe('error handling', () => {
+    it.ticked(
+      'should propagate failed error closing scope on right',
+      ticker => {
+        const s1 = Stream.bracket<IoK, number>(
+          IO(() => 1),
+          () => IO.unit,
+        );
+        const s2 = Stream.bracket<IoK, string>(
+          IO(() => 'a'),
+          () => IO.throwError(new TestError()),
+        );
+
+        expect(s1.zip(s2).compileConcurrent().drain).toFailWith(
+          new TestError(),
+          ticker,
+        );
+      },
+    );
+
+    it.ticked('should propagate failed error closing scope on left', ticker => {
+      const s1 = Stream.bracket<IoK, number>(
+        IO(() => 1),
+        () => IO.throwError(new TestError()),
+      );
+      const s2 = Stream.bracket<IoK, string>(
+        IO(() => 'a'),
+        () => IO.unit,
+      );
+
+      expect(s1.zip(s2).compileConcurrent().drain).toFailWith(
+        new TestError(),
+        ticker,
+      );
+    });
+
+    test('handleErrorWith closes closes', () =>
+      Ref.of(IO.Sync)<List<BracketEvent>>(List.empty)
+        .flatMap(events =>
+          recordBracketEvents(events)
+            .flatMap(() => Stream.throwError(new TestError()))
+            .handleErrorWith(() => Stream.empty())
+            .concat(recordBracketEvents(events))
+            .compileConcurrent()
+            .drain.flatMap(() =>
+              events
+                .get()
+                .flatMap(es =>
+                  IO(() =>
+                    expect(es).toEqual(
+                      List(Acquired, Released, Acquired, Released),
+                    ),
+                  ),
+                ),
+            ),
+        )
+        .unsafeRunToPromise());
+  });
+
+  it.ticked('should call finalizer on bracket full when success', ticker => {
+    let ec: ExitCase | undefined;
+    const s = Stream.bracketFull(IO.MonadCancel)(
+      () => IO.pure(42),
+      (_, ec_) => IO(() => (ec = ec_)).void,
+    );
+
+    const io = s.compileConcurrent().last;
+    expect(io).toCompleteWith(42, ticker);
+    expect(ec).toEqual(ExitCase.Succeeded);
+  });
+
+  it.ticked('should call finalizer on bracket full when failed', ticker => {
+    let ec: ExitCase | undefined;
+    const s = Stream.bracketFull(IO.MonadCancel)(
+      () => IO.unit,
+      (_, ec_) => IO(() => (ec = ec_)).void,
+    ).evalMap(() => IO.throwError(new Error('test error')));
+
+    const io = s.compileConcurrent().drain;
+    expect(io).toFailWith(new Error('test error'), ticker);
+    expect(ec).toEqual(ExitCase.Errored(new Error('test error')));
+  });
+
+  it.ticked('should call finalizer on bracket full when finalized', ticker => {
+    let ec: ExitCase | undefined;
+    let canceled = false;
+    const s = Stream.bracketFull(IO.MonadCancel)(
+      () => IO.unit,
+      (_, ec_) => IO(() => (ec = ec_)).void,
+    )
+      .evalMap(() => IO.never.onCancel(IO(() => (canceled = true)).void))
+      .interruptWhen(IO.sleep(2_000).attempt);
+
+    const io = s.compileConcurrent().drain;
+    io.unsafeRunToPromise({
+      config: { autoSuspendThreshold: Infinity },
+      executionContext: ticker.ctx,
+      shutdown: () => {},
+    });
+
+    ticker.ctx.tick();
+    ticker.ctx.tick(1_000);
+    expect(ec).toBeUndefined();
+    expect(canceled).toBe(false);
+
+    ticker.ctx.tick(1_000);
+    expect(ec).toEqual(ExitCase.Canceled);
+    expect(canceled).toBe(true);
   });
 });
