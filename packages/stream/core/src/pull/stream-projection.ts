@@ -384,6 +384,11 @@ export const find_ = <F, O>(
 export const mapOutput_ = <F, O, P>(
   pull: Pull<F, O, void>,
   f: (o: O) => P,
+): Pull<F, P, void> => interruptScope(mapOutputNoScope_(pull, f));
+
+export const mapOutputNoScope_ = <F, O, P>(
+  pull: Pull<F, O, void>,
+  f: (o: O) => P,
 ): Pull<F, P, void> => {
   const go = (p: Pull<F, O, void>): Pull<F, P, void> =>
     pipe(
