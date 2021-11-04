@@ -95,6 +95,8 @@ import {
   interruptWhen_,
   scope,
   interruptScope,
+  through_,
+  through2_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -158,6 +160,16 @@ declare module './algebra' {
 
     flatMap<F2, B>(f: (a: A) => Stream<F2, B>): Stream<F2, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
+
+    through<F2, B>(
+      this: Stream<F2, A>,
+      f: (s: Stream<F, A>) => Stream<F2, B>,
+    ): Stream<F2, B>;
+    through2<F2, B, C>(
+      this: Stream<F2, A>,
+      that: Stream<F2, B>,
+      f: (s1: Stream<F, A>, s2: Stream<F2, B>) => Stream<F2, C>,
+    ): Stream<F2, C>;
 
     fold<B>(z: B, f: (b: B, a: A) => B): Stream<F, B>;
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => Stream<F, M>;
@@ -410,6 +422,14 @@ Object.defineProperty(Stream.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Stream.prototype.through = function (f) {
+  return through_(this, f);
+};
+
+Stream.prototype.through2 = function (that, f) {
+  return through2_(this, that, f);
+};
 
 Stream.prototype.fold = function (z, f) {
   return fold_(this, z, f);

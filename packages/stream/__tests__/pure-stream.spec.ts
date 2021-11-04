@@ -521,6 +521,17 @@ describe('Pure Stream', () => {
     });
   });
 
+  describe('piping', () => {
+    it('should stringify the numbers', () => {
+      const stringify = <F>(s: Stream<F, number>): Stream<F, string> =>
+        s.map(x => `${x}`);
+
+      expect(Stream(1, 2, 3, 4, 5).through(stringify).compile().toList).toEqual(
+        List('1', '2', '3', '4', '5'),
+      );
+    });
+  });
+
   describe('folds', () => {
     it('should return initial value when empty', () => {
       expect(

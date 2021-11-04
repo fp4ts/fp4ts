@@ -225,6 +225,15 @@ export const flatMap: <F, A, B>(
 export const flatten: <F, A>(ss: Stream<F, Stream<F, A>>) => Stream<F, A> =
   ss => flatMap_(ss, id);
 
+export const through: <F, A, B>(
+  f: (s: Stream<F, A>) => Stream<F, B>,
+) => (s: Stream<F, A>) => Stream<F, B> = f => s => through_(s, f);
+
+export const through2: <F, A, B, C>(
+  s2: Stream<F, B>,
+  f: (s1: Stream<F, A>, s2: Stream<F, B>) => Stream<F, C>,
+) => (s1: Stream<F, A>) => Stream<F, C> = (s2, f) => s1 => through2_(s1, s2, f);
+
 export const fold: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -793,6 +802,17 @@ export const fold_ = <F, A, B>(
   z: B,
   f: (b: B, a: A) => B,
 ): Stream<F, B> => s.pull.fold(z, f).flatMap(Pull.output1).stream();
+
+export const through_ = <F, A, B>(
+  s: Stream<F, A>,
+  f: (s: Stream<F, A>) => Stream<F, B>,
+): Stream<F, B> => f(s);
+
+export const through2_ = <F, A, B, C>(
+  s1: Stream<F, A>,
+  s2: Stream<F, B>,
+  f: (s1: Stream<F, A>, s2: Stream<F, B>) => Stream<F, C>,
+): Stream<F, C> => f(s1, s2);
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
