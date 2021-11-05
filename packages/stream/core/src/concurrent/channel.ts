@@ -2,7 +2,6 @@ import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Either,
   Left,
-  Right,
   Option,
   None,
   Vector,

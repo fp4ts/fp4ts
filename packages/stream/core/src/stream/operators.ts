@@ -32,6 +32,7 @@ import {
   force,
   bracket,
   emitChunk,
+  fixedDelay,
 } from './constructors';
 import { CompileOps } from './compile-ops';
 import { Channel } from '../concurrent';
@@ -318,6 +319,14 @@ export const zip: <F, B>(
   s2: Stream<F, B>,
 ) => <A>(s1: Stream<F, A>) => Stream<F, [A, B]> = s2 => s1 => zip_(s1, s2);
 
+export const zipLeft: <F, B>(
+  s2: Stream<F, B>,
+) => <A>(s1: Stream<F, A>) => Stream<F, A> = s2 => s1 => zipLeft_(s1, s2);
+
+export const zipRight: <F, B>(
+  s2: Stream<F, B>,
+) => <A>(s1: Stream<F, A>) => Stream<F, B> = s2 => s1 => zipRight_(s1, s2);
+
 export const zipWith: <F, A, B, C>(
   s2: Stream<F, B>,
   f: (a: A, b: B) => C,
@@ -478,6 +487,12 @@ export const delayBy: <F>(
   F: Temporal<F, Error>,
 ) => (ms: number) => <A>(s: Stream<F, A>) => Stream<F, A> = F => ms => s =>
   delayBy_(F)(s, ms);
+
+export const spaced: <F>(
+  F: Temporal<F, Error>,
+) => (period: number) => <A>(s: Stream<F, A>) => Stream<F, A> =
+  F => period => s =>
+    spaced_(F)(s, period);
 
 export const scope = <F, A>(s: Stream<F, A>): Stream<F, A> =>
   new Stream(s.pull.scope());
@@ -988,6 +1003,16 @@ export const zip_ = <F, A, B>(
   s2: Stream<F, B>,
 ): Stream<F, [A, B]> => zipWith_(s1, s2)((a, b) => [a, b]);
 
+export const zipLeft_ = <F, A, B>(
+  s1: Stream<F, A>,
+  s2: Stream<F, B>,
+): Stream<F, A> => zipWith_(s1, s2)((a, _) => a);
+
+export const zipRight_ = <F, A, B>(
+  s1: Stream<F, A>,
+  s2: Stream<F, B>,
+): Stream<F, B> => zipWith_(s1, s2)((_, b) => b);
+
 export const zipWith_ =
   <F, A, B>(s1: Stream<F, A>, s2: Stream<F, B>) =>
   <C>(f: (a: A, b: B) => C): Stream<F, C> =>
@@ -1131,6 +1156,11 @@ export const delayBy_ =
   <F>(F: Temporal<F, Error>) =>
   <A>(s: Stream<F, A>, ms: number): Stream<F, A> =>
     concat_(drain(sleep(F)(ms)), s);
+
+export const spaced_ =
+  <F>(F: Temporal<F, Error>) =>
+  <A>(s: Stream<F, A>, period: number): Stream<F, A> =>
+    zipRight_(fixedDelay(F)(period), s);
 
 export const interruptWhenTrue_ =
   <F>(F: Concurrent<F, Error>) =>

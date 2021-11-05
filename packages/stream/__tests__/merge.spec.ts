@@ -1,9 +1,11 @@
+import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { Eq, List, Either, Left, Right, Some, None } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
+import { snd } from '@fp4ts/core';
 
 describe('Stream merge', () => {
   test('basic', () =>
@@ -95,6 +97,17 @@ describe('Stream merge', () => {
             .unsafeRunToPromise(),
         ),
       ));
+  });
+
+  it.ticked('should interleave the elements of the merged streams', ticker => {
+    const s1 = Stream(1, 3, 5, 7).spaced(IO.Temporal)(250);
+    const s2 = Stream(2, 4, 6, 8).spaced(IO.Temporal)(250);
+
+    const io = s1
+      .merge(IO.Concurrent)(s2.delayBy(IO.Temporal)(250))
+      .compileConcurrent().toList;
+
+    expect(io).toCompleteWith(List(1, 2, 3, 4, 5, 6, 7, 8), ticker);
   });
 
   describe('hangs', () => {

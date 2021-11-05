@@ -107,6 +107,9 @@ import {
   mergeHaltBoth_,
   mergeHaltL_,
   mergeHaltR_,
+  zipLeft_,
+  zipRight_,
+  spaced_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -163,7 +166,10 @@ declare module './algebra' {
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
     evalCollect<B>(f: (a: A) => Kind<F, [Option<B>]>): Stream<F, B>;
-    evalTap(F: Functor<F>): (f: (a: A) => Kind<F, [unknown]>) => Stream<F, A>;
+    evalTap<F2>(
+      this: Stream<F2, A>,
+      F2: Functor<F2>,
+    ): (f: (a: A) => Kind<F2, [unknown]>) => Stream<F2, A>;
     evalMapChunk(
       F: Applicative<F>,
     ): <B>(f: (a: A) => Kind<F, [B]>) => Stream<F, B>;
@@ -206,6 +212,8 @@ declare module './algebra' {
 
     align<B>(that: Stream<F, B>): Stream<F, Ior<A, B>>;
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
+    zipLeft<B>(that: Stream<F, B>): Stream<F, A>;
+    zipRight<B>(that: Stream<F, B>): Stream<F, B>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
 
     readonly zipWithIndex: Stream<F, [A, number]>;
@@ -260,6 +268,14 @@ declare module './algebra' {
       F: Temporal<F2, Error>,
     ): (ms: number) => Stream<F2, A>;
 
+    spaced<F2>(
+      this: Stream<F2, A>,
+      F: Temporal<F2, Error>,
+    ): (period: number) => Stream<F2, A>;
+
+    readonly scope: Stream<F, A>;
+    readonly interruptScope: Stream<F, A>;
+
     onFinalize<F2>(
       this: Stream<F2, A>,
       F: Applicative<F2>,
@@ -273,9 +289,6 @@ declare module './algebra' {
       this: Stream<F2, A>,
       haltOnSignal: Kind<F2, [Either<Error, void>]>,
     ): Stream<F2, A>;
-
-    readonly scope: Stream<F, A>;
-    readonly interruptScope: Stream<F, A>;
 
     concurrently<F2>(
       this: Stream<F2, A>,
@@ -529,6 +542,12 @@ Stream.prototype.align = function (that) {
 Stream.prototype.zip = function (that) {
   return zip_(this, that);
 };
+Stream.prototype.zipLeft = function (that) {
+  return zipLeft_(this, that);
+};
+Stream.prototype.zipRight = function (that) {
+  return zipRight_(this, that);
+};
 
 Stream.prototype.zipWith = function (that, f) {
   return zipWith_(this, that)(f);
@@ -600,6 +619,10 @@ Stream.prototype.handleErrorWith = function (h) {
 
 Stream.prototype.delayBy = function (F) {
   return ms => delayBy_(F)(this, ms);
+};
+
+Stream.prototype.spaced = function (F) {
+  return ms => spaced_(F)(this, ms);
 };
 
 Stream.prototype.onFinalize = function (F) {

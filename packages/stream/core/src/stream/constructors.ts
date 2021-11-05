@@ -10,6 +10,7 @@ import { Stream } from './algebra';
 import {
   attempts,
   concat_,
+  evalMap_,
   flatMap,
   flatMap_,
   last,
@@ -86,6 +87,20 @@ export const retry =
       rethrow,
     );
   };
+
+export const awakeDelay =
+  <F>(F: Temporal<F, Error>) =>
+  (period: number): Stream<F, number> =>
+    flatMap_(evalF(F.monotonic), start =>
+      evalMap_(fixedDelay(F)(period), () =>
+        F.map_(F.monotonic, cur => cur - start),
+      ),
+    );
+
+export const fixedDelay =
+  <F>(F: Temporal<F, Error>) =>
+  (period: number): Stream<F, void> =>
+    repeatOp(sleep(F)(period));
 
 export const range = <F>(
   from: number,

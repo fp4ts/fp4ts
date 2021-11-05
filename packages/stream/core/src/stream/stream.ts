@@ -33,6 +33,8 @@ import {
   force,
   repeat,
   emitChunk,
+  awakeDelay,
+  fixedDelay,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -86,6 +88,9 @@ interface StreamObj {
     maxAttempts: number,
     retriable?: (e: Error) => boolean,
   ) => Stream<F, A>;
+
+  awakeDelay<F>(F: Temporal<F, Error>): (period: number) => Stream<F, number>;
+  fixedDelay<F>(F: Temporal<F, Error>): (period: number) => Stream<F, void>;
 
   empty<F = PureK>(): Stream<F, never>;
   range<F = PureK>(
@@ -159,6 +164,9 @@ Stream.repeat = repeat;
 Stream.repeatEval = repeatEval;
 Stream.sleep = sleep;
 Stream.retry = retry;
+
+Stream.awakeDelay = awakeDelay;
+Stream.fixedDelay = fixedDelay;
 
 Stream.empty = empty;
 Stream.range = range;
