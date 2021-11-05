@@ -5,7 +5,7 @@ import { IO, IoK } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
-import { snd } from '@fp4ts/core';
+import { Kind, pipe, snd } from '@fp4ts/core';
 
 describe('Stream merge', () => {
   test('basic', () =>
@@ -110,6 +110,72 @@ describe('Stream merge', () => {
     expect(io).toCompleteWith(List(1, 2, 3, 4, 5, 6, 7, 8), ticker);
   });
 
+  it('should execute inner finalizers before the outer one', () =>
+    fc.assert(
+      fc.asyncProperty(
+        A.fp4tsPureStreamGenerator(fc.integer()),
+        fc.boolean(),
+        (s, leftBias) =>
+          pipe(
+            IO.Do,
+            IO.bindTo('finalizerRef', IO.ref<List<string>>(List.empty)),
+            IO.bindTo('sideRunRef', IO.ref<[boolean, boolean]>([false, false])),
+            IO.bindTo('halt', IO.deferred<void>()),
+          )
+            .flatMap(({ finalizerRef, sideRunRef, halt }) => {
+              const bracketed = Stream.bracket<IoK, void>(IO.unit, () =>
+                finalizerRef.update(xs => xs['::+']('Outer')),
+              );
+
+              const register = (side: string): IO<void> =>
+                sideRunRef.update(([left, right]) =>
+                  side === 'L' ? [true, right] : [left, true],
+                );
+
+              const finalizer = (side: string): IO<void> => {
+                if (leftBias && side === 'L')
+                  return IO.sleep(50)
+                    ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                    ['>>>'](IO.throwError(new TestError()));
+                else if (!leftBias && side === 'R')
+                  return IO.sleep(50)
+                    ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                    ['>>>'](IO.throwError(new TestError()));
+                else
+                  return IO.sleep(25)['>>>'](
+                    finalizerRef.update(s => s['::+'](`Inner ${side}`)),
+                  );
+              };
+
+              const prg = bracketed
+                .flatMap(() =>
+                  Stream.bracket<IoK, void>(register('L'), () => finalizer('L'))
+                    .flatMap(() => s.map(() => {}))
+                    .merge(IO.Concurrent)(
+                      Stream.bracket(register('R'), () => finalizer('R')),
+                    )
+                    .flatMap(() => Stream.evalF<IoK, void>(halt.complete())),
+                )
+                .interruptWhen(halt.get().attempt);
+
+              return prg.compileConcurrent().drain.attempt.flatMap(r =>
+                finalizerRef.get().map(finalizers => {
+                  return (
+                    List('Inner L', 'Inner R', 'Outer').all(x =>
+                      [...finalizers].includes(x),
+                    ) &&
+                    finalizers.lastOption.equals(Some('Outer')) &&
+                    r.isLeft &&
+                    r.getLeft instanceof TestError
+                  );
+                }),
+              );
+            })
+            .unsafeRunToPromise(),
+      ),
+      { numRuns: 50 },
+    ));
+
   describe('hangs', () => {
     const full = Stream.repeat(42);
     const hang = Stream.repeatEval<IoK, number>(IO.never);
@@ -202,27 +268,24 @@ describe('Stream merge', () => {
       ),
     ));
 
-  it(
-    'should not emit ahead',
-    () =>
-      fc.assert(
-        fc.asyncProperty(fc.integer(), v =>
-          IO.ref(v)
-            .flatMap(ref =>
-              Stream.repeatEval<IoK, number>(ref.get())
-                .merge(IO.Concurrent)(Stream.never(IO.Spawn))
-                .evalMap(value =>
-                  IO.sleep(50)
-                    ['>>>'](ref.set(value + 1))
-                    ['>>>'](IO(() => value)),
-                )
-                .take(2)
-                .compileConcurrent()
-                .toList.map(xs => xs.equals(Eq.primitive, List(v, v + 1))),
-            )
-            .unsafeRunToPromise(),
-        ),
+  it('should not emit ahead', () =>
+    fc.assert(
+      fc.asyncProperty(fc.integer(), v =>
+        IO.ref(v)
+          .flatMap(ref =>
+            Stream.repeatEval<IoK, number>(ref.get())
+              .merge(IO.Concurrent)(Stream.never(IO.Spawn))
+              .evalMap(value =>
+                IO.sleep(50)
+                  ['>>>'](ref.set(value + 1))
+                  ['>>>'](IO(() => value)),
+              )
+              .take(2)
+              .compileConcurrent()
+              .toList.map(xs => xs.equals(Eq.primitive, List(v, v + 1))),
+          )
+          .unsafeRunToPromise(),
       ),
-    15_000,
-  );
+      { numRuns: 30 },
+    ));
 });

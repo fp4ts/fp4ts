@@ -1,3 +1,4 @@
+import { ok as assert } from 'assert';
 import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Either,
@@ -41,6 +42,7 @@ export class Channel<F, A> {
   public static readonly bounded =
     <F>(F: Concurrent<F, Error>) =>
     <A>(capacity: number): Kind<F, [Channel<F, A>]> => {
+      assert(capacity >= 0, 'Channel capacity must be >= 0');
       const initial = new State<F, A>(
         Vector.empty,
         0,
