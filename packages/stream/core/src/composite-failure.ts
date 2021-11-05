@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { List, Option, Some, None } from '@fp4ts/cats';
+import { List, Option, Some, None, Either, Left } from '@fp4ts/cats';
 
 export class CompositeFailure extends Error {
   public constructor(
@@ -26,6 +26,20 @@ export class CompositeFailure extends Error {
           () => Some(fst),
           ([snd, rest]) => Some(new CompositeFailure(fst, rest.prepend(snd))),
         ),
+    );
+  }
+
+  public static fromResults(
+    fst: Either<Error, void>,
+    snd: Either<Error, void>,
+  ): Either<Error, void> {
+    return fst.fold(
+      fstE =>
+        snd.fold(
+          sndE => Left(this.fromList(List(fstE, sndE)).get),
+          () => Left(fstE),
+        ),
+      () => snd,
     );
   }
 }

@@ -7,6 +7,8 @@ import {
   Monad,
   MonoidK,
   Traversable,
+  List,
+  Vector,
 } from '@fp4ts/cats';
 
 import { Chunk as ChunkBase } from './algebra';
@@ -14,6 +16,8 @@ import {
   empty,
   emptyQueue,
   fromArray,
+  fromList,
+  fromVector,
   singleton,
   tailRecM,
   tailRecM_,
@@ -38,6 +42,8 @@ interface ChunkObj {
   empty: Chunk<never>;
   singleton<O>(o: O): Chunk<O>;
   fromArray<O>(xs: O[]): Chunk<O>;
+  fromList<O>(xs: List<O>): Chunk<O>;
+  fromVector<O>(xs: Vector<O>): Chunk<O>;
   emptyQueue: Chunk<never>;
 
   tailRecM<S>(s: S): <A>(f: (s: S) => Chunk<Either<S, A>>) => Chunk<A>;
@@ -55,6 +61,8 @@ interface ChunkObj {
 Chunk.empty = empty;
 Chunk.singleton = singleton;
 Chunk.fromArray = fromArray;
+Chunk.fromList = fromList;
+Chunk.fromVector = fromVector;
 Chunk.emptyQueue = emptyQueue;
 Chunk.tailRecM = tailRecM;
 Chunk.tailRecM_ = tailRecM_;

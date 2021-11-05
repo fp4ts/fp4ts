@@ -100,6 +100,13 @@ import {
   interruptWhenTrue_,
   delayBy_,
   concurrently_,
+  noneTerminate,
+  unNoneTerminate,
+  merge_,
+  onFinalize_,
+  mergeHaltBoth_,
+  mergeHaltL_,
+  mergeHaltR_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -194,6 +201,9 @@ declare module './algebra' {
       f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
     ): Stream<F, B>;
 
+    readonly noneTerminate: Stream<F, Option<A>>;
+    unNoneTerminate<F2, B>(this: Stream<F2, Option<B>>): Stream<F2, B>;
+
     align<B>(that: Stream<F, B>): Stream<F, Ior<A, B>>;
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
     zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
@@ -210,6 +220,23 @@ declare module './algebra' {
       this: Stream<F, AA>,
       that: Stream<F, B>,
     ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
+
+    merge<F2, B>(
+      this: Stream<F2, B>,
+      F: Concurrent<F2, Error>,
+    ): (that: Stream<F2, B>) => Stream<F2, B>;
+    mergeHaltBoth<F2, B>(
+      this: Stream<F2, B>,
+      F: Concurrent<F2, Error>,
+    ): (that: Stream<F2, B>) => Stream<F2, B>;
+    mergeHaltL<F2, B>(
+      this: Stream<F2, B>,
+      F: Concurrent<F2, Error>,
+    ): (that: Stream<F2, B>) => Stream<F2, B>;
+    mergeHaltR<F2, B>(
+      this: Stream<F2, B>,
+      F: Concurrent<F2, Error>,
+    ): (that: Stream<F2, B>) => Stream<F2, B>;
 
     readonly attempt: Stream<F, Either<Error, A>>;
     attempts<F>(
@@ -232,6 +259,11 @@ declare module './algebra' {
       this: Stream<F2, A>,
       F: Temporal<F2, Error>,
     ): (ms: number) => Stream<F2, A>;
+
+    onFinalize<F2>(
+      this: Stream<F2, A>,
+      F: Applicative<F2>,
+    ): (fin: Kind<F2, [void]>) => Stream<F2, A>;
 
     interruptWhenTrue<F2>(
       this: Stream<F2, A>,
@@ -480,6 +512,16 @@ Stream.prototype.scanChunksOpt = function (init, f) {
   return scanChunksOpt_(this, init, f);
 };
 
+Object.defineProperty(Stream.prototype, 'noneTerminate', {
+  get<F, A>(this: Stream<F, A>): Stream<F, Option<A>> {
+    return noneTerminate(this);
+  },
+});
+
+Stream.prototype.unNoneTerminate = function () {
+  return unNoneTerminate(this);
+};
+
 Stream.prototype.align = function (that) {
   return align_(this, that);
 };
@@ -518,6 +560,20 @@ Stream.prototype.zipAllWith = function (that) {
   return (pad1, pad2) => zipAllWith_(this, that, pad1, pad2);
 };
 
+Stream.prototype.merge = function (F) {
+  return that => merge_(F)(this, that);
+};
+
+Stream.prototype.mergeHaltBoth = function (F) {
+  return that => mergeHaltBoth_(F)(this, that);
+};
+Stream.prototype.mergeHaltL = function (F) {
+  return that => mergeHaltL_(F)(this, that);
+};
+Stream.prototype.mergeHaltR = function (F) {
+  return that => mergeHaltR_(F)(this, that);
+};
+
 Object.defineProperty(Stream.prototype, 'attempt', {
   get<F, A>(this: Stream<F, A>): Stream<F, Either<Error, A>> {
     return attempt(this);
@@ -544,6 +600,10 @@ Stream.prototype.handleErrorWith = function (h) {
 
 Stream.prototype.delayBy = function (F) {
   return ms => delayBy_(F)(this, ms);
+};
+
+Stream.prototype.onFinalize = function (F) {
+  return fin => onFinalize_(F)(this, fin);
 };
 
 Stream.prototype.interruptWhenTrue = function (F) {

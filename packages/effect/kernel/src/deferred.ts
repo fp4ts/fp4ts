@@ -11,6 +11,8 @@ export abstract class Deferred<F, A>
 
   public abstract get(): Kind<F, [A]>;
 
+  public abstract tryGet(): Kind<F, [Option<A>]>;
+
   public abstract complete(result: A): Kind<F, [void]>;
 
   public mapK<G>(nt: FunctionK<F, G>): Deferred<G, A> {
@@ -128,6 +130,18 @@ class AsyncDeferred<F, A> extends Deferred<F, A> {
     );
   }
 
+  public override tryGet(): Kind<F, [Option<A>]> {
+    return pipe(
+      this.state.get(),
+      this.F.flatMap(
+        foldState(
+          ({ value }) => this.F.pure(Some(value)),
+          () => this.F.pure(None),
+        ),
+      ),
+    );
+  }
+
   public override complete(result: A): Kind<F, [void]> {
     const notifyReaders = (readers: ResumeReader<A>[]): Kind<F, [void]> =>
       this.F.defer(() =>
@@ -159,11 +173,15 @@ class TransformerDeferred<G, F, A> extends Deferred<G, A> {
     super();
   }
 
-  public get(): Kind<G, [A]> {
+  public override get(): Kind<G, [A]> {
     return this.nt(this.underlying.get());
   }
 
-  public complete(result: A): Kind<G, [void]> {
+  public override tryGet(): Kind<G, [Option<A>]> {
+    return this.nt(this.underlying.tryGet());
+  }
+
+  public override complete(result: A): Kind<G, [void]> {
     return this.nt(this.underlying.complete(result));
   }
 }

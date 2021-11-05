@@ -1,4 +1,4 @@
-import { List, Chain, Either } from '@fp4ts/cats';
+import { List, Vector, Chain, Either } from '@fp4ts/cats';
 
 import {
   ArrayChunk,
@@ -16,6 +16,7 @@ export const fromArray = <O>(os: O[]): Chunk<O> =>
   os.length === 0 ? empty : new ArrayChunk(os);
 
 export const fromList = <O>(os: List<O>): Chunk<O> => fromArray(os.toArray);
+export const fromVector = <O>(os: Vector<O>): Chunk<O> => fromArray(os.toArray);
 
 export const emptyQueue: Chunk<never> = new Queue(Chain.empty, 0);
 

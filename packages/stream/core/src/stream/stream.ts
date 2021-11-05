@@ -32,6 +32,7 @@ import {
   bracket,
   force,
   repeat,
+  emitChunk,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -65,6 +66,7 @@ interface StreamObj {
   defer<F = PureK, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
   throwError<F = PureK>(e: Error): Stream<F, never>;
   of<F = PureK, A = never>(...xs: A[]): Stream<F, A>;
+  emitChunk<F = PureK, A = never>(c: Chunk<A>): Stream<F, A>;
 
   evalF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
   execF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
@@ -147,6 +149,7 @@ Stream.pure = pure;
 Stream.defer = defer;
 Stream.throwError = throwError;
 Stream.of = of;
+Stream.emitChunk = emitChunk;
 
 Stream.evalF = evalF;
 Stream.execF = execF;

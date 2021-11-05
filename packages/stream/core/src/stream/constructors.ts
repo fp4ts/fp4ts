@@ -32,6 +32,9 @@ export const throwError: <F>(e: Error) => Stream<F, never> = e =>
 
 export const of = <F, A>(...xs: A[]): Stream<F, A> => fromArray(xs);
 
+export const emitChunk = <F, A>(c: Chunk<A>): Stream<F, A> =>
+  new Stream(Pull.output(c));
+
 export const evalF = <F, A>(fa: Kind<F, [A]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output1));
 
