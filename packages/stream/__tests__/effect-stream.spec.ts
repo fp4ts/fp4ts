@@ -529,7 +529,10 @@ describe('Effect-ful stream', () => {
 
   describe.ticked('Laws', ticker => {
     const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IoK, X>> =>
-      Eq.by(E.eqIO(List.Eq(EqX), ticker), s => s.compileConcurrent().toList);
+      Eq.by(
+        E.eqIO(List.Eq(Either.Eq(Eq.Error.strict, EqX)), ticker),
+        s => s.attempt.compileConcurrent().toList,
+      );
 
     const monoidKTests = MonoidKSuite(Stream.MonoidK<IoK>());
     checkAll(

@@ -13,7 +13,7 @@ describe('Stream interruption', () => {
   it('should interrupt hung eval', () =>
     fc.assert(
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s => {
-        const interruptSoon = Stream.sleep(IO.Temporal)(50).compileConcurrent()
+        const interruptSoon = Stream.sleep(IO.Temporal)(20).compileConcurrent()
           .drain.attempt;
 
         return Stream.defer(() =>

@@ -392,8 +392,7 @@ export const mapOutputNoScope_ = <F, O, P>(
 ): Pull<F, P, void> => {
   const go = (p: Pull<F, O, void>): Pull<F, P, void> =>
     pipe(
-      p,
-      uncons,
+      uncons(p),
       P.flatMap(opt =>
         opt.fold(
           () => P.unit,
@@ -634,7 +633,6 @@ export const compile_ =
       readonly extendedTopLevelScope: Option<Scope<F>>;
       readonly translation: FunctionK<G, F>;
       readonly runner: Run<G, X, Kind<F, [End]>>;
-      readonly stream: Pull<G, X, void>;
     }
 
     class TranslateRun<H, G, X, End> implements Run<H, X, Kind<F, [End]>> {
@@ -1162,7 +1160,6 @@ export const compile_ =
         extendedTopLevelScope,
         translation,
         runner,
-        stream,
       };
 
       const v = viewL(stream);
