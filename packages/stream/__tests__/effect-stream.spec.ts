@@ -127,6 +127,7 @@ describe('Effect-ful stream', () => {
         A.fp4tsEffectStreamGenerator<SyncIoK, number>(
           fc.integer(),
           A.fp4tsSyncIO(fc.integer()),
+          A.fp4tsSyncIO(fc.constant(undefined as void)),
         ),
         fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
         (s, f) =>
@@ -540,7 +541,12 @@ describe('Effect-ful stream', () => {
       monoidKTests.monoidK(
         fc.integer(),
         Eq.primitive,
-        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
+        arbX =>
+          A.fp4tsEffectStreamGenerator(
+            arbX,
+            A.fp4tsIO(arbX),
+            A.fp4tsIO(fc.constant(undefined as void)),
+          ),
         ioEqStream,
       ),
     );
@@ -557,7 +563,12 @@ describe('Effect-ful stream', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
+        arbX =>
+          A.fp4tsEffectStreamGenerator(
+            arbX,
+            A.fp4tsIO(arbX),
+            A.fp4tsIO(fc.constant(undefined as void)),
+          ),
         ioEqStream,
       ),
     );
@@ -572,7 +583,12 @@ describe('Effect-ful stream', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
+        arbX =>
+          A.fp4tsEffectStreamGenerator(
+            arbX,
+            A.fp4tsIO(arbX),
+            A.fp4tsIO(fc.constant(undefined as void)),
+          ),
         ioEqStream,
       ),
     );
@@ -591,7 +607,12 @@ describe('Effect-ful stream', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.Error.strict,
-        arbX => A.fp4tsEffectStreamGenerator(arbX, A.fp4tsIO(arbX)),
+        arbX =>
+          A.fp4tsEffectStreamGenerator(
+            arbX,
+            A.fp4tsIO(arbX),
+            A.fp4tsIO(fc.constant(undefined as void)),
+          ),
         ioEqStream,
       ),
     );

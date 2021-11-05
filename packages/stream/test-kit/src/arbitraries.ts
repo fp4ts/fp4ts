@@ -38,8 +38,10 @@ export const fp4tsPureStreamGenerator = <A>(
 export const fp4tsEffectStreamGenerator = <F, A>(
   arbA: Arbitrary<A>,
   arbFA: Arbitrary<Kind<F, [A]>>,
+  arbFvoid: Arbitrary<Kind<F, [void]>>,
 ): Arbitrary<Stream<F, A>> =>
   fc.frequency(
+    { maxDepth: 5 },
     { weight: 1, arbitrary: fc.constant(Stream.empty<F>()) },
     {
       weight: 20,
@@ -51,6 +53,13 @@ export const fp4tsEffectStreamGenerator = <F, A>(
             Stream.fromArray<F, A>(xs).chunkLimit(1).unchunks.take(10),
           ),
         arbFA.map(Stream.evalF),
+        arbFA.chain(resource =>
+          arbFvoid.chain(release =>
+            fp4tsEffectStreamGenerator(arbA, arbFA, arbFvoid).map(use =>
+              Stream.bracket(resource, () => release).flatMap<F, A>(() => use),
+            ),
+          ),
+        ),
       ),
     },
   );
