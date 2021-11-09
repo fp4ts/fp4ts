@@ -1,4 +1,4 @@
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { id, Lazy, lazyVal, Kind } from '@fp4ts/core';
 import {
   Alternative,
   Functor,
@@ -6,37 +6,29 @@ import {
   Monad,
   MonoidK,
   Traversable,
+  Eval,
+  Applicative,
 } from '@fp4ts/cats';
 
-import { ChunkK } from './chunk';
-import { empty, singleton, tailRecM_ } from './constructor';
-import {
-  collect_,
-  concat_,
-  flatMap_,
-  flatten,
-  foldLeft_,
-  foldRight_,
-  map_,
-  traverse_,
-} from './operators';
+import { Chunk as ChunkBase } from './algebra';
+import type { ChunkK, Chunk } from './chunk';
 
 export const chunkMonoidK: Lazy<MonoidK<ChunkK>> = lazyVal(() =>
   MonoidK.of({
-    emptyK: () => empty,
-    combineK_: (lhs, rhs) => concat_(lhs, rhs()),
+    emptyK: () => ChunkBase.empty,
+    combineK_: (lhs, rhs) => lhs.concat(rhs()),
   }),
 );
 
 export const chunkFunctor: Lazy<Functor<ChunkK>> = lazyVal(() =>
-  Functor.of({ map_: map_ }),
+  Functor.of({ map_: (x, f) => x.map(f) }),
 );
 
 export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkK>> = lazyVal(() =>
   FunctorFilter.of({
     ...chunkFunctor(),
-    mapFilter_: collect_,
-    collect_: collect_,
+    mapFilter_: (x, f) => x.collect(f),
+    collect_: (x, f) => x.collect(f),
   }),
 );
 
@@ -46,18 +38,34 @@ export const chunkAlternative: Lazy<Alternative<ChunkK>> = lazyVal(() =>
 
 export const chunkMonad: Lazy<Monad<ChunkK>> = lazyVal(() =>
   Monad.of({
-    pure: singleton,
-    flatMap_: flatMap_,
-    flatten: flatten,
-    tailRecM_: tailRecM_,
+    pure: ChunkBase.singleton,
+    flatMap_: (xs, f) => xs.flatMap(f),
+    flatten: xs => xs.flatMap(id),
+    tailRecM_: ChunkBase.tailRecM_,
   }),
 );
 
 export const chunkTraversable: Lazy<Traversable<ChunkK>> = lazyVal(() =>
   Traversable.of({
     ...chunkFunctor(),
-    foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
-    traverse_: traverse_,
+    foldLeft_: (xs, z, f) => xs.foldLeft(z, f),
+    foldRight_: <A, B>(
+      fa: Chunk<A>,
+      b: Eval<B>,
+      f: (a: A, b: Eval<B>) => Eval<B>,
+    ): Eval<B> => {
+      const go = (i: number): Eval<B> =>
+        i < fa.size
+          ? f(
+              fa.elem(i),
+              Eval.defer(() => go(i + 1)),
+            )
+          : b;
+      return go(0);
+    },
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: Chunk<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chunk<B>]> =>
+        fa.traverse(G)(f),
   }),
 );

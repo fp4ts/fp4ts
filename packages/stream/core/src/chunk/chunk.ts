@@ -13,16 +13,6 @@ import {
 
 import { Chunk as ChunkBase } from './algebra';
 import {
-  empty,
-  emptyQueue,
-  fromArray,
-  fromList,
-  fromVector,
-  singleton,
-  tailRecM,
-  tailRecM_,
-} from './constructor';
-import {
   chunkAlternative,
   chunkFunctor,
   chunkFunctorFilter,
@@ -34,7 +24,7 @@ import {
 export type Chunk<O> = ChunkBase<O>;
 
 export const Chunk: ChunkObj = function <O>(...os: O[]): Chunk<O> {
-  return fromArray(os);
+  return ChunkBase.fromArray(os);
 } as any;
 
 interface ChunkObj {
@@ -58,14 +48,14 @@ interface ChunkObj {
   readonly Traversable: Traversable<ChunkK>;
 }
 
-Chunk.empty = empty;
-Chunk.singleton = singleton;
-Chunk.fromArray = fromArray;
-Chunk.fromList = fromList;
-Chunk.fromVector = fromVector;
-Chunk.emptyQueue = emptyQueue;
-Chunk.tailRecM = tailRecM;
-Chunk.tailRecM_ = tailRecM_;
+Chunk.empty = ChunkBase.empty;
+Chunk.singleton = ChunkBase.singleton;
+Chunk.fromArray = ChunkBase.fromArray;
+Chunk.fromList = ChunkBase.fromList;
+Chunk.fromVector = ChunkBase.fromVector;
+Chunk.emptyQueue = ChunkBase.emptyChain;
+Chunk.tailRecM = ChunkBase.tailRecM;
+Chunk.tailRecM_ = ChunkBase.tailRecM_;
 
 Object.defineProperty(Chunk, 'MonoidK', {
   get(): MonoidK<ChunkK> {
