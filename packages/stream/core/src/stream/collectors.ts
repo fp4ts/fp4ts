@@ -1,4 +1,5 @@
 import { List, Vector } from '@fp4ts/cats';
+import { Byte } from '@fp4ts/core';
 import { Chunk } from '../chunk';
 
 export interface Collector<A, Out> {
@@ -41,6 +42,17 @@ export const Collector = Object.freeze({
 
   string: (): Collector<string, string> =>
     Collector.make(() => new StringBuilder()),
+
+  buffer: (): Collector<Byte, Buffer> =>
+    Collector.make(() => new ChunkBuilder<Byte>().mapResult(x => x.toBuffer())),
+  uint8Array: (): Collector<Byte, Uint8Array> =>
+    Collector.make(() =>
+      new ChunkBuilder<Byte>().mapResult(x => x.toUint8Array()),
+    ),
+  arrayBuffer: (): Collector<Byte, ArrayBuffer> =>
+    Collector.make(() =>
+      new ChunkBuilder<Byte>().mapResult(x => x.toArrayBuffer()),
+    ),
 });
 
 class ChunkBuilder<A> extends Builder<A, Chunk<A>> {
@@ -52,11 +64,11 @@ class ChunkBuilder<A> extends Builder<A, Chunk<A>> {
   }
 }
 
-class StringBuilder<A> extends Builder<string, string> {
+class StringBuilder extends Builder<string, string> {
   public override result: string = '';
 
   override append(other: Chunk<string>) {
-    this.result = other.foldLeft(this.result, (x, y) => x + y);
+    this.result += other.toArray.join();
     return this;
   }
 }

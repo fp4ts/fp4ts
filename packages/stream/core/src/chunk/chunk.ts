@@ -1,4 +1,4 @@
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, Byte, Char, TyK, TyVar } from '@fp4ts/core';
 import {
   Alternative,
   Either,
@@ -34,7 +34,11 @@ interface ChunkObj {
   fromArray<O>(xs: O[]): Chunk<O>;
   fromList<O>(xs: List<O>): Chunk<O>;
   fromVector<O>(xs: Vector<O>): Chunk<O>;
-  emptyQueue: Chunk<never>;
+  emptyChain: Chunk<never>;
+  fromString(str: string): Chunk<Char>;
+  fromBuffer(
+    buffer: ArrayBufferLike | Buffer | DataView | Uint8Array | string,
+  ): Chunk<Byte>;
 
   tailRecM<S>(s: S): <A>(f: (s: S) => Chunk<Either<S, A>>) => Chunk<A>;
   tailRecM_<S, A>(s: S, f: (s: S) => Chunk<Either<S, A>>): Chunk<A>;
@@ -53,7 +57,9 @@ Chunk.singleton = ChunkBase.singleton;
 Chunk.fromArray = ChunkBase.fromArray;
 Chunk.fromList = ChunkBase.fromList;
 Chunk.fromVector = ChunkBase.fromVector;
-Chunk.emptyQueue = ChunkBase.emptyChain;
+Chunk.emptyChain = ChunkBase.emptyChain;
+Chunk.fromString = ChunkBase.fromString;
+Chunk.fromBuffer = ChunkBase.fromBuffer;
 Chunk.tailRecM = ChunkBase.tailRecM;
 Chunk.tailRecM_ = ChunkBase.tailRecM_;
 

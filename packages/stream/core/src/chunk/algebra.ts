@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Iter, Kind } from '@fp4ts/core';
+import { Byte, Char, Iter, Kind } from '@fp4ts/core';
 import {
   Chain,
   Option,
@@ -34,6 +34,23 @@ export abstract class Chunk<O> {
   }
   public static fromVector<O>(os: Vector<O>): Chunk<O> {
     return Chunk.fromArray(os.toArray);
+  }
+  public static fromString(str: string): Chunk<Char> {
+    return new StringChunk(str);
+  }
+  public static fromBuffer(
+    buffer: ArrayBufferLike | Buffer | DataView | Uint8Array | string,
+  ): Chunk<Byte> {
+    if (
+      buffer instanceof ArrayBuffer ||
+      buffer instanceof Buffer ||
+      buffer instanceof SharedArrayBuffer
+    )
+      return new ByteBufferChunk(new Uint8Array(buffer));
+    else if (buffer instanceof DataView)
+      return new ByteBufferChunk(new Uint8Array(buffer.buffer));
+    else if (buffer instanceof Uint8Array) return new ByteBufferChunk(buffer);
+    else return new ByteBufferChunk(new Uint8Array(Buffer.from(buffer)));
   }
 
   public static tailRecM<S>(
@@ -304,6 +321,46 @@ export abstract class Chunk<O> {
   public get toVector(): Vector<O> {
     return Vector.fromIterator(this.iterator);
   }
+
+  public toBuffer(this: Chunk<Byte>): Buffer {
+    return Buffer.from(this.toUint8Array());
+  }
+
+  public toArrayBuffer(this: Chunk<Byte>): ArrayBuffer {
+    return this.toUint8Array();
+  }
+
+  public toUint8Array(this: Chunk<Byte>): Uint8Array {
+    const buffer: Uint8Array = new Uint8Array(this.size);
+    let cur: Chunk<Byte>;
+    let offset: number = 0;
+    let rem: Chain<Chunk<Byte>> = Chain(this);
+
+    while (rem.nonEmpty) {
+      [cur, rem] = rem.popHead.get;
+      if (cur === EmptyChunk) continue;
+      if (cur instanceof ChainChunk) {
+        rem = (cur.chunks as Chain<Chunk<Byte>>)['+++'](rem);
+        continue;
+      }
+
+      if (cur instanceof ByteBufferChunk)
+        buffer.set(new Uint8Array(cur.toUint8Array()), offset);
+      // prettier-ignore
+      if (cur instanceof SingletonChunk)
+        buffer.set(cur.value, offset);
+      if (cur instanceof ArrayChunk)
+        buffer.set(new Uint8Array(cur.array), offset);
+      if (cur instanceof ArraySlice)
+        buffer.set(
+          new Uint8Array(cur.values.slice(cur.offset, cur.offset + cur.length)),
+          offset,
+        );
+      offset += cur.size;
+    }
+
+    return buffer;
+  }
 }
 
 export class SingletonChunk<O> extends Chunk<O> {
@@ -483,3 +540,84 @@ class EmptyChunk_ extends Chunk<never> {
 }
 export const EmptyChunk = new EmptyChunk_();
 export type EmptyChunk = typeof EmptyChunk;
+
+class StringChunk extends Chunk<Char> {
+  public readonly size: number = this.string.length;
+  public constructor(private readonly string: string) {
+    super();
+  }
+
+  public get iterator(): Iterator<Char> {
+    return this.string[Symbol.iterator]() as Iterator<Char>;
+  }
+
+  protected elem_(idx: number): Char {
+    return this.string[idx] as Char;
+  }
+
+  protected splitAt_(idx: number): [Chunk<Char>, Chunk<Char>] {
+    return [
+      new StringSliceChunk(this.string, 0, idx),
+      new StringSliceChunk(this.string, idx, this.size),
+    ];
+  }
+}
+class StringSliceChunk extends Chunk<Char> {
+  public readonly size: number = this.length;
+  public constructor(
+    public readonly string: string,
+    public readonly offset: number,
+    public readonly length: number,
+  ) {
+    super();
+    assert(
+      offset >= 0 &&
+        offset <= string.length &&
+        length > 0 &&
+        length <= string.length &&
+        offset + length <= string.length,
+    );
+    this.size = length;
+  }
+
+  public get iterator(): Iterator<Char> {
+    return this.string[Symbol.iterator]() as Iterator<Char>;
+  }
+
+  protected elem_(idx: number): Char {
+    return this.string[this.offset + idx] as Char;
+  }
+
+  protected splitAt_(idx: number): [Chunk<Char>, Chunk<Char>] {
+    return [
+      new StringSliceChunk(this.string, this.offset + 0, idx),
+      new StringSliceChunk(this.string, this.offset + idx, this.size - idx),
+    ];
+  }
+}
+
+class ByteBufferChunk extends Chunk<Byte> {
+  public readonly size: number = this.buffer.length;
+  public constructor(private readonly buffer: Uint8Array) {
+    super();
+  }
+
+  public get iterator(): Iterator<Byte> {
+    return this.buffer[Symbol.iterator]() as Iterator<Byte>;
+  }
+
+  protected elem_(idx: number): Byte {
+    return this.buffer[idx] as Byte;
+  }
+
+  protected splitAt_(idx: number): [Chunk<Byte>, Chunk<Byte>] {
+    return [
+      new ByteBufferChunk(this.buffer.subarray(0, idx)),
+      new ByteBufferChunk(this.buffer.subarray(idx)),
+    ];
+  }
+
+  public override toUint8Array(): Uint8Array {
+    return this.buffer;
+  }
+}

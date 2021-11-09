@@ -115,6 +115,36 @@ describe('chunk', () => {
     });
   });
 
+  describe('byte chunks', () => {
+    it('should create a byte chunk from string', () => {
+      expect(
+        Chunk.fromBuffer('abcdefg')
+          .filter(x => Boolean(x & 0b1))
+          .toBuffer()
+          .toString(),
+      ).toBe('aceg');
+    });
+
+    it('should create a byte chunk from Buffer', () => {
+      expect(
+        Chunk.fromBuffer(Buffer.from('abcdefg'))
+          .filter(x => Boolean(x & 0b1))
+          .toBuffer()
+          .toString(),
+      ).toBe('aceg');
+    });
+
+    it('should create a byte chunk from concatenation of Buffers', () => {
+      expect(
+        Chunk.fromBuffer(Buffer.from('abcd'))
+          ['+++'](Chunk.fromBuffer(Buffer.from('efg')))
+          .filter(x => Boolean(x & 0b1))
+          .toBuffer()
+          .toString(),
+      ).toBe('aceg');
+    });
+  });
+
   const monoidKTests = MonoidKSuite(Chunk.MonoidK);
   checkAll(
     'MonoidK<Chunk>',

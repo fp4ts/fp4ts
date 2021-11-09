@@ -751,11 +751,11 @@ export const sliding_ = <F, A>(
             () => Pull.done(),
             ([hd, tl]) =>
               Pull.output1(hd)['>>>'](() =>
-                stepSmallerThanSize(tl, hd.drop(step), Chunk.emptyQueue),
+                stepSmallerThanSize(tl, hd.drop(step), Chunk.emptyChain),
               ),
           ),
         )
-      : stepNotSmallerThanSize(s.pull, Chunk.emptyQueue);
+      : stepNotSmallerThanSize(s.pull, Chunk.emptyChain);
 
   return resultPull.stream();
 };

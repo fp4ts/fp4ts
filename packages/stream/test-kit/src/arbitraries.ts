@@ -95,7 +95,7 @@ export const fp4tsStreamChunkGenerator = <O>(
     if (depth >= maxDepth) return base;
     return fc
       .tuple(gen(depth + 1), gen(depth + 1))
-      .map(([pfx, sfx]) => pfx['+++'](Chunk.emptyQueue)['+++'](sfx));
+      .map(([pfx, sfx]) => pfx['+++'](Chunk.emptyChain)['+++'](sfx));
   });
 
   const gen = (depth: number): Arbitrary<Chunk<O>> =>
