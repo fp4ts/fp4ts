@@ -68,7 +68,7 @@ class StringBuilder extends Builder<string, string> {
   public override result: string = '';
 
   override append(other: Chunk<string>) {
-    this.result += other.toArray.join();
+    this.result += other.toArray.join('');
     return this;
   }
 }

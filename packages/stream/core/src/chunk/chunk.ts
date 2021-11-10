@@ -11,7 +11,7 @@ import {
   Vector,
 } from '@fp4ts/cats';
 
-import { Chunk as ChunkBase } from './algebra';
+import { ChainChunk, Chunk as ChunkBase } from './algebra';
 import {
   chunkAlternative,
   chunkFunctor,
@@ -34,7 +34,7 @@ interface ChunkObj {
   fromArray<O>(xs: O[]): Chunk<O>;
   fromList<O>(xs: List<O>): Chunk<O>;
   fromVector<O>(xs: Vector<O>): Chunk<O>;
-  emptyChain: Chunk<never>;
+  emptyChain: ChainChunk<never>;
   fromString(str: string): Chunk<Char>;
   fromBuffer(
     buffer: ArrayBufferLike | Buffer | DataView | Uint8Array | string,

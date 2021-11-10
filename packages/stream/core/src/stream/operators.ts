@@ -196,6 +196,10 @@ export const collectWhile: <A, B>(
   f: (a: A) => Option<B>,
 ) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => collectWhile_(s, f);
 
+export const mapChunks: <A, B>(
+  f: (c: Chunk<A>) => Chunk<B>,
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => mapChunks_(s, f);
+
 export const map: <A, B>(
   f: (a: A) => B,
 ) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => map_(s, f);

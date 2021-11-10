@@ -1,5 +1,5 @@
 import { ok as assert } from 'assert';
-import { Byte, Char, Iter, Kind } from '@fp4ts/core';
+import { Byte, Char, Iter, Kind, PrimitiveType } from '@fp4ts/core';
 import {
   Chain,
   Option,
@@ -10,6 +10,7 @@ import {
   Vector,
   Applicative,
   Eval,
+  Eq,
 } from '@fp4ts/cats';
 
 export abstract class Chunk<O> {
@@ -45,12 +46,15 @@ export abstract class Chunk<O> {
       buffer instanceof ArrayBuffer ||
       buffer instanceof Buffer ||
       buffer instanceof SharedArrayBuffer
-    )
+    ) {
       return new ByteBufferChunk(new Uint8Array(buffer));
-    else if (buffer instanceof DataView)
+    } else if (buffer instanceof DataView) {
       return new ByteBufferChunk(new Uint8Array(buffer.buffer));
-    else if (buffer instanceof Uint8Array) return new ByteBufferChunk(buffer);
-    else return new ByteBufferChunk(new Uint8Array(Buffer.from(buffer)));
+    } else if (buffer instanceof Uint8Array) {
+      return new ByteBufferChunk(buffer);
+    } else {
+      return new ByteBufferChunk(new Uint8Array(Buffer.from(buffer)));
+    }
   }
 
   public static tailRecM<S>(
@@ -306,6 +310,45 @@ export abstract class Chunk<O> {
 
       return loop(0, this.size).value;
     };
+  }
+
+  public startsWith<O2 extends PrimitiveType>(
+    this: Chunk<O2>,
+    that: Chunk<O2>,
+  ): boolean;
+  public startsWith<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
+  public startsWith(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
+    if (this.size < that.size) return false;
+    return this.take(that.size).equals(that, E ?? Eq.primitive);
+  }
+
+  public equals<O2 extends PrimitiveType>(
+    this: Chunk<O2>,
+    that: Chunk<O2>,
+  ): boolean;
+  public equals<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
+  public equals(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
+    E = E ?? Eq.primitive;
+    if (this === that) return true;
+    if (this.size !== that.size) return false;
+    const thisIter = this.iterator;
+    const thatIter = that.iterator;
+    for (
+      let i = thisIter.next(), j = thatIter.next();
+      !i.done && !j.done;
+      i = thisIter.next(), j = thatIter.next()
+    ) {
+      if (E.notEquals(i.value, j.value)) return false;
+    }
+    return true;
+  }
+  public notEquals<O2 extends PrimitiveType>(
+    this: Chunk<O2>,
+    that: Chunk<O2>,
+  ): boolean;
+  public notEquals<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
+  public notEquals(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
+    return !this.equals(that, E ?? Eq.primitive);
   }
 
   public get toArray(): O[] {

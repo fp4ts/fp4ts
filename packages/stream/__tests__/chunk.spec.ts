@@ -28,6 +28,15 @@ describe('chunk', () => {
   );
 
   test(
+    'equals',
+    forAll(
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      (c1, c2) => c1.equals(c2) === c1.toList.equals(Eq.primitive, c2.toList),
+    ),
+  );
+
+  test(
     'take',
     forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.take(n).toList['<=>'](c.toList.take(n)),

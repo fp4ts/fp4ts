@@ -110,6 +110,7 @@ import {
   zipLeft_,
   zipRight_,
   spaced_,
+  mapChunks_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -162,6 +163,7 @@ declare module './algebra' {
     collectWhile<B>(f: (a: A) => Option<B>): Stream<F, B>;
 
     as<B>(result: B): Stream<F, B>;
+    mapChunks<B>(f: (c: Chunk<A>) => Chunk<B>): Stream<F, B>;
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
@@ -451,6 +453,10 @@ Stream.prototype.collectWhile = function (f) {
 
 Stream.prototype.as = function (r) {
   return map_(this, () => r);
+};
+
+Stream.prototype.mapChunks = function (f) {
+  return mapChunks_(this, f);
 };
 
 Stream.prototype.map = function (f) {
