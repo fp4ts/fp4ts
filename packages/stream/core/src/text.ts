@@ -1,6 +1,7 @@
 import { Byte } from '@fp4ts/core';
 import { Chunk } from './chunk';
 import { Pull } from './pull';
+import { Stream } from './stream';
 import { Pipe } from './pipe';
 import { ChainChunk } from './chunk/algebra';
 
@@ -56,13 +57,13 @@ export const text = Object.freeze({
 
         const splitAt = allBytes.length - lastIncompleteBytes(allBytes);
 
-        if (splitAt == allBytes.length) {
+        if (splitAt === allBytes.length) {
           // in the common case of ASCII chars
           // we are in this branch so the next buffer will
           // be empty
           outBuf.push(td.decode(new Uint8Array(allBytes)));
           return Chunk.empty;
-        } else if (splitAt == 0) return Chunk.fromArray(allBytes);
+        } else if (splitAt === 0) return Chunk.fromArray(allBytes);
         else {
           const tempBuf = new Uint8Array(allBytes);
           outBuf.push(td.decode(tempBuf.subarray(0, splitAt)));
@@ -114,8 +115,8 @@ export const text = Object.freeze({
                   )
                 : Pull.done(),
             ([hd, tl]) => {
-              const newBuffer0: ChainChunk<Byte> = buffer ?? Chunk.emptyChain;
-              const newBuffer: ChainChunk<Byte> = newBuffer0.appendChunk(hd);
+              const newBuffer0 = buffer ?? Chunk.emptyChain;
+              const newBuffer = newBuffer0.appendChunk(hd);
 
               if (newBuffer.size >= 3) {
                 const rem = newBuffer.startsWith(utf8BomSeq)
@@ -151,4 +152,29 @@ export const text = Object.freeze({
         s.mapChunks(c => c.flatMap(s => Chunk.fromBuffer(te.encode(s))));
     },
   }),
+
+  // https://github.com/dominictarr/split/blob/master/index.js
+  lines: <F>(): Pipe<F, string, string> => {
+    const matcher = /\r?\n/;
+    const doPull = (
+      trailing: string | undefined,
+      pull: Pull<F, string, void>,
+    ): Pull<F, string, void> =>
+      pull.uncons.flatMap(opt =>
+        opt.fold(
+          () => (trailing != null ? Pull.output1(trailing) : Pull.done()),
+          ([hd, tl]) => {
+            const next = (trailing ?? '') + hd.toArray.join('');
+            const lines = next.split(matcher);
+            const nextTrailing = lines.pop();
+
+            return Pull.output(Chunk.fromArray(lines))['>>>'](() =>
+              doPull(nextTrailing, tl),
+            );
+          },
+        ),
+      );
+
+    return is => Stream.defer(() => doPull(undefined, is.pull).stream());
+  },
 });

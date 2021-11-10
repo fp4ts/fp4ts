@@ -111,6 +111,7 @@ import {
   zipRight_,
   spaced_,
   mapChunks_,
+  intersperse_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -211,6 +212,8 @@ declare module './algebra' {
 
     readonly noneTerminate: Stream<F, Option<A>>;
     unNoneTerminate<F2, B>(this: Stream<F2, Option<B>>): Stream<F2, B>;
+
+    intersperse<B>(this: Stream<F, B>, separator: B): Stream<F, B>;
 
     align<B>(that: Stream<F, B>): Stream<F, Ior<A, B>>;
     zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
@@ -539,6 +542,10 @@ Object.defineProperty(Stream.prototype, 'noneTerminate', {
 
 Stream.prototype.unNoneTerminate = function () {
   return unNoneTerminate(this);
+};
+
+Stream.prototype.intersperse = function (separator) {
+  return intersperse_(this, separator);
 };
 
 Stream.prototype.align = function (that) {

@@ -315,6 +315,11 @@ export const unNoneTerminate = <F, A>(s: Stream<F, Option<A>>): Stream<F, A> =>
     ),
   );
 
+export const intersperse: <A>(
+  separator: A,
+) => <F>(s: Stream<F, A>) => Stream<F, A> = separator => s =>
+  intersperse_(s, separator);
+
 export const align: <F, B>(
   s2: Stream<F, B>,
 ) => <A>(s1: Stream<F, A>) => Stream<F, Ior<A, B>> = s2 => s1 => align_(s1, s2);
@@ -990,6 +995,40 @@ export const scanChunksOpt_ = <F, S, A, B>(
   init: S,
   f: (s: S) => Option<(c: Chunk<A>) => [S, Chunk<B>]>,
 ): Stream<F, B> => s.pull.scanChunksOpt(init, f).void.stream();
+
+export const intersperse_ = <F, A>(
+  s: Stream<F, A>,
+  separator: A,
+): Stream<F, A> => {
+  const doChunk = (hd: Chunk<A>, isFirst: boolean): Chunk<A> => {
+    const result: A[] = new Array(hd.size * 2 + (isFirst ? 1 : 0));
+    const iter = hd.iterator;
+    let idx = 0;
+    if (isFirst) result[idx++] = iter.next().value!;
+    for (let i = iter.next(); !i.done; i = iter.next()) {
+      result[idx++] = separator;
+      result[idx++] = i.value;
+    }
+    return Chunk.fromArray(result);
+  };
+
+  const loop = (pull: Pull<F, A, void>): Pull<F, A, void> =>
+    pull.uncons.flatMap(opt =>
+      opt.fold(
+        () => Pull.done(),
+        ([hd, tl]) => Pull.output(doChunk(hd, false))['>>>'](() => loop(tl)),
+      ),
+    );
+
+  return s.pull.uncons
+    .flatMap(opt =>
+      opt.fold(
+        () => Pull.done(),
+        ([hd, tl]) => Pull.output(doChunk(hd, true))['>>>'](() => loop(tl)),
+      ),
+    )
+    .stream();
+};
 
 export const align_ = <F, A, B>(
   s1: Stream<F, A>,
