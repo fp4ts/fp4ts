@@ -13,7 +13,9 @@ import {
   Bind,
   InterruptWhen,
   Acquire,
+  GetScope,
 } from './algebra';
+import { Scope } from '../internal';
 
 export const pure = <F, R>(r: R): Pull<F, never, R> =>
   new Succeed(r) as Pull<any, never, R>;
@@ -47,6 +49,8 @@ export const defer = <F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R> =>
 export const interruptWhen = <F, O>(
   haltOnSignal: Kind<F, [Either<Error, void>]>,
 ): Pull<F, O, void> => new InterruptWhen(haltOnSignal);
+
+export const getScope = <F>(): Pull<F, never, Scope<F>> => new GetScope();
 
 export const acquire = <F, R>(
   resource: Kind<F, [R]>,

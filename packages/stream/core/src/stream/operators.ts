@@ -14,11 +14,20 @@ import {
   Some,
   Ior,
 } from '@fp4ts/cats';
-import { Temporal, Sync, Concurrent, Semaphore, Deferred } from '@fp4ts/effect';
+import {
+  Temporal,
+  Sync,
+  Concurrent,
+  Semaphore,
+  Deferred,
+  Outcome,
+  Fiber,
+} from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Compiler } from '../compiler';
+import { Scope } from '../internal';
 
 import { Stream } from './algebra';
 import {
@@ -33,9 +42,10 @@ import {
   bracket,
   emitChunk,
   fixedDelay,
+  execF,
 } from './constructors';
 import { CompileOps } from './compile-ops';
-import { Channel } from '../concurrent';
+import { Channel, Signal, SignallingRef } from '../concurrent';
 import { CompositeFailure } from '../composite-failure';
 
 export const head: <F, A>(s: Stream<F, A>) => Stream<F, A> = s => take_(s, 1);
@@ -237,6 +247,10 @@ export const flatMap: <F, A, B>(
 export const flatten: <F, A>(ss: Stream<F, Stream<F, A>>) => Stream<F, A> =
   ss => flatMap_(ss, id);
 
+export const forEach: <F, A>(
+  f: (a: A) => Kind<F, [void]>,
+) => (s: Stream<F, A>) => Stream<F, never> = f => s => forEach_(s, f);
+
 export const through: <F, A, B>(
   f: (s: Stream<F, A>) => Stream<F, B>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => through_(s, f);
@@ -432,6 +446,17 @@ export const mergeHaltR: <F>(
 ) => <A>(s2: Stream<F, A>) => (s1: Stream<F, A>) => Stream<F, A> =
   F => s2 => s1 =>
     mergeHaltR_(F)(s1, s2);
+
+export const parJoin: <F>(
+  F: Concurrent<F, Error>,
+) => (maxOpen: number) => <A>(outer: Stream<F, Stream<F, A>>) => Stream<F, A> =
+  F => maxOpen => outer =>
+    parJoin_(F)(outer, maxOpen);
+
+export const parJoinUnbounded: <F>(
+  F: Concurrent<F, Error>,
+) => <A>(outer: Stream<F, Stream<F, A>>) => Stream<F, A> = F => outer =>
+  parJoin_(F)(outer, Infinity);
 
 export const repeatPull: <F, A, B>(
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
@@ -907,6 +932,11 @@ export const flatMap_ = <F, A, B>(
   f: (a: A) => Stream<F, B>,
 ): Stream<F, B> => s.pull.flatMapOutput(o => f(o).pull).streamNoScope();
 
+export const forEach_ = <F, A>(
+  s: Stream<F, A>,
+  f: (a: A) => Kind<F, [void]>,
+): Stream<F, never> => flatMap_(s, x => execF(f(x)));
+
 export const fold_ = <F, A, B>(
   s: Stream<F, A>,
   z: B,
@@ -1190,6 +1220,164 @@ export const mergeHaltR_ =
   <A>(s1: Stream<F, A>, s2: Stream<F, A>): Stream<F, A> =>
     mergeHaltL_(F)(s2, s1);
 
+export const parJoin_ =
+  <F>(F: Concurrent<F, Error>) =>
+  <A>(outer: Stream<F, Stream<F, A>>, maxOpen: number): Stream<F, A> => {
+    assert(maxOpen > 0, 'maxOpen has to be >0');
+    if (maxOpen === 1) return flatten(outer);
+
+    const fStream = pipe(
+      F.Do,
+      F.bindTo('done', SignallingRef(F)(None as Option<Option<Error>>)),
+      F.bindTo('available', Semaphore.withPermits(F)(maxOpen)),
+      F.bindTo('running', SignallingRef(F)(1)),
+      F.bindTo('outcomes', Channel.unbounded<F, Kind<F, [void]>>(F)),
+      F.bindTo('output', Channel.synchronous<F, Chunk<A>>(F)),
+      F.map(({ done, available, running, outcomes, output }) => {
+        const stop = (res: Option<Error>): Kind<F, [void]> =>
+          done.update(res0 =>
+            res0.fold<Option<Option<Error>>>(
+              () => Some(res),
+              res1 =>
+                res1.fold(
+                  () => Some(res),
+                  err0 =>
+                    res.fold(
+                      () => res0,
+                      err => Some(Some(CompositeFailure.from(err0, err))),
+                    ),
+                ),
+            ),
+          );
+
+        const incrementRunning: Kind<F, [void]> = running.update(x => x + 1);
+        const decrementRunning: Kind<F, [void]> = pipe(
+          running.updateAndGet(x => x - 1),
+          F.flatMap(now => (now === 0 ? F.void(outcomes.close) : F.unit)),
+        );
+
+        const awaitWhileRunning: Kind<F, [void]> = pipe(
+          running.discrete(),
+          takeWhile(n => n > 0),
+          s => compileConcurrent(s, F),
+        ).drain;
+
+        const onOutcome = (
+          oc: Outcome<F, Error, void>,
+          cancelResult: Either<Error, void>,
+        ): Kind<F, [void]> =>
+          oc.fold(
+            () =>
+              cancelResult.fold(
+                e => stop(Some(e)),
+                () => F.unit,
+              ),
+            e =>
+              CompositeFailure.fromResults(Left(e), cancelResult).fold(
+                e => stop(Some(e)),
+                () => F.unit,
+              ),
+            fu =>
+              cancelResult.fold(
+                e => stop(Some(e)),
+                () => F.void(outcomes.send(fu)),
+              ),
+          );
+
+        const runInner = (
+          inner: Stream<F, A>,
+          outerScope: Scope<F>,
+        ): Kind<F, [void]> =>
+          F.uncancelable(() =>
+            pipe(
+              outerScope.lease,
+              F.flatTap(() =>
+                F.productR_(available.acquire(), incrementRunning),
+              ),
+              F.flatMap(lease =>
+                pipe(
+                  chunks(inner),
+                  forEach(s => F.void(output.send(s))),
+                  interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
+                  s => compileConcurrent(s, F).drain,
+                  F.finalize(oc =>
+                    pipe(
+                      lease.cancel,
+                      F.flatMap(r => onOutcome(oc, r)),
+                      F.productR(available.release()),
+                      F.productR(decrementRunning),
+                    ),
+                  ),
+                  F.handleError(() => {}),
+                  F.fork,
+                ),
+              ),
+              F.void,
+            ),
+          );
+
+        const runOuter: Kind<F, [void]> = F.uncancelable(() =>
+          pipe(
+            outer,
+            flatMap(
+              inner =>
+                new Stream(
+                  Pull.getScope<F>().flatMap(outerScope =>
+                    Pull.evalF(runInner(inner, outerScope)),
+                  ),
+                ),
+            ),
+            drain,
+            interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
+            s => compileConcurrent(s, F).drain,
+            F.finalize(oc =>
+              F.productR_(onOutcome(oc, Either.rightUnit), decrementRunning),
+            ),
+            F.handleError(() => {}),
+          ),
+        );
+
+        const outerJoiner: Kind<F, [void]> = pipe(
+          outcomes.stream,
+          evalMap(id),
+          s => compileConcurrent(s, F).drain,
+          F.finalize(oc =>
+            oc.fold(
+              () => F.productR_(stop(None), F.void(output.close)),
+              e => F.productR_(stop(Some(e)), F.void(output.close)),
+              () => F.productR_(stop(None), F.void(output.close)),
+            ),
+          ),
+          F.handleError(() => {}),
+        );
+
+        const signalResult = (fiber: Fiber<F, Error, void>): Kind<F, [void]> =>
+          pipe(
+            done.get(),
+            F.flatMap(res =>
+              res.flatten.fold<Kind<F, [void]>>(
+                () => fiber.joinWithNever(F),
+                F.throwError,
+              ),
+            ),
+          );
+
+        return pipe(
+          bracket(F.productR_(F.fork(runOuter), F.fork(outerJoiner)), fiber =>
+            pipe(
+              stop(None),
+              F.productR(awaitWhileRunning),
+              F.productR(signalResult(fiber)),
+            ),
+          ),
+          flatMap(() => flatMap_(output.stream, c => emitChunk<F, A>(c))),
+        );
+      }),
+    );
+
+    return flatten(evalF(fStream));
+  };
+
 export const repeatPull_ = <F, A, B>(
   s: Stream<F, A>,
   f: (p: Pull<F, A, void>) => Pull<F, B, Option<Pull<F, A, void>>>,
@@ -1204,6 +1392,11 @@ export const spaced_ =
   <F>(F: Temporal<F, Error>) =>
   <A>(s: Stream<F, A>, period: number): Stream<F, A> =>
     zipRight_(fixedDelay(F)(period), s);
+
+export const interruptOnSignal_ =
+  <F>(F: Concurrent<F, Error>) =>
+  <A>(s: Stream<F, A>, haltOnSignal: Signal<F, boolean>): Stream<F, A> =>
+    interruptWhenTrue_(F)(s, haltOnSignal.discrete());
 
 export const interruptWhenTrue_ =
   <F>(F: Concurrent<F, Error>) =>

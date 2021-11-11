@@ -66,25 +66,25 @@ export class Channel<F, A> {
               F.uncancelable(poll =>
                 state.modify(s => {
                   if (s.closed) return [s, F.pure(Channel.closed)];
-                  if (s.size < capacity)
-                    return [
-                      s.copy({
-                        values: s.values['::+'](a),
-                        size: s.size + 1,
-                        waiting: None,
-                      }),
-                      notifyStream(s.waiting),
-                    ];
-                  return [
-                    s.copy({
-                      waiting: None,
-                      producers: s.producers['::+']([a, producer]),
-                    }),
-                    F.productL_(
-                      notifyStream(s.waiting),
-                      waitOnBound(producer, poll),
-                    ),
-                  ];
+                  return s.size < capacity
+                    ? [
+                        s.copy({
+                          values: s.values['::+'](a),
+                          size: s.size + 1,
+                          waiting: None,
+                        }),
+                        notifyStream(s.waiting),
+                      ]
+                    : [
+                        s.copy({
+                          waiting: None,
+                          producers: s.producers['::+']([a, producer]),
+                        }),
+                        F.productL_(
+                          notifyStream(s.waiting),
+                          waitOnBound(producer, poll),
+                        ),
+                      ];
                 }),
               ),
             ),

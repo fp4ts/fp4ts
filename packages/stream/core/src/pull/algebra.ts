@@ -3,6 +3,7 @@ import { FunctionK, Either, Option, None, Some } from '@fp4ts/cats';
 import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk/algebra';
+import { Scope } from '../internal';
 
 export abstract class Pull<F, O, R> {
   readonly __void!: void;
@@ -130,10 +131,15 @@ export class FailedScope extends Pull<unknown, never, void> {
 
 export type CloseScope = SucceedScope | CanceledScope | FailedScope;
 
+export class GetScope<F> extends Pull<F, never, Scope<F>> {
+  public readonly tag = 'getScope';
+}
+
 export type AlgEffect<F, R> =
   | Acquire<F, R>
   | Eval<F, R>
   | InterruptWhen<F>
+  | GetScope<F>
   | CloseScope;
 
 export class InScope<F, O> extends Pull<F, O, void> {

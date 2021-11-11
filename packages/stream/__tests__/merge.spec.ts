@@ -1,11 +1,11 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
+import { pipe } from '@fp4ts/core';
 import { Eq, List, Either, Left, Right, Some, None } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
-import { Kind, pipe, snd } from '@fp4ts/core';
 
 describe('Stream merge', () => {
   test('basic', () =>

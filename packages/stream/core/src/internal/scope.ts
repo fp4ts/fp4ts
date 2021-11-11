@@ -1,4 +1,4 @@
-import { Kind, pipe, throwError } from '@fp4ts/core';
+import { id, Kind, pipe, throwError } from '@fp4ts/core';
 import {
   Either,
   Left,
@@ -342,7 +342,7 @@ export class Scope<F> {
       ),
       F.map(
         ({ allLeases }) =>
-          new Lease(this.traverseError(allLeases, l => l.cancel)),
+          new Lease(this.traverseError(allLeases.collect(id), l => l.cancel)),
       ),
     );
   }

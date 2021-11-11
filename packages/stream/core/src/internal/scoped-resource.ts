@@ -14,7 +14,7 @@ export class ScopedResource<F> {
     public readonly acquired: (
       finalizer: (ec: ExitCase) => Kind<F, [void]>,
     ) => Kind<F, [Either<Error, boolean>]>,
-    public readonly lease: Kind<F, [Lease<F>]>,
+    public readonly lease: Kind<F, [Option<Lease<F>>]>,
   ) {}
 
   public static create<F>(

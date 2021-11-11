@@ -17,8 +17,10 @@ import {
   interruptWhen,
   acquire,
   acquireCancelable,
+  getScope,
 } from './constructors';
 import { loop } from './operators';
+import { Scope } from '../internal';
 
 export type Pull<F, O, R> = PullBase<F, O, R>;
 
@@ -35,6 +37,7 @@ interface PullObj {
   output<F, O>(chunk: Chunk<O>): Pull<F, O, void>;
   defer<F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
 
+  getScope<F>(): Pull<F, never, Scope<F>>;
   acquire<F, R>(
     resource: Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
@@ -62,6 +65,7 @@ Pull.outputOption1 = outputOption1;
 Pull.output = output;
 Pull.defer = defer;
 
+Pull.getScope = getScope;
 Pull.acquire = acquire;
 Pull.acquireCancelable = acquireCancelable;
 Pull.interruptWhen = interruptWhen;

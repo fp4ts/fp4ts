@@ -112,6 +112,8 @@ import {
   spaced_,
   mapChunks_,
   intersperse_,
+  parJoin_,
+  parJoinUnbounded,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -250,6 +252,15 @@ declare module './algebra' {
       this: Stream<F2, B>,
       F: Concurrent<F2, Error>,
     ): (that: Stream<F2, B>) => Stream<F2, B>;
+
+    parJoin<F2, B>(
+      this: Stream<F2, Stream<F2, B>>,
+      F: Concurrent<F2, Error>,
+    ): (maxOpen: number) => Stream<F2, B>;
+    parJoinUnbounded<F2, B>(
+      this: Stream<F2, Stream<F2, B>>,
+      F: Concurrent<F2, Error>,
+    ): Stream<F2, B>;
 
     readonly attempt: Stream<F, Either<Error, A>>;
     attempts<F>(
@@ -604,6 +615,14 @@ Stream.prototype.mergeHaltL = function (F) {
 };
 Stream.prototype.mergeHaltR = function (F) {
   return that => mergeHaltR_(F)(this, that);
+};
+
+Stream.prototype.parJoin = function (F) {
+  return maxOpen => parJoin_(F)(this, maxOpen);
+};
+
+Stream.prototype.parJoinUnbounded = function (F) {
+  return parJoinUnbounded(F)(this);
 };
 
 Object.defineProperty(Stream.prototype, 'attempt', {

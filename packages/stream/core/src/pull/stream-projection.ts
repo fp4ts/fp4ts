@@ -546,6 +546,7 @@ export const compile_ =
               case 'acquire':
               case 'interruptWhen':
               case 'inScope':
+              case 'getScope':
               case 'succeedScope':
               case 'canceledScope':
               case 'failedScope':
@@ -610,6 +611,7 @@ export const compile_ =
         case 'eval':
         case 'acquire':
         case 'interruptWhen':
+        case 'getScope':
         case 'inScope':
           return cont(inter);
 
@@ -1205,6 +1207,15 @@ export const compile_ =
         case 'inScope':
           return goInScope(v.self, v.useInterruption, cont, ctx);
 
+        case 'getScope':
+          return go(
+            scope,
+            extendedTopLevelScope,
+            translation,
+            runner,
+            cont(new Succeed(scope)),
+          );
+
         case 'succeedScope':
         case 'canceledScope':
         case 'failedScope':
@@ -1251,6 +1262,7 @@ export const compile_ =
             case 'eval':
             case 'acquire':
             case 'interruptWhen':
+            case 'getScope':
             case 'succeedScope':
             case 'canceledScope':
             case 'failedScope':
