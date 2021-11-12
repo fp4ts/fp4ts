@@ -8,4 +8,5 @@ export type TyVar<
 export type TyK<Variables extends unknown[] = unknown[]> = {
   [$type]: unknown;
   [$variables]: Variables;
+  Fixed: never;
 };
