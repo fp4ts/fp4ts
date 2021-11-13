@@ -1,4 +1,5 @@
-import { Kind } from '@fp4ts/core';
+import { $, Kind } from '@fp4ts/core';
+import { KleisliK, Kleisli, OptionTK, OptionT } from '@fp4ts/cats';
 import { Concurrent, ConcurrentRequirements } from './concurrent';
 import { Clock, ClockRequirements } from './clock';
 
@@ -69,4 +70,24 @@ export const Temporal = Object.freeze({
     };
     return self;
   },
+
+  temporalForKleisli: <F, E, R>(
+    F: Temporal<F, E>,
+  ): Temporal<$<KleisliK, [F, R]>, E> =>
+    Temporal.of<$<KleisliK, [F, R]>, E>({
+      ...Concurrent.concurrentForKleisli(F),
+      ...Clock.clockForKleisli(F),
+
+      sleep: ms => Kleisli.liftF(F.sleep(ms)),
+    }),
+
+  temporalForOptionT: <F, E>(
+    F: Temporal<F, E>,
+  ): Temporal<$<OptionTK, [F]>, E> =>
+    Temporal.of<$<OptionTK, [F]>, E>({
+      ...Concurrent.concurrentForOptionT(F),
+      ...Clock.clockForOptionT(F),
+
+      sleep: ms => OptionT.liftF(F)(F.sleep(ms)),
+    }),
 });

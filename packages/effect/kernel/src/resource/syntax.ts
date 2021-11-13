@@ -1,7 +1,6 @@
 import { $, Kind } from '@fp4ts/core';
 import { Monoid, ApplicativeError, Either, Kleisli } from '@fp4ts/cats';
 
-import { Async } from '../async';
 import { MonadCancel } from '../monad-cancel';
 import { Concurrent } from '../concurrent';
 import { Outcome } from '../outcome';

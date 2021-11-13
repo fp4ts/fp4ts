@@ -1,6 +1,16 @@
 import { ok as assert } from 'assert';
-import { id, Kind, pipe, tupled } from '@fp4ts/core';
-import { Traversable, Parallel, Either, Left, Right } from '@fp4ts/cats';
+import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
+import {
+  Traversable,
+  Parallel,
+  Either,
+  Left,
+  Right,
+  KleisliK,
+  Kleisli,
+  OptionTK,
+  OptionT,
+} from '@fp4ts/cats';
 import { Spawn, SpawnRequirements } from './spawn';
 import { Ref } from './ref';
 import { Fiber } from './fiber';
@@ -131,4 +141,36 @@ export const Concurrent = Object.freeze({
     };
     return self;
   },
+
+  concurrentForKleisli: <F, E, R>(
+    F: Concurrent<F, E>,
+  ): Concurrent<$<KleisliK, [F, R]>, E> =>
+    Concurrent.of<$<KleisliK, [F, R]>, E>({
+      ...Spawn.spawnForKleisli<F, E, R>(F),
+
+      ref: <A>(a: A) =>
+        Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
+
+      deferred: () =>
+        Kleisli.liftF(
+          F.map_(F.deferred(), deferred => deferred.mapK(Kleisli.liftF)),
+        ),
+    }),
+
+  concurrentForOptionT: <F, E>(
+    F: Concurrent<F, E>,
+  ): Concurrent<$<OptionTK, [F]>, E> =>
+    Concurrent.of<$<OptionTK, [F]>, E>({
+      ...Spawn.spawnForOptionT<F, E>(F),
+
+      ref: <A>(a: A) =>
+        OptionT.liftF(F)(
+          F.map_(F.ref<A>(a), ref => ref.mapK(OptionT.liftF(F))),
+        ),
+
+      deferred: <A>() =>
+        OptionT.liftF(F)(
+          F.map_(F.deferred<A>(), deferred => deferred.mapK(OptionT.liftF(F))),
+        ),
+    }),
 });

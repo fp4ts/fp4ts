@@ -1,5 +1,16 @@
-import { flow, Kind } from '@fp4ts/core';
-import { FunctionK, Either, Right, Left, Option, None } from '@fp4ts/cats';
+import { $, flow, Kind } from '@fp4ts/core';
+import {
+  FunctionK,
+  Either,
+  Right,
+  Left,
+  Option,
+  None,
+  KleisliK,
+  Kleisli,
+  OptionTK,
+  OptionT,
+} from '@fp4ts/cats';
 
 import { Cont } from './cont';
 import { ExecutionContext } from './execution-context';
@@ -102,4 +113,74 @@ export const Async = Object.freeze({
     };
     return self;
   },
+
+  asyncForKleisli: <F, R>(F: Async<F>): Async<$<KleisliK, [F, R]>> =>
+    Async.of({
+      ...Sync.syncForKleisli(F),
+      ...Temporal.temporalForKleisli(F),
+
+      readExecutionContext: Kleisli.liftF(F.readExecutionContext),
+
+      executeOn_: <A>(
+        fa: Kleisli<F, R, A>,
+        ec: ExecutionContext,
+      ): Kleisli<F, R, A> => Kleisli((r: R) => F.executeOn_(fa.run(r), ec)),
+
+      cont: <K, R2>(
+        body: Cont<$<KleisliK, [F, R]>, K, R2>,
+      ): Kleisli<F, R, R2> =>
+        Kleisli((r: R) => {
+          const cont: Cont<F, K, R2> =
+            <G>(G: MonadCancel<G, Error>) =>
+            (
+              k: (ea: Either<Error, K>) => void,
+              get: Kind<G, [K]>,
+              nat: FunctionK<F, G>,
+            ): Kind<G, [R2]> => {
+              const natT = <A>(fa: Kleisli<F, R, A>): Kleisli<G, R, A> =>
+                Kleisli((r: R) => nat(fa.run(r)));
+
+              return body(MonadCancel.monadCancelForKleisli<G, R, Error>(G))(
+                k,
+                Kleisli.liftF(get),
+                natT,
+              ).run(r);
+            };
+
+          return F.cont(cont);
+        }),
+    }),
+
+  asyncForOptionT: <F>(F: Async<F>): Async<$<OptionTK, [F]>> =>
+    Async.of({
+      ...Sync.syncForOptionT(F),
+      ...Temporal.temporalForOptionT(F),
+
+      readExecutionContext: OptionT.liftF(F)(F.readExecutionContext),
+
+      executeOn_: <A>(fa: OptionT<F, A>, ec: ExecutionContext): OptionT<F, A> =>
+        OptionT(F.executeOn_(fa.value, ec)),
+
+      cont: <K, R>(body: Cont<$<OptionTK, [F]>, K, R>): OptionT<F, R> => {
+        const cont: Cont<F, K, Option<R>> =
+          <G>(G: MonadCancel<G, Error>) =>
+          (
+            k: (ea: Either<Error, K>) => void,
+            get: Kind<G, [K]>,
+            nat: FunctionK<F, G>,
+          ): Kind<G, [Option<R>]> => {
+            const natT: FunctionK<$<OptionTK, [F]>, $<OptionTK, [G]>> = <A>(
+              fa: OptionT<F, A>,
+            ): OptionT<G, A> => OptionT(nat(fa.value));
+
+            return body(MonadCancel.monadCancelForOptionT<G, Error>(G))(
+              k,
+              OptionT.liftF(G)(get),
+              natT,
+            ).value;
+          };
+
+        return OptionT(F.cont(cont));
+      },
+    }),
 });

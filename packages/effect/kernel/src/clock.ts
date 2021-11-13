@@ -1,5 +1,12 @@
-import { Kind } from '@fp4ts/core';
-import { Applicative } from '@fp4ts/cats-core';
+import { $, Kind } from '@fp4ts/core';
+import {
+  Applicative,
+  Monad,
+  KleisliK,
+  Kleisli,
+  OptionTK,
+  OptionT,
+} from '@fp4ts/cats';
 
 export interface Clock<F> {
   readonly applicative: Applicative<F>;
@@ -30,4 +37,24 @@ export const Clock = Object.freeze({
     };
     return self;
   },
+
+  clockForKleisli: <F, R>(
+    F: Clock<F> & Applicative<F>,
+  ): Clock<$<KleisliK, [F, R]>> =>
+    Clock.of({
+      applicative: Kleisli.Applicative(F),
+
+      monotonic: Kleisli.liftF(F.monotonic),
+
+      realTime: Kleisli.liftF(F.realTime),
+    }),
+
+  clockForOptionT: <F>(F: Clock<F> & Monad<F>): Clock<$<OptionTK, [F]>> =>
+    Clock.of({
+      applicative: OptionT.Applicative(F),
+
+      monotonic: OptionT.liftF(F)(F.monotonic),
+
+      realTime: OptionT.liftF(F)(F.realTime),
+    }),
 });

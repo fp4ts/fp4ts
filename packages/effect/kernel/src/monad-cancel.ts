@@ -5,6 +5,8 @@ import {
   KleisliK,
   MonadError,
   MonadErrorRequirements,
+  OptionTK,
+  OptionT,
 } from '@fp4ts/cats';
 import { Outcome } from './outcome';
 import { Poll } from './poll';
@@ -145,6 +147,29 @@ export const MonadCancel = Object.freeze({
             ): Kleisli<F, R, X> => Kleisli(r => nat(frx.run(r)));
 
             return body(natT).run(r);
+          }),
+        ),
+    }),
+
+  monadCancelForOptionT: <F, E>(
+    F: MonadCancel<F, E>,
+  ): MonadCancel<$<OptionTK, [F]>, E> =>
+    MonadCancel.of({
+      ...OptionT.MonadError(F),
+
+      canceled: OptionT.liftF(F)(F.canceled),
+
+      onCancel_: (fa, fin) => OptionT(F.onCancel_(fa.value, F.void(fin.value))),
+
+      uncancelable: <A>(
+        body: (poll: Poll<$<OptionTK, [F]>>) => OptionT<F, A>,
+      ): OptionT<F, A> =>
+        OptionT(
+          F.uncancelable(nat => {
+            const natT: Poll<$<OptionTK, [F]>> = <A>(
+              optfa: OptionT<F, A>,
+            ): OptionT<F, A> => OptionT(nat(optfa.value));
+            return body(natT).value;
           }),
         ),
     }),

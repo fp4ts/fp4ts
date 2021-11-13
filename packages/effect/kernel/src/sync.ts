@@ -1,5 +1,5 @@
-import { Kind, id } from '@fp4ts/core';
-import { Defer } from '@fp4ts/cats-core';
+import { $, Kind, id } from '@fp4ts/core';
+import { Defer, KleisliK, Kleisli, OptionTK, OptionT } from '@fp4ts/cats';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 import { Clock, ClockRequirements } from './clock';
 import { UniqueToken, Unique } from './unique';
@@ -29,4 +29,26 @@ export const Sync = Object.freeze({
     };
     return self;
   },
+
+  syncForKleisli: <F, R>(F: Sync<F>): Sync<$<KleisliK, [F, R]>> =>
+    Sync.of({
+      ...MonadCancel.monadCancelForKleisli(F),
+
+      ...Clock.clockForKleisli(F),
+
+      ...Kleisli.Defer(F),
+
+      delay: <A>(thunk: () => A) => Kleisli.liftF(F.delay(thunk)),
+    }),
+
+  syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTK, [F]>> =>
+    Sync.of({
+      ...MonadCancel.monadCancelForOptionT(F),
+
+      ...Clock.clockForOptionT(F),
+
+      ...OptionT.Defer(F),
+
+      delay: <A>(thunk: () => A) => OptionT.liftF(F)(F.delay(thunk)),
+    }),
 });

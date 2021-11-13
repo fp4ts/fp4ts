@@ -1,4 +1,4 @@
-import { Kind, pipe, tupled } from '@fp4ts/core';
+import { Kind, pipe, tupled, $ } from '@fp4ts/core';
 import {
   Applicative,
   Parallel,
@@ -6,6 +6,11 @@ import {
   Either,
   Left,
   Right,
+  KleisliK,
+  Kleisli,
+  Option,
+  OptionTK,
+  OptionT,
 } from '@fp4ts/cats';
 
 import { Poll } from './poll';
@@ -352,5 +357,122 @@ export const Spawn = Object.freeze({
           ),
     });
     return self;
+  },
+
+  spawnForKleisli: <F, E, R>(F: Spawn<F, E>): Spawn<$<KleisliK, [F, R]>, E> => {
+    const liftOutcome = <A>(
+      oc: Outcome<F, E, A>,
+    ): Outcome<$<KleisliK, [F, R]>, E, A> => oc.mapK(Kleisli.liftF);
+
+    const liftFiber = <A>(
+      fiber: Fiber<F, E, A>,
+    ): Fiber<$<KleisliK, [F, R]>, E, A> =>
+      new (class extends Fiber<$<KleisliK, [F, R]>, E, A> {
+        readonly join: Kleisli<F, R, Outcome<$<KleisliK, [F, R]>, E, A>> =
+          Kleisli.liftF(F.map_(fiber.join, liftOutcome));
+
+        readonly cancel: Kleisli<F, R, void> = Kleisli.liftF(fiber.cancel);
+      })();
+
+    return Spawn.of<$<KleisliK, [F, R]>, E>({
+      ...MonadCancel.monadCancelForKleisli(F),
+
+      unique: Kleisli.liftF(F.unique),
+
+      fork: fa => Kleisli(r => F.map_(F.fork(fa.run(r)), liftFiber)),
+
+      suspend: Kleisli.liftF(F.suspend),
+
+      never: Kleisli.liftF(F.never),
+
+      racePair_: <A, B>(
+        fa: Kleisli<F, R, A>,
+        fb: Kleisli<F, R, B>,
+      ): Kleisli<
+        F,
+        R,
+        Either<
+          [
+            Outcome<$<KleisliK, [F, R]>, E, A>,
+            Fiber<$<KleisliK, [F, R]>, E, B>,
+          ],
+          [Fiber<$<KleisliK, [F, R]>, E, A>, Outcome<$<KleisliK, [F, R]>, E, B>]
+        >
+      > =>
+        Kleisli((r: R) =>
+          F.uncancelable(poll =>
+            poll(
+              pipe(
+                F.racePair_(fa.run(r), fb.run(r)),
+                F.map(rea =>
+                  rea.fold(
+                    ([oc, f]) => Left(tupled(liftOutcome(oc), liftFiber(f))),
+                    ([f, oc]) => Right(tupled(liftFiber(f), liftOutcome(oc))),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+    });
+  },
+
+  spawnForOptionT: <F, E>(F: Spawn<F, E>): Spawn<$<OptionTK, [F]>, E> => {
+    const liftOutcome = <A>(
+      oc: Outcome<F, E, Option<A>>,
+    ): Outcome<$<OptionTK, [F]>, E, A> =>
+      oc.fold(
+        () => Outcome.canceled(),
+        e => Outcome.failure(e),
+        fa => Outcome.success(OptionT(fa)),
+      );
+
+    const liftFiber = <A>(
+      fiber: Fiber<F, E, Option<A>>,
+    ): Fiber<$<OptionTK, [F]>, E, A> =>
+      new (class extends Fiber<$<OptionTK, [F]>, E, A> {
+        readonly join: OptionT<F, Outcome<$<OptionTK, [F]>, E, A>> =
+          OptionT.liftF(F)(F.map_(fiber.join, liftOutcome));
+
+        readonly cancel: OptionT<F, void> = OptionT.liftF(F)(fiber.cancel);
+      })();
+
+    return Spawn.of<$<OptionTK, [F]>, E>({
+      ...MonadCancel.monadCancelForOptionT(F),
+
+      unique: OptionT.liftF(F)(F.unique),
+
+      fork: fa => OptionT.liftF(F)(F.map_(F.fork(fa.value), liftFiber)),
+
+      suspend: OptionT.liftF(F)(F.suspend),
+
+      never: OptionT.liftF(F)(F.never),
+
+      racePair_: <A, B>(
+        fa: OptionT<F, A>,
+        fb: OptionT<F, B>,
+      ): OptionT<
+        F,
+        Either<
+          [Outcome<$<OptionTK, [F]>, E, A>, Fiber<$<OptionTK, [F]>, E, B>],
+          [Fiber<$<OptionTK, [F]>, E, A>, Outcome<$<OptionTK, [F]>, E, B>]
+        >
+      > =>
+        OptionT.liftF(F)(
+          F.uncancelable(poll =>
+            poll(
+              pipe(
+                F.racePair_(fa.value, fb.value),
+                F.map(rea =>
+                  rea.fold(
+                    ([oc, f]) => Left(tupled(liftOutcome(oc), liftFiber(f))),
+                    ([f, oc]) => Right(tupled(liftFiber(f), liftOutcome(oc))),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+    });
   },
 });
