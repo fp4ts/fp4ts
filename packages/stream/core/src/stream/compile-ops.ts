@@ -36,7 +36,7 @@ export class CompileOps<F, G, A> {
   }
 
   public get string(): A extends string ? Kind<G, [string]> : never {
-    return this.to(Collector.string() as any);
+    return this.to(Collector.string() as any) as any;
   }
 
   get toArray(): Kind<G, [Array<A>]> {

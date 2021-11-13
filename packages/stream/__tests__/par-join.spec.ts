@@ -1,7 +1,7 @@
 import fc from 'fast-check';
-import { pipe } from '@fp4ts/core';
-import { Eq, List, Left, Right } from '@fp4ts/cats';
-import { IO, IoK, Ref } from '@fp4ts/effect';
+import { pipe, $ } from '@fp4ts/core';
+import { Eq, List, Left, Right, Some, OptionTK, KleisliK } from '@fp4ts/cats';
+import { IO, IoK, Ref, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
@@ -258,6 +258,40 @@ describe('Stream Parallel Join', () => {
         .compileConcurrent()
         .toList.map(xs => new Set([...xs]))
         .flatMap(xs => IO(() => expect(xs).toEqual(new Set(['1', '2', '3']))))
+        .unsafeRunToPromise();
+    });
+
+    it('should not block while evaluating stream of streams in $<OptionTK, [IoK]> in parallel', () => {
+      const F = Concurrent.concurrentForOptionT(IO.Concurrent);
+      const f = (n: number): Stream<$<OptionTK, [IoK]>, string> =>
+        Stream(n).map(x => `${x}`);
+
+      return Stream(1, 2, 3)
+        .map(f)
+        .parJoinUnbounded(F)
+        .compileConcurrent(F)
+        .toList.map(IO.Functor)(xs => new Set([...xs]))
+        .flatMapF(IO.Monad)(xs =>
+          IO(() => Some(expect(xs).toEqual(new Set(['1', '2', '3'])))),
+        )
+        .getOrElseF(IO.Monad)(() => IO(() => fail()))
+        .unsafeRunToPromise();
+    });
+
+    it('should not block while evaluating stream of streams in $<KleisliK, [IoK, unknown]> in parallel', () => {
+      const F = Concurrent.concurrentForKleisli(IO.Concurrent);
+      const f = (n: number): Stream<$<KleisliK, [IoK, void]>, string> =>
+        Stream(n).map(x => `${x}`);
+
+      return Stream(1, 2, 3)
+        .map(f)
+        .parJoinUnbounded(F)
+        .compileConcurrent(F)
+        .toList.map(IO.Functor)(xs => new Set([...xs]))
+        .flatMapF(IO.Monad)(xs =>
+          IO(() => expect(xs).toEqual(new Set(['1', '2', '3']))),
+        )
+        .run(undefined)
         .unsafeRunToPromise();
     });
   });
