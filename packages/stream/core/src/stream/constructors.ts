@@ -1,7 +1,15 @@
 import { ok as assert } from 'assert';
-import { constant, id, Kind, pipe } from '@fp4ts/core';
+import { constant, fst, id, Kind, pipe } from '@fp4ts/core';
 import { Either, List, Option, Some, Vector } from '@fp4ts/cats';
-import { ExitCase, Poll, MonadCancel, Spawn, Temporal } from '@fp4ts/effect';
+import {
+  ExitCase,
+  Poll,
+  MonadCancel,
+  Spawn,
+  Temporal,
+  Resource,
+} from '@fp4ts/effect';
+import { view } from '@fp4ts/effect-kernel/lib/resource/algebra';
 
 import { PureK } from '../pure';
 import { Chunk } from '../chunk';
@@ -14,6 +22,7 @@ import {
   flatMap,
   flatMap_,
   last,
+  mapNoScope,
   repeat as repeatOp,
   rethrow,
   scope,
@@ -206,3 +215,30 @@ export const bracketFullWeak =
     new Stream(
       Pull.acquireCancelable(F)(acquire, release).flatMap(Pull.output1),
     );
+
+export const resource =
+  <F>(F: MonadCancel<F, Error>) =>
+  <A>(r: Resource<F, A>): Stream<F, A> =>
+    scope(resourceWeak(F)(r));
+
+export const resourceWeak = <F>(F: MonadCancel<F, Error>) => {
+  return function go<A>(r0: Resource<F, A>): Stream<F, A> {
+    const r = view(r0);
+    switch (r.tag) {
+      case 'allocate':
+        return pipe(
+          bracketFullWeak(F)(r.resource, ([, release], exit) => release(exit)),
+          mapNoScope(fst),
+        );
+
+      case 'flatMap':
+        return defer(() => flatMap_(go(r.self), x => go(r.f(x))));
+
+      case 'pure':
+        return pure(r.value);
+
+      case 'eval':
+        return evalF(r.fa);
+    }
+  };
+};

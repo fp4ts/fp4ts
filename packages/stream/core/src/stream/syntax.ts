@@ -114,6 +114,7 @@ import {
   intersperse_,
   parJoin_,
   parJoinUnbounded,
+  mapNoScope_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -168,6 +169,7 @@ declare module './algebra' {
     as<B>(result: B): Stream<F, B>;
     mapChunks<B>(f: (c: Chunk<A>) => Chunk<B>): Stream<F, B>;
     map<B>(f: (a: A) => B): Stream<F, B>;
+    mapNoScope<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
     evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
     evalCollect<B>(f: (a: A) => Kind<F, [Option<B>]>): Stream<F, B>;
@@ -475,6 +477,9 @@ Stream.prototype.mapChunks = function (f) {
 
 Stream.prototype.map = function (f) {
   return map_(this, f);
+};
+Stream.prototype.mapNoScope = function (f) {
+  return mapNoScope_(this, f);
 };
 
 Stream.prototype.mapAccumulate = function (s) {

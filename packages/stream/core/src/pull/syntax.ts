@@ -28,6 +28,7 @@ import {
   fold_,
   interruptScope,
   last,
+  mapOutputNoScope_,
   mapOutput_,
   scanChunksOpt_,
   scanChunks_,
@@ -99,6 +100,10 @@ declare module './algebra' {
     ): Pull<F, never, Option<[O, Pull<F, O, void>]>>;
 
     mapOutput<O2, P>(
+      this: Pull<F, O2, void>,
+      f: (o: O2) => P,
+    ): Pull<F, P, void>;
+    mapOutputNoScope<O2, P>(
       this: Pull<F, O2, void>,
       f: (o: O2) => P,
     ): Pull<F, P, void>;
@@ -231,6 +236,9 @@ Pull.prototype.find = function (pred) {
 
 Pull.prototype.mapOutput = function (f) {
   return mapOutput_(this, f);
+};
+Pull.prototype.mapOutputNoScope = function (f) {
+  return mapOutputNoScope_(this, f);
 };
 
 Pull.prototype.flatMapOutput = function (f) {

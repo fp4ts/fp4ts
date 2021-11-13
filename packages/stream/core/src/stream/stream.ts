@@ -1,6 +1,6 @@
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Either, List, Option, Vector } from '@fp4ts/cats';
-import { Poll, ExitCase, MonadCancel, Temporal } from '@fp4ts/effect';
+import { Poll, ExitCase, MonadCancel, Temporal, Resource } from '@fp4ts/effect';
 
 import { PureK } from '../pure';
 import { Chunk } from '../chunk';
@@ -35,6 +35,8 @@ import {
   emitChunk,
   awakeDelay,
   fixedDelay,
+  resource,
+  resourceWeak,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -139,6 +141,11 @@ interface StreamObj {
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ) => Stream<F, R>;
 
+  resource<F>(F: MonadCancel<F, Error>): <A>(r: Resource<F, A>) => Stream<F, A>;
+  resourceWeak<F>(
+    F: MonadCancel<F, Error>,
+  ): <A>(r: Resource<F, A>) => Stream<F, A>;
+
   // -- Instances
 
   MonoidK<F>(): MonoidK<$<StreamK, [F]>>;
@@ -186,6 +193,9 @@ Stream.bracket = bracket;
 Stream.bracketWeak = bracketWeak;
 Stream.bracketFull = bracketFull;
 Stream.bracketFullWeak = bracketFullWeak;
+
+Stream.resource = resource;
+Stream.resourceWeak = resourceWeak;
 
 Stream.MonoidK = streamMonoidK;
 Stream.Defer = streamDefer;

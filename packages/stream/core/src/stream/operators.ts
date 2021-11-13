@@ -214,6 +214,10 @@ export const map: <A, B>(
   f: (a: A) => B,
 ) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => map_(s, f);
 
+export const mapNoScope: <A, B>(
+  f: (a: A) => B,
+) => <F>(s: Stream<F, A>) => Stream<F, B> = f => s => mapNoScope_(s, f);
+
 export const mapAccumulate: <S>(
   init: S,
 ) => <AA, B>(
@@ -891,6 +895,11 @@ export const mapChunks_ = <F, A, B>(
 
 export const map_ = <F, A, B>(s: Stream<F, A>, f: (a: A) => B): Stream<F, B> =>
   s.pull.mapOutput(f).streamNoScope();
+
+export const mapNoScope_ = <F, A, B>(
+  s: Stream<F, A>,
+  f: (a: A) => B,
+): Stream<F, B> => s.pull.mapOutputNoScope(f).streamNoScope();
 
 export const mapAccumulate_ = <F, S, A, B>(
   s: Stream<F, A>,

@@ -137,6 +137,11 @@ export const mapOutput: <O, P>(
 ) => <F>(pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
   mapOutput_(pull, f);
 
+export const mapOutputNoScope: <O, P>(
+  f: (o: O) => P,
+) => <F>(pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
+  mapOutputNoScope_(pull, f);
+
 export const mapFlatMapOutput: <F, O, P>(
   f: (o: O) => Pull<F, P, void>,
 ) => (pull: Pull<F, O, void>) => Pull<F, P, void> = f => pull =>
