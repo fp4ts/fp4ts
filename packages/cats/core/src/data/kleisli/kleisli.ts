@@ -1,4 +1,5 @@
 import { $, $type, Fix, Kind, TyK, TyVar, α, λ } from '@fp4ts/core';
+import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';
@@ -23,6 +24,7 @@ import {
   kleisliApplicativeError,
   kleisliApply,
   kleisliContravariant,
+  kleisliDefer,
   kleisliFlatMap,
   kleisliFunctor,
   kleisliFunctorFilter,
@@ -58,6 +60,7 @@ interface KleisliObj {
   ) => <B, C>(f: (a: A) => Kleisli<F, B, Either<A, C>>) => Kleisli<F, B, C>;
 
   // -- Instances
+  Defer<F, A>(F: Defer<F>): Defer<$<KleisliK, [F, A]>>;
   SemigroupK<F, A>(F: SemigroupK<F>): SemigroupK<$<KleisliK, [F, A]>>;
   MonoidK<F, A>(F: MonoidK<F>): MonoidK<$<KleisliK, [F, A]>>;
   Contravariant<F, B>(): Contravariant<λ<KleisliK, [Fix<F>, α, Fix<B>]>>;
@@ -81,6 +84,7 @@ Kleisli.unit = unit;
 Kleisli.identity = identity;
 Kleisli.tailRecM = tailRecM;
 
+Kleisli.Defer = kleisliDefer;
 Kleisli.SemigroupK = kleisliSemigroupK;
 Kleisli.MonoidK = kleisliMonoidK;
 Kleisli.Functor = kleisliFunctor;

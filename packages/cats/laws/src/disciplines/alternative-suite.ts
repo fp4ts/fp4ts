@@ -43,7 +43,7 @@ export const AlternativeSuite = <F>(F: Alternative<F>) => {
             )(mkEqF(EqA)),
           ],
           [
-            'alternative right absorption',
+            'alternative right absorption distributes',
             forAll(
               mkArbF(arbA),
               mkArbF(fc.func<[A], B>(arbB)),

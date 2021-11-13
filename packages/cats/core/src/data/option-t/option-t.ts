@@ -1,4 +1,6 @@
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { Eq } from '../../eq';
+import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';
@@ -7,6 +9,7 @@ import { Applicative } from '../../applicative';
 import { Alternative } from '../../alternative';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
+import { MonadError } from '../../monad-error';
 
 import { Option } from '../option';
 import { Either } from '../either';
@@ -25,9 +28,12 @@ import {
   optionTAlternative,
   optionTApplicative,
   optionTApply,
+  optionTDefer,
+  optionTEq,
   optionTFlatMap,
   optionTFunctor,
   optionTMonad,
+  optionTMonadError,
   optionTMonoidK,
   optionTSemigroupK,
 } from './instances';
@@ -58,6 +64,8 @@ interface OptionTObj {
 
   // -- Instances
 
+  Eq<F, A>(EF: Eq<Kind<F, [Option<A>]>>): Eq<OptionT<F, A>>;
+  Defer<F>(F: Defer<F>): Defer<$<OptionTK, [F]>>;
   SemigroupK<F>(F: Monad<F>): SemigroupK<$<OptionTK, [F]>>;
   MonoidK<F>(F: Monad<F>): MonoidK<$<OptionTK, [F]>>;
   Functor<F>(F: Functor<F>): Functor<$<OptionTK, [F]>>;
@@ -66,6 +74,7 @@ interface OptionTObj {
   Alternative<F>(F: Monad<F>): Alternative<$<OptionTK, [F]>>;
   FlatMap<F>(F: Monad<F>): FlatMap<$<OptionTK, [F]>>;
   Monad<F>(F: Monad<F>): Monad<$<OptionTK, [F]>>;
+  MonadError<F, E>(F: MonadError<F, E>): MonadError<$<OptionTK, [F]>, E>;
 }
 
 OptionT.pure = pure;
@@ -76,6 +85,8 @@ OptionT.fromOption = fromOption;
 OptionT.fromNullable = fromNullable;
 OptionT.tailRecM = tailRecM;
 
+OptionT.Eq = optionTEq;
+OptionT.Defer = optionTDefer;
 OptionT.SemigroupK = optionTSemigroupK;
 OptionT.MonoidK = optionTMonoidK;
 OptionT.Functor = optionTFunctor;
@@ -84,6 +95,7 @@ OptionT.Applicative = optionTApplicative;
 OptionT.Alternative = optionTAlternative;
 OptionT.FlatMap = optionTFlatMap;
 OptionT.Monad = optionTMonad;
+OptionT.MonadError = optionTMonadError;
 
 // -- HKT
 

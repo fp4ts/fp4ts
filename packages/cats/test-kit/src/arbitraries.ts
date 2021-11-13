@@ -14,6 +14,7 @@ import {
   Kleisli,
   Try,
   Ior,
+  OptionT,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -32,6 +33,10 @@ export const fp4tsPrimitive = (): Arbitrary<PrimitiveType> =>
 
 export const fp4tsOption = <A>(arbA: Arbitrary<A>): Arbitrary<Option<A>> =>
   fc.option(arbA).map(Option.fromNullable);
+
+export const fp4tsOptionT = <F, A>(
+  arbA: Arbitrary<Kind<F, [Option<A>]>>,
+): Arbitrary<OptionT<F, A>> => arbA.map(OptionT);
 
 export const fp4tsEither = <E, A>(
   arbE: Arbitrary<E>,

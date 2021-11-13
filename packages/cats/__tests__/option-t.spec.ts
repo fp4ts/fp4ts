@@ -1,5 +1,6 @@
+import fc, { Arbitrary } from 'fast-check';
 import { $, id } from '@fp4ts/core';
-import { FunctionK } from '@fp4ts/cats-core';
+import { FunctionK, Eq } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityK,
@@ -8,9 +9,14 @@ import {
   Some,
   None,
   NoneF,
+  Option,
   OptionT,
   SomeF,
+  Either,
 } from '@fp4ts/cats-core/lib/data';
+import { AlternativeSuite, MonadErrorSuite } from '@fp4ts/cats-laws';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('OptionT', () => {
   const mkSome = <A>(x: A) => SomeF(Identity.Applicative)(x);
@@ -175,31 +181,50 @@ describe('OptionT', () => {
     });
   });
 
-  describe('monad', () => {
-    it('should a pure value', () => {
-      expect(OptionT.pure(F)(42)).toEqual(SomeF(F)(42));
-    });
+  describe('laws', () => {
+    const alternativeTests = AlternativeSuite(
+      OptionT.Alternative(Identity.Monad),
+    );
+    checkAll(
+      'Alternative<$<OptionTK, [IdentityK]>',
+      alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsOptionT<IdentityK, X>(A.fp4tsOption(arbX)),
+        <X>(eqX: Eq<X>) => OptionT.Eq<IdentityK, X>(Option.Eq(eqX)),
+      ),
+    );
 
-    test('lest identity', () => {
-      const h = (x: number): OptionT<IdentityK, number> =>
-        OptionT.pure(F)(x * 2);
-      expect(OptionT.pure(F)(42).flatMap(F)(h)).toEqual(h(42));
-    });
-
-    test('right identity', () => {
-      expect(OptionT.pure(F)(42).flatMap(F)(OptionT.pure(F))).toEqual(
-        OptionT.pure(F)(42),
-      );
-    });
-
-    test('associativity', () => {
-      const h = (n: number): OptionT<IdentityK, number> =>
-        OptionT.pure(F)(n * 2);
-      const g = (n: number): OptionT<IdentityK, number> => OptionT.pure(F)(n);
-      const m = OptionT.pure(F)(42);
-      expect(m.flatMap(F)(h).flatMap(F)(g)).toEqual(
-        m.flatMap(F)(x => h(x).flatMap(F)(g)),
-      );
-    });
+    const monadErrorTests = MonadErrorSuite(
+      OptionT.MonadError(Either.MonadError<string>()),
+    );
+    checkAll(
+      'MonadError<$<OptionTK, [$<EitherK, [string]>]>',
+      monadErrorTests.monadError(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsOptionT<$<EitherK, [string]>, X>(
+            A.fp4tsEither(fc.string(), A.fp4tsOption(arbX)),
+          ),
+        <X>(eqX: Eq<X>) =>
+          OptionT.Eq<$<EitherK, [string]>, X>(
+            Either.Eq(Eq.primitive, Option.Eq(eqX)),
+          ),
+      ),
+    );
   });
 });

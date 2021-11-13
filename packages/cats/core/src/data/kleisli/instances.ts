@@ -1,4 +1,5 @@
 import { $, Fix, α, λ } from '@fp4ts/core';
+import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Contravariant } from '../../contravariant';
@@ -12,7 +13,8 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 
-import { Kleisli, KleisliK } from './kleisli';
+import { Kleisli } from './algebra';
+import type { KleisliK } from './kleisli';
 import {
   adapt_,
   ap_,
@@ -25,6 +27,9 @@ import {
   tailRecM_,
 } from './operators';
 import { liftF, pure, suspend } from './constructors';
+
+export const kleisliDefer: <F, A>(F: Defer<F>) => Defer<$<KleisliK, [F, A]>> =
+  F => Defer.of({ defer: fa => new Kleisli(r => F.defer(() => fa().run(r))) });
 
 export const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,

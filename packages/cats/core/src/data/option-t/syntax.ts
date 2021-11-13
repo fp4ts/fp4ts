@@ -7,6 +7,7 @@ import { Option } from '../option';
 
 import { OptionT } from './algebra';
 import {
+  flatMapF_,
   flatMap_,
   flatten,
   foldF_,
@@ -55,6 +56,11 @@ declare module './algebra' {
       this: OptionT<F, B>,
       F: Monad<F>,
     ): <C>(f: (a: B) => OptionT<F, C>) => OptionT<F, C>;
+
+    flatMapF<B>(
+      this: OptionT<F, B>,
+      F: Monad<F>,
+    ): <C>(f: (a: B) => Kind<F, [C]>) => OptionT<F, C>;
 
     flatten: A extends OptionT<F, infer B>
       ? (F: Monad<F>) => OptionT<F, B>
@@ -107,6 +113,10 @@ OptionT.prototype.getOrElseF = function (F) {
 
 OptionT.prototype.flatMap = function (F) {
   return f => flatMap_(F)(this, f);
+};
+
+OptionT.prototype.flatMapF = function (F) {
+  return f => flatMapF_(F)(this, f);
 };
 
 OptionT.prototype.flatten = function <F, A>(

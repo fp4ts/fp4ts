@@ -54,6 +54,11 @@ export const flatMap: <F>(
   f: (a: A) => OptionT<F, B>,
 ) => (fa: OptionT<F, A>) => OptionT<F, B> = F => f => fa => flatMap_(F)(fa, f);
 
+export const flatMapF: <F>(
+  F: Monad<F>,
+) => <A, B>(f: (a: A) => Kind<F, [B]>) => (fa: OptionT<F, A>) => OptionT<F, B> =
+  F => f => fa => flatMapF_(F)(fa, f);
+
 export const flatten =
   <F>(F: Monad<F>) =>
   <A>(ffa: OptionT<F, OptionT<F, A>>): OptionT<F, A> =>
@@ -125,6 +130,11 @@ export const flatMap_ =
         ),
       ),
     );
+
+export const flatMapF_ =
+  <F>(F: Monad<F>) =>
+  <A, B>(fa: OptionT<F, A>, f: (a: A) => Kind<F, [B]>): OptionT<F, B> =>
+    flatMap_(F)(fa, a => new OptionT(f(a)));
 
 export const tailRecM_ =
   <F>(F: Monad<F>) =>
