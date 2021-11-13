@@ -151,9 +151,7 @@ export const MonadCancel = Object.freeze({
         ),
     }),
 
-  monadCancelForOptionT: <F, E>(
-    F: MonadCancel<F, E>,
-  ): MonadCancel<$<OptionTK, [F]>, E> =>
+  forOptionT: <F, E>(F: MonadCancel<F, E>): MonadCancel<$<OptionTK, [F]>, E> =>
     MonadCancel.of({
       ...OptionT.MonadError(F),
 

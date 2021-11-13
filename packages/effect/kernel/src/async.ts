@@ -173,7 +173,7 @@ export const Async = Object.freeze({
               fa: OptionT<F, A>,
             ): OptionT<G, A> => OptionT(nat(fa.value));
 
-            return body(MonadCancel.monadCancelForOptionT<G, Error>(G))(
+            return body(MonadCancel.forOptionT<G, Error>(G))(
               k,
               OptionT.liftF(G)(get),
               natT,

@@ -359,7 +359,7 @@ export const Spawn = Object.freeze({
     return self;
   },
 
-  spawnForKleisli: <F, E, R>(F: Spawn<F, E>): Spawn<$<KleisliK, [F, R]>, E> => {
+  forKleisli: <F, E, R>(F: Spawn<F, E>): Spawn<$<KleisliK, [F, R]>, E> => {
     const liftOutcome = <A>(
       oc: Outcome<F, E, A>,
     ): Outcome<$<KleisliK, [F, R]>, E, A> => oc.mapK(Kleisli.liftF);
@@ -417,7 +417,7 @@ export const Spawn = Object.freeze({
     });
   },
 
-  spawnForOptionT: <F, E>(F: Spawn<F, E>): Spawn<$<OptionTK, [F]>, E> => {
+  forOptionT: <F, E>(F: Spawn<F, E>): Spawn<$<OptionTK, [F]>, E> => {
     const liftOutcome = <A>(
       oc: Outcome<F, E, Option<A>>,
     ): Outcome<$<OptionTK, [F]>, E, A> =>
@@ -438,7 +438,7 @@ export const Spawn = Object.freeze({
       })();
 
     return Spawn.of<$<OptionTK, [F]>, E>({
-      ...MonadCancel.monadCancelForOptionT(F),
+      ...MonadCancel.forOptionT(F),
 
       unique: OptionT.liftF(F)(F.unique),
 

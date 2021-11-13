@@ -142,11 +142,11 @@ export const Concurrent = Object.freeze({
     return self;
   },
 
-  concurrentForKleisli: <F, E, R>(
+  forKleisli: <F, E, R>(
     F: Concurrent<F, E>,
   ): Concurrent<$<KleisliK, [F, R]>, E> =>
     Concurrent.of<$<KleisliK, [F, R]>, E>({
-      ...Spawn.spawnForKleisli<F, E, R>(F),
+      ...Spawn.forKleisli<F, E, R>(F),
 
       ref: <A>(a: A) =>
         Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
@@ -157,11 +157,9 @@ export const Concurrent = Object.freeze({
         ),
     }),
 
-  concurrentForOptionT: <F, E>(
-    F: Concurrent<F, E>,
-  ): Concurrent<$<OptionTK, [F]>, E> =>
+  forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTK, [F]>, E> =>
     Concurrent.of<$<OptionTK, [F]>, E>({
-      ...Spawn.spawnForOptionT<F, E>(F),
+      ...Spawn.forOptionT<F, E>(F),
 
       ref: <A>(a: A) =>
         OptionT.liftF(F)(

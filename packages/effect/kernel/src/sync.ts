@@ -34,7 +34,7 @@ export const Sync = Object.freeze({
     Sync.of({
       ...MonadCancel.forKleisli(F),
 
-      ...Clock.clockForKleisli(F),
+      ...Clock.forKleisli(F),
 
       ...Kleisli.Defer(F),
 
@@ -43,9 +43,9 @@ export const Sync = Object.freeze({
 
   syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTK, [F]>> =>
     Sync.of({
-      ...MonadCancel.monadCancelForOptionT(F),
+      ...MonadCancel.forOptionT(F),
 
-      ...Clock.clockForOptionT(F),
+      ...Clock.forOptionT(F),
 
       ...OptionT.Defer(F),
 

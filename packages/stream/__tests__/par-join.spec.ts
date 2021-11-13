@@ -262,7 +262,7 @@ describe('Stream Parallel Join', () => {
     });
 
     it('should not block while evaluating stream of streams in $<OptionTK, [IoK]> in parallel', () => {
-      const F = Concurrent.concurrentForOptionT(IO.Concurrent);
+      const F = Concurrent.forOptionT(IO.Concurrent);
       const f = (n: number): Stream<$<OptionTK, [IoK]>, string> =>
         Stream(n).map(x => `${x}`);
 
@@ -279,7 +279,7 @@ describe('Stream Parallel Join', () => {
     });
 
     it('should not block while evaluating stream of streams in $<KleisliK, [IoK, unknown]> in parallel', () => {
-      const F = Concurrent.concurrentForKleisli(IO.Concurrent);
+      const F = Concurrent.forKleisli(IO.Concurrent);
       const f = (n: number): Stream<$<KleisliK, [IoK, void]>, string> =>
         Stream(n).map(x => `${x}`);
 

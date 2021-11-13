@@ -75,8 +75,8 @@ export const Temporal = Object.freeze({
     F: Temporal<F, E>,
   ): Temporal<$<KleisliK, [F, R]>, E> =>
     Temporal.of<$<KleisliK, [F, R]>, E>({
-      ...Concurrent.concurrentForKleisli(F),
-      ...Clock.clockForKleisli(F),
+      ...Concurrent.forKleisli(F),
+      ...Clock.forKleisli(F),
 
       sleep: ms => Kleisli.liftF(F.sleep(ms)),
     }),
@@ -85,8 +85,8 @@ export const Temporal = Object.freeze({
     F: Temporal<F, E>,
   ): Temporal<$<OptionTK, [F]>, E> =>
     Temporal.of<$<OptionTK, [F]>, E>({
-      ...Concurrent.concurrentForOptionT(F),
-      ...Clock.clockForOptionT(F),
+      ...Concurrent.forOptionT(F),
+      ...Clock.forOptionT(F),
 
       sleep: ms => OptionT.liftF(F)(F.sleep(ms)),
     }),
