@@ -183,7 +183,7 @@ export const cont =
 
                 G.bindTo('a', ({ r }) =>
                   G.finalize_(
-                    body<D>(MonadCancel.monadCancelForKleisli(G))(
+                    body<D>(MonadCancel.forKleisli(G))(
                       resume,
                       Kleisli.liftF<G, K>(get),
                       lift2,

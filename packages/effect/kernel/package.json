@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/core": "*",
-    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats": "*"
   },
   "devDependencies": {
     "typescript": "4.4.2"

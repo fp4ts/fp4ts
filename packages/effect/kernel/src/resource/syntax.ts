@@ -6,6 +6,7 @@ import { Concurrent } from '../concurrent';
 import { Outcome } from '../outcome';
 import { Fiber } from '../fiber';
 import { Resource } from './algebra';
+import { ResourceK } from './resource';
 import {
   allocated,
   attempt,
@@ -27,7 +28,6 @@ import {
   useKleisli_,
   use_,
 } from './operators';
-import { ResourceK } from '@fp4ts/effect';
 
 declare module './algebra' {
   interface Resource<F, A> {

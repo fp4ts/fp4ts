@@ -375,7 +375,7 @@ export const Spawn = Object.freeze({
       })();
 
     return Spawn.of<$<KleisliK, [F, R]>, E>({
-      ...MonadCancel.monadCancelForKleisli(F),
+      ...MonadCancel.forKleisli(F),
 
       unique: Kleisli.liftF(F.unique),
 

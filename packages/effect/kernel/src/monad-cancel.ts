@@ -127,7 +127,7 @@ export const MonadCancel = Object.freeze({
       ...F,
     }),
 
-  monadCancelForKleisli: <F, R, E>(
+  forKleisli: <F, R, E>(
     F: MonadCancel<F, E>,
   ): MonadCancel<$<KleisliK, [F, R]>, E> =>
     MonadCancel.of({

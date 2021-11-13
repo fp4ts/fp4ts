@@ -1,8 +1,8 @@
 {
   "name": "@fp4ts/cats",
   "version": "1.0.0",
-  "main": "./index.js",
-  "typings": "./index.d.ts",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib && rm -f *.tsbuildinfo",

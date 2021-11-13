@@ -32,7 +32,7 @@ export const Sync = Object.freeze({
 
   syncForKleisli: <F, R>(F: Sync<F>): Sync<$<KleisliK, [F, R]>> =>
     Sync.of({
-      ...MonadCancel.monadCancelForKleisli(F),
+      ...MonadCancel.forKleisli(F),
 
       ...Clock.clockForKleisli(F),
 

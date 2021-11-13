@@ -29,7 +29,8 @@
   "scripts": {
     "test": "jest --maxWorkers=50%",
     "benchmark": "yarn compile && ./scripts/benchmark.sh",
-    "compile": "yarn clean && yarn tsc -p tsconfig.json",
+    "compile": "yarn tsc --build tsconfig.build.json",
+    "compile:watch": "yarn tsc --build tsconfig.build.json --watch",
     "clean": "rm -rf dist docs tsconfig.tsbuildinfo",
     "docs": "typedoc",
     "lint": "eslint ./packages"

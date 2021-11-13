@@ -33,7 +33,9 @@
     "dist"
   ],
 
-  "include": [
-    "**/*"
+  "files": [],
+
+  "references": [
+    { "path": "./packages/tsconfig.build.json" }
   ]
 }

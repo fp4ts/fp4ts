@@ -140,7 +140,7 @@ export const Async = Object.freeze({
               const natT = <A>(fa: Kleisli<F, R, A>): Kleisli<G, R, A> =>
                 Kleisli((r: R) => nat(fa.run(r)));
 
-              return body(MonadCancel.monadCancelForKleisli<G, R, Error>(G))(
+              return body(MonadCancel.forKleisli<G, R, Error>(G))(
                 k,
                 Kleisli.liftF(get),
                 natT,

@@ -47,5 +47,13 @@
       "./stream/core/src",
       "./stream/test-kit/src"
     ]
-  }
+  },
+
+  "exclude": [
+    "**/lib/**/*"
+  ],
+
+  "include": [
+    "**/*"
+  ],
 }

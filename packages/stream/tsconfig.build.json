@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.build.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": ".",
+    "outDir": "./lib",
   },
-  "include": ["./index.ts"]
+  "include": ["./index.ts", "./__tests__"],
+  "references": [
+    { "path": "./core/tsconfig.build.json" },
+    { "path": "./test-kit/tsconfig.build.json" },
+  ]
 }

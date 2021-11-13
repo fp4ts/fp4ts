@@ -4,5 +4,10 @@
     "rootDir": "./src",
     "outDir": "./lib",
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*"],
+  "references": [
+    { "path": "../../core/tsconfig.build.json" },
+    { "path": "../core/tsconfig.build.json" },
+    { "path": "../test-kit/tsconfig.build.json" },
+  ]
 }
