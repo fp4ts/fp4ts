@@ -30,6 +30,7 @@ export const SyncIO: SyncIOObj = function <A>(thunk: () => A): SyncIO<A> {
 interface SyncIOObj {
   <A>(thunk: () => A): SyncIO<A>;
   pure<A>(a: A): SyncIO<A>;
+  unit: SyncIO<void>;
   delay<A>(thunk: () => A): SyncIO<A>;
   defer<A>(thunk: () => SyncIO<A>): SyncIO<A>;
   throwError(e: Error): SyncIO<never>;
@@ -46,6 +47,7 @@ interface SyncIOObj {
 }
 
 SyncIO.pure = pure;
+SyncIO.unit = pure(undefined);
 SyncIO.delay = delay;
 SyncIO.defer = defer;
 SyncIO.throwError = throwError;
