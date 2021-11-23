@@ -1,1 +1,1 @@
-export type PrimitiveType = boolean | number | string;
+export type PrimitiveType = bigint | boolean | number | string;
