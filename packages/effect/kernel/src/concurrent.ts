@@ -2,7 +2,6 @@ import { ok as assert } from 'assert';
 import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Traversable,
-  Parallel,
   Either,
   Left,
   Right,
@@ -64,9 +63,7 @@ export const Concurrent = Object.freeze({
         assert(maxConcurrent >= 1, 'Concurrency limit must be >= 1');
 
         return F.flatMap_(Semaphore.withPermits(self)(maxConcurrent), sem =>
-          Parallel.parTraverse_(T, Spawn.parallelForSpawn(self))(ta, a =>
-            sem.withPermit(f(a)),
-          ),
+          self.parTraverse_(T)(ta, a => sem.withPermit(f(a))),
         );
       },
 

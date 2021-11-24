@@ -24,6 +24,7 @@ import {
   fromVector,
   of,
   pure,
+  range,
 } from './constructors';
 import {
   listApplicative,
@@ -58,6 +59,7 @@ interface ListObj {
   fromIterator<A>(it: Iterator<A>): List<A>;
   fromVector<A>(xs: Vector<A>): List<A>;
   tailRecM<A>(a: A): <B>(f: (a: A) => List<Either<A, B>>) => List<B>;
+  range(from: number, to: number): List<number>;
 
   // -- Instances
 
@@ -83,6 +85,7 @@ List.fromArray = fromArray;
 List.fromVector = fromVector;
 List.fromIterator = fromIterator;
 List.tailRecM = tailRecM;
+List.range = range;
 
 Object.defineProperty(List, 'SemigroupK', {
   get(): SemigroupK<ListK> {

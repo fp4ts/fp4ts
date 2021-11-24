@@ -1,6 +1,6 @@
 import { id, Kind } from '@fp4ts/core';
 import { Apply } from './apply';
-import { Either } from './data';
+import { Either, Left, Right } from './data';
 
 /**
  * @category Type Class
@@ -31,6 +31,8 @@ export interface FlatMap<F> extends Apply<F> {
     a: A,
     f: (a: A) => Kind<F, [Either<A, B>]>,
   ) => Kind<F, [B]>;
+
+  readonly foreverM: <A>(fa: Kind<F, [A]>) => Kind<F, [never]>;
 }
 
 export type FlatMapRequirements<F> = Pick<
@@ -50,6 +52,15 @@ export const FlatMap = Object.freeze({
       flatten: ffa => self.flatMap_(ffa, id),
 
       tailRecM: a => f => self.tailRecM_(a, f),
+
+      foreverM: <A>(fa: Kind<F, [A]>): Kind<F, [never]> => {
+        const leftUnit = Left(undefined as void);
+        const stepResult: Kind<F, [Either<void, never>]> = self.map_(
+          fa,
+          () => leftUnit,
+        );
+        return self.tailRecM(undefined)(() => stepResult);
+      },
 
       ...FlatMap.deriveApply(F),
       ...F,

@@ -11,11 +11,13 @@ import {
   Option,
   OptionTK,
   OptionT,
+  Traversable,
 } from '@fp4ts/cats';
 
 import { Poll } from './poll';
 import { Fiber } from './fiber';
 import { Outcome } from './outcome';
+import { Resource } from './resource';
 import { Unique, UniqueRequirements } from './unique';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 
@@ -23,6 +25,10 @@ export interface Spawn<F, E> extends MonadCancel<F, E>, Unique<F> {
   readonly fork: <A>(fa: Kind<F, [A]>) => Kind<F, [Fiber<F, E, A>]>;
   readonly never: Kind<F, [never]>;
   readonly suspend: Kind<F, [void]>;
+
+  readonly background: <A>(
+    fa: Kind<F, [A]>,
+  ) => Resource<F, Kind<F, [Outcome<F, E, A>]>>;
 
   readonly racePair: <B>(
     fb: Kind<F, [B]>,
@@ -83,6 +89,19 @@ export interface Spawn<F, E> extends MonadCancel<F, E>, Unique<F> {
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
   ) => Kind<F, [[Outcome<F, E, A>, Outcome<F, E, B>]]>;
+
+  readonly parTraverse: <T>(
+    T: Traversable<T>,
+  ) => <A, B>(
+    f: (a: A) => Kind<F, [B]>,
+  ) => (ta: Kind<T, [A]>) => Kind<[F, T], [B]>;
+  readonly parTraverse_: <T>(
+    T: Traversable<T>,
+  ) => <A, B>(ta: Kind<T, [A]>, f: (a: A) => Kind<F, [B]>) => Kind<[F, T], [B]>;
+
+  readonly parSequence: <T>(
+    T: Traversable<T>,
+  ) => <A>(tfa: Kind<[T, F], [A]>) => Kind<[F, T], [A]>;
 }
 
 export type SpawnRequirements<F, E> = Pick<
@@ -95,6 +114,11 @@ export type SpawnRequirements<F, E> = Pick<
 export const Spawn = Object.freeze({
   of: <F, E>(F: SpawnRequirements<F, E>): Spawn<F, E> => {
     const self: Spawn<F, E> = {
+      background: <A>(
+        fa: Kind<F, [A]>,
+      ): Resource<F, Kind<F, [Outcome<F, E, A>]>> =>
+        Resource.make(self)(self.fork(fa), f => f.cancel).map(f => f.join),
+
       racePair: fb => fa => self.racePair_(fa, fb),
 
       race: fb => fa => self.race_(fa, fb),
@@ -241,6 +265,11 @@ export const Spawn = Object.freeze({
           ),
         ),
 
+      parTraverse: T => f => ta => self.parTraverse_(T)(ta, f),
+      parTraverse_: T => Parallel.parTraverse_(T, Spawn.parallelForSpawn(self)),
+
+      parSequence: T => Parallel.parSequence(T, Spawn.parallelForSpawn(self)),
+
       ...MonadCancel.of(F),
       ...F,
     };
@@ -321,7 +350,7 @@ export const Spawn = Object.freeze({
                           ),
                         ),
                       e => F.flatMap_(fiberB.cancel, () => F.throwError(e)),
-                      a => a,
+                      fa => fa,
                     ),
                   ),
                 ),
@@ -346,7 +375,7 @@ export const Spawn = Object.freeze({
                           poll,
                         ),
                       e => F.throwError(e),
-                      b => b,
+                      fb => fb,
                     ),
                   ),
                 ),

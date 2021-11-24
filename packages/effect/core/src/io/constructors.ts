@@ -87,11 +87,12 @@ export const fromEither = <A>(ea: Either<Error, A>): IO<A> =>
 
 export const fromPromise = <A>(iop: IO<Promise<A>>): IO<A> =>
   flatMap_(iop, p =>
-    async_(resume =>
+    async(resume =>
       delay(() => {
         const onSuccess: (x: A) => void = flow(Right, resume);
         const onFailure: (e: Error) => void = flow(Left, resume);
         p.then(onSuccess, onFailure);
+        return None;
       }),
     ),
   );

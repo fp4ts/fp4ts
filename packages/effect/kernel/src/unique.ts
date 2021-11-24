@@ -1,5 +1,5 @@
 import { Kind } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats';
+import { Eq, Ord } from '@fp4ts/cats';
 
 export interface Unique<F> {
   unique: Kind<F, [UniqueToken]>;
@@ -12,6 +12,9 @@ export const Unique = Object.freeze({
 });
 
 export class UniqueToken {
+  private static addresses: bigint = 0n;
+  private readonly address: bigint = UniqueToken.addresses++;
+
   public equals(that: UniqueToken): boolean {
     return this === that;
   }
@@ -20,4 +23,5 @@ export class UniqueToken {
   }
 
   public static Eq: Eq<UniqueToken> = Eq.of({ equals: (x, y) => x.equals(y) });
+  public static Ord: Ord<UniqueToken> = Ord.by(Ord.primitive, u => u.address);
 }

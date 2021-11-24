@@ -1,5 +1,6 @@
 import { Vector } from '../vector';
 import { Cons, List, Nil } from './algebra';
+import { prepend_ } from './operators';
 
 export const pure = <A>(x: A): List<A> => new Cons(x, Nil);
 
@@ -38,3 +39,11 @@ export const fromArray = <A>(xs: A[]): List<A> => {
 
 export const fromVector = <A>(xs: Vector<A>): List<A> =>
   xs.foldRight(empty as List<A>, cons);
+
+export const range = (from: number, to: number): List<number> => {
+  let result: List<number> = empty;
+  for (let i = to - 1; i >= from; i--) {
+    result = prepend_(result, i);
+  }
+  return result;
+};
