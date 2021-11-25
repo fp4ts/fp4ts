@@ -28,6 +28,8 @@
       "@fp4ts/stream": ["./stream/index.ts"],
       "@fp4ts/stream-core": ["./stream/core/src"],
       "@fp4ts/stream-core/lib/*": ["./stream/core/src/*"],
+      "@fp4ts/stream-io": ["./stream/io/src"],
+      "@fp4ts/stream-io/lib/*": ["./stream/io/src/*"],
       "@fp4ts/stream-test-kit": ["./stream/test-kit/src"],
       "@fp4ts/stream-test-kit/lib/*": ["./stream/test-kit/src/*"],
     },

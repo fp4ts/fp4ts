@@ -22,6 +22,8 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "esModuleInterop": true,
+
+    "inlineSourceMap": true,
     
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true

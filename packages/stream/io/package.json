@@ -1,0 +1,20 @@
+{
+  "name": "@fp4ts/stream-io",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/core": "*",
+    "@fp4ts/cats": "*",
+    "@fp4ts/effect": "*",
+    "@fp4ts/stream-core": "*"
+  },
+  "devDependencies": {
+    "typescript": "4.4.2"
+  }
+}

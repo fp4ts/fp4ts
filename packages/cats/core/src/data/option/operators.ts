@@ -22,6 +22,16 @@ export const get = <A>(o: Option<A>): A =>
 export const toList = <A>(o: Option<A>): List<A> =>
   fold_(o, constant(List.empty), List);
 
+export const toLeft =
+  <B>(right: () => B) =>
+  <A>(o: Option<A>): Either<A, B> =>
+    toLeft_(o, right);
+
+export const toRight =
+  <B>(left: () => B) =>
+  <A>(o: Option<A>): Either<B, A> =>
+    toRight_(o, left);
+
 export const map: <A, B>(f: (a: A) => B) => (o: Option<A>) => Option<B> =
   f => o =>
     map_(o, f);
@@ -61,6 +71,12 @@ export const fold: <A, B>(
 ) => (o: Option<A>) => B = (onNone, onSome) => o => fold_(o, onNone, onSome);
 
 // -- Point-ful operators
+
+export const toLeft_ = <A, B>(o: Option<A>, right: () => B): Either<A, B> =>
+  o.fold(() => Either.right(right()), Either.left);
+
+export const toRight_ = <A, B>(o: Option<A>, left: () => B): Either<B, A> =>
+  o.fold(() => Either.left(left()), Either.right);
 
 export const map_ = <A, B>(o: Option<A>, f: (a: A) => B): Option<B> =>
   fold_(o, () => none, flow(f, some));

@@ -1,6 +1,7 @@
 import { PrimitiveType } from '@fp4ts/core';
 import { Eq } from '../../eq';
 import { List } from '../collections/list';
+import { Either } from '../either';
 import { Option } from './algebra';
 import {
   flatMap_,
@@ -16,6 +17,8 @@ import {
   getOrElse_,
   equals_,
   toList,
+  toLeft_,
+  toRight_,
 } from './operators';
 
 declare module './algebra' {
@@ -25,6 +28,9 @@ declare module './algebra' {
     readonly nonEmpty: boolean;
 
     readonly toList: List<A>;
+
+    toLeft<B>(right: () => B): Either<A, B>;
+    toRight<B>(left: () => B): Either<B, A>;
 
     map<B>(f: (a: A) => B): Option<B>;
     tap(f: (a: A) => unknown): Option<A>;
@@ -68,6 +74,13 @@ Object.defineProperty(Option.prototype, 'toList', {
     return toList(this);
   },
 });
+
+Option.prototype.toLeft = function (f) {
+  return toLeft_(this, f);
+};
+Option.prototype.toRight = function (f) {
+  return toRight_(this, f);
+};
 
 Option.prototype.map = function <A, B>(
   this: Option<A>,

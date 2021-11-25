@@ -9,3 +9,4 @@ export * from './pure';
 export * from './compiler';
 export * from './concurrent';
 export * from './text';
+export * from './pipe';
