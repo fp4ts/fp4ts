@@ -48,7 +48,7 @@ interface PullObj {
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ) => Pull<F, never, R>;
-  interruptWhen<F, O>(
+  interruptWhen<F, O = never>(
     haltOnSignal: Kind<F, [Either<Error, void>]>,
   ): Pull<F, O, void>;
 
