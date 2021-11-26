@@ -15,6 +15,7 @@ import {
   Try,
   Ior,
   OptionT,
+  Queue,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -147,6 +148,17 @@ export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
 
   return gen(0);
 };
+
+export const fp4tsQueue = <A>(arbA: Arbitrary<A>): Arbitrary<Queue<A>> =>
+  fc
+    .array(arbA)
+    .chain(_in =>
+      fc
+        .array(arbA)
+        .map(_out =>
+          Queue.fromArray(_out)['+++'](Queue.fromArray(_in).reverse),
+        ),
+    );
 
 interface OrderedMapConstraints {
   readonly minSize?: number;

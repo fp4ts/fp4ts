@@ -50,10 +50,9 @@ export const listSemigroupK: Lazy<SemigroupK<ListK>> = lazyVal(() =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
 );
 
-export const listMonoidK: Lazy<MonoidK<ListK>> = lazyVal(() => {
-  const { algebra, ...rest } = listSemigroupK();
-  return MonoidK.of({ ...rest, emptyK: () => empty });
-});
+export const listMonoidK: Lazy<MonoidK<ListK>> = lazyVal(() =>
+  MonoidK.of({ combineK_: (x, y) => concat_(x, y()), emptyK: () => empty }),
+);
 
 export const listAlign: Lazy<Align<ListK>> = lazyVal(() =>
   Align.of({
@@ -154,10 +153,5 @@ export const listFoldable: Lazy<Foldable<ListK>> = lazyVal(() =>
 );
 
 export const listTraversable: Lazy<Traversable<ListK>> = lazyVal(() =>
-  Traversable.of({
-    ...listFoldable(),
-    ...listFunctor(),
-    traverse_: traverse_,
-    sequence: sequence,
-  }),
+  Traversable.of({ ...listFoldable(), ...listFunctor(), traverse_, sequence }),
 );

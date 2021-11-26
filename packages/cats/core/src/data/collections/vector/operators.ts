@@ -371,7 +371,7 @@ export const tailRecM_ = <S, A>(
   f: (a: S) => Vector<Either<S, A>>,
 ): Vector<A> => {
   const results: A[] = [];
-  let stack = List(f(s).iterator);
+  let stack = List(iterator(f(s)));
 
   while (stack.nonEmpty) {
     const [hd, tl] = stack.uncons.get;
@@ -382,7 +382,7 @@ export const tailRecM_ = <S, A>(
     } else if (next.value.isRight) {
       results.push(next.value.get);
     } else {
-      stack = tl.prepend(hd).prepend(f(next.value.getLeft).iterator);
+      stack = tl.prepend(hd).prepend(iterator(f(next.value.getLeft)));
     }
   }
 

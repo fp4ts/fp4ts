@@ -11,4 +11,4 @@ export const fromEither = <A>(ea: Either<unknown, A>): Option<A> =>
   ea.fold(() => none, some);
 
 export const fromNullable = <A>(x?: A | null | undefined): Option<A> =>
-  x ? some(x) : none;
+  x != null ? some(x) : none;

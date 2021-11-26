@@ -1,4 +1,4 @@
-import { Kind, id, pipe, throwError, Iter } from '@fp4ts/core';
+import { Kind, id, pipe, throwError, Iter, tupled } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
@@ -373,7 +373,7 @@ export const elem_ = <A>(xs: List<A>, idx: number): A =>
 
 export const elemOption_ = <A>(xs: List<A>, idx: number): Option<A> => {
   if (idx < 0) return None;
-  while (idx-- > 0) {
+  while (idx-- > 0 && nonEmpty(xs)) {
     xs = tail(xs);
   }
   return isEmpty(xs) ? None : Some(head(xs));
@@ -623,14 +623,14 @@ export const align_ = <A, B>(xs: List<A>, ys: List<B>): List<Ior<A, B>> =>
   );
 
 export const zip_ = <A, B>(xs: List<A>, ys: List<B>): List<[A, B]> =>
-  zipWith_(xs, ys, (x, y) => [x, y]);
+  zipWith_(xs, ys, tupled);
 
 export const zipAll_ = <A, B>(
   xs: List<A>,
   ys: List<B>,
   defaultX: () => A,
   defaultY: () => B,
-): List<[A, B]> => zipAllWith_(xs, ys, defaultX, defaultY, (x, y) => [x, y]);
+): List<[A, B]> => zipAllWith_(xs, ys, defaultX, defaultY, tupled);
 
 export const zipWith_ = <A, B, C>(
   xs: List<A>,
