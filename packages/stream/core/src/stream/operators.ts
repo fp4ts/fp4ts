@@ -22,6 +22,7 @@ import {
   Deferred,
   Outcome,
   Fiber,
+  QueueSink,
 } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
@@ -543,6 +544,16 @@ export const concurrently: <F>(
 ) => <B>(s2: Stream<F, B>) => <A>(s1: Stream<F, A>) => Stream<F, A> =
   F => s2 => s1 =>
     concurrently_(F)(s1, s2);
+
+export const enqueueNoneTerminated: <F, A>(
+  q: QueueSink<F, Option<A>>,
+) => (s: Stream<F, A>) => Stream<F, never> = q => s =>
+  enqueueNoneTerminated_(s, q);
+
+export const enqueueNoneTerminatedChunks: <F, A>(
+  q: QueueSink<F, Option<Chunk<A>>>,
+) => (s: Stream<F, A>) => Stream<F, never> = q => s =>
+  enqueueNoneTerminatedChunks_(s, q);
 
 export const covary =
   <F2>() =>
@@ -1509,6 +1520,16 @@ export const concurrently_ =
 
     return flatten(evalF(fStream));
   };
+
+export const enqueueNoneTerminated_ = <F, A>(
+  s: Stream<F, A>,
+  q: QueueSink<F, Option<A>>,
+): Stream<F, never> => forEach_(noneTerminate(s), x => q.offer(x));
+
+export const enqueueNoneTerminatedChunks_ = <F, A>(
+  s: Stream<F, A>,
+  q: QueueSink<F, Option<Chunk<A>>>,
+): Stream<F, never> => forEach_(noneTerminate(chunks(s)), x => q.offer(x));
 
 // -- Private implementation
 

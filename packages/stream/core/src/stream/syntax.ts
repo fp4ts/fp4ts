@@ -20,6 +20,7 @@ import {
   Sync,
   Concurrent,
   Temporal,
+  QueueSink,
 } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
@@ -115,6 +116,8 @@ import {
   parJoin_,
   parJoinUnbounded,
   mapNoScope_,
+  enqueueNoneTerminated_,
+  enqueueNoneTerminatedChunks_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -312,6 +315,15 @@ declare module './algebra' {
       this: Stream<F2, A>,
       F: Concurrent<F2, Error>,
     ): <B>(that: Stream<F2, B>) => Stream<F2, A>;
+
+    enqueueNoneTerminated<F2, B>(
+      this: Stream<F2, B>,
+      q: QueueSink<F2, Option<B>>,
+    ): Stream<F, never>;
+    enqueueNoneTerminatedChunks<F2, B>(
+      this: Stream<F2, B>,
+      q: QueueSink<F2, Option<Chunk<B>>>,
+    ): Stream<F, never>;
 
     covary<F2>(this: Stream<F2, A>): Stream<F2, A>;
     covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
@@ -687,6 +699,13 @@ Object.defineProperty(Stream.prototype, 'interruptScope', {
 
 Stream.prototype.concurrently = function (F) {
   return that => concurrently_(F)(this, that);
+};
+
+Stream.prototype.enqueueNoneTerminated = function (q) {
+  return enqueueNoneTerminated_(this, q);
+};
+Stream.prototype.enqueueNoneTerminatedChunks = function (q) {
+  return enqueueNoneTerminatedChunks_(this, q);
 };
 
 Stream.prototype.covary = function () {

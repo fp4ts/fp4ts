@@ -8,6 +8,7 @@ import {
   Spawn,
   Temporal,
   Resource,
+  QueueSource,
 } from '@fp4ts/effect';
 import { view } from '@fp4ts/effect-kernel/lib/resource/algebra';
 
@@ -241,4 +242,91 @@ export const resourceWeak = <F>(F: MonadCancel<F, Error>) => {
         return evalF(r.fa);
     }
   };
+};
+
+export const fromQueueNoneTerminated = <F, A>(
+  q: QueueSource<F, Option<A>>,
+  limit: number = Infinity,
+): Stream<F, A> =>
+  _fromQueueNoneTerminatedSingletons(q.take(), q.tryTake(), limit);
+
+export const fromQueueNoneTerminatedChunk = <F, A>(
+  q: QueueSource<F, Option<Chunk<A>>>,
+  limit: number = Infinity,
+): Stream<F, A> => _fromQueueNoneTerminatedChunk(q.take(), q.tryTake(), limit);
+
+// -- Private implementation
+
+const _fromQueueNoneTerminatedSingletons = <F, A>(
+  take: Kind<F, [Option<A>]>,
+  tryTake: Kind<F, [Option<Option<A>>]>,
+  limit: number,
+): Stream<F, A> => {
+  const await: Stream<F, A> = flatMap_(evalF(take), opt =>
+    opt.fold(
+      () => empty(),
+      c => pump(1, [c]),
+    ),
+  );
+
+  const pump = (curSize: number, acc: A[]): Stream<F, A> => {
+    if (curSize === limit) {
+      return concat_(fromArray(acc), await);
+    } else {
+      return flatMap_(evalF(tryTake), opt =>
+        opt.fold(
+          () => concat_(fromArray(acc), await),
+          opt =>
+            opt.fold(
+              () => fromArray(acc),
+              c => {
+                acc.push(c);
+                return pump(curSize + 1, acc);
+              },
+            ),
+        ),
+      );
+    }
+  };
+
+  return await;
+};
+
+const _fromQueueNoneTerminatedChunk = <F, A>(
+  take: Kind<F, [Option<Chunk<A>>]>,
+  tryTake: Kind<F, [Option<Option<Chunk<A>>>]>,
+  limit: number,
+): Stream<F, A> => {
+  const await: Stream<F, A> = flatMap_(evalF(take), opt =>
+    opt.fold(
+      () => empty(),
+      c => pump(c),
+    ),
+  );
+
+  const pump = (acc: Chunk<A>): Stream<F, A> => {
+    const sz = acc.size;
+    if (sz > limit) {
+      const [pfx, sfx] = acc.splitAt(limit);
+      return concat_(
+        fromChunk(pfx),
+        defer(() => pump(sfx)),
+      );
+    } else if (sz === limit) {
+      return concat_(fromChunk(acc), await);
+    } else {
+      return flatMap_(evalF(tryTake), opt =>
+        opt.fold(
+          () => concat_(fromChunk(acc), await),
+          opt =>
+            opt.fold(
+              () => fromChunk(acc),
+              c => pump(acc['+++'](c)),
+            ),
+        ),
+      );
+    }
+  };
+
+  return await;
 };
