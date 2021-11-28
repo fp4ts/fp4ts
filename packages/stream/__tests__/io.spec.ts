@@ -143,14 +143,20 @@ describe('io', () => {
     it('should read lines from stdin', () =>
       fc.assert(
         fc.asyncProperty(fc.array(fc.string()), ss => {
-          ss = ss.map(s => s.replace(/\r?\n/g, '<CR>'));
+          ss = ss
+            .map(s =>
+              s
+                .replace(/\r\n/gm, '<CRLF>')
+                .replace(/\n/gm, '<LF>')
+                .replace(/\r/gm, '<CR>'),
+            )
+            .filter(s => !!s.length);
           const te = new TextEncoder();
-          let idx = 0;
+
           const ps = new PassThrough({
             read() {
-              if (idx === ss.length - 1) this.push(te.encode(ss[idx++]));
-              if (idx < ss.length) this.push(te.encode(`${ss[idx++]}\n`));
-              else this.push(null);
+              this.push(te.encode(ss.join('\n')));
+              this.push(null);
             },
           });
 
