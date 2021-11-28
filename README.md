@@ -1,5 +1,7 @@
 # fp4ts
 
+[![Node.js CI](https://github.com/mattapet/fp4ts/actions/workflows/build.yml/badge.svg)](https://github.com/mattapet/fp4ts/actions/workflows/build.yml)
+
 Welcome to fp4ts! Fp4ts is a zero-dependency, purely functional library that
 attempts to port portion of the [Typelevel](https://typelevel.org/) ecosystem
 to Typescript.
