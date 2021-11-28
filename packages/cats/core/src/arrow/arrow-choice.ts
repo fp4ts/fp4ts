@@ -29,7 +29,7 @@ export interface ArrowChoice<F> extends Arrow<F>, Choice<F> {
 
 export type ArrowChoiceRequirements<F> = Pick<ArrowChoice<F>, 'choose'> &
   ArrowRequirements<F> &
-  ChoiceRequirements<F> &
+  Omit<ChoiceRequirements<F>, 'choice'> &
   Partial<ArrowChoice<F>>;
 export const ArrowChoice = Object.freeze({
   of: <F>(F: ArrowChoiceRequirements<F>): ArrowChoice<F> => {
@@ -37,7 +37,16 @@ export const ArrowChoice = Object.freeze({
       left: fab => self.choose(fab, self.lift(id)),
       right: fab => self.choose(self.lift(id), fab),
 
-      ...Choice.of(F),
+      ...Choice.of({
+        ...F,
+        choice:
+          F.choice ??
+          (<A, B, C>(
+            f: Kind<F, [A, C]>,
+            g: Kind<F, [B, C]>,
+          ): Kind<F, [Either<A, B>, C]> =>
+            self.rmap_(F.choose(f, g), ea => ea.fold(id, id))),
+      }),
       ...Arrow.of(F),
       ...F,
     };

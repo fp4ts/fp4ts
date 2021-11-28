@@ -7,7 +7,7 @@ import { Kind } from './kind';
 import { TyK, TyVar } from './ctor';
 import { $fixed, $type } from './symbols';
 
-export type Fix<X extends unknown = unknown> = [$fixed, X];
+export type Fix<X = unknown> = [$fixed, X];
 export type α = _0 & { tag: never };
 export type β = _1 & { tag: never };
 

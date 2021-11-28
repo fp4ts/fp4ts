@@ -21,6 +21,7 @@ import {
   Ior,
   OptionT,
   Queue,
+  AndThen,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -111,7 +112,7 @@ export const fp4tsVector = <A>(
         recursive = arbA.map(Vector.pure);
         break;
       default: {
-        const s0 = fc.integer(1, size - 1);
+        const s0 = fc.integer({ min: 1, max: size - 1 });
         const s1 = s0.map(s0 => size - s0);
         const left = s0.chain(genSized);
         const right = s1.chain(genSized);
@@ -186,7 +187,7 @@ export const fp4tsOrderedMap = <K, V>(
       : Math.min(2 * minSize + 10, 0x7fffffff);
 
   return fc
-    .integer(minSize, maxSize)
+    .integer({ min: minSize, max: maxSize })
     .chain(size =>
       fc
         .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
@@ -215,7 +216,7 @@ export const fp4tsHashMap = <K, V>(
       : Math.min(2 * minSize + 10, 0x7fffffff);
 
   return fc
-    .integer(minSize, maxSize)
+    .integer({ min: minSize, max: maxSize })
     .chain(size =>
       fc
         .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
@@ -227,3 +228,20 @@ export const fp4tsKleisli = <F, A, B>(
   arbFB: Arbitrary<Kind<F, [B]>>,
 ): Arbitrary<Kleisli<F, A, B>> =>
   fc.func<[A], Kind<F, [B]>>(arbFB).map(Kleisli);
+
+export const fp4tsAndThen = <A>(
+  arbA: Arbitrary<A>,
+): Arbitrary<AndThen<A, A>> => {
+  const { go } = fc.letrec(tie => ({
+    base: fc.func<[A], A>(arbA).map(AndThen),
+    rec: fc
+      .tuple(
+        tie('go') as Arbitrary<AndThen<A, A>>,
+        tie('go') as Arbitrary<AndThen<A, A>>,
+      )
+      .map(([f, g]) => f.andThen(g)),
+    go: fc.oneof({ maxDepth: 20 }, tie('base'), tie('rec')),
+  }));
+
+  return go as Arbitrary<AndThen<A, A>>;
+};
