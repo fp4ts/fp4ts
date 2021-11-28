@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import fc from 'fast-check';
 import '@fp4ts/cats-core/lib/data/collections/array/array';
 import { Eq, Eval, EvalK, AdditionMonoid } from '@fp4ts/cats-core';

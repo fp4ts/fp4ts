@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { IO, IOOutcome } from '@fp4ts/effect-core';
 import { Supervisor } from '@fp4ts/effect-std';

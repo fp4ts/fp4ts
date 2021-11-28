@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { Kind } from '@fp4ts/core';
 import { Either, Option } from '@fp4ts/cats';
 import { Poll, ExitCase, MonadCancel, Temporal } from '@fp4ts/effect';

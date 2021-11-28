@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 export function pipe<A>(a: A): A;
 export function pipe<A, B>(a: A, ab: (_: A) => B): B;
 export function pipe<A, B, C>(a: A, ab: (_: A) => B, bc: (_: B) => C): C;
