@@ -22,6 +22,8 @@ import {
   OptionT,
   Queue,
   AndThen,
+  IndexedStateT,
+  State,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -33,7 +35,9 @@ export const fp4tsError = (): Arbitrary<Error> =>
   );
 
 export const fp4tsMiniInt = (): Arbitrary<MiniInt> =>
-  fc.integer(MiniInt.MIN_MINI_INT, MiniInt.MAX_MINI_INT).map(MiniInt.wrapped);
+  fc
+    .integer({ min: MiniInt.MIN_MINI_INT, max: MiniInt.MAX_MINI_INT })
+    .map(MiniInt.wrapped);
 
 export const fp4tsPrimitive = (): Arbitrary<PrimitiveType> =>
   fc.oneof(fc.integer(), fc.float(), fc.string(), fc.boolean());
@@ -245,3 +249,15 @@ export const fp4tsAndThen = <A>(
 
   return go as Arbitrary<AndThen<A, A>>;
 };
+
+export const fp4tsIndexedStateT = <F, SA, SB, A>(
+  arbFSAFSBA: Arbitrary<Kind<F, [(sa: SA) => Kind<F, [[SB, A]]>]>>,
+): Arbitrary<IndexedStateT<F, SA, SB, A>> => arbFSAFSBA.map(IndexedStateT);
+
+export const fp4tsState = <S, A>(
+  arbS: Arbitrary<S>,
+  arbA: Arbitrary<A>,
+): Arbitrary<State<S, A>> =>
+  fp4tsIndexedStateT(
+    fc.func<[S], Eval<[S, A]>>(fp4tsEval(fc.tuple(arbS, arbA))).map(Eval.pure),
+  );

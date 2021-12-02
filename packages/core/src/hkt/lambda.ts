@@ -10,6 +10,7 @@ import { $fixed, $type } from './symbols';
 export type Fix<X = unknown> = [$fixed, X];
 export type α = _0 & { tag: never };
 export type β = _1 & { tag: never };
+export type γ = _2 & { tag: never };
 
 declare const $index: unique symbol;
 export interface _<N extends number = 0> {

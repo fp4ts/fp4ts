@@ -4,5 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-
-export { State, StateK } from './state';
+export {
+  IndexedStateT,
+  IndexedStateTK,
+  StateT,
+  StateTK,
+  State,
+  StateK,
+} from './index-state-t';

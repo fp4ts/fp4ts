@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $, $type, id, TyK, TyVar } from '@fp4ts/core';
-import { FunctionK, Eq } from '@fp4ts/cats-core';
+import { $, $type, id, tupled, TyK, TyVar } from '@fp4ts/core';
+import { FunctionK, Eq, Eval, Monad } from '@fp4ts/cats-core';
 import {
   State,
   StateK,
@@ -47,13 +47,13 @@ describe('Free', () => {
   const nt: FunctionK<TestConsoleK, $<StateK, [S]>> = <A>(
     c: TestConsole<A>,
   ): State<S, A> => {
-    if (c.tag === 'readLine')
-      return State.modify<S, string>(([[h, ...t], o]) => [
-        [t, o],
-        h ?? '',
-      ]) as any as State<S, A>;
+    if (c.tag === 'readLine') {
+      return State.inspect<S, string>(([[h]]) => h).modify(Eval.Functor)(
+        ([[, ...t], o]) => tupled(t, o),
+      ) as any as State<S, A>;
+    }
 
-    return State.update<S>(([i, o]) => [i, [...o, c.line]]) as any as State<
+    return State.modify<S>(([i, o]) => [i, [...o, c.line]]) as any as State<
       S,
       A
     >;
@@ -70,17 +70,15 @@ describe('Free', () => {
       .flatMap(() => readLine)
       .flatMap(name => writeLine(`Hello ${name}!`));
 
-    const resultState = program.mapK(State.Monad<S>())(nt);
+    const resultState = program.mapK(
+      // TODO: Fix?
+      State.Monad<S>() as any as Monad<$<StateK, [S]>>,
+    )(nt);
 
-    const [s, a] = resultState.runState([['James'], []]);
+    const [s, a] = resultState.run(Eval.Monad)([['James'], []]).value;
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
     expect(a).toBeUndefined();
   });
-
-  const eqFreeIdentityPrim: Eq<Free<IdentityK, number>> = Eq.by(
-    Eq.primitive,
-    f => f.mapK(Identity.Monad)(id),
-  );
 
   const identityMonadTests = MonadSuite(Free.Monad<IdentityK>());
   checkAll(
