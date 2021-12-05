@@ -103,8 +103,9 @@ export const take: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
   n => s =>
     take_(s, n);
 
-export const takeRight: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
-  n => s => takeRight_(s, n);
+export const takeRight: (
+  n: number,
+) => <F, A>(s: Stream<F, A>) => Stream<F, A> = n => s => takeRight_(s, n);
 
 export const takeWhile: <A>(
   pred: (a: A) => boolean,
@@ -116,8 +117,9 @@ export const drop: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
   n => s =>
     drop_(s, n);
 
-export const dropRight: (n: number) => <F, A>(s: Stream<F, A>) => Stream<F, A> =
-  n => s => dropRight_(s, n);
+export const dropRight: (
+  n: number,
+) => <F, A>(s: Stream<F, A>) => Stream<F, A> = n => s => dropRight_(s, n);
 
 export const dropWhile: <A>(
   pred: (a: A) => boolean,
@@ -241,8 +243,9 @@ export const evalCollect: <F, A, B>(
 
 export const evalTap: <F>(
   F: Functor<F>,
-) => <A>(f: (a: A) => Kind<F, [unknown]>) => (s: Stream<F, A>) => Stream<F, A> =
-  F => f => s => evalTap_(F)(s, f);
+) => <A>(
+  f: (a: A) => Kind<F, [unknown]>,
+) => (s: Stream<F, A>) => Stream<F, A> = F => f => s => evalTap_(F)(s, f);
 
 export const evalMapChunk: <F>(
   F: Applicative<F>,
@@ -254,8 +257,9 @@ export const flatMap: <F, A, B>(
   f: (a: A) => Stream<F, B>,
 ) => (s: Stream<F, A>) => Stream<F, B> = f => s => flatMap_(s, f);
 
-export const flatten: <F, A>(ss: Stream<F, Stream<F, A>>) => Stream<F, A> =
-  ss => flatMap_(ss, id);
+export const flatten: <F, A>(
+  ss: Stream<F, Stream<F, A>>,
+) => Stream<F, A> = ss => flatMap_(ss, id);
 
 export const forEach: <F, A>(
   f: (a: A) => Kind<F, [void]>,

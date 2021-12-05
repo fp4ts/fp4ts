@@ -75,12 +75,14 @@ export const Monad = Object.freeze({
   deriveFunctor: <F>(F: MonadRequirements<F>): Functor<F> =>
     Functor.of({ map_: (fa, f) => F.flatMap_(fa, x => F.pure(f(x))), ...F }),
 
-  deriveApply: <F>(F: MonadRequirements<F>): Apply<F> =>
-    Apply.of({
-      ap_: (ff, fa) => F.flatMap_(ff, f => F.flatMap_(fa, a => F.pure(f(a)))),
+  deriveApply: <F>(F: MonadRequirements<F>): Apply<F> => {
+    const self: Apply<F> = Apply.of({
+      ap_: (ff, fa) => F.flatMap_(ff, f => self.map_(fa, a => f(a))),
       ...Monad.deriveFunctor(F),
       ...F,
-    }),
+    });
+    return self;
+  },
 
   deriveApplicative: <F>(F: MonadRequirements<F>): Applicative<F> =>
     Applicative.of({

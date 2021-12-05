@@ -134,8 +134,10 @@ export const dropWhile: <O>(
 
 export const find: <O>(
   pred: (o: O) => boolean,
-) => <F>(p: Pull<F, O, void>) => Pull<F, never, Option<[O, Pull<F, O, void>]>> =
-  pred => p => find_(p, pred);
+) => <F>(
+  p: Pull<F, O, void>,
+) => Pull<F, never, Option<[O, Pull<F, O, void>]>> = pred => p =>
+  find_(p, pred);
 
 export const mapOutput: <O, P>(
   f: (o: O) => P,
