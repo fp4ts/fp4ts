@@ -33,8 +33,10 @@ import {
 } from './operators';
 import { liftF, pure, suspend } from './constructors';
 
-export const kleisliDefer: <F, A>(F: Defer<F>) => Defer<$<KleisliK, [F, A]>> =
-  F => Defer.of({ defer: fa => new Kleisli(r => F.defer(() => fa().run(r))) });
+export const kleisliDefer: <F, A>(
+  F: Defer<F>,
+) => Defer<$<KleisliK, [F, A]>> = F =>
+  Defer.of({ defer: fa => new Kleisli(r => F.defer(() => fa().run(r))) });
 
 export const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,
@@ -76,16 +78,17 @@ export const kleisliFunctorFilter: <F, A>(
     mapFilter_: (fa, f) => suspend(a => F.mapFilter_(fa.run(a), f)),
   });
 
-export const kleisliApply: <F, A>(F: Apply<F>) => Apply<$<KleisliK, [F, A]>> =
-  F =>
-    Apply.of({
-      ...kleisliFunctor(F),
-      ap_: ap_(F),
-      map2_: map2_(F),
-      product_: product_(F),
-      productL_: productL_(F),
-      productR_: productR_(F),
-    });
+export const kleisliApply: <F, A>(
+  F: Apply<F>,
+) => Apply<$<KleisliK, [F, A]>> = F =>
+  Apply.of({
+    ...kleisliFunctor(F),
+    ap_: ap_(F),
+    map2_: map2_(F),
+    product_: product_(F),
+    productL_: productL_(F),
+    productR_: productR_(F),
+  });
 
 export const kleisliApplicative: <F, A>(
   F: Applicative<F>,
@@ -125,12 +128,13 @@ export const kleisliFlatMap: <F, A>(
     tailRecM_: tailRecM_(F),
   });
 
-export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliK, [F, A]>> =
-  F =>
-    Monad.of({
-      ...kleisliApplicative(F),
-      ...kleisliFlatMap(F),
-    });
+export const kleisliMonad: <F, A>(
+  F: Monad<F>,
+) => Monad<$<KleisliK, [F, A]>> = F =>
+  Monad.of({
+    ...kleisliApplicative(F),
+    ...kleisliFlatMap(F),
+  });
 
 export const kleisliMonadError: <F, A, E>(
   F: MonadError<F, E>,

@@ -16,8 +16,9 @@ export const map: <A, B>(f: (a: A) => B) => (fa: Eval<A>) => Eval<B> =
   f => fa =>
     map_(fa, f);
 
-export const flatMap: <A, B>(f: (a: A) => Eval<B>) => (fa: Eval<A>) => Eval<B> =
-  f => fa => flatMap_(fa, f);
+export const flatMap: <A, B>(
+  f: (a: A) => Eval<B>,
+) => (fa: Eval<A>) => Eval<B> = f => fa => flatMap_(fa, f);
 
 export const flatten: <A>(ffa: Eval<Eval<A>>) => Eval<A> = flatMap(id);
 

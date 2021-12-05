@@ -170,8 +170,11 @@ export const parTraverse: <T>(
 
 export const parSequenceN: <T>(
   T: Traversable<T>,
-) => (maxConcurrent: number) => <A>(iot: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>> =
-  T => maxConcurrent => iot => parSequenceN_(T)(iot, maxConcurrent);
+) => (
+  maxConcurrent: number,
+) => <A>(iot: Kind<T, [IO<A>]>) => IO<Kind<T, [A]>> =
+  T => maxConcurrent => iot =>
+    parSequenceN_(T)(iot, maxConcurrent);
 
 export const parTraverseN: <T>(
   T: Traversable<T>,

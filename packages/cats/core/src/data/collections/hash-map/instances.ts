@@ -37,8 +37,10 @@ export const hashMapEq: <K, V>(EK: Eq<K>, EV: Eq<V>) => Eq<HashMap<K, V>> = (
   EV,
 ) => Eq.of({ equals: (x, y) => equals_(EK, EV, x, y) });
 
-export const hashMapSemigroupK: <K>(E: Eq<K>) => SemigroupK<$<HashMapK, [K]>> =
-  E => SemigroupK.of({ combineK_: (x, y) => union_(E, x, y()) });
+export const hashMapSemigroupK: <K>(
+  E: Eq<K>,
+) => SemigroupK<$<HashMapK, [K]>> = E =>
+  SemigroupK.of({ combineK_: (x, y) => union_(E, x, y()) });
 
 export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapK, [K]>> = E =>
   MonoidK.of({

@@ -61,8 +61,9 @@ export const flatMap: <F>(
 
 export const flatMapF: <F>(
   F: Monad<F>,
-) => <A, B>(f: (a: A) => Kind<F, [B]>) => (fa: OptionT<F, A>) => OptionT<F, B> =
-  F => f => fa => flatMapF_(F)(fa, f);
+) => <A, B>(
+  f: (a: A) => Kind<F, [B]>,
+) => (fa: OptionT<F, A>) => OptionT<F, B> = F => f => fa => flatMapF_(F)(fa, f);
 
 export const flatten =
   <F>(F: Monad<F>) =>

@@ -181,8 +181,9 @@ export const tap: <A>(f: (a: A) => unknown) => (xs: List<A>) => List<A> =
   f => xs =>
     tap_(xs, f);
 
-export const flatMap: <A, B>(f: (a: A) => List<B>) => (xs: List<A>) => List<B> =
-  f => xs => flatMap_(xs, f);
+export const flatMap: <A, B>(
+  f: (a: A) => List<B>,
+) => (xs: List<A>) => List<B> = f => xs => flatMap_(xs, f);
 
 export const flatten: <A>(xs: List<List<A>>) => List<A> = flatMap(id);
 
@@ -291,8 +292,9 @@ export const scanRight: <A, B>(
   f: (a: A, b: B) => B,
 ) => (xs: List<A>) => List<B> = (z, f) => xs => scanRight_(xs, z, f);
 
-export const scanRight1: <A>(f: (x: A, y: A) => A) => (xs: List<A>) => List<A> =
-  f => xs => scanRight1_(xs, f);
+export const scanRight1: <A>(
+  f: (x: A, y: A) => A,
+) => (xs: List<A>) => List<A> = f => xs => scanRight1_(xs, f);
 
 export const traverse: <G>(
   G: Applicative<G>,

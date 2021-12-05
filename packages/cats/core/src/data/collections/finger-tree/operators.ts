@@ -191,8 +191,10 @@ export const splitAt: <V, A>(
 ) => (
   start: V,
   p: (a: V) => boolean,
-) => (xs: FingerTree<V, A>) => Option<[FingerTree<V, A>, A, FingerTree<V, A>]> =
-  M => (start, p) => xs => splitAt_(M)(xs, start, p);
+) => (
+  xs: FingerTree<V, A>,
+) => Option<[FingerTree<V, A>, A, FingerTree<V, A>]> = M => (start, p) => xs =>
+  splitAt_(M)(xs, start, p);
 
 export const forEach: <A>(
   f: (a: A) => void,

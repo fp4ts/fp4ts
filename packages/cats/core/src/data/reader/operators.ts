@@ -12,8 +12,9 @@ import { Either } from '../either';
 import { Reader } from './algebra';
 import { pure } from './constructors';
 
-export const provide: <R>(r: R) => <A>(fa: Reader<R, A>) => Reader<unknown, A> =
-  r => fa => provide_(fa, r);
+export const provide: <R>(
+  r: R,
+) => <A>(fa: Reader<R, A>) => Reader<unknown, A> = r => fa => provide_(fa, r);
 
 export const map: <A, B>(
   f: (a: A) => B,

@@ -101,14 +101,15 @@ export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceK, [F]>> = F =>
     defer: defer(F),
   });
 
-export const resourceAsync: <F>(F: Async<F>) => Async<$<ResourceK, [F]>> =
-  F => {
-    return Async.of({
-      ...resourceSync(F),
-      ...resourceTemporal(F),
-      never: never(F),
-      cont: cont(F),
-      readExecutionContext: readExecutionContext(F),
-      executeOn_: executeOn_(F),
-    });
-  };
+export const resourceAsync: <F>(
+  F: Async<F>,
+) => Async<$<ResourceK, [F]>> = F => {
+  return Async.of({
+    ...resourceSync(F),
+    ...resourceTemporal(F),
+    never: never(F),
+    cont: cont(F),
+    readExecutionContext: readExecutionContext(F),
+    executeOn_: executeOn_(F),
+  });
+};

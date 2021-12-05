@@ -116,8 +116,9 @@ export const popLast = <A>(c: Chain<A>): Option<[A, Chain<A>]> => {
   return Some(result);
 };
 
-export const prepend: <AA>(x: AA) => <A extends AA>(xs: Chain<A>) => Chain<AA> =
-  x => xs => prepend_(xs, x);
+export const prepend: <AA>(
+  x: AA,
+) => <A extends AA>(xs: Chain<A>) => Chain<AA> = x => xs => prepend_(xs, x);
 
 export const cons: <AA>(x: AA) => <A extends AA>(xs: Chain<A>) => Chain<AA> =
   prepend;
@@ -234,8 +235,9 @@ export const flatMap: <A, B>(
 
 export const flatten = <A>(xxs: Chain<Chain<A>>): Chain<A> => flatMap_(xxs, id);
 
-export const align: <B>(ys: Chain<B>) => <A>(xs: Chain<A>) => Chain<Ior<A, B>> =
-  ys => xs => align_(xs, ys);
+export const align: <B>(
+  ys: Chain<B>,
+) => <A>(xs: Chain<A>) => Chain<Ior<A, B>> = ys => xs => align_(xs, ys);
 
 export const zip: <B>(ys: Chain<B>) => <A>(xs: Chain<A>) => Chain<[A, B]> =
   ys => xs =>

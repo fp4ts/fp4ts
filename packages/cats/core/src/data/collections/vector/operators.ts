@@ -154,8 +154,9 @@ export const splitAt: (
 ) => <A>(xs: Vector<A>) => [Vector<A>, Vector<A>] = idx => xs =>
   splitAt_(xs, idx);
 
-export const filter: <A>(p: (a: A) => boolean) => (xs: Vector<A>) => Vector<A> =
-  p => xs => filter_(xs, p);
+export const filter: <A>(
+  p: (a: A) => boolean,
+) => (xs: Vector<A>) => Vector<A> = p => xs => filter_(xs, p);
 
 export const collect: <A, B>(
   f: (a: A) => Option<B>,

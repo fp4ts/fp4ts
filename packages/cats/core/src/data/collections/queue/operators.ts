@@ -244,8 +244,9 @@ export const scanLeft: <A, B>(
   f: (b: B, a: A) => B,
 ) => (q: Queue<A>) => Queue<B> = (z, f) => q => scanLeft_(q, z, f);
 
-export const scanLeft1: <A>(f: (b: A, a: A) => A) => (q: Queue<A>) => Queue<A> =
-  f => q => scanLeft1_(q, f);
+export const scanLeft1: <A>(
+  f: (b: A, a: A) => A,
+) => (q: Queue<A>) => Queue<A> = f => q => scanLeft1_(q, f);
 
 export const scanRight: <A, B>(
   z: B,
@@ -258,8 +259,9 @@ export const scanRight1: <A>(
 
 export const traverse: <G>(
   G: Applicative<G>,
-) => <A, B>(f: (a: A) => Kind<G, [B]>) => (q: Queue<A>) => Kind<G, [Queue<B>]> =
-  G => f => q => traverse_(G)(q, f);
+) => <A, B>(
+  f: (a: A) => Kind<G, [B]>,
+) => (q: Queue<A>) => Kind<G, [Queue<B>]> = G => f => q => traverse_(G)(q, f);
 
 export const toList = <A>(q: Queue<A>): List<A> =>
   List.fromIterator(iterator(q));

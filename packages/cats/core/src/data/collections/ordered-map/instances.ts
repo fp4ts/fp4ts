@@ -48,12 +48,13 @@ export const orderedMapSemigroupK: <K>(
 ) => SemigroupK<$<OrderedMapK, [K]>> = O =>
   SemigroupK.of({ combineK_: (x, y) => union_(O, x, y()) });
 
-export const orderedMapMonoidK: <K>(O: Ord<K>) => MonoidK<$<OrderedMapK, [K]>> =
-  O =>
-    MonoidK.of({
-      emptyK: () => empty,
-      combineK_: (x, y) => union_(O, x, y()),
-    });
+export const orderedMapMonoidK: <K>(
+  O: Ord<K>,
+) => MonoidK<$<OrderedMapK, [K]>> = O =>
+  MonoidK.of({
+    emptyK: () => empty,
+    combineK_: (x, y) => union_(O, x, y()),
+  });
 
 export const orderedMapFunctor: <K>() => Functor<$<OrderedMapK, [K]>> = lazyVal(
   () => Functor.of({ map_: (fa, f) => map_(fa, x => f(x)) }),
