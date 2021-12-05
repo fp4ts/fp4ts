@@ -47,7 +47,8 @@
       "./effect/test-kit/src",
       "./stream/",
       "./stream/core/src",
-      "./stream/test-kit/src"
+      "./stream/test-kit/src",
+      "./examples/",
     ]
   },
 

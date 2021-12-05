@@ -30,6 +30,10 @@ laws, to verify correctness of those implementations.
 for purely functional, effectul, and polymorphic stream processing.
 
 
+## Examples
+
+- John De Goes' [FP to the Max](./packages/examples/fp-to-the-max/src/program.ts)
+
 ## License
 
 ```

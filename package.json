@@ -7,7 +7,8 @@
     "./packages/effect/*",
     "./packages/effect",
     "./packages/stream",
-    "./packages/stream/*"
+    "./packages/stream/*",
+    "./packages/examples/*"
   ],
   "license": "MIT",
   "devDependencies": {

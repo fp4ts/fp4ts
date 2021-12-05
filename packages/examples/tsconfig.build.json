@@ -1,0 +1,6 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./fp-to-the-max/tsconfig.build.json" },
+  ]
+}
