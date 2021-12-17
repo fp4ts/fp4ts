@@ -17,6 +17,7 @@ export const eqIO = <A>(
   E: Eq<A>,
   ec: Ticker,
   autoSuspendThreshold: number = Infinity,
+  traceBufferSize: number = 16,
 ): Eq<IO<A>> => {
   const _Eq = Option.Eq(Either.Eq(Eq.Error.strict, E));
 
@@ -24,7 +25,10 @@ export const eqIO = <A>(
     let result: Option<Either<Error, A>> = None;
     ioa.unsafeRunAsync(
       ea => (result = Some(ea)),
-      new IORuntime(ec.ctx, () => {}, { autoSuspendThreshold }),
+      new IORuntime(ec.ctx, () => {}, {
+        autoSuspendThreshold,
+        traceBufferSize,
+      }),
     );
 
     ec.ctx.tickAll();

@@ -404,7 +404,7 @@ describe('Effect-ful stream', () => {
 
       const io = s.compileConcurrent().drain;
       io.unsafeRunToPromise({
-        config: { autoSuspendThreshold: Infinity },
+        config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
         executionContext: ticker.ctx,
         shutdown: () => {},
       });
@@ -446,7 +446,7 @@ describe('Effect-ful stream', () => {
 
       const io = s.compileConcurrent().drain;
       io.unsafeRunToPromise({
-        config: { autoSuspendThreshold: Infinity },
+        config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
         executionContext: ticker.ctx,
         shutdown: () => {},
       });
@@ -504,7 +504,7 @@ describe('Effect-ful stream', () => {
 
       const io = s.compileConcurrent().drain;
       io.unsafeRunToPromise({
-        config: { autoSuspendThreshold: Infinity },
+        config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
         executionContext: ticker.ctx,
         shutdown: () => {},
       });

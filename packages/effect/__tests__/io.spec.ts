@@ -45,6 +45,24 @@ describe('IO', () => {
   });
 
   describe('error handling', () => {
+    // test('tracing', async () => {
+    //   const fib = (n: number, a: bigint = 0n, b: bigint = 1n): IO<bigint> =>
+    //     IO(() => a + b).flatMap(c => (n > 0 ? fib(n - 1, b, c) : IO.pure(c)));
+
+    //   const program = pipe(
+    //     IO.Do,
+    //     IO.bindTo('x', fib(20)),
+    //     IO.bind(({ x }) => IO(() => console.log(`20th fib number is ${x}`))),
+    //     IO.bind(() => IO.throwError(new Error('test'))),
+    //   );
+
+    //   try {
+    //     await program.unsafeRunToPromise();
+    //   } catch (e) {
+    //     console.log(e);
+    //   }
+    // });
+
     test.ticked(
       'attempt is redeem with Left for recover and Right for map',
       ticker =>

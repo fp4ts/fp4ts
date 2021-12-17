@@ -5,7 +5,11 @@
 
 export const PlatformConfig = Object.freeze({
   AUTO_SUSPEND_THRESHOLD: parseInt(
-    process.env.EFFECT_IO_AUTO_SUSPEND_THRESHOLD ?? '512',
+    process.env.FP4TS_EFFECT_IO_AUTO_SUSPEND_THRESHOLD ?? '512',
     10,
   ),
+  TRACE_MODE:
+    process.env.FP4TS_TRACE_MODE ??
+    (process.env.NODE_ENV === 'production' ? 'off' : 'full'),
+  TRACE_BUFFER_SIZE: parseInt(process.env.FP4TS_TRACE_BUFFER_SIZE ?? '16', 10),
 });

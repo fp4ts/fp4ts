@@ -269,7 +269,7 @@ describe('Resource', () => {
         .both(IO.Concurrent)(rhs)
         .use(IO.MonadCancel)(() => wait)
         .unsafeRunToPromise({
-          config: { autoSuspendThreshold: Infinity },
+          config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
           executionContext: ticker.ctx,
           shutdown: () => {},
         });
@@ -335,7 +335,7 @@ describe('Resource', () => {
           .use_(IO.MonadCancel)
           .handleError(() => {})
           .unsafeRunToPromise({
-            config: { autoSuspendThreshold: Infinity },
+            config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
             executionContext: ticker.ctx,
             shutdown: () => {},
           });
@@ -408,7 +408,7 @@ describe('Resource', () => {
           .use(IO.MonadCancel)(() => wait(1))
           .handleError(() => {})
           .unsafeRunToPromise({
-            config: { autoSuspendThreshold: Infinity },
+            config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
             executionContext: ticker.ctx,
             shutdown: () => {},
           });

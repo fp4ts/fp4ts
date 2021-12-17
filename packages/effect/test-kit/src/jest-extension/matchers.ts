@@ -39,7 +39,10 @@ function tickTo(
 
   receivedIO.unsafeRunAsyncOutcome(
     oc => (received = oc),
-    new IORuntime(ticker.ctx, () => {}, { autoSuspendThreshold: Infinity }),
+    new IORuntime(ticker.ctx, () => {}, {
+      autoSuspendThreshold: Infinity,
+      traceBufferSize: 16,
+    }),
   );
 
   ticker.ctx.tickAll();
@@ -118,7 +121,7 @@ expect.extend({
 
     receivedIO.unsafeRunAsyncOutcome(oc => {
       outcome = oc;
-    }, new IORuntime(ticker.ctx, () => {}, { autoSuspendThreshold: Infinity }));
+    }, new IORuntime(ticker.ctx, () => {}, { autoSuspendThreshold: Infinity, traceBufferSize: 16 }));
 
     ticker.ctx.tickAll();
 

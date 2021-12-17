@@ -5,4 +5,5 @@
 
 export interface IORuntimeConfig {
   autoSuspendThreshold: number;
+  traceBufferSize: number;
 }

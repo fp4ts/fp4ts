@@ -372,7 +372,7 @@ describe('Stream Bracket', () => {
 
     const io = s.compileConcurrent().drain;
     io.unsafeRunToPromise({
-      config: { autoSuspendThreshold: Infinity },
+      config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
       executionContext: ticker.ctx,
       shutdown: () => {},
     });

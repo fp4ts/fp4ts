@@ -26,4 +26,5 @@ module.exports = {
     '<rootDir>/examples/fp-to-the-max',
   ],
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/../jest-setup.js'],
 };

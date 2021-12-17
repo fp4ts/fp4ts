@@ -29,15 +29,19 @@ import {
 } from './algebra';
 import { flatMap_, map_ } from './operators';
 import type { IoK } from './io';
+import { Tracing } from '../tracing';
 
-export const pure: <A>(a: A) => IO<A> = value => new Pure(value);
+export const pure: <A>(a: A) => IO<A> = value =>
+  new Pure(value, Tracing.buildEvent());
 
 export const unit: IO<void> = pure(undefined);
 
-export const delay: <A>(thunk: () => A) => IO<A> = thunk => new Delay(thunk);
+export function delay<A>(thunk: () => A): IO<A> {
+  return new Delay(thunk, Tracing.buildEvent());
+}
 
 export const defer: <A>(thunk: () => IO<A>) => IO<A> = thunk =>
-  new Defer(thunk);
+  new Defer(thunk, Tracing.buildEvent());
 
 export const throwError: (error: Error) => IO<never> = error => new Fail(error);
 
@@ -61,6 +65,7 @@ export const async = <A>(
             ),
           ),
         ),
+    Tracing.buildEvent(),
   );
 
 export const async_ = <A>(
@@ -80,7 +85,7 @@ export const canceled: IO<void> = Canceled;
 export const suspend: IO<void> = Suspend;
 
 export const uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A> = ioa =>
-  new Uncancelable(ioa);
+  new Uncancelable(ioa, Tracing.buildEvent());
 
 export const sleep = (ms: number): IO<void> => new Sleep(ms);
 

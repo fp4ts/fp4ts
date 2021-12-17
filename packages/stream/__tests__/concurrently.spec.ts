@@ -31,7 +31,7 @@ describe('Stream concurrently', () => {
         .toList.flatMap(xs => IO(() => (result = xs))).void;
 
       io.unsafeRunToPromise({
-        config: { autoSuspendThreshold: Infinity },
+        config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
         executionContext: ticker.ctx,
         shutdown: () => {},
       });
@@ -120,7 +120,7 @@ describe('Stream concurrently', () => {
         .toList.flatMap(xs => IO(() => (result = xs))).void;
 
       io.unsafeRunToPromise({
-        config: { autoSuspendThreshold: Infinity },
+        config: { autoSuspendThreshold: Infinity, traceBufferSize: 16 },
         executionContext: ticker.ctx,
         shutdown: () => {},
       });

@@ -12,6 +12,7 @@ import { IO, IoK } from './io';
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
 import { IOOutcome } from './io-outcome';
+import { TracingEvent, RingBuffer, Tracing } from './tracing';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
@@ -40,6 +41,8 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
   private readonly runtime: IORuntime;
 
+  private trace: RingBuffer;
+
   public constructor(
     startIO: IO<A>,
     startEC: ExecutionContext,
@@ -52,6 +55,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
     this.runtime = runtime;
 
     this.autoSuspendThreshold = this.runtime.config.autoSuspendThreshold;
+    this.trace = new RingBuffer(this.runtime.config.traceBufferSize);
   }
 
   public get join(): IO<IOOutcome<A>> {
@@ -90,6 +94,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
       const cur = IOA.view(_cur);
       switch (cur.tag) {
         case 'pure':
+          this.pushTracingEvent(cur.event);
           _cur = this.succeeded(cur.value);
           continue;
 
@@ -99,6 +104,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
         case 'delay':
           try {
+            this.pushTracingEvent(cur.event);
             _cur = IO.pure(cur.thunk());
           } catch (e) {
             _cur = IO.throwError(e as Error);
@@ -107,6 +113,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
         case 'defer':
           try {
+            this.pushTracingEvent(cur.event);
             _cur = cur.thunk();
           } catch (e) {
             _cur = IO.throwError(e as Error);
@@ -116,18 +123,21 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
         case 'map':
           this.stack.push(cur.f);
           this.conts.push(IOA.Continuation.MapK);
+          this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
         case 'flatMap':
           this.stack.push(cur.f);
           this.conts.push(IOA.Continuation.FlatMapK);
+          this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
         case 'handleErrorWith':
           this.stack.push(cur.f as (u: unknown) => unknown);
           this.conts.push(IOA.Continuation.HandleErrorWithK);
+          this.pushTracingEvent(cur.event);
           _cur = cur.ioa;
           continue;
 
@@ -168,6 +178,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
         case 'ioCont': {
           const body = cur.body;
+          this.pushTracingEvent(cur.event);
 
           const state = new IOA.ContState(this.finalizing);
 
@@ -245,6 +256,8 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
         }
 
         case 'uncancelable': {
+          this.pushTracingEvent(cur.event);
+
           this.masks += 1;
           const id = this.masks;
 
@@ -400,6 +413,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
     this.callbacks = [];
     this.finalizers = [];
     this.masks = 0;
+    this.trace.invalidate();
     this.currentEC = undefined as any;
     this.resumeIO = IOA.IOEndFiber;
   }
@@ -418,6 +432,10 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
   private isUnmasked(): boolean {
     return !this.masks;
+  }
+
+  private pushTracingEvent(e?: TracingEvent): void {
+    e && this.trace.push(e);
   }
 
   // -- Continuations
@@ -483,6 +501,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
         }
       } else {
         let e = cr.error;
+        Tracing.augmentError(e, this.trace.toArray);
 
         while (true) {
           const nextCont = this.conts.pop();
@@ -501,6 +520,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
                 return f(e);
               } catch (e2) {
                 e = e2 as Error;
+                Tracing.augmentError(e, this.trace.toArray);
                 continue;
               }
 

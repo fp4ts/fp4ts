@@ -31,6 +31,7 @@ import {
   uncancelable,
 } from './constructors';
 import { ioAsync, ioParallel, ioApplicative } from './instances';
+import { Tracing } from '../tracing';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
 
@@ -267,7 +268,7 @@ export const bracketOutcome_ = <A, B>(
 ): IO<B> => bracketFull(() => ioa, use, release);
 
 export const map_: <A, B>(ioa: IO<A>, f: (a: A) => B) => IO<B> = (ioa, f) =>
-  new Map(ioa, f);
+  new Map(ioa, f, Tracing.buildEvent());
 
 export const tap_: <A>(ioa: IO<A>, f: (a: A) => unknown) => IO<A> = (ioa, f) =>
   map_(ioa, x => {
@@ -278,7 +279,7 @@ export const tap_: <A>(ioa: IO<A>, f: (a: A) => unknown) => IO<A> = (ioa, f) =>
 export const flatMap_: <A, B>(ioa: IO<A>, f: (a: A) => IO<B>) => IO<B> = (
   ioa,
   f,
-) => new FlatMap(ioa, f);
+) => new FlatMap(ioa, f, Tracing.buildEvent());
 
 export const flatTap_: <A>(ioa: IO<A>, f: (a: A) => IO<unknown>) => IO<A> = (
   ioa,
@@ -301,7 +302,7 @@ export const handleError_: <A>(ioa: IO<A>, f: (e: Error) => A) => IO<A> = (
 export const handleErrorWith_: <A>(
   ioa: IO<A>,
   f: (e: Error) => IO<A>,
-) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f);
+) => IO<A> = (ioa, f) => new HandleErrorWith(ioa, f, Tracing.buildEvent());
 
 export const onError_ = <A>(ioa: IO<A>, f: (e: Error) => IO<void>): IO<A> =>
   handleErrorWith_(ioa, e => flatMap_(f(e), () => throwError(e)));

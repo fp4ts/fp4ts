@@ -24,6 +24,7 @@ export class IORuntime {
     if (!this._global) {
       this._global = new IORuntime(GlobalExecutionContext, () => {}, {
         autoSuspendThreshold: PlatformConfig.AUTO_SUSPEND_THRESHOLD,
+        traceBufferSize: PlatformConfig.TRACE_BUFFER_SIZE,
       });
     }
     return this._global;

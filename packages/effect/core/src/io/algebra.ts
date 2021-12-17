@@ -9,6 +9,7 @@ import { ExecutionContext, Poll, Cont } from '@fp4ts/effect-kernel';
 import { IoK } from './io';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
+import { TracingEvent } from '../tracing';
 
 // -- IO Algebra
 
@@ -18,7 +19,10 @@ export abstract class IO<A> {
 
 export class Pure<A> extends IO<A> {
   public readonly tag = 'pure';
-  public constructor(public readonly value: A) {
+  public constructor(
+    public readonly value: A,
+    public readonly event?: TracingEvent,
+  ) {
     super();
   }
 
@@ -40,14 +44,20 @@ export class Fail extends IO<never> {
 
 export class Delay<A> extends IO<A> {
   public readonly tag = 'delay';
-  public constructor(public readonly thunk: () => A) {
+  public constructor(
+    public readonly thunk: () => A,
+    public readonly event?: TracingEvent,
+  ) {
     super();
   }
 }
 
 export class Defer<A> extends IO<A> {
   public readonly tag = 'defer';
-  public constructor(public readonly thunk: () => IO<A>) {
+  public constructor(
+    public readonly thunk: () => IO<A>,
+    public readonly event?: TracingEvent,
+  ) {
     super();
   }
 }
@@ -62,6 +72,7 @@ export class Map<E, A> extends IO<A> {
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (e: E) => A,
+    public readonly event?: TracingEvent,
   ) {
     super();
   }
@@ -71,6 +82,7 @@ export class FlatMap<E, A> extends IO<A> {
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (a: E) => IO<A>,
+    public readonly event?: TracingEvent,
   ) {
     super();
   }
@@ -80,6 +92,7 @@ export class HandleErrorWith<A> extends IO<A> {
   public constructor(
     public readonly ioa: IO<A>,
     public readonly f: (e: Error) => IO<A>,
+    public readonly event?: TracingEvent,
   ) {
     super();
   }
@@ -133,7 +146,10 @@ export type Canceled = typeof Canceled;
 
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 'uncancelable';
-  public constructor(public readonly body: (p: Poll<IoK>) => IO<A>) {
+  public constructor(
+    public readonly body: (p: Poll<IoK>) => IO<A>,
+    public readonly event?: TracingEvent,
+  ) {
     super();
   }
 }
@@ -179,7 +195,10 @@ export class UnmaskRunLoop<A> extends IO<A> {
 
 export class IOCont<K, R> extends IO<R> {
   public readonly tag = 'ioCont';
-  public constructor(public readonly body: Cont<IoK, K, R>) {
+  public constructor(
+    public readonly body: Cont<IoK, K, R>,
+    public readonly event?: TracingEvent,
+  ) {
     super();
   }
 }
