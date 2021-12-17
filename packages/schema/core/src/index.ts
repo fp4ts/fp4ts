@@ -1,0 +1,4 @@
+/**
+ * @module schema/core
+ */
+export {};

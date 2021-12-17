@@ -6,6 +6,8 @@
     "./packages/core",
     "./packages/effect/*",
     "./packages/effect",
+    "./packages/schema",
+    "./packages/schema/*",
     "./packages/stream",
     "./packages/stream/*",
     "./packages/examples/*"

@@ -21,6 +21,8 @@ module.exports = {
     '<rootDir>/effect/kernel/src',
     '<rootDir>/effect/laws/src',
     '<rootDir>/effect/std/src',
+    '<rootDir>/schema/__tests__',
+    '<rootDir>/schema/core/src',
     '<rootDir>/stream/__tests__',
     '<rootDir>/stream/core/src',
     '<rootDir>/examples/fp-to-the-max',
