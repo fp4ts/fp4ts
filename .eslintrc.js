@@ -20,4 +20,11 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 0,
     '@typescript-eslint/no-empty-interface': 0,
   },
+
+  ignorePatterns: [
+    '**/lib/**/*.js',
+    '**/lib/**/*.d.ts',
+    '**/dist/**/*.js',
+    '**/dist/**/*.d.ts',
+  ],
 };
