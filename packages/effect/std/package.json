@@ -9,10 +9,10 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@fp4ts/core": "*",
-    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-core": "*",
+    "@fp4ts/core": "*"
   },
   "devDependencies": {
-    "typescript": "4.5.2"
+    "typescript": "4.5.4"
   }
 }
