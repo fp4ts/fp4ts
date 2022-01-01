@@ -107,19 +107,6 @@ export class NullableSchema<A> extends Schema<A | null> {
   }
 }
 
-export class UnionSchema<A, B> extends Schema<A | B> {
-  public constructor(
-    private readonly sa: Schema<A>,
-    private readonly sb: Schema<B>,
-  ) {
-    super();
-  }
-
-  public interpret<S>(S: Schemable<S>): Kind<S, [A | B]> {
-    return S.union(this.sa.interpret(S), this.sb.interpret(S));
-  }
-}
-
 export class IntersectionSchema<A, B> extends Schema<A & B> {
   public constructor(
     private readonly sa: Schema<A>,

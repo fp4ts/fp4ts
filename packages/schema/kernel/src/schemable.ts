@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Base, Kind } from '@fp4ts/core';
+import { Base, instance, Kind } from '@fp4ts/core';
 import { Literal } from './literal';
 
 export interface Schemable<S> extends Base<S> {
@@ -20,7 +20,6 @@ export interface Schemable<S> extends Base<S> {
 
   nullable<A>(sa: Kind<S, [A]>): Kind<S, [A | null]>;
 
-  union<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A | B]>;
   intersection<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A & B]>;
 
   product<A extends unknown[]>(
@@ -35,3 +34,11 @@ export interface Schemable<S> extends Base<S> {
 
   defer<A>(thunk: () => Kind<S, [A]>): Kind<S, [A]>;
 }
+
+export type SchemableRequirements<S> = Omit<Schemable<S>, '_F'>;
+export const Schemable = Object.freeze({
+  of: <S>(S: SchemableRequirements<S>): Schemable<S> =>
+    instance<Schemable<S>>({
+      ...S,
+    }),
+});

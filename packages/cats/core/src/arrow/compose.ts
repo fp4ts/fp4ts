@@ -25,7 +25,7 @@ export interface Compose<F> {
   readonly andThen_: <A, B, C>(
     f: Kind<F, [A, B]>,
     g: Kind<F, [B, C]>,
-  ) => Kind<F, [A, B]>;
+  ) => Kind<F, [A, C]>;
 
   readonly algebraK: () => SemigroupK<λ<F, [α, α]>>;
   readonly algebra: <A>() => Semigroup<Kind<F, [A, A]>>;
