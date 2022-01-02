@@ -20,6 +20,7 @@ import {
   Try,
   Ior,
   OptionT,
+  EitherT,
   Queue,
   AndThen,
   IndexedStateT,
@@ -53,6 +54,10 @@ export const fp4tsEither = <E, A>(
   arbE: Arbitrary<E>,
   arbA: Arbitrary<A>,
 ): Arbitrary<Either<E, A>> => fc.oneof(arbE.map(Left), arbA.map(Right));
+
+export const fp4tsEitherT = <F, A, B>(
+  arbA: Arbitrary<Kind<F, [Either<A, B>]>>,
+): Arbitrary<EitherT<F, A, B>> => arbA.map(EitherT);
 
 export const fp4tsIor = <A, B>(
   arbA: Arbitrary<A>,

@@ -73,7 +73,7 @@ declare module './algebra' {
 
     fold<B>(
       this: OptionT<F, B>,
-      F: Monad<F>,
+      F: Functor<F>,
     ): <C>(onNone: () => C, onSome: (a: B) => C) => Kind<F, [C]>;
 
     foldF<B>(

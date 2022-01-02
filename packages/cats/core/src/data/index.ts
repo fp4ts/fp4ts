@@ -12,7 +12,6 @@ export * from './option';
 export * from './identity';
 export * from './const';
 export * from './indexed-state-t';
-// export * from './state';
 export * from './reader';
 export * from './try';
 export * from './ior';
@@ -20,6 +19,7 @@ export * from './ior';
 export * from './and-then';
 export * from './kleisli';
 export * from './option-t';
+export * from './either-t';
 export * from './nested';
 export * from './tuple2-k';
 

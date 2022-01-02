@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { $, $type, Fix, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { Category, Compose, Contravariant, Functor } from '@fp4ts/cats';
 import { Encoder as EncoderBase } from './algebra';

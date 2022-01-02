@@ -157,7 +157,7 @@ export const tailRecM_ =
     );
 
 export const fold_ =
-  <F>(F: Monad<F>) =>
+  <F>(F: Functor<F>) =>
   <A, B>(
     fa: OptionT<F, A>,
     onNone: () => B,
