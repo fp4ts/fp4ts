@@ -116,7 +116,20 @@ export class IntersectionSchema<A, B> extends Schema<A & B> {
   }
 
   public interpret<S>(S: Schemable<S>): Kind<S, [A & B]> {
-    return S.intersection(this.sa.interpret(S), this.sb.interpret(S));
+    return S.intersection_(this.sa.interpret(S), this.sb.interpret(S));
+  }
+}
+
+export class UnionSchema<A, B> extends Schema<A | B> {
+  public constructor(
+    private readonly sa: Schema<A>,
+    private readonly sb: Schema<B>,
+  ) {
+    super();
+  }
+
+  public interpret<S>(S: Schemable<S>): Kind<S, [A | B]> {
+    return S.union_(this.sa.interpret(S), this.sb.interpret(S));
   }
 }
 

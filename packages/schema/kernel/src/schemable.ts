@@ -20,7 +20,11 @@ export interface Schemable<S> extends Base<S> {
 
   nullable<A>(sa: Kind<S, [A]>): Kind<S, [A | null]>;
 
-  intersection<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A & B]>;
+  intersection<B>(sb: Kind<S, [B]>): <A>(sa: Kind<S, [A]>) => Kind<S, [A & B]>;
+  intersection_<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A & B]>;
+
+  union<B>(sb: Kind<S, [B]>): <A>(sa: Kind<S, [A]>) => Kind<S, [A | B]>;
+  union_<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A | B]>;
 
   product<A extends unknown[]>(
     ...xs: { [k in keyof A]: Kind<S, [A[k]]> }
@@ -35,10 +39,16 @@ export interface Schemable<S> extends Base<S> {
   defer<A>(thunk: () => Kind<S, [A]>): Kind<S, [A]>;
 }
 
-export type SchemableRequirements<S> = Omit<Schemable<S>, '_F'>;
+export type SchemableRequirements<S> = Omit<
+  Schemable<S>,
+  '_F' | 'union' | 'intersection'
+> &
+  Partial<Schemable<S>>;
 export const Schemable = Object.freeze({
   of: <S>(S: SchemableRequirements<S>): Schemable<S> =>
     instance<Schemable<S>>({
+      intersection: sb => sa => S.intersection_(sa, sb),
+      union: sb => sa => S.union_(sa, sb),
       ...S,
     }),
 });
