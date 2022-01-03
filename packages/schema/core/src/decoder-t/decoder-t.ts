@@ -12,7 +12,6 @@ import {
   Functor,
   Monad,
   MonoidK,
-  Option,
   Profunctor,
 } from '@fp4ts/cats';
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
@@ -80,7 +79,7 @@ interface DecoderTObj {
   ) => DecoderT<F, I, A>;
   failWith<F>(
     F: Applicative<F>,
-  ): <A = never, I = unknown>(cause?: Option<string>) => DecoderT<F, I, A>;
+  ): <A = never, I = unknown>(cause: string) => DecoderT<F, I, A>;
   identity<F>(F: Applicative<F>): <A>() => DecoderT<F, A, A>;
   empty<F>(F: Applicative<F>): <A = never>() => DecoderT<F, unknown, A>;
   tailRecM<F>(

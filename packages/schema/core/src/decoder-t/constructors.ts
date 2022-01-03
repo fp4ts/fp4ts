@@ -46,7 +46,7 @@ export const failT =
 
 export const failWith =
   <F>(F: Applicative<F>) =>
-  <A = never, I = unknown>(cause: Option<string> = None): DecoderT<F, I, A> =>
+  <A = never, I = unknown>(cause: string): DecoderT<F, I, A> =>
     fail(F)(new DecodeFailure(cause));
 
 export const identity =
@@ -181,7 +181,7 @@ export const struct =
             traverse(EitherT.Monad<F, DecodeFailure>(F))(k => {
               if (!(k in xs))
                 return DecodeResultT.failure(F)(
-                  new DecodeFailure(Some(`missing property '${k}'`)),
+                  new DecodeFailure(`missing property '${k}'`),
                 );
 
               return mapFailure_(F)(ds[k], f => `${f} at key '${k}'`)
@@ -267,12 +267,10 @@ export const sum =
         new DecoderT(x => {
           const t = x[tag] as keyof A;
           if (!t)
-            return DecodeResultT.failure(F)(
-              new DecodeFailure(Some('Missing tag')),
-            );
+            return DecodeResultT.failure(F)(new DecodeFailure('Missing tag'));
           if (!(t in ds))
             return DecodeResultT.failure(F)(
-              new DecodeFailure(Some(`Invalid tag '${tag}'`)),
+              new DecodeFailure(`Invalid tag '${tag}'`),
             );
           return ds[t].decode(x);
         }),

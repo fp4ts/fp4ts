@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Functor, Monad, Option } from '@fp4ts/cats';
+import { Either, Functor, Monad, Option } from '@fp4ts/cats';
 
 import { DecoderT } from './algebra';
+import { DecodeResultT } from './decode-result-t';
 import { DecodeFailure } from '../decode-failure';
 import {
   adaptF_,
@@ -17,8 +18,12 @@ import {
   compose_,
   dimap_,
   filter_,
+  flatMapR_,
   flatMap_,
   flatten,
+  handleErrorWithR_,
+  handleErrorWith_,
+  handleError_,
   intersection_,
   leftMap_,
   map_,
@@ -31,6 +36,9 @@ import {
   nonEmpty,
   orElse_,
   refine_,
+  transformWithR_,
+  transformWith_,
+  transform_,
   union_,
 } from './operators';
 
@@ -74,10 +82,44 @@ declare module './algebra' {
     flatMap(
       F: Monad<F>,
     ): <I2 extends I, B>(f: (a: A) => DecoderT<F, I2, B>) => DecoderT<F, I2, B>;
+    flatMapR(
+      F: Monad<F>,
+    ): <B>(f: (a: A) => DecodeResultT<F, B>) => DecoderT<F, I, B>;
     flatten<B>(
       this: DecoderT<F, I, DecoderT<F, I, B>>,
       F: Monad<F>,
     ): DecoderT<F, I, B>;
+
+    handleError<AA>(
+      this: DecoderT<F, I, AA>,
+      F: Functor<F>,
+    ): (
+      h: (e: DecodeFailure) => Either<DecodeFailure, AA>,
+    ) => DecoderT<F, I, AA>;
+    handleErrorWithR<AA>(
+      this: DecoderT<F, I, AA>,
+      F: Monad<F>,
+    ): (h: (e: DecodeFailure) => DecodeResultT<F, AA>) => DecoderT<F, I, AA>;
+    handleErrorWith<AA>(
+      this: DecoderT<F, I, AA>,
+      F: Monad<F>,
+    ): (h: (e: DecodeFailure) => DecoderT<F, I, AA>) => DecoderT<F, I, AA>;
+
+    transform(
+      F: Functor<F>,
+    ): <B>(
+      f: (ea: Either<DecodeFailure, A>) => Either<DecodeFailure, B>,
+    ) => DecoderT<F, I, B>;
+    transformWithR(
+      F: Monad<F>,
+    ): <B>(
+      f: (ea: Either<DecodeFailure, A>) => DecodeResultT<F, B>,
+    ) => DecoderT<F, I, B>;
+    transformWith(
+      F: Monad<F>,
+    ): <B>(
+      f: (ea: Either<DecodeFailure, A>) => DecoderT<F, I, B>,
+    ) => DecoderT<F, I, B>;
 
     andThen<AA>(
       this: DecoderT<F, I, AA>,
@@ -178,8 +220,31 @@ DecoderT.prototype.map = function (F) {
 DecoderT.prototype.flatMap = function (F) {
   return f => flatMap_(F)(this, f);
 };
+DecoderT.prototype.flatMapR = function (F) {
+  return f => flatMapR_(F)(this, f);
+};
 DecoderT.prototype.flatten = function (F) {
   return flatten(F)(this);
+};
+
+DecoderT.prototype.handleError = function (F) {
+  return h => handleError_(F)(this, h);
+};
+DecoderT.prototype.handleErrorWithR = function (F) {
+  return h => handleErrorWithR_(F)(this, h);
+};
+DecoderT.prototype.handleErrorWith = function (F) {
+  return h => handleErrorWith_(F)(this, h);
+};
+
+DecoderT.prototype.transform = function (F) {
+  return h => transform_(F)(this, h);
+};
+DecoderT.prototype.transformWithR = function (F) {
+  return h => transformWithR_(F)(this, h);
+};
+DecoderT.prototype.transformWith = function (F) {
+  return h => transformWith_(F)(this, h);
 };
 
 DecoderT.prototype.andThen = function (F) {

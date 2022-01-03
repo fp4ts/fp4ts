@@ -3,21 +3,23 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { id, Kind, pipe } from '@fp4ts/core';
 import {
   AndThen,
   Applicative,
+  Either,
   EitherT,
   Functor,
   Monad,
   None,
   Option,
+  Right,
   Some,
 } from '@fp4ts/cats';
 
 import { DecodeFailure } from '../decode-failure';
 import { DecoderT } from './algebra';
-import { fromRefinement } from './constructors';
+import { fromRefinement, succeed } from './constructors';
 import { DecodeResultT } from './decode-result-t';
 
 export const refine: <F>(
@@ -95,7 +97,7 @@ export const collect_ =
       AndThen(d.decode).andThen(fb =>
         fb.flatMap(F)(b =>
           f(b).fold(
-            () => DecodeResultT.failure(F)(new DecodeFailure(Option(cause))),
+            () => DecodeResultT.failure(F)(new DecodeFailure(cause)),
             DecodeResultT.success(F),
           ),
         ),
@@ -155,6 +157,76 @@ export const flatMap_ =
     f: (a: A) => DecoderT<F, I, B>,
   ): DecoderT<F, I, B> =>
     new DecoderT(i => d.decode(i).flatMap(F)(x => f(x).decode(i)));
+
+export const flatMapR_ =
+  <F>(F: Monad<F>) =>
+  <I, A, B>(
+    d: DecoderT<F, I, A>,
+    f: (a: A) => DecodeResultT<F, B>,
+  ): DecoderT<F, I, B> =>
+    new DecoderT(AndThen(d.decode).andThen(ea => ea.flatMap(F)(f)));
+
+export const handleError_ =
+  <F>(F: Functor<F>) =>
+  <I, A>(
+    d: DecoderT<F, I, A>,
+    h: (e: DecodeFailure) => Either<DecodeFailure, A>,
+  ): DecoderT<F, I, A> =>
+    transform_(F)(d, ea => ea.fold(h, Right));
+
+export const handleErrorWithR_ =
+  <F>(F: Monad<F>) =>
+  <I, A>(
+    d: DecoderT<F, I, A>,
+    h: (e: DecodeFailure) => DecodeResultT<F, A>,
+  ): DecoderT<F, I, A> =>
+    transformWithR_(F)(d, ea => ea.fold(e => h(e), DecodeResultT.success(F)));
+
+export const handleErrorWith_ =
+  <F>(F: Monad<F>) =>
+  <I, A>(
+    d: DecoderT<F, I, A>,
+    h: (e: DecodeFailure) => DecoderT<F, I, A>,
+  ): DecoderT<F, I, A> =>
+    transformWith_(F)(d, ea => ea.fold(e => h(e), succeed(F)));
+
+export const transform_ =
+  <F>(F: Functor<F>) =>
+  <I, A, B>(
+    d: DecoderT<F, I, A>,
+    f: (ea: Either<DecodeFailure, A>) => Either<DecodeFailure, B>,
+  ): DecoderT<F, I, B> =>
+    new DecoderT(
+      AndThen(d.decode)
+        .andThen(r => F.map_(r.value, f))
+        .andThen(EitherT),
+    );
+
+export const transformWithR_ =
+  <F>(F: Monad<F>) =>
+  <I, A, B>(
+    d: DecoderT<F, I, A>,
+    f: (ea: Either<DecodeFailure, A>) => DecodeResultT<F, B>,
+  ): DecoderT<F, I, B> =>
+    new DecoderT(
+      AndThen(d.decode)
+        .andThen(r => F.flatMap_(r.value, ea => f(ea).value))
+        .andThen(EitherT),
+    );
+
+export const transformWith_ =
+  <F>(F: Monad<F>) =>
+  <I, A, B>(
+    d: DecoderT<F, I, A>,
+    f: (ea: Either<DecodeFailure, A>) => DecoderT<F, I, B>,
+  ): DecoderT<F, I, B> =>
+    new DecoderT(i =>
+      pipe(
+        d.decode(i).value,
+        F.flatMap(ea => f(ea).decode(i).value),
+        EitherT,
+      ),
+    );
 
 export const andThen_ =
   <F>(F: Monad<F>) =>
