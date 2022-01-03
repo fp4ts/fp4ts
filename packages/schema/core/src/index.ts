@@ -6,4 +6,6 @@
 /**
  * @module schema/core
  */
+export * from './decode-failure';
+export * from './decoder-t';
 export * from './encoder';

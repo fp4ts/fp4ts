@@ -37,7 +37,7 @@ interface GuardObj {
   boolean: Guard<unknown, boolean>;
   number: Guard<unknown, number>;
   string: Guard<unknown, string>;
-  nullGuard: Guard<unknown, null>;
+  null: Guard<unknown, null>;
   array<A>(ga: Guard<unknown, A>): Guard<unknown, A[]>;
   struct<A extends {}>(ga: {
     [k in keyof A]: Guard<unknown, A[k]>;
@@ -64,7 +64,7 @@ Guard.literal = literal;
 Guard.boolean = boolean;
 Guard.number = number;
 Guard.string = string;
-Guard.nullGuard = nullGuard;
+Guard.null = nullGuard;
 Guard.array = array;
 Guard.struct = struct;
 Guard.partial = partial;

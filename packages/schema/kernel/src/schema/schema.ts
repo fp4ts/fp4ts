@@ -39,16 +39,18 @@ interface SchemaObj {
   array<A>(sa: Schema<A>): Schema<A[]>;
 
   struct<A extends {}>(xs: {
-    [k in keyof A]: Schema<A>;
+    [k in keyof A]: Schema<A[k]>;
   }): Schema<A>;
 
   partial<A extends {}>(xs: {
-    [k in keyof A]: Schema<A>;
+    [k in keyof A]: Schema<A[k]>;
   }): Schema<A>;
 
   record<A>(sa: Schema<A>): Schema<Record<string, A>>;
 
-  product<A extends unknown[]>(...xs: { [k in keyof A]: Schema<A> }): Schema<A>;
+  product<A extends unknown[]>(
+    ...xs: { [k in keyof A]: Schema<A[k]> }
+  ): Schema<A>;
 
   sum<T extends string>(
     tag: T,

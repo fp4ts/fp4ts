@@ -3,5 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export { ArrayK } from './array';
-export * from './array_';
+import './syntax';
+export { DecoderT, DecoderTK } from './decoder-t';
+export { DecodeResultT } from './decode-result-t';
