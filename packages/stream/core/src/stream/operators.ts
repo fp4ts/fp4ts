@@ -18,6 +18,7 @@ import {
   Right,
   Some,
   Ior,
+  FunctionK,
 } from '@fp4ts/cats';
 import {
   Temporal,
@@ -578,6 +579,10 @@ export const covaryAll =
   <F2, B>() =>
   <F extends F2, A extends B>(s: Stream<F, A>): Stream<F2, B> =>
     s;
+
+export const mapK: <F, G>(
+  nt: FunctionK<F, G>,
+) => <A>(s: Stream<F, A>) => Stream<G, A> = nt => s => mapK_(s, nt);
 
 export const compile = <F, G, A>(
   s: Stream<F, A>,
@@ -1539,6 +1544,11 @@ export const enqueueNoneTerminatedChunks_ = <F, A>(
   s: Stream<F, A>,
   q: QueueSink<F, Option<Chunk<A>>>,
 ): Stream<F, never> => forEach_(noneTerminate(chunks(s)), x => q.offer(x));
+
+export const mapK_ = <F, G, A>(
+  s: Stream<F, A>,
+  nt: FunctionK<F, G>,
+): Stream<G, A> => s.pull.translate(nt).stream();
 
 // -- Private implementation
 

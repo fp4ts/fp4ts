@@ -1,0 +1,45 @@
+import { FunctionK } from '@fp4ts/cats';
+import { Entity } from '../entity';
+import { Headers } from '../headers';
+import { HttpVersion } from '../http-version';
+import { Message } from './message';
+import { Status } from './status';
+
+export class Response<F> extends Message<F, Response<F>> {
+  public constructor(
+    public readonly status: Status = Status.Ok,
+    public readonly httpVersion: HttpVersion = '1.1',
+    public readonly headers: Headers = Headers.empty,
+    public readonly entity: Entity<F> = Entity.empty(),
+  ) {
+    super();
+  }
+
+  protected copy({
+    status = this.status,
+    httpVersion = this.httpVersion,
+    headers = this.headers,
+    entity = this.entity,
+  }: Partial<Props<F>> = {}): Response<F> {
+    return new Response(status, httpVersion, headers, entity);
+  }
+
+  public mapK<G>(nt: FunctionK<F, G>): Response<G> {
+    return new Response(
+      this.status,
+      this.httpVersion,
+      this.headers,
+      this.entity.mapK(nt),
+    );
+  }
+
+  public withStatus(status: Status): Response<F> {
+    return this.copy({ status });
+  }
+}
+type Props<F> = {
+  readonly status: Status;
+  readonly httpVersion: HttpVersion;
+  readonly headers: Headers;
+  readonly entity: Entity<F>;
+};

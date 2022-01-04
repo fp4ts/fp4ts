@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { pipe } from '@fp4ts/core';
+import { pipe, throwError } from '@fp4ts/core';
 import { Identity, Left, Right } from '@fp4ts/cats';
 import { DecoderT, DecodeFailure, DecodeResultT } from '@fp4ts/schema-core';
 import { Constraining } from '@fp4ts/schema-kernel';
@@ -42,23 +42,15 @@ describe('DecoderT', () => {
   describe('handleError', () => {
     it('should recover from failure into success', () => {
       const r = DecoderT.string(IdM)
-        .handleError(IdM)(() => Right('foo'))
+        .handleError(IdM)(() => 'foo')
         .decode(42).value;
 
       expect(r).toEqual(Right('foo'));
     });
 
-    it('should recover from failure into failure', () => {
-      const r = DecoderT.string(IdM)
-        .handleError(IdM)(() => Left(new DecodeFailure('My failure')))
-        .decode(42).value;
-
-      expect(r).toEqual(Left(new DecodeFailure('My failure')));
-    });
-
     it('should ignore recovery when successful', () => {
       const r = DecoderT.string(IdM)
-        .handleError(IdM)(() => Left(new DecodeFailure('My failure')))
+        .handleError(IdM)(() => throwError(new DecodeFailure('My failure')))
         .decode('bar').value;
 
       expect(r).toEqual(Right('bar'));

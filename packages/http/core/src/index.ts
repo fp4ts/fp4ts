@@ -6,4 +6,13 @@
 /**
  * @module http/core
  */
-export {};
+export * from './codec';
+export * from './headers';
+export * from './messages';
+export * from './entity-body';
+export * from './entity';
+export * from './http';
+export * from './http-app';
+export * from './http-routes';
+export * from './http-version';
+export * from './media';

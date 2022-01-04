@@ -93,9 +93,7 @@ declare module './algebra' {
     handleError<AA>(
       this: DecoderT<F, I, AA>,
       F: Functor<F>,
-    ): (
-      h: (e: DecodeFailure) => Either<DecodeFailure, AA>,
-    ) => DecoderT<F, I, AA>;
+    ): (h: (e: DecodeFailure) => AA) => DecoderT<F, I, AA>;
     handleErrorWithR<AA>(
       this: DecoderT<F, I, AA>,
       F: Monad<F>,

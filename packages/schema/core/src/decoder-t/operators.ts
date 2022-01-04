@@ -168,11 +168,8 @@ export const flatMapR_ =
 
 export const handleError_ =
   <F>(F: Functor<F>) =>
-  <I, A>(
-    d: DecoderT<F, I, A>,
-    h: (e: DecodeFailure) => Either<DecodeFailure, A>,
-  ): DecoderT<F, I, A> =>
-    transform_(F)(d, ea => ea.fold(h, Right));
+  <I, A>(d: DecoderT<F, I, A>, h: (e: DecodeFailure) => A): DecoderT<F, I, A> =>
+    transform_(F)(d, ea => Right(ea.fold(h, id)));
 
 export const handleErrorWithR_ =
   <F>(F: Monad<F>) =>

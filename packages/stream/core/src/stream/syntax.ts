@@ -16,6 +16,7 @@ import {
   Vector,
   Ior,
   IdentityK,
+  FunctionK,
 } from '@fp4ts/cats';
 import {
   SyncIO,
@@ -123,6 +124,7 @@ import {
   mapNoScope_,
   enqueueNoneTerminated_,
   enqueueNoneTerminatedChunks_,
+  mapK_,
 } from './operators';
 import { PureK } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -333,6 +335,8 @@ declare module './algebra' {
     covary<F2>(this: Stream<F2, A>): Stream<F2, A>;
     covaryOutput<B>(this: Stream<F, B>): Stream<F, B>;
     covaryAll<F2, B>(this: Stream<F2, B>): Stream<F2, B>;
+
+    mapK<G>(nt: FunctionK<F, G>): Stream<G, A>;
 
     compile(this: Stream<PureK, A>): CompileOps<PureK, IdentityK, A>;
     compile<G>(compiler: Compiler<F, G>): CompileOps<F, G, A>;
@@ -721,6 +725,10 @@ Stream.prototype.covaryOutput = function () {
 };
 Stream.prototype.covaryAll = function () {
   return covaryAll()(this) as any;
+};
+
+Stream.prototype.mapK = function (nt) {
+  return mapK_(this, nt);
 };
 
 Stream.prototype.compile = function (compiler = Compiler.Pure) {
