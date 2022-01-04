@@ -1,9 +1,14 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { hole, Kind } from '@fp4ts/core';
 import { FunctionK, Monad } from '@fp4ts/cats';
 
 import { EntityDecoder } from '../codec';
 import { Entity } from '../entity';
-import { Headers } from '../headers';
+import { Headers } from '../headers_';
 import { HttpVersion } from '../http-version';
 import { Message } from './message';
 import { Response } from './response';

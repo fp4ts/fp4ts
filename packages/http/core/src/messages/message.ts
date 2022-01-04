@@ -1,8 +1,13 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { EntityEncoder } from '../codec';
 import { Entity } from '../entity';
 import { EntityBody } from '../entity-body';
 import { ToRaw } from '../header';
-import { ContentLength, Headers } from '../headers';
+import { ContentLength, Headers } from '../headers_';
 import { HttpVersion } from '../http-version';
 import { Media } from '../media';
 
@@ -37,7 +42,7 @@ export abstract class Message<F, Self> extends Media<F> {
           cl => e.headers.put(cl),
         ),
     );
-    return this.copy({ entity, headers: this.headers['+++'](hs) });
+    return this.copy({ entity, headers: this.headers });
   }
 
   public withEntityBody(eb: EntityBody<F>): Self {

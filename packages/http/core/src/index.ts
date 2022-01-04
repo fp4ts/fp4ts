@@ -7,7 +7,7 @@
  * @module http/core
  */
 export * from './codec';
-export * from './headers';
+export * from './headers_';
 export * from './messages';
 export * from './entity-body';
 export * from './entity';
