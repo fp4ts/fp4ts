@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { FunctionK } from '@fp4ts/cats';
+import { Attributes } from './attributes';
 import { Entity } from '../entity';
 import { Headers } from '../headers_';
 import { HttpVersion } from '../http-version';
@@ -16,6 +17,7 @@ export class Response<F> extends Message<F, Response<F>> {
     public readonly httpVersion: HttpVersion = '1.1',
     public readonly headers: Headers = Headers.empty,
     public readonly entity: Entity<F> = Entity.empty(),
+    public readonly attributes: Attributes = Attributes.empty,
   ) {
     super();
   }
@@ -25,8 +27,9 @@ export class Response<F> extends Message<F, Response<F>> {
     httpVersion = this.httpVersion,
     headers = this.headers,
     entity = this.entity,
+    attributes = this.attributes,
   }: Partial<Props<F>> = {}): Response<F> {
-    return new Response(status, httpVersion, headers, entity);
+    return new Response(status, httpVersion, headers, entity, attributes);
   }
 
   public mapK<G>(nt: FunctionK<F, G>): Response<G> {
@@ -47,4 +50,5 @@ type Props<F> = {
   readonly httpVersion: HttpVersion;
   readonly headers: Headers;
   readonly entity: Entity<F>;
+  readonly attributes: Attributes;
 };

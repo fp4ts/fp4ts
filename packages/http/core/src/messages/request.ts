@@ -14,6 +14,7 @@ import { Message } from './message';
 import { Response } from './response';
 import { Method } from './method';
 import { Uri } from './uri';
+import { Attributes } from '.';
 
 export class Request<F> extends Message<F, Request<F>> {
   public constructor(
@@ -22,6 +23,7 @@ export class Request<F> extends Message<F, Request<F>> {
     public readonly httpVersion: HttpVersion = '1.1',
     public readonly headers: Headers = Headers.empty,
     public readonly entity: Entity<F> = Entity.empty(),
+    public readonly attributes: Attributes = Attributes.empty,
   ) {
     super();
   }
@@ -32,8 +34,9 @@ export class Request<F> extends Message<F, Request<F>> {
     httpVersion = this.httpVersion,
     headers = this.headers,
     entity = this.entity,
+    attributes = this.attributes,
   }: Partial<Props<F>> = {}): Request<F> {
-    return new Request(method, uri, httpVersion, headers, entity);
+    return new Request(method, uri, httpVersion, headers, entity, attributes);
   }
 
   public mapK<G>(nt: FunctionK<F, G>): Request<G> {
@@ -77,4 +80,5 @@ type Props<F> = {
   readonly httpVersion: HttpVersion;
   readonly headers: Headers;
   readonly entity: Entity<F>;
+  readonly attributes: Attributes;
 };
