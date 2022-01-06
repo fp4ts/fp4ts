@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export class ApiList<A extends unknown[]> {
+  public readonly tag = 'api-list';
   private readonly __void!: void;
   public constructor(public readonly elements: A) {}
 }

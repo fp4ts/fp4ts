@@ -3,11 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export declare const JSON: unique symbol;
+export const JSON = Object.freeze({ tag: 'JSON' as const });
 export type JSON = typeof JSON;
-export declare const PlainText: unique symbol;
+export const PlainText = Object.freeze({ tag: 'PlainText' as const });
 export type PlainText = typeof PlainText;
-export declare const FormUrlEncoded: unique symbol;
-export type FormUrlEncoded = typeof FormUrlEncoded;
+// export const FormUrlEncoded = Object.freeze({ tag: 'FormUrlEncoded' as const });
+// export type FormUrlEncoded = typeof FormUrlEncoded;
 
-export type ContentType = JSON | PlainText | FormUrlEncoded;
+export type ContentType = JSON | PlainText; // | FormUrlEncoded;

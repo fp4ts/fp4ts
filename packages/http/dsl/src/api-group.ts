@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export class ApiGroup<A extends unknown[]> {
+  public readonly tag = 'api-group';
   private readonly __void!: void;
   public constructor(public readonly lists: A) {}
 }

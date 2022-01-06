@@ -14,13 +14,15 @@ import {
   PayloadWithStatus,
   QueryElement,
   RequestBodyElement,
+  ApiElement,
 } from './api-element';
 import { ApiList } from './api-list';
 import { ApiGroup } from './api-group';
 import { ContentType } from './content-type';
 import { Method } from './method';
 
-export const Root: ApiList<[]> = new ApiList([]);
+export type Dsl = ApiElement | ApiList<any> | ApiGroup<any>;
+
 export const Route = <S extends string>(s: S): PathElement<S> =>
   new PathElement(s);
 
