@@ -33,7 +33,7 @@ describe('node-server', () => {
           Kleisli(() => IO.pure(Status.Ok('pong')(EntityEncoder.text()))),
         ),
         new Route(
-          Method.GET,
+          Method.POST,
           PathComponent.fromUriString('/echo'),
           Kleisli(req =>
             req.decodeWith(IO.Monad)(stringDecoder, s =>
@@ -80,7 +80,7 @@ describe('node-server', () => {
           .listen(3000)
           .flatMap(() =>
             IO.deferPromise(() =>
-              test(server.server).get('/echo').send('hello fp4ts'),
+              test(server.server).post('/echo').send('hello fp4ts'),
             ),
           )
           .flatMap(response =>

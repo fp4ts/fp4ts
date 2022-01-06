@@ -13,7 +13,7 @@ import {
   Right,
   Some,
 } from '@fp4ts/cats';
-import { tailrec, tupled } from '@fp4ts/core';
+import { tupled } from '@fp4ts/core';
 import { PathComponent } from '../path-component';
 
 export class Node<A = never> {
