@@ -39,19 +39,33 @@ export const PathComponent = Object.freeze({
 export class ConstantPathComponent {
   public readonly tag = 'constant';
   public constructor(public readonly value: string) {}
+
+  public toString(): string {
+    return this.value;
+  }
 }
 
 export class ParameterPathComponent {
   public readonly tag = 'parameter';
   public constructor(public readonly name: string) {}
+
+  public toString(): string {
+    return `:${this.name}`;
+  }
 }
 
 export const Any = Object.freeze({
   tag: 'any' as const,
+  toString() {
+    return '*';
+  },
 });
 export type Any = typeof Any;
 
 const CatchAll = Object.freeze({
   tag: 'catch-all' as const,
+  toString() {
+    return '**';
+  },
 });
 export type CatchAll = typeof CatchAll;
