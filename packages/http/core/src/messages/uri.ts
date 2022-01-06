@@ -60,10 +60,16 @@ export class Path {
 }
 
 export class Query {
+  private constructor(private readonly xs: OrderedMap<string, string>) {}
+
+  public lookup(k: string): Option<string> {
+    return this.xs.lookup(k);
+  }
+
   public static readonly empty: Query = null as any;
 
   public static fromEntries(es: [string, string][]): Query {
-    return OrderedMap(...es);
+    return new Query(OrderedMap(...es));
   }
 }
 

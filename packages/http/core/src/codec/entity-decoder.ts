@@ -3,11 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Functor, Monad } from '@fp4ts/cats';
+import { compose, Kind } from '@fp4ts/core';
+import { EitherT, Functor, Monad } from '@fp4ts/cats';
+import { Concurrent } from '@fp4ts/effect';
 import { DecodeFailure, DecodeResultT, DecoderT } from '@fp4ts/schema';
 import { Media } from '../media';
-
-type MediaRange = never;
+import { MediaRange } from '../media-type';
 
 export type DecodeResult<F, A> = DecodeResultT<F, A>;
 
@@ -46,4 +47,24 @@ export class EntityDecoder<F, A> {
     return f =>
       new EntityDecoder(this.decoder.handleErrorWithR(F)(f), this.consumes);
   }
+
+  public andThen<AA, B>(
+    this: EntityDecoder<F, AA>,
+    F: Monad<F>,
+  ): (that: DecoderT<F, AA, B>) => EntityDecoder<F, B> {
+    return that =>
+      new EntityDecoder(this.decoder.andThen(F)(that), this.consumes);
+  }
+
+  public static text<F>(F: Concurrent<F, Error>): EntityDecoder<F, string> {
+    return new EntityDecoder(
+      DecoderT(compose(EitherT.rightT(F), this.decodeText(F))),
+      new Set(),
+    );
+  }
+
+  public static readonly decodeText =
+    <F>(F: Concurrent<F, Error>) =>
+    (m: Media<F>): Kind<F, [string]> =>
+      m.bodyText.compileConcurrent(F).string;
 }
