@@ -15,6 +15,7 @@ import { Either } from '../either';
 
 import { Kleisli } from './algebra';
 import { suspend } from './constructors';
+import { AndThen } from '..';
 
 export const dimap: <F>(
   F: Functor<F>,
@@ -167,7 +168,7 @@ export const dimap_ =
 export const adapt_ = <F, A, AA, B>(
   fa: Kleisli<F, A, B>,
   f: (a: AA) => A,
-): Kleisli<F, AA, B> => new Kleisli(a => fa.run(f(a)));
+): Kleisli<F, AA, B> => new Kleisli(AndThen(f).andThen(fa.run));
 
 export const adaptF_ =
   <F>(F: FlatMap<F>) =>
@@ -179,8 +180,8 @@ export const adaptF_ =
 
 export const andThen_ =
   <F>(F: FlatMap<F>) =>
-  <A, B, C>(fa: Kleisli<F, A, B>, fb: Kleisli<F, B, C>): Kleisli<F, A, C> =>
-    flatMap_(F)(fa, b => adapt_(fb, () => b));
+  <A, B, C>(fab: Kleisli<F, A, B>, fbc: Kleisli<F, B, C>): Kleisli<F, A, C> =>
+    new Kleisli(AndThen(fab.run).andThen(F.flatMap(b => fbc.run(b))));
 
 export const compose_ =
   <F>(F: FlatMap<F>) =>
@@ -189,8 +190,8 @@ export const compose_ =
 
 export const map_ =
   <F>(F: Functor<F>) =>
-  <A, B, C>(fa: Kleisli<F, A, B>, f: (b: B) => C): Kleisli<F, A, C> =>
-    new Kleisli(a => F.map_(fa.run(a), f));
+  <A, B, C>(fab: Kleisli<F, A, B>, f: (b: B) => C): Kleisli<F, A, C> =>
+    new Kleisli(AndThen(fab.run).andThen(F.map(f)));
 
 export const tap_ =
   <F>(F: Functor<F>) =>
