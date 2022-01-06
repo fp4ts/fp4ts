@@ -16,3 +16,4 @@ export * from './http-app';
 export * from './http-routes';
 export * from './http-version';
 export * from './media';
+export * from './header';

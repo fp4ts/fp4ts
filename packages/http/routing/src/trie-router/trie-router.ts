@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, List, Option, OrderedMap } from '@fp4ts/cats';
 import { fst } from '@fp4ts/core';
+import { Either, List, Option, OrderedMap } from '@fp4ts/cats';
 import { PathComponent } from '../path-component';
 import { Node } from './node';
 
@@ -28,7 +28,7 @@ export class TrieRouter<A> {
   public route(...xs: any[]): any {
     return xs[0] === undefined || typeof xs[0] === 'string'
       ? this.root.route(List.fromArray(xs))
-      : this.route(xs[0]);
+      : this.root.route(xs[0]);
   }
 
   public route_(path: List<string>): Option<A>;

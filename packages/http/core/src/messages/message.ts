@@ -48,7 +48,7 @@ export abstract class Message<F, Self> extends Media<F> {
           cl => e.headers.put(cl),
         ),
     );
-    return this.copy({ entity, headers: this.headers });
+    return this.copy({ entity, headers: this.headers['+++'](hs) });
   }
 
   public withEntityBody(eb: EntityBody<F>): Self {

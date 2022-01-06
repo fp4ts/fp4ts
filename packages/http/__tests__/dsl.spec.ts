@@ -21,7 +21,16 @@ import {
   WithStatus,
   JSON,
   PlainText,
+  ApiElement,
+  PathElement,
+  CaptureElement,
+  RequestBodyElement,
+  EndpointContentElement,
+  ApiList,
+  ApiGroup,
 } from '@fp4ts/http-dsl';
+import { Kind } from '@fp4ts/core';
+import { IdentityK } from '@fp4ts/cats';
 
 describe('dsl', () => {
   it('should run', () => {
@@ -101,4 +110,52 @@ describe('dsl', () => {
 
     console.log(global.JSON.stringify(api, null, 2));
   });
+
+  const version = Route('version')[':>'](Get([PlainText], Schema.string));
+  type VersionApi = typeof version;
+  type VersionHandler = DeriveHandler<IdentityK, VersionApi>;
+
+  const User = Schema.struct({
+    id: Schema.number,
+    first_name: Schema.string,
+    last_name: Schema.string,
+  });
+  const user = Route('users')
+    [':>'](Capture.number('id'))
+    [':>'](
+      group(
+        (Get([PlainText], User),
+        RequestBody(User, JSON)[':>'](Put([JSON], User))),
+      ),
+    );
+  type UserApi = typeof user;
+  type UserHandler = DeriveHandler<IdentityK, UserApi>;
+
+  const api = group(user, version);
+  type apiType = typeof api;
+  type apiHandler = DeriveHandler<IdentityK, apiType>;
+
+  type DeriveHandler<F, A> = A extends ApiList<infer X>
+    ? DeriveApiElements<F, X>
+    : A extends ApiGroup<infer X>
+    ? DeriveApiGroup<F, X>
+    : never;
+
+  type DeriveApiGroup<F, A> = A extends [infer X, ...infer Y]
+    ? [DeriveHandler<F, X>, ...DeriveApiGroup<F, Y>]
+    : A extends []
+    ? []
+    : never;
+
+  type DeriveApiElements<F, A> = A extends [ApiGroup<infer X>]
+    ? DeriveApiGroup<F, X>
+    : A extends [PathElement<any>, ...infer X]
+    ? DeriveApiElements<F, X>
+    : A extends [CaptureElement<any, infer V>, ...infer X]
+    ? (v: V) => DeriveApiElements<F, X>
+    : A extends [RequestBodyElement<infer B, any>, ...infer X]
+    ? (b: B) => DeriveApiElements<F, X>
+    : A extends [EndpointContentElement<any, any, any, infer R, any>]
+    ? Kind<F, [R]>
+    : never;
 });

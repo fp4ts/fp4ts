@@ -3,19 +3,30 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { pipe } from '@fp4ts/core';
 import {
   Applicative,
   Either,
   Kleisli,
   List,
+  Monad,
   Option,
   OptionT,
   Right,
 } from '@fp4ts/cats';
-import { Attributes, HttpRoutes, Path, Uri } from '@fp4ts/http-core';
-import { Handler } from './handler';
+import {
+  Attributes,
+  Http,
+  HttpApp,
+  HttpRoutes,
+  Method,
+  Path,
+  Uri,
+} from '@fp4ts/http-core';
 import { Route } from './route';
+import { Handler } from './handler';
 import { TrieRouter } from './trie-router';
+import { PathComponent } from './path-component';
 
 export class ServerRouter<F> {
   public constructor(
@@ -24,24 +35,38 @@ export class ServerRouter<F> {
 
   public toHttpRoutes(F: Applicative<F>): HttpRoutes<F> {
     return Kleisli(req =>
-      this.routeUri(req.uri).fold(
+      this.routeUri(req.method, req.uri).fold(
         () => OptionT.none(F),
         ([h, parameters]) =>
-          h.run(req.withAttributes(req.attributes.union(parameters))),
+          OptionT.liftF(F)(
+            h.run(req.withAttributes(req.attributes.union(parameters))),
+          ),
       ),
     );
   }
 
-  public routePath(path: Path): Option<[Handler<F>, Attributes]> {
-    return this.router.route(List.fromArray(path.components));
+  public toHttpApp(F: Monad<F>): HttpApp<F> {
+    return pipe(this.toHttpRoutes(F), HttpRoutes.orNotFound(F));
   }
-  public routeUri(uri: Uri): Option<[Handler<F>, Attributes]> {
-    return this.routePath(uri.path);
+
+  public routePath(
+    method: Method,
+    path: Path,
+  ): Option<[Handler<F>, Attributes]> {
+    return this.router.route(
+      List.fromArray(path.components).prepend(method.methodName),
+    );
+  }
+  public routeUri(method: Method, uri: Uri): Option<[Handler<F>, Attributes]> {
+    return this.routePath(method, uri.path);
   }
 
   public registerRoute(route: Route<F>): Either<Error, ServerRouter<F>> {
     return this.router
-      .register(route.path, route.handler)
+      .register(
+        route.path.prepend(PathComponent.fromString(route.method.methodName)),
+        route.handler,
+      )
       .map(router => new ServerRouter(router));
   }
 

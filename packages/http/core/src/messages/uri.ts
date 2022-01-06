@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { None, Option, OrderedMap, Some, Try } from '@fp4ts/cats';
+import { Either, None, Option, OrderedMap, Some, Try } from '@fp4ts/cats';
 
 export type Scheme = 'http' | 'https';
 
@@ -20,7 +20,7 @@ export class Uri {
     public readonly query: Query = Query.empty,
   ) {}
 
-  public static fromString(s: string) {
+  public static fromString(s: string): Either<Error, Uri> {
     return Try(() => new URL(s)).map(url => {
       return new Uri(
         Some(url.protocol as Scheme),
@@ -28,7 +28,7 @@ export class Uri {
         Path.fromString(url.pathname),
         Query.fromEntries([...url.searchParams.entries()]),
       );
-    }).toOption;
+    }).toEither;
   }
 
   public static fromStringUnsafe(s: string) {

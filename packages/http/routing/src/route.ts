@@ -4,11 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import { List } from '@fp4ts/cats';
-import { Handler } from './handler';
+import { Method } from '@fp4ts/http-core';
 import { PathComponent } from './path-component';
+import { Handler } from './handler';
 
 export class Route<F> {
   public constructor(
+    public readonly method: Method,
     public readonly path: List<PathComponent>,
     public readonly handler: Handler<F>,
   ) {}
