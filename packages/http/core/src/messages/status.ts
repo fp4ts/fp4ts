@@ -20,8 +20,15 @@ export class Status {
     public readonly code: number,
     public readonly name: string,
   ) {
-    const f = statusResponse(this);
-    return f as any;
+    const apply = statusResponse(this);
+    Object.setPrototypeOf(apply, this.constructor.prototype);
+    for (const prop of Object.getOwnPropertyNames(this))
+      Object.defineProperty(
+        apply,
+        prop,
+        Object.getOwnPropertyDescriptor(this, prop)!,
+      );
+    return apply as this;
   }
 }
 

@@ -16,7 +16,6 @@ import {
   PutNoContent,
   Query,
   RequestBody,
-  Root,
   Route,
   WithStatus,
   JSON,
@@ -106,7 +105,7 @@ describe('dsl', () => {
 
     const version = Route('version')[':>'](Get([PlainText], Schema.string));
 
-    const api = Root[':>'](group(users, movies, version));
+    const api = group(users, movies, version);
 
     console.log(global.JSON.stringify(api, null, 2));
   });

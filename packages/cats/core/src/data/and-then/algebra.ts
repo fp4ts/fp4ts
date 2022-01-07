@@ -31,7 +31,7 @@ export class Single<A, B> extends AndThen<A, B> {
         prop,
         Object.getOwnPropertyDescriptor(this, prop)!,
       );
-    return apply as Single<A, B>;
+    return apply as this;
   }
 }
 
@@ -54,7 +54,7 @@ export class Concat<A, E, B> extends AndThen<A, B> {
         prop,
         Object.getOwnPropertyDescriptor(this, prop)!,
       );
-    return apply as Concat<A, E, B>;
+    return apply as this;
   }
 }
 
