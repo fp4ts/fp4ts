@@ -45,7 +45,7 @@ export const Kleisli: KleisliObj = function (f) {
   return suspend(f);
 };
 
-interface KleisliObj {
+export interface KleisliObj {
   <F, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B>;
 
   pure<F>(F: Applicative<F>): <B>(x: B) => Kleisli<F, unknown, B>;
