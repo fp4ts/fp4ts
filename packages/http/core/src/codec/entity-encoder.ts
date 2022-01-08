@@ -8,9 +8,27 @@ import { Some } from '@fp4ts/cats';
 import { Encoder } from '@fp4ts/schema';
 import { Chunk, Stream } from '@fp4ts/stream';
 import { Entity } from '../entity';
-import { Headers } from '../headers_';
+import { Headers, ContentType } from '../headers_';
+import { MediaType } from '../media-type';
 
 export class EntityEncoder<F, A> {
+  public constructor(
+    private readonly encoder: Encoder<Entity<F>, A>,
+    public readonly headers: Headers,
+  ) {}
+
+  public withHeaders(hs: Headers): EntityEncoder<F, A> {
+    return new EntityEncoder(this.encoder, hs);
+  }
+
+  public toEntity(a: A): Entity<F> {
+    return this.encoder.encode(a);
+  }
+
+  public contramap<AA>(f: (a: AA) => A): EntityEncoder<F, AA> {
+    return new EntityEncoder(this.encoder.contramap(f), this.headers);
+  }
+
   public static text<F>(): EntityEncoder<F, string> {
     return new EntityEncoder(
       Encoder(
@@ -20,20 +38,13 @@ export class EntityEncoder<F, A> {
             Some(s.length),
           ),
       ),
-      Headers.empty,
+      Headers.fromToRaw(ContentType(MediaType.text_plain)),
     );
   }
 
-  public constructor(
-    private readonly encoder: Encoder<Entity<F>, A>,
-    public readonly headers: Headers,
-  ) {}
-
-  public toEntity(a: A): Entity<F> {
-    return this.encoder.encode(a);
-  }
-
-  public contramap<AA>(f: (a: AA) => A): EntityEncoder<F, AA> {
-    return new EntityEncoder(this.encoder.contramap(f), this.headers);
+  public static json<F, A>(): EntityEncoder<F, A> {
+    return this.text<F>()
+      .contramap(x => JSON.stringify(x))
+      .withHeaders(Headers.fromToRaw(ContentType(MediaType.application_json)));
   }
 }

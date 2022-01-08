@@ -13,8 +13,7 @@
     "@fp4ts/core": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/http-dsl": "*",
-    "@fp4ts/http-node-server": "*",
-    "@fp4ts/http-routing": "*"
+    "@fp4ts/http-node-server": "*"
   },
   "devDependencies": {
     "fast-check": "^2.18.0",

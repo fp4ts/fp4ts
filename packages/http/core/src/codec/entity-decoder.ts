@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, Kind } from '@fp4ts/core';
-import { EitherT, Functor, Monad } from '@fp4ts/cats';
+import { compose, Kind, pipe } from '@fp4ts/core';
+import { EitherT, Functor, Monad, Try } from '@fp4ts/cats';
 import { Concurrent } from '@fp4ts/effect';
 import { DecodeFailure, DecodeResultT, DecoderT } from '@fp4ts/schema';
 import { Media } from '../media';
@@ -64,6 +64,23 @@ export class EntityDecoder<F, A> {
     return new EntityDecoder(
       DecoderT(compose(EitherT.rightT(F), this.decodeText(F))),
       new Set([MediaType.text_plain]),
+    );
+  }
+
+  public static json<F>(F: Concurrent<F, Error>): EntityDecoder<F, unknown> {
+    return new EntityDecoder(
+      DecoderT(media =>
+        pipe(
+          this.decodeText(F)(media),
+          F.map(x =>
+            Try(() => JSON.parse(x)).toEither.leftMap(
+              e => new DecodeFailure(e.message),
+            ),
+          ),
+          EitherT,
+        ),
+      ),
+      new Set([MediaType.application_json]),
     );
   }
 

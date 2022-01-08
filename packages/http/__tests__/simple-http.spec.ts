@@ -3,56 +3,63 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, pipe } from '@fp4ts/core';
-import { Kleisli, OptionT, OptionTK } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect';
 import {
   Request,
-  Status,
-  Method,
   HttpRoutes,
+  EntityDecoder,
   EntityEncoder,
   Uri,
 } from '@fp4ts/http-core';
+import { GET, NoContent, Ok, POST, Routes } from '@fp4ts/http-dsl';
 
-describe('simple http', () => {
-  const F = Kleisli.Alternative<$<OptionTK, [IoK]>, Request<IoK>>(
-    OptionT.Alternative(IO.Monad),
-  );
-
-  const ping1: HttpRoutes<IoK> = Kleisli(req =>
-    req.method === Method.GET && req.uri.path.startsWith('/ping1')
-      ? OptionT.some(IO.Applicative)(Status.Ok('pong')(EntityEncoder.text()))
-      : OptionT.none(IO.Applicative),
-  );
-  const ping2: HttpRoutes<IoK> = Kleisli(req =>
-    req.method === Method.GET && req.uri.path.startsWith('/ping2')
-      ? OptionT.some(IO.Applicative)(Status.Ok('pong')(EntityEncoder.text()))
-      : OptionT.none(IO.Applicative),
-  );
-
-  const app = pipe(
-    ping1,
-    F.orElse(() => ping1),
-    F.orElse(() => ping2),
-    HttpRoutes.orNotFound(IO.Monad),
-  );
-
-  it('should return 404', async () => {
-    const response = await app.run(new Request()).unsafeRunToPromise();
-    expect(response.status.code).toBe(404);
-  });
-
-  it('should return 200', async () => {
-    const response = await app
-      .run(
-        new Request(
-          Method.GET,
-          Uri.fromStringUnsafe('http://localhost:3000/ping1'),
+describe('dsl routing', () => {
+  const app = HttpRoutes.orNotFound(IO.Monad)(
+    Routes.of(IO.Monad)($ =>
+      $.group(
+        $(GET, 'version', () => NoContent<IoK>()),
+        $(GET, 'ping', () => Ok('pong')(EntityEncoder.text<IoK>())),
+        $(POST, 'echo', ({ req }) =>
+          req.decode(
+            IO.Monad,
+            EntityDecoder.text(IO.Concurrent),
+          )(body => Ok(body)(EntityEncoder.text<IoK>())),
         ),
-      )
+      ),
+    ),
+  );
+
+  it('should return 204', async () => {
+    const response = await app
+      .run(new Request(GET, uri('/version')))
       .unsafeRunToPromise();
 
-    expect(response.status.code).toBe(200);
+    expect(response.status.code).toBe(204);
   });
+
+  it('should return pong', async () => {
+    const response = await app
+      .run(new Request(GET, uri('/ping')))
+      .flatMap(response => response.bodyText.compileConcurrent().string)
+      .unsafeRunToPromise();
+
+    expect(response).toBe('pong');
+  });
+
+  it('should echo the body request', async () => {
+    const response = await app
+      .run(
+        new Request<IoK>(POST, uri('/echo')).withEntity(
+          'sample payload',
+          EntityEncoder.text(),
+        ),
+      )
+      .flatMap(response => response.bodyText.compileConcurrent().string)
+      .unsafeRunToPromise();
+
+    expect(response).toBe('sample payload');
+  });
+
+  const uri = (s: string): Uri =>
+    Uri.fromStringUnsafe(`http://localhost:3000${s}`);
 });

@@ -13,7 +13,6 @@
     "@fp4ts/core": "*",
     "@fp4ts/effect": "*",
     "@fp4ts/http-core": "*",
-    "@fp4ts/http-routing": "*",
     "@fp4ts/schema": "*",
     "@fp4ts/stream": "*"
   },

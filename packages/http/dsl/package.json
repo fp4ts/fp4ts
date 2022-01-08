@@ -11,8 +11,7 @@
   "dependencies": {
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
-    "@fp4ts/http-core": "*",
-    "@fp4ts/schema": "*"
+    "@fp4ts/http-core": "*"
   },
   "devDependencies": {
     "typescript": "4.5.2"

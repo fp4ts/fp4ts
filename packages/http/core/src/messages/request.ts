@@ -57,21 +57,19 @@ export class Request<F> extends Message<F, Request<F>> {
     return this.copy({ uri });
   }
 
-  public decodeWith(
-    F: Monad<F>,
-  ): <A>(
-    decoder: EntityDecoder<F, A>,
-    f: (a: A) => Kind<F, [Response<F>]>,
-  ) => Kind<F, [Response<F>]> {
-    return (decoder, f) =>
-      F.flatten(decoder.decode(this).fold(F)<Kind<F, [Response<F>]>>(hole, f));
-  }
-
   public decode<A>(
     F: Monad<F>,
     decoder: EntityDecoder<F, A>,
+  ): (f: (a: A) => Response<F>) => Kind<F, [Response<F>]> {
+    return f => decoder.decode(this).fold(F)<Response<F>>(hole, f);
+  }
+
+  public decodeWith<A>(
+    F: Monad<F>,
+    decoder: EntityDecoder<F, A>,
   ): (f: (a: A) => Kind<F, [Response<F>]>) => Kind<F, [Response<F>]> {
-    return f => this.decodeWith(F)(decoder, f);
+    return f =>
+      F.flatten(decoder.decode(this).fold(F)<Kind<F, [Response<F>]>>(hole, f));
   }
 }
 type Props<F> = {

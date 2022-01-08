@@ -291,7 +291,7 @@ describe('Kleisli', () => {
   const eqKleisli = <F, A, B>(
     EA: ExhaustiveCheck<A>,
     EqFB: Eq<Kind<F, [B]>>,
-  ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => k.run.bind(k));
+  ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => x => k.run(x));
 
   const contravariantTests = ContravariantSuite(
     Kleisli.Contravariant<IdentityK, number>(),

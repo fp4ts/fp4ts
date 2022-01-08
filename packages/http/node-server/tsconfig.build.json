@@ -12,6 +12,5 @@
     { "path": "../../schema/tsconfig.build.json" },
     { "path": "../../stream/tsconfig.build.json" },
     { "path": "../core/tsconfig.build.json" },
-    { "path": "../routing/tsconfig.build.json" },
   ]
 }

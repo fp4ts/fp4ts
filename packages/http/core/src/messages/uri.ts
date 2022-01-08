@@ -66,7 +66,7 @@ export class Query {
     return this.xs.lookup(k);
   }
 
-  public static readonly empty: Query = null as any;
+  public static readonly empty: Query = new Query(OrderedMap.empty);
 
   public static fromEntries(es: [string, string][]): Query {
     return new Query(OrderedMap(...es));
