@@ -9,7 +9,9 @@ import { Response } from './response';
 export class Status {
   public static readonly Ok = new Status(200, 'OK');
   public static readonly Created = new Status(201, 'Created');
+  public static readonly NoContent = new Status(204, 'No Content');
 
+  public static readonly BadRequest = new Status(400, 'Bad Request');
   public static readonly NotFound = new Status(404, 'Not Found');
 
   // eslint-disable-next-line prettier/prettier

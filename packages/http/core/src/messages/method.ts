@@ -19,6 +19,10 @@ export class Method {
     }
   }
 
+  public static fromStringUnsafe(s: string): Method {
+    return this.fromString(s).get;
+  }
+
   private readonly __void!: void;
   private constructor(public readonly methodName: string) {}
 }

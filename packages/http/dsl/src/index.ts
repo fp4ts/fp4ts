@@ -1,16 +1,34 @@
-// Copyright (c) 2021-2022 Peter Matta
-//
-// This source code is licensed under the MIT license found in the
-// LICENSE file in the root directory of this source tree.
+import './api/syntax';
 
 /**
- * @module http/routing-dsl
+ * @module http/dsl
  */
-import './syntax';
-export * from './dsl';
-export * from './api-element';
-export * from './api-group';
-export * from './api-list';
-export * from './content-type';
-export * from './method';
-export * from './content-type';
+// prettier-ignore
+export {
+  group,
+  Route,
+
+  Capture,
+  Header,
+  Headers,
+  QueryParam,
+  ReqBody,
+
+  JSON,
+  PlainText,
+
+  Get,
+  Post,
+  Put,
+
+  Delete,
+  PostCreated,
+  PutCreated,
+
+  GetNoContent,
+  PostNoContent,
+  PutNoContent,
+  PatchNoContent,
+  DeleteNoContent,
+  HeadNoContent,
+} from './api';

@@ -41,3 +41,5 @@ export const curry: <A, B, C>(f: (a: A, b: B) => C) => (a: A) => (b: B) => C =
 export const uncurry: <A, B, C>(
   f: (a: A) => (b: B) => C,
 ) => (a: A, b: B) => C = f => (x, y) => f(x)(y);
+
+export const applyTo: <A>(a: A) => <B>(f: (a: A) => B) => B = a => f => f(a);

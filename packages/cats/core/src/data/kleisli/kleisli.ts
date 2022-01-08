@@ -21,7 +21,7 @@ import { Contravariant } from '../../contravariant';
 import { Either } from '../either';
 
 import { Kleisli as KleisliBase } from './algebra';
-import { identity, liftF, pure, suspend, unit } from './constructors';
+import { ask, identity, liftF, pure, suspend, unit } from './constructors';
 import { tailRecM } from './operators';
 import {
   kleisliAlternative,
@@ -57,6 +57,7 @@ export interface KleisliObj {
   unit<F>(F: Applicative<F>): Kleisli<F, unknown, void>;
 
   identity<F, A>(F: Applicative<F>): Kleisli<F, A, A>;
+  ask<F, A>(F: Applicative<F>): Kleisli<F, A, A>;
 
   tailRecM<F>(
     F: Monad<F>,
@@ -87,6 +88,7 @@ Kleisli.liftF = liftF;
 Kleisli.suspend = suspend;
 Kleisli.unit = unit;
 Kleisli.identity = identity;
+Kleisli.ask = ask;
 Kleisli.tailRecM = tailRecM;
 
 Kleisli.Defer = kleisliDefer;

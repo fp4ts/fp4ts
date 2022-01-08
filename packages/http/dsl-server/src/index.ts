@@ -3,8 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export class ApiGroup<A extends unknown[]> {
-  public readonly tag = 'api-group';
-  private readonly __void!: void;
-  public constructor(public readonly lists: A) {}
-}
+import { Kind } from '@fp4ts/core';
+import { Option } from '@fp4ts/cats';
+
+/**
+ * @module http/dsl-server
+ */
+export {};

@@ -14,4 +14,8 @@ export class Route<F> {
     public readonly path: List<PathComponent>,
     public readonly handler: Handler<F>,
   ) {}
+
+  public withComponent(c: PathComponent): Route<F> {
+    return new Route(this.method, this.path.cons(c), this.handler);
+  }
 }

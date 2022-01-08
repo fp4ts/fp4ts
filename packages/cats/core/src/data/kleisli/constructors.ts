@@ -24,3 +24,5 @@ export const suspend = <F, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B> =>
 
 export const identity = <F, A>(F: Applicative<F>): Kleisli<F, A, A> =>
   new Kleisli(F.pure);
+
+export const ask = identity;

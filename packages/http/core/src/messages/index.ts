@@ -9,3 +9,4 @@ export * from './status';
 export * from './method';
 export * from './uri';
 export * from './attributes';
+export * from './message-failure';

@@ -8,7 +8,7 @@ import { EitherT, Functor, Monad } from '@fp4ts/cats';
 import { Concurrent } from '@fp4ts/effect';
 import { DecodeFailure, DecodeResultT, DecoderT } from '@fp4ts/schema';
 import { Media } from '../media';
-import { MediaRange } from '../media-type';
+import { MediaRange, MediaType } from '../media-type';
 
 export type DecodeResult<F, A> = DecodeResultT<F, A>;
 
@@ -17,6 +17,10 @@ export class EntityDecoder<F, A> {
     private readonly decoder: DecoderT<F, Media<F>, A>,
     public readonly consumes: Readonly<Set<MediaRange>>,
   ) {}
+
+  public canConsume(mt: MediaType): boolean {
+    return [...this.consumes].some(mr => mr.satisfiedBy(mt));
+  }
 
   public decode(m: Media<F>): DecodeResult<F, A> {
     return this.decoder.decode(m);
