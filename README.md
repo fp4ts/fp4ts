@@ -26,6 +26,9 @@ library providing data types, fundamental abstraction (e.g., MonadCancel, Async)
 used for effectful and async functional programming. It also provides a set of
 laws, to verify correctness of those implementations.
 
+- `@fp4ts/http` Port of the [http4s](https://github.com/http4s/http4s) library,
+providing minimal functional interface for building HTTP services.
+
 - `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
 for purely functional, effectul, and polymorphic stream processing.
 
