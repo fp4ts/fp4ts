@@ -63,7 +63,7 @@ export class EntityDecoder<F, A> {
   public static text<F>(F: Concurrent<F, Error>): EntityDecoder<F, string> {
     return new EntityDecoder(
       DecoderT(compose(EitherT.rightT(F), this.decodeText(F))),
-      new Set(),
+      new Set([MediaType.text_plain]),
     );
   }
 

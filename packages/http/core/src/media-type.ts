@@ -48,7 +48,7 @@ export class MediaType extends MediaRange {
     if (that instanceof MediaType) {
       return (
         this === that ||
-        (this.mainType === that.mainType && this.mainType === that.subType)
+        (this.mainType === that.mainType && this.subType === that.subType)
       );
     } else {
       return false;

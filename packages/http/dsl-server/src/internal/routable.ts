@@ -46,9 +46,12 @@ import {
   Request,
   Response,
   Status,
+  Uri,
+  MediaType,
 } from '@fp4ts/http-core';
 import { DelayedT } from './delayed-t';
 import { Schema } from '@fp4ts/schema';
+import { Chunk, Stream } from '@fp4ts/stream';
 
 const ServerTK = Symbol('ServerTK');
 type ServerTK = typeof ServerTK;
@@ -362,8 +365,26 @@ const routable = altRoutable(
   ),
 );
 
-routable.route(IO.Concurrent)(
+const xs = routable.route(IO.Concurrent)(
   api,
   EmptyContext,
   Delayed.empty(EitherT.Monad(IO.Monad))(EitherT.right(IO.Monad)(server)),
 );
+
+xs.toArray[2].handler
+  .run(
+    new Request<IoK>(
+      Method.GET,
+      Uri.fromStringUnsafe('http://localhost:3000/version'),
+    )
+      .withEntityBody(
+        Stream.fromChunk(
+          Chunk.fromBuffer('this is something I want to echo'),
+        ).covary<IoK>(),
+      )
+      .putHeaders(ContentType(MediaType.text_plain)),
+  )
+  .map(console.log)
+  .unsafeRunToPromise();
+
+console.log(xs.toArray);
