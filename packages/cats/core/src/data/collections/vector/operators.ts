@@ -158,6 +158,11 @@ export const filter: <A>(
   p: (a: A) => boolean,
 ) => (xs: Vector<A>) => Vector<A> = p => xs => filter_(xs, p);
 
+export const lookup: <K>(
+  E: Eq<K>,
+) => (k: K) => <V>(xs: Vector<[K, V]>) => Option<V> = E => k => xs =>
+  lookup_(E)(xs, k);
+
 export const collect: <A, B>(
   f: (a: A) => Option<B>,
 ) => (xs: Vector<A>) => Vector<B> = f => xs => collect_(xs, f);
@@ -335,6 +340,18 @@ export const splitAt_ = <A>(
     ],
   );
 };
+
+export const lookup_ =
+  <K>(E: Eq<K>) =>
+  <V>(xs: Vector<[K, V]>, k: K): Option<V> => {
+    const it = iterator(xs);
+    for (let next = it.next(); !next.done; next = it.next()) {
+      if (E.equals(next.value[0], k)) {
+        return Some(next.value[1]);
+      }
+    }
+    return None;
+  };
 
 export const collect_ = <A, B>(
   xs: Vector<A>,

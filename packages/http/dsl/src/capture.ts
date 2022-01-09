@@ -6,6 +6,7 @@
 import { ParamParser } from './internal';
 
 export class CaptureParam<N extends string, A> {
+  private readonly __void!: void;
   public constructor(
     public readonly name: N,
     public readonly parser: ParamParser<A>,

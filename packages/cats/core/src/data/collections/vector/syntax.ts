@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
@@ -47,6 +47,7 @@ import {
   iterator,
   last,
   lastOption,
+  lookup_,
   map_,
   nonEmpty,
   partition_,
@@ -137,6 +138,8 @@ declare module './algebra' {
     slice(from: number, until: number): Vector<A>;
     splitAt(idx: number): [Vector<A>, Vector<A>];
 
+    lookup<K extends PrimitiveType, V>(this: Vector<[K, V]>, k: K): Option<V>;
+    lookup<K, V>(this: Vector<[K, V]>, E: Eq<K>): Option<V>;
     filter(p: (a: A) => boolean): Vector<A>;
     collect<B>(f: (a: A) => Option<B>): Vector<B>;
     collectWhile<B>(f: (a: A) => Option<B>): Vector<B>;
@@ -362,6 +365,12 @@ Vector.prototype.slice = function (from, until) {
 Vector.prototype.splitAt = function (idx) {
   return splitAt_(this, idx);
 };
+
+Vector.prototype.lookup = function (this: any, ...xs: any[]) {
+  return xs.length === 2
+    ? lookup_(xs[1])(this, xs[0])
+    : lookup_(Eq.primitive)(this, xs[0]);
+} as any;
 
 Vector.prototype.collect = function (f) {
   return collect_(this, f);

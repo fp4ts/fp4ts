@@ -19,7 +19,7 @@ import { Eq } from '../../eq';
 import { Identity, IdentityK } from '../identity';
 
 import { WriterT as WriterTBase } from './algebra';
-import { liftF, pure } from './constructors';
+import { liftF, pure, unit } from './constructors';
 import {
   writerTApplicative,
   writerTApplicativeError,
@@ -41,6 +41,7 @@ export const WriterT: WriterTObj = function (flv) {
 };
 WriterT.liftF = liftF;
 WriterT.pure = pure;
+WriterT.unit = unit;
 
 interface WriterTObj {
   <F, L, V>(flv: Kind<F, [[L, V]]>): WriterT<F, L, V>;
@@ -50,6 +51,7 @@ interface WriterTObj {
     L: Monoid<L>,
   ): <V>(fv: Kind<F, [V]>) => WriterT<F, L, V>;
   pure<F, L>(F: Applicative<F>, L: Monoid<L>): <V>(v: V) => WriterT<F, L, V>;
+  unit<F, L>(F: Applicative<F>, L: Monoid<L>): WriterT<F, L, void>;
 
   // -- Instances
 
@@ -89,11 +91,13 @@ export const Writer: WriterObj = function <L, V>(lv: [L, V]): Writer<L, V> {
   return new WriterTBase(lv);
 } as any;
 Writer.pure = L => v => pure(Identity.Applicative, L)(v);
+Writer.unit = L => unit(Identity.Applicative, L);
 
 interface WriterObj {
   <L, V>(lv: [L, V]): Writer<L, V>;
 
   pure<L>(L: Monoid<L>): <V>(v: V) => Writer<L, V>;
+  unit<L>(L: Monoid<L>): Writer<L, void>;
 
   // -- Instances
 

@@ -4,7 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kleisli, Monad, None, Option, OptionT, OptionTK } from '@fp4ts/cats';
+import {
+  Either,
+  Kleisli,
+  Monad,
+  None,
+  Option,
+  OptionT,
+  OptionTK,
+} from '@fp4ts/cats';
 import { $, Kind } from '@fp4ts/core';
 import { HttpRoutes, Method, Request, Response } from '@fp4ts/http-core';
 import { CaptureParam } from '../capture';
@@ -19,8 +27,8 @@ export const routesBuilder = <F>(F: Monad<F>): RoutesBuilder<F> => {
 
     const loop = (
       req: Request<F>,
-      path: string[],
-      rem: any[],
+      path: readonly string[],
+      rem: readonly any[],
       acc: Record<string, any>,
     ): OptionT<F, Response<F>> => {
       if (rem.length === 0) {
@@ -32,13 +40,18 @@ export const routesBuilder = <F>(F: Monad<F>): RoutesBuilder<F> => {
 
       if (rem[0] instanceof QueryParam)
         return req.uri.query.lookup(rem[0].name).fold(
-          () => loop(req, path, rem.slice(1), { ...acc, [rem[0].name]: None }),
-          x =>
-            rem[0].parser(x).fold(
-              (e: any) => OptionT.some(F)(e.toHttpResponse(req.httpVersion)),
-              (x: any) =>
-                loop(req, path, rem.slice(1), { ...acc, [rem[0].name]: x }),
-            ),
+          () => OptionT.none(F),
+          (ox: any) =>
+            ox
+              .traverse(Either.Applicative())((x: any) => rem[0].parser(x))
+              .fold(
+                (e: any) => OptionT.some(F)(e.toHttpResponse(req.httpVersion)),
+                (ox: any) =>
+                  loop(req, path, rem.slice(1), {
+                    ...acc,
+                    [rem[0].name]: ox,
+                  }),
+              ),
         );
 
       if (rem[0] instanceof Method)
@@ -63,9 +76,9 @@ export const routesBuilder = <F>(F: Monad<F>): RoutesBuilder<F> => {
         : OptionT.none(F);
     };
 
-    return Kleisli((req: Request<F>) =>
-      loop(req, req.uri.path.components, xs, {}),
-    );
+    return Kleisli((req: Request<F>) => {
+      return loop(req, req.uri.path.components.slice(1), xs, {});
+    });
   };
 
   parseRoute.group = function (...xs) {

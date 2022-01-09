@@ -20,6 +20,11 @@ export const pure =
   <V>(v: V): WriterT<F, L, V> =>
     new WriterT(F.pure(tupled(L.empty, v)));
 
+export const unit = <F, L>(
+  F: Applicative<F>,
+  L: Monoid<L>,
+): WriterT<F, L, void> => pure(F, L)(undefined as void);
+
 export const tell =
   <F>(F: Applicative<F>) =>
   <L>(l: L): WriterT<F, L, void> =>

@@ -3,15 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Left, Right } from '@fp4ts/cats';
 import { id } from '@fp4ts/core';
+import { Left, Right } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
 import {
   Request,
   HttpRoutes,
   EntityEncoder,
   EntityDecoder,
-  Uri,
+  uri,
 } from '@fp4ts/http-core';
 import { Capture, GET, Ok, Query, Routes } from '@fp4ts/http-dsl';
 
@@ -57,7 +57,7 @@ describe('parameter extraction', () => {
       'should capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(GET, uri(`${url}/${param}`)))
+          .run(new Request(GET, uri`${url}/${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -75,7 +75,7 @@ describe('parameter extraction', () => {
       'should fail to capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(GET, uri(`${url}/${param}`)))
+          .run(new Request(GET, uri`${url}/${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -97,7 +97,7 @@ describe('parameter extraction', () => {
       'should capture query $param from url $url/${name}?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(GET, uri(`${url}/${name}?${name}=${param}`)))
+          .run(new Request(GET, uri`${url}/${name}?${name}=${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -114,10 +114,10 @@ describe('parameter extraction', () => {
       ${'/query'} | ${'string'}
       ${'/query'} | ${'string'}
     `(
-      'should return none when the param $name is not present in $url/${name}',
+      'should return none when the param value is not present in $url/${name}?${name}',
       async ({ url, name }) => {
         const response = await app
-          .run(new Request(GET, uri(`${url}/${name}`)))
+          .run(new Request(GET, uri`${url}/${name}?${name}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -126,16 +126,16 @@ describe('parameter extraction', () => {
     );
 
     it.each`
-      url                   | param
-      ${'/capture/boolean'} | ${42}
-      ${'/capture/boolean'} | ${'falsee'}
-      ${'/capture/number'}  | ${''}
-      ${'/capture/number'}  | ${'true'}
+      url                   | $name        | param
+      ${'/capture/boolean'} | ${'boolean'} | ${42}
+      ${'/capture/boolean'} | ${'boolean'} | ${'falsee'}
+      ${'/capture/number'}  | ${'number'}  | ${''}
+      ${'/capture/number'}  | ${'number'}  | ${'true'}
     `(
       'should fail to capture query parameter $param from url $url/$name?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(GET, uri(`${url}/${name}?${name}=${param}`)))
+          .run(new Request(GET, uri`${url}/${name}?${name}=${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -143,7 +143,4 @@ describe('parameter extraction', () => {
       },
     );
   });
-
-  const uri = (s: string): Uri =>
-    Uri.fromStringUnsafe(`http://localhost:3000${s}`);
 });

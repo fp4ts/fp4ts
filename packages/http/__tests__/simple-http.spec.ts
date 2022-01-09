@@ -9,7 +9,7 @@ import {
   HttpRoutes,
   EntityDecoder,
   EntityEncoder,
-  Uri,
+  uri,
 } from '@fp4ts/http-core';
 import { GET, NoContent, Ok, POST, Routes } from '@fp4ts/http-dsl';
 
@@ -31,7 +31,7 @@ describe('dsl routing', () => {
 
   it('should return 204', async () => {
     const response = await app
-      .run(new Request(GET, uri('/version')))
+      .run(new Request(GET, uri`/version`))
       .unsafeRunToPromise();
 
     expect(response.status.code).toBe(204);
@@ -39,7 +39,7 @@ describe('dsl routing', () => {
 
   it('should return pong', async () => {
     const response = await app
-      .run(new Request(GET, uri('/ping')))
+      .run(new Request(GET, uri`/ping`))
       .flatMap(response => response.bodyText.compileConcurrent().string)
       .unsafeRunToPromise();
 
@@ -49,7 +49,7 @@ describe('dsl routing', () => {
   it('should echo the body request', async () => {
     const response = await app
       .run(
-        new Request<IoK>(POST, uri('/echo')).withEntity(
+        new Request<IoK>(POST, uri`/echo`).withEntity(
           'sample payload',
           EntityEncoder.text(),
         ),
@@ -60,6 +60,11 @@ describe('dsl routing', () => {
     expect(response).toBe('sample payload');
   });
 
-  const uri = (s: string): Uri =>
-    Uri.fromStringUnsafe(`http://localhost:3000${s}`);
+  it('should return 404 when route is not found', async () => {
+    const response = await app
+      .run(new Request(GET, uri`/some/random/uri`))
+      .unsafeRunToPromise();
+
+    expect(response.status.code).toBe(404);
+  });
 });
