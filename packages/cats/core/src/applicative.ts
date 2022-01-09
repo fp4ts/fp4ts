@@ -7,6 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { Functor } from './functor';
 import { Apply } from './apply';
 import { ComposedApplicative } from './composed';
+import { Array } from './data';
 
 /**
  * @category Type Class
@@ -14,6 +15,10 @@ import { ComposedApplicative } from './composed';
 export interface Applicative<F> extends Apply<F> {
   readonly pure: <A>(a: A) => Kind<F, [A]>;
   readonly unit: Kind<F, [void]>;
+
+  readonly tupled: <A extends unknown[]>(
+    ...fsa: { [k in keyof A]: Kind<F, [A[k]]> }
+  ) => Kind<F, [A]>;
 }
 
 export type ApplicativeRequirements<F> = Pick<Applicative<F>, 'pure' | 'ap_'> &
@@ -22,6 +27,8 @@ export const Applicative = Object.freeze({
   of: <F>(F: ApplicativeRequirements<F>): Applicative<F> => {
     const self: Applicative<F> = {
       unit: F.pure(undefined as void),
+
+      tupled: (...xs) => Array.Traversable().sequence(self)(xs),
 
       ...Apply.of<F>({ ...Applicative.deriveFunctor<F>(F), ...F }),
       ...F,

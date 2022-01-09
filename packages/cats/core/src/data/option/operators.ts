@@ -3,9 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { constant, flow, id, throwError } from '@fp4ts/core';
+import { constant, flow, id, Kind, throwError } from '@fp4ts/core';
 
 import { Eq } from '../../eq';
+import { Applicative } from '../../applicative';
 import { Either } from '../either';
 import { List } from '../collections/list';
 
@@ -133,6 +134,15 @@ export const tailRecM_ = <A, B>(
 
   return result;
 };
+
+export const traverse_ =
+  <F>(F: Applicative<F>) =>
+  <A, B>(o: Option<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [Option<B>]> =>
+    fold_(
+      o,
+      () => F.pure(none),
+      a => F.map_(f(a), some),
+    );
 
 export const fold_ = <A, B1, B2 = B1>(
   o: Option<A>,

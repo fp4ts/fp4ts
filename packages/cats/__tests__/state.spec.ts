@@ -80,12 +80,8 @@ describe('State', () => {
           Eval.Applicative,
         )(n);
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -99,12 +95,8 @@ describe('State', () => {
           Eval.Applicative,
         );
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -120,12 +112,8 @@ describe('State', () => {
           Eval.Applicative,
         )(f);
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -141,12 +129,8 @@ describe('State', () => {
           Eval.Applicative,
         )(compose(Eval.now, f));
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -160,12 +144,8 @@ describe('State', () => {
           Eval.Applicative,
         )(f);
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -181,12 +161,8 @@ describe('State', () => {
           Eval.Applicative,
         )(compose(Eval.now, f));
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -202,12 +178,8 @@ describe('State', () => {
           Eval.Applicative,
         )(Eval.now(n));
 
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          stateT.run(Eval.Monad)(s).value,
-        );
-        expect(state.run(Eval.Monad)(s).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s).value,
-        );
+        expect(state.run(s).value).toEqual(stateT.run(s).value);
+        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
         return true;
       }),
     );
@@ -221,12 +193,8 @@ describe('State', () => {
           Eval.Applicative,
         )(s1);
 
-        expect(state.run(Eval.Monad)(s0).value).toEqual(
-          stateT.run(Eval.Monad)(s0).value,
-        );
-        expect(state.run(Eval.Monad)(s0).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s0).value,
-        );
+        expect(state.run(s0).value).toEqual(stateT.run(s0).value);
+        expect(state.run(s0).value).toEqual(indexedStateT.run(s0).value);
         return true;
       }),
     );
@@ -242,12 +210,8 @@ describe('State', () => {
           Eval.Applicative,
         )(Eval.now(s1));
 
-        expect(state.run(Eval.Monad)(s0).value).toEqual(
-          stateT.run(Eval.Monad)(s0).value,
-        );
-        expect(state.run(Eval.Monad)(s0).value).toEqual(
-          indexedStateT.run(Eval.Monad)(s0).value,
-        );
+        expect(state.run(s0).value).toEqual(stateT.run(s0).value);
+        expect(state.run(s0).value).toEqual(indexedStateT.run(s0).value);
         return true;
       }),
     );
@@ -262,45 +226,46 @@ describe('State', () => {
       S.productR(State.get()),
     );
 
-    expect(r.run(Eval.Monad)(42).value).toEqual([44, 44]);
+    expect(r.run(42).value).toEqual([44, 44]);
   });
 
   describe('state management', () => {
     it('should pull the state to a value', () => {
       expect(
         State.get<number>()
-          .map(Eval.Functor)(x => x + 1)
-          .run(Eval.Monad)(42).value,
+          .map(x => x + 1)
+          .run(42).value,
       ).toEqual([42, 43]);
     });
 
     it('should set state from a value', () => {
       expect(
         State.pure<number, number>(42)
-          .flatMap(Eval.Monad)(x => State.set(x))
-          .run(Eval.Monad)(-1).value,
+          .flatMap(x => State.set(x))
+          .run(-1).value,
       ).toEqual([42, undefined]);
     });
 
     it('should update the state', () => {
-      expect(
-        State.modify<number>(x => x + 1).run(Eval.Monad)(42).value,
-      ).toEqual([43, undefined]);
+      expect(State.modify<number>(x => x + 1).run(42).value).toEqual([
+        43,
+        undefined,
+      ]);
     });
 
     it('should update the state and return it', () => {
       expect(
         State.modify<number>(x => x + 1)
-          .get(Eval.Functor)
-          .run(Eval.Monad)(42).value,
+          .get()
+          .run(42).value,
       ).toEqual([43, 43]);
     });
 
     it('should update the state and return a new value', () => {
       expect(
         State.modify<number>(x => x + 1)
-          .map(Eval.Functor)(() => 'test')
-          .run(Eval.Monad)(42).value,
+          .map(() => 'test')
+          .run(42).value,
       ).toEqual([43, 'test']);
     });
 
@@ -308,7 +273,7 @@ describe('State', () => {
       expect(
         State.pure<number, number>(42)
           .transform(Eval.Functor)(([s, x]) => [s + 1, `${s + x}`])
-          .run(Eval.Monad)(42).value,
+          .run(42).value,
       ).toEqual([43, '84']);
     });
 
@@ -317,11 +282,11 @@ describe('State', () => {
       const loop = (i: number): State<number, void> =>
         i < size
           ? State.modify<number>(j => j + 1)
-              .get(Eval.Functor)
-              .flatMap(Eval.Monad)(loop)
+              .get()
+              .flatMap(loop)
           : State.pure(undefined);
 
-      expect(loop(0).run(Eval.Monad)(0).value).toEqual([10_000, undefined]);
+      expect(loop(0).run(0).value).toEqual([10_000, undefined]);
     });
   });
 

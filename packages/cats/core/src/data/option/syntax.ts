@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { PrimitiveType } from '@fp4ts/core';
+import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Eq } from '../../eq';
+import { Applicative } from '../../applicative';
 import { List } from '../collections/list';
 import { Either } from '../either';
 import { Option } from './algebra';
@@ -24,6 +25,7 @@ import {
   toList,
   toLeft_,
   toRight_,
+  traverse_,
 } from './operators';
 
 declare module './algebra' {
@@ -49,6 +51,9 @@ declare module './algebra' {
     flatTap(f: (a: A) => Option<unknown>): Option<A>;
     readonly flatten: A extends Option<infer B> ? Option<B> : never;
 
+    traverse<F>(
+      F: Applicative<F>,
+    ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [Option<B>]>;
     fold<B1, B2 = B1>(onNone: () => B1, onSome: (a: A) => B2): B1 | B2;
 
     equals<B extends PrimitiveType>(this: Option<B>, that: Option<B>): boolean;
@@ -133,6 +138,10 @@ Object.defineProperty(Option.prototype, 'flatten', {
     return flatten(this);
   },
 });
+
+Option.prototype.traverse = function (F) {
+  return f => traverse_(F)(this, f);
+};
 
 Option.prototype.fold = function (onNone, onSome) {
   return fold_(this, onNone, onSome);
