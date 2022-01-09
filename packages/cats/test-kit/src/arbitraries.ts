@@ -25,6 +25,8 @@ import {
   AndThen,
   IndexedStateT,
   State,
+  WriterT,
+  Writer,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -232,6 +234,14 @@ export const fp4tsHashMap = <K, V>(
         .map(HashMap.fromArray(H)),
     );
 };
+
+export const fp4tsWriterT = <F, L, V>(
+  arbFLV: Arbitrary<Kind<F, [[L, V]]>>,
+): Arbitrary<WriterT<F, L, V>> => arbFLV.map(WriterT);
+
+export const fp4tsWriter = <L, V>(
+  arbFLV: Arbitrary<[L, V]>,
+): Arbitrary<Writer<L, V>> => arbFLV.map(Writer);
 
 export const fp4tsKleisli = <F, A, B>(
   arbFB: Arbitrary<Kind<F, [B]>>,

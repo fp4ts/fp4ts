@@ -26,6 +26,10 @@ export const Monoid = Object.freeze({
     ...Semigroup.of(M),
     ...M,
   }),
+
+  get string(): Monoid<string> {
+    return Monoid.of({ ...Semigroup.string, empty: '' });
+  },
 });
 
 // -- Builtin Semigroups

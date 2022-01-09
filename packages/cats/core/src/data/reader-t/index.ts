@@ -10,4 +10,8 @@ export const ReaderT = Kleisli;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export type ReaderTK = KleisliK;

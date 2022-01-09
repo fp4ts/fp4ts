@@ -21,6 +21,7 @@ export * from './kleisli';
 export * from './option-t';
 export * from './either-t';
 export * from './reader-t';
+export * from './writer-t';
 export * from './nested';
 export * from './tuple2-k';
 
