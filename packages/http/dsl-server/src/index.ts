@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Option, Right } from '@fp4ts/cats';
+import { Either, EitherT, Identity, Option, Right } from '@fp4ts/cats';
+import { Method, Request, uri } from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -20,56 +21,13 @@ import {
   Verb,
 } from '@fp4ts/http-dsl-shared/lib/api';
 import { Type } from '@fp4ts/http-dsl-shared/lib/type';
-import { DeriveCoding, serve } from './internal/server-derivable';
+import {
+  DeriveCoding,
+  route___,
+  toHttpRoutes,
+} from './internal/server-derivable';
 
 /**
  * @module http/dsl-server
  */
 export {};
-
-const x = group(
-  Route('capture')[':>'](
-    group(
-      Route('boolean')
-        [':>'](Capture.boolean('bool'))
-        [':>'](Capture.string('str'))
-        [':>'](Get),
-      Route('number')[':>'](Capture.number('num'))[':>'](Get),
-      Route('string')[':>'](Capture.string('str'))[':>'](Get),
-    ),
-  ),
-  Route('query')[':>'](
-    group(
-      Route('boolean')[':>'](Query.boolean('bool'))[':>'](Get),
-      Route('number')[':>'](Query.number('num'))[':>'](Get),
-      Route('string')[':>'](Query.string('str'))[':>'](Get),
-    ),
-  ),
-);
-
-serve(
-  x,
-  [
-    [
-      (x: boolean) => (y: string) => () => null as any as Response,
-      (x: number) => () => null as any as Response,
-      (x: string) => () => null as any as Response,
-    ],
-    [
-      (x: Option<boolean>) => () => null as any as Response,
-      (x: Option<number>) => () => null as any as Response,
-      (x: Option<string>) => () => null as any as Response,
-    ],
-  ],
-  {
-    '@fp4ts/http/dsl/boolean': () => Right(true),
-    '@fp4ts/http/dsl/number': () => Right(42),
-    '@fp4ts/http/dsl/string': () => Right('string'),
-  },
-);
-
-type x = { test: number };
-type y = { test: string };
-type z = x & y;
-
-type T = DeriveCoding<typeof x>;
