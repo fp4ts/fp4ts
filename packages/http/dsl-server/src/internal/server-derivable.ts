@@ -26,8 +26,8 @@ import {
   VerbNoContentTag,
   VerbTag,
   Verb,
-} from '@fp4ts/http-dsl-shared/lib/api';
-import { Type } from '@fp4ts/http-dsl-shared/lib/type';
+  Type,
+} from '@fp4ts/http-dsl-shared';
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
 import { DelayedCheck } from './delayed-check';
@@ -203,7 +203,7 @@ export function route<F>(F: Monad<F>) {
       ),
     );
 
-    return leafRouter(env =>
+    return leafRouter(verb.method, env =>
       Kleisli(req => {
         const run = d
           .addAcceptCheck(EF)(acceptCheck)
@@ -227,7 +227,7 @@ export function route<F>(F: Monad<F>) {
     d: Delayed<F, env, Server<F, VerbNoContent<any>>>,
     codings: DeriveCoding<F, VerbNoContent<any>>,
   ): Router<env, Http<F, F>> {
-    return leafRouter(env =>
+    return leafRouter(verb.method, env =>
       Kleisli(req => {
         const run = d.runDelayed(EF)(env)(req).flatten(F);
         return run.fold(F)(

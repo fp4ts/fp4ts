@@ -1,5 +1,5 @@
 import { Kleisli, Monad, OptionT } from '@fp4ts/cats';
-import { Http, HttpRoutes, Request, Response } from '@fp4ts/http-core';
+import { Http, HttpRoutes, Method, Request, Response } from '@fp4ts/http-core';
 
 export type Router<env, a> =
   | StaticRouter<env, a>
@@ -10,7 +10,7 @@ export class StaticRouter<env, a> {
   public readonly tag = 'static';
   public constructor(
     public readonly table: Record<string, Router<env, a>>,
-    public readonly matches?: (e: env) => a,
+    public readonly matches: Record<string, (e: env) => a> = {},
   ) {}
 }
 
@@ -29,8 +29,10 @@ export const pathRouter = <env, a>(
   r: Router<env, a>,
 ): Router<env, a> => new StaticRouter({ [p]: r });
 
-export const leafRouter = <env, a>(l: (e: env) => a): Router<env, a> =>
-  new StaticRouter({}, l);
+export const leafRouter = <env, a>(
+  method: Method,
+  l: (e: env) => a,
+): Router<env, a> => new StaticRouter({}, { [method.methodName]: l });
 
 export const choice = <env, a>(...xs: Router<env, a>[]): Router<env, a> =>
   new Choice(xs);
@@ -46,14 +48,12 @@ export const runRouterEnv =
     ): OptionT<F, Response<F>> => {
       switch (router.tag) {
         case 'static': {
-          if (rem.length === 0 && router.matches)
+          if (rem.length === 0) {
             // pick one of the end routes as we have a match
-            return OptionT.liftF(F)(router.matches(env).run(req));
-
-          if (rem[0] === '' && router.matches)
-            // pick one of the end routes as we have a match
-            // trailing `/`
-            return OptionT.liftF(F)(router.matches(env).run(req));
+            const methodMatch = router.matches[req.method.methodName];
+            if (!methodMatch) return OptionT.none(F);
+            return OptionT.liftF(F)(methodMatch(env).run(req));
+          }
 
           if (router.table[rem[0]]) {
             return loop(req, router.table[rem[0]], env, rem.slice(1));
@@ -65,11 +65,6 @@ export const runRouterEnv =
         case 'capture': {
           if (rem.length === 0)
             // nothing to capture
-            return OptionT.none(F);
-
-          if (rem[0] === '')
-            // nothing to capture
-            // tailing `/`
             return OptionT.none(F);
 
           const [pfx, ...sfx] = rem;
@@ -86,7 +81,14 @@ export const runRouterEnv =
       }
     };
 
-    return Kleisli(req =>
-      loop(req, router, env, req.uri.path.components.slice(1)),
-    );
+    return Kleisli(req => {
+      // ensure to trip the leading '' introduced by /
+      const pathComponents = req.uri.path.components.slice(1);
+      // ensure to trip the trailing '' introduced by /
+      const routablePathComponents =
+        pathComponents[pathComponents.length - 1] === ''
+          ? pathComponents.slice(0, pathComponents.length - 1)
+          : pathComponents;
+      return loop(req, router, env, routablePathComponents);
+    });
   };

@@ -1,5 +1,5 @@
-import { EitherK, EitherT } from '@fp4ts/cats';
-import { $type, Fix, TyK, TyVar, α, β, λ } from '@fp4ts/core';
+import { $type, TyK, TyVar } from '@fp4ts/core';
+import { EitherT } from '@fp4ts/cats';
 import { MessageFailure } from '@fp4ts/http-core';
 
 export type Handler<F, A> = EitherT<F, MessageFailure, A>;
