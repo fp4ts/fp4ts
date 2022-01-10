@@ -1,5 +1,7 @@
-import { EitherT, Identity, IdentityK, Left, Option, Right } from '@fp4ts/cats';
-import { toHttpRoutes } from '@fp4ts/http-dsl-server/lib/internal/server-derivable';
+import { EitherT, Identity, IdentityK } from '@fp4ts/cats';
+import { IO, IoK } from '@fp4ts/effect-core';
+import { Method, Request, uri } from '@fp4ts/http-core';
+import { toHttpRoutes } from '@fp4ts/http-dsl-server';
 import {
   Capture,
   Get,
@@ -7,14 +9,10 @@ import {
   PlainText,
   Query,
   Route,
-} from '@fp4ts/http-dsl-shared/lib/api';
-import { Method, Request, uri, ParsingFailure } from '@fp4ts/http-core';
-import {
   booleanType,
   numberType,
   stringType,
-} from '@fp4ts/http-dsl-shared/lib/types';
-import { IO, IoK } from '@fp4ts/effect-core';
+} from '@fp4ts/http-dsl-shared';
 
 describe('dsl', () => {
   it('should do something', async () => {
@@ -70,36 +68,7 @@ describe('dsl', () => {
             ),
         ],
       ],
-      {
-        '@fp4ts/http/dsl/boolean': {
-          decode: x => {
-            switch (x) {
-              case 'true':
-                return Right(true);
-              case 'false':
-                return Right(false);
-              default:
-                return Left(
-                  new ParsingFailure(`Expected boolean, found '${x}'`),
-                );
-            }
-          },
-          encode: x => global.JSON.stringify(x),
-        },
-        '@fp4ts/http/dsl/number': {
-          decode: x => {
-            const n = parseFloat(x);
-            return Number.isNaN(n) || Number.isFinite(n)
-              ? Left(new ParsingFailure(`Expected number, found ${x}`))
-              : Right(n);
-          },
-          encode: x => global.JSON.stringify(x),
-        },
-        '@fp4ts/http/dsl/string': {
-          decode: x => Right(x),
-          encode: x => x,
-        },
-      },
+      {},
     );
 
     console.log(

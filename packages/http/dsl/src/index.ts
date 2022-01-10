@@ -6,8 +6,35 @@
 /**
  * @module http/dsl
  */
-export { Capture } from './capture';
-export { Query } from './query';
-export * from './method';
-export * from './status';
-export * from './routes';
+// prettier-ignore
+export {
+  group,
+
+  Capture,
+  Query,
+  Route,
+
+  Get,
+  Post,
+  Put,
+  Delete,
+
+  PostCreated,
+  PutCreated,
+
+  GetNoContent,
+  PostNoContent,
+  PutNoContent,
+  PatchNoContent,
+  DeleteNoContent,
+
+  JSON,
+  PlainText,
+  
+  typeDef,
+  booleanType,
+  numberType,
+  stringType,
+  nullType,
+  Type,
+} from '@fp4ts/http-dsl-shared';

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Either, EitherT, Kleisli, Left, Monad, Option } from '@fp4ts/cats';
-import { id, Kind } from '@fp4ts/core';
+import { id } from '@fp4ts/core';
+import { Either, EitherT, Kleisli, Left, Monad } from '@fp4ts/cats';
 import {
   Accept,
   EntityEncoder,
@@ -15,23 +15,16 @@ import {
 import {
   Alt,
   Sub,
-  ApiElement,
   VerbNoContent,
   CaptureElement,
   QueryElement,
   StaticElement,
-  CaptureTag,
-  StaticTag,
-  QueryTag,
-  VerbNoContentTag,
-  VerbTag,
   Verb,
   Type,
 } from '@fp4ts/http-dsl-shared';
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
 import { DelayedCheck } from './delayed-check';
-import { HandlerK } from './handler';
 import {
   CaptureRouter,
   choice,
@@ -40,17 +33,38 @@ import {
   Router,
   runRouterEnv,
 } from './router';
+import { Server, DeriveCoding } from '../type-level';
+import { builtins } from '../builtin-codables';
 
 export const toApp =
   <F>(F: Monad<F>) =>
   <api>(
     api: api,
     server: Server<F, api>,
-    codings: DeriveCoding<F, api>,
+    codings: Omit<DeriveCoding<F, api>, keyof builtins>,
   ): HttpApp<F> =>
     HttpRoutes.orNotFound(F)(toHttpRoutes(F)(api, server, codings));
 
 export const toHttpRoutes =
+  <F>(F: Monad<F>) =>
+  <api>(
+    api: api,
+    server: Server<F, api>,
+    codings: Omit<DeriveCoding<F, api>, keyof builtins>,
+  ): HttpRoutes<F> =>
+    runRouterEnv(F)(
+      route(F)(
+        api,
+        EmptyContext,
+        Delayed.empty(EitherT.Monad<F, MessageFailure>(F))(
+          EitherT.right(F)(server),
+        ),
+        { ...builtins, ...codings } as any,
+      ),
+      undefined as void,
+    );
+
+export const _toHttpRoutes =
   <F>(F: Monad<F>) =>
   <api>(
     api: api,
@@ -240,105 +254,4 @@ export function route<F>(F: Monad<F>) {
   }
 
   return route;
-}
-
-export interface TermDerivates<F, api, m> {}
-export interface SubDerivates<F, x, api, m> {}
-
-export interface CodingDerivates<F, x, z> {}
-
-type Server<F, api> = ServerT<F, api, HandlerK>;
-
-// prettier-ignore
-type ServerT<F, api, m> =
-  api extends Sub<infer x, infer api>
-    ? DeriveSub<F, x, api, m>
-  : api extends Alt<infer xs>
-    ? { [k in keyof xs]: ServerT<F, xs[k], m> }
-  : DeriveTerm<F, api, m>;
-
-// prettier-ignore
-type DeriveSub<F, x, api, m> =
-  x extends ApiElement<infer T>
-    ? T extends keyof SubDerivates<F, any, any, m>
-      ? SubDerivates<F, x, api, m>[T]
-      : never
-    : never;
-
-// prettier-ignore
-type DeriveTerm<F, api, m> =
-  api extends ApiElement<infer T>
-    ? T extends keyof TermDerivates<F, any, m>
-      ? TermDerivates<F, api, m>[T]
-      : never
-    : never;
-
-// prettier-ignore
-export type DeriveCoding<F, api, z = {}> =
-  api extends Sub<infer x, infer api>
-    ? DeriveCoding<F, api, DeriveTermCoding<F, x, z>>
-  : api extends Alt<infer xs>
-    ? DeriveAltCodings<F, xs, z>
-  : DeriveTermCoding<F, api, z>;
-
-// prettier-ignore
-type DeriveTermCoding<F, api, z = {}> =
-  api extends ApiElement<infer T>
-    ? T extends keyof CodingDerivates<F, any, any>
-      ? CodingDerivates<F, api, z>[T]
-      : never
-    : never;
-
-// prettier-ignore
-type DeriveAltCodings<F, xs extends unknown[], z = {}> =
-  xs extends [infer x, ...infer xs]
-    ? DeriveAltCodings<F, xs, DeriveCoding<F, x, z>>
-    : z;
-
-// -- Implementations
-
-export interface TermDerivates<F, api, m> {
-  [VerbTag]: api extends Verb<any, Type<any, infer A>>
-    ? Kind<m, [F, A]>
-    : never;
-  [VerbNoContentTag]: Kind<m, [F, void]>;
-}
-
-export interface SubDerivates<F, x, api, m> {
-  [CaptureTag]: x extends CaptureElement<any, infer T>
-    ? T extends Type<any, infer X>
-      ? (x: X) => ServerT<F, api, m>
-      : never
-    : never;
-  [QueryTag]: x extends QueryElement<any, infer T>
-    ? T extends Type<any, infer X>
-      ? (x: Option<X>) => ServerT<F, api, m>
-      : never
-    : never;
-  [StaticTag]: ServerT<F, api, m>;
-}
-
-interface Codable<A> {
-  encode: (a: A) => string;
-  decode: (a: string) => Either<MessageFailure, A>;
-}
-
-export interface CodingDerivates<F, x, z> {
-  [CaptureTag]: x extends CaptureElement<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
-      : never
-    : never;
-  [QueryTag]: x extends QueryElement<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
-      : never
-    : never;
-  [StaticTag]: z;
-  [VerbTag]: x extends Verb<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
-      : never
-    : never;
-  [VerbNoContentTag]: z;
 }
