@@ -34,7 +34,7 @@ interface SchemaObj {
   boolean: Schema<boolean>;
   number: Schema<number>;
   string: Schema<string>;
-  nullSchema: Schema<null>;
+  null: Schema<null>;
 
   array<A>(sa: Schema<A>): Schema<A[]>;
 
@@ -65,7 +65,7 @@ Schema.literal = literal;
 Schema.boolean = boolean;
 Schema.number = number;
 Schema.string = string;
-Schema.nullSchema = nullSchema;
+Schema.null = nullSchema;
 Schema.array = array;
 Schema.struct = struct;
 Schema.partial = partial;
