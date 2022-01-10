@@ -12,7 +12,7 @@ export const ContentType: ContentTypeObj = function (mt) {
   return new ContentTypeHeader(mt);
 };
 
-class ContentTypeHeader {
+export class ContentTypeHeader {
   public constructor(public readonly mediaType: MediaType) {}
 
   public toRaw(): List<RawHeader> {

@@ -42,7 +42,7 @@ declare module './algebra' {
 
     leftMap<E2>(f: (e: E) => E2): Either<E2, A>;
 
-    bimap<E2, B>(f: (e: E) => E2, g: (a: A) => B): Either<E2, A>;
+    bimap<E2, B>(f: (e: E) => E2, g: (a: A) => B): Either<E2, B>;
 
     orElse<E2, A2>(
       this: Either<E2, A2>,

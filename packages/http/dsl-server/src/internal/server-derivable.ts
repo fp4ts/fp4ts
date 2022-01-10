@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { Either, EitherT, Kleisli, Left, Monad, Option } from '@fp4ts/cats';
+import { id, Kind } from '@fp4ts/core';
 import {
-  Either,
-  EitherT,
-  IdentityK,
-  Kleisli,
-  Monad,
-  Option,
-} from '@fp4ts/cats';
-import { $, $type, id, instance, Kind, TyK, TyVar } from '@fp4ts/core';
-import {
+  Accept,
+  EntityEncoder,
   Http,
   HttpApp,
   HttpRoutes,
@@ -21,19 +16,16 @@ import {
   Alt,
   Sub,
   ApiElement,
-  ElementTag,
-  Verb,
+  VerbNoContent,
   CaptureElement,
   QueryElement,
   StaticElement,
-  BaseElement,
   CaptureTag,
   StaticTag,
   QueryTag,
-  Route,
-  Get,
-  group,
+  VerbNoContentTag,
   VerbTag,
+  Verb,
 } from '@fp4ts/http-dsl-shared/lib/api';
 import { Type } from '@fp4ts/http-dsl-shared/lib/type';
 import { Context, EmptyContext } from './context';
@@ -54,7 +46,7 @@ export const toApp =
   <api>(
     api: api,
     server: Server<F, api>,
-    codings: DeriveCoding<api>,
+    codings: DeriveCoding<F, api>,
   ): HttpApp<F> =>
     HttpRoutes.orNotFound(F)(toHttpRoutes(F)(api, server, codings));
 
@@ -63,7 +55,7 @@ export const toHttpRoutes =
   <api>(
     api: api,
     server: Server<F, api>,
-    codings: DeriveCoding<api>,
+    codings: DeriveCoding<F, api>,
   ): HttpRoutes<F> =>
     runRouterEnv(F)(
       route(F)(
@@ -83,7 +75,7 @@ export function route<F>(F: Monad<F>) {
     api: api,
     ctx: Context<context>,
     server: Delayed<F, env, Server<F, api>>,
-    codings: DeriveCoding<api>,
+    codings: DeriveCoding<F, api>,
   ): Router<env, Http<F, F>> {
     if (api instanceof Alt) {
       return routeAlt(api, ctx, server, codings);
@@ -104,7 +96,11 @@ export function route<F>(F: Monad<F>) {
     }
 
     if (api instanceof Verb) {
-      return routeVerb(api, ctx, server as any, codings);
+      return routeVerbContent(api, ctx, server as any, codings);
+    }
+
+    if (api instanceof VerbNoContent) {
+      return routeVerbNoContent(api, ctx, server as any, codings);
     }
 
     throw new Error('Invalid API');
@@ -114,7 +110,7 @@ export function route<F>(F: Monad<F>) {
     api: Alt<xs>,
     ctx: Context<context>,
     server: Delayed<F, env, Server<F, Alt<xs>>>,
-    codings: DeriveCoding<Alt<xs>>,
+    codings: DeriveCoding<F, Alt<xs>>,
   ): Router<env, Http<F, F>> {
     return choice(
       ...api.xs.map((x: any, i: number) =>
@@ -133,15 +129,15 @@ export function route<F>(F: Monad<F>) {
     api: api,
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<CaptureElement<any, Type<any, A>>, api>>>,
-    codings: DeriveCoding<Sub<CaptureElement<any, Type<any, A>>, api>>,
+    codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const parse = codings[a.type.ref];
+    const { decode } = codings[a.type.ref];
     return new CaptureRouter(
       route(
         api,
         ctx,
         d.addCapture(EF)(txt =>
-          DelayedCheck.withRequest(F)(req => EitherT(F.pure(parse(txt)))),
+          DelayedCheck.withRequest(F)(req => EitherT(F.pure(decode(txt)))),
         ),
         codings,
       ),
@@ -153,9 +149,9 @@ export function route<F>(F: Monad<F>) {
     api: api,
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<QueryElement<any, Type<any, A>>, api>>>,
-    codings: DeriveCoding<Sub<CaptureElement<any, Type<any, A>>, api>>,
+    codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const parse = codings[a.type.ref];
+    const { decode } = codings[a.type.ref];
     return route(
       api,
       ctx,
@@ -163,7 +159,7 @@ export function route<F>(F: Monad<F>) {
         DelayedCheck.withRequest(F)(req => {
           const value = req.uri.query.lookup(a.property);
           const result = value
-            .map(v => v.traverse(Either.Applicative<MessageFailure>())(parse))
+            .map(v => v.traverse(Either.Applicative<MessageFailure>())(decode))
             .toRight(() => new ParsingFailure('Missing query'))
             .flatMap(id);
           return EitherT(F.pure(result));
@@ -178,20 +174,62 @@ export function route<F>(F: Monad<F>) {
     api: api,
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<StaticElement<any>, api>>>,
-    codings: DeriveCoding<Sub<StaticElement<any>, api>>,
+    codings: DeriveCoding<F, Sub<StaticElement<any>, api>>,
   ): Router<env, Http<F, F>> {
     return pathRouter(path.path, route(api, ctx, d, codings));
   }
 
-  function routeVerb<context extends unknown[], env>(
-    verb: Verb<any>,
+  function routeVerbContent<A, context extends unknown[], env>(
+    verb: Verb<any, Type<any, A>>,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Verb<any>>>,
-    codings: DeriveCoding<Verb<any>>,
+    d: Delayed<F, env, Server<F, Verb<any, Type<any, A>>>>,
+    codings: DeriveCoding<F, Verb<any, Type<any, A>>>,
+  ): Router<env, Http<F, F>> {
+    const { encode } = codings[verb.body.ref];
+    const acceptCheck = DelayedCheck.withRequest(F)(req =>
+      EitherT(
+        F.pure(
+          req.headers
+            .get(Accept.Select)
+            .map(ah =>
+              ah.mediaRanges.any(mr =>
+                mr.satisfiedBy(verb.contentType.mediaType),
+              )
+                ? Either.rightUnit
+                : Left(new ParsingFailure('Invalid content type')),
+            )
+            .fold(() => Either.rightUnit, id),
+        ),
+      ),
+    );
+
+    return leafRouter(env =>
+      Kleisli(req => {
+        const run = d
+          .addAcceptCheck(EF)(acceptCheck)
+          .runDelayed(EF)(env)(req)
+          .flatten(F);
+
+        return run.fold(F)(
+          f => f.toHttpResponse(req.httpVersion),
+          e =>
+            new Response<F>(verb.status, req.httpVersion)
+              .withEntity(encode(e), EntityEncoder.json())
+              .putHeaders(verb.contentType),
+        );
+      }),
+    );
+  }
+
+  function routeVerbNoContent<context extends unknown[], env>(
+    verb: VerbNoContent<any>,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, VerbNoContent<any>>>,
+    codings: DeriveCoding<F, VerbNoContent<any>>,
   ): Router<env, Http<F, F>> {
     return leafRouter(env =>
       Kleisli(req => {
-        const run = d.runDelayed(EF)(env)(req).flatMap(F)(id);
+        const run = d.runDelayed(EF)(env)(req).flatten(F);
         return run.fold(F)(
           f => f.toHttpResponse(req.httpVersion),
           () =>
@@ -207,7 +245,7 @@ export function route<F>(F: Monad<F>) {
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
 
-export interface CodingDerivates<x, z> {}
+export interface CodingDerivates<F, x, z> {}
 
 type Server<F, api> = ServerT<F, api, HandlerK>;
 
@@ -236,31 +274,34 @@ type DeriveTerm<F, api, m> =
     : never;
 
 // prettier-ignore
-export type DeriveCoding<api, z = {}> =
+export type DeriveCoding<F, api, z = {}> =
   api extends Sub<infer x, infer api>
-    ? DeriveCoding<api, DeriveTermCoding<x, z>>
+    ? DeriveCoding<F, api, DeriveTermCoding<F, x, z>>
   : api extends Alt<infer xs>
-    ? DeriveAltCodings<xs, z>
-  : DeriveTermCoding<api, z>;
+    ? DeriveAltCodings<F, xs, z>
+  : DeriveTermCoding<F, api, z>;
 
 // prettier-ignore
-type DeriveTermCoding<api, z = {}> =
+type DeriveTermCoding<F, api, z = {}> =
   api extends ApiElement<infer T>
-    ? T extends keyof CodingDerivates<any, any>
-      ? CodingDerivates<api, z>[T]
+    ? T extends keyof CodingDerivates<F, any, any>
+      ? CodingDerivates<F, api, z>[T]
       : never
     : never;
 
 // prettier-ignore
-type DeriveAltCodings<xs extends unknown[], z = {}> =
+type DeriveAltCodings<F, xs extends unknown[], z = {}> =
   xs extends [infer x, ...infer xs]
-    ? DeriveAltCodings<xs, DeriveCoding<x, z>>
+    ? DeriveAltCodings<F, xs, DeriveCoding<F, x, z>>
     : z;
 
 // -- Implementations
 
 export interface TermDerivates<F, api, m> {
-  [VerbTag]: Kind<m, [F, void]>;
+  [VerbTag]: api extends Verb<any, Type<any, infer A>>
+    ? Kind<m, [F, A]>
+    : never;
+  [VerbNoContentTag]: Kind<m, [F, void]>;
 }
 
 export interface SubDerivates<F, x, api, m> {
@@ -277,17 +318,27 @@ export interface SubDerivates<F, x, api, m> {
   [StaticTag]: ServerT<F, api, m>;
 }
 
-export interface CodingDerivates<x, z> {
+interface Codable<A> {
+  encode: (a: A) => string;
+  decode: (a: string) => Either<MessageFailure, A>;
+}
+
+export interface CodingDerivates<F, x, z> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: (u: unknown) => Either<MessageFailure, A> }
+      ? z & { [k in R]: Codable<A> }
       : never
     : never;
   [QueryTag]: x extends QueryElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: (u: unknown) => Either<MessageFailure, A> }
+      ? z & { [k in R]: Codable<A> }
       : never
     : never;
   [StaticTag]: z;
-  [VerbTag]: z;
+  [VerbTag]: x extends Verb<any, infer T>
+    ? T extends Type<infer R, infer A>
+      ? z & { [k in R]: Codable<A> }
+      : never
+    : never;
+  [VerbNoContentTag]: z;
 }

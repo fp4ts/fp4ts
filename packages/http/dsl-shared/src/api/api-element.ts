@@ -1,4 +1,4 @@
-export const ElementTag = '@fp4ts/http/dsl-shared/ElementTag';
+export const ElementTag = Symbol('@fp4ts/http/dsl-shared/ElementTag');
 export type ElementTag = typeof ElementTag;
 
 export interface ApiElement<T extends string> {

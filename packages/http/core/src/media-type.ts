@@ -7,7 +7,7 @@ import { Either, Left, OrderedMap, Right } from '@fp4ts/cats';
 import { tupled } from '@fp4ts/core';
 
 export class MediaRange {
-  protected constructor(
+  public constructor(
     public readonly mainType: string,
     public readonly extensions: OrderedMap<string, string> = OrderedMap.empty,
   ) {}

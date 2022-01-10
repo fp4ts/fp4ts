@@ -10,9 +10,10 @@ export class Method {
   public static readonly POST = new Method('POST');
   public static readonly PUT = new Method('PUT');
   public static readonly DELETE = new Method('DELETE');
+  public static readonly PATCH = new Method('PATCH');
 
   public static fromString(s: string): Either<Error, Method> {
-    if (['GET', 'POST', 'PUT', 'DELETE'].includes(s)) {
+    if (['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(s)) {
       return Right(new Method(s));
     } else {
       return Left(new Error(`Invalid method name '${s}'`));
