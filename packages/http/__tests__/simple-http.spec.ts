@@ -12,6 +12,7 @@ import {
   group,
   PlainText,
   Post,
+  ReqBody,
   Route,
   stringType,
 } from '@fp4ts/http-dsl';
@@ -21,14 +22,18 @@ describe('dsl routing', () => {
   const api = group(
     Route('version')[':>'](GetNoContent),
     Route('ping')[':>'](Get(PlainText, stringType)),
-    // Route('echo')
-    //   [':>'](ReqBody(PlainText, stringType))
-    //   [':>'](Post(PlainText, stringType)),
+    Route('echo')
+      [':>'](ReqBody(PlainText, stringType))
+      [':>'](Post(PlainText, stringType)),
   );
 
-  const app = toApp(IO.Monad)(
+  const app = toApp(IO.Concurrent)(
     api,
-    [EitherT.rightUnit(IO.Applicative), EitherT.right(IO.Applicative)('pong')],
+    [
+      EitherT.rightUnit(IO.Applicative),
+      EitherT.right(IO.Applicative)('pong'),
+      x => EitherT.right(IO.Applicative)(x),
+    ],
     {},
   );
 
@@ -49,19 +54,19 @@ describe('dsl routing', () => {
     expect(response).toBe('pong');
   });
 
-  // it('should echo the body request', async () => {
-  //   const response = await app
-  //     .run(
-  //       new Request<IoK>(Method.POST, uri`/echo`).withEntity(
-  //         'sample payload',
-  //         EntityEncoder.text(),
-  //       ),
-  //     )
-  //     .flatMap(response => response.bodyText.compileConcurrent().string)
-  //     .unsafeRunToPromise();
+  it('should echo the body request', async () => {
+    const response = await app
+      .run(
+        new Request<IoK>(Method.POST, uri`/echo`).withEntity(
+          'sample payload',
+          EntityEncoder.text(),
+        ),
+      )
+      .flatMap(response => response.bodyText.compileConcurrent().string)
+      .unsafeRunToPromise();
 
-  //   expect(response).toBe('sample payload');
-  // });
+    expect(response).toBe('sample payload');
+  });
 
   it('should return 404 when route is not found', async () => {
     const response = await app

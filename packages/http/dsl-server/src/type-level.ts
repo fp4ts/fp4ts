@@ -8,13 +8,17 @@ import {
   CaptureTag,
   QueryElement,
   QueryTag,
+  ReqBodyElement,
+  ReqBodyTag,
   StaticTag,
   Sub,
   Type,
   Verb,
   VerbNoContentTag,
   VerbTag,
+  PlainText,
 } from '@fp4ts/http-dsl-shared';
+import { builtins } from './builtin-codables';
 import { Codable } from './codable';
 import { HandlerK } from './internal/handler';
 
@@ -74,7 +78,7 @@ type DeriveAltCodings<F, xs extends unknown[], z = {}> =
 // -- Implementations
 
 export interface TermDerivates<F, api, m> {
-  [VerbTag]: api extends Verb<any, Type<any, infer A>>
+  [VerbTag]: api extends Verb<any, any, Type<any, infer A>>
     ? Kind<m, [F, A]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
@@ -92,24 +96,47 @@ export interface SubDerivates<F, x, api, m> {
       : never
     : never;
   [StaticTag]: ServerT<F, api, m>;
+  [ReqBodyTag]: x extends ReqBodyElement<any, infer T>
+    ? T extends Type<any, infer A>
+      ? (a: A) => ServerT<F, api, m>
+      : never
+    : never;
 }
 
 export interface CodingDerivates<F, x, z> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
+      ? z & { [_ in PlainText['mime']]: { [k in R]: Codable<A> } }
       : never
     : never;
   [QueryTag]: x extends QueryElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
+      ? z & { [_ in PlainText['mime']]: { [k in R]: Codable<A> } }
       : never
     : never;
   [StaticTag]: z;
-  [VerbTag]: x extends Verb<any, infer T>
+  [VerbTag]: x extends Verb<any, infer CT, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [k in R]: Codable<A> }
+      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
       : never
     : never;
   [VerbNoContentTag]: z;
+  [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
+    ? T extends Type<infer R, infer A>
+      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
+      : never
+    : never;
 }
+
+// prettier-ignore
+export type OmitBuiltins<Provided> =
+  OmitEmpty<{ [k in keyof Provided]:
+      k extends keyof builtins
+        ? Omit<Provided[k], keyof builtins[k]>
+        : Provided[k]
+  }>;
+
+type OmitEmpty<X> = Omit<
+  X,
+  { [k in keyof X]: {} extends X[k] ? k : never }[keyof X]
+>;

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { id } from '@fp4ts/core';
-import { Either, EitherT, Kleisli, Left, Monad } from '@fp4ts/cats';
+import { id, pipe } from '@fp4ts/core';
+import { Either, EitherT, Kleisli, Left } from '@fp4ts/cats';
 import {
   Accept,
+  ContentType,
   EntityEncoder,
   Http,
   HttpApp,
@@ -21,7 +22,11 @@ import {
   StaticElement,
   Verb,
   Type,
+  ReqBodyElement,
+  PlainText,
+  ContentTypeWithMime,
 } from '@fp4ts/http-dsl-shared';
+import { Concurrent } from '@fp4ts/effect-kernel';
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
 import { DelayedCheck } from './delayed-check';
@@ -33,24 +38,24 @@ import {
   Router,
   runRouterEnv,
 } from './router';
-import { Server, DeriveCoding } from '../type-level';
+import { Server, DeriveCoding, OmitBuiltins } from '../type-level';
 import { builtins } from '../builtin-codables';
 
 export const toApp =
-  <F>(F: Monad<F>) =>
+  <F>(F: Concurrent<F, Error>) =>
   <api>(
     api: api,
     server: Server<F, api>,
-    codings: Omit<DeriveCoding<F, api>, keyof builtins>,
+    codings: OmitBuiltins<DeriveCoding<F, api>>,
   ): HttpApp<F> =>
     HttpRoutes.orNotFound(F)(toHttpRoutes(F)(api, server, codings));
 
 export const toHttpRoutes =
-  <F>(F: Monad<F>) =>
+  <F>(F: Concurrent<F, Error>) =>
   <api>(
     api: api,
     server: Server<F, api>,
-    codings: Omit<DeriveCoding<F, api>, keyof builtins>,
+    codings: OmitBuiltins<DeriveCoding<F, api>>,
   ): HttpRoutes<F> =>
     runRouterEnv(F)(
       route(F)(
@@ -65,7 +70,7 @@ export const toHttpRoutes =
     );
 
 export const _toHttpRoutes =
-  <F>(F: Monad<F>) =>
+  <F>(F: Concurrent<F, Error>) =>
   <api>(
     api: api,
     server: Server<F, api>,
@@ -83,7 +88,7 @@ export const _toHttpRoutes =
       undefined as void,
     );
 
-export function route<F>(F: Monad<F>) {
+export function route<F>(F: Concurrent<F, Error>) {
   const EF = EitherT.Monad<F, MessageFailure>(F);
   function route<api, context extends unknown[], env>(
     api: api,
@@ -98,13 +103,16 @@ export function route<F>(F: Monad<F>) {
     if (api instanceof Sub) {
       const { lhs, rhs } = api;
       if (lhs instanceof CaptureElement) {
-        return routeCapture(lhs, rhs, ctx, server as any, codings);
+        return routeCapture(lhs, rhs, ctx, server as any, codings as any);
       }
       if (lhs instanceof QueryElement) {
-        return routeQuery(lhs, rhs, ctx, server as any, codings);
+        return routeQuery(lhs, rhs, ctx, server as any, codings as any);
       }
       if (lhs instanceof StaticElement) {
         return routeStatic(lhs, rhs, ctx, server, codings);
+      }
+      if (lhs instanceof ReqBodyElement) {
+        return routeReqBody(lhs, rhs, ctx, server as any, codings);
       }
       throw new Error('Invalid sub');
     }
@@ -145,7 +153,7 @@ export function route<F>(F: Monad<F>) {
     d: Delayed<F, env, Server<F, Sub<CaptureElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const { decode } = codings[a.type.ref];
+    const { decode } = codings[PlainText.mime][a.type.ref];
     return new CaptureRouter(
       route(
         api,
@@ -165,7 +173,7 @@ export function route<F>(F: Monad<F>) {
     d: Delayed<F, env, Server<F, Sub<QueryElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const { decode } = codings[a.type.ref];
+    const { decode } = codings[PlainText.mime][a.type.ref];
     return route(
       api,
       ctx,
@@ -183,6 +191,45 @@ export function route<F>(F: Monad<F>) {
     );
   }
 
+  function routeReqBody<
+    api,
+    context extends unknown[],
+    env,
+    A,
+    M extends string,
+    CT extends ContentTypeWithMime<M>,
+  >(
+    body: ReqBodyElement<CT, Type<any, A>>,
+    api: api,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>,
+  ): Router<env, Http<F, F>> {
+    const { decode } = codings[body.ct.mime][body.body.ref];
+    const ctCheck = DelayedCheck.withRequest(F)(req =>
+      req.headers.get(ContentType.Select).fold(
+        () => EitherT.right(F)(req.bodyText),
+        ct =>
+          ct.mediaType.satisfies(body.ct.self.mediaType)
+            ? EitherT.right(F)(req.bodyText)
+            : EitherT.left(F)(new ParsingFailure('Invalid content type')),
+      ),
+    );
+
+    return route(
+      api,
+      ctx,
+      d.addBodyCheck(EF)(ctCheck, s =>
+        Kleisli(() =>
+          pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
+            .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
+            .flatMap(F)(str => EitherT(F.pure(decode(str)))),
+        ),
+      ),
+      codings,
+    );
+  }
+
   function routeStatic<api, context extends unknown[], env>(
     path: StaticElement<any>,
     api: api,
@@ -193,13 +240,19 @@ export function route<F>(F: Monad<F>) {
     return pathRouter(path.path, route(api, ctx, d, codings));
   }
 
-  function routeVerbContent<A, context extends unknown[], env>(
-    verb: Verb<any, Type<any, A>>,
+  function routeVerbContent<
+    context extends unknown[],
+    env,
+    M extends string,
+    CT extends ContentTypeWithMime<M>,
+    A,
+  >(
+    verb: Verb<any, CT, Type<any, A>>,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Verb<any, Type<any, A>>>>,
-    codings: DeriveCoding<F, Verb<any, Type<any, A>>>,
+    d: Delayed<F, env, Server<F, Verb<any, CT, Type<any, A>>>>,
+    codings: DeriveCoding<F, Verb<any, CT, Type<any, A>>>,
   ): Router<env, Http<F, F>> {
-    const { encode } = codings[verb.body.ref];
+    const { encode } = codings[verb.contentType.mime][verb.body.ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>
       EitherT(
         F.pure(
@@ -207,7 +260,7 @@ export function route<F>(F: Monad<F>) {
             .get(Accept.Select)
             .map(ah =>
               ah.mediaRanges.any(mr =>
-                mr.satisfiedBy(verb.contentType.mediaType),
+                mr.satisfiedBy(verb.contentType.self.mediaType),
               )
                 ? Either.rightUnit
                 : Left(new ParsingFailure('Invalid content type')),
@@ -228,8 +281,8 @@ export function route<F>(F: Monad<F>) {
           f => f.toHttpResponse(req.httpVersion),
           e =>
             new Response<F>(verb.status, req.httpVersion)
-              .withEntity(encode(e), EntityEncoder.json())
-              .putHeaders(verb.contentType),
+              .withEntity(encode(e), EntityEncoder.text())
+              .putHeaders(verb.contentType.self),
         );
       }),
     );

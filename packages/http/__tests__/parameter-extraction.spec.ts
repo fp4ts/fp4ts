@@ -3,43 +3,73 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { EitherT, Left, Right } from '@fp4ts/cats';
 import { id } from '@fp4ts/core';
-import { Left, Right } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
+import { Request, EntityDecoder, uri, Method } from '@fp4ts/http-core';
 import {
-  Request,
-  HttpRoutes,
-  EntityEncoder,
-  EntityDecoder,
-  uri,
-} from '@fp4ts/http-core';
-import { Capture, GET, Ok, Query, Routes } from '@fp4ts/http-dsl';
+  booleanType,
+  Capture,
+  Get,
+  group,
+  JSON,
+  numberType,
+  Query,
+  Route,
+  stringType,
+} from '@fp4ts/http-dsl';
+import { toApp } from '@fp4ts/http-dsl-server';
 
 describe('parameter extraction', () => {
-  const app = HttpRoutes.orNotFound(IO.Monad)(
-    Routes.of(IO.Monad)($ =>
-      $.group(
-        $(GET, 'capture', 'boolean', Capture.boolean('flag'), ({ flag }) =>
-          Ok(flag)(EntityEncoder.json()),
-        ),
-        $(GET, 'capture', 'number', Capture.number('number'), ({ number }) =>
-          Ok(number)(EntityEncoder.json()),
-        ),
-        $(GET, 'capture', 'string', Capture.string('string'), ({ string }) =>
-          Ok(string)(EntityEncoder.json()),
-        ),
-
-        $(GET, 'query', 'boolean', Query.boolean('boolean'), ({ boolean }) =>
-          Ok(boolean.fold(() => null, id))(EntityEncoder.json()),
-        ),
-        $(GET, 'query', 'number', Query.number('number'), ({ number }) =>
-          Ok(number.fold(() => null, id))(EntityEncoder.json()),
-        ),
-        $(GET, 'query', 'string', Query.string('string'), ({ string }) =>
-          Ok(string.fold(() => null, id))(EntityEncoder.json()),
-        ),
+  const api = group(
+    Route('capture')[':>'](
+      group(
+        Route('boolean')
+          [':>'](Capture.boolean('flag'))
+          [':>'](Get(JSON, booleanType)),
+        Route('number')
+          [':>'](Capture.number('number'))
+          [':>'](Get(JSON, numberType)),
+        Route('string')
+          [':>'](Capture.string('string'))
+          [':>'](Get(JSON, stringType)),
       ),
     ),
+    Route('query')[':>'](
+      group(
+        Route('boolean')
+          [':>'](Query.boolean('boolean'))
+          [':>'](Get(JSON, stringType)),
+        Route('number')
+          [':>'](Query.number('number'))
+          [':>'](Get(JSON, stringType)),
+        Route('string')
+          [':>'](Query.string('string'))
+          [':>'](Get(JSON, stringType)),
+      ),
+    ),
+  );
+  const app = toApp(IO.Concurrent)(
+    api,
+    [
+      [
+        flag => EitherT.right(IO.Applicative)(flag),
+        number => EitherT.right(IO.Applicative)(number),
+        string => EitherT.right(IO.Applicative)(string),
+      ],
+      [
+        boolean =>
+          EitherT.right(IO.Applicative)(
+            boolean.fold(() => 'null', global.JSON.stringify),
+          ),
+        number =>
+          EitherT.right(IO.Applicative)(
+            number.fold(() => 'null', global.JSON.stringify),
+          ),
+        string => EitherT.right(IO.Applicative)(string.fold(() => 'null', id)),
+      ],
+    ],
+    {},
   );
 
   const jsonDecoder = EntityDecoder.json(IO.Concurrent);
@@ -52,12 +82,12 @@ describe('parameter extraction', () => {
       ${'/capture/number'}  | ${42}
       ${'/capture/number'}  | ${-42}
       ${'/capture/string'}  | ${'42'}
-      ${'/capture/string'}  | ${''}
+      ${'/capture/string'}  | ${'another string with spaces'}
     `(
       'should capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(GET, uri`${url}/${param}`))
+          .run(new Request(Method.GET, uri`${url}/${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -75,7 +105,7 @@ describe('parameter extraction', () => {
       'should fail to capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(GET, uri`${url}/${param}`))
+          .run(new Request(Method.GET, uri`${url}/${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -86,42 +116,42 @@ describe('parameter extraction', () => {
 
   describe('query', () => {
     it.each`
-      url         | param    | name
-      ${'/query'} | ${true}  | ${'boolean'}
-      ${'/query'} | ${false} | ${'boolean'}
-      ${'/query'} | ${42}    | ${'number'}
-      ${'/query'} | ${-42}   | ${'number'}
-      ${'/query'} | ${'42'}  | ${'string'}
-      ${'/query'} | ${''}    | ${'string'}
+      url                 | param    | name
+      ${'/query/boolean'} | ${true}  | ${'boolean'}
+      ${'/query/boolean'} | ${false} | ${'boolean'}
+      ${'/query/number'}  | ${42}    | ${'number'}
+      ${'/query/number'}  | ${-42}   | ${'number'}
+      ${'/query/string'}  | ${'42'}  | ${'string'}
+      ${'/query/string'}  | ${''}    | ${'string'}
     `(
-      'should capture query $param from url $url/${name}?$name=$param',
+      'should capture query $param from url $url?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(GET, uri`${url}/${name}?${name}=${param}`))
+          .run(new Request(Method.GET, uri`${url}?${name}=${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
-        expect(response).toEqual(Right(param));
+        expect(response).toEqual(Right(param.toString()));
       },
     );
 
     it.each`
-      url         | name
-      ${'/query'} | ${'boolean'}
-      ${'/query'} | ${'boolean'}
-      ${'/query'} | ${'number'}
-      ${'/query'} | ${'number'}
-      ${'/query'} | ${'string'}
-      ${'/query'} | ${'string'}
+      url                 | name
+      ${'/query/boolean'} | ${'boolean'}
+      ${'/query/boolean'} | ${'boolean'}
+      ${'/query/number'}  | ${'number'}
+      ${'/query/number'}  | ${'number'}
+      ${'/query/string'}  | ${'string'}
+      ${'/query/string'}  | ${'string'}
     `(
-      'should return none when the param value is not present in $url/${name}?${name}',
+      'should return none when the param value is not present in $url?$name',
       async ({ url, name }) => {
         const response = await app
-          .run(new Request(GET, uri`${url}/${name}?${name}`))
+          .run(new Request(Method.GET, uri`${url}?${name}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
-        expect(response).toEqual(Right(null));
+        expect(response).toEqual(Right('null'));
       },
     );
 
@@ -132,10 +162,10 @@ describe('parameter extraction', () => {
       ${'/capture/number'}  | ${'number'}  | ${''}
       ${'/capture/number'}  | ${'number'}  | ${'true'}
     `(
-      'should fail to capture query parameter $param from url $url/$name?$name=$param',
+      'should fail to capture query parameter $param from url $url?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(GET, uri`${url}/${name}?${name}=${param}`))
+          .run(new Request(Method.GET, uri`${url}?${name}=${param}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 

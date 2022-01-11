@@ -1,26 +1,33 @@
-import { ContentType, Method, Status } from '@fp4ts/http-core';
+import { Method, Status } from '@fp4ts/http-core';
+import { ContentTypeWithMime } from './content-types';
 import { Type } from '../type';
 import { ApiElement, ElementTag } from './api-element';
 
 export const VerbTag = '@fp4ts/http/dsl-shared/verb';
 export type VerbTag = typeof VerbTag;
 
-export class Verb<M extends Method, A extends Type<any, any>>
-  implements ApiElement<VerbTag>
+export class Verb<
+  M extends Method,
+  CT extends ContentTypeWithMime<any>,
+  A extends Type<any, any>,
+> implements ApiElement<VerbTag>
 {
   public readonly [ElementTag]: VerbTag;
 
   public constructor(
     public readonly method: M,
     public readonly status: Status,
-    public readonly contentType: ContentType,
+    public readonly contentType: CT,
     public readonly body: A,
   ) {}
 }
 
 const makeVerb =
   <M extends Method>(m: M, s: Status) =>
-  <A extends Type<any, any>>(ct: ContentType, b: A): Verb<M, A> =>
+  <CT extends ContentTypeWithMime<any>, A extends Type<any, any>>(
+    ct: CT,
+    b: A,
+  ): Verb<M, CT, A> =>
     new Verb(m, s, ct, b);
 
 export const Get = makeVerb(Method.GET, Status.Ok);

@@ -10,6 +10,7 @@
 export {
   group,
 
+  ReqBody,
   Capture,
   Query,
   Route,

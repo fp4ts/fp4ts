@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
+    "@fp4ts/cats-effect": "*",
     "@fp4ts/core": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/http-dsl-shared": "*"
