@@ -125,19 +125,6 @@ export class IntersectionSchema<A, B> extends Schema<A & B> {
   }
 }
 
-export class UnionSchema<A, B> extends Schema<A | B> {
-  public constructor(
-    private readonly sa: Schema<A>,
-    private readonly sb: Schema<B>,
-  ) {
-    super();
-  }
-
-  public interpret<S>(S: Schemable<S>): Kind<S, [A | B]> {
-    return S.union_(this.sa.interpret(S), this.sb.interpret(S));
-  }
-}
-
 export class ProductSchema<A extends unknown[]> extends Schema<A> {
   public constructor(private readonly xs: { [k in keyof A]: Schema<A> }) {
     super();

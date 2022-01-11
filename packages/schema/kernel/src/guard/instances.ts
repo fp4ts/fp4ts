@@ -54,7 +54,6 @@ export const guardSchemable: Lazy<Schemable<$<GuardK, [unknown]>>> = lazyVal(
       struct,
       partial,
       intersection_,
-      union_,
       defer,
       nullable,
       product: product as Schemable<$<GuardK, [unknown]>>['product'],
