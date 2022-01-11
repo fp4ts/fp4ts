@@ -9,5 +9,6 @@
     { "path": "../../core/tsconfig.build.json" },
     { "path": "../../cats/tsconfig.build.json" },
     { "path": "../core/tsconfig.build.json" },
+    { "path": "../dsl-shared/tsconfig.build.json" },
   ]
 }
