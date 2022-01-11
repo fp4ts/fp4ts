@@ -43,7 +43,7 @@ for purely functional, effectul, and polymorphic stream processing.
 ```
 The MIT License (MIT)
 
-Copyright (c) 2021 Peter Matta.
+Copyright (c) 2021-2022 Peter Matta.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
