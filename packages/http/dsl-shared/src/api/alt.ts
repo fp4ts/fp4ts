@@ -13,4 +13,5 @@ export class Alt<A extends unknown[]> implements ApiElement<AltTag> {
   public constructor(public readonly xs: A) {}
 }
 
-export const group = <A extends unknown[]>(...xs: A): Alt<A> => new Alt(xs);
+export const group = <A extends [unknown, ...unknown[]]>(...xs: A): Alt<A> =>
+  new Alt(xs);

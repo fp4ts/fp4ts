@@ -26,7 +26,10 @@ export class CaptureRouter<env, a> {
 
 export class Choice<env, a> {
   public readonly tag = 'choice';
-  public constructor(public readonly choices: Router<env, a>[]) {}
+  public constructor(
+    public readonly lhs: Router<env, a>,
+    public readonly rhs: Router<env, a>,
+  ) {}
 }
 
 export const pathRouter = <env, a>(
@@ -40,7 +43,42 @@ export const leafRouter = <env, a>(
 ): Router<env, a> => new StaticRouter({}, { [method.methodName]: l });
 
 export const choice = <env, a>(...xs: Router<env, a>[]): Router<env, a> =>
-  new Choice(xs);
+  xs.reduce(merge);
+
+const merge = <env, a>(
+  lhs: Router<env, a>,
+  rhs: Router<env, a>,
+): Router<env, a> => {
+  if (lhs.tag === 'static' && rhs.tag === 'static') {
+    return new StaticRouter(
+      mergeWith(lhs.table, rhs.table, merge),
+      mergeWith(lhs.matches, rhs.matches, l => l),
+    );
+  } else if (lhs.tag === 'capture' && rhs.tag === 'capture') {
+    return new CaptureRouter(merge(lhs.next, rhs.next));
+  } else if (rhs.tag === 'choice') {
+    return new Choice(merge(lhs, rhs.lhs), rhs.rhs);
+  }
+  return new Choice(lhs, rhs);
+};
+
+const mergeWith = <a>(
+  lhs: Record<string, a>,
+  rhs: Record<string, a>,
+  f: (l: a, r: a) => a,
+): Record<string, a> => {
+  const results: Record<string, a> = {};
+  for (const k of new Set([...Object.keys(lhs), ...Object.keys(rhs)])) {
+    if (k in lhs && k in rhs) {
+      results[k] = f(lhs[k], rhs[k]);
+    } else if (k in lhs) {
+      results[k] = lhs[k];
+    } else {
+      results[k] = rhs[k];
+    }
+  }
+  return results;
+};
 
 export const runRouterEnv =
   <F>(F: Monad<F>) =>
@@ -76,13 +114,10 @@ export const runRouterEnv =
           return loop(req, router.next, [pfx, env], sfx);
         }
 
-        case 'choice': {
-          return router.choices.reduce(
-            (r: OptionT<F, Response<F>>, n) =>
-              r.orElse(F)(() => loop(req, n, env, rem)),
-            OptionT.none(F),
+        case 'choice':
+          return loop(req, router.lhs, env, rem).orElse(F)(() =>
+            loop(req, router.rhs, env, rem),
           );
-        }
       }
     };
 

@@ -133,7 +133,11 @@ export function route<F>(F: Concurrent<F, Error>) {
     throw new Error('Invalid API');
   }
 
-  function routeAlt<xs extends unknown[], context extends unknown[], env>(
+  function routeAlt<
+    xs extends [unknown, ...unknown[]],
+    context extends unknown[],
+    env,
+  >(
     api: Alt<xs>,
     ctx: Context<context>,
     server: Delayed<F, env, Server<F, Alt<xs>>>,
