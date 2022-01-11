@@ -54,7 +54,9 @@ export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListK, A> {
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, List<A>>> {
     const rs = hs
-      .filter(h => h.headerName === this.h.headerName)
+      .filter(
+        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+      )
       .map(rh =>
         Ior.fromEither(this.h.parse(rh.headerValue).bimap(List, List)),
       );
@@ -87,7 +89,9 @@ export class SingleSelectHeader<A> implements SelectHeader<IdentityK, A> {
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
     return hs
-      .filter(h => h.headerName === this.h.headerName)
+      .filter(
+        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+      )
       .headOption.map(h =>
         Ior.fromEither(this.h.parse(h.headerValue).leftMap(List)),
       );
@@ -112,7 +116,9 @@ export class RecurringSelectHeaderMerge<A>
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
     const rs = hs
-      .filter(h => h.headerName === this.h.headerName)
+      .filter(
+        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+      )
       .map(rh => Ior.fromEither(this.h.parse(rh.headerValue).leftMap(List)));
 
     return rs.isEmpty

@@ -37,6 +37,8 @@ for purely functional, effectul, and polymorphic stream processing.
 ## Examples
 
 - John De Goes' [FP to the Max](./packages/examples/fp-to-the-max/src/program.ts)
+- [Todo API](./packages/examples/todo-api/) implemented using the [Servant-style
+API dsl](./packages/examples/todo-api/src/api)
 
 ## License
 

@@ -38,3 +38,18 @@ export class ParsingFailure extends MessageFailure {
     );
   }
 }
+
+export class NotFoundFailure extends MessageFailure {
+  public constructor(public readonly sanitized: string = '') {
+    super(sanitized);
+  }
+
+  public readonly cause = None;
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.NotFound, httpVersion).withEntity(
+      this.sanitized,
+      EntityEncoder.text<F>(),
+    );
+  }
+}

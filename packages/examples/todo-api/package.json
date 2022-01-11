@@ -1,0 +1,27 @@
+{
+  "name": "@fp4ts/todo-api",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./dist/main.js",
+  "typings": "./dist/main.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf dist && rm -f *.tsbuildinfo",
+    "compile": "yarn tsc --build tsconfig.build.json",
+    "start": "node ./dist/main.js"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/effect": "*",
+    "@fp4ts/http": "*",
+    "@fp4ts/http-dsl": "*",
+    "@fp4ts/http-dsl-server": "*",
+    "@fp4ts/http-node-server": "*",
+    "@fp4ts/schema": "*",
+    "@fp4ts/stream": "*"
+  },
+  "devDependencies": {
+    "typescript": "4.5.4"
+  }
+}

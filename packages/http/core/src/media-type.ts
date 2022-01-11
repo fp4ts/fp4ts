@@ -13,7 +13,7 @@ export class MediaRange {
   ) {}
 
   public satisfiedBy(that: MediaRange): boolean {
-    return that.mainType === '*' || this.mainType === that.mainType;
+    return this.mainType === '*' || this.mainType === that.mainType;
   }
 
   public satisfies(that: MediaRange): boolean {

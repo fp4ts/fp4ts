@@ -5,7 +5,7 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Apply } from './apply';
-import { Either, Left, Right } from './data';
+import { Either, Left } from './data';
 
 /**
  * @category Type Class

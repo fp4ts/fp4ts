@@ -93,7 +93,7 @@ export class Uri {
   }
 
   public static fromStringUnsafe(s: string): Uri {
-    return this.fromString(s).leftMap(console.log).get;
+    return this.fromString(s).get;
   }
 }
 

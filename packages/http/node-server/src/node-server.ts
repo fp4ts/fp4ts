@@ -52,10 +52,7 @@ const mkConnectionHandler =
     pipe(
       F.Do,
       F.bindTo('method', F.fromEither(Method.fromString(req.method ?? ''))),
-      F.bindTo(
-        'uri',
-        F.fromEither(Uri.fromString(`http://localhost:3000/${req.url ?? ''}`)),
-      ),
+      F.bindTo('uri', F.fromEither(Uri.fromString(req.url ?? ''))),
       F.bindTo('headers', F.pure(incomingHeadersToHeaders(req.headers))),
       F.bindTo(
         'body',
