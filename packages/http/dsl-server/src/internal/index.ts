@@ -28,8 +28,8 @@ import {
   Verb,
   Type,
   ReqBodyElement,
-  PlainText,
   ContentTypeWithMime,
+  FromHttpApiDataTag,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent } from '@fp4ts/effect-kernel';
 import { Context, EmptyContext } from './context';
@@ -162,13 +162,15 @@ export function route<F>(F: Concurrent<F, Error>) {
     d: Delayed<F, env, Server<F, Sub<CaptureElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const { decode } = codings[PlainText.mime][a.type.ref];
+    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
     return new CaptureRouter(
       route(
         api,
         ctx,
         d.addCapture(EF)(txt =>
-          DelayedCheck.withRequest(F)(req => EitherT(F.pure(decode(txt)))),
+          DelayedCheck.withRequest(F)(() =>
+            EitherT(F.pure(fromPathComponent(txt))),
+          ),
         ),
         codings,
       ),
@@ -182,7 +184,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     d: Delayed<F, env, Server<F, Sub<QueryElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
   ): Router<env, Http<F, F>> {
-    const { decode } = codings[PlainText.mime][a.type.ref];
+    const { fromQueryParameter } = codings[FromHttpApiDataTag][a.type.ref];
     return route(
       api,
       ctx,
@@ -190,7 +192,11 @@ export function route<F>(F: Concurrent<F, Error>) {
         DelayedCheck.withRequest(F)(req => {
           const value = req.uri.query.lookup(a.property);
           const result = value
-            .map(v => v.traverse(Either.Applicative<MessageFailure>())(decode))
+            .map(v =>
+              v.traverse(Either.Applicative<MessageFailure>())(
+                fromQueryParameter,
+              ),
+            )
             .toRight(() => new ParsingFailure('Missing query'))
             .flatMap(id);
           return EitherT(F.pure(result));

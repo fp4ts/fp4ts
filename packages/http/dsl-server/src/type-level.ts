@@ -22,6 +22,8 @@ import {
   VerbNoContentTag,
   VerbTag,
   PlainText,
+  FromHttpApiDataTag,
+  FromHttpApiData,
 } from '@fp4ts/http-dsl-shared';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
@@ -111,12 +113,12 @@ export interface SubDerivates<F, x, api, m> {
 export interface CodingDerivates<F, x, z> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [_ in PlainText['mime']]: { [k in R]: Codable<A> } }
+      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
       : never
     : never;
   [QueryTag]: x extends QueryElement<any, infer T>
     ? T extends Type<infer R, infer A>
-      ? z & { [_ in PlainText['mime']]: { [k in R]: Codable<A> } }
+      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
       : never
     : never;
   [StaticTag]: z;

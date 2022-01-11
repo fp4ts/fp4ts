@@ -3,65 +3,32 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Left, Right, Try } from '@fp4ts/cats';
-import { MessageFailure, ParsingFailure } from '@fp4ts/http-core';
 import {
   booleanType,
   numberType,
   stringType,
   PlainText,
   JSON,
+  FromHttpApiDataTag,
 } from '@fp4ts/http-dsl-shared';
-import { Codable } from './codable';
 
-const fromJSON = <A>(x: string): Either<MessageFailure, A> =>
-  Try(() => global.JSON.parse(x)).toEither.leftMap(
-    e => new ParsingFailure(e.message),
-  );
-const toJSON = <A>(x: A): string => global.JSON.stringify(x);
+import { fromHttpApiData, json, plainText } from './builtins';
 
 export const builtins = Object.freeze({
+  [FromHttpApiDataTag]: {
+    [booleanType.ref]: fromHttpApiData.boolean,
+    [numberType.ref]: fromHttpApiData.number,
+    [stringType.ref]: fromHttpApiData.string,
+  },
   [PlainText.mime]: {
-    [booleanType.ref]: {
-      decode: x => {
-        switch (x) {
-          case 'true':
-            return Right(true);
-          case 'false':
-            return Right(false);
-          default:
-            return Left(new ParsingFailure(`Expected boolean, found '${x}'`));
-        }
-      },
-      encode: x => `${x}`,
-    } as Codable<boolean>,
-    [numberType.ref]: {
-      decode: x => {
-        const n = parseFloat(x);
-        return Number.isNaN(n) || !Number.isFinite(n)
-          ? Left(new ParsingFailure(`Expected number, found ${x}`))
-          : Right(n);
-      },
-      encode: x => `${x}`,
-    } as Codable<number>,
-    [stringType.ref]: {
-      decode: x => Right(x),
-      encode: x => x,
-    } as Codable<string>,
+    [booleanType.ref]: plainText.boolean,
+    [numberType.ref]: plainText.number,
+    [stringType.ref]: plainText.string,
   },
   [JSON.mime]: {
-    [booleanType.ref]: {
-      decode: fromJSON,
-      encode: toJSON,
-    } as Codable<boolean>,
-    [numberType.ref]: {
-      decode: fromJSON,
-      encode: toJSON,
-    } as Codable<number>,
-    [stringType.ref]: {
-      decode: fromJSON,
-      encode: toJSON,
-    } as Codable<string>,
+    [booleanType.ref]: json.boolean,
+    [numberType.ref]: json.number,
+    [stringType.ref]: json.string,
   },
 });
 export type builtins = typeof builtins;
