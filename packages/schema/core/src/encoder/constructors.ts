@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id } from '@fp4ts/core';
-import { Literal } from '@fp4ts/schema-kernel/lib/literal';
+import { Literal } from '@fp4ts/schema-kernel';
 import { Encoder } from './algebra';
 import { OutputOf, TypeOf } from './types';
 

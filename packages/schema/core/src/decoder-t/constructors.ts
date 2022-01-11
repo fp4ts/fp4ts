@@ -16,8 +16,7 @@ import {
   Option,
   Some,
 } from '@fp4ts/cats';
-import { Guard } from '@fp4ts/schema-kernel';
-import { Literal } from '@fp4ts/schema-kernel/lib/literal';
+import { Guard, Literal } from '@fp4ts/schema-kernel';
 
 import { DecodeFailure } from '../decode-failure';
 import { DecoderT } from './algebra';

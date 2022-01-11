@@ -11,3 +11,4 @@ export * from './constraining';
 export * from './refining';
 export * from './schema';
 export * from './guard';
+export * from './literal';

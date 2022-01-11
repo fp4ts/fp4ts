@@ -15,8 +15,14 @@ import {
   Profunctor,
 } from '@fp4ts/cats';
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
-import { Constraining, Guard, Refining, Schemable } from '@fp4ts/schema-kernel';
-import { Literal } from '@fp4ts/schema-kernel/lib/literal';
+import {
+  Constraining,
+  Guard,
+  Refining,
+  Schemable,
+  Literal,
+} from '@fp4ts/schema-kernel';
+
 import { DecodeFailure } from '../decode-failure';
 import { DecoderT as DecoderTBase } from './algebra';
 import {
