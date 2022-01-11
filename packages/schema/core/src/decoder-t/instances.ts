@@ -43,7 +43,6 @@ import {
   nullable,
   orElse_,
   refine_,
-  union_,
 } from './operators';
 
 export const decoderTMonoidK: <F, I>(
@@ -101,7 +100,6 @@ export const decoderTSchemable: <F>(
     sum: sum(F),
     defer: defer,
     intersection_: intersection_(F),
-    union_: union_(F),
     null: nullDecoderT(F),
     record: record(F),
     nullable: nullable(F),

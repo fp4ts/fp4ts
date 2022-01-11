@@ -21,8 +21,10 @@ import {
   encoderCompose,
   encoderContravariant,
   encoderFunctor,
+  encoderSchemable,
 } from './instances';
 import { OutputOf, TypeOf } from './types';
+import { Schemable } from '@fp4ts/schema-kernel';
 
 export type Encoder<O, A> = EncoderBase<O, A>;
 
@@ -69,6 +71,7 @@ interface EncoderObj {
   Contravariant<O>(): Contravariant<$<EncoderK, [O]>>;
   readonly Compose: Compose<λ<EncoderK, [β, α]>>;
   readonly Category: Category<λ<EncoderK, [β, α]>>;
+  readonly Schemable: Schemable<λ<EncoderK, [α, α]>>;
 }
 
 Encoder.lift = lift;
@@ -90,6 +93,11 @@ Object.defineProperty(Encoder, 'Compose', {
 Object.defineProperty(Encoder, 'Category', {
   get() {
     return encoderCategory();
+  },
+});
+Object.defineProperty(Encoder, 'Schemable', {
+  get() {
+    return encoderSchemable();
   },
 });
 

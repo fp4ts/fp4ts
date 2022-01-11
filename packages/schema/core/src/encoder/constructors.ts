@@ -3,10 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { id } from '@fp4ts/core';
+import { Literal } from '@fp4ts/schema-kernel/lib/literal';
 import { Encoder } from './algebra';
 import { OutputOf, TypeOf } from './types';
 
 export const lift = <O, A>(f: (a: A) => O): Encoder<O, A> => new Encoder(f);
+
+export const literal = <A extends [Literal, ...Literal[]]>(
+  ...xs: A
+): Encoder<A[number], A[number]> => lift(id);
 
 export const array = <O, A>(fa: Encoder<O, A>): Encoder<O[], A[]> =>
   new Encoder(xs => xs.map(fa.encode));
