@@ -19,49 +19,33 @@ import {
   Entity,
 } from '@fp4ts/http-core';
 
-export class NodeServer<F> {
-  public listen(port: number = 3000): Kind<F, [void]> {
-    return this.F.async_(cb =>
-      this.server.listen(port, () => cb(Either.rightUnit)),
-    );
-  }
-
-  public close(): Kind<F, [void]> {
-    return this.F.async_(cb => this.server.close(() => cb(Either.rightUnit)));
-  }
-
-  private constructor(
-    private readonly F: Async<F>,
-    public readonly server: http.Server,
-  ) {}
-
-  public static make =
-    <F>(F: Async<F>) =>
-    (app: HttpApp<F>): Resource<F, NodeServer<F>> => {
-      const handleConnection = serveApp(F)(app);
-      const RF = Resource.Async(F);
-      return pipe(
-        RF.Do,
-        RF.bindTo('dispatcher', Dispatcher(F)),
-        RF.bindTo('server', ({ dispatcher }) =>
-          Resource.makeFull(F)(
-            poll =>
-              F.delay(() =>
-                http.createServer((req, res) =>
-                  dispatcher.unsafeRunAndForget(
-                    poll(handleConnection(req, res)),
-                  ),
-                ),
+export const serve =
+  <F>(F: Async<F>) =>
+  (app: HttpApp<F>, port: number = 3000): Resource<F, http.Server> => {
+    const handleConnection = mkConnectionHandler(F)(app);
+    const RF = Resource.Async(F);
+    return pipe(
+      RF.Do,
+      RF.bindTo('dispatcher', Dispatcher(F)),
+      RF.bindTo('server', ({ dispatcher }) =>
+        Resource.makeFull(F)(
+          poll =>
+            F.delay(() =>
+              http.createServer((req, res) =>
+                dispatcher.unsafeRunAndForget(poll(handleConnection(req, res))),
               ),
-            (s, _) => F.async_(cb => s.close(() => cb(Either.rightUnit))),
-          ),
+            ),
+          s => F.async_(cb => s.close(() => cb(Either.rightUnit))),
         ),
-        RF.map(({ server }) => new NodeServer(F, server)),
+      ),
+    )
+      .map(({ server }) => server)
+      .evalTap(server =>
+        F.async_<void>(cb => server.listen(port, () => cb(Either.rightUnit))),
       );
-    };
-}
+  };
 
-const serveApp =
+const mkConnectionHandler =
   <F>(F: Async<F>) =>
   (app: HttpApp<F>) =>
   (req: http.IncomingMessage, res: http.ServerResponse): Kind<F, [void]> =>
