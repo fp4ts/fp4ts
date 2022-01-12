@@ -66,30 +66,45 @@ export class Uri {
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
-    const matches = Option(s.match(URI_REGEX));
-    return matches
-      .toRight(() => new ParsingFailure('Malformed URI'))
-      .flatMap(m => {
-        const F = Either.Applicative<ParsingFailure>();
-        return F.tupled(
-          Option(m[2]).traverse(F)(s =>
-            SCHEME_REGEX.test(s)
-              ? Right(s as Scheme)
-              : Left(new ParsingFailure(`Unsupported scheme ${s}`)),
-          ),
-          Option(m[4]).traverse(F)(Authority.fromString),
-          Right(Option(m[5]).map(Path.fromString)),
-          Option(m[7]).traverse(F)(Query.fromString),
-        ).map(
-          ([scheme, authority, path, query]) =>
-            new Uri(
-              scheme,
-              authority,
-              path.getOrElse(() => Path.empty),
-              query.getOrElse(() => Query.empty),
-            ),
-        );
-      });
+    // This is very nasty and highly procedural, but performant
+    const m = s.match(URI_REGEX);
+    if (!m) return Left(new ParsingFailure('Malformed URI'));
+
+    let scheme: Option<Scheme> = None;
+    if (m[2]) {
+      const s = m[2];
+      if (s === 'http' || s === 'https') {
+        scheme = Option(s);
+      } else {
+        return Left(new ParsingFailure(`Unsupported scheme ${s}`));
+      }
+    }
+
+    let authority: Option<Authority> = None;
+    if (m[4]) {
+      const a = Authority.fromString(m[4]);
+      if (a.isRight) {
+        authority = Some(a.get);
+      } else {
+        return a as any as Either<ParsingFailure, Uri>;
+      }
+    }
+
+    let path = Path.empty;
+    if (m[5]) {
+      path = Path.fromString(m[5]);
+    }
+
+    let query = Query.empty;
+    if (m[7]) {
+      const q = Query.fromString(m[7]);
+      if (q.isRight) {
+        query = q.get;
+      } else {
+        return q as any as Either<ParsingFailure, Uri>;
+      }
+    }
+    return Right(new Uri(scheme, authority, path, query));
   }
 
   public static fromStringUnsafe(s: string): Uri {
