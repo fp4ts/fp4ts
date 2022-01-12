@@ -5,7 +5,7 @@
 
 import { id, pipe, Kind } from '@fp4ts/core';
 import { Parallel, Traversable, Either } from '@fp4ts/cats';
-import { ExecutionContext, Poll } from '@fp4ts/effect-kernel';
+import { ExecutionContext, Poll, Resource } from '@fp4ts/effect-kernel';
 
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
@@ -30,7 +30,7 @@ import {
   throwError,
   uncancelable,
 } from './constructors';
-import { ioAsync, ioParallel, ioApplicative } from './instances';
+import { ioAsync, ioParallel, ioApplicative, ioSpawn } from './instances';
 import { Tracing } from '../tracing';
 
 export const fork: <A>(ioa: IO<A>) => IO<IOFiber<A>> = ioa => new Fork(ioa);
@@ -50,6 +50,9 @@ export const timeoutTo: <B>(
   fallback: IO<B>,
 ) => <A extends B>(ioa: IO<A>) => IO<B> = (ms, fallback) => ioa =>
   timeoutTo_(ioa, ms, fallback);
+
+export const background = <A>(ioa: IO<A>): Resource<IoK, IO<IOOutcome<A>>> =>
+  ioSpawn().background(ioa);
 
 export const executeOn: (ec: ExecutionContext) => <A>(ioa: IO<A>) => IO<A> =
   ec => ioa =>

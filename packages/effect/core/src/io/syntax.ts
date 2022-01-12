@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either } from '@fp4ts/cats';
-import { ExecutionContext } from '@fp4ts/effect-kernel';
+import { ExecutionContext, Resource } from '@fp4ts/effect-kernel';
 
 import { IOFiber } from '../io-fiber';
 
@@ -37,6 +37,7 @@ import {
   bracketOutcome_,
   handleErrorWith_,
   flatten,
+  background,
 } from './operators';
 import {
   unsafeRunAsyncOutcome_,
@@ -44,6 +45,7 @@ import {
   unsafeRunToPromise_,
 } from './unsafe';
 import { uncancelable } from './constructors';
+import type { IoK } from './io';
 
 declare module './algebra' {
   interface IO<A> {
@@ -56,6 +58,8 @@ declare module './algebra' {
     timeout: (ms: number) => IO<A>;
 
     timeoutTo: <B = A>(ms: number, iob: IO<B>) => IO<B>;
+
+    readonly background: Resource<IoK, IO<IOOutcome<A>>>;
 
     executeOn: (ec: ExecutionContext) => IO<A>;
 
@@ -147,6 +151,12 @@ IO.prototype.timeoutTo = function <A>(
 ): IO<A> {
   return timeoutTo_(this, ms, fallback);
 };
+
+Object.defineProperty(IO.prototype, 'background', {
+  get<A>(this: IO<A>): Resource<IoK, IO<IOOutcome<A>>> {
+    return background(this);
+  },
+});
 
 IO.prototype.executeOn = function <A>(
   this: IO<A>,

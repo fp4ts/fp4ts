@@ -291,6 +291,36 @@ describe('IO', () => {
 
       expect(ioa).toCompleteWith(undefined, ticker);
     });
+
+    it.ticked(
+      'should complete with never ending task run in the background',
+      ticker => {
+        let started = false;
+        const bio = IO(() => (started = true)).flatMap(() => IO.never);
+        const ioa = bio.background.use(IO.Async)(
+          () =>
+            // let the background task to be started
+            IO.suspend,
+        ).void;
+
+        expect(ioa).toCompleteWith(undefined, ticker);
+        expect(started).toEqual(true);
+      },
+    );
+
+    it.ticked('should cancel task run in the background', ticker => {
+      let canceled = false;
+      const ioa = IO.never
+        .onCancel(IO(() => (canceled = true)).void)
+        .background.use(IO.Async)(
+        () =>
+          // let the background task to be started
+          IO.suspend,
+      ).void;
+
+      expect(ioa).toCompleteWith(undefined, ticker);
+      expect(canceled).toBe(true);
+    });
   });
 
   describe('async', () => {
