@@ -3,10 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Byte } from '@fp4ts/core';
 import { Some } from '@fp4ts/cats';
 import { Encoder } from '@fp4ts/schema';
-import { Chunk, Stream } from '@fp4ts/stream';
+import { Stream, text } from '@fp4ts/stream';
 import { Entity } from '../entity';
 import { Headers, ContentType } from '../headers_';
 import { MediaType } from '../media-type';
@@ -34,7 +33,7 @@ export class EntityEncoder<F, A> {
       Encoder(
         s =>
           new Entity(
-            Stream.emitChunk<F, Byte>(Chunk.fromBuffer(s)),
+            Stream.pure<F, string>(s).through(text.utf8.encode()),
             Some(s.length),
           ),
       ),
