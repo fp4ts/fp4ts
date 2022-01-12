@@ -36,15 +36,23 @@ export const eitherTBifunctor: <F>(
 ) => Bifunctor<$<EitherTK, [F]>> = F =>
   Bifunctor.of({ bimap_: bimap_(F), map_: map_(F), leftMap_: leftMap_(F) });
 
-export const eitherTMonad: <F, AA>(
-  F: Monad<F>,
-) => Monad<$<EitherTK, [F, AA]>> = F =>
-  Monad.of({
-    ...eitherTFunctor(F),
-    pure: pure(F),
-    flatMap_: flatMap_(F),
-    tailRecM_: tailRecM_(F),
-  });
+export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTK, [F, AA]>> =
+  (() => {
+    const cache = new Map<any, Monad<any>>();
+    return <F>(F: Monad<F>) => {
+      if (cache.has(F)) {
+        return cache.get(F)!;
+      }
+      const instance = Monad.of({
+        ...eitherTFunctor(F),
+        pure: pure(F),
+        flatMap_: flatMap_(F),
+        tailRecM_: tailRecM_(F),
+      });
+      cache.set(F, instance);
+      return instance;
+    };
+  })();
 
 export const eitherTMonadError: <F, E>(
   F: Monad<F>,

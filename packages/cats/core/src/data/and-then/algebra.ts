@@ -25,12 +25,9 @@ export class Single<A, B> extends AndThen<A, B> {
     }.bind(this);
 
     Object.setPrototypeOf(apply, this.constructor.prototype);
-    for (const prop of Object.getOwnPropertyNames(this))
-      Object.defineProperty(
-        apply,
-        prop,
-        Object.getOwnPropertyDescriptor(this, prop)!,
-      );
+    (apply as any).tag = this.tag;
+    (apply as any).fun = fun;
+    (apply as any).idx = idx;
     return apply as this;
   }
 }
@@ -48,12 +45,9 @@ export class Concat<A, E, B> extends AndThen<A, B> {
     }.bind(this);
 
     Object.setPrototypeOf(apply, this.constructor.prototype);
-    for (const prop of Object.getOwnPropertyNames(this))
-      Object.defineProperty(
-        apply,
-        prop,
-        Object.getOwnPropertyDescriptor(this, prop)!,
-      );
+    (apply as any).tag = this.tag;
+    (apply as any).left = left;
+    (apply as any).right = right;
     return apply as this;
   }
 }

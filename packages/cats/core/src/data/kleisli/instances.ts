@@ -92,12 +92,21 @@ export const kleisliApply: <F, A>(
 
 export const kleisliApplicative: <F, A>(
   F: Applicative<F>,
-) => Applicative<$<KleisliK, [F, A]>> = F =>
-  Applicative.of({
-    ...kleisliFunctor(F),
-    ...kleisliApply(F),
-    pure: pure(F),
-  });
+) => Applicative<$<KleisliK, [F, A]>> = (() => {
+  const cache = new Map<any, Applicative<any>>();
+  return <F>(F: Applicative<F>) => {
+    if (cache.has(F)) {
+      return cache.get(F)!;
+    }
+    const instance = Applicative.of({
+      ...kleisliFunctor(F),
+      ...kleisliApply(F),
+      pure: pure(F),
+    });
+    cache.set(F, instance);
+    return instance;
+  };
+})();
 
 export const kleisliAlternative: <F, A>(
   F: Alternative<F>,
@@ -128,13 +137,21 @@ export const kleisliFlatMap: <F, A>(
     tailRecM_: tailRecM_(F),
   });
 
-export const kleisliMonad: <F, A>(
-  F: Monad<F>,
-) => Monad<$<KleisliK, [F, A]>> = F =>
-  Monad.of({
-    ...kleisliApplicative(F),
-    ...kleisliFlatMap(F),
-  });
+export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliK, [F, A]>> =
+  (() => {
+    const cache = new Map<any, Monad<any>>();
+    return <F>(F: Monad<F>) => {
+      if (cache.has(F)) {
+        return cache.get(F)!;
+      }
+      const instance = Monad.of({
+        ...kleisliApplicative(F),
+        ...kleisliFlatMap(F),
+      });
+      cache.set(F, instance);
+      return instance;
+    };
+  })();
 
 export const kleisliMonadError: <F, A, E>(
   F: MonadError<F, E>,

@@ -93,23 +93,39 @@ export const resourceTemporal: <F>(
     sleep: sleep(F),
   });
 
-export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceK, [F]>> = F =>
-  Sync.of({
-    ...resourceClock(F),
-    ...resourceMonadCancel(F),
-    delay: delay(F),
-    defer: defer(F),
-  });
+export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceK, [F]>> = (() => {
+  const cache = new Map<any, Sync<any>>();
+  return <F>(F: Sync<F>) => {
+    if (cache.has(F)) {
+      return cache.get(F)!;
+    }
+    const instance = Sync.of({
+      ...resourceClock(F),
+      ...resourceMonadCancel(F),
+      delay: delay(F),
+      defer: defer(F),
+    });
+    cache.set(F, instance);
+    return instance;
+  };
+})();
 
-export const resourceAsync: <F>(
-  F: Async<F>,
-) => Async<$<ResourceK, [F]>> = F => {
-  return Async.of({
-    ...resourceSync(F),
-    ...resourceTemporal(F),
-    never: never(F),
-    cont: cont(F),
-    readExecutionContext: readExecutionContext(F),
-    executeOn_: executeOn_(F),
-  });
-};
+export const resourceAsync: <F>(F: Async<F>) => Async<$<ResourceK, [F]>> =
+  (() => {
+    const cache = new Map<any, Async<any>>();
+    return <F>(F: Async<F>) => {
+      if (cache.has(F)) {
+        return cache.get(F)!;
+      }
+      const instance = Async.of({
+        ...resourceSync(F),
+        ...resourceTemporal(F),
+        never: never(F),
+        cont: cont(F),
+        readExecutionContext: readExecutionContext(F),
+        executeOn_: executeOn_(F),
+      });
+      cache.set(F, instance);
+      return instance;
+    };
+  })();
