@@ -5,26 +5,31 @@
 
 import http from 'http';
 import { OrderedMap } from '@fp4ts/cats';
-import { Kind, pipe } from '@fp4ts/core';
+import { pipe } from '@fp4ts/core';
 import { Async, Resource } from '@fp4ts/effect';
 import { serve } from '@fp4ts/http-node-server';
 
+import { Server } from './server';
 import { Todo } from '../todo';
 import { TodoService } from './todo-service';
-import { Server } from './server';
 
-export const runServer =
+export const makeServer =
   <F>(F: Async<F>) =>
-  (port: number = 3000): Kind<F, [Resource<F, http.Server>]> =>
-    pipe(
-      F.Do,
-      F.bindTo('ids', F.ref(0)),
-      F.bindTo('repo', F.ref(OrderedMap.empty as OrderedMap<number, Todo>)),
-      F.bindTo('todoService', ({ ids, repo }) =>
-        F.pure(new TodoService(F, ids, repo)),
+  (port: number = 3000): Resource<F, http.Server> => {
+    const R = Resource.Async(F);
+    return pipe(
+      R.Do,
+      R.bindTo('ids', Resource.evalF(F.ref(0))),
+      R.bindTo(
+        'repo',
+        Resource.evalF(F.ref(OrderedMap.empty as OrderedMap<number, Todo>)),
       ),
-      F.bindTo('server', ({ todoService }) =>
-        F.pure(new Server(F, todoService)),
+      R.bindTo('todoService', ({ ids, repo }) =>
+        R.pure(new TodoService(F, ids, repo)),
       ),
-      F.map(({ server }) => serve(F)(server.toHttpApp, port)),
+      R.bindTo('server', ({ todoService }) =>
+        R.pure(new Server(F, todoService)),
+      ),
+      R.flatMap(({ server }) => serve(F)(server.toHttpApp, port)),
     );
+  };

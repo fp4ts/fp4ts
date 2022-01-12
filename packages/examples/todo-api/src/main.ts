@@ -6,11 +6,11 @@
 import { pipe } from '@fp4ts/core';
 import { IO, unsafeRunMain } from '@fp4ts/effect';
 
-import { runServer } from './server';
+import { makeServer } from './server';
 
 function main(): void {
   pipe(
-    runServer(IO.Async)(3000).flatMap(r => r.use(IO.Async)(() => IO.never)),
+    makeServer(IO.Async)(3000).use(IO.Async)(() => IO.never),
     unsafeRunMain,
   );
 }
