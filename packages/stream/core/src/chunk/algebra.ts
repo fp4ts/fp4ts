@@ -18,6 +18,8 @@ import {
   Eq,
 } from '@fp4ts/cats';
 
+const te = new TextEncoder();
+
 export abstract class Chunk<O> {
   private readonly __void!: void;
   private readonly _O!: () => O;
@@ -57,6 +59,8 @@ export abstract class Chunk<O> {
       return new ByteBufferChunk(new Uint8Array(buffer.buffer));
     } else if (buffer instanceof Uint8Array) {
       return new ByteBufferChunk(buffer);
+    } else if (typeof buffer === 'string') {
+      return new ByteBufferChunk(te.encode(buffer));
     } else {
       return new ByteBufferChunk(new Uint8Array(Buffer.from(buffer)));
     }

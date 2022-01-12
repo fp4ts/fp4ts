@@ -10,12 +10,12 @@ import { Functor } from '../../functor';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { FunctionK } from '../../arrow';
+import { AndThen } from '../and-then';
 
 import { Either } from '../either';
 
 import { Kleisli } from './algebra';
 import { suspend } from './constructors';
-import { AndThen } from '..';
 
 export const dimap: <F>(
   F: Functor<F>,

@@ -656,32 +656,37 @@ export const compile_ =
         private readonly cont: Cont<void, G, X>,
       ) {}
 
-      done = (scope: Scope<F>) =>
-        go(
+      done(scope: Scope<F>) {
+        return go(
           scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(P.unit),
         );
+      }
 
-      fail = (e: Error) => this.ctx.runner.fail(e);
+      fail(e: Error) {
+        return this.ctx.runner.fail(e);
+      }
 
-      interrupted = (inter: Interrupted) =>
-        go(
+      interrupted(inter: Interrupted) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
         );
+      }
 
-      out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) =>
-        this.ctx.runner.out(
+      out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) {
+        return this.ctx.runner.out(
           hd,
           scope,
           new Bind(new Translate(tl, this.fk), this.cont),
         );
+      }
     }
 
     class ContRunner<G, X, End> implements Run<G, X, Kind<F, [End]>> {
@@ -690,34 +695,37 @@ export const compile_ =
         private readonly cont: Cont<void, G, X>,
       ) {}
 
-      done = (doneScope: Scope<F>) =>
-        go(
+      done(doneScope: Scope<F>) {
+        return go(
           doneScope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(P.unit),
         );
+      }
 
-      fail = (e: Error) =>
-        go(
+      fail(e: Error) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
         );
+      }
 
-      interrupted = (inter: Interrupted) =>
-        go(
+      interrupted(inter: Interrupted) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
         );
+      }
 
-      out = (hd: Chunk<X>, scope: Scope<F>, tail: Pull<G, X, void>) => {
+      out(hd: Chunk<X>, scope: Scope<F>, tail: Pull<G, X, void>) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let cur: Run<G, X, Kind<F, [End]>> = this;
         let acc: Pull<G, X, void> = tail;
@@ -727,7 +735,7 @@ export const compile_ =
           cur = cur.ctx.runner;
         }
         return cur.out(hd, scope, acc);
-      };
+      }
     }
 
     abstract class StepRun<Y, S, G, X, End>
@@ -738,8 +746,8 @@ export const compile_ =
         protected readonly cont: Cont<Option<S>, G, X>,
       ) {}
 
-      done = (doneScope: Scope<F>) =>
-        interruptGuard(doneScope, this.ctx, this.cont, () =>
+      done(doneScope: Scope<F>) {
+        return interruptGuard(doneScope, this.ctx, this.cont, () =>
           go(
             doneScope,
             this.ctx.extendedTopLevelScope,
@@ -748,24 +756,27 @@ export const compile_ =
             this.cont(new Succeed(None)),
           ),
         );
+      }
 
-      fail = (e: Error) =>
-        go(
+      fail(e: Error) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
         );
+      }
 
-      interrupted = (inter: Interrupted) =>
-        go(
+      interrupted(inter: Interrupted) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
         );
+      }
 
       abstract out(
         hd: Chunk<Y>,
@@ -805,10 +816,7 @@ export const compile_ =
         private readonly fun: (t: Y) => Pull<G, X, void>,
       ) {}
 
-      private unconsed = (
-        hd: Chunk<Y>,
-        tl: Pull<G, Y, void>,
-      ): Pull<G, X, void> => {
+      private unconsed(hd: Chunk<Y>, tl: Pull<G, Y, void>): Pull<G, X, void> {
         const go = (idx: number): Pull<G, X, void> => {
           if (idx === hd.size) return flatMapOutput_(tl, this.fun);
           try {
@@ -828,10 +836,10 @@ export const compile_ =
         };
 
         return go(0);
-      };
+      }
 
-      done = (scope: Scope<F>) =>
-        interruptGuard(scope, this.ctx, this.cont, () =>
+      done(scope: Scope<F>) {
+        return interruptGuard(scope, this.ctx, this.cont, () =>
           go(
             scope,
             this.ctx.extendedTopLevelScope,
@@ -840,33 +848,37 @@ export const compile_ =
             this.cont(P.unit),
           ),
         );
+      }
 
-      fail = (e: Error) =>
-        go(
+      fail(e: Error) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(new Fail(e)),
         );
+      }
 
-      interrupted = (inter: Interrupted) =>
-        go(
+      interrupted(inter: Interrupted) {
+        return go(
           this.ctx.scope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           this.cont(inter),
         );
+      }
 
-      out = (hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) =>
-        go(
+      out(hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) {
+        return go(
           outScope,
           this.ctx.extendedTopLevelScope,
           this.ctx.translation,
           this.ctx.runner,
           new Bind(this.unconsed(hd, tl), this.cont),
         );
+      }
     }
 
     const goUncons = <G, X, End>(
@@ -1249,12 +1261,17 @@ export const compile_ =
     class OuterRun implements Run<F, O, Kind<F, [B]>> {
       public constructor(private acc: B) {}
 
-      done = (): Kind<F, [B]> => F.pure(this.acc);
+      done(): Kind<F, [B]> {
+        return F.pure(this.acc);
+      }
 
-      fail = (e: Error) => F.throwError(e);
+      fail(e: Error) {
+        return F.throwError(e);
+      }
 
-      interrupted = (inter: Interrupted) =>
-        inter.deferredError.fold(() => F.pure(this.acc), F.throwError);
+      interrupted(inter: Interrupted) {
+        return inter.deferredError.fold(() => F.pure(this.acc), F.throwError);
+      }
 
       out(
         hd: Chunk<O>,

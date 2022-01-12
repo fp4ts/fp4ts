@@ -10,6 +10,8 @@ import { Stream } from './stream';
 import { Pipe } from './pipe';
 import { ChainChunk } from './chunk/algebra';
 
+const td = new TextDecoder('utf8');
+
 const utf8BomSeq: Chunk<Byte> = Chunk(0xef as Byte, 0xbb as Byte, 0xbf as Byte);
 export const text = Object.freeze({
   utf8: Object.freeze({
@@ -84,9 +86,7 @@ export const text = Object.freeze({
           opt.fold(
             () =>
               buf.nonEmpty
-                ? Pull.output1(
-                    Buffer.from(new Uint8Array(buf.toArray)).toString('utf-8'),
-                  )
+                ? Pull.output1(td.decode(buf.toUint8Array()))
                 : Pull.done(),
 
             ([byteChunks, tail]) => {
