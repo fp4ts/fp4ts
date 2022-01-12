@@ -24,12 +24,8 @@ export const makeServer =
         'repo',
         Resource.evalF(F.ref(OrderedMap.empty as OrderedMap<number, Todo>)),
       ),
-      R.bindTo('todoService', ({ ids, repo }) =>
-        R.pure(new TodoService(F, ids, repo)),
-      ),
-      R.bindTo('server', ({ todoService }) =>
-        R.pure(new Server(F, todoService)),
-      ),
+      R.let('todoService', ({ ids, repo }) => new TodoService(F, ids, repo)),
+      R.let('server', ({ todoService }) => new Server(F, todoService)),
       R.flatMap(({ server }) => serve(F)(server.toHttpApp, port)),
     );
   };

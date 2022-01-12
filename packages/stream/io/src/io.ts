@@ -302,14 +302,13 @@ const mkDuplex =
               : F.unit,
         ),
       ),
-      RF.bindTo('drainIn', ({ readQueue }) =>
-        RF.pure(is.enqueueNoneTerminatedChunks(readQueue).drain),
+      RF.let(
+        'drainIn',
+        ({ readQueue }) => is.enqueueNoneTerminatedChunks(readQueue).drain,
       ),
-      RF.bindTo('out', ({ writeQueue, error }) =>
-        RF.pure(
-          Stream.fromQueueNoneTerminatedChunk(writeQueue).concurrently(F)(
-            Stream.evalF(F.flatMap_(error.get(), F.throwError)),
-          ),
+      RF.let('out', ({ writeQueue, error }) =>
+        Stream.fromQueueNoneTerminatedChunk(writeQueue).concurrently(F)(
+          Stream.evalF(F.flatMap_(error.get(), F.throwError)),
         ),
       ),
       RF.map(({ duplex, drainIn, out }) =>

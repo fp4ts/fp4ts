@@ -16,6 +16,19 @@ import { Functor } from './functor';
 export interface Monad<F> extends FlatMap<F>, Applicative<F> {
   readonly Do: Kind<F, [{}]>;
 
+  readonly let: <N extends string, S extends {}, B>(
+    name: N,
+    fb: (s: S) => B,
+  ) => (
+    fs: Kind<F, [S]>,
+  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
+  readonly let_: <N extends string, S extends {}, B>(
+    name: N,
+    fb: B,
+  ) => (
+    fs: Kind<F, [S]>,
+  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
+
   readonly bindTo: <N extends string, S extends {}, B>(
     name: N,
     fb: Kind<F, [B]> | ((s: S) => Kind<F, [B]>),
@@ -50,13 +63,24 @@ export const Monad = Object.freeze({
     const self: Monad<M> = {
       Do: A.pure({}),
 
+      let: (name, fb) => fs =>
+        self.map_(fs, s => {
+          (s as any)[name] = fb(s);
+          return s;
+        }),
+      let_: (name, b) => fs =>
+        self.map_(fs, s => {
+          (s as any)[name] = b;
+          return s;
+        }),
+
       bindTo: (name, fb) => fs => self.bindTo_(fs, name, fb),
       bindTo_: (fs, name, fb) =>
         self.flatMap_(fs, s =>
-          self.map_(
-            typeof fb === 'function' ? (fb as any)(s) : fb,
-            b => ({ ...s, [name]: b } as any),
-          ),
+          self.map_(typeof fb === 'function' ? (fb as any)(s) : fb, b => {
+            (s as any)[name] = b as any;
+            return s;
+          }),
         ),
 
       bind: fb => fs => self.bind_(fs, fb),

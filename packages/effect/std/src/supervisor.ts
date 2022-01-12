@@ -33,11 +33,11 @@ export function Supervisor<F>(
           F.Do,
           F.bindTo('done', F.ref<boolean>(false)),
           F.bindTo('token', F.unique),
-          F.bindTo('cleanup', ({ token }) =>
-            F.pure(state.update(s => s.remove(UniqueToken.Ord, token))),
+          F.let('cleanup', ({ token }) =>
+            state.update(s => s.remove(UniqueToken.Ord, token)),
           ),
-          F.bindTo('action', ({ done, cleanup }) =>
-            F.pure(F.finalize_(fa, () => F.productR_(done.set(true), cleanup))),
+          F.let('action', ({ done, cleanup }) =>
+            F.finalize_(fa, () => F.productR_(done.set(true), cleanup)),
           ),
           F.bindTo('fiber', ({ action }) => F.fork(action)),
           F.bind(({ token, fiber }) =>

@@ -53,17 +53,17 @@ const mkConnectionHandler =
       F.Do,
       F.bindTo('method', F.fromEither(Method.fromString(req.method ?? ''))),
       F.bindTo('uri', F.fromEither(Uri.fromString(req.url ?? ''))),
-      F.bindTo('headers', F.pure(incomingHeadersToHeaders(req.headers))),
-      F.bindTo(
+      F.let_('headers', incomingHeadersToHeaders(req.headers)),
+      F.let_(
         'body',
-        F.pure(
-          Stream.resource(F)(io.suspendReadableAndRead(F)()(() => req)).flatMap(
-            snd,
-          ),
+        Stream.resource(F)(io.suspendReadableAndRead(F)()(() => req)).flatMap(
+          snd,
         ),
       ),
-      F.bindTo('request', ({ method, uri, headers, body }) =>
-        F.pure(new Request(method, uri, '1.1', headers, new Entity(body))),
+      F.let(
+        'request',
+        ({ method, uri, headers, body }) =>
+          new Request(method, uri, '1.1', headers, new Entity(body)),
       ),
       F.bindTo('response', ({ request }) => app.run(request)),
       F.bind(({ response }) =>

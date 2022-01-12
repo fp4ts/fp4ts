@@ -333,8 +333,8 @@ export class Scope<F> {
             : throwError(new Error('Scope closed at the time of the lease')),
         ),
       ),
-      F.bindTo('allScopes', ({ children }) =>
-        F.pure(children['::+'](this)['+++'](this.ancestors)),
+      F.let('allScopes', ({ children }) =>
+        children['::+'](this)['+++'](this.ancestors),
       ),
       F.bindTo('allResources', ({ allScopes }) =>
         Chain.Traversable.flatTraverse_(Chain.Monad, F)(
