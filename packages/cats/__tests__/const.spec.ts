@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { AdditionMonoid, Eq, Eval } from '@fp4ts/cats-core';
+import { Monoid, Eq, Eval } from '@fp4ts/cats-core';
 import { Const } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -25,12 +25,12 @@ describe('Const Laws', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => x.map(Const.pure(AdditionMonoid)),
+      x => x.map(Const.pure(Monoid.addition)),
       () => Eq.primitive,
     ),
   );
 
-  const applicativeTests = ApplicativeSuite(Const.Applicative(AdditionMonoid));
+  const applicativeTests = ApplicativeSuite(Const.Applicative(Monoid.addition));
   checkAll(
     'Monad<Const>',
     applicativeTests.applicative(
@@ -40,27 +40,27 @@ describe('Const Laws', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => x.map(Const.pure(AdditionMonoid)),
+      x => x.map(Const.pure(Monoid.addition)),
       () => Eq.primitive,
     ),
   );
 
-  const traversableTests = TraversableSuite(Const.Traversable(AdditionMonoid));
+  const traversableTests = TraversableSuite(Const.Traversable(Monoid.addition));
   checkAll(
     'Traversable<Const>',
     traversableTests.traversable(
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
+      Monoid.addition,
+      Monoid.addition,
       Const.Functor(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => x.map(Const.pure(AdditionMonoid)),
+      x => x.map(Const.pure(Monoid.addition)),
       () => Eq.primitive,
       A.fp4tsEval,
       Eval.Eq,

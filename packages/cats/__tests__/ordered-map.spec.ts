@@ -3,16 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc, { hash, stringify } from 'fast-check';
+import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { AdditionMonoid, Eq, Eval, EvalK, Ord } from '@fp4ts/cats-core';
+import { Monoid, Eq, Eval, EvalK, Ord } from '@fp4ts/cats-core';
 import {
   List,
   Option,
   Some,
   None,
   OrderedMap,
-  Identity,
 } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -833,8 +832,8 @@ describe('OrderedMap', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
+      Monoid.addition,
+      Monoid.addition,
       OrderedMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,

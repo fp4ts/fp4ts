@@ -64,7 +64,7 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
             'foldable elem reference',
             forAll(
               mkArbF(arbA),
-              fc.integer(-2, 20),
+              fc.integer({ min: -2, max: 20 }),
               laws.elemRef,
             )(Option.Eq(EqA)),
           ],

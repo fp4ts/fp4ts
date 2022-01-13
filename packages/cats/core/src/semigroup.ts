@@ -36,18 +36,8 @@ export const Semigroup = Object.freeze({
   get addition(): Semigroup<number> {
     return Semigroup.of({ combine_: (x, y) => x + y() });
   },
-});
 
-// -- Builtin Semigroups
-
-export const DisjunctionSemigroup: Semigroup<boolean> = Semigroup.of({
-  combine_: (x, y) => x || y(),
-});
-
-export const ConjunctionSemigroup: Semigroup<boolean> = Semigroup.of({
-  combine_: (x, y) => x && y(),
-});
-
-export const AdditionSemigroup: Semigroup<number> = Semigroup.of({
-  combine_: (x, y) => x + y(),
+  get product(): Semigroup<number> {
+    return Semigroup.of({ combine_: (x, y) => x * y() });
+  },
 });

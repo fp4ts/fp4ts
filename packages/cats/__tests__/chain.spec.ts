@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, AdditionMonoid, Eval } from '@fp4ts/cats-core';
+import { Eq, Monoid, Eval } from '@fp4ts/cats-core';
 import { Chain, Option } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
@@ -127,8 +127,8 @@ describe('Chain', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        AdditionMonoid,
-        AdditionMonoid,
+        Monoid.addition,
+        Monoid.addition,
         Chain.Monad,
         Eval.Applicative,
         Eval.Applicative,

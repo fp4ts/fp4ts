@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { AdditionMonoid, Eq, Eval } from '@fp4ts/cats-core';
+import { Monoid, Eq, Eval } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -36,8 +36,8 @@ describe('Identity Laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
+      Monoid.addition,
+      Monoid.addition,
       Identity.Functor,
       Eval.Applicative,
       Eval.Applicative,

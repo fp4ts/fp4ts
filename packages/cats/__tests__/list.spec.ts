@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { AdditionMonoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
+import { Monoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
 import {
   Identity,
   Either,
@@ -1173,91 +1173,93 @@ describe('List', () => {
     });
   });
 
-  const alignTests = AlignSuite(List.Align);
-  checkAll(
-    'Align<List>',
-    alignTests.align(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsList,
-      List.Eq,
-    ),
-  );
+  describe('Laws', () => {
+    const alignTests = AlignSuite(List.Align);
+    checkAll(
+      'Align<List>',
+      alignTests.align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
 
-  const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
-  checkAll(
-    'FunctorFilter<List>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsList,
-      List.Eq,
-    ),
-  );
+    const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
+    checkAll(
+      'FunctorFilter<List>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
 
-  const alternativeTests = AlternativeSuite(List.Alternative);
-  checkAll(
-    'Alternative<List>',
-    alternativeTests.alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsList,
-      List.Eq,
-    ),
-  );
+    const alternativeTests = AlternativeSuite(List.Alternative);
+    checkAll(
+      'Alternative<List>',
+      alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
 
-  const monadTests = MonadSuite(List.Monad);
-  checkAll(
-    'Monad<List>',
-    monadTests.monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsList,
-      List.Eq,
-    ),
-  );
+    const monadTests = MonadSuite(List.Monad);
+    checkAll(
+      'Monad<List>',
+      monadTests.monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
 
-  const traversableTests = TraversableSuite(List.Traversable);
-  checkAll(
-    'traversable<List>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
-      List.Functor,
-      Eval.Applicative,
-      Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsList,
-      List.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-    ),
-  );
+    const traversableTests = TraversableSuite(List.Traversable);
+    checkAll(
+      'traversable<List>',
+      traversableTests.traversable<number, number, number, EvalK, EvalK>(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        List.Functor,
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+      ),
+    );
+  });
 });

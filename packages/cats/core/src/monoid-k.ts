@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
+import { None, Option, OptionK } from './data';
 import { Monoid } from './monoid';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 

@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError, tupled } from '@fp4ts/core';
-import { ConjunctionMonoid, DisjunctionMonoid } from '../../../monoid';
 import { Eq } from '../../../eq';
 import { Eval } from '../../../eval';
 import { Applicative } from '../../../applicative';
@@ -297,11 +296,11 @@ export const elemOption_ = <A>(xs: Vector<A>, idx: number): Option<A> =>
   idx < 0 ? None : FT_.splitAt_(xs._root, 0, i => i > idx).map(([, x]) => x);
 
 export const all_ = <A>(xs: Vector<A>, p: (a: A) => boolean): boolean =>
-  foldMap_(Eval.Monoid(ConjunctionMonoid))(xs, x => Eval.later(() => p(x)))
+  foldMap_(Eval.Monoid(Monoid.conjunction))(xs, x => Eval.later(() => p(x)))
     .value;
 
 export const any_ = <A>(xs: Vector<A>, p: (a: A) => boolean): boolean =>
-  foldMap_(Eval.Monoid(DisjunctionMonoid))(xs, x => Eval.later(() => p(x)))
+  foldMap_(Eval.Monoid(Monoid.disjunction))(xs, x => Eval.later(() => p(x)))
     .value;
 
 export const count_ = <A>(xs: Vector<A>, f: (a: A) => boolean): number =>

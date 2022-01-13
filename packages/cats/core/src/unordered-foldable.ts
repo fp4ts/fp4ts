@@ -4,10 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, id, instance, Kind } from '@fp4ts/core';
-import { AdditionMonoid, ConjunctionMonoid, DisjunctionMonoid } from './monoid';
-import { Eval } from './eval';
-
 import { Monoid } from './monoid';
+import { Eval } from './eval';
 
 /**
  * @category Type Class
@@ -53,21 +51,21 @@ export const UnorderedFoldable = Object.freeze({
 
       all: f => fa => self.all_(fa, f),
       all_: (fa, p) =>
-        self.unorderedFoldMap_(Eval.Monoid(ConjunctionMonoid))(fa, x =>
+        self.unorderedFoldMap_(Eval.Monoid(Monoid.conjunction))(fa, x =>
           Eval.later(() => p(x)),
         ).value,
 
       any: f => fa => self.any_(fa, f),
       any_: (fa, p) =>
-        self.unorderedFoldMap_(Eval.Monoid(DisjunctionMonoid))(fa, x =>
+        self.unorderedFoldMap_(Eval.Monoid(Monoid.disjunction))(fa, x =>
           Eval.later(() => p(x)),
         ).value,
 
       count: p => fa => self.count_(fa, p),
       count_: (fa, p) =>
-        self.unorderedFoldMap_(AdditionMonoid)(fa, x => (p(x) ? 1 : 0)),
+        self.unorderedFoldMap_(Monoid.addition)(fa, x => (p(x) ? 1 : 0)),
 
-      size: fa => self.unorderedFoldMap_(AdditionMonoid)(fa, () => 1),
+      size: fa => self.unorderedFoldMap_(Monoid.addition)(fa, () => 1),
 
       ...F,
     });

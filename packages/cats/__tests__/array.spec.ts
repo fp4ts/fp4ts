@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import '@fp4ts/cats-core/lib/data/collections/array/array';
-import { Eq, Eval, EvalK, AdditionMonoid } from '@fp4ts/cats-core';
+import { Eq, Eval, EvalK, Monoid } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
@@ -88,8 +88,8 @@ describe('Array laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      AdditionMonoid,
-      AdditionMonoid,
+      Monoid.addition,
+      Monoid.addition,
       Array.Functor,
       Eval.Applicative,
       Eval.Applicative,

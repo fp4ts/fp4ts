@@ -3,13 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Semigroup,
-  AdditionSemigroup,
-  SemigroupRequirements,
-  ConjunctionSemigroup,
-  DisjunctionSemigroup,
-} from './semigroup';
+import { None, Option } from './data';
+import { Semigroup, SemigroupRequirements } from './semigroup';
 
 /**
  * @category Type Class
@@ -30,21 +25,34 @@ export const Monoid = Object.freeze({
   get string(): Monoid<string> {
     return Monoid.of({ ...Semigroup.string, empty: '' });
   },
+
+  firstOption<A>(): Monoid<Option<A>> {
+    return Monoid.of<Option<A>>({
+      combine_: (x, y) => x['<|>'](y),
+      empty: None,
+    });
+  },
+
+  lastOption<A>(): Monoid<Option<A>> {
+    return Monoid.of<Option<A>>({
+      combine_: (x, y) => y()['<|>'](() => x),
+      empty: None,
+    });
+  },
+
+  get disjunction(): Monoid<boolean> {
+    return { ...Semigroup.disjunction, empty: false };
+  },
+
+  get conjunction(): Monoid<boolean> {
+    return { ...Semigroup.conjunction, empty: true };
+  },
+
+  get addition(): Monoid<number> {
+    return { ...Semigroup.addition, empty: 0 };
+  },
+
+  get product(): Monoid<number> {
+    return { ...Semigroup.product, empty: 1 };
+  },
 });
-
-// -- Builtin Semigroups
-
-export const DisjunctionMonoid: Monoid<boolean> = {
-  ...DisjunctionSemigroup,
-  empty: false,
-};
-
-export const ConjunctionMonoid: Monoid<boolean> = {
-  ...ConjunctionSemigroup,
-  empty: true,
-};
-
-export const AdditionMonoid: Monoid<number> = {
-  ...AdditionSemigroup,
-  empty: 0,
-};
