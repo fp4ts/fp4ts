@@ -18,7 +18,7 @@ import {
   Route,
   stringType,
 } from '@fp4ts/http-dsl';
-import { toApp } from '@fp4ts/http-dsl-server';
+import { toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('parameter extraction', () => {
   const api = group(
@@ -49,7 +49,7 @@ describe('parameter extraction', () => {
       ),
     ),
   );
-  const app = toApp(IO.Concurrent)(
+  const app = toHttpApp(IO.Concurrent)(
     api,
     [
       [

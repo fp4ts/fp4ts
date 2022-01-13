@@ -6,7 +6,7 @@
 import { EitherT } from '@fp4ts/cats';
 import { Async } from '@fp4ts/effect';
 import { HttpApp } from '@fp4ts/http';
-import { Codable, toApp } from '@fp4ts/http-dsl-server';
+import { Codable, toHttpApp } from '@fp4ts/http-dsl-server';
 
 import { CreateTodo, Todo } from '../todo';
 import { TodoService } from './todo-service';
@@ -21,7 +21,7 @@ export class Server<F> {
   ) {}
 
   public get toHttpApp(): HttpApp<F> {
-    return toApp(this.F)(
+    return toHttpApp(this.F)(
       api,
       [
         version(this.F),

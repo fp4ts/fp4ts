@@ -16,7 +16,7 @@ import {
   Route,
   stringType,
 } from '@fp4ts/http-dsl';
-import { toApp } from '@fp4ts/http-dsl-server';
+import { toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('dsl routing', () => {
   const api = group(
@@ -27,7 +27,7 @@ describe('dsl routing', () => {
       [':>'](Post(PlainText, stringType)),
   );
 
-  const app = toApp(IO.Concurrent)(
+  const app = toHttpApp(IO.Concurrent)(
     api,
     [
       EitherT.rightUnit(IO.Applicative),

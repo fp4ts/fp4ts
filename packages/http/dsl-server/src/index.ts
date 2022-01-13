@@ -6,6 +6,6 @@
 /**
  * @module http/dsl-server
  */
-export { toApp, toHttpRoutes } from './internal';
+export { toHttpApp, toHttpRoutes } from './internal';
 export { TermDerivates, SubDerivates, CodingDerivates } from './type-level';
 export { Codable } from './codable';

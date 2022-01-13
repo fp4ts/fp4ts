@@ -46,7 +46,7 @@ import {
 import { Server, DeriveCoding, OmitBuiltins } from '../type-level';
 import { builtins } from '../builtin-codables';
 
-export const toApp =
+export const toHttpApp =
   <F>(F: Concurrent<F, Error>) =>
   <api>(
     api: api,
