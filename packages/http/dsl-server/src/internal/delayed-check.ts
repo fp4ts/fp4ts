@@ -25,6 +25,6 @@ export const DelayedCheck = Object.freeze({
     ): DelayedCheck<F, A> =>
       ReaderT.ask<$<EitherTK, [F, MessageFailure]>, Request<F>>(RF).flatMapF(
         RF,
-      )(x => f(x));
+      )(f);
   },
 });

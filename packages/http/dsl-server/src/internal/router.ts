@@ -4,7 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kleisli, Monad, OptionT } from '@fp4ts/cats';
-import { Http, HttpRoutes, Method, Request, Response } from '@fp4ts/http-core';
+import {
+  Http,
+  HttpRoutes,
+  Method,
+  Request,
+  Response,
+  Status,
+} from '@fp4ts/http-core';
 
 export type Router<env, a> =
   | StaticRouter<env, a>
@@ -92,9 +99,18 @@ export const runRouterEnv =
       switch (router.tag) {
         case 'static': {
           if (rem.length === 0) {
+            if (req.method.methodName === 'HEAD' && router.matches['GET']) {
+              return OptionT.liftF(F)(router.matches['GET'](env).run(req));
+            }
+
             // pick one of the end routes as we have a match
             const methodMatch = router.matches[req.method.methodName];
-            if (!methodMatch) return OptionT.none(F);
+            if (!methodMatch)
+              if (Object.keys(router).length > 0)
+                return OptionT.some(F)(
+                  new Response<F>(Status.MethodNotAllowed),
+                );
+              else OptionT.none(F);
             return OptionT.liftF(F)(methodMatch(env).run(req));
           }
 

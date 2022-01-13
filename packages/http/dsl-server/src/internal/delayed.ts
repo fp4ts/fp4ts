@@ -197,8 +197,8 @@ export class Delayed<F, env, c> {
   ): (env: env) => (req: Request<F>) => EitherT<F, MessageFailure, c> {
     const RF = ReaderT.Monad<$<EitherTK, [F, MessageFailure]>, Request<F>>(F);
     return env => req =>
-      this.fold(props => {
-        const r = pipe(
+      this.fold(props =>
+        pipe(
           RF.Do,
           RF.bindTo('r', ReaderT.ask(F)),
           RF.bindTo('c', props.captures(env)),
@@ -210,9 +210,8 @@ export class Delayed<F, env, c> {
           RF.bindTo('b', ({ content }) => props.body(content)),
         )
           .flatMapF(F)(({ c, p, h, b, r }) => props.server(c, p, h, b, r))
-          .run(req);
-        return r;
-      });
+          .run(req),
+      );
   }
 }
 

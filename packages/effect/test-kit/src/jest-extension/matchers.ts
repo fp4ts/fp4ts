@@ -6,7 +6,6 @@
 import { IO, IOOutcome, IORuntime } from '@fp4ts/effect-core';
 
 import { Ticker } from '../ticker';
-import { TestExecutionContext } from '../test-execution-context';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

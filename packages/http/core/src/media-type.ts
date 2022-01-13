@@ -35,7 +35,7 @@ export class MediaRange {
     if (x && y === '*') {
       return Right(new MediaRange(x));
     } else {
-      return Left(new Error('Invalid media range'));
+      return Right(new MediaType(x, y));
     }
   }
 }

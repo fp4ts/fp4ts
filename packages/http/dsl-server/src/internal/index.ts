@@ -8,6 +8,7 @@ import { id, pipe } from '@fp4ts/core';
 import { Either, EitherT, Kleisli, Left } from '@fp4ts/cats';
 import {
   Accept,
+  AcceptFailure,
   ContentType,
   EntityEncoder,
   Http,
@@ -17,21 +18,24 @@ import {
   ParsingFailure,
   Response,
   Status,
+  Method,
+  EntityBody,
 } from '@fp4ts/http-core';
 import {
   Alt,
   Sub,
-  VerbNoContent,
+  VerbNoContentElement,
   CaptureElement,
   QueryElement,
   StaticElement,
-  Verb,
+  VerbElement,
   Type,
   ReqBodyElement,
   ContentTypeWithMime,
   FromHttpApiDataTag,
 } from '@fp4ts/http-dsl-shared';
-import { Concurrent } from '@fp4ts/effect-kernel';
+import { Concurrent, IO, IoK } from '@fp4ts/effect';
+
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
 import { DelayedCheck } from './delayed-check';
@@ -45,6 +49,12 @@ import {
 } from './router';
 import { Server, DeriveCoding, OmitBuiltins } from '../type-level';
 import { builtins } from '../builtin-codables';
+
+export const toHttpAppIO = <api>(
+  api: api,
+  server: Server<IoK, api>,
+  codings: OmitBuiltins<DeriveCoding<IoK, api>>,
+): HttpApp<IoK> => toHttpApp(IO.Async)(api, server, codings);
 
 export const toHttpApp =
   <F>(F: Concurrent<F, Error>) =>
@@ -69,10 +79,21 @@ export const toHttpRoutes =
         Delayed.empty(EitherT.Monad<F, MessageFailure>(F))(
           EitherT.right(F)(server),
         ),
-        { ...builtins, ...codings } as any,
+        merge(builtins, codings),
       ),
       undefined as void,
     );
+
+const merge = (xs: any, ys: any): any => {
+  const zs = {} as Record<string, any>;
+  for (const k in xs) {
+    zs[k] = { ...zs[k], ...xs[k], ...ys[k] };
+  }
+  for (const k in ys) {
+    zs[k] = { ...zs[k], ...xs[k], ...ys[k] };
+  }
+  return zs;
+};
 
 export const _toHttpRoutes =
   <F>(F: Concurrent<F, Error>) =>
@@ -122,11 +143,11 @@ export function route<F>(F: Concurrent<F, Error>) {
       throw new Error('Invalid sub');
     }
 
-    if (api instanceof Verb) {
+    if (api instanceof VerbElement) {
       return routeVerbContent(api, ctx, server as any, codings);
     }
 
-    if (api instanceof VerbNoContent) {
+    if (api instanceof VerbNoContentElement) {
       return routeVerbNoContent(api, ctx, server as any, codings);
     }
 
@@ -262,10 +283,10 @@ export function route<F>(F: Concurrent<F, Error>) {
     CT extends ContentTypeWithMime<M>,
     A,
   >(
-    verb: Verb<any, CT, Type<any, A>>,
+    verb: VerbElement<any, CT, Type<any, A>>,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Verb<any, CT, Type<any, A>>>>,
-    codings: DeriveCoding<F, Verb<any, CT, Type<any, A>>>,
+    d: Delayed<F, env, Server<F, VerbElement<any, CT, Type<any, A>>>>,
+    codings: DeriveCoding<F, VerbElement<any, CT, Type<any, A>>>,
   ): Router<env, Http<F, F>> {
     const { encode } = codings[verb.contentType.mime][verb.body.ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>
@@ -278,7 +299,7 @@ export function route<F>(F: Concurrent<F, Error>) {
                 mr.satisfiedBy(verb.contentType.self.mediaType),
               )
                 ? Either.rightUnit
-                : Left(new ParsingFailure('Invalid content type')),
+                : Left(new AcceptFailure(verb.contentType.self, ah)),
             )
             .fold(() => Either.rightUnit, id),
         ),
@@ -294,20 +315,24 @@ export function route<F>(F: Concurrent<F, Error>) {
 
         return run.fold(F)(
           f => f.toHttpResponse(req.httpVersion),
-          e =>
-            new Response<F>(verb.status, req.httpVersion)
+          e => {
+            const res = new Response<F>(verb.status, req.httpVersion)
               .withEntity(encode(e), EntityEncoder.text())
-              .putHeaders(verb.contentType.self),
+              .putHeaders(verb.contentType.self);
+            return req.method === Method.HEAD
+              ? res.withEntityBody(EntityBody.empty())
+              : res;
+          },
         );
       }),
     );
   }
 
   function routeVerbNoContent<context extends unknown[], env>(
-    verb: VerbNoContent<any>,
+    verb: VerbNoContentElement<any>,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, VerbNoContent<any>>>,
-    codings: DeriveCoding<F, VerbNoContent<any>>,
+    d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
+    codings: DeriveCoding<F, VerbNoContentElement<any>>,
   ): Router<env, Http<F, F>> {
     return leafRouter(verb.method, env =>
       Kleisli(req => {

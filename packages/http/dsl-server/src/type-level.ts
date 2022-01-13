@@ -18,7 +18,7 @@ import {
   StaticTag,
   Sub,
   Type,
-  Verb,
+  VerbElement,
   VerbNoContentTag,
   VerbTag,
   PlainText,
@@ -85,7 +85,7 @@ type DeriveAltCodings<F, xs extends unknown[], z = {}> =
 // -- Implementations
 
 export interface TermDerivates<F, api, m> {
-  [VerbTag]: api extends Verb<any, any, Type<any, infer A>>
+  [VerbTag]: api extends VerbElement<any, any, Type<any, infer A>>
     ? Kind<m, [F, A]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
@@ -122,7 +122,7 @@ export interface CodingDerivates<F, x, z> {
       : never
     : never;
   [StaticTag]: z;
-  [VerbTag]: x extends Verb<any, infer CT, infer T>
+  [VerbTag]: x extends VerbElement<any, infer CT, infer T>
     ? T extends Type<infer R, infer A>
       ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
       : never

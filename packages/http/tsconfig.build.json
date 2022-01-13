@@ -11,5 +11,7 @@
     { "path": "./dsl-shared/tsconfig.build.json" },
     { "path": "./dsl-server/tsconfig.build.json" },
     { "path": "./node-server/tsconfig.build.json" },
+    { "path": "./test-kit/tsconfig.build.json" },
+    { "path": "./test-kit-node/tsconfig.build.json" },
   ]
 }

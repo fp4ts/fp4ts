@@ -1,5 +1,5 @@
 {
-  "name": "@fp4ts/http",
+  "name": "@fp4ts/http-test-kit-node",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -11,12 +11,14 @@
   "dependencies": {
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
+    "@fp4ts/effect": "*",
     "@fp4ts/http-core": "*",
+    "@fp4ts/http-dsl-shared": "*",
+    "@fp4ts/http-dsl-server": "*",
+    "@fp4ts/http-test-kit": "*",
     "@fp4ts/stream": "*"
   },
   "devDependencies": {
-    "@fp4ts/schema": "*",
-    "fast-check": "^2.18.0",
     "typescript": "4.5.2"
   }
 }

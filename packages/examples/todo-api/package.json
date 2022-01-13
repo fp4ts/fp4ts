@@ -22,6 +22,7 @@
     "@fp4ts/stream": "*"
   },
   "devDependencies": {
+    "@fp4ts/http-test-kit-node": "*",
     "typescript": "4.5.4"
   }
 }

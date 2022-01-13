@@ -9,12 +9,17 @@ import { Response } from './response';
 export class Status {
   public static readonly Ok = new Status(200, 'OK');
   public static readonly Created = new Status(201, 'Created');
+  public static readonly Accepted = new Status(202, 'Accepted');
   public static readonly NoContent = new Status(204, 'No Content');
 
   public static readonly BadRequest = new Status(400, 'Bad Request');
   public static readonly NotFound = new Status(404, 'Not Found');
+  // prettier-ignore
+  public static readonly MethodNotAllowed = new Status(405, 'Method Not Allowed');
+  // prettier-ignore
+  public static readonly NotAcceptable = new Status(406, 'Not Acceptable');
 
-  // eslint-disable-next-line prettier/prettier
+  // prettier-ignore
   public static readonly InternalServerError = new Status(404, 'Internal Server Error');
 
   private readonly __void!: void;

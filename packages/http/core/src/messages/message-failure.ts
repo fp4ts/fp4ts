@@ -8,6 +8,7 @@ import { EntityEncoder } from '../codec';
 import { HttpVersion } from '../http-version';
 import { Response } from './response';
 import { Status } from './status';
+import { Accept, ContentType } from '../headers_';
 
 export abstract class MessageFailure extends Error {
   public abstract readonly cause: Option<Error>;
@@ -34,7 +35,29 @@ export class ParsingFailure extends MessageFailure {
   public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
     return new Response<F>(Status.BadRequest, httpVersion).withEntity(
       this.sanitized,
-      EntityEncoder.text<F>(),
+      EntityEncoder.text(),
+    );
+  }
+}
+
+export class AcceptFailure extends MessageFailure {
+  public constructor(
+    public readonly supplied: ContentType,
+    public readonly expected: Accept,
+  ) {
+    super(
+      `Expected ${expected.mediaRanges.toArray.join(';')}, supplied: ${
+        supplied.mediaType
+      }`,
+    );
+  }
+
+  public readonly cause = None;
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.NotAcceptable, httpVersion).withEntity(
+      this.message,
+      EntityEncoder.text(),
     );
   }
 }

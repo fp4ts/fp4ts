@@ -11,7 +11,7 @@ import { ApiElement, ElementTag } from './api-element';
 export const VerbTag = '@fp4ts/http/dsl-shared/verb';
 export type VerbTag = typeof VerbTag;
 
-export class Verb<
+export class VerbElement<
   M extends Method,
   CT extends ContentTypeWithMime<any>,
   A extends Type<any, any>,
@@ -27,34 +27,37 @@ export class Verb<
   ) {}
 }
 
-const makeVerb =
+export const Verb =
   <M extends Method>(m: M, s: Status) =>
   <CT extends ContentTypeWithMime<any>, A extends Type<any, any>>(
     ct: CT,
     b: A,
-  ): Verb<M, CT, A> =>
-    new Verb(m, s, ct, b);
+  ): VerbElement<M, CT, A> =>
+    new VerbElement(m, s, ct, b);
 
-export const Get = makeVerb(Method.GET, Status.Ok);
-export const Post = makeVerb(Method.POST, Status.Ok);
-export const Put = makeVerb(Method.PUT, Status.Ok);
-export const Delete = makeVerb(Method.DELETE, Status.Ok);
+export const Get = Verb(Method.GET, Status.Ok);
+export const Post = Verb(Method.POST, Status.Ok);
+export const Put = Verb(Method.PUT, Status.Ok);
+export const Delete = Verb(Method.DELETE, Status.Ok);
 
-export const PostCreated = makeVerb(Method.POST, Status.Created);
-export const PutCreated = makeVerb(Method.PUT, Status.Created);
+export const PostCreated = Verb(Method.POST, Status.Created);
+export const PutCreated = Verb(Method.PUT, Status.Created);
 
 export const VerbNoContentTag = '@fp4ts/http/dsl-shared/verb-no-content';
 export type VerbNoContentTag = typeof VerbNoContentTag;
 
-export class VerbNoContent<M extends Method>
+export class VerbNoContentElement<M extends Method>
   implements ApiElement<VerbNoContentTag>
 {
   public readonly [ElementTag] = VerbNoContentTag;
   public constructor(public readonly method: M) {}
 }
 
-export const GetNoContent = new VerbNoContent(Method.GET);
-export const PostNoContent = new VerbNoContent(Method.POST);
-export const PutNoContent = new VerbNoContent(Method.PUT);
-export const PatchNoContent = new VerbNoContent(Method.PATCH);
-export const DeleteNoContent = new VerbNoContent(Method.DELETE);
+export const VerbNoContent = <M extends Method>(
+  m: M,
+): VerbNoContentElement<M> => new VerbNoContentElement(m);
+export const GetNoContent = VerbNoContent(Method.GET);
+export const PostNoContent = VerbNoContent(Method.POST);
+export const PutNoContent = VerbNoContent(Method.PUT);
+export const PatchNoContent = VerbNoContent(Method.PATCH);
+export const DeleteNoContent = VerbNoContent(Method.DELETE);

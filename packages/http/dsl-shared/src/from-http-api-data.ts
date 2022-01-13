@@ -6,7 +6,7 @@
 import { Either } from '@fp4ts/cats';
 import { MessageFailure } from '@fp4ts/http-core';
 
-export const FromHttpApiDataTag = Symbol('@fp4ts/http/dsl/from-htt-api-data');
+export const FromHttpApiDataTag = '@fp4ts/http/dsl/from-htt-api-data';
 export type FromHttpApiDataTag = typeof FromHttpApiDataTag;
 
 export interface FromHttpApiData<A> {
