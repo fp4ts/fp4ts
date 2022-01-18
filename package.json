@@ -25,10 +25,10 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "fast-check": "^2.21.0",
-    "jest": "^27.3.1",
+    "jest": "^27.4.7",
     "prettier": "^2.5.1",
-    "supertest": "^6.1.6",
-    "ts-jest": "^27.0.7",
+    "supertest": "^6.2.1",
+    "ts-jest": "^27.1.3",
     "typedoc": "^0.22.11",
     "typedoc-plugin-missing-exports": "^0.22.6",
     "typescript": "^4.5.4"
