@@ -17,6 +17,6 @@
   "devDependencies": {
     "@fp4ts/schema": "*",
     "fast-check": "^2.21.0",
-    "typescript": "4.5.2"
+    "typescript": "4.5.4"
   }
 }
