@@ -4,27 +4,22 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { EitherT, EitherTK, Monad, ReaderT } from '@fp4ts/cats';
-import { MessageFailure, Request } from '@fp4ts/http-core';
+import { Monad, ReaderT } from '@fp4ts/cats';
+import { Request } from '@fp4ts/http-core';
+import { RouteResultT, RouteResultTK } from './route-result';
 
-export type DelayedCheck<F, A> = ReaderT<
-  $<EitherTK, [F, MessageFailure]>,
-  Request<F>,
-  A
->;
+export type DelayedCheck<F, A> = ReaderT<$<RouteResultTK, [F]>, Request<F>, A>;
 
 export const DelayedCheck = Object.freeze({
   withRequest: <F>(
     F: Monad<F>,
   ): (<A>(
-    f: (req: Request<F>) => EitherT<F, MessageFailure, A>,
+    f: (req: Request<F>) => RouteResultT<F, A>,
   ) => DelayedCheck<F, A>) => {
-    const RF = EitherT.Monad<F, MessageFailure>(F);
+    const RF = RouteResultT.Monad(F);
     return <A>(
-      f: (req: Request<F>) => EitherT<F, MessageFailure, A>,
+      f: (req: Request<F>) => RouteResultT<F, A>,
     ): DelayedCheck<F, A> =>
-      ReaderT.ask<$<EitherTK, [F, MessageFailure]>, Request<F>>(RF).flatMapF(
-        RF,
-      )(f);
+      ReaderT.ask<$<RouteResultTK, [F]>, Request<F>>(RF).flatMapF(RF)(f);
   },
 });

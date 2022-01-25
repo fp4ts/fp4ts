@@ -3,15 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kleisli, Monad, OptionT } from '@fp4ts/cats';
-import {
-  Http,
-  HttpRoutes,
-  Method,
-  Request,
-  Response,
-  Status,
-} from '@fp4ts/http-core';
+import { Kleisli, Monad } from '@fp4ts/cats';
+import { Method, Request, Response, Status } from '@fp4ts/http-core';
+import { RouteResultT } from './route-result';
+import { RoutingApplication } from './routing-application';
 
 export type Router<env, a> =
   | StaticRouter<env, a>
@@ -89,42 +84,46 @@ const mergeWith = <a>(
 
 export const runRouterEnv =
   <F>(F: Monad<F>) =>
-  <env>(router: Router<env, Http<F, F>>, env: env): HttpRoutes<F> => {
+  <env>(
+    router: Router<env, RoutingApplication<F>>,
+    env: env,
+  ): RoutingApplication<F> => {
     const loop = <env>(
       req: Request<F>,
-      router: Router<env, Http<F, F>>,
+      router: Router<env, RoutingApplication<F>>,
       env: env,
       rem: readonly string[],
-    ): OptionT<F, Response<F>> => {
+    ): RouteResultT<F, Response<F>> => {
       switch (router.tag) {
         case 'static': {
           if (rem.length === 0) {
             if (req.method.methodName === 'HEAD' && router.matches['GET']) {
-              return OptionT.liftF(F)(router.matches['GET'](env).run(req));
+              return router.matches['GET'](env).run(req);
             }
 
             // pick one of the end routes as we have a match
             const methodMatch = router.matches[req.method.methodName];
             if (!methodMatch)
               if (Object.keys(router).length > 0)
-                return OptionT.some(F)(
+                return RouteResultT.succeed(F)(
+                  // TODO: FIX
                   new Response<F>(Status.MethodNotAllowed),
                 );
-              else OptionT.none(F);
-            return OptionT.liftF(F)(methodMatch(env).run(req));
+              else RouteResultT.fail(F);
+            return methodMatch(env).run(req);
           }
 
           if (router.table[rem[0]]) {
             return loop(req, router.table[rem[0]], env, rem.slice(1));
           }
 
-          return OptionT.none(F);
+          return RouteResultT.fail(F);
         }
 
         case 'capture': {
           if (rem.length === 0)
             // nothing to capture
-            return OptionT.none(F);
+            return RouteResultT.fail(F);
 
           const [pfx, ...sfx] = rem;
           return loop(req, router.next, [pfx, env], sfx);

@@ -11,7 +11,6 @@ import {
   AcceptFailure,
   ContentType,
   EntityEncoder,
-  Http,
   HttpApp,
   HttpRoutes,
   MessageFailure,
@@ -49,6 +48,8 @@ import {
 } from './router';
 import { Server, DeriveCoding, OmitBuiltins } from '../type-level';
 import { builtins } from '../builtin-codables';
+import { RouteResult, RouteResultT } from './route-result';
+import { RoutingApplication } from './routing-application';
 
 export const toHttpAppIO = <api>(
   api: api,
@@ -71,18 +72,18 @@ export const toHttpRoutes =
     api: api,
     server: Server<F, api>,
     codings: OmitBuiltins<DeriveCoding<F, api>>,
-  ): HttpRoutes<F> =>
-    runRouterEnv(F)(
+  ): HttpRoutes<F> => {
+    const r = runRouterEnv(F)(
       route(F)(
         api,
         EmptyContext,
-        Delayed.empty(EitherT.Monad<F, MessageFailure>(F))(
-          EitherT.right(F)(server),
-        ),
+        Delayed.empty(F)(RouteResult.succeed(server)),
         merge(builtins, codings),
       ),
       undefined as void,
     );
+    return Kleisli(req => r.run(req).respond(F));
+  };
 
 const merge = (xs: any, ys: any): any => {
   const zs = {} as Record<string, any>;
@@ -95,33 +96,14 @@ const merge = (xs: any, ys: any): any => {
   return zs;
 };
 
-export const _toHttpRoutes =
-  <F>(F: Concurrent<F, Error>) =>
-  <api>(
-    api: api,
-    server: Server<F, api>,
-    codings: DeriveCoding<F, api>,
-  ): HttpRoutes<F> =>
-    runRouterEnv(F)(
-      route(F)(
-        api,
-        EmptyContext,
-        Delayed.empty(EitherT.Monad<F, MessageFailure>(F))(
-          EitherT.right(F)(server),
-        ),
-        codings,
-      ),
-      undefined as void,
-    );
-
 export function route<F>(F: Concurrent<F, Error>) {
-  const EF = EitherT.Monad<F, MessageFailure>(F);
+  const EF = RouteResultT.Monad(F);
   function route<api, context extends unknown[], env>(
     api: api,
     ctx: Context<context>,
     server: Delayed<F, env, Server<F, api>>,
     codings: DeriveCoding<F, api>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     if (api instanceof Alt) {
       return routeAlt(api, ctx, server, codings);
     }
@@ -163,7 +145,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     server: Delayed<F, env, Server<F, Alt<xs>>>,
     codings: DeriveCoding<F, Alt<xs>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     return choice(
       ...api.xs.map((x: any, i: number) =>
         route(
@@ -182,7 +164,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<CaptureElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
     return new CaptureRouter(
       route(
@@ -190,7 +172,11 @@ export function route<F>(F: Concurrent<F, Error>) {
         ctx,
         d.addCapture(EF)(txt =>
           DelayedCheck.withRequest(F)(() =>
-            EitherT(F.pure(fromPathComponent(txt))),
+            pipe(
+              fromPathComponent(txt),
+              RouteResult.fromEither,
+              RouteResultT.lift(F),
+            ),
           ),
         ),
         codings,
@@ -204,7 +190,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<QueryElement<any, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     const { fromQueryParameter } = codings[FromHttpApiDataTag][a.type.ref];
     return route(
       api,
@@ -220,7 +206,10 @@ export function route<F>(F: Concurrent<F, Error>) {
             )
             .toRight(() => new ParsingFailure('Missing query'))
             .flatMap(id);
-          return EitherT(F.pure(result));
+          return pipe(
+            RouteResult.fromEitherFatal(result),
+            RouteResultT.lift(F),
+          );
         }),
       ),
       codings,
@@ -240,15 +229,17 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>>,
     codings: DeriveCoding<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     const { decode } = codings[body.ct.mime][body.body.ref];
     const ctCheck = DelayedCheck.withRequest(F)(req =>
       req.headers.get(ContentType.Select).fold(
-        () => EitherT.right(F)(req.bodyText),
+        () => RouteResultT.succeed(F)(req.bodyText),
         ct =>
           ct.mediaType.satisfies(body.ct.self.mediaType)
-            ? EitherT.right(F)(req.bodyText)
-            : EitherT.left(F)(new ParsingFailure('Invalid content type')),
+            ? RouteResultT.succeed(F)(req.bodyText)
+            : RouteResultT.fatalFail(F)(
+                new ParsingFailure('Invalid content type'),
+              ),
       ),
     );
 
@@ -257,9 +248,11 @@ export function route<F>(F: Concurrent<F, Error>) {
       ctx,
       d.addBodyCheck(EF)(ctCheck, s =>
         Kleisli(() =>
-          pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
-            .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
-            .flatMap(F)(str => EitherT(F.pure(decode(str)))),
+          RouteResultT.fromEitherFatal(F)(
+            pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
+              .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
+              .flatMap(F)(str => EitherT(F.pure(decode(str)))),
+          ),
         ),
       ),
       codings,
@@ -272,7 +265,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, Sub<StaticElement<any>, api>>>,
     codings: DeriveCoding<F, Sub<StaticElement<any>, api>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     return pathRouter(path.path, route(api, ctx, d, codings));
   }
 
@@ -287,43 +280,39 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, VerbElement<any, CT, Type<any, A>>>>,
     codings: DeriveCoding<F, VerbElement<any, CT, Type<any, A>>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     const { encode } = codings[verb.contentType.mime][verb.body.ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>
-      EitherT(
-        F.pure(
-          req.headers
-            .get(Accept.Select)
-            .map(ah =>
-              ah.mediaRanges.any(mr =>
-                mr.satisfiedBy(verb.contentType.self.mediaType),
-              )
-                ? Either.rightUnit
-                : Left(new AcceptFailure(verb.contentType.self, ah)),
+      pipe(
+        req.headers
+          .get(Accept.Select)
+          .map(ah =>
+            ah.mediaRanges.any(mr =>
+              mr.satisfiedBy(verb.contentType.self.mediaType),
             )
-            .fold(() => Either.rightUnit, id),
-        ),
+              ? Either.rightUnit
+              : Left(new AcceptFailure(verb.contentType.self, ah)),
+          )
+          .fold(() => Either.rightUnit, id),
+        RouteResult.fromEitherFatal,
+        RouteResultT.lift(F),
       ),
     );
 
     return leafRouter(verb.method, env =>
       Kleisli(req => {
-        const run = d
+        return d
           .addAcceptCheck(EF)(acceptCheck)
           .runDelayed(EF)(env)(req)
-          .flatten(F);
-
-        return run.fold(F)(
-          f => f.toHttpResponse(req.httpVersion),
-          e => {
-            const res = new Response<F>(verb.status, req.httpVersion)
-              .withEntity(encode(e), EntityEncoder.text())
-              .putHeaders(verb.contentType.self);
-            return req.method === Method.HEAD
-              ? res.withEntityBody(EntityBody.empty())
-              : res;
-          },
-        );
+          .flatMap(F)(RouteResultT.fromEitherFatal(F))
+          .map(F)(e => {
+          const res = new Response<F>(verb.status, req.httpVersion)
+            .withEntity(encode(e), EntityEncoder.text())
+            .putHeaders(verb.contentType.self);
+          return req.method === Method.HEAD
+            ? res.withEntityBody(EntityBody.empty())
+            : res;
+        });
       }),
     );
   }
@@ -333,14 +322,14 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
     codings: DeriveCoding<F, VerbNoContentElement<any>>,
-  ): Router<env, Http<F, F>> {
+  ): Router<env, RoutingApplication<F>> {
     return leafRouter(verb.method, env =>
       Kleisli(req => {
-        const run = d.runDelayed(EF)(env)(req).flatten(F);
-        return run.fold(F)(
-          f => f.toHttpResponse(req.httpVersion),
-          () =>
-            new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
+        return d
+          .runDelayed(EF)(env)(req)
+          .flatMap(F)(RouteResultT.fromEitherFatal(F))
+          .map(F)(() =>
+          new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
         );
       }),
     );

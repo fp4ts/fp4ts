@@ -4,25 +4,18 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, applyTo, constant, pipe } from '@fp4ts/core';
-import {
-  Applicative,
-  EitherT,
-  EitherTK,
-  FlatMap,
-  Functor,
-  Monad,
-  ReaderT,
-} from '@fp4ts/cats';
-import { MessageFailure, Request } from '@fp4ts/http-core';
+import { FlatMap, Functor, Monad, ReaderT } from '@fp4ts/cats';
+import { Request } from '@fp4ts/http-core';
 import { DelayedCheck } from './delayed-check';
+import { RouteResult, RouteResultT, RouteResultTK } from './route-result';
 
 // -- Servant Delayed implementation
 // -- https://github.com/haskell-servant/servant/blob/master/servant-server/src/Servant/Server/Internal/Delayed.hs#L92
 export class Delayed<F, env, c> {
   public static empty<F>(
-    F: Applicative<$<EitherTK, [F, MessageFailure]>>,
-  ): <A, env>(fea: EitherT<F, MessageFailure, A>) => Delayed<F, env, A> {
-    const r = ReaderT.pure(F)(undefined as void);
+    F: Monad<F>,
+  ): <A, env>(empty: RouteResult<A>) => Delayed<F, env, A> {
+    const r = ReaderT.pure(RouteResultT.Monad(F))(undefined as void);
     return fea =>
       new Delayed(transform =>
         transform({
@@ -33,7 +26,7 @@ export class Delayed<F, env, c> {
           params: r,
           headers: r,
           body: constant(r),
-          server: () => fea,
+          server: () => RouteResultT.lift(F)(fea),
         }),
       );
   }
@@ -58,7 +51,7 @@ export class Delayed<F, env, c> {
   ) {}
 
   public map(
-    F: Functor<$<EitherTK, [F, MessageFailure]>>,
+    F: Functor<$<RouteResultTK, [F]>>,
   ): <d>(f: (c: c) => d) => Delayed<F, env, d> {
     return f =>
       new Delayed(transform =>
@@ -73,7 +66,7 @@ export class Delayed<F, env, c> {
 
   public addCapture<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): <captured>(
     f: (c: captured) => DelayedCheck<F, A>,
   ) => Delayed<F, [captured, env], B> {
@@ -94,7 +87,7 @@ export class Delayed<F, env, c> {
 
   public addParamCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
     return that =>
       new Delayed(transform =>
@@ -111,7 +104,7 @@ export class Delayed<F, env, c> {
 
   public addHeaderCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
     return that =>
       new Delayed(transform =>
@@ -127,7 +120,7 @@ export class Delayed<F, env, c> {
   }
 
   public addMethodCheck(
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
     return that =>
       new Delayed(transform =>
@@ -139,7 +132,7 @@ export class Delayed<F, env, c> {
 
   public addBodyCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): <C>(
     that: DelayedCheck<F, C>,
     f: (c: C) => DelayedCheck<F, A>,
@@ -163,7 +156,7 @@ export class Delayed<F, env, c> {
   }
 
   public addAcceptCheck(
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
     return that =>
       new Delayed(transform =>
@@ -178,7 +171,7 @@ export class Delayed<F, env, c> {
 
   public passToServer<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<EitherTK, [F, MessageFailure]>>,
+    F: FlatMap<$<RouteResultTK, [F]>>,
   ): (f: (req: Request<F>) => A) => Delayed<F, env, B> {
     return f =>
       new Delayed(transform =>
@@ -193,9 +186,9 @@ export class Delayed<F, env, c> {
   }
 
   public runDelayed(
-    F: Monad<$<EitherTK, [F, MessageFailure]>>,
-  ): (env: env) => (req: Request<F>) => EitherT<F, MessageFailure, c> {
-    const RF = ReaderT.Monad<$<EitherTK, [F, MessageFailure]>, Request<F>>(F);
+    F: Monad<$<RouteResultTK, [F]>>,
+  ): (env: env) => (req: Request<F>) => RouteResultT<F, c> {
+    const RF = ReaderT.Monad<$<RouteResultTK, [F]>, Request<F>>(F);
     return env => req =>
       this.fold(props =>
         pipe(
@@ -260,5 +253,5 @@ interface DelayedProps<
   readonly body: (ct: contentType) => DelayedCheck<F, body>;
   readonly server: (
     ...xs: [captures, params, headers, body, Request<F>]
-  ) => EitherT<F, MessageFailure, c>;
+  ) => RouteResultT<F, c>;
 }
