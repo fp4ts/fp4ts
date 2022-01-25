@@ -6,9 +6,17 @@
 import { Kind } from '@fp4ts/core';
 import { EitherT, Monad } from '@fp4ts/cats';
 import { MessageFailure } from '@fp4ts/http-core';
+import { AddHeader } from './add-header';
 
 export class ServerM<F> {
   public constructor(public readonly F: Monad<F>) {}
+
+  public readonly addHeader =
+    <A>(a: A) =>
+    <H>(h: H): AddHeader<H, A> =>
+      this.addHeader_(h, a);
+  public readonly addHeader_ = <H, A>(h: H, a: A): AddHeader<H, A> =>
+    new AddHeader(h, a);
 
   public readonly return = <A>(a: A): EitherT<F, MessageFailure, A> =>
     EitherT.right(this.F)(a);

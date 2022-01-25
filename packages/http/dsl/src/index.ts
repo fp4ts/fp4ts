@@ -14,6 +14,7 @@ export {
   Capture,
   Query,
   Header,
+  Headers,
   Route,
 
   Get,

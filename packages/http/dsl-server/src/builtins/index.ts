@@ -5,4 +5,5 @@
 
 export * as json from './json';
 export * as plainText from './plain-text';
+export * as toHttpApiData from './to-http-api-data';
 export * as fromHttpApiData from './from-http-api-data';

@@ -7,6 +7,7 @@ import { Method, Status } from '@fp4ts/http-core';
 import { ContentTypeWithMime } from './content-types';
 import { Type } from '../type';
 import { ApiElement, ElementTag } from './api-element';
+import { HeadersElement } from './headers';
 
 export const VerbTag = '@fp4ts/http/dsl-shared/verb';
 export type VerbTag = typeof VerbTag;
@@ -27,13 +28,41 @@ export class VerbElement<
   ) {}
 }
 
-export const Verb =
-  <M extends Method>(m: M, s: Status) =>
-  <CT extends ContentTypeWithMime<any>, A extends Type<any, any>>(
-    ct: CT,
-    b: A,
-  ): VerbElement<M, CT, A> =>
-    new VerbElement(m, s, ct, b);
+export const HeadersVerbTag = '@fp4ts/http/dsl-shared/headers-verb';
+export type HeadersVerbTag = typeof HeadersVerbTag;
+
+export class HeadersVerbElement<
+  M extends Method,
+  CT extends ContentTypeWithMime<any>,
+  H extends HeadersElement<any, any>,
+> implements ApiElement<HeadersVerbTag>
+{
+  public readonly [ElementTag]: HeadersVerbTag;
+
+  public constructor(
+    public readonly method: M,
+    public readonly status: Status,
+    public readonly contentType: CT,
+    public readonly headers: H,
+  ) {}
+}
+
+export const Verb = <M extends Method>(m: M, s: Status) => {
+  function curried<
+    CT extends ContentTypeWithMime<any>,
+    A extends Type<any, any>,
+  >(ct: CT, b: A): VerbElement<M, CT, A>;
+  function curried<
+    CT extends ContentTypeWithMime<any>,
+    H extends HeadersElement<any, any>,
+  >(ct: CT, b: H): HeadersVerbElement<M, CT, H>;
+  function curried(ct: any, b: any): any {
+    return b instanceof HeadersElement
+      ? new HeadersVerbElement(m, s, ct, b)
+      : new VerbElement(m, s, ct, b);
+  }
+  return curried;
+};
 
 export const Get = Verb(Method.GET, Status.Ok);
 export const Post = Verb(Method.POST, Status.Ok);

@@ -28,7 +28,13 @@ import {
   HeaderElement,
   RawHeaderTag,
   RawHeaderElement,
+  HeadersVerbTag,
+  HeadersVerbElement,
+  HeadersElement,
+  ToHttpApiDataTag,
+  ToHttpApiData,
 } from '@fp4ts/http-dsl-shared';
+import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
 import { HandlerK } from './internal/handler';
@@ -92,8 +98,23 @@ export interface TermDerivates<F, api, m> {
   [VerbTag]: api extends VerbElement<any, any, Type<any, infer A>>
     ? Kind<m, [F, A]>
     : never;
+  [HeadersVerbTag]: api extends HeadersVerbElement<
+    any,
+    any,
+    HeadersElement<infer hs, Type<any, infer A>>
+  >
+    ? Kind<m, [F, AddHeaders<hs, A>]>
+    : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
 }
+
+type AddHeaders<hs, a> = hs extends []
+  ? a
+  : hs extends [RawHeaderElement<any, Type<any, infer h>>, ...infer hs]
+  ? AddHeaders<hs, AddHeader<h, a>>
+  : hs extends [HeaderElement<SelectHeader<infer f, infer aa>>, ...infer hs]
+  ? AddHeaders<hs, AddHeader<Kind<f, [aa]>, a>>
+  : never;
 
 export interface SubDerivates<F, x, api, m> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
@@ -141,6 +162,13 @@ export interface CodingDerivates<F, x, z> {
       ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
       : never
     : never;
+  [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
+    ? H extends HeadersElement<infer hs, Type<infer R, infer A>>
+      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } } & {
+          [ToHttpApiDataTag]: ExtractResponseHeaderCodings<hs>;
+        }
+      : never
+    : never;
   [VerbNoContentTag]: z;
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
     ? T extends Type<infer R, infer A>
@@ -154,6 +182,14 @@ export interface CodingDerivates<F, x, z> {
       : never
     : never;
 }
+
+type ExtractResponseHeaderCodings<hs, acc = {}> = hs extends []
+  ? acc
+  : hs extends [HeaderElement<any>, ...infer hs]
+  ? ExtractResponseHeaderCodings<hs, acc>
+  : hs extends [RawHeaderElement<any, Type<infer R, infer A>>, ...infer hs]
+  ? ExtractResponseHeaderCodings<hs, acc & { [_ in R]: ToHttpApiData<A> }>
+  : never;
 
 // prettier-ignore
 export type OmitBuiltins<Provided> =

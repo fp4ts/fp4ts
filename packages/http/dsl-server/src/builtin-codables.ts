@@ -10,15 +10,21 @@ import {
   PlainText,
   JSON,
   FromHttpApiDataTag,
+  ToHttpApiDataTag,
 } from '@fp4ts/http-dsl-shared';
 
-import { fromHttpApiData, json, plainText } from './builtins';
+import { fromHttpApiData, json, plainText, toHttpApiData } from './builtins';
 
 export const builtins = Object.freeze({
   [FromHttpApiDataTag]: {
     [booleanType.ref]: fromHttpApiData.boolean,
     [numberType.ref]: fromHttpApiData.number,
     [stringType.ref]: fromHttpApiData.string,
+  },
+  [ToHttpApiDataTag]: {
+    [booleanType.ref]: toHttpApiData.boolean,
+    [numberType.ref]: toHttpApiData.number,
+    [stringType.ref]: toHttpApiData.string,
   },
   [PlainText.mime]: {
     [booleanType.ref]: plainText.boolean,

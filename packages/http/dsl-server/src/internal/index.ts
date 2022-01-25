@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { id, pipe } from '@fp4ts/core';
-import { Either, EitherT, Kleisli } from '@fp4ts/cats';
+import { id, pipe, tupled } from '@fp4ts/core';
+import { Either, EitherT, Kleisli, List } from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
@@ -23,6 +23,8 @@ import {
   Request,
   MethodNotAllowedFailure,
   SelectHeader,
+  RawHeader,
+  Headers,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -36,8 +38,11 @@ import {
   ReqBodyElement,
   ContentTypeWithMime,
   FromHttpApiDataTag,
+  ToHttpApiDataTag,
   HeaderElement,
   RawHeaderElement,
+  HeadersElement,
+  HeadersVerbElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IoK } from '@fp4ts/effect';
 
@@ -57,6 +62,9 @@ import { builtins } from '../builtin-codables';
 import { RouteResult, RouteResultT } from './route-result';
 import { RoutingApplication } from './routing-application';
 import { ServerM } from '../server-m';
+import { AddHeader } from '../add-header';
+import { Handler } from './handler';
+import { Codable } from '../codable';
 
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IoK, api>>) =>
@@ -133,6 +141,10 @@ export function route<F>(F: Concurrent<F, Error>) {
 
     if (api instanceof VerbElement) {
       return routeVerbContent(api, ctx, server as any, codings);
+    }
+
+    if (api instanceof HeadersVerbElement) {
+      return routeHeadersVerbContent(api, ctx, server as any, codings as any);
     }
 
     if (api instanceof VerbNoContentElement) {
@@ -336,36 +348,115 @@ export function route<F>(F: Concurrent<F, Error>) {
     d: Delayed<F, env, Server<F, VerbElement<any, CT, Type<any, A>>>>,
     codings: DeriveCoding<F, VerbElement<any, CT, Type<any, A>>>,
   ): Router<env, RoutingApplication<F>> {
-    const { encode } = codings[verb.contentType.mime][verb.body.ref];
+    return routeMethod(
+      verb.method,
+      verb.status,
+      [],
+      verb.body,
+      verb.contentType,
+      ctx,
+      d,
+      codings,
+    );
+  }
+
+  function routeHeadersVerbContent<
+    context extends unknown[],
+    env,
+    M extends string,
+    CT extends ContentTypeWithMime<M>,
+    A,
+    H extends HeadersElement<any, Type<any, A>>,
+  >(
+    verb: HeadersVerbElement<any, CT, H>,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, HeadersVerbElement<any, CT, H>>>,
+    codings: DeriveCoding<F, HeadersVerbElement<any, CT, H>>,
+  ): Router<env, RoutingApplication<F>> {
+    return routeMethod(
+      verb.method,
+      verb.status,
+      verb.headers.headers,
+      verb.headers.body,
+      verb.contentType,
+      ctx,
+      d,
+      codings,
+    );
+  }
+
+  function routeMethod<
+    context extends unknown[],
+    env,
+    M extends string,
+    CT extends ContentTypeWithMime<M>,
+    A,
+    R extends string,
+  >(
+    method: Method,
+    status: Status,
+    headers: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
+    body: Type<R, A>,
+    ct: CT,
+    ctx: Context<context>,
+    d: Delayed<F, env, Handler<F, A>>,
+    codings: { [_ in CT['mime']]: { [_ in R]: Codable<A> } },
+  ): Router<env, RoutingApplication<F>> {
+    const { encode } = codings[ct.mime][body.ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>
       pipe(
         req.headers
           .get(Accept.Select)
           .map(ah =>
-            ah.mediaRanges.any(mr =>
-              mr.satisfiedBy(verb.contentType.self.mediaType),
-            )
+            ah.mediaRanges.any(mr => mr.satisfiedBy(ct.self.mediaType))
               ? RouteResult.succeedUnit
-              : RouteResult.fail(
-                  new NotAcceptFailure(verb.contentType.self, ah),
-                ),
+              : RouteResult.fail(new NotAcceptFailure(ct.self, ah)),
           )
           .fold(() => RouteResult.succeedUnit, id),
         RouteResultT.lift(F),
       ),
     );
 
+    const getHeadersEncoder =
+      (hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[]) =>
+      (a: AddHeader<any, any> | any) => {
+        const loop = (
+          a: AddHeader<any, any> | any,
+          hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
+          acc: List<RawHeader>,
+        ): [Headers, any] => {
+          if (hs.length === 0) return tupled(new Headers(acc), a);
+          if (hs[0] instanceof HeaderElement) {
+            const raw = hs[0].header.toRaw(a.header);
+            return loop(a.body, hs.slice(1), raw['+++'](acc));
+          }
+          if (hs[0] instanceof RawHeaderElement) {
+            const { toHeader } = (codings as any)[ToHttpApiDataTag][
+              hs[0].type.ref
+            ];
+            const raw = new RawHeader(hs[0].key, toHeader(a.header));
+            return loop(a.body, hs.slice(1), acc.prepend(raw));
+          }
+
+          throw new Error('Invalid Headers');
+        };
+
+        return loop(a, hs, List.empty);
+      };
+
     return leafRouter(env =>
       Kleisli(req =>
         d
           .addAcceptCheck(EF)(acceptCheck)
-          .addMethodCheck(EF)(methodCheck(verb.method))
+          .addMethodCheck(EF)(methodCheck(method))
           .runDelayed(EF)(env, req)
           .flatMap(F)(RouteResultT.fromEitherFatal(F))
-          .map(F)(e => {
-          const res = new Response<F>(verb.status, req.httpVersion)
+          .map(F)(getHeadersEncoder(headers))
+          .map(F)(([hs, e]) => {
+          const res = new Response<F>(status, req.httpVersion)
             .withEntity(encode(e), EntityEncoder.text())
-            .putHeaders(verb.contentType.self);
+            .putHeaders(ct.self)
+            .putHeaders(hs);
           return req.method === Method.HEAD
             ? res.withEntityBody(EntityBody.empty())
             : res;

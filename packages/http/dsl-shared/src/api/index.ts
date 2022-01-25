@@ -16,3 +16,4 @@ export * from './api-element';
 export * from './content-types';
 export * from './req-body';
 export * from './header-element';
+export * from './headers';

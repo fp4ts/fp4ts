@@ -26,8 +26,15 @@ export abstract class Message<F, Self> extends Media<F> {
     return this.copy({ headers: Headers.fromToRaw(...hs) });
   }
 
-  public putHeaders(...hs: ToRaw[]): Self {
-    return this.copy({ headers: this.headers.put(...hs) });
+  public putHeaders(hs: Headers): Self;
+  public putHeaders(...hs: ToRaw[]): Self;
+  public putHeaders(...xs: any[]): Self {
+    if (xs[0] instanceof Headers)
+      return this.copy({ headers: this.headers['+++'](xs[0]) });
+    else
+      return this.copy({
+        headers: this.headers['+++'](Headers.fromToRaw(...xs)),
+      });
   }
 
   public transformHeaders(f: (hs: Headers) => Headers): Self {

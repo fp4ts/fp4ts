@@ -20,15 +20,23 @@ import {
   VerbNoContent,
   Header,
   Get,
+  Headers,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
+import { tupled } from '@fp4ts/core';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
     Verb(method, status)(JSON, PersonType),
     Route('no-content')[':>'](VerbNoContent(method)),
+    Route('header')[':>'](
+      Verb(method, status)(
+        JSON,
+        Headers(tupled(Header('H', numberType)), PersonType),
+      ),
+    ),
     Route('accept')[':>'](
       group(
         Verb(method, status)(JSON, PersonType),
@@ -46,7 +54,12 @@ describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IoK> =>
     toHttpAppIO(verbApi(m, status), {
       [JSON.mime]: { [PersonTypeTag]: PersonCodable },
-    })(S => [S.return(alice), S.unit, [S.return(alice), S.return('A')]]);
+    })(S => [
+      S.return(alice),
+      S.unit,
+      S.return(S.addHeader_(42, alice)),
+      [S.return(alice), S.return('A')],
+    ]);
 
   describe('GET 200', () => {
     const server = makeServer(Method.GET, Status.Ok);
@@ -70,6 +83,17 @@ describe('verbs', () => {
             expect(response.statusCode).toBe(204);
             expect(response.text).toEqual('');
             expect(response.body).toEqual({});
+          }),
+      ).unsafeRunToPromise();
+    });
+
+    it('should return headers', async () => {
+      await withServerP(server)(server =>
+        test(server)
+          .get('/header')
+          .then(response => {
+            expect(response.statusCode).toBe(200);
+            expect(response.headers.h).toBe('42');
           }),
       ).unsafeRunToPromise();
     });
