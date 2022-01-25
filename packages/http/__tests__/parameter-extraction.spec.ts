@@ -49,28 +49,18 @@ describe('parameter extraction', () => {
       ),
     ),
   );
-  const app = toHttpApp(IO.Concurrent)(
-    api,
+  const app = toHttpApp(IO.Concurrent)(api, {})(S => [
     [
-      [
-        flag => EitherT.right(IO.Applicative)(flag),
-        number => EitherT.right(IO.Applicative)(number),
-        string => EitherT.right(IO.Applicative)(string),
-      ],
-      [
-        boolean =>
-          EitherT.right(IO.Applicative)(
-            boolean.fold(() => 'null', global.JSON.stringify),
-          ),
-        number =>
-          EitherT.right(IO.Applicative)(
-            number.fold(() => 'null', global.JSON.stringify),
-          ),
-        string => EitherT.right(IO.Applicative)(string.fold(() => 'null', id)),
-      ],
+      flag => S.return(flag),
+      number => S.return(number),
+      string => S.return(string),
     ],
-    {},
-  );
+    [
+      boolean => S.return(boolean.fold(() => 'null', global.JSON.stringify)),
+      number => S.return(number.fold(() => 'null', global.JSON.stringify)),
+      string => S.return(string.fold(() => 'null', id)),
+    ],
+  ]);
 
   const jsonDecoder = EntityDecoder.json(IO.Concurrent);
 

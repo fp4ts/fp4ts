@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EitherT } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect';
 import { Request, Method, EntityEncoder, uri } from '@fp4ts/http-core';
 import {
@@ -27,15 +26,11 @@ describe('dsl routing', () => {
       [':>'](Post(PlainText, stringType)),
   );
 
-  const app = toHttpApp(IO.Concurrent)(
-    api,
-    [
-      EitherT.rightUnit(IO.Applicative),
-      EitherT.right(IO.Applicative)('pong'),
-      x => EitherT.right(IO.Applicative)(x),
-    ],
-    {},
-  );
+  const app = toHttpApp(IO.Concurrent)(api, {})(S => [
+    S.unit,
+    S.return('pong'),
+    x => S.return(x),
+  ]);
 
   it('should return 204', async () => {
     const response = await app

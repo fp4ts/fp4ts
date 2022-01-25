@@ -21,29 +21,24 @@ export class Server<F> {
   ) {}
 
   public get toHttpApp(): HttpApp<F> {
-    return toHttpApp(this.F)(
-      api,
+    return toHttpApp(this.F)(api, {
+      'application/json': {
+        'todo-api/create-todo': Codable.json.fromSchema(CreateTodo),
+        'todo-api/todo': Codable.json.fromSchema(Todo),
+        'todo-api/todo-array': Codable.json.fromSchema(TodoArrayType.schema),
+      },
+    })(S => [
+      version(this.F),
       [
-        version(this.F),
-        [
-          limit => offset =>
-            EitherT.liftF(this.F)(this.todos.getAll(limit, offset)),
-          newTodo => EitherT.liftF(this.F)(this.todos.create(newTodo)),
-          todoId => [
-            EitherT(this.todos.getById(todoId)),
-            EitherT.liftF(this.F)(this.todos.deleteById(todoId)),
-            EitherT(this.todos.markComplete(todoId)),
-            EitherT(this.todos.unMarkComplete(todoId)),
-          ],
+        limit => offset => S.liftF(this.todos.getAll(limit, offset)),
+        newTodo => S.liftF(this.todos.create(newTodo)),
+        todoId => [
+          EitherT(this.todos.getById(todoId)),
+          S.liftF(this.todos.deleteById(todoId)),
+          EitherT(this.todos.markComplete(todoId)),
+          EitherT(this.todos.unMarkComplete(todoId)),
         ],
       ],
-      {
-        'application/json': {
-          'todo-api/create-todo': Codable.json.fromSchema(CreateTodo),
-          'todo-api/todo': Codable.json.fromSchema(Todo),
-          'todo-api/todo-array': Codable.json.fromSchema(TodoArrayType.schema),
-        },
-      },
-    );
+    ]);
   }
 }

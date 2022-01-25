@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'supertest';
-import { EitherT } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect-core';
+import { IoK } from '@fp4ts/effect-core';
 import { Accept, HttpApp, Method, Status } from '@fp4ts/http-core';
 import {
   group,
@@ -45,15 +44,9 @@ const alice: Person = {
 
 describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IoK> =>
-    toHttpAppIO(
-      verbApi(m, status),
-      [
-        EitherT.right(IO.Monad)(alice),
-        EitherT.rightUnit(IO.Monad),
-        [EitherT.right(IO.Monad)(alice), EitherT.right(IO.Monad)('A')],
-      ],
-      { [JSON.mime]: { [PersonTypeTag]: PersonCodable } },
-    );
+    toHttpAppIO(verbApi(m, status), {
+      [JSON.mime]: { [PersonTypeTag]: PersonCodable },
+    })(S => [S.return(alice), S.unit, [S.return(alice), S.return('A')]]);
 
   describe('GET 200', () => {
     const server = makeServer(Method.GET, Status.Ok);
@@ -160,12 +153,9 @@ const headerApi = group(
 describe('Header', () => {
   const server = toHttpAppIO(
     headerApi,
-    [
-      ct => EitherT.right(IO.Monad)(`${ct.mediaRanges.toArray}`),
-      hv => EitherT.right(IO.Monad)(hv),
-    ],
+
     {},
-  );
+  )(S => [ct => S.return(`${ct.mediaRanges.toArray}`), hv => S.return(hv)]);
 
   it('should capture Accept header', async () => {
     await withServerP(server)(server =>
@@ -198,11 +188,9 @@ const reqBodyApi = group(
 );
 
 describe('ReqBody', () => {
-  const server = toHttpAppIO(
-    reqBodyApi,
-    [EitherT.right(IO.Monad), ({ age }) => EitherT.right(IO.Monad)(age)],
-    { [JSON.mime]: { [PersonTypeTag]: PersonCodable } },
-  );
+  const server = toHttpAppIO(reqBodyApi, {
+    [JSON.mime]: { [PersonTypeTag]: PersonCodable },
+  })(S => [S.return, ({ age }) => S.return(age)]);
 
   it('should pass argument to the method handler', async () => {
     await withServerP(server)(server =>

@@ -3,15 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Either,
-  EitherT,
-  List,
-  Monad,
-  Option,
-  OrderedMap,
-  Right,
-} from '@fp4ts/cats';
+import { Either, EitherT, Monad, Option, OrderedMap, Right } from '@fp4ts/cats';
 import { Kind, pipe, snd } from '@fp4ts/core';
 import { Ref } from '@fp4ts/effect';
 import { MessageFailure, NotFoundFailure } from '@fp4ts/http';

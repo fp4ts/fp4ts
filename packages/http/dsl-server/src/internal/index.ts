@@ -56,34 +56,28 @@ import { Server, DeriveCoding, OmitBuiltins } from '../type-level';
 import { builtins } from '../builtin-codables';
 import { RouteResult, RouteResultT } from './route-result';
 import { RoutingApplication } from './routing-application';
+import { ServerM } from '../server-m';
 
-export const toHttpAppIO = <api>(
-  api: api,
-  server: Server<IoK, api>,
-  codings: OmitBuiltins<DeriveCoding<IoK, api>>,
-): HttpApp<IoK> => toHttpApp(IO.Async)(api, server, codings);
+export const toHttpAppIO =
+  <api>(api: api, codings: OmitBuiltins<DeriveCoding<IoK, api>>) =>
+  (makeServer: (f: ServerM<IoK>) => Server<IoK, api>): HttpApp<IoK> =>
+    toHttpApp(IO.Async)(api, codings)(makeServer);
 
 export const toHttpApp =
   <F>(F: Concurrent<F, Error>) =>
-  <api>(
-    api: api,
-    server: Server<F, api>,
-    codings: OmitBuiltins<DeriveCoding<F, api>>,
-  ): HttpApp<F> =>
-    HttpRoutes.orNotFound(F)(toHttpRoutes(F)(api, server, codings));
+  <api>(api: api, codings: OmitBuiltins<DeriveCoding<F, api>>) =>
+  (makeServer: (f: ServerM<F>) => Server<F, api>): HttpApp<F> =>
+    HttpRoutes.orNotFound(F)(toHttpRoutes(F)(api, codings)(makeServer));
 
 export const toHttpRoutes =
   <F>(F: Concurrent<F, Error>) =>
-  <api>(
-    api: api,
-    server: Server<F, api>,
-    codings: OmitBuiltins<DeriveCoding<F, api>>,
-  ): HttpRoutes<F> => {
+  <api>(api: api, codings: OmitBuiltins<DeriveCoding<F, api>>) =>
+  (makeServer: (f: ServerM<F>) => Server<F, api>): HttpRoutes<F> => {
     const r = runRouterEnv(F)(
       route(F)(
         api,
         EmptyContext,
-        Delayed.empty(F)(RouteResult.succeed(server)),
+        Delayed.empty(F)(RouteResult.succeed(makeServer(new ServerM(F)))),
         merge(builtins, codings),
       ),
       undefined as void,
