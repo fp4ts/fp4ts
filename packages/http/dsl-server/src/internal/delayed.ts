@@ -187,13 +187,12 @@ export class Delayed<F, env, c> {
 
   public runDelayed(
     F: Monad<$<RouteResultTK, [F]>>,
-  ): (env: env) => (req: Request<F>) => RouteResultT<F, c> {
+  ): (env: env, req: Request<F>) => RouteResultT<F, c> {
     const RF = ReaderT.Monad<$<RouteResultTK, [F]>, Request<F>>(F);
-    return env => req =>
+    return (env, req) =>
       this.fold(props =>
         pipe(
           RF.Do,
-          RF.bindTo('r', ReaderT.ask(F)),
           RF.bindTo('c', props.captures(env)),
           RF.bind(props.method),
           RF.bind(props.accept),
@@ -202,7 +201,7 @@ export class Delayed<F, env, c> {
           RF.bindTo('h', props.headers),
           RF.bindTo('b', ({ content }) => props.body(content)),
         )
-          .flatMapF(F)(({ c, p, h, b, r }) => props.server(c, p, h, b, r))
+          .flatMapF(F)(({ c, p, h, b }) => props.server(c, p, h, b, req))
           .run(req),
       );
   }

@@ -11,15 +11,8 @@ import { RouteResultT, RouteResultTK } from './route-result';
 export type DelayedCheck<F, A> = ReaderT<$<RouteResultTK, [F]>, Request<F>, A>;
 
 export const DelayedCheck = Object.freeze({
-  withRequest: <F>(
-    F: Monad<F>,
-  ): (<A>(
-    f: (req: Request<F>) => RouteResultT<F, A>,
-  ) => DelayedCheck<F, A>) => {
-    const RF = RouteResultT.Monad(F);
-    return <A>(
-      f: (req: Request<F>) => RouteResultT<F, A>,
-    ): DelayedCheck<F, A> =>
-      ReaderT.ask<$<RouteResultTK, [F]>, Request<F>>(RF).flatMapF(RF)(f);
-  },
+  withRequest:
+    <F>(F: Monad<F>) =>
+    <A>(f: (req: Request<F>) => RouteResultT<F, A>): DelayedCheck<F, A> =>
+      ReaderT(req => f(req)),
 });

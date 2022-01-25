@@ -85,30 +85,37 @@ export const routeResultTAlternative: <F>(
 
 export const routeResultTMonad: <F>(
   F: Monad<F>,
-) => Monad<$<RouteResultTK, [F]>> = <F>(F: Monad<F>) =>
-  Monad.of({
-    ...routeResultTFunctor(F),
-    flatMap_: flatMapT_(F),
-    pure: flow(F.pure, liftF(F)),
-    tailRecM_: <A, B>(
-      s0: A,
-      f: (a: A) => RouteResultT<F, Either<A, B>>,
-    ): RouteResultT<F, B> =>
-      new RouteResultT(
-        F.tailRecM_(s0, s0 =>
-          F.map_(f(s0).value, rr => {
-            const vr = view(rr);
-            switch (vr.tag) {
-              case 'route':
-                return vr.value.fold(
-                  s => Left(s),
-                  a => Right(new Route(a)),
-                );
-              case 'fail':
-              case 'fatal-fail':
-                return Right(vr);
-            }
-          }),
+) => Monad<$<RouteResultTK, [F]>> = (() => {
+  const cache = new Map<any, Monad<any>>();
+  return <F>(F: Monad<F>) => {
+    if (cache.has(F)) return cache.get(F)!;
+    const instance = Monad.of({
+      ...routeResultTFunctor(F),
+      flatMap_: flatMapT_(F),
+      pure: flow(F.pure, liftF(F)),
+      tailRecM_: <A, B>(
+        s0: A,
+        f: (a: A) => RouteResultT<F, Either<A, B>>,
+      ): RouteResultT<F, B> =>
+        new RouteResultT(
+          F.tailRecM_(s0, s0 =>
+            F.map_(f(s0).value, rr => {
+              const vr = view(rr);
+              switch (vr.tag) {
+                case 'route':
+                  return vr.value.fold(
+                    s => Left(s),
+                    a => Right(new Route(a)),
+                  );
+                case 'fail':
+                case 'fatal-fail':
+                  return Right(vr);
+              }
+            }),
+          ),
         ),
-      ),
-  });
+    });
+    cache.set(F, instance);
+    return instance;
+  };
+})();

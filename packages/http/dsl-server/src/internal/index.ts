@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { id, pipe } from '@fp4ts/core';
-import { Either, EitherT, Kleisli, Left } from '@fp4ts/cats';
+import { Either, EitherT, Kleisli } from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
@@ -293,11 +293,12 @@ export function route<F>(F: Concurrent<F, Error>) {
             ah.mediaRanges.any(mr =>
               mr.satisfiedBy(verb.contentType.self.mediaType),
             )
-              ? Either.rightUnit
-              : Left(new NotAcceptFailure(verb.contentType.self, ah)),
+              ? RouteResult.succeedUnit
+              : RouteResult.fail(
+                  new NotAcceptFailure(verb.contentType.self, ah),
+                ),
           )
-          .fold(() => Either.rightUnit, id),
-        RouteResult.fromEither,
+          .fold(() => RouteResult.succeedUnit, id),
         RouteResultT.lift(F),
       ),
     );
@@ -307,7 +308,7 @@ export function route<F>(F: Concurrent<F, Error>) {
         d
           .addAcceptCheck(EF)(acceptCheck)
           .addMethodCheck(EF)(methodCheck(verb.method))
-          .runDelayed(EF)(env)(req)
+          .runDelayed(EF)(env, req)
           .flatMap(F)(RouteResultT.fromEitherFatal(F))
           .map(F)(e => {
           const res = new Response<F>(verb.status, req.httpVersion)
@@ -331,7 +332,7 @@ export function route<F>(F: Concurrent<F, Error>) {
       Kleisli(req =>
         d
           .addMethodCheck(EF)(methodCheck(verb.method))
-          .runDelayed(EF)(env)(req)
+          .runDelayed(EF)(env, req)
           .flatMap(F)(RouteResultT.fromEither(F))
           .map(F)(() =>
           new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
