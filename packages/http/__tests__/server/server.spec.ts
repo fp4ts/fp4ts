@@ -6,7 +6,7 @@
 import test from 'supertest';
 import { EitherT } from '@fp4ts/cats';
 import { IO, IoK } from '@fp4ts/effect-core';
-import { HttpApp, Method, Status } from '@fp4ts/http-core';
+import { Accept, HttpApp, Method, Status } from '@fp4ts/http-core';
 import {
   group,
   JSON,
@@ -19,6 +19,8 @@ import {
   stringType,
   Verb,
   VerbNoContent,
+  Header,
+  Get,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
@@ -143,6 +145,50 @@ describe('verbs', () => {
           .then(response => expect(response.statusCode).toBe(406)),
       ).unsafeRunToPromise();
     });
+  });
+});
+
+const headerApi = group(
+  Route('select')
+    [':>'](Header(Accept.Select))
+    [':>'](Get(PlainText, stringType)),
+  Route('custom')
+    [':>'](Header('X-Custom-Header', stringType))
+    [':>'](Get(PlainText, stringType)),
+);
+
+describe('Header', () => {
+  const server = toHttpAppIO(
+    headerApi,
+    [
+      ct => EitherT.right(IO.Monad)(`${ct.mediaRanges.toArray}`),
+      hv => EitherT.right(IO.Monad)(hv),
+    ],
+    {},
+  );
+
+  it('should capture Accept header', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/select')
+        .accept('text/plain')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('text/plain');
+        }),
+    ).unsafeRunToPromise();
+  });
+
+  it('should capture custom raw header', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/custom')
+        .set('X-Custom-Header', 'my-test')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('my-test');
+        }),
+    ).unsafeRunToPromise();
   });
 });
 

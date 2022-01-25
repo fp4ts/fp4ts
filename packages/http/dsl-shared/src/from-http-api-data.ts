@@ -12,6 +12,7 @@ export type FromHttpApiDataTag = typeof FromHttpApiDataTag;
 export interface FromHttpApiData<A> {
   fromPathComponent(x: string): Either<MessageFailure, A>;
   fromQueryParameter(x: string): Either<MessageFailure, A>;
+  parseHeader(x: string): Either<MessageFailure, A>;
 }
 
 export const FromHttpApiData = Object.freeze({
@@ -20,5 +21,6 @@ export const FromHttpApiData = Object.freeze({
   ): FromHttpApiData<A> => ({
     fromPathComponent: f,
     fromQueryParameter: f,
+    parseHeader: f,
   }),
 });

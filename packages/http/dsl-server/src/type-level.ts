@@ -6,6 +6,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
+import { SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -21,9 +22,12 @@ import {
   VerbElement,
   VerbNoContentTag,
   VerbTag,
-  PlainText,
   FromHttpApiDataTag,
   FromHttpApiData,
+  HeaderTag,
+  HeaderElement,
+  RawHeaderTag,
+  RawHeaderElement,
 } from '@fp4ts/http-dsl-shared';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
@@ -108,6 +112,16 @@ export interface SubDerivates<F, x, api, m> {
       ? (a: A) => ServerT<F, api, m>
       : never
     : never;
+  [HeaderTag]: x extends HeaderElement<infer H>
+    ? H extends SelectHeader<infer G, infer A>
+      ? (h: Kind<G, [A]>) => ServerT<F, api, m>
+      : never
+    : never;
+  [RawHeaderTag]: x extends RawHeaderElement<any, infer T>
+    ? T extends Type<any, infer A>
+      ? (h: A) => ServerT<F, api, m>
+      : never
+    : never;
 }
 
 export interface CodingDerivates<F, x, z> {
@@ -131,6 +145,12 @@ export interface CodingDerivates<F, x, z> {
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
     ? T extends Type<infer R, infer A>
       ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
+      : never
+    : never;
+  [HeaderTag]: z;
+  [RawHeaderTag]: x extends RawHeaderElement<any, infer T>
+    ? T extends Type<infer R, infer A>
+      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
       : never
     : never;
 }

@@ -13,6 +13,7 @@ export {
   ReqBody,
   Capture,
   Query,
+  Header,
   Route,
 
   Get,

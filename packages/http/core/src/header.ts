@@ -36,29 +36,31 @@ export class RawHeader {
 export type ToRaw = { toRaw(): List<RawHeader> } | [string, string] | RawHeader;
 
 export interface SelectHeader<F, A> {
+  readonly header: Header<A, any>;
   toRaw1(fa: A): RawHeader;
   toRaw(fa: Kind<F, [A]>): List<RawHeader>;
   from(hs: List<RawHeader>): Option<Ior<List<Error>, Kind<F, [A]>>>;
 }
 
 export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListK, A> {
-  public constructor(private readonly h: Header<A, 'recurring'>) {}
+  public constructor(public readonly header: Header<A, 'recurring'>) {}
 
   toRaw(fa: List<A>): List<RawHeader> {
     return fa.map(a => this.toRaw1(a));
   }
 
   toRaw1(a: A): RawHeader {
-    return new RawHeader(this.h.headerName, this.h.value(a));
+    return new RawHeader(this.header.headerName, this.header.value(a));
   }
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, List<A>>> {
     const rs = hs
       .filter(
-        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+        h =>
+          h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
       )
       .map(rh =>
-        Ior.fromEither(this.h.parse(rh.headerValue).bimap(List, List)),
+        Ior.fromEither(this.header.parse(rh.headerValue).bimap(List, List)),
       );
 
     return rs.isEmpty
@@ -77,23 +79,24 @@ export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListK, A> {
 }
 
 export class SingleSelectHeader<A> implements SelectHeader<IdentityK, A> {
-  public constructor(private readonly h: Header<A, 'single'>) {}
+  public constructor(public readonly header: Header<A, 'single'>) {}
 
   toRaw(fa: A): List<RawHeader> {
     return List(this.toRaw1(fa));
   }
 
   toRaw1(fa: A): RawHeader {
-    return new RawHeader(this.h.headerName, this.h.value(fa));
+    return new RawHeader(this.header.headerName, this.header.value(fa));
   }
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
     return hs
       .filter(
-        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+        h =>
+          h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
       )
       .headOption.map(h =>
-        Ior.fromEither(this.h.parse(h.headerValue).leftMap(List)),
+        Ior.fromEither(this.header.parse(h.headerValue).leftMap(List)),
       );
   }
 }
@@ -102,7 +105,7 @@ export class RecurringSelectHeaderMerge<A>
   implements SelectHeader<IdentityK, A>
 {
   public constructor(
-    private readonly h: Header<A, 'recurring'>,
+    public readonly header: Header<A, 'recurring'>,
     private readonly S: Semigroup<A>,
   ) {}
 
@@ -111,15 +114,18 @@ export class RecurringSelectHeaderMerge<A>
   }
 
   toRaw1(a: A): RawHeader {
-    return new RawHeader(this.h.headerName, this.h.value(a));
+    return new RawHeader(this.header.headerName, this.header.value(a));
   }
 
   from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
     const rs = hs
       .filter(
-        h => h.headerName.toLowerCase() === this.h.headerName.toLowerCase(),
+        h =>
+          h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
       )
-      .map(rh => Ior.fromEither(this.h.parse(rh.headerValue).leftMap(List)));
+      .map(rh =>
+        Ior.fromEither(this.header.parse(rh.headerValue).leftMap(List)),
+      );
 
     return rs.isEmpty
       ? None

@@ -38,6 +38,10 @@ export class MediaRange {
       return Right(new MediaType(x, y));
     }
   }
+
+  public toString(): string {
+    return `${this.mainType}/*`;
+  }
 }
 
 export class MediaType extends MediaRange {
@@ -73,5 +77,9 @@ export class MediaType extends MediaRange {
     } else {
       return Left(new Error('Invalid media type'));
     }
+  }
+
+  public override toString(): string {
+    return `${this.mainType}/${this.subType}`;
   }
 }

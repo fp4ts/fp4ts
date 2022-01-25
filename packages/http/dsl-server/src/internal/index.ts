@@ -22,6 +22,7 @@ import {
   UnsupportedMediaTypeFailure,
   Request,
   MethodNotAllowedFailure,
+  SelectHeader,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -35,6 +36,8 @@ import {
   ReqBodyElement,
   ContentTypeWithMime,
   FromHttpApiDataTag,
+  HeaderElement,
+  RawHeaderElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IoK } from '@fp4ts/effect';
 
@@ -121,6 +124,12 @@ export function route<F>(F: Concurrent<F, Error>) {
       }
       if (lhs instanceof StaticElement) {
         return routeStatic(lhs, rhs, ctx, server, codings);
+      }
+      if (lhs instanceof HeaderElement) {
+        return routeHeader(lhs, rhs, ctx, server as any, codings as any);
+      }
+      if (lhs instanceof RawHeaderElement) {
+        return routeRawHeader(lhs, rhs, ctx, server as any, codings as any);
       }
       if (lhs instanceof ReqBodyElement) {
         return routeReqBody(lhs, rhs, ctx, server as any, codings);
@@ -209,14 +218,63 @@ export function route<F>(F: Concurrent<F, Error>) {
             )
             .toRight(() => new ParsingFailure('Missing query'))
             .flatMap(id);
-          return pipe(
-            RouteResult.fromEitherFatal(result),
-            RouteResultT.lift(F),
-          );
+          return pipe(RouteResult.fromEither(result), RouteResultT.lift(F));
         }),
       ),
       codings,
     );
+  }
+
+  function routeHeader<api, context extends unknown[], env, G, A>(
+    a: HeaderElement<SelectHeader<G, A>>,
+    api: api,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, Sub<HeaderElement<SelectHeader<G, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<HeaderElement<SelectHeader<G, A>>, api>>,
+  ): Router<env, RoutingApplication<F>> {
+    const S = a.header;
+    const headerCheck = DelayedCheck.withRequest(F)(req =>
+      req.headers
+        .get(S)
+        .fold(
+          () =>
+            RouteResultT.fatalFail(F)(
+              new ParsingFailure(`Expected header ${S.header.headerName}`),
+            ),
+          RouteResultT.succeed(F),
+        ),
+    );
+
+    return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
+  }
+
+  function routeRawHeader<
+    api,
+    context extends unknown[],
+    env,
+    H extends string,
+    A,
+  >(
+    a: RawHeaderElement<H, Type<any, A>>,
+    api: api,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, Sub<RawHeaderElement<H, Type<any, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<RawHeaderElement<H, Type<any, A>>, api>>,
+  ): Router<env, RoutingApplication<F>> {
+    const { parseHeader } = codings[FromHttpApiDataTag][a.type.ref];
+    const headerCheck = DelayedCheck.withRequest(F)(req =>
+      pipe(
+        req.headers
+          .getRaw(a.key)
+          .flatMap(xs => xs.headOption)
+          .toRight(() => new ParsingFailure(`Expected header ${a.key}`))
+          .flatMap(parseHeader),
+        RouteResult.fromEitherFatal,
+        RouteResultT.lift(F),
+      ),
+    );
+
+    return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
   }
 
   function routeReqBody<
