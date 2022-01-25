@@ -95,7 +95,6 @@ RouteResultT.prototype.respond = function (F) {
         case 'route':
           return Some(va.value);
         case 'fail':
-          return None;
         case 'fatal-fail':
           return Some(va.failure.toHttpResponse('1.1'));
       }

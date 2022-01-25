@@ -14,8 +14,16 @@ import {
   Left,
 } from '@fp4ts/cats';
 import { id } from '@fp4ts/core';
-import { MessageFailure } from '@fp4ts/http-core';
+import {
+  MessageFailure,
+  MethodNotAllowedFailure,
+  NotAcceptFailure,
+  NotFoundFailure,
+  ParsingFailure,
+  UnsupportedMediaTypeFailure,
+} from '@fp4ts/http-core';
 import { Route, RouteResult, RouteResultT, view } from './algebra';
+import { fail } from './constructors';
 
 export const map: <A, B>(
   f: (a: A) => B,
@@ -58,8 +66,17 @@ export const orElse_ = <A>(
 ): RouteResult<A> => {
   const va = view(fa);
   switch (va.tag) {
-    case 'fail':
-      return fb();
+    case 'fail': {
+      const b = fb();
+      const vb = view(b);
+      switch (vb.tag) {
+        case 'route':
+        case 'fatal-fail':
+          return vb;
+        case 'fail':
+          return fail(_pickBetterFailure(va.failure, vb.failure));
+      }
+    }
 
     case 'route':
     case 'fatal-fail':
@@ -111,7 +128,16 @@ export const orElseT_ =
         const va = view(fa);
         switch (va.tag) {
           case 'fail':
-            return fb().value;
+            return F.map_(fb().value, fb => {
+              const vb = view(fb);
+              switch (vb.tag) {
+                case 'route':
+                case 'fatal-fail':
+                  return vb;
+                case 'fail':
+                  return fail(_pickBetterFailure(va.failure, vb.failure));
+              }
+            });
           case 'route':
           case 'fatal-fail':
             return F.pure(va);
@@ -137,3 +163,22 @@ export const flatMapT_ =
         }
       }),
     );
+
+const _pickBetterFailure = (
+  l: MessageFailure,
+  r: MessageFailure,
+): MessageFailure => {
+  const lv = _toPriority(l);
+  const rv = _toPriority(r);
+  return lv < rv ? r : l;
+};
+
+const _toPriority = (f: MessageFailure): number => {
+  if (f instanceof NotFoundFailure) return 0;
+  if (f instanceof MethodNotAllowedFailure) return 1;
+  // if (f instanceof UnauthorizedFailure) return 2;
+  if (f instanceof UnsupportedMediaTypeFailure) return 3;
+  if (f instanceof NotAcceptFailure) return 4;
+  if (f instanceof ParsingFailure) return 5;
+  return 6;
+};

@@ -30,8 +30,8 @@ const verbApi = <M extends Method>(method: M, status: Status) =>
     Route('no-content')[':>'](VerbNoContent(method)),
     Route('accept')[':>'](
       group(
-        Route('json')[':>'](Verb(method, status)(JSON, PersonType)),
-        Route('text')[':>'](Verb(method, status)(PlainText, stringType)),
+        Verb(method, status)(JSON, PersonType),
+        Verb(method, status)(PlainText, stringType),
       ),
     ),
   );
@@ -111,20 +111,35 @@ describe('verbs', () => {
       ).unsafeRunToPromise();
     });
 
-    it('should return 406 when Accept header not supported', async () => {
+    it('should route based on accept header to text', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/accept/json')
+          .get('/accept')
           .accept('text/plain')
-          .then(response => expect(response.statusCode).toBe(406)),
+          .then(response => {
+            expect(response.statusCode).toBe(200);
+            expect(response.text).toBe('A');
+          }),
+      ).unsafeRunToPromise();
+    });
+
+    it('should route based on accept header to json', async () => {
+      await withServerP(server)(server =>
+        test(server)
+          .get('/accept')
+          .accept('application/json')
+          .then(response => {
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual({ name: 'Alice', age: 42 });
+          }),
       ).unsafeRunToPromise();
     });
 
     it('should return 406 when Accept header not supported', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/accept/text')
-          .accept('application/json')
+          .get('/accept')
+          .accept('image/jpeg')
           .then(response => expect(response.statusCode).toBe(406)),
       ).unsafeRunToPromise();
     });
@@ -156,14 +171,14 @@ describe('ReqBody', () => {
     ).unsafeRunToPromise();
   });
 
-  it('should reject invalid content type with status code 400', async () => {
+  it('should reject invalid content type with status code 415', async () => {
     await withServerP(server)(server =>
       test(server)
         .put('/foo')
         .type('text/plain')
         .send('some text')
         .then(response => {
-          expect(response.statusCode).toBe(400);
+          expect(response.statusCode).toBe(415);
         }),
     ).unsafeRunToPromise();
   });

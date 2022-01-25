@@ -17,6 +17,7 @@ import {
   orElse_,
 } from './operators';
 import type { RouteResultK, RouteResultTK } from './route-result';
+import { NotFoundFailure } from '@fp4ts/http-core';
 
 export const routeResultFunctor: Lazy<Functor<RouteResultK>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
@@ -24,7 +25,11 @@ export const routeResultFunctor: Lazy<Functor<RouteResultK>> = lazyVal(() =>
 
 export const routeResultAlternative: Lazy<Alternative<RouteResultK>> = lazyVal(
   () =>
-    Alternative.of({ ...routeResultMonad(), combineK_: orElse_, emptyK: fail }),
+    Alternative.of({
+      ...routeResultMonad(),
+      combineK_: orElse_,
+      emptyK: <A>() => fail<A>(new NotFoundFailure()),
+    }),
 );
 
 export const routeResultMonad: Lazy<Monad<RouteResultK>> = lazyVal(() =>
@@ -74,7 +79,7 @@ export const routeResultTAlternative: <F>(
 ) => Alternative<$<RouteResultTK, [F]>> = F =>
   Alternative.of({
     ...routeResultTMonad(F),
-    emptyK: <A>() => new RouteResultT(F.pure(fail<A>())),
+    emptyK: <A>() => new RouteResultT(F.pure(fail<A>(new NotFoundFailure()))),
     combineK_: orElseT_(F),
   });
 

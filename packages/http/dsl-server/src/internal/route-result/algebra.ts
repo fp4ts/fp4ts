@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { MessageFailure } from '@fp4ts/http-core';
 
 export abstract class RouteResult<A> {
-  public readonly __void!: void;
+  private readonly __void!: void;
 }
 
 export class Route<A> extends RouteResult<A> {
@@ -18,10 +18,12 @@ export class Route<A> extends RouteResult<A> {
   }
 }
 
-export const Fail = new (class Fail extends RouteResult<never> {
+export class Fail extends RouteResult<never> {
   public readonly tag = 'fail';
-})();
-export type Fail = typeof Fail;
+  public constructor(public readonly failure: MessageFailure) {
+    super();
+  }
+}
 
 export class FatalFail extends RouteResult<never> {
   public readonly tag = 'fatal-fail';

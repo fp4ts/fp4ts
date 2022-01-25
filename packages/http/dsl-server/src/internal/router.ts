@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kleisli, Monad } from '@fp4ts/cats';
-import { Method, Request, Response, Status } from '@fp4ts/http-core';
-import { RouteResultT } from './route-result';
+import { $ } from '@fp4ts/core';
+import { NotFoundFailure, Request } from '@fp4ts/http-core';
+import { RouteResultT, RouteResultTK } from './route-result';
 import { RoutingApplication } from './routing-application';
 
 export type Router<env, a> =
@@ -17,7 +18,7 @@ export class StaticRouter<env, a> {
   public readonly tag = 'static';
   public constructor(
     public readonly table: Record<string, Router<env, a>>,
-    public readonly matches: Record<string, (e: env) => a> = {},
+    public readonly matches: ((e: env) => a)[] = [],
   ) {}
 }
 
@@ -39,10 +40,8 @@ export const pathRouter = <env, a>(
   r: Router<env, a>,
 ): Router<env, a> => new StaticRouter({ [p]: r });
 
-export const leafRouter = <env, a>(
-  method: Method,
-  l: (e: env) => a,
-): Router<env, a> => new StaticRouter({}, { [method.methodName]: l });
+export const leafRouter = <env, a>(l: (e: env) => a): Router<env, a> =>
+  new StaticRouter({}, [l]);
 
 export const choice = <env, a>(...xs: Router<env, a>[]): Router<env, a> =>
   xs.reduce(merge);
@@ -52,10 +51,10 @@ const merge = <env, a>(
   rhs: Router<env, a>,
 ): Router<env, a> => {
   if (lhs.tag === 'static' && rhs.tag === 'static') {
-    return new StaticRouter(
-      mergeWith(lhs.table, rhs.table, merge),
-      mergeWith(lhs.matches, rhs.matches, l => l),
-    );
+    return new StaticRouter(mergeWith(lhs.table, rhs.table, merge), [
+      ...lhs.matches,
+      ...rhs.matches,
+    ]);
   } else if (lhs.tag === 'capture' && rhs.tag === 'capture') {
     return new CaptureRouter(merge(lhs.next, rhs.next));
   } else if (rhs.tag === 'choice') {
@@ -88,51 +87,65 @@ export const runRouterEnv =
     router: Router<env, RoutingApplication<F>>,
     env: env,
   ): RoutingApplication<F> => {
-    const loop = <env>(
-      req: Request<F>,
-      router: Router<env, RoutingApplication<F>>,
-      env: env,
-      rem: readonly string[],
-    ): RouteResultT<F, Response<F>> => {
-      switch (router.tag) {
-        case 'static': {
-          if (rem.length === 0) {
-            if (req.method.methodName === 'HEAD' && router.matches['GET']) {
-              return router.matches['GET'](env).run(req);
+    const KA = Kleisli.Alternative<$<RouteResultTK, [F]>, Request<F>>(
+      RouteResultT.Alternative(F),
+    );
+
+    const loop =
+      <env>(
+        req: Request<F>,
+        router: Router<env, RoutingApplication<F>>,
+        rem: readonly string[],
+      ) =>
+      (env: env): RoutingApplication<F> => {
+        switch (router.tag) {
+          case 'static': {
+            if (rem.length === 0) {
+              return runChoices(env, router.matches);
             }
 
-            // pick one of the end routes as we have a match
-            const methodMatch = router.matches[req.method.methodName];
-            if (!methodMatch)
-              if (Object.keys(router).length > 0)
-                return RouteResultT.succeed(F)(
-                  // TODO: FIX
-                  new Response<F>(Status.MethodNotAllowed),
-                );
-              else RouteResultT.fail(F);
-            return methodMatch(env).run(req);
+            if (router.table[rem[0]]) {
+              return loop(req, router.table[rem[0]], rem.slice(1))(env);
+            }
+
+            return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
           }
 
-          if (router.table[rem[0]]) {
-            return loop(req, router.table[rem[0]], env, rem.slice(1));
+          case 'capture': {
+            if (rem.length === 0)
+              // nothing to capture
+              return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
+
+            const [pfx, ...sfx] = rem;
+            return loop(req, router.next, sfx)([pfx, env]);
           }
 
-          return RouteResultT.fail(F);
+          case 'choice':
+            return runChoices(env, [
+              loop(req, router.lhs, rem),
+              loop(req, router.rhs, rem),
+            ]);
         }
+      };
 
-        case 'capture': {
-          if (rem.length === 0)
-            // nothing to capture
-            return RouteResultT.fail(F);
+    const runChoices = <env>(
+      env: env,
+      ls: ((env: env) => RoutingApplication<F>)[],
+    ): RoutingApplication<F> => {
+      switch (ls.length) {
+        case 0:
+          return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
 
-          const [pfx, ...sfx] = rem;
-          return loop(req, router.next, [pfx, env], sfx);
+        case 1:
+          return ls[0](env);
+
+        case 2:
+          return KA.orElse_(ls[0](env), () => ls[1](env));
+
+        default: {
+          const [hd, ...rest] = ls;
+          return KA.orElse_(hd(env), () => runChoices(env, rest));
         }
-
-        case 'choice':
-          return loop(req, router.lhs, env, rem).orElse(F)(() =>
-            loop(req, router.rhs, env, rem),
-          );
       }
     };
 
@@ -144,6 +157,6 @@ export const runRouterEnv =
         pathComponents[pathComponents.length - 1] === ''
           ? pathComponents.slice(0, pathComponents.length - 1)
           : pathComponents;
-      return loop(req, router, env, routablePathComponents);
+      return loop(req, router, routablePathComponents)(env).run(req);
     });
   };

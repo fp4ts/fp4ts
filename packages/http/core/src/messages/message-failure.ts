@@ -8,7 +8,9 @@ import { EntityEncoder } from '../codec';
 import { HttpVersion } from '../http-version';
 import { Response } from './response';
 import { Status } from './status';
+import { Method } from './method';
 import { Accept, ContentType } from '../headers_';
+import { MediaType } from '../media-type';
 
 export abstract class MessageFailure extends Error {
   public abstract readonly cause: Option<Error>;
@@ -40,7 +42,7 @@ export class ParsingFailure extends MessageFailure {
   }
 }
 
-export class AcceptFailure extends MessageFailure {
+export class NotAcceptFailure extends MessageFailure {
   public constructor(
     public readonly supplied: ContentType,
     public readonly expected: Accept,
@@ -58,6 +60,36 @@ export class AcceptFailure extends MessageFailure {
     return new Response<F>(Status.NotAcceptable, httpVersion).withEntity(
       this.message,
       EntityEncoder.text(),
+    );
+  }
+}
+
+export class UnsupportedMediaTypeFailure extends MessageFailure {
+  public constructor(public readonly mt: MediaType) {
+    super(`${mt.mainType}/${mt.subType}`);
+  }
+
+  public readonly cause = None;
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.UnsupportedMediaType, httpVersion).withEntity(
+      `${this.mt.mainType}/${this.mt.subType} Not supported`,
+      EntityEncoder.text<F>(),
+    );
+  }
+}
+
+export class MethodNotAllowedFailure extends MessageFailure {
+  public constructor(public readonly method: Method) {
+    super(`${method.methodName}`);
+  }
+
+  public readonly cause = None;
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.MethodNotAllowed, httpVersion).withEntity(
+      `${this.method.methodName} Not Allowed`,
+      EntityEncoder.text<F>(),
     );
   }
 }

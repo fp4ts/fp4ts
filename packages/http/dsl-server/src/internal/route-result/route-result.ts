@@ -56,7 +56,7 @@ interface RouteResultObj {
 
   succeed<A>(a: A): RouteResult<A>;
   readonly succeedUnit: RouteResult<void>;
-  fail<A = never>(): RouteResult<A>;
+  fail<A = never>(failure: MessageFailure): RouteResult<A>;
   fatalFail<A = never>(failure: MessageFailure): RouteResult<A>;
 
   fromEither<A>(ea: Either<MessageFailure, A>): RouteResult<A>;
@@ -100,7 +100,9 @@ interface RouteResultTObj {
 
   succeed<F>(F: Applicative<F>): <A>(a: A) => RouteResultT<F, A>;
   succeedUnit<F>(F: Applicative<F>): RouteResultT<F, void>;
-  fail<F, A = never>(F: Applicative<F>): RouteResultT<F, A>;
+  fail<F, A = never>(
+    F: Applicative<F>,
+  ): (failure: MessageFailure) => RouteResultT<F, A>;
   fatalFail<F, A = never>(
     F: Applicative<F>,
   ): (failure: MessageFailure) => RouteResultT<F, A>;

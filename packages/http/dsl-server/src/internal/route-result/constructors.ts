@@ -11,7 +11,8 @@ import { Fail, FatalFail, Route, RouteResult, RouteResultT } from './algebra';
 export const succeed = <A>(a: A): RouteResult<A> => new Route(a);
 export const succeedUnit: RouteResult<void> = succeed(undefined as void);
 
-export const fail = <A = never>(): RouteResult<A> => Fail;
+export const fail = <A = never>(mf: MessageFailure): RouteResult<A> =>
+  new Fail(mf);
 
 export const fatalFail = <A = never>(mf: MessageFailure): RouteResult<A> =>
   new FatalFail(mf);
@@ -23,15 +24,16 @@ export const succeedT = <F>(
 export const succeedTUnit = <F>(F: Applicative<F>): RouteResultT<F, void> =>
   succeedT(F)(undefined as void);
 
-export const failT = <F, A = never>(F: Applicative<F>): RouteResultT<F, A> =>
-  lift(F)(fail());
+export const failT = <F, A = never>(
+  F: Applicative<F>,
+): ((mf: MessageFailure) => RouteResultT<F, A>) => flow(fail, lift(F));
 
 export const fatalFailT = <F, A = never>(
   F: Applicative<F>,
 ): ((mf: MessageFailure) => RouteResultT<F, A>) => flow(fatalFail, lift(F));
 
 export const fromEither = <A>(ea: Either<MessageFailure, A>): RouteResult<A> =>
-  ea.fold(() => fail(), succeed);
+  ea.fold(fail, succeed);
 
 export const fromEitherFatal = <A>(
   ea: Either<MessageFailure, A>,
@@ -40,7 +42,7 @@ export const fromEitherFatal = <A>(
 export const fromEitherT =
   <F>(F: Functor<F>) =>
   <A>(ea: EitherT<F, MessageFailure, A>): RouteResultT<F, A> =>
-    new RouteResultT(ea.fold(F)(() => fail(), succeed));
+    new RouteResultT(ea.fold(F)(fail, succeed));
 
 export const fromEitherTFatal =
   <F>(F: Functor<F>) =>

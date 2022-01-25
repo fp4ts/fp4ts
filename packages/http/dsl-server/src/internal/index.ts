@@ -8,7 +8,7 @@ import { id, pipe } from '@fp4ts/core';
 import { Either, EitherT, Kleisli, Left } from '@fp4ts/cats';
 import {
   Accept,
-  AcceptFailure,
+  NotAcceptFailure,
   ContentType,
   EntityEncoder,
   HttpApp,
@@ -19,6 +19,9 @@ import {
   Status,
   Method,
   EntityBody,
+  UnsupportedMediaTypeFailure,
+  Request,
+  MethodNotAllowedFailure,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -237,8 +240,8 @@ export function route<F>(F: Concurrent<F, Error>) {
         ct =>
           ct.mediaType.satisfies(body.ct.self.mediaType)
             ? RouteResultT.succeed(F)(req.bodyText)
-            : RouteResultT.fatalFail(F)(
-                new ParsingFailure('Invalid content type'),
+            : RouteResultT.fail(F)(
+                new UnsupportedMediaTypeFailure(body.ct.self.mediaType),
               ),
       ),
     );
@@ -248,7 +251,7 @@ export function route<F>(F: Concurrent<F, Error>) {
       ctx,
       d.addBodyCheck(EF)(ctCheck, s =>
         Kleisli(() =>
-          RouteResultT.fromEitherFatal(F)(
+          RouteResultT.fromEither(F)(
             pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
               .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
               .flatMap(F)(str => EitherT(F.pure(decode(str)))),
@@ -291,18 +294,19 @@ export function route<F>(F: Concurrent<F, Error>) {
               mr.satisfiedBy(verb.contentType.self.mediaType),
             )
               ? Either.rightUnit
-              : Left(new AcceptFailure(verb.contentType.self, ah)),
+              : Left(new NotAcceptFailure(verb.contentType.self, ah)),
           )
           .fold(() => Either.rightUnit, id),
-        RouteResult.fromEitherFatal,
+        RouteResult.fromEither,
         RouteResultT.lift(F),
       ),
     );
 
-    return leafRouter(verb.method, env =>
-      Kleisli(req => {
-        return d
+    return leafRouter(env =>
+      Kleisli(req =>
+        d
           .addAcceptCheck(EF)(acceptCheck)
+          .addMethodCheck(EF)(methodCheck(verb.method))
           .runDelayed(EF)(env)(req)
           .flatMap(F)(RouteResultT.fromEitherFatal(F))
           .map(F)(e => {
@@ -312,8 +316,8 @@ export function route<F>(F: Concurrent<F, Error>) {
           return req.method === Method.HEAD
             ? res.withEntityBody(EntityBody.empty())
             : res;
-        });
-      }),
+        }),
+      ),
     );
   }
 
@@ -323,17 +327,34 @@ export function route<F>(F: Concurrent<F, Error>) {
     d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
     codings: DeriveCoding<F, VerbNoContentElement<any>>,
   ): Router<env, RoutingApplication<F>> {
-    return leafRouter(verb.method, env =>
-      Kleisli(req => {
-        return d
+    return leafRouter(env =>
+      Kleisli(req =>
+        d
+          .addMethodCheck(EF)(methodCheck(verb.method))
           .runDelayed(EF)(env)(req)
-          .flatMap(F)(RouteResultT.fromEitherFatal(F))
+          .flatMap(F)(RouteResultT.fromEither(F))
           .map(F)(() =>
           new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
-        );
-      }),
+        ),
+      ),
     );
   }
+
+  const requestMethod = (m: Method, req: Request<F>): boolean =>
+    m.methodName === req.method.methodName;
+
+  const allowedMethodMead = (m: Method, req: Request<F>): boolean =>
+    m.methodName === 'GET' && req.method.methodName === 'HEAD';
+
+  const methodAllowed = (m: Method, req: Request<F>): boolean =>
+    allowedMethodMead(m, req) || requestMethod(m, req);
+
+  const methodCheck = (m: Method): DelayedCheck<F, void> =>
+    DelayedCheck.withRequest(F)(req =>
+      methodAllowed(m, req)
+        ? RouteResultT.succeedUnit(F)
+        : RouteResultT.fail(F)(new MethodNotAllowedFailure(m)),
+    );
 
   return route;
 }

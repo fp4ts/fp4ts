@@ -18,6 +18,8 @@ export class Status {
   public static readonly MethodNotAllowed = new Status(405, 'Method Not Allowed');
   // prettier-ignore
   public static readonly NotAcceptable = new Status(406, 'Not Acceptable');
+  // prettier-ignore
+  public static readonly UnsupportedMediaType = new Status(415, 'Unsupported Media Type');
 
   // prettier-ignore
   public static readonly InternalServerError = new Status(404, 'Internal Server Error');
