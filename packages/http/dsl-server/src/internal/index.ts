@@ -482,10 +482,10 @@ export function route<F>(F: Concurrent<F, Error>) {
   }
 
   const requestMethod = (m: Method, req: Request<F>): boolean =>
-    m.methodName === req.method.methodName;
+    m === req.method;
 
   const allowedMethodMead = (m: Method, req: Request<F>): boolean =>
-    m.methodName === 'GET' && req.method.methodName === 'HEAD';
+    m === Method.GET && req.method === Method.HEAD;
 
   const methodAllowed = (m: Method, req: Request<F>): boolean =>
     allowedMethodMead(m, req) || requestMethod(m, req);

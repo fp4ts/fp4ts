@@ -14,7 +14,7 @@ import { Message } from './message';
 import { Response } from './response';
 import { Method } from './method';
 import { Uri } from './uri';
-import { Attributes } from '.';
+import { Attributes } from './attributes';
 
 export class Request<F> extends Message<F, Request<F>> {
   public constructor(

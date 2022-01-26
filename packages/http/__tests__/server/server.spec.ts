@@ -62,28 +62,61 @@ describe('verbs', () => {
       [S.return(alice), S.return('A')],
     ]);
 
-  describe('GET 200', () => {
-    const server = makeServer(Method.GET, Status.Ok);
-    it('should return a person', async () => {
-      await withServerP(server)(server =>
-        test(server)
-          .get('/')
-          .accept('application/json')
-          .then(response => {
-            expect(response.statusCode).toBe(200);
-            expect(response.body).toEqual({ name: 'Alice', age: 42 });
-          }),
-      ).unsafeRunToPromise();
-    });
+  const wrongMethod = (m: StringMethod): StringMethod =>
+    m === 'patch' ? 'post' : 'patch';
+  type StringMethod = 'get' | 'put' | 'post' | 'patch' | 'delete' | 'head';
+
+  function runTests(server: HttpApp<IoK>, method: Method, status: Status) {
+    const m = method.methodName.toLowerCase() as StringMethod;
+
+    if (method !== Method.HEAD) {
+      it('should return a person', async () => {
+        await withServerP(server)(server =>
+          test(server)
+            [m]('/')
+            .accept('application/json')
+            .then(response => {
+              expect(response.statusCode).toBe(status.code);
+              expect(response.body).toEqual({ name: 'Alice', age: 42 });
+            }),
+        ).unsafeRunToPromise();
+      });
+    }
 
     it('should return no content', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/no-content')
+          [m]('/no-content')
           .then(response => {
             expect(response.statusCode).toBe(204);
-            expect(response.text).toEqual('');
+            expect(response.text === '' || response.text === undefined).toBe(
+              true,
+            );
             expect(response.body).toEqual({});
+          }),
+      ).unsafeRunToPromise();
+    });
+
+    if (method === Method.HEAD) {
+      it('should return no body on HEAD', async () => {
+        await withServerP(server)(server =>
+          test(server)
+            [m]('/')
+            .accept('application/json')
+            .then(response => {
+              expect(response.statusCode).toBe(status.code);
+              expect(response.body).toEqual({});
+            }),
+        ).unsafeRunToPromise();
+      });
+    }
+
+    it('should return Method Not Allowed', async () => {
+      await withServerP(server)(server =>
+        test(server)
+          [wrongMethod(m)]('/')
+          .then(response => {
+            expect(response.statusCode).toBe(405);
           }),
       ).unsafeRunToPromise();
     });
@@ -91,67 +124,56 @@ describe('verbs', () => {
     it('should return headers', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/header')
+          [m]('/header')
           .then(response => {
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(status.code);
             expect(response.headers.h).toBe('42');
             expect(response.headers.f).toBe('false');
-          }),
-      ).unsafeRunToPromise();
-    });
-
-    it('should return no body on HEAD', async () => {
-      await withServerP(server)(server =>
-        test(server)
-          .head('/')
-          .accept('application/json')
-          .then(response => {
-            expect(response.statusCode).toBe(200);
-            expect(response.body).toEqual({});
-          }),
-      ).unsafeRunToPromise();
-    });
-
-    it('should return Method Not Allowed', async () => {
-      await withServerP(server)(server =>
-        test(server)
-          .post('/')
-          .then(response => {
-            expect(response.statusCode).toBe(405);
-          }),
+          })
+          .then(() =>
+            test(server)
+              [m]('/header')
+              .then(response => {
+                expect(response.statusCode).toBe(status.code);
+                expect(response.headers.h).toBe('42');
+                expect(response.headers.f).toBe('false');
+              }),
+          ),
       ).unsafeRunToPromise();
     });
 
     it(`should handle trailing '/' gracefully`, async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/no-content/')
+          [m]('/no-content/')
           .then(response => {
             expect(response.statusCode).toBe(204);
           }),
       ).unsafeRunToPromise();
     });
 
-    it('should route based on accept header to text', async () => {
-      await withServerP(server)(server =>
-        test(server)
-          .get('/accept')
-          .accept('text/plain')
-          .then(response => {
-            expect(response.statusCode).toBe(200);
-            expect(response.text).toBe('A');
-          }),
-      ).unsafeRunToPromise();
-    });
+    if (method !== Method.HEAD) {
+      it('should route based on accept header to text', async () => {
+        await withServerP(server)(server =>
+          test(server)
+            [m]('/accept')
+            .accept('text/plain')
+            .then(response => {
+              expect(response.statusCode).toBe(status.code);
+              expect(response.text).toBe('A');
+            }),
+        ).unsafeRunToPromise();
+      });
+    }
 
     it('should route based on accept header to json', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/accept')
+          [m]('/accept')
           .accept('application/json')
           .then(response => {
-            expect(response.statusCode).toBe(200);
-            expect(response.body).toEqual({ name: 'Alice', age: 42 });
+            expect(response.statusCode).toBe(status.code);
+            expect(response.headers['content-type']).toBe('application/json');
           }),
       ).unsafeRunToPromise();
     });
@@ -159,12 +181,26 @@ describe('verbs', () => {
     it('should return 406 when Accept header not supported', async () => {
       await withServerP(server)(server =>
         test(server)
-          .get('/accept')
+          [m]('/accept')
           .accept('image/jpeg')
           .then(response => expect(response.statusCode).toBe(406)),
       ).unsafeRunToPromise();
     });
-  });
+  }
+
+  const getOk = makeServer(Method.GET, Status.Ok);
+  const postCreated = makeServer(Method.POST, Status.Created);
+  const putAccepted = makeServer(Method.PUT, Status.Accepted);
+  const deleteOk = makeServer(Method.DELETE, Status.Ok);
+  const patchAccepted = makeServer(Method.PATCH, Status.Accepted);
+  describe('GET 200', () => runTests(getOk, Method.GET, Status.Ok));
+  describe('POST 201', () =>
+    runTests(postCreated, Method.POST, Status.Created));
+  describe('PUT 202', () => runTests(putAccepted, Method.PUT, Status.Accepted));
+  describe('DELETE 200', () => runTests(deleteOk, Method.DELETE, Status.Ok));
+  describe('PATCH 202', () =>
+    runTests(patchAccepted, Method.PATCH, Status.Accepted));
+  describe('GET 200 with HEAD', () => runTests(getOk, Method.HEAD, Status.Ok));
 });
 
 const headerApi = group(

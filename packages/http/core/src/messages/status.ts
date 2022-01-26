@@ -22,7 +22,7 @@ export class Status {
   public static readonly UnsupportedMediaType = new Status(415, 'Unsupported Media Type');
 
   // prettier-ignore
-  public static readonly InternalServerError = new Status(404, 'Internal Server Error');
+  public static readonly InternalServerError = new Status(500, 'Internal Server Error');
 
   private readonly __void!: void;
   private constructor(
