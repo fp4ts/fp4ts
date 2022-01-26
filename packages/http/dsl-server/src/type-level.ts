@@ -146,7 +146,7 @@ export interface SubDerivates<F, x, api, m> {
       ? (h: Option<A>) => ServerT<F, api, m>
       : never
     : never;
-  [CaptureAllElementTag]: x extends CaptureAllElement<Type<any, infer A>>
+  [CaptureAllElementTag]: x extends CaptureAllElement<any, Type<any, infer A>>
     ? (xs: List<A>) => ServerT<F, api, m>
     : never;
 }
@@ -162,7 +162,10 @@ export interface CodingDerivates<F, x, z> {
       ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
       : never
     : never;
-  [CaptureAllElementTag]: x extends CaptureAllElement<Type<infer R, infer A>>
+  [CaptureAllElementTag]: x extends CaptureAllElement<
+    any,
+    Type<infer R, infer A>
+  >
     ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
     : never;
   [StaticTag]: z;

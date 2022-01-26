@@ -325,7 +325,9 @@ describe('ReqBody', () => {
   });
 });
 
-const captureAllApi = CaptureAll(numberType)[':>'](Get(JSON, AnimalType));
+const captureAllApi = CaptureAll('legs', numberType)[':>'](
+  Get(JSON, AnimalType),
+);
 
 describe('Capture All', () => {
   const server = toHttpAppIO(captureAllApi, {

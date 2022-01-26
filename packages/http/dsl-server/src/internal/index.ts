@@ -24,7 +24,6 @@ import {
   SelectHeader,
   RawHeader,
   Headers,
-  Path,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -336,11 +335,11 @@ export function route<F>(F: Concurrent<F, Error>) {
     R extends string,
     A,
   >(
-    a: CaptureAllElement<Type<R, A>>,
+    a: CaptureAllElement<any, Type<R, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<CaptureAllElement<Type<R, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<CaptureAllElement<Type<R, A>>, api>>,
+    d: Delayed<F, env, Server<F, Sub<CaptureAllElement<any, Type<R, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<CaptureAllElement<any, Type<R, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
     const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
     return new CatchAllRouter(
