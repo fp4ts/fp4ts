@@ -4,13 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'supertest';
-import { pipe } from '@fp4ts/core';
+import { id, pipe } from '@fp4ts/core';
 import { IO, IoK } from '@fp4ts/effect-core';
 import {
   Accept,
   EntityEncoder,
   HttpApp,
   Method,
+  NotFoundFailure,
   Status,
 } from '@fp4ts/http-core';
 import {
@@ -30,11 +31,13 @@ import {
   Headers,
   booleanType,
   Raw,
+  CaptureAll,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
-import { Kleisli } from '@fp4ts/cats';
+import { Kleisli, Monoid } from '@fp4ts/cats';
+import { AnimalCodable, AnimalType, AnimalTypeTag } from './animal';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
@@ -314,6 +317,85 @@ describe('ReqBody', () => {
         .then(response => {
           expect(response.statusCode).toBe(415);
         }),
+    ).unsafeRunToPromise();
+  });
+});
+
+const captureAllApi = CaptureAll(numberType)[':>'](Get(JSON, AnimalType));
+
+describe('Capture All', () => {
+  const jerry = { spieces: 'mouse', legs: 4 };
+  const tweety = { spieces: 'bird', legs: 2 };
+  const beholder = { spieces: 'beholder', legs: 0 };
+
+  const server = toHttpAppIO(captureAllApi, {
+    [JSON.mime]: { [AnimalTypeTag]: AnimalCodable },
+  })(S => xs => {
+    switch (xs.foldMap(Monoid.addition)(id)) {
+      case 4:
+        return S.return(jerry);
+      case 2:
+        return S.return(tweety);
+      case 0:
+        return S.return(beholder);
+      default:
+        return S.throwError(new NotFoundFailure());
+    }
+  });
+
+  it('should capture a single path component', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/2')
+        .then(response => expect(response.body).toEqual(tweety)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should capture two path components', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/2/2')
+        .then(response => expect(response.body).toEqual(jerry)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should many path components', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/1/1/0/1/0/1/')
+        .then(response => expect(response.body).toEqual(jerry)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should capture no elements from the path', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/')
+        .then(response => expect(response.body).toEqual(beholder)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should respond with 400 Bad Request when parsing fails', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/not-a-number')
+        .then(response => expect(response.statusCode).toBe(400)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should respond with 400 Bad Request when parsing fails for any of the elements', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/1/2/3/not-a-number')
+        .then(response => expect(response.statusCode).toBe(400)),
+    ).unsafeRunToPromise();
+  });
+
+  it('should respond with 400 Bad Request when parsing fails for any of the elements more than once', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/1/2/3/not-a-number/4/5/another-string')
+        .then(response => expect(response.statusCode).toBe(400)),
     ).unsafeRunToPromise();
   });
 });

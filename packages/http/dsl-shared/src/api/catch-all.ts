@@ -1,10 +1,20 @@
+import { BaseElement } from '.';
+import { Type } from '../type';
 import { ApiElement, ElementTag } from './api-element';
 
-export const CatchAllElementTag = '@fp4ts/http/dsl-shared/catch-all';
-export type CatchAllElementTag = typeof CatchAllElementTag;
+export const CaptureAllElementTag = '@fp4ts/http/dsl-shared/capture-all';
+export type CaptureAllElementTag = typeof CaptureAllElementTag;
 
-export class CatchAllElement implements ApiElement<CatchAllElementTag> {
-  [ElementTag]: CatchAllElementTag;
+export class CaptureAllElement<
+  T extends Type<any, any>,
+> extends BaseElement<CaptureAllElementTag> {
+  [ElementTag]: CaptureAllElementTag;
+
+  public constructor(public readonly type: T) {
+    super();
+  }
 }
 
-export const CatchAll = new CatchAllElement();
+export const CaptureAll = <T extends Type<any, any>>(
+  type: T,
+): CaptureAllElement<T> => new CaptureAllElement(type);

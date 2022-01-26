@@ -3,17 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EitherT, Identity, IdentityK, Try } from '@fp4ts/cats';
-import {
-  Schema,
-  TypeOf,
-  DecoderT,
-  Encoder,
-  DecodeFailure,
-} from '@fp4ts/schema';
+import { Schema, TypeOf } from '@fp4ts/schema';
 import { typeDef } from '@fp4ts/http-dsl-shared';
 import { Codable } from '@fp4ts/http-dsl-server';
-import { ParsingFailure } from '@fp4ts/http-core';
 
 export const Person = Schema.struct({
   name: Schema.string,

@@ -16,7 +16,7 @@ export {
   Header,
   Headers,
   Route,
-  CatchAll,
+  CaptureAll as CatchAll,
 
   Get,
   Post,

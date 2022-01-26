@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Option } from '@fp4ts/cats';
+import { List, Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
-import { HttpApp, Path, SelectHeader } from '@fp4ts/http-core';
+import { HttpApp, SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -34,7 +34,8 @@ import {
   ToHttpApiDataTag,
   ToHttpApiData,
   RawElementTag,
-  CatchAllElementTag,
+  CaptureAllElementTag,
+  CaptureAllElement,
 } from '@fp4ts/http-dsl-shared';
 import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
@@ -145,7 +146,9 @@ export interface SubDerivates<F, x, api, m> {
       ? (h: Option<A>) => ServerT<F, api, m>
       : never
     : never;
-  [CatchAllElementTag]: (path: Path) => ServerT<F, api, m>;
+  [CaptureAllElementTag]: x extends CaptureAllElement<Type<any, infer A>>
+    ? (xs: List<A>) => ServerT<F, api, m>
+    : never;
 }
 
 export interface CodingDerivates<F, x, z> {
@@ -158,6 +161,9 @@ export interface CodingDerivates<F, x, z> {
     ? T extends Type<infer R, infer A>
       ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
       : never
+    : never;
+  [CaptureAllElementTag]: x extends CaptureAllElement<Type<infer R, infer A>>
+    ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
     : never;
   [StaticTag]: z;
   [VerbTag]: x extends VerbElement<any, infer CT, infer T>

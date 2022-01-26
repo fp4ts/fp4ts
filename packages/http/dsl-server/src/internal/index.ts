@@ -24,6 +24,7 @@ import {
   SelectHeader,
   RawHeader,
   Headers,
+  Path,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -43,7 +44,7 @@ import {
   HeadersElement,
   HeadersVerbElement,
   RawElement,
-  CatchAllElement,
+  CaptureAllElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IoK } from '@fp4ts/effect';
 
@@ -52,6 +53,7 @@ import { Delayed } from './delayed';
 import { DelayedCheck } from './delayed-check';
 import {
   CaptureRouter,
+  CatchAllRouter,
   choice,
   leafRouter,
   pathRouter,
@@ -138,9 +140,9 @@ export function route<F>(F: Concurrent<F, Error>) {
       if (lhs instanceof ReqBodyElement) {
         return routeReqBody(lhs, rhs, ctx, server as any, codings);
       }
-      // if (api instanceof CatchAllElement) {
-      //   return routeRaw(api, ctx, server as any, codings);
-      // }
+      if (lhs instanceof CaptureAllElement) {
+        return routeCatchAll(lhs, rhs, ctx, server as any, codings as any);
+      }
       throw new Error('Invalid sub');
     }
 
@@ -324,6 +326,40 @@ export function route<F>(F: Concurrent<F, Error>) {
         ),
       ),
       codings,
+    );
+  }
+
+  function routeCatchAll<
+    api,
+    context extends unknown[],
+    env,
+    R extends string,
+    A,
+  >(
+    a: CaptureAllElement<Type<R, A>>,
+    api: api,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, Sub<CaptureAllElement<Type<R, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<CaptureAllElement<Type<R, A>>, api>>,
+  ): Router<env, RoutingApplication<F>> {
+    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
+    return new CatchAllRouter(
+      route(
+        api,
+        ctx,
+        d.addCapture(EF)(txts =>
+          DelayedCheck.withRequest(F)(() =>
+            pipe(
+              List.fromArray(txts).traverse(
+                Either.Applicative<MessageFailure>(),
+              )(fromPathComponent),
+              RouteResult.fromEither,
+              RouteResultT.lift(F),
+            ),
+          ),
+        ),
+        codings,
+      ),
     );
   }
 

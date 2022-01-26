@@ -5,7 +5,7 @@
 
 import { Kleisli, Monad } from '@fp4ts/cats';
 import { $ } from '@fp4ts/core';
-import { NotFoundFailure, Path, Request } from '@fp4ts/http-core';
+import { NotFoundFailure, Request } from '@fp4ts/http-core';
 import { RouteResultT, RouteResultTK } from './route-result';
 import { RoutingApplication } from './routing-application';
 
@@ -31,7 +31,7 @@ export class CaptureRouter<env, a> {
 
 export class CatchAllRouter<env, a> {
   public readonly tag = 'catch-all';
-  public constructor(public readonly next: Router<[Path, env], a>) {}
+  public constructor(public readonly next: Router<[string[], env], a>) {}
 }
 
 export class RawRouter<env, a> {
@@ -107,7 +107,7 @@ export const runRouterEnv =
       <env>(
         req: Request<F>,
         router: Router<env, RoutingApplication<F>>,
-        rem: readonly string[],
+        rem: string[],
       ) =>
       (env: env): RoutingApplication<F> => {
         switch (router.tag) {
@@ -133,8 +133,7 @@ export const runRouterEnv =
           }
 
           case 'catch-all': {
-            const path = new Path(rem);
-            return loop(req, router.next, [])([path, env]);
+            return loop(req, router.next, [])([rem, env]);
           }
 
           case 'raw':
