@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
-import { SelectHeader } from '@fp4ts/http-core';
+import { HttpApp, Path, SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -33,6 +33,8 @@ import {
   HeadersElement,
   ToHttpApiDataTag,
   ToHttpApiData,
+  RawElementTag,
+  CatchAllElementTag,
 } from '@fp4ts/http-dsl-shared';
 import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
@@ -103,6 +105,7 @@ export interface TermDerivates<F, api, m> {
     ? Kind<m, [F, AddHeaders<hs, A>]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
+  [RawElementTag]: HttpApp<F>,
 }
 
 // prettier-ignore
@@ -142,6 +145,7 @@ export interface SubDerivates<F, x, api, m> {
       ? (h: Option<A>) => ServerT<F, api, m>
       : never
     : never;
+  [CatchAllElementTag]: (path: Path) => ServerT<F, api, m>;
 }
 
 export interface CodingDerivates<F, x, z> {

@@ -27,6 +27,7 @@ import {
   fromEitherT,
   fromEitherTFatal,
   lift,
+  liftF,
   succeed,
   succeedT,
   succeedTUnit,
@@ -114,6 +115,7 @@ interface RouteResultTObj {
     F: Functor<F>,
   ): <A>(ea: EitherT<F, MessageFailure, A>) => RouteResultT<F, A>;
   lift<F>(F: Applicative<F>): <A>(ra: RouteResult<A>) => RouteResultT<F, A>;
+  liftF<F>(F: Functor<F>): <A>(ra: Kind<F, [A]>) => RouteResultT<F, A>;
 
   // -- Instances
 
@@ -126,6 +128,7 @@ RouteResultT.succeedUnit = succeedTUnit;
 RouteResultT.fail = failT;
 RouteResultT.fatalFail = fatalFailT;
 RouteResultT.lift = lift;
+RouteResultT.liftF = liftF;
 RouteResultT.fromEither = fromEitherT;
 RouteResultT.fromEitherFatal = fromEitherTFatal;
 

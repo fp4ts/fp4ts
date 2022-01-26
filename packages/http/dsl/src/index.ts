@@ -16,6 +16,7 @@ export {
   Header,
   Headers,
   Route,
+  CatchAll,
 
   Get,
   Post,
@@ -30,6 +31,8 @@ export {
   PutNoContent,
   PatchNoContent,
   DeleteNoContent,
+
+  Raw,
 
   JSON,
   PlainText,

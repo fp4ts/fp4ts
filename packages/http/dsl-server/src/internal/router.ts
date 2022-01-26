@@ -5,14 +5,16 @@
 
 import { Kleisli, Monad } from '@fp4ts/cats';
 import { $ } from '@fp4ts/core';
-import { NotFoundFailure, Request } from '@fp4ts/http-core';
+import { NotFoundFailure, Path, Request } from '@fp4ts/http-core';
 import { RouteResultT, RouteResultTK } from './route-result';
 import { RoutingApplication } from './routing-application';
 
 export type Router<env, a> =
   | StaticRouter<env, a>
+  | RawRouter<env, a>
   | CaptureRouter<env, a>
-  | Choice<env, a>;
+  | Choice<env, a>
+  | CatchAllRouter<env, a>;
 
 export class StaticRouter<env, a> {
   public readonly tag = 'static';
@@ -25,6 +27,16 @@ export class StaticRouter<env, a> {
 export class CaptureRouter<env, a> {
   public readonly tag = 'capture';
   public constructor(public readonly next: Router<[string, env], a>) {}
+}
+
+export class CatchAllRouter<env, a> {
+  public readonly tag = 'catch-all';
+  public constructor(public readonly next: Router<[Path, env], a>) {}
+}
+
+export class RawRouter<env, a> {
+  public readonly tag = 'raw';
+  public constructor(public readonly app: (env: env) => a) {}
 }
 
 export class Choice<env, a> {
@@ -119,6 +131,14 @@ export const runRouterEnv =
             const [pfx, ...sfx] = rem;
             return loop(req, router.next, sfx)([pfx, env]);
           }
+
+          case 'catch-all': {
+            const path = new Path(rem);
+            return loop(req, router.next, [])([path, env]);
+          }
+
+          case 'raw':
+            return router.app(env);
 
           case 'choice':
             return runChoices(env, [

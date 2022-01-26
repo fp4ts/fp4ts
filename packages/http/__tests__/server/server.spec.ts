@@ -5,8 +5,14 @@
 
 import test from 'supertest';
 import { pipe } from '@fp4ts/core';
-import { IoK } from '@fp4ts/effect-core';
-import { Accept, HttpApp, Method, Status } from '@fp4ts/http-core';
+import { IO, IoK } from '@fp4ts/effect-core';
+import {
+  Accept,
+  EntityEncoder,
+  HttpApp,
+  Method,
+  Status,
+} from '@fp4ts/http-core';
 import {
   group,
   JSON,
@@ -23,10 +29,12 @@ import {
   Get,
   Headers,
   booleanType,
+  Raw,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
+import { Kleisli } from '@fp4ts/cats';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
@@ -305,6 +313,54 @@ describe('ReqBody', () => {
         .send('some text')
         .then(response => {
           expect(response.statusCode).toBe(415);
+        }),
+    ).unsafeRunToPromise();
+  });
+});
+
+const rawApi = group(Route('foo')[':>'](Raw), Route('bar')[':>'](Raw));
+
+describe('Raw', () => {
+  const server = toHttpAppIO(
+    rawApi,
+    {},
+  )(() => [
+    Kleisli(req =>
+      IO.pure(Status.Ok(req.method.methodName)(EntityEncoder.text())),
+    ),
+    Kleisli(req =>
+      IO.pure(
+        Status.Ok(req.uri.path.components.join('/'))(EntityEncoder.text()),
+      ),
+    ),
+  ]);
+
+  it('should pass request with any method to the router', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/foo')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('GET');
+        })
+        .then(() =>
+          test(server)
+            .post('/foo')
+            .then(response => {
+              expect(response.statusCode).toBe(200);
+              expect(response.text).toBe('POST');
+            }),
+        ),
+    ).unsafeRunToPromise();
+  });
+
+  it('should capture the entire reminder of the route', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/bar/baz/foo')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('/bar/baz/foo');
         }),
     ).unsafeRunToPromise();
   });

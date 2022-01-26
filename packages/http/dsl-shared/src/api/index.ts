@@ -17,3 +17,5 @@ export * from './content-types';
 export * from './req-body';
 export * from './header-element';
 export * from './headers';
+export * from './raw-element';
+export * from './catch-all';

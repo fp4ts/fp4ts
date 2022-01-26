@@ -42,6 +42,8 @@ import {
   RawHeaderElement,
   HeadersElement,
   HeadersVerbElement,
+  RawElement,
+  CatchAllElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IoK } from '@fp4ts/effect';
 
@@ -53,6 +55,7 @@ import {
   choice,
   leafRouter,
   pathRouter,
+  RawRouter,
   Router,
   runRouterEnv,
 } from './router';
@@ -135,6 +138,9 @@ export function route<F>(F: Concurrent<F, Error>) {
       if (lhs instanceof ReqBodyElement) {
         return routeReqBody(lhs, rhs, ctx, server as any, codings);
       }
+      // if (api instanceof CatchAllElement) {
+      //   return routeRaw(api, ctx, server as any, codings);
+      // }
       throw new Error('Invalid sub');
     }
 
@@ -148,6 +154,10 @@ export function route<F>(F: Concurrent<F, Error>) {
 
     if (api instanceof VerbNoContentElement) {
       return routeVerbNoContent(api, ctx, server as any, codings);
+    }
+
+    if (api instanceof RawElement) {
+      return routeRaw(api, ctx, server as any);
     }
 
     throw new Error('Invalid API');
@@ -390,6 +400,20 @@ export function route<F>(F: Concurrent<F, Error>) {
           .flatMap(F)(RouteResultT.fromEither(F))
           .map(F)(() =>
           new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
+        ),
+      ),
+    );
+  }
+
+  function routeRaw<context extends unknown[], env>(
+    api: RawElement,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, RawElement>>,
+  ): Router<env, RoutingApplication<F>> {
+    return new RawRouter(env =>
+      Kleisli(req =>
+        d.runDelayed(EF)(env, req).flatMap(F)(raw =>
+          RouteResultT.liftF(F)(raw.run(req)),
         ),
       ),
     );
