@@ -32,12 +32,13 @@ import {
   booleanType,
   Raw,
   CaptureAll,
+  DeleteNoContent,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
 import { Kleisli, Monoid } from '@fp4ts/cats';
-import { AnimalCodable, AnimalType, AnimalTypeTag } from './animal';
+import { Animal, AnimalCodable, AnimalType, AnimalTypeTag } from './animal';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
@@ -61,6 +62,9 @@ const alice: Person = {
   name: 'Alice',
   age: 42,
 };
+const jerry: Animal = { spieces: 'mouse', legs: 4 };
+const tweety: Animal = { spieces: 'bird', legs: 2 };
+const beholder: Animal = { spieces: 'beholder', legs: 0 };
 
 describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IoK> =>
@@ -324,10 +328,6 @@ describe('ReqBody', () => {
 const captureAllApi = CaptureAll(numberType)[':>'](Get(JSON, AnimalType));
 
 describe('Capture All', () => {
-  const jerry = { spieces: 'mouse', legs: 4 };
-  const tweety = { spieces: 'bird', legs: 2 };
-  const beholder = { spieces: 'beholder', legs: 0 };
-
   const server = toHttpAppIO(captureAllApi, {
     [JSON.mime]: { [AnimalTypeTag]: AnimalCodable },
   })(S => xs => {
@@ -444,6 +444,70 @@ describe('Raw', () => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('/bar/baz/foo');
         }),
+    ).unsafeRunToPromise();
+  });
+});
+
+const alternativeApi = group(
+  Route('foo')[':>'](Get(JSON, PersonType)),
+  Route('bar')[':>'](Get(JSON, AnimalType)),
+  Route('foo')[':>'](Get(PlainText, stringType)),
+  Route('bar')[':>'](Post(JSON, AnimalType)),
+  Route('bar')[':>'](Put(JSON, AnimalType)),
+  Route('bar')[':>'](DeleteNoContent),
+);
+
+describe('Alternative', () => {
+  const server = toHttpAppIO(alternativeApi, {
+    [JSON.mime]: {
+      [PersonTypeTag]: PersonCodable,
+      [AnimalTypeTag]: AnimalCodable,
+    },
+  })(S => [
+    S.return(alice),
+    S.return(jerry),
+    S.return('a string'),
+    S.return(jerry),
+    S.return(tweety),
+    S.NoContent,
+  ]);
+
+  it('should union the endpoints', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/foo')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.body).toEqual(alice);
+        })
+        .then(() =>
+          test(server)
+            .get('/bar')
+            .then(response => {
+              expect(response.statusCode).toBe(200);
+              expect(response.body).toEqual(jerry);
+            }),
+        ),
+    ).unsafeRunToPromise();
+  });
+
+  it('should route based on the accept header', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/foo')
+        .accept('text/plain')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('a string');
+        }),
+    ).unsafeRunToPromise();
+  });
+
+  it('should return 404 when the path does not exist', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/non-existent-path')
+        .then(response => expect(response.statusCode).toBe(404)),
     ).unsafeRunToPromise();
   });
 });

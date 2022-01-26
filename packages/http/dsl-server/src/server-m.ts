@@ -49,6 +49,7 @@ export class ServerM<F> {
   public readonly unit: EitherT<F, MessageFailure, void> = EitherT.rightUnit(
     this.F,
   );
+  public readonly NoContent: EitherT<F, MessageFailure, void> = this.unit;
 
   public readonly throwError = <A = never>(
     failure: MessageFailure,
