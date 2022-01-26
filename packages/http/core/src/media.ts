@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { MonadError, Option } from '@fp4ts/cats';
 import { Stream, text } from '@fp4ts/stream';
 
-import { Headers, ContentLength } from './headers_';
+import { Headers, ContentLength, ContentType } from './headers_';
 import { Entity } from './entity';
 import { EntityBody } from './entity-body';
 import { EntityDecoder, DecodeResult } from './codec';
@@ -15,12 +15,17 @@ import { EntityDecoder, DecodeResult } from './codec';
 export abstract class Media<F> {
   public abstract readonly headers: Headers;
   public abstract readonly entity: Entity<F>;
+
   public get body(): EntityBody<F> {
     return this.entity.body;
   }
 
   public get bodyText(): Stream<F, string> {
     return this.body.through(text.utf8.decode());
+  }
+
+  public get contentType(): Option<ContentType> {
+    return this.headers.get(ContentType.Select);
   }
 
   public get contentLength(): Option<number> {

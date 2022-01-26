@@ -9,7 +9,6 @@ import { Either, EitherT, Kleisli, List } from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
-  ContentType,
   EntityEncoder,
   HttpApp,
   HttpRoutes,
@@ -299,7 +298,7 @@ export function route<F>(F: Concurrent<F, Error>) {
   ): Router<env, RoutingApplication<F>> {
     const { decode } = codings[body.ct.mime][body.body.ref];
     const ctCheck = DelayedCheck.withRequest(F)(req =>
-      req.headers.get(ContentType.Select).fold(
+      req.contentType.fold(
         () => RouteResultT.succeed(F)(req.bodyText),
         ct =>
           ct.mediaType.satisfies(body.ct.self.mediaType)
@@ -315,7 +314,8 @@ export function route<F>(F: Concurrent<F, Error>) {
       ctx,
       d.addBodyCheck(EF)(ctCheck, s =>
         Kleisli(() =>
-          RouteResultT.fromEither(F)(
+          RouteResultT.fromEitherFatal(F)(
+            // Fatal fail ^ as we cannot consume body more than once
             pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
               .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
               .flatMap(F)(str => EitherT(F.pure(decode(str)))),
@@ -385,6 +385,25 @@ export function route<F>(F: Concurrent<F, Error>) {
     );
   }
 
+  function routeVerbNoContent<context extends unknown[], env>(
+    verb: VerbNoContentElement<any>,
+    ctx: Context<context>,
+    d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
+    codings: DeriveCoding<F, VerbNoContentElement<any>>,
+  ): Router<env, RoutingApplication<F>> {
+    return leafRouter(env =>
+      Kleisli(req =>
+        d
+          .addMethodCheck(EF)(methodCheck(verb.method))
+          .runDelayed(EF)(env, req)
+          .flatMap(F)(RouteResultT.fromEither(F))
+          .map(F)(() =>
+          new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
+        ),
+      ),
+    );
+  }
+
   function routeMethod<
     context extends unknown[],
     env,
@@ -417,32 +436,29 @@ export function route<F>(F: Concurrent<F, Error>) {
       ),
     );
 
-    const getHeadersEncoder =
-      (hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[]) =>
-      (a: AddHeader<any, any> | any) => {
-        const loop = (
-          a: AddHeader<any, any> | any,
-          hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
-          acc: List<RawHeader>,
-        ): [Headers, any] => {
-          if (hs.length === 0) return tupled(new Headers(acc), a);
-          if (hs[0] instanceof HeaderElement) {
-            const raw = hs[0].header.toRaw(a.header);
-            return loop(a.body, hs.slice(1), raw['+++'](acc));
-          }
-          if (hs[0] instanceof RawHeaderElement) {
-            const { toHeader } = (codings as any)[ToHttpApiDataTag][
-              hs[0].type.ref
-            ];
-            const raw = new RawHeader(hs[0].key, toHeader(a.header));
-            return loop(a.body, hs.slice(1), acc.prepend(raw));
-          }
+    const getHeadersEncoder = (
+      hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
+      a: AddHeader<any, any> | any,
+    ) => {
+      let acc: List<RawHeader> = List.empty;
+      for (let i = 0, l = hs.length; i < l; i++) {
+        const h = hs[i];
+        if (h instanceof HeaderElement) {
+          const raw = h.header.toRaw(a.header);
+          acc = acc['+++'](raw);
+          a = a.body;
+        } else if (h instanceof RawHeaderElement) {
+          const { toHeader } = (codings as any)[ToHttpApiDataTag][h.type.ref];
+          const raw = new RawHeader(h.key, toHeader(a.header));
+          acc = acc.prepend(raw);
+          a = a.body;
+        } else {
+          throw new Error('Invalid Headers element');
+        }
+      }
 
-          throw new Error('Invalid Headers');
-        };
-
-        return loop(a, hs, List.empty);
-      };
+      return tupled(new Headers(acc), a);
+    };
 
     return leafRouter(env =>
       Kleisli(req =>
@@ -451,8 +467,8 @@ export function route<F>(F: Concurrent<F, Error>) {
           .addMethodCheck(EF)(methodCheck(method))
           .runDelayed(EF)(env, req)
           .flatMap(F)(RouteResultT.fromEitherFatal(F))
-          .map(F)(getHeadersEncoder(headers))
-          .map(F)(([hs, e]) => {
+          .map(F)(a => {
+          const [hs, e] = getHeadersEncoder(headers, a);
           const res = new Response<F>(status, req.httpVersion)
             .withEntity(encode(e), EntityEncoder.text())
             .putHeaders(ct.self)
@@ -461,25 +477,6 @@ export function route<F>(F: Concurrent<F, Error>) {
             ? res.withEntityBody(EntityBody.empty())
             : res;
         }),
-      ),
-    );
-  }
-
-  function routeVerbNoContent<context extends unknown[], env>(
-    verb: VerbNoContentElement<any>,
-    ctx: Context<context>,
-    d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
-    codings: DeriveCoding<F, VerbNoContentElement<any>>,
-  ): Router<env, RoutingApplication<F>> {
-    return leafRouter(env =>
-      Kleisli(req =>
-        d
-          .addMethodCheck(EF)(methodCheck(verb.method))
-          .runDelayed(EF)(env, req)
-          .flatMap(F)(RouteResultT.fromEither(F))
-          .map(F)(() =>
-          new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
-        ),
       ),
     );
   }

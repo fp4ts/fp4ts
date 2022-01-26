@@ -94,26 +94,25 @@ type DeriveAltCodings<F, xs extends unknown[], z = {}> =
 
 // -- Implementations
 
+// prettier-ignore
 export interface TermDerivates<F, api, m> {
   [VerbTag]: api extends VerbElement<any, any, Type<any, infer A>>
     ? Kind<m, [F, A]>
     : never;
-  [HeadersVerbTag]: api extends HeadersVerbElement<
-    any,
-    any,
-    HeadersElement<infer hs, Type<any, infer A>>
-  >
+  [HeadersVerbTag]: api extends HeadersVerbElement<any, any, HeadersElement<infer hs, Type<any, infer A>>>
     ? Kind<m, [F, AddHeaders<hs, A>]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
 }
 
-type AddHeaders<hs, a> = hs extends []
-  ? a
-  : hs extends [RawHeaderElement<any, Type<any, infer h>>, ...infer hs]
-  ? AddHeaders<hs, AddHeader<h, a>>
-  : hs extends [HeaderElement<SelectHeader<infer f, infer aa>>, ...infer hs]
-  ? AddHeaders<hs, AddHeader<Kind<f, [aa]>, a>>
+// prettier-ignore
+type AddHeaders<hs, a> =
+  hs extends []
+    ? a
+  : hs extends [...infer hs, RawHeaderElement<any, Type<any, infer h>>]
+    ? AddHeaders<hs, AddHeader<h, a>>
+  : hs extends [...infer hs, HeaderElement<SelectHeader<infer f, infer aa>>]
+    ? AddHeaders<hs, AddHeader<Kind<f, [aa]>, a>>
   : never;
 
 export interface SubDerivates<F, x, api, m> {
@@ -162,11 +161,11 @@ export interface CodingDerivates<F, x, z> {
       ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
       : never
     : never;
+  // prettier-ignore
   [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
     ? H extends HeadersElement<infer hs, Type<infer R, infer A>>
-      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } } & {
-          [ToHttpApiDataTag]: ExtractResponseHeaderCodings<hs>;
-        }
+      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
+          & { [ToHttpApiDataTag]: ExtractResponseHeaderCodings<hs>; }
       : never
     : never;
   [VerbNoContentTag]: z;
@@ -183,12 +182,14 @@ export interface CodingDerivates<F, x, z> {
     : never;
 }
 
-type ExtractResponseHeaderCodings<hs, acc = {}> = hs extends []
-  ? acc
+// prettier-ignore
+type ExtractResponseHeaderCodings<hs, acc = {}> =
+  hs extends []
+    ? acc
   : hs extends [HeaderElement<any>, ...infer hs]
-  ? ExtractResponseHeaderCodings<hs, acc>
+    ? ExtractResponseHeaderCodings<hs, acc>
   : hs extends [RawHeaderElement<any, Type<infer R, infer A>>, ...infer hs]
-  ? ExtractResponseHeaderCodings<hs, acc & { [_ in R]: ToHttpApiData<A> }>
+    ? ExtractResponseHeaderCodings<hs, acc & { [_ in R]: ToHttpApiData<A> }>
   : never;
 
 // prettier-ignore

@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'supertest';
+import { pipe } from '@fp4ts/core';
 import { IoK } from '@fp4ts/effect-core';
 import { Accept, HttpApp, Method, Status } from '@fp4ts/http-core';
 import {
@@ -21,11 +22,11 @@ import {
   Header,
   Get,
   Headers,
+  booleanType,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
-import { tupled } from '@fp4ts/core';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
@@ -34,7 +35,7 @@ const verbApi = <M extends Method>(method: M, status: Status) =>
     Route('header')[':>'](
       Verb(method, status)(
         JSON,
-        Headers(tupled(Header('H', numberType)), PersonType),
+        Headers(Header('H', numberType), Header('F', booleanType))(PersonType),
       ),
     ),
     Route('accept')[':>'](
@@ -57,7 +58,7 @@ describe('verbs', () => {
     })(S => [
       S.return(alice),
       S.unit,
-      S.return(S.addHeader_(42, alice)),
+      pipe(alice, S.addHeader(false), S.addHeader(42), S.return),
       [S.return(alice), S.return('A')],
     ]);
 
@@ -94,6 +95,7 @@ describe('verbs', () => {
           .then(response => {
             expect(response.statusCode).toBe(200);
             expect(response.headers.h).toBe('42');
+            expect(response.headers.f).toBe('false');
           }),
       ).unsafeRunToPromise();
     });
@@ -166,7 +168,7 @@ describe('verbs', () => {
 });
 
 const headerApi = group(
-  Route('select')
+  Route('accept')
     [':>'](Header(Accept.Select))
     [':>'](Get(PlainText, stringType)),
   Route('custom')
@@ -177,14 +179,13 @@ const headerApi = group(
 describe('Header', () => {
   const server = toHttpAppIO(
     headerApi,
-
     {},
-  )(S => [ct => S.return(`${ct.mediaRanges.toArray}`), hv => S.return(hv)]);
+  )(S => [ah => S.return(`${ah.mediaRanges.toArray}`), hv => S.return(hv)]);
 
   it('should capture Accept header', async () => {
     await withServerP(server)(server =>
       test(server)
-        .get('/select')
+        .get('/accept')
         .accept('text/plain')
         .then(response => {
           expect(response.statusCode).toBe(200);

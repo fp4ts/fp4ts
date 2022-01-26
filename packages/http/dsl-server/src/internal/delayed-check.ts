@@ -14,5 +14,5 @@ export const DelayedCheck = Object.freeze({
   withRequest:
     <F>(F: Monad<F>) =>
     <A>(f: (req: Request<F>) => RouteResultT<F, A>): DelayedCheck<F, A> =>
-      ReaderT(req => f(req)),
+      ReaderT(f),
 });
