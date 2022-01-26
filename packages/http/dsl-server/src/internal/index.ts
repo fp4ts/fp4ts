@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { id, pipe, tupled } from '@fp4ts/core';
+import { compose, id, pipe, tupled } from '@fp4ts/core';
 import { Either, EitherT, Kleisli, List } from '@fp4ts/cats';
 import {
   Accept,
@@ -239,17 +239,8 @@ export function route<F>(F: Concurrent<F, Error>) {
   ): Router<env, RoutingApplication<F>> {
     const S = a.header;
     const headerCheck = DelayedCheck.withRequest(F)(req =>
-      req.headers
-        .get(S)
-        .fold(
-          () =>
-            RouteResultT.fatalFail(F)(
-              new ParsingFailure(`Expected header ${S.header.headerName}`),
-            ),
-          RouteResultT.succeed(F),
-        ),
+      RouteResultT.succeed(F)(req.headers.get(S)),
     );
-
     return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
   }
 
@@ -272,9 +263,9 @@ export function route<F>(F: Concurrent<F, Error>) {
         req.headers
           .getRaw(a.key)
           .flatMap(xs => xs.headOption)
-          .toRight(() => new ParsingFailure(`Expected header ${a.key}`))
-          .flatMap(parseHeader),
-        RouteResult.fromEitherFatal,
+          .traverse(RouteResult.Monad)(
+          compose(RouteResult.fromEitherFatal, parseHeader),
+        ),
         RouteResultT.lift(F),
       ),
     );

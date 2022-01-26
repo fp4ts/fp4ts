@@ -208,15 +208,24 @@ const headerApi = group(
     [':>'](Header(Accept.Select))
     [':>'](Get(PlainText, stringType)),
   Route('custom')
-    [':>'](Header('X-Custom-Header', stringType))
-    [':>'](Get(PlainText, stringType)),
+    [':>'](Header('X-Custom-Header', numberType))
+    [':>'](Get(PlainText, numberType)),
 );
 
 describe('Header', () => {
   const server = toHttpAppIO(
     headerApi,
     {},
-  )(S => [ah => S.return(`${ah.mediaRanges.toArray}`), hv => S.return(hv)]);
+  )(S => [
+    ah =>
+      S.return(
+        ah.fold(
+          () => 'no header',
+          ah => `${ah.mediaRanges.toArray}`,
+        ),
+      ),
+    hv => S.return(hv.get),
+  ]);
 
   it('should capture Accept header', async () => {
     await withServerP(server)(server =>
@@ -230,14 +239,36 @@ describe('Header', () => {
     ).unsafeRunToPromise();
   });
 
+  it('should handle case when the header is not provided', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/accept')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.text).toBe('no header');
+        }),
+    ).unsafeRunToPromise();
+  });
+
   it('should capture custom raw header', async () => {
     await withServerP(server)(server =>
       test(server)
         .get('/custom')
-        .set('X-Custom-Header', 'my-test')
+        .set('X-Custom-Header', '42')
         .then(response => {
           expect(response.statusCode).toBe(200);
-          expect(response.text).toBe('my-test');
+          expect(response.text).toBe('42');
+        }),
+    ).unsafeRunToPromise();
+  });
+
+  it('should return 400 Bad Request when header value is string', async () => {
+    await withServerP(server)(server =>
+      test(server)
+        .get('/custom')
+        .set('X-Custom-Header', 'my string')
+        .then(response => {
+          expect(response.statusCode).toBe(400);
         }),
     ).unsafeRunToPromise();
   });

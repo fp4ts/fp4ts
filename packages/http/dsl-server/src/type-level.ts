@@ -134,12 +134,12 @@ export interface SubDerivates<F, x, api, m> {
     : never;
   [HeaderTag]: x extends HeaderElement<infer H>
     ? H extends SelectHeader<infer G, infer A>
-      ? (h: Kind<G, [A]>) => ServerT<F, api, m>
+      ? (h: Option<Kind<G, [A]>>) => ServerT<F, api, m>
       : never
     : never;
   [RawHeaderTag]: x extends RawHeaderElement<any, infer T>
     ? T extends Type<any, infer A>
-      ? (h: A) => ServerT<F, api, m>
+      ? (h: Option<A>) => ServerT<F, api, m>
       : never
     : never;
 }
