@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import http from 'http';
-import { OrderedMap } from '@fp4ts/cats';
+import { Map } from '@fp4ts/cats';
 import { pipe } from '@fp4ts/core';
 import { Async, Resource } from '@fp4ts/effect';
 import { serve } from '@fp4ts/http-node-server';
@@ -20,10 +20,7 @@ export const makeServer =
     return pipe(
       R.Do,
       R.bindTo('ids', Resource.evalF(F.ref(0))),
-      R.bindTo(
-        'repo',
-        Resource.evalF(F.ref(OrderedMap.empty as OrderedMap<number, Todo>)),
-      ),
+      R.bindTo('repo', Resource.evalF(F.ref(Map.empty as Map<number, Todo>))),
       R.let('todoService', ({ ids, repo }) => new TodoService(F, ids, repo)),
       R.let('server', ({ todoService }) => new Server(F, todoService)),
       R.flatMap(({ server }) => serve(F)(server.toHttpApp, port)),

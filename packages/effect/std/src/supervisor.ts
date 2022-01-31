@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, snd } from '@fp4ts/core';
-import { OrderedMap, List } from '@fp4ts/cats';
+import { Map, List } from '@fp4ts/cats';
 import { Fiber, Concurrent, Resource, UniqueToken } from '@fp4ts/effect-kernel';
 
 export interface Supervisor<F> {
@@ -15,7 +15,7 @@ export function Supervisor<F>(
   F: Concurrent<F, Error>,
 ): Resource<F, Supervisor<F>> {
   const stateRefR = Resource.make(F)(
-    F.ref<OrderedMap<UniqueToken, Kind<F, [void]>>>(OrderedMap.empty),
+    F.ref<Map<UniqueToken, Kind<F, [void]>>>(Map.empty),
     state =>
       pipe(
         state.get(),

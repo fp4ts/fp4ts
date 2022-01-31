@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import { OrderedMap } from '@fp4ts/cats';
+import { Map } from '@fp4ts/cats';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
 
@@ -20,7 +20,7 @@ export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
   return <A>(initial: A): Kind<F, [SignallingRef<F, A>]> =>
     pipe(
       F.Do,
-      F.bindTo('state', F.ref(new State<F, A>(initial, 0, OrderedMap.empty))),
+      F.bindTo('state', F.ref(new State<F, A>(initial, 0, Map.empty))),
       F.bindTo('ids', F.ref(0)),
       F.map(({ state, ids }) => {
         const newId = ids.updateAndGet(x => x + 1);
@@ -31,11 +31,7 @@ export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
         ): [State<F, A>, Kind<F, [B]>] => {
           const [newValue, result] = f(state.value);
           const lastUpdate = state.lastUpdate + 1;
-          const newState = new State<F, A>(
-            newValue,
-            lastUpdate,
-            OrderedMap.empty,
-          );
+          const newState = new State<F, A>(newValue, lastUpdate, Map.empty);
           const notifyListeners = state.listeners.toList.traverse(F)(
             ([, listener]) => listener.complete([newValue, lastUpdate]),
           );
@@ -120,13 +116,13 @@ export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
 type Props<F, A> = {
   readonly value: A;
   readonly lastUpdate: number;
-  readonly listeners: OrderedMap<number, Deferred<F, [A, number]>>;
+  readonly listeners: Map<number, Deferred<F, [A, number]>>;
 };
 class State<F, A> {
   public constructor(
     public readonly value: A,
     public readonly lastUpdate: number,
-    public readonly listeners: OrderedMap<number, Deferred<F, [A, number]>>,
+    public readonly listeners: Map<number, Deferred<F, [A, number]>>,
   ) {}
 
   public copy = ({

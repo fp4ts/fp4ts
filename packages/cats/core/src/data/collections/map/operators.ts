@@ -14,84 +14,81 @@ import { Eq } from '../../../eq';
 import { List } from '../list';
 import { Option, Some, None } from '../../option';
 
-import { Bin, Empty, Node, OrderedMap, toNode } from './algebra';
+import { Bin, Empty, Node, Map, toNode } from './algebra';
 import { fromSortedArray } from './constructors';
 
-export const isEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m === Empty;
-export const nonEmpty = <K, V>(m: OrderedMap<K, V>): boolean => m !== Empty;
+export const isEmpty = <K, V>(m: Map<K, V>): boolean => m === Empty;
+export const nonEmpty = <K, V>(m: Map<K, V>): boolean => m !== Empty;
 
-export const head = <K, V>(m: OrderedMap<K, V>): V =>
+export const head = <K, V>(m: Map<K, V>): V =>
   min(m).fold(() => throwError(new Error('Empty.head')), id);
 
-export const headOption = <K, V>(m: OrderedMap<K, V>): Option<V> => min(m);
+export const headOption = <K, V>(m: Map<K, V>): Option<V> => min(m);
 
-export const tail = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> =>
+export const tail = <K, V>(m: Map<K, V>): Map<K, V> =>
   popMin(m).fold(
     () => Empty,
     ([, t]) => t,
   );
 
-export const init = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> =>
+export const init = <K, V>(m: Map<K, V>): Map<K, V> =>
   popMax(m).fold(
     () => Empty,
     ([, t]) => t,
   );
 
-export const last = <K, V>(m: OrderedMap<K, V>): V =>
+export const last = <K, V>(m: Map<K, V>): V =>
   max(m).fold(() => throwError(new Error('Empty.last')), id);
 
-export const lastOption = <K, V>(m: OrderedMap<K, V>): Option<V> => max(m);
+export const lastOption = <K, V>(m: Map<K, V>): Option<V> => max(m);
 
-export const size = <K, V>(m: OrderedMap<K, V>): number =>
-  foldLeft_(m, 0, c => c + 1);
+export const size = <K, V>(m: Map<K, V>): number => foldLeft_(m, 0, c => c + 1);
 
-export const toArray = <K, V>(m: OrderedMap<K, V>): [K, V][] => {
+export const toArray = <K, V>(m: Map<K, V>): [K, V][] => {
   const result: [K, V][] = [];
   forEach_(m, (v, k) => result.push([k, v]));
   return result;
 };
 
-export const toList = <K, V>(m: OrderedMap<K, V>): List<[K, V]> =>
+export const toList = <K, V>(m: Map<K, V>): List<[K, V]> =>
   foldRight_(m, List.empty as List<[K, V]>, (x, xs, k) => xs.prepend([k, x]));
 
 export const count: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: OrderedMap<K, V>) => number = p => m => count_(m, p);
+) => (m: Map<K, V>) => number = p => m => count_(m, p);
 
 export const all: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: OrderedMap<K, V>) => boolean = p => m => all_(m, p);
+) => (m: Map<K, V>) => boolean = p => m => all_(m, p);
 
 export const any: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: OrderedMap<K, V>) => boolean = p => m => any_(m, p);
+) => (m: Map<K, V>) => boolean = p => m => any_(m, p);
 
-export const min = <K, V>(m: OrderedMap<K, V>): Option<V> =>
+export const min = <K, V>(m: Map<K, V>): Option<V> =>
   minWithKey(m).map(([, v]) => v);
 
-export const minWithKey = <K, V>(m0: OrderedMap<K, V>): Option<[K, V]> => {
+export const minWithKey = <K, V>(m0: Map<K, V>): Option<[K, V]> => {
   const loop = (n: Node<K, V>, r: Option<[K, V]>): Option<[K, V]> =>
     n.tag === 'empty' ? r : loop(toNode(n.lhs), Some([n.key, n.value]));
   return loop(toNode(m0), None);
 };
 
-export const max = <K, V>(m: OrderedMap<K, V>): Option<V> =>
+export const max = <K, V>(m: Map<K, V>): Option<V> =>
   maxWithKey(m).map(([, v]) => v);
 
-export const maxWithKey = <K, V>(m0: OrderedMap<K, V>): Option<[K, V]> => {
+export const maxWithKey = <K, V>(m0: Map<K, V>): Option<[K, V]> => {
   const loop = (n: Node<K, V>, r: Option<[K, V]>): Option<[K, V]> =>
     n.tag === 'empty' ? r : loop(toNode(n.rhs), Some([n.key, n.value]));
   return loop(toNode(m0), None);
 };
 
-export const popMin = <K, V>(
-  m: OrderedMap<K, V>,
-): Option<[V, OrderedMap<K, V>]> =>
+export const popMin = <K, V>(m: Map<K, V>): Option<[V, Map<K, V>]> =>
   popMinWithKey(m).map(([[, v], m]) => [v, m]);
 
 export const popMinWithKey = <K, V>(
-  m: OrderedMap<K, V>,
-): Option<[[K, V], OrderedMap<K, V>]> => {
+  m: Map<K, V>,
+): Option<[[K, V], Map<K, V>]> => {
   const n = toNode(m);
   if (n.tag === 'empty') return None;
 
@@ -100,14 +97,12 @@ export const popMinWithKey = <K, V>(
   return Some([[k, v], mm]);
 };
 
-export const popMax = <K, V>(
-  m: OrderedMap<K, V>,
-): Option<[V, OrderedMap<K, V>]> =>
+export const popMax = <K, V>(m: Map<K, V>): Option<[V, Map<K, V>]> =>
   popMaxWithKey(m).map(([[, v], m]) => [v, m]);
 
 export const popMaxWithKey = <K, V>(
-  m: OrderedMap<K, V>,
-): Option<[[K, V], OrderedMap<K, V>]> => {
+  m: Map<K, V>,
+): Option<[[K, V], Map<K, V>]> => {
   const n = toNode(m);
   if (n.tag === 'empty') return None;
 
@@ -118,27 +113,25 @@ export const popMaxWithKey = <K, V>(
 
 export const contains: <K2>(
   O: Ord<K2>,
-) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => boolean =
-  O => k => m =>
-    contains_(O, m, k);
+) => (k: K2) => <K extends K2, V>(m: Map<K, V>) => boolean = O => k => m =>
+  contains_(O, m, k);
 
 export const get: <K2>(
   O: Ord<K2>,
-) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => V = O => k => m =>
+) => (k: K2) => <K extends K2, V>(m: Map<K, V>) => V = O => k => m =>
   get_(O, m, k);
 
 export const lookup: <K2>(
   O: Ord<K2>,
-) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => Option<V> =
-  O => k => m =>
-    lookup_(O, m, k);
+) => (k: K2) => <K extends K2, V>(m: Map<K, V>) => Option<V> = O => k => m =>
+  lookup_(O, m, k);
 
 export const insert: <K2>(
   O: Ord<K2>,
 ) => <V2>(
   k: K2,
   v: V2,
-) => <K extends K2, V extends V2>(m: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+) => <K extends K2, V extends V2>(m: Map<K, V>) => Map<K2, V2> =
   O => (k, v) => m =>
     insert_(O, m, k, v);
 
@@ -148,148 +141,142 @@ export const insertWith: <K2>(
   k: K2,
   v: V2,
   u: (v1: V2, v2: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(m: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+) => <K extends K2, V extends V2>(m: Map<K, V>) => Map<K2, V2> =
   O => (k, v, u) => m =>
     insertWith_(O, m, k, v, u);
 
 export const remove: <K2>(
   O: Ord<K2>,
-) => (k: K2) => <K extends K2, V>(m: OrderedMap<K, V>) => OrderedMap<K2, V> =
-  O => k => m =>
-    remove_(O, m, k);
+) => (k: K2) => <K extends K2, V>(m: Map<K, V>) => Map<K2, V> = O => k => m =>
+  remove_(O, m, k);
 
 export const update: <K2>(
   O: Ord<K2>,
 ) => <V2>(
   k: K2,
   u: (v: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(m: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+) => <K extends K2, V extends V2>(m: Map<K, V>) => Map<K2, V2> =
   O => (k, u) => m =>
     update_(O, m, k, u);
 
 export const union: <K2>(
   O: Ord<K2>,
 ) => <V2>(
-  m2: OrderedMap<K2, V2>,
-) => <K extends K2, V extends V2>(m1: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+  m2: Map<K2, V2>,
+) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
   O => m2 => m1 =>
     union_(O, m1, m2);
 
 export const unionWith: <K2>(
   O: Ord<K2>,
 ) => <V2>(
-  m2: OrderedMap<K2, V2>,
+  m2: Map<K2, V2>,
   u: (v1: V2, v2: V2, k: K2) => V2,
-) => <K extends K2, V extends V2>(m1: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
   O => (m2, u) => m1 =>
     unionWith_(O, m1, m2, u);
 
 export const intersect: <K2>(
   O: Ord<K2>,
 ) => <V2>(
-  m2: OrderedMap<K2, V2>,
-) => <K extends K2, V extends V2>(m1: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+  m2: Map<K2, V2>,
+) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
   O => m2 => m1 =>
     intersect_(O, m1, m2);
 
 export const intersectWith: <K2>(
   O: Ord<K2>,
 ) => <V2, C>(
-  m2: OrderedMap<K2, V2>,
+  m2: Map<K2, V2>,
   u: (v1: V2, v2: V2, k: K2) => C,
-) => <K extends K2, V extends V2>(m1: OrderedMap<K, V>) => OrderedMap<K2, C> =
+) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, C> =
   O => (m2, u) => m1 =>
     intersectWith_(O, m1, m2, u);
 
 export const difference: <K2>(
   O: Ord<K2>,
-) => <V2>(
-  m2: OrderedMap<K2, V2>,
-) => <K extends K2, V>(m1: OrderedMap<K, V>) => OrderedMap<K2, V> =
+) => <V2>(m2: Map<K2, V2>) => <K extends K2, V>(m1: Map<K, V>) => Map<K2, V> =
   O => m2 => m1 =>
     difference_(O, m1, m2);
 
 export const symmetricDifference: <K2>(
   O: Ord<K2>,
 ) => <V2>(
-  m2: OrderedMap<K2, V2>,
-) => <K extends K2, V extends V2>(m1: OrderedMap<K, V>) => OrderedMap<K2, V2> =
+  m2: Map<K2, V2>,
+) => <K extends K2, V extends V2>(m1: Map<K, V>) => Map<K2, V2> =
   O => m2 => m1 =>
     symmetricDifference_(O, m1, m2);
 
 export const filter: <K, V>(
   p: (v: V, k: K) => boolean,
-) => (m: OrderedMap<K, V>) => OrderedMap<K, V> = p => m => filter_(m, p);
+) => (m: Map<K, V>) => Map<K, V> = p => m => filter_(m, p);
 
 export const map: <K, V, B>(
   f: (v: V, k: K) => B,
-) => (m: OrderedMap<K, V>) => OrderedMap<K, B> = f => m => map_(m, f);
+) => (m: Map<K, V>) => Map<K, B> = f => m => map_(m, f);
 
 export const tap: <K, V>(
   f: (v: V, k: K) => unknown,
-) => (m: OrderedMap<K, V>) => OrderedMap<K, V> = f => m => tap_(m, f);
+) => (m: Map<K, V>) => Map<K, V> = f => m => tap_(m, f);
 
 export const collect: <K, V, B>(
   f: (v: V, k: K) => Option<B>,
-) => (m: OrderedMap<K, V>) => OrderedMap<K, B> = f => m => collect_(m, f);
+) => (m: Map<K, V>) => Map<K, B> = f => m => collect_(m, f);
 
 export const forEach: <K, V>(
   f: (v: V, k: K) => void,
-) => (m: OrderedMap<K, V>) => void = f => m => forEach_(m, f);
+) => (m: Map<K, V>) => void = f => m => forEach_(m, f);
 
 export const foldLeft: <K, V, B>(
   z: B,
   f: (b: B, v: V, k: K) => B,
-) => (m: OrderedMap<K, V>) => B = (z, f) => m => foldLeft_(m, z, f);
+) => (m: Map<K, V>) => B = (z, f) => m => foldLeft_(m, z, f);
 
 export const foldLeft1: <V2>(
   f: (v: V2, r: V2) => V2,
-) => <K, V extends V2>(m: OrderedMap<K, V>) => V2 = f => m => foldLeft1_(m, f);
+) => <K, V extends V2>(m: Map<K, V>) => V2 = f => m => foldLeft1_(m, f);
 
 export const foldRight: <K, V, B>(
   z: B,
   f: (v: V, b: B, k: K) => B,
-) => (m: OrderedMap<K, V>) => B = (z, f) => m => foldRight_(m, z, f);
+) => (m: Map<K, V>) => B = (z, f) => m => foldRight_(m, z, f);
 
 export const foldRight1: <V2>(
   f: (r: V2, v: V2) => V2,
-) => <K, V extends V2>(m: OrderedMap<K, V>) => V2 = f => m => foldRight1_(m, f);
+) => <K, V extends V2>(m: Map<K, V>) => V2 = f => m => foldRight1_(m, f);
 
 export const foldMap: <M>(
   M: Monoid<M>,
-) => <K, V>(f: (v: V, k: K) => M) => (m: OrderedMap<K, V>) => M = M => f => m =>
+) => <K, V>(f: (v: V, k: K) => M) => (m: Map<K, V>) => M = M => f => m =>
   foldMap_(M)(m, f);
 
 export const foldMapK: <F>(
   F: MonoidK<F>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<F, [B]>,
-) => (m: OrderedMap<K, V>) => Kind<F, [B]> = F => f => m => foldMapK_(F)(m, f);
+) => (m: Map<K, V>) => Kind<F, [B]> = F => f => m => foldMapK_(F)(m, f);
 
 export const traverse: <G>(
   G: Applicative<G>,
 ) => <K, V, B>(
   f: (v: V, k: K) => Kind<G, [B]>,
-) => (m: OrderedMap<K, V>) => Kind<G, [OrderedMap<K, B>]> = G => f => m =>
-  traverse_(G)(m, f);
+) => (m: Map<K, V>) => Kind<G, [Map<K, B>]> = G => f => m => traverse_(G)(m, f);
 
 export const sequence: <G>(
   G: Applicative<G>,
-) => <K, V>(m: OrderedMap<K, Kind<G, [V]>>) => Kind<G, [OrderedMap<K, V>]> =
-  G => m =>
-    traverse_(G)(m, id);
+) => <K, V>(m: Map<K, Kind<G, [V]>>) => Kind<G, [Map<K, V>]> = G => m =>
+  traverse_(G)(m, id);
 
 export const show: <K2, V2>(
   SK: Show<K2>,
   SV: Show<V2>,
-) => <K extends K2, V extends V2>(m: OrderedMap<K, V>) => string =
-  (SK, SV) => m =>
-    show_(SK, SV, m);
+) => <K extends K2, V extends V2>(m: Map<K, V>) => string = (SK, SV) => m =>
+  show_(SK, SV, m);
 
 // -- Point-ful operators
 
 export const count_ = <K, V>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   p: (v: V, k: K) => boolean,
 ): number => {
   const n = toNode(m);
@@ -300,7 +287,7 @@ export const count_ = <K, V>(
 };
 
 export const all_ = <K, V>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   p: (v: V, k: K) => boolean,
 ): boolean => {
   const n = toNode(m);
@@ -311,7 +298,7 @@ export const all_ = <K, V>(
 };
 
 export const any_ = <K, V>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   p: (v: V, k: K) => boolean,
 ): boolean => {
   const n = toNode(m);
@@ -321,27 +308,19 @@ export const any_ = <K, V>(
   return any_(lhs, p) || p(value, key) || any_(rhs, p);
 };
 
-export const contains_ = <K, V>(
-  O: Ord<K>,
-  m: OrderedMap<K, V>,
-  k: K,
-): boolean =>
+export const contains_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): boolean =>
   lookup_(O, m, k).fold(
     () => false,
     () => true,
   );
 
-export const get_ = <K, V>(O: Ord<K>, m: OrderedMap<K, V>, k: K): V =>
+export const get_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): V =>
   lookup_(O, m, k).fold(
     () => throwError(new Error('Element for key does not exist')),
     id,
   );
 
-export const lookup_ = <K, V>(
-  O: Ord<K>,
-  m: OrderedMap<K, V>,
-  k: K,
-): Option<V> => {
+export const lookup_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Option<V> => {
   const n = toNode(m);
 
   if (n.tag === 'empty') return None;
@@ -356,20 +335,16 @@ export const lookup_ = <K, V>(
   }
 };
 
-export const insert_ = <K, V>(
-  O: Ord<K>,
-  m: OrderedMap<K, V>,
-  k: K,
-  v: V,
-): OrderedMap<K, V> => insertWith_(O, m, k, v, () => v);
+export const insert_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K, v: V): Map<K, V> =>
+  insertWith_(O, m, k, v, () => v);
 
 export const insertWith_ = <K, V>(
   O: Ord<K>,
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   k: K,
   v: V,
   u: (v1: V, v2: V, k: K) => V,
-): OrderedMap<K, V> => {
+): Map<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return _mkBin(k, v, Empty, Empty);
 
@@ -386,11 +361,7 @@ export const insertWith_ = <K, V>(
   }
 };
 
-export const remove_ = <K, V>(
-  O: Ord<K>,
-  m: OrderedMap<K, V>,
-  k: K,
-): OrderedMap<K, V> => {
+export const remove_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Map<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
@@ -413,10 +384,10 @@ export const remove_ = <K, V>(
 
 export const update_ = <K, V>(
   O: Ord<K>,
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   k: K,
   u: (v: V, k: K) => V,
-): OrderedMap<K, V> => {
+): Map<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
@@ -433,16 +404,16 @@ export const update_ = <K, V>(
 
 export const union_ = <K, V>(
   O: Ord<K>,
-  m1: OrderedMap<K, V>,
-  m2: OrderedMap<K, V>,
-): OrderedMap<K, V> => unionWith_(O, m1, m2, v1 => v1);
+  m1: Map<K, V>,
+  m2: Map<K, V>,
+): Map<K, V> => unionWith_(O, m1, m2, v1 => v1);
 
 export const unionWith_ = <K, V>(
   O: Ord<K>,
-  m1: OrderedMap<K, V>,
-  m2: OrderedMap<K, V>,
+  m1: Map<K, V>,
+  m2: Map<K, V>,
   u: (v1: V, v2: V, k: K) => V,
-): OrderedMap<K, V> => {
+): Map<K, V> => {
   if (m1 === Empty) return m2;
   if (m2 === Empty) return m1;
 
@@ -486,16 +457,16 @@ export const unionWith_ = <K, V>(
 
 export const intersect_ = <K, V1, V2>(
   O: Ord<K>,
-  m1: OrderedMap<K, V1>,
-  m2: OrderedMap<K, V2>,
-): OrderedMap<K, V1> => intersectWith_(O, m1, m2, v => v);
+  m1: Map<K, V1>,
+  m2: Map<K, V2>,
+): Map<K, V1> => intersectWith_(O, m1, m2, v => v);
 
 export const intersectWith_ = <K, V1, V2, C>(
   O: Ord<K>,
-  m1: OrderedMap<K, V1>,
-  m2: OrderedMap<K, V2>,
+  m1: Map<K, V1>,
+  m2: Map<K, V2>,
   u: (v1: V1, v2: V2, k: K) => C,
-): OrderedMap<K, C> => {
+): Map<K, C> => {
   if (m1 === Empty) return Empty;
   if (m2 === Empty) return Empty;
 
@@ -531,9 +502,9 @@ export const intersectWith_ = <K, V1, V2, C>(
 
 export const difference_ = <K, V, V2>(
   O: Ord<K>,
-  m1: OrderedMap<K, V>,
-  m2: OrderedMap<K, V2>,
-): OrderedMap<K, V> => {
+  m1: Map<K, V>,
+  m2: Map<K, V2>,
+): Map<K, V> => {
   if (m1 === Empty) return Empty;
   if (m2 === Empty) return m1;
 
@@ -573,9 +544,9 @@ export const difference_ = <K, V, V2>(
 
 export const symmetricDifference_ = <K, V>(
   O: Ord<K>,
-  m1: OrderedMap<K, V>,
-  m2: OrderedMap<K, V>,
-): OrderedMap<K, V> => {
+  m1: Map<K, V>,
+  m2: Map<K, V>,
+): Map<K, V> => {
   if (m1 === Empty) return m2;
   if (m2 === Empty) return m1;
 
@@ -618,9 +589,9 @@ export const symmetricDifference_ = <K, V>(
 };
 
 export const filter_ = <K, V>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   p: (v: V, k: K) => boolean,
-): OrderedMap<K, V> => {
+): Map<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
@@ -632,9 +603,9 @@ export const filter_ = <K, V>(
 };
 
 export const map_ = <K, V, B>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   f: (v: V, k: K) => B,
-): OrderedMap<K, B> => {
+): Map<K, B> => {
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
@@ -643,18 +614,18 @@ export const map_ = <K, V, B>(
 };
 
 export const tap_ = <K, V>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   f: (v: V, k: K) => unknown,
-): OrderedMap<K, V> =>
+): Map<K, V> =>
   map_(m, (v, k) => {
     f(v, k);
     return v;
   });
 
 export const collect_ = <K, V, B>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   f: (v: V, k: K) => Option<B>,
-): OrderedMap<K, B> => {
+): Map<K, B> => {
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
@@ -664,10 +635,7 @@ export const collect_ = <K, V, B>(
   );
 };
 
-export const forEach_ = <K, V>(
-  m: OrderedMap<K, V>,
-  f: (v: V, k: K) => void,
-): void => {
+export const forEach_ = <K, V>(m: Map<K, V>, f: (v: V, k: K) => void): void => {
   const n = toNode(m);
   if (n.tag === 'empty') return;
 
@@ -677,7 +645,7 @@ export const forEach_ = <K, V>(
 };
 
 export const foldLeft_ = <K, V, B>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   z: B,
   f: (b: B, v: V, k: K) => B,
 ): B => {
@@ -689,10 +657,7 @@ export const foldLeft_ = <K, V, B>(
   return foldLeft_(n.rhs, zm, f);
 };
 
-export const foldLeft1_ = <K, V>(
-  m: OrderedMap<K, V>,
-  f: (r: V, v: V) => V,
-): V =>
+export const foldLeft1_ = <K, V>(m: Map<K, V>, f: (r: V, v: V) => V): V =>
   popMin(m).fold(
     () => {
       throw new Error('OrderedMap.empty.foldLeft1');
@@ -701,7 +666,7 @@ export const foldLeft1_ = <K, V>(
   );
 
 export const foldRight_ = <K, V, B>(
-  m: OrderedMap<K, V>,
+  m: Map<K, V>,
   z: B,
   f: (v: V, b: B, k: K) => B,
 ): B => {
@@ -713,10 +678,7 @@ export const foldRight_ = <K, V, B>(
   return foldRight_(n.lhs, zm, f);
 };
 
-export const foldRight1_ = <K, V>(
-  m: OrderedMap<K, V>,
-  f: (v: V, r: V) => V,
-): V =>
+export const foldRight1_ = <K, V>(m: Map<K, V>, f: (v: V, r: V) => V): V =>
   popMax(m).fold(
     () => {
       throw new Error('OrderedMap.empty.foldLeft1');
@@ -726,25 +688,22 @@ export const foldRight1_ = <K, V>(
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
-  <K, V>(m: OrderedMap<K, V>, f: (v: V, k: K) => M): M =>
+  <K, V>(m: Map<K, V>, f: (v: V, k: K) => M): M =>
     foldLeft_(map_(m, f), M.empty, (x, y) => M.combine_(x, () => y));
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
-  <K, V, B>(
-    m: OrderedMap<K, V>,
-    f: (v: V, k: K) => Kind<F, [B]>,
-  ): Kind<F, [B]> =>
+  <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
     foldMap_(F.algebra())(m, f);
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <K, V, B>(
-    m: OrderedMap<K, V>,
+    m: Map<K, V>,
     f: (v: V, k: K) => Kind<G, [B]>,
-  ): Kind<G, [OrderedMap<K, B>]> => {
+  ): Kind<G, [Map<K, B>]> => {
     const n = toNode(m);
-    if (n.tag === 'empty') return G.pure(Empty as OrderedMap<K, B>);
+    if (n.tag === 'empty') return G.pure(Empty as Map<K, B>);
 
     const lhsF = traverse_(G)(n.lhs, f);
     const bF = f(n.value, n.key);
@@ -752,18 +711,11 @@ export const traverse_ =
 
     return pipe(
       G.product_(lhsF, bF),
-      G.map2(
-        rhsF,
-        ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as OrderedMap<K, B>,
-      ),
+      G.map2(rhsF, ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as Map<K, B>),
     );
   };
 
-export const show_ = <K, V>(
-  SK: Show<K>,
-  SV: Show<V>,
-  m: OrderedMap<K, V>,
-): string => {
+export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
   const entries = toArray(m)
     .map(([k, v]) => `${SK.show(k)} => ${SV.show(v)}`)
     .join(', ');
@@ -776,8 +728,8 @@ export const show_ = <K, V>(
 export const equals_ = <K, V>(
   EK: Eq<K>,
   EV: Eq<V>,
-  m1: OrderedMap<K, V>,
-  m2: OrderedMap<K, V>,
+  m1: Map<K, V>,
+  m2: Map<K, V>,
 ): boolean => {
   if (size(m1) !== size(m2)) return false;
   const xs = toArray(m1);
@@ -793,32 +745,27 @@ export const equals_ = <K, V>(
 
 // Private implementation
 
-const _mkBin = <K, V>(
-  k: K,
-  v: V,
-  lhs: OrderedMap<K, V>,
-  rhs: OrderedMap<K, V>,
-): Bin<K, V> =>
+const _mkBin = <K, V>(k: K, v: V, lhs: Map<K, V>, rhs: Map<K, V>): Bin<K, V> =>
   new Bin(k, v, Math.max(_height(lhs), _height(rhs)) + 1, lhs, rhs);
 
-const _height = <K, V>(m: OrderedMap<K, V>): number => {
+const _height = <K, V>(m: Map<K, V>): number => {
   const n = toNode(m);
   return n.tag === 'bin' ? n.height : 0;
 };
 
-const _rotateRight = <K, V>(n: Bin<K, V>): OrderedMap<K, V> => {
+const _rotateRight = <K, V>(n: Bin<K, V>): Map<K, V> => {
   const { key, value, lhs, rhs } = n;
   const { key: lk, value: lv, lhs: lLhs, rhs: lRhs } = lhs as Bin<K, V>;
   return _mkBin(lk, lv, lLhs, _mkBin(key, value, lRhs, rhs));
 };
 
-const _rotateLeft = <K, V>(n: Bin<K, V>): OrderedMap<K, V> => {
+const _rotateLeft = <K, V>(n: Bin<K, V>): Map<K, V> => {
   const { key, value, lhs, rhs } = n;
   const { key: rk, value: rv, lhs: rLhs, rhs: rRhs } = rhs as Bin<K, V>;
   return _mkBin(rk, rv, _mkBin(key, value, lhs, rLhs), rRhs);
 };
 
-const _balance = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> => {
+const _balance = <K, V>(m: Map<K, V>): Map<K, V> => {
   const n = toNode(m);
   if (n.tag === 'empty') return n;
 
@@ -849,10 +796,7 @@ const _balance = <K, V>(m: OrderedMap<K, V>): OrderedMap<K, V> => {
   }
 };
 
-const _link = <K, V>(
-  lm: OrderedMap<K, V>,
-  rm: OrderedMap<K, V>,
-): OrderedMap<K, V> => {
+const _link = <K, V>(lm: Map<K, V>, rm: Map<K, V>): Map<K, V> => {
   const ln = toNode(lm);
   if (ln.tag === 'empty') return rm;
   const rn = toNode(rm);
@@ -869,12 +813,12 @@ const _link = <K, V>(
   }
 };
 
-type MinView<K, V> = { k: K; v: V; m: OrderedMap<K, V> };
+type MinView<K, V> = { k: K; v: V; m: Map<K, V> };
 const _getMinView = <K, V>(
   k: K,
   v: V,
-  lm: OrderedMap<K, V>,
-  rm: OrderedMap<K, V>,
+  lm: Map<K, V>,
+  rm: Map<K, V>,
 ): MinView<K, V> => {
   const ln = toNode(lm);
   if (ln.tag === 'empty') return { k, v, m: rm };
@@ -884,12 +828,12 @@ const _getMinView = <K, V>(
   return { ...view, m: _balance(_mkBin(k, v, view.m, rm)) };
 };
 
-type MaxView<K, V> = { k: K; v: V; m: OrderedMap<K, V> };
+type MaxView<K, V> = { k: K; v: V; m: Map<K, V> };
 const _getMaxView = <K, V>(
   k: K,
   v: V,
-  lm: OrderedMap<K, V>,
-  rm: OrderedMap<K, V>,
+  lm: Map<K, V>,
+  rm: Map<K, V>,
 ): MaxView<K, V> => {
   const rn = toNode(rm);
   if (rn.tag === 'empty') return { k, v, m: lm };

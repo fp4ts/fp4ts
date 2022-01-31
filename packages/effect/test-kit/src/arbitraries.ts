@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind, snd } from '@fp4ts/core';
-import { List, Ord, OrderedMap, Functor } from '@fp4ts/cats';
+import { List, Ord, Map, Functor } from '@fp4ts/cats';
 import { ExecutionContext, Resource } from '@fp4ts/effect-kernel';
 import { SyncIO, IO } from '@fp4ts/effect-core';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -71,7 +71,7 @@ export const fp4tsKind = <F, A>(
     baseCase['+++'](KG.recursiveGen(arbA, deeper));
 
   const stripDuplicates = (cases: List<[string, Arbitrary<Kind<F, [A]>>]>) =>
-    OrderedMap.fromList(Ord.primitive)(cases).toArray.map(snd);
+    Map.fromList(Ord.primitive)(cases).toArray.map(snd);
 
   const { gen } = fc.letrec(tie => ({
     base: fc.oneof(...stripDuplicates(baseCase.reverse)),

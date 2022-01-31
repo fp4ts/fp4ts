@@ -3,13 +3,13 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Left, OrderedMap, Right } from '@fp4ts/cats';
+import { Either, Left, Map, Right } from '@fp4ts/cats';
 import { tupled } from '@fp4ts/core';
 
 export class MediaRange {
   public constructor(
     public readonly mainType: string,
-    public readonly extensions: OrderedMap<string, string> = OrderedMap.empty,
+    public readonly extensions: Map<string, string> = Map.empty,
   ) {}
 
   public satisfiedBy(that: MediaRange): boolean {
@@ -24,7 +24,7 @@ export class MediaRange {
   public static readonly application_any = new MediaRange('application');
   public static readonly text_any = new MediaRange('text');
 
-  public static readonly standard: OrderedMap<string, MediaRange> = OrderedMap(
+  public static readonly standard: Map<string, MediaRange> = Map(
     ...[this.any_any, this.application_any, this.text_any].map(x =>
       tupled(x.mainType, x),
     ),
@@ -48,7 +48,7 @@ export class MediaType extends MediaRange {
   public constructor(
     mainType: string,
     public readonly subType: string,
-    extensions: OrderedMap<string, string> = OrderedMap.empty,
+    extensions: Map<string, string> = Map.empty,
   ) {
     super(mainType, extensions);
   }

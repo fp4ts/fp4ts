@@ -13,7 +13,7 @@ import {
   Left,
   List,
   Option,
-  OrderedMap,
+  Map,
   Right,
   Vector,
   Kleisli,
@@ -186,7 +186,7 @@ export const fp4tsOrderedMap = <K, V>(
   arbV: Arbitrary<V>,
   O: Ord<K>,
   constraints: OrderedMapConstraints = {},
-): Arbitrary<OrderedMap<K, V>> => {
+): Arbitrary<Map<K, V>> => {
   const minSize =
     constraints.minSize != null && constraints.minSize >= 0
       ? constraints.minSize
@@ -202,7 +202,7 @@ export const fp4tsOrderedMap = <K, V>(
     .chain(size =>
       fc
         .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
-        .map(OrderedMap.fromArray(O)),
+        .map(Map.fromArray(O)),
     );
 };
 

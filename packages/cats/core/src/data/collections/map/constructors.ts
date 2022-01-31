@@ -7,26 +7,26 @@ import { Ord } from '../../../ord';
 
 import { List } from '../list';
 
-import { Bin, Empty, OrderedMap, toNode } from './algebra';
+import { Bin, Empty, Map, toNode } from './algebra';
 import { insert_ } from './operators';
 
-export const empty: OrderedMap<never, never> = Empty;
+export const empty: Map<never, never> = Empty;
 
-export const singleton = <K, V>(k: K, v: V): OrderedMap<K, V> =>
+export const singleton = <K, V>(k: K, v: V): Map<K, V> =>
   new Bin(k, v, 1, empty, empty);
 
 export const fromArray =
   <K>(O: Ord<K>) =>
-  <V>(xs: [K, V][]): OrderedMap<K, V> =>
-    xs.reduce((m, [k, v]) => insert_(O, m, k, v), empty as OrderedMap<K, V>);
+  <V>(xs: [K, V][]): Map<K, V> =>
+    xs.reduce((m, [k, v]) => insert_(O, m, k, v), empty as Map<K, V>);
 
 export const fromList =
   <K>(O: Ord<K>) =>
-  <V>(xs: List<[K, V]>): OrderedMap<K, V> =>
-    xs.foldLeft(empty as OrderedMap<K, V>, (m, [k, v]) => insert_(O, m, k, v));
+  <V>(xs: List<[K, V]>): Map<K, V> =>
+    xs.foldLeft(empty as Map<K, V>, (m, [k, v]) => insert_(O, m, k, v));
 
-export const fromSortedArray = <K, V>(xs0: [K, V][]): OrderedMap<K, V> => {
-  const loop = (xs: [K, V][], start: number, end: number): OrderedMap<K, V> => {
+export const fromSortedArray = <K, V>(xs0: [K, V][]): Map<K, V> => {
+  const loop = (xs: [K, V][], start: number, end: number): Map<K, V> => {
     if (start >= end) {
       return Empty;
     }
@@ -41,7 +41,7 @@ export const fromSortedArray = <K, V>(xs0: [K, V][]): OrderedMap<K, V> => {
   return loop(xs0, 0, xs0.length);
 };
 
-const _height = <K, V>(m: OrderedMap<K, V>): number => {
+const _height = <K, V>(m: Map<K, V>): number => {
   const n = toNode(m);
   return n.tag === 'bin' ? n.height : 0;
 };

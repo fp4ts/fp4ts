@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { OrderedMap } from '@fp4ts/cats-core/lib/data';
+import { Map } from '@fp4ts/cats-core/lib/data';
 import { Rule, RuleSet } from './rule-set';
 
 export function checkAll(setName: string, rs: RuleSet): void {
@@ -21,10 +21,7 @@ export function checkAll(setName: string, rs: RuleSet): void {
 }
 
 const collectSuites = (rs: RuleSet): [string, Rule[]][] => {
-  const loop = (
-    acc: OrderedMap<string, Rule[]>,
-    rs: RuleSet,
-  ): OrderedMap<string, Rule[]> => {
+  const loop = (acc: Map<string, Rule[]>, rs: RuleSet): Map<string, Rule[]> => {
     acc = acc.insert(rs.name, rs.rules);
 
     if (rs.parentProps.parents) {
@@ -38,5 +35,5 @@ const collectSuites = (rs: RuleSet): [string, Rule[]][] => {
     return acc;
   };
 
-  return loop(OrderedMap.empty, rs).toArray;
+  return loop(Map.empty, rs).toArray;
 };
