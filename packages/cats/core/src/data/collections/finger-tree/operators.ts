@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Iter, throwError } from '@fp4ts/core';
+import { throwError } from '@fp4ts/core';
 
+import { Iter } from '../iterator';
 import { Option, None, Some } from '../../option';
 import { List } from '../list';
 

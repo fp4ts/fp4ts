@@ -3,16 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Kind,
-  compose,
-  id,
-  Iter,
-  pipe,
-  throwError,
-  tupled,
-  flip,
-} from '@fp4ts/core';
+import { Kind, compose, id, pipe, throwError, tupled, flip } from '@fp4ts/core';
 import { Applicative } from '../../../applicative';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
@@ -22,6 +13,7 @@ import { Either } from '../../either';
 import { List } from '../list';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
+import { Iter } from '../iterator';
 
 import { Queue } from './algebra';
 import { empty, fromIterator } from './constructors';
@@ -340,29 +332,13 @@ export const splitAt_ = <A>(q: Queue<A>, idx: number): [Queue<A>, Queue<A>] => {
 export const filter_ = <A>(q: Queue<A>, p: (a: A) => boolean): Queue<A> =>
   pipe(iterator(q), Iter.filter(p), fromIterator);
 
-export const collect_ = <A, B>(
-  q: Queue<A>,
-  p: (a: A) => Option<B>,
-): Queue<B> => {
-  const orUndefined = <A>(opt: Option<A>): A | undefined =>
-    opt.fold(() => undefined, id);
-
-  return pipe(iterator(q), Iter.collect(compose(orUndefined, p)), fromIterator);
-};
+export const collect_ = <A, B>(q: Queue<A>, p: (a: A) => Option<B>): Queue<B> =>
+  pipe(iterator(q), Iter.collect(p), fromIterator);
 
 export const collectWhile_ = <A, B>(
   q: Queue<A>,
   p: (a: A) => Option<B>,
-): Queue<B> => {
-  const orUndefined = <A>(opt: Option<A>): A | undefined =>
-    opt.fold(() => undefined, id);
-
-  return pipe(
-    iterator(q),
-    Iter.collectWhile(compose(orUndefined, p)),
-    fromIterator,
-  );
-};
+): Queue<B> => pipe(iterator(q), Iter.collectWhile(p), fromIterator);
 
 export const map_ = <A, B>(q: Queue<A>, f: (a: A) => B): Queue<B> =>
   pipe(iterator(q), Iter.map(f), fromIterator);

@@ -3,16 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Kind,
-  fst,
-  snd,
-  throwError,
-  Iter,
-  pipe,
-  id,
-  tupled,
-} from '@fp4ts/core';
+import { Kind, fst, snd, throwError, pipe, id, tupled } from '@fp4ts/core';
 import { Foldable } from '../../../foldable';
 import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
@@ -20,6 +11,7 @@ import { Eval } from '../../../eval';
 import { Ior } from '../../ior';
 import { Option, None, Some } from '../../option';
 
+import { Iter } from '../iterator';
 import { List } from '../list';
 import { Vector } from '../vector';
 

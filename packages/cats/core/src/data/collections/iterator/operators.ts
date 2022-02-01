@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Option } from '../../option';
 import { empty, lift } from './constructors';
 import * as IR from './iterator-result';
 
@@ -19,11 +20,11 @@ export const filter: <A>(
 ) => (it: Iterator<A>) => Iterator<A> = f => it => filter_(it, f);
 
 export const collect: <A, B>(
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ) => (it: Iterator<A>) => Iterator<B> = f => it => collect_(it, f);
 
 export const collectWhile: <A, B>(
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ) => (it: Iterator<A>) => Iterator<B> = f => it => collectWhile_(it, f);
 
 export const map: <A, B>(f: (a: A) => B) => (it: Iterator<A>) => Iterator<B> =
@@ -64,6 +65,28 @@ export const elem_ = <A>(it: Iterator<A>, idx: number): A | undefined => {
   return undefined;
 };
 
+export const all_ = <A>(it: Iterator<A>, p: (a: A) => boolean): boolean => {
+  for (let i = it.next(); !i.done; i = it.next()) {
+    if (!p(i.value)) return false;
+  }
+  return true;
+};
+
+export const any_ = <A>(it: Iterator<A>, p: (a: A) => boolean): boolean => {
+  for (let i = it.next(); !i.done; i = it.next()) {
+    if (p(i.value)) return true;
+  }
+  return false;
+};
+
+export const count_ = <A>(it: Iterator<A>, p: (a: A) => boolean): number => {
+  let acc = 0;
+  for (let i = it.next(); !i.done; i = it.next()) {
+    if (p(i.value)) acc++;
+  }
+  return acc;
+};
+
 export const filter_ = <A>(
   it: Iterator<A>,
   f: (a: A) => boolean,
@@ -81,16 +104,16 @@ export const filter_ = <A>(
 
 export const collect_ = <A, B>(
   it: Iterator<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): Iterator<B> => {
   let done = false;
   return lift(() => {
     while (!done) {
       const next = it.next();
       done = next.done ?? false;
-      let nextVal: B | undefined;
-      if (!next.done && (nextVal = f(next.value)) != undefined)
-        return IR.pure(nextVal);
+      let nextVal: Option<B>;
+      if (!next.done && (nextVal = f(next.value)).nonEmpty)
+        return IR.pure(nextVal.get);
     }
     return IR.done;
   });
@@ -98,16 +121,16 @@ export const collect_ = <A, B>(
 
 export const collectWhile_ = <A, B>(
   it: Iterator<A>,
-  f: (a: A) => B | undefined,
+  f: (a: A) => Option<B>,
 ): Iterator<B> => {
   let done = false;
   return lift(() => {
     while (!done) {
       const next = it.next();
       done = next.done ?? false;
-      let nextVal: B | undefined;
-      if (!next.done && (nextVal = f(next.value)) != undefined)
-        return IR.pure(nextVal);
+      let nextVal: Option<B>;
+      if (!next.done && (nextVal = f(next.value)).nonEmpty)
+        return IR.pure(nextVal.get);
       done = true;
     }
     return IR.done;

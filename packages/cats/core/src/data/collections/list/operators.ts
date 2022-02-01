@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id, pipe, throwError, Iter, tupled } from '@fp4ts/core';
+import { Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
 import { Eq } from '../../../eq';
 import { Show } from '../../../show';
 import { Monoid } from '../../../monoid';
@@ -14,10 +14,12 @@ import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
 
-import { Cons, List, view } from './algebra';
-import { cons, empty, nil, pure } from './constructors';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
+import { Iter } from '../iterator';
+
+import { Cons, List, view } from './algebra';
+import { cons, empty, nil, pure } from './constructors';
 import { listFoldable } from './instances';
 
 export const head = <A>(xs: List<A>): A =>

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { Byte, Char, Iter, Kind, PrimitiveType } from '@fp4ts/core';
+import { Byte, Char, Kind, PrimitiveType } from '@fp4ts/core';
 import {
   Chain,
   Option,
@@ -16,6 +16,7 @@ import {
   Applicative,
   Eval,
   Eq,
+  Iter,
 } from '@fp4ts/cats';
 
 const te = new TextEncoder();

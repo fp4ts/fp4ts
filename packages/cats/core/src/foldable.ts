@@ -3,12 +3,22 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, instance, tupled, Iter } from '@fp4ts/core';
+import { Kind, instance, tupled } from '@fp4ts/core';
 import { Monoid } from './monoid';
 import { Monad } from './monad';
 import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
-import { List, Vector, Option, Some, None, Either, Left, Right } from './data';
+import {
+  List,
+  Vector,
+  Option,
+  Some,
+  None,
+  Either,
+  Left,
+  Right,
+  Iter,
+} from './data';
 
 /**
  * @category Type Class

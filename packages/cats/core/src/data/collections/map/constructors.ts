@@ -31,7 +31,7 @@ export const fromSortedArray = <K, V>(xs0: [K, V][]): Map<K, V> => {
       return Empty;
     }
 
-    const middle = Math.floor((start + end) / 2);
+    const middle = ((start + end) / 2) | 0;
     const [k, v] = xs[middle];
     const lhs = loop(xs, start, middle);
     const rhs = loop(xs, middle + 1, end);
