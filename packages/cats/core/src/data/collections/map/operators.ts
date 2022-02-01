@@ -709,10 +709,11 @@ export const traverse_ =
     const bF = f(n.value, n.key);
     const rhsF = traverse_(G)(n.rhs, f);
 
-    return pipe(
-      G.product_(lhsF, bF),
-      G.map2(rhsF, ([lhs, b], rhs) => _mkBin(n.key, b, lhs, rhs) as Map<K, B>),
-    );
+    return G.map3_(
+      lhsF,
+      bF,
+      rhsF,
+    )((lhs, b, rhs) => _mkBin(n.key, b, lhs, rhs) as Map<K, B>);
   };
 
 export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {

@@ -1,3 +1,8 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { Ord } from '../../../ord';
 import { List } from '../list';
 
@@ -36,7 +41,7 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
     const [r, ys, zs] = create(s << 1, xss);
     return zs.isEmpty
       ? go(s << 1, _link(x, l, r), ys)
-      : fromList(_link(x, l, r), ys);
+      : fromList(_link(x, l, r), zs);
   };
 
   const fromList = (t0: Set<A>, xs: List<A>): Set<A> =>
@@ -59,10 +64,10 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
     } else {
       const [l, ys, zs] = create(s >> 1, xs);
       if (ys.isEmpty) return [l, ys, zs];
-      if (ys.size === 0) return [_insertMax(ys.head, l), List.empty, zs];
+      if (ys.size === 1) return [_insertMax(ys.head, l), List.empty, zs];
 
       const [y, yss] = ys.popHead.get;
-      if (notOrdered(y, yss)) return [l, List.empty, yss];
+      if (notOrdered(y, yss)) return [l, List.empty, ys];
       const [r, zs_, ws] = create(s >> 1, yss);
       return [_link(y, l, r), zs_, ws];
     }
@@ -84,7 +89,7 @@ export const fromSortedArray = <A>(xs0: A[]): Set<A> => {
     const middle = ((start + end) / 2) | 0;
     const x = xs[middle];
     const lhs = loop(xs, start, middle);
-    const rhs = loop(xs, start + 1, middle);
+    const rhs = loop(xs, middle + 1, end);
     return new Bin(x, lhs, rhs);
   };
 

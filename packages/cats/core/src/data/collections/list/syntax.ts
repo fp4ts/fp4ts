@@ -76,6 +76,7 @@ import {
   reverseIterator,
   append_,
   forEach_,
+  popLast,
 } from './operators';
 
 declare module './algebra' {
@@ -240,9 +241,20 @@ Object.defineProperty(List.prototype, 'lastOption', {
   },
 });
 
+Object.defineProperty(List.prototype, 'popHead', {
+  get<A>(this: List<A>): Option<[A, List<A>]> {
+    return uncons(this);
+  },
+});
 Object.defineProperty(List.prototype, 'uncons', {
   get<A>(this: List<A>): Option<[A, List<A>]> {
     return uncons(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'popLast', {
+  get<A>(this: List<A>): Option<[A, List<A>]> {
+    return popLast(this);
   },
 });
 

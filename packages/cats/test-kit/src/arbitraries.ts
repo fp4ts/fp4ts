@@ -27,6 +27,7 @@ import {
   State,
   WriterT,
   Writer,
+  Set,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -181,7 +182,7 @@ interface OrderedMapConstraints {
   readonly minSize?: number;
   readonly maxSize?: number;
 }
-export const fp4tsOrderedMap = <K, V>(
+export const fp4tsMap = <K, V>(
   arbK: Arbitrary<K>,
   arbV: Arbitrary<V>,
   O: Ord<K>,
@@ -205,6 +206,9 @@ export const fp4tsOrderedMap = <K, V>(
         .map(Map.fromArray(O)),
     );
 };
+
+export const fp4tsSet = <A>(arbA: Arbitrary<A>, O: Ord<A>): Arbitrary<Set<A>> =>
+  fc.array(arbA).map(xs => Set.fromArray(O, xs));
 
 interface HashMapConstraints {
   readonly minSize?: number;

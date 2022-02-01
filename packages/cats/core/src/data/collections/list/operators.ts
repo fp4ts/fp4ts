@@ -60,6 +60,27 @@ export const uncons = <A>(xs: List<A>): Option<[A, List<A>]> =>
     (h, t) => Some([h, t]),
   );
 
+export const popLast = <A>(xs: List<A>): Option<[A, List<A>]> => {
+  let lst: A | undefined;
+  let h: List<A> | undefined;
+  let t: Cons<A> | undefined;
+
+  while (nonEmpty(xs)) {
+    const ys = xs as Cons<A>;
+    lst = ys._head;
+    if (!h) {
+      h = empty;
+    } else if (!t) {
+      t = new Cons(ys._head, empty);
+      h = t;
+    } else {
+      t._tail = new Cons(ys._head, empty);
+    }
+  }
+
+  return h ? Some([lst!, h]) : None;
+};
+
 export const isEmpty = <A>(xs: List<A>): boolean =>
   fold_(
     xs,

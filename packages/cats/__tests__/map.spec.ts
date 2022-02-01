@@ -749,7 +749,7 @@ describe('Map', () => {
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
       E => Map.Eq(Eq.primitive, E),
     ),
   );
@@ -764,7 +764,7 @@ describe('Map', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
       E => Map.Eq(Eq.primitive, E),
     ),
   );
@@ -784,7 +784,7 @@ describe('Map', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.fp4tsOrderedMap(fc.integer(), x, Ord.primitive),
+      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
       E => Map.Eq(Eq.primitive, E),
       A.fp4tsEval,
       Eval.Eq,
