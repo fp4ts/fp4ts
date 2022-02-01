@@ -502,8 +502,24 @@ export const splitAt_ = <A>(xs: List<A>, idx: number): [List<A>, List<A>] => {
   return [ys, xs];
 };
 
-export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> =>
-  foldRight_(xs, empty as List<A>, (x, ys) => (p(x) ? cons(x, ys) : ys));
+export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> => {
+  let h: Cons<A> | undefined;
+  let t: Cons<A> | undefined;
+  while (xs !== nil) {
+    const x = (xs as Cons<A>)._head;
+    xs = (xs as Cons<A>)._tail;
+
+    if (!p(x)) continue;
+    const tmp = new Cons(x, nil);
+    if (!h) {
+      h = tmp;
+      t = h;
+    } else {
+      t = t!._tail = tmp;
+    }
+  }
+  return h ? h : nil;
+};
 
 export const map_ = <A, B>(xs: List<A>, f: (a: A) => B): List<B> => {
   if (isEmpty(xs)) return nil;
