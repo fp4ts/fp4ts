@@ -162,12 +162,7 @@ export const fold_ = <E, A, B1, B2 = B1>(
   onLeft: (e: E) => B1,
   onRight: (a: A) => B2,
 ): B1 | B2 => {
-  const v = view(ea);
-  if (v.tag === 'right') {
-    return onRight(v.value);
-  } else {
-    return onLeft(v.value);
-  }
+  return ea.fold(onLeft, onRight);
 };
 
 export const equals_ =

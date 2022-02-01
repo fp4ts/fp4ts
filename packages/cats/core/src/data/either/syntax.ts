@@ -9,7 +9,6 @@ import {
   flatMap_,
   flatTap_,
   flatten,
-  fold_,
   isEmpty,
   map_,
   nonEmpty,
@@ -30,9 +29,6 @@ declare module './algebra' {
   interface Either<E, A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
-
-    readonly get: A;
-    readonly getLeft: E;
 
     readonly isLeft: boolean;
     readonly isRight: boolean;
@@ -65,8 +61,6 @@ declare module './algebra' {
     ): Either<E2, A>;
 
     readonly flatten: A extends Either<E, infer B> ? Either<E, B> : never;
-
-    fold<B1, B2 = B1>(onLeft: (e: E) => B1, onRight: (a: A) => B2): B1 | B2;
 
     readonly swapped: Either<A, E>;
     readonly toOption: Option<A>;
@@ -157,10 +151,6 @@ Object.defineProperty(Either.prototype, 'flatten', {
     return flatten(this);
   },
 });
-
-Either.prototype.fold = function (onLeft, onRight) {
-  return fold_(this, onLeft, onRight);
-};
 
 Object.defineProperty(Either.prototype, 'swapped', {
   get<E, A>(this: Either<E, A>): Either<A, E> {
