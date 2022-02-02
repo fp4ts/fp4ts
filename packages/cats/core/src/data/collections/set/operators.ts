@@ -203,10 +203,14 @@ export const remove_ = <A>(O: Ord<A>, sa: Set<A>, x: A): Set<A> => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT:
-      return _balanceR(sn.value, remove_(O, sn.lhs, x), sn.rhs);
-    case Compare.GT:
-      return _balanceL(sn.value, sn.lhs, remove_(O, sn.rhs, x));
+    case Compare.LT: {
+      const l = remove_(O, sn.lhs, x);
+      return l === sn.lhs ? sn : _balanceR(sn.value, l, sn.rhs);
+    }
+    case Compare.GT: {
+      const r = remove_(O, sn.rhs, x);
+      return r === sn.rhs ? sn : _balanceL(sn.value, sn.lhs, r);
+    }
     case Compare.EQ:
       return _glue(sn.lhs, sn.rhs);
   }

@@ -178,34 +178,12 @@ export const fp4tsQueue = <A>(arbA: Arbitrary<A>): Arbitrary<Queue<A>> =>
         ),
     );
 
-interface OrderedMapConstraints {
-  readonly minSize?: number;
-  readonly maxSize?: number;
-}
 export const fp4tsMap = <K, V>(
   arbK: Arbitrary<K>,
   arbV: Arbitrary<V>,
   O: Ord<K>,
-  constraints: OrderedMapConstraints = {},
-): Arbitrary<Map<K, V>> => {
-  const minSize =
-    constraints.minSize != null && constraints.minSize >= 0
-      ? constraints.minSize
-      : 0;
-  const maxSize =
-    constraints.maxSize != null &&
-    constraints.maxSize <= Number.MAX_SAFE_INTEGER
-      ? constraints.maxSize
-      : Math.min(2 * minSize + 10, 0x7fffffff);
-
-  return fc
-    .integer({ min: minSize, max: maxSize })
-    .chain(size =>
-      fc
-        .array(fc.tuple(arbK, arbV), { minLength: size, maxLength: size })
-        .map(Map.fromArray(O)),
-    );
-};
+): Arbitrary<Map<K, V>> =>
+  fc.array(fc.tuple(arbK, arbV)).map(xs => Map.fromArray(O)(xs));
 
 export const fp4tsSet = <A>(arbA: Arbitrary<A>, O: Ord<A>): Arbitrary<Set<A>> =>
   fc.array(arbA).map(xs => Set.fromArray(O, xs));

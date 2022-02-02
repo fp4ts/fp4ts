@@ -15,7 +15,6 @@ import { List } from '../list';
 import { Option, Some, None } from '../../option';
 
 import { Bin, Empty, Node, Map, toNode } from './algebra';
-import { fromSortedArray } from './constructors';
 
 export const isEmpty = <K, V>(m: Map<K, V>): boolean => m === Empty;
 export const nonEmpty = <K, V>(m: Map<K, V>): boolean => m !== Empty;
@@ -307,10 +306,7 @@ export const any_ = <K, V>(
 };
 
 export const contains_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): boolean =>
-  lookup_(O, m, k).fold(
-    () => false,
-    () => true,
-  );
+  lookup_(O, m, k).nonEmpty;
 
 export const get_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): V =>
   lookup_(O, m, k).fold(
@@ -319,7 +315,7 @@ export const get_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): V =>
   );
 
 export const lookup_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Option<V> => {
-  const n = toNode(m);
+  const n = m as Node<K, V>;
 
   if (n.tag === 'empty') return None;
 
@@ -424,12 +420,14 @@ export const remove_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Map<K, V> => {
 
   const { key, value, lhs, rhs } = n;
   switch (O.compare(k, key)) {
-    case Compare.LT:
-      return _balanceR(key, value, remove_(O, lhs, k), rhs);
-
-    case Compare.GT:
-      return _balanceL(key, value, lhs, remove_(O, rhs, k));
-
+    case Compare.LT: {
+      const l = remove_(O, lhs, k);
+      return l === lhs ? n : _balanceR(key, value, l, rhs);
+    }
+    case Compare.GT: {
+      const r = remove_(O, rhs, k);
+      return r === rhs ? n : _balanceL(key, value, lhs, r);
+    }
     case Compare.EQ:
       return _glue(lhs, rhs);
   }
@@ -446,10 +444,14 @@ export const update_ = <K, V>(
 
   const { key, value, lhs, rhs } = n;
   switch (O.compare(k, key)) {
-    case Compare.LT:
-      return new Bin(key, value, update_(O, lhs, k, u), rhs);
-    case Compare.GT:
-      return new Bin(key, value, lhs, update_(O, rhs, k, u));
+    case Compare.LT: {
+      const l = update_(O, lhs, k, u);
+      return l === lhs ? n : new Bin(key, value, l, rhs);
+    }
+    case Compare.GT: {
+      const r = update_(O, rhs, k, u);
+      return r === rhs ? n : new Bin(key, value, lhs, r);
+    }
     case Compare.EQ:
       return new Bin(key, u(value, key), lhs, rhs);
   }
@@ -505,7 +507,22 @@ export const intersect_ = <K, V1, V2>(
   O: Ord<K>,
   m1: Map<K, V1>,
   m2: Map<K, V2>,
-): Map<K, V1> => intersectWith_(O, m1, m2, v => v);
+): Map<K, V1> => {
+  const n1 = m1 as Node<K, V1>;
+  if (n1.tag === 'empty') return Empty;
+  const n2 = m2 as Node<K, V2>;
+  if (n2.tag === 'empty') return Empty;
+
+  const [l2, mb, r2] = splitMember_(O, n2, n1.key);
+  const l1l2 = intersect_(O, n1.lhs, l2);
+  const r1r2 = intersect_(O, n1.rhs, r2);
+
+  return mb
+    ? l1l2 === n1.lhs && r1r2 === n1.rhs
+      ? n1
+      : _link(n1.key, n1.value, l1l2, r1r2)
+    : _merge(l1l2, r1r2);
+};
 
 export const intersectWith_ = <K, V1, V2, C>(
   O: Ord<K>,
@@ -513,37 +530,19 @@ export const intersectWith_ = <K, V1, V2, C>(
   m2: Map<K, V2>,
   u: (v1: V1, v2: V2, k: K) => C,
 ): Map<K, C> => {
-  if (m1 === Empty) return Empty;
-  if (m2 === Empty) return Empty;
+  const n1 = m1 as Node<K, V1>;
+  if (n1.tag === 'empty') return Empty;
+  const n2 = m2 as Node<K, V2>;
+  if (n2.tag === 'empty') return Empty;
 
-  const xs = toArray(m1);
-  const ys = toArray(m2);
-  const zs: [K, C][] = [];
+  const [l2, mb, r2] = splitLookup_(O, n2, n1.key);
+  const l1l2 = intersectWith_(O, n1.lhs, l2, u);
+  const r1r2 = intersectWith_(O, n1.rhs, r2, u);
 
-  const xsL = xs.length;
-  const ysL = ys.length;
-  let xIdx = 0;
-  let yIdx = 0;
-
-  while (xIdx < xsL && yIdx < ysL) {
-    switch (O.compare(xs[xIdx][0], ys[yIdx][0])) {
-      case Compare.LT:
-        xIdx++;
-        break;
-
-      case Compare.GT:
-        yIdx++;
-        break;
-
-      case Compare.EQ: {
-        const key = xs[xIdx][0];
-        zs.push([key, u(xs[xIdx++][1], ys[yIdx++][1], key)]);
-        break;
-      }
-    }
-  }
-
-  return fromSortedArray(zs);
+  return mb.fold(
+    () => _merge(l1l2, r1r2),
+    x => _link(n1.key, u(n1.value, x, n1.key), l1l2, r1r2),
+  );
 };
 
 export const difference_ = <K, V, V2>(
@@ -551,88 +550,23 @@ export const difference_ = <K, V, V2>(
   m1: Map<K, V>,
   m2: Map<K, V2>,
 ): Map<K, V> => {
-  if (m1 === Empty) return Empty;
-  if (m2 === Empty) return m1;
+  const n1 = m1 as Node<K, V>;
+  if (n1.tag === 'empty') return Empty;
+  const n2 = m2 as Node<K, V2>;
+  if (n2.tag === 'empty') return n1;
 
-  const xs = toArray(m1);
-  const ys = toArray(m2);
-  const zs: [K, V][] = [];
+  const [l1, r1] = split_(O, n1, n2.key);
+  const l1l2 = difference_(O, l1, n2.lhs);
+  const r1r2 = difference_(O, r1, n2.rhs);
 
-  const xsL = xs.length;
-  const ysL = ys.length;
-  let xIdx = 0;
-  let yIdx = 0;
-
-  while (xIdx < xsL && yIdx < ysL) {
-    switch (O.compare(xs[xIdx][0], ys[yIdx][0])) {
-      case Compare.LT:
-        zs.push(xs[xIdx++]);
-        break;
-
-      case Compare.GT:
-        ys[yIdx++];
-        break;
-
-      case Compare.EQ: {
-        xIdx++;
-        yIdx++;
-        break;
-      }
-    }
-  }
-
-  while (xIdx < xsL) {
-    zs.push(xs[xIdx++]);
-  }
-
-  return fromSortedArray(zs);
+  return l1l2.size + r1r2.size === n1.size ? n1 : _merge(l1l2, r1r2);
 };
 
 export const symmetricDifference_ = <K, V>(
   O: Ord<K>,
   m1: Map<K, V>,
   m2: Map<K, V>,
-): Map<K, V> => {
-  if (m1 === Empty) return m2;
-  if (m2 === Empty) return m1;
-
-  const xs = toArray(m1);
-  const ys = toArray(m2);
-  const zs: [K, V][] = [];
-
-  const xsL = xs.length;
-  const ysL = ys.length;
-  let xIdx = 0;
-  let yIdx = 0;
-
-  while (xIdx < xsL && yIdx < ysL) {
-    switch (O.compare(xs[xIdx][0], ys[yIdx][0])) {
-      case Compare.LT:
-        zs.push(xs[xIdx++]);
-        break;
-
-      case Compare.GT:
-        zs.push(ys[yIdx++]);
-        break;
-
-      case Compare.EQ: {
-        xIdx++;
-        yIdx++;
-        break;
-      }
-    }
-  }
-
-  while (xIdx < xsL) {
-    zs.push(xs[xIdx++]);
-  }
-
-  while (yIdx < ysL) {
-    zs.push(ys[yIdx++]);
-  }
-
-  return fromSortedArray(zs);
-};
+): Map<K, V> => _merge(difference_(O, m1, m2), difference_(O, m2, m1));
 
 export const split_ = <K, V>(
   O: Ord<K>,
@@ -677,6 +611,29 @@ export const splitLookup_ = <K, V>(
     }
     case Compare.EQ:
       return [n.lhs, Some(n.value), n.rhs];
+  }
+};
+
+export const splitMember_ = <K, V>(
+  O: Ord<K>,
+  m: Map<K, V>,
+  k: K,
+): [Map<K, V>, boolean, Map<K, V>] => {
+  const n = m as Node<K, V>;
+  if (n.tag === 'empty') return [Empty, false, Empty];
+
+  const cmp = O.compare(k, n.key);
+  switch (cmp) {
+    case Compare.LT: {
+      const [lt, found, gt] = splitMember_(O, n.lhs, k);
+      return [lt, found, _link(n.key, n.value, gt, n.rhs)];
+    }
+    case Compare.GT: {
+      const [lt, found, gt] = splitMember_(O, n.rhs, k);
+      return [_link(n.key, n.value, n.lhs, lt), found, gt];
+    }
+    case Compare.EQ:
+      return [n.lhs, true, n.rhs];
   }
 };
 
@@ -757,9 +714,7 @@ export const foldLeft_ = <K, V, B>(
 
 export const foldLeft1_ = <K, V>(m: Map<K, V>, f: (r: V, v: V) => V): V =>
   popMin(m).fold(
-    () => {
-      throw new Error('OrderedMap.empty.foldLeft1');
-    },
+    () => throwError(new Error('OrderedMap.empty.foldLeft1')),
     ([v, mm]) => foldLeft_(mm, v, f),
   );
 
@@ -778,9 +733,7 @@ export const foldRight_ = <K, V, B>(
 
 export const foldRight1_ = <K, V>(m: Map<K, V>, f: (v: V, r: V) => V): V =>
   popMax(m).fold(
-    () => {
-      throw new Error('OrderedMap.empty.foldLeft1');
-    },
+    () => throwError(new Error('OrderedMap.empty.foldLeft1')),
     ([v, mm]) => foldRight_(mm, v, f),
   );
 
