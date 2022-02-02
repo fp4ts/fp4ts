@@ -16,7 +16,7 @@ import {
 } from '@fp4ts/cats-laws';
 
 describe('Map', () => {
-  const H = Hashable.primitiveMD5;
+  const H = Hashable.any;
 
   const pairs: [number, string][] = [
     [1, 'test'],
@@ -654,13 +654,13 @@ describe('Map', () => {
     });
   });
 
-  const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.primitiveMD5));
+  const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.any));
   checkAll(
     'MonoidK<$<HashMapK, [number]>>',
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
       E => HashMap.Eq(Eq.primitive, E),
     ),
   );
@@ -677,7 +677,7 @@ describe('Map', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
       E => HashMap.Eq(Eq.primitive, E),
     ),
   );
@@ -704,7 +704,7 @@ describe('Map', () => {
       HashMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.primitiveMD5),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
       E => HashMap.Eq(Eq.primitive, E),
       A.fp4tsEval,
       Eval.Eq,

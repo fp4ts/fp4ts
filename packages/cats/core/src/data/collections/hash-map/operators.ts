@@ -634,7 +634,7 @@ export const equals_ = <K, V>(
 
 const _hash = <K>(H: Hashable<K>, k: K): number =>
   // take first, most significant 32 bits
-  Buffer.from(H.hash(k)).readUIntLE(0, 4);
+  H.hash(k) | 0;
 
 const _index = (h: number, d: number): number => (h >> (d * 5)) & MASK;
 

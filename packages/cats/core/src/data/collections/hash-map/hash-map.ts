@@ -11,7 +11,7 @@ import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { UnorderedFoldable } from '../../../unordered-foldable';
 import { UnorderedTraversable } from '../../../unordered-traversable';
-import { Hashable, primitiveMD5Hashable } from '../../../hashable';
+import { Hashable, anyHashable } from '../../../hashable';
 
 import { List } from '../list';
 
@@ -30,7 +30,7 @@ import {
 export const HashMap: HashMapObj = function <K extends PrimitiveType, V>(
   ...pairs: [K, V][]
 ): HashMap<K, V> {
-  return of<K>(primitiveMD5Hashable())(...pairs);
+  return of<K>(anyHashable())(...pairs);
 } as any;
 
 export type HashMap<K, V> = HashMapBase<K, V>;

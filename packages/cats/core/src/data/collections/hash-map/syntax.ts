@@ -9,7 +9,7 @@ import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 import { Eq, primitiveEq } from '../../../eq';
-import { Hashable, primitiveMD5Hashable } from '../../../hashable';
+import { Hashable, anyHashable } from '../../../hashable';
 
 import { Option } from '../../option';
 import { List } from '../list';
@@ -321,50 +321,50 @@ HashMap.prototype.any = function <K, V>(
 HashMap.prototype.hasKey = function (this: any, ...args: any[]): boolean {
   return args.length === 2
     ? hasKey_(args[0], this, args[1])
-    : hasKey_(primitiveMD5Hashable(), this, args[0]);
+    : hasKey_(anyHashable(), this, args[0]);
 };
 
 HashMap.prototype.get = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? get_(args[0], this, args[1])
-    : get_(primitiveMD5Hashable(), this, args[0]);
+    : get_(anyHashable(), this, args[0]);
 };
 HashMap.prototype['!!'] = HashMap.prototype.get;
 
 HashMap.prototype.lookup = function (this: any, ...args: any[]): Option<any> {
   return args.length === 2
     ? lookup_(args[0], this, args[1])
-    : lookup_(primitiveMD5Hashable(), this, args[0]);
+    : lookup_(anyHashable(), this, args[0]);
 };
 HashMap.prototype['!?'] = HashMap.prototype.get;
 
 HashMap.prototype.insert = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? insert_(args[0], this, args[1], args[2])
-    : insert_(primitiveMD5Hashable(), this, args[0], args[1]);
+    : insert_(anyHashable(), this, args[0], args[1]);
 };
 
 HashMap.prototype.insertWith = function (this: any, ...args: any[]): any {
   return args.length === 4
     ? insertWith_(args[0], this, args[1], args[2], args[3])
-    : insertWith_(primitiveMD5Hashable(), this, args[0], args[1], args[2]);
+    : insertWith_(anyHashable(), this, args[0], args[1], args[2]);
 };
 
 HashMap.prototype.update = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? update_(args[0], this, args[1], args[2])
-    : update_(primitiveMD5Hashable(), this, args[0], args[1]);
+    : update_(anyHashable(), this, args[0], args[1]);
 };
 HashMap.prototype.remove = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? remove_(args[0], this, args[1])
-    : remove_(primitiveMD5Hashable(), this, args[0]);
+    : remove_(anyHashable(), this, args[0]);
 };
 
 HashMap.prototype.union = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? union_(args[0], this, args[1])
-    : union_(primitiveMD5Hashable(), this, args[0]);
+    : union_(anyHashable(), this, args[0]);
 };
 
 HashMap.prototype['+++'] = HashMap.prototype.union;
@@ -372,19 +372,19 @@ HashMap.prototype['+++'] = HashMap.prototype.union;
 HashMap.prototype.unionWith = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? unionWith_(args[0], this, args[1], args[2])
-    : unionWith_(primitiveMD5Hashable(), this, args[0], args[1]);
+    : unionWith_(anyHashable(), this, args[0], args[1]);
 };
 
 HashMap.prototype.intersect = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? intersect_(args[0], this, args[1])
-    : intersect_(primitiveMD5Hashable(), this, args[0]);
+    : intersect_(anyHashable(), this, args[0]);
 };
 
 HashMap.prototype.intersectWith = function (this: any, ...args: any[]): any {
   return args.length === 3
     ? intersectWith_(args[0], this, args[1], args[2])
-    : intersectWith_(primitiveMD5Hashable(), this, args[0], args[1]);
+    : intersectWith_(anyHashable(), this, args[0], args[1]);
 };
 
 HashMap.prototype.difference = function (this: any, ...args: any[]): any {
