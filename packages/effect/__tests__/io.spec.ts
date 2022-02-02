@@ -1029,7 +1029,6 @@ describe('IO', () => {
         const cont = jest.fn();
         const ts = List(
           IO.defer(() => IO.throwError(new Error('test test'))),
-          IO.never,
           IO.never.onCancel(IO(fin)),
           IO(cont),
           IO(cont),

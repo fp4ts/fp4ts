@@ -91,7 +91,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
         return this.schedule(this, this.currentEC);
       }
 
-      const cur = IOA.view(_cur);
+      const cur = _cur as IOA.IOView<unknown>;
       switch (cur.tag) {
         case 'pure':
           this.pushTracingEvent(cur.event);
@@ -205,7 +205,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
             state.result = ea;
             state.phase = IOA.ContStatePhase.Result;
             if (wasInPhase === IOA.ContStatePhase.Waiting) {
-              this.resume(resume);
+              resume();
             }
           };
 
