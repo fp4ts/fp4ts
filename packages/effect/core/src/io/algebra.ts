@@ -18,7 +18,7 @@ export abstract class IO<A> {
 }
 
 export class Pure<A> extends IO<A> {
-  public readonly tag = 'pure';
+  public readonly tag = 0; // 'pure';
   public constructor(
     public readonly value: A,
     public readonly event?: TracingEvent,
@@ -32,7 +32,7 @@ export class Pure<A> extends IO<A> {
 }
 
 export class Fail extends IO<never> {
-  public readonly tag = 'fail';
+  public readonly tag = 1; // 'fail';
   public constructor(readonly error: Error) {
     super();
   }
@@ -43,7 +43,7 @@ export class Fail extends IO<never> {
 }
 
 export class Delay<A> extends IO<A> {
-  public readonly tag = 'delay';
+  public readonly tag = 2;
   public constructor(
     public readonly thunk: () => A,
     public readonly event?: TracingEvent,
@@ -53,7 +53,7 @@ export class Delay<A> extends IO<A> {
 }
 
 export class Defer<A> extends IO<A> {
-  public readonly tag = 'defer';
+  public readonly tag = 3;
   public constructor(
     public readonly thunk: () => IO<A>,
     public readonly event?: TracingEvent,
@@ -63,12 +63,12 @@ export class Defer<A> extends IO<A> {
 }
 
 export const Suspend = new (class Suspend extends IO<void> {
-  public readonly tag = 'suspend';
+  public readonly tag = 21;
 })();
 export type Suspend = typeof Suspend;
 
 export class Map<E, A> extends IO<A> {
-  public readonly tag = 'map';
+  public readonly tag = 4;
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (e: E) => A,
@@ -78,7 +78,7 @@ export class Map<E, A> extends IO<A> {
   }
 }
 export class FlatMap<E, A> extends IO<A> {
-  public readonly tag = 'flatMap';
+  public readonly tag = 5;
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (a: E) => IO<A>,
@@ -88,7 +88,7 @@ export class FlatMap<E, A> extends IO<A> {
   }
 }
 export class HandleErrorWith<A> extends IO<A> {
-  public readonly tag = 'handleErrorWith';
+  public readonly tag = 6;
   public constructor(
     public readonly ioa: IO<A>,
     public readonly f: (e: Error) => IO<A>,
@@ -99,7 +99,7 @@ export class HandleErrorWith<A> extends IO<A> {
 }
 
 export class Attempt<A> extends IO<Either<Error, A>> {
-  public readonly tag = 'attempt';
+  public readonly tag = 7;
   public constructor(public readonly ioa: IO<A>) {
     super();
   }
@@ -107,30 +107,30 @@ export class Attempt<A> extends IO<Either<Error, A>> {
 
 export const CurrentTimeMicros =
   new (class CurrentTimeMicros extends IO<number> {
-    public readonly tag = 'currentTimeMicros';
+    public readonly tag = 8;
   })();
 export type CurrentTimeMicros = typeof CurrentTimeMicros;
 
 export const CurrentTimeMillis =
   new (class CurrentTimeMillis extends IO<number> {
-    public readonly tag = 'currentTimeMillis';
+    public readonly tag = 9;
   })();
 export type CurrentTimeMillis = typeof CurrentTimeMillis;
 
 export const ReadEC = new (class ReadEC extends IO<ExecutionContext> {
-  public readonly tag = 'readEC';
+  public readonly tag = 10;
 })();
 export type ReadEC = typeof ReadEC;
 
 export class Fork<A> extends IO<IOFiber<A>> {
-  public readonly tag = 'fork';
+  public readonly tag = 11;
   public constructor(public readonly ioa: IO<A>) {
     super();
   }
 }
 
 export class OnCancel<A> extends IO<A> {
-  public readonly tag = 'onCancel';
+  public readonly tag = 12;
   public constructor(
     public readonly ioa: IO<A>,
     public readonly fin: IO<void>,
@@ -140,12 +140,12 @@ export class OnCancel<A> extends IO<A> {
 }
 
 export const Canceled = new (class Canceled extends IO<void> {
-  public readonly tag = 'canceled';
+  public readonly tag = 13;
 })();
 export type Canceled = typeof Canceled;
 
 export class Uncancelable<A> extends IO<A> {
-  public readonly tag = 'uncancelable';
+  public readonly tag = 16;
   public constructor(
     public readonly body: (p: Poll<IoK>) => IO<A>,
     public readonly event?: TracingEvent,
@@ -157,21 +157,21 @@ export class Uncancelable<A> extends IO<A> {
 export class RacePair<A, B> extends IO<
   Either<[IOOutcome<A>, IOFiber<B>], [IOFiber<A>, IOOutcome<B>]>
 > {
-  public readonly tag = 'racePair';
+  public readonly tag = 18;
   public constructor(public readonly ioa: IO<A>, public readonly iob: IO<B>) {
     super();
   }
 }
 
 export class Sleep extends IO<void> {
-  public readonly tag = 'sleep';
+  public readonly tag = 19;
   public constructor(public readonly ms: number) {
     super();
   }
 }
 
 export class ExecuteOn<A> extends IO<A> {
-  public readonly tag = 'executeOn';
+  public readonly tag = 20;
   public constructor(
     public readonly ioa: IO<A>,
     public readonly ec: ExecutionContext,
@@ -183,7 +183,7 @@ export class ExecuteOn<A> extends IO<A> {
 // -- Internal algebra produced by fiber execution
 
 export class UnmaskRunLoop<A> extends IO<A> {
-  public readonly tag = 'unmaskRunLoop';
+  public readonly tag = 17;
   public constructor(
     public readonly ioa: IO<A>,
     public readonly id: number,
@@ -194,7 +194,7 @@ export class UnmaskRunLoop<A> extends IO<A> {
 }
 
 export class IOCont<K, R> extends IO<R> {
-  public readonly tag = 'ioCont';
+  public readonly tag = 14;
   public constructor(
     public readonly body: Cont<IoK, K, R>,
     public readonly event?: TracingEvent,
@@ -204,14 +204,14 @@ export class IOCont<K, R> extends IO<R> {
 }
 
 export class IOContGet<A> extends IO<A> {
-  public readonly tag = 'ioContGet';
+  public readonly tag = 15;
   public constructor(public readonly state: ContState) {
     super();
   }
 }
 
 export const IOEndFiber = new (class IOEnd extends IO<never> {
-  public readonly tag = 'IOEndFiber';
+  public readonly tag = 22;
 })();
 export type IOEndFiber = typeof IOEndFiber;
 
@@ -250,17 +250,25 @@ export enum Resumption {
   DoneR,
 }
 
-export enum Continuation {
-  MapK,
-  FlatMapK,
-  HandleErrorWithK,
-  AttemptK,
-  OnCancelK,
-  UncancelableK,
-  UnmaskK,
-  RunOnK,
-  CancelationLoopK,
-}
+export const MapK = 0;
+export const FlatMapK = 1;
+export const HandleErrorWithK = 2;
+export const AttemptK = 3;
+export const OnCancelK = 4;
+export const UncancelableK = 5;
+export const UnmaskK = 6;
+export const RunOnK = 7;
+export const CancelationLoopK = 8;
+export type Continuation =
+  | typeof MapK
+  | typeof FlatMapK
+  | typeof HandleErrorWithK
+  | typeof AttemptK
+  | typeof OnCancelK
+  | typeof UncancelableK
+  | typeof UnmaskK
+  | typeof RunOnK
+  | typeof CancelationLoopK;
 
 export enum ContStatePhase {
   Initial,

@@ -93,16 +93,16 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
       const cur = _cur as IOA.IOView<unknown>;
       switch (cur.tag) {
-        case 'pure':
+        case 0:
           this.pushTracingEvent(cur.event);
           _cur = this.succeeded(cur.value);
           continue;
 
-        case 'fail':
+        case 1:
           _cur = this.failed(cur.error);
           continue;
 
-        case 'delay':
+        case 2:
           try {
             this.pushTracingEvent(cur.event);
             _cur = IO.pure(cur.thunk());
@@ -111,7 +111,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           }
           continue;
 
-        case 'defer':
+        case 3:
           try {
             this.pushTracingEvent(cur.event);
             _cur = cur.thunk();
@@ -120,63 +120,63 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           }
           continue;
 
-        case 'map':
+        case 4:
           this.stack.push(cur.f);
-          this.conts.push(IOA.Continuation.MapK);
+          this.conts.push(IOA.MapK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
-        case 'flatMap':
+        case 5:
           this.stack.push(cur.f);
-          this.conts.push(IOA.Continuation.FlatMapK);
+          this.conts.push(IOA.FlatMapK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
-        case 'handleErrorWith':
+        case 6:
           this.stack.push(cur.f as (u: unknown) => unknown);
-          this.conts.push(IOA.Continuation.HandleErrorWithK);
+          this.conts.push(IOA.HandleErrorWithK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioa;
           continue;
 
-        case 'attempt':
-          this.conts.push(IOA.Continuation.AttemptK);
+        case 7:
+          this.conts.push(IOA.AttemptK);
           _cur = cur.ioa;
           continue;
 
-        case 'currentTimeMicros':
+        case 8:
           _cur = IO.pure(this.currentEC.currentTimeMicros());
           continue;
 
-        case 'currentTimeMillis':
+        case 9:
           _cur = IO.pure(this.currentEC.currentTimeMillis());
           continue;
 
-        case 'readEC':
+        case 10:
           _cur = IO.pure(this.currentEC);
           continue;
 
-        case 'fork': {
+        case 11: {
           const fiber = new IOFiber(cur.ioa, this.currentEC, this.runtime);
           this.schedule(fiber, this.currentEC);
           _cur = IO.pure(fiber);
           continue;
         }
 
-        case 'onCancel':
+        case 12:
           this.finalizers.push(cur.fin);
-          this.conts.push(IOA.Continuation.OnCancelK);
+          this.conts.push(IOA.OnCancelK);
           _cur = cur.ioa;
           continue;
 
-        case 'canceled':
+        case 13:
           this.canceled = true;
           _cur = IO.pure(undefined);
           continue;
 
-        case 'ioCont': {
+        case 14: {
           const body = cur.body;
           this.pushTracingEvent(cur.event);
 
@@ -217,7 +217,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           continue;
         }
 
-        case 'ioContGet': {
+        case 15: {
           const state = cur.state;
 
           const fin = IO(() => {
@@ -226,7 +226,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           });
 
           this.finalizers.push(fin);
-          this.conts.push(IOA.Continuation.OnCancelK);
+          this.conts.push(IOA.OnCancelK);
 
           if (state.phase === IOA.ContStatePhase.Initial) {
             state.phase = IOA.ContStatePhase.Waiting;
@@ -255,7 +255,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           return;
         }
 
-        case 'uncancelable': {
+        case 16: {
           this.pushTracingEvent(cur.event);
 
           this.masks += 1;
@@ -263,22 +263,22 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
           const poll: Poll<IoK> = iob => new IOA.UnmaskRunLoop(iob, id, this);
 
-          this.conts.push(IOA.Continuation.UncancelableK);
+          this.conts.push(IOA.UncancelableK);
           _cur = cur.body(poll);
           continue;
         }
 
-        case 'unmaskRunLoop':
+        case 17:
           // Prevent nested invocations from unmasking the loop more that once
           // and unmasking different fibers
           if (this.masks === cur.id && this === cur.fiber) {
             this.masks -= 1;
-            this.conts.push(IOA.Continuation.UnmaskK);
+            this.conts.push(IOA.UnmaskK);
           }
           _cur = cur.ioa;
           continue;
 
-        case 'racePair': {
+        case 18: {
           const { ioa, iob } = cur;
 
           const next = IO.async<
@@ -313,7 +313,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           continue;
         }
 
-        case 'sleep': {
+        case 19: {
           const ms = cur.ms;
           const next = IO.async<void>(resume =>
             IO(() => {
@@ -328,7 +328,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           continue;
         }
 
-        case 'executeOn': {
+        case 20: {
           const ec = cur.ec;
 
           if (ec === this.currentEC) {
@@ -341,18 +341,18 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           this.resumeIO = cur.ioa;
           this.currentEC = ec;
           this.cxts.push(ec);
-          this.conts.push(IOA.Continuation.RunOnK);
+          this.conts.push(IOA.RunOnK);
           this.schedule(this, ec);
 
           return;
         }
 
-        case 'suspend':
+        case 21:
           this.resumeIO = IO.pure(undefined);
           this.schedule(this, this.currentEC);
           return;
 
-        case 'IOEndFiber':
+        case 22:
           throw new Error('Uncaught end of fiber');
       }
     }
@@ -384,7 +384,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
     this.finalizing = true;
 
     if (this.finalizers.length) {
-      this.conts = [IOA.Continuation.CancelationLoopK];
+      this.conts = [IOA.CancelationLoopK];
       this.stack = cb ? [cb as (u: unknown) => unknown] : [];
 
       // do not allow further cancelations
@@ -455,11 +455,9 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
         while (true) {
           const nextCont = this.conts.pop();
+          if (nextCont === undefined) return this.terminateSuccessK(r);
           switch (nextCont) {
-            case undefined:
-              return this.terminateSuccessK(r);
-
-            case IOA.Continuation.MapK:
+            case 0:
               try {
                 const f = this.stack.pop()!;
                 r = f(r);
@@ -469,33 +467,33 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
                 continue loop;
               }
 
-            case IOA.Continuation.FlatMapK:
+            case 1:
               return this.flatMapK(r);
 
-            case IOA.Continuation.HandleErrorWithK:
+            case 2:
               this.stack.pop(); // Skip over error handlers
               continue;
 
-            case IOA.Continuation.AttemptK:
+            case 3:
               r = Right(r);
               continue;
 
-            case IOA.Continuation.OnCancelK:
+            case 4:
               this.onCancelK();
               continue;
 
-            case IOA.Continuation.UncancelableK:
+            case 5:
               this.uncancelableK();
               continue;
 
-            case IOA.Continuation.UnmaskK:
+            case 6:
               this.unmaskK();
               continue;
 
-            case IOA.Continuation.RunOnK:
+            case 7:
               return this.executeOnSuccessK(r);
 
-            case IOA.Continuation.CancelationLoopK:
+            case 8:
               return this.cancelationLoopSuccessK();
           }
         }
@@ -505,16 +503,14 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
         while (true) {
           const nextCont = this.conts.pop();
+          if (nextCont === undefined) return this.terminateFailureK(e);
           switch (nextCont) {
-            case undefined:
-              return this.terminateFailureK(e);
-
-            case IOA.Continuation.MapK:
-            case IOA.Continuation.FlatMapK:
+            case 0:
+            case 1:
               this.stack.pop(); // skip over success transformers
               continue;
 
-            case IOA.Continuation.HandleErrorWithK:
+            case 2:
               try {
                 const f = this.stack.pop()! as (e: Error) => IO<unknown>;
                 return f(e);
@@ -524,26 +520,26 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
                 continue;
               }
 
-            case IOA.Continuation.AttemptK:
+            case 3:
               cr = { tag: 'success', value: Left(e) };
               continue loop;
 
-            case IOA.Continuation.OnCancelK:
+            case 4:
               this.onCancelK();
               continue;
 
-            case IOA.Continuation.UncancelableK:
+            case 5:
               this.uncancelableK();
               continue;
 
-            case IOA.Continuation.UnmaskK:
+            case 6:
               this.unmaskK();
               continue;
 
-            case IOA.Continuation.RunOnK:
+            case 7:
               return this.executeOnFailureK(e);
 
-            case IOA.Continuation.CancelationLoopK:
+            case 8:
               return this.cancelationLoopFailureK(e);
           }
         }
@@ -610,7 +606,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
   private cancelationLoopSuccessK(): IO<unknown> {
     const fin = this.finalizers.pop();
     if (fin) {
-      this.conts.push(IOA.Continuation.CancelationLoopK);
+      this.conts.push(IOA.CancelationLoopK);
       return fin;
     }
 
