@@ -725,12 +725,12 @@ describe('Map', () => {
 
   describe('show', () => {
     it('should show an empty map', () => {
-      expect(Map.empty.show()).toBe('[OrderedMap entries: {}]');
+      expect(Map.empty.show()).toBe('[Map entries: {}]');
     });
 
     it('should print out values', () => {
       expect(Map([1, 2], [2, 3]).show()).toBe(
-        '[OrderedMap entries: { 1 => 2, 2 => 3 }]',
+        '[Map entries: { 1 => 2, 2 => 3 }]',
       );
     });
 
@@ -739,13 +739,13 @@ describe('Map', () => {
         Map<number, [number, number]>([1, [2, 2]], [2, [3, 3]]).show({
           show: ([x, y]) => `(${x}, ${y})`,
         }),
-      ).toBe('[OrderedMap entries: { 1 => (2, 2), 2 => (3, 3) }]');
+      ).toBe('[Map entries: { 1 => (2, 2), 2 => (3, 3) }]');
     });
   });
 
   const monoidKTests = MonoidKSuite(Map.MonoidK(Ord.primitive));
   checkAll(
-    'MonoidK<OrderedMap>',
+    'MonoidK<Map>',
     monoidKTests.monoidK(
       fc.integer(),
       Eq.primitive,
@@ -756,7 +756,7 @@ describe('Map', () => {
 
   const functorFilterTests = FunctorFilterSuite(Map.FunctorFilter<number>());
   checkAll(
-    'FunctorFilter<OrderedMap>',
+    'FunctorFilter<Map>',
     functorFilterTests.functorFilter(
       fc.integer(),
       fc.integer(),
@@ -771,7 +771,7 @@ describe('Map', () => {
 
   const traversableTests = TraversableSuite(Map.Traversable<number>());
   checkAll(
-    'Traversable<OrderedMap>',
+    'Traversable<Map>',
     traversableTests.traversable<number, number, number, EvalK, EvalK>(
       fc.integer(),
       fc.integer(),

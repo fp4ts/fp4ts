@@ -28,6 +28,7 @@ import {
   foldMap_,
   foldRight1_,
   foldRight_,
+  forEach_,
   get_,
   head,
   headOption,
@@ -52,7 +53,6 @@ import {
   popMinWithKey,
   remove_,
   show_,
-  size,
   symmetricDifference_,
   tail,
   toArray,
@@ -76,8 +76,6 @@ declare module './algebra' {
 
     readonly last: V;
     readonly lastOption: V;
-
-    readonly size: number;
 
     readonly toArray: [K, V][];
     readonly toList: List<[K, V]>;
@@ -225,6 +223,8 @@ declare module './algebra' {
 
     collect<B>(f: (v: V, k: K) => Option<B>): Map<K, B>;
 
+    forEach(f: (v: V, k: K) => void): void;
+
     foldLeft<B>(z: B, f: (b: B, v: V, k: K) => B): B;
     foldLeft1<V2>(this: Map<K, V2>, f: (r: V2, v: V2) => V2): V2;
     foldRight<B>(z: B, f: (v: V, b: B, k: K) => B): B;
@@ -290,12 +290,6 @@ Object.defineProperty(Map.prototype, 'last', {
 Object.defineProperty(Map.prototype, 'lastOption', {
   get<K, V>(this: Map<K, V>): Option<V> {
     return lastOption(this);
-  },
-});
-
-Object.defineProperty(Map.prototype, 'size', {
-  get<K, V>(this: Map<K, V>): number {
-    return size(this);
   },
 });
 
@@ -481,6 +475,10 @@ Map.prototype.collect = function <K, V, B>(
   f: (v: V, k: K) => Option<B>,
 ): Map<K, B> {
   return collect_(this, f);
+};
+
+Map.prototype.forEach = function (f) {
+  forEach_(this, f);
 };
 
 Map.prototype.foldLeft = function <K, V, B>(

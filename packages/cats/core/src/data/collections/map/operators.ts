@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, throwError, id, pipe } from '@fp4ts/core';
+import { Kind, throwError, id } from '@fp4ts/core';
 import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -41,8 +41,6 @@ export const last = <K, V>(m: Map<K, V>): V =>
   max(m).fold(() => throwError(new Error('Empty.last')), id);
 
 export const lastOption = <K, V>(m: Map<K, V>): Option<V> => max(m);
-
-export const size = <K, V>(m: Map<K, V>): number => foldLeft_(m, 0, c => c + 1);
 
 export const toArray = <K, V>(m: Map<K, V>): [K, V][] => {
   const result: [K, V][] = [];
@@ -346,18 +344,18 @@ export const insertWith_ = <K, V>(
   u: (v1: V, v2: V, k: K) => V,
 ): Map<K, V> => {
   const n = toNode(m);
-  if (n.tag === 'empty') return _mkBin(k, v, Empty, Empty);
+  if (n.tag === 'empty') return new Bin(k, v, Empty, Empty);
 
   const { key, value, lhs, rhs } = n;
   switch (O.compare(k, n.key)) {
     case Compare.LT:
-      return _balance(_mkBin(key, value, insertWith_(O, lhs, k, v, u), rhs));
+      return _balanceL(key, value, insertWith_(O, lhs, k, v, u), rhs);
 
     case Compare.GT:
-      return _balance(_mkBin(key, value, lhs, insertWith_(O, rhs, k, v, u)));
+      return _balanceR(key, value, lhs, insertWith_(O, rhs, k, v, u));
 
     case Compare.EQ:
-      return _mkBin(key, u(value, v, key), lhs, rhs);
+      return new Bin(key, u(value, v, key), lhs, rhs);
   }
 };
 
@@ -368,17 +366,13 @@ export const remove_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Map<K, V> => {
   const { key, value, lhs, rhs } = n;
   switch (O.compare(k, key)) {
     case Compare.LT:
-      return _balance(_mkBin(key, value, remove_(O, lhs, k), rhs));
+      return _balanceR(key, value, remove_(O, lhs, k), rhs);
 
     case Compare.GT:
-      return _balance(_mkBin(key, value, lhs, remove_(O, rhs, k)));
+      return _balanceL(key, value, lhs, remove_(O, rhs, k));
 
-    case Compare.EQ: {
-      if (rhs === Empty) return lhs;
-      if (lhs === Empty) return rhs;
-
-      return _balance(_link(lhs, rhs));
-    }
+    case Compare.EQ:
+      return _glue(lhs, rhs);
   }
 };
 
@@ -394,11 +388,11 @@ export const update_ = <K, V>(
   const { key, value, lhs, rhs } = n;
   switch (O.compare(k, key)) {
     case Compare.LT:
-      return _mkBin(key, value, update_(O, lhs, k, u), rhs);
+      return new Bin(key, value, update_(O, lhs, k, u), rhs);
     case Compare.GT:
-      return _mkBin(key, value, lhs, update_(O, rhs, k, u));
+      return new Bin(key, value, lhs, update_(O, rhs, k, u));
     case Compare.EQ:
-      return _mkBin(key, u(value, key), lhs, rhs);
+      return new Bin(key, u(value, key), lhs, rhs);
   }
 };
 
@@ -595,11 +589,14 @@ export const filter_ = <K, V>(
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
-  const { key, value, lhs, rhs } = n;
+  const l = filter_(n.lhs, p);
+  const r = filter_(n.rhs, p);
 
-  return p(value, key)
-    ? _balance(_mkBin(key, value, filter_(lhs, p), filter_(rhs, p)))
-    : _balance(_link(filter_(lhs, p), filter_(rhs, p)));
+  return p(n.value, n.key)
+    ? l === n.lhs && r === n.rhs
+      ? n
+      : _link(n.key, n.value, l, r)
+    : _merge(l, r);
 };
 
 export const map_ = <K, V, B>(
@@ -610,7 +607,7 @@ export const map_ = <K, V, B>(
   if (n.tag === 'empty') return Empty;
 
   const { key, value, lhs, rhs } = n;
-  return _mkBin(key, f(value, key), map_(lhs, f), map_(rhs, f));
+  return new Bin(key, f(value, key), map_(lhs, f), map_(rhs, f));
 };
 
 export const tap_ = <K, V>(
@@ -629,9 +626,12 @@ export const collect_ = <K, V, B>(
   const n = toNode(m);
   if (n.tag === 'empty') return Empty;
 
+  const l = collect_(n.lhs, f);
+  const r = collect_(n.rhs, f);
+
   return f(n.value, n.key).fold(
-    () => _balance(_link(collect_(n.lhs, f), collect_(n.rhs, f))),
-    v => _balance(_mkBin(n.key, v, collect_(n.lhs, f), collect_(n.rhs, f))),
+    () => _merge(l, r),
+    v => _link(n.key, v, l, r),
   );
 };
 
@@ -713,7 +713,7 @@ export const traverse_ =
       lhsF,
       bF,
       rhsF,
-    )((lhs, b, rhs) => _mkBin(n.key, b, lhs, rhs) as Map<K, B>);
+    )((lhs, b, rhs) => new Bin(n.key, b, lhs, rhs) as Map<K, B>);
   };
 
 export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
@@ -721,9 +721,7 @@ export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {
     .map(([k, v]) => `${SK.show(k)} => ${SV.show(v)}`)
     .join(', ');
 
-  return entries === ''
-    ? '[OrderedMap entries: {}]'
-    : `[OrderedMap entries: { ${entries} }]`;
+  return entries === '' ? '[Map entries: {}]' : `[Map entries: { ${entries} }]`;
 };
 
 export const equals_ = <K, V>(
@@ -732,7 +730,7 @@ export const equals_ = <K, V>(
   m1: Map<K, V>,
   m2: Map<K, V>,
 ): boolean => {
-  if (size(m1) !== size(m2)) return false;
+  if (m1.size !== m2.size) return false;
   const xs = toArray(m1);
   const ys = toArray(m2);
 
@@ -746,71 +744,153 @@ export const equals_ = <K, V>(
 
 // Private implementation
 
-const _mkBin = <K, V>(k: K, v: V, lhs: Map<K, V>, rhs: Map<K, V>): Bin<K, V> =>
-  new Bin(k, v, Math.max(_height(lhs), _height(rhs)) + 1, lhs, rhs);
+const delta = 3;
+const ratio = 2;
 
-const _height = <K, V>(m: Map<K, V>): number => {
-  const n = toNode(m);
-  return n.tag === 'bin' ? n.height : 0;
-};
+function _balanceL<K, V>(k: K, x: V, l: Map<K, V>, r: Map<K, V>): Map<K, V> {
+  const ln = l as Node<K, V>;
+  if (r.size === 0) {
+    if (ln.tag === 'empty') {
+      return new Bin(k, x, Empty, Empty);
+    } else if (ln.size === 1) {
+      return new Bin(k, x, l, Empty);
+    } else if (ln.lhs.size === 0) {
+      return new Bin(
+        (ln.rhs as Bin<K, V>).key,
+        (ln.rhs as Bin<K, V>).value,
+        new Bin(ln.key, ln.value, Empty, Empty),
+        new Bin(k, x, Empty, Empty),
+      );
+    } else if (ln.rhs.size === 0) {
+      return new Bin(ln.key, ln.value, ln.lhs, new Bin(k, x, Empty, Empty));
+    }
 
-const _rotateRight = <K, V>(n: Bin<K, V>): Map<K, V> => {
-  const { key, value, lhs, rhs } = n;
-  const { key: lk, value: lv, lhs: lLhs, rhs: lRhs } = lhs as Bin<K, V>;
-  return _mkBin(lk, lv, lLhs, _mkBin(key, value, lRhs, rhs));
-};
-
-const _rotateLeft = <K, V>(n: Bin<K, V>): Map<K, V> => {
-  const { key, value, lhs, rhs } = n;
-  const { key: rk, value: rv, lhs: rLhs, rhs: rRhs } = rhs as Bin<K, V>;
-  return _mkBin(rk, rv, _mkBin(key, value, lhs, rLhs), rRhs);
-};
-
-const _balance = <K, V>(m: Map<K, V>): Map<K, V> => {
-  const n = toNode(m);
-  if (n.tag === 'empty') return n;
-
-  const delta = _height(n.lhs) - _height(n.rhs);
-  switch (delta) {
-    case 1:
-    case 0:
-    case -1:
-      return n;
-    default:
-      if (delta > 0) {
-        const lhs = n.lhs as Bin<K, V>;
-        if (_height(lhs.lhs) - _height(lhs.rhs) >= 0) {
-          return _rotateRight(n);
-        } else {
-          const newLhs = _rotateLeft(n.lhs as Bin<K, V>);
-          return _rotateRight(_mkBin(n.key, n.value, newLhs, n.rhs));
-        }
-      } else {
-        const rhs = n.rhs as Bin<K, V>;
-        if (_height(rhs.lhs) - _height(rhs.rhs) >= 0) {
-          const newRhs = _rotateRight(n.rhs as Bin<K, V>);
-          return _rotateLeft(_mkBin(n.key, n.value, n.lhs, newRhs));
-        } else {
-          return _rotateLeft(n);
-        }
-      }
+    return ln.rhs.size < ratio * ln.lhs.size
+      ? new Bin(ln.key, ln.value, ln.lhs, new Bin(k, x, ln.rhs, Empty))
+      : new Bin(
+          (ln.rhs as Bin<K, V>).key,
+          (ln.rhs as Bin<K, V>).value,
+          new Bin(ln.key, ln.value, ln.lhs, (ln.rhs as Bin<K, V>).lhs),
+          new Bin(k, x, (ln.rhs as Bin<K, V>).rhs, Empty),
+        );
   }
+
+  if (ln.tag === 'empty') {
+    return new Bin(k, x, Empty, r);
+  } else if (ln.size <= delta * r.size) {
+    return new Bin(k, x, l, r);
+  }
+
+  return ln.rhs.size < ratio * ln.lhs.size
+    ? new Bin(ln.key, ln.value, ln.lhs, new Bin(k, x, ln.rhs, r))
+    : new Bin(
+        (ln.rhs as Bin<K, V>).key,
+        (ln.rhs as Bin<K, V>).value,
+        new Bin(ln.key, ln.value, ln.lhs, (ln.rhs as Bin<K, V>).lhs),
+        new Bin(k, x, (ln.rhs as Bin<K, V>).rhs, r),
+      );
+}
+
+function _balanceR<K, V>(k: K, x: V, l: Map<K, V>, r: Map<K, V>): Map<K, V> {
+  const rn = r as Node<K, V>;
+  if (l.size === 0) {
+    if (rn.tag === 'empty') {
+      return new Bin(k, x, Empty, Empty);
+    } else if (rn.size === 1) {
+      return new Bin(k, x, Empty, r);
+    } else if (rn.lhs.size === 0) {
+      return new Bin(rn.key, rn.value, new Bin(k, x, Empty, Empty), rn.rhs);
+    } else if (rn.rhs.size === 0) {
+      return new Bin(
+        (rn.lhs as Bin<K, V>).key,
+        (rn.lhs as Bin<K, V>).value,
+        new Bin(k, x, Empty, Empty),
+        new Bin(rn.key, rn.value, Empty, Empty),
+      );
+    }
+
+    return rn.lhs.size < ratio * rn.rhs.size
+      ? new Bin(rn.key, rn.value, new Bin(k, x, Empty, rn.lhs), rn.rhs)
+      : new Bin(
+          (rn.lhs as Bin<K, V>).key,
+          (rn.lhs as Bin<K, V>).value,
+          new Bin(k, x, Empty, (rn.lhs as Bin<K, V>).lhs),
+          new Bin(rn.key, rn.value, (rn.lhs as Bin<K, V>).rhs, rn.rhs),
+        );
+  }
+
+  if (rn.tag === 'empty') {
+    return new Bin(k, x, l, Empty);
+  } else if (rn.size <= delta * l.size) {
+    return new Bin(k, x, l, r);
+  }
+
+  return rn.lhs.size < ratio * rn.rhs.size
+    ? new Bin(rn.key, rn.value, new Bin(k, x, l, rn.lhs), rn.rhs)
+    : new Bin(
+        (rn.lhs as Bin<K, V>).key,
+        (rn.lhs as Bin<K, V>).value,
+        new Bin(k, x, l, (rn.lhs as Bin<K, V>).lhs),
+        new Bin(rn.key, rn.value, (rn.lhs as Bin<K, V>).rhs, rn.rhs),
+      );
+}
+
+export const _link = <K, V>(
+  k: K,
+  x: V,
+  l: Map<K, V>,
+  r: Map<K, V>,
+): Map<K, V> => {
+  const ln = l as Node<K, V>;
+  if (ln.tag === 'empty') return _insertMin(k, x, r);
+  const rn = r as Node<K, V>;
+  if (rn.tag === 'empty') return _insertMax(k, x, l);
+
+  if (delta * ln.size < rn.size)
+    return _balanceL(rn.key, rn.value, _link(k, x, ln, rn.lhs), rn.rhs);
+  else if (delta * rn.size < ln.size)
+    return _balanceR(ln.key, ln.value, ln.lhs, _link(k, x, ln.rhs, rn));
+  else return new Bin(k, x, ln, rn);
 };
 
-const _link = <K, V>(lm: Map<K, V>, rm: Map<K, V>): Map<K, V> => {
-  const ln = toNode(lm);
-  if (ln.tag === 'empty') return rm;
-  const rn = toNode(rm);
-  if (rn.tag === 'empty') return lm;
+export const _insertMax = <K, V>(k: K, x: V, sa: Map<K, V>): Map<K, V> => {
+  const sn = sa as Node<K, V>;
+  return sn.tag === 'empty'
+    ? new Bin(k, x, Empty, Empty)
+    : _balanceR(sn.key, sn.value, sn.lhs, _insertMax(k, x, sn.rhs));
+};
+const _insertMin = <K, V>(k: K, x: V, sa: Map<K, V>): Map<K, V> => {
+  const sn = sa as Node<K, V>;
+  return sn.tag === 'empty'
+    ? new Bin(k, x, Empty, Empty)
+    : _balanceL(sn.key, sn.value, _insertMin(k, x, sn.lhs), sn.rhs);
+};
 
-  if (_height(ln) > _height(rn)) {
-    const { key: lk, value: lv, lhs: lLhs, rhs: lRhs } = ln;
-    const { k, v, m: lm } = _getMaxView(lk, lv, lLhs, lRhs);
-    return _mkBin(k, v, lm, rn);
+const _merge = <K, V>(l: Map<K, V>, r: Map<K, V>): Map<K, V> => {
+  const ln = l as Node<K, V>;
+  if (ln.tag === 'empty') return r;
+  const rn = r as Node<K, V>;
+  if (rn.tag === 'empty') return l;
+
+  return delta * ln.size < rn.size
+    ? _balanceL(rn.key, rn.value, _merge(ln, rn.lhs), rn.rhs)
+    : _balanceR(ln.key, ln.value, ln.lhs, _merge(ln.rhs, rn));
+};
+
+const _glue = <K, V>(l: Map<K, V>, r: Map<K, V>): Map<K, V> => {
+  const ln = l as Node<K, V>;
+  if (ln.tag === 'empty') return r;
+  const rn = r as Node<K, V>;
+  if (rn.tag === 'empty') return l;
+
+  if (ln.size > rn.size) {
+    const { key: lk, value: lx, lhs: ll, rhs: lr } = ln;
+    const { k, v, m } = _getMaxView(lk, lx, ll, lr);
+    return _balanceR(k, v, m, r);
   } else {
-    const { key: rk, value: rv, lhs: rLhs, rhs: rRhs } = rn;
-    const { k, v, m: rm } = _getMinView(rk, rv, rLhs, rRhs);
-    return _mkBin(k, v, ln, rm);
+    const { key: rk, value: rx, lhs: rl, rhs: rr } = rn;
+    const { k, v, m } = _getMinView(rk, rx, rl, rr);
+    return _balanceL(k, v, l, m);
   }
 };
 
@@ -826,7 +906,7 @@ const _getMinView = <K, V>(
 
   const { key, value, lhs, rhs } = ln;
   const view = _getMinView(key, value, lhs, rhs);
-  return { ...view, m: _balance(_mkBin(k, v, view.m, rm)) };
+  return { ...view, m: _balanceR(k, v, view.m, rm) };
 };
 
 type MaxView<K, V> = { k: K; v: V; m: Map<K, V> };
@@ -841,5 +921,5 @@ const _getMaxView = <K, V>(
 
   const { key, value, lhs, rhs } = rn;
   const view = _getMaxView(key, value, lhs, rhs);
-  return { ...view, m: _balance(_mkBin(k, v, lm, view.m)) };
+  return { ...view, m: _balanceL(k, v, lm, view.m) };
 };

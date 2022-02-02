@@ -30,7 +30,6 @@ import {
   nonEmpty,
   popMin,
   sequence,
-  size,
   traverse_,
   union_,
 } from './operators';
@@ -89,7 +88,7 @@ export const mapFoldable: <K>() => Foldable<$<MapK, [K]>> = lazyVal(() =>
     count_: (m, p) => count_(m, x => p(x)),
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
-    size: size,
+    size: x => x.size,
   }),
 );
 

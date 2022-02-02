@@ -7,13 +7,13 @@ import { Ord } from '../../../ord';
 
 import { List } from '../list';
 
-import { Bin, Empty, Map, toNode } from './algebra';
+import { Bin, Empty, Map } from './algebra';
 import { insert_ } from './operators';
 
 export const empty: Map<never, never> = Empty;
 
 export const singleton = <K, V>(k: K, v: V): Map<K, V> =>
-  new Bin(k, v, 1, empty, empty);
+  new Bin(k, v, empty, empty);
 
 export const fromArray =
   <K>(O: Ord<K>) =>
@@ -35,13 +35,8 @@ export const fromSortedArray = <K, V>(xs0: [K, V][]): Map<K, V> => {
     const [k, v] = xs[middle];
     const lhs = loop(xs, start, middle);
     const rhs = loop(xs, middle + 1, end);
-    return new Bin(k, v, Math.max(_height(lhs), _height(rhs)) + 1, lhs, rhs);
+    return new Bin(k, v, lhs, rhs);
   };
 
   return loop(xs0, 0, xs0.length);
-};
-
-const _height = <K, V>(m: Map<K, V>): number => {
-  const n = toNode(m);
-  return n.tag === 'bin' ? n.height : 0;
 };
