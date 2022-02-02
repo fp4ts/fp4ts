@@ -184,10 +184,14 @@ export const insert_ = <A>(O: Ord<A>, sa: Set<A>, x: A): Set<A> => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT:
-      return _balanceL(sn.value, insert_(O, sn.lhs, x), sn.rhs);
-    case Compare.GT:
-      return _balanceR(sn.value, sn.lhs, insert_(O, sn.rhs, x));
+    case Compare.LT: {
+      const l = insert_(O, sn.lhs, x);
+      return l === sn.lhs ? sn : _balanceL(sn.value, l, sn.rhs);
+    }
+    case Compare.GT: {
+      const r = insert_(O, sn.rhs, x);
+      return r === sn.rhs ? sn : _balanceR(sn.value, sn.lhs, r);
+    }
     case Compare.EQ:
       return sn;
   }

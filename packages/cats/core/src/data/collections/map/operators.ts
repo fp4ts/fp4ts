@@ -333,8 +333,48 @@ export const lookup_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K): Option<V> => {
   }
 };
 
-export const insert_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K, v: V): Map<K, V> =>
-  insertWith_(O, m, k, v, () => v);
+export const insert_ = <K, V>(
+  O: Ord<K>,
+  m: Map<K, V>,
+  k: K,
+  v: V,
+): Map<K, V> => {
+  const n = toNode(m);
+  if (n.tag === 'empty') return new Bin(k, v, Empty, Empty);
+
+  const { key, value, lhs, rhs } = n;
+  switch (O.compare(k, n.key)) {
+    case Compare.LT: {
+      const l = insert_(O, lhs, k, v);
+      return l === n.lhs ? n : _balanceL(key, value, l, rhs);
+    }
+    case Compare.GT: {
+      const r = insert_(O, rhs, k, v);
+      return r === n.rhs ? n : _balanceR(key, value, lhs, r);
+    }
+    case Compare.EQ:
+      return v === n.value ? n : new Bin(k, v, n.lhs, n.rhs);
+  }
+};
+
+const insertR_ = <K, V>(O: Ord<K>, m: Map<K, V>, k: K, v: V): Map<K, V> => {
+  const n = toNode(m);
+  if (n.tag === 'empty') return new Bin(k, v, Empty, Empty);
+
+  const { key, value, lhs, rhs } = n;
+  switch (O.compare(k, n.key)) {
+    case Compare.LT: {
+      const l = insertR_(O, lhs, k, v);
+      return l === n.lhs ? n : _balanceL(key, value, l, rhs);
+    }
+    case Compare.GT: {
+      const r = insertR_(O, rhs, k, v);
+      return r === n.rhs ? n : _balanceR(key, value, lhs, r);
+    }
+    case Compare.EQ:
+      return n;
+  }
+};
 
 export const insertWith_ = <K, V>(
   O: Ord<K>,
@@ -350,12 +390,31 @@ export const insertWith_ = <K, V>(
   switch (O.compare(k, n.key)) {
     case Compare.LT:
       return _balanceL(key, value, insertWith_(O, lhs, k, v, u), rhs);
-
     case Compare.GT:
       return _balanceR(key, value, lhs, insertWith_(O, rhs, k, v, u));
-
     case Compare.EQ:
       return new Bin(key, u(value, v, key), lhs, rhs);
+  }
+};
+
+const insertWithR_ = <K, V>(
+  O: Ord<K>,
+  m: Map<K, V>,
+  k: K,
+  v: V,
+  u: (v1: V, v2: V, k: K) => V,
+): Map<K, V> => {
+  const n = toNode(m);
+  if (n.tag === 'empty') return new Bin(k, v, Empty, Empty);
+
+  const { key, value, lhs, rhs } = n;
+  switch (O.compare(k, n.key)) {
+    case Compare.LT:
+      return _balanceL(key, value, insertWithR_(O, lhs, k, v, u), rhs);
+    case Compare.GT:
+      return _balanceR(key, value, lhs, insertWithR_(O, rhs, k, v, u));
+    case Compare.EQ:
+      return new Bin(key, u(v, value, key), lhs, rhs);
   }
 };
 
@@ -400,7 +459,23 @@ export const union_ = <K, V>(
   O: Ord<K>,
   m1: Map<K, V>,
   m2: Map<K, V>,
-): Map<K, V> => unionWith_(O, m1, m2, v1 => v1);
+): Map<K, V> => {
+  const n1 = m1 as Node<K, V>;
+  if (n1.tag === 'empty') return m2;
+  const n2 = m2 as Node<K, V>;
+  if (n2.tag === 'empty') return m1;
+
+  if (n2.size === 1) return insertR_(O, n1, n2.key, n2.value);
+  if (n1.size === 1) return insert_(O, n2, n1.key, n1.value);
+
+  const [l2, r2] = split_(O, n2, n1.key);
+  const l1l2 = union_(O, n1.lhs, l2);
+  const r1r2 = union_(O, n1.rhs, r2);
+
+  return l1l2 === n1.lhs && r1r2 === n1.rhs
+    ? n1
+    : _link(n1.key, n1.value, l1l2, r1r2);
+};
 
 export const unionWith_ = <K, V>(
   O: Ord<K>,
@@ -408,45 +483,22 @@ export const unionWith_ = <K, V>(
   m2: Map<K, V>,
   u: (v1: V, v2: V, k: K) => V,
 ): Map<K, V> => {
-  if (m1 === Empty) return m2;
-  if (m2 === Empty) return m1;
+  const n1 = m1 as Node<K, V>;
+  if (n1.tag === 'empty') return m2;
+  const n2 = m2 as Node<K, V>;
+  if (n2.tag === 'empty') return m1;
 
-  const xs = toArray(m1);
-  const ys = toArray(m2);
-  const zs: [K, V][] = [];
+  if (n2.size === 1) return insertWith_(O, n1, n2.key, n2.value, u);
+  if (n1.size === 1) return insertWithR_(O, n2, n1.key, n1.value, u);
 
-  const xsL = xs.length;
-  const ysL = ys.length;
-  let xIdx = 0;
-  let yIdx = 0;
+  const [l2, mb, r2] = splitLookup_(O, n2, n1.key);
+  const l1l2 = unionWith_(O, n1.lhs, l2, u);
+  const r1r2 = unionWith_(O, n1.rhs, r2, u);
 
-  while (xIdx < xsL && yIdx < ysL) {
-    switch (O.compare(xs[xIdx][0], ys[yIdx][0])) {
-      case Compare.LT:
-        zs.push(xs[xIdx++]);
-        break;
-
-      case Compare.GT:
-        zs.push(ys[yIdx++]);
-        break;
-
-      case Compare.EQ: {
-        const key = xs[xIdx][0];
-        zs.push([key, u(xs[xIdx++][1], ys[yIdx++][1], key)]);
-        break;
-      }
-    }
-  }
-
-  while (xIdx < xsL) {
-    zs.push(xs[xIdx++]);
-  }
-
-  while (yIdx < ysL) {
-    zs.push(ys[yIdx++]);
-  }
-
-  return fromSortedArray(zs);
+  return mb.fold(
+    () => _link(n1.key, n1.value, l1l2, r1r2),
+    x2 => _link(n1.key, u(n1.value, x2, n1.key), l1l2, r1r2),
+  );
 };
 
 export const intersect_ = <K, V1, V2>(
@@ -580,6 +632,52 @@ export const symmetricDifference_ = <K, V>(
   }
 
   return fromSortedArray(zs);
+};
+
+export const split_ = <K, V>(
+  O: Ord<K>,
+  m: Map<K, V>,
+  k: K,
+): [Map<K, V>, Map<K, V>] => {
+  const n = m as Node<K, V>;
+  if (n.tag === 'empty') return [Empty, Empty];
+
+  const cmp = O.compare(k, n.key);
+  switch (cmp) {
+    case Compare.LT: {
+      const [lt, gt] = split_(O, n.lhs, k);
+      return [lt, _link(n.key, n.value, gt, n.rhs)];
+    }
+    case Compare.GT: {
+      const [lt, gt] = split_(O, n.rhs, k);
+      return [_link(n.key, n.value, n.lhs, lt), gt];
+    }
+    case Compare.EQ:
+      return [n.lhs, n.rhs];
+  }
+};
+
+export const splitLookup_ = <K, V>(
+  O: Ord<K>,
+  m: Map<K, V>,
+  k: K,
+): [Map<K, V>, Option<V>, Map<K, V>] => {
+  const n = m as Node<K, V>;
+  if (n.tag === 'empty') return [Empty, None, Empty];
+
+  const cmp = O.compare(k, n.key);
+  switch (cmp) {
+    case Compare.LT: {
+      const [lt, found, gt] = splitLookup_(O, n.lhs, k);
+      return [lt, found, _link(n.key, n.value, gt, n.rhs)];
+    }
+    case Compare.GT: {
+      const [lt, found, gt] = splitLookup_(O, n.rhs, k);
+      return [_link(n.key, n.value, n.lhs, lt), found, gt];
+    }
+    case Compare.EQ:
+      return [n.lhs, Some(n.value), n.rhs];
+  }
 };
 
 export const filter_ = <K, V>(
