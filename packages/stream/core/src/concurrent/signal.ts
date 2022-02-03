@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import { Map } from '@fp4ts/cats';
+import { Map, Monad } from '@fp4ts/cats';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
 
@@ -18,99 +18,96 @@ export interface SignallingRef<F, A> extends Ref<F, A>, Signal<F, A> {}
 
 export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
   return <A>(initial: A): Kind<F, [SignallingRef<F, A>]> =>
-    pipe(
-      F.Do,
-      F.bindTo('state', F.ref(new State<F, A>(initial, 0, Map.empty))),
-      F.bindTo('ids', F.ref(0)),
-      F.map(({ state, ids }) => {
-        const newId = ids.updateAndGet(x => x + 1);
+    Monad.Do(F)(function* (_) {
+      const state = yield* _(F.ref(new State<F, A>(initial, 0, Map.empty)));
+      const ids = yield* _(F.ref(0));
+      const newId = ids.updateAndGet(x => x + 1);
 
-        const updateAndNotify = <B>(
-          state: State<F, A>,
-          f: (a: A) => [A, B],
-        ): [State<F, A>, Kind<F, [B]>] => {
-          const [newValue, result] = f(state.value);
-          const lastUpdate = state.lastUpdate + 1;
-          const newState = new State<F, A>(newValue, lastUpdate, Map.empty);
-          const notifyListeners = state.listeners.toList.traverse(F)(
-            ([, listener]) => listener.complete([newValue, lastUpdate]),
-          );
+      const updateAndNotify = <B>(
+        state: State<F, A>,
+        f: (a: A) => [A, B],
+      ): [State<F, A>, Kind<F, [B]>] => {
+        const [newValue, result] = f(state.value);
+        const lastUpdate = state.lastUpdate + 1;
+        const newState = new State<F, A>(newValue, lastUpdate, Map.empty);
+        const notifyListeners = state.listeners.toList.traverse(F)(
+          ([, listener]) => listener.complete([newValue, lastUpdate]),
+        );
 
-          return [newState, F.map_(notifyListeners, () => result)];
-        };
+        return [newState, F.map_(notifyListeners, () => result)];
+      };
 
-        const get: Kind<F, [A]> = F.map_(state.get(), s => s.value);
+      const get: Kind<F, [A]> = F.map_(state.get(), s => s.value);
 
-        const continuous = (): Stream<F, A> => Stream.repeatEval(get);
+      const continuous = (): Stream<F, A> => Stream.repeatEval(get);
 
-        const discrete = (): Stream<F, A> => {
-          const go = (id: number, lastSeen: number): Stream<F, A> => {
-            const getNext: Kind<F, [[A, number]]> = pipe(
-              F.deferred<[A, number]>(),
-              F.flatMap(wait =>
-                state.modify(s =>
-                  s.lastUpdate !== lastSeen
-                    ? [s, F.pure([s.value, s.lastUpdate])]
-                    : [
-                        s.copy({ listeners: s.listeners.insert(id, wait) }),
-                        wait.get(),
-                      ],
-                ),
+      const discrete = (): Stream<F, A> => {
+        const go = (id: number, lastSeen: number): Stream<F, A> => {
+          const getNext: Kind<F, [[A, number]]> = pipe(
+            F.deferred<[A, number]>(),
+            F.flatMap(wait =>
+              state.modify(s =>
+                s.lastUpdate !== lastSeen
+                  ? [s, F.pure([s.value, s.lastUpdate])]
+                  : [
+                      s.copy({ listeners: s.listeners.insert(id, wait) }),
+                      wait.get(),
+                    ],
               ),
-              F.flatten,
-            );
-
-            return Stream.evalF(getNext).flatMap(([a, lastUpdate]) =>
-              Stream.pure<F, A>(a)['+++'](go(id, lastUpdate)),
-            );
-          };
-
-          const cleanup = (id: number): Kind<F, [void]> =>
-            state.update(s => s.copy({ listeners: s.listeners.remove(id) }));
-
-          return Stream.bracket(newId, cleanup).flatMap(id =>
-            Stream.evalF(state.get()).flatMap(state =>
-              Stream.pure<F, A>(state.value)['+++'](go(id, state.lastUpdate)),
             ),
+            F.flatten,
+          );
+
+          return Stream.evalF(getNext).flatMap(([a, lastUpdate]) =>
+            Stream.pure<F, A>(a)['+++'](go(id, lastUpdate)),
           );
         };
 
-        return new (class SignallingRef
-          extends Ref<F, A>
-          implements Signal<F, A>
-        {
-          public constructor() {
-            super();
-          }
+        const cleanup = (id: number): Kind<F, [void]> =>
+          state.update(s => s.copy({ listeners: s.listeners.remove(id) }));
 
-          public discrete = discrete;
-          public continuous = continuous;
+        return Stream.bracket(newId, cleanup).flatMap(id =>
+          Stream.evalF(state.get()).flatMap(state =>
+            Stream.pure<F, A>(state.value)['+++'](go(id, state.lastUpdate)),
+          ),
+        );
+      };
 
-          public get(): Kind<F, [A]> {
-            return get;
-          }
+      return new (class SignallingRef
+        extends Ref<F, A>
+        implements Signal<F, A>
+      {
+        public constructor() {
+          super();
+        }
 
-          public set(x: A): Kind<F, [void]> {
-            return this.update(() => x);
-          }
+        public discrete = discrete;
+        public continuous = continuous;
 
-          public update(f: (a: A) => A): Kind<F, [void]> {
-            return this.modify(a => [f(a), undefined]);
-          }
+        public get(): Kind<F, [A]> {
+          return get;
+        }
 
-          public updateAndGet(f: (a: A) => A): Kind<F, [A]> {
-            return this.modify(a => {
-              const newResult = f(a);
-              return [newResult, newResult];
-            });
-          }
+        public set(x: A): Kind<F, [void]> {
+          return this.update(() => x);
+        }
 
-          public modify<B>(f: (a: A) => [A, B]): Kind<F, [B]> {
-            return F.flatten(state.modify(s => updateAndNotify(s, f)));
-          }
-        })();
-      }),
-    );
+        public update(f: (a: A) => A): Kind<F, [void]> {
+          return this.modify(a => [f(a), undefined]);
+        }
+
+        public updateAndGet(f: (a: A) => A): Kind<F, [A]> {
+          return this.modify(a => {
+            const newResult = f(a);
+            return [newResult, newResult];
+          });
+        }
+
+        public modify<B>(f: (a: A) => [A, B]): Kind<F, [B]> {
+          return F.flatten(state.modify(s => updateAndNotify(s, f)));
+        }
+      })();
+    });
 };
 
 type Props<F, A> = {

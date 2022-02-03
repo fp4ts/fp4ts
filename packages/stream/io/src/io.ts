@@ -5,7 +5,7 @@
 
 import { Duplex, Readable, Writable } from 'stream';
 import { Byte, fst, Kind, pipe, snd, tupled } from '@fp4ts/core';
-import { Option, Some, None, Either, Show } from '@fp4ts/cats';
+import { Option, Some, None, Either, Show, Monad } from '@fp4ts/cats';
 import { Async, Resource, SyncIO, Dispatcher, Queue } from '@fp4ts/effect';
 import { Stream, Chunk, Pull, Pipe, text } from '@fp4ts/stream-core';
 
@@ -39,58 +39,55 @@ export const suspendReadableAndRead =
     const RF = Resource.Monad<F>();
     const RS = Resource.Sync(SyncIO.Sync);
 
-    return pipe(
-      RF.Do,
-      RF.bindTo('dispatcher', Dispatcher(F)),
-      RF.bindTo('queue', Resource.evalF(Queue.synchronous<F, Option<void>>(F))),
-      RF.bindTo('error', Resource.evalF(F.deferred<Error>())),
+    return Monad.Do(RF)(function* (_) {
+      const dispatcher = yield* _(Dispatcher(F));
+      const queue = yield* _(
+        Resource.evalF(Queue.synchronous<F, Option<void>>(F)),
+      );
+      const error = yield* _(Resource.evalF(F.deferred<Error>()));
 
-      RF.bindTo('resourceReadable', ({ dispatcher, queue, error }) =>
-        pipe(
-          RS.Do,
-          RS.bindTo(
-            'readable',
-            Resource.make(S)(SyncIO(thunk), (readable, ec) =>
-              ec.fold(
-                () =>
-                  destroyIfCanceled
-                    ? SyncIO(() => readable.destroy())
-                    : SyncIO.unit,
-                e => SyncIO(() => readable.destroy(e)),
-                () =>
-                  !readable.readableEnded && destroyIfNotEnded
-                    ? SyncIO(() => readable.destroy())
-                    : SyncIO.unit,
-              ),
+      const resourceReadable = Monad.Do(RS)(function* (_) {
+        const readable = yield* _(
+          Resource.make(S)(SyncIO(thunk), (readable, ec) =>
+            ec.fold(
+              () =>
+                destroyIfCanceled
+                  ? SyncIO(() => readable.destroy())
+                  : SyncIO.unit,
+              e => SyncIO(() => readable.destroy(e)),
+              () =>
+                !readable.readableEnded && destroyIfNotEnded
+                  ? SyncIO(() => readable.destroy())
+                  : SyncIO.unit,
             ),
           ),
+        );
 
-          RS.bind(({ readable }) =>
-            registerListener0(S)(readable, 'readable', () =>
-              dispatcher.unsafeRunAndForget(queue.offer(Some(undefined))),
-            ),
+        yield* _(
+          registerListener0(S)(readable, 'readable', () =>
+            dispatcher.unsafeRunAndForget(queue.offer(Some(undefined))),
           ),
-          RS.bind(({ readable }) =>
-            registerListener0(S)(readable, 'end', () =>
-              dispatcher.unsafeRunAndForget(queue.offer(None)),
-            ),
+        );
+        yield* _(
+          registerListener0(S)(readable, 'end', () =>
+            dispatcher.unsafeRunAndForget(queue.offer(None)),
           ),
-          RS.bind(({ readable }) =>
-            registerListener0(S)(readable, 'close', () =>
-              dispatcher.unsafeRunAndForget(queue.offer(None)),
-            ),
+        );
+        yield* _(
+          registerListener0(S)(readable, 'close', () =>
+            dispatcher.unsafeRunAndForget(queue.offer(None)),
           ),
-          RS.bind(({ readable }) =>
-            registerListener(S)(readable, 'error', (e: Error) =>
-              dispatcher.unsafeRunAndForget(error.complete(e)),
-            ),
+        );
+        yield* _(
+          registerListener(S)(readable, 'error', (e: Error) =>
+            dispatcher.unsafeRunAndForget(error.complete(e)),
           ),
+        );
 
-          RS.map(({ readable }) => readable),
-          RF.pure,
-        ),
-      ),
-      RF.bindTo('readable', ({ resourceReadable }) =>
+        return readable;
+      });
+
+      const readable = yield* _(
         Resource.make(F)(
           F.delay(() =>
             resourceReadable.allocated(SyncIO.Sync).unsafeRunSync(),
@@ -102,24 +99,23 @@ export const suspendReadableAndRead =
               () => F.unit,
             ),
         ).map(fst),
-      ),
-      RF.map(({ readable, queue, error }) => {
-        const stream = Stream.fromQueueNoneTerminated(queue)
-          .concurrently(F)(Stream.evalF(F.flatMap_(error.get(), F.throwError)))
-          .flatMap(() =>
-            Stream.evalUnChunk(
-              F.delay(() =>
-                Option(readable.read() as Buffer).fold(
-                  () => Chunk.empty,
-                  Chunk.fromBuffer,
-                ),
+      );
+
+      const stream = Stream.fromQueueNoneTerminated(queue)
+        .concurrently(F)(Stream.evalF(F.flatMap_(error.get(), F.throwError)))
+        .flatMap(() =>
+          Stream.evalUnChunk(
+            F.delay(() =>
+              Option(readable.read() as Buffer).fold(
+                () => Chunk.empty,
+                Chunk.fromBuffer,
               ),
             ),
-          );
+          ),
+        );
 
-        return tupled(readable, stream);
-      }),
-    );
+      return tupled(readable, stream);
+    });
   };
 
 export const toReadable =
@@ -218,19 +214,17 @@ const mkDuplex =
   (is: Stream<F, Byte>): Resource<F, [Duplex, Stream<F, Byte>]> => {
     const RF = Resource.Monad<F>();
 
-    return pipe(
-      RF.Do,
-      RF.bindTo('dispatcher', Dispatcher(F)),
-      RF.bindTo(
-        'readQueue',
+    return Monad.Do(RF)(function* (_) {
+      const dispatcher = yield* _(Dispatcher(F));
+      const readQueue = yield* _(
         Resource.evalF(Queue.bounded(F)<Option<Chunk<Byte>>>(1)),
-      ),
-      RF.bindTo(
-        'writeQueue',
+      );
+      const writeQueue = yield* _(
         Resource.evalF(Queue.synchronous<F, Option<Chunk<Byte>>>(F)),
-      ),
-      RF.bindTo('error', Resource.evalF(F.deferred<Error>())),
-      RF.bindTo('duplex', ({ dispatcher, readQueue, writeQueue, error }) =>
+      );
+      const error = yield* _(Resource.evalF(F.deferred<Error>()));
+
+      const duplex = yield* _(
         Resource.make(F)(
           F.delay(
             () =>
@@ -301,18 +295,12 @@ const mkDuplex =
               ? F.delay(() => duplex.destroy())
               : F.unit,
         ),
-      ),
-      RF.let(
-        'drainIn',
-        ({ readQueue }) => is.enqueueNoneTerminatedChunks(readQueue).drain,
-      ),
-      RF.let('out', ({ writeQueue, error }) =>
-        Stream.fromQueueNoneTerminatedChunk(writeQueue).concurrently(F)(
-          Stream.evalF(F.flatMap_(error.get(), F.throwError)),
-        ),
-      ),
-      RF.map(({ duplex, drainIn, out }) =>
-        tupled(duplex, drainIn.merge<F, Byte>(F)(out)),
-      ),
-    );
+      );
+
+      const drainIn = is.enqueueNoneTerminatedChunks(readQueue).drain;
+      const out = Stream.fromQueueNoneTerminatedChunk(writeQueue).concurrently(
+        F,
+      )(Stream.evalF(F.flatMap_(error.get(), F.throwError)));
+      return tupled(duplex, drainIn.merge<F, Byte>(F)(out));
+    });
   };

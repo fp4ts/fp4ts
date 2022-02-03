@@ -4,7 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import { Option, Some, None, Either, Left, IdentityK } from '@fp4ts/cats';
+import {
+  Option,
+  Some,
+  None,
+  Either,
+  Left,
+  IdentityK,
+  Monad,
+} from '@fp4ts/cats';
 import {
   Deferred,
   Ref,
@@ -33,15 +41,11 @@ export class InterruptContext<F> {
       newScopeId: UniqueToken,
       cancelParent: Kind<F, [void]>,
     ): Kind<F, [InterruptContext<F>]> =>
-      pipe(
-        F.Do,
-        F.bindTo('deferred', F.deferred<InterruptionOutcome>()),
-        F.bindTo('ref', F.ref<Option<InterruptionOutcome>>(None)),
-        F.map(
-          ({ deferred, ref }) =>
-            new InterruptContext(F, deferred, ref, newScopeId, cancelParent),
-        ),
-      );
+      Monad.Do(F)(function* (_) {
+        const deferred = yield* _(F.deferred<InterruptionOutcome>());
+        const ref = yield* _(F.ref<Option<InterruptionOutcome>>(None));
+        return new InterruptContext(F, deferred, ref, newScopeId, cancelParent);
+      });
 
   public completeWhen(
     outcome: Kind<F, [InterruptionOutcome]>,
@@ -58,13 +62,12 @@ export class InterruptContext<F> {
 
     if (!interruptible) return F.pure(this.copy({ cancelParent: F.unit }));
 
-    return pipe(
-      F.Do,
-      F.bindTo('fiber', F.fork(deferred.get())),
-      F.bindTo('context', ({ fiber }) =>
+    return Monad.Do(F)(function* (_) {
+      const fiber = yield* _(F.fork(deferred.get()));
+      const context = yield* _(
         InterruptContext.create(F)(newScopeId, fiber.cancel),
-      ),
-      F.flatMap(({ fiber, context }) =>
+      );
+      yield* _(
         pipe(
           fiber.join,
           F.flatMap(oc =>
@@ -75,10 +78,10 @@ export class InterruptContext<F> {
             ),
           ),
           F.fork,
-          F.map(() => context),
         ),
-      ),
-    );
+      );
+      return context;
+    });
   };
 
   public evalF<A>(fa: Kind<F, [A]>): Kind<F, [Either<InterruptionOutcome, A>]> {

@@ -14,6 +14,7 @@ import {
   Chain,
   IdentityK,
   List,
+  Monad,
 } from '@fp4ts/cats';
 import {
   Ref,
@@ -273,83 +274,77 @@ export class Scope<F> {
 
   public close(ec: ExitCase): Kind<F, [Either<Error, void>]> {
     const { F } = this.target;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
 
     return pipe(
       this.state.modify(s => [ScopeState.closed(), s]),
       F.flatMap(prevState =>
         prevState.tag === 'closed'
           ? F.pure(Either.rightUnit)
-          : pipe(
-              F.Do,
-              F.bindTo(
-                'resultChildren',
-                this.traverseError<Scope<F>>(prevState.children, x =>
+          : Monad.Do(F)(function* (_) {
+              const resultChildren = yield* _(
+                self.traverseError<Scope<F>>(prevState.children, x =>
                   x.close(ec),
                 ),
-              ),
-              F.bindTo(
-                'resultResources',
-                this.traverseError<ScopedResource<F>>(prevState.resources, x =>
+              );
+              const resultResources = yield* _(
+                self.traverseError<ScopedResource<F>>(prevState.resources, x =>
                   x.release(ec),
                 ),
-              ),
-              F.bind(
-                this.interruptible
+              );
+              yield* _(
+                self.interruptible
                   .map(x => x.cancelParent)
                   .getOrElse(() => F.unit),
-              ),
-              F.bind(
-                this.parent.fold(
+              );
+              yield* _(
+                self.parent.fold(
                   () => F.unit,
-                  parent => parent.releaseChildScope(this.id),
+                  parent => parent.releaseChildScope(self.id),
                 ),
-              ),
+              );
 
-              F.map(({ resultChildren, resultResources }) => {
-                const results = resultChildren
-                  .fold(List, () => List.empty)
-                  ['+++'](resultResources.fold(List, () => List.empty));
+              const results = resultChildren
+                .fold(List, () => List.empty)
+                ['+++'](resultResources.fold(List, () => List.empty));
 
-                return CompositeFailure.fromList(results).fold(
-                  () => Either.rightUnit,
-                  Left,
-                ) as Either<Error, void>;
-              }),
-            ),
+              return CompositeFailure.fromList(results).fold(
+                () => Either.rightUnit,
+                Left,
+              ) as Either<Error, void>;
+            }),
       ),
     );
   }
 
   public get lease(): Kind<F, [Lease<F>]> {
     const { F } = this.target;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
 
-    return pipe(
-      F.Do,
-      F.bindTo(
-        'children',
-        F.flatMap_(this.state.get(), s =>
+    return Monad.Do(F)(function* (_) {
+      const children = yield* _(
+        F.flatMap_(self.state.get(), s =>
           s.tag === 'open'
             ? F.pure(s.children)
             : throwError(new Error('Scope closed at the time of the lease')),
         ),
-      ),
-      F.let('allScopes', ({ children }) =>
-        children['::+'](this)['+++'](this.ancestors),
-      ),
-      F.bindTo('allResources', ({ allScopes }) =>
+      );
+      const allScopes = children['::+'](self)['+++'](self.ancestors);
+      const allResources = yield* _(
         Chain.Traversable.flatTraverse_(Chain.Monad, F)(
           allScopes,
           scope => scope.resources,
         ),
-      ),
-      F.bindTo('allLeases', ({ allResources }) =>
+      );
+      const allLeases = yield* _(
         allResources.traverse(F)(resource => resource.lease),
-      ),
-      F.map(
-        ({ allLeases }) =>
-          new Lease(this.traverseError(allLeases.collect(id), l => l.cancel)),
-      ),
-    );
+      );
+      return new Lease(
+        self.traverseError(allLeases.collect(id), l => l.cancel),
+      );
+    });
   }
 
   private register = (resource: ScopedResource<F>): Kind<F, [boolean]> =>

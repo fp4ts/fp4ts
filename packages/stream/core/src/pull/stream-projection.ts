@@ -4,7 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError } from '@fp4ts/core';
-import { FunctionK, MonadError, Either, Option, None, Some } from '@fp4ts/cats';
+import {
+  FunctionK,
+  MonadError,
+  Either,
+  Option,
+  None,
+  Some,
+  Monad,
+} from '@fp4ts/cats';
 import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import * as PO from './operators';
@@ -1154,21 +1162,21 @@ export const compile_ =
                 ),
               );
 
-            return pipe(
-              F.Do,
-              F.bindTo('r', toClose.close(close.exitCase)),
-              F.bindTo('ancestor', toClose.openAncestor),
-              F.flatMap(({ r, ancestor }) => {
-                const res = closeTerminal(r, ancestor);
-                return go(
+            return Monad.Do(F)(function* (_) {
+              const r = yield* _(toClose.close(close.exitCase));
+              const ancestor = yield* _(toClose.openAncestor);
+              const res = closeTerminal(r, ancestor);
+              const ress = yield* _(
+                go(
                   ancestor,
                   ctx.extendedTopLevelScope,
                   ctx.translation,
                   ctx.runner,
                   cont_(res),
-                );
-              }),
-            );
+                ),
+              );
+              return ress;
+            });
           },
         ),
       );
