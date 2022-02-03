@@ -4,11 +4,12 @@
     "rootDir": ".",
     "outDir": "./lib",
   },
-  "include": ["./index.ts", "./__tests__"],
+  "include": ["./index.ts"],
   "references": [
     { "path": "./core/tsconfig.build.json" },
     { "path": "./kernel/tsconfig.build.json" },
     { "path": "./laws/tsconfig.build.json" },
+    { "path": "./perf/tsconfig.build.json" },
     { "path": "./std/tsconfig.build.json" },
     { "path": "./test-kit/tsconfig.build.json" },
   ]

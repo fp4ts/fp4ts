@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module cats/perf
+ * @module effect/perf
  */
 
 export {};

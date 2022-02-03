@@ -59,9 +59,9 @@ class SyncRef<F, A> extends Ref<F, A> {
 
   public modify<B>(f: (a: A) => [A, B]): Kind<F, [B]> {
     return this.F.delay(() => {
-      const [x, r] = f(this.value);
-      this.value = x;
-      return r;
+      const rs = f(this.value);
+      this.value = rs[0];
+      return rs[1];
     });
   }
 }

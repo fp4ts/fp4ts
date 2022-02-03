@@ -6,6 +6,7 @@
   },
   "include": ["./src/**/*"],
   "references": [
+    { "path": "../../cats/tsconfig.build.json" },
     { "path": "../../core/tsconfig.build.json" },
     { "path": "../core/tsconfig.build.json" },
   ]
