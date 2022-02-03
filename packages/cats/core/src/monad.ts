@@ -63,24 +63,16 @@ export const Monad = Object.freeze({
     const self: Monad<M> = {
       Do: A.pure({}),
 
-      let: (name, fb) => fs =>
-        self.map_(fs, s => {
-          (s as any)[name] = fb(s);
-          return s;
-        }),
-      let_: (name, b) => fs =>
-        self.map_(fs, s => {
-          (s as any)[name] = b;
-          return s;
-        }),
+      let: (name, fb) => fs => self.map_(fs, s => ({ ...s, [name]: fb(s) })),
+      let_: (name, b) => fs => self.map_(fs, s => ({ ...s, [name]: b })),
 
       bindTo: (name, fb) => fs => self.bindTo_(fs, name, fb),
       bindTo_: (fs, name, fb) =>
         self.flatMap_(fs, s =>
-          self.map_(typeof fb === 'function' ? (fb as any)(s) : fb, b => {
-            (s as any)[name] = b as any;
-            return s;
-          }),
+          self.map_(
+            typeof fb === 'function' ? (fb as any)(s) : fb,
+            b => ({ ...s, [name]: b } as any),
+          ),
         ),
 
       bind: fb => fs => self.bind_(fs, fb),
