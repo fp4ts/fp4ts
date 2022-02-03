@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind } from '@fp4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
@@ -14,6 +14,8 @@ import { Functor } from './functor';
  * @category Type Class
  */
 export interface Monad<F> extends FlatMap<F>, Applicative<F> {
+  // -- Simple Do notations
+
   readonly Do: Kind<F, [{}]>;
 
   readonly let: <N extends string, S extends {}, B>(
@@ -111,4 +113,53 @@ export const Monad = Object.freeze({
       ...Monad.deriveApply(F),
       ...F,
     }),
+
+  // -- Generator Based Do notation
+
+  // from Effect-TS https://github.com/Effect-TS/core/blob/340cdaf66fa233195a65661ab29aa3a9f813763a/packages/core/src/Prelude/DSL/gen.ts#L153
+  Do<F>(
+    F: Monad<F>,
+  ): <Eff extends GenKind<Kind<F, [any]>, any>, R>(
+    f: (
+      fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
+    ) => Generator<Eff, R, any>,
+  ) => Kind<F, [R]> {
+    return function <Eff extends GenKind<Kind<F, [any]>, any>, R>(
+      f: (
+        fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
+      ) => Generator<Eff, R, any>,
+    ): Kind<F, [R]> {
+      return pipe(
+        F.unit,
+        F.flatMap(() => {
+          const iterator = f(adapter);
+          const state = iterator.next();
+
+          const run = (
+            state: IteratorYieldResult<Eff> | IteratorReturnResult<R>,
+          ): Kind<F, [R]> =>
+            state.done
+              ? F.pure(state.value)
+              : F.flatMap_(state.value.effect, val => {
+                  const next = iterator.next(val);
+                  return run(next);
+                });
+
+          return run(state);
+        }),
+      );
+    };
+  },
 });
+
+class GenKind<FA, A> {
+  public constructor(public readonly effect: FA) {}
+
+  public *[Symbol.iterator](): Generator<GenKind<FA, A>, A, any> {
+    return yield this;
+  }
+}
+
+function adapter<F, A>(fa: Kind<F, [A]>): GenKind<Kind<F, [A]>, A> {
+  return new GenKind(fa);
+}
