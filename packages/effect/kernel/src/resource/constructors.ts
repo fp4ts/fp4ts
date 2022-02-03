@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, id, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, id, Kind, tupled } from '@fp4ts/core';
 import {
   Functor,
   ApplicativeError,
@@ -11,6 +11,7 @@ import {
   Kleisli,
   FunctionK,
   KleisliK,
+  Monad,
 } from '@fp4ts/cats';
 
 import { MonadCancel } from '../monad-cancel';
@@ -182,11 +183,12 @@ export const cont =
                   ),
                 );
 
-              return pipe(
-                G.Do,
-                G.bindTo('r', lift(F.map_(F.ref(F.unit), x => x.mapK(lift)))),
+              return Monad.Do(G)(function* (_) {
+                const r = yield* _(
+                  lift(F.map_(F.ref(F.unit), x => x.mapK(lift))),
+                );
 
-                G.bindTo('a', ({ r }) =>
+                const a = yield* _(
                   G.finalize_(
                     body<D>(MonadCancel.forKleisli(G))(
                       resume,
@@ -200,12 +202,10 @@ export const cont =
                         () => G.unit,
                       ),
                   ),
-                ),
-
-                G.bindTo('fin', ({ r }) => r.get()),
-
-                G.map(({ a, fin }) => tupled(a, (_: ExitCase) => fin)),
-              );
+                );
+                const fin = yield* _(r.get());
+                return tupled(a, (_: ExitCase) => fin);
+              });
             },
         ),
       ),

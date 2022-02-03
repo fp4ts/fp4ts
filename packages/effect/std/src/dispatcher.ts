@@ -5,7 +5,7 @@
 
 import os from 'os';
 import { Kind, pipe } from '@fp4ts/core';
-import { Either, List } from '@fp4ts/cats';
+import { Either, List, Monad } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect-kernel';
 
 import { Supervisor } from './supervisor';
@@ -49,11 +49,9 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
 
   const R = Resource.Async(F);
 
-  return pipe(
-    R.Do,
-    R.bindTo('supervisor', Supervisor(F)),
-    R.bindTo(
-      'latches',
+  return Monad.Do(R)(function* (_) {
+    const supervisor = yield* _(Supervisor(F));
+    const latches = yield* _(
       R.delay(() => {
         const latches = new Array<AtomicRef<() => void>>(Cpus);
         for (let i = 0; i < Cpus; i++) {
@@ -61,9 +59,8 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
         }
         return latches;
       }),
-    ),
-    R.bindTo(
-      'states',
+    );
+    const states = yield* _(
       R.delay(() => {
         const states = new Array<AtomicRef<List<Registration>>>(Cpus);
         for (let i = 0; i < Cpus; i++) {
@@ -71,59 +68,57 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
         }
         return states;
       }),
-    ),
-    R.bindTo(
-      'alive',
+    );
+    const alive = yield* _(
       Resource.make(F)(
         F.delay(() => new AtomicRef(true)),
         ref => F.delay(() => ref.set(false)),
       ),
-    ),
+    );
 
-    R.bind(({ latches, states, supervisor }) => {
-      const dispatcher = (
-        latch: AtomicRef<() => void>,
-        state: AtomicRef<List<Registration>>,
-      ): Kind<F, [void]> =>
-        pipe(
-          F.Do,
-          F.bind(F.delay(() => latch.set(Noop))),
-          F.bindTo(
-            'rgs',
-            F.delay(() =>
-              state.get().nonEmpty
-                ? state.getAndSet(List.empty).reverse
-                : List.empty,
-            ),
-          ),
-          F.bind(({ rgs }) =>
-            rgs.isEmpty
-              ? F.async_(cb =>
-                  // Suspend the current dispatcher until someone invokes us
-                  // and completes this async effect
-                  !latch.compareAndSet(Noop, () => cb(Completed))
-                    ? cb(Completed)
-                    : void 0,
-                )
-              : F.uncancelable(() =>
-                  rgs.traverse(F)(({ action, active, prepareCancel }) => {
-                    const supervise: () => Kind<F, [void]> = () =>
-                      pipe(
-                        supervisor.supervise(action),
-                        F.flatMap(f => F.delay(() => prepareCancel(f.cancel))),
-                      );
-
-                    return active.get() ? supervise() : F.unit;
-                  }),
-                ),
+    const dispatcher = (
+      latch: AtomicRef<() => void>,
+      state: AtomicRef<List<Registration>>,
+    ): Kind<F, [void]> =>
+      Monad.Do(F)(function* (_) {
+        yield* _(F.delay(() => latch.set(Noop)));
+        const rgs = yield* _(
+          F.delay(() =>
+            state.get().nonEmpty
+              ? state.getAndSet(List.empty).reverse
+              : List.empty,
           ),
         );
+        const res = yield* _(
+          rgs.isEmpty
+            ? F.async_(cb =>
+                // Suspend the current dispatcher until someone invokes us
+                // and completes this async effect
+                !latch.compareAndSet(Noop, () => cb(Completed))
+                  ? cb(Completed)
+                  : void 0,
+              )
+            : F.uncancelable(() =>
+                rgs.traverse(F)(({ action, active, prepareCancel }) => {
+                  const supervise: () => Kind<F, [void]> = () =>
+                    pipe(
+                      supervisor.supervise(action),
+                      F.flatMap(f => F.delay(() => prepareCancel(f.cancel))),
+                    );
 
-      return List.range(0, Cpus).traverse(R)(n =>
+                  return active.get() ? supervise() : F.unit;
+                }),
+              ),
+        );
+        return res;
+      });
+
+    yield* _(
+      List.range(0, Cpus).traverse(R)(n =>
         pipe(dispatcher(latches[n], states[n]), F.foreverM, F.background),
-      );
-    }),
-  ).map(({ alive, latches, states }) => {
+      ),
+    );
+
     const unsafeToPromiseCancelable = <E>(
       fe: Kind<F, [E]>,
     ): [Promise<E>, () => Promise<void>] => {

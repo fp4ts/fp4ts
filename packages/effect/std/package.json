@@ -9,7 +9,7 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@fp4ts/cats-core": "*",
+    "@fp4ts/cats": "*",
     "@fp4ts/core": "*"
   },
   "devDependencies": {

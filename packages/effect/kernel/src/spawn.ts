@@ -17,6 +17,7 @@ import {
   OptionTK,
   OptionT,
   Traversable,
+  Monad,
 } from '@fp4ts/cats';
 
 import { Poll } from './poll';
@@ -301,12 +302,11 @@ export const Spawn = Object.freeze({
         <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
         <C>(f: (a: A, b: B) => C) =>
           F.uncancelable(poll =>
-            pipe(
-              F.Do,
-              F.bindTo('fiberA', F.fork(fa)),
-              F.bindTo('fiberB', F.fork(fb)),
+            Monad.Do(F)(function* (_) {
+              const fiberA = yield* _(F.fork(fa));
+              const fiberB = yield* _(F.fork(fb));
 
-              F.bind(({ fiberA, fiberB }) =>
+              yield* _(
                 pipe(
                   fiberB.join,
                   F.flatMap(oc =>
@@ -318,8 +318,9 @@ export const Spawn = Object.freeze({
                   ),
                   F.fork,
                 ),
-              ),
-              F.bind(({ fiberA, fiberB }) =>
+              );
+
+              yield* _(
                 pipe(
                   fiberA.join,
                   F.flatMap(oc =>
@@ -331,9 +332,9 @@ export const Spawn = Object.freeze({
                   ),
                   F.fork,
                 ),
-              ),
+              );
 
-              F.bindTo('a', ({ fiberA, fiberB }) =>
+              const a = yield* _(
                 pipe(
                   poll(fiberA.join),
                   F.onCancel(fiberB.cancel),
@@ -359,9 +360,9 @@ export const Spawn = Object.freeze({
                     ),
                   ),
                 ),
-              ),
+              );
 
-              F.bindTo('b', ({ fiberA, fiberB }) =>
+              const b = yield* _(
                 pipe(
                   poll(fiberB.join),
                   F.onCancel(fiberB.cancel),
@@ -384,10 +385,9 @@ export const Spawn = Object.freeze({
                     ),
                   ),
                 ),
-              ),
-
-              F.map(({ a, b }) => f(a, b)),
-            ),
+              );
+              return f(a, b);
+            }),
           ),
     });
     return self;

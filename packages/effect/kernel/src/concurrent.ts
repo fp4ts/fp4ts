@@ -14,6 +14,7 @@ import {
   Kleisli,
   OptionTK,
   OptionT,
+  Monad,
 } from '@fp4ts/cats';
 import { Spawn, SpawnRequirements } from './spawn';
 import { Ref } from './ref';
@@ -93,49 +94,43 @@ export const Concurrent = Object.freeze({
             ]
           > =>
             self.uncancelable(poll =>
-              pipe(
-                self.Do,
-                self.bindTo(
-                  'result',
+              Monad.Do(self)(function* (_) {
+                const result = yield* _(
                   self.deferred<Either<Outcome<F, E, A>, Outcome<F, E, B>>>(),
-                ),
+                );
 
-                self.bindTo('fiberA', ({ result }) =>
+                const fiberA = yield* _(
                   pipe(
                     fa,
                     self.finalize(oc => result.complete(Left(oc))),
                     self.fork,
                   ),
-                ),
-                self.bindTo('fiberB', ({ result }) =>
+                );
+                const fiberB = yield* _(
                   pipe(
                     fb,
                     self.finalize(oc => result.complete(Right(oc))),
                     self.fork,
                   ),
-                ),
+                );
 
-                self.bindTo('back', ({ result, fiberA, fiberB }) =>
+                const back = yield* _(
                   F.onCancel_(
                     poll(result.get()),
-                    pipe(
-                      self.Do,
-                      self.bindTo('cancelA', self.fork(fiberA.cancel)),
-                      self.bindTo('cancelB', self.fork(fiberB.cancel)),
-                      self.bind(({ cancelA }) => cancelA.join),
-                      self.bind(({ cancelB }) => cancelB.join),
-                      self.void,
-                    ),
+                    Monad.Do(self)(function* (_) {
+                      const cancelA = yield* _(self.fork(fiberA.cancel));
+                      const cancelB = yield* _(self.fork(fiberB.cancel));
+                      yield* _(cancelA.join);
+                      yield* _(cancelB.join);
+                    }),
                   ),
-                ),
+                );
 
-                self.map(({ back, fiberA, fiberB }) =>
-                  back.fold(
-                    oc => Left(tupled(oc, fiberB)),
-                    oc => Right(tupled(fiberA, oc)),
-                  ),
-                ),
-              ),
+                return back.fold(
+                  oc => Left(tupled(oc, fiberB)),
+                  oc => Right(tupled(fiberA, oc)),
+                );
+              }),
             )),
         ...F,
       }),

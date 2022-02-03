@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, id, pipe } from '@fp4ts/core';
-import { Either, Left, Right, Some } from '@fp4ts/cats';
+import { flow, id } from '@fp4ts/core';
+import { Either, Left, Monad, Right, Some } from '@fp4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
 
 import { IO, IoK } from './io';
@@ -313,13 +313,12 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
               this.schedule(fiberA, this.currentEC);
               this.schedule(fiberB, this.currentEC);
 
-              const cancel = pipe(
-                IO.Do,
-                IO.bindTo('cancelA', fiberA.cancel.fork),
-                IO.bindTo('cancelB', fiberB.cancel.fork),
-                IO.bind(({ cancelA }) => cancelA.join),
-                IO.bind(({ cancelB }) => cancelB.join),
-              ).void;
+              const cancel = Monad.Do(IO.Monad)(function* (_) {
+                const cancelA = yield* _(fiberA.cancel.fork);
+                const cancelB = yield* _(fiberB.cancel.fork);
+                yield* _(cancelA.join);
+                yield* _(cancelB.join);
+              }).void;
 
               return Some(cancel);
             }),

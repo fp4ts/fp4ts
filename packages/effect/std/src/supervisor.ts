@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, snd } from '@fp4ts/core';
-import { Map, List } from '@fp4ts/cats';
+import { Map, List, Monad } from '@fp4ts/cats';
 import { Fiber, Concurrent, Resource, UniqueToken } from '@fp4ts/effect-kernel';
 
 export interface Supervisor<F> {
@@ -29,25 +29,22 @@ export function Supervisor<F>(
   return stateRefR.map(state => ({
     supervise: <A>(fa: Kind<F, [A]>): Kind<F, [Fiber<F, Error, A>]> =>
       F.uncancelable(() =>
-        pipe(
-          F.Do,
-          F.bindTo('done', F.ref<boolean>(false)),
-          F.bindTo('token', F.unique),
-          F.let('cleanup', ({ token }) =>
-            state.update(s => s.remove(UniqueToken.Ord, token)),
-          ),
-          F.let('action', ({ done, cleanup }) =>
-            F.finalize_(fa, () => F.productR_(done.set(true), cleanup)),
-          ),
-          F.bindTo('fiber', ({ action }) => F.fork(action)),
-          F.bind(({ token, fiber }) =>
+        Monad.Do(F)(function* (_) {
+          const done = yield* _(F.ref<boolean>(false));
+          const token = yield* _(F.unique);
+
+          const cleanup = state.update(s => s.remove(UniqueToken.Ord, token));
+          const action = F.finalize_(fa, () =>
+            F.productR_(done.set(true), cleanup),
+          );
+
+          const fiber = yield* _(F.fork(action));
+          yield* _(
             state.update(m => m.insert(UniqueToken.Ord, token, fiber.cancel)),
-          ),
-          F.bind(({ done, cleanup }) =>
-            F.flatMap_(done.get(), done => (done ? cleanup : F.unit)),
-          ),
-          F.map(({ fiber }) => fiber),
-        ),
+          );
+          yield* _(F.flatMap_(done.get(), done => (done ? cleanup : F.unit)));
+          return fiber;
+        }),
       ),
   }));
 }
