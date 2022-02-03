@@ -62,6 +62,10 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
     return this._join;
   }
 
+  public override joinWithNever(): IO<A> {
+    return super.joinWithNever(IO.Spawn);
+  }
+
   public get cancel(): IO<void> {
     return this._cancel;
   }
@@ -93,15 +97,18 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
 
       const cur = _cur as IOA.IOView<unknown>;
       switch (cur.tag) {
+        // Pure
         case 0:
           this.pushTracingEvent(cur.event);
           _cur = this.succeeded(cur.value);
           continue;
 
+        // Fail
         case 1:
           _cur = this.failed(cur.error);
           continue;
 
+        // Delay
         case 2:
           try {
             this.pushTracingEvent(cur.event);
@@ -111,6 +118,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           }
           continue;
 
+        // Defer
         case 3:
           try {
             this.pushTracingEvent(cur.event);
@@ -120,44 +128,52 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           }
           continue;
 
+        // Realtime
         case 4:
+          _cur = IO.pure(this.currentEC.currentTimeMicros());
+          continue;
+
+        // Monotonic
+        case 5:
+          _cur = IO.pure(this.currentEC.currentTimeMillis());
+          continue;
+
+        // ReadEC
+        case 6:
+          _cur = IO.pure(this.currentEC);
+          continue;
+
+        // Map
+        case 7:
           this.stack.push(cur.f);
           this.conts.push(IOA.MapK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
-        case 5:
+        // FlatMap
+        case 8:
           this.stack.push(cur.f);
           this.conts.push(IOA.FlatMapK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioe;
           continue;
 
-        case 6:
+        // HandleErrorWith
+        case 9:
           this.stack.push(cur.f as (u: unknown) => unknown);
           this.conts.push(IOA.HandleErrorWithK);
           this.pushTracingEvent(cur.event);
           _cur = cur.ioa;
           continue;
 
-        case 7:
+        // Attempt
+        case 10:
           this.conts.push(IOA.AttemptK);
           _cur = cur.ioa;
           continue;
 
-        case 8:
-          _cur = IO.pure(this.currentEC.currentTimeMicros());
-          continue;
-
-        case 9:
-          _cur = IO.pure(this.currentEC.currentTimeMillis());
-          continue;
-
-        case 10:
-          _cur = IO.pure(this.currentEC);
-          continue;
-
+        // Fork
         case 11: {
           const fiber = new IOFiber(cur.ioa, this.currentEC, this.runtime);
           this.schedule(fiber, this.currentEC);

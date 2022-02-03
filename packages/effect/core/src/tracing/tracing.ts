@@ -25,6 +25,7 @@ export const Tracing = Object.freeze({
   },
 
   augmentError(e: Error, trace: TracingEvent[]): void {
+    if (tracingMode === 'off') return;
     const tracingEvents = [...trace, e]
       .flatMap(e => e.stack?.split(/\r?\n/).slice(1) ?? [])
       .map(e => e.replace(/^\s+at /, ''))

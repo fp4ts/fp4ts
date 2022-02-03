@@ -62,13 +62,25 @@ export class Defer<A> extends IO<A> {
   }
 }
 
-export const Suspend = new (class Suspend extends IO<void> {
-  public readonly tag = 21;
+export const CurrentTimeMicros =
+  new (class CurrentTimeMicros extends IO<number> {
+    public readonly tag = 4;
+  })();
+export type CurrentTimeMicros = typeof CurrentTimeMicros;
+
+export const CurrentTimeMillis =
+  new (class CurrentTimeMillis extends IO<number> {
+    public readonly tag = 5;
+  })();
+export type CurrentTimeMillis = typeof CurrentTimeMillis;
+
+export const ReadEC = new (class ReadEC extends IO<ExecutionContext> {
+  public readonly tag = 6;
 })();
-export type Suspend = typeof Suspend;
+export type ReadEC = typeof ReadEC;
 
 export class Map<E, A> extends IO<A> {
-  public readonly tag = 4;
+  public readonly tag = 7;
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (e: E) => A,
@@ -78,7 +90,7 @@ export class Map<E, A> extends IO<A> {
   }
 }
 export class FlatMap<E, A> extends IO<A> {
-  public readonly tag = 5;
+  public readonly tag = 8;
   public constructor(
     public readonly ioe: IO<E>,
     public readonly f: (a: E) => IO<A>,
@@ -88,7 +100,7 @@ export class FlatMap<E, A> extends IO<A> {
   }
 }
 export class HandleErrorWith<A> extends IO<A> {
-  public readonly tag = 6;
+  public readonly tag = 9;
   public constructor(
     public readonly ioa: IO<A>,
     public readonly f: (e: Error) => IO<A>,
@@ -99,28 +111,11 @@ export class HandleErrorWith<A> extends IO<A> {
 }
 
 export class Attempt<A> extends IO<Either<Error, A>> {
-  public readonly tag = 7;
+  public readonly tag = 10;
   public constructor(public readonly ioa: IO<A>) {
     super();
   }
 }
-
-export const CurrentTimeMicros =
-  new (class CurrentTimeMicros extends IO<number> {
-    public readonly tag = 8;
-  })();
-export type CurrentTimeMicros = typeof CurrentTimeMicros;
-
-export const CurrentTimeMillis =
-  new (class CurrentTimeMillis extends IO<number> {
-    public readonly tag = 9;
-  })();
-export type CurrentTimeMillis = typeof CurrentTimeMillis;
-
-export const ReadEC = new (class ReadEC extends IO<ExecutionContext> {
-  public readonly tag = 10;
-})();
-export type ReadEC = typeof ReadEC;
 
 export class Fork<A> extends IO<IOFiber<A>> {
   public readonly tag = 11;
@@ -179,6 +174,11 @@ export class ExecuteOn<A> extends IO<A> {
     super();
   }
 }
+
+export const Suspend = new (class Suspend extends IO<void> {
+  public readonly tag = 21;
+})();
+export type Suspend = typeof Suspend;
 
 // -- Internal algebra produced by fiber execution
 
