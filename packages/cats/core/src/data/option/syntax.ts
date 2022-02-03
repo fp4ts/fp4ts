@@ -18,7 +18,6 @@ import {
   map_,
   nonEmpty,
   tap_,
-  get,
   orElse_,
   getOrElse_,
   equals_,
@@ -30,7 +29,6 @@ import {
 
 declare module './algebra' {
   interface Option<A> {
-    readonly get: A;
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
@@ -60,12 +58,6 @@ declare module './algebra' {
     equals<B>(this: Option<B>, E: Eq<B>, that: Option<B>): boolean;
   }
 }
-
-Object.defineProperty(Option.prototype, 'get', {
-  get<A>(this: Option<A>): A {
-    return get(this);
-  },
-});
 
 Object.defineProperty(Option.prototype, 'isEmpty', {
   get<A>(this: Option<A>): boolean {

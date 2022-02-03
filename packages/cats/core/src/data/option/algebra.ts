@@ -6,21 +6,28 @@
 export abstract class Option<A> {
   readonly __void!: void;
   readonly _A!: () => A;
+
+  public abstract readonly get: A;
 }
 
 export class Some<A> extends Option<A> {
   public readonly tag = 'some';
-  public constructor(public readonly value: A) {
+  public constructor(public readonly get: A) {
     super();
   }
 
   public override toString(): string {
-    return `[Some value: ${this.value}]`;
+    return `[Some value: ${this.get}]`;
   }
 }
 
 export const None = new (class None extends Option<never> {
   public readonly tag = 'none';
+
+  public get get(): never {
+    throw new Error('None.get');
+  }
+
   public override toString(): string {
     return `[None]`;
   }

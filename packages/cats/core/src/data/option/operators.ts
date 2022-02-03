@@ -3,27 +3,21 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { constant, flow, id, Kind, throwError } from '@fp4ts/core';
+import { constant, flow, id, Kind } from '@fp4ts/core';
 
 import { Eq } from '../../eq';
 import { Applicative } from '../../applicative';
 import { Either } from '../either';
 import { List } from '../collections/list';
 
-import { Option, view } from './algebra';
+import { Option, View } from './algebra';
 import { none, some } from './constructors';
 
-export const isEmpty = <A>(o: Option<A>): boolean =>
-  fold_(
-    o,
-    () => true,
-    () => false,
-  );
+export const isEmpty = <A>(o: Option<A>): boolean => o === none;
 
 export const nonEmpty = <A>(o: Option<A>): boolean => !isEmpty(o);
 
-export const get = <A>(o: Option<A>): A =>
-  fold_(o, () => throwError(new Error('None.get')), id);
+export const get = <A>(o: Option<A>): A => o.get;
 
 export const toList = <A>(o: Option<A>): List<A> =>
   fold_(o, constant(List.empty), List);
@@ -149,9 +143,9 @@ export const fold_ = <A, B1, B2 = B1>(
   onNone: () => B1,
   onSome: (a: A) => B2,
 ): B1 | B2 => {
-  const v = view(o);
+  const v = o as View<A>;
   if (v.tag === 'some') {
-    return onSome(v.value);
+    return onSome(v.get);
   } else {
     return onNone();
   }
