@@ -13,7 +13,6 @@ import {
   flatMap_,
   flatTap_,
   flatten,
-  fold_,
   isEmpty,
   map_,
   nonEmpty,
@@ -52,7 +51,6 @@ declare module './algebra' {
     traverse<F>(
       F: Applicative<F>,
     ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [Option<B>]>;
-    fold<B1, B2 = B1>(onNone: () => B1, onSome: (a: A) => B2): B1 | B2;
 
     equals<B extends PrimitiveType>(this: Option<B>, that: Option<B>): boolean;
     equals<B>(this: Option<B>, E: Eq<B>, that: Option<B>): boolean;
@@ -133,10 +131,6 @@ Object.defineProperty(Option.prototype, 'flatten', {
 
 Option.prototype.traverse = function (F) {
   return f => traverse_(F)(this, f);
-};
-
-Option.prototype.fold = function (onNone, onSome) {
-  return fold_(this, onNone, onSome);
 };
 
 Option.prototype.equals = function (...args: any[]): any {

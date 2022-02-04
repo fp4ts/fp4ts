@@ -8,12 +8,20 @@ export abstract class Option<A> {
   readonly _A!: () => A;
 
   public abstract readonly get: A;
+  public abstract fold<B1, B2 = B1>(
+    onNone: () => B1,
+    onSome: (a: A) => B2,
+  ): B1 | B2;
 }
 
 export class Some<A> extends Option<A> {
   public readonly tag = 'some';
   public constructor(public readonly get: A) {
     super();
+  }
+
+  public fold<B1, B2 = B1>(onNone: () => B1, onSome: (a: A) => B2): B1 | B2 {
+    return onSome(this.get);
   }
 
   public override toString(): string {
@@ -26,6 +34,13 @@ export const None = new (class None extends Option<never> {
 
   public get get(): never {
     throw new Error('None.get');
+  }
+
+  public fold<B1, B2 = B1>(
+    onNone: () => B1,
+    onSome: (a: never) => B2,
+  ): B1 | B2 {
+    return onNone();
   }
 
   public override toString(): string {

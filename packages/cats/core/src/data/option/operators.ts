@@ -142,14 +142,7 @@ export const fold_ = <A, B1, B2 = B1>(
   o: Option<A>,
   onNone: () => B1,
   onSome: (a: A) => B2,
-): B1 | B2 => {
-  const v = o as View<A>;
-  if (v.tag === 'some') {
-    return onSome(v.get);
-  } else {
-    return onNone();
-  }
-};
+): B1 | B2 => o.fold(onNone, onSome);
 
 export const equals_ =
   <A>(E: Eq<A>) =>
