@@ -141,13 +141,7 @@ export class Scope<F> {
     const { F } = this.target;
 
     return this.interruptible.fold(
-      () =>
-        F.pure(
-          new (class extends Fiber<F, Error, void> {
-            public readonly cancel = F.unit;
-            public readonly join = F.pure(Outcome.success(F.unit));
-          })(),
-        ),
+      () => F.pure(new UnitFiber(F)),
       iCtx => {
         const outcome: Kind<F, [InterruptionOutcome]> = F.map_(haltWhen, ea =>
           ea.fold(
@@ -482,3 +476,13 @@ class Open<F> {
 
 const Closed = { tag: 'closed' as const };
 type Closed = typeof Closed;
+
+class UnitFiber<F> extends Fiber<F, Error, void> {
+  public constructor(public readonly F: Monad<F>) {
+    super();
+    this.cancel = F.unit;
+    this.join = F.pure(Outcome.success(F.unit));
+  }
+  public readonly cancel;
+  public readonly join;
+}

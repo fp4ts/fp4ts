@@ -14,12 +14,20 @@ import { Compiler } from './compiler';
 import { CompilerTarget } from './target';
 import { InterruptContext } from '../internal';
 
-export const compilerTargetInstance = <F>(
-  T: CompilerTarget<F>,
-): Compiler<F, F> => ({
-  target: T.F,
-  compile: T.compile_,
-});
+export const compilerTargetInstance = (() => {
+  const cache = new Map<any, Compiler<any, any>>();
+  return <F>(T: CompilerTarget<F>): Compiler<F, F> => {
+    if (cache.has(T)) {
+      return cache.get(T)!;
+    }
+    const instance = {
+      target: T.F,
+      compile: T.compile_,
+    };
+    cache.set(T, instance);
+    return instance;
+  };
+})();
 
 export const compilerSyncTarget = <F>(F: Sync<F>): Compiler<F, F> =>
   compilerTargetInstance(syncTarget(F));
@@ -59,20 +67,36 @@ export const compilerIdentityInstance: Lazy<Compiler<IdentityK, IdentityK>> =
 
 // -- Target Instances
 
-export const syncTarget = <F>(F: Sync<F>): CompilerTarget<F> =>
-  CompilerTarget.of({
-    F,
-    ref: Ref.of(F),
-    unique: F.unique,
-    interruptContext: () => None,
-  });
+export const syncTarget = (() => {
+  const cache = new Map<any, CompilerTarget<any>>();
+  return <F>(F: Sync<F>): CompilerTarget<F> => {
+    if (cache.has(F)) {
+      return cache.get(F)!;
+    }
+    const instance = CompilerTarget.of({
+      F,
+      ref: Ref.of(F),
+      unique: F.unique,
+      interruptContext: () => None,
+    });
+    cache.set(F, instance);
+    return instance;
+  };
+})();
 
-export const concurrentTarget = <F>(
-  F: Concurrent<F, Error>,
-): CompilerTarget<F> =>
-  CompilerTarget.of({
-    F,
-    ref: F.ref,
-    unique: F.unique,
-    interruptContext: root => Some(InterruptContext.create(F)(root, F.unit)),
-  });
+export const concurrentTarget = (() => {
+  const cache = new Map<any, CompilerTarget<any>>();
+  return <F>(F: Concurrent<F, Error>): CompilerTarget<F> => {
+    if (cache.has(F)) {
+      return cache.get(F)!;
+    }
+    const instance = CompilerTarget.of({
+      F,
+      ref: F.ref,
+      unique: F.unique,
+      interruptContext: root => Some(InterruptContext.create(F)(root, F.unit)),
+    });
+    cache.set(F, instance);
+    return instance;
+  };
+})();

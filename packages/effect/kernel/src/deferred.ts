@@ -91,34 +91,6 @@ class AsyncDeferred<F, A> extends Deferred<F, A> {
   }
 
   public override get(): Kind<F, [A]> {
-    const deleteReader = (reader: ResumeReader<A>): Kind<F, [void]> =>
-      this.F.defer(() =>
-        this.state.update(
-          foldState<A, State<A>>(
-            id,
-            ({ readers }) => new UnsetState(readers.filter(r => r !== reader)),
-          ),
-        ),
-      );
-
-    const addReader = (
-      reader: ResumeReader<A>,
-    ): Kind<F, [Option<Kind<F, [void]>>]> =>
-      this.F.defer(() =>
-        this.state.modify(
-          foldState<A, [State<A>, Option<Kind<F, [void]>>]>(
-            ({ value }) => {
-              reader(value);
-              return [new SetState(value), None];
-            },
-            ({ readers }) => {
-              const newState = new UnsetState([...readers, reader]);
-              return [newState, Some(deleteReader(reader))];
-            },
-          ),
-        ),
-      );
-
     return this.F.defer(() =>
       pipe(
         this.state.get(),
@@ -127,9 +99,39 @@ class AsyncDeferred<F, A> extends Deferred<F, A> {
             ({ value }) => this.F.pure(value),
             () =>
               this.F.async(resume =>
-                this.F.defer(() => addReader(flow(Right, resume))),
+                this.F.defer(() => this.addReader(flow(Right, resume))),
               ),
           ),
+        ),
+      ),
+    );
+  }
+
+  private deleteReader(reader: ResumeReader<A>): Kind<F, [void]> {
+    return this.F.defer(() =>
+      this.state.update(
+        foldState<A, State<A>>(
+          id,
+          ({ readers }) => new UnsetState(readers.filter(r => r !== reader)),
+        ),
+      ),
+    );
+  }
+
+  private addReader(
+    reader: ResumeReader<A>,
+  ): Kind<F, [Option<Kind<F, [void]>>]> {
+    return this.F.defer(() =>
+      this.state.modify(
+        foldState<A, [State<A>, Option<Kind<F, [void]>>]>(
+          ({ value }) => {
+            reader(value);
+            return [new SetState(value), None];
+          },
+          ({ readers }) => {
+            const newState = new UnsetState([...readers, reader]);
+            return [newState, Some(this.deleteReader(reader))];
+          },
         ),
       ),
     );

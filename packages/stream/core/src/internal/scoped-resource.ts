@@ -4,8 +4,16 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import { Either, Right, Option, Some, None, Monad } from '@fp4ts/cats';
-import { ExitCase, UniqueToken } from '@fp4ts/effect';
+import {
+  Either,
+  Right,
+  Option,
+  Some,
+  None,
+  Monad,
+  MonadError,
+} from '@fp4ts/cats';
+import { ExitCase, Ref, UniqueToken } from '@fp4ts/effect';
 
 import { CompilerTarget } from '../compiler';
 import { Lease } from './lease';
@@ -14,13 +22,51 @@ export class ScopedResource<F> {
   private readonly __void!: void;
 
   public constructor(
+    private readonly F: MonadError<F, Error>,
+    private readonly state: Ref<F, State<F>>,
     public readonly id: UniqueToken,
-    public readonly release: (ec: ExitCase) => Kind<F, [Either<Error, void>]>,
-    public readonly acquired: (
-      finalizer: (ec: ExitCase) => Kind<F, [void]>,
-    ) => Kind<F, [Either<Error, boolean>]>,
     public readonly lease: Kind<F, [Option<Lease<F>>]>,
   ) {}
+
+  public acquired(
+    finalizer: (ec: ExitCase) => Kind<F, [Either<Error, void>]>,
+  ): Kind<F, [Either<Error, boolean>]> {
+    const { F } = this;
+    return pipe(
+      this.state.modify(s =>
+        s.isFinished
+          ? [
+              s,
+              pipe(
+                finalizer(ExitCase.Succeeded),
+                F.map(() => false),
+                F.attempt,
+              ),
+            ]
+          : [
+              s.copy({
+                finalizer: Some((ec: ExitCase) => F.attempt(finalizer(ec))),
+              }),
+              F.pure(Right(true)),
+            ],
+      ),
+      F.flatten,
+    );
+  }
+
+  public release(ec: ExitCase): Kind<F, [Either<Error, void>]> {
+    const { F } = this;
+    return pipe(
+      this.state.modify(s =>
+        s.leases !== 0
+          ? [s.copy({ open: false }), None]
+          : [s.copy({ open: false, finalizer: None }), s.finalizer],
+      ),
+      this.F.flatMap(optFin =>
+        optFin.map(fin => fin(ec)).getOrElse(() => F.pure(Either.rightUnit)),
+      ),
+    );
+  }
 
   public static create<F>(
     target: CompilerTarget<F>,
@@ -32,40 +78,6 @@ export class ScopedResource<F> {
       const state = yield* _(target.ref<State<F>>(initialState));
       const token = yield* _(target.unique);
       const pru: Kind<F, [Either<Error, void>]> = F.pure(Either.rightUnit);
-
-      const release = (ec: ExitCase): Kind<F, [Either<Error, void>]> =>
-        pipe(
-          state.modify(s =>
-            s.leases !== 0
-              ? [s.copy({ open: false }), None]
-              : [s.copy({ open: false, finalizer: None }), s.finalizer],
-          ),
-          F.flatMap(optFin => optFin.map(fin => fin(ec)).getOrElse(() => pru)),
-        );
-
-      const acquired = (
-        finalizer: (ec: ExitCase) => Kind<F, [Either<Error, void>]>,
-      ): Kind<F, [Either<Error, boolean>]> =>
-        pipe(
-          state.modify(s =>
-            s.isFinished
-              ? [
-                  s,
-                  pipe(
-                    finalizer(ExitCase.Succeeded),
-                    F.map(() => false),
-                    F.attempt,
-                  ),
-                ]
-              : [
-                  s.copy({
-                    finalizer: Some((ec: ExitCase) => F.attempt(finalizer(ec))),
-                  }),
-                  F.pure(Right(true)),
-                ],
-          ),
-          F.flatten,
-        );
 
       const TheLease: Lease<F> = new Lease(
         pipe(
@@ -93,7 +105,7 @@ export class ScopedResource<F> {
         s.open ? [s.copy({ leases: s.leases + 1 }), Some(TheLease)] : [s, None],
       );
 
-      return new ScopedResource(token, release, acquired, lease);
+      return new ScopedResource(F, state, token, lease);
     });
   }
 }
