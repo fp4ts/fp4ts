@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, applyTo, constant, pipe } from '@fp4ts/core';
+import { $, applyTo, constant } from '@fp4ts/core';
 import { FlatMap, Functor, Monad, ReaderT } from '@fp4ts/cats';
 import { Request } from '@fp4ts/http-core';
 import { DelayedCheck } from './delayed-check';
@@ -191,18 +191,18 @@ export class Delayed<F, env, c> {
     const RF = ReaderT.Monad<$<RouteResultTK, [F]>, Request<F>>(F);
     return (env, req) =>
       this.fold(props =>
-        pipe(
-          RF.Do,
-          RF.bindTo('c', props.captures(env)),
-          RF.bind(props.method),
-          RF.bind(props.accept),
-          RF.bindTo('content', props.content),
-          RF.bindTo('p', props.params),
-          RF.bindTo('h', props.headers),
-          RF.bindTo('b', ({ content }) => props.body(content)),
-        )
-          .flatMapF(F)(({ c, p, h, b }) => props.server(c, p, h, b, req))
-          .run(req),
+        Monad.Do(RF)(function* (_) {
+          const c = yield* _(props.captures(env));
+          yield* _(props.method);
+          yield* _(props.accept);
+          const content = yield* _(props.content);
+          const p = yield* _(props.params);
+          const h = yield* _(props.headers);
+          const b = yield* _(props.body(content));
+          return yield* _(
+            DelayedCheck.liftRouteResult(props.server(c, p, h, b, req)),
+          );
+        }).run(req),
       );
   }
 }

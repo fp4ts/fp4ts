@@ -124,7 +124,7 @@ export const Monad = Object.freeze({
       fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
     ) => Generator<Eff, R, any>,
   ) => Kind<F, [R]> {
-    return function <Eff extends GenKind<Kind<F, [any]>, any>, R>(
+    return function doNotation<Eff extends GenKind<Kind<F, [any]>, any>, R>(
       f: (
         fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
       ) => Generator<Eff, R, any>,

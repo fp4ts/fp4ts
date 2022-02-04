@@ -15,6 +15,10 @@ export const DelayedCheck = Object.freeze({
     <F>(F: Applicative<F>) =>
     <A>(a: A): DelayedCheck<F, A> =>
       ReaderT.pure(F)(a) as any as DelayedCheck<F, A>,
+
+  liftRouteResult: <F, A>(ra: RouteResultT<F, A>): DelayedCheck<F, A> =>
+    ReaderT(() => ra),
+
   withRequest:
     <F>(F: Monad<F>) =>
     <A>(f: (req: Request<F>) => RouteResultT<F, A>): DelayedCheck<F, A> =>
