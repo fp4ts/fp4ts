@@ -498,34 +498,11 @@ export const compile_ =
     foldChunk: (b: B, c: Chunk<O>) => B,
     extendLastTopLevelScope: boolean = false,
   ): Kind<F, [B]> => {
-    type Cont<Y, G, X> = (t: Terminal<Y>) => Pull<G, X, void>;
-
-    interface Run<G, X, End> {
-      done(scope: Scope<F>): End;
-      fail(e: Error): End;
-      out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>): End;
-      interrupted(inter: Interrupted): End;
-    }
-
-    type CallRun<G, X, End> = (r: Run<G, X, End>) => End;
-
-    class BuildRun<G, X, End>
-      implements Run<G, X, Kind<F, [CallRun<G, X, Kind<G, [End]>>]>>
-    {
-      fail = (e: Error) => F.throwError(e);
-      done = (scope: Scope<F>) =>
-        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.done(scope));
-      out = (hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>) =>
-        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.out(hd, scope, tl));
-      interrupted = (i: Interrupted) =>
-        F.pure((r: Run<G, X, Kind<F, [End]>>) => r.interrupted(i));
-    }
-
     type ViewL<G, X> = Action<G, X, unknown> | Terminal<unknown>;
 
     let cont: Cont<unknown, any, never>;
 
-    const viewL = <G, X>(free0: Pull<G, X, void>): ViewL<G, X> => {
+    function viewL<G, X>(free0: Pull<G, X, void>): ViewL<G, X> {
       let free: Pull<G, X, void> = free0;
       while (true) {
         const v = view(free);
@@ -585,15 +562,15 @@ export const compile_ =
             return v as ViewL<G, X>;
         }
       }
-    };
+    }
 
-    const interruptGuard = <G, X, End>(
+    function interruptGuard<G, X, End>(
       scope: Scope<F>,
-      ctx: GoContext<G, X, End>,
+      ctx: GoContext<F, G, X, End>,
       view: Cont<never, G, X>,
       next: () => Kind<F, [End]>,
-    ): Kind<F, [End]> =>
-      F.flatMap_(scope.isInterrupted, optOc =>
+    ): Kind<F, [End]> {
+      return F.flatMap_(scope.isInterrupted, optOc =>
         optOc.fold(
           () => next(),
           oc => {
@@ -602,7 +579,7 @@ export const compile_ =
               e => new Fail(e),
               scopeId => new Interrupted(scopeId, None),
             );
-            return go(
+            return ctx.go(
               scope,
               ctx.extendedTopLevelScope,
               ctx.translation,
@@ -612,11 +589,12 @@ export const compile_ =
           },
         ),
       );
+    }
 
-    const interruptBoundary = <G, X>(
+    function interruptBoundary<G, X>(
       pull: Pull<G, X, void>,
       inter: Interrupted,
-    ): Pull<G, X, void> => {
+    ): Pull<G, X, void> {
       const view = viewL(pull);
       switch (view.tag) {
         case 'succeedScope':
@@ -651,558 +629,32 @@ export const compile_ =
         default:
           return cont(inter);
       }
-    };
-
-    interface GoContext<G, X, End> {
-      readonly scope: Scope<F>;
-      readonly extendedTopLevelScope: Option<Scope<F>>;
-      readonly translation: FunctionK<G, F>;
-      readonly runner: Run<G, X, Kind<F, [End]>>;
     }
 
-    class TranslateRun<H, G, X, End> implements Run<H, X, Kind<F, [End]>> {
-      public constructor(
-        private readonly ctx: GoContext<G, X, End>,
-        private readonly fk: FunctionK<H, G>,
-        private readonly cont: Cont<void, G, X>,
-      ) {}
-
-      done(scope: Scope<F>) {
-        return go(
-          scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(P.unit),
-        );
-      }
-
-      fail(e: Error) {
-        return this.ctx.runner.fail(e);
-      }
-
-      interrupted(inter: Interrupted) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(inter),
-        );
-      }
-
-      out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) {
-        return this.ctx.runner.out(
-          hd,
-          scope,
-          new Bind(new Translate(tl, this.fk), this.cont),
-        );
-      }
-    }
-
-    class ContRunner<G, X, End> implements Run<G, X, Kind<F, [End]>> {
-      public constructor(
-        private readonly ctx: GoContext<G, X, End>,
-        private readonly cont: Cont<void, G, X>,
-      ) {}
-
-      done(doneScope: Scope<F>) {
-        return go(
-          doneScope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(P.unit),
-        );
-      }
-
-      fail(e: Error) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(new Fail(e)),
-        );
-      }
-
-      interrupted(inter: Interrupted) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(inter),
-        );
-      }
-
-      out(hd: Chunk<X>, scope: Scope<F>, tail: Pull<G, X, void>) {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let cur: Run<G, X, Kind<F, [End]>> = this;
-        let acc: Pull<G, X, void> = tail;
-
-        while (cur instanceof ContRunner) {
-          acc = new Bind(acc, cur.cont);
-          cur = cur.ctx.runner;
-        }
-        return cur.out(hd, scope, acc);
-      }
-    }
-
-    abstract class StepRun<Y, S, G, X, End>
-      implements Run<G, Y, Kind<F, [End]>>
-    {
-      public constructor(
-        protected readonly ctx: GoContext<G, X, End>,
-        protected readonly cont: Cont<Option<S>, G, X>,
-      ) {}
-
-      done(doneScope: Scope<F>) {
-        return interruptGuard(doneScope, this.ctx, this.cont, () =>
-          go(
-            doneScope,
-            this.ctx.extendedTopLevelScope,
-            this.ctx.translation,
-            this.ctx.runner,
-            this.cont(new Succeed(None)),
-          ),
-        );
-      }
-
-      fail(e: Error) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(new Fail(e)),
-        );
-      }
-
-      interrupted(inter: Interrupted) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(inter),
-        );
-      }
-
-      abstract out(
-        hd: Chunk<Y>,
-        scope: Scope<F>,
-        tl: Pull<G, Y, void>,
-      ): Kind<F, [End]>;
-    }
-
-    class UnconsRun<Y, G, X, End> extends StepRun<
-      Y,
-      [Chunk<Y>, Pull<G, Y, void>],
-      G,
-      X,
-      End
-    > {
-      override out(
-        hd: Chunk<Y>,
-        outScope: Scope<F>,
-        tl: Pull<G, Y, void>,
-      ): Kind<F, [End]> {
-        return interruptGuard(outScope, this.ctx, this.cont, () =>
-          go(
-            outScope,
-            this.ctx.extendedTopLevelScope,
-            this.ctx.translation,
-            this.ctx.runner,
-            this.cont(new Succeed(Some([hd, tl]))),
-          ),
-        );
-      }
-    }
-
-    class FlatMapRun<Y, G, X, End> implements Run<G, Y, Kind<F, [End]>> {
-      public constructor(
-        private readonly ctx: GoContext<G, X, End>,
-        private readonly cont: Cont<void, G, X>,
-        private readonly fun: (t: Y) => Pull<G, X, void>,
-      ) {}
-
-      private unconsed(hd: Chunk<Y>, tl: Pull<G, Y, void>): Pull<G, X, void> {
-        const go = (idx: number): Pull<G, X, void> => {
-          if (idx === hd.size) return flatMapOutput_(tl, this.fun);
-          try {
-            return new Bind<G, X, void, void>(this.fun(hd['!!'](idx)), t => {
-              switch (t.tag) {
-                case 'succeed':
-                  return go(idx + 1);
-                case 'fail':
-                  return t;
-                case 'interrupted':
-                  return flatMapOutput_(interruptBoundary(tl, t), this.fun);
-              }
-            });
-          } catch (error) {
-            return new Fail(error as Error);
-          }
-        };
-
-        return go(0);
-      }
-
-      done(scope: Scope<F>) {
-        return interruptGuard(scope, this.ctx, this.cont, () =>
-          go(
-            scope,
-            this.ctx.extendedTopLevelScope,
-            this.ctx.translation,
-            this.ctx.runner,
-            this.cont(P.unit),
-          ),
-        );
-      }
-
-      fail(e: Error) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(new Fail(e)),
-        );
-      }
-
-      interrupted(inter: Interrupted) {
-        return go(
-          this.ctx.scope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          this.cont(inter),
-        );
-      }
-
-      out(hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) {
-        return go(
-          outScope,
-          this.ctx.extendedTopLevelScope,
-          this.ctx.translation,
-          this.ctx.runner,
-          new Bind(this.unconsed(hd, tl), this.cont),
-        );
-      }
-    }
-
-    const goUncons = <G, X, End>(
-      un: Uncons<G, X>,
-      cont: Cont<Option<[Chunk<X>, Pull<G, X, void>]>, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> =>
-      pipe(
-        F.unit,
-        F.flatMap(() =>
-          go<G, X, CallRun<G, X, Kind<F, [End]>>>(
-            ctx.scope,
-            ctx.extendedTopLevelScope,
-            ctx.translation,
-            new BuildRun<G, unknown, End>(),
-            un.self,
-          ),
-        ),
-        F.attempt,
-        F.flatMap(ea =>
-          ea.fold(
-            e =>
-              go(
-                ctx.scope,
-                ctx.extendedTopLevelScope,
-                ctx.translation,
-                ctx.runner,
-                cont(new Fail(e)),
-              ),
-            f => f(new UnconsRun(ctx, cont)),
-          ),
-        ),
-      );
-
-    const goEval = <G, Y, X, End>(
-      ev: Eval<G, Y>,
-      cont: Cont<Y, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> =>
-      pipe(
-        ctx.scope.interruptibleEval(ctx.translation(ev.value)),
-        F.flatMap(eitherOutcome => {
-          const result = eitherOutcome.fold(
-            oc =>
-              oc.fold(
-                () => new Interrupted(ctx.scope.id, None),
-                e => new Fail(e),
-                scopeId => new Interrupted(scopeId, None),
-              ),
-            r => new Succeed(r),
-          );
-
-          return go(
-            ctx.scope,
-            ctx.extendedTopLevelScope,
-            ctx.translation,
-            ctx.runner,
-            cont(result),
-          );
-        }),
-      );
-
-    const goAcquire = <G, X, R, End>(
-      acquire: Acquire<G, R>,
-      cont: Cont<R, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> => {
-      const onScope = ctx.scope.acquireResource<R>(
-        poll =>
-          acquire.cancelable
-            ? poll(ctx.translation(acquire.resource))
-            : ctx.translation(acquire.resource),
-        (resource, ec) => ctx.translation(acquire.release(resource, ec)),
-      );
-
-      const cont_ = F.flatMap_(onScope, oc => {
-        const result = oc.fold(
-          () => new Interrupted(ctx.scope.id, None),
-          e => new Fail(e),
-          ea =>
-            ea.fold(
-              scopeId => new Interrupted(scopeId, None),
-              result => new Succeed(result),
-            ),
-        );
-        return go(
-          ctx.scope,
-          ctx.extendedTopLevelScope,
-          ctx.translation,
-          ctx.runner,
-          cont(result),
-        );
-      });
-
-      return interruptGuard(ctx.scope, ctx, cont, () => cont_);
-    };
-
-    const goInterruptWhen = <G, X, End>(
-      haltOnSignal: Kind<F, [Either<Error, void>]>,
-      cont: Cont<void, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> => {
-      const onScope = ctx.scope.acquireResource(
-        () => ctx.scope.interruptWhen(haltOnSignal),
-        f => f.cancel,
-      );
-
-      const cont_ = F.flatMap_(onScope, outcome => {
-        const result = outcome.fold(
-          () => new Interrupted(ctx.scope.id, None),
-          e => new Fail(e),
-          ea =>
-            ea.fold(
-              scopeId => new Interrupted(scopeId, None),
-              () => new Succeed(undefined as void),
-            ),
-        );
-
-        return go(
-          ctx.scope,
-          ctx.extendedTopLevelScope,
-          ctx.translation,
-          ctx.runner,
-          cont(result),
-        );
-      });
-
-      return interruptGuard(ctx.scope, ctx, cont, () => cont_);
-    };
-
-    const goInScope = <G, X, End>(
-      pull: Pull<G, X, void>,
-      useInterruption: boolean,
-      cont: Cont<void, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> => {
-      const endScope = (
-        scopeId: UniqueToken,
-        result: Terminal<void>,
-      ): Pull<G, X, void> => {
-        switch (result.tag) {
-          case 'succeed':
-            return new SucceedScope(scopeId);
-          case 'fail':
-            return new FailedScope(scopeId, result.error);
-          case 'interrupted':
-            return new CanceledScope(scopeId, result);
-        }
-      };
-
-      const maybeCloseExtendScope: Kind<F, [Option<Scope<F>>]> =
-        ctx.scope.isRoot && ctx.extendedTopLevelScope.nonEmpty
-          ? ctx.extendedTopLevelScope.fold(
-              () =>
-                throwError(
-                  new Error(
-                    'Impossible, we just checked that the option is not empty',
-                  ),
-                ),
-              scope =>
-                F.map_(F.rethrow(scope.close(ExitCase.Succeeded)), () => None),
-            )
-          : F.pure(ctx.extendedTopLevelScope);
-
-      const tail = F.flatMap_(maybeCloseExtendScope, newExtendedScope =>
-        pipe(
-          ctx.scope.open(useInterruption),
-          F.rethrow,
-          F.flatMap(childScope => {
-            const bb = new Bind<G, X, void, void>(pull, r =>
-              endScope(childScope.id, r),
-            );
-            return go(
-              childScope,
-              newExtendedScope,
-              ctx.translation,
-              new ContRunner(ctx, cont),
-              bb,
-            );
-          }),
-        ),
-      );
-
-      return interruptGuard(ctx.scope, ctx, cont, () => tail);
-    };
-
-    const goCloseScope = <G, X, End>(
-      close: CloseScope,
-      cont: Cont<void, G, X>,
-      ctx: GoContext<G, X, End>,
-    ): Kind<F, [End]> => {
-      const addError = (error: Error, res: Terminal<void>): Terminal<void> => {
-        switch (res.tag) {
-          case 'succeed':
-            return new Fail(error);
-          case 'fail':
-            return new Fail(CompositeFailure.from(error, res.error));
-          case 'interrupted':
-            throw new Error('Impossible state');
-        }
-      };
-
-      const cont_ = (res: Terminal<void>): Pull<G, X, void> =>
-        close.exitCase.fold(
-          () => cont(res),
-          error => cont(addError(error, res)),
-          () => cont(res),
-        );
-
-      const closeTerminal = (
-        r: Either<Error, void>,
-        ancestor: Scope<F>,
-      ): Terminal<void> =>
-        close.interruption.fold(
-          () =>
-            r.fold(
-              e => new Fail(e),
-              rr => new Succeed(rr),
-            ),
-          ({ context, deferredError }) => {
-            const err1 = () =>
-              CompositeFailure.fromList(
-                r.swapped.toOption.toList['+++'](deferredError.toList),
-              );
-
-            return ancestor.descendsFrom(context)
-              ? new Interrupted(context, err1())
-              : err1().fold(
-                  () => P.unit,
-                  error => new Fail(error),
-                );
-          },
-        );
-
-      return F.flatMap_(ctx.scope.findInLineage(close.scopeId), optToClose =>
-        optToClose.fold(
-          () => {
-            const result = close.interruption.getOrElse(() => P.unit);
-            return go<G, X, End>(
-              ctx.scope,
-              ctx.extendedTopLevelScope,
-              ctx.translation,
-              ctx.runner,
-              cont_(result),
-            );
-          },
-          toClose => {
-            if (toClose.isRoot)
-              // impossible
-              return go<G, X, End>(
-                ctx.scope,
-                ctx.extendedTopLevelScope,
-                ctx.translation,
-                ctx.runner,
-                cont_(P.unit),
-              );
-
-            if (extendLastTopLevelScope && toClose.level === 1)
-              return pipe(
-                ctx.extendedTopLevelScope.fold(
-                  () => F.unit,
-                  s => s.close(ExitCase.Succeeded),
-                ),
-                F.productR(toClose.openAncestor),
-                F.flatMap(ancestor =>
-                  go(
-                    ancestor,
-                    Some(toClose),
-                    ctx.translation,
-                    ctx.runner,
-                    cont_(P.unit),
-                  ),
-                ),
-              );
-
-            return Monad.Do(F)(function* (_) {
-              const r = yield* _(toClose.close(close.exitCase));
-              const ancestor = yield* _(toClose.openAncestor);
-              const res = closeTerminal(r, ancestor);
-              return yield* _(
-                go(
-                  ancestor,
-                  ctx.extendedTopLevelScope,
-                  ctx.translation,
-                  ctx.runner,
-                  cont_(res),
-                ),
-              );
-            });
-          },
-        ),
-      );
-    };
-
-    const go = <G, X, End>(
+    function go<G, X, End>(
       scope: Scope<F>,
       extendedTopLevelScope: Option<Scope<F>>,
       translation: FunctionK<G, F>,
-      runner: Run<G, X, Kind<F, [End]>>,
+      runner: Run<F, G, X, Kind<F, [End]>>,
       stream: Pull<G, X, void>,
-    ): Kind<F, [End]> => {
-      const ctx: GoContext<G, X, End> = {
+    ): Kind<F, [End]> {
+      const ctx: GoContext<F, G, X, End> = {
+        F,
+        go,
         scope,
         extendedTopLevelScope,
+        extendLastTopLevelScope,
         translation,
         runner,
+        interruptBoundary,
+        interruptGuard,
       };
 
       const v = viewL(stream);
       switch (v.tag) {
         case 'translate': {
           const composed: FunctionK<unknown, F> = a => translation(v.nt(a));
-          const runner: Run<unknown, X, Kind<F, [End]>> = new TranslateRun(
+          const runner: Run<F, unknown, X, Kind<F, [End]>> = new TranslateRun(
             ctx,
             v.nt,
             cont,
@@ -1264,11 +716,11 @@ export const compile_ =
         case 'interrupted':
           return runner.interrupted(v);
       }
-    };
+    }
 
     const initFk: FunctionK<F, F> = id;
 
-    class OuterRun implements Run<F, O, Kind<F, [B]>> {
+    class OuterRun implements Run<F, F, O, Kind<F, [B]>> {
       public constructor(private acc: B) {}
 
       done(): Kind<F, [B]> {
@@ -1335,3 +787,597 @@ export const compile_ =
 
     return go(initScope, None, initFk, new OuterRun(init), stream);
   };
+
+type Cont<Y, G, X> = (t: Terminal<Y>) => Pull<G, X, void>;
+
+interface Run<F, G, X, End> {
+  done(scope: Scope<F>): End;
+  fail(e: Error): End;
+  out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>): End;
+  interrupted(inter: Interrupted): End;
+}
+
+type CallRun<F, G, X, End> = (r: Run<F, G, X, End>) => End;
+
+interface GoContext<F, G, X, End> {
+  readonly F: MonadError<F, Error>;
+  readonly scope: Scope<F>;
+  readonly extendedTopLevelScope: Option<Scope<F>>;
+  readonly extendLastTopLevelScope: boolean;
+  readonly translation: FunctionK<G, F>;
+  readonly runner: Run<F, G, X, Kind<F, [End]>>;
+
+  readonly go: <G, X, End>(
+    scope: Scope<F>,
+    extendedTopLevelScope: Option<Scope<F>>,
+    translation: FunctionK<G, F>,
+    runner: Run<F, G, X, Kind<F, [End]>>,
+    stream: Pull<G, X, void>,
+  ) => Kind<F, [End]>;
+  interruptGuard<G, X, End>(
+    scope: Scope<F>,
+    ctx: GoContext<F, G, X, End>,
+    view: Cont<never, G, X>,
+    next: () => Kind<F, [End]>,
+  ): Kind<F, [End]>;
+  interruptBoundary<G, X>(
+    pull: Pull<G, X, void>,
+    inter: Interrupted,
+  ): Pull<G, X, void>;
+}
+
+class BuildRun<F, G, X, End>
+  implements Run<F, G, X, Kind<F, [CallRun<F, G, X, Kind<G, [End]>>]>>
+{
+  public constructor(public readonly ctx: GoContext<F, G, X, End>) {}
+
+  fail(e: Error) {
+    return this.ctx.F.throwError(e);
+  }
+  done(scope: Scope<F>) {
+    return this.ctx.F.pure((r: Run<F, G, X, Kind<F, [End]>>) => r.done(scope));
+  }
+  out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<G, X, void>) {
+    return this.ctx.F.pure((r: Run<F, G, X, Kind<F, [End]>>) =>
+      r.out(hd, scope, tl),
+    );
+  }
+  interrupted(i: Interrupted) {
+    return this.ctx.F.pure((r: Run<F, G, X, Kind<F, [End]>>) =>
+      r.interrupted(i),
+    );
+  }
+}
+
+class TranslateRun<F, H, G, X, End> implements Run<F, H, X, Kind<F, [End]>> {
+  public constructor(
+    private readonly ctx: GoContext<F, G, X, End>,
+    private readonly fk: FunctionK<H, G>,
+    private readonly cont: Cont<void, G, X>,
+  ) {}
+
+  done(scope: Scope<F>) {
+    return this.ctx.go(
+      scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(P.unit),
+    );
+  }
+
+  fail(e: Error) {
+    return this.ctx.runner.fail(e);
+  }
+
+  interrupted(inter: Interrupted) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(inter),
+    );
+  }
+
+  out(hd: Chunk<X>, scope: Scope<F>, tl: Pull<H, X, void>) {
+    return this.ctx.runner.out(
+      hd,
+      scope,
+      new Bind(new Translate(tl, this.fk), this.cont),
+    );
+  }
+}
+
+class ContRunner<F, G, X, End> implements Run<F, G, X, Kind<F, [End]>> {
+  public constructor(
+    private readonly ctx: GoContext<F, G, X, End>,
+    private readonly cont: Cont<void, G, X>,
+  ) {}
+
+  done(doneScope: Scope<F>) {
+    return this.ctx.go(
+      doneScope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(P.unit),
+    );
+  }
+
+  fail(e: Error) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(new Fail(e)),
+    );
+  }
+
+  interrupted(inter: Interrupted) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(inter),
+    );
+  }
+
+  out(hd: Chunk<X>, scope: Scope<F>, tail: Pull<G, X, void>) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let cur: Run<F, G, X, Kind<F, [End]>> = this;
+    let acc: Pull<G, X, void> = tail;
+
+    while (cur instanceof ContRunner) {
+      acc = new Bind(acc, cur.cont);
+      cur = cur.ctx.runner;
+    }
+    return cur.out(hd, scope, acc);
+  }
+}
+
+abstract class StepRun<F, Y, S, G, X, End>
+  implements Run<F, G, Y, Kind<F, [End]>>
+{
+  public constructor(
+    protected readonly ctx: GoContext<F, G, X, End>,
+    protected readonly cont: Cont<Option<S>, G, X>,
+  ) {}
+
+  done(doneScope: Scope<F>) {
+    return this.ctx.interruptGuard(doneScope, this.ctx, this.cont, () =>
+      this.ctx.go(
+        doneScope,
+        this.ctx.extendedTopLevelScope,
+        this.ctx.translation,
+        this.ctx.runner,
+        this.cont(new Succeed(None)),
+      ),
+    );
+  }
+
+  fail(e: Error) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(new Fail(e)),
+    );
+  }
+
+  interrupted(inter: Interrupted) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(inter),
+    );
+  }
+
+  abstract out(
+    hd: Chunk<Y>,
+    scope: Scope<F>,
+    tl: Pull<G, Y, void>,
+  ): Kind<F, [End]>;
+}
+
+class UnconsRun<F, Y, G, X, End> extends StepRun<
+  F,
+  Y,
+  [Chunk<Y>, Pull<G, Y, void>],
+  G,
+  X,
+  End
+> {
+  override out(
+    hd: Chunk<Y>,
+    outScope: Scope<F>,
+    tl: Pull<G, Y, void>,
+  ): Kind<F, [End]> {
+    return this.ctx.interruptGuard(outScope, this.ctx, this.cont, () =>
+      this.ctx.go(
+        outScope,
+        this.ctx.extendedTopLevelScope,
+        this.ctx.translation,
+        this.ctx.runner,
+        this.cont(new Succeed(Some([hd, tl]))),
+      ),
+    );
+  }
+}
+
+class FlatMapRun<F, Y, G, X, End> implements Run<F, G, Y, Kind<F, [End]>> {
+  public constructor(
+    private readonly ctx: GoContext<F, G, X, End>,
+    private readonly cont: Cont<void, G, X>,
+    private readonly fun: (t: Y) => Pull<G, X, void>,
+  ) {}
+
+  private unconsed(hd: Chunk<Y>, tl: Pull<G, Y, void>): Pull<G, X, void> {
+    const go = (idx: number): Pull<G, X, void> => {
+      if (idx === hd.size) return flatMapOutput_(tl, this.fun);
+      try {
+        return new Bind<G, X, void, void>(this.fun(hd['!!'](idx)), t => {
+          switch (t.tag) {
+            case 'succeed':
+              return go(idx + 1);
+            case 'fail':
+              return t;
+            case 'interrupted':
+              return flatMapOutput_(
+                this.ctx.interruptBoundary(tl, t),
+                this.fun,
+              );
+          }
+        });
+      } catch (error) {
+        return new Fail(error as Error);
+      }
+    };
+
+    return go(0);
+  }
+
+  done(scope: Scope<F>) {
+    return this.ctx.interruptGuard(scope, this.ctx, this.cont, () =>
+      this.ctx.go(
+        scope,
+        this.ctx.extendedTopLevelScope,
+        this.ctx.translation,
+        this.ctx.runner,
+        this.cont(P.unit),
+      ),
+    );
+  }
+
+  fail(e: Error) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(new Fail(e)),
+    );
+  }
+
+  interrupted(inter: Interrupted) {
+    return this.ctx.go(
+      this.ctx.scope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      this.cont(inter),
+    );
+  }
+
+  out(hd: Chunk<Y>, outScope: Scope<F>, tl: Pull<G, Y, void>) {
+    return this.ctx.go(
+      outScope,
+      this.ctx.extendedTopLevelScope,
+      this.ctx.translation,
+      this.ctx.runner,
+      new Bind(this.unconsed(hd, tl), this.cont),
+    );
+  }
+}
+
+function goUncons<F, G, X, End>(
+  un: Uncons<G, X>,
+  cont: Cont<Option<[Chunk<X>, Pull<G, X, void>]>, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  const { F } = ctx;
+  return pipe(
+    F.unit,
+    F.flatMap(() =>
+      ctx.go<G, X, CallRun<F, G, X, Kind<F, [End]>>>(
+        ctx.scope,
+        ctx.extendedTopLevelScope,
+        ctx.translation,
+        new BuildRun<F, G, unknown, End>(ctx),
+        un.self,
+      ),
+    ),
+    F.attempt,
+    F.flatMap(ea =>
+      ea.fold(
+        e =>
+          ctx.go(
+            ctx.scope,
+            ctx.extendedTopLevelScope,
+            ctx.translation,
+            ctx.runner,
+            cont(new Fail(e)),
+          ),
+        f => f(new UnconsRun(ctx, cont)),
+      ),
+    ),
+  );
+}
+
+function goEval<F, G, Y, X, End>(
+  ev: Eval<G, Y>,
+  cont: Cont<Y, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  return pipe(
+    ctx.scope.interruptibleEval(ctx.translation(ev.value)),
+    ctx.F.flatMap(eitherOutcome => {
+      const result = eitherOutcome.fold(
+        oc =>
+          oc.fold(
+            () => new Interrupted(ctx.scope.id, None),
+            e => new Fail(e),
+            scopeId => new Interrupted(scopeId, None),
+          ),
+        r => new Succeed(r),
+      );
+
+      return ctx.go(
+        ctx.scope,
+        ctx.extendedTopLevelScope,
+        ctx.translation,
+        ctx.runner,
+        cont(result),
+      );
+    }),
+  );
+}
+
+function goAcquire<F, G, X, R, End>(
+  acquire: Acquire<G, R>,
+  cont: Cont<R, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  const onScope = ctx.scope.acquireResource<R>(
+    poll =>
+      acquire.cancelable
+        ? poll(ctx.translation(acquire.resource))
+        : ctx.translation(acquire.resource),
+    (resource, ec) => ctx.translation(acquire.release(resource, ec)),
+  );
+
+  const cont_ = ctx.F.flatMap_(onScope, oc => {
+    const result = oc.fold(
+      () => new Interrupted(ctx.scope.id, None),
+      e => new Fail(e),
+      ea =>
+        ea.fold(
+          scopeId => new Interrupted(scopeId, None),
+          result => new Succeed(result),
+        ),
+    );
+    return ctx.go(
+      ctx.scope,
+      ctx.extendedTopLevelScope,
+      ctx.translation,
+      ctx.runner,
+      cont(result),
+    );
+  });
+
+  return ctx.interruptGuard(ctx.scope, ctx, cont, () => cont_);
+}
+
+function goInterruptWhen<F, G, X, End>(
+  haltOnSignal: Kind<F, [Either<Error, void>]>,
+  cont: Cont<void, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  const onScope = ctx.scope.acquireResource(
+    () => ctx.scope.interruptWhen(haltOnSignal),
+    f => f.cancel,
+  );
+
+  const cont_ = ctx.F.flatMap_(onScope, outcome => {
+    const result = outcome.fold(
+      () => new Interrupted(ctx.scope.id, None),
+      e => new Fail(e),
+      ea =>
+        ea.fold(
+          scopeId => new Interrupted(scopeId, None),
+          () => new Succeed(undefined as void),
+        ),
+    );
+
+    return ctx.go(
+      ctx.scope,
+      ctx.extendedTopLevelScope,
+      ctx.translation,
+      ctx.runner,
+      cont(result),
+    );
+  });
+
+  return ctx.interruptGuard(ctx.scope, ctx, cont, () => cont_);
+}
+
+function goInScope<F, G, X, End>(
+  pull: Pull<G, X, void>,
+  useInterruption: boolean,
+  cont: Cont<void, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  const { F } = ctx;
+  const endScope = (
+    scopeId: UniqueToken,
+    result: Terminal<void>,
+  ): Pull<G, X, void> => {
+    switch (result.tag) {
+      case 'succeed':
+        return new SucceedScope(scopeId);
+      case 'fail':
+        return new FailedScope(scopeId, result.error);
+      case 'interrupted':
+        return new CanceledScope(scopeId, result);
+    }
+  };
+
+  const maybeCloseExtendScope: Kind<F, [Option<Scope<F>>]> =
+    ctx.scope.isRoot && ctx.extendedTopLevelScope.nonEmpty
+      ? ctx.extendedTopLevelScope.fold(
+          () =>
+            throwError(
+              new Error(
+                'Impossible, we just checked that the option is not empty',
+              ),
+            ),
+          scope =>
+            F.map_(F.rethrow(scope.close(ExitCase.Succeeded)), () => None),
+        )
+      : F.pure(ctx.extendedTopLevelScope);
+
+  const tail = F.flatMap_(maybeCloseExtendScope, newExtendedScope =>
+    pipe(
+      ctx.scope.open(useInterruption),
+      F.rethrow,
+      F.flatMap(childScope => {
+        const bb = new Bind<G, X, void, void>(pull, r =>
+          endScope(childScope.id, r),
+        );
+        return ctx.go(
+          childScope,
+          newExtendedScope,
+          ctx.translation,
+          new ContRunner(ctx, cont),
+          bb,
+        );
+      }),
+    ),
+  );
+
+  return ctx.interruptGuard(ctx.scope, ctx, cont, () => tail);
+}
+
+function goCloseScope<F, G, X, End>(
+  close: CloseScope,
+  cont: Cont<void, G, X>,
+  ctx: GoContext<F, G, X, End>,
+): Kind<F, [End]> {
+  const { F } = ctx;
+  const addError = (error: Error, res: Terminal<void>): Terminal<void> => {
+    switch (res.tag) {
+      case 'succeed':
+        return new Fail(error);
+      case 'fail':
+        return new Fail(CompositeFailure.from(error, res.error));
+      case 'interrupted':
+        throw new Error('Impossible state');
+    }
+  };
+
+  const cont_ = (res: Terminal<void>): Pull<G, X, void> =>
+    close.exitCase.fold(
+      () => cont(res),
+      error => cont(addError(error, res)),
+      () => cont(res),
+    );
+
+  const closeTerminal = (
+    r: Either<Error, void>,
+    ancestor: Scope<F>,
+  ): Terminal<void> =>
+    close.interruption.fold(
+      () =>
+        r.fold(
+          e => new Fail(e),
+          rr => new Succeed(rr),
+        ),
+      ({ context, deferredError }) => {
+        const err1 = () =>
+          CompositeFailure.fromList(
+            r.swapped.toOption.toList['+++'](deferredError.toList),
+          );
+
+        return ancestor.descendsFrom(context)
+          ? new Interrupted(context, err1())
+          : err1().fold(
+              () => P.unit,
+              error => new Fail(error),
+            );
+      },
+    );
+
+  return ctx.F.flatMap_(ctx.scope.findInLineage(close.scopeId), optToClose =>
+    optToClose.fold(
+      () => {
+        const result = close.interruption.getOrElse(() => P.unit);
+        return ctx.go<G, X, End>(
+          ctx.scope,
+          ctx.extendedTopLevelScope,
+          ctx.translation,
+          ctx.runner,
+          cont_(result),
+        );
+      },
+      toClose => {
+        if (toClose.isRoot)
+          // impossible
+          return ctx.go<G, X, End>(
+            ctx.scope,
+            ctx.extendedTopLevelScope,
+            ctx.translation,
+            ctx.runner,
+            cont_(P.unit),
+          );
+
+        if (ctx.extendLastTopLevelScope && toClose.level === 1)
+          return pipe(
+            ctx.extendedTopLevelScope.fold(
+              () => F.unit,
+              s => s.close(ExitCase.Succeeded),
+            ),
+            F.productR(toClose.openAncestor),
+            F.flatMap(ancestor =>
+              ctx.go(
+                ancestor,
+                Some(toClose),
+                ctx.translation,
+                ctx.runner,
+                cont_(P.unit),
+              ),
+            ),
+          );
+
+        return Monad.Do(F)(function* (_) {
+          const r = yield* _(toClose.close(close.exitCase));
+          const ancestor = yield* _(toClose.openAncestor);
+          const res = closeTerminal(r, ancestor);
+          return yield* _(
+            ctx.go(
+              ancestor,
+              ctx.extendedTopLevelScope,
+              ctx.translation,
+              ctx.runner,
+              cont_(res),
+            ),
+          );
+        });
+      },
+    ),
+  );
+}
