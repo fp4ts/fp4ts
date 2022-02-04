@@ -535,20 +535,6 @@ export const compile_ =
           case 'interrupted':
             return v;
 
-          case 'translate':
-          case 'output':
-          case 'flatMapOutput':
-          case 'uncons':
-          case 'eval':
-          case 'acquire':
-          case 'interruptWhen':
-          case 'succeedScope':
-          case 'canceledScope':
-          case 'failedScope':
-          case 'inScope':
-            cont = id;
-            return v as ViewL<G, X>;
-
           case 'bind': {
             const step = view(v.step);
             switch (step.tag) {
@@ -558,29 +544,45 @@ export const compile_ =
                 free = v.cont(step);
                 continue;
 
-              case 'translate':
-              case 'output':
-              case 'flatMapOutput':
-              case 'uncons':
-              case 'eval':
-              case 'acquire':
-              case 'interruptWhen':
-              case 'inScope':
-              case 'getScope':
-              case 'succeedScope':
-              case 'canceledScope':
-              case 'failedScope':
-                cont = v.cont as Cont<unknown, any, never>;
-                return step;
-
               case 'bind':
                 free = new Bind<G, X, any, void>(
                   step.step,
                   r => new Bind(step.cont(r), v.cont),
                 );
                 continue;
+
+              // case 'translate':
+              // case 'output':
+              // case 'flatMapOutput':
+              // case 'uncons':
+              // case 'eval':
+              // case 'acquire':
+              // case 'interruptWhen':
+              // case 'inScope':
+              // case 'getScope':
+              // case 'succeedScope':
+              // case 'canceledScope':
+              // case 'failedScope':
+              default:
+                cont = v.cont as Cont<unknown, any, never>;
+                return step;
             }
           }
+
+          // case 'translate':
+          // case 'output':
+          // case 'flatMapOutput':
+          // case 'uncons':
+          // case 'eval':
+          // case 'acquire':
+          // case 'interruptWhen':
+          // case 'succeedScope':
+          // case 'canceledScope':
+          // case 'failedScope':
+          // case 'inScope':
+          default:
+            cont = id;
+            return v as ViewL<G, X>;
         }
       }
     };
@@ -624,17 +626,6 @@ export const compile_ =
           return new Bind<G, X, void, void>(cl, cont);
         }
 
-        case 'translate':
-        case 'output':
-        case 'flatMapOutput':
-        case 'uncons':
-        case 'eval':
-        case 'acquire':
-        case 'interruptWhen':
-        case 'getScope':
-        case 'inScope':
-          return cont(inter);
-
         case 'interrupted':
           throw new Error('Impossible state');
 
@@ -647,6 +638,18 @@ export const compile_ =
           ).getOrElse(() => view.error);
           return new Fail(mixed);
         }
+
+        // case 'translate':
+        // case 'output':
+        // case 'flatMapOutput':
+        // case 'uncons':
+        // case 'eval':
+        // case 'acquire':
+        // case 'interruptWhen':
+        // case 'getScope':
+        // case 'inScope':
+        default:
+          return cont(inter);
       }
     };
 
@@ -1166,7 +1169,7 @@ export const compile_ =
               const r = yield* _(toClose.close(close.exitCase));
               const ancestor = yield* _(toClose.openAncestor);
               const res = closeTerminal(r, ancestor);
-              const ress = yield* _(
+              return yield* _(
                 go(
                   ancestor,
                   ctx.extendedTopLevelScope,
@@ -1175,7 +1178,6 @@ export const compile_ =
                   cont_(res),
                 ),
               );
-              return ress;
             });
           },
         ),
@@ -1292,25 +1294,6 @@ export const compile_ =
         } catch (error) {
           const tv = viewL(tl);
           switch (tv.tag) {
-            case 'translate':
-            case 'output':
-            case 'flatMapOutput':
-            case 'uncons':
-            case 'eval':
-            case 'acquire':
-            case 'interruptWhen':
-            case 'getScope':
-            case 'succeedScope':
-            case 'canceledScope':
-            case 'failedScope':
-            case 'inScope':
-              return go<F, O, B>(
-                outScope,
-                None,
-                initFk,
-                this,
-                cont(new Fail(error as Error)),
-              );
             case 'succeed':
               return F.throwError(error as Error);
             case 'fail':
@@ -1324,8 +1307,27 @@ export const compile_ =
                   e2 => CompositeFailure.from(e2, error as Error),
                 ),
               );
+
+            // case 'translate':
+            // case 'output':
+            // case 'flatMapOutput':
+            // case 'uncons':
+            // case 'eval':
+            // case 'acquire':
+            // case 'interruptWhen':
+            // case 'getScope':
+            // case 'succeedScope':
+            // case 'canceledScope':
+            // case 'failedScope':
+            // case 'inScope':
             default:
-              return F.throwError(error as Error);
+              return go<F, O, B>(
+                outScope,
+                None,
+                initFk,
+                this,
+                cont(new Fail(error as Error)),
+              );
           }
         }
       }
