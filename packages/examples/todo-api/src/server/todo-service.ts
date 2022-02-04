@@ -31,21 +31,16 @@ export class TodoService<F> {
       ),
     );
 
-  public create = (todo: CreateTodo): Kind<F, [Todo]> =>
-    pipe(
-      this.F.Do,
-      this.F.bindTo(
-        'id',
-        this.nextId.updateAndGet(id => id + 1),
-      ),
-      this.F.bindTo('todo', ({ id }) =>
-        this.F.pure({ ...todo, id, completed: false }),
-      ),
-      this.F.bind(({ todo }) =>
-        this.repo.update(repo => repo.insert(todo.id, todo)),
-      ),
-      this.F.map(({ todo }) => todo),
-    );
+  public create = (todo: CreateTodo): Kind<F, [Todo]> => {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return Monad.Do(this.F)(function* (_) {
+      const id = yield* _(self.nextId.updateAndGet(id => id + 1));
+      const newTodo = yield* _(self.F.pure({ ...todo, id, completed: false }));
+      yield* _(self.repo.update(repo => repo.insert(newTodo.id, newTodo)));
+      return newTodo;
+    });
+  };
 
   public getById = (id: number): Kind<F, [Either<MessageFailure, Todo>]> =>
     pipe(

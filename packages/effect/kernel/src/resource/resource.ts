@@ -157,7 +157,6 @@ Resource.Concurrent = resourceConcurrent;
 Resource.Temporal = resourceTemporal;
 Resource.Sync = resourceSync;
 Resource.Async = resourceAsync;
-Resource.Async = resourceAsync;
 
 // -- HKT
 

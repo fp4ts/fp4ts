@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import http from 'http';
-import { Map } from '@fp4ts/cats';
-import { pipe } from '@fp4ts/core';
+import { Map, Monad } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect';
 import { serve } from '@fp4ts/http-node-server';
 
@@ -17,12 +16,15 @@ export const makeServer =
   <F>(F: Async<F>) =>
   (port: number = 3000): Resource<F, http.Server> => {
     const R = Resource.Async(F);
-    return pipe(
-      R.Do,
-      R.bindTo('ids', Resource.evalF(F.ref(0))),
-      R.bindTo('repo', Resource.evalF(F.ref(Map.empty as Map<number, Todo>))),
-      R.let('todoService', ({ ids, repo }) => new TodoService(F, ids, repo)),
-      R.let('server', ({ todoService }) => new Server(F, todoService)),
-      R.flatMap(({ server }) => serve(F)(server.toHttpApp, port)),
-    );
+    return Monad.Do(R)(function* (_) {
+      const ids = yield* _(Resource.evalF(F.ref(0)));
+      const repo = yield* _(
+        Resource.evalF(F.ref(Map.empty as Map<number, Todo>)),
+      );
+
+      const todoService = new TodoService(F, ids, repo);
+      const server = new Server(F, todoService);
+
+      return yield* _(serve(F)(server.toHttpApp, port));
+    });
   };

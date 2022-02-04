@@ -43,21 +43,21 @@ export const gameLoop = <F>(
   );
 
   const guessLoop = (hidden: number): Kind<F, [void]> =>
-    pipe(
-      F.Do,
-      F.bindTo('guess', enterGuess),
-      F.bindTo('isCorrect', ({ guess }) => F.pure(guess === hidden)),
-      F.bind(({ guess }) => printResults(F)(hidden)(guess)),
-      F.flatMap(({ isCorrect }) => (isCorrect ? F.unit : guessLoop(hidden))),
-    );
+    Monad.Do(F)(function* (_) {
+      const guess = yield* _(enterGuess);
+      const isCorrect = guess === hidden;
+      yield* _(printResults(F)(hidden)(guess));
 
-  return pipe(
-    F.Do,
-    F.bindTo('hidden', F.nextIntBetween(1, 101)),
-    F.bind(({ hidden }) => guessLoop(hidden)),
-    F.bindTo('cont', checkContinue(F)),
-    F.flatMap(({ cont }) => (cont ? gameLoop(F) : F.unit)),
-  );
+      yield* _(isCorrect ? F.unit : guessLoop(hidden));
+    });
+
+  return Monad.Do(F)(function* (_) {
+    const hidden = yield* _(F.nextIntBetween(1, 101));
+    yield* _(guessLoop(hidden));
+
+    const cont = yield* _(checkContinue(F));
+    yield* _(cont ? gameLoop(F) : F.unit);
+  });
 };
 
 export const run = <F>(F: Program<F>): Kind<F, [void]> => gameLoop(F);
