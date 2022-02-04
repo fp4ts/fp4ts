@@ -14,13 +14,13 @@ import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
 
+import { Array } from '../array';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
 import { Iter } from '../iterator';
 
 import { Cons, List, View } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
-import { listFoldable } from './instances';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -877,7 +877,10 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
-    G.map_(Chain.traverseViaChain(G, listFoldable())(xs, f), ys => ys.toList);
+    G.map_(
+      Chain.traverseViaChain(G, Array.Foldable())(toArray(xs), f),
+      ys => ys.toList,
+    );
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
