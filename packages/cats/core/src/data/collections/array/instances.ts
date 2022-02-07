@@ -4,9 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { lazyVal } from '@fp4ts/core';
-import { Eq } from '../../../eq';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval } from '../../../eval';
-import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
 import { Align } from '../../../align';

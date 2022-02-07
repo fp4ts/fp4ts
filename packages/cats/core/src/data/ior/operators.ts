@@ -4,10 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { compose, constant, id } from '@fp4ts/core';
+import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { Option, Some, None } from '../option';
 import { Either, Left, Right } from '../either';
-import { Eq } from '../../eq';
-import { Semigroup } from '../../semigroup';
 
 import { Ior, view } from './algebra';
 import { both, left, right } from './constructors';

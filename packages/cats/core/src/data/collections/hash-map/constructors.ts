@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Hashable } from '../../../hashable';
+import { Hashable } from '@fp4ts/cats-kernel';
 
 import { List } from '../list';
 import { Empty, HashMap } from './algebra';

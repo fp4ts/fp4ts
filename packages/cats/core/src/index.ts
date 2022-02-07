@@ -31,9 +31,4 @@ export * from './bifunctor';
 export * from './parallel';
 
 export * from './eval';
-export * from './eq';
-export * from './ord';
-export * from './hashable';
-export * from './semigroup';
-export * from './monoid';
 export * from './show';

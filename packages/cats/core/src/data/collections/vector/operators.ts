@@ -4,10 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError, tupled } from '@fp4ts/core';
-import { Eq } from '../../../eq';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval } from '../../../eval';
 import { Applicative } from '../../../applicative';
-import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
 
@@ -459,7 +458,7 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldMap_(F.algebra())(xs, f);
+    foldMap_<Kind<F, [B]>>(F.algebra())(xs, f);
 
 export const scanLeft_ = <A, B>(
   xs: Vector<A>,

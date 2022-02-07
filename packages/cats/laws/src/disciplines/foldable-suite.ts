@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Foldable, Monoid } from '@fp4ts/cats-core';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Foldable } from '@fp4ts/cats-core';
 import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 

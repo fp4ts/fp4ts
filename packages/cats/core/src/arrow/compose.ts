@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { instance, Kind, α, λ } from '@fp4ts/core';
+import { Semigroup } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../semigroup-k';
-import { Semigroup } from '../semigroup';
 
 /**
  * @category Type Class

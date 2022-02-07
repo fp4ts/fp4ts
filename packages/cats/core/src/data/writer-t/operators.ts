@@ -3,10 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, curry, fst, id, Kind, snd, tupled } from '@fp4ts/core';
-import { Eq } from '../../eq';
-import { Semigroup } from '../../semigroup';
-import { Monoid } from '../../monoid';
+import { fst, id, Kind, snd, tupled } from '@fp4ts/core';
+import { Eq, Semigroup, Monoid } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Contravariant } from '../../contravariant';
 import { Apply } from '../../apply';

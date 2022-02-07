@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Lazy, lazyVal } from '@fp4ts/core';
-import { Eq } from '../../eq';
+import { Eq } from '@fp4ts/cats-kernel/';
 import { SemigroupK } from '../../semigroup-k';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';

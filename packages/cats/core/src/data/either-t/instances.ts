@@ -4,12 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Functor } from '../../functor';
 import { Bifunctor } from '../../bifunctor';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
-import { Eq } from '../../eq';
 
 import { Either, Right } from '../either';
 

@@ -5,7 +5,8 @@
 
 import fc from 'fast-check';
 import { $, $type, id, tupled, TyK, TyVar } from '@fp4ts/core';
-import { FunctionK, Eq, Eval, Monad } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { FunctionK, Eval, Monad } from '@fp4ts/cats-core';
 import {
   State,
   StateK,

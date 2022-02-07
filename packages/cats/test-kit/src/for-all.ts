@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable prettier/prettier */
-import { Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
 import fc, { Arbitrary } from 'fast-check';
 import { IsEq } from './rules';
 

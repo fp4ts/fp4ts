@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, id } from '@fp4ts/core';
-import { FunctionK, Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { FunctionK } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityK,

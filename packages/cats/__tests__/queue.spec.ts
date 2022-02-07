@@ -5,7 +5,8 @@
 
 import fc from 'fast-check';
 import { tupled } from '@fp4ts/core';
-import { Monoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
+import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { Eval, EvalK } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';

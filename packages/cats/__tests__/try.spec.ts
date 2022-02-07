@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { throwError } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
 import {
   Try,
   Success,

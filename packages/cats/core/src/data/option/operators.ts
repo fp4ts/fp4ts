@@ -5,12 +5,12 @@
 
 import { constant, flow, id, Kind } from '@fp4ts/core';
 
-import { Eq } from '../../eq';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../applicative';
 import { Either } from '../either';
 import { List } from '../collections/list';
 
-import { Option, View } from './algebra';
+import { Option } from './algebra';
 import { none, some } from './constructors';
 
 export const isEmpty = <A>(o: Option<A>): boolean => o === none;

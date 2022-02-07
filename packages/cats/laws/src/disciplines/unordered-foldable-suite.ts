@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Monoid, UnorderedFoldable } from '@fp4ts/cats-core';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { UnorderedFoldable } from '@fp4ts/cats-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { UnorderedFoldableLaws } from '../unordered-foldable-laws';

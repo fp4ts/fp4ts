@@ -44,7 +44,7 @@ describe('Queue', () => {
             IO.bindTo('v1', Q.take(q)),
             IO.bindTo('f', Q.take(q).fork),
             IO.bind(Q.offer(q, 2)),
-            IO.bindTo('v2', ({ f }) => f.joinWithNever(IO.Async)),
+            IO.bindTo('v2', ({ f }) => f.joinWithNever()),
             IO.bind(({ v1, v2 }) => IO(() => expect([v1, v2]).toEqual([1, 2]))),
           ),
         )
@@ -99,7 +99,7 @@ describe('Queue', () => {
             IO.bindTo('p', producer(q, count).fork),
             IO.bindTo('c', consumer(q, count).fork),
             IO.bind(({ p }) => p.join),
-            IO.bindTo('r', ({ c }) => c.joinWithNever(IO.Async)),
+            IO.bindTo('r', ({ c }) => c.joinWithNever()),
             IO.bind(({ r }) =>
               IO(() => expect(r).toBe((count * (count - 1)) / 2)),
             ),
@@ -255,7 +255,7 @@ function offerTakeOverCapacityTests(Q: QueueLike<IoK, number>) {
           IO.bindTo('p', producer(q, count).fork),
           IO.bindTo('c', consumer(q, count).fork),
           IO.bind(({ p }) => p.join),
-          IO.bindTo('r', ({ c }) => c.joinWithNever(IO.Async)),
+          IO.bindTo('r', ({ c }) => c.joinWithNever()),
           IO.bind(({ r }) =>
             IO(() => expect(r).toBe((count * (count - 1)) / 2)),
           ),
@@ -317,7 +317,7 @@ function tryOfferTryTakeTests(Q: QueueLike<IoK, number>) {
           IO.bindTo('p', producer(q, count).fork),
           IO.bindTo('c', consumer(q, count).fork),
           IO.bind(({ p }) => p.join),
-          IO.bindTo('r', ({ c }) => c.joinWithNever(IO.Async)),
+          IO.bindTo('r', ({ c }) => c.joinWithNever()),
           IO.bind(({ r }) =>
             IO(() => expect(r).toBe((count * (count - 1)) / 2)),
           ),

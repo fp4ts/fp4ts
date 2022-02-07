@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Ord, Eq, Monoid } from '@fp4ts/cats-core';
+import { Ord, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Set, List, Some, None } from '@fp4ts/cats-core/lib/data';
 import { isValid } from '@fp4ts/cats-core/lib/data/collections/set/operators';
 import { FoldableSuite } from '@fp4ts/cats-laws';

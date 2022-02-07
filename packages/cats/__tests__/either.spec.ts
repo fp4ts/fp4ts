@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id, throwError } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Either, Right, Left, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';

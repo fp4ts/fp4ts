@@ -5,7 +5,8 @@
 
 import { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, SemigroupK } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { SemigroupK } from '@fp4ts/cats-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { SemigroupKLaws } from '../semigroup-k-laws';

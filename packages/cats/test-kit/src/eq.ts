@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Eq, Eval, FlatMap } from '@fp4ts/cats-core';
-import { ExhaustiveCheck } from './exhaustive-check';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Eval, FlatMap } from '@fp4ts/cats-core';
 import { IndexedStateT, State } from '@fp4ts/cats-core/lib/data';
+import { ExhaustiveCheck } from './exhaustive-check';
 
 export const fn1Eq = <A, B>(
   ec: ExhaustiveCheck<A>,

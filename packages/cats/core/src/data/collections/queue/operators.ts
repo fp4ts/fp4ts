@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, compose, id, pipe, throwError, tupled, flip } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
-import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';

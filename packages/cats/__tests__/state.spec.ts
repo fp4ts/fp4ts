@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, compose, id, pipe } from '@fp4ts/core';
-import { Eval, Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Eval } from '@fp4ts/cats-core';
 import {
   Either,
   EitherK,

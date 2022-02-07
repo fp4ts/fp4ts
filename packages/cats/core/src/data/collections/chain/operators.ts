@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, fst, snd, throwError, pipe, id, tupled } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
-import { Eq } from '../../../eq';
 import { Applicative } from '../../../applicative';
 import { Eval } from '../../../eval';
 import { Ior } from '../../ior';

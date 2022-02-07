@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Align } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Align } from '@fp4ts/cats-core';
 import { Ior } from '@fp4ts/cats-core/lib/data';
 
 import { AlignLaws } from '../align-laws';

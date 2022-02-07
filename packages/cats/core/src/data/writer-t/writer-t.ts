@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Fix, Kind, TyK, TyVar, α, β, λ } from '@fp4ts/core';
+import { Semigroup, Monoid, Eq } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Contravariant } from '../../contravariant';
 import { Bifunctor } from '../../bifunctor';
@@ -13,9 +14,6 @@ import { Applicative } from '../../applicative';
 import { Monad } from '../../monad';
 import { ApplicativeError } from '../../applicative-error';
 import { MonadError } from '../../monad-error';
-import { Semigroup } from '../../semigroup';
-import { Monoid } from '../../monoid';
-import { Eq } from '../../eq';
 import { Identity, IdentityK } from '../identity';
 
 import { WriterT as WriterTBase } from './algebra';

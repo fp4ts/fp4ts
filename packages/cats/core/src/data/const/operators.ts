@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Monoid } from '@fp4ts/cats-kernel';
 import { Const } from './const';
-import { Monoid } from '../../monoid';
 
 export const retag: <C>() => <A, B>(a: Const<A, B>) => Const<A, C> = () =>
   retag_;

@@ -1,6 +1,6 @@
 import { suite, add, cycle, configure } from 'benny';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Left, List, None, Right, Some } from '@fp4ts/cats-core/lib/data';
-import { Eq } from '@fp4ts/cats-core';
 
 function makeSuite(size: number) {
   const xs = [...new Array(size).keys()].map((_, i) => i);

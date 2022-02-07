@@ -4,10 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, throwError } from '@fp4ts/core';
-import { Eq } from '../../eq';
+import { Eq } from '@fp4ts/cats-kernel';
 
 import { None, Option, Some } from '../option';
-import { Either, view } from './algebra';
+import { Either } from './algebra';
 import { left, right } from './constructors';
 
 export const fold: <E, A, B>(

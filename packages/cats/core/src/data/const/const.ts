@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, TyK, TyVar } from '@fp4ts/core';
-import { Monoid } from '../../monoid';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';

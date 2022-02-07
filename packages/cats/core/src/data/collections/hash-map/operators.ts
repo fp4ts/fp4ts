@@ -5,10 +5,8 @@
 
 import { ok as assert } from 'assert';
 import { id, pipe, Kind, throwError } from '@fp4ts/core';
-import { Eq } from '../../../eq';
-import { Hashable } from '../../../hashable';
+import { Monoid, Hashable, Eq } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
-import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 

@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
-import { Monoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
+import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { Eval, EvalK } from '@fp4ts/cats-core';
 import {
   Writer,
   WriterT,

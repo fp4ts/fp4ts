@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Monoid, Eq, Eval, EvalK, Hashable } from '@fp4ts/cats-core';
+import { Monoid, Eq, Hashable } from '@fp4ts/cats-kernel';
+import { Eval, EvalK } from '@fp4ts/cats-core';
 import { List, Option, Some, None, HashMap } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';

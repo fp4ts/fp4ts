@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, TyK, TyVar } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
@@ -13,7 +14,6 @@ import { FlatMap } from '../../flat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
-import { Eq } from '../../eq';
 
 import { Either as EitherBase } from './algebra';
 import { left, pure, right, rightUnit } from './constructors';

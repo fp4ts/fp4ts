@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { Monoid, Eq, Ord } from '@fp4ts/cats-core';
+import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { List } from '@fp4ts/cats-core/lib/data';
 
 const intShift = 28;

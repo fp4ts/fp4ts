@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Monad } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Monad } from '@fp4ts/cats-core';
 import { exec, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { MonadLaws } from '../monad-laws';

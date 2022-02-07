@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind } from '@fp4ts/core';
-import { Monoid, UnorderedFoldable } from '@fp4ts/cats-core';
+import { Monoid } from '@fp4ts/cats-kernel';
+import { UnorderedFoldable } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const UnorderedFoldableLaws = <F>(

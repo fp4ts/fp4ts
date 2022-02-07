@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind, PrimitiveType } from '@fp4ts/core';
-import { Eval, Hashable, Ord } from '@fp4ts/cats-core';
+import { Hashable, Ord } from '@fp4ts/cats-kernel';
+import { Eval } from '@fp4ts/cats-core';
 import {
   Chain,
   Either,

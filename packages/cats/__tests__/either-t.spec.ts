@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
 import {
   Either,
   EitherT,

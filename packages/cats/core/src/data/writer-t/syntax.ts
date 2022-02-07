@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { isTypeClassInstance, Kind } from '@fp4ts/core';
-import { Semigroup } from '../../semigroup';
-import { Monoid } from '../../monoid';
+import { Semigroup, Monoid } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Contravariant } from '../../contravariant';
 import { Apply } from '../../apply';

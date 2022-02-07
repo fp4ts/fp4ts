@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, constant, Lazy, lazyVal } from '@fp4ts/core';
-import { Eq } from '../../eq';
-import { Semigroup } from '../../semigroup';
+import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 import { Bifunctor } from '../../bifunctor';

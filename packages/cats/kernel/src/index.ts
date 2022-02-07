@@ -4,9 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module cats
+ * @module cats/kernel
  */
 
-export * from '@fp4ts/cats-kernel';
-export * from '@fp4ts/cats-core';
-export * from '@fp4ts/cats-core/lib/data';
+export * from './eq';
+export * from './hashable';
+export * from './monoid';
+export * from './ord';
+export * from './semigroup';

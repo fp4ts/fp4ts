@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, tupled } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../applicative';
 import { Functor } from '../../functor';
-import { Monoid } from '../../monoid';
 
 import { WriterT } from './algebra';
 

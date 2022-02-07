@@ -5,13 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import {
-  Applicative,
-  Eq,
-  Functor,
-  Monoid,
-  Traversable,
-} from '@fp4ts/cats-core';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Applicative, Functor, Traversable } from '@fp4ts/cats-core';
 import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 

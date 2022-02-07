@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { IsEq } from './rules';
-import { Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
 
 export function exec<R>(predicate: () => IsEq<R>): (E: Eq<R>) => () => void;
 export function exec(predicate: () => boolean): () => void;

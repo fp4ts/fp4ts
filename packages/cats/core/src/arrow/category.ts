@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, α, λ } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../monoid-k';
-import { Monoid } from '../monoid';
 import { Compose, ComposeRequirements } from './compose';
 
 /**

@@ -4,14 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, TyK, PrimitiveType, $type, TyVar } from '@fp4ts/core';
-import { Eq } from '../../../eq';
+import { Eq, Hashable, anyHashable } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { UnorderedFoldable } from '../../../unordered-foldable';
 import { UnorderedTraversable } from '../../../unordered-traversable';
-import { Hashable, anyHashable } from '../../../hashable';
 
 import { List } from '../list';
 

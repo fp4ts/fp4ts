@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Invariant, Eq } from '@fp4ts/cats-core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Invariant } from '@fp4ts/cats-core';
 import { InvariantLaws } from '../invariant-laws';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 

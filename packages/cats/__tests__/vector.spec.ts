@@ -5,7 +5,8 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monoid, Eq, Eval, EvalK } from '@fp4ts/cats-core';
+import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { Eval, EvalK } from '@fp4ts/cats-core';
 import {
   Some,
   None,

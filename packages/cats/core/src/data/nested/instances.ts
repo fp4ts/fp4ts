@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
-import { Eq } from '../../eq';
 import { Nested } from './algebra';
 import { NestedK } from './nested';
 

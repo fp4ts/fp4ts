@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, instance, tupled } from '@fp4ts/core';
-import { Monoid } from './monoid';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';

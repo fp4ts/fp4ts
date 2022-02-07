@@ -10,6 +10,8 @@
       "@fp4ts/cats-free/lib/*": ["./cats/free/src/*"],
       "@fp4ts/cats-laws": ["./cats/laws/src"],
       "@fp4ts/cats-laws/lib/*": ["./cats/laws/src/*"],
+      "@fp4ts/cats-kernel": ["./cats/kernel/src"],
+      "@fp4ts/cats-kernel/lib/*": ["./cats/kernel/src/*"],
       "@fp4ts/cats-test-kit": ["./cats/test-kit/src"],
       "@fp4ts/cats-test-kit/lib/*": ["./cats/test-kit/src/*"],
       "@fp4ts/core": ["./core/src"],

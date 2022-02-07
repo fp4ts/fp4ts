@@ -4,12 +4,16 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, PrimitiveType } from '@fp4ts/core';
+import {
+  Monoid,
+  Eq,
+  primitiveEq,
+  Hashable,
+  anyHashable,
+} from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
-import { Monoid } from '../../../monoid';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
-import { Eq, primitiveEq } from '../../../eq';
-import { Hashable, anyHashable } from '../../../hashable';
 
 import { Option } from '../../option';
 import { List } from '../list';
@@ -464,7 +468,7 @@ HashMap.prototype.foldMap = function <K, V, M>(
   this: HashMap<K, V>,
   M: Monoid<M>,
 ): (f: (v: V, k: K) => M) => M {
-  return f => foldMap_(M)(this, f);
+  return f => foldMap_<M>(M)(this, f);
 };
 
 HashMap.prototype.foldMapK = function <F, K, V>(

@@ -1,5 +1,5 @@
 import { suite, add, cycle, configure } from 'benny';
-import { Hashable } from '@fp4ts/cats-core';
+import { Hashable } from '@fp4ts/cats-kernel';
 import { HashMap } from '@fp4ts/cats-core/lib/data';
 
 function makeSuite(size: number) {

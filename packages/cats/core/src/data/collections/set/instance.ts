@@ -4,10 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { Eq } from '../../../eq';
-import { Monoid } from '../../../monoid';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
-import { Ord } from '../../../ord';
 import { Eval } from '../../../eval';
 
 import { empty } from './constructors';

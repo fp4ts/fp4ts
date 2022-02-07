@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind, lazyVal } from '@fp4ts/core';
-import { Eq } from '../../../eq';
-import { Monoid } from '../../../monoid';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
@@ -67,7 +66,7 @@ export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
     unorderedFoldMap_:
       <M>(M: Monoid<M>) =>
       <K, V>(m: HashMap<K, V>, f: (v: V) => M) =>
-        foldMap_(M)(m, x => f(x)),
+        foldMap_<M>(M)(m, x => f(x)),
     all_: (m, p) => all_(m, v => p(v)),
     any_: (m, p) => any_(m, v => p(v)),
     count_: (m, p) => count_(m, v => p(v)),

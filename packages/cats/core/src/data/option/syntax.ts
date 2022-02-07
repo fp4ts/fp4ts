@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, PrimitiveType } from '@fp4ts/core';
-import { Eq } from '../../eq';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../applicative';
 import { List } from '../collections/list';
 import { Either } from '../either';

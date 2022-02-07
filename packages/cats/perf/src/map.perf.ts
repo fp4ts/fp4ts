@@ -1,5 +1,5 @@
 import { suite, add, cycle, configure } from 'benny';
-import { Ord } from '@fp4ts/cats-core';
+import { Ord } from '@fp4ts/cats-kernel';
 import { Map } from '@fp4ts/cats-core/lib/data';
 
 function makeSuite(size: number) {

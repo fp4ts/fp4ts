@@ -4,9 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $type, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
-import { Eq } from '../../../eq';
-import { Ord } from '../../../ord';
-import { Monoid } from '../../../monoid';
+import { Eq, Ord, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 
 import { List } from '../list';

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { None, Option } from './data';
+// import { None, Option } from './data';
 import { Semigroup, SemigroupRequirements } from './semigroup';
 
 /**
@@ -26,19 +26,19 @@ export const Monoid = Object.freeze({
     return Monoid.of({ ...Semigroup.string, empty: '' });
   },
 
-  firstOption<A>(): Monoid<Option<A>> {
-    return Monoid.of<Option<A>>({
-      combine_: (x, y) => x['<|>'](y),
-      empty: None,
-    });
-  },
+  // firstOption<A>(): Monoid<Option<A>> {
+  //   return Monoid.of<Option<A>>({
+  //     combine_: (x, y) => x['<|>'](y),
+  //     empty: None,
+  //   });
+  // },
 
-  lastOption<A>(): Monoid<Option<A>> {
-    return Monoid.of<Option<A>>({
-      combine_: (x, y) => y()['<|>'](() => x),
-      empty: None,
-    });
-  },
+  // lastOption<A>(): Monoid<Option<A>> {
+  //   return Monoid.of<Option<A>>({
+  //     combine_: (x, y) => y()['<|>'](() => x),
+  //     empty: None,
+  //   });
+  // },
 
   get disjunction(): Monoid<boolean> {
     return { ...Semigroup.disjunction, empty: false };

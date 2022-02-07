@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
-import { Eq, Eval, EvalK, Monoid } from '@fp4ts/cats-core';
+import { Eval, EvalK } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,

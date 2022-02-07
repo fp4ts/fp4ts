@@ -4,10 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, fst, snd, throwError, constant } from '@fp4ts/core';
-import { Eq } from '../../../eq';
-import { Monoid } from '../../../monoid';
+import { Eq, Monoid, Ord, Compare } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
-import { Ord, Compare } from '../../../ord';
 import { Option, Some, None } from '../../option';
 
 import { List } from '../list';

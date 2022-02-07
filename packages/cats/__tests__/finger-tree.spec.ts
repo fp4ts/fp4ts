@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Monoid } from '@fp4ts/cats-core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { Some, None, List, FingerTree } from '@fp4ts/cats-core/lib/data';
 import { Measured } from '@fp4ts/cats-core/lib/data/collections/finger-tree/measured';
 import { fingerTreeMeasured } from '@fp4ts/cats-core/lib/data/collections/finger-tree/instances';

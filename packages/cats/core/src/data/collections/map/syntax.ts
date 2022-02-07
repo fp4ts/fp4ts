@@ -4,9 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, PrimitiveType } from '@fp4ts/core';
-import { Monoid } from '../../../monoid';
+import { Monoid, Ord } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
-import { Ord } from '../../../ord';
 import { Show } from '../../../show';
 import { Applicative } from '../../../applicative';
 

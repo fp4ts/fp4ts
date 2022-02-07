@@ -4,12 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, TyK, TyVar } from '@fp4ts/core';
-import { Eq } from '../../eq';
+import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { Option } from '../option';
 import { Either } from '../either';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
-import { Semigroup } from '../../semigroup';
 import { Bifunctor } from '../../bifunctor';
 
 import { Ior as IorBase } from './algebra';
