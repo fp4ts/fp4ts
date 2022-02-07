@@ -9,13 +9,13 @@ import { HttpApp } from '@fp4ts/http-core';
 import { serve } from '@fp4ts/http-node-server';
 
 export const withServer =
-  (app: HttpApp<IoK>, port: number = 3000) =>
+  (app: HttpApp<IoK>) =>
   (run: (server: http.Server) => IO<void>): IO<void> =>
-    serve(IO.Async)(app, port).use(IO.Async)(run);
+    serve(IO.Async)(app).use(IO.Async)(run);
 
 export const withServerP =
-  (app: HttpApp<IoK>, port: number = 3000) =>
+  (app: HttpApp<IoK>) =>
   (run: (server: http.Server) => Promise<void>): IO<void> =>
-    serve(IO.Async)(app, port).use(IO.Async)(server =>
+    serve(IO.Async)(app).use(IO.Async)(server =>
       IO.deferPromise(() => run(server)),
     );

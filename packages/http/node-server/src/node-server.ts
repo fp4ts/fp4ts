@@ -21,7 +21,7 @@ import {
 
 export const serve =
   <F>(F: Async<F>) =>
-  (app: HttpApp<F>, port: number = 3000): Resource<F, http.Server> => {
+  (app: HttpApp<F>, port?: number): Resource<F, http.Server> => {
     const handleConnection = mkConnectionHandler(F)(app);
     const RF = Resource.Async(F);
     return Monad.Do(RF)(function* (_) {
