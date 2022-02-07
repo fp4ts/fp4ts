@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import '@fp4ts/cats-core/lib/data/collections/array/array';
+import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
 import { Eq, Eval, EvalK, Monoid } from '@fp4ts/cats-core';
 import {
   AlignSuite,
@@ -17,9 +17,9 @@ import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Array laws', () => {
-  const alignTests = AlignSuite(Array.Align);
+  const alignTests = AlignSuite(Array.Align());
   checkAll(
-    'Align<Vector>',
+    'Align<Array>',
     alignTests.align(
       fc.integer(),
       fc.integer(),
@@ -34,9 +34,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(Array.FunctorFilter);
+  const functorFilterTests = FunctorFilterSuite(Array.FunctorFilter());
   checkAll(
-    'FunctorFilter<Vector>',
+    'FunctorFilter<Array>',
     functorFilterTests.functorFilter(
       fc.integer(),
       fc.integer(),
@@ -49,9 +49,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const alternativeTests = AlternativeSuite(Array.Alternative);
+  const alternativeTests = AlternativeSuite(Array.Alternative());
   checkAll(
-    'Alternative<Vector>',
+    'Alternative<Array>',
     alternativeTests.alternative(
       fc.integer(),
       fc.integer(),
@@ -64,9 +64,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Array.Monad);
+  const monadTests = MonadSuite(Array.Monad());
   checkAll(
-    'Monad<Vector>',
+    'Monad<Array>',
     monadTests.monad(
       fc.integer(),
       fc.integer(),
@@ -81,16 +81,16 @@ describe('Array laws', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Array.Traversable);
+  const traversableTests = TraversableSuite(Array.Traversable());
   checkAll(
-    'Traversable<Vector>',
+    'Traversable<Array>',
     traversableTests.traversable<number, number, number, EvalK, EvalK>(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       Monoid.addition,
       Monoid.addition,
-      Array.Functor,
+      Array.Functor(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,

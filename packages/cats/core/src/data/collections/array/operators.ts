@@ -9,7 +9,7 @@ import { Monoid } from '../../../monoid';
 import { Applicative } from '../../../applicative';
 
 import { Ior } from '../../ior';
-import { Option } from '../../option';
+import { Option, Some, None } from '../../option';
 import { Either } from '../../either';
 import { Chain } from '../chain';
 import { List } from '../list';
@@ -124,6 +124,9 @@ export const any_ = <A>(xs: A[], p: (a: A) => boolean): boolean =>
 
 export const count_ = <A>(xs: A[], p: (a: A) => boolean): number =>
   xs.reduce((c, x) => (p(x) ? c + 1 : c), 0);
+
+export const elem_ = <A>(xs: A[], idx: number): Option<A> =>
+  idx >= 0 && idx < xs.length ? Some(xs[idx]) : None;
 
 export const filter_ = <A>(xs: A[], p: (a: A) => boolean): A[] =>
   xs.filter(x => p(x));

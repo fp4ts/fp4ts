@@ -28,6 +28,7 @@ import {
   collect_,
   concat_,
   count_,
+  elem_,
   equals_,
   flatMap_,
   foldLeft_,
@@ -99,6 +100,7 @@ export const arrayFoldable: () => Foldable<ArrayK> = lazyVal(() =>
     all_: all_,
     any_: any_,
     count_: count_,
+    elem_: elem_,
     foldMap_:
       <M>(M: Monoid<M>) =>
       <A>(xs: A[], f: (a: A) => M) =>

@@ -264,7 +264,12 @@ export const traverse: <G>(
 ) => (xs: Chain<A>) => Kind<G, [Chain<B>]> = G => f => xs =>
   traverse_(G)(xs, f);
 
-export const toArray = <A>(xs: Chain<A>): A[] => [...xs];
+export const toArray = <A>(xs: Chain<A>): A[] => {
+  const result = new Array<A>(size(xs));
+  let idx = 0;
+  forEach_(xs, x => (result[idx++] = x));
+  return result;
+};
 
 export const toList = <A>(xs: Chain<A>): List<A> =>
   List.fromIterator(iterator(xs));
