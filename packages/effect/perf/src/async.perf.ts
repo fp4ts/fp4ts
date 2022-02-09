@@ -1,3 +1,8 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { add, configure, cycle, suite } from 'benny';
 import { Right, Some } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect-core';

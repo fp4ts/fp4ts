@@ -221,7 +221,7 @@ describe('Resource', () => {
 
   describe('stack safety', () => {
     test.ticked('use over binds - 1', ticker => {
-      const ioa = Vector.range(0, 10_000)
+      const ioa = List.range(0, 10_000)
         .foldLeft(Resource.evalF<IoK, void>(IO.unit), r =>
           r.flatMap(() => Resource.evalF<IoK, void>(IO.unit)),
         )

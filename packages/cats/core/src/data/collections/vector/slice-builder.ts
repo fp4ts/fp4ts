@@ -1,8 +1,14 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { BITS, WIDTH, WIDTH2, WIDTH3, WIDTH4, Arr1, Arr2 } from './constants';
 import { copyOrUse } from './helpers';
 
 import {
   Vector,
+  Vector0,
   Vector1,
   Vector2,
   Vector3,
@@ -87,7 +93,7 @@ export class VectorSliceBuilder<A> {
 
   public toVector(): Vector<A> {
     if (this.len <= 32) {
-      if (this.len == 0) return Vector.empty;
+      if (this.len == 0) return Vector0;
       else {
         const prefix1 = this.slices[this.prefixIdx(1)];
         const suffix1 = this.slices[this.suffixIdx(1)];

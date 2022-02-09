@@ -3,39 +3,48 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Either } from '../../either';
 import { List } from '../list';
 
-import * as FT from '../finger-tree/functional';
-import { Vector } from './algebra';
-import { sizeMeasured } from './instances';
-import { append_ } from './operators';
+import { Vector, Vector0, Vector1 } from './algebra';
+import { WIDTH } from './constants';
+import { iterator } from './operators';
+import { VectorBuilder } from './vector-builder';
 
-export const pure: <A>(a: A) => Vector<A> = x => new Vector(FT.pure(x));
-
-export const empty: Vector<never> = new Vector(FT.empty());
-
-export const singleton: <A>(a: A) => Vector<A> = pure;
-
-export const of = <A>(...xs: A[]): Vector<A> => fromArray(xs);
+export const pure = <A>(x: A): Vector<A> => new Vector1([x]);
 
 export const fromArray = <A>(xs: A[]): Vector<A> =>
-  new Vector(FT.fromArray(sizeMeasured)(xs));
+  xs.length === 0
+    ? Vector0
+    : xs.length < WIDTH
+    ? new Vector1(xs)
+    : xs.reduce((b, x) => b.addOne(x), new VectorBuilder<A>()).toVector();
 
 export const fromList = <A>(xs: List<A>): Vector<A> =>
-  new Vector(FT.fromList(sizeMeasured)(xs));
+  fromIterator(xs.iterator);
 
-export const fromIterator = <A>(xs: Iterator<A>): Vector<A> => {
-  let result: Vector<A> = empty;
-  for (let it = xs.next(); !it.done; it = xs.next()) {
-    result = append_(result, it.value);
-  }
-  return result;
-};
+export const fromIterator = <A>(iter: Iterator<A>): Vector<A> =>
+  new VectorBuilder<A>().addIterator(iter).toVector();
 
-export const range = (from: number, to: number): Vector<number> => {
-  let result: Vector<number> = empty;
-  for (let i = from; i < to; i++) {
-    result = append_(result, i);
+export const tailRecM_ = <S, A>(
+  s: S,
+  f: (s: S) => Vector<Either<S, A>>,
+): Vector<A> => {
+  const buf = new VectorBuilder<A>();
+  let stack = List(iterator(f(s)));
+
+  while (stack.nonEmpty) {
+    const [hd, tl] = stack.uncons.get;
+    const next = hd.next();
+
+    if (next.done) {
+      stack = tl;
+    } else if (next.value.isRight) {
+      buf.addOne(next.value.get);
+    } else {
+      stack = tl.prepend(hd).prepend(iterator(f(next.value.getLeft)));
+    }
   }
-  return result;
+
+  return buf.toVector();
 };

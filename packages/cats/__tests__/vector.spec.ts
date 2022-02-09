@@ -60,7 +60,7 @@ describe('Vector', () => {
     });
 
     test('singleton vector not to be empty', () => {
-      expect(Vector.singleton(1).nonEmpty).toBe(true);
+      expect(Vector.pure(1).nonEmpty).toBe(true);
     });
   });
 
@@ -197,7 +197,7 @@ describe('Vector', () => {
     });
 
     it('should add an additional element to the head of the vector', () => {
-      expect(Vector(1, 2, 3, 4).cons(0).toArray).toEqual(
+      expect(Vector(1, 2, 3, 4).prepend(0).toArray).toEqual(
         Vector(0, 1, 2, 3, 4).toArray,
       );
     });
@@ -225,7 +225,7 @@ describe('Vector', () => {
     });
 
     it('should add an additional element to the head of the vector', () => {
-      expect(Vector(1, 2, 3, 4).snoc(0).toArray).toEqual(
+      expect(Vector(1, 2, 3, 4).append(0).toArray).toEqual(
         Vector(1, 2, 3, 4, 0).toArray,
       );
     });
@@ -244,6 +244,22 @@ describe('Vector', () => {
       );
 
       expect(v.toArray).toEqual(xs);
+    });
+  });
+
+  describe('elem', () => {
+    it('should throw when empty', () => {
+      expect(() => Vector.empty.elem(0)).toThrow();
+    });
+
+    it('should return element at the given index', () => {
+      const size = 20_000;
+      const xs = Vector.fromArray([...new Array(size).keys()]);
+      const ys = [];
+      for (let i = 0; i < size; i++) {
+        ys[i] = xs.elem(i);
+      }
+      expect(ys).toEqual([...new Array(size).keys()]);
     });
   });
 
@@ -584,55 +600,57 @@ describe('Vector', () => {
 
     it('should be stack safe', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
-      expect(xs.flatMap(Vector).toArray).toEqual(xs.toArray);
+      expect(xs.flatMap(x => Vector(x, x)).toArray).toEqual(
+        xs.toArray.flatMap(x => [x, x]),
+      );
     });
   });
 
-  describe('tailRecM', () => {
-    it('should return initial result when returned singleton vector', () => {
-      expect(Vector.tailRecM(42)(x => Vector(Right(x)))).toEqual(Vector(42));
-    });
+  // describe('tailRecM', () => {
+  //   it('should return initial result when returned singleton vector', () => {
+  //     expect(Vector.tailRecM(42)(x => Vector(Right(x)))).toEqual(Vector(42));
+  //   });
 
-    it('should return empty vector when an empty vector is returned', () => {
-      expect(Vector.tailRecM(42)(x => Vector.empty)).toEqual(Vector.empty);
-    });
+  //   it('should return empty vector when an empty vector is returned', () => {
+  //     expect(Vector.tailRecM(42)(x => Vector.empty)).toEqual(Vector.empty);
+  //   });
 
-    it('should compute recursive sum', () => {
-      expect(
-        Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
-          i < 10
-            ? Vector<Either<[number, number], number>>(
-                Right(x),
-                Left([i + 1, x + i]),
-              )
-            : Vector(Right(x)),
-        ).toArray,
-      ).toEqual(Vector(0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45).toArray);
-    });
+  //   it('should compute recursive sum', () => {
+  //     expect(
+  //       Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+  //         i < 10
+  //           ? Vector<Either<[number, number], number>>(
+  //               Right(x),
+  //               Left([i + 1, x + i]),
+  //             )
+  //           : Vector(Right(x)),
+  //       ).toArray,
+  //     ).toEqual(Vector(0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45).toArray);
+  //   });
 
-    it('should compute recursive sum inverted', () => {
-      expect(
-        Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
-          i < 10
-            ? Vector<Either<[number, number], number>>(
-                Left([i + 1, x + i]),
-                Right(x),
-              )
-            : Vector(Right(x)),
-        ).toArray,
-      ).toEqual(Vector(45, 36, 28, 21, 15, 10, 6, 3, 1, 0, 0).toArray);
-    });
+  //   it('should compute recursive sum inverted', () => {
+  //     expect(
+  //       Vector.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+  //         i < 10
+  //           ? Vector<Either<[number, number], number>>(
+  //               Left([i + 1, x + i]),
+  //               Right(x),
+  //             )
+  //           : Vector(Right(x)),
+  //       ).toArray,
+  //     ).toEqual(Vector(45, 36, 28, 21, 15, 10, 6, 3, 1, 0, 0).toArray);
+  //   });
 
-    it('should be stack safe', () => {
-      const size = 100_000;
+  //   it('should be stack safe', () => {
+  //     const size = 100_000;
 
-      expect(
-        Vector.tailRecM(0)(i =>
-          i < size ? Vector(Left(i + 1)) : Vector(Right(i)),
-        ),
-      ).toEqual(Vector(size));
-    });
-  });
+  //     expect(
+  //       Vector.tailRecM(0)(i =>
+  //         i < size ? Vector(Left(i + 1)) : Vector(Right(i)),
+  //       ),
+  //     ).toEqual(Vector(size));
+  //   });
+  // });
 
   describe('zip', () => {
     it('should produce an empty vector when zipped with empty vector on lhs', () => {
@@ -666,15 +684,15 @@ describe('Vector', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should produce an empty Vector when zipped with empty Vector on lhs', () => {
-      expect(Vector.empty.zipWith(Vector(42), add)).toEqual(Vector.empty);
+      expect(Vector.empty.zipWith(Vector(42))(add)).toEqual(Vector.empty);
     });
 
     it('should produce an empty Vector when zipped with empty Vector on rhs', () => {
-      expect(Vector(42).zipWith(Vector.empty, add)).toEqual(Vector.empty);
+      expect(Vector(42).zipWith(Vector.empty)(add)).toEqual(Vector.empty);
     });
 
     it('should zip two single element Vectors', () => {
-      expect(Vector(42).zipWith(Vector(43), add)).toEqual(Vector(85));
+      expect(Vector(42).zipWith(Vector(43))(add)).toEqual(Vector(85));
     });
   });
 
@@ -719,8 +737,7 @@ describe('Vector', () => {
           Vector(42),
           () => 1,
           () => 2,
-          add,
-        ).toArray,
+        )(add).toArray,
       ).toEqual([43]);
     });
 
@@ -730,8 +747,7 @@ describe('Vector', () => {
           Vector.empty,
           () => 1,
           () => 2,
-          add,
-        ).toArray,
+        )(add).toArray,
       ).toEqual([44]);
     });
 
@@ -741,8 +757,7 @@ describe('Vector', () => {
           Vector(43),
           () => 1,
           () => 2,
-          add,
-        ).toArray,
+        )(add).toArray,
       ).toEqual([85]);
     });
   });
@@ -921,100 +936,100 @@ describe('Vector', () => {
     });
 
     it('should be stack safe', () => {
-      const xs = Vector.fromArray([...new Array(20_000).keys()]);
-      expect(
-        xs
-          .traverse(List.Applicative)(x => List(x))
-          ['!!'](0).toArray,
-      ).toEqual(xs.toArray);
+      const xs = Vector.fromArray([...new Array(200).keys()]);
+      expect(xs.traverse(List.Applicative)(x => List(x)).head.toArray).toEqual(
+        xs.toArray,
+      );
     });
   });
 
-  const alignTests = AlignSuite(Vector.Align);
-  checkAll(
-    'Align<Vector>',
-    alignTests.align(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsVector,
-      Vector.Eq,
-    ),
-  );
+  describe('Laws', () => {
+    const alignTests = AlignSuite(Vector.Align);
+    checkAll(
+      'Align<Vector>',
+      alignTests.align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
 
-  const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
-  checkAll(
-    'FunctorFilter<Vector>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsVector,
-      Vector.Eq,
-    ),
-  );
+    const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
+    checkAll(
+      'FunctorFilter<Vector>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
 
-  const alternativeTests = AlternativeSuite(Vector.Alternative);
-  checkAll(
-    'Alternative<Vector>',
-    alternativeTests.alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsVector,
-      Vector.Eq,
-    ),
-  );
+    const alternativeTests = AlternativeSuite(Vector.Alternative);
+    checkAll(
+      'Alternative<Vector>',
+      alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
 
-  const monadTests = MonadSuite(Vector.Monad);
-  checkAll(
-    'Monad<Vector>',
-    monadTests.monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsVector,
-      Vector.Eq,
-    ),
-  );
+    const monadTests = MonadSuite(Vector.Monad);
+    checkAll(
+      'Monad<Vector>',
+      monadTests.monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
 
-  const traversableTests = TraversableSuite(Vector.Traversable);
-  checkAll(
-    'Traversable<Vector>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
-      Vector.Functor,
-      Eval.Applicative,
-      Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsVector,
-      Vector.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-    ),
-  );
+    const traversableTests = TraversableSuite(Vector.Traversable);
+    checkAll(
+      'Traversable<Vector>',
+      traversableTests.traversable<number, number, number, EvalK, EvalK>(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        Vector.Functor,
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+      ),
+    );
+  });
 });

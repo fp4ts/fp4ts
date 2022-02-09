@@ -5,48 +5,32 @@
 
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { SemigroupK } from '../../../semigroup-k';
-import { MonoidK } from '../../../monoid-k';
-import { Functor } from '../../../functor';
-import { FunctorFilter } from '../../../functor-filter';
 import { Align } from '../../../align';
-import { Apply } from '../../../apply';
 import { Alternative } from '../../../alternative';
 import { Applicative } from '../../../applicative';
-import { FlatMap } from '../../../flat-map';
+import { Functor } from '../../../functor';
+import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
+import { MonoidK } from '../../../monoid-k';
 
-import { Either } from '../../either';
 import { List } from '../list';
 
 import { Vector as VectorBase } from './algebra';
-import {
-  empty,
-  fromArray,
-  fromIterator,
-  fromList,
-  pure,
-  range,
-  singleton,
-} from './constructors';
+import { fromArray, fromIterator, fromList, pure } from './constructors';
 import {
   vectorAlign,
   vectorAlternative,
   vectorApplicative,
-  vectorApply,
   vectorEq,
-  vectorFlatMap,
   vectorFoldable,
   vectorFunctor,
   vectorFunctorFilter,
   vectorMonad,
   vectorMonoidK,
-  vectorSemigroupK,
   vectorTraversable,
 } from './instances';
-import { tailRecM } from './operators';
 
 export type Vector<A> = VectorBase<A>;
 
@@ -56,115 +40,84 @@ export const Vector: VectorObj = function <A>(...xs: A[]): Vector<A> {
 
 interface VectorObj {
   <A>(...xs: A[]): Vector<A>;
-
-  pure<A>(x: A): Vector<A>;
-  singleton<A>(x: A): Vector<A>;
   empty: Vector<never>;
-
+  pure<A>(x: A): Vector<A>;
   fromArray<A>(xs: A[]): Vector<A>;
   fromList<A>(xs: List<A>): Vector<A>;
-  fromIterator<A>(xs: Iterator<A>): Vector<A>;
-
-  range(from: number, to: number): Vector<number>;
-
-  tailRecM<A>(a: A): <B>(f: (a: A) => Vector<Either<A, B>>) => Vector<B>;
+  fromIterator<A>(iter: Iterator<A>): Vector<A>;
 
   // -- Instances
-
   Eq<A>(E: Eq<A>): Eq<Vector<A>>;
-  readonly SemigroupK: SemigroupK<VectorK>;
   readonly MonoidK: MonoidK<VectorK>;
-  readonly Functor: Functor<VectorK>;
   readonly Align: Align<VectorK>;
+  readonly Functor: Functor<VectorK>;
   readonly FunctorFilter: FunctorFilter<VectorK>;
-  readonly Apply: Apply<VectorK>;
   readonly Applicative: Applicative<VectorK>;
   readonly Alternative: Alternative<VectorK>;
-  readonly FlatMap: FlatMap<VectorK>;
   readonly Monad: Monad<VectorK>;
   readonly Foldable: Foldable<VectorK>;
   readonly Traversable: Traversable<VectorK>;
 }
 
+Object.defineProperty(Vector, 'empty', {
+  get() {
+    return VectorBase.empty;
+  },
+});
 Vector.pure = pure;
-Vector.singleton = singleton;
-Vector.empty = empty;
 Vector.fromArray = fromArray;
 Vector.fromList = fromList;
 Vector.fromIterator = fromIterator;
 
-Vector.range = range;
-
-Vector.tailRecM = tailRecM;
-
 Vector.Eq = vectorEq;
-Object.defineProperty(Vector, 'SemigroupK', {
-  get(): SemigroupK<VectorK> {
-    return vectorSemigroupK();
-  },
-});
 Object.defineProperty(Vector, 'MonoidK', {
-  get(): MonoidK<VectorK> {
+  get() {
     return vectorMonoidK();
   },
 });
-Object.defineProperty(Vector, 'Functor', {
-  get(): Functor<VectorK> {
-    return vectorFunctor();
-  },
-});
 Object.defineProperty(Vector, 'Align', {
-  get(): Align<VectorK> {
+  get() {
     return vectorAlign();
   },
 });
+Object.defineProperty(Vector, 'Functor', {
+  get() {
+    return vectorFunctor();
+  },
+});
 Object.defineProperty(Vector, 'FunctorFilter', {
-  get(): FunctorFilter<VectorK> {
+  get() {
     return vectorFunctorFilter();
   },
 });
-Object.defineProperty(Vector, 'Apply', {
-  get(): Apply<VectorK> {
-    return vectorApply();
-  },
-});
 Object.defineProperty(Vector, 'Applicative', {
-  get(): Applicative<VectorK> {
+  get() {
     return vectorApplicative();
   },
 });
 Object.defineProperty(Vector, 'Alternative', {
-  get(): Alternative<VectorK> {
+  get() {
     return vectorAlternative();
   },
 });
-Object.defineProperty(Vector, 'FlatMap', {
-  get(): FlatMap<VectorK> {
-    return vectorFlatMap();
-  },
-});
 Object.defineProperty(Vector, 'Monad', {
-  get(): Monad<VectorK> {
+  get() {
     return vectorMonad();
   },
 });
 Object.defineProperty(Vector, 'Foldable', {
-  get(): Foldable<VectorK> {
+  get() {
     return vectorFoldable();
   },
 });
 Object.defineProperty(Vector, 'Traversable', {
-  get(): Traversable<VectorK> {
+  get() {
     return vectorTraversable();
   },
 });
 
 // -- HKT
 
-/**
- * @category Type Constructor
- * @category Collection
- */
 export interface VectorK extends TyK<[unknown]> {
   [$type]: Vector<TyVar<this, 0>>;
 }

@@ -4,7 +4,7 @@
     "rootDir": ".",
     "outDir": "./lib",
   },
-  "include": ["./index.ts", "./__tests__"],
+  "include": ["./index.ts"],
   "references": [
     { "path": "./core/tsconfig.build.json" },
     { "path": "./io/tsconfig.build.json" },

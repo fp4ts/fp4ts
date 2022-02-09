@@ -1,4 +1,10 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { ok as assert } from 'assert';
+import { Vector, View } from './algebra';
 import { Arr1, Arr2, Arr3, Arr4, Arr5 } from './constants';
 
 export function copyOf<T>(or: T[], len: number): T[] {
@@ -30,7 +36,7 @@ export function arrayCopy<T>(
 }
 
 export function vectorSliceDim(count: number, idx: number): number {
-  const c = count / 2;
+  const c = (count / 2) | 0;
   return c + 1 - Math.abs(idx - c);
 }
 
@@ -40,6 +46,37 @@ export function* arrIterator<T, A>(n: number, a: T[]): Generator<A> {
     for (let i = 0, l = a.length; i < l; i++) {
       yield* arrIterator(n - 1, a[i] as unknown as unknown[]);
     }
+  }
+}
+export function* reverseArrIterator<T, A>(n: number, a: T[]): Generator<A> {
+  if (n === 1) {
+    for (let i = 0, l = a.length; i < l; i++) {
+      yield a[l - i - 1] as any as A;
+    }
+  } else {
+    for (let i = 0, l = a.length; i < l; i++) {
+      yield* reverseArrIterator(n - 1, a[l - i - 1] as unknown as unknown[]);
+    }
+  }
+}
+
+export function vectorSliceCount<A>(v: Vector<A>): number {
+  const vv = v as View<A>;
+  switch (vv.tag) {
+    case 0:
+      return 0;
+    case 1:
+      return 1;
+    case 2:
+      return 3;
+    case 3:
+      return 5;
+    case 4:
+      return 7;
+    case 5:
+      return 9;
+    case 6:
+      return 11;
   }
 }
 

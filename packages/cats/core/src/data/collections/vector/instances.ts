@@ -3,158 +3,114 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Lazy, lazyVal } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval } from '../../../eval';
-import { SemigroupK } from '../../../semigroup-k';
-import { MonoidK } from '../../../monoid-k';
+import { Lazy, lazyVal } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
+import { Align } from '../../../align';
+import { Alternative } from '../../../alternative';
+import { Applicative } from '../../../applicative';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
-import { Align } from '../../../align';
-import { Apply } from '../../../apply';
-import { Applicative } from '../../../applicative';
-import { Alternative } from '../../../alternative';
-import { FlatMap } from '../../../flat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
+import { MonoidK } from '../../../monoid-k';
+import { Eval } from '../../../eval';
 
-import { FingerTree } from '../finger-tree';
-import { fingerTreeMeasured } from '../finger-tree/instances';
-import { Measured } from '../finger-tree/measured';
-
-import { Size } from './algebra';
+import { Vector } from './algebra';
 import {
   align_,
   all_,
   any_,
   collect_,
-  concat_,
   count_,
-  elemOption_,
-  elem_,
   equals_,
   flatMap_,
-  flatten,
   foldLeft_,
   isEmpty,
-  iterator,
-  map_,
   nonEmpty,
-  size,
-  tailRecM_,
   traverse_,
+  zipAll_,
 } from './operators';
-import { Vector, VectorK } from './vector';
-import { empty, pure } from './constructors';
 
-export const sizeMonoid: Monoid<Size> = {
-  empty: 0,
-  combine: y => x => x + y(),
-  combine_: (x, y) => x + y(),
-};
-
-export const sizeMeasured: Measured<any, Size> = {
-  monoid: sizeMonoid,
-  measure: () => 1,
-};
-
-export const fingerTreeSizeMeasured: Measured<
-  FingerTree<Size, any>,
-  Size
-> = fingerTreeMeasured(sizeMeasured);
+import type { VectorK } from './vector';
+import { pure, tailRecM_ } from './constructors';
 
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
 
-export const vectorSemigroupK: Lazy<SemigroupK<VectorK>> = lazyVal(() =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
-);
-
 export const vectorMonoidK: Lazy<MonoidK<VectorK>> = lazyVal(() =>
-  MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) }),
-);
-
-export const vectorFunctor: Lazy<Functor<VectorK>> = lazyVal(() =>
-  Functor.of({ map_: map_ }),
-);
-
-export const vectorAlign: Lazy<Align<VectorK>> = lazyVal(() =>
-  Align.of({ align_: align_, functor: vectorFunctor() }),
-);
-
-export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = lazyVal(() =>
-  FunctorFilter.of({
-    mapFilter_: collect_,
-    collect_: collect_,
-    ...vectorFunctor(),
+  MonoidK.of({
+    emptyK: () => Vector.empty,
+    combineK_: (x, y) => x.concat(y()),
   }),
 );
 
-export const vectorApply: Lazy<Apply<VectorK>> = lazyVal(() =>
-  Apply.of({
+export const vectorAlign: Lazy<Align<VectorK>> = lazyVal(() =>
+  Align.of({
+    functor: vectorFunctor(),
+    align_: align_,
+    zipAll: (xs, ys, a, b) =>
+      zipAll_(
+        xs,
+        ys,
+        () => a,
+        () => b,
+      ),
+  }),
+);
+
+export const vectorFunctor: Lazy<Functor<VectorK>> = lazyVal(() =>
+  Functor.of({ map_: (xs, f) => xs.map(f) }),
+);
+export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = lazyVal(() =>
+  FunctorFilter.of({
     ...vectorFunctor(),
-    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    mapFilter_: collect_,
+    collect_: collect_,
   }),
 );
 
 export const vectorApplicative: Lazy<Applicative<VectorK>> = lazyVal(() =>
-  Applicative.of({
-    ...vectorApply(),
-    pure: pure,
-  }),
+  vectorMonad(),
 );
 
 export const vectorAlternative: Lazy<Alternative<VectorK>> = lazyVal(() =>
-  Alternative.of({
-    ...vectorApplicative(),
-    ...vectorMonoidK(),
-  }),
-);
-
-export const vectorFlatMap: Lazy<FlatMap<VectorK>> = lazyVal(() =>
-  FlatMap.of({
-    ...vectorApply(),
-    map_: map_,
-    flatMap_: flatMap_,
-    flatten: flatten,
-    tailRecM_: tailRecM_,
-  }),
+  Alternative.of({ ...vectorMonoidK(), ...vectorApplicative() }),
 );
 
 export const vectorMonad: Lazy<Monad<VectorK>> = lazyVal(() =>
   Monad.of({
-    ...vectorFlatMap(),
-    ...vectorApplicative(),
+    ...vectorFunctor(),
+    pure: pure,
+    flatMap_: flatMap_,
+    tailRecM_: tailRecM_,
   }),
 );
 
 export const vectorFoldable: Lazy<Foldable<VectorK>> = lazyVal(() =>
   Foldable.of({
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: size,
     all_: all_,
     any_: any_,
     count_: count_,
+    elem_: (xs, idx) => xs.elemOption(idx),
     foldLeft_: foldLeft_,
     foldRight_: <A, B>(
       xs: Vector<A>,
-      eb: Eval<B>,
-      f: (a: A, b: Eval<B>) => Eval<B>,
+      ez: Eval<B>,
+      f: (a: A, eb: Eval<B>) => Eval<B>,
     ): Eval<B> => {
       const loop = (i: number): Eval<B> =>
-        i < size(xs)
-          ? f(
-              elem_(xs, i),
+        i >= xs.size
+          ? ez
+          : f(
+              xs.elem(i),
               Eval.defer(() => loop(i + 1)),
-            )
-          : eb;
+            );
       return loop(0);
     },
-    elem_: elemOption_,
-    iterator: iterator,
-    toVector: id,
+    isEmpty: isEmpty,
+    nonEmpty: nonEmpty,
+    size: xs => xs.size,
   }),
 );
 
@@ -162,7 +118,6 @@ export const vectorTraversable: Lazy<Traversable<VectorK>> = lazyVal(() =>
   Traversable.of({
     ...vectorFoldable(),
     ...vectorFunctor(),
-
     traverse_: traverse_,
   }),
 );

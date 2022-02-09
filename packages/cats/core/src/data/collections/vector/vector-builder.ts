@@ -1,13 +1,17 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import {
   Vector,
+  Vector0,
   Vector1,
   Vector2,
   Vector3,
   Vector4,
   Vector5,
   Vector6,
-  vectorSlice,
-  vectorSliceCount,
   View,
 } from './algebra';
 import {
@@ -38,6 +42,7 @@ import {
   copyOrUse,
   vectorSliceDim,
   arrIterator,
+  vectorSliceCount,
 } from './helpers';
 
 export class VectorBuilder<A> {
@@ -57,7 +62,7 @@ export class VectorBuilder<A> {
     this.lenRest = i - this.len1;
   }
 
-  private initFromVector<A>(v: Vector<A>): this {
+  public initFromVector<A>(v: Vector<A>): this {
     const vv = v as View<A>;
     switch (vv.tag) {
       case 0:
@@ -194,12 +199,19 @@ export class VectorBuilder<A> {
       if (dim === 1) {
         this.addArr1(slice);
       } else {
-        for (const x of arrIterator(dim - 2, slice)) {
+        for (const x of arrIterator(dim - 1, slice)) {
           this.addArr1(x as Arr1);
         }
       }
     }
 
+    return this;
+  }
+
+  public addIterator(iter: Iterator<A>): this {
+    for (let i = iter.next(); !i.done; i = iter.next()) {
+      this.addOne(i.value);
+    }
     return this;
   }
 
@@ -304,7 +316,7 @@ export class VectorBuilder<A> {
   public toVector(): Vector<A> {
     const len = this.len1 + this.lenRest;
     const realLen = len - this.offset;
-    if (realLen === 0) return Vector.empty;
+    if (realLen === 0) return Vector0;
     else if (len <= WIDTH) {
       if (realLen === WIDTH) return new Vector1(this.a1);
       else return new Vector1(copyOf(this.a1, realLen));
@@ -392,5 +404,110 @@ export class VectorBuilder<A> {
       // prettier-ignore
       return new Vector6(prefix1, len1, prefix2, len12, prefix3, len123, prefix4, len1234, prefix5, len12345, data, suffix5, suffix4, suffix3, suffix2, suffix1, realLen);
     }
+  }
+}
+
+function vectorSlice<A>(v: Vector<A>, idx: number): unknown[] {
+  const vv = v as View<A>;
+  switch (vv.tag) {
+    case 0:
+      throw new Error('Invalid slice');
+    case 1:
+      return vv.data1;
+    case 2:
+      switch (idx) {
+        case 0:
+          return vv.prefix1;
+        case 1:
+          return vv.data2;
+        case 2:
+          return vv.suffix1;
+        default:
+          throw new Error();
+      }
+    case 3:
+      switch (idx) {
+        case 0:
+          return vv.prefix1;
+        case 1:
+          return vv.prefix2;
+        case 2:
+          return vv.data3;
+        case 3:
+          return vv.suffix2;
+        case 4:
+          return vv.suffix1;
+        default:
+          throw new Error();
+      }
+    case 4:
+      switch (idx) {
+        case 0:
+          return vv.prefix1;
+        case 1:
+          return vv.prefix2;
+        case 2:
+          return vv.prefix3;
+        case 3:
+          return vv.data4;
+        case 4:
+          return vv.suffix3;
+        case 5:
+          return vv.suffix2;
+        case 6:
+          return vv.suffix1;
+        default:
+          throw new Error();
+      }
+    case 5:
+      switch (idx) {
+        case 0:
+          return vv.prefix1;
+        case 1:
+          return vv.prefix2;
+        case 2:
+          return vv.prefix3;
+        case 3:
+          return vv.prefix4;
+        case 4:
+          return vv.data5;
+        case 5:
+          return vv.suffix4;
+        case 6:
+          return vv.suffix3;
+        case 7:
+          return vv.suffix2;
+        case 8:
+          return vv.suffix1;
+        default:
+          throw new Error();
+      }
+    case 6:
+      switch (idx) {
+        case 0:
+          return vv.prefix1;
+        case 1:
+          return vv.prefix2;
+        case 2:
+          return vv.prefix3;
+        case 3:
+          return vv.prefix4;
+        case 4:
+          return vv.prefix5;
+        case 5:
+          return vv.data6;
+        case 6:
+          return vv.suffix5;
+        case 7:
+          return vv.suffix4;
+        case 8:
+          return vv.suffix3;
+        case 9:
+          return vv.suffix2;
+        case 10:
+          return vv.suffix1;
+        default:
+          throw new Error();
+      }
   }
 }

@@ -1,5 +1,9 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import { suite, add, cycle, configure } from 'benny';
-import { Eq } from '@fp4ts/cats-kernel';
 import { Left, Vector, None, Right, Some } from '@fp4ts/cats-core/lib/data';
 
 function makeSuite(size: number) {
@@ -12,12 +16,8 @@ function makeSuite(size: number) {
   const lastHalf: Vector<number> = values.drop(size / 2);
 
   return [
-    add.only(`fromArray (${size})`, () => {
+    add(`fromArray (${size})`, () => {
       Vector.fromArray(xs);
-    }),
-
-    add(`equals (${size})`, () => {
-      values.equals(Eq.primitive, values);
     }),
 
     add(`elem mid (${size})`, () => {
@@ -111,7 +111,7 @@ function makeSuite(size: number) {
     }),
 
     add(`zipWith tupled (${size})`, () => {
-      values.zipWith(values, (a, b) => [a, b]);
+      values.zipWith(values)((a, b) => [a, b]);
     }),
 
     add(`scanLeft sum (${size})`, () => {

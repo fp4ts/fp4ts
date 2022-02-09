@@ -167,6 +167,12 @@ export const fold_ = <A, B>(it: Iterator<A>, z: B, f: (b: B, a: A) => B): B => {
   return result;
 };
 
+export const forEach_ = <A>(it: Iterator<A>, f: (a: A) => void): void => {
+  for (let i = it.next(); !i.done; i = it.next()) {
+    f(i.value);
+  }
+};
+
 export const scan_ = <A, B>(
   it: Iterator<A>,
   z: B,

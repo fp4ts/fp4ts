@@ -8,7 +8,6 @@ export * from './list';
 export * from './hash-map';
 export * from './map';
 export * from './vector';
-export * from './finger-tree';
 export * from './chain';
 export * from './queue';
 export * from './set';
