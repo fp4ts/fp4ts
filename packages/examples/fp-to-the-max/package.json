@@ -16,6 +16,6 @@
     "@fp4ts/effect": "*"
   },
   "devDependencies": {
-    "typescript": "4.5.4"
+    "typescript": "4.5.5"
   }
 }

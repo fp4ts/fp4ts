@@ -21,6 +21,6 @@
     "@fp4ts/effect-test-kit": "*",
     "@fp4ts/stream-test-kit": "*",
     "fast-check": "^2.21.0",
-    "typescript": "4.5.4"
+    "typescript": "4.5.5"
   }
 }
