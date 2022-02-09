@@ -63,7 +63,7 @@ export abstract class Chunk<O> {
     } else if (typeof buffer === 'string') {
       return new ByteBufferChunk(te.encode(buffer));
     } else {
-      return new ByteBufferChunk(new Uint8Array(Buffer.from(buffer)));
+      throw new Error('Unsupported type');
     }
   }
 

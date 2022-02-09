@@ -14,7 +14,7 @@ import { Option, None, Some } from '../../option';
 import { Iter } from '../iterator';
 import { List } from '../list';
 import { Vector } from '../vector';
-import { Array } from '../array';
+import { Array as CatsArray } from '../array';
 
 import { Chain, Concat, Empty, NonEmpty, View, view } from './algebra';
 import { empty, fromList, fromVector, pure } from './constructors';
@@ -266,7 +266,7 @@ export const traverse: <G>(
   traverse_(G)(xs, f);
 
 export const toArray = <A>(xs: Chain<A>): A[] => {
-  const result = new global.Array<A>(size(xs));
+  const result = new Array<A>(size(xs));
   let idx = 0;
   forEach_(xs, x => (result[idx++] = x));
   return result;
@@ -460,7 +460,7 @@ export const foldRight_ = <A, B>(
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Chain<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> =>
-    traverseViaChain(G, Array.Foldable())(toArray(xs), f);
+    traverseViaChain(G, CatsArray.Foldable())(toArray(xs), f);
 
 export const equals_ =
   <A>(E: Eq<A>) =>
