@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@fp4ts/cats-core": "*",
+    "@fp4ts/cats-kernel": "*",
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
     "fast-check": "^2.21.0",
