@@ -3,5 +3,4 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import './syntax';
-export { Schema, TypeOf } from './schema';
+export { SchemaK, KindOf } from './schema-k';

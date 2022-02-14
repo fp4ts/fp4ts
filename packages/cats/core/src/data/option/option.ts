@@ -131,5 +131,5 @@ Option.Eq = optionEq;
  * @category Data
  */
 export interface OptionK extends TyK<[unknown]> {
-  [$type]: Option<TyVar<this, 1>>;
+  [$type]: Option<TyVar<this, 0>>;
 }

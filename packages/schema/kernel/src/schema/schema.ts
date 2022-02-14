@@ -73,9 +73,3 @@ Schema.record = record;
 Schema.product = product;
 Schema.sum = sum;
 Schema.defer = defer;
-
-// -- HKT
-
-export interface SchemaK extends TyK<[unknown]> {
-  [$type]: Schema<TyVar<this, 0>>;
-}

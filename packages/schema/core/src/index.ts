@@ -9,3 +9,6 @@
 export * from './decode-failure';
 export * from './decoder-t';
 export * from './encoder';
+export * from './schemable-k';
+export * from './kinds';
+export * from './schema-k';
