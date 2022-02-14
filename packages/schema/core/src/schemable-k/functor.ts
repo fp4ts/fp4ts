@@ -4,8 +4,24 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Const, Functor, Identity } from '@fp4ts/cats';
-import { $type, instance, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import {
+  $type,
+  instance,
+  Kind,
+  Lazy,
+  lazyVal,
+  pipe,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
+import {
+  Array,
+  Const,
+  FunctionK,
+  Functor,
+  Identity,
+  Option,
+} from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
 import { ProductK, SumK, StructK } from '../kinds';
 
@@ -55,8 +71,8 @@ const sum =
 const defer = <G>(thunk: () => Functor<G>) =>
   Functor.of<G>({ map_: (x, f) => thunk().map_(x, f) });
 
-export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() =>
-  instance({
+export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() => {
+  const self: SchemableK<FunctorK> = instance({
     boolean: Const.Functor<boolean>(),
     string: Const.Functor<string>(),
     number: Const.Functor<number>(),
@@ -64,12 +80,26 @@ export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() =>
     null: Const.Functor<null>(),
     par: Identity.Functor,
 
+    array: f => self.compose_(Array.Functor(), f),
+
+    optional: f => self.compose_(Option.Functor, f),
+
     product: product as SchemableK<FunctorK>['product'],
     sum: sum as SchemableK<FunctorK>['sum'],
     struct,
     defer,
-  }),
-);
+
+    imap_: <F, G>(sa: Functor<F>, f: FunctionK<F, G>, g: FunctionK<G, F>) =>
+      Functor.of<G>({
+        map_: <A, B>(fa: Kind<G, [A]>, f2: (a: A) => B) =>
+          pipe(g(fa), sa.map(f2), f),
+      }),
+
+    compose_: <F, G>(sf: Functor<F>, sg: Functor<G>): Functor<[F, G]> =>
+      Functor.compose(sf, sg),
+  });
+  return self;
+});
 
 // -- HKT
 

@@ -23,7 +23,7 @@ import {
 
 export const literal = <A extends [Literal, ...Literal[]]>(
   ...xs: A
-): SchemaK<A[number]> => new LiteralSchemaK(xs);
+): SchemaK<$<ConstK, [A[number]]>> => new LiteralSchemaK(xs);
 
 export const booleanSchemaK: SchemaK<$<ConstK, [boolean]>> = BooleanSchemaK;
 export const numberSchemaK: SchemaK<$<ConstK, [number]>> = NumberSchemaK;
@@ -31,16 +31,16 @@ export const stringSchemaK: SchemaK<$<ConstK, [string]>> = StringSchemaK;
 export const par: SchemaK<IdentityK> = ParSchemaK;
 
 export const struct = <F extends {}>(fs: {
-  [k in keyof F]: SchemaK<StructK<F[k]>>;
-}): SchemaK<F> => new StructSchemaK(fs);
+  [k in keyof F]: SchemaK<F[k]>;
+}): SchemaK<StructK<F>> => new StructSchemaK(fs);
 
 export const product = <F extends unknown[]>(
   ...fs: { [k in keyof F]: SchemaK<F[k]> }
-): SchemaK<ProductK<F>> => new ProductSchemaK(fs);
+): SchemaK<ProductK<F>> => new ProductSchemaK<F>(fs);
 
 export const sum =
   <T extends string>(tag: T) =>
-  <F extends {}>(fs: { [k in keyof F]: SchemaK<F> }): SchemaK<
+  <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }): SchemaK<
     SumK<F[keyof F]>
   > =>
     new SumSchemaK(tag, fs);

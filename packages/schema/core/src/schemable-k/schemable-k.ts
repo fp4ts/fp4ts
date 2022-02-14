@@ -5,38 +5,49 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Base, Kind, $ } from '@fp4ts/core';
-import { ConstK, IdentityK } from '@fp4ts/cats';
+import { ArrayK, ConstK, IdentityK, OptionK } from '@fp4ts/cats';
 import { Literal } from '@fp4ts/schema-kernel';
 import { ProductK, StructK, SumK } from '../kinds';
 import { FunctorK, functorSchemableK } from './functor';
 
-export interface SchemableK<F> extends Base<F> {
+export interface SchemableK<S> extends Base<S> {
   literal<A extends [Literal, ...Literal[]]>(
     ...xs: A
-  ): Kind<F, [$<ConstK, [A[number]]>]>;
-  readonly boolean: Kind<F, [$<ConstK, [boolean]>]>;
-  readonly number: Kind<F, [$<ConstK, [number]>]>;
-  readonly string: Kind<F, [$<ConstK, [string]>]>;
-  readonly null: Kind<F, [$<ConstK, [null]>]>;
+  ): Kind<S, [$<ConstK, [A[number]]>]>;
+  readonly boolean: Kind<S, [$<ConstK, [boolean]>]>;
+  readonly number: Kind<S, [$<ConstK, [number]>]>;
+  readonly string: Kind<S, [$<ConstK, [string]>]>;
+  readonly null: Kind<S, [$<ConstK, [null]>]>;
 
-  readonly par: Kind<F, [IdentityK]>;
+  readonly par: Kind<S, [IdentityK]>;
 
-  struct<A extends {}>(xs: { [k in keyof A]: Kind<F, [A[k]]> }): Kind<
-    F,
-    [StructK<A>]
+  array<F>(f: Kind<S, [F]>): Kind<S, [[ArrayK, F]]>;
+  optional<F>(f: Kind<S, [F]>): Kind<S, [[OptionK, F]]>;
+
+  struct<F extends {}>(xs: { [k in keyof F]: Kind<S, [F[k]]> }): Kind<
+    S,
+    [StructK<F>]
   >;
 
-  product<A extends unknown[]>(
-    ...xs: { [k in keyof A]: Kind<F, [A[k]]> }
-  ): Kind<F, [ProductK<A>]>;
+  product<F extends unknown[]>(
+    ...xs: { [k in keyof F]: Kind<S, [F[k]]> }
+  ): Kind<S, [ProductK<F>]>;
 
   sum<T extends string>(
     tag: T,
-  ): <A extends {}>(xs: {
-    [k in keyof A]: Kind<F, [A[k]]>;
-  }) => Kind<F, [SumK<A[keyof A]>]>;
+  ): <F extends {}>(xs: {
+    [k in keyof F]: Kind<S, [F[k]]>;
+  }) => Kind<S, [SumK<F[keyof F]>]>;
 
-  defer<G>(thunk: () => Kind<F, [G]>): Kind<F, [G]>;
+  defer<F>(thunk: () => Kind<S, [F]>): Kind<S, [F]>;
+
+  imap_<F, G>(
+    sf: Kind<S, [F]>,
+    f: <A>(fa: Kind<F, [A]>) => Kind<G, [A]>,
+    g: <A>(ga: Kind<G, [A]>) => Kind<F, [A]>,
+  ): Kind<S, [G]>;
+
+  compose_<F, G>(sf: Kind<S, [F]>, sg: Kind<S, [G]>): Kind<S, [[F, G]]>;
 }
 
 export const SchemableK = Object.freeze({

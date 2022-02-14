@@ -27,15 +27,17 @@ export const SchemaK: SchemaKObj = function () {};
 export type KindOf<S> = S extends SchemaK<infer F> ? F : never;
 
 interface SchemaKObj {
-  literal<A extends [Literal, ...Literal[]]>(...xs: A): SchemaK<A[number]>;
+  literal<A extends [Literal, ...Literal[]]>(
+    ...xs: A
+  ): SchemaK<$<ConstK, [A[number]]>>;
   boolean: SchemaK<$<ConstK, [boolean]>>;
   number: SchemaK<$<ConstK, [number]>>;
   string: SchemaK<$<ConstK, [string]>>;
   par: SchemaK<IdentityK>;
 
   struct<F extends {}>(fs: {
-    [k in keyof F]: SchemaK<StructK<F[k]>>;
-  }): SchemaK<F>;
+    [k in keyof F]: SchemaK<F[k]>;
+  }): SchemaK<StructK<F>>;
 
   product<F extends unknown[]>(
     ...fs: { [k in keyof F]: SchemaK<F[k]> }
@@ -43,7 +45,7 @@ interface SchemaKObj {
 
   sum<T extends string>(
     tag: T,
-  ): <F extends {}>(fs: { [k in keyof F]: SchemaK<F> }) => SchemaK<
+  ): <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }) => SchemaK<
     SumK<F[keyof F]>
   >;
 

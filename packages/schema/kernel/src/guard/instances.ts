@@ -33,7 +33,6 @@ import {
   nonEmpty,
   nullable,
   refine_,
-  union_,
 } from './operators';
 
 export const guardRefining: Lazy<Refining<$<GuardK, [unknown]>>> = lazyVal(() =>
