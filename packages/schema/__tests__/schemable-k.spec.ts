@@ -4,99 +4,160 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, $type, TyK, TyVar } from '@fp4ts/core';
-import { ConstK, Option, Some, None } from '@fp4ts/cats';
+import fc, { Arbitrary } from 'fast-check';
+import { $ } from '@fp4ts/core';
+import { ConstK, Some, None, Eq, Option, OptionK } from '@fp4ts/cats';
 import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
+import { checkAll } from '@fp4ts/cats-test-kit';
+import { FunctorSuite } from '@fp4ts/cats-laws';
+import { Bin, Tip, BinK, TipK, TreeK, Tree1K, Tree1, Tree } from './tree';
 
 describe('schemable-k', () => {
-  it('should create a Tree functor', () => {
-    type Tree<K, V> = Bin<K, V> | Tip;
-
-    type Bin<K, V> = {
-      tag: 'bin';
-      k: K;
-      v: V;
-      lhs: Tree<K, V>;
-      rhs: Tree<K, V>;
-    };
-    const Bin = <K, V>(
-      k: K,
-      v: V,
-      lhs: Tree<K, V>,
-      rhs: Tree<K, V>,
-    ): Tree<K, V> => ({ tag: 'bin', k, v, lhs, rhs });
-
-    const Tip = { tag: 'tip' };
-    type Tip = { tag: 'tip' };
-
-    interface TreeK extends TyK<[unknown, unknown]> {
-      [$type]: Tree<TyVar<this, 0>, TyVar<this, 1>>;
-    }
-
-    const TreeK = <K>(k: SchemaK<$<ConstK, [K]>>): SchemaK<$<TreeK, [K]>> =>
+  describe('regular tree', () => {
+    const TreeSK = <K>(k: SchemaK<$<ConstK, [K]>>): SchemaK<$<TreeK, [K]>> =>
       SchemaK.sum('tag')({
         bin: SchemaK.struct({
           tag: SchemaK.literal('bin'),
           k: k,
           v: SchemaK.par,
-          lhs: SchemaK.defer(() => TreeK(k)),
-          rhs: SchemaK.defer(() => TreeK(k)),
-        }),
-        tip: SchemaK.struct({ tag: SchemaK.literal('tip') }),
+          lhs: SchemaK.defer(() => TreeSK(k)),
+          rhs: SchemaK.defer(() => TreeSK(k)),
+        }).imap<$<BinK, [K]>>(
+          ({ k, v, lhs, rhs }) => new Bin(k, v, lhs, rhs),
+          <A>({ k, v, lhs, rhs }: Bin<K, A>) => ({
+            tag: 'bin',
+            k,
+            v,
+            lhs,
+            rhs,
+          }),
+        ),
+        tip: SchemaK.struct({ tag: SchemaK.literal('tip') }).imap<TipK>(
+          () => Tip,
+          () => ({ tag: 'tip' }),
+        ),
       });
 
-    const tf = TreeK(SchemaK.number).interpret(SchemableK.Functor);
-    type tf = typeof tf;
-    const node: Tree<number, string> = {
-      tag: 'bin',
-      k: 42,
-      v: 'test',
-      lhs: {
-        tag: 'bin',
-        k: 44,
-        v: '55',
-        lhs: { tag: 'tip' },
-        rhs: { tag: 'tip' },
-      },
-      rhs: { tag: 'tip' },
-    };
+    const arbTree =
+      <K>(arbK: Arbitrary<K>) =>
+      <A>(arbA: Arbitrary<A>): Arbitrary<Tree<K, A>> => {
+        const maxDepth = 20;
+        const tip = fc.constant(Tip);
+        const node = (n: number): Arbitrary<Tree<K, A>> =>
+          n < 1
+            ? tip
+            : fc
+                .tuple(arbK, arbA, tree(n - 1), tree(n - 1))
+                .map(
+                  ([k, v, lhs, rhs]) =>
+                    new Bin(k, v, lhs as Tree<K, A>, rhs as Tree<K, A>),
+                );
+        const tree = fc.memo((n: number) => fc.oneof(tip, node(n)));
+        return tree(maxDepth);
+      };
 
-    const x = tf.map_(node, x => x.toUpperCase());
-    const y = tf.map_(node, x => parseInt(x));
+    const eqTree =
+      <K>(K: Eq<K>) =>
+      <A>(A: Eq<A>): Eq<Tree<K, A>> => {
+        const self: Eq<Tree<K, A>> = Eq.of({
+          equals: (l, r) => {
+            if (l === r) return true;
+            if (l === Tip) return false;
+            if (r === Tip) return false;
+            const ll = l as Bin<K, A>;
+            const rr = l as Bin<K, A>;
+            if (K.notEquals(ll.k, rr.k) || A.notEquals(ll.v, rr.v))
+              return false;
+            return self.equals(ll.lhs, rr.lhs) && self.equals(ll.rhs, rr.rhs);
+          },
+        });
+        return self;
+      };
 
-    console.log(x);
-    console.log(y);
+    const F = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
+    const functorTests = FunctorSuite(F);
+
+    checkAll(
+      'Functor<Tree<number, *>>',
+      functorTests.functor(
+        fc.string(),
+        fc.string(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        arbTree(fc.integer()),
+        eqTree(Eq.primitive),
+      ),
+    );
   });
 
-  it('should create a Tree Option functor', () => {
-    type Tree<K, V> = {
-      k: K;
-      v: V;
-      lhs: Option<Tree<K, V>>;
-      rhs: Option<Tree<K, V>>;
-    };
-    interface TreeK extends TyK<[unknown, unknown]> {
-      [$type]: Tree<TyVar<this, 0>, TyVar<this, 1>>;
-    }
-    const TreeK = <K>(k: SchemaK<$<ConstK, [K]>>): SchemaK<$<TreeK, [K]>> =>
+  describe('optional tree', () => {
+    const TreeSK = <K>(
+      k: SchemaK<$<ConstK, [K]>>,
+    ): SchemaK<[OptionK, $<Tree1K, [K]>]> =>
       SchemaK.struct({
         k: k,
         v: SchemaK.par,
-        lhs: SchemaK.defer(() => TreeK(k)).optional,
-        rhs: SchemaK.defer(() => TreeK(k)).optional,
-      });
+        lhs: SchemaK.defer(() => TreeSK(k)),
+        rhs: SchemaK.defer(() => TreeSK(k)),
+      }).imap<$<Tree1K, [K]>>(
+        ({ k, v, lhs, rhs }) => new Tree1(k, v, lhs, rhs),
+        ({ k, v, lhs, rhs }) => ({ k, v, lhs, rhs }),
+      ).optional;
 
-    const tf = TreeK(SchemaK.number).interpret(SchemableK.Functor);
-    type tf = typeof tf;
-    const node: Tree<number, string> = {
-      k: 42,
-      v: 'test',
-      lhs: Some({ k: 44, v: '55', lhs: None, rhs: None }),
-      rhs: None,
-    };
-    const x = tf.map_(node, x => x.toUpperCase());
-    const y = tf.map_(node, x => parseInt(x));
-    console.log(x);
-    console.log(y);
+    const arbTree =
+      <K>(arbK: Arbitrary<K>) =>
+      <A>(arbA: Arbitrary<A>): Arbitrary<Option<Tree1<K, A>>> => {
+        const maxDepth = 20;
+        const tip = fc.constant(None as Option<Tree1<never, never>>);
+        const node = (n: number): Arbitrary<Option<Tree1<K, A>>> =>
+          n < 1
+            ? tip
+            : fc
+                .tuple(arbK, arbA, tree(n - 1), tree(n - 1))
+                .map(
+                  ([k, v, lhs, rhs]) =>
+                    new Tree1(
+                      k,
+                      v,
+                      lhs as Option<Tree1<K, A>>,
+                      rhs as Option<Tree1<K, A>>,
+                    ),
+                )
+                .map(Some);
+
+        const tree = fc.memo((n: number) => fc.oneof(tip, node(n)));
+        return node(maxDepth);
+      };
+
+    const eqTree =
+      <K>(K: Eq<K>) =>
+      <A>(A: Eq<A>): Eq<Option<Tree1<K, A>>> => {
+        const self: Eq<Tree1<K, A>> = Eq.of({
+          equals: (l, r) => {
+            if (l === r) return true;
+            if (K.notEquals(l.k, r.k) || A.notEquals(l.v, r.v)) return false;
+            return OTE.equals(l.lhs, r.lhs) && OTE.equals(l.rhs, r.rhs);
+          },
+        });
+        const OTE = Option.Eq(self);
+        return OTE;
+      };
+
+    const F = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
+    const functorTests = FunctorSuite(F);
+
+    checkAll(
+      'Functor<Option<Tree<number, *>>>',
+      functorTests.functor(
+        fc.string(),
+        fc.string(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        arbTree(fc.integer()),
+        eqTree(Eq.primitive),
+      ),
+    );
   });
 });

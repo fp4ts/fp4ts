@@ -13,6 +13,9 @@
     "@fp4ts/core": "*"
   },
   "devDependencies": {
+    "@fp4ts/cats-laws": "*",
+    "@fp4ts/cats-test-kit": "*",
+    "fast-check": "^2.21.0",
     "typescript": "4.5.5"
   }
 }
