@@ -6,9 +6,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { $ } from '@fp4ts/core';
 import { ConstK, IdentityK } from '@fp4ts/cats';
-import { Literal } from '@fp4ts/schema-kernel';
 import { ProductK, StructK, SumK } from '../kinds';
 import { SchemaK as SchemaKBase } from './algebra';
+import { Literal } from '../literal';
 import {
   booleanSchemaK,
   defer,

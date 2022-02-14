@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { Literal } from '../literal';
+import { Literal } from '@fp4ts/schema-kernel/src/literal';
 import { Guard } from './algebra';
 
 export const identity = <A>(): Guard<A, A> => new Guard((_): _ is A => true);

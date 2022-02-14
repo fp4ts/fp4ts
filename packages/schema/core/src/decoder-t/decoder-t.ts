@@ -17,12 +17,12 @@ import {
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Constraining,
-  Guard,
   Refining,
   Schemable,
   Literal,
 } from '@fp4ts/schema-kernel';
 
+import { Guard } from '../guard';
 import { DecodeFailure } from '../decode-failure';
 import { DecoderT as DecoderTBase } from './algebra';
 import {

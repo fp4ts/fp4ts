@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $type, TyK, TyVar } from '@fp4ts/core';
-import { Literal } from '../literal';
+import { Literal } from '@fp4ts/schema-kernel/src/literal';
 import { Guard as GuardBase } from './algebra';
 import {
   array,

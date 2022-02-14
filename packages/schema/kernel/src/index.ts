@@ -6,9 +6,13 @@
 /**
  * @module schema/kernel
  */
-export * from './schemable';
-export * from './constraining';
 export * from './refining';
+export * from './constraining';
+export * from './schemable';
+export * from './schemable-k';
+
 export * from './schema';
-export * from './guard';
+export * from './schema-k';
+
 export * from './literal';
+export * from './kinds';

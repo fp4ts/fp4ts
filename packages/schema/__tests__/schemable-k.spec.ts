@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { ConstK, Option, Some, None } from '@fp4ts/cats';
 import { $, $type, TyK, TyVar } from '@fp4ts/core';
-import { SchemaK, SchemableK } from '@fp4ts/schema-core';
+import { ConstK, Option, Some, None } from '@fp4ts/cats';
+import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
 
 describe('schemable-k', () => {
   it('should create a Tree functor', () => {

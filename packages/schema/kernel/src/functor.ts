@@ -23,7 +23,7 @@ import {
   Option,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
-import { ProductK, SumK, StructK } from '../kinds';
+import { ProductK, SumK, StructK } from './kinds';
 
 const product = <F extends unknown[]>(
   ...fs: { [k in keyof F]: Functor<F[k]> }

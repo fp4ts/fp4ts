@@ -6,8 +6,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Base, Kind, $ } from '@fp4ts/core';
 import { ArrayK, ConstK, IdentityK, OptionK } from '@fp4ts/cats';
-import { Literal } from '@fp4ts/schema-kernel';
-import { ProductK, StructK, SumK } from '../kinds';
+import { Literal } from './literal';
+import { ProductK, StructK, SumK } from './kinds';
 import { FunctorK, functorSchemableK } from './functor';
 
 export interface SchemableK<S> extends Base<S> {

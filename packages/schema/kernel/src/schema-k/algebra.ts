@@ -6,7 +6,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { $, Kind } from '@fp4ts/core';
 import { ArrayK, ConstK, FunctionK, IdentityK, OptionK } from '@fp4ts/cats';
-import { Literal, Schema } from '@fp4ts/schema-kernel';
+import { Literal } from '../literal';
+import { Schema } from '../schema';
 import { SchemableK } from '../schemable-k';
 import { ProductK, StructK, SumK } from '../kinds';
 
