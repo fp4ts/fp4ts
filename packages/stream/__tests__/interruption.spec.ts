@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Eq, List, Either, Some, None } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect';
+import { IO, IOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
@@ -23,7 +23,7 @@ describe('Stream interruption', () => {
 
         return Stream.defer(() =>
           s
-            .covary<IoK>()
+            .covary<IOF>()
             .evalMap(() => IO.never)
             .interruptWhen(interruptSoon),
         )
@@ -37,12 +37,12 @@ describe('Stream interruption', () => {
     fc.assert(
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s => {
         const interrupt = Stream.pure(true)['+++'](
-          Stream.execF<IoK, never>(IO.never),
+          Stream.execF<IOF, never>(IO.never),
         );
 
         return Stream.defer(() =>
           s
-            .covary<IoK>()
+            .covary<IOF>()
             .evalMap(() => IO.never)
             .interruptWhenTrue(IO.Concurrent)(interrupt),
         )
@@ -57,7 +57,7 @@ describe('Stream interruption', () => {
       .drain.attempt;
 
     return Stream.repeat(true)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhen(interruptSoon)
       .compileConcurrent()
       .drain.unsafeRunToPromise();
@@ -68,7 +68,7 @@ describe('Stream interruption', () => {
       .drain.attempt;
 
     return Stream.repeat(true)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhen(interruptSoon)
       .flatMap(() => Stream(1))
       .compileConcurrent()
@@ -79,9 +79,9 @@ describe('Stream interruption', () => {
     const interruptSoon = Stream.sleep(IO.Temporal)(20).compileConcurrent()
       .drain.attempt;
 
-    const loop = (i: number): Stream<IoK, number> =>
+    const loop = (i: number): Stream<IOF, number> =>
       Stream(i)
-        .covary<IoK>()
+        .covary<IOF>()
         .flatMap(() => Stream(i)['+++'](loop(i + 1)));
 
     return loop(0)
@@ -94,8 +94,8 @@ describe('Stream interruption', () => {
     const interruptSoon = Stream.sleep(IO.Temporal)(20).compileConcurrent()
       .drain.attempt;
 
-    const loop = (): Stream<IoK, never> =>
-      Stream.evalF<IoK, void>(IO.unit).flatMap(() => Stream.defer(loop));
+    const loop = (): Stream<IOF, never> =>
+      Stream.evalF<IOF, void>(IO.unit).flatMap(() => Stream.defer(loop));
 
     return loop()
       .interruptWhen(interruptSoon)
@@ -107,7 +107,7 @@ describe('Stream interruption', () => {
     const interruptSoon = Stream.sleep(IO.Temporal)(20).compileConcurrent()
       .drain.attempt;
 
-    const loop = (): Stream<IoK, never> =>
+    const loop = (): Stream<IOF, never> =>
       Stream().flatMap(() => Stream.defer(loop));
 
     return loop()
@@ -120,7 +120,7 @@ describe('Stream interruption', () => {
     const interruptSoon = Stream.sleep(IO.Temporal)(20).compileConcurrent()
       .drain.attempt;
 
-    return Stream.repeatEval<IoK, void>(IO.unit)
+    return Stream.repeatEval<IOF, void>(IO.unit)
       .interruptWhen(interruptSoon)
       .flatMap(() => Stream(1))
       .compileConcurrent()
@@ -133,7 +133,7 @@ describe('Stream interruption', () => {
 
     return Stream.repeat(true)
       .dropWhile(x => !x)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhen(interruptSoon)
       .compileConcurrent()
       .drain.unsafeRunToPromise();
@@ -143,7 +143,7 @@ describe('Stream interruption', () => {
     fc.assert(
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s =>
         s
-          .covary<IoK>()
+          .covary<IOF>()
           .interruptWhenTrue(IO.Concurrent)(Stream.repeat(false))
           .compileConcurrent()
           .toList.flatMap(xs => IO(() => xs.equals(Eq.primitive, s.toList)))
@@ -153,9 +153,9 @@ describe('Stream interruption', () => {
 
   it('should interrupt a stream that never terminates in flatMap', () =>
     Stream(1)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhen(IO.sleep(20).attempt)
-      .flatMap(() => Stream.evalF<IoK, never>(IO.never))
+      .flatMap(() => Stream.evalF<IOF, never>(IO.never))
       .compileConcurrent()
       .drain.unsafeRunToPromise());
 
@@ -167,7 +167,7 @@ describe('Stream interruption', () => {
 
     return Stream(1)
       .concat(s)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhenTrue(IO.Concurrent)(interrupt)
       .evalMap(() => IO.never)
       .compileConcurrent()
@@ -184,7 +184,7 @@ describe('Stream interruption', () => {
 
         return Stream(1)
           .concat(s)
-          .covary<IoK>()
+          .covary<IOF>()
           .interruptWhenTrue(IO.Concurrent)(interrupt)
           .evalMap(() => IO.never)
           .compileConcurrent()
@@ -194,7 +194,7 @@ describe('Stream interruption', () => {
     ));
 
   it('should resume on concat (minimal)', () =>
-    Stream.evalF<IoK, never>(IO.never)
+    Stream.evalF<IOF, never>(IO.never)
       .interruptWhen(IO.sleep(10).attempt)
       .concat(Stream(5))
       .compileConcurrent()
@@ -208,7 +208,7 @@ describe('Stream interruption', () => {
         const interrupt = IO.sleep(20).attempt;
 
         return s
-          .covary<IoK>()
+          .covary<IOF>()
           .interruptWhen(interrupt)
           .evalMap(() => IO.never)
           .drain.concat(s)
@@ -225,7 +225,7 @@ describe('Stream interruption', () => {
         const interrupt = IO.sleep(20).attempt;
 
         return s
-          .covary<IoK>()
+          .covary<IOF>()
           .interruptWhen(interrupt)
           .evalMap(() => IO.never.map(() => None))
           .drain.concat(s.map(Some))
@@ -244,13 +244,13 @@ describe('Stream interruption', () => {
 
         return s
           .concat(Stream(1))
-          .covary<IoK>()
+          .covary<IOF>()
           .interruptWhen(interrupt)
           .map(() => None)
           .concat(s.map(Some))
           .flatMap(opt =>
             opt.fold(
-              () => Stream.evalF<IoK, never>(IO.never),
+              () => Stream.evalF<IOF, never>(IO.never),
               i => Stream(Some(i)),
             ),
           )
@@ -263,7 +263,7 @@ describe('Stream interruption', () => {
 
   it('should resume on concat after evalMap hangs', () =>
     Stream(1)
-      .covary<IoK>()
+      .covary<IOF>()
       .interruptWhen(IO.sleep(10).attempt)
       .evalMap(() => IO.never)
       .concat(Stream(5))
@@ -280,14 +280,14 @@ describe('Stream interruption', () => {
           const neverInterrupt = IO.never.attempt;
 
           return s
-            .covary<IoK>()
+            .covary<IOF>()
             .interruptWhen(interrupt)
             .map(() => None)
             .concat(s.map(Some))
             .interruptWhen(neverInterrupt)
             .flatMap(opt =>
               opt.fold(
-                () => Stream.evalF<IoK, never>(IO.never),
+                () => Stream.evalF<IOF, never>(IO.never),
                 i => Stream(Some(i)),
               ),
             )
@@ -299,7 +299,7 @@ describe('Stream interruption', () => {
       ));
 
     it('should interrupt inner scope from the outer scope', () =>
-      Stream.evalF<IoK, void>(IO.never)
+      Stream.evalF<IOF, void>(IO.never)
         .interruptWhen(IO.never.attempt)
         .interruptWhen(IO(() => Either.rightUnit))
         .compileConcurrent()
@@ -307,7 +307,7 @@ describe('Stream interruption', () => {
         .unsafeRunToPromise());
 
     it('should recover when interrupted in enclosing scope', () =>
-      Stream.evalF<IoK, number>(IO.never)
+      Stream.evalF<IOF, number>(IO.never)
         .interruptWhen(IO.never.attempt)
         .concat(Stream(1).delayBy(IO.Temporal)(10))
         .interruptWhen(IO.pure(Either.rightUnit))
@@ -319,14 +319,14 @@ describe('Stream interruption', () => {
 
   describe('sync compilation', () => {
     it('should terminate when interruption hangs', () =>
-      Stream.empty<IoK>()
+      Stream.empty<IOF>()
         .interruptWhen(IO.never.attempt)
         .compileSync(IO.Sync)
         .toList.flatMap(xs => IO(() => expect(xs).toEqual(List.empty)))
         .unsafeRunToPromise());
 
     it('should interrupt never terminating evaluated effect', () => {
-      const s = Stream.never<IoK>(IO.Spawn).interruptWhen(IO.unit.attempt);
+      const s = Stream.never<IOF>(IO.Spawn).interruptWhen(IO.unit.attempt);
       const interrupt = IO.sleep(250);
 
       return s

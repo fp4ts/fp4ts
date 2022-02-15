@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind, id } from '@fp4ts/core';
-import { Defer, KleisliK, Kleisli, OptionTK, OptionT } from '@fp4ts/cats';
+import { Defer, KleisliF, Kleisli, OptionTF, OptionT } from '@fp4ts/cats';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 import { Clock, ClockRequirements } from './clock';
 import { UniqueToken, Unique } from './unique';
@@ -35,7 +35,7 @@ export const Sync = Object.freeze({
     return self;
   },
 
-  syncForKleisli: <F, R>(F: Sync<F>): Sync<$<KleisliK, [F, R]>> =>
+  syncForKleisli: <F, R>(F: Sync<F>): Sync<$<KleisliF, [F, R]>> =>
     Sync.of({
       ...MonadCancel.forKleisli(F),
 
@@ -46,7 +46,7 @@ export const Sync = Object.freeze({
       delay: <A>(thunk: () => A) => Kleisli.liftF(F.delay(thunk)),
     }),
 
-  syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTK, [F]>> =>
+  syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTF, [F]>> =>
     Sync.of({
       ...MonadCancel.forOptionT(F),
 

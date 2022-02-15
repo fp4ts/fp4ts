@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IdentityK } from '../identity';
+import { IdentityF } from '../identity';
 import { Kleisli } from '../kleisli';
 
 export class Reader<R, A> {
@@ -11,5 +11,5 @@ export class Reader<R, A> {
 
   private readonly _R!: (_: R) => void;
 
-  public constructor(public readonly _kleisli: Kleisli<IdentityK, R, A>) {}
+  public constructor(public readonly _kleisli: Kleisli<IdentityF, R, A>) {}
 }

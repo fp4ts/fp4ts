@@ -151,14 +151,14 @@ interface DecoderTObj {
 
   // -- Instances
 
-  MonoidK<F, I>(F: Monad<F>): MonoidK<$<DecoderTK, [F, I]>>;
-  Functor<F, I>(F: Functor<F>): Functor<$<DecoderTK, [F, I]>>;
-  Profunctor<F>(F: Functor<F>): Profunctor<$<DecoderTK, [F]>>;
-  Category<F>(F: Monad<F>): Category<$<DecoderTK, [F]>>;
-  Monad<F, I>(F: Monad<F>): Monad<$<DecoderTK, [F, I]>>;
-  Refining<F>(F: Monad<F>): Refining<$<DecoderTK, [F, unknown]>>;
-  Schemable<F>(F: Monad<F>): Schemable<$<DecoderTK, [F, unknown]>>;
-  Constraining<F>(F: Monad<F>): Constraining<$<DecoderTK, [F, unknown]>>;
+  MonoidK<F, I>(F: Monad<F>): MonoidK<$<DecoderTF, [F, I]>>;
+  Functor<F, I>(F: Functor<F>): Functor<$<DecoderTF, [F, I]>>;
+  Profunctor<F>(F: Functor<F>): Profunctor<$<DecoderTF, [F]>>;
+  Category<F>(F: Monad<F>): Category<$<DecoderTF, [F]>>;
+  Monad<F, I>(F: Monad<F>): Monad<$<DecoderTF, [F, I]>>;
+  Refining<F>(F: Monad<F>): Refining<$<DecoderTF, [F, unknown]>>;
+  Schemable<F>(F: Monad<F>): Schemable<$<DecoderTF, [F, unknown]>>;
+  Constraining<F>(F: Monad<F>): Constraining<$<DecoderTF, [F, unknown]>>;
 }
 
 DecoderT.succeed = succeed;
@@ -198,6 +198,6 @@ DecoderT.Constraining = decoderTConstraining;
 
 // -- HKT
 
-export interface DecoderTK extends TyK<[unknown, unknown, unknown]> {
+export interface DecoderTF extends TyK<[unknown, unknown, unknown]> {
   [$type]: DecoderT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

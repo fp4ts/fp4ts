@@ -42,13 +42,13 @@ interface SyncIOObj {
 
   // -- Instances
 
-  readonly Functor: Functor<SyncIoK>;
-  readonly Apply: Apply<SyncIoK>;
-  readonly Applicative: Applicative<SyncIoK>;
-  readonly FlatMap: FlatMap<SyncIoK>;
-  readonly Monad: Monad<SyncIoK>;
-  readonly MonadError: MonadError<SyncIoK, Error>;
-  readonly Sync: Sync<SyncIoK>;
+  readonly Functor: Functor<SyncIOF>;
+  readonly Apply: Apply<SyncIOF>;
+  readonly Applicative: Applicative<SyncIOF>;
+  readonly FlatMap: FlatMap<SyncIOF>;
+  readonly Monad: Monad<SyncIOF>;
+  readonly MonadError: MonadError<SyncIOF, Error>;
+  readonly Sync: Sync<SyncIOF>;
 }
 
 SyncIO.pure = pure;
@@ -95,6 +95,6 @@ Object.defineProperty(SyncIO, 'Sync', {
 
 // -- HKT
 
-export interface SyncIoK extends TyK<[unknown]> {
+export interface SyncIOF extends TyK<[unknown]> {
   [$type]: SyncIO<TyVar<this, 0>>;
 }

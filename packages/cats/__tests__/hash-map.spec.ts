@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Monoid, Eq, Hashable } from '@fp4ts/cats-kernel';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import { List, Option, Some, None, HashMap } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -692,8 +692,8 @@ describe('Map', () => {
       number,
       number,
       number,
-      EvalK,
-      EvalK
+      EvalF,
+      EvalF
     >(
       fc.integer(),
       fc.integer(),

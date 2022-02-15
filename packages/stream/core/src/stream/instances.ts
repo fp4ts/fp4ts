@@ -14,7 +14,7 @@ import {
   MonoidK,
 } from '@fp4ts/cats';
 
-import { StreamK } from './stream';
+import { StreamF } from './stream';
 import {
   align_,
   attempt,
@@ -29,23 +29,23 @@ import {
 } from './operators';
 import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
-export const streamMonoidK: <F>() => MonoidK<$<StreamK, [F]>> = lazyVal(() =>
+export const streamMonoidK: <F>() => MonoidK<$<StreamF, [F]>> = lazyVal(() =>
   MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty }),
 );
 
-export const streamDefer: <F>() => Defer<$<StreamK, [F]>> = lazyVal(() =>
+export const streamDefer: <F>() => Defer<$<StreamF, [F]>> = lazyVal(() =>
   Defer.of({ defer: defer }),
 );
 
-export const streamFunctor: <F>() => Functor<$<StreamK, [F]>> = lazyVal(() =>
+export const streamFunctor: <F>() => Functor<$<StreamF, [F]>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const streamAlign: <F>() => Align<$<StreamK, [F]>> = lazyVal(() =>
+export const streamAlign: <F>() => Align<$<StreamF, [F]>> = lazyVal(() =>
   Align.of({ functor: streamFunctor(), align_: align_ }),
 );
 
-export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamK, [F]>> =
+export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamF, [F]>> =
   lazyVal(() =>
     FunctorFilter.of({
       ...streamFunctor(),
@@ -54,7 +54,7 @@ export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamK, [F]>> =
     }),
   );
 
-export const streamMonad: <F>() => Monad<$<StreamK, [F]>> = lazyVal(() =>
+export const streamMonad: <F>() => Monad<$<StreamF, [F]>> = lazyVal(() =>
   Monad.of({
     ...streamFunctor(),
     pure: pure,
@@ -64,7 +64,7 @@ export const streamMonad: <F>() => Monad<$<StreamK, [F]>> = lazyVal(() =>
   }),
 );
 
-export const streamMonadError: <F>() => MonadError<$<StreamK, [F]>, Error> =
+export const streamMonadError: <F>() => MonadError<$<StreamF, [F]>, Error> =
   lazyVal(() =>
     MonadError.of({
       ...streamMonad(),

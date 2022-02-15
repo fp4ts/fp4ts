@@ -75,6 +75,6 @@ Guard.defer = defer;
 
 // -- HKT
 
-export interface GuardK extends TyK<[unknown, unknown]> {
+export interface GuardF extends TyK<[unknown, unknown]> {
   [$type]: Guard<TyVar<this, 0>, TyVar<this, 1>>;
 }

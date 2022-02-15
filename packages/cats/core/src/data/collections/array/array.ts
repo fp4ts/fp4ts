@@ -42,18 +42,18 @@ declare global {
 
     // -- Instances
     Eq<A>(A: Eq<A>): Eq<A[]>;
-    SemigroupK: SemigroupK<ArrayK>;
-    MonoidK: MonoidK<ArrayK>;
-    Align: Align<ArrayK>;
-    Functor: Functor<ArrayK>;
-    FunctorFilter: FunctorFilter<ArrayK>;
-    Apply: Apply<ArrayK>;
-    Applicative: Applicative<ArrayK>;
-    Alternative: Alternative<ArrayK>;
-    FlatMap: FlatMap<ArrayK>;
-    Monad: Monad<ArrayK>;
-    Foldable: Foldable<ArrayK>;
-    Traversable: Traversable<ArrayK>;
+    SemigroupK: SemigroupK<ArrayF>;
+    MonoidK: MonoidK<ArrayF>;
+    Align: Align<ArrayF>;
+    Functor: Functor<ArrayF>;
+    FunctorFilter: FunctorFilter<ArrayF>;
+    Apply: Apply<ArrayF>;
+    Applicative: Applicative<ArrayF>;
+    Alternative: Alternative<ArrayF>;
+    FlatMap: FlatMap<ArrayF>;
+    Monad: Monad<ArrayF>;
+    Foldable: Foldable<ArrayF>;
+    Traversable: Traversable<ArrayF>;
   }
 }
 
@@ -62,62 +62,62 @@ Array.empty = empty;
 
 Array.Eq = arrayEq;
 Object.defineProperty(Array, 'SemigroupK', {
-  get(): SemigroupK<ArrayK> {
+  get(): SemigroupK<ArrayF> {
     return arraySemigroupK();
   },
 });
 Object.defineProperty(Array, 'MonoidK', {
-  get(): MonoidK<ArrayK> {
+  get(): MonoidK<ArrayF> {
     return arrayMonoidK();
   },
 });
 Object.defineProperty(Array, 'Align', {
-  get(): Align<ArrayK> {
+  get(): Align<ArrayF> {
     return arrayAlign();
   },
 });
 Object.defineProperty(Array, 'Functor', {
-  get(): Functor<ArrayK> {
+  get(): Functor<ArrayF> {
     return arrayFunctor();
   },
 });
 Object.defineProperty(Array, 'FunctorFilter', {
-  get(): FunctorFilter<ArrayK> {
+  get(): FunctorFilter<ArrayF> {
     return arrayFunctorFilter();
   },
 });
 Object.defineProperty(Array, 'Apply', {
-  get(): Apply<ArrayK> {
+  get(): Apply<ArrayF> {
     return arrayApply();
   },
 });
 Object.defineProperty(Array, 'Applicative', {
-  get(): Applicative<ArrayK> {
+  get(): Applicative<ArrayF> {
     return arrayApplicative();
   },
 });
 Object.defineProperty(Array, 'Alternative', {
-  get(): Alternative<ArrayK> {
+  get(): Alternative<ArrayF> {
     return arrayAlternative();
   },
 });
 Object.defineProperty(Array, 'FlatMap', {
-  get(): FlatMap<ArrayK> {
+  get(): FlatMap<ArrayF> {
     return arrayFlatMap();
   },
 });
 Object.defineProperty(Array, 'Monad', {
-  get(): Monad<ArrayK> {
+  get(): Monad<ArrayF> {
     return arrayMonad();
   },
 });
 Object.defineProperty(Array, 'Foldable', {
-  get(): Foldable<ArrayK> {
+  get(): Foldable<ArrayF> {
     return arrayFoldable();
   },
 });
 Object.defineProperty(Array, 'Traversable', {
-  get(): Traversable<ArrayK> {
+  get(): Traversable<ArrayF> {
     return arrayTraversable();
   },
 });
@@ -128,6 +128,6 @@ Object.defineProperty(Array, 'Traversable', {
  * @category Type Constructor
  * @category Collection
  */
-export interface ArrayK extends TyK<[unknown]> {
+export interface ArrayF extends TyK<[unknown]> {
   [$type]: Array<TyVar<this, 0>>;
 }

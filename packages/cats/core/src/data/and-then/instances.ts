@@ -9,16 +9,16 @@ import { ArrowChoice } from '../../arrow';
 import { Monad } from '../../monad';
 import { Either, Left, Right } from '../either';
 
-import type { AndThen, AndThenK } from './and-then';
+import type { AndThen, AndThenF } from './and-then';
 import { identity, lift, pure } from './constructors';
 import { compose_ } from './operators';
 
 export const andThenContravariant: <B>() => Contravariant<
-  λ<AndThenK, [α, Fix<B>]>
+  λ<AndThenF, [α, Fix<B>]>
 > = () => Contravariant.of({ contramap_: (fa, f) => compose_(fa, f) });
 
-export const andThenMonad: <A>() => Monad<$<AndThenK, [A]>> = <A>() =>
-  Monad.of<$<AndThenK, [A]>>({
+export const andThenMonad: <A>() => Monad<$<AndThenF, [A]>> = <A>() =>
+  Monad.of<$<AndThenF, [A]>>({
     pure: pure,
     flatMap_: (fa, f) => lift(x => f(fa(x))(x)),
     tailRecM_: <S, X>(
@@ -37,7 +37,7 @@ export const andThenMonad: <A>() => Monad<$<AndThenK, [A]>> = <A>() =>
       }),
   });
 
-export const andThenArrowChoice: Lazy<ArrowChoice<AndThenK>> = lazyVal(() =>
+export const andThenArrowChoice: Lazy<ArrowChoice<AndThenF>> = lazyVal(() =>
   ArrowChoice.of({
     choose: <A, B, C, D>(f: AndThen<A, C>, g: AndThen<B, D>) =>
       lift((ea: Either<A, B>) =>

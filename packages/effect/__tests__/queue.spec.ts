@@ -5,7 +5,7 @@
 
 import { id, Kind, pipe } from '@fp4ts/core';
 import { Option, None, Queue as CatsQueue } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect-core';
+import { IO, IOF } from '@fp4ts/effect-core';
 import { Queue } from '@fp4ts/effect-std';
 import { AssertionError } from 'assert';
 
@@ -31,7 +31,7 @@ const QueueLike = Object.freeze({
 
 describe('Queue', () => {
   describe('BoundedQueue', () => {
-    const Q = QueueLike.of<IoK, number>({
+    const Q = QueueLike.of<IOF, number>({
       construct: Queue.bounded(IO.Concurrent),
     });
 
@@ -78,13 +78,13 @@ describe('Queue', () => {
     test('offer/take with zero capacity', () => {
       const count = 1000;
 
-      const producer = (q: Queue<IoK, number>, n: number): IO<void> =>
+      const producer = (q: Queue<IOF, number>, n: number): IO<void> =>
         n > 0
           ? Q.offer(q, count - n).flatMap(() => producer(q, n - 1))
           : IO.unit;
 
       const consumer = (
-        q: Queue<IoK, number>,
+        q: Queue<IOF, number>,
         n: number,
         acc: CatsQueue<number> = CatsQueue.empty,
       ): IO<number> =>
@@ -119,7 +119,7 @@ describe('Queue', () => {
   describe('UnboundedQueue', () => {
     describe('Unbounded', () => {
       unboundedQueueTests(
-        QueueLike.of<IoK, number>({
+        QueueLike.of<IOF, number>({
           construct: () => Queue.unbounded(IO.Concurrent),
         }),
       );
@@ -127,13 +127,13 @@ describe('Queue', () => {
 
     describe('Unbounded mapK', () => {
       unboundedQueueTests(
-        QueueLike.of<IoK, number>({
+        QueueLike.of<IOF, number>({
           construct: () => Queue.unbounded(IO.Concurrent).map(x => x.mapK(id)),
         }),
       );
     });
 
-    function unboundedQueueTests(Q: QueueLike<IoK, number>) {
+    function unboundedQueueTests(Q: QueueLike<IOF, number>) {
       tryOfferOnFull(Q, true);
       tryOfferTryTakeTests(Q);
       commonTests(Q);
@@ -157,7 +157,7 @@ describe('Queue', () => {
       );
     });
 
-    function droppingQueueTests(Q: QueueLike<IoK, number>) {
+    function droppingQueueTests(Q: QueueLike<IOF, number>) {
       zeroCapacityConstructor(Q);
       negativeCapacityConstructor(Q);
       tryOfferOnFull(Q, false);
@@ -185,7 +185,7 @@ describe('Queue', () => {
       );
     });
 
-    function circularBufferQueueTests(Q: QueueLike<IoK, number>) {
+    function circularBufferQueueTests(Q: QueueLike<IOF, number>) {
       zeroCapacityConstructor(Q);
       negativeCapacityConstructor(Q);
       tryOfferOnFull(Q, true);
@@ -194,7 +194,7 @@ describe('Queue', () => {
   });
 });
 
-function zeroCapacityConstructor(Q: QueueLike<IoK, number>) {
+function zeroCapacityConstructor(Q: QueueLike<IOF, number>) {
   it('should throw an exception when constructed with zero capacity', () =>
     IO.defer(() => Q.construct(0))
       .attempt.flatMap(r =>
@@ -206,7 +206,7 @@ function zeroCapacityConstructor(Q: QueueLike<IoK, number>) {
       .unsafeRunToPromise());
 }
 
-function negativeCapacityConstructor(Q: QueueLike<IoK, number>) {
+function negativeCapacityConstructor(Q: QueueLike<IOF, number>) {
   it('should throw an exception when constructed with negative capacity', () =>
     IO.defer(() => Q.construct(-1))
       .attempt.flatMap(r =>
@@ -218,7 +218,7 @@ function negativeCapacityConstructor(Q: QueueLike<IoK, number>) {
       .unsafeRunToPromise());
 }
 
-function tryOfferOnFull(Q: QueueLike<IoK, number>, expected: boolean) {
+function tryOfferOnFull(Q: QueueLike<IOF, number>, expected: boolean) {
   test('tryOffer on full', () =>
     Q.construct(1)
       .flatMap(q =>
@@ -232,15 +232,15 @@ function tryOfferOnFull(Q: QueueLike<IoK, number>, expected: boolean) {
       .unsafeRunToPromise());
 }
 
-function offerTakeOverCapacityTests(Q: QueueLike<IoK, number>) {
+function offerTakeOverCapacityTests(Q: QueueLike<IOF, number>) {
   test('offer/take over capacity', () => {
     const count = 1000;
 
-    const producer = (q: Queue<IoK, number>, n: number): IO<void> =>
+    const producer = (q: Queue<IOF, number>, n: number): IO<void> =>
       n > 0 ? Q.offer(q, count - n).flatMap(() => producer(q, n - 1)) : IO.unit;
 
     const consumer = (
-      q: Queue<IoK, number>,
+      q: Queue<IOF, number>,
       n: number,
       acc: CatsQueue<number> = CatsQueue.empty,
     ): IO<number> =>
@@ -265,7 +265,7 @@ function offerTakeOverCapacityTests(Q: QueueLike<IoK, number>) {
   });
 }
 
-function cancelableOfferTests(Q: QueueLike<IoK, number>) {
+function cancelableOfferTests(Q: QueueLike<IOF, number>) {
   it('should cancel pending offer', () =>
     Q.construct(1)
       .flatMap(q =>
@@ -285,11 +285,11 @@ function cancelableOfferTests(Q: QueueLike<IoK, number>) {
       .unsafeRunToPromise());
 }
 
-function tryOfferTryTakeTests(Q: QueueLike<IoK, number>) {
+function tryOfferTryTakeTests(Q: QueueLike<IOF, number>) {
   test('tryTake/tryOffer', () => {
     const count = 1000;
 
-    const producer = (q: Queue<IoK, number>, n: number): IO<void> =>
+    const producer = (q: Queue<IOF, number>, n: number): IO<void> =>
       n > 0
         ? Q.tryOffer(q, count - n).flatMap(b =>
             b ? producer(q, n - 1) : IO.suspend['>>>'](producer(q, n)),
@@ -297,7 +297,7 @@ function tryOfferTryTakeTests(Q: QueueLike<IoK, number>) {
         : IO.unit;
 
     const consumer = (
-      q: Queue<IoK, number>,
+      q: Queue<IOF, number>,
       n: number,
       acc: CatsQueue<number> = CatsQueue.empty,
     ): IO<number> =>
@@ -327,7 +327,7 @@ function tryOfferTryTakeTests(Q: QueueLike<IoK, number>) {
   });
 }
 
-function commonTests(Q: QueueLike<IoK, number>) {
+function commonTests(Q: QueueLike<IOF, number>) {
   it('should the queue size after offer/take', () =>
     Q.construct(1)
       .flatMap(q =>

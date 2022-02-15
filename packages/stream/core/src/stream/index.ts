@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Stream, StreamK } from './stream';
+export { Stream, StreamF } from './stream';

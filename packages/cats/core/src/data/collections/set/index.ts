@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { Set, SetK } from './set';
+export { Set, SetF } from './set';

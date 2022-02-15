@@ -5,5 +5,5 @@
 
 import './syntax';
 
-export { Outcome } from './outcome';
+export { Outcome, OutcomeF } from './outcome';
 export { CancellationError } from './algebra';

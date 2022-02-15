@@ -13,23 +13,23 @@ import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
-import { IdentityK } from './identity';
+import { IdentityF } from './identity';
 import { flatMap_, map_, tailRecM_ } from './operators';
 import { pure, unit } from './constructors';
 import { Identity } from './identity';
 
-export const identityFunctor: Lazy<Functor<IdentityK>> = lazyVal(() =>
+export const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const identityApply: Lazy<Apply<IdentityK>> = lazyVal(() =>
+export const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>
   Apply.of({
     ...identityFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const identityApplicative: Lazy<Applicative<IdentityK>> = lazyVal(() =>
+export const identityApplicative: Lazy<Applicative<IdentityF>> = lazyVal(() =>
   Applicative.of({
     ...identityApply(),
     pure: pure,
@@ -37,25 +37,25 @@ export const identityApplicative: Lazy<Applicative<IdentityK>> = lazyVal(() =>
   }),
 );
 
-export const identityFlatMap: Lazy<FlatMap<IdentityK>> = lazyVal(() =>
+export const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
   FlatMap.of({ ...identityApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
 );
 
-export const identityMonad: Lazy<Monad<IdentityK>> = lazyVal(() =>
+export const identityMonad: Lazy<Monad<IdentityF>> = lazyVal(() =>
   Monad.of({
     ...identityApplicative(),
     ...identityFlatMap(),
   }),
 );
 
-export const identityFoldable: Lazy<Foldable<IdentityK>> = lazyVal(() =>
+export const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
   Foldable.of({
     foldLeft_: (fa, b, f) => f(b, fa),
     foldRight_: (fa, eb, f) => Eval.defer(() => f(fa, eb)),
   }),
 );
 
-export const identityTraversable: Lazy<Traversable<IdentityK>> = lazyVal(() =>
+export const identityTraversable: Lazy<Traversable<IdentityF>> = lazyVal(() =>
   Traversable.of({
     ...identityFoldable(),
     ...identityFunctor(),

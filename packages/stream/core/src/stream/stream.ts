@@ -14,7 +14,7 @@ import {
   QueueSource,
 } from '@fp4ts/effect';
 
-import { PureK } from '../pure';
+import { PureF } from '../pure';
 import { Chunk } from '../chunk';
 import { Stream as StreamBase } from './algebra';
 import {
@@ -79,19 +79,19 @@ export const Stream: StreamObj = function (...xs) {
 };
 
 interface StreamObj {
-  <F = PureK, A = never>(...xs: A[]): Stream<F, A>;
-  pure<F = PureK, A = never>(x: A): Stream<F, A>;
-  defer<F = PureK, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
-  throwError<F = PureK>(e: Error): Stream<F, never>;
-  of<F = PureK, A = never>(...xs: A[]): Stream<F, A>;
-  emitChunk<F = PureK, A = never>(c: Chunk<A>): Stream<F, A>;
+  <F = PureF, A = never>(...xs: A[]): Stream<F, A>;
+  pure<F = PureF, A = never>(x: A): Stream<F, A>;
+  defer<F = PureF, A = never>(thunk: () => Stream<F, A>): Stream<F, A>;
+  throwError<F = PureF>(e: Error): Stream<F, never>;
+  of<F = PureF, A = never>(...xs: A[]): Stream<F, A>;
+  emitChunk<F = PureF, A = never>(c: Chunk<A>): Stream<F, A>;
 
-  evalF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
-  execF<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
-  force<F = PureK, A = never>(fs: Kind<F, [Stream<F, A>]>): Stream<F, A>;
-  evalUnChunk<F = PureK, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
-  repeat<A>(value: A): Stream<PureK, A>;
-  repeatEval<F = PureK, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
+  evalF<F = PureF, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
+  execF<F = PureF, A = never>(fa: Kind<F, [A]>): Stream<F, never>;
+  force<F = PureF, A = never>(fs: Kind<F, [Stream<F, A>]>): Stream<F, A>;
+  evalUnChunk<F = PureF, A = never>(fa: Kind<F, [Chunk<A>]>): Stream<F, A>;
+  repeat<A>(value: A): Stream<PureF, A>;
+  repeatEval<F = PureF, A = never>(fa: Kind<F, [A]>): Stream<F, A>;
 
   sleep<F>(F: Temporal<F, Error>): (ms: number) => Stream<F, void>;
 
@@ -108,31 +108,31 @@ interface StreamObj {
   awakeDelay<F>(F: Temporal<F, Error>): (period: number) => Stream<F, number>;
   fixedDelay<F>(F: Temporal<F, Error>): (period: number) => Stream<F, void>;
 
-  empty<F = PureK>(): Stream<F, never>;
-  range<F = PureK>(
+  empty<F = PureF>(): Stream<F, never>;
+  range<F = PureF>(
     from: number,
     until: number,
     step?: number,
   ): Stream<F, number>;
-  never<F = PureK>(F: Spawn<F, Error>): Stream<F, never>;
+  never<F = PureF>(F: Spawn<F, Error>): Stream<F, never>;
 
   unfold<S>(
     s: S,
-  ): <F = PureK, A = never>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
+  ): <F = PureF, A = never>(f: (s: S) => Option<[A, S]>) => Stream<F, A>;
   unfoldChunk<S>(
     s: S,
-  ): <F = PureK, A = never>(f: (s: S) => Option<[Chunk<A>, S]>) => Stream<F, A>;
+  ): <F = PureF, A = never>(f: (s: S) => Option<[Chunk<A>, S]>) => Stream<F, A>;
 
   tailRecM<S>(
     s: S,
-  ): <F = PureK, A = never>(
+  ): <F = PureF, A = never>(
     f: (s: S) => Stream<F, Either<S, A>>,
   ) => Stream<F, A>;
 
-  fromArray<F = PureK, A = never>(xs: A[]): Stream<F, A>;
-  fromList<F = PureK, A = never>(xs: List<A>): Stream<F, A>;
-  fromVector<F = PureK, A = never>(xs: Vector<A>): Stream<F, A>;
-  fromChunk<F = PureK, A = never>(chunk: Chunk<A>): Stream<F, A>;
+  fromArray<F = PureF, A = never>(xs: A[]): Stream<F, A>;
+  fromList<F = PureF, A = never>(xs: List<A>): Stream<F, A>;
+  fromVector<F = PureF, A = never>(xs: Vector<A>): Stream<F, A>;
+  fromChunk<F = PureF, A = never>(chunk: Chunk<A>): Stream<F, A>;
 
   bracket<F, R>(
     resource: Kind<F, [R]>,
@@ -172,13 +172,13 @@ interface StreamObj {
 
   // -- Instances
 
-  MonoidK<F>(): MonoidK<$<StreamK, [F]>>;
-  Defer<F>(): Defer<$<StreamK, [F]>>;
-  Functor<F>(): Functor<$<StreamK, [F]>>;
-  Align<F>(): Align<$<StreamK, [F]>>;
-  FunctorFilter<F>(): FunctorFilter<$<StreamK, [F]>>;
-  Monad<F>(): Monad<$<StreamK, [F]>>;
-  MonadError<F>(): MonadError<$<StreamK, [F]>, Error>;
+  MonoidK<F>(): MonoidK<$<StreamF, [F]>>;
+  Defer<F>(): Defer<$<StreamF, [F]>>;
+  Functor<F>(): Functor<$<StreamF, [F]>>;
+  Align<F>(): Align<$<StreamF, [F]>>;
+  FunctorFilter<F>(): FunctorFilter<$<StreamF, [F]>>;
+  Monad<F>(): Monad<$<StreamF, [F]>>;
+  MonadError<F>(): MonadError<$<StreamF, [F]>, Error>;
 }
 
 Stream.pure = pure;
@@ -234,6 +234,6 @@ Stream.MonadError = streamMonadError;
 
 // -- HKT
 
-export interface StreamK extends TyK<[unknown, unknown]> {
+export interface StreamF extends TyK<[unknown, unknown]> {
   [$type]: Stream<TyVar<this, 0>, TyVar<this, 1>>;
 }

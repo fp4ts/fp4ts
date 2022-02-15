@@ -7,9 +7,9 @@ import { $, Kind } from '@fp4ts/core';
 import {
   Applicative,
   Monad,
-  KleisliK,
+  KleisliF,
   Kleisli,
-  OptionTK,
+  OptionTF,
   OptionT,
 } from '@fp4ts/cats';
 
@@ -45,7 +45,7 @@ export const Clock = Object.freeze({
 
   forKleisli: <F, R>(
     F: Clock<F> & Applicative<F>,
-  ): Clock<$<KleisliK, [F, R]>> =>
+  ): Clock<$<KleisliF, [F, R]>> =>
     Clock.of({
       applicative: Kleisli.Applicative(F),
 
@@ -54,7 +54,7 @@ export const Clock = Object.freeze({
       realTime: Kleisli.liftF(F.realTime),
     }),
 
-  forOptionT: <F>(F: Clock<F> & Monad<F>): Clock<$<OptionTK, [F]>> =>
+  forOptionT: <F>(F: Clock<F> & Monad<F>): Clock<$<OptionTF, [F]>> =>
     Clock.of({
       applicative: OptionT.Applicative(F),
 

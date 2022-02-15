@@ -6,4 +6,9 @@
 import './syntax';
 export * from './constructors';
 export * from './operators';
-export { Writer, WriterT, WriterK, WriterTK } from './writer-t';
+export {
+  Writer,
+  WriterT,
+  WriterF as WriterK,
+  WriterTF as WriterTK,
+} from './writer-t';

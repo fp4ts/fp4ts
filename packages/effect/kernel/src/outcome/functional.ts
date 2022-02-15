@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export { CancellationError } from './algebra';
-export { Outcome, OutcomeK } from './outcome';
+export { Outcome, OutcomeF as OutcomeK } from './outcome';

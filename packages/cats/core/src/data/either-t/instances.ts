@@ -13,7 +13,7 @@ import { MonadError } from '../../monad-error';
 
 import { Either, Right } from '../either';
 
-import { EitherTK } from './either-t';
+import { EitherTF } from './either-t';
 import { EitherT } from './algebra';
 import { bimap_, flatMap_, leftMap_, map_, orElse_ } from './operators';
 import { left, pure, tailRecM_ } from './constructors';
@@ -24,19 +24,19 @@ export const eitherTEq: <F, AA, B>(
 
 export const eitherTSemigroupK: <F, AA>(
   F: Monad<F>,
-) => SemigroupK<$<EitherTK, [F, AA]>> = F =>
+) => SemigroupK<$<EitherTF, [F, AA]>> = F =>
   SemigroupK.of({ combineK_: orElse_(F) });
 
 export const eitherTFunctor: <F, AA>(
   F: Functor<F>,
-) => Functor<$<EitherTK, [F, AA]>> = F => Functor.of({ map_: map_(F) });
+) => Functor<$<EitherTF, [F, AA]>> = F => Functor.of({ map_: map_(F) });
 
 export const eitherTBifunctor: <F>(
   F: Functor<F>,
-) => Bifunctor<$<EitherTK, [F]>> = F =>
+) => Bifunctor<$<EitherTF, [F]>> = F =>
   Bifunctor.of({ bimap_: bimap_(F), map_: map_(F), leftMap_: leftMap_(F) });
 
-export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTK, [F, AA]>> =
+export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTF, [F, AA]>> =
   (() => {
     const cache = new Map<any, Monad<any>>();
     return <F>(F: Monad<F>) => {
@@ -56,8 +56,8 @@ export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTK, [F, AA]>> =
 
 export const eitherTMonadError: <F, E>(
   F: Monad<F>,
-) => MonadError<$<EitherTK, [F, E]>, E> = <F, E>(F: Monad<F>) =>
-  MonadError.of<$<EitherTK, [F, E]>, E>({
+) => MonadError<$<EitherTF, [F, E]>, E> = <F, E>(F: Monad<F>) =>
+  MonadError.of<$<EitherTF, [F, E]>, E>({
     ...eitherTMonad(F),
 
     throwError: left(F),

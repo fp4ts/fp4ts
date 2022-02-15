@@ -5,4 +5,4 @@
 
 import './syntax';
 export { ExitCase } from './exit-case';
-export { Resource, ResourceK } from './resource';
+export { Resource, ResourceF } from './resource';

@@ -7,7 +7,7 @@ import { $, Fix, id, Lazy, lazyVal, α, β, λ } from '@fp4ts/core';
 import { Category, Compose, Contravariant, Functor } from '@fp4ts/cats';
 import { Schemable } from '@fp4ts/schema-kernel';
 
-import { EncoderK } from './encoder';
+import { EncoderF } from './encoder';
 import {
   andThen_,
   compose_,
@@ -28,24 +28,24 @@ import {
   sum,
 } from './constructors';
 
-export const encoderFunctor: <A>() => Functor<λ<EncoderK, [α, Fix<A>]>> = () =>
+export const encoderFunctor: <A>() => Functor<λ<EncoderF, [α, Fix<A>]>> = () =>
   Functor.of({ map_ });
 
 export const encoderContravariant: <O>() => Contravariant<
-  $<EncoderK, [O]>
+  $<EncoderF, [O]>
 > = () => Contravariant.of({ contramap_ });
 
-export const encoderCompose: Lazy<Compose<λ<EncoderK, [β, α]>>> = lazyVal(() =>
+export const encoderCompose: Lazy<Compose<λ<EncoderF, [β, α]>>> = lazyVal(() =>
   Compose.of({ compose_, andThen_ }),
 );
 
-export const encoderCategory: Lazy<Category<λ<EncoderK, [β, α]>>> = lazyVal(
+export const encoderCategory: Lazy<Category<λ<EncoderF, [β, α]>>> = lazyVal(
   () =>
     // TODO: fix type inference in nested monoid/monoid-k of the category
     Category.of({ ...encoderCompose(), id: <A>() => lift<A, A>(id) } as any),
 );
 
-export const encoderSchemable: Lazy<Schemable<λ<EncoderK, [α, α]>>> = lazyVal(
+export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal(
   () =>
     Schemable.of({
       string: lift(id),
@@ -55,10 +55,10 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderK, [α, α]>>> = lazyVal
       array: array,
       literal: literal,
       nullable: nullable,
-      product: product as Schemable<λ<EncoderK, [α, α]>>['product'],
-      sum: sum as Schemable<λ<EncoderK, [α, α]>>['sum'],
+      product: product as Schemable<λ<EncoderF, [α, α]>>['product'],
+      sum: sum as Schemable<λ<EncoderF, [α, α]>>['sum'],
       record: record,
-      struct: struct as Schemable<λ<EncoderK, [α, α]>>['struct'],
+      struct: struct as Schemable<λ<EncoderF, [α, α]>>['struct'],
       defer: defer,
     }),
 );

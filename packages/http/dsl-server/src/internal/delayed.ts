@@ -7,7 +7,7 @@ import { $, applyTo, constant } from '@fp4ts/core';
 import { FlatMap, Functor, Monad, ReaderT } from '@fp4ts/cats';
 import { Request } from '@fp4ts/http-core';
 import { DelayedCheck } from './delayed-check';
-import { RouteResult, RouteResultT, RouteResultTK } from './route-result';
+import { RouteResult, RouteResultT, RouteResultTF } from './route-result';
 
 // -- Servant Delayed implementation
 // -- https://github.com/haskell-servant/servant/blob/master/servant-server/src/Servant/Server/Internal/Delayed.hs#L92
@@ -51,7 +51,7 @@ export class Delayed<F, env, c> {
   ) {}
 
   public map(
-    F: Functor<$<RouteResultTK, [F]>>,
+    F: Functor<$<RouteResultTF, [F]>>,
   ): <d>(f: (c: c) => d) => Delayed<F, env, d> {
     return f =>
       new Delayed(transform =>
@@ -66,7 +66,7 @@ export class Delayed<F, env, c> {
 
   public addCapture<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): <captured>(
     f: (c: captured) => DelayedCheck<F, A>,
   ) => Delayed<F, [captured, env], B> {
@@ -87,7 +87,7 @@ export class Delayed<F, env, c> {
 
   public addParamCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
     return that =>
       new Delayed(transform =>
@@ -104,7 +104,7 @@ export class Delayed<F, env, c> {
 
   public addHeaderCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
     return that =>
       new Delayed(transform =>
@@ -120,7 +120,7 @@ export class Delayed<F, env, c> {
   }
 
   public addMethodCheck(
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
     return that =>
       new Delayed(transform =>
@@ -132,7 +132,7 @@ export class Delayed<F, env, c> {
 
   public addBodyCheck<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): <C>(
     that: DelayedCheck<F, C>,
     f: (c: C) => DelayedCheck<F, A>,
@@ -156,7 +156,7 @@ export class Delayed<F, env, c> {
   }
 
   public addAcceptCheck(
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
     return that =>
       new Delayed(transform =>
@@ -171,7 +171,7 @@ export class Delayed<F, env, c> {
 
   public passToServer<A, B>(
     this: Delayed<F, env, (a: A) => B>,
-    F: FlatMap<$<RouteResultTK, [F]>>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
   ): (f: (req: Request<F>) => A) => Delayed<F, env, B> {
     return f =>
       new Delayed(transform =>
@@ -186,9 +186,9 @@ export class Delayed<F, env, c> {
   }
 
   public runDelayed(
-    F: Monad<$<RouteResultTK, [F]>>,
+    F: Monad<$<RouteResultTF, [F]>>,
   ): (env: env, req: Request<F>) => RouteResultT<F, c> {
-    const RF = ReaderT.Monad<$<RouteResultTK, [F]>, Request<F>>(F);
+    const RF = ReaderT.Monad<$<RouteResultTF, [F]>, Request<F>>(F);
     return (env, req) =>
       this.fold(props =>
         Monad.Do(RF)(function* (_) {

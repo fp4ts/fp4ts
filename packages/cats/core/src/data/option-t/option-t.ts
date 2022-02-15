@@ -70,16 +70,16 @@ interface OptionTObj {
   // -- Instances
 
   Eq<F, A>(EF: Eq<Kind<F, [Option<A>]>>): Eq<OptionT<F, A>>;
-  Defer<F>(F: Defer<F>): Defer<$<OptionTK, [F]>>;
-  SemigroupK<F>(F: Monad<F>): SemigroupK<$<OptionTK, [F]>>;
-  MonoidK<F>(F: Monad<F>): MonoidK<$<OptionTK, [F]>>;
-  Functor<F>(F: Functor<F>): Functor<$<OptionTK, [F]>>;
-  Apply<F>(F: Monad<F>): Apply<$<OptionTK, [F]>>;
-  Applicative<F>(F: Monad<F>): Applicative<$<OptionTK, [F]>>;
-  Alternative<F>(F: Monad<F>): Alternative<$<OptionTK, [F]>>;
-  FlatMap<F>(F: Monad<F>): FlatMap<$<OptionTK, [F]>>;
-  Monad<F>(F: Monad<F>): Monad<$<OptionTK, [F]>>;
-  MonadError<F, E>(F: MonadError<F, E>): MonadError<$<OptionTK, [F]>, E>;
+  Defer<F>(F: Defer<F>): Defer<$<OptionTF, [F]>>;
+  SemigroupK<F>(F: Monad<F>): SemigroupK<$<OptionTF, [F]>>;
+  MonoidK<F>(F: Monad<F>): MonoidK<$<OptionTF, [F]>>;
+  Functor<F>(F: Functor<F>): Functor<$<OptionTF, [F]>>;
+  Apply<F>(F: Monad<F>): Apply<$<OptionTF, [F]>>;
+  Applicative<F>(F: Monad<F>): Applicative<$<OptionTF, [F]>>;
+  Alternative<F>(F: Monad<F>): Alternative<$<OptionTF, [F]>>;
+  FlatMap<F>(F: Monad<F>): FlatMap<$<OptionTF, [F]>>;
+  Monad<F>(F: Monad<F>): Monad<$<OptionTF, [F]>>;
+  MonadError<F, E>(F: MonadError<F, E>): MonadError<$<OptionTF, [F]>, E>;
 }
 
 OptionT.pure = pure;
@@ -108,6 +108,6 @@ OptionT.MonadError = optionTMonadError;
  * @category Type Constructor
  * @category Data
  */
-export interface OptionTK extends TyK<[unknown, unknown]> {
+export interface OptionTF extends TyK<[unknown, unknown]> {
   [$type]: OptionT<TyVar<this, 0>, TyVar<this, 1>>;
 }

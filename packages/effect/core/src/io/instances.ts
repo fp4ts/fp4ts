@@ -75,22 +75,22 @@ import {
   timeoutTo_,
   timeout_,
 } from './operators';
-import type { IoK } from './io';
+import type { IOF } from './io';
 
-export const ioDefer: Lazy<Defer<IoK>> = lazyVal(() => Defer.of({ defer }));
+export const ioDefer: Lazy<Defer<IOF>> = lazyVal(() => Defer.of({ defer }));
 
-export const ioFunctor: Lazy<Functor<IoK>> = lazyVal(() =>
+export const ioFunctor: Lazy<Functor<IOF>> = lazyVal(() =>
   Functor.of({ map_, tap_ }),
 );
 
-export const ioApply: Lazy<Apply<IoK>> = lazyVal(() =>
+export const ioApply: Lazy<Apply<IOF>> = lazyVal(() =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const ioApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
+export const ioApplicative: Lazy<Applicative<IOF>> = lazyVal(() =>
   Applicative.of({
     ...ioApply(),
     pure: pure,
@@ -98,7 +98,7 @@ export const ioApplicative: Lazy<Applicative<IoK>> = lazyVal(() =>
   }),
 );
 
-export const ioFlatMap: Lazy<FlatMap<IoK>> = lazyVal(() =>
+export const ioFlatMap: Lazy<FlatMap<IOF>> = lazyVal(() =>
   FlatMap.of({
     ...ioApply(),
     flatMap_: flatMap_,
@@ -108,14 +108,14 @@ export const ioFlatMap: Lazy<FlatMap<IoK>> = lazyVal(() =>
   }),
 );
 
-export const ioMonad: Lazy<Monad<IoK>> = lazyVal(() =>
+export const ioMonad: Lazy<Monad<IOF>> = lazyVal(() =>
   Monad.of({
     ...ioApplicative(),
     ...ioFlatMap(),
   }),
 );
 
-export const ioMonadError: Lazy<MonadError<IoK, Error>> = lazyVal(() =>
+export const ioMonadError: Lazy<MonadError<IOF, Error>> = lazyVal(() =>
   MonadError.of({
     ...ioMonad(),
     throwError: throwError,
@@ -128,7 +128,7 @@ export const ioMonadError: Lazy<MonadError<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = lazyVal(() =>
+export const ioMonadCancel: Lazy<MonadCancel<IOF, Error>> = lazyVal(() =>
   MonadCancel.of({
     ...ioMonadError(),
     canceled: canceled,
@@ -145,7 +145,7 @@ export const ioMonadCancel: Lazy<MonadCancel<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioSync: Lazy<Sync<IoK>> = lazyVal(() =>
+export const ioSync: Lazy<Sync<IOF>> = lazyVal(() =>
   Sync.of({
     ...ioMonadCancel(),
     ...Clock.of({
@@ -158,7 +158,7 @@ export const ioSync: Lazy<Sync<IoK>> = lazyVal(() =>
   }),
 );
 
-export const ioSpawn: Lazy<Spawn<IoK, Error>> = lazyVal(() =>
+export const ioSpawn: Lazy<Spawn<IOF, Error>> = lazyVal(() =>
   Spawn.of({
     ...ioMonadCancel(),
     unique: delay(() => new UniqueToken()),
@@ -169,11 +169,11 @@ export const ioSpawn: Lazy<Spawn<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioParallel: Lazy<Parallel<IoK, IoK>> = lazyVal(() =>
+export const ioParallel: Lazy<Parallel<IOF, IOF>> = lazyVal(() =>
   Spawn.parallelForSpawn(ioSpawn()),
 );
 
-export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() =>
+export const ioConcurrent: Lazy<Concurrent<IOF, Error>> = lazyVal(() =>
   Concurrent.of({
     ...ioSpawn(),
     ref: a => Ref.of(ioAsync())(a),
@@ -181,7 +181,7 @@ export const ioConcurrent: Lazy<Concurrent<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() =>
+export const ioTemporal: Lazy<Temporal<IOF, Error>> = lazyVal(() =>
   Temporal.of({
     ...ioConcurrent(),
     ...Clock.of({
@@ -196,7 +196,7 @@ export const ioTemporal: Lazy<Temporal<IoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const ioAsync: Lazy<Async<IoK>> = lazyVal(() =>
+export const ioAsync: Lazy<Async<IOF>> = lazyVal(() =>
   Async.of({
     ...ioSync(),
     ...ioTemporal(),

@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { List, Some, Vector, None, Eq } from '@fp4ts/cats';
-import { Stream, Chunk, PureK } from '@fp4ts/stream-core';
+import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 import {
   AlignSuite,
   FunctorFilterSuite,
@@ -200,7 +200,7 @@ describe('Pure Stream', () => {
       const xs = [...new Array(10_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
-        Stream.empty() as Stream<PureK, number>,
+        Stream.empty() as Stream<PureF, number>,
       );
       expect(s.take(10_000).compile().toArray).toEqual(xs);
     });
@@ -293,7 +293,7 @@ describe('Pure Stream', () => {
       const xs = [...new Array(10_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
-        Stream.empty() as Stream<PureK, number>,
+        Stream.empty() as Stream<PureF, number>,
       );
       expect(s.drop(10_000).compile().toArray).toEqual([]);
     });
@@ -706,7 +706,7 @@ describe('Pure Stream', () => {
 
   describe('examples', () => {
     it('should calculate fibonacci sequence', () => {
-      const fibs: Stream<PureK, number> = Stream(0, 1)['+++'](
+      const fibs: Stream<PureF, number> = Stream(0, 1)['+++'](
         Stream.defer(() => fibs.zip(fibs.tail).map(([x, y]) => x + y)),
       );
 
@@ -716,10 +716,10 @@ describe('Pure Stream', () => {
     });
   });
 
-  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureK, X>> =>
+  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureF, X>> =>
     Eq.by(List.Eq(EqX), s => s.compile().toList);
 
-  const monoidKTests = MonoidKSuite(Stream.MonoidK<PureK>());
+  const monoidKTests = MonoidKSuite(Stream.MonoidK<PureF>());
   checkAll(
     'MonoidK<$<StreamK, [PureK]>>',
     monoidKTests.monoidK(
@@ -730,7 +730,7 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const alignTests = AlignSuite(Stream.Align<PureK>());
+  const alignTests = AlignSuite(Stream.Align<PureF>());
   checkAll(
     'Align<$<StreamK, [PureK]>>',
     alignTests.align(
@@ -747,7 +747,7 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<PureK>());
+  const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<PureF>());
   checkAll(
     'FunctorFilter<$<StreamK, [PureK]>',
     functorFilterTests.functorFilter(
@@ -762,7 +762,7 @@ describe('Pure Stream', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Stream.Monad<PureK>());
+  const monadTests = MonadSuite(Stream.Monad<PureF>());
   checkAll(
     'Monad<$<StreamK, [PureK]>>',
     monadTests.monad(

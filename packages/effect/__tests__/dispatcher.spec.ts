@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { pipe } from '@fp4ts/core';
 import { List } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect-core';
+import { IO, IOF } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
 import { Dispatcher } from '@fp4ts/effect-std';
 
@@ -14,7 +14,7 @@ describe('Dispatcher', () => {
   it('should run a sync action', () => {
     const ioa = IO.pure(42).map(x => x + 2);
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IoK, number>(
+      Resource.evalF<IOF, number>(
         IO.fromPromise(IO(() => runner.unsafeToPromise(ioa))),
       ),
     );
@@ -29,7 +29,7 @@ describe('Dispatcher', () => {
       ['<<<'](IO.suspend)
       .map(x => x + 2);
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IoK, number>(
+      Resource.evalF<IOF, number>(
         IO.fromPromise(IO(() => runner.unsafeToPromise(ioa))),
       ),
     );
@@ -43,7 +43,7 @@ describe('Dispatcher', () => {
     let counter = 0;
     const increment = IO(() => (counter += 1)).void;
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IoK, void>(
+      Resource.evalF<IOF, void>(
         IO.fromPromise(
           IO(() =>
             runner.unsafeToPromise(
@@ -104,7 +104,7 @@ describe('Dispatcher', () => {
           )[1],
       );
 
-      return Resource.evalF<IoK, void>(
+      return Resource.evalF<IOF, void>(
         run.flatMap(ct => IO.sleep(500)['>>>'](IO.fromPromise(IO(() => ct())))),
       );
     });

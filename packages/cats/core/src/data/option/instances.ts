@@ -18,7 +18,7 @@ import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
-import { OptionK } from './option';
+import { OptionF } from './option';
 import {
   equals_,
   flatMap_,
@@ -35,44 +35,44 @@ import { Option } from './option';
 export const optionEq = <A>(E: Eq<A>): Eq<Option<A>> =>
   Eq.of({ equals: equals_(E) });
 
-export const optionSemigroupK: Lazy<SemigroupK<OptionK>> = lazyVal(() =>
+export const optionSemigroupK: Lazy<SemigroupK<OptionF>> = lazyVal(() =>
   SemigroupK.of({ combineK_: orElse_ }),
 );
 
-export const optionMonoidK: Lazy<MonoidK<OptionK>> = lazyVal(() =>
+export const optionMonoidK: Lazy<MonoidK<OptionF>> = lazyVal(() =>
   MonoidK.of({ emptyK: () => none, combineK_: orElse_ }),
 );
 
-export const optionFunctor: Lazy<Functor<OptionK>> = lazyVal(() =>
+export const optionFunctor: Lazy<Functor<OptionF>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const optionFunctorFilter: Lazy<FunctorFilter<OptionK>> = lazyVal(() =>
+export const optionFunctorFilter: Lazy<FunctorFilter<OptionF>> = lazyVal(() =>
   FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_ }),
 );
 
-export const optionApply: Lazy<Apply<OptionK>> = lazyVal(() =>
+export const optionApply: Lazy<Apply<OptionF>> = lazyVal(() =>
   Apply.of({
     ...optionFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const optionApplicative: Lazy<Applicative<OptionK>> = lazyVal(() =>
+export const optionApplicative: Lazy<Applicative<OptionF>> = lazyVal(() =>
   Applicative.of({
     ...optionApply(),
     pure: pure,
   }),
 );
 
-export const optionAlternative: Lazy<Alternative<OptionK>> = lazyVal(() =>
+export const optionAlternative: Lazy<Alternative<OptionF>> = lazyVal(() =>
   Alternative.of({
     ...optionApplicative(),
     ...optionMonoidK(),
   }),
 );
 
-export const optionFlatMap: Lazy<FlatMap<OptionK>> = lazyVal(() =>
+export const optionFlatMap: Lazy<FlatMap<OptionF>> = lazyVal(() =>
   FlatMap.of({
     ...optionApply(),
     flatMap_: flatMap_,
@@ -82,14 +82,14 @@ export const optionFlatMap: Lazy<FlatMap<OptionK>> = lazyVal(() =>
   }),
 );
 
-export const optionMonad: Lazy<Monad<OptionK>> = lazyVal(() =>
+export const optionMonad: Lazy<Monad<OptionF>> = lazyVal(() =>
   Monad.of({
     ...optionApplicative(),
     ...optionFlatMap(),
   }),
 );
 
-export const optionFoldable: Lazy<Foldable<OptionK>> = lazyVal(() =>
+export const optionFoldable: Lazy<Foldable<OptionF>> = lazyVal(() =>
   Foldable.of({
     foldRight_: (fa, eb, f) =>
       Eval.defer(() =>
@@ -107,7 +107,7 @@ export const optionFoldable: Lazy<Foldable<OptionK>> = lazyVal(() =>
   }),
 );
 
-export const optionTraversable: Lazy<Traversable<OptionK>> = lazyVal(() =>
+export const optionTraversable: Lazy<Traversable<OptionF>> = lazyVal(() =>
   Traversable.of({
     ...optionFoldable(),
     ...optionFunctor(),

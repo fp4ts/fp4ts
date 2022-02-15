@@ -50,12 +50,12 @@ export interface HashMapObj {
   // -- Instances
 
   Eq<K, V>(EK: Eq<K>, EV: Eq<V>): Eq<HashMap<K, V>>;
-  SemigroupK<K>(E: Eq<K>): SemigroupK<$<HashMapK, [K]>>;
-  MonoidK<K>(E: Eq<K>): MonoidK<$<HashMapK, [K]>>;
-  Functor<K>(): Functor<$<HashMapK, [K]>>;
-  FunctorFilter<K>(): FunctorFilter<$<HashMapK, [K]>>;
-  UnorderedFoldable<K>(): UnorderedFoldable<$<HashMapK, [K]>>;
-  UnorderedTraversable<K>(): UnorderedTraversable<$<HashMapK, [K]>>;
+  SemigroupK<K>(E: Eq<K>): SemigroupK<$<HashMapF, [K]>>;
+  MonoidK<K>(E: Eq<K>): MonoidK<$<HashMapF, [K]>>;
+  Functor<K>(): Functor<$<HashMapF, [K]>>;
+  FunctorFilter<K>(): FunctorFilter<$<HashMapF, [K]>>;
+  UnorderedFoldable<K>(): UnorderedFoldable<$<HashMapF, [K]>>;
+  UnorderedTraversable<K>(): UnorderedTraversable<$<HashMapF, [K]>>;
 }
 
 HashMap.empty = Empty;
@@ -77,6 +77,6 @@ HashMap.UnorderedTraversable = hashMapUnorderedTraversable;
  * @category Type Constructor
  * @category Collection
  */
-export interface HashMapK extends TyK<[unknown, unknown]> {
+export interface HashMapF extends TyK<[unknown, unknown]> {
   [$type]: HashMap<TyVar<this, 0>, TyVar<this, 1>>;
 }

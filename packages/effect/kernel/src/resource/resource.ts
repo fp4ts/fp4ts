@@ -108,7 +108,7 @@ interface ResourceObj {
   uncancelable<F>(
     F: MonadCancel<F, Error>,
   ): <A>(
-    body: (p: Poll<$<ResourceK, [F]>>) => Resource<F, A>,
+    body: (p: Poll<$<ResourceF, [F]>>) => Resource<F, A>,
   ) => Resource<F, A>;
 
   delay<F>(F: Sync<F>): <A>(thunk: () => A) => Resource<F, A>;
@@ -118,16 +118,16 @@ interface ResourceObj {
 
   // -- Instances
 
-  Applicative<F>(): Applicative<$<ResourceK, [F]>>;
-  Monad<F>(): Monad<$<ResourceK, [F]>>;
+  Applicative<F>(): Applicative<$<ResourceF, [F]>>;
+  Monad<F>(): Monad<$<ResourceF, [F]>>;
   MonadCancel<F>(
     F: MonadCancel<F, Error>,
-  ): MonadCancel<$<ResourceK, [F]>, Error>;
-  Clock<F>(F: Clock<F>): Clock<$<ResourceK, [F]>>;
-  Concurrent<F>(F: Concurrent<F, Error>): Concurrent<$<ResourceK, [F]>, Error>;
-  Temporal<F>(F: Temporal<F, Error>): Temporal<$<ResourceK, [F]>, Error>;
-  Sync<F>(F: Sync<F>): Sync<$<ResourceK, [F]>>;
-  Async<F>(F: Async<F>): Async<$<ResourceK, [F]>>;
+  ): MonadCancel<$<ResourceF, [F]>, Error>;
+  Clock<F>(F: Clock<F>): Clock<$<ResourceF, [F]>>;
+  Concurrent<F>(F: Concurrent<F, Error>): Concurrent<$<ResourceF, [F]>, Error>;
+  Temporal<F>(F: Temporal<F, Error>): Temporal<$<ResourceF, [F]>, Error>;
+  Sync<F>(F: Sync<F>): Sync<$<ResourceF, [F]>>;
+  Async<F>(F: Async<F>): Async<$<ResourceF, [F]>>;
 }
 
 Resource.pure = pure;
@@ -160,6 +160,6 @@ Resource.Async = resourceAsync;
 
 // -- HKT
 
-export interface ResourceK extends TyK<[unknown, unknown]> {
+export interface ResourceF extends TyK<[unknown, unknown]> {
   [$type]: Resource<TyVar<this, 0>, TyVar<this, 1>>;
 }

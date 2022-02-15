@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import {
   Option,
   FunctionK,
-  IdentityK,
+  IdentityF,
   Applicative,
   MonadError,
 } from '@fp4ts/cats';
@@ -163,7 +163,7 @@ declare module './algebra' {
     scope(this: Pull<F, O, void>): Pull<F, O, void>;
     interruptScope(this: Pull<F, O, void>): Pull<F, O, void>;
 
-    covaryId<G>(this: Pull<IdentityK, O, R>, G: Applicative<G>): Pull<G, O, R>;
+    covaryId<G>(this: Pull<IdentityF, O, R>, G: Applicative<G>): Pull<G, O, R>;
 
     compile<F2, O2>(
       this: Pull<F2, O2, void>,

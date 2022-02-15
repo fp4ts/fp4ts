@@ -3,14 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { FunctionK, OptionK } from '@fp4ts/cats';
+import { FunctionK, OptionF } from '@fp4ts/cats';
 import { SchemaK } from './algebra';
 import { array, compose_, imap_, optional } from './operators';
 
 declare module './algebra' {
   interface SchemaK<F> {
-    readonly array: SchemaK<[OptionK, F]>;
-    readonly optional: SchemaK<[OptionK, F]>;
+    readonly array: SchemaK<[OptionF, F]>;
+    readonly optional: SchemaK<[OptionF, F]>;
 
     compose<G>(that: SchemaK<G>): SchemaK<[F, G]>;
     imap<G>(f: FunctionK<F, G>, g: FunctionK<G, F>): SchemaK<G>;

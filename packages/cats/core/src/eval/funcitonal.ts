@@ -6,4 +6,4 @@
 export * from './operators';
 export * from './constructors';
 export * from './instances';
-export { Eval, EvalK } from './eval';
+export { Eval, EvalF as EvalK } from './eval';

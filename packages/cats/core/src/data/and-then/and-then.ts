@@ -29,9 +29,9 @@ interface AndThenObj {
 
   // -- Instances
 
-  Contravariant<B>(): Contravariant<λ<AndThenK, [α, Fix<B>]>>;
-  Monad<A>(): Monad<$<AndThenK, [A]>>;
-  readonly ArrowChoice: ArrowChoice<AndThenK>;
+  Contravariant<B>(): Contravariant<λ<AndThenF, [α, Fix<B>]>>;
+  Monad<A>(): Monad<$<AndThenF, [A]>>;
+  readonly ArrowChoice: ArrowChoice<AndThenF>;
 }
 
 AndThen.pure = pure;
@@ -41,13 +41,13 @@ AndThen.identity = identity;
 AndThen.Contravariant = andThenContravariant;
 AndThen.Monad = andThenMonad;
 Object.defineProperty(AndThen, 'ArrowChoice', {
-  get(): ArrowChoice<AndThenK> {
+  get(): ArrowChoice<AndThenF> {
     return andThenArrowChoice();
   },
 });
 
 // -- HKT
 
-export interface AndThenK extends TyK<[unknown, unknown]> {
+export interface AndThenF extends TyK<[unknown, unknown]> {
   [$type]: AndThen<TyVar<this, 0>, TyVar<this, 1>>;
 }

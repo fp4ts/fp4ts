@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Reader } from './reader';
+export { Reader, ReaderF } from './reader';

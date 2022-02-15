@@ -21,7 +21,7 @@ import {
   struct,
   sum,
 } from './constructors';
-import { GuardK } from './guard';
+import { GuardF } from './guard';
 import {
   intersection_,
   maxExclusive_,
@@ -35,13 +35,13 @@ import {
   refine_,
 } from './operators';
 
-export const guardRefining: Lazy<Refining<$<GuardK, [unknown]>>> = lazyVal(() =>
+export const guardRefining: Lazy<Refining<$<GuardF, [unknown]>>> = lazyVal(() =>
   Refining.of({
-    refine_: refine_ as Refining<$<GuardK, [unknown]>>['refine_'],
+    refine_: refine_ as Refining<$<GuardF, [unknown]>>['refine_'],
   }),
 );
 
-export const guardSchemable: Lazy<Schemable<$<GuardK, [unknown]>>> = lazyVal(
+export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
   () =>
     Schemable.of({
       literal,
@@ -53,13 +53,13 @@ export const guardSchemable: Lazy<Schemable<$<GuardK, [unknown]>>> = lazyVal(
       struct,
       defer,
       nullable,
-      product: product as Schemable<$<GuardK, [unknown]>>['product'],
+      product: product as Schemable<$<GuardF, [unknown]>>['product'],
       record,
       sum,
     }),
 );
 
-export const guardConstraining: Lazy<Constraining<$<GuardK, [unknown]>>> =
+export const guardConstraining: Lazy<Constraining<$<GuardF, [unknown]>>> =
   lazyVal(() =>
     Constraining.of({
       ...guardSchemable(),

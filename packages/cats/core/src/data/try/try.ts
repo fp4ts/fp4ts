@@ -52,15 +52,15 @@ interface TryObj {
   // -- Instances
 
   Eq<A>(EE: Eq<Error>, EA: Eq<A>): Eq<Try<A>>;
-  readonly SemigroupK: SemigroupK<TryK>;
-  readonly Functor: Functor<TryK>;
-  readonly FunctorFilter: FunctorFilter<TryK>;
-  readonly Apply: Apply<TryK>;
-  readonly Applicative: Applicative<TryK>;
-  readonly ApplicativeError: ApplicativeError<TryK, Error>;
-  readonly FlatMap: FlatMap<TryK>;
-  readonly Monad: Monad<TryK>;
-  readonly MonadError: MonadError<TryK, Error>;
+  readonly SemigroupK: SemigroupK<TryF>;
+  readonly Functor: Functor<TryF>;
+  readonly FunctorFilter: FunctorFilter<TryF>;
+  readonly Apply: Apply<TryF>;
+  readonly Applicative: Applicative<TryF>;
+  readonly ApplicativeError: ApplicativeError<TryF, Error>;
+  readonly FlatMap: FlatMap<TryF>;
+  readonly Monad: Monad<TryF>;
+  readonly MonadError: MonadError<TryF, Error>;
 }
 
 Try.of = of;
@@ -71,47 +71,47 @@ Try.fromEither = fromEither;
 
 Try.Eq = tryEq;
 Object.defineProperty(Try, 'SemigroupK', {
-  get(): SemigroupK<TryK> {
+  get(): SemigroupK<TryF> {
     return trySemigroupK();
   },
 });
 Object.defineProperty(Try, 'Functor', {
-  get(): Functor<TryK> {
+  get(): Functor<TryF> {
     return tryFunctor();
   },
 });
 Object.defineProperty(Try, 'FunctorFilter', {
-  get(): FunctorFilter<TryK> {
+  get(): FunctorFilter<TryF> {
     return tryFunctorFilter();
   },
 });
 Object.defineProperty(Try, 'Apply', {
-  get(): Apply<TryK> {
+  get(): Apply<TryF> {
     return tryApply();
   },
 });
 Object.defineProperty(Try, 'Applicative', {
-  get(): Applicative<TryK> {
+  get(): Applicative<TryF> {
     return tryApplicative();
   },
 });
 Object.defineProperty(Try, 'ApplicativeError', {
-  get(): ApplicativeError<TryK, Error> {
+  get(): ApplicativeError<TryF, Error> {
     return tryApplicativeError();
   },
 });
 Object.defineProperty(Try, 'FlatMap', {
-  get(): FlatMap<TryK> {
+  get(): FlatMap<TryF> {
     return tryFlatMap();
   },
 });
 Object.defineProperty(Try, 'Monad', {
-  get(): Monad<TryK> {
+  get(): Monad<TryF> {
     return tryMonad();
   },
 });
 Object.defineProperty(Try, 'MonadError', {
-  get(): MonadError<TryK, Error> {
+  get(): MonadError<TryF, Error> {
     return tryMonadError();
   },
 });
@@ -122,6 +122,6 @@ Object.defineProperty(Try, 'MonadError', {
  * @category Type Constructor
  * @category Data
  */
-export interface TryK extends TyK<[unknown]> {
+export interface TryF extends TyK<[unknown]> {
   [$type]: Try<TyVar<this, 0>>;
 }

@@ -10,7 +10,7 @@ import {
   None,
   Either,
   Left,
-  IdentityK,
+  IdentityF,
   Monad,
 } from '@fp4ts/cats';
 import {
@@ -22,7 +22,7 @@ import {
   Concurrent,
 } from '@fp4ts/effect';
 
-export type InterruptionOutcome = Outcome<IdentityK, Error, UniqueToken>;
+export type InterruptionOutcome = Outcome<IdentityF, Error, UniqueToken>;
 
 export class InterruptContext<F> {
   private readonly __void!: void;

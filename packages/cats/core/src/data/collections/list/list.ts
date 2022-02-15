@@ -68,18 +68,18 @@ interface ListObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<ListK>;
-  readonly MonoidK: MonoidK<ListK>;
-  readonly Align: Align<ListK>;
-  readonly Functor: Functor<ListK>;
-  readonly FunctorFilter: FunctorFilter<ListK>;
-  readonly Apply: Apply<ListK>;
-  readonly Applicative: Applicative<ListK>;
-  readonly Alternative: Alternative<ListK>;
-  readonly FlatMap: FlatMap<ListK>;
-  readonly Monad: Monad<ListK>;
-  readonly Foldable: Foldable<ListK>;
-  readonly Traversable: Traversable<ListK>;
+  readonly SemigroupK: SemigroupK<ListF>;
+  readonly MonoidK: MonoidK<ListF>;
+  readonly Align: Align<ListF>;
+  readonly Functor: Functor<ListF>;
+  readonly FunctorFilter: FunctorFilter<ListF>;
+  readonly Apply: Apply<ListF>;
+  readonly Applicative: Applicative<ListF>;
+  readonly Alternative: Alternative<ListF>;
+  readonly FlatMap: FlatMap<ListF>;
+  readonly Monad: Monad<ListF>;
+  readonly Foldable: Foldable<ListF>;
+  readonly Traversable: Traversable<ListF>;
   Eq<A>(E: Eq<A>): Eq<List<A>>;
 }
 
@@ -93,62 +93,62 @@ List.tailRecM = tailRecM;
 List.range = range;
 
 Object.defineProperty(List, 'SemigroupK', {
-  get(): SemigroupK<ListK> {
+  get(): SemigroupK<ListF> {
     return listSemigroupK();
   },
 });
 Object.defineProperty(List, 'MonoidK', {
-  get(): MonoidK<ListK> {
+  get(): MonoidK<ListF> {
     return listMonoidK();
   },
 });
 Object.defineProperty(List, 'Align', {
-  get(): Align<ListK> {
+  get(): Align<ListF> {
     return listAlign();
   },
 });
 Object.defineProperty(List, 'Functor', {
-  get(): Functor<ListK> {
+  get(): Functor<ListF> {
     return listFunctor();
   },
 });
 Object.defineProperty(List, 'FunctorFilter', {
-  get(): FunctorFilter<ListK> {
+  get(): FunctorFilter<ListF> {
     return listFunctorFilter();
   },
 });
 Object.defineProperty(List, 'Apply', {
-  get(): Apply<ListK> {
+  get(): Apply<ListF> {
     return listApply();
   },
 });
 Object.defineProperty(List, 'Applicative', {
-  get(): Applicative<ListK> {
+  get(): Applicative<ListF> {
     return listApplicative();
   },
 });
 Object.defineProperty(List, 'Alternative', {
-  get(): Alternative<ListK> {
+  get(): Alternative<ListF> {
     return listAlternative();
   },
 });
 Object.defineProperty(List, 'FlatMap', {
-  get(): FlatMap<ListK> {
+  get(): FlatMap<ListF> {
     return listFlatMap();
   },
 });
 Object.defineProperty(List, 'Monad', {
-  get(): Monad<ListK> {
+  get(): Monad<ListF> {
     return listMonad();
   },
 });
 Object.defineProperty(List, 'Foldable', {
-  get(): Foldable<ListK> {
+  get(): Foldable<ListF> {
     return listFoldable();
   },
 });
 Object.defineProperty(List, 'Traversable', {
-  get(): Traversable<ListK> {
+  get(): Traversable<ListF> {
     return listTraversable();
   },
 });
@@ -160,6 +160,6 @@ List.Eq = listEq;
  * @category Type Constructor
  * @category Collection
  */
-export interface ListK extends TyK<[unknown]> {
+export interface ListF extends TyK<[unknown]> {
   [$type]: List<TyVar<this, 0>>;
 }

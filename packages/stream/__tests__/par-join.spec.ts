@@ -5,8 +5,8 @@
 
 import fc from 'fast-check';
 import { pipe, $ } from '@fp4ts/core';
-import { Eq, List, Left, Right, Some, OptionTK, KleisliK } from '@fp4ts/cats';
-import { IO, IoK, Ref, Concurrent } from '@fp4ts/effect';
+import { Eq, List, Left, Right, Some, OptionTF, KleisliF } from '@fp4ts/cats';
+import { IO, IOF, Ref, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
@@ -23,8 +23,8 @@ describe('Stream Parallel Join', () => {
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s => {
         const expected = s.toList;
         return s
-          .covary<IoK>()
-          .map(x => Stream.pure(x).covary<IoK>())
+          .covary<IOF>()
+          .map(x => Stream.pure(x).covary<IOF>())
           .parJoin(IO.Concurrent)(1)
           .compileConcurrent()
           .toList.map(xs => xs.equals(Eq.primitive, expected))
@@ -42,8 +42,8 @@ describe('Stream Parallel Join', () => {
           const n = (n0 % 20) + 1;
           const expected = new Set([...s.toList]);
           return s
-            .covary<IoK>()
-            .map(x => Stream.pure(x).covary<IoK>())
+            .covary<IOF>()
+            .map(x => Stream.pure(x).covary<IOF>())
             .parJoin(IO.Concurrent)(n)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]))
@@ -62,7 +62,7 @@ describe('Stream Parallel Join', () => {
           const n = (n0 % 20) + 1;
           const expected = new Set([...ss.flatten.toList]);
           return ss
-            .map(s => s.covary<IoK>())
+            .map(s => s.covary<IOF>())
             .parJoin(IO.Concurrent)(n)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]))
@@ -78,7 +78,7 @@ describe('Stream Parallel Join', () => {
         A.fp4tsPureStreamGenerator(fc.integer()),
         A.fp4tsPureStreamGenerator(fc.integer()),
         (s1, s2) => {
-          const parJoined = Stream(s1.covary<IoK>(), s2)
+          const parJoined = Stream(s1.covary<IOF>(), s2)
             .parJoin(IO.Concurrent)(2)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]));
@@ -100,13 +100,13 @@ describe('Stream Parallel Join', () => {
     ));
 
   it('should release resources acquired by the outer stream after the ones acquired by the inner streams are released', () => {
-    const bracketed = Stream.bracket<IoK, Ref<IoK, boolean>>(
+    const bracketed = Stream.bracket<IOF, Ref<IOF, boolean>>(
       IO.ref(true),
       ref => ref.set(false),
     );
 
     const s = bracketed.map(b =>
-      Stream.evalF<IoK, boolean>(b.get())
+      Stream.evalF<IOF, boolean>(b.get())
         .flatMap(b => (b ? Stream({}) : Stream.throwError(new Error())))
         .repeat.take(10_000),
     );
@@ -133,7 +133,7 @@ describe('Stream Parallel Join', () => {
             IO.bindTo('halt', IO.deferred<void>()),
           )
             .flatMap(({ finalizerRef, runEvidenceRef, halt }) => {
-              const bracketed = Stream.bracket<IoK, void>(IO.unit, () =>
+              const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
                 finalizerRef.update(xs => xs.append('Outer')),
               );
 
@@ -150,13 +150,13 @@ describe('Stream Parallel Join', () => {
                   : finalizerRef.update(xs => xs.append(`Inner ${idx}`));
 
               const prg0 = bracketed.flatMap(() =>
-                Stream<IoK, Stream<IoK, number>>(
-                  Stream.bracket<IoK, void>(registerRun(0), () =>
+                Stream<IOF, Stream<IOF, number>>(
+                  Stream.bracket<IOF, void>(registerRun(0), () =>
                     finalizer(0),
                   ).flatMap(() => s),
-                  Stream.bracket<IoK, void>(registerRun(1), () =>
+                  Stream.bracket<IOF, void>(registerRun(1), () =>
                     finalizer(1),
-                  ).flatMap(() => Stream.execF<IoK, void>(halt.complete())),
+                  ).flatMap(() => Stream.execF<IOF, void>(halt.complete())),
                 ),
               );
 
@@ -195,9 +195,9 @@ describe('Stream Parallel Join', () => {
     const full = Stream.repeat(42).chunks.evalTap(IO.Functor)(
       () => IO.suspend,
     ).unchunks;
-    const hang = Stream.repeatEval<IoK, never>(IO.never);
-    const hang2: Stream<IoK, never> = full.drain;
-    const hang3: Stream<IoK, never> = Stream.repeatEval<IoK, void>(
+    const hang = Stream.repeatEval<IOF, never>(IO.never);
+    const hang2: Stream<IOF, never> = full.drain;
+    const hang3: Stream<IOF, never> = Stream.repeatEval<IOF, void>(
       IO.async_<void>(cb => cb(Right(undefined)))['>>>'](IO.suspend),
     ).drain;
 
@@ -255,7 +255,7 @@ describe('Stream Parallel Join', () => {
 
   describe('short-circuiting', () => {
     it('should not block while evaluating stream of streams in IO in parallel', () => {
-      const f = (n: number): Stream<IoK, string> => Stream(n).map(x => `${x}`);
+      const f = (n: number): Stream<IOF, string> => Stream(n).map(x => `${x}`);
 
       return Stream(1, 2, 3)
         .map(f)
@@ -268,7 +268,7 @@ describe('Stream Parallel Join', () => {
 
     it('should not block while evaluating stream of streams in $<OptionTK, [IoK]> in parallel', () => {
       const F = Concurrent.forOptionT(IO.Concurrent);
-      const f = (n: number): Stream<$<OptionTK, [IoK]>, string> =>
+      const f = (n: number): Stream<$<OptionTF, [IOF]>, string> =>
         Stream(n).map(x => `${x}`);
 
       return Stream(1, 2, 3)
@@ -285,7 +285,7 @@ describe('Stream Parallel Join', () => {
 
     it('should not block while evaluating stream of streams in $<KleisliK, [IoK, unknown]> in parallel', () => {
       const F = Concurrent.forKleisli(IO.Concurrent);
-      const f = (n: number): Stream<$<KleisliK, [IoK, void]>, string> =>
+      const f = (n: number): Stream<$<KleisliF, [IOF, void]>, string> =>
         Stream(n).map(x => `${x}`);
 
       return Stream(1, 2, 3)

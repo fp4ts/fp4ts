@@ -31,7 +31,7 @@ import {
   unit,
 } from './constructors';
 import { ExitCase } from './exit-case';
-import { ResourceK } from './resource';
+import { ResourceF } from './resource';
 import { resourceConcurrent } from './instances';
 
 export const use: <F>(
@@ -141,7 +141,7 @@ export const onCancel: <F>(
 export const finalize: <F>(
   F: MonadCancel<F, Error>,
 ) => <A>(
-  fin: (oc: Outcome<$<ResourceK, [F]>, Error, A>) => Resource<F, void>,
+  fin: (oc: Outcome<$<ResourceF, [F]>, Error, A>) => Resource<F, void>,
 ) => (r: Resource<F, A>) => Resource<F, A> = F => fin => r =>
   finalize_(F)(r, fin);
 
@@ -161,7 +161,7 @@ export const race: <F>(
 
 export const fork =
   <F>(F: Concurrent<F, Error>) =>
-  <A>(r: Resource<F, A>): Resource<F, Fiber<$<ResourceK, [F]>, Error, A>> => {
+  <A>(r: Resource<F, A>): Resource<F, Fiber<$<ResourceF, [F]>, Error, A>> => {
     class State {
       constructor(
         readonly fin: Kind<F, [void]> = F.unit,
@@ -207,10 +207,10 @@ export const fork =
 
         return F.map_(F.fork(finalized), outer => {
           const fiber: Fiber<
-            $<ResourceK, [F]>,
+            $<ResourceF, [F]>,
             Error,
             A
-          > = new (class extends Fiber<$<ResourceK, [F]>, Error, A> {
+          > = new (class extends Fiber<$<ResourceF, [F]>, Error, A> {
             get cancel(): Resource<F, void> {
               return evalF(
                 F.uncancelable(poll =>
@@ -224,7 +224,7 @@ export const fork =
               );
             }
 
-            get join(): Resource<F, Outcome<$<ResourceK, [F]>, Error, A>> {
+            get join(): Resource<F, Outcome<$<ResourceF, [F]>, Error, A>> {
               return evalF(
                 F.flatMap_(outer.join, oc =>
                   oc.fold(
@@ -236,7 +236,7 @@ export const fork =
                         F.map(s =>
                           s.confirmedFinalizeOnComplete
                             ? Outcome.canceled()
-                            : Outcome.success<$<ResourceK, [F]>, A>(evalF(fp)),
+                            : Outcome.success<$<ResourceF, [F]>, A>(evalF(fp)),
                         ),
                       ),
                   ),
@@ -406,7 +406,7 @@ export const finalize_ =
   <F>(F: MonadCancel<F, Error>) =>
   <A>(
     r: Resource<F, A>,
-    fin: (oc: Outcome<$<ResourceK, [F]>, Error, A>) => Resource<F, void>,
+    fin: (oc: Outcome<$<ResourceF, [F]>, Error, A>) => Resource<F, void>,
   ): Resource<F, A> =>
     allocateFull(poll => {
       const back = F.finalize_(poll(allocated(F)(r)), oc =>
@@ -424,7 +424,7 @@ export const finalize_ =
             ),
           ft =>
             pipe(
-              Outcome.success<$<ResourceK, [F]>, A>(evalF(F.map_(ft, fst))),
+              Outcome.success<$<ResourceF, [F]>, A>(evalF(F.map_(ft, fst))),
               fin,
               use(F)(() => F.unit),
               F.onError(() =>

@@ -10,7 +10,7 @@ import { ExecutionContext, Poll, Resource } from '@fp4ts/effect-kernel';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 
-import type { IoK } from './io';
+import type { IOF } from './io';
 import {
   Attempt,
   ExecuteOn,
@@ -51,7 +51,7 @@ export const timeoutTo: <B>(
 ) => <A extends B>(ioa: IO<A>) => IO<B> = (ms, fallback) => ioa =>
   timeoutTo_(ioa, ms, fallback);
 
-export const background = <A>(ioa: IO<A>): Resource<IoK, IO<IOOutcome<A>>> =>
+export const background = <A>(ioa: IO<A>): Resource<IOF, IO<IOOutcome<A>>> =>
   ioSpawn().background(ioa);
 
 export const executeOn: (ec: ExecutionContext) => <A>(ioa: IO<A>) => IO<A> =
@@ -91,7 +91,7 @@ export const bracketOutcome: <A, B>(
     bracketOutcome_(ioa, use, release);
 
 export const bracketFull = <A, B>(
-  acquire: (poll: Poll<IoK>) => IO<A>,
+  acquire: (poll: Poll<IOF>) => IO<A>,
   use: (a: A) => IO<B>,
   release: (a: A, oc: IOOutcome<B>) => IO<void>,
 ): IO<B> =>

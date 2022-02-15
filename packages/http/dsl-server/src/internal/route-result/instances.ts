@@ -16,14 +16,14 @@ import {
   orElseT_,
   orElse_,
 } from './operators';
-import type { RouteResultK, RouteResultTK } from './route-result';
+import type { RouteResultF, RouteResultTF } from './route-result';
 import { NotFoundFailure } from '@fp4ts/http-core';
 
-export const routeResultFunctor: Lazy<Functor<RouteResultK>> = lazyVal(() =>
+export const routeResultFunctor: Lazy<Functor<RouteResultF>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const routeResultAlternative: Lazy<Alternative<RouteResultK>> = lazyVal(
+export const routeResultAlternative: Lazy<Alternative<RouteResultF>> = lazyVal(
   () =>
     Alternative.of({
       ...routeResultMonad(),
@@ -32,7 +32,7 @@ export const routeResultAlternative: Lazy<Alternative<RouteResultK>> = lazyVal(
     }),
 );
 
-export const routeResultMonad: Lazy<Monad<RouteResultK>> = lazyVal(() =>
+export const routeResultMonad: Lazy<Monad<RouteResultF>> = lazyVal(() =>
   Monad.of({
     ...routeResultFunctor(),
     flatMap_: flatMap_,
@@ -72,11 +72,11 @@ export const routeResultMonad: Lazy<Monad<RouteResultK>> = lazyVal(() =>
 
 export const routeResultTFunctor: <F>(
   F: Functor<F>,
-) => Functor<$<RouteResultTK, [F]>> = F => Functor.of({ map_: mapT_(F) });
+) => Functor<$<RouteResultTF, [F]>> = F => Functor.of({ map_: mapT_(F) });
 
 export const routeResultTAlternative: <F>(
   F: Monad<F>,
-) => Alternative<$<RouteResultTK, [F]>> = F =>
+) => Alternative<$<RouteResultTF, [F]>> = F =>
   Alternative.of({
     ...routeResultTMonad(F),
     emptyK: <A>() => new RouteResultT(F.pure(fail<A>(new NotFoundFailure()))),
@@ -85,7 +85,7 @@ export const routeResultTAlternative: <F>(
 
 export const routeResultTMonad: <F>(
   F: Monad<F>,
-) => Monad<$<RouteResultTK, [F]>> = (() => {
+) => Monad<$<RouteResultTF, [F]>> = (() => {
   const cache = new Map<any, Monad<any>>();
   return <F>(F: Monad<F>) => {
     if (cache.has(F)) return cache.get(F)!;

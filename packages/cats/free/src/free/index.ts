@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Free, FreeK } from './free';
+export { Free, FreeF } from './free';

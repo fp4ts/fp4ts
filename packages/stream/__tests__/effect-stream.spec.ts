@@ -17,7 +17,7 @@ import {
   None,
   Option,
 } from '@fp4ts/cats';
-import { IO, IoK, SyncIO, SyncIoK } from '@fp4ts/effect';
+import { IO, IOF, SyncIO, SyncIOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import {
   AlignSuite,
@@ -29,7 +29,7 @@ import { forAll, checkAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 
-const StreamSync = <A>(...xs: A[]): Stream<SyncIoK, A> => Stream.fromArray(xs);
+const StreamSync = <A>(...xs: A[]): Stream<SyncIOF, A> => Stream.fromArray(xs);
 
 describe('Effect-ful stream', () => {
   describe('repeatEval', () => {
@@ -38,7 +38,7 @@ describe('Effect-ful stream', () => {
       const count = SyncIO.delay(() => counter++);
 
       expect(
-        Stream.repeatEval<SyncIoK, number>(count)
+        Stream.repeatEval<SyncIOF, number>(count)
           .take(5)
           .compileSync()
           .toList.unsafeRunSync(),
@@ -72,13 +72,13 @@ describe('Effect-ful stream', () => {
     it.ticked('should take three attempts', ticker => {
       let i = 0;
       expect(
-        Stream.evalF<IoK, number>(
+        Stream.evalF<IOF, number>(
           IO(() => {
             if (i++ % 2 === 0) throwError(new Error('test error'));
             return i;
           }),
         )
-          .attempts(IO.Temporal)(Stream<IoK, number>(1).repeat)
+          .attempts(IO.Temporal)(Stream<IOF, number>(1).repeat)
           .take(3)
           .compileConcurrent().toList,
       ).toCompleteWith(
@@ -119,7 +119,7 @@ describe('Effect-ful stream', () => {
     it('should consume only even numbers', () => {
       expect(
         Stream(1, 2, 3, 4, 5)
-          .covary<SyncIoK>()
+          .covary<SyncIOF>()
           .evalCollect(x => SyncIO(() => (x % 2 === 0 ? Some(x) : None)))
           .compileSync()
           .toArray.unsafeRunSync(),
@@ -129,7 +129,7 @@ describe('Effect-ful stream', () => {
     test(
       'evalCollect is evalMap and collect identity',
       forAll(
-        A.fp4tsEffectStreamGenerator<SyncIoK, number>(
+        A.fp4tsEffectStreamGenerator<SyncIOF, number>(
           fc.integer(),
           A.fp4tsSyncIO(fc.integer()),
           A.fp4tsSyncIO(fc.constant(undefined as void)),
@@ -152,7 +152,7 @@ describe('Effect-ful stream', () => {
     it('should create cumulative addition of the stream', () => {
       expect(
         Stream(1, 2, 3, 4)
-          .covary<SyncIoK>()
+          .covary<SyncIOF>()
           .evalScan(0, (acc, i) => SyncIO(() => acc + i))
           .compileSync()
           .toArray.unsafeRunSync(),
@@ -162,7 +162,7 @@ describe('Effect-ful stream', () => {
     it('should extend the type', () => {
       expect(
         Stream(1, 2, 3, 4)
-          .covary<SyncIoK>()
+          .covary<SyncIOF>()
           .evalScan(0, (acc, i) => SyncIO(() => acc + i))
           .compileSync()
           .toArray.unsafeRunSync(),
@@ -181,7 +181,7 @@ describe('Effect-ful stream', () => {
 
     it('should wrap capture erroneous chunk', () => {
       expect(
-        Stream.throwError<SyncIoK>(new Error('test error'))
+        Stream.throwError<SyncIOF>(new Error('test error'))
           .attempt.compileSync()
           .last.unsafeRunSync(),
       ).toEqual(Left(new Error('test error')));
@@ -255,7 +255,7 @@ describe('Effect-ful stream', () => {
 
     it('should throw an error when left value encountered', () => {
       expect(
-        Stream<SyncIoK, Either<Error, number>>(
+        Stream<SyncIOF, Either<Error, number>>(
           Right(1),
           Right(2),
           Left(new Error('test, error')),
@@ -289,7 +289,7 @@ describe('Effect-ful stream', () => {
 
     it('should return the result of the handler when an error is ocurred', () => {
       expect(
-        Stream.evalF<SyncIoK>(SyncIO.throwError(new Error('test error')))
+        Stream.evalF<SyncIOF>(SyncIO.throwError(new Error('test error')))
           .handleErrorWith(() => Stream(42))
           .compileSync()
           .last.unsafeRunSync(),
@@ -300,7 +300,7 @@ describe('Effect-ful stream', () => {
       'should return the result of the handler when an error is ocurred',
       ticker => {
         expect(
-          Stream.evalF<IoK>(IO.throwError(new Error('test error')))
+          Stream.evalF<IOF>(IO.throwError(new Error('test error')))
             .handleErrorWith(() => Stream(42))
             .compileConcurrent().last,
         ).toCompleteWith(42, ticker);
@@ -310,7 +310,7 @@ describe('Effect-ful stream', () => {
     it('should capture error thrown upstream', () => {
       let error: Error;
 
-      Stream.evalF<SyncIoK>(SyncIO.throwError(new Error('test error')))
+      Stream.evalF<SyncIOF>(SyncIO.throwError(new Error('test error')))
         .handleErrorWith(e => {
           error = e;
           return Stream.empty();
@@ -391,7 +391,7 @@ describe('Effect-ful stream', () => {
     it.ticked('should retry the stream in 1-second intervals', ticker => {
       let i = 0;
       let results: Vector<Either<Error, any>> = Vector.empty;
-      const s = Stream.evalF<IoK, void>(IO.sleep(1_000))
+      const s = Stream.evalF<IOF, void>(IO.sleep(1_000))
         .drain['+++'](
           Stream.retry(IO.Temporal)(
             IO(() => i++)['>>>'](IO.throwError(new Error('test error'))),
@@ -434,7 +434,7 @@ describe('Effect-ful stream', () => {
       let evaluated: boolean = false;
       let canceledEffect: boolean = false;
       let canceledSignal: boolean = false;
-      const s = Stream.evalF<IoK, void>(
+      const s = Stream.evalF<IOF, void>(
         IO.sleep(2_000)
           ['>>>'](IO(() => (evaluated = true)).void)
           .onCancel(IO(() => (canceledEffect = true)).void),
@@ -477,7 +477,7 @@ describe('Effect-ful stream', () => {
 
   it.ticked('should interrupt a never executing evaluated event', ticker => {
     let canceled: boolean = false;
-    const s = Stream.evalF<IoK>(
+    const s = Stream.evalF<IOF>(
       IO.never.onCancel(IO(() => (canceled = true)).void),
     ).interruptWhen(IO.sleep(1_000).attempt);
 
@@ -492,7 +492,7 @@ describe('Effect-ful stream', () => {
       let evaluated: boolean = false;
       let canceledEffect: boolean = false;
       let canceledSignal: boolean = false;
-      const s = Stream.evalF<IoK, void>(
+      const s = Stream.evalF<IOF, void>(
         IO.sleep(3_000)
           ['>>>'](IO(() => (evaluated = true)).void)
           .onCancel(IO(() => (canceledEffect = true)).void),
@@ -534,13 +534,13 @@ describe('Effect-ful stream', () => {
   );
 
   describe.ticked('Laws', ticker => {
-    const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IoK, X>> =>
+    const ioEqStream = <X>(EqX: Eq<X>): Eq<Stream<IOF, X>> =>
       Eq.by(
         E.eqIO(List.Eq(Either.Eq(Eq.Error.strict, EqX)), ticker),
         s => s.attempt.compileConcurrent().toList,
       );
 
-    const monoidKTests = MonoidKSuite(Stream.MonoidK<IoK>());
+    const monoidKTests = MonoidKSuite(Stream.MonoidK<IOF>());
     checkAll(
       'MonoidK<$<StreamK, [IoK]>>',
       monoidKTests.monoidK(
@@ -556,7 +556,7 @@ describe('Effect-ful stream', () => {
       ),
     );
 
-    const alignTests = AlignSuite(Stream.Align<IoK>());
+    const alignTests = AlignSuite(Stream.Align<IOF>());
     checkAll(
       'Align<$<StreamK, [IoK]>>',
       alignTests.align(
@@ -578,7 +578,7 @@ describe('Effect-ful stream', () => {
       ),
     );
 
-    const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<IoK>());
+    const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<IOF>());
     checkAll(
       'FunctorFilter<$<StreamK, [IoK]>',
       functorFilterTests.functorFilter(
@@ -598,7 +598,7 @@ describe('Effect-ful stream', () => {
       ),
     );
 
-    const monadErrorTests = MonadErrorSuite(Stream.MonadError<IoK>());
+    const monadErrorTests = MonadErrorSuite(Stream.MonadError<IOF>());
     checkAll(
       'MonadError<$<StreamK, [IoK]>>',
       monadErrorTests.monadError(

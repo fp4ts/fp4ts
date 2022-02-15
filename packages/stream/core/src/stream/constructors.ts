@@ -17,7 +17,7 @@ import {
 } from '@fp4ts/effect';
 import { view } from '@fp4ts/effect-kernel/lib/resource/algebra';
 
-import { PureK } from '../pure';
+import { PureF } from '../pure';
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
 import { Stream } from './algebra';
@@ -63,7 +63,7 @@ export const force = <F, A>(fs: Kind<F, [Stream<F, A>]>): Stream<F, A> =>
 export const evalUnChunk = <F, A>(fa: Kind<F, [Chunk<A>]>): Stream<F, A> =>
   new Stream(Pull.evalF(fa).flatMap(Pull.output));
 
-export const repeat = <A>(value: A): Stream<PureK, A> =>
+export const repeat = <A>(value: A): Stream<PureF, A> =>
   concat_(
     pure(value),
     defer(() => repeat(value)),

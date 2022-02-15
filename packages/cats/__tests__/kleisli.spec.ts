@@ -9,17 +9,17 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from '@fp4ts/cats-core';
 import {
   Identity,
-  IdentityK,
-  OptionK,
+  IdentityF,
+  OptionF,
   Some,
   None,
   Option,
   OptionT,
-  OptionTK,
+  OptionTF,
   Kleisli,
-  ListK,
+  ListF,
   List,
-  EitherK,
+  EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
 import {
@@ -39,16 +39,16 @@ import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>
-    Kleisli<IdentityK, A, B>(f);
+    Kleisli<IdentityF, A, B>(f);
 
-  const liftId = <A>(a: Identity<A>): Kleisli<IdentityK, unknown, A> =>
+  const liftId = <A>(a: Identity<A>): Kleisli<IdentityF, unknown, A> =>
     Kleisli.liftF(a);
 
   describe('types', () => {
     it('should be covariant in output type', () => {
       const r = KleisliId(() => Identity(throwError(new Error('test'))));
 
-      const k: Kleisli<IdentityK, unknown, number> = r;
+      const k: Kleisli<IdentityF, unknown, number> = r;
     });
 
     it('should disallow unrelated type widening', () => {
@@ -126,7 +126,7 @@ describe('Kleisli', () => {
 
     it('should return none when adoptF returns none', () => {
       expect(
-        Kleisli<OptionK, number, number>((x: number) => Some(x))
+        Kleisli<OptionF, number, number>((x: number) => Some(x))
           .adaptF(Option.FlatMap)((s: string) => None)
           .run('42'),
       ).toEqual(None);
@@ -153,8 +153,8 @@ describe('Kleisli', () => {
     it.skip('should be right stack safe', () => {
       const k = KleisliId((x: number) => Identity(x + 1));
       const size = 10_000;
-      const loop = (i: number): Kleisli<IdentityK, number, number> => {
-        let r: Kleisli<IdentityK, number, number> = KleisliId((x: number) =>
+      const loop = (i: number): Kleisli<IdentityF, number, number> => {
+        let r: Kleisli<IdentityF, number, number> = KleisliId((x: number) =>
           Identity(x),
         );
         while (i++ < size) r = k['>=>'](Identity.FlatMap)(r);
@@ -185,8 +185,8 @@ describe('Kleisli', () => {
     it.skip('should be left stack safe', () => {
       const k = KleisliId((x: number) => Identity(x + 1));
       const size = 10_000;
-      const loop = (i: number): Kleisli<IdentityK, number, number> => {
-        let r: Kleisli<IdentityK, number, number> = KleisliId((x: number) =>
+      const loop = (i: number): Kleisli<IdentityF, number, number> => {
+        let r: Kleisli<IdentityF, number, number> = KleisliId((x: number) =>
           Identity(x),
         );
         while (i++ < size) r = r['<=<'](Identity.FlatMap)(k);
@@ -215,7 +215,7 @@ describe('Kleisli', () => {
     it.skip('should be stack safe', () => {
       const mk = (x: number) => KleisliId(() => Identity(x));
       const size = 10_000;
-      const loop = (i: number): Kleisli<IdentityK, unknown, number> =>
+      const loop = (i: number): Kleisli<IdentityF, unknown, number> =>
         i < size ? mk(i).flatMap(Identity.FlatMap)(i => loop(i + 1)) : mk(i);
 
       expect(loop(0).run(0)).toEqual(Identity(size));
@@ -263,7 +263,7 @@ describe('Kleisli', () => {
 
   describe('mapK', () => {
     it('should convert Identity context to Option', () => {
-      const nt: FunctionK<IdentityK, OptionK> = x => Some(x);
+      const nt: FunctionK<IdentityF, OptionF> = x => Some(x);
 
       const k = KleisliId((x: number) => Identity(x))
         .map(Identity.Functor)(x => x + 1)
@@ -275,16 +275,16 @@ describe('Kleisli', () => {
 
   describe('lift', () => {
     it('should lift identity kleisli to option and mapK to OptionT', () => {
-      const k = Kleisli<OptionK, number, number>((x: number) => Some(x + 1))
+      const k = Kleisli<OptionF, number, number>((x: number) => Some(x + 1))
         .map(Option.Functor)(x => x + 1)
         .dimap(Option.Functor)(() => 42)(x => x * 2)
         .lift(Identity.Monad)
-        .mapK<OptionTK>(<X>(x: Identity<Option<X>>) =>
-          OptionT<IdentityK, X>(x),
+        .mapK<OptionTF>(<X>(x: Identity<Option<X>>) =>
+          OptionT<IdentityF, X>(x),
         );
 
       expect(k.run(null)).toEqual(
-        OptionT<IdentityK, number>(Identity(Some(88))),
+        OptionT<IdentityF, number>(Identity(Some(88))),
       );
     });
   });
@@ -295,7 +295,7 @@ describe('Kleisli', () => {
   ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => x => k.run(x));
 
   const contravariantTests = ContravariantSuite(
-    Kleisli.Contravariant<IdentityK, number>(),
+    Kleisli.Contravariant<IdentityF, number>(),
   );
   checkAll(
     'Contravariant<Kleisli<IdentityK, MiniInt, number>>',
@@ -306,7 +306,7 @@ describe('Kleisli', () => {
       MiniInt.Eq,
       MiniInt.Eq,
       <X>(_: Arbitrary<X>) =>
-        A.fp4tsKleisli<IdentityK, X, number>(fc.integer()),
+        A.fp4tsKleisli<IdentityF, X, number>(fc.integer()),
 
       // TODO: hacky? We are not really using the value
       () => eqKleisli(ec.miniInt() as any, Eq.primitive),
@@ -314,7 +314,7 @@ describe('Kleisli', () => {
   );
 
   const functorFilterTests = FunctorFilterSuite(
-    Kleisli.FunctorFilter<OptionK, MiniInt>(Option.FunctorFilter),
+    Kleisli.FunctorFilter<OptionF, MiniInt>(Option.FunctorFilter),
   );
   checkAll(
     'FunctorFilter<Kleisli<OptionK, MiniInt, number>>',
@@ -326,14 +326,14 @@ describe('Kleisli', () => {
       Eq.primitive,
       Eq.primitive,
       <X>(x: Arbitrary<X>) =>
-        A.fp4tsKleisli<OptionK, MiniInt, X>(A.fp4tsOption(x)),
+        A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
       <X>(E: Eq<X>) =>
-        eqKleisli<OptionK, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
+        eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
     ),
   );
 
   const alternativeTests = AlternativeSuite(
-    Kleisli.Alternative<ListK, MiniInt>(List.Alternative),
+    Kleisli.Alternative<ListF, MiniInt>(List.Alternative),
   );
   checkAll(
     'Alternative<Kleisli<ListK, MiniInt, number>>',
@@ -344,12 +344,12 @@ describe('Kleisli', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      <X>(x: Arbitrary<X>) => A.fp4tsKleisli<ListK, MiniInt, X>(A.fp4tsList(x)),
-      <X>(E: Eq<X>) => eqKleisli<ListK, MiniInt, X>(ec.miniInt(), List.Eq(E)),
+      <X>(x: Arbitrary<X>) => A.fp4tsKleisli<ListF, MiniInt, X>(A.fp4tsList(x)),
+      <X>(E: Eq<X>) => eqKleisli<ListF, MiniInt, X>(ec.miniInt(), List.Eq(E)),
     ),
   );
 
-  type EitherStringK = $<EitherK, [string]>;
+  type EitherStringK = $<EitherF, [string]>;
   const monadErrorTests = MonadErrorSuite(
     Kleisli.MonadError<EitherStringK, MiniInt, string>(
       Either.MonadError<string>(),

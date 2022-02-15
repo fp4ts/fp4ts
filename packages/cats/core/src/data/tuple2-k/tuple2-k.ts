@@ -33,12 +33,12 @@ interface Tuple2KObj {
   // -- Instances
 
   Eq<F, G, A>(EF: Eq<Kind<F, [A]>>, EG: Eq<Kind<G, [A]>>): Eq<Tuple2K<F, G, A>>;
-  Functor<F, G>(F: Functor<F>, G: Functor<G>): Functor<$<Tuple2kK, [F, G]>>;
-  Apply<F, G>(F: Apply<F>, G: Apply<G>): Apply<$<Tuple2kK, [F, G]>>;
+  Functor<F, G>(F: Functor<F>, G: Functor<G>): Functor<$<Tuple2KF, [F, G]>>;
+  Apply<F, G>(F: Apply<F>, G: Apply<G>): Apply<$<Tuple2KF, [F, G]>>;
   Applicative<F, G>(
     F: Applicative<F>,
     G: Applicative<G>,
-  ): Applicative<$<Tuple2kK, [F, G]>>;
+  ): Applicative<$<Tuple2KF, [F, G]>>;
 }
 
 Tuple2K.Eq = tuple2KEq;
@@ -53,6 +53,6 @@ Tuple2K.Applicative = tuple2KApplicative;
  * @category Type Constructor
  * @category Data
  */
-export interface Tuple2kK extends TyK<[unknown, unknown, unknown]> {
+export interface Tuple2KF extends TyK<[unknown, unknown, unknown]> {
   [$type]: Tuple2K<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

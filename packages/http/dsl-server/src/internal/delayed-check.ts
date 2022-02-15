@@ -6,9 +6,9 @@
 import { $ } from '@fp4ts/core';
 import { Applicative, Monad, ReaderT } from '@fp4ts/cats';
 import { Request } from '@fp4ts/http-core';
-import { RouteResultT, RouteResultTK } from './route-result';
+import { RouteResultT, RouteResultTF } from './route-result';
 
-export type DelayedCheck<F, A> = ReaderT<$<RouteResultTK, [F]>, Request<F>, A>;
+export type DelayedCheck<F, A> = ReaderT<$<RouteResultTF, [F]>, Request<F>, A>;
 
 export const DelayedCheck = Object.freeze({
   pure:

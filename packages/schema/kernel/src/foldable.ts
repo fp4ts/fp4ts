@@ -27,8 +27,8 @@ import {
 import { SchemableK } from './schemable-k';
 import { ProductK, StructK, SumK } from './kinds';
 
-export const foldableSchemableK: Lazy<SchemableK<FoldableK>> = lazyVal(() => {
-  const self: SchemableK<FoldableK> = instance({
+export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
+  const self: SchemableK<FoldableF> = instance({
     boolean: Const.Foldable<boolean>(Monoid.disjunction),
     string: Const.Foldable<string>(Monoid.string),
     number: Const.Foldable<number>(Monoid.addition),
@@ -40,8 +40,8 @@ export const foldableSchemableK: Lazy<SchemableK<FoldableK>> = lazyVal(() => {
 
     optional: f => self.compose_(Option.Foldable, f),
 
-    product: product as SchemableK<FoldableK>['product'],
-    sum: sum as SchemableK<FoldableK>['sum'],
+    product: product as SchemableK<FoldableF>['product'],
+    sum: sum as SchemableK<FoldableF>['sum'],
     struct,
     defer,
 
@@ -216,6 +216,6 @@ const defer = <F>(thunk: () => Foldable<F>): Foldable<F> =>
 
 // -- HKT
 
-export interface FoldableK extends TyK<[unknown]> {
+export interface FoldableF extends TyK<[unknown]> {
   [$type]: Foldable<TyVar<this, 0>>;
 }

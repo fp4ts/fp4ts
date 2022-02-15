@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, IdentityK, List, Semigroup } from '@fp4ts/cats';
+import { Either, IdentityF, List, Semigroup } from '@fp4ts/cats';
 import {
   Header,
   SelectHeader,
@@ -48,5 +48,5 @@ Accept.Select = new RecurringSelectHeaderMerge(
 interface AcceptObj {
   (...mt: MediaRange[]): AcceptHeader;
   Header: Header<Accept, 'recurring'>;
-  Select: SelectHeader<IdentityK, Accept>;
+  Select: SelectHeader<IdentityF, Accept>;
 }

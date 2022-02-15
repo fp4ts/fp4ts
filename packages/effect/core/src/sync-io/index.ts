@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { SyncIO, SyncIoK } from './sync-io';
+export { SyncIO, SyncIOF } from './sync-io';

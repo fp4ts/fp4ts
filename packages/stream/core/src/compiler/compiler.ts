@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Monad, IdentityK } from '@fp4ts/cats';
+import { Monad, IdentityF } from '@fp4ts/cats';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
-import { PureK } from '../pure';
+import { PureF } from '../pure';
 
 import {
   compilerConcurrentTarget,
@@ -38,11 +38,11 @@ export const Compiler = Object.freeze({
     return compilerConcurrentTarget;
   },
 
-  get Pure(): Compiler<PureK, IdentityK> {
+  get Pure(): Compiler<PureF, IdentityF> {
     return compilerPureInstance();
   },
 
-  get Identity(): Compiler<IdentityK, IdentityK> {
+  get Identity(): Compiler<IdentityF, IdentityF> {
     return compilerIdentityInstance();
   },
 });

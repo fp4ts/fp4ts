@@ -67,11 +67,11 @@ interface EncoderObj {
 
   // Instances
 
-  Functor<A>(): Functor<λ<EncoderK, [α, Fix<A>]>>;
-  Contravariant<O>(): Contravariant<$<EncoderK, [O]>>;
-  readonly Compose: Compose<λ<EncoderK, [β, α]>>;
-  readonly Category: Category<λ<EncoderK, [β, α]>>;
-  readonly Schemable: Schemable<λ<EncoderK, [α, α]>>;
+  Functor<A>(): Functor<λ<EncoderF, [α, Fix<A>]>>;
+  Contravariant<O>(): Contravariant<$<EncoderF, [O]>>;
+  readonly Compose: Compose<λ<EncoderF, [β, α]>>;
+  readonly Category: Category<λ<EncoderF, [β, α]>>;
+  readonly Schemable: Schemable<λ<EncoderF, [α, α]>>;
 }
 
 Encoder.lift = lift;
@@ -103,6 +103,6 @@ Object.defineProperty(Encoder, 'Schemable', {
 
 // -- HKT
 
-export interface EncoderK extends TyK<[unknown, unknown]> {
+export interface EncoderF extends TyK<[unknown, unknown]> {
   [$type]: Encoder<TyVar<this, 0>, TyVar<this, 1>>;
 }

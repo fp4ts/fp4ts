@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Try, TryK, Success, Failure } from './try';
+export { Try, TryF, Success, Failure } from './try';

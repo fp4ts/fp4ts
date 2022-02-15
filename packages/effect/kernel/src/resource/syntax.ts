@@ -11,7 +11,7 @@ import { Concurrent } from '../concurrent';
 import { Outcome } from '../outcome';
 import { Fiber } from '../fiber';
 import { Resource } from './algebra';
-import { ResourceK } from './resource';
+import { ResourceF } from './resource';
 import {
   allocated,
   attempt,
@@ -79,7 +79,7 @@ declare module './algebra' {
     finalize(
       F: MonadCancel<F, Error>,
     ): (
-      fin: (oc: Outcome<$<ResourceK, [F]>, Error, A>) => Resource<F, void>,
+      fin: (oc: Outcome<$<ResourceF, [F]>, Error, A>) => Resource<F, void>,
     ) => Resource<F, A>;
 
     both(
@@ -90,7 +90,7 @@ declare module './algebra' {
     ): <B>(that: Resource<F, B>) => Resource<F, Either<A, B>>;
     fork(
       F: Concurrent<F, Error>,
-    ): Resource<F, Fiber<$<ResourceK, [F]>, Error, A>>;
+    ): Resource<F, Fiber<$<ResourceF, [F]>, Error, A>>;
 
     allocated(F: MonadCancel<F, Error>): Kind<F, [[A, Kind<F, [void]>]]>;
     fold(

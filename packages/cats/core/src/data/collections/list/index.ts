@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { List, ListK } from './list';
+export { List, ListF } from './list';

@@ -133,11 +133,11 @@ interface IOObj {
 
   suspend: IO<void>;
 
-  ref: <A>(a: A) => IO<Ref<IoK, A>>;
+  ref: <A>(a: A) => IO<Ref<IOF, A>>;
 
-  deferred: <A>() => IO<Deferred<IoK, A>>;
+  deferred: <A>() => IO<Deferred<IOF, A>>;
 
-  uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A>;
+  uncancelable: <A>(ioa: (p: Poll<IOF>) => IO<A>) => IO<A>;
 
   sleep: (ms: number) => IO<void>;
 
@@ -201,7 +201,7 @@ interface IOObj {
   ) => <B>(f: (a: A) => IO<B>) => IO<Kind<T, [B]>>;
 
   bracketFull: <A, B>(
-    acquire: (poll: Poll<IoK>) => IO<A>,
+    acquire: (poll: Poll<IOF>) => IO<A>,
     use: (a: A) => IO<B>,
     release: (a: A, oc: IOOutcome<B>) => IO<void>,
   ) => IO<B>;
@@ -223,20 +223,20 @@ interface IOObj {
 
   // -- Instances
 
-  readonly Defer: Defer<IoK>;
-  readonly Functor: Functor<IoK>;
-  readonly Apply: Apply<IoK>;
-  readonly Applicative: Applicative<IoK>;
-  readonly FlatMap: FlatMap<IoK>;
-  readonly Monad: Monad<IoK>;
-  readonly MonadError: MonadError<IoK, Error>;
-  readonly MonadCancel: MonadCancel<IoK, Error>;
-  readonly Sync: Sync<IoK>;
-  readonly Spawn: Spawn<IoK, Error>;
-  readonly Parallel: Parallel<IoK, IoK>;
-  readonly Concurrent: Concurrent<IoK, Error>;
-  readonly Temporal: Temporal<IoK, Error>;
-  readonly Async: Async<IoK>;
+  readonly Defer: Defer<IOF>;
+  readonly Functor: Functor<IOF>;
+  readonly Apply: Apply<IOF>;
+  readonly Applicative: Applicative<IOF>;
+  readonly FlatMap: FlatMap<IOF>;
+  readonly Monad: Monad<IOF>;
+  readonly MonadError: MonadError<IOF, Error>;
+  readonly MonadCancel: MonadCancel<IOF, Error>;
+  readonly Sync: Sync<IOF>;
+  readonly Spawn: Spawn<IOF, Error>;
+  readonly Parallel: Parallel<IOF, IOF>;
+  readonly Concurrent: Concurrent<IOF, Error>;
+  readonly Temporal: Temporal<IOF, Error>;
+  readonly Async: Async<IOF>;
 }
 
 IO.pure = pure;
@@ -320,78 +320,78 @@ Object.defineProperty(IO, 'bind', {
 });
 
 Object.defineProperty(IO, 'Defer', {
-  get(): Defer<IoK> {
+  get(): Defer<IOF> {
     return ioDefer();
   },
 });
 Object.defineProperty(IO, 'Functor', {
-  get(): Functor<IoK> {
+  get(): Functor<IOF> {
     return ioFunctor();
   },
 });
 Object.defineProperty(IO, 'Apply', {
-  get(): Apply<IoK> {
+  get(): Apply<IOF> {
     return ioApply();
   },
 });
 Object.defineProperty(IO, 'Applicative', {
-  get(): Applicative<IoK> {
+  get(): Applicative<IOF> {
     return ioApplicative();
   },
 });
 Object.defineProperty(IO, 'FlatMap', {
-  get(): FlatMap<IoK> {
+  get(): FlatMap<IOF> {
     return ioFlatMap();
   },
 });
 Object.defineProperty(IO, 'Monad', {
-  get(): Monad<IoK> {
+  get(): Monad<IOF> {
     return ioMonad();
   },
 });
 Object.defineProperty(IO, 'MonadError', {
-  get(): MonadError<IoK, Error> {
+  get(): MonadError<IOF, Error> {
     return ioMonadError();
   },
 });
 Object.defineProperty(IO, 'MonadCancel', {
-  get(): MonadCancel<IoK, Error> {
+  get(): MonadCancel<IOF, Error> {
     return ioMonadCancel();
   },
 });
 Object.defineProperty(IO, 'Sync', {
-  get(): Sync<IoK> {
+  get(): Sync<IOF> {
     return ioSync();
   },
 });
 Object.defineProperty(IO, 'Spawn', {
-  get(): Spawn<IoK, Error> {
+  get(): Spawn<IOF, Error> {
     return ioSpawn();
   },
 });
 Object.defineProperty(IO, 'Parallel', {
-  get(): Parallel<IoK, IoK> {
+  get(): Parallel<IOF, IOF> {
     return ioParallel();
   },
 });
 Object.defineProperty(IO, 'Concurrent', {
-  get(): Concurrent<IoK, Error> {
+  get(): Concurrent<IOF, Error> {
     return ioConcurrent();
   },
 });
 Object.defineProperty(IO, 'Temporal', {
-  get(): Temporal<IoK, Error> {
+  get(): Temporal<IOF, Error> {
     return ioTemporal();
   },
 });
 Object.defineProperty(IO, 'Async', {
-  get(): Async<IoK> {
+  get(): Async<IOF> {
     return ioAsync();
   },
 });
 
 // HKT
 
-export interface IoK extends TyK<[unknown]> {
+export interface IOF extends TyK<[unknown]> {
   [$type]: IO<TyVar<this, 0>>;
 }

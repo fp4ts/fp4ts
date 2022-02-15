@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { Eq, List, Left } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect';
+import { IO, IOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
@@ -18,7 +18,7 @@ describe('Stream concurrently', () => {
       let backgroundStarted = false;
       let backgroundTerminated = false;
       const s1 = Stream(1, 2, 3, 4, 5).delayBy(IO.Temporal)(3_000);
-      const s2 = Stream.bracket<IoK, void>(
+      const s2 = Stream.bracket<IOF, void>(
         IO.sleep(1_000)['>>>'](IO(() => (backgroundStarted = true)).void),
         () =>
           IO.sleep(1_000)['>>>'](IO(() => (backgroundTerminated = true))).void,
@@ -93,7 +93,7 @@ describe('Stream concurrently', () => {
     ));
 
   it('should fail the overall stream, when the main one fail, while terminating the background one', () => {
-    const bg = Stream.repeatEval<IoK, void>(IO.pure(42)['>>>'](IO.sleep(50)));
+    const bg = Stream.repeatEval<IOF, void>(IO.pure(42)['>>>'](IO.sleep(50)));
     const fg = Stream.throwError(new TestError()).delayBy(IO.Temporal)(25);
     return fg
       .concurrently(IO.Concurrent)(bg)
@@ -108,7 +108,7 @@ describe('Stream concurrently', () => {
       let backgroundStarted = false;
       let backgroundTerminated = false;
       const s1 = Stream(1, 2, 3, 4, 5).delayBy(IO.Temporal)(2_000);
-      const s2 = Stream.bracket<IoK, void>(
+      const s2 = Stream.bracket<IOF, void>(
         IO.sleep(1_000)['>>>'](IO(() => (backgroundStarted = true)).void),
         () => IO(() => (backgroundTerminated = true)).void,
       ).evalMap(() => IO.never);
@@ -146,7 +146,7 @@ describe('Stream concurrently', () => {
   it('should terminate the background stream when the primary one finishes', () =>
     fc.assert(
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s => {
-        const bg = Stream.repeatEval<IoK, void>(
+        const bg = Stream.repeatEval<IOF, void>(
           IO.pure(42)['>>>'](IO.sleep(50)),
         );
         const fg = s.delayBy(IO.Temporal)(20);

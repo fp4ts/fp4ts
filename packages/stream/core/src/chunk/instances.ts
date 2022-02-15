@@ -16,20 +16,20 @@ import {
 } from '@fp4ts/cats';
 
 import { Chunk as ChunkBase } from './algebra';
-import type { ChunkK, Chunk } from './chunk';
+import type { ChunkF, Chunk } from './chunk';
 
-export const chunkMonoidK: Lazy<MonoidK<ChunkK>> = lazyVal(() =>
+export const chunkMonoidK: Lazy<MonoidK<ChunkF>> = lazyVal(() =>
   MonoidK.of({
     emptyK: () => ChunkBase.empty,
     combineK_: (lhs, rhs) => lhs.concat(rhs()),
   }),
 );
 
-export const chunkFunctor: Lazy<Functor<ChunkK>> = lazyVal(() =>
+export const chunkFunctor: Lazy<Functor<ChunkF>> = lazyVal(() =>
   Functor.of({ map_: (x, f) => x.map(f) }),
 );
 
-export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkK>> = lazyVal(() =>
+export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkF>> = lazyVal(() =>
   FunctorFilter.of({
     ...chunkFunctor(),
     mapFilter_: (x, f) => x.collect(f),
@@ -37,11 +37,11 @@ export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkK>> = lazyVal(() =>
   }),
 );
 
-export const chunkAlternative: Lazy<Alternative<ChunkK>> = lazyVal(() =>
+export const chunkAlternative: Lazy<Alternative<ChunkF>> = lazyVal(() =>
   Alternative.of({ ...chunkMonad(), ...chunkMonoidK() }),
 );
 
-export const chunkMonad: Lazy<Monad<ChunkK>> = lazyVal(() =>
+export const chunkMonad: Lazy<Monad<ChunkF>> = lazyVal(() =>
   Monad.of({
     pure: ChunkBase.singleton,
     flatMap_: (xs, f) => xs.flatMap(f),
@@ -50,7 +50,7 @@ export const chunkMonad: Lazy<Monad<ChunkK>> = lazyVal(() =>
   }),
 );
 
-export const chunkTraversable: Lazy<Traversable<ChunkK>> = lazyVal(() =>
+export const chunkTraversable: Lazy<Traversable<ChunkF>> = lazyVal(() =>
   Traversable.of({
     ...chunkFunctor(),
     foldLeft_: (xs, z, f) => xs.foldLeft(z, f),

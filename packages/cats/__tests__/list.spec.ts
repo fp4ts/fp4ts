@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Identity,
   Either,
@@ -1242,7 +1242,7 @@ describe('List', () => {
     const traversableTests = TraversableSuite(List.Traversable);
     checkAll(
       'traversable<List>',
-      traversableTests.traversable<number, number, number, EvalK, EvalK>(
+      traversableTests.traversable<number, number, number, EvalF, EvalF>(
         fc.integer(),
         fc.integer(),
         fc.integer(),

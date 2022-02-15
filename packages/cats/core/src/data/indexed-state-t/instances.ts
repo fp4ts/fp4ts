@@ -12,37 +12,37 @@ import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 import { Either, Right, Left } from '../either';
 
-import type { IndexedStateTK } from './index-state-t';
+import type { IndexedStateTF } from './index-state-t';
 import { bimap_, contramap_, dimap_, flatMap_, map_, run_ } from './operators';
 import { IndexedStateT } from './algebra';
 import { liftF, pure } from './constructors';
 
 export const indexedStateTFunctor: <F, SA, SB>(
   F: Functor<F>,
-) => Functor<$<IndexedStateTK, [F, SA, SB]>> = F =>
+) => Functor<$<IndexedStateTF, [F, SA, SB]>> = F =>
   Functor.of({ map_: map_(F) });
 
 export const indexedStateTContravariant: <F, SB, A>(
   F: Functor<F>,
-) => Contravariant<λ<IndexedStateTK, [Fix<F>, α, Fix<SB>, Fix<A>]>> = F =>
+) => Contravariant<λ<IndexedStateTF, [Fix<F>, α, Fix<SB>, Fix<A>]>> = F =>
   Contravariant.of({ contramap_: contramap_(F) });
 
 export const indexedStateTBifunctor: <F, SA>(
   F: Functor<F>,
-) => Bifunctor<$<IndexedStateTK, [F, SA]>> = F =>
+) => Bifunctor<$<IndexedStateTF, [F, SA]>> = F =>
   Bifunctor.of({ bimap_: bimap_(F) });
 
 export const indexedStateTProfunctor: <F, V>(
   F: Functor<F>,
-) => Profunctor<λ<IndexedStateTK, [Fix<F>, α, β, Fix<V>]>> = F =>
+) => Profunctor<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>> = F =>
   Profunctor.of({ dimap_: dimap_(F) });
 
 export const indexedStateTStrong: <F, V>(
   F: Monad<F>,
-) => Strong<λ<IndexedStateTK, [Fix<F>, α, β, Fix<V>]>> = <F, V>(
+) => Strong<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>> = <F, V>(
   F: Monad<F>,
 ) => {
-  const self = Strong.of<λ<IndexedStateTK, [Fix<F>, α, β, Fix<V>]>>({
+  const self = Strong.of<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>>({
     ...indexedStateTProfunctor(F),
 
     first: <A, B, C>(
@@ -69,8 +69,8 @@ export const indexedStateTStrong: <F, V>(
 
 export const indexedStateTMonad: <F, S>(
   F: Monad<F>,
-) => Monad<$<IndexedStateTK, [F, S, S]>> = <F, S>(F: Monad<F>) =>
-  Monad.of<$<IndexedStateTK, [F, S, S]>>({
+) => Monad<$<IndexedStateTF, [F, S, S]>> = <F, S>(F: Monad<F>) =>
+  Monad.of<$<IndexedStateTF, [F, S, S]>>({
     ...indexedStateTFunctor(F),
 
     pure: pure(F),
@@ -97,10 +97,10 @@ export const indexedStateTMonad: <F, S>(
 
 export const indexedStateTMonadError: <F, S, E>(
   F: MonadError<F, E>,
-) => MonadError<$<IndexedStateTK, [F, S, S]>, E> = <F, S, E>(
+) => MonadError<$<IndexedStateTF, [F, S, S]>, E> = <F, S, E>(
   F: MonadError<F, E>,
 ) =>
-  MonadError.of<$<IndexedStateTK, [F, S, S]>, E>({
+  MonadError.of<$<IndexedStateTF, [F, S, S]>, E>({
     ...indexedStateTMonad<F, S>(F),
 
     throwError: e => liftF(F)(F.throwError(e)),

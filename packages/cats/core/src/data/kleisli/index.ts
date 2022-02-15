@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Kleisli, KleisliK } from './kleisli';
+export { Kleisli, KleisliF } from './kleisli';

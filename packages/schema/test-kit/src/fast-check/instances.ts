@@ -6,9 +6,9 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
-import { ArbitraryK } from './arbitrary';
+import { ArbitraryF } from './arbitrary';
 
-export const arbitrarySchemable: Lazy<Schemable<ArbitraryK>> = lazyVal(() =>
+export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
   Schemable.of({
     array: x => fc.array(x),
     string: fc.string(),
@@ -23,18 +23,18 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryK>> = lazyVal(() =>
     sum: (tag => (xs: any) =>
       fc.oneof(
         Object.keys(xs).map(k => fc.record(xs[k])) as any,
-      )) as Schemable<ArbitraryK>['sum'],
-    product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryK>['product'],
+      )) as Schemable<ArbitraryF>['sum'],
+    product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryF>['product'],
   }),
 );
 
-export const arbitraryRefining: Lazy<Refining<ArbitraryK>> = lazyVal(() =>
+export const arbitraryRefining: Lazy<Refining<ArbitraryF>> = lazyVal(() =>
   Refining.of({
-    refine_: ((arb, p) => arb.filter(p)) as Refining<ArbitraryK>['refine_'],
+    refine_: ((arb, p) => arb.filter(p)) as Refining<ArbitraryF>['refine_'],
   }),
 );
 
-export const arbitraryConstraining: Lazy<Constraining<ArbitraryK>> = lazyVal(
+export const arbitraryConstraining: Lazy<Constraining<ArbitraryF>> = lazyVal(
   () =>
     Constraining.of({
       ...arbitrarySchemable(),
@@ -43,10 +43,10 @@ export const arbitraryConstraining: Lazy<Constraining<ArbitraryK>> = lazyVal(
       max_: (fa, n) => fa.filter(x => x <= n),
       maxExclusive_: (fa, n) => fa.filter(x => x < n),
       nonEmpty: (<A>(fa: Arbitrary<string | A[]>) =>
-        fa.filter(x => x.length > 0)) as Constraining<ArbitraryK>['nonEmpty'],
+        fa.filter(x => x.length > 0)) as Constraining<ArbitraryF>['nonEmpty'],
       minLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
-        fa.filter(x => x.length <= n)) as Constraining<ArbitraryK>['nonEmpty'],
+        fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
       maxLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
-        fa.filter(x => x.length <= n)) as Constraining<ArbitraryK>['nonEmpty'],
+        fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
     }),
 );

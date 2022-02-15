@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { Option, OptionK } from './option';
+export { Option, OptionF as OptionK } from './option';

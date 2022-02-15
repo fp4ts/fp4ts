@@ -45,7 +45,7 @@ import {
   unsafeRunToPromise_,
 } from './unsafe';
 import { uncancelable } from './constructors';
-import type { IoK } from './io';
+import type { IOF } from './io';
 
 declare module './algebra' {
   interface IO<A> {
@@ -59,7 +59,7 @@ declare module './algebra' {
 
     timeoutTo: <B = A>(ms: number, iob: IO<B>) => IO<B>;
 
-    readonly background: Resource<IoK, IO<IOOutcome<A>>>;
+    readonly background: Resource<IOF, IO<IOOutcome<A>>>;
 
     executeOn: (ec: ExecutionContext) => IO<A>;
 
@@ -153,7 +153,7 @@ IO.prototype.timeoutTo = function <A>(
 };
 
 Object.defineProperty(IO.prototype, 'background', {
-  get<A>(this: IO<A>): Resource<IoK, IO<IOOutcome<A>>> {
+  get<A>(this: IO<A>): Resource<IOF, IO<IOOutcome<A>>> {
     return background(this);
   },
 });

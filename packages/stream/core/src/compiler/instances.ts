@@ -4,12 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { Identity, IdentityK, None, Some } from '@fp4ts/cats';
+import { Identity, IdentityF, None, Some } from '@fp4ts/cats';
 import { Ref, Sync, Concurrent, SyncIO } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
-import { PureK } from '../pure';
+import { PureF } from '../pure';
 import { Compiler } from './compiler';
 import { CompilerTarget } from './target';
 import { InterruptContext } from '../internal';
@@ -36,11 +36,11 @@ export const compilerConcurrentTarget = <F>(
   F: Concurrent<F, Error>,
 ): Compiler<F, F> => compilerTargetInstance(concurrentTarget(F));
 
-export const compilerPureInstance: Lazy<Compiler<PureK, IdentityK>> = lazyVal(
+export const compilerPureInstance: Lazy<Compiler<PureF, IdentityF>> = lazyVal(
   () => ({
     target: Identity.Monad,
     compile:
-      <O, B>(pull: Pull<PureK, O, void>, init: B) =>
+      <O, B>(pull: Pull<PureF, O, void>, init: B) =>
       (foldChunk: (b: B, c: Chunk<O>) => B): Identity<B> =>
         compilerSyncTarget(SyncIO.Sync)
           .compile(
@@ -51,11 +51,11 @@ export const compilerPureInstance: Lazy<Compiler<PureK, IdentityK>> = lazyVal(
   }),
 );
 
-export const compilerIdentityInstance: Lazy<Compiler<IdentityK, IdentityK>> =
+export const compilerIdentityInstance: Lazy<Compiler<IdentityF, IdentityF>> =
   lazyVal(() => ({
     target: Identity.Monad,
     compile:
-      <O, B>(pull: Pull<IdentityK, O, void>, init: B) =>
+      <O, B>(pull: Pull<IdentityF, O, void>, init: B) =>
       (foldChunk: (b: B, c: Chunk<O>) => B): Identity<B> =>
         compilerSyncTarget(SyncIO.Sync)
           .compile(

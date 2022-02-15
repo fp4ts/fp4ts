@@ -21,7 +21,7 @@ interface FreeObj {
   pure<F, A>(a: A): Free<F, A>;
   suspend<F, A>(a: Kind<F, [A]>): Free<F, A>;
 
-  Monad<F>(): Monad<$<FreeK, [F]>>;
+  Monad<F>(): Monad<$<FreeF, [F]>>;
 }
 
 Free.pure = pure;
@@ -30,6 +30,6 @@ Free.Monad = freeMonad;
 
 // HKT
 
-export interface FreeK extends TyK<[unknown, unknown]> {
+export interface FreeF extends TyK<[unknown, unknown]> {
   [$type]: Free<TyVar<this, 0>, TyVar<this, 1>>;
 }

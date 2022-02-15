@@ -15,14 +15,14 @@ import {
   Option,
   Vector,
   Ior,
-  IdentityK,
+  IdentityF,
   FunctionK,
 } from '@fp4ts/cats';
 import {
   SyncIO,
-  SyncIoK,
+  SyncIOF,
   IO,
-  IoK,
+  IOF,
   Sync,
   Concurrent,
   Temporal,
@@ -126,7 +126,7 @@ import {
   enqueueNoneTerminatedChunks_,
   mapK_,
 } from './operators';
-import { PureK } from '../pure';
+import { PureF } from '../pure';
 import { CompileOps } from './compile-ops';
 
 declare module './algebra' {
@@ -338,17 +338,17 @@ declare module './algebra' {
 
     mapK<G>(nt: FunctionK<F, G>): Stream<G, A>;
 
-    compile(this: Stream<PureK, A>): CompileOps<PureK, IdentityK, A>;
+    compile(this: Stream<PureF, A>): CompileOps<PureF, IdentityF, A>;
     compile<G>(compiler: Compiler<F, G>): CompileOps<F, G, A>;
 
-    compileSync(this: Stream<SyncIoK, A>): CompileOps<SyncIoK, SyncIoK, A>;
+    compileSync(this: Stream<SyncIOF, A>): CompileOps<SyncIOF, SyncIOF, A>;
     compileSync(F: Sync<F>): CompileOps<F, F, A>;
 
-    compileConcurrent(this: Stream<IoK, A>): CompileOps<IoK, IoK, A>;
+    compileConcurrent(this: Stream<IOF, A>): CompileOps<IOF, IOF, A>;
     compileConcurrent(F: Concurrent<F, Error>): CompileOps<F, F, A>;
 
-    toList: F extends PureK ? List<A> : never;
-    toVector: F extends PureK ? Vector<A> : never;
+    toList: F extends PureF ? List<A> : never;
+    toVector: F extends PureF ? Vector<A> : never;
   }
 }
 
@@ -744,13 +744,13 @@ Stream.prototype.compileConcurrent = function (F = IO.Concurrent) {
 };
 
 Object.defineProperty(Stream.prototype, 'toList', {
-  get<A>(this: Stream<PureK, A>): List<A> {
+  get<A>(this: Stream<PureF, A>): List<A> {
     return this.compile().toList;
   },
 });
 
 Object.defineProperty(Stream.prototype, 'toVector', {
-  get<A>(this: Stream<PureK, A>): Vector<A> {
+  get<A>(this: Stream<PureF, A>): Vector<A> {
     return this.compile().toVector;
   },
 });

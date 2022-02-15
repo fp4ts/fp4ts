@@ -33,7 +33,7 @@ interface SetObj {
   // -- Instances
   Eq<A>(O: Eq<A>): Eq<Set<A>>;
   Monoid<A>(O: Ord<A>): Monoid<Set<A>>;
-  Foldable: Foldable<SetK>;
+  Foldable: Foldable<SetF>;
 }
 
 Set.fromArray = function (O: any, xs?: any) {
@@ -56,6 +56,10 @@ Object.defineProperty(Set, 'Foldable', {
 
 // -- HKT
 
-export interface SetK extends TyK<[unknown]> {
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
+export interface SetF extends TyK<[unknown]> {
   [$type]: Set<TyVar<this, 0>>;
 }

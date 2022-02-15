@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $ } from '@fp4ts/core';
-import { ConstK, IdentityK } from '@fp4ts/cats';
+import { ConstF, IdentityF } from '@fp4ts/cats';
 import { ProductK, StructK, SumK } from '../kinds';
 import { SchemaK as SchemaKBase } from './algebra';
 import { Literal } from '../literal';
@@ -29,11 +29,11 @@ export type KindOf<S> = S extends SchemaK<infer F> ? F : never;
 interface SchemaKObj {
   literal<A extends [Literal, ...Literal[]]>(
     ...xs: A
-  ): SchemaK<$<ConstK, [A[number]]>>;
-  boolean: SchemaK<$<ConstK, [boolean]>>;
-  number: SchemaK<$<ConstK, [number]>>;
-  string: SchemaK<$<ConstK, [string]>>;
-  par: SchemaK<IdentityK>;
+  ): SchemaK<$<ConstF, [A[number]]>>;
+  boolean: SchemaK<$<ConstF, [boolean]>>;
+  number: SchemaK<$<ConstF, [number]>>;
+  string: SchemaK<$<ConstF, [string]>>;
+  par: SchemaK<IdentityF>;
 
   struct<F extends {}>(fs: {
     [k in keyof F]: SchemaK<F[k]>;

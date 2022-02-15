@@ -6,11 +6,11 @@
 import { $, lazyVal } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats-core';
 
-import { FreeK } from './free';
+import { FreeF } from './free';
 import { flatMap_, map_, tailRecM_ } from './operators';
 import { pure } from './constructors';
 
-export const freeMonad: <F>() => Monad<$<FreeK, [F]>> = lazyVal(() =>
+export const freeMonad: <F>() => Monad<$<FreeF, [F]>> = lazyVal(() =>
   Monad.of({
     pure: pure,
     map_: map_,

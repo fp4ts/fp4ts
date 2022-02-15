@@ -40,14 +40,14 @@ import {
 import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
-import { HandlerK } from './internal/handler';
+import { HandlerF } from './internal/handler';
 
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
 
 export interface CodingDerivates<F, x, z> {}
 
-export type Server<F, api> = ServerT<F, api, HandlerK>;
+export type Server<F, api> = ServerT<F, api, HandlerF>;
 
 // prettier-ignore
 export type ServerT<F, api, m> =

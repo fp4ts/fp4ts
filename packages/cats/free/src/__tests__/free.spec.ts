@@ -9,10 +9,10 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK, Eval, Monad } from '@fp4ts/cats-core';
 import {
   State,
-  StateK,
-  OptionK,
+  StateF,
+  OptionF,
   Option,
-  IdentityK,
+  IdentityF,
   Identity,
 } from '@fp4ts/cats-core/lib/data';
 import { MonadSuite } from '@fp4ts/cats-laws';
@@ -39,13 +39,13 @@ class WriteLine extends TestConsoleBase<string> {
 }
 
 type TestConsole<A> = ReadLine | WriteLine;
-interface TestConsoleK extends TyK<[unknown]> {
+interface TestConsoleF extends TyK<[unknown]> {
   [$type]: TestConsole<TyVar<this, 0>>;
 }
 
 describe('Free', () => {
   type S = [string[], string[]];
-  const nt: FunctionK<TestConsoleK, $<StateK, [S]>> = <A>(
+  const nt: FunctionK<TestConsoleF, $<StateF, [S]>> = <A>(
     c: TestConsole<A>,
   ): State<S, A> => {
     if (c.tag === 'readLine') {
@@ -60,12 +60,12 @@ describe('Free', () => {
     >;
   };
 
-  const lift = <A>(c: TestConsole<A>): Free<TestConsoleK, A> => Free.suspend(c);
+  const lift = <A>(c: TestConsole<A>): Free<TestConsoleF, A> => Free.suspend(c);
   const writeLine = (line: string) => lift<void>(new WriteLine(line));
   const readLine = lift(ReadLine);
 
   it('should translate to state', () => {
-    const program: Free<TestConsoleK, void> = Free.suspend<TestConsoleK, void>(
+    const program: Free<TestConsoleF, void> = Free.suspend<TestConsoleF, void>(
       new WriteLine('What is your name?'),
     )
       .flatMap(() => readLine)
@@ -73,7 +73,7 @@ describe('Free', () => {
 
     const resultState = program.mapK(
       // TODO: Fix?
-      State.Monad<S>() as any as Monad<$<StateK, [S]>>,
+      State.Monad<S>() as any as Monad<$<StateF, [S]>>,
     )(nt);
 
     const [s, a] = resultState.run(Eval.Monad)([['James'], []]).value;
@@ -81,7 +81,7 @@ describe('Free', () => {
     expect(a).toBeUndefined();
   });
 
-  const identityMonadTests = MonadSuite(Free.Monad<IdentityK>());
+  const identityMonadTests = MonadSuite(Free.Monad<IdentityF>());
   checkAll(
     'Monad<$<Free, [IdentityK]>>',
     identityMonadTests.monad(
@@ -95,13 +95,13 @@ describe('Free', () => {
       Eq.primitive,
       x => fp4tsFree(x, x),
       <X>(E: Eq<X>) =>
-        Eq.by<Free<IdentityK, X>, Identity<X>>(E, f =>
+        Eq.by<Free<IdentityF, X>, Identity<X>>(E, f =>
           f.mapK(Identity.Monad)(id),
         ),
     ),
   );
 
-  const monadTests = MonadSuite(Free.Monad<OptionK>());
+  const monadTests = MonadSuite(Free.Monad<OptionF>());
   checkAll(
     'Monad<$<Free, [OptionK]>>',
     monadTests.monad(
@@ -115,7 +115,7 @@ describe('Free', () => {
       Eq.primitive,
       x => fp4tsFree(A.fp4tsOption(x), x),
       <X>(E: Eq<X>) =>
-        Eq.by<Free<OptionK, X>, Option<X>>(Option.Eq(E), f =>
+        Eq.by<Free<OptionF, X>, Option<X>>(Option.Eq(E), f =>
           f.mapK(Option.Monad)(id),
         ),
     ),

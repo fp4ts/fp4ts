@@ -6,10 +6,10 @@
 import { Kind } from '@fp4ts/core';
 import {
   Either,
-  IdentityK,
+  IdentityF,
   Ior,
   List,
-  ListK,
+  ListF,
   None,
   Option,
   Semigroup,
@@ -42,7 +42,7 @@ export interface SelectHeader<F, A> {
   from(hs: List<RawHeader>): Option<Ior<List<Error>, Kind<F, [A]>>>;
 }
 
-export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListK, A> {
+export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListF, A> {
   public constructor(public readonly header: Header<A, 'recurring'>) {}
 
   toRaw(fa: List<A>): List<RawHeader> {
@@ -78,7 +78,7 @@ export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListK, A> {
   }
 }
 
-export class SingleSelectHeader<A> implements SelectHeader<IdentityK, A> {
+export class SingleSelectHeader<A> implements SelectHeader<IdentityF, A> {
   public constructor(public readonly header: Header<A, 'single'>) {}
 
   toRaw(fa: A): List<RawHeader> {
@@ -102,7 +102,7 @@ export class SingleSelectHeader<A> implements SelectHeader<IdentityK, A> {
 }
 
 export class RecurringSelectHeaderMerge<A>
-  implements SelectHeader<IdentityK, A>
+  implements SelectHeader<IdentityF, A>
 {
   public constructor(
     public readonly header: Header<A, 'recurring'>,

@@ -32,20 +32,20 @@ import {
   zipAll_,
 } from './operators';
 
-import type { VectorK } from './vector';
+import type { VectorF } from './vector';
 import { pure, tailRecM_ } from './constructors';
 
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
 
-export const vectorMonoidK: Lazy<MonoidK<VectorK>> = lazyVal(() =>
+export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazyVal(() =>
   MonoidK.of({
     emptyK: () => Vector.empty,
     combineK_: (x, y) => x.concat(y()),
   }),
 );
 
-export const vectorAlign: Lazy<Align<VectorK>> = lazyVal(() =>
+export const vectorAlign: Lazy<Align<VectorF>> = lazyVal(() =>
   Align.of({
     functor: vectorFunctor(),
     align_: align_,
@@ -59,10 +59,10 @@ export const vectorAlign: Lazy<Align<VectorK>> = lazyVal(() =>
   }),
 );
 
-export const vectorFunctor: Lazy<Functor<VectorK>> = lazyVal(() =>
+export const vectorFunctor: Lazy<Functor<VectorF>> = lazyVal(() =>
   Functor.of({ map_: (xs, f) => xs.map(f) }),
 );
-export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = lazyVal(() =>
+export const vectorFunctorFilter: Lazy<FunctorFilter<VectorF>> = lazyVal(() =>
   FunctorFilter.of({
     ...vectorFunctor(),
     mapFilter_: collect_,
@@ -70,15 +70,15 @@ export const vectorFunctorFilter: Lazy<FunctorFilter<VectorK>> = lazyVal(() =>
   }),
 );
 
-export const vectorApplicative: Lazy<Applicative<VectorK>> = lazyVal(() =>
+export const vectorApplicative: Lazy<Applicative<VectorF>> = lazyVal(() =>
   vectorMonad(),
 );
 
-export const vectorAlternative: Lazy<Alternative<VectorK>> = lazyVal(() =>
+export const vectorAlternative: Lazy<Alternative<VectorF>> = lazyVal(() =>
   Alternative.of({ ...vectorMonoidK(), ...vectorApplicative() }),
 );
 
-export const vectorMonad: Lazy<Monad<VectorK>> = lazyVal(() =>
+export const vectorMonad: Lazy<Monad<VectorF>> = lazyVal(() =>
   Monad.of({
     ...vectorFunctor(),
     pure: pure,
@@ -87,7 +87,7 @@ export const vectorMonad: Lazy<Monad<VectorK>> = lazyVal(() =>
   }),
 );
 
-export const vectorFoldable: Lazy<Foldable<VectorK>> = lazyVal(() =>
+export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
   Foldable.of({
     all_: all_,
     any_: any_,
@@ -114,7 +114,7 @@ export const vectorFoldable: Lazy<Foldable<VectorK>> = lazyVal(() =>
   }),
 );
 
-export const vectorTraversable: Lazy<Traversable<VectorK>> = lazyVal(() =>
+export const vectorTraversable: Lazy<Traversable<VectorF>> = lazyVal(() =>
   Traversable.of({
     ...vectorFoldable(),
     ...vectorFunctor(),

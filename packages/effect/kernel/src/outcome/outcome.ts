@@ -36,6 +36,6 @@ Outcome.Eq = outcomeEq;
 
 // -- HKT
 
-export interface OutcomeK extends TyK<[unknown, unknown, unknown]> {
+export interface OutcomeF extends TyK<[unknown, unknown, unknown]> {
   [$type]: Outcome<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

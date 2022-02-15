@@ -40,18 +40,18 @@ import {
   finalize_,
   both_,
 } from './operators';
-import { ResourceK } from './resource';
+import { ResourceF } from './resource';
 
-export const resourceApplicative: <F>() => Applicative<$<ResourceK, [F]>> =
+export const resourceApplicative: <F>() => Applicative<$<ResourceF, [F]>> =
   lazyVal(() => Monad.deriveApplicative(resourceMonad()));
 
-export const resourceMonad: <F>() => Monad<$<ResourceK, [F]>> = lazyVal(() =>
+export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazyVal(() =>
   Monad.of({ pure: pure, flatMap_: flatMap_, tailRecM_: tailRecM_ }),
 );
 
 export const resourceMonadCancel: <F>(
   F: MonadCancel<F, Error>,
-) => MonadCancel<$<ResourceK, [F]>, Error> = F =>
+) => MonadCancel<$<ResourceF, [F]>, Error> = F =>
   MonadCancel.of({
     ...resourceMonad(),
     throwError: throwError(F),
@@ -63,7 +63,7 @@ export const resourceMonadCancel: <F>(
     finalize_: finalize_(F),
   });
 
-export const resourceClock: <F>(F: Clock<F>) => Clock<$<ResourceK, [F]>> = F =>
+export const resourceClock: <F>(F: Clock<F>) => Clock<$<ResourceF, [F]>> = F =>
   Clock.of({
     monotonic: monotonic(F),
     realTime: realTime(F),
@@ -72,7 +72,7 @@ export const resourceClock: <F>(F: Clock<F>) => Clock<$<ResourceK, [F]>> = F =>
 
 export const resourceConcurrent: <F>(
   F: Concurrent<F, Error>,
-) => Concurrent<$<ResourceK, [F]>, Error> = F =>
+) => Concurrent<$<ResourceF, [F]>, Error> = F =>
   Concurrent.of({
     ...resourceMonadCancel(F),
     unique: evalF(F.unique),
@@ -86,14 +86,14 @@ export const resourceConcurrent: <F>(
 
 export const resourceTemporal: <F>(
   F: Temporal<F, Error>,
-) => Temporal<$<ResourceK, [F]>, Error> = F =>
+) => Temporal<$<ResourceF, [F]>, Error> = F =>
   Temporal.of({
     ...resourceClock(F),
     ...resourceConcurrent(F),
     sleep: sleep(F),
   });
 
-export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceK, [F]>> = (() => {
+export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceF, [F]>> = (() => {
   const cache = new Map<any, Sync<any>>();
   return <F>(F: Sync<F>) => {
     if (cache.has(F)) {
@@ -110,7 +110,7 @@ export const resourceSync: <F>(F: Sync<F>) => Sync<$<ResourceK, [F]>> = (() => {
   };
 })();
 
-export const resourceAsync: <F>(F: Async<F>) => Async<$<ResourceK, [F]>> =
+export const resourceAsync: <F>(F: Async<F>) => Async<$<ResourceF, [F]>> =
   (() => {
     const cache = new Map<any, Async<any>>();
     return <F>(F: Async<F>) => {

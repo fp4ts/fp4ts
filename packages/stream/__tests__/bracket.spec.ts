@@ -7,7 +7,7 @@ import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { throwError } from '@fp4ts/core';
 import { List } from '@fp4ts/cats';
-import { IO, IoK, ExitCase, Ref } from '@fp4ts/effect';
+import { IO, IOF, ExitCase, Ref } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { Counter } from './counter';
@@ -21,8 +21,8 @@ describe('Stream Bracket', () => {
   type BracketEvent = Acquired | Released;
 
   const recordBracketEvents = (
-    events: Ref<IoK, List<BracketEvent>>,
-  ): Stream<IoK, void> =>
+    events: Ref<IOF, List<BracketEvent>>,
+  ): Stream<IOF, void> =>
     Stream.bracket(
       events.update(es => es['::+'](Acquired)),
       () => events.update(es => es['::+'](Released)),
@@ -32,7 +32,7 @@ describe('Stream Bracket', () => {
     err instanceof TestError ? IO.unit : IO.throwError(err);
 
   describe('single bracket', () => {
-    const singleBracketTest = <A>(use: Stream<IoK, A>): IO<void> =>
+    const singleBracketTest = <A>(use: Stream<IOF, A>): IO<void> =>
       IO.ref<List<BracketEvent>>(List.empty).flatMap(events =>
         recordBracketEvents(events)
           .evalMap(() =>
@@ -68,8 +68,8 @@ describe('Stream Bracket', () => {
 
   describe('bracket concat with bracket', () => {
     const concatBracketTest = <A>(
-      use1: Stream<IoK, A>,
-      use2: Stream<IoK, A>,
+      use1: Stream<IOF, A>,
+      use2: Stream<IOF, A>,
     ): IO<void> =>
       IO.ref<List<BracketEvent>>(List.empty).flatMap(events =>
         recordBracketEvents(events)
@@ -107,14 +107,14 @@ describe('Stream Bracket', () => {
         (s0, failOnFinalize) =>
           Counter.of(IO.Sync)
             .flatMap<boolean>(counter => {
-              const interMost: Stream<IoK, number> = failOnFinalize
-                ? Stream.bracket<IoK, void>(counter.increment, () =>
+              const interMost: Stream<IOF, number> = failOnFinalize
+                ? Stream.bracket<IOF, void>(counter.increment, () =>
                     counter.decrement['>>>'](IO.throwError(new TestError())),
                   ).drain
                 : Stream.throwError(new TestError());
 
               const nested = s0.foldRight(interMost, (i, inner) =>
-                Stream.bracket<IoK, void>(
+                Stream.bracket<IOF, void>(
                   counter.increment,
                   () => counter.decrement,
                 ).flatMap(() => Stream(i)['+++'](inner)),
@@ -138,7 +138,7 @@ describe('Stream Bracket', () => {
         (s, i, j, k) =>
           Counter.of(IO.Sync)
             .flatMap(counter => {
-              const bracketed = Stream.bracket<IoK, void>(
+              const bracketed = Stream.bracket<IOF, void>(
                 counter.increment,
                 () => counter.decrement.void,
               ).flatMap(() => s);
@@ -170,7 +170,7 @@ describe('Stream Bracket', () => {
     IO.defer(() => {
       const buffer: string[] = [];
 
-      return Stream.bracket<IoK, void>(
+      return Stream.bracket<IOF, void>(
         IO(() => buffer.push('Acquired')).void,
         () => IO(() => buffer.push('Released')).void,
       )
@@ -200,9 +200,9 @@ describe('Stream Bracket', () => {
     Counter.of(IO.Sync)
       .flatMap(counter =>
         Stream.range(0, bracketsInSequence)
-          .covary<IoK>()
+          .covary<IOF>()
           .flatMap(() =>
-            Stream.bracket<IoK, void>(
+            Stream.bracket<IOF, void>(
               counter.increment,
               () => counter.decrement,
             ).flatMap(() => Stream(1)),
@@ -215,7 +215,7 @@ describe('Stream Bracket', () => {
       .unsafeRunToPromise());
 
   it('should evaluates bracketed stream twice', () => {
-    const s = Stream.bracket<IoK, void>(
+    const s = Stream.bracket<IOF, void>(
       IO.unit,
       () => IO.unit,
     ).compileConcurrent().drain;
@@ -229,11 +229,11 @@ describe('Stream Bracket', () => {
           [...new Array(10).keys()]
             .reduce(
               (acc, i) =>
-                Stream.bracket<IoK, number>(
+                Stream.bracket<IOF, number>(
                   IO(() => i),
                   () => track.update(xs => xs['::+'](i)),
                 ).flatMap(() => acc),
-              Stream(0).covary<IoK>(),
+              Stream(0).covary<IOF>(),
             )
             .compileConcurrent()
             .drain.flatMap(() =>
@@ -254,12 +254,12 @@ describe('Stream Bracket', () => {
           [...new Array(10).keys()]
             .reduce(
               (acc, i) =>
-                Stream.bracket<IoK, number>(
+                Stream.bracket<IOF, number>(
                   IO(() => i),
                   () => track.update(xs => xs['::+'](i)),
                 ).flatMap(() => acc),
               Stream(1)
-                .covary<IoK>()
+                .covary<IOF>()
                 .map(() => throwError(new TestError())),
             )
             .compileConcurrent()
@@ -281,11 +281,11 @@ describe('Stream Bracket', () => {
     it.ticked(
       'should propagate failed error closing scope on right',
       ticker => {
-        const s1 = Stream.bracket<IoK, number>(
+        const s1 = Stream.bracket<IOF, number>(
           IO(() => 1),
           () => IO.unit,
         );
-        const s2 = Stream.bracket<IoK, string>(
+        const s2 = Stream.bracket<IOF, string>(
           IO(() => 'a'),
           () => IO.throwError(new TestError()),
         );
@@ -298,11 +298,11 @@ describe('Stream Bracket', () => {
     );
 
     it.ticked('should propagate failed error closing scope on left', ticker => {
-      const s1 = Stream.bracket<IoK, number>(
+      const s1 = Stream.bracket<IOF, number>(
         IO(() => 1),
         () => IO.throwError(new TestError()),
       );
-      const s2 = Stream.bracket<IoK, string>(
+      const s2 = Stream.bracket<IOF, string>(
         IO(() => 'a'),
         () => IO.unit,
       );

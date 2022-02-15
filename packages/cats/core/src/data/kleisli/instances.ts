@@ -19,7 +19,7 @@ import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 
 import { Kleisli } from './algebra';
-import type { KleisliK } from './kleisli';
+import type { KleisliF } from './kleisli';
 import {
   adapt_,
   ap_,
@@ -35,21 +35,21 @@ import { liftF, pure, suspend } from './constructors';
 
 export const kleisliDefer: <F, A>(
   F: Defer<F>,
-) => Defer<$<KleisliK, [F, A]>> = F =>
+) => Defer<$<KleisliF, [F, A]>> = F =>
   Defer.of({ defer: fa => new Kleisli(r => F.defer(() => fa().run(r))) });
 
 export const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,
-) => SemigroupK<$<KleisliK, [F, A]>> = <F, A>(F: SemigroupK<F>) =>
-  SemigroupK.of<$<KleisliK, [F, A]>>({
+) => SemigroupK<$<KleisliF, [F, A]>> = <F, A>(F: SemigroupK<F>) =>
+  SemigroupK.of<$<KleisliF, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: () => Kleisli<F, A, B>) =>
       suspend((a: A) => F.combineK_<B>(x.run(a), () => y().run(a))),
   });
 
 export const kleisliMonoidK: <F, A>(
   F: MonoidK<F>,
-) => MonoidK<$<KleisliK, [F, A]>> = <F, A>(F: MonoidK<F>) =>
-  MonoidK.of<$<KleisliK, [F, A]>>({
+) => MonoidK<$<KleisliF, [F, A]>> = <F, A>(F: MonoidK<F>) =>
+  MonoidK.of<$<KleisliF, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: () => Kleisli<F, A, B>) =>
       suspend((a: A) => F.combineK_<B>(x.run(a), () => y().run(a))),
 
@@ -57,7 +57,7 @@ export const kleisliMonoidK: <F, A>(
   });
 
 export const kleisliContravariant: <F, B>() => Contravariant<
-  λ<KleisliK, [Fix<F>, α, Fix<B>]>
+  λ<KleisliF, [Fix<F>, α, Fix<B>]>
 > = () =>
   Contravariant.of({
     contramap_: (fa, f) => adapt_(fa, f) as any,
@@ -65,14 +65,14 @@ export const kleisliContravariant: <F, B>() => Contravariant<
 
 export const kleisliFunctor: <F, A>(
   F: Functor<F>,
-) => Functor<$<KleisliK, [F, A]>> = F =>
+) => Functor<$<KleisliF, [F, A]>> = F =>
   Functor.of({
     map_: map_(F),
   });
 
 export const kleisliFunctorFilter: <F, A>(
   F: FunctorFilter<F>,
-) => FunctorFilter<$<KleisliK, [F, A]>> = F =>
+) => FunctorFilter<$<KleisliF, [F, A]>> = F =>
   FunctorFilter.of({
     ...kleisliFunctor(F),
     mapFilter_: (fa, f) => suspend(a => F.mapFilter_(fa.run(a), f)),
@@ -80,7 +80,7 @@ export const kleisliFunctorFilter: <F, A>(
 
 export const kleisliApply: <F, A>(
   F: Apply<F>,
-) => Apply<$<KleisliK, [F, A]>> = F =>
+) => Apply<$<KleisliF, [F, A]>> = F =>
   Apply.of({
     ...kleisliFunctor(F),
     ap_: ap_(F),
@@ -92,7 +92,7 @@ export const kleisliApply: <F, A>(
 
 export const kleisliApplicative: <F, A>(
   F: Applicative<F>,
-) => Applicative<$<KleisliK, [F, A]>> = (() => {
+) => Applicative<$<KleisliF, [F, A]>> = (() => {
   const cache = new Map<any, Applicative<any>>();
   return <F>(F: Applicative<F>) => {
     if (cache.has(F)) {
@@ -110,7 +110,7 @@ export const kleisliApplicative: <F, A>(
 
 export const kleisliAlternative: <F, A>(
   F: Alternative<F>,
-) => Alternative<$<KleisliK, [F, A]>> = F =>
+) => Alternative<$<KleisliF, [F, A]>> = F =>
   Alternative.of({
     ...kleisliMonoidK(F),
     ...kleisliApplicative(F),
@@ -118,10 +118,10 @@ export const kleisliAlternative: <F, A>(
 
 export const kleisliApplicativeError: <F, A, E>(
   F: ApplicativeError<F, E>,
-) => ApplicativeError<$<KleisliK, [F, A]>, E> = <F, A, E>(
+) => ApplicativeError<$<KleisliF, [F, A]>, E> = <F, A, E>(
   F: ApplicativeError<F, E>,
 ) =>
-  ApplicativeError.of<$<KleisliK, [F, A]>, E>({
+  ApplicativeError.of<$<KleisliF, [F, A]>, E>({
     ...kleisliApplicative(F),
     throwError: <B>(e: E) => liftF(F.throwError<B>(e)),
     handleErrorWith_: (fa, f) =>
@@ -130,14 +130,14 @@ export const kleisliApplicativeError: <F, A, E>(
 
 export const kleisliFlatMap: <F, A>(
   F: Monad<F>,
-) => FlatMap<$<KleisliK, [F, A]>> = F =>
+) => FlatMap<$<KleisliF, [F, A]>> = F =>
   FlatMap.of({
     ...kleisliApply(F),
     flatMap_: flatMap_(F),
     tailRecM_: tailRecM_(F),
   });
 
-export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliK, [F, A]>> =
+export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliF, [F, A]>> =
   (() => {
     const cache = new Map<any, Monad<any>>();
     return <F>(F: Monad<F>) => {
@@ -155,7 +155,7 @@ export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliK, [F, A]>> =
 
 export const kleisliMonadError: <F, A, E>(
   F: MonadError<F, E>,
-) => MonadError<$<KleisliK, [F, A]>, E> = F =>
+) => MonadError<$<KleisliF, [F, A]>, E> = F =>
   MonadError.of({
     ...kleisliMonad(F),
     ...kleisliApplicativeError(F),

@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { Encoder, EncoderK } from './encoder';
+export { Encoder, EncoderF } from './encoder';

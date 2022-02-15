@@ -48,15 +48,15 @@ interface VectorObj {
 
   // -- Instances
   Eq<A>(E: Eq<A>): Eq<Vector<A>>;
-  readonly MonoidK: MonoidK<VectorK>;
-  readonly Align: Align<VectorK>;
-  readonly Functor: Functor<VectorK>;
-  readonly FunctorFilter: FunctorFilter<VectorK>;
-  readonly Applicative: Applicative<VectorK>;
-  readonly Alternative: Alternative<VectorK>;
-  readonly Monad: Monad<VectorK>;
-  readonly Foldable: Foldable<VectorK>;
-  readonly Traversable: Traversable<VectorK>;
+  readonly MonoidK: MonoidK<VectorF>;
+  readonly Align: Align<VectorF>;
+  readonly Functor: Functor<VectorF>;
+  readonly FunctorFilter: FunctorFilter<VectorF>;
+  readonly Applicative: Applicative<VectorF>;
+  readonly Alternative: Alternative<VectorF>;
+  readonly Monad: Monad<VectorF>;
+  readonly Foldable: Foldable<VectorF>;
+  readonly Traversable: Traversable<VectorF>;
 }
 
 Object.defineProperty(Vector, 'empty', {
@@ -118,6 +118,10 @@ Object.defineProperty(Vector, 'Traversable', {
 
 // -- HKT
 
-export interface VectorK extends TyK<[unknown]> {
+/**
+ * @category Type Constructor
+ * @category Collection
+ */
+export interface VectorF extends TyK<[unknown]> {
   [$type]: Vector<TyVar<this, 0>>;
 }

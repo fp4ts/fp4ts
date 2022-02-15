@@ -13,19 +13,19 @@ import {
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 
 export const ArbitraryInstances = {
-  get Schemable(): Schemable<ArbitraryK> {
+  get Schemable(): Schemable<ArbitraryF> {
     return arbitrarySchemable();
   },
-  get Refining(): Refining<ArbitraryK> {
+  get Refining(): Refining<ArbitraryF> {
     return arbitraryRefining();
   },
-  get Constraining(): Constraining<ArbitraryK> {
+  get Constraining(): Constraining<ArbitraryF> {
     return arbitraryConstraining();
   },
 };
 
 // -- HKT
 
-export interface ArbitraryK extends TyK<[unknown]> {
+export interface ArbitraryF extends TyK<[unknown]> {
   [$type]: Arbitrary<TyVar<this, 0>>;
 }

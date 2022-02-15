@@ -32,7 +32,7 @@ import {
   arraySemigroupK,
   arrayTraversable,
 } from './instances';
-import { ArrayK } from './array';
+import { ArrayF } from './array';
 
 export const Array = {
   Align: arrayAlign,
@@ -52,16 +52,16 @@ export const Array = {
 interface Array {
   // -- Instances
   Eq<A>(A: Eq<A>): Eq<A[]>;
-  SemigroupK: SemigroupK<ArrayK>;
-  MonoidK: MonoidK<ArrayK>;
-  Align: Align<ArrayK>;
-  Functor: Functor<ArrayK>;
-  FunctorFilter: FunctorFilter<ArrayK>;
-  Apply: Apply<ArrayK>;
-  Applicative: Applicative<ArrayK>;
-  Alternative: Alternative<ArrayK>;
-  FlatMap: FlatMap<ArrayK>;
-  Monad: Monad<ArrayK>;
-  Foldable: Foldable<ArrayK>;
-  Traversable: Traversable<ArrayK>;
+  SemigroupK: SemigroupK<ArrayF>;
+  MonoidK: MonoidK<ArrayF>;
+  Align: Align<ArrayF>;
+  Functor: Functor<ArrayF>;
+  FunctorFilter: FunctorFilter<ArrayF>;
+  Apply: Apply<ArrayF>;
+  Applicative: Applicative<ArrayF>;
+  Alternative: Alternative<ArrayF>;
+  FlatMap: FlatMap<ArrayF>;
+  Monad: Monad<ArrayF>;
+  Foldable: Foldable<ArrayF>;
+  Traversable: Traversable<ArrayF>;
 }

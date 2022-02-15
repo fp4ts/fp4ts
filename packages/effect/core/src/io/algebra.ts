@@ -6,7 +6,7 @@
 import { Either } from '@fp4ts/cats';
 import { ExecutionContext, Poll, Cont } from '@fp4ts/effect-kernel';
 
-import { IoK } from './io';
+import { IOF } from './io';
 import { IOFiber } from '../io-fiber';
 import { IOOutcome } from '../io-outcome';
 import { TracingEvent } from '../tracing';
@@ -142,7 +142,7 @@ export type Canceled = typeof Canceled;
 export class Uncancelable<A> extends IO<A> {
   public readonly tag = 16;
   public constructor(
-    public readonly body: (p: Poll<IoK>) => IO<A>,
+    public readonly body: (p: Poll<IOF>) => IO<A>,
     public readonly event?: TracingEvent,
   ) {
     super();
@@ -196,7 +196,7 @@ export class UnmaskRunLoop<A> extends IO<A> {
 export class IOCont<K, R> extends IO<R> {
   public readonly tag = 14;
   public constructor(
-    public readonly body: Cont<IoK, K, R>,
+    public readonly body: Cont<IOF, K, R>,
     public readonly event?: TracingEvent,
   ) {
     super();

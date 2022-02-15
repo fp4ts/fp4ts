@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $, Kind } from '@fp4ts/core';
-import { ArrayK, ConstK, FunctionK, IdentityK, OptionK } from '@fp4ts/cats';
+import { ArrayF, ConstF, FunctionK, IdentityF, OptionF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schema } from '../schema';
 import { SchemableK } from '../schemable-k';
@@ -19,7 +19,7 @@ export abstract class SchemaK<F> {
 }
 
 export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
-  $<ConstK, [A[number]]>
+  $<ConstF, [A[number]]>
 > {
   public constructor(private readonly xs: A) {
     super();
@@ -29,75 +29,75 @@ export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
     return Schema.literal(...this.xs);
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstK, [A[number]]>]> {
+  public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [A[number]]>]> {
     return S.literal(...this.xs);
   }
 }
 
-export const BooleanSchemaK: SchemaK<$<ConstK, [boolean]>> =
-  new (class BooleanSchemaK extends SchemaK<$<ConstK, [boolean]>> {
+export const BooleanSchemaK: SchemaK<$<ConstF, [boolean]>> =
+  new (class BooleanSchemaK extends SchemaK<$<ConstF, [boolean]>> {
     public toSchema<A>(sa: Schema<A>): Schema<boolean> {
       return Schema.boolean;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstK, [boolean]>]> {
+    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [boolean]>]> {
       return S.boolean;
     }
   })();
 export type BooleanSchemaK = typeof BooleanSchemaK;
 
-export const NumberSchemaK: SchemaK<$<ConstK, [number]>> =
-  new (class NumberSchemaK extends SchemaK<$<ConstK, [number]>> {
+export const NumberSchemaK: SchemaK<$<ConstF, [number]>> =
+  new (class NumberSchemaK extends SchemaK<$<ConstF, [number]>> {
     public toSchema<A>(sa: Schema<A>): Schema<number> {
       return Schema.number;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstK, [number]>]> {
+    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [number]>]> {
       return S.number;
     }
   })();
 export type NumberSchemaK = typeof NumberSchemaK;
 
-export const StringSchemaK: SchemaK<$<ConstK, [string]>> =
-  new (class StringSchemaK extends SchemaK<$<ConstK, [string]>> {
+export const StringSchemaK: SchemaK<$<ConstF, [string]>> =
+  new (class StringSchemaK extends SchemaK<$<ConstF, [string]>> {
     public toSchema<A>(sa: Schema<A>): Schema<string> {
       return Schema.string;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstK, [string]>]> {
+    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [string]>]> {
       return S.string;
     }
   })();
 export type StringSchemaK = typeof StringSchemaK;
 
-export const ParSchemaK: SchemaK<IdentityK> =
-  new (class ParSchemaK extends SchemaK<IdentityK> {
+export const ParSchemaK: SchemaK<IdentityF> =
+  new (class ParSchemaK extends SchemaK<IdentityF> {
     public toSchema<A>(sa: Schema<A>): Schema<A> {
       return sa;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [IdentityK]> {
+    public interpret<S>(S: SchemableK<S>): Kind<S, [IdentityF]> {
       return S.par;
     }
   })();
 export type ParSchemaK = typeof ParSchemaK;
 
-export class ArraySchemaK<F> extends SchemaK<[ArrayK, F]> {
+export class ArraySchemaK<F> extends SchemaK<[ArrayF, F]> {
   public constructor(private readonly sf: SchemaK<F>) {
     super();
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [[ArrayK, F]]> {
+  public interpret<S>(S: SchemableK<S>): Kind<S, [[ArrayF, F]]> {
     return S.array(this.sf.interpret(S));
   }
 }
 
-export class OptionalSchemaK<F> extends SchemaK<[OptionK, F]> {
+export class OptionalSchemaK<F> extends SchemaK<[OptionF, F]> {
   public constructor(private readonly sf: SchemaK<F>) {
     super();
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [[OptionK, F]]> {
+  public interpret<S>(S: SchemableK<S>): Kind<S, [[OptionF, F]]> {
     return S.optional(this.sf.interpret(S));
   }
 }

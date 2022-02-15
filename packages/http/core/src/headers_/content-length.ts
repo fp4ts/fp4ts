@@ -5,7 +5,7 @@
 
 import {
   Either,
-  IdentityK,
+  IdentityF,
   Left,
   List,
   None,
@@ -34,7 +34,7 @@ interface ContentLengthObj {
   fromNumber(n: number): Option<ContentLength>;
 
   Header: Header<ContentLength, 'single'>;
-  Select: SelectHeader<IdentityK, ContentLength>;
+  Select: SelectHeader<IdentityF, ContentLength>;
 }
 
 Object.defineProperty(ContentLength, 'zero', {

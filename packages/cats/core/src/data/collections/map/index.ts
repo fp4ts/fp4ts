@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Map } from './map';
+export { Map, MapF } from './map';

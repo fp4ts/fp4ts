@@ -11,7 +11,7 @@ import { Profunctor, Strong } from '../../arrow';
 import { Contravariant } from '../../contravariant';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
-import { Eval, EvalK } from '../../eval';
+import { Eval, EvalF } from '../../eval';
 
 import { AndThen } from '../and-then';
 import { IndexedStateT as IndexedStateTBase } from './algebra';
@@ -97,19 +97,19 @@ interface IndexedStateTObj {
 
   // -- Instances
 
-  Functor<F, SA, SB>(F: Functor<F>): Functor<$<IndexedStateTK, [F, SA, SB]>>;
+  Functor<F, SA, SB>(F: Functor<F>): Functor<$<IndexedStateTF, [F, SA, SB]>>;
   Contravariant<F, SB, A>(
     F: Functor<F>,
-  ): Contravariant<λ<IndexedStateTK, [Fix<F>, α, Fix<SB>, Fix<A>]>>;
-  Bifunctor<F, SA>(F: Functor<F>): Bifunctor<$<IndexedStateTK, [F, SA]>>;
+  ): Contravariant<λ<IndexedStateTF, [Fix<F>, α, Fix<SB>, Fix<A>]>>;
+  Bifunctor<F, SA>(F: Functor<F>): Bifunctor<$<IndexedStateTF, [F, SA]>>;
   Profunctor<F, V>(
     F: Functor<F>,
-  ): Profunctor<λ<IndexedStateTK, [Fix<F>, α, β, Fix<V>]>>;
-  Strong<F, V>(F: Monad<F>): Strong<λ<IndexedStateTK, [Fix<F>, α, β, Fix<V>]>>;
-  Monad<F, S>(F: Monad<F>): Monad<$<IndexedStateTK, [F, S, S]>>;
+  ): Profunctor<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>>;
+  Strong<F, V>(F: Monad<F>): Strong<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>>;
+  Monad<F, S>(F: Monad<F>): Monad<$<IndexedStateTF, [F, S, S]>>;
   MonadError<F, S, E>(
     F: MonadError<F, E>,
-  ): MonadError<$<IndexedStateTK, [F, S, S]>, E>;
+  ): MonadError<$<IndexedStateTF, [F, S, S]>, E>;
 }
 
 export type StateT<F, S, A> = IndexedStateT<F, S, S, A>;
@@ -151,13 +151,13 @@ interface StateTObj {
   setF<F>(F: Applicative<F>): <S>(sb: Kind<F, [S]>) => StateT<F, S, void>;
   get<F, S>(F: Applicative<F>): StateT<F, S, S>;
 
-  Monad<F, S>(F: Monad<F>): Monad<$<StateTK, [F, S, S]>>;
+  Monad<F, S>(F: Monad<F>): Monad<$<StateTF, [F, S, S]>>;
   MonadError<F, S, E>(
     F: MonadError<F, E>,
-  ): MonadError<$<StateTK, [F, S, S]>, E>;
+  ): MonadError<$<StateTF, [F, S, S]>, E>;
 }
 
-export type State<S, A> = StateT<EvalK, S, A>;
+export type State<S, A> = StateT<EvalF, S, A>;
 export const State: StateObj = function <S, A>(
   f: (s: S) => [S, A],
 ): State<S, A> {
@@ -172,18 +172,18 @@ State.Monad = () => indexedStateTMonad(Eval.Monad);
 
 interface StateObj {
   <S, A>(f: (s: S) => [S, A]): State<S, A>;
-  pure<S, A>(a: A): IndexedStateT<EvalK, S, S, A>;
-  inspect<S, A>(f: (s: S) => A): IndexedStateT<EvalK, S, S, A>;
-  modify<S>(f: (sa: S) => S): IndexedStateT<EvalK, S, S, void>;
-  set<S>(sb: S): IndexedStateT<EvalK, S, S, void>;
-  get<S>(): IndexedStateT<EvalK, S, S, S>;
+  pure<S, A>(a: A): IndexedStateT<EvalF, S, S, A>;
+  inspect<S, A>(f: (s: S) => A): IndexedStateT<EvalF, S, S, A>;
+  modify<S>(f: (sa: S) => S): IndexedStateT<EvalF, S, S, void>;
+  set<S>(sb: S): IndexedStateT<EvalF, S, S, void>;
+  get<S>(): IndexedStateT<EvalF, S, S, S>;
 
-  Monad<S>(): Monad<$<IndexedStateTK, [EvalK, S, S]>>;
+  Monad<S>(): Monad<$<IndexedStateTF, [EvalF, S, S]>>;
 }
 
 // -- HKT
 
-export interface IndexedStateTK extends TyK {
+export interface IndexedStateTF extends TyK {
   [$type]: IndexedStateT<
     TyVar<this, 0>,
     TyVar<this, 1>,
@@ -192,6 +192,6 @@ export interface IndexedStateTK extends TyK {
   >;
 }
 
-export type StateTK = λ<IndexedStateTK, [α, β, β, γ]>;
+export type StateTF = λ<IndexedStateTF, [α, β, β, γ]>;
 
-export type StateK = λ<IndexedStateTK, [Fix<EvalK>, α, α, β]>;
+export type StateF = λ<IndexedStateTF, [Fix<EvalF>, α, α, β]>;

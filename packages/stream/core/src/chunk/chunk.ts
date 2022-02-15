@@ -49,12 +49,12 @@ interface ChunkObj {
   tailRecM_<S, A>(s: S, f: (s: S) => Chunk<Either<S, A>>): Chunk<A>;
 
   // -- Instances
-  readonly MonoidK: MonoidK<ChunkK>;
-  readonly Functor: Functor<ChunkK>;
-  readonly FunctorFilter: FunctorFilter<ChunkK>;
-  readonly Alternative: Alternative<ChunkK>;
-  readonly Monad: Monad<ChunkK>;
-  readonly Traversable: Traversable<ChunkK>;
+  readonly MonoidK: MonoidK<ChunkF>;
+  readonly Functor: Functor<ChunkF>;
+  readonly FunctorFilter: FunctorFilter<ChunkF>;
+  readonly Alternative: Alternative<ChunkF>;
+  readonly Monad: Monad<ChunkF>;
+  readonly Traversable: Traversable<ChunkF>;
 }
 
 Chunk.empty = ChunkBase.empty;
@@ -69,38 +69,38 @@ Chunk.tailRecM = ChunkBase.tailRecM;
 Chunk.tailRecM_ = ChunkBase.tailRecM_;
 
 Object.defineProperty(Chunk, 'MonoidK', {
-  get(): MonoidK<ChunkK> {
+  get(): MonoidK<ChunkF> {
     return chunkMonoidK();
   },
 });
 Object.defineProperty(Chunk, 'Functor', {
-  get(): Functor<ChunkK> {
+  get(): Functor<ChunkF> {
     return chunkFunctor();
   },
 });
 Object.defineProperty(Chunk, 'FunctorFilter', {
-  get(): FunctorFilter<ChunkK> {
+  get(): FunctorFilter<ChunkF> {
     return chunkFunctorFilter();
   },
 });
 Object.defineProperty(Chunk, 'Alternative', {
-  get(): Alternative<ChunkK> {
+  get(): Alternative<ChunkF> {
     return chunkAlternative();
   },
 });
 Object.defineProperty(Chunk, 'Monad', {
-  get(): Monad<ChunkK> {
+  get(): Monad<ChunkF> {
     return chunkMonad();
   },
 });
 Object.defineProperty(Chunk, 'Traversable', {
-  get(): Traversable<ChunkK> {
+  get(): Traversable<ChunkF> {
     return chunkTraversable();
   },
 });
 
 // -- HKT
 
-export interface ChunkK extends TyK<[unknown]> {
+export interface ChunkF extends TyK<[unknown]> {
   [$type]: Chunk<TyVar<this, 0>>;
 }

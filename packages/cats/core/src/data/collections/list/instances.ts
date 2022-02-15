@@ -19,7 +19,7 @@ import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 
-import { List, ListK } from './list';
+import { List, ListF } from './list';
 
 import { empty, pure } from './constructors';
 import {
@@ -51,15 +51,15 @@ import {
 export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
   Eq.of({ equals: (xs, ys) => equals_(E, xs, ys) });
 
-export const listSemigroupK: Lazy<SemigroupK<ListK>> = lazyVal(() =>
+export const listSemigroupK: Lazy<SemigroupK<ListF>> = lazyVal(() =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
 );
 
-export const listMonoidK: Lazy<MonoidK<ListK>> = lazyVal(() =>
+export const listMonoidK: Lazy<MonoidK<ListF>> = lazyVal(() =>
   MonoidK.of({ combineK_: (x, y) => concat_(x, y()), emptyK: () => empty }),
 );
 
-export const listAlign: Lazy<Align<ListK>> = lazyVal(() =>
+export const listAlign: Lazy<Align<ListF>> = lazyVal(() =>
   Align.of({
     functor: listFunctor(),
     align_: align_,
@@ -73,25 +73,25 @@ export const listAlign: Lazy<Align<ListK>> = lazyVal(() =>
   }),
 );
 
-export const listFunctor: Lazy<Functor<ListK>> = lazyVal(() =>
+export const listFunctor: Lazy<Functor<ListF>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const listFunctorFilter: Lazy<FunctorFilter<ListK>> = lazyVal(() =>
+export const listFunctorFilter: Lazy<FunctorFilter<ListF>> = lazyVal(() =>
   FunctorFilter.of({
     ...listFunctor(),
     mapFilter_: collect_,
   }),
 );
 
-export const listApply: Lazy<Apply<ListK>> = lazyVal(() =>
+export const listApply: Lazy<Apply<ListF>> = lazyVal(() =>
   Apply.of({
     ...listFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const listApplicative: Lazy<Applicative<ListK>> = lazyVal(() =>
+export const listApplicative: Lazy<Applicative<ListF>> = lazyVal(() =>
   Applicative.of({
     ...listApply(),
     pure: pure,
@@ -99,14 +99,14 @@ export const listApplicative: Lazy<Applicative<ListK>> = lazyVal(() =>
   }),
 );
 
-export const listAlternative: Lazy<Alternative<ListK>> = lazyVal(() =>
+export const listAlternative: Lazy<Alternative<ListF>> = lazyVal(() =>
   Alternative.of({
     ...listApplicative(),
     ...listMonoidK(),
   }),
 );
 
-export const listFlatMap: Lazy<FlatMap<ListK>> = lazyVal(() =>
+export const listFlatMap: Lazy<FlatMap<ListF>> = lazyVal(() =>
   FlatMap.of({
     ...listApply(),
     flatMap_: flatMap_,
@@ -116,14 +116,14 @@ export const listFlatMap: Lazy<FlatMap<ListK>> = lazyVal(() =>
   }),
 );
 
-export const listMonad: Lazy<Monad<ListK>> = lazyVal(() =>
+export const listMonad: Lazy<Monad<ListF>> = lazyVal(() =>
   Monad.of({
     ...listApplicative(),
     ...listFlatMap(),
   }),
 );
 
-export const listFoldable: Lazy<Foldable<ListK>> = lazyVal(() =>
+export const listFoldable: Lazy<Foldable<ListF>> = lazyVal(() =>
   Foldable.of({
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
@@ -157,6 +157,6 @@ export const listFoldable: Lazy<Foldable<ListK>> = lazyVal(() =>
   }),
 );
 
-export const listTraversable: Lazy<Traversable<ListK>> = lazyVal(() =>
+export const listTraversable: Lazy<Traversable<ListF>> = lazyVal(() =>
   Traversable.of({ ...listFoldable(), ...listFunctor(), traverse_, sequence }),
 );

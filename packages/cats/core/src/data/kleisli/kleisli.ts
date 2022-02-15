@@ -66,21 +66,21 @@ export interface KleisliObj {
   ) => <B, C>(f: (a: A) => Kleisli<F, B, Either<A, C>>) => Kleisli<F, B, C>;
 
   // -- Instances
-  Defer<F, A>(F: Defer<F>): Defer<$<KleisliK, [F, A]>>;
-  SemigroupK<F, A>(F: SemigroupK<F>): SemigroupK<$<KleisliK, [F, A]>>;
-  MonoidK<F, A>(F: MonoidK<F>): MonoidK<$<KleisliK, [F, A]>>;
-  Contravariant<F, B>(): Contravariant<λ<KleisliK, [Fix<F>, α, Fix<B>]>>;
-  Functor<F, A>(F: Functor<F>): Functor<$<KleisliK, [F, A]>>;
-  FunctorFilter<F, A>(F: FunctorFilter<F>): FunctorFilter<$<KleisliK, [F, A]>>;
-  Apply<F, A>(F: FlatMap<F>): Apply<$<KleisliK, [F, A]>>;
-  Applicative<F, A>(F: Applicative<F>): Applicative<$<KleisliK, [F, A]>>;
-  Alternative<F, A>(F: Alternative<F>): Alternative<$<KleisliK, [F, A]>>;
+  Defer<F, A>(F: Defer<F>): Defer<$<KleisliF, [F, A]>>;
+  SemigroupK<F, A>(F: SemigroupK<F>): SemigroupK<$<KleisliF, [F, A]>>;
+  MonoidK<F, A>(F: MonoidK<F>): MonoidK<$<KleisliF, [F, A]>>;
+  Contravariant<F, B>(): Contravariant<λ<KleisliF, [Fix<F>, α, Fix<B>]>>;
+  Functor<F, A>(F: Functor<F>): Functor<$<KleisliF, [F, A]>>;
+  FunctorFilter<F, A>(F: FunctorFilter<F>): FunctorFilter<$<KleisliF, [F, A]>>;
+  Apply<F, A>(F: FlatMap<F>): Apply<$<KleisliF, [F, A]>>;
+  Applicative<F, A>(F: Applicative<F>): Applicative<$<KleisliF, [F, A]>>;
+  Alternative<F, A>(F: Alternative<F>): Alternative<$<KleisliF, [F, A]>>;
   ApplicativeError<F, A, E>(
     F: ApplicativeError<F, E>,
-  ): ApplicativeError<$<KleisliK, [F, A]>, E>;
-  FlatMap<F, A>(F: Monad<F>): FlatMap<$<KleisliK, [F, A]>>;
-  Monad<F, A>(F: Monad<F>): Monad<$<KleisliK, [F, A]>>;
-  MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliK, [F, A]>, E>;
+  ): ApplicativeError<$<KleisliF, [F, A]>, E>;
+  FlatMap<F, A>(F: Monad<F>): FlatMap<$<KleisliF, [F, A]>>;
+  Monad<F, A>(F: Monad<F>): Monad<$<KleisliF, [F, A]>>;
+  MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
 }
 
 Kleisli.pure = pure;
@@ -111,6 +111,6 @@ Kleisli.MonadError = kleisliMonadError;
  * @category Type Constructor
  * @category Data
  */
-export interface KleisliK extends TyK<[unknown, unknown, unknown]> {
+export interface KleisliF extends TyK<[unknown, unknown, unknown]> {
   [$type]: Kleisli<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

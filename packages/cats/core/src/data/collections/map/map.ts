@@ -52,12 +52,12 @@ export interface OrderedMapObj {
   // -- Instances
 
   Eq<K, V>(EK: Eq<K>, EV: Eq<V>): Eq<Map<K, V>>;
-  SemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapK, [K]>>;
-  MonoidK: <K>(O: Ord<K>) => MonoidK<$<MapK, [K]>>;
-  Functor: <K>() => Functor<$<MapK, [K]>>;
-  FunctorFilter: <K>() => FunctorFilter<$<MapK, [K]>>;
-  Foldable: <K>() => Foldable<$<MapK, [K]>>;
-  Traversable: <K>() => Traversable<$<MapK, [K]>>;
+  SemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapF, [K]>>;
+  MonoidK: <K>(O: Ord<K>) => MonoidK<$<MapF, [K]>>;
+  Functor: <K>() => Functor<$<MapF, [K]>>;
+  FunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>>;
+  Foldable: <K>() => Foldable<$<MapF, [K]>>;
+  Traversable: <K>() => Traversable<$<MapF, [K]>>;
 }
 
 Map.empty = empty;
@@ -80,6 +80,6 @@ Map.Traversable = mapTraversable;
  * @category Type Constructor
  * @category Collection
  */
-export interface MapK extends TyK<[unknown, unknown]> {
+export interface MapF extends TyK<[unknown, unknown]> {
   [$type]: Map<TyVar<this, 0>, TyVar<this, 1>>;
 }

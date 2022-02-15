@@ -25,7 +25,7 @@ import {
   sum,
   tailRecM_,
 } from './constructors';
-import { DecoderTK } from './decoder-t';
+import { DecoderTF } from './decoder-t';
 import {
   adapt_,
   compose_,
@@ -47,26 +47,26 @@ import {
 
 export const decoderTMonoidK: <F, I>(
   F: Monad<F>,
-) => MonoidK<$<DecoderTK, [F, I]>> = F =>
+) => MonoidK<$<DecoderTF, [F, I]>> = F =>
   MonoidK.of({ emptyK: empty(F), combineK_: orElse_(F) });
 
 export const decoderTFunctor: <F, I>(
   F: Functor<F>,
-) => Functor<$<DecoderTK, [F, I]>> = F => Functor.of({ map_: map_(F) });
+) => Functor<$<DecoderTF, [F, I]>> = F => Functor.of({ map_: map_(F) });
 
 export const decoderTProfunctor: <F>(
   F: Functor<F>,
-) => Profunctor<$<DecoderTK, [F]>> = F =>
+) => Profunctor<$<DecoderTF, [F]>> = F =>
   Profunctor.of({ dimap_: dimap_(F), lmap_: adapt_, rmap_: map_(F) });
 
 export const decoderTCategory: <F>(
   F: Monad<F>,
-) => Category<$<DecoderTK, [F]>> = F =>
+) => Category<$<DecoderTF, [F]>> = F =>
   Category.of({ compose_: compose_(F), id: identity(F) });
 
 export const decoderTMonad: <F, I>(
   F: Monad<F>,
-) => Monad<$<DecoderTK, [F, I]>> = F =>
+) => Monad<$<DecoderTF, [F, I]>> = F =>
   Monad.of({
     ...decoderTFunctor(F),
     pure: succeed(F),
@@ -76,18 +76,18 @@ export const decoderTMonad: <F, I>(
 
 export const decoderTRefining: <F>(
   F: Monad<F>,
-) => Refining<$<DecoderTK, [F, unknown]>> = <F>(
+) => Refining<$<DecoderTF, [F, unknown]>> = <F>(
   F: Monad<F>,
-): Refining<$<DecoderTK, [F, unknown]>> =>
+): Refining<$<DecoderTF, [F, unknown]>> =>
   Refining.of({
-    refine_: refine_(F) as Refining<$<DecoderTK, [F, unknown]>>['refine_'],
+    refine_: refine_(F) as Refining<$<DecoderTF, [F, unknown]>>['refine_'],
   });
 
 export const decoderTSchemable: <F>(
   F: Monad<F>,
-) => Schemable<$<DecoderTK, [F, unknown]>> = <F>(
+) => Schemable<$<DecoderTF, [F, unknown]>> = <F>(
   F: Monad<F>,
-): Schemable<$<DecoderTK, [F, unknown]>> =>
+): Schemable<$<DecoderTF, [F, unknown]>> =>
   Schemable.of({
     literal: literal(F),
     boolean: boolean(F),
@@ -95,7 +95,7 @@ export const decoderTSchemable: <F>(
     string: string(F),
     array: array(F),
     struct: struct(F),
-    product: product(F) as Schemable<$<DecoderTK, [F, unknown]>>['product'],
+    product: product(F) as Schemable<$<DecoderTF, [F, unknown]>>['product'],
     sum: sum(F),
     defer: defer,
     null: nullDecoderT(F),
@@ -105,14 +105,14 @@ export const decoderTSchemable: <F>(
 
 export const decoderTConstraining: <F>(
   F: Monad<F>,
-) => Constraining<$<DecoderTK, [F, unknown]>> = <F>(
+) => Constraining<$<DecoderTF, [F, unknown]>> = <F>(
   F: Monad<F>,
-): Constraining<$<DecoderTK, [F, unknown]>> =>
+): Constraining<$<DecoderTF, [F, unknown]>> =>
   Constraining.of({
     ...decoderTSchemable(F),
 
     nonEmpty: nonEmpty(F) as Constraining<
-      $<DecoderTK, [F, unknown]>
+      $<DecoderTF, [F, unknown]>
     >['nonEmpty'],
     min_: min_(F),
     minExclusive_: minExclusive_(F),
@@ -120,9 +120,9 @@ export const decoderTConstraining: <F>(
     maxExclusive_: maxExclusive_(F),
 
     minLength_: minLength_(F) as Constraining<
-      $<DecoderTK, [F, unknown]>
+      $<DecoderTF, [F, unknown]>
     >['minLength_'],
     maxLength_: maxLength_(F) as Constraining<
-      $<DecoderTK, [F, unknown]>
+      $<DecoderTF, [F, unknown]>
     >['maxLength_'],
   });

@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $, lazyVal } from '@fp4ts/core';
-import { ConstK, IdentityK } from '@fp4ts/cats';
+import { ConstF, IdentityF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { ProductK, SumK, StructK } from '../kinds';
 import {
@@ -23,12 +23,12 @@ import {
 
 export const literal = <A extends [Literal, ...Literal[]]>(
   ...xs: A
-): SchemaK<$<ConstK, [A[number]]>> => new LiteralSchemaK(xs);
+): SchemaK<$<ConstF, [A[number]]>> => new LiteralSchemaK(xs);
 
-export const booleanSchemaK: SchemaK<$<ConstK, [boolean]>> = BooleanSchemaK;
-export const numberSchemaK: SchemaK<$<ConstK, [number]>> = NumberSchemaK;
-export const stringSchemaK: SchemaK<$<ConstK, [string]>> = StringSchemaK;
-export const par: SchemaK<IdentityK> = ParSchemaK;
+export const booleanSchemaK: SchemaK<$<ConstF, [boolean]>> = BooleanSchemaK;
+export const numberSchemaK: SchemaK<$<ConstF, [number]>> = NumberSchemaK;
+export const stringSchemaK: SchemaK<$<ConstF, [string]>> = StringSchemaK;
+export const par: SchemaK<IdentityF> = ParSchemaK;
 
 export const struct = <F extends {}>(fs: {
   [k in keyof F]: SchemaK<F[k]>;

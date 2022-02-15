@@ -10,9 +10,9 @@ import {
   Either,
   Left,
   Right,
-  KleisliK,
+  KleisliF,
   Kleisli,
-  OptionTK,
+  OptionTF,
   OptionT,
   Monad,
 } from '@fp4ts/cats';
@@ -141,8 +141,8 @@ export const Concurrent = Object.freeze({
 
   forKleisli: <F, E, R>(
     F: Concurrent<F, E>,
-  ): Concurrent<$<KleisliK, [F, R]>, E> =>
-    Concurrent.of<$<KleisliK, [F, R]>, E>({
+  ): Concurrent<$<KleisliF, [F, R]>, E> =>
+    Concurrent.of<$<KleisliF, [F, R]>, E>({
       ...Spawn.forKleisli<F, E, R>(F),
 
       ref: <A>(a: A) =>
@@ -154,8 +154,8 @@ export const Concurrent = Object.freeze({
         ),
     }),
 
-  forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTK, [F]>, E> =>
-    Concurrent.of<$<OptionTK, [F]>, E>({
+  forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTF, [F]>, E> =>
+    Concurrent.of<$<OptionTF, [F]>, E>({
       ...Spawn.forOptionT<F, E>(F),
 
       ref: <A>(a: A) =>

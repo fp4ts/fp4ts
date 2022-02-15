@@ -7,6 +7,6 @@ import './syntax';
 export {
   RouteResult,
   RouteResultT,
-  RouteResultK,
-  RouteResultTK,
+  RouteResultF,
+  RouteResultTF,
 } from './route-result';

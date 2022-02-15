@@ -8,7 +8,7 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Applicative } from '../../applicative';
 import { Nested } from './algebra';
-import { NestedK } from './nested';
+import { NestedF } from './nested';
 
 export const nestedEq = <F, G, A>(
   EFGA: Eq<Kind<F, [Kind<G, [A]>]>>,
@@ -18,10 +18,10 @@ export const nestedEq = <F, G, A>(
 export const nestedFunctor: <F, G>(
   F: Functor<F>,
   G: Functor<G>,
-) => Functor<$<NestedK, [F, G]>> = <F, G>(
+) => Functor<$<NestedF, [F, G]>> = <F, G>(
   F: Functor<F>,
   G: Functor<G>,
-): Functor<$<NestedK, [F, G]>> => {
+): Functor<$<NestedF, [F, G]>> => {
   const FG = Functor.compose(F, G);
   // @ts-ignore
   return Functor.of({ map_: (fa, f) => new Nested(FG.map_(fa.value, f)) });
@@ -30,10 +30,10 @@ export const nestedFunctor: <F, G>(
 export const nestedApplicative: <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
-) => Applicative<$<NestedK, [F, G]>> = <F, G>(
+) => Applicative<$<NestedF, [F, G]>> = <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
-): Applicative<$<NestedK, [F, G]>> => {
+): Applicative<$<NestedF, [F, G]>> => {
   const FG = Applicative.compose(F, G);
   return Applicative.of({
     // @ts-ignore

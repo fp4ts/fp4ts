@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, instance } from '@fp4ts/core';
-import { Eval, State, StateK } from '@fp4ts/cats';
+import { Eval, State, StateF } from '@fp4ts/cats';
 import { Program } from '../dsl';
 import { run } from '../program';
 
@@ -77,7 +77,7 @@ describe('number guess game', () => {
     }
   }
 
-  const StateProgram: Program<$<StateK, [TestData]>> = instance({
+  const StateProgram: Program<$<StateF, [TestData]>> = instance({
     ...State.Monad<TestData>(),
 
     get readLine(): State<TestData, string> {

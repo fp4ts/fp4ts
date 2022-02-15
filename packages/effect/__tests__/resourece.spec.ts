@@ -7,9 +7,9 @@ import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { $, fst, pipe, snd } from '@fp4ts/core';
 import { FunctionK, Eq, List, Vector, Either, Left, Right } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect-core';
+import { IO, IOF } from '@fp4ts/effect-core';
 import { AsyncSuite } from '@fp4ts/effect-laws';
-import { Resource, ResourceK, Outcome } from '@fp4ts/effect-kernel';
+import { Resource, ResourceF, Outcome } from '@fp4ts/effect-kernel';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
@@ -125,7 +125,7 @@ describe('Resource', () => {
     const io = flag.flatMap(releaseComplete => {
       const release = IO.never.onCancel(releaseComplete.set(true));
 
-      const res = Resource.allocateFull<IoK, void>(poll =>
+      const res = Resource.allocateFull<IOF, void>(poll =>
         IO(() => [undefined, () => poll(release)]),
       );
 
@@ -140,7 +140,7 @@ describe('Resource', () => {
       A.fp4tsIO(fc.integer()),
       fa =>
         new IsEq(
-          Resource.evalF<IoK, number>(fa).use(IO.MonadCancel)(IO.pure),
+          Resource.evalF<IOF, number>(fa).use(IO.MonadCancel)(IO.pure),
           fa,
         ),
     )(E.eqIO(Eq.primitive, ticker))(),
@@ -151,7 +151,7 @@ describe('Resource', () => {
       fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
-          Resource.evalF<IoK, number>(IO.pure(0))
+          Resource.evalF<IOF, number>(IO.pure(0))
             .evalMap(f)
             .use(IO.MonadCancel)(IO.pure),
           f(0),
@@ -164,7 +164,7 @@ describe('Resource', () => {
       fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
-          Resource.evalF<IoK, number>(IO.pure(0))
+          Resource.evalF<IOF, number>(IO.pure(0))
             .evalTap(f)
             .use(IO.MonadCancel)(IO.pure),
           f(0).map(() => 0),
@@ -198,7 +198,7 @@ describe('Resource', () => {
         const release = Resource.make(IO.Functor)(IO.unit, () =>
           released.set(true),
         );
-        const resource = Resource.evalF<IoK, void>(IO.unit);
+        const resource = Resource.evalF<IOF, void>(IO.unit);
 
         const ioa = release['>>>'](resource).allocated(IO.MonadCancel);
 
@@ -222,8 +222,8 @@ describe('Resource', () => {
   describe('stack safety', () => {
     test.ticked('use over binds - 1', ticker => {
       const ioa = List.range(0, 10_000)
-        .foldLeft(Resource.evalF<IoK, void>(IO.unit), r =>
-          r.flatMap(() => Resource.evalF<IoK, void>(IO.unit)),
+        .foldLeft(Resource.evalF<IOF, void>(IO.unit), r =>
+          r.flatMap(() => Resource.evalF<IOF, void>(IO.unit)),
         )
         .use_(IO.MonadCancel);
 
@@ -232,10 +232,10 @@ describe('Resource', () => {
 
     test.ticked('use over binds - 2', ticker => {
       const n = 10_000;
-      const p = (i: number): Resource<IoK, number> =>
-        Resource.pure<IoK, Either<number, number>>(
+      const p = (i: number): Resource<IOF, number> =>
+        Resource.pure<IOF, Either<number, number>>(
           i < n ? Left(i + 1) : Right(i),
-        ).flatMap(r => r.fold(p, x => Resource.pure<IoK, number>(x)));
+        ).flatMap(r => r.fold(p, x => Resource.pure<IOF, number>(x)));
 
       expect(p(0).use(IO.MonadCancel)(IO.pure)).toCompleteWith(n, ticker);
     });
@@ -318,7 +318,7 @@ describe('Resource', () => {
               ['>>>'](wait(1))
               ['>>>'](IO(() => (leftReleased = true)).void),
         ).flatMap(() =>
-          Resource.evalF<IoK, never>(
+          Resource.evalF<IOF, never>(
             wait(1)['>>>'](IO.throwError(new Error())),
           ),
         );
@@ -328,7 +328,7 @@ describe('Resource', () => {
             IO(() => (rightReleasing = true))
               ['>>>'](wait(1))
               ['>>>'](IO(() => (rightReleased = true)).void),
-        ).flatMap(() => Resource.evalF<IoK, void>(wait(2)));
+        ).flatMap(() => Resource.evalF<IOF, void>(wait(2)));
 
         lhs
           .both(IO.Concurrent)(rhs)
@@ -471,19 +471,19 @@ describe('Resource', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.by(
-          Outcome.Eq<IoK, Error, number>(
+          Outcome.Eq<IOF, Error, number>(
             Eq.Error.strict,
             E.eqIO(Eq.primitive, ticker),
           ),
-          (r: Outcome<$<ResourceK, [IoK]>, Error, number>) => {
-            const nt: FunctionK<$<ResourceK, [IoK]>, IoK> = x =>
+          (r: Outcome<$<ResourceF, [IOF]>, Error, number>) => {
+            const nt: FunctionK<$<ResourceF, [IOF]>, IOF> = x =>
               x.use(IO.MonadCancel)(IO.pure);
             return r.mapK(nt);
           },
         ),
         x => A.fp4tsResource(IO.Functor)(x, A.fp4tsIO),
         <X>(EqX: Eq<X>) =>
-          Eq.by(E.eqIO(EqX, ticker), (r: Resource<IoK, X>) =>
+          Eq.by(E.eqIO(EqX, ticker), (r: Resource<IOF, X>) =>
             r.use(IO.MonadCancel)(IO.pure),
           ),
       ),

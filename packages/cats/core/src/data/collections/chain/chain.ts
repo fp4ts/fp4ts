@@ -69,13 +69,13 @@ interface ChainObj {
 
   // -- Instances
   Eq<A>(E: Eq<A>): Eq<Chain<A>>;
-  readonly Align: Align<ChainK>;
-  readonly MonoidK: MonoidK<ChainK>;
-  readonly Functor: Functor<ChainK>;
-  readonly FunctorFilter: FunctorFilter<ChainK>;
-  readonly Alternative: Alternative<ChainK>;
-  readonly Monad: Monad<ChainK>;
-  readonly Traversable: Traversable<ChainK>;
+  readonly Align: Align<ChainF>;
+  readonly MonoidK: MonoidK<ChainF>;
+  readonly Functor: Functor<ChainF>;
+  readonly FunctorFilter: FunctorFilter<ChainF>;
+  readonly Alternative: Alternative<ChainF>;
+  readonly Monad: Monad<ChainF>;
+  readonly Traversable: Traversable<ChainF>;
 }
 
 Chain.pure = pure;
@@ -131,6 +131,6 @@ Object.defineProperty(Chain, 'Traversable', {
  * @category Type Constructor
  * @category Collection
  */
-export interface ChainK extends TyK<[unknown]> {
+export interface ChainF extends TyK<[unknown]> {
   [$type]: Chain<TyVar<this, 0>>;
 }

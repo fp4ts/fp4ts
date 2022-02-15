@@ -24,7 +24,7 @@ import {
   popMin,
 } from './operators';
 
-import type { Set, SetK } from './set';
+import type { Set, SetF } from './set';
 
 export const setEq: <A>(E: Eq<A>) => Eq<Set<A>> = <A>(E: Eq<A>): Eq<Set<A>> =>
   Eq.of({ equals: equals_(E) });
@@ -35,7 +35,7 @@ export const setMonoid: <A>(O: Ord<A>) => Monoid<Set<A>> = <A>(O: Ord<A>) =>
     combine_: (x, y) => union_(O, x, y()),
   });
 
-export const setFoldable: Lazy<Foldable<SetK>> = lazyVal(() =>
+export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
   Foldable.of({
     foldLeft_: foldLeft_,
     foldRight_: <A, B>(

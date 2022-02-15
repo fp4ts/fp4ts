@@ -11,9 +11,9 @@ import {
   Left,
   Option,
   None,
-  KleisliK,
+  KleisliF,
   Kleisli,
-  OptionTK,
+  OptionTF,
   OptionT,
 } from '@fp4ts/cats';
 
@@ -119,7 +119,7 @@ export const Async = Object.freeze({
     return self;
   },
 
-  asyncForKleisli: <F, R>(F: Async<F>): Async<$<KleisliK, [F, R]>> =>
+  asyncForKleisli: <F, R>(F: Async<F>): Async<$<KleisliF, [F, R]>> =>
     Async.of({
       ...Sync.syncForKleisli(F),
       ...Temporal.temporalForKleisli(F),
@@ -132,7 +132,7 @@ export const Async = Object.freeze({
       ): Kleisli<F, R, A> => Kleisli((r: R) => F.executeOn_(fa.run(r), ec)),
 
       cont: <K, R2>(
-        body: Cont<$<KleisliK, [F, R]>, K, R2>,
+        body: Cont<$<KleisliF, [F, R]>, K, R2>,
       ): Kleisli<F, R, R2> =>
         Kleisli((r: R) => {
           const cont: Cont<F, K, R2> =
@@ -156,7 +156,7 @@ export const Async = Object.freeze({
         }),
     }),
 
-  asyncForOptionT: <F>(F: Async<F>): Async<$<OptionTK, [F]>> =>
+  asyncForOptionT: <F>(F: Async<F>): Async<$<OptionTF, [F]>> =>
     Async.of({
       ...Sync.syncForOptionT(F),
       ...Temporal.temporalForOptionT(F),
@@ -166,7 +166,7 @@ export const Async = Object.freeze({
       executeOn_: <A>(fa: OptionT<F, A>, ec: ExecutionContext): OptionT<F, A> =>
         OptionT(F.executeOn_(fa.value, ec)),
 
-      cont: <K, R>(body: Cont<$<OptionTK, [F]>, K, R>): OptionT<F, R> => {
+      cont: <K, R>(body: Cont<$<OptionTF, [F]>, K, R>): OptionT<F, R> => {
         const cont: Cont<F, K, Option<R>> =
           <G>(G: MonadCancel<G, Error>) =>
           (
@@ -174,7 +174,7 @@ export const Async = Object.freeze({
             get: Kind<G, [K]>,
             nat: FunctionK<F, G>,
           ): Kind<G, [Option<R>]> => {
-            const natT: FunctionK<$<OptionTK, [F]>, $<OptionTK, [G]>> = <A>(
+            const natT: FunctionK<$<OptionTF, [F]>, $<OptionTF, [G]>> = <A>(
               fa: OptionT<F, A>,
             ): OptionT<G, A> => OptionT(nat(fa.value));
 

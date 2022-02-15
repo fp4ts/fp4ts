@@ -28,7 +28,7 @@ import {
   CurrentTimeMicros,
 } from './algebra';
 import { flatMap_, map_ } from './operators';
-import type { IoK } from './io';
+import type { IOF } from './io';
 import { Tracing } from '../tracing';
 
 export const pure: <A>(a: A) => IO<A> = value =>
@@ -56,7 +56,7 @@ export const async = <A>(
 ): IO<A> =>
   new IOCont(
     <G>(G: MonadCancel<G, Error>) =>
-      (resume, get: Kind<G, [A]>, lift: FunctionK<IoK, G>) =>
+      (resume, get: Kind<G, [A]>, lift: FunctionK<IOF, G>) =>
         G.uncancelable(poll =>
           G.flatMap_(lift(k(resume)), opt =>
             opt.fold(
@@ -84,7 +84,7 @@ export const canceled: IO<void> = Canceled;
 
 export const suspend: IO<void> = Suspend;
 
-export const uncancelable: <A>(ioa: (p: Poll<IoK>) => IO<A>) => IO<A> = ioa =>
+export const uncancelable: <A>(ioa: (p: Poll<IOF>) => IO<A>) => IO<A> = ioa =>
   new Uncancelable(ioa, Tracing.buildEvent());
 
 export const sleep = (ms: number): IO<void> => new Sleep(ms);
@@ -107,4 +107,4 @@ export const fromPromise = <A>(iop: IO<Promise<A>>): IO<A> =>
     ),
   );
 
-export const cont = <K, R>(body: Cont<IoK, K, R>): IO<R> => new IOCont(body);
+export const cont = <K, R>(body: Cont<IOF, K, R>): IO<R> => new IOCont(body);

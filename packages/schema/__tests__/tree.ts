@@ -34,7 +34,7 @@ export const Tip: Tree<never, never> & { tag: 'tip' } =
     public readonly toArray = [];
   })();
 
-export interface TreeK extends TyK<[unknown, unknown]> {
+export interface TreeF extends TyK<[unknown, unknown]> {
   [$type]: Tree<TyVar<this, 0>, TyVar<this, 1>>;
 }
 
@@ -56,6 +56,6 @@ export class Tree1<K, A> {
   }
 }
 
-export interface Tree1K extends TyK<[unknown, unknown]> {
+export interface Tree1F extends TyK<[unknown, unknown]> {
   [$type]: Tree1<TyVar<this, 0>, TyVar<this, 1>>;
 }

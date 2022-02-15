@@ -40,13 +40,13 @@ interface IdentityObj {
     a: A,
   ) => <B>(f: (a: A) => Identity<Either<A, B>>) => Identity<B>;
 
-  readonly Functor: Functor<IdentityK>;
-  readonly Apply: Apply<IdentityK>;
-  readonly Applicative: Applicative<IdentityK>;
-  readonly FlatMap: FlatMap<IdentityK>;
-  readonly Monad: Monad<IdentityK>;
-  readonly Foldable: Foldable<IdentityK>;
-  readonly Traversable: Traversable<IdentityK>;
+  readonly Functor: Functor<IdentityF>;
+  readonly Apply: Apply<IdentityF>;
+  readonly Applicative: Applicative<IdentityF>;
+  readonly FlatMap: FlatMap<IdentityF>;
+  readonly Monad: Monad<IdentityF>;
+  readonly Foldable: Foldable<IdentityF>;
+  readonly Traversable: Traversable<IdentityF>;
 }
 
 Identity.pure = pure;
@@ -56,37 +56,37 @@ Identity.tailRecM = tailRecM;
 // -- Instances
 
 Object.defineProperty(Identity, 'Functor', {
-  get(): Functor<IdentityK> {
+  get(): Functor<IdentityF> {
     return identityFunctor();
   },
 });
 Object.defineProperty(Identity, 'Apply', {
-  get(): Apply<IdentityK> {
+  get(): Apply<IdentityF> {
     return identityApply();
   },
 });
 Object.defineProperty(Identity, 'Applicative', {
-  get(): Applicative<IdentityK> {
+  get(): Applicative<IdentityF> {
     return identityApplicative();
   },
 });
 Object.defineProperty(Identity, 'FlatMap', {
-  get(): FlatMap<IdentityK> {
+  get(): FlatMap<IdentityF> {
     return identityFlatMap();
   },
 });
 Object.defineProperty(Identity, 'Monad', {
-  get(): Monad<IdentityK> {
+  get(): Monad<IdentityF> {
     return identityMonad();
   },
 });
 Object.defineProperty(Identity, 'Foldable', {
-  get(): Foldable<IdentityK> {
+  get(): Foldable<IdentityF> {
     return identityFoldable();
   },
 });
 Object.defineProperty(Identity, 'Traversable', {
-  get(): Traversable<IdentityK> {
+  get(): Traversable<IdentityF> {
     return identityTraversable();
   },
 });
@@ -97,6 +97,6 @@ Object.defineProperty(Identity, 'Traversable', {
  * @category Type Constructor
  * @category Data
  */
-export interface IdentityK extends TyK<[unknown]> {
+export interface IdentityF extends TyK<[unknown]> {
   [$type]: TyVar<this, 0>;
 }

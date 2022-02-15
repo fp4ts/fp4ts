@@ -62,17 +62,17 @@ export interface OptionObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<OptionK>;
-  readonly MonoidK: MonoidK<OptionK>;
-  readonly Functor: Functor<OptionK>;
-  readonly FunctorFilter: FunctorFilter<OptionK>;
-  readonly Apply: Apply<OptionK>;
-  readonly Applicative: Applicative<OptionK>;
-  readonly Alternative: Alternative<OptionK>;
-  readonly FlatMap: FlatMap<OptionK>;
-  readonly Monad: Monad<OptionK>;
-  readonly Foldable: Foldable<OptionK>;
-  readonly Traversable: Traversable<OptionK>;
+  readonly SemigroupK: SemigroupK<OptionF>;
+  readonly MonoidK: MonoidK<OptionF>;
+  readonly Functor: Functor<OptionF>;
+  readonly FunctorFilter: FunctorFilter<OptionF>;
+  readonly Apply: Apply<OptionF>;
+  readonly Applicative: Applicative<OptionF>;
+  readonly Alternative: Alternative<OptionF>;
+  readonly FlatMap: FlatMap<OptionF>;
+  readonly Monad: Monad<OptionF>;
+  readonly Foldable: Foldable<OptionF>;
+  readonly Traversable: Traversable<OptionF>;
   Eq<A>(E: Eq<A>): Eq<Option<A>>;
 }
 
@@ -84,57 +84,57 @@ Option.fromNullable = fromNullable;
 Option.tailRecM = tailRecM;
 
 Object.defineProperty(Option, 'SemigroupK', {
-  get(): SemigroupK<OptionK> {
+  get(): SemigroupK<OptionF> {
     return optionSemigroupK();
   },
 });
 Object.defineProperty(Option, 'MonoidK', {
-  get(): MonoidK<OptionK> {
+  get(): MonoidK<OptionF> {
     return optionMonoidK();
   },
 });
 Object.defineProperty(Option, 'Functor', {
-  get(): Functor<OptionK> {
+  get(): Functor<OptionF> {
     return optionFunctor();
   },
 });
 Object.defineProperty(Option, 'FunctorFilter', {
-  get(): FunctorFilter<OptionK> {
+  get(): FunctorFilter<OptionF> {
     return optionFunctorFilter();
   },
 });
 Object.defineProperty(Option, 'Apply', {
-  get(): Apply<OptionK> {
+  get(): Apply<OptionF> {
     return optionApply();
   },
 });
 Object.defineProperty(Option, 'Applicative', {
-  get(): Applicative<OptionK> {
+  get(): Applicative<OptionF> {
     return optionApplicative();
   },
 });
 Object.defineProperty(Option, 'Alternative', {
-  get(): Alternative<OptionK> {
+  get(): Alternative<OptionF> {
     return optionAlternative();
   },
 });
 Object.defineProperty(Option, 'FlatMap', {
-  get(): FlatMap<OptionK> {
+  get(): FlatMap<OptionF> {
     return optionFlatMap();
   },
 });
 Object.defineProperty(Option, 'Monad', {
-  get(): Monad<OptionK> {
+  get(): Monad<OptionF> {
     return optionMonad();
   },
 });
 Object.defineProperty(Option, 'Foldable', {
-  get(): Foldable<OptionK> {
+  get(): Foldable<OptionF> {
     return optionFoldable();
   },
 });
 Object.defineProperty(Option, 'Traversable', {
-  get(): Traversable<OptionK> {
+  get(): Traversable<OptionF> {
     return optionTraversable();
   },
 });
@@ -146,6 +146,6 @@ Option.Eq = optionEq;
  * @category Type Constructor
  * @category Data
  */
-export interface OptionK extends TyK<[unknown]> {
+export interface OptionF extends TyK<[unknown]> {
   [$type]: Option<TyVar<this, 0>>;
 }

@@ -4,5 +4,5 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { DecoderT, DecoderTK } from './decoder-t';
+export { DecoderT, DecoderTF } from './decoder-t';
 export { DecodeResultT } from './decode-result-t';

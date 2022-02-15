@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Ior, IorK } from './ior';
+export { Ior, IorF } from './ior';

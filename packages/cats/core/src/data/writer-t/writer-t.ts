@@ -14,7 +14,7 @@ import { Applicative } from '../../applicative';
 import { Monad } from '../../monad';
 import { ApplicativeError } from '../../applicative-error';
 import { MonadError } from '../../monad-error';
-import { Identity, IdentityK } from '../identity';
+import { Identity, IdentityF } from '../identity';
 
 import { WriterT as WriterTBase } from './algebra';
 import { liftF, pure, unit } from './constructors';
@@ -32,7 +32,7 @@ import {
 } from './instances';
 
 export type WriterT<F, L, V> = WriterTBase<F, L, V>;
-export type Writer<L, V> = WriterT<IdentityK, L, V>;
+export type Writer<L, V> = WriterT<IdentityF, L, V>;
 
 export const WriterT: WriterTObj = function (flv) {
   return new WriterTBase(flv);
@@ -54,24 +54,24 @@ interface WriterTObj {
   // -- Instances
 
   Eq<F, L, V>(E: Eq<Kind<F, [[L, V]]>>): Eq<WriterT<F, L, V>>;
-  Functor<F, L>(F: Functor<F>): Functor<$<WriterTK, [F, L]>>;
-  Contravariant<F, L>(F: Contravariant<F>): Contravariant<$<WriterTK, [F, L]>>;
-  Bifunctor<F>(F: Functor<F>): Bifunctor<$<WriterTK, [F]>>;
-  Apply<F, L>(F: Apply<F>, L: Semigroup<L>): Apply<$<WriterTK, [F, L]>>;
-  FlatMap<F, L>(F: FlatMap<F>, L: Monoid<L>): FlatMap<$<WriterTK, [F, L]>>;
+  Functor<F, L>(F: Functor<F>): Functor<$<WriterTF, [F, L]>>;
+  Contravariant<F, L>(F: Contravariant<F>): Contravariant<$<WriterTF, [F, L]>>;
+  Bifunctor<F>(F: Functor<F>): Bifunctor<$<WriterTF, [F]>>;
+  Apply<F, L>(F: Apply<F>, L: Semigroup<L>): Apply<$<WriterTF, [F, L]>>;
+  FlatMap<F, L>(F: FlatMap<F>, L: Monoid<L>): FlatMap<$<WriterTF, [F, L]>>;
   Applicative<F, L>(
     F: Applicative<F>,
     L: Monoid<L>,
-  ): Applicative<$<WriterTK, [F, L]>>;
-  Monad<F, L>(F: Monad<F>, L: Monoid<L>): Monad<$<WriterTK, [F, L]>>;
+  ): Applicative<$<WriterTF, [F, L]>>;
+  Monad<F, L>(F: Monad<F>, L: Monoid<L>): Monad<$<WriterTF, [F, L]>>;
   ApplicativeError<F, L, E>(
     F: ApplicativeError<F, E>,
     L: Monoid<L>,
-  ): ApplicativeError<$<WriterTK, [F, L]>, E>;
+  ): ApplicativeError<$<WriterTF, [F, L]>, E>;
   MonadError<F, L, E>(
     F: MonadError<F, E>,
     L: Monoid<L>,
-  ): MonadError<$<WriterTK, [F, L]>, E>;
+  ): MonadError<$<WriterTF, [F, L]>, E>;
 }
 
 WriterT.Eq = writerTEq;
@@ -100,12 +100,12 @@ interface WriterObj {
   // -- Instances
 
   Eq<L, V>(E: Eq<[L, V]>): Eq<Writer<L, V>>;
-  Functor<L>(): Functor<$<WriterTK, [IdentityK, L]>>;
-  readonly Bifunctor: Bifunctor<$<WriterTK, [IdentityK]>>;
-  Apply<L>(L: Semigroup<L>): Apply<$<WriterTK, [IdentityK, L]>>;
-  FlatMap<L>(L: Monoid<L>): FlatMap<$<WriterTK, [IdentityK, L]>>;
-  Applicative<L>(L: Monoid<L>): Applicative<$<WriterTK, [IdentityK, L]>>;
-  Monad<L>(L: Monoid<L>): Monad<$<WriterTK, [IdentityK, L]>>;
+  Functor<L>(): Functor<$<WriterTF, [IdentityF, L]>>;
+  readonly Bifunctor: Bifunctor<$<WriterTF, [IdentityF]>>;
+  Apply<L>(L: Semigroup<L>): Apply<$<WriterTF, [IdentityF, L]>>;
+  FlatMap<L>(L: Monoid<L>): FlatMap<$<WriterTF, [IdentityF, L]>>;
+  Applicative<L>(L: Monoid<L>): Applicative<$<WriterTF, [IdentityF, L]>>;
+  Monad<L>(L: Monoid<L>): Monad<$<WriterTF, [IdentityF, L]>>;
 }
 
 Writer.Eq = writerTEq;
@@ -116,7 +116,7 @@ Writer.Applicative = L => writerTApplicative(Identity.Applicative, L);
 Writer.Monad = L => writerTMonad(Identity.Monad, L);
 
 Object.defineProperty(Writer, 'Bifunctor', {
-  get(): Bifunctor<$<WriterTK, [IdentityK]>> {
+  get(): Bifunctor<$<WriterTF, [IdentityF]>> {
     return writerTBifunctor(Identity.Functor);
   },
 });
@@ -127,7 +127,7 @@ Object.defineProperty(Writer, 'Bifunctor', {
  * @category Type Constructor
  * @category Data
  */
-export interface WriterTK extends TyK<[unknown, unknown, unknown]> {
+export interface WriterTF extends TyK<[unknown, unknown, unknown]> {
   [$type]: WriterT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }
 
@@ -135,4 +135,4 @@ export interface WriterTK extends TyK<[unknown, unknown, unknown]> {
  * @category Type Constructor
  * @category Data
  */
-export type WriterK = λ<WriterTK, [Fix<IdentityK>, α, β]>;
+export type WriterF = λ<WriterTF, [Fix<IdentityF>, α, β]>;

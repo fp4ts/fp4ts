@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Eval, EvalK } from './eval';
+export { Eval, EvalF } from './eval';

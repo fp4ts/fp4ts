@@ -52,15 +52,15 @@ export interface EitherObj {
   ) => <E, B>(f: (a: A) => Either<E, Either<A, B>>) => Either<E, B>;
 
   // -- Instances
-  SemigroupK<E>(): SemigroupK<$<EitherK, [E]>>;
-  Functor<E>(): Functor<$<EitherK, [E]>>;
-  readonly Bifunctor: Bifunctor<EitherK>;
-  Apply<E>(): Apply<$<EitherK, [E]>>;
-  Applicative<E>(): Applicative<$<EitherK, [E]>>;
-  ApplicativeError<E>(): ApplicativeError<$<EitherK, [E]>, E>;
-  FlatMap<E>(): FlatMap<$<EitherK, [E]>>;
-  Monad<E>(): Monad<$<EitherK, [E]>>;
-  MonadError<E>(): MonadError<$<EitherK, [E]>, E>;
+  SemigroupK<E>(): SemigroupK<$<EitherF, [E]>>;
+  Functor<E>(): Functor<$<EitherF, [E]>>;
+  readonly Bifunctor: Bifunctor<EitherF>;
+  Apply<E>(): Apply<$<EitherF, [E]>>;
+  Applicative<E>(): Applicative<$<EitherF, [E]>>;
+  ApplicativeError<E>(): ApplicativeError<$<EitherF, [E]>, E>;
+  FlatMap<E>(): FlatMap<$<EitherF, [E]>>;
+  Monad<E>(): Monad<$<EitherF, [E]>>;
+  MonadError<E>(): MonadError<$<EitherF, [E]>, E>;
   Eq<E, A>(EE: Eq<E>, EA: Eq<A>): Eq<Either<E, A>>;
 }
 
@@ -73,7 +73,7 @@ Either.tailRecM = tailRecM;
 Either.SemigroupK = eitherSemigroupK;
 Either.Functor = eitherFunctor;
 Object.defineProperty(Either, 'Bifunctor', {
-  get(): Bifunctor<EitherK> {
+  get(): Bifunctor<EitherF> {
     return eitherBifunctor();
   },
 });
@@ -91,6 +91,6 @@ Either.Eq = eitherEq;
  * @category Type Constructor
  * @category Data
  */
-export interface EitherK extends TyK<[unknown, unknown]> {
+export interface EitherF extends TyK<[unknown, unknown]> {
   [$type]: Either<TyVar<this, 0>, TyVar<this, 1>>;
 }

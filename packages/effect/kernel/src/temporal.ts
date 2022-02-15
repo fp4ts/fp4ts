@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
-import { KleisliK, Kleisli, OptionTK, OptionT } from '@fp4ts/cats';
+import { KleisliF, Kleisli, OptionTF, OptionT } from '@fp4ts/cats';
 import { Concurrent, ConcurrentRequirements } from './concurrent';
 import { Clock, ClockRequirements } from './clock';
 
@@ -78,8 +78,8 @@ export const Temporal = Object.freeze({
 
   temporalForKleisli: <F, E, R>(
     F: Temporal<F, E>,
-  ): Temporal<$<KleisliK, [F, R]>, E> =>
-    Temporal.of<$<KleisliK, [F, R]>, E>({
+  ): Temporal<$<KleisliF, [F, R]>, E> =>
+    Temporal.of<$<KleisliF, [F, R]>, E>({
       ...Concurrent.forKleisli(F),
       ...Clock.forKleisli(F),
 
@@ -88,8 +88,8 @@ export const Temporal = Object.freeze({
 
   temporalForOptionT: <F, E>(
     F: Temporal<F, E>,
-  ): Temporal<$<OptionTK, [F]>, E> =>
-    Temporal.of<$<OptionTK, [F]>, E>({
+  ): Temporal<$<OptionTF, [F]>, E> =>
+    Temporal.of<$<OptionTF, [F]>, E>({
       ...Concurrent.forOptionT(F),
       ...Clock.forOptionT(F),
 

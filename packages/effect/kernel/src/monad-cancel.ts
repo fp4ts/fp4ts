@@ -7,10 +7,10 @@ import { $ } from '@fp4ts/core';
 import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Kleisli,
-  KleisliK,
+  KleisliF,
   MonadError,
   MonadErrorRequirements,
-  OptionTK,
+  OptionTF,
   OptionT,
 } from '@fp4ts/cats';
 import { Outcome } from './outcome';
@@ -134,7 +134,7 @@ export const MonadCancel = Object.freeze({
 
   forKleisli: <F, R, E>(
     F: MonadCancel<F, E>,
-  ): MonadCancel<$<KleisliK, [F, R]>, E> =>
+  ): MonadCancel<$<KleisliF, [F, R]>, E> =>
     MonadCancel.of({
       ...Kleisli.MonadError(F),
 
@@ -143,11 +143,11 @@ export const MonadCancel = Object.freeze({
       canceled: Kleisli.liftF(F.canceled),
 
       uncancelable: <A>(
-        body: (poll: Poll<$<KleisliK, [F, R]>>) => Kleisli<F, R, A>,
+        body: (poll: Poll<$<KleisliF, [F, R]>>) => Kleisli<F, R, A>,
       ): Kleisli<F, R, A> =>
         Kleisli(r =>
           F.uncancelable(nat => {
-            const natT: Poll<$<KleisliK, [F, R]>> = <X>(
+            const natT: Poll<$<KleisliF, [F, R]>> = <X>(
               frx: Kleisli<F, R, X>,
             ): Kleisli<F, R, X> => Kleisli(r => nat(frx.run(r)));
 
@@ -156,7 +156,7 @@ export const MonadCancel = Object.freeze({
         ),
     }),
 
-  forOptionT: <F, E>(F: MonadCancel<F, E>): MonadCancel<$<OptionTK, [F]>, E> =>
+  forOptionT: <F, E>(F: MonadCancel<F, E>): MonadCancel<$<OptionTF, [F]>, E> =>
     MonadCancel.of({
       ...OptionT.MonadError(F),
 
@@ -165,11 +165,11 @@ export const MonadCancel = Object.freeze({
       onCancel_: (fa, fin) => OptionT(F.onCancel_(fa.value, F.void(fin.value))),
 
       uncancelable: <A>(
-        body: (poll: Poll<$<OptionTK, [F]>>) => OptionT<F, A>,
+        body: (poll: Poll<$<OptionTF, [F]>>) => OptionT<F, A>,
       ): OptionT<F, A> =>
         OptionT(
           F.uncancelable(nat => {
-            const natT: Poll<$<OptionTK, [F]>> = <A>(
+            const natT: Poll<$<OptionTF, [F]>> = <A>(
               optfa: OptionT<F, A>,
             ): OptionT<F, A> => OptionT(nat(optfa.value));
             return body(natT).value;

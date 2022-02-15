@@ -5,9 +5,9 @@
 
 import { Outcome } from '@fp4ts/effect-kernel';
 import { IO } from './io';
-import { IoK } from './io/io';
+import { IOF } from './io/io';
 
-export type IOOutcome<A> = Outcome<IoK, Error, A>;
+export type IOOutcome<A> = Outcome<IOF, Error, A>;
 
 export const IOOutcome = {
   success: <A>(fa: IO<A>): IOOutcome<A> => Outcome.success(fa),

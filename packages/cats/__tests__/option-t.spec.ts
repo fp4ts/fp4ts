@@ -9,9 +9,9 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from '@fp4ts/cats-core';
 import {
   Identity,
-  IdentityK,
+  IdentityF,
   Right,
-  EitherK,
+  EitherF,
   Some,
   None,
   NoneF,
@@ -31,7 +31,7 @@ describe('OptionT', () => {
 
   describe('type', () => {
     it('should be covariant in A parameter', () => {
-      const o: OptionT<IdentityK, number> = NoneF(Identity.Applicative);
+      const o: OptionT<IdentityF, number> = NoneF(Identity.Applicative);
     });
   });
 
@@ -177,11 +177,11 @@ describe('OptionT', () => {
 
   describe('mapK', () => {
     it('should do nothing when mapping over identity', () => {
-      expect(mkSome(42).mapK<IdentityK>(id)).toEqual(mkSome(42));
+      expect(mkSome(42).mapK<IdentityF>(id)).toEqual(mkSome(42));
     });
 
     it('should change context to Either<string, *>', () => {
-      const nt: FunctionK<IdentityK, $<EitherK, [string]>> = fa => Right(fa);
+      const nt: FunctionK<IdentityF, $<EitherF, [string]>> = fa => Right(fa);
 
       expect(mkSome(42).mapK(nt).value).toEqual(Right(Some(42)));
     });
@@ -201,8 +201,8 @@ describe('OptionT', () => {
         Eq.primitive,
         Eq.primitive,
         <X>(arbX: Arbitrary<X>) =>
-          A.fp4tsOptionT<IdentityK, X>(A.fp4tsOption(arbX)),
-        <X>(eqX: Eq<X>) => OptionT.Eq<IdentityK, X>(Option.Eq(eqX)),
+          A.fp4tsOptionT<IdentityF, X>(A.fp4tsOption(arbX)),
+        <X>(eqX: Eq<X>) => OptionT.Eq<IdentityF, X>(Option.Eq(eqX)),
       ),
     );
 
@@ -223,11 +223,11 @@ describe('OptionT', () => {
         Eq.primitive,
         Eq.primitive,
         <X>(arbX: Arbitrary<X>) =>
-          A.fp4tsOptionT<$<EitherK, [string]>, X>(
+          A.fp4tsOptionT<$<EitherF, [string]>, X>(
             A.fp4tsEither(fc.string(), A.fp4tsOption(arbX)),
           ),
         <X>(eqX: Eq<X>) =>
-          OptionT.Eq<$<EitherK, [string]>, X>(
+          OptionT.Eq<$<EitherF, [string]>, X>(
             Either.Eq(Eq.primitive, Option.Eq(eqX)),
           ),
       ),

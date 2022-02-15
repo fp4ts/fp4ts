@@ -26,8 +26,8 @@ import {
 import { SchemableK } from './schemable-k';
 import { ProductK, SumK, StructK } from './kinds';
 
-export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() => {
-  const self: SchemableK<FunctorK> = instance({
+export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
+  const self: SchemableK<FunctorF> = instance({
     boolean: Const.Functor<boolean>(),
     string: Const.Functor<string>(),
     number: Const.Functor<number>(),
@@ -39,8 +39,8 @@ export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() => {
 
     optional: f => self.compose_(Option.Functor, f),
 
-    product: product as SchemableK<FunctorK>['product'],
-    sum: sum as SchemableK<FunctorK>['sum'],
+    product: product as SchemableK<FunctorF>['product'],
+    sum: sum as SchemableK<FunctorF>['sum'],
     struct,
     defer,
 
@@ -144,6 +144,6 @@ const defer = <G>(thunk: () => Functor<G>): Functor<G> =>
 
 // -- HKT
 
-export interface FunctorK extends TyK<[unknown]> {
+export interface FunctorF extends TyK<[unknown]> {
   [$type]: Functor<TyVar<this, 0>>;
 }

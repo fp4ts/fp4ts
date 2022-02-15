@@ -14,7 +14,7 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 
-import { MapK } from './map';
+import { MapF } from './map';
 import {
   all_,
   any_,
@@ -37,20 +37,20 @@ import { Map } from './map';
 export const mapEq: <K, V>(EK: Eq<K>, EV: Eq<V>) => Eq<Map<K, V>> = (EK, EV) =>
   Eq.of({ equals: (xs, ys) => equals_(EK, EV, xs, ys) });
 
-export const mapSemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapK, [K]>> = O =>
+export const mapSemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapF, [K]>> = O =>
   SemigroupK.of({ combineK_: (x, y) => union_(O, x, y()) });
 
-export const mapMonoidK: <K>(O: Ord<K>) => MonoidK<$<MapK, [K]>> = O =>
+export const mapMonoidK: <K>(O: Ord<K>) => MonoidK<$<MapF, [K]>> = O =>
   MonoidK.of({
     emptyK: () => empty,
     combineK_: (x, y) => union_(O, x, y()),
   });
 
-export const mapFunctor: <K>() => Functor<$<MapK, [K]>> = lazyVal(() =>
+export const mapFunctor: <K>() => Functor<$<MapF, [K]>> = lazyVal(() =>
   Functor.of({ map_: (fa, f) => map_(fa, x => f(x)) }),
 );
 
-export const mapFunctorFilter: <K>() => FunctorFilter<$<MapK, [K]>> = lazyVal(
+export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazyVal(
   () =>
     FunctorFilter.of({
       ...mapFunctor(),
@@ -58,7 +58,7 @@ export const mapFunctorFilter: <K>() => FunctorFilter<$<MapK, [K]>> = lazyVal(
     }),
 );
 
-export const mapFoldable: <K>() => Foldable<$<MapK, [K]>> = lazyVal(() =>
+export const mapFoldable: <K>() => Foldable<$<MapF, [K]>> = lazyVal(() =>
   Foldable.of({
     foldLeft_: (m, z, f) => foldLeft_(m, z, (z, x) => f(z, x)),
     foldRight_: <K, V, B>(
@@ -90,7 +90,7 @@ export const mapFoldable: <K>() => Foldable<$<MapK, [K]>> = lazyVal(() =>
   }),
 );
 
-export const mapTraversable: <K>() => Traversable<$<MapK, [K]>> = lazyVal(() =>
+export const mapTraversable: <K>() => Traversable<$<MapF, [K]>> = lazyVal(() =>
   Traversable.of({
     ...mapFunctor(),
     ...mapFoldable(),

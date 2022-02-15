@@ -34,9 +34,9 @@ export interface IorObj {
 
   // -- Instances
   Eq<A, B>(EqA: Eq<A>, EqB: Eq<B>): Eq<Ior<A, B>>;
-  readonly Bifunctor: Bifunctor<IorK>;
-  Monad<A>(S: Semigroup<A>): Monad<$<IorK, [A]>>;
-  MonadError<A>(S: Semigroup<A>): MonadError<$<IorK, [A]>, A>;
+  readonly Bifunctor: Bifunctor<IorF>;
+  Monad<A>(S: Semigroup<A>): Monad<$<IorF, [A]>>;
+  MonadError<A>(S: Semigroup<A>): MonadError<$<IorF, [A]>, A>;
 }
 
 Ior.Left = left;
@@ -50,7 +50,7 @@ Ior.Eq = iorEq;
 Ior.Monad = iorMonad;
 Ior.MonadError = iorMonadError;
 Object.defineProperty(Ior, 'Bifunctor', {
-  get(): Bifunctor<IorK> {
+  get(): Bifunctor<IorF> {
     return iorBifunctor();
   },
 });
@@ -61,6 +61,6 @@ Object.defineProperty(Ior, 'Bifunctor', {
  * @category Type Constructor
  * @category Data
  */
-export interface IorK extends TyK<[unknown, unknown]> {
+export interface IorF extends TyK<[unknown, unknown]> {
   [$type]: Ior<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -5,4 +5,4 @@
 
 export * from './constructors';
 export * from './operators';
-export { Nested, NestedK } from './nested';
+export { Nested, NestedF as NestedK } from './nested';

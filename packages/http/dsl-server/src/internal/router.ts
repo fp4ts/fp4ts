@@ -6,7 +6,7 @@
 import { Kleisli, Monad } from '@fp4ts/cats';
 import { $ } from '@fp4ts/core';
 import { NotFoundFailure, Request } from '@fp4ts/http-core';
-import { RouteResultT, RouteResultTK } from './route-result';
+import { RouteResultT, RouteResultTF } from './route-result';
 import { RoutingApplication } from './routing-application';
 
 export type Router<env, a> =
@@ -99,7 +99,7 @@ export const runRouterEnv =
     router: Router<env, RoutingApplication<F>>,
     env: env,
   ): RoutingApplication<F> => {
-    const KA = Kleisli.Alternative<$<RouteResultTK, [F]>, Request<F>>(
+    const KA = Kleisli.Alternative<$<RouteResultTF, [F]>, Request<F>>(
       RouteResultT.Alternative(F),
     );
 

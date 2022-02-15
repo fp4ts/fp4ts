@@ -15,26 +15,26 @@ import {
 } from '@fp4ts/cats';
 import { Clock, Sync, MonadCancel } from '@fp4ts/effect-kernel';
 
-import { SyncIO, SyncIoK } from './sync-io';
+import { SyncIO, SyncIOF } from './sync-io';
 import { defer, delay, pure, throwError } from './constructors';
 import { flatMap_, handleErrorWith_, map_, tailRecM_ } from './operators';
 
-export const syncIoDefer: Lazy<Defer<SyncIoK>> = lazyVal(() =>
+export const syncIoDefer: Lazy<Defer<SyncIOF>> = lazyVal(() =>
   Defer.of({ defer }),
 );
 
-export const syncIoFunctor: Lazy<Functor<SyncIoK>> = lazyVal(() =>
+export const syncIoFunctor: Lazy<Functor<SyncIOF>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const syncIoApply: Lazy<Apply<SyncIoK>> = lazyVal(() =>
+export const syncIoApply: Lazy<Apply<SyncIOF>> = lazyVal(() =>
   Apply.of({
     ...syncIoFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const syncIoApplicative: Lazy<Applicative<SyncIoK>> = lazyVal(() =>
+export const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazyVal(() =>
   Applicative.of({
     ...syncIoFunctor(),
     ...syncIoApply(),
@@ -42,7 +42,7 @@ export const syncIoApplicative: Lazy<Applicative<SyncIoK>> = lazyVal(() =>
   }),
 );
 
-export const syncIoFlatMap: Lazy<FlatMap<SyncIoK>> = lazyVal(() =>
+export const syncIoFlatMap: Lazy<FlatMap<SyncIOF>> = lazyVal(() =>
   FlatMap.of({
     ...syncIoApply(),
     flatMap_: flatMap_,
@@ -50,11 +50,11 @@ export const syncIoFlatMap: Lazy<FlatMap<SyncIoK>> = lazyVal(() =>
   }),
 );
 
-export const syncIoMonad: Lazy<Monad<SyncIoK>> = lazyVal(() =>
+export const syncIoMonad: Lazy<Monad<SyncIOF>> = lazyVal(() =>
   Monad.of({ ...syncIoApplicative(), ...syncIoFlatMap() }),
 );
 
-export const syncIoMonadError: Lazy<MonadError<SyncIoK, Error>> = lazyVal(() =>
+export const syncIoMonadError: Lazy<MonadError<SyncIOF, Error>> = lazyVal(() =>
   MonadError.of({
     ...syncIoMonad(),
     throwError: throwError,
@@ -62,7 +62,7 @@ export const syncIoMonadError: Lazy<MonadError<SyncIoK, Error>> = lazyVal(() =>
   }),
 );
 
-export const syncIoSync: Lazy<Sync<SyncIoK>> = lazyVal(() =>
+export const syncIoSync: Lazy<Sync<SyncIOF>> = lazyVal(() =>
   Sync.of({
     ...MonadCancel.Uncancelable(syncIoMonadError()),
     ...Clock.of({

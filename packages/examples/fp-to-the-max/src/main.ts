@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { pipe } from '@fp4ts/core';
-import { IO, IoK, unsafeRunMain } from '@fp4ts/effect';
+import { IO, IOF, unsafeRunMain } from '@fp4ts/effect';
 import { Console, Random } from '@fp4ts/effect';
 
 import { Program } from './dsl';
@@ -13,7 +13,7 @@ import { run } from './program';
 function main(): void {
   const C = Console.make(IO.Async);
   const R = Random.make(IO.Async);
-  const IOProgram: Program<IoK> = {
+  const IOProgram: Program<IOF> = {
     ...IO.Monad,
     readLine: C.readLine,
     printLn: a => C.printLn(a),

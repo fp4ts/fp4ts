@@ -5,7 +5,7 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Applicative } from '../../applicative';
-import { Eval, EvalK } from '../../eval';
+import { Eval, EvalF } from '../../eval';
 import { IndexedStateT } from './algebra';
 
 export const pure =
@@ -91,17 +91,17 @@ export const StateTFunctions = Object.freeze({
 });
 
 export const StateFunctions = Object.freeze({
-  pure: <S, A>(a: A): IndexedStateT<EvalK, S, S, A> =>
+  pure: <S, A>(a: A): IndexedStateT<EvalF, S, S, A> =>
     lift(Eval.Applicative)(s => Eval.pure([s, a])),
 
-  modify: <S>(f: (sa: S) => S): IndexedStateT<EvalK, S, S, void> =>
+  modify: <S>(f: (sa: S) => S): IndexedStateT<EvalF, S, S, void> =>
     new IndexedStateT(Eval.pure(sa => Eval.pure([f(sa), undefined]))),
 
-  inspect: <S, A>(f: (s: S) => A): IndexedStateT<EvalK, S, S, A> =>
+  inspect: <S, A>(f: (s: S) => A): IndexedStateT<EvalF, S, S, A> =>
     lift(Eval.Applicative)(s => Eval.pure([s, f(s)])),
 
-  set: <S>(sb: S): IndexedStateT<EvalK, S, S, void> =>
+  set: <S>(sb: S): IndexedStateT<EvalF, S, S, void> =>
     modify(Eval.Applicative)(() => sb),
 
-  get: <S>(): IndexedStateT<EvalK, S, S, S> => StateFunctions.inspect(id),
+  get: <S>(): IndexedStateT<EvalF, S, S, S> => StateFunctions.inspect(id),
 });

@@ -39,17 +39,17 @@ import {
   traverse_,
   zipAll_,
 } from './operators';
-import type { Queue, QueueK } from './queue';
+import type { Queue, QueueF } from './queue';
 
-export const queueSemigroupK: Lazy<SemigroupK<QueueK>> = lazyVal(() =>
+export const queueSemigroupK: Lazy<SemigroupK<QueueF>> = lazyVal(() =>
   queueMonoidK(),
 );
 
-export const queueMonoidK: Lazy<MonoidK<QueueK>> = lazyVal(() =>
+export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazyVal(() =>
   MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) }),
 );
 
-export const queueAlign: Lazy<Align<QueueK>> = lazyVal(() =>
+export const queueAlign: Lazy<Align<QueueF>> = lazyVal(() =>
   Align.of({
     functor: queueFunctor(),
     align_: align_,
@@ -63,31 +63,31 @@ export const queueAlign: Lazy<Align<QueueK>> = lazyVal(() =>
   }),
 );
 
-export const queueFunctor: Lazy<Functor<QueueK>> = lazyVal(() =>
+export const queueFunctor: Lazy<Functor<QueueF>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const queueFunctorFilter: Lazy<FunctorFilter<QueueK>> = lazyVal(() =>
+export const queueFunctorFilter: Lazy<FunctorFilter<QueueF>> = lazyVal(() =>
   FunctorFilter.of({ ...queueFunctor(), mapFilter_: collect_ }),
 );
 
-export const queueApply: Lazy<Apply<QueueK>> = lazyVal(() => queueMonad());
+export const queueApply: Lazy<Apply<QueueF>> = lazyVal(() => queueMonad());
 
-export const queueApplicative: Lazy<Applicative<QueueK>> = lazyVal(() =>
+export const queueApplicative: Lazy<Applicative<QueueF>> = lazyVal(() =>
   queueMonad(),
 );
 
-export const queueFlatMap: Lazy<FlatMap<QueueK>> = lazyVal(() => queueMonad());
+export const queueFlatMap: Lazy<FlatMap<QueueF>> = lazyVal(() => queueMonad());
 
-export const queueAlternative: Lazy<Alternative<QueueK>> = lazyVal(() =>
+export const queueAlternative: Lazy<Alternative<QueueF>> = lazyVal(() =>
   Alternative.of({ ...queueMonad(), ...queueMonoidK() }),
 );
 
-export const queueMonad: Lazy<Monad<QueueK>> = lazyVal(() =>
+export const queueMonad: Lazy<Monad<QueueF>> = lazyVal(() =>
   Monad.of({ pure, flatMap_, tailRecM_ }),
 );
 
-export const queueFoldable: Lazy<Foldable<QueueK>> = lazyVal(() =>
+export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
   Foldable.of({
     isEmpty,
     nonEmpty,
@@ -119,6 +119,6 @@ export const queueFoldable: Lazy<Foldable<QueueK>> = lazyVal(() =>
   }),
 );
 
-export const queueTraversable: Lazy<Traversable<QueueK>> = lazyVal(() =>
+export const queueTraversable: Lazy<Traversable<QueueF>> = lazyVal(() =>
   Traversable.of({ ...queueFoldable(), ...queueFunctor(), traverse_ }),
 );

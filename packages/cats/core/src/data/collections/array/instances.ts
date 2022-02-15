@@ -19,7 +19,7 @@ import { Traversable } from '../../../traversable';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 
-import { ArrayK } from './array';
+import { ArrayF } from './array';
 import {
   align_,
   all_,
@@ -44,57 +44,57 @@ import { empty, pure } from './constructors';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
-export const arraySemigroupK: () => SemigroupK<ArrayK> = lazyVal(() =>
+export const arraySemigroupK: () => SemigroupK<ArrayF> = lazyVal(() =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
 );
 
-export const arrayMonoidK: () => MonoidK<ArrayK> = lazyVal(() => {
+export const arrayMonoidK: () => MonoidK<ArrayF> = lazyVal(() => {
   const { algebra, ...rest } = arraySemigroupK();
   return MonoidK.of({ ...rest, emptyK: () => empty });
 });
 
-export const arrayAlign: () => Align<ArrayK> = lazyVal(() =>
+export const arrayAlign: () => Align<ArrayF> = lazyVal(() =>
   Align.of({ functor: arrayFunctor(), align_: align_ }),
 );
 
-export const arrayFunctor: () => Functor<ArrayK> = lazyVal(() =>
+export const arrayFunctor: () => Functor<ArrayF> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const arrayFunctorFilter: () => FunctorFilter<ArrayK> = lazyVal(() =>
+export const arrayFunctorFilter: () => FunctorFilter<ArrayF> = lazyVal(() =>
   FunctorFilter.of({
     ...arrayFunctor(),
     mapFilter_: collect_,
   }),
 );
 
-export const arrayApply: () => Apply<ArrayK> = lazyVal(() =>
-  Apply.of<ArrayK>({
+export const arrayApply: () => Apply<ArrayF> = lazyVal(() =>
+  Apply.of<ArrayF>({
     ...arrayFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
   }),
 );
 
-export const arrayApplicative: () => Applicative<ArrayK> = lazyVal(() =>
+export const arrayApplicative: () => Applicative<ArrayF> = lazyVal(() =>
   Applicative.of({ ...arrayApply(), pure: pure, unit: [undefined] }),
 );
 
-export const arrayAlternative: () => Alternative<ArrayK> = lazyVal(() =>
+export const arrayAlternative: () => Alternative<ArrayF> = lazyVal(() =>
   Alternative.of({ ...arrayApplicative(), ...arrayMonoidK() }),
 );
 
-export const arrayFlatMap: () => FlatMap<ArrayK> = lazyVal(() =>
+export const arrayFlatMap: () => FlatMap<ArrayF> = lazyVal(() =>
   FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
 );
 
-export const arrayMonad: () => Monad<ArrayK> = lazyVal(() =>
+export const arrayMonad: () => Monad<ArrayF> = lazyVal(() =>
   Monad.of({
     ...arrayApplicative(),
     ...arrayFlatMap(),
   }),
 );
 
-export const arrayFoldable: () => Foldable<ArrayK> = lazyVal(() =>
+export const arrayFoldable: () => Foldable<ArrayF> = lazyVal(() =>
   Foldable.of({
     all_: all_,
     any_: any_,
@@ -125,7 +125,7 @@ export const arrayFoldable: () => Foldable<ArrayK> = lazyVal(() =>
   }),
 );
 
-export const arrayTraversable: () => Traversable<ArrayK> = lazyVal(() =>
+export const arrayTraversable: () => Traversable<ArrayF> = lazyVal(() =>
   Traversable.of({
     ...arrayFunctor(),
     ...arrayFoldable(),

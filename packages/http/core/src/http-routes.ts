@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { Monad, OptionTK } from '@fp4ts/cats';
+import { Monad, OptionTF } from '@fp4ts/cats';
 import { Http } from './http';
 import { Response, Status } from './messages';
 
-export type HttpRoutes<F> = Http<$<OptionTK, [F]>, F>;
+export type HttpRoutes<F> = Http<$<OptionTF, [F]>, F>;
 export const HttpRoutes = {
   orNotFound:
     <F>(F: Monad<F>) =>

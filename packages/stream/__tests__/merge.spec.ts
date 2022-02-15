@@ -7,7 +7,7 @@ import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { pipe } from '@fp4ts/core';
 import { Eq, List, Either, Left, Right, Some, None } from '@fp4ts/cats';
-import { IO, IoK } from '@fp4ts/effect';
+import { IO, IOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';
@@ -128,7 +128,7 @@ describe('Stream merge', () => {
             IO.bindTo('halt', IO.deferred<void>()),
           )
             .flatMap(({ finalizerRef, sideRunRef, halt }) => {
-              const bracketed = Stream.bracket<IoK, void>(IO.unit, () =>
+              const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
                 finalizerRef.update(xs => xs['::+']('Outer')),
               );
 
@@ -154,12 +154,12 @@ describe('Stream merge', () => {
 
               const prg = bracketed
                 .flatMap(() =>
-                  Stream.bracket<IoK, void>(register('L'), () => finalizer('L'))
+                  Stream.bracket<IOF, void>(register('L'), () => finalizer('L'))
                     .flatMap(() => s.map(() => {}))
                     .merge(IO.Concurrent)(
                       Stream.bracket(register('R'), () => finalizer('R')),
                     )
-                    .flatMap(() => Stream.evalF<IoK, void>(halt.complete())),
+                    .flatMap(() => Stream.evalF<IOF, void>(halt.complete())),
                 )
                 .interruptWhen(halt.get().attempt);
 
@@ -183,13 +183,13 @@ describe('Stream merge', () => {
 
   describe('hangs', () => {
     const full = Stream.repeat(42);
-    const hang = Stream.repeatEval<IoK, number>(IO.never);
-    const hang2: Stream<IoK, number> = full.drain;
-    const hang3: Stream<IoK, number> = Stream.repeatEval<IoK, void>(
+    const hang = Stream.repeatEval<IOF, number>(IO.never);
+    const hang2: Stream<IOF, number> = full.drain;
+    const hang3: Stream<IOF, number> = Stream.repeatEval<IOF, void>(
       IO.async_<void>(cb => cb(Either.rightUnit))['>>>'](IO.suspend),
     ).drain;
 
-    const doTest = (s1: Stream<IoK, number>, s2: Stream<IoK, number>) =>
+    const doTest = (s1: Stream<IOF, number>, s2: Stream<IOF, number>) =>
       s1
         .merge(IO.Concurrent)(s2)
         .take(1)
@@ -278,7 +278,7 @@ describe('Stream merge', () => {
       fc.asyncProperty(fc.integer(), v =>
         IO.ref(v)
           .flatMap(ref =>
-            Stream.repeatEval<IoK, number>(ref.get())
+            Stream.repeatEval<IOF, number>(ref.get())
               .merge(IO.Concurrent)(Stream.never(IO.Spawn))
               .evalMap(value =>
                 IO.sleep(50)

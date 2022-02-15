@@ -8,7 +8,7 @@ import { Array, Eq } from '@fp4ts/cats';
 import { $type, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Schemable } from './schemable';
 
-export const eqSchemable: Lazy<Schemable<EqK>> = lazyVal(() =>
+export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
   Schemable.of({
     boolean: Eq.primitive,
     null: Eq.fromUniversalEquals(),
@@ -17,7 +17,7 @@ export const eqSchemable: Lazy<Schemable<EqK>> = lazyVal(() =>
       Eq.of<A>({ equals: (x, y) => thunk().equals(x, y) }),
     literal: () => Eq.fromUniversalEquals(),
     array: Array.Eq,
-    product: Eq.tuple as Schemable<EqK>['product'],
+    product: Eq.tuple as Schemable<EqF>['product'],
     struct: Eq.struct,
     sum:
       <T extends string>(tag: T) =>
@@ -47,6 +47,6 @@ export const eqSchemable: Lazy<Schemable<EqK>> = lazyVal(() =>
   }),
 );
 
-interface EqK extends TyK<[unknown]> {
+export interface EqF extends TyK<[unknown]> {
   [$type]: Eq<TyVar<this, 0>>;
 }

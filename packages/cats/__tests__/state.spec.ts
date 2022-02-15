@@ -9,15 +9,15 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import {
   Either,
-  EitherK,
+  EitherF,
   List,
   State,
   StateT,
   IndexedStateT,
-  IdentityK,
+  IdentityF,
   Identity,
   Option,
-  OptionK,
+  OptionF,
 } from '@fp4ts/cats-core/lib/data';
 import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
@@ -36,24 +36,24 @@ describe('State', () => {
 
   test('basic usage', () => {
     const listHead: IndexedStateT<
-      IdentityK,
+      IdentityF,
       List<number>,
       Option<number>,
       void
     > = IndexedStateT.modify(Identity.Applicative)(xs => xs.headOption);
     const getOrElse: IndexedStateT<
-      IdentityK,
+      IdentityF,
       Option<number>,
       number,
       void
     > = IndexedStateT.modify(Identity.Applicative)(x => x.getOrElse(() => 0));
-    const toString: IndexedStateT<IdentityK, number, string, void> =
+    const toString: IndexedStateT<IdentityF, number, string, void> =
       IndexedStateT.modify(Identity.Applicative)(x => x.toString());
 
     const composite = listHead.flatMap(Identity.Monad)(() =>
       getOrElse.flatMap(Identity.Monad)(() =>
         toString.flatMap(Identity.Monad)(() =>
-          IndexedStateT.get<IdentityK, string>(Identity.Applicative),
+          IndexedStateT.get<IdentityF, string>(Identity.Applicative),
         ),
       ),
     );
@@ -312,7 +312,7 @@ describe('State', () => {
 
   describe('IndexedStateT Laws', () => {
     const identityMonadTests = MonadSuite(
-      IndexedStateT.Monad<IdentityK, MiniInt>(Identity.Monad),
+      IndexedStateT.Monad<IdentityF, MiniInt>(Identity.Monad),
     );
     checkAll(
       'Monad<IndexedStateT<IdentityK, MiniInt, MiniInt, *>>',
@@ -327,8 +327,8 @@ describe('State', () => {
         Eq.primitive,
         <X>(
           X: Arbitrary<X>,
-        ): Arbitrary<IndexedStateT<IdentityK, MiniInt, MiniInt, X>> =>
-          A.fp4tsIndexedStateT<IdentityK, MiniInt, MiniInt, X>(
+        ): Arbitrary<IndexedStateT<IdentityF, MiniInt, MiniInt, X>> =>
+          A.fp4tsIndexedStateT<IdentityF, MiniInt, MiniInt, X>(
             fc.func<[MiniInt], Identity<[MiniInt, X]>>(
               fc.tuple(A.fp4tsMiniInt(), X),
             ),
@@ -339,7 +339,7 @@ describe('State', () => {
     );
 
     const bifunctorTests = BifunctorSuite(
-      IndexedStateT.Bifunctor<IdentityK, MiniInt>(Identity.Monad),
+      IndexedStateT.Bifunctor<IdentityF, MiniInt>(Identity.Monad),
     );
     checkAll(
       'Bifunctor<IndexedStateT<IdentityK, MiniInt, *, *>>',
@@ -355,8 +355,8 @@ describe('State', () => {
         <X, Y>(
           X: Arbitrary<X>,
           Y: Arbitrary<Y>,
-        ): Arbitrary<IndexedStateT<IdentityK, MiniInt, X, Y>> =>
-          A.fp4tsIndexedStateT<IdentityK, MiniInt, X, Y>(
+        ): Arbitrary<IndexedStateT<IdentityF, MiniInt, X, Y>> =>
+          A.fp4tsIndexedStateT<IdentityF, MiniInt, X, Y>(
             fc.func<[MiniInt], Identity<[X, Y]>>(fc.tuple(X, Y)),
           ),
         (EX, EY) => E.indexedStateTEq(ec.miniInt(), EX, EY, id, Identity.Monad),
@@ -364,7 +364,7 @@ describe('State', () => {
     );
 
     const optionMonadTests = MonadSuite(
-      IndexedStateT.Monad<OptionK, MiniInt>(Option.Monad),
+      IndexedStateT.Monad<OptionF, MiniInt>(Option.Monad),
     );
     checkAll(
       'Monad<IndexedStateT<OptionK, MiniInt, MiniInt, *>>',
@@ -379,8 +379,8 @@ describe('State', () => {
         Eq.primitive,
         <X>(
           X: Arbitrary<X>,
-        ): Arbitrary<IndexedStateT<OptionK, MiniInt, MiniInt, X>> =>
-          A.fp4tsIndexedStateT<OptionK, MiniInt, MiniInt, X>(
+        ): Arbitrary<IndexedStateT<OptionF, MiniInt, MiniInt, X>> =>
+          A.fp4tsIndexedStateT<OptionF, MiniInt, MiniInt, X>(
             A.fp4tsOption(
               fc.func<[MiniInt], Option<[MiniInt, X]>>(
                 A.fp4tsOption(fc.tuple(A.fp4tsMiniInt(), X)),
@@ -399,7 +399,7 @@ describe('State', () => {
     );
 
     const eitherStringMonadErrorTests = MonadErrorSuite(
-      IndexedStateT.MonadError<$<EitherK, [string]>, MiniInt, string>(
+      IndexedStateT.MonadError<$<EitherF, [string]>, MiniInt, string>(
         Either.MonadError<string>(),
       ),
     );
@@ -419,9 +419,9 @@ describe('State', () => {
         <X>(
           X: Arbitrary<X>,
         ): Arbitrary<
-          IndexedStateT<$<EitherK, [string]>, MiniInt, MiniInt, X>
+          IndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>
         > =>
-          A.fp4tsIndexedStateT<$<EitherK, [string]>, MiniInt, MiniInt, X>(
+          A.fp4tsIndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>(
             A.fp4tsEither(
               fc.string(),
               fc.func<[MiniInt], Either<string, [MiniInt, X]>>(

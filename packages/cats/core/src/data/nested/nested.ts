@@ -27,7 +27,7 @@ interface NestedObj {
   Applicative<F, G>(
     F: Applicative<F>,
     G: Applicative<G>,
-  ): Applicative<$<NestedK, [F, G]>>;
+  ): Applicative<$<NestedF, [F, G]>>;
 }
 
 Nested.liftF = liftF;
@@ -40,6 +40,6 @@ Nested.Applicative = nestedApplicative;
  * @category Type Constructor
  * @category Data
  */
-export interface NestedK extends TyK<[unknown, unknown, unknown]> {
+export interface NestedF extends TyK<[unknown, unknown, unknown]> {
   [$type]: Nested<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

@@ -15,7 +15,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 
-import { Try, TryK } from './try';
+import { Try, TryF } from './try';
 import {
   collect_,
   flatMap_,
@@ -42,30 +42,30 @@ export const tryEq: <A>(EE: Eq<Error>, EA: Eq<A>) => Eq<Try<A>> = (EE, EA) =>
     },
   });
 
-export const trySemigroupK: Lazy<SemigroupK<TryK>> = lazyVal(() =>
+export const trySemigroupK: Lazy<SemigroupK<TryF>> = lazyVal(() =>
   SemigroupK.of({ combineK_: orElse_ }),
 );
 
-export const tryFunctor: Lazy<Functor<TryK>> = lazyVal(() =>
+export const tryFunctor: Lazy<Functor<TryF>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const tryFunctorFilter: Lazy<FunctorFilter<TryK>> = lazyVal(() =>
+export const tryFunctorFilter: Lazy<FunctorFilter<TryF>> = lazyVal(() =>
   FunctorFilter.of({ ...tryFunctor(), mapFilter_: collect_ }),
 );
 
-export const tryApply: Lazy<Apply<TryK>> = lazyVal(() =>
+export const tryApply: Lazy<Apply<TryF>> = lazyVal(() =>
   Apply.of({
     ...tryFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const tryApplicative: Lazy<Applicative<TryK>> = lazyVal(() =>
+export const tryApplicative: Lazy<Applicative<TryF>> = lazyVal(() =>
   Applicative.of({ ...tryApply(), pure: success }),
 );
 
-export const tryApplicativeError: Lazy<ApplicativeError<TryK, Error>> = lazyVal(
+export const tryApplicativeError: Lazy<ApplicativeError<TryF, Error>> = lazyVal(
   () =>
     ApplicativeError.of({
       ...tryApplicative(),
@@ -74,14 +74,14 @@ export const tryApplicativeError: Lazy<ApplicativeError<TryK, Error>> = lazyVal(
     }),
 );
 
-export const tryFlatMap: Lazy<FlatMap<TryK>> = lazyVal(() =>
+export const tryFlatMap: Lazy<FlatMap<TryF>> = lazyVal(() =>
   FlatMap.of({ ...tryApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
 );
 
-export const tryMonad: Lazy<Monad<TryK>> = lazyVal(() =>
+export const tryMonad: Lazy<Monad<TryF>> = lazyVal(() =>
   Monad.of({ ...tryFlatMap(), ...tryApplicative() }),
 );
 
-export const tryMonadError: Lazy<MonadError<TryK, Error>> = lazyVal(() =>
+export const tryMonadError: Lazy<MonadError<TryF, Error>> = lazyVal(() =>
   MonadError.of({ ...tryApplicativeError(), ...tryMonad() }),
 );

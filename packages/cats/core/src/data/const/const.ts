@@ -40,14 +40,14 @@ interface ConstObj {
 
   // -- Instances
 
-  SemigroupK<A>(A: Monoid<A>): SemigroupK<$<ConstK, [A]>>;
-  MonoidK<A>(A: Monoid<A>): MonoidK<$<ConstK, [A]>>;
-  Functor<A>(): Functor<$<ConstK, [A]>>;
-  FunctorFilter<A>(): FunctorFilter<$<ConstK, [A]>>;
-  Apply<A>(A: Monoid<A>): Apply<$<ConstK, [A]>>;
-  Applicative<A>(A: Monoid<A>): Applicative<$<ConstK, [A]>>;
-  Foldable<A>(A: Monoid<A>): Foldable<$<ConstK, [A]>>;
-  Traversable<A>(A: Monoid<A>): Traversable<$<ConstK, [A]>>;
+  SemigroupK<A>(A: Monoid<A>): SemigroupK<$<ConstF, [A]>>;
+  MonoidK<A>(A: Monoid<A>): MonoidK<$<ConstF, [A]>>;
+  Functor<A>(): Functor<$<ConstF, [A]>>;
+  FunctorFilter<A>(): FunctorFilter<$<ConstF, [A]>>;
+  Apply<A>(A: Monoid<A>): Apply<$<ConstF, [A]>>;
+  Applicative<A>(A: Monoid<A>): Applicative<$<ConstF, [A]>>;
+  Foldable<A>(A: Monoid<A>): Foldable<$<ConstF, [A]>>;
+  Traversable<A>(A: Monoid<A>): Traversable<$<ConstF, [A]>>;
 }
 
 Const.of = of;
@@ -69,6 +69,6 @@ Const.Traversable = constTraversable;
  * @category Type Constructor
  * @category Data
  */
-export interface ConstK extends TyK<[unknown, unknown]> {
+export interface ConstF extends TyK<[unknown, unknown]> {
   [$type]: Const<TyVar<this, 0>, TyVar<this, 1>>;
 }

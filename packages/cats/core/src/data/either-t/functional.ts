@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { EitherT, EitherTK } from './either-t';
+export { EitherT, EitherTF as EitherTK } from './either-t';

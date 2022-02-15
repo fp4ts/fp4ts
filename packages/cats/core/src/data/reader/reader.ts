@@ -40,11 +40,11 @@ interface ReaderObj {
 
   // -- Instances
 
-  Functor: <R>() => Functor<$<ReaderK, [R]>>;
-  Apply: <R>() => Apply<$<ReaderK, [R]>>;
-  Applicative: <R>() => Applicative<$<ReaderK, [R]>>;
-  FlatMap: <R>() => FlatMap<$<ReaderK, [R]>>;
-  Monad: <R>() => Monad<$<ReaderK, [R]>>;
+  Functor: <R>() => Functor<$<ReaderF, [R]>>;
+  Apply: <R>() => Apply<$<ReaderF, [R]>>;
+  Applicative: <R>() => Applicative<$<ReaderF, [R]>>;
+  FlatMap: <R>() => FlatMap<$<ReaderF, [R]>>;
+  Monad: <R>() => Monad<$<ReaderF, [R]>>;
 }
 
 Reader.pure = pure;
@@ -64,6 +64,6 @@ Reader.Monad = readerMonad;
  * @category Type Constructor
  * @category Data
  */
-export interface ReaderK extends TyK<[unknown, unknown]> {
+export interface ReaderF extends TyK<[unknown, unknown]> {
   [$type]: Reader<TyVar<this, 0>, TyVar<this, 1>>;
 }

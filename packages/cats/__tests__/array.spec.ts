@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
@@ -85,7 +85,7 @@ describe('Array laws', () => {
   const traversableTests = TraversableSuite(Array.Traversable());
   checkAll(
     'Traversable<Array>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
+    traversableTests.traversable<number, number, number, EvalF, EvalF>(
       fc.integer(),
       fc.integer(),
       fc.integer(),

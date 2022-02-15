@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { Map as OrderedMap, MapK as OrderedMapK } from './map';
+export { Map as OrderedMap, MapF as OrderedMapK } from './map';

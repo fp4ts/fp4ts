@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Nested, NestedK } from './nested';
+export { Nested, NestedF } from './nested';

@@ -8,10 +8,10 @@ import { Eq } from '@fp4ts/cats-kernel';
 import {
   Either,
   EitherT,
-  IdentityK,
+  IdentityF,
   Identity,
   Option,
-  OptionK,
+  OptionF,
 } from '@fp4ts/cats-core/lib/data';
 import {
   BifunctorSuite,
@@ -25,16 +25,16 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 describe('EitherT', () => {
   describe('Laws', () => {
     const semigroupKTests = SemigroupKSuite(
-      EitherT.SemigroupK<IdentityK, string>(Identity.Monad),
+      EitherT.SemigroupK<IdentityF, string>(Identity.Monad),
     );
     checkAll(
       'SemigroupK<EitherT<IdentityK, string, *>>',
       semigroupKTests.semigroupK(
         fc.integer(),
         Eq.primitive,
-        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityK, string, X>> =>
+        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsEither(fc.string(), arbX)),
-        <X>(EqX: Eq<X>): Eq<EitherT<IdentityK, string, X>> =>
+        <X>(EqX: Eq<X>): Eq<EitherT<IdentityF, string, X>> =>
           EitherT.Eq(Either.Eq(Eq.primitive, EqX)),
       ),
     );
@@ -54,9 +54,9 @@ describe('EitherT', () => {
         <X, Y>(
           arbX: Arbitrary<X>,
           arbY: Arbitrary<Y>,
-        ): Arbitrary<EitherT<IdentityK, X, Y>> =>
+        ): Arbitrary<EitherT<IdentityF, X, Y>> =>
           A.fp4tsEitherT(A.fp4tsEither(arbX, arbY)),
-        <X, Y>(EqX: Eq<X>, EqY: Eq<Y>): Eq<EitherT<IdentityK, X, Y>> =>
+        <X, Y>(EqX: Eq<X>, EqY: Eq<Y>): Eq<EitherT<IdentityF, X, Y>> =>
           EitherT.Eq(Either.Eq(EqX, EqY)),
       ),
     );
@@ -78,15 +78,15 @@ describe('EitherT', () => {
         <X, Y>(
           arbX: Arbitrary<X>,
           arbY: Arbitrary<Y>,
-        ): Arbitrary<EitherT<OptionK, X, Y>> =>
+        ): Arbitrary<EitherT<OptionF, X, Y>> =>
           A.fp4tsEitherT(A.fp4tsOption(A.fp4tsEither(arbX, arbY))),
-        <X, Y>(EqX: Eq<X>, EqY: Eq<Y>): Eq<EitherT<OptionK, X, Y>> =>
+        <X, Y>(EqX: Eq<X>, EqY: Eq<Y>): Eq<EitherT<OptionF, X, Y>> =>
           EitherT.Eq(Option.Eq(Either.Eq(EqX, EqY))),
       ),
     );
 
     const monadOptionTests = MonadSuite(
-      EitherT.Monad<OptionK, string>(Option.Monad),
+      EitherT.Monad<OptionF, string>(Option.Monad),
     );
     checkAll(
       'Monad<EitherT<OptionK, string, *>>',
@@ -99,15 +99,15 @@ describe('EitherT', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<OptionK, string, X>> =>
+        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<OptionF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsOption(A.fp4tsEither(fc.string(), arbX))),
-        <X>(EqX: Eq<X>): Eq<EitherT<OptionK, string, X>> =>
+        <X>(EqX: Eq<X>): Eq<EitherT<OptionF, string, X>> =>
           EitherT.Eq(Option.Eq(Either.Eq(Eq.primitive, EqX))),
       ),
     );
 
     const monadErrorTests = MonadErrorSuite(
-      EitherT.MonadError<IdentityK, string>(Identity.Monad),
+      EitherT.MonadError<IdentityF, string>(Identity.Monad),
     );
     checkAll(
       'Monad<EitherT<IdentityK, string, *>>',
@@ -122,9 +122,9 @@ describe('EitherT', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityK, string, X>> =>
+        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsEither(fc.string(), arbX)),
-        <X>(EqX: Eq<X>): Eq<EitherT<IdentityK, string, X>> =>
+        <X>(EqX: Eq<X>): Eq<EitherT<IdentityF, string, X>> =>
           EitherT.Eq(Either.Eq(Eq.primitive, EqX)),
       ),
     );

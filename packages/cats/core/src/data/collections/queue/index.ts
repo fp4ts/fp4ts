@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { Queue, QueueK } from './queue';
+export { Queue, QueueF } from './queue';

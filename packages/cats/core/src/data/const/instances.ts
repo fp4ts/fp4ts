@@ -14,31 +14,31 @@ import { Applicative } from '../../applicative';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
-import { Const, ConstK } from './const';
+import { Const, ConstF } from './const';
 import { combine_, retag } from './operators';
 import { pure } from './constructors';
 
 export const constSemigroupK: <A>(
   A: Semigroup<A>,
-) => SemigroupK<$<ConstK, [A]>> = A =>
+) => SemigroupK<$<ConstF, [A]>> = A =>
   SemigroupK.of({ combineK_: (x, y) => A.combine_(x, y) });
 
-export const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstK, [A]>> = A =>
+export const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
   MonoidK.of({
     emptyK: () => A.empty,
     combineK_: (x, y) => A.combine_(x, y),
   });
 
-export const constFunctor: <A>() => Functor<$<ConstK, [A]>> = lazyVal(<A>() =>
+export const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazyVal(<A>() =>
   Functor.of({ map_: retag<A>() }),
 );
 
-export const constFunctorFilter: <A>() => FunctorFilter<$<ConstK, [A]>> =
+export const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> =
   lazyVal(<A>() =>
     FunctorFilter.of({ ...constFunctor(), mapFilter_: retag<A>() }),
   );
 
-export const constApply: <A>(A: Monoid<A>) => Apply<$<ConstK, [A]>> = <A>(
+export const constApply: <A>(A: Monoid<A>) => Apply<$<ConstF, [A]>> = <A>(
   A: Monoid<A>,
 ) =>
   Apply.of({
@@ -48,18 +48,18 @@ export const constApply: <A>(A: Monoid<A>) => Apply<$<ConstK, [A]>> = <A>(
 
 export const constApplicative: <A>(
   A: Monoid<A>,
-) => Applicative<$<ConstK, [A]>> = <A>(A: Monoid<A>) =>
+) => Applicative<$<ConstF, [A]>> = <A>(A: Monoid<A>) =>
   Applicative.of({
     ...constFunctor<A>(),
     ...constApply(A),
     pure: pure(A),
   });
 
-export const constFoldable: <A>() => Foldable<$<ConstK, [A]>> = lazyVal(() =>
+export const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
   Foldable.of({ foldLeft_: (_, z) => z, foldRight_: (_, ez) => ez }),
 );
 
-export const constTraversable: <A>() => Traversable<$<ConstK, [A]>> = <A>() =>
+export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = <A>() =>
   Traversable.of({
     ...constFunctor<A>(),
     ...constFoldable<A>(),

@@ -7,7 +7,7 @@ import { flow, id } from '@fp4ts/core';
 import { Either, Left, Monad, Right, Some } from '@fp4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
 
-import { IO, IoK } from './io';
+import { IO, IOF } from './io';
 
 import * as IOA from './io/algebra';
 import { IORuntime } from './unsafe/io-runtime';
@@ -21,7 +21,7 @@ type ContResult =
   | { tag: 'success'; value: unknown }
   | { tag: 'failure'; error: Error };
 
-export class IOFiber<A> extends Fiber<IoK, Error, A> {
+export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private outcome?: IOOutcome<A>;
   private canceled: boolean = false;
   private finalizing: boolean = false;
@@ -277,7 +277,7 @@ export class IOFiber<A> extends Fiber<IoK, Error, A> {
           this.masks += 1;
           const id = this.masks;
 
-          const poll: Poll<IoK> = iob => new IOA.UnmaskRunLoop(iob, id, this);
+          const poll: Poll<IOF> = iob => new IOA.UnmaskRunLoop(iob, id, this);
 
           this.conts.push(IOA.UncancelableK);
           _cur = cur.body(poll);

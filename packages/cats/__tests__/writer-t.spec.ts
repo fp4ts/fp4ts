@@ -6,13 +6,13 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Writer,
   WriterT,
   Array,
   Either,
-  EitherK,
+  EitherF,
   Chain,
 } from '@fp4ts/cats-core/lib/data';
 import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
@@ -140,15 +140,15 @@ describe('WriterT', () => {
         <X, Y>(
           arbX: Arbitrary<X>,
           arbY: Arbitrary<Y>,
-        ): Arbitrary<WriterT<EvalK, X, Y>> =>
+        ): Arbitrary<WriterT<EvalF, X, Y>> =>
           A.fp4tsWriterT(A.fp4tsEval(fc.tuple(arbX, arbY))),
-        <X, Y>(EX: Eq<X>, EY: Eq<Y>): Eq<WriterT<EvalK, X, Y>> =>
+        <X, Y>(EX: Eq<X>, EY: Eq<Y>): Eq<WriterT<EvalF, X, Y>> =>
           WriterT.Eq(Eval.Eq(Eq.tuple2(EX, EY))),
       ),
     );
 
     const monadTests = MonadSuite(
-      WriterT.Monad<EvalK, string>(Eval.Monad, Monoid.string),
+      WriterT.Monad<EvalF, string>(Eval.Monad, Monoid.string),
     );
     checkAll(
       'Monad<WriterT<Eval, string, *>>',
@@ -161,15 +161,15 @@ describe('WriterT', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalK, string, X>> =>
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, string, X>> =>
           A.fp4tsWriterT(A.fp4tsEval(fc.tuple(fc.string(), arbX))),
-        <X>(E: Eq<X>): Eq<WriterT<EvalK, string, X>> =>
+        <X>(E: Eq<X>): Eq<WriterT<EvalF, string, X>> =>
           WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive as any, E))),
       ),
     );
 
     const monadErrorTests = MonadErrorSuite(
-      WriterT.MonadError<$<EitherK, [Error]>, string, Error>(
+      WriterT.MonadError<$<EitherF, [Error]>, string, Error>(
         Either.MonadError(),
         Monoid.string,
       ),
@@ -189,11 +189,11 @@ describe('WriterT', () => {
         Eq.Error.strict,
         <X>(
           arbX: Arbitrary<X>,
-        ): Arbitrary<WriterT<$<EitherK, [Error]>, string, X>> =>
+        ): Arbitrary<WriterT<$<EitherF, [Error]>, string, X>> =>
           A.fp4tsWriterT(
             A.fp4tsEither(A.fp4tsError(), fc.tuple(fc.string(), arbX)),
           ),
-        <X>(E: Eq<X>): Eq<WriterT<$<EitherK, [Error]>, string, X>> =>
+        <X>(E: Eq<X>): Eq<WriterT<$<EitherF, [Error]>, string, X>> =>
           WriterT.Eq(
             Either.Eq(Eq.Error.strict, Eq.tuple2(Eq.primitive as any, E)),
           ),
@@ -201,7 +201,7 @@ describe('WriterT', () => {
     );
 
     const monadChainTests = MonadSuite(
-      WriterT.Monad<EvalK, Chain<string>>(
+      WriterT.Monad<EvalF, Chain<string>>(
         Eval.Monad,
         Chain.MonoidK.algebra<string>(),
       ),
@@ -217,11 +217,11 @@ describe('WriterT', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalK, Chain<string>, X>> =>
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, Chain<string>, X>> =>
           A.fp4tsWriterT(
             A.fp4tsEval(fc.tuple(A.fp4tsChain(fc.string()), arbX)),
           ),
-        <X>(E: Eq<X>): Eq<WriterT<EvalK, Chain<string>, X>> =>
+        <X>(E: Eq<X>): Eq<WriterT<EvalF, Chain<string>, X>> =>
           WriterT.Eq(Eval.Eq(Eq.tuple2(Chain.Eq(Eq.primitive) as any, E))),
       ),
     );

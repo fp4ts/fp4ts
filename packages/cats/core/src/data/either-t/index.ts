@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { EitherT, EitherTK } from './either-t';
+export { EitherT, EitherTF } from './either-t';

@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Either, EitherK, Right, Left } from './either';
+export { Either, EitherF, Right, Left } from './either';

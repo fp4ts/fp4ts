@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { Chain, ChainK } from './chain';
+export { Chain, ChainF } from './chain';

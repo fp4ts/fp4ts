@@ -12,24 +12,24 @@ import { Applicative } from '../applicative';
 import { FlatMap } from '../flat-map';
 import { Monad } from '../monad';
 
-import { Eval, EvalK } from './eval';
+import { Eval, EvalF } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
 
-export const evalDefer: Lazy<Defer<EvalK>> = lazyVal(() => Defer.of({ defer }));
+export const evalDefer: Lazy<Defer<EvalF>> = lazyVal(() => Defer.of({ defer }));
 
-export const evalFunctor: Lazy<Functor<EvalK>> = lazyVal(() =>
+export const evalFunctor: Lazy<Functor<EvalF>> = lazyVal(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const evalApply: Lazy<Apply<EvalK>> = lazyVal(() =>
+export const evalApply: Lazy<Apply<EvalF>> = lazyVal(() =>
   Apply.of({
     ...evalFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
   }),
 );
 
-export const evalApplicative: Lazy<Applicative<EvalK>> = lazyVal(() =>
+export const evalApplicative: Lazy<Applicative<EvalF>> = lazyVal(() =>
   Applicative.of({
     ...evalFunctor(),
     ...evalApply(),
@@ -37,7 +37,7 @@ export const evalApplicative: Lazy<Applicative<EvalK>> = lazyVal(() =>
   }),
 );
 
-export const evalFlatMap: Lazy<FlatMap<EvalK>> = lazyVal(() =>
+export const evalFlatMap: Lazy<FlatMap<EvalF>> = lazyVal(() =>
   FlatMap.of({
     ...evalApply(),
     flatMap_: flatMap_,
@@ -45,7 +45,7 @@ export const evalFlatMap: Lazy<FlatMap<EvalK>> = lazyVal(() =>
   }),
 );
 
-export const evalMonad: Lazy<Monad<EvalK>> = lazyVal(() =>
+export const evalMonad: Lazy<Monad<EvalF>> = lazyVal(() =>
   Monad.of({
     ...evalApplicative(),
     ...evalFlatMap(),

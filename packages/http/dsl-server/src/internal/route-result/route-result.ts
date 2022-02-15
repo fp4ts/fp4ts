@@ -65,9 +65,9 @@ interface RouteResultObj {
 
   // -- Instances
 
-  readonly Functor: Functor<RouteResultK>;
-  readonly Alternative: Alternative<RouteResultK>;
-  readonly Monad: Monad<RouteResultK>;
+  readonly Functor: Functor<RouteResultF>;
+  readonly Alternative: Alternative<RouteResultF>;
+  readonly Monad: Monad<RouteResultF>;
 }
 RouteResult.succeed = succeed;
 Object.defineProperty(RouteResult, 'succeedUnit', {
@@ -119,9 +119,9 @@ interface RouteResultTObj {
 
   // -- Instances
 
-  Functor<F>(F: Functor<F>): Functor<$<RouteResultTK, [F]>>;
-  Alternative<F>(F: Monad<F>): Alternative<$<RouteResultTK, [F]>>;
-  Monad<F>(F: Monad<F>): Monad<$<RouteResultTK, [F]>>;
+  Functor<F>(F: Functor<F>): Functor<$<RouteResultTF, [F]>>;
+  Alternative<F>(F: Monad<F>): Alternative<$<RouteResultTF, [F]>>;
+  Monad<F>(F: Monad<F>): Monad<$<RouteResultTF, [F]>>;
 }
 RouteResultT.succeed = succeedT;
 RouteResultT.succeedUnit = succeedTUnit;
@@ -138,10 +138,10 @@ RouteResultT.Monad = routeResultTMonad;
 
 // -- HKT
 
-export interface RouteResultK extends TyK<[unknown]> {
+export interface RouteResultF extends TyK<[unknown]> {
   [$type]: RouteResult<TyVar<this, 0>>;
 }
 
-export interface RouteResultTK extends TyK<[unknown, unknown]> {
+export interface RouteResultTF extends TyK<[unknown, unknown]> {
   [$type]: RouteResultT<TyVar<this, 0>, TyVar<this, 1>>;
 }

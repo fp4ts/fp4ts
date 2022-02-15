@@ -10,7 +10,7 @@ import {
   Either,
   Kleisli,
   FunctionK,
-  KleisliK,
+  KleisliF,
   Monad,
 } from '@fp4ts/cats';
 
@@ -30,7 +30,7 @@ import { ExecutionContext } from '../execution-context';
 import { Allocate, Eval, Pure, Resource } from './algebra';
 import { ExitCase } from './exit-case';
 import { allocated, flatMap_, flatten, map_ } from './operators';
-import { ResourceK } from './resource';
+import { ResourceF } from './resource';
 
 export const pure = <F, A>(a: A): Resource<F, A> => new Pure(a);
 
@@ -42,7 +42,7 @@ export const liftF = <F, A>(fa: Kind<F, [Resource<F, A>]>): Resource<F, A> =>
 export const evalF = <F, A>(fa: Kind<F, [A]>): Resource<F, A> => new Eval(fa);
 
 export const liftK =
-  <F>(): FunctionK<F, $<ResourceK, [F]>> =>
+  <F>(): FunctionK<F, $<ResourceF, [F]>> =>
   <A>(fa: Kind<F, [A]>): Resource<F, A> =>
     evalF(fa);
 
@@ -96,9 +96,9 @@ export const canceled = <F>(F: MonadCancel<F, Error>): Resource<F, void> =>
 
 export const uncancelable =
   <F>(F: MonadCancel<F, Error>) =>
-  <A>(body: (p: Poll<$<ResourceK, [F]>>) => Resource<F, A>): Resource<F, A> =>
+  <A>(body: (p: Poll<$<ResourceF, [F]>>) => Resource<F, A>): Resource<F, A> =>
     allocateFull(poll => {
-      const inner: Poll<$<ResourceK, [F]>> = <B>(
+      const inner: Poll<$<ResourceF, [F]>> = <B>(
         rfb: Resource<F, B>,
       ): Resource<F, B> =>
         allocateFull<F, B>(innerPoll =>
@@ -132,12 +132,12 @@ export const never = <F>(F: Spawn<F, Error>): Resource<F, never> =>
 
 export const deferred =
   <F>(F: Concurrent<F, Error>) =>
-  <A>(): Resource<F, Deferred<$<ResourceK, [F]>, A>> =>
+  <A>(): Resource<F, Deferred<$<ResourceF, [F]>, A>> =>
     map_(evalF<F, Deferred<F, A>>(F.deferred<A>()), d => d.mapK(liftK<F>()));
 
 export const ref =
   <F>(F: Concurrent<F, Error>) =>
-  <A>(a: A): Resource<F, Ref<$<ResourceK, [F]>, A>> =>
+  <A>(a: A): Resource<F, Ref<$<ResourceF, [F]>, A>> =>
     map_(evalF<F, Ref<F, A>>(F.ref<A>(a)), r => r.mapK(liftK<F>()));
 
 export const monotonic = <F>(F: Clock<F>): Resource<F, number> =>
@@ -153,7 +153,7 @@ export const sleep =
 
 export const cont =
   <F>(F: Async<F>) =>
-  <K, R>(body: Cont<$<ResourceK, [F]>, K, R>): Resource<F, R> =>
+  <K, R>(body: Cont<$<ResourceF, [F]>, K, R>): Resource<F, R> =>
     allocateFull(poll =>
       poll(
         F.cont<K, (r: R, ec: ExitCase) => Kind<F, [void]>>(
@@ -163,9 +163,9 @@ export const cont =
               get: Kind<G, [K]>,
               lift: FunctionK<F, G>,
             ) => {
-              type D = $<KleisliK, [G, Ref<G, Kind<F, [void]>>]>;
+              type D = $<KleisliF, [G, Ref<G, Kind<F, [void]>>]>;
 
-              const lift2: FunctionK<$<ResourceK, [F]>, D> = rfa =>
+              const lift2: FunctionK<$<ResourceF, [F]>, D> = rfa =>
                 Kleisli(r =>
                   G.flatMap_(lift(allocated(F)(rfa)), ([a, fin]) =>
                     G.map_(

@@ -68,18 +68,18 @@ interface QueueObj {
 
   // -- Instances
 
-  readonly SemigroupK: SemigroupK<QueueK>;
-  readonly MonoidK: MonoidK<QueueK>;
-  readonly Align: Align<QueueK>;
-  readonly Functor: Functor<QueueK>;
-  readonly FunctorFilter: FunctorFilter<QueueK>;
-  readonly Apply: Apply<QueueK>;
-  readonly Applicative: Applicative<QueueK>;
-  readonly FlatMap: FlatMap<QueueK>;
-  readonly Alternative: Alternative<QueueK>;
-  readonly Monad: Monad<QueueK>;
-  readonly Foldable: Foldable<QueueK>;
-  readonly Traversable: Traversable<QueueK>;
+  readonly SemigroupK: SemigroupK<QueueF>;
+  readonly MonoidK: MonoidK<QueueF>;
+  readonly Align: Align<QueueF>;
+  readonly Functor: Functor<QueueF>;
+  readonly FunctorFilter: FunctorFilter<QueueF>;
+  readonly Apply: Apply<QueueF>;
+  readonly Applicative: Applicative<QueueF>;
+  readonly FlatMap: FlatMap<QueueF>;
+  readonly Alternative: Alternative<QueueF>;
+  readonly Monad: Monad<QueueF>;
+  readonly Foldable: Foldable<QueueF>;
+  readonly Traversable: Traversable<QueueF>;
 }
 Queue.singleton = singleton;
 Queue.pure = pure;
@@ -96,62 +96,62 @@ Queue.fromIterator = fromIterator;
 Queue.tailRecM = tailRecM;
 
 Object.defineProperty(Queue, 'SemigroupK', {
-  get(): SemigroupK<QueueK> {
+  get(): SemigroupK<QueueF> {
     return queueSemigroupK();
   },
 });
 Object.defineProperty(Queue, 'MonoidK', {
-  get(): MonoidK<QueueK> {
+  get(): MonoidK<QueueF> {
     return queueMonoidK();
   },
 });
 Object.defineProperty(Queue, 'Align', {
-  get(): Align<QueueK> {
+  get(): Align<QueueF> {
     return queueAlign();
   },
 });
 Object.defineProperty(Queue, 'Functor', {
-  get(): Functor<QueueK> {
+  get(): Functor<QueueF> {
     return queueFunctor();
   },
 });
 Object.defineProperty(Queue, 'FunctorFilter', {
-  get(): FunctorFilter<QueueK> {
+  get(): FunctorFilter<QueueF> {
     return queueFunctorFilter();
   },
 });
 Object.defineProperty(Queue, 'Apply', {
-  get(): Apply<QueueK> {
+  get(): Apply<QueueF> {
     return queueApply();
   },
 });
 Object.defineProperty(Queue, 'Applicative', {
-  get(): Applicative<QueueK> {
+  get(): Applicative<QueueF> {
     return queueApplicative();
   },
 });
 Object.defineProperty(Queue, 'FlatMap', {
-  get(): FlatMap<QueueK> {
+  get(): FlatMap<QueueF> {
     return queueFlatMap();
   },
 });
 Object.defineProperty(Queue, 'Alternative', {
-  get(): Alternative<QueueK> {
+  get(): Alternative<QueueF> {
     return queueAlternative();
   },
 });
 Object.defineProperty(Queue, 'Monad', {
-  get(): Monad<QueueK> {
+  get(): Monad<QueueF> {
     return queueMonad();
   },
 });
 Object.defineProperty(Queue, 'Foldable', {
-  get(): Foldable<QueueK> {
+  get(): Foldable<QueueF> {
     return queueFoldable();
   },
 });
 Object.defineProperty(Queue, 'Traversable', {
-  get(): Traversable<QueueK> {
+  get(): Traversable<QueueF> {
     return queueTraversable();
   },
 });
@@ -162,6 +162,6 @@ Object.defineProperty(Queue, 'Traversable', {
  * @category Type Constructor
  * @category Collection
  */
-export interface QueueK extends TyK<[unknown]> {
+export interface QueueF extends TyK<[unknown]> {
   [$type]: Queue<TyVar<this, 0>>;
 }

@@ -5,14 +5,14 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Stream, Chunk, PureK } from '@fp4ts/stream-core';
+import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 
 export * from '@fp4ts/cats-test-kit/lib/arbitraries';
 export * from '@fp4ts/effect-test-kit/lib/arbitraries';
 
 export const fp4tsPureStreamGenerator = <A>(
   arbA: Arbitrary<A>,
-): Arbitrary<Stream<PureK, A>> =>
+): Arbitrary<Stream<PureF, A>> =>
   fc.frequency(
     { weight: 1, arbitrary: fc.constant(Stream.empty()) },
     {
@@ -25,7 +25,7 @@ export const fp4tsPureStreamGenerator = <A>(
           .map(xss =>
             xss.reduce(
               (acc, xs) => acc['+++'](Stream.fromArray(xs)),
-              Stream.empty() as Stream<PureK, A>,
+              Stream.empty() as Stream<PureF, A>,
             ),
           ),
         fc
@@ -33,7 +33,7 @@ export const fp4tsPureStreamGenerator = <A>(
           .map(xss =>
             xss.reduce(
               (acc, xs) => Stream.fromArray(xs)['+++'](acc),
-              Stream.empty() as Stream<PureK, A>,
+              Stream.empty() as Stream<PureF, A>,
             ),
           ),
       ),

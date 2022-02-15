@@ -6,15 +6,15 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
-import { ConstK, Some, None, Eq, Option, OptionK, Monoid } from '@fp4ts/cats';
+import { ConstF, Some, None, Eq, Option, OptionF, Monoid } from '@fp4ts/cats';
 import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { FoldableSuite, FunctorSuite } from '@fp4ts/cats-laws';
-import { Bin, Tip, TreeK, Tree1K, Tree1, Tree } from './tree';
+import { Bin, Tip, TreeF, Tree1F, Tree1, Tree } from './tree';
 
 describe('schemable-k', () => {
   describe('regular tree', () => {
-    const TreeSK = <K>(k: SchemaK<$<ConstK, [K]>>): SchemaK<$<TreeK, [K]>> =>
+    const TreeSK = <K>(k: SchemaK<$<ConstF, [K]>>): SchemaK<$<TreeF, [K]>> =>
       SchemaK.sum('tag')({
         bin: SchemaK.struct({
           tag: SchemaK.literal('bin'),
@@ -24,7 +24,7 @@ describe('schemable-k', () => {
           rhs: SchemaK.defer(() => TreeSK(k)),
         }),
         tip: SchemaK.struct({ tag: SchemaK.literal('tip') }),
-      }).imap<$<TreeK, [K]>>(
+      }).imap<$<TreeF, [K]>>(
         t => (t.tag === 'bin' ? new Bin(t.k, t.v, t.lhs, t.rhs) : Tip),
         t => {
           if (t === Tip) return { tag: 'tip' };
@@ -104,14 +104,14 @@ describe('schemable-k', () => {
 
   describe('optional tree', () => {
     const TreeSK = <K>(
-      k: SchemaK<$<ConstK, [K]>>,
-    ): SchemaK<[OptionK, $<Tree1K, [K]>]> =>
+      k: SchemaK<$<ConstF, [K]>>,
+    ): SchemaK<[OptionF, $<Tree1F, [K]>]> =>
       SchemaK.struct({
         k: k,
         v: SchemaK.par,
         lhs: SchemaK.defer(() => TreeSK(k)),
         rhs: SchemaK.defer(() => TreeSK(k)),
-      }).imap<$<Tree1K, [K]>>(
+      }).imap<$<Tree1F, [K]>>(
         ({ k, v, lhs, rhs }) => new Tree1(k, v, lhs, rhs),
         ({ k, v, lhs, rhs }) => ({ k, v, lhs, rhs }),
       ).optional;

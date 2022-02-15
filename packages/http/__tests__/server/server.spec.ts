@@ -5,7 +5,7 @@
 
 import test from 'supertest';
 import { id, pipe } from '@fp4ts/core';
-import { IO, IoK } from '@fp4ts/effect-core';
+import { IO, IOF } from '@fp4ts/effect-core';
 import {
   Accept,
   EntityEncoder,
@@ -67,7 +67,7 @@ const tweety: Animal = { spieces: 'bird', legs: 2 };
 const beholder: Animal = { spieces: 'beholder', legs: 0 };
 
 describe('verbs', () => {
-  const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IoK> =>
+  const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IOF> =>
     toHttpAppIO(verbApi(m, status), {
       [JSON.mime]: { [PersonTypeTag]: PersonCodable },
     })(S => [
@@ -81,7 +81,7 @@ describe('verbs', () => {
     m === 'patch' ? 'post' : 'patch';
   type StringMethod = 'get' | 'put' | 'post' | 'patch' | 'delete' | 'head';
 
-  function runTests(server: HttpApp<IoK>, method: Method, status: Status) {
+  function runTests(server: HttpApp<IOF>, method: Method, status: Status) {
     const m = method.methodName.toLowerCase() as StringMethod;
 
     if (method !== Method.HEAD) {

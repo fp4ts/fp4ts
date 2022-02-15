@@ -6,9 +6,9 @@
 import './syntax';
 export {
   IndexedStateT,
-  IndexedStateTK,
+  IndexedStateTF,
   StateT,
-  StateTK,
+  StateTF,
   State,
-  StateK,
+  StateF,
 } from './index-state-t';

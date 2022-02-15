@@ -9,7 +9,7 @@ import { Functor } from '../../functor';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 
-import { Tuple2K, Tuple2kK } from './tuple2-k';
+import { Tuple2K, Tuple2KF } from './tuple2-k';
 
 export const tuple2KEq: <F, G, A>(
   EF: Eq<Kind<F, [A]>>,
@@ -23,7 +23,7 @@ export const tuple2KEq: <F, G, A>(
 export const tuple2KFunctor: <F, G>(
   F: Functor<F>,
   G: Functor<G>,
-) => Functor<$<Tuple2kK, [F, G]>> = (F, G) =>
+) => Functor<$<Tuple2KF, [F, G]>> = (F, G) =>
   Functor.of({
     map_: (fa, f) => [F.map_(fa[0], f), G.map_(fa[1], f)],
   });
@@ -31,7 +31,7 @@ export const tuple2KFunctor: <F, G>(
 export const tuple2KApply: <F, G>(
   F: Apply<F>,
   G: Apply<G>,
-) => Apply<$<Tuple2kK, [F, G]>> = (F, G) =>
+) => Apply<$<Tuple2KF, [F, G]>> = (F, G) =>
   Apply.of({
     ...tuple2KFunctor(F, G),
     ap_: (ff, fa) => {
@@ -44,7 +44,7 @@ export const tuple2KApply: <F, G>(
 export const tuple2KApplicative: <F, G>(
   F: Applicative<F>,
   G: Applicative<G>,
-) => Applicative<$<Tuple2kK, [F, G]>> = (F, G) =>
+) => Applicative<$<Tuple2KF, [F, G]>> = (F, G) =>
   Applicative.of({
     ...tuple2KApply(F, G),
     pure: a => [F.pure(a), G.pure(a)],

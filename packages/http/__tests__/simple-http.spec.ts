@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IO, IoK } from '@fp4ts/effect';
+import { IO, IOF } from '@fp4ts/effect';
 import { Request, Method, EntityEncoder, uri } from '@fp4ts/http-core';
 import {
   Get,
@@ -52,7 +52,7 @@ describe('dsl routing', () => {
   it('should echo the body request', async () => {
     const response = await app
       .run(
-        new Request<IoK>(Method.POST, uri`/echo`).withEntity(
+        new Request<IOF>(Method.POST, uri`/echo`).withEntity(
           'sample payload',
           EntityEncoder.text(),
         ),

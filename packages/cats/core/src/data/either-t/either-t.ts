@@ -83,11 +83,11 @@ interface EitherTObj {
   // -- Instances
 
   Eq<F, AA, B>(E: Eq<Kind<F, [Either<AA, B>]>>): Eq<EitherT<F, AA, B>>;
-  SemigroupK<F, AA>(F: Monad<F>): SemigroupK<$<EitherTK, [F, AA]>>;
-  Functor<F, AA>(F: Functor<F>): Functor<$<EitherTK, [F, AA]>>;
-  Bifunctor<F>(F: Functor<F>): Bifunctor<$<EitherTK, [F]>>;
-  Monad<F, AA>(F: Monad<F>): Monad<$<EitherTK, [F, AA]>>;
-  MonadError<F, E>(F: Monad<F>): MonadError<$<EitherTK, [F, E]>, E>;
+  SemigroupK<F, AA>(F: Monad<F>): SemigroupK<$<EitherTF, [F, AA]>>;
+  Functor<F, AA>(F: Functor<F>): Functor<$<EitherTF, [F, AA]>>;
+  Bifunctor<F>(F: Functor<F>): Bifunctor<$<EitherTF, [F]>>;
+  Monad<F, AA>(F: Monad<F>): Monad<$<EitherTF, [F, AA]>>;
+  MonadError<F, E>(F: Monad<F>): MonadError<$<EitherTF, [F, E]>, E>;
 }
 
 EitherT.right = right;
@@ -112,6 +112,6 @@ EitherT.MonadError = eitherTMonadError;
 
 // -- HKT
 
-export interface EitherTK extends TyK<[unknown, unknown, unknown]> {
+export interface EitherTF extends TyK<[unknown, unknown, unknown]> {
   [$type]: EitherT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

@@ -28,7 +28,7 @@ import {
 } from './operators';
 import { pure } from './constructors';
 import { WriterT } from './algebra';
-import type { WriterTK } from './writer-t';
+import type { WriterTF } from './writer-t';
 
 export const writerTEq: <F, L, V>(
   E: Eq<Kind<F, [[L, V]]>>,
@@ -36,28 +36,28 @@ export const writerTEq: <F, L, V>(
 
 export const writerTFunctor: <F, L>(
   F: Functor<F>,
-) => Functor<$<WriterTK, [F, L]>> = F => Functor.of({ map_: map_(F) });
+) => Functor<$<WriterTF, [F, L]>> = F => Functor.of({ map_: map_(F) });
 
 export const writerTContravariant: <F, L>(
   F: Contravariant<F>,
-) => Contravariant<$<WriterTK, [F, L]>> = F =>
+) => Contravariant<$<WriterTF, [F, L]>> = F =>
   Contravariant.of({ contramap_: contramap_(F) });
 
 export const writerTBifunctor: <F>(
   F: Functor<F>,
-) => Bifunctor<$<WriterTK, [F]>> = F =>
+) => Bifunctor<$<WriterTF, [F]>> = F =>
   Bifunctor.of({ bimap_: bimap_(F), map_: map_(F), leftMap_: mapWritten_(F) });
 
 export const writerTApply: <F, L>(
   F: Apply<F>,
   L: Semigroup<L>,
-) => Apply<$<WriterTK, [F, L]>> = (F, L) =>
+) => Apply<$<WriterTF, [F, L]>> = (F, L) =>
   Apply.of({ ...writerTFunctor(F), ap_: ap_(F, L) });
 
 export const writerTFlatMap: <F, L>(
   F: FlatMap<F>,
   L: Monoid<L>,
-) => FlatMap<$<WriterTK, [F, L]>> = <F, L>(F: FlatMap<F>, L: Monoid<L>) =>
+) => FlatMap<$<WriterTF, [F, L]>> = <F, L>(F: FlatMap<F>, L: Monoid<L>) =>
   FlatMap.of({
     ...writerTApply(F, L),
     flatMap_: flatMap_(F, L),
@@ -78,19 +78,19 @@ export const writerTFlatMap: <F, L>(
 export const writerTApplicative: <F, L>(
   F: Applicative<F>,
   L: Monoid<L>,
-) => Applicative<$<WriterTK, [F, L]>> = (F, L) =>
+) => Applicative<$<WriterTF, [F, L]>> = (F, L) =>
   Applicative.of({ ...writerTApply(F, L), pure: pure(F, L) });
 
 export const writerTMonad: <F, L>(
   F: Monad<F>,
   L: Monoid<L>,
-) => Monad<$<WriterTK, [F, L]>> = (F, L) =>
+) => Monad<$<WriterTF, [F, L]>> = (F, L) =>
   Monad.of({ ...writerTFlatMap(F, L), ...writerTApplicative(F, L) });
 
 export const writerTApplicativeError: <F, L, E>(
   F: ApplicativeError<F, E>,
   L: Monoid<L>,
-) => ApplicativeError<$<WriterTK, [F, L]>, E> = <F, L, E>(
+) => ApplicativeError<$<WriterTF, [F, L]>, E> = <F, L, E>(
   F: ApplicativeError<F, E>,
   L: Monoid<L>,
 ) =>
@@ -104,7 +104,7 @@ export const writerTApplicativeError: <F, L, E>(
 export const writerTMonadError: <F, L, E>(
   F: MonadError<F, E>,
   L: Monoid<L>,
-) => MonadError<$<WriterTK, [F, L]>, E> = (F, L) =>
+) => MonadError<$<WriterTF, [F, L]>, E> = (F, L) =>
   MonadError.of({
     ...writerTMonad(F, L),
     ...writerTApplicativeError(F, L),

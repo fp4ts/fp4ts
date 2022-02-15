@@ -5,25 +5,25 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Base, Kind, $ } from '@fp4ts/core';
-import { ArrayK, ConstK, IdentityK, OptionK } from '@fp4ts/cats';
+import { ArrayF, ConstF, IdentityF, OptionF } from '@fp4ts/cats';
 import { Literal } from './literal';
 import { ProductK, StructK, SumK } from './kinds';
-import { FunctorK, functorSchemableK } from './functor';
-import { FoldableK, foldableSchemableK } from './foldable';
+import { FunctorF, functorSchemableK } from './functor';
+import { FoldableF, foldableSchemableK } from './foldable';
 
 export interface SchemableK<S> extends Base<S> {
   literal<A extends [Literal, ...Literal[]]>(
     ...xs: A
-  ): Kind<S, [$<ConstK, [A[number]]>]>;
-  readonly boolean: Kind<S, [$<ConstK, [boolean]>]>;
-  readonly number: Kind<S, [$<ConstK, [number]>]>;
-  readonly string: Kind<S, [$<ConstK, [string]>]>;
-  readonly null: Kind<S, [$<ConstK, [null]>]>;
+  ): Kind<S, [$<ConstF, [A[number]]>]>;
+  readonly boolean: Kind<S, [$<ConstF, [boolean]>]>;
+  readonly number: Kind<S, [$<ConstF, [number]>]>;
+  readonly string: Kind<S, [$<ConstF, [string]>]>;
+  readonly null: Kind<S, [$<ConstF, [null]>]>;
 
-  readonly par: Kind<S, [IdentityK]>;
+  readonly par: Kind<S, [IdentityF]>;
 
-  array<F>(f: Kind<S, [F]>): Kind<S, [[ArrayK, F]]>;
-  optional<F>(f: Kind<S, [F]>): Kind<S, [[OptionK, F]]>;
+  array<F>(f: Kind<S, [F]>): Kind<S, [[ArrayF, F]]>;
+  optional<F>(f: Kind<S, [F]>): Kind<S, [[OptionF, F]]>;
 
   struct<F extends {}>(xs: { [k in keyof F]: Kind<S, [F[k]]> }): Kind<
     S,
@@ -52,11 +52,11 @@ export interface SchemableK<S> extends Base<S> {
 }
 
 export const SchemableK = Object.freeze({
-  get Functor(): SchemableK<FunctorK> {
+  get Functor(): SchemableK<FunctorF> {
     return functorSchemableK();
   },
 
-  get Foldable(): SchemableK<FoldableK> {
+  get Foldable(): SchemableK<FoldableF> {
     return foldableSchemableK();
   },
 });

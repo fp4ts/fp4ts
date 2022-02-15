@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { HashMap, HashMapK } from './hash-map';
+export { HashMap, HashMapF } from './hash-map';

@@ -5,6 +5,6 @@
 
 import { $ } from '@fp4ts/core';
 import { Http } from '@fp4ts/http-core';
-import { RouteResultTK } from './route-result';
+import { RouteResultTF } from './route-result';
 
-export type RoutingApplication<F> = Http<$<RouteResultTK, [F]>, F>;
+export type RoutingApplication<F> = Http<$<RouteResultTF, [F]>, F>;

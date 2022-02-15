@@ -14,7 +14,7 @@ import { Alternative } from '../../../alternative';
 import { Monad } from '../../../monad';
 import { Traversable } from '../../../traversable';
 
-import type { ChainK } from './chain';
+import type { ChainF } from './chain';
 import { Chain } from './algebra';
 import {
   align_,
@@ -33,19 +33,19 @@ import { empty, pure, tailRecM_ } from './constructors';
 export const chainEq = <A>(E: Eq<A>): Eq<Chain<A>> =>
   Eq.of({ equals: equals_(E) });
 
-export const chainAlign: Lazy<Align<ChainK>> = lazyVal(() =>
+export const chainAlign: Lazy<Align<ChainF>> = lazyVal(() =>
   Align.of({ align_: align_, functor: chainFunctor() }),
 );
 
-export const chainMonoidK: Lazy<MonoidK<ChainK>> = lazyVal(() =>
+export const chainMonoidK: Lazy<MonoidK<ChainF>> = lazyVal(() =>
   MonoidK.of({ emptyK: () => empty, combineK_: (xs, ys) => concat_(xs, ys()) }),
 );
 
-export const chainFunctor: Lazy<Functor<ChainK>> = lazyVal(() =>
+export const chainFunctor: Lazy<Functor<ChainF>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const chainFunctorFilter: Lazy<FunctorFilter<ChainK>> = lazyVal(() =>
+export const chainFunctorFilter: Lazy<FunctorFilter<ChainF>> = lazyVal(() =>
   FunctorFilter.of({
     ...chainFunctor(),
     mapFilter_: collect_,
@@ -54,11 +54,11 @@ export const chainFunctorFilter: Lazy<FunctorFilter<ChainK>> = lazyVal(() =>
   }),
 );
 
-export const chainAlternative: Lazy<Alternative<ChainK>> = lazyVal(() =>
+export const chainAlternative: Lazy<Alternative<ChainF>> = lazyVal(() =>
   Alternative.of({ ...chainMonad(), ...chainMonoidK() }),
 );
 
-export const chainMonad: Lazy<Monad<ChainK>> = lazyVal(() =>
+export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
   Monad.of({
     pure: pure,
     flatMap_: flatMap_,
@@ -67,7 +67,7 @@ export const chainMonad: Lazy<Monad<ChainK>> = lazyVal(() =>
   }),
 );
 
-export const chainTraversable: Lazy<Traversable<ChainK>> = lazyVal(() =>
+export const chainTraversable: Lazy<Traversable<ChainF>> = lazyVal(() =>
   Traversable.of({
     ...chainFunctor(),
     foldLeft_: foldLeft_,

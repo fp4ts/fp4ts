@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { List, ListK } from './list';
+export { List, ListF as ListK } from './list';

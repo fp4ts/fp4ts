@@ -7,4 +7,4 @@ import './syntax';
 
 // Public exports
 
-export { IO, IoK } from './io';
+export { IO, IOF } from './io';

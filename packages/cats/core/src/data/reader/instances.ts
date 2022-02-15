@@ -22,14 +22,14 @@ import {
   product_,
   tailRecM_,
 } from './operators';
-import { ReaderK } from './reader';
+import { ReaderF } from './reader';
 import { pure, unit } from './constructors';
 
-export const readerFunctor: <R>() => Functor<$<ReaderK, [R]>> = lazyVal(() =>
+export const readerFunctor: <R>() => Functor<$<ReaderF, [R]>> = lazyVal(() =>
   Functor.of({ map_ }),
 );
 
-export const readerApply: <R>() => Apply<$<ReaderK, [R]>> = lazyVal(() =>
+export const readerApply: <R>() => Apply<$<ReaderF, [R]>> = lazyVal(() =>
   Apply.of({
     ...readerFunctor(),
     ap_: ap_,
@@ -40,7 +40,7 @@ export const readerApply: <R>() => Apply<$<ReaderK, [R]>> = lazyVal(() =>
   }),
 );
 
-export const readerApplicative: <R>() => Applicative<$<ReaderK, [R]>> = lazyVal(
+export const readerApplicative: <R>() => Applicative<$<ReaderF, [R]>> = lazyVal(
   () =>
     Applicative.of({
       ...readerApply(),
@@ -49,7 +49,7 @@ export const readerApplicative: <R>() => Applicative<$<ReaderK, [R]>> = lazyVal(
     }),
 );
 
-export const readerFlatMap: <R>() => FlatMap<$<ReaderK, [R]>> = lazyVal(() =>
+export const readerFlatMap: <R>() => FlatMap<$<ReaderF, [R]>> = lazyVal(() =>
   FlatMap.of({
     ...readerApply(),
     flatMap_: flatMap_,
@@ -59,7 +59,7 @@ export const readerFlatMap: <R>() => FlatMap<$<ReaderK, [R]>> = lazyVal(() =>
   }),
 );
 
-export const readerMonad: <R>() => Monad<$<ReaderK, [R]>> = lazyVal(() =>
+export const readerMonad: <R>() => Monad<$<ReaderF, [R]>> = lazyVal(() =>
   Monad.of({
     ...readerApplicative(),
     ...readerFlatMap(),

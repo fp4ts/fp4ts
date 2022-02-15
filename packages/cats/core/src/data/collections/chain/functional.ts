@@ -8,4 +8,4 @@
  */
 export * from './constructors';
 export * from './operators';
-export { Chain, ChainK } from './chain';
+export { Chain, ChainF as ChainK } from './chain';

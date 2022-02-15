@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { tupled } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -431,7 +431,7 @@ describe('Queue', () => {
   const traversableTests = TraversableSuite(Queue.Traversable);
   checkAll(
     'Traversable<Queue>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
+    traversableTests.traversable<number, number, number, EvalF, EvalF>(
       fc.integer(),
       fc.integer(),
       fc.integer(),

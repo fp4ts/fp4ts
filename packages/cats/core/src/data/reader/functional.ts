@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { Reader, ReaderK } from './reader';
+export { Reader, ReaderF as ReaderK } from './reader';

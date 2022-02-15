@@ -7,9 +7,9 @@ import { $, id, Kind } from '@fp4ts/core';
 import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
 import {
   Identity,
-  IdentityK,
+  IdentityF,
   Nested,
-  NestedK,
+  NestedF,
   Tuple2K,
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
@@ -25,7 +25,7 @@ export const UnorderedTraversableLaws = <T>(
     (F: Functor<T>) =>
     <A, B>(fa: Kind<T, [A]>, f: (a: A) => B): IsEq<Kind<T, [B]>> =>
       new IsEq(
-        T.unorderedTraverse_<IdentityK>(Identity.Applicative)(fa, x => f(x)),
+        T.unorderedTraverse_<IdentityF>(Identity.Applicative)(fa, x => f(x)),
         F.map_(fa, f),
       ),
 
@@ -41,7 +41,7 @@ export const UnorderedTraversableLaws = <T>(
           T.unorderedTraverse_(N)(fb, g),
         ),
       );
-      const rhs = T.unorderedTraverse_<$<NestedK, [M, N]>>(
+      const rhs = T.unorderedTraverse_<$<NestedF, [M, N]>>(
         Nested.Applicative(M, N),
       )(fa, a => Nested(M.map_(f(a), g)));
 

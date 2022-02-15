@@ -45,7 +45,7 @@ import {
   RawElement,
   CaptureAllElement,
 } from '@fp4ts/http-dsl-shared';
-import { Concurrent, IO, IoK } from '@fp4ts/effect';
+import { Concurrent, IO, IOF } from '@fp4ts/effect';
 
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
@@ -70,8 +70,8 @@ import { Handler } from './handler';
 import { Codable } from '../codable';
 
 export const toHttpAppIO =
-  <api>(api: api, codings: OmitBuiltins<DeriveCoding<IoK, api>>) =>
-  (makeServer: (f: ServerM<IoK>) => Server<IoK, api>): HttpApp<IoK> =>
+  <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>
+  (makeServer: (f: ServerM<IOF>) => Server<IOF, api>): HttpApp<IOF> =>
     toHttpApp(IO.Async)(api, codings)(makeServer);
 
 export const toHttpApp =

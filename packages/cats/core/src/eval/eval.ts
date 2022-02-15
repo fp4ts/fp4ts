@@ -44,12 +44,12 @@ interface EvalObj {
 
   // -- Instances
 
-  readonly Defer: Defer<EvalK>;
-  readonly Functor: Functor<EvalK>;
-  readonly Apply: Apply<EvalK>;
-  readonly Applicative: Applicative<EvalK>;
-  readonly FlatMap: FlatMap<EvalK>;
-  readonly Monad: Monad<EvalK>;
+  readonly Defer: Defer<EvalF>;
+  readonly Functor: Functor<EvalF>;
+  readonly Apply: Apply<EvalF>;
+  readonly Applicative: Applicative<EvalF>;
+  readonly FlatMap: FlatMap<EvalF>;
+  readonly Monad: Monad<EvalF>;
 
   Eq<A>(E: Eq<A>): Eq<Eval<A>>;
   Semigroup<S>(S: Semigroup<S>): Semigroup<Eval<S>>;
@@ -104,6 +104,6 @@ Eval.Monoid = evalMonoid;
 /**
  * @category Type Constructor
  */
-export interface EvalK extends TyK<[unknown]> {
+export interface EvalF extends TyK<[unknown]> {
   [$type]: Eval<TyVar<this, 0>>;
 }

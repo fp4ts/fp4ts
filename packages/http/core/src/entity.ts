@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { FunctionK, None, Option, Some } from '@fp4ts/cats';
-import { PureK } from '@fp4ts/stream';
+import { PureF } from '@fp4ts/stream';
 import { EntityBody } from './entity-body';
 
 export class Entity<F> {
-  public static empty<F = PureK>(): Entity<F> {
+  public static empty<F = PureF>(): Entity<F> {
     return new Entity(EntityBody.empty(), Some(0));
   }
 

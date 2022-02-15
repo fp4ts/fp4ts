@@ -5,4 +5,4 @@
 
 export * from './operators';
 export * from './constructors';
-export { AndThen, AndThenK } from './and-then';
+export { AndThen, AndThenF as AndThenK } from './and-then';

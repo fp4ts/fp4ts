@@ -12,7 +12,7 @@ import {
   Some,
   None,
   Chain,
-  IdentityK,
+  IdentityF,
   List,
   Monad,
 } from '@fp4ts/cats';
@@ -212,7 +212,7 @@ export class Scope<F> {
   public acquireResource<R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
-  ): Kind<F, [Outcome<IdentityK, Error, Either<UniqueToken, R>>]> {
+  ): Kind<F, [Outcome<IdentityF, Error, Either<UniqueToken, R>>]> {
     const { F } = this.target;
 
     return pipe(
@@ -248,18 +248,18 @@ export class Scope<F> {
         ),
       ),
       F.map(ea =>
-        ea.fold<Outcome<IdentityK, Error, Either<UniqueToken, R>>>(
+        ea.fold<Outcome<IdentityF, Error, Either<UniqueToken, R>>>(
           oc =>
             oc.fold(
-              () => Outcome.canceled<IdentityK>(),
-              e => Outcome.failure<IdentityK, Error>(e),
+              () => Outcome.canceled<IdentityF>(),
+              e => Outcome.failure<IdentityF, Error>(e),
               token =>
-                Outcome.success<IdentityK, Either<UniqueToken, R>>(Left(token)),
+                Outcome.success<IdentityF, Either<UniqueToken, R>>(Left(token)),
             ),
           er =>
             er.fold(
-              e => Outcome.failure<IdentityK, Error>(e),
-              r => Outcome.success<IdentityK, Either<UniqueToken, R>>(Right(r)),
+              e => Outcome.failure<IdentityF, Error>(e),
+              r => Outcome.success<IdentityF, Either<UniqueToken, R>>(Right(r)),
             ),
         ),
       ),

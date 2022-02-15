@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { Eval, EvalK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -773,7 +773,7 @@ describe('Map', () => {
   const traversableTests = TraversableSuite(Map.Traversable<number>());
   checkAll(
     'Traversable<Map>',
-    traversableTests.traversable<number, number, number, EvalK, EvalK>(
+    traversableTests.traversable<number, number, number, EvalF, EvalF>(
       fc.integer(),
       fc.integer(),
       fc.integer(),

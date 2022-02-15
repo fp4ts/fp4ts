@@ -5,4 +5,4 @@
 
 import './syntax';
 
-export { Option, OptionK, Some, None } from './option';
+export { Option, OptionF, Some, None } from './option';
