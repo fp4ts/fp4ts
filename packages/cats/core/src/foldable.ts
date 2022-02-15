@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, instance, tupled } from '@fp4ts/core';
+import { Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { Eval } from './eval';
@@ -170,3 +170,9 @@ const Source = Object.freeze({
         Eval.delay(() => Source.cons(a, evalSrc)),
       ).value,
 });
+
+// -- HKT
+
+export interface FoldableF extends TyK<[unknown]> {
+  [$type]: Foldable<TyVar<this, 0>>;
+}

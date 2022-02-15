@@ -4,22 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import {
-  $type,
-  instance,
-  Kind,
-  Lazy,
-  lazyVal,
-  pipe,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
+import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
   Const,
   Eval,
   FunctionK,
   Functor,
+  FunctorF,
   Identity,
   Option,
 } from '@fp4ts/cats';
@@ -141,9 +133,3 @@ const sum =
 
 const defer = <G>(thunk: () => Functor<G>): Functor<G> =>
   SafeFunctor.of<G>({ safeMap_: (x, f) => safeMap(thunk(), x, f) });
-
-// -- HKT
-
-export interface FunctorF extends TyK<[unknown]> {
-  [$type]: Functor<TyVar<this, 0>>;
-}

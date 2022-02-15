@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
   Option,
@@ -13,17 +14,8 @@ import {
   Identity,
   Monoid,
   FunctionK,
+  FoldableF,
 } from '@fp4ts/cats';
-import {
-  $type,
-  instance,
-  Kind,
-  Lazy,
-  lazyVal,
-  pipe,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
 import { SchemableK } from './schemable-k';
 import { ProductK, StructK, SumK } from './kinds';
 
@@ -213,9 +205,3 @@ const defer = <F>(thunk: () => Foldable<F>): Foldable<F> =>
     foldRight_: (fa, eb, f) => thunk().foldRight_(fa, eb, f),
     safeFoldLeft_: (fa, b, f) => safeFoldLeft(thunk(), fa, b, f),
   });
-
-// -- HKT
-
-export interface FoldableF extends TyK<[unknown]> {
-  [$type]: Foldable<TyVar<this, 0>>;
-}

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind } from '@fp4ts/core';
+import { $type, instance, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
 
@@ -41,3 +41,9 @@ export const Functor = Object.freeze({
   compose: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> =>
     ComposedFunctor.of(F, G),
 });
+
+// -- HKT
+
+export interface FunctorF extends TyK<[unknown]> {
+  [$type]: Functor<TyVar<this, 0>>;
+}

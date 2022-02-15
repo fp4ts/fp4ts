@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Lazy, PrimitiveType } from '@fp4ts/core';
+import { $type, Lazy, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
 
 /**
  * @category Type Class
@@ -97,3 +97,9 @@ export const primitiveEq: Lazy<Eq<PrimitiveType>> = () => ({
   equals: (lhs, rhs) => lhs === rhs,
   notEquals: (lhs, rhs) => lhs !== rhs,
 });
+
+// -- HKT
+
+export interface EqF extends TyK<[unknown]> {
+  [$type]: Eq<TyVar<this, 0>>;
+}
