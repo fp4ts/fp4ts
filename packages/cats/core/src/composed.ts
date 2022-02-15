@@ -9,6 +9,7 @@ import { Apply } from './apply';
 import { Functor } from './functor';
 import { Applicative } from './applicative';
 import { Foldable } from './foldable';
+import { Traversable } from './traversable';
 import { Iter } from './data';
 
 export interface ComposedEqK<F, G> extends EqK<[F, G]> {
@@ -108,6 +109,32 @@ export const ComposedFoldable = Object.freeze({
       toList: fga => F.toList(fga).flatMap(ga => G.toList(ga)),
 
       iterator: fga => Iter.flatMap_(F.iterator(fga), ga => G.iterator(ga)),
+    }),
+  }),
+});
+
+export interface ComposedTraversable<F, G>
+  extends Traversable<[F, G]>,
+    ComposedFoldable<F, G> {}
+export const ComposedTraversable = Object.freeze({
+  of: <F, G>(
+    F: Traversable<F>,
+    G: Traversable<G>,
+  ): ComposedTraversable<F, G> => ({
+    F: F,
+    G: G,
+
+    ...Traversable.of<[F, G]>({
+      ...ComposedFunctor.of(F, G),
+      ...ComposedFoldable.of(F, G),
+
+      traverse_:
+        <H>(H: Applicative<H>) =>
+        <A, B>(
+          fga: Kind<[F, G], [A]>,
+          f: (a: A) => Kind<H, [B]>,
+        ): Kind<H, [Kind<[F, G], [A]>]> =>
+          F.traverse_(H)(fga, ga => G.traverse_(H)(ga, f)),
     }),
   }),
 });

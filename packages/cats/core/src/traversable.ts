@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id } from '@fp4ts/core';
+import { Kind, id, TyK, $type, TyVar } from '@fp4ts/core';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';
@@ -12,6 +12,7 @@ import {
   UnorderedTraversable,
   UnorderedTraversableRequirements,
 } from './unordered-traversable';
+import { ComposedTraversable } from './composed';
 
 /**
  * @category Type Class
@@ -85,4 +86,15 @@ export const Traversable = Object.freeze({
     };
     return self;
   },
+
+  composed: <F, G>(
+    F: Traversable<F>,
+    G: Traversable<G>,
+  ): ComposedTraversable<F, G> => ComposedTraversable.of(F, G),
 });
+
+// -- HKT
+
+export interface TraversableF extends TyK<[unknown]> {
+  [$type]: Traversable<TyVar<this, 0>>;
+}
