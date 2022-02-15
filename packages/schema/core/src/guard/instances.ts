@@ -7,6 +7,7 @@ import { $, Lazy, lazyVal } from '@fp4ts/core';
 import { Constraining } from '@fp4ts/schema-kernel/src/constraining';
 import { Refining } from '@fp4ts/schema-kernel/src/refining';
 import { Schemable } from '@fp4ts/schema-kernel/src/schemable';
+import { Guard } from './algebra';
 import {
   array,
   boolean,
@@ -56,6 +57,9 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       product: product as Schemable<$<GuardF, [unknown]>>['product'],
       record,
       sum,
+
+      imap: <A, B>(ga: Guard<unknown, A>, f: (a: A) => B, g: (b: B) => A) =>
+        new Guard((x): x is B => ga.test(x)),
     }),
 );
 

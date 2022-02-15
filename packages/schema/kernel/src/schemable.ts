@@ -33,6 +33,8 @@ export interface Schemable<S> extends Base<S> {
   }) => Kind<S, [A[keyof A]]>;
 
   defer<A>(thunk: () => Kind<S, [A]>): Kind<S, [A]>;
+
+  imap<A, B>(sa: Kind<S, [A]>, f: (a: A) => B, g: (b: B) => A): Kind<S, [B]>;
 }
 
 export type SchemableRequirements<S> = Omit<

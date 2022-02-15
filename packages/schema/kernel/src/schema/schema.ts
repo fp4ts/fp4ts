@@ -69,6 +69,6 @@ Schema.array = array;
 Schema.struct = struct;
 // Schema.partial = partial;
 Schema.record = record;
-Schema.product = product;
+Schema.product = product as SchemaObj['product'];
 Schema.sum = sum;
 Schema.defer = defer;

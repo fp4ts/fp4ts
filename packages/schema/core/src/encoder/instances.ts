@@ -27,6 +27,7 @@ import {
   struct,
   sum,
 } from './constructors';
+import { Encoder } from './algebra';
 
 export const encoderFunctor: <A>() => Functor<λ<EncoderF, [α, Fix<A>]>> = () =>
   Functor.of({ map_ });
@@ -60,5 +61,10 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
       record: record,
       struct: struct as Schemable<λ<EncoderF, [α, α]>>['struct'],
       defer: defer,
+      imap: <A, B>(
+        ea: Encoder<A, A>,
+        f: (a: A) => B,
+        g: (b: B) => A,
+      ): Encoder<B, B> => contramap_(map_(ea, f), g),
     }),
 );

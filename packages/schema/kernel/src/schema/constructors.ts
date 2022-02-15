@@ -36,7 +36,7 @@ export const nullSchema: Schema<null> = NullSchema;
 export const array = <A>(sa: Schema<A>): Schema<A[]> => new ArraySchema(sa);
 
 export const struct = <A extends {}>(xs: {
-  [k in keyof A]: Schema<A>;
+  [k in keyof A]: Schema<A[k]>;
 }): Schema<A> => new StructSchema(xs);
 
 // export const partial = <A extends {}>(xs: {
@@ -47,8 +47,8 @@ export const record = <A>(sa: Schema<A>): Schema<Record<string, A>> =>
   new RecordSchema(sa);
 
 export const product = <A extends unknown[]>(
-  ...xs: { [k in keyof A]: Schema<A> }
-): Schema<A> => new ProductSchema(xs);
+  ...xs: { [k in keyof A]: Schema<A[k]> }
+): Schema<A> => new ProductSchema<A>(xs);
 
 export const sum =
   <T extends string>(tag: T) =>

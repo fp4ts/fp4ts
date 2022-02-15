@@ -44,5 +44,8 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
 
     number: Eq.primitive,
     record: Eq.record,
+
+    imap: <A, B>(ea: Eq<A>, f: (a: A) => B, g: (b: B) => A): Eq<B> =>
+      Eq.by(ea, g),
   }),
 );

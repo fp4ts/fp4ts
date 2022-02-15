@@ -126,7 +126,7 @@ export class NullableSchema<A> extends Schema<A | null> {
 // }
 
 export class ProductSchema<A extends unknown[]> extends Schema<A> {
-  public constructor(private readonly xs: { [k in keyof A]: Schema<A> }) {
+  public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
     super();
   }
 
@@ -163,5 +163,19 @@ export class DeferSchema<A> extends Schema<A> {
 
   public interpret<S>(S: Schemable<S>): Kind<S, [A]> {
     return S.defer(() => this.thunk().interpret(S));
+  }
+}
+
+export class ImapSchema<A, B> extends Schema<B> {
+  public constructor(
+    public readonly sa: Schema<A>,
+    public readonly f: (a: A) => B,
+    public readonly g: (b: B) => A,
+  ) {
+    super();
+  }
+
+  public interpret<S>(S: Schemable<S>): Kind<S, [B]> {
+    return S.imap(this.sa.interpret(S), this.f, this.g);
   }
 }

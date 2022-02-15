@@ -25,6 +25,7 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
         Object.keys(xs).map(k => fc.record(xs[k])) as any,
       )) as Schemable<ArbitraryF>['sum'],
     product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryF>['product'],
+    imap: (arb, f, g) => arb.map(f),
   }),
 );
 

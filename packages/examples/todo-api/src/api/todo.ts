@@ -15,11 +15,10 @@ import {
   Route,
   typeDef,
 } from '@fp4ts/http-dsl';
-import { Schema } from '@fp4ts/schema';
 import { CreateTodo, Todo } from '../todo';
 import { pagination } from './pagination';
 
-export const TodoArrayType = typeDef('todo-api/todo-array', Schema.array(Todo));
+export const TodoArrayType = typeDef('todo-api/todo-array', Todo.array);
 export const TodoType = typeDef('todo-api/todo', Todo);
 export const CreateTodoType = typeDef('todo-api/create-todo', CreateTodo);
 

@@ -44,6 +44,7 @@ import {
   orElse_,
   refine_,
 } from './operators';
+import { DecoderT } from './algebra';
 
 export const decoderTMonoidK: <F, I>(
   F: Monad<F>,
@@ -101,6 +102,11 @@ export const decoderTSchemable: <F>(
     null: nullDecoderT(F),
     record: record(F),
     nullable: nullable(F),
+    imap: <A, B>(
+      da: DecoderT<F, unknown, A>,
+      f: (a: A) => B,
+      g: (b: B) => A,
+    ): DecoderT<F, unknown, B> => map_(F)(da, f),
   });
 
 export const decoderTConstraining: <F>(
