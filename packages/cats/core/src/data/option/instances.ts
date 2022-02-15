@@ -6,6 +6,7 @@
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '../../eval';
+import { EqK } from '../../eq-k';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
@@ -34,6 +35,10 @@ import { Option } from './option';
 
 export const optionEq = <A>(E: Eq<A>): Eq<Option<A>> =>
   Eq.of({ equals: equals_(E) });
+
+export const optionEqK: Lazy<EqK<OptionF>> = lazyVal(() =>
+  EqK.of({ liftEq: optionEq }),
+);
 
 export const optionSemigroupK: Lazy<SemigroupK<OptionF>> = lazyVal(() =>
   SemigroupK.of({ combineK_: orElse_ }),

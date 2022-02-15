@@ -3,9 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { lazyVal } from '@fp4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval } from '../../../eval';
+import { EqK } from '../../../eq-k';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
 import { Align } from '../../../align';
@@ -43,6 +44,10 @@ import {
 import { empty, pure } from './constructors';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
+
+export const arrayEqK: Lazy<EqK<ArrayF>> = lazyVal(() =>
+  EqK.of({ liftEq: arrayEq }),
+);
 
 export const arraySemigroupK: () => SemigroupK<ArrayF> = lazyVal(() =>
   SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),

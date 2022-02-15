@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $type, TyK, TyVar } from '@fp4ts/core';
+import { EqK } from '../../eq-k';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -18,6 +19,7 @@ import { pure } from './constructors';
 import {
   identityApplicative,
   identityApply,
+  identityEqK,
   identityFlatMap,
   identityFoldable,
   identityFunctor,
@@ -40,6 +42,7 @@ interface IdentityObj {
     a: A,
   ) => <B>(f: (a: A) => Identity<Either<A, B>>) => Identity<B>;
 
+  readonly EqK: EqK<IdentityF>;
   readonly Functor: Functor<IdentityF>;
   readonly Apply: Apply<IdentityF>;
   readonly Applicative: Applicative<IdentityF>;
@@ -55,6 +58,11 @@ Identity.tailRecM = tailRecM;
 
 // -- Instances
 
+Object.defineProperty(Identity, 'EqK', {
+  get(): EqK<IdentityF> {
+    return identityEqK();
+  },
+});
 Object.defineProperty(Identity, 'Functor', {
   get(): Functor<IdentityF> {
     return identityFunctor();

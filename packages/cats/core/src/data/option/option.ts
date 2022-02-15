@@ -5,6 +5,7 @@
 
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { EqK } from '../../eq-k';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
@@ -26,6 +27,7 @@ import {
   optionApplicative,
   optionApply,
   optionEq,
+  optionEqK,
   optionFlatMap,
   optionFoldable,
   optionFunctor,
@@ -62,6 +64,7 @@ export interface OptionObj {
 
   // -- Instances
 
+  readonly EqK: EqK<OptionF>;
   readonly SemigroupK: SemigroupK<OptionF>;
   readonly MonoidK: MonoidK<OptionF>;
   readonly Functor: Functor<OptionF>;
@@ -83,6 +86,11 @@ Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 Option.tailRecM = tailRecM;
 
+Object.defineProperty(Option, 'EqK', {
+  get(): EqK<OptionF> {
+    return optionEqK();
+  },
+});
 Object.defineProperty(Option, 'SemigroupK', {
   get(): SemigroupK<OptionF> {
     return optionSemigroupK();

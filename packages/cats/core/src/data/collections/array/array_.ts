@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eq } from '@fp4ts/cats-kernel';
+import { EqK } from '../../../eq-k';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Align } from '../../../align';
@@ -23,6 +24,7 @@ import {
   arrayApplicative,
   arrayApply,
   arrayEq,
+  arrayEqK,
   arrayFlatMap,
   arrayFoldable,
   arrayFunctor,
@@ -35,6 +37,7 @@ import {
 import { ArrayF } from './array';
 
 export const Array = {
+  EqK: arrayEqK,
   Align: arrayAlign,
   Apply: arrayApply,
   Eq: arrayEq,
@@ -52,6 +55,7 @@ export const Array = {
 interface Array {
   // -- Instances
   Eq<A>(A: Eq<A>): Eq<A[]>;
+  EqK: EqK<ArrayF>;
   SemigroupK: SemigroupK<ArrayF>;
   MonoidK: MonoidK<ArrayF>;
   Align: Align<ArrayF>;

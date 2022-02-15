@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind, lazyVal } from '@fp4ts/core';
-import { Semigroup, Monoid } from '@fp4ts/cats-kernel';
+import { Semigroup, Monoid, Eq } from '@fp4ts/cats-kernel';
+import { EqK } from '../../eq-k';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';
@@ -17,6 +18,9 @@ import { Traversable } from '../../traversable';
 import { Const, ConstF } from './const';
 import { combine_, retag } from './operators';
 import { pure } from './constructors';
+
+export const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
+  EqK.of({ liftEq: () => E });
 
 export const constSemigroupK: <A>(
   A: Semigroup<A>,

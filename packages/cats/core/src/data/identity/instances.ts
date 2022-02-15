@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { id, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { EqK } from '../../eq-k';
 import { Eval } from '../../eval';
 import { Functor } from '../../functor';
 import { Apply } from '../../apply';
@@ -17,6 +18,10 @@ import { IdentityF } from './identity';
 import { flatMap_, map_, tailRecM_ } from './operators';
 import { pure, unit } from './constructors';
 import { Identity } from './identity';
+
+export const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() =>
+  EqK.of({ liftEq: id }),
+);
 
 export const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
   Functor.of({ map_ }),

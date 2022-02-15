@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, TyK, TyVar } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { EqK } from '../../eq-k';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Functor } from '../../functor';
@@ -18,6 +19,7 @@ import { empty, of, pure } from './constructors';
 import {
   constApplicative,
   constApply,
+  constEqK,
   constFoldable,
   constFunctor,
   constFunctorFilter,
@@ -40,6 +42,7 @@ interface ConstObj {
 
   // -- Instances
 
+  EqK<A>(E: Eq<A>): EqK<$<ConstF, [A]>>;
   SemigroupK<A>(A: Monoid<A>): SemigroupK<$<ConstF, [A]>>;
   MonoidK<A>(A: Monoid<A>): MonoidK<$<ConstF, [A]>>;
   Functor<A>(): Functor<$<ConstF, [A]>>;
@@ -54,6 +57,7 @@ Const.of = of;
 Const.pure = pure;
 Const.empty = empty;
 
+Const.EqK = constEqK;
 Const.SemigroupK = constSemigroupK;
 Const.MonoidK = constMonoidK;
 Const.Functor = constFunctor;

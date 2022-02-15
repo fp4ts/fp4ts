@@ -4,11 +4,25 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
+import { EqK } from './eq-k';
 import { Apply } from './apply';
 import { Functor } from './functor';
 import { Applicative } from './applicative';
 import { Foldable } from './foldable';
 import { Iter } from './data';
+
+export interface ComposedEqK<F, G> extends EqK<[F, G]> {
+  readonly F: EqK<F>;
+  readonly G: EqK<G>;
+}
+export const ComposedEqK = Object.freeze({
+  of: <F, G>(F: EqK<F>, G: EqK<G>): ComposedEqK<F, G> => ({
+    F,
+    G,
+
+    ...EqK.of<[F, G]>({ liftEq: E => F.liftEq(G.liftEq(E)) }),
+  }),
+});
 
 export interface ComposedFunctor<F, G> extends Functor<[F, G]> {
   readonly F: Functor<F>;
