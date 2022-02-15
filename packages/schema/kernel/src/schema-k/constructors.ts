@@ -40,9 +40,7 @@ export const product = <F extends unknown[]>(
 
 export const sum =
   <T extends string>(tag: T) =>
-  <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }): SchemaK<
-    SumK<F[keyof F]>
-  > =>
+  <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }): SchemaK<SumK<F>> =>
     new SumSchemaK(tag, fs);
 
 export const defer = <F>(thunk: () => SchemaK<F>): SchemaK<F> =>

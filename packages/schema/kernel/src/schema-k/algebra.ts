@@ -149,7 +149,7 @@ export class ProductSchemaK<F extends unknown[]> extends SchemaK<ProductK<F>> {
 }
 
 export class SumSchemaK<T extends string, F extends {}> extends SchemaK<
-  SumK<F[keyof F]>
+  SumK<F>
 > {
   public constructor(
     private readonly tag: T,

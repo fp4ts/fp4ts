@@ -45,9 +45,7 @@ interface SchemaKObj {
 
   sum<T extends string>(
     tag: T,
-  ): <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }) => SchemaK<
-    SumK<F[keyof F]>
-  >;
+  ): <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }) => SchemaK<SumK<F>>;
 
   defer<F>(thunk: () => SchemaK<F>): SchemaK<F>;
 }

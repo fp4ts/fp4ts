@@ -28,22 +28,14 @@ export class Bin<K, A> extends Tree<K, A> {
   }
 }
 
-export const Tip: Tree<never, never> = new (class Tip extends Tree<
-  never,
-  never
-> {
-  public readonly tag = 'tip';
-  public readonly toArray = [];
-})();
+export const Tip: Tree<never, never> & { tag: 'tip' } =
+  new (class Tip extends Tree<never, never> {
+    public readonly tag = 'tip';
+    public readonly toArray = [];
+  })();
 
 export interface TreeK extends TyK<[unknown, unknown]> {
   [$type]: Tree<TyVar<this, 0>, TyVar<this, 1>>;
-}
-export interface BinK extends TyK<[unknown, unknown]> {
-  [$type]: Bin<TyVar<this, 0>, TyVar<this, 1>>;
-}
-export interface TipK extends TyK<[unknown, unknown]> {
-  [$type]: typeof Tip;
 }
 
 export class Tree1<K, A> {

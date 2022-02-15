@@ -10,7 +10,7 @@ import { ConstK, Some, None, Eq, Option, OptionK, Monoid } from '@fp4ts/cats';
 import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { FoldableSuite, FunctorSuite } from '@fp4ts/cats-laws';
-import { Bin, Tip, BinK, TipK, TreeK, Tree1K, Tree1, Tree } from './tree';
+import { Bin, Tip, TreeK, Tree1K, Tree1, Tree } from './tree';
 
 describe('schemable-k', () => {
   describe('regular tree', () => {
@@ -22,21 +22,16 @@ describe('schemable-k', () => {
           v: SchemaK.par,
           lhs: SchemaK.defer(() => TreeSK(k)),
           rhs: SchemaK.defer(() => TreeSK(k)),
-        }).imap<$<BinK, [K]>>(
-          ({ k, v, lhs, rhs }) => new Bin(k, v, lhs, rhs),
-          <A>({ k, v, lhs, rhs }: Bin<K, A>) => ({
-            tag: 'bin',
-            k,
-            v,
-            lhs,
-            rhs,
-          }),
-        ),
-        tip: SchemaK.struct({ tag: SchemaK.literal('tip') }).imap<TipK>(
-          () => Tip,
-          () => ({ tag: 'tip' }),
-        ),
-      });
+        }),
+        tip: SchemaK.struct({ tag: SchemaK.literal('tip') }),
+      }).imap<$<TreeK, [K]>>(
+        t => (t.tag === 'bin' ? new Bin(t.k, t.v, t.lhs, t.rhs) : Tip),
+        t => {
+          if (t === Tip) return { tag: 'tip' };
+          const { k, v, lhs, rhs } = t as Bin<K, any>;
+          return { tag: 'bin', k, v, lhs, rhs };
+        },
+      );
 
     const arbTree =
       <K>(arbK: Arbitrary<K>) =>
