@@ -55,4 +55,8 @@ export const Monoid = Object.freeze({
   get product(): Monoid<number> {
     return { ...Semigroup.product, empty: 1 };
   },
+
+  first<A>(empty: A): Monoid<A> {
+    return { ...Semigroup.first(), empty };
+  },
 });
