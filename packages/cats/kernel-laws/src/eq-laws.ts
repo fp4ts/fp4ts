@@ -16,7 +16,7 @@ export const EqLaws = <A>(E: Eq<A>) => ({
     new IsEq(E.notEquals(x, y) || E.equals(f(x), f(y)), true),
 
   transitivityEq: (x: A, y: A, z: A): IsEq<boolean> =>
-    new IsEq(!(E.equals(x, y) && E.equals(y, x)) || E.equals(x, z), true),
+    new IsEq(!(E.equals(x, y) && E.equals(y, z)) || E.equals(x, z), true),
 });
 
 export interface EqLaws<A> {
