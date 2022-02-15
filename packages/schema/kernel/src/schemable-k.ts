@@ -5,11 +5,20 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Base, Kind, $ } from '@fp4ts/core';
-import { ArrayF, ConstF, IdentityF, OptionF } from '@fp4ts/cats';
+import {
+  ArrayF,
+  ConstF,
+  EqKF,
+  FoldableF,
+  FunctorF,
+  IdentityF,
+  OptionF,
+} from '@fp4ts/cats';
 import { Literal } from './literal';
 import { ProductK, StructK, SumK } from './kinds';
-import { FunctorF, functorSchemableK } from './functor';
-import { FoldableF, foldableSchemableK } from './foldable';
+import { functorSchemableK } from './functor';
+import { foldableSchemableK } from './foldable';
+import { eqKSchemableK } from './eq-k';
 
 export interface SchemableK<S> extends Base<S> {
   literal<A extends [Literal, ...Literal[]]>(
@@ -58,5 +67,9 @@ export const SchemableK = Object.freeze({
 
   get Foldable(): SchemableK<FoldableF> {
     return foldableSchemableK();
+  },
+
+  get EqK(): SchemableK<EqKF> {
+    return eqKSchemableK();
   },
 });

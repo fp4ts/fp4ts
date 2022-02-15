@@ -51,24 +51,7 @@ describe('schemable-k', () => {
         return tree(maxDepth);
       };
 
-    const eqTree =
-      <K>(K: Eq<K>) =>
-      <A>(A: Eq<A>): Eq<Tree<K, A>> => {
-        const self: Eq<Tree<K, A>> = Eq.of({
-          equals: (l, r) => {
-            if (l === r) return true;
-            if (l === Tip) return false;
-            if (r === Tip) return false;
-            const ll = l as Bin<K, A>;
-            const rr = l as Bin<K, A>;
-            if (K.notEquals(ll.k, rr.k) || A.notEquals(ll.v, rr.v))
-              return false;
-            return self.equals(ll.lhs, rr.lhs) && self.equals(ll.rhs, rr.rhs);
-          },
-        });
-        return self;
-      };
-
+    const eqk = TreeSK(SchemaK.number).interpret(SchemableK.EqK);
     const functor = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
     const functorTests = FunctorSuite(functor);
 
@@ -81,7 +64,7 @@ describe('schemable-k', () => {
         Eq.primitive,
         Eq.primitive,
         arbTree(fc.integer()),
-        eqTree(Eq.primitive),
+        eqk.liftEq,
       ),
     );
 
@@ -141,20 +124,7 @@ describe('schemable-k', () => {
         return node(maxDepth);
       };
 
-    const eqTree =
-      <K>(K: Eq<K>) =>
-      <A>(A: Eq<A>): Eq<Option<Tree1<K, A>>> => {
-        const self: Eq<Tree1<K, A>> = Eq.of({
-          equals: (l, r) => {
-            if (l === r) return true;
-            if (K.notEquals(l.k, r.k) || A.notEquals(l.v, r.v)) return false;
-            return OTE.equals(l.lhs, r.lhs) && OTE.equals(l.rhs, r.rhs);
-          },
-        });
-        const OTE = Option.Eq(self);
-        return OTE;
-      };
-
+    const eqk = TreeSK(SchemaK.number).interpret(SchemableK.EqK);
     const F = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
     const functorTests = FunctorSuite(F);
 
@@ -167,7 +137,7 @@ describe('schemable-k', () => {
         Eq.primitive,
         Eq.primitive,
         arbTree(fc.integer()),
-        eqTree(Eq.primitive),
+        eqk.liftEq,
       ),
     );
 
