@@ -19,6 +19,7 @@ import {
   Right,
   Iter,
 } from './data';
+import { ComposedFoldable } from './composed';
 
 /**
  * @category Type Class
@@ -145,6 +146,9 @@ export const Foldable = Object.freeze({
     });
     return self;
   },
+
+  compose: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> =>
+    ComposedFoldable.of(F, G),
 });
 
 interface Source<A> {

@@ -7,6 +7,8 @@ import { Kind } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Functor } from './functor';
 import { Applicative } from './applicative';
+import { Foldable } from './foldable';
+import { Iter } from './data';
 
 export interface ComposedFunctor<F, G> extends Functor<[F, G]> {
   readonly F: Functor<F>;
@@ -72,4 +74,26 @@ export const ComposedApplicative = Object.freeze({
       }),
     };
   },
+});
+
+export interface ComposedFoldable<F, G> extends Foldable<[F, G]> {
+  readonly F: Foldable<F>;
+  readonly G: Foldable<G>;
+}
+export const ComposedFoldable = Object.freeze({
+  of: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> => ({
+    F: F,
+    G: G,
+
+    ...Foldable.of<[F, G]>({
+      foldRight_: (fga, ez, f) =>
+        F.foldRight_(fga, ez, (ga, eb) => G.foldRight_(ga, eb, f)),
+      foldLeft_: (fga, z, f) =>
+        F.foldLeft_(fga, z, (b, ga) => G.foldLeft_(ga, b, f)),
+
+      toList: fga => F.toList(fga).flatMap(ga => G.toList(ga)),
+
+      iterator: fga => Iter.flatMap_(F.iterator(fga), ga => G.iterator(ga)),
+    }),
+  }),
 });
