@@ -9,6 +9,7 @@ import { ArrayK, ConstK, IdentityK, OptionK } from '@fp4ts/cats';
 import { Literal } from './literal';
 import { ProductK, StructK, SumK } from './kinds';
 import { FunctorK, functorSchemableK } from './functor';
+import { FoldableK, foldableSchemableK } from './foldable';
 
 export interface SchemableK<S> extends Base<S> {
   literal<A extends [Literal, ...Literal[]]>(
@@ -53,5 +54,9 @@ export interface SchemableK<S> extends Base<S> {
 export const SchemableK = Object.freeze({
   get Functor(): SchemableK<FunctorK> {
     return functorSchemableK();
+  },
+
+  get Foldable(): SchemableK<FoldableK> {
+    return foldableSchemableK();
   },
 });

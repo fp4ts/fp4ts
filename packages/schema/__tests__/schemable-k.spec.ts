@@ -6,10 +6,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
-import { ConstK, Some, None, Eq, Option, OptionK } from '@fp4ts/cats';
+import { ConstK, Some, None, Eq, Option, OptionK, Monoid } from '@fp4ts/cats';
 import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
 import { checkAll } from '@fp4ts/cats-test-kit';
-import { FunctorSuite } from '@fp4ts/cats-laws';
+import { FoldableSuite, FunctorSuite } from '@fp4ts/cats-laws';
 import { Bin, Tip, BinK, TipK, TreeK, Tree1K, Tree1, Tree } from './tree';
 
 describe('schemable-k', () => {
@@ -74,8 +74,8 @@ describe('schemable-k', () => {
         return self;
       };
 
-    const F = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
-    const functorTests = FunctorSuite(F);
+    const functor = TreeSK(SchemaK.number).interpret(SchemableK.Functor);
+    const functorTests = FunctorSuite(functor);
 
     checkAll(
       'Functor<Tree<number, *>>',
@@ -87,6 +87,22 @@ describe('schemable-k', () => {
         Eq.primitive,
         arbTree(fc.integer()),
         eqTree(Eq.primitive),
+      ),
+    );
+
+    const foldable = TreeSK(SchemaK.number).interpret(SchemableK.Foldable);
+    const foldableTests = FoldableSuite(foldable);
+
+    checkAll(
+      'Foldable<Tree<number, *>>',
+      foldableTests.foldable(
+        fc.integer(),
+        fc.string(),
+        Monoid.addition,
+        Monoid.string,
+        Eq.primitive,
+        Eq.primitive,
+        arbTree(fc.integer()),
       ),
     );
   });
@@ -157,6 +173,22 @@ describe('schemable-k', () => {
         Eq.primitive,
         arbTree(fc.integer()),
         eqTree(Eq.primitive),
+      ),
+    );
+
+    const foldable = TreeSK(SchemaK.number).interpret(SchemableK.Foldable);
+    const foldableTests = FoldableSuite(foldable);
+
+    checkAll(
+      'Foldable<Tree<number, *>>',
+      foldableTests.foldable(
+        fc.integer(),
+        fc.string(),
+        Monoid.addition,
+        Monoid.string,
+        Eq.primitive,
+        Eq.primitive,
+        arbTree(fc.integer()),
       ),
     );
   });

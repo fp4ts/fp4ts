@@ -46,8 +46,8 @@ export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() => {
 
     imap_: <F, G>(sa: Functor<F>, f: FunctionK<F, G>, g: FunctionK<G, F>) =>
       Functor.of<G>({
-        map_: <A, B>(fa: Kind<G, [A]>, f2: (a: A) => B) =>
-          pipe(g(fa), sa.map(f2), f),
+        map_: <A, B>(ga: Kind<G, [A]>, f2: (a: A) => B) =>
+          pipe(g(ga), sa.map(f2), f),
       }),
 
     compose_: <F, G>(sf: Functor<F>, sg: Functor<G>): Functor<[F, G]> =>
@@ -56,10 +56,6 @@ export const functorSchemableK: Lazy<SchemableK<FunctorK>> = lazyVal(() => {
   return self;
 });
 
-const SafeFunctorTag = Symbol('@fp4ts/schema-kernel/safe-functor');
-function isSafeFunctor<F>(F: Functor<F>): F is SafeFunctor<F> {
-  return SafeFunctorTag in F;
-}
 function safeMap<F, A, B>(
   F: Functor<F>,
   fa: Kind<F, [A]>,
@@ -70,6 +66,10 @@ function safeMap<F, A, B>(
     : Eval.delay(() => F.map_(fa, x => f(x).value));
 }
 
+const SafeFunctorTag = Symbol('@fp4ts/schema/kernel/safe-functor');
+function isSafeFunctor<F>(F: Functor<F>): F is SafeFunctor<F> {
+  return SafeFunctorTag in F;
+}
 interface SafeFunctor<F> extends Functor<F> {
   safeMap_<A, B>(fa: Kind<F, [A]>, f: (a: A) => Eval<B>): Eval<Kind<F, [B]>>;
   [SafeFunctorTag]: true;
@@ -146,7 +146,4 @@ const defer = <G>(thunk: () => Functor<G>): Functor<G> =>
 
 export interface FunctorK extends TyK<[unknown]> {
   [$type]: Functor<TyVar<this, 0>>;
-}
-export interface SafeFunctorK extends TyK<[unknown]> {
-  [$type]: SafeFunctor<TyVar<this, 0>>;
 }
