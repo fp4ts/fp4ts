@@ -5,6 +5,7 @@
 
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { Eval } from '../../eval';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
 import { Apply } from '../../apply';
@@ -14,6 +15,8 @@ import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
+import { Foldable } from '../../foldable';
+import { Traversable } from '../../traversable';
 
 import { OptionK } from './option';
 import {
@@ -24,6 +27,7 @@ import {
   map_,
   orElse_,
   tailRecM_,
+  traverse_,
 } from './operators';
 import { none, pure } from './constructors';
 import { Option } from './option';
@@ -82,5 +86,31 @@ export const optionMonad: Lazy<Monad<OptionK>> = lazyVal(() =>
   Monad.of({
     ...optionApplicative(),
     ...optionFlatMap(),
+  }),
+);
+
+export const optionFoldable: Lazy<Foldable<OptionK>> = lazyVal(() =>
+  Foldable.of({
+    foldRight_: (fa, eb, f) =>
+      Eval.defer(() =>
+        fa.fold(
+          () => eb,
+          x => f(x, eb),
+        ),
+      ),
+
+    foldLeft_: (fa, b, f) =>
+      fa.fold(
+        () => b,
+        x => f(b, x),
+      ),
+  }),
+);
+
+export const optionTraversable: Lazy<Traversable<OptionK>> = lazyVal(() =>
+  Traversable.of({
+    ...optionFoldable(),
+    ...optionFunctor(),
+    traverse_,
   }),
 );

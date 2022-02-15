@@ -4,13 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { PrimitiveType } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eval } from '@fp4ts/cats-core';
 import { Right, Left, Option, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { MonadSuite, AlternativeSuite } from '@fp4ts/cats-laws';
+import {
+  MonadSuite,
+  AlternativeSuite,
+  TraversableSuite,
+} from '@fp4ts/cats-laws';
 
 describe('Option', () => {
   describe('type', () => {
@@ -139,38 +143,62 @@ describe('Option', () => {
     });
   });
 
-  const eqOptionPrimitive: Eq<Option<PrimitiveType>> = Option.Eq(Eq.primitive);
+  describe('Laws', () => {
+    const alternativeTests = AlternativeSuite(Option.Alternative);
 
-  const alternativeTests = AlternativeSuite(Option.Alternative);
+    checkAll(
+      'Alternative<OptionK>',
+      alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+      ),
+    );
 
-  checkAll(
-    'Alternative<OptionK>',
-    alternativeTests.alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsOption,
-      Option.Eq,
-    ),
-  );
+    const monadTests = MonadSuite(Option.Monad);
+    checkAll(
+      'Monad<OptionK>',
+      monadTests.monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+      ),
+    );
 
-  const tests = MonadSuite(Option.Monad);
-  checkAll(
-    'Monad<OptionK>',
-    tests.monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsOption,
-      Option.Eq,
-    ),
-  );
+    const traversableTests = TraversableSuite(Option.Traversable);
+    checkAll(
+      'Traversable<OptionK>',
+      traversableTests.traversable(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        Option.Functor,
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+      ),
+    );
+  });
 });

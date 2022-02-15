@@ -14,6 +14,8 @@ import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
+import { Foldable } from '../../foldable';
+import { Traversable } from '../../traversable';
 
 import { Either } from '../either';
 
@@ -25,11 +27,13 @@ import {
   optionApply,
   optionEq,
   optionFlatMap,
+  optionFoldable,
   optionFunctor,
   optionFunctorFilter,
   optionMonad,
   optionMonoidK,
   optionSemigroupK,
+  optionTraversable,
 } from './instances';
 import { tailRecM } from './operators';
 
@@ -67,6 +71,8 @@ export interface OptionObj {
   readonly Alternative: Alternative<OptionK>;
   readonly FlatMap: FlatMap<OptionK>;
   readonly Monad: Monad<OptionK>;
+  readonly Foldable: Foldable<OptionK>;
+  readonly Traversable: Traversable<OptionK>;
   Eq<A>(E: Eq<A>): Eq<Option<A>>;
 }
 
@@ -120,6 +126,16 @@ Object.defineProperty(Option, 'FlatMap', {
 Object.defineProperty(Option, 'Monad', {
   get(): Monad<OptionK> {
     return optionMonad();
+  },
+});
+Object.defineProperty(Option, 'Foldable', {
+  get(): Foldable<OptionK> {
+    return optionFoldable();
+  },
+});
+Object.defineProperty(Option, 'Traversable', {
+  get(): Traversable<OptionK> {
+    return optionTraversable();
   },
 });
 Option.Eq = optionEq;
