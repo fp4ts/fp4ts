@@ -1,5 +1,5 @@
 {
-  "name": "@fp4ts/cats-laws",
+  "name": "@fp4ts/cats-kernel-laws",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -9,9 +9,7 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "devDependencies": {
-    "@fp4ts/cats-core": "*",
     "@fp4ts/cats-kernel": "*",
-    "@fp4ts/cats-kernel-laws": "*",
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
     "fast-check": "^2.21.0",

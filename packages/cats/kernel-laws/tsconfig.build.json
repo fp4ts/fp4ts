@@ -7,9 +7,7 @@
   "include": ["./src/**/*"],
   "references": [
     { "path": "../../core/tsconfig.build.json" },
-    { "path": "../core/tsconfig.build.json" },
     { "path": "../kernel/tsconfig.build.json" },
-    { "path": "../kernel-laws/tsconfig.build.json" },
     { "path": "../test-kit/tsconfig.build.json" },
   ]
 }

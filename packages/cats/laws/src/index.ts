@@ -27,3 +27,5 @@ export * from './unordered-traversable-laws';
 export * from './bifunctor-laws';
 
 export * from './disciplines';
+
+export * from '@fp4ts/cats-kernel-laws';

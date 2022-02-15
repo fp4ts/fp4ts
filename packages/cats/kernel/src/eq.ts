@@ -49,7 +49,8 @@ export const Eq = Object.freeze({
       return Eq.of({
         equals: (lhs, rhs) => {
           if (lhs === rhs) return true;
-          if (lhs.constructor !== rhs.constructor) return false;
+          if (lhs.constructor.prototype !== rhs.constructor.prototype)
+            return false;
           if (lhs.message !== rhs.message) return false;
           return true;
         },

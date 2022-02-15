@@ -21,6 +21,8 @@
       "@fp4ts/effect-core/lib/*": ["./effect/core/src/*"],
       "@fp4ts/effect-kernel": ["./effect/kernel/src"],
       "@fp4ts/effect-kernel/lib/*": ["./effect/kernel/src/*"],
+      "@fp4ts/effect-kerne-laws": ["./effect/kerne-laws/src"],
+      "@fp4ts/effect-kerne-laws/lib/*": ["./effect/kerne-laws/src/*"],
       "@fp4ts/effect-laws": ["./effect/laws/src"],
       "@fp4ts/effect-laws/lib/*": ["./effect/laws/src/*"],
       "@fp4ts/effect-std": ["./effect/std/src"],
