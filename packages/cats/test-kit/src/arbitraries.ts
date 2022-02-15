@@ -29,6 +29,7 @@ import {
   WriterT,
   Writer,
   Set,
+  Endo,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -247,6 +248,9 @@ export const fp4tsAndThen = <A>(
 
   return go as Arbitrary<AndThen<A, A>>;
 };
+
+export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<Endo<A>> =>
+  fc.func<[A], A>(arbA);
 
 export const fp4tsIndexedStateT = <F, SA, SB, A>(
   arbFSAFSBA: Arbitrary<Kind<F, [(sa: SA) => Kind<F, [[SB, A]]>]>>,
