@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Literal } from '../literal';
 import { Schema as SchemaBase } from './algebra';
 import {
@@ -14,7 +13,7 @@ import {
   literal,
   nullSchema,
   number,
-  partial,
+  // partial,
   product,
   record,
   string,
@@ -42,9 +41,9 @@ interface SchemaObj {
     [k in keyof A]: Schema<A[k]>;
   }): Schema<A>;
 
-  partial<A extends {}>(xs: {
-    [k in keyof A]: Schema<A[k]>;
-  }): Schema<A>;
+  // partial<A extends {}>(xs: {
+  //   [k in keyof A]: Schema<A[k]>;
+  // }): Schema<A>;
 
   record<A>(sa: Schema<A>): Schema<Record<string, A>>;
 
@@ -68,7 +67,7 @@ Schema.string = string;
 Schema.null = nullSchema;
 Schema.array = array;
 Schema.struct = struct;
-Schema.partial = partial;
+// Schema.partial = partial;
 Schema.record = record;
 Schema.product = product;
 Schema.sum = sum;

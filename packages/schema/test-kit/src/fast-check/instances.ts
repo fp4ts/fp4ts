@@ -19,24 +19,12 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryK>> = lazyVal(() =>
     literal: (...xs) => fc.oneof(...xs.map(fc.constant)),
     defer: thunk => fc.constant(null).chain(thunk),
     struct: xs => fc.record(xs),
-    partial: xs => fc.record(xs, { withDeletedKeys: true }),
     record: x => fc.dictionary(fc.string(), x),
     sum: (tag => (xs: any) =>
       fc.oneof(
         Object.keys(xs).map(k => fc.record(xs[k])) as any,
       )) as Schemable<ArbitraryK>['sum'],
     product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryK>['product'],
-    intersection_: (x, y) =>
-      fc.tuple(x, y).map(([x, y]) => {
-        if (
-          x !== null &&
-          y !== null &&
-          typeof x === 'object' &&
-          typeof y === 'object'
-        )
-          return { ...x, ...y };
-        return y as any;
-      }),
   }),
 );
 

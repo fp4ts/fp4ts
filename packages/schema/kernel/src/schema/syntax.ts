@@ -4,14 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Schema } from './algebra';
-import { intersection_, nullable } from './operators';
+import { nullable } from './operators';
 
 declare module './algebra' {
   interface Schema<A> {
     readonly nullable: Schema<A | null>;
 
-    intersection<B>(that: Schema<B>): Schema<A & B>;
-    '<&>'<B>(that: Schema<B>): Schema<A & B>;
+    // intersection<B>(that: Schema<B>): Schema<A & B>;
+    // '<&>'<B>(that: Schema<B>): Schema<A & B>;
   }
 }
 
@@ -21,7 +21,7 @@ Object.defineProperty(Schema.prototype, 'nullable', {
   },
 });
 
-Schema.prototype.intersection = function (that) {
-  return intersection_(this, that);
-};
-Schema.prototype['<&>'] = Schema.prototype.intersection;
+// Schema.prototype.intersection = function (that) {
+//   return intersection_(this, that);
+// };
+// Schema.prototype['<&>'] = Schema.prototype.intersection;

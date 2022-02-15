@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+/* eslint-disable @typescript-eslint/ban-types */
 import { Lazy, PrimitiveType } from '@fp4ts/core';
 
 /**
@@ -59,6 +60,33 @@ export const Eq = Object.freeze({
   tuple2<A, B>(A: Eq<A>, B: Eq<B>): Eq<[A, B]> {
     return Eq.of({
       equals: ([la, lb], [ra, rb]) => A.equals(la, ra) && B.equals(lb, rb),
+    });
+  },
+
+  tuple<A extends unknown[]>(...es: { [k in keyof A]: Eq<A[k]> }): Eq<A> {
+    return Eq.of({
+      equals: (xs, ys) => es.every((e, i) => e.equals(xs[i], ys[i])),
+    });
+  },
+  record<A>(e: Eq<A>): Eq<Record<string, A>> {
+    return Eq.of({
+      equals: (xs, ys) => {
+        for (const k in xs) {
+          if (!(k in ys)) return false;
+        }
+        for (const k in ys) {
+          if (!(k in xs)) return false;
+        }
+        return Object.keys(xs).every(k => e.equals(xs[k], ys[k]));
+      },
+    });
+  },
+  struct<A extends {}>(es: { [k in keyof A]: Eq<A[k]> }): Eq<A> {
+    return Eq.of({
+      equals: (xs, ys) =>
+        (Object.keys(es) as (keyof typeof es)[]).every(k =>
+          es[k].equals(xs[k], ys[k]),
+        ),
     });
   },
 });

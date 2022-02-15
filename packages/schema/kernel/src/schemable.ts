@@ -17,16 +17,10 @@ export interface Schemable<S> extends Base<S> {
   array<A>(sa: Kind<S, [A]>): Kind<S, [A[]]>;
 
   struct<A extends {}>(xs: { [k in keyof A]: Kind<S, [A[k]]> }): Kind<S, [A]>;
-  partial<A extends {}>(xs: { [k in keyof A]: Kind<S, [A[k]]> }): Kind<
-    S,
-    [Partial<A>]
-  >;
+
   record<A>(sa: Kind<S, [A]>): Kind<S, [Record<string, A>]>;
 
   nullable<A>(sa: Kind<S, [A]>): Kind<S, [A | null]>;
-
-  intersection<B>(sb: Kind<S, [B]>): <A>(sa: Kind<S, [A]>) => Kind<S, [A & B]>;
-  intersection_<A, B>(sa: Kind<S, [A]>, sb: Kind<S, [B]>): Kind<S, [A & B]>;
 
   product<A extends unknown[]>(
     ...xs: { [k in keyof A]: Kind<S, [A[k]]> }
@@ -49,7 +43,6 @@ export type SchemableRequirements<S> = Omit<
 export const Schemable = Object.freeze({
   of: <S>(S: SchemableRequirements<S>): Schemable<S> =>
     instance<Schemable<S>>({
-      intersection: sb => sa => S.intersection_(sa, sb),
       ...S,
     }),
 });

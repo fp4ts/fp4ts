@@ -77,20 +77,20 @@ export class StructSchema<A extends {}> extends Schema<A> {
   }
 }
 
-export class PartialSchema<A extends {}> extends Schema<Partial<A>> {
-  public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
-    super();
-  }
+// export class PartialSchema<A extends {}> extends Schema<Partial<A>> {
+//   public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
+//     super();
+//   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [Partial<A>]> {
-    const keys = Object.keys(this.xs) as (keyof A)[];
-    const sxs = keys.reduce(
-      (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
-      {} as { [k in keyof A]: Kind<S, [A[k]]> },
-    );
-    return S.partial(sxs);
-  }
-}
+//   public interpret<S>(S: Schemable<S>): Kind<S, [Partial<A>]> {
+//     const keys = Object.keys(this.xs) as (keyof A)[];
+//     const sxs = keys.reduce(
+//       (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
+//       {} as { [k in keyof A]: Kind<S, [A[k]]> },
+//     );
+//     return S.partial(sxs);
+//   }
+// }
 
 export class RecordSchema<A> extends Schema<Record<string, A>> {
   public constructor(private readonly sa: Schema<A>) {
@@ -112,18 +112,18 @@ export class NullableSchema<A> extends Schema<A | null> {
   }
 }
 
-export class IntersectionSchema<A, B> extends Schema<A & B> {
-  public constructor(
-    private readonly sa: Schema<A>,
-    private readonly sb: Schema<B>,
-  ) {
-    super();
-  }
+// export class IntersectionSchema<A, B> extends Schema<A & B> {
+//   public constructor(
+//     private readonly sa: Schema<A>,
+//     private readonly sb: Schema<B>,
+//   ) {
+//     super();
+//   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A & B]> {
-    return S.intersection_(this.sa.interpret(S), this.sb.interpret(S));
-  }
-}
+//   public interpret<S>(S: Schemable<S>): Kind<S, [A & B]> {
+//     return S.intersection_(this.sa.interpret(S), this.sb.interpret(S));
+//   }
+// }
 
 export class ProductSchema<A extends unknown[]> extends Schema<A> {
   public constructor(private readonly xs: { [k in keyof A]: Schema<A> }) {
