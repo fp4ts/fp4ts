@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Base, Kind, $ } from '@fp4ts/core';
+import { Base, Kind, $, instance } from '@fp4ts/core';
 import {
   ArrayF,
   ConstF,
@@ -60,7 +60,9 @@ export interface SchemableK<S> extends Base<S> {
   compose_<F, G>(sf: Kind<S, [F]>, sg: Kind<S, [G]>): Kind<S, [[F, G]]>;
 }
 
+type SchemableKRequirements<S> = Omit<SchemableK<S>, `_${any}`>;
 export const SchemableK = Object.freeze({
+  of: <S>(S: SchemableKRequirements<S>): SchemableK<S> => instance(S),
   get Functor(): SchemableK<FunctorF> {
     return functorSchemableK();
   },

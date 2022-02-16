@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
   Option,
@@ -12,7 +12,6 @@ import {
   Eval,
   Foldable,
   Identity,
-  Monoid,
   FunctionK,
   FoldableF,
 } from '@fp4ts/cats';
@@ -20,12 +19,12 @@ import { SchemableK } from './schemable-k';
 import { ProductK, StructK, SumK } from './kinds';
 
 export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
-  const self: SchemableK<FoldableF> = instance({
-    boolean: Const.Foldable<boolean>(Monoid.disjunction),
-    string: Const.Foldable<string>(Monoid.string),
-    number: Const.Foldable<number>(Monoid.addition),
-    literal: (...xs) => Const.Foldable<any>(Monoid.first(xs[0])),
-    null: Const.Foldable<null>(Monoid.first(null)),
+  const self: SchemableK<FoldableF> = SchemableK.of({
+    boolean: Const.Foldable<boolean>(),
+    string: Const.Foldable<string>(),
+    number: Const.Foldable<number>(),
+    literal: () => Const.Foldable<any>(),
+    null: Const.Foldable<null>(),
     par: Identity.Foldable,
 
     array: f => self.compose_(Array.Foldable(), f),
@@ -79,7 +78,7 @@ function safeFoldLeft<F, A, B>(
     : Eval.delay(() => F.foldLeft_(fa, z, (b, a) => f(b, a).value));
 }
 
-interface SafeFoldable<F> extends Foldable<F> {
+export interface SafeFoldable<F> extends Foldable<F> {
   safeFoldLeft_<A, B>(
     fa: Kind<F, [A]>,
     z: B,
@@ -87,13 +86,13 @@ interface SafeFoldable<F> extends Foldable<F> {
   ): Eval<B>;
   [SafeFoldableTag]: true;
 }
-type SafeFoldableRequirements<F> = Pick<
+export type SafeFoldableRequirements<F> = Pick<
   SafeFoldable<F>,
   'foldRight_' | 'safeFoldLeft_'
 >;
-const SafeFoldable = Object.freeze({
+export const SafeFoldable = Object.freeze({
   of: <F>(F: SafeFoldableRequirements<F>): SafeFoldable<F> => {
-    const self: SafeFoldable<F> = instance({
+    const self: SafeFoldable<F> = {
       ...Foldable.of({
         foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
           self.safeFoldLeft_(fa, z, (b, a) => Eval.delay(() => f(b, a))).value,
@@ -101,7 +100,7 @@ const SafeFoldable = Object.freeze({
       }),
       ...F,
       [SafeFoldableTag]: true,
-    });
+    };
     return self;
   },
 });

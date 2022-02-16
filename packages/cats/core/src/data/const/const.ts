@@ -49,8 +49,8 @@ interface ConstObj {
   FunctorFilter<A>(): FunctorFilter<$<ConstF, [A]>>;
   Apply<A>(A: Monoid<A>): Apply<$<ConstF, [A]>>;
   Applicative<A>(A: Monoid<A>): Applicative<$<ConstF, [A]>>;
-  Foldable<A>(A: Monoid<A>): Foldable<$<ConstF, [A]>>;
-  Traversable<A>(A: Monoid<A>): Traversable<$<ConstF, [A]>>;
+  Foldable<A>(): Foldable<$<ConstF, [A]>>;
+  Traversable<A>(): Traversable<$<ConstF, [A]>>;
 }
 
 Const.of = of;

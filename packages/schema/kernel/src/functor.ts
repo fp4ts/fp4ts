@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
   Const,
@@ -19,7 +19,7 @@ import { SchemableK } from './schemable-k';
 import { ProductK, SumK, StructK } from './kinds';
 
 export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
-  const self: SchemableK<FunctorF> = instance({
+  const self: SchemableK<FunctorF> = SchemableK.of({
     boolean: Const.Functor<boolean>(),
     string: Const.Functor<string>(),
     number: Const.Functor<number>(),
@@ -62,13 +62,13 @@ const SafeFunctorTag = Symbol('@fp4ts/schema/kernel/safe-functor');
 function isSafeFunctor<F>(F: Functor<F>): F is SafeFunctor<F> {
   return SafeFunctorTag in F;
 }
-interface SafeFunctor<F> extends Functor<F> {
+export interface SafeFunctor<F> extends Functor<F> {
   safeMap_<A, B>(fa: Kind<F, [A]>, f: (a: A) => Eval<B>): Eval<Kind<F, [B]>>;
   [SafeFunctorTag]: true;
 }
-type SafeFunctorRequirements<F> = Pick<SafeFunctor<F>, 'safeMap_'> &
+export type SafeFunctorRequirements<F> = Pick<SafeFunctor<F>, 'safeMap_'> &
   Partial<Functor<F>>;
-const SafeFunctor = Object.freeze({
+export const SafeFunctor = Object.freeze({
   of: <F>(F: SafeFunctorRequirements<F>): SafeFunctor<F> => {
     const self: SafeFunctor<F> = {
       ...Functor.of({

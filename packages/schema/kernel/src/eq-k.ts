@@ -4,13 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { Kind, Lazy, lazyVal } from '@fp4ts/core';
 import { Array, Const, Eq, EqK, EqKF, Identity, Option } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
 import { ProductK, StructK, SumK } from './kinds';
 
 export const eqKSchemableK: Lazy<SchemableK<EqKF>> = lazyVal(() =>
-  instance({
+  SchemableK.of({
     boolean: Const.EqK(Eq.fromUniversalEquals<boolean>()),
     number: Const.EqK(Eq.fromUniversalEquals<number>()),
     string: Const.EqK(Eq.fromUniversalEquals<string>()),
