@@ -33,6 +33,10 @@ to the http4s, this port also includes [Servant](https://haskell-servant.github.
 - `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
 for purely functional, effectul, and polymorphic stream processing.
 
+- `@fp4ts/schema` The library for describing types of Kind-0 and Kind-1, with
+derivation capabilities for common typeclasses such as Eq, Functor, Foldable, and more.
+Inspired by [io-ts](https://github.com/gcanti/io-ts), [shapeless](https://github.com/milessabin/shapeless), and [kittens](https://github.com/typelevel/kittens).
+
 
 ## Examples
 
