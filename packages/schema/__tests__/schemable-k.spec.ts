@@ -6,10 +6,24 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
-import { ConstF, Some, None, Eq, Option, OptionF, Monoid } from '@fp4ts/cats';
+import {
+  ConstF,
+  Some,
+  None,
+  Eq,
+  Option,
+  OptionF,
+  Monoid,
+  Eval,
+} from '@fp4ts/cats';
 import { SchemaK, SchemableK } from '@fp4ts/schema-kernel';
 import { checkAll } from '@fp4ts/cats-test-kit';
-import { FoldableSuite, FunctorSuite } from '@fp4ts/cats-laws';
+import {
+  FoldableSuite,
+  FunctorSuite,
+  TraversableSuite,
+} from '@fp4ts/cats-laws';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { Bin, Tip, TreeF, Tree1F, Tree1, Tree } from './tree';
 
 describe('schemable-k', () => {
@@ -81,6 +95,34 @@ describe('schemable-k', () => {
         Eq.primitive,
         Eq.primitive,
         arbTree(fc.integer()),
+      ),
+    );
+
+    const traversable = TreeSK(SchemaK.number).interpret(
+      SchemableK.Traversable,
+    );
+    const traversableTests = TraversableSuite(traversable);
+
+    checkAll(
+      'Traversable<Tree<number, *>>',
+      traversableTests.traversable(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        functor,
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        arbTree(fc.integer()),
+        eqk.liftEq,
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
       ),
     );
   });

@@ -13,12 +13,14 @@ import {
   FunctorF,
   IdentityF,
   OptionF,
+  TraversableF,
 } from '@fp4ts/cats';
 import { Literal } from './literal';
 import { ProductK, StructK, SumK } from './kinds';
 import { functorSchemableK } from './functor';
 import { foldableSchemableK } from './foldable';
 import { eqKSchemableK } from './eq-k';
+import { traversableSchemableK } from './traversable';
 
 export interface SchemableK<S> extends Base<S> {
   literal<A extends [Literal, ...Literal[]]>(
@@ -69,6 +71,10 @@ export const SchemableK = Object.freeze({
 
   get Foldable(): SchemableK<FoldableF> {
     return foldableSchemableK();
+  },
+
+  get Traversable(): SchemableK<TraversableF> {
+    return traversableSchemableK();
   },
 
   get EqK(): SchemableK<EqKF> {

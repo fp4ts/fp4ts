@@ -31,29 +31,11 @@ export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
 
     optional: f => self.compose_(Option.Foldable, f),
 
-    product: product as SchemableK<FoldableF>['product'],
-    sum: sum as SchemableK<FoldableF>['sum'],
-    struct,
-    defer,
-
-    imap_: <F, G>(sa: Foldable<F>, f: FunctionK<F, G>, g: FunctionK<G, F>) =>
-      SafeFoldable.of<G>({
-        foldRight_<A, B>(
-          ga: Kind<G, [A]>,
-          ez: Eval<B>,
-          f2: (a: A, eb: Eval<B>) => Eval<B>,
-        ) {
-          return pipe(g(ga), sa.foldRight(ez, f2));
-        },
-
-        safeFoldLeft_<A, B>(
-          ga: Kind<G, [A]>,
-          z: B,
-          f2: (b: B, a: A) => Eval<B>,
-        ): Eval<B> {
-          return safeFoldLeft(sa, g(ga), z, f2);
-        },
-      }),
+    product: productSafeFoldable as SchemableK<FoldableF>['product'],
+    sum: sumSafeFoldable as SchemableK<FoldableF>['sum'],
+    struct: structSafeFoldable,
+    defer: deferSafeFoldable,
+    imap_: imapSafeFoldable,
 
     compose_: <F, G>(sf: Foldable<F>, sg: Foldable<G>): Foldable<[F, G]> =>
       Foldable.compose(sf, sg),
@@ -105,9 +87,9 @@ export const SafeFoldable = Object.freeze({
   },
 });
 
-const product = <F extends unknown[]>(
+export const productSafeFoldable = <F extends unknown[]>(
   ...fs: { [k in keyof F]: Foldable<F[k]> }
-): Foldable<ProductK<F>> =>
+): SafeFoldable<ProductK<F>> =>
   SafeFoldable.of({
     foldRight_<A, B>(
       fas: Kind<ProductK<F>, [B]>,
@@ -137,9 +119,9 @@ const product = <F extends unknown[]>(
     },
   });
 
-const struct = <F extends {}>(fs: {
+export const structSafeFoldable = <F extends {}>(fs: {
   [k in keyof F]: Foldable<F[k]>;
-}): Foldable<StructK<F>> =>
+}): SafeFoldable<StructK<F>> =>
   SafeFoldable.of({
     foldRight_<A, B>(
       fas: Kind<StructK<F>, [A]>,
@@ -173,11 +155,11 @@ const struct = <F extends {}>(fs: {
     },
   });
 
-const sum =
+export const sumSafeFoldable =
   <T extends string>(tag: T) =>
   <F extends {}>(fs: {
     [k in keyof F]: Foldable<F[k]>;
-  }): Foldable<SumK<F>> =>
+  }): SafeFoldable<SumK<F>> =>
     SafeFoldable.of<SumK<F>>({
       foldRight_<A, B>(
         fa: Kind<SumK<F>, [A]>,
@@ -199,8 +181,35 @@ const sum =
       },
     });
 
-const defer = <F>(thunk: () => Foldable<F>): Foldable<F> =>
-  SafeFoldable.of({
-    foldRight_: (fa, eb, f) => thunk().foldRight_(fa, eb, f),
-    safeFoldLeft_: (fa, b, f) => safeFoldLeft(thunk(), fa, b, f),
+export const imapSafeFoldable = <F, G>(
+  sa: Foldable<F>,
+  f: FunctionK<F, G>,
+  g: FunctionK<G, F>,
+) =>
+  SafeFoldable.of<G>({
+    foldRight_<A, B>(
+      ga: Kind<G, [A]>,
+      ez: Eval<B>,
+      f2: (a: A, eb: Eval<B>) => Eval<B>,
+    ) {
+      return pipe(g(ga), sa.foldRight(ez, f2));
+    },
+
+    safeFoldLeft_<A, B>(
+      ga: Kind<G, [A]>,
+      z: B,
+      f2: (b: B, a: A) => Eval<B>,
+    ): Eval<B> {
+      return safeFoldLeft(sa, g(ga), z, f2);
+    },
   });
+
+export const deferSafeFoldable = <F>(
+  thunk: () => Foldable<F>,
+): SafeFoldable<F> => {
+  const t = lazyVal(thunk);
+  return SafeFoldable.of({
+    foldRight_: (fa, eb, f) => t().foldRight_(fa, eb, f),
+    safeFoldLeft_: (fa, b, f) => safeFoldLeft(t(), fa, b, f),
+  });
+};

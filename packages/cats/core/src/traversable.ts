@@ -13,6 +13,7 @@ import {
   UnorderedTraversableRequirements,
 } from './unordered-traversable';
 import { ComposedTraversable } from './composed';
+import { Identity } from './data';
 
 /**
  * @category Type Class
@@ -59,7 +60,6 @@ export interface Traversable<T>
 
 export type TraversableRequirements<T> = Pick<Traversable<T>, 'traverse_'> &
   FoldableRequirements<T> &
-  FunctorRequirements<T> &
   Partial<Traversable<T>> &
   Partial<UnorderedTraversableRequirements<T>>;
 
@@ -81,13 +81,19 @@ export const Traversable = Object.freeze({
         unorderedFoldMap_: T.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
       }),
       ...Foldable.of(T),
-      ...Functor.of(T),
+      ...Functor.of({
+        map_:
+          T.map_ ??
+          (<A, B>(fa: Kind<T, [A]>, f: (a: A) => B): Kind<T, [B]> =>
+            self.traverse_(Identity.Applicative)(fa, f)),
+        ...T,
+      }),
       ...T,
     };
     return self;
   },
 
-  composed: <F, G>(
+  compose: <F, G>(
     F: Traversable<F>,
     G: Traversable<G>,
   ): ComposedTraversable<F, G> => ComposedTraversable.of(F, G),

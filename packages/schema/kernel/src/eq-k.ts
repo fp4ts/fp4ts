@@ -19,7 +19,10 @@ export const eqKSchemableK: Lazy<SchemableK<EqKF>> = lazyVal(() =>
     array: f => EqK.compose(Array.EqK(), f),
 
     compose_: EqK.compose,
-    defer: thunk => EqK.of({ liftEq: E => thunk().liftEq(E) }),
+    defer: thunk => {
+      const t = lazyVal(thunk);
+      return EqK.of({ liftEq: E => t().liftEq(E) });
+    },
     imap_: (fa, f, g) => EqK.by(fa, g),
 
     optional: f => EqK.compose(Option.EqK, f),

@@ -63,7 +63,9 @@ export const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
   Foldable.of({ foldLeft_: (_, z) => z, foldRight_: (_, ez) => ez }),
 );
 
-export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = <A>() =>
+export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = lazyVal(<
+  A,
+>() =>
   Traversable.of({
     ...constFunctor<A>(),
     ...constFoldable<A>(),
@@ -72,4 +74,5 @@ export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = <A>() =>
       <G>(G: Applicative<G>) =>
       <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [C]>) =>
         G.pure(fa),
-  });
+  }),
+) as <A>() => Traversable<$<ConstF, [A]>>;

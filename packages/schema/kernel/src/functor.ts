@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
   Array,
   Const,
@@ -31,17 +31,11 @@ export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
 
     optional: f => self.compose_(Option.Functor, f),
 
-    product: product as SchemableK<FunctorF>['product'],
-    sum: sum as SchemableK<FunctorF>['sum'],
-    struct,
-    defer,
-
-    imap_: <F, G>(sa: Functor<F>, f: FunctionK<F, G>, g: FunctionK<G, F>) =>
-      Functor.of<G>({
-        map_: <A, B>(ga: Kind<G, [A]>, f2: (a: A) => B) =>
-          pipe(g(ga), sa.map(f2), f),
-      }),
-
+    product: productSafeFunctor as SchemableK<FunctorF>['product'],
+    sum: sumSafeFunctor as SchemableK<FunctorF>['sum'],
+    struct: structSafeFunctor,
+    defer: deferSafeFunctor,
+    imap_: imapSafeFunctor,
     compose_: <F, G>(sf: Functor<F>, sg: Functor<G>): Functor<[F, G]> =>
       Functor.compose(sf, sg),
   });
@@ -81,9 +75,9 @@ export const SafeFunctor = Object.freeze({
   },
 });
 
-const product = <F extends unknown[]>(
+export const productSafeFunctor = <F extends unknown[]>(
   ...fs: { [k in keyof F]: Functor<F[k]> }
-): Functor<ProductK<F>> =>
+): SafeFunctor<ProductK<F>> =>
   SafeFunctor.of({
     safeMap_: <A, B>(
       fas: Kind<ProductK<F>, [A]>,
@@ -96,9 +90,9 @@ const product = <F extends unknown[]>(
       ) as Eval<Kind<ProductK<F>, [B]>>,
   });
 
-const struct = <F extends {}>(fs: {
+export const structSafeFunctor = <F extends {}>(fs: {
   [k in keyof F]: Functor<F[k]>;
-}): Functor<StructK<F>> =>
+}): SafeFunctor<StructK<F>> =>
   SafeFunctor.of({
     safeMap_: <A, B>(
       fas: Kind<StructK<F>, [A]>,
@@ -115,21 +109,37 @@ const struct = <F extends {}>(fs: {
     },
   });
 
-const sum =
+export const sumSafeFunctor =
   <T extends string>(tag: T) =>
   <F extends {}>(fs: {
     [k in keyof F]: Functor<F[k]>;
-  }): Functor<SumK<F>> =>
+  }): SafeFunctor<SumK<F>> =>
     SafeFunctor.of<SumK<F>>({
       safeMap_: <A, B>(
         fa: Kind<SumK<F>, [A]>,
         f: (a: A) => Eval<B>,
       ): Eval<Kind<SumK<F>, [B]>> => {
-        const k = (fa as any)[tag] as keyof typeof fs;
+        const k = (fa as any)[tag] as keyof F;
         const F = fs[k];
         return safeMap(F, fa, f);
       },
     });
 
-const defer = <G>(thunk: () => Functor<G>): Functor<G> =>
-  SafeFunctor.of<G>({ safeMap_: (x, f) => safeMap(thunk(), x, f) });
+export const imapSafeFunctor = <F, G>(
+  sa: Functor<F>,
+  f: FunctionK<F, G>,
+  g: FunctionK<G, F>,
+): SafeFunctor<G> =>
+  SafeFunctor.of<G>({
+    safeMap_: <A, B>(
+      ga: Kind<G, [A]>,
+      f2: (a: A) => Eval<B>,
+    ): Eval<Kind<G, [B]>> => safeMap(sa, g(ga), f2).map(f),
+  });
+
+export const deferSafeFunctor = <G>(
+  thunk: () => Functor<G>,
+): SafeFunctor<G> => {
+  const t = lazyVal(thunk);
+  return SafeFunctor.of<G>({ safeMap_: (x, f) => safeMap(t(), x, f) });
+};

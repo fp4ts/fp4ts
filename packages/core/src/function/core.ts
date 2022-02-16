@@ -19,6 +19,18 @@ export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
   };
 };
 
+export function cached<A, B>(f: (a: A) => B): (a: A) => B {
+  const cache = new Map<A, B>();
+  return function (a: A): B {
+    if (cache.has(a)) {
+      return cache.get(a)!;
+    }
+    const b = f(a);
+    cache.set(a, b);
+    return b;
+  };
+}
+
 export const throwError = (e: Error): never => {
   throw e;
 };
