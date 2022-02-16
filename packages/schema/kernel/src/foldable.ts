@@ -111,7 +111,7 @@ export const productSafeFoldable = <F extends unknown[]>(
       const loop = (ac: B, idx: number): Eval<B> =>
         idx >= fas.length
           ? Eval.now(ac)
-          : Eval.defer(() => safeFoldLeft(fas[idx], fas[idx], ac, f)).flatMap(
+          : Eval.defer(() => safeFoldLeft(fs[idx], fas[idx], ac, f)).flatMap(
               ac => loop(ac, idx + 1),
             );
 
