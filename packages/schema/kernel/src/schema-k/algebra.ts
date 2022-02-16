@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, Kind, lazyVal } from '@fp4ts/core';
+import { $, Kind } from '@fp4ts/core';
 import { ArrayF, ConstF, FunctionK, IdentityF, OptionF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schema } from '../schema';
