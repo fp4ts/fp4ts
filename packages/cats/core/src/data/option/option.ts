@@ -52,11 +52,17 @@ export const Option: OptionObj = function <A>(
 export const Some = some;
 export const None = none;
 
+export const isOption = (x: unknown): x is Option<unknown> =>
+  x instanceof OptionBase;
+
 export interface OptionObj {
   <A>(x: A | null | undefined): Option<A>;
   pure: <A>(x: A) => Option<A>;
   some: <A>(x: A) => Option<A>;
   none: Option<never>;
+
+  isOption: (x: unknown) => x is Option<unknown>;
+
   fromEither: <A>(ea: Either<unknown, A>) => Option<A>;
   fromNullable: <A>(x: A | null | undefined) => Option<A>;
 
@@ -82,6 +88,7 @@ export interface OptionObj {
 Option.pure = pure;
 Option.some = some;
 Option.none = none;
+Option.isOption = isOption;
 Option.fromEither = fromEither;
 Option.fromNullable = fromNullable;
 Option.tailRecM = tailRecM;

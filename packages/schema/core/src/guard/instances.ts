@@ -15,7 +15,6 @@ import {
   literal,
   nullGuard,
   number,
-  partial,
   product,
   record,
   string,
@@ -33,6 +32,7 @@ import {
   min_,
   nonEmpty,
   nullable,
+  optional,
   refine_,
 } from './operators';
 
@@ -50,6 +50,7 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       string,
       number,
       null: nullGuard,
+      optional,
       array,
       struct,
       defer,

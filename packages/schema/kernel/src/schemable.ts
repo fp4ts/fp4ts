@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { Option } from '@fp4ts/cats';
 import { Base, instance, Kind } from '@fp4ts/core';
 import { Literal } from './literal';
 
@@ -15,6 +16,7 @@ export interface Schemable<S> extends Base<S> {
   readonly null: Kind<S, [null]>;
 
   array<A>(sa: Kind<S, [A]>): Kind<S, [A[]]>;
+  optional<A>(sa: Kind<S, [A]>): Kind<S, [Option<A>]>;
 
   struct<A extends {}>(xs: { [k in keyof A]: Kind<S, [A[k]]> }): Kind<S, [A]>;
 
@@ -37,10 +39,7 @@ export interface Schemable<S> extends Base<S> {
   imap<A, B>(sa: Kind<S, [A]>, f: (a: A) => B, g: (b: B) => A): Kind<S, [B]>;
 }
 
-export type SchemableRequirements<S> = Omit<
-  Schemable<S>,
-  '_F' | 'intersection'
-> &
+export type SchemableRequirements<S> = Omit<Schemable<S>, '_F'> &
   Partial<Schemable<S>>;
 export const Schemable = Object.freeze({
   of: <S>(S: SchemableRequirements<S>): Schemable<S> =>

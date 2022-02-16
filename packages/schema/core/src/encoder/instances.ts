@@ -14,6 +14,7 @@ import {
   contramap_,
   intersection_,
   map_,
+  optional,
   nullable,
 } from './operators';
 import {
@@ -53,6 +54,7 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
       number: lift(id),
       boolean: lift(id),
       null: lift(id),
+      optional,
       array: array,
       literal: literal,
       nullable: nullable,

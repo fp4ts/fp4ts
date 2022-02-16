@@ -3,10 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ImapSchema, NullableSchema, Schema } from './algebra';
+import { Option } from '@fp4ts/cats';
+import { ImapSchema, NullableSchema, OptionalSchema, Schema } from './algebra';
 
 export const nullable = <A>(sa: Schema<A>): Schema<A | null> =>
   new NullableSchema(sa);
+
+export const optional = <A>(sa: Schema<A>): Schema<Option<A>> =>
+  new OptionalSchema(sa);
 
 // export const intersection: <B>(
 //   sb: Schema<B>,

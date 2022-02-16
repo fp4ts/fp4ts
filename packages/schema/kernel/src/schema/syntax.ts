@@ -3,14 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Option } from '@fp4ts/cats';
 import { Schema } from './algebra';
 import { array } from './constructors';
-import { imap_, nullable } from './operators';
+import { imap_, nullable, optional } from './operators';
 
 declare module './algebra' {
   interface Schema<A> {
     readonly array: Schema<A[]>;
     readonly nullable: Schema<A | null>;
+    readonly optional: Schema<Option<A>>;
 
     imap<B>(f: (a: A) => B, g: (b: B) => A): Schema<B>;
 
@@ -27,6 +29,11 @@ Object.defineProperty(Schema.prototype, 'array', {
 Object.defineProperty(Schema.prototype, 'nullable', {
   get<A>(this: Schema<A>): Schema<A | null> {
     return nullable(this);
+  },
+});
+Object.defineProperty(Schema.prototype, 'optional', {
+  get<A>(this: Schema<A>): Schema<Option<A>> {
+    return optional(this);
   },
 });
 

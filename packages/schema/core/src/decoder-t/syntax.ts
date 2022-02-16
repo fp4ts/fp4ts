@@ -34,6 +34,7 @@ import {
   minLength_,
   min_,
   nonEmpty,
+  optional,
   orElse_,
   refine_,
   transformWithR_,
@@ -44,6 +45,8 @@ import {
 
 declare module './algebra' {
   interface DecoderT<F, I, A> {
+    readonly optional: DecoderT<F, Option<I>, Option<A>>;
+
     orElse<II extends I, AA>(
       this: DecoderT<F, II, A>,
       F: Monad<F>,
@@ -183,6 +186,12 @@ declare module './algebra' {
     ): (n: number) => DecoderT<F, I, B[]>;
   }
 }
+
+Object.defineProperty(DecoderT.prototype, 'optional', {
+  get() {
+    return optional(this);
+  },
+});
 
 DecoderT.prototype.orElse = function (F) {
   return that => orElse_(F)(this, that);

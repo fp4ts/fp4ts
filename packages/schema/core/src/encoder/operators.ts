@@ -3,13 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen } from '@fp4ts/cats';
+import { AndThen, Option } from '@fp4ts/cats';
 import { Encoder } from './algebra';
 
 export const nullable = <O, A>(
   fa: Encoder<O, A>,
 ): Encoder<O | null, A | null> =>
   new Encoder(x => (x === null ? null : fa.encode(x)));
+
+export const optional = <O, A>(
+  fa: Encoder<O, A>,
+): Encoder<Option<O>, Option<A>> =>
+  new Encoder(fx => fx.map(x => fa.encode(x)));
 
 export const map: <O1, O2>(
   f: (o: O1) => O2,

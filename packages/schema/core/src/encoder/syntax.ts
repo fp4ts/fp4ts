@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Option } from '@fp4ts/cats';
 import { Encoder } from './algebra';
 import {
   andThen_,
@@ -11,11 +12,13 @@ import {
   intersection_,
   map_,
   nullable,
+  optional,
 } from './operators';
 
 declare module './algebra' {
   interface Encoder<O, A> {
     readonly nullable: Encoder<O | null, A | null>;
+    readonly optional: Encoder<Option<O>, Option<A>>;
 
     map<O2>(f: (o: O) => O2): Encoder<O2, A>;
     contramap<AA>(f: (aa: AA) => A): Encoder<O, AA>;
@@ -34,6 +37,11 @@ declare module './algebra' {
 Object.defineProperty(Encoder.prototype, 'nullable', {
   get<O, A>(this: Encoder<O, A>): Encoder<O | null, A | null> {
     return nullable(this);
+  },
+});
+Object.defineProperty(Encoder.prototype, 'optional', {
+  get<O, A>(this: Encoder<O, A>): Encoder<Option<O>, Option<A>> {
+    return optional(this);
   },
 });
 

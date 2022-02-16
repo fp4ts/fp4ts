@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { Array, Eq, EqF } from '@fp4ts/cats';
+import { Array, Eq, EqF, Option } from '@fp4ts/cats';
 import { Schemable } from './schemable';
 
 export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
@@ -32,6 +32,7 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
             return es[tl as any as keyof typeof es].equals(l as any, r as any);
           },
         }),
+    optional: Option.Eq,
     nullable: <A>(e: Eq<A>) =>
       Eq.of<A | null>({
         equals: (l, r) => {

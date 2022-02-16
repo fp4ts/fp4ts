@@ -46,7 +46,7 @@ describe('Const Laws', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Const.Traversable(Monoid.addition));
+  const traversableTests = TraversableSuite(Const.Traversable<number>());
   checkAll(
     'Traversable<Const>',
     traversableTests.traversable(

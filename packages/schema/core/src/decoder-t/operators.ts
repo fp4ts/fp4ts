@@ -36,6 +36,18 @@ export const nullable =
       i === null ? DecodeResultT.success(F)(null) : d.decode(i),
     );
 
+export const optional =
+  <F>(F: Applicative<F>) =>
+  <A>(d: DecoderT<F, unknown, A>): DecoderT<F, unknown, Option<A>> =>
+    new DecoderT(i =>
+      Option.isOption(i)
+        ? i.fold(
+            () => DecodeResultT.success(F)(None),
+            x => d.decode(x).map(F)(Some),
+          )
+        : DecodeResultT.failure(F)(new DecodeFailure('Expected Option')),
+    );
+
 export const leftMap: <F>(
   F: Functor<F>,
 ) => (

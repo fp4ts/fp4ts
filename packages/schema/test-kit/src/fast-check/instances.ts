@@ -6,6 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { ArbitraryF } from './arbitrary';
 
 export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
@@ -24,6 +25,7 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
       fc.oneof(
         Object.keys(xs).map(k => fc.record(xs[k])) as any,
       )) as Schemable<ArbitraryF>['sum'],
+    optional: A.fp4tsOption,
     product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryF>['product'],
     imap: (arb, f, g) => arb.map(f),
   }),
