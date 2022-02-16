@@ -9,7 +9,16 @@ import { Literal } from '../literal';
 import { Schemable } from '../schemable';
 
 export abstract class Schema<A> {
-  public abstract interpret<S>(S: Schemable<S>): Kind<S, [A]>;
+  private readonly cache = new Map<Schemable<any>, any>();
+  public interpret<S>(S: Schemable<S>): Kind<S, [A]> {
+    if (this.cache.has(S)) {
+      return this.cache.get(S)!;
+    }
+    const SA = this.interpret0(S);
+    this.cache.set(S, SA);
+    return SA;
+  }
+  protected abstract interpret0<S>(S: Schemable<S>): Kind<S, [A]>;
 }
 
 export class LiteralSchema<A extends [Literal, ...Literal[]]> extends Schema<
@@ -19,37 +28,41 @@ export class LiteralSchema<A extends [Literal, ...Literal[]]> extends Schema<
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A[number]]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A[number]]> {
     return S.literal(...this.xs);
   }
 }
 
-export const BooleanSchema = new (class BooleanSchema extends Schema<boolean> {
-  public interpret<S>(S: Schemable<S>): Kind<S, [boolean]> {
-    return S.boolean;
-  }
-})();
+export const BooleanSchema: Schema<boolean> =
+  new (class BooleanSchema extends Schema<boolean> {
+    protected interpret0<S>(S: Schemable<S>): Kind<S, [boolean]> {
+      return S.boolean;
+    }
+  })();
 export type BooleanSchema = typeof BooleanSchema;
 
-export const NumberSchema = new (class NumberSchema extends Schema<number> {
-  public interpret<S>(S: Schemable<S>): Kind<S, [number]> {
-    return S.number;
-  }
-})();
+export const NumberSchema: Schema<number> =
+  new (class NumberSchema extends Schema<number> {
+    protected interpret0<S>(S: Schemable<S>): Kind<S, [number]> {
+      return S.number;
+    }
+  })();
 export type NumberSchema = typeof NumberSchema;
 
-export const StringSchema = new (class StringSchema extends Schema<string> {
-  public interpret<S>(S: Schemable<S>): Kind<S, [string]> {
-    return S.string;
-  }
-})();
+export const StringSchema: Schema<string> =
+  new (class StringSchema extends Schema<string> {
+    protected interpret0<S>(S: Schemable<S>): Kind<S, [string]> {
+      return S.string;
+    }
+  })();
 export type StringSchema = typeof StringSchema;
 
-export const NullSchema = new (class NullSchema extends Schema<null> {
-  public interpret<S>(S: Schemable<S>): Kind<S, [null]> {
-    return S.null;
-  }
-})();
+export const NullSchema: Schema<null> =
+  new (class NullSchema extends Schema<null> {
+    protected interpret0<S>(S: Schemable<S>): Kind<S, [null]> {
+      return S.null;
+    }
+  })();
 export type NullSchema = typeof NullSchema;
 
 export class ArraySchema<A> extends Schema<A[]> {
@@ -57,7 +70,7 @@ export class ArraySchema<A> extends Schema<A[]> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A[]]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A[]]> {
     return S.array(this.sa.interpret(S));
   }
 }
@@ -67,7 +80,7 @@ export class StructSchema<A extends {}> extends Schema<A> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
     const keys = Object.keys(this.xs) as (keyof A)[];
     const sxs = keys.reduce(
       (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
@@ -82,7 +95,7 @@ export class StructSchema<A extends {}> extends Schema<A> {
 //     super();
 //   }
 
-//   public interpret<S>(S: Schemable<S>): Kind<S, [Partial<A>]> {
+// protected   public interpret0<S>(S: Schemable<S>): Kind<S, [Partial<A>]> {
 //     const keys = Object.keys(this.xs) as (keyof A)[];
 //     const sxs = keys.reduce(
 //       (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
@@ -97,7 +110,7 @@ export class RecordSchema<A> extends Schema<Record<string, A>> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [Record<string, A>]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [Record<string, A>]> {
     return S.record(this.sa.interpret(S));
   }
 }
@@ -107,7 +120,7 @@ export class NullableSchema<A> extends Schema<A | null> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A | null]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A | null]> {
     return S.nullable(this.sa.interpret(S));
   }
 }
@@ -120,7 +133,7 @@ export class NullableSchema<A> extends Schema<A | null> {
 //     super();
 //   }
 
-//   public interpret<S>(S: Schemable<S>): Kind<S, [A & B]> {
+// protected   public interpret0<S>(S: Schemable<S>): Kind<S, [A & B]> {
 //     return S.intersection_(this.sa.interpret(S), this.sb.interpret(S));
 //   }
 // }
@@ -130,7 +143,7 @@ export class ProductSchema<A extends unknown[]> extends Schema<A> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
     const sxs = this.xs.map(sa => sa.interpret(S));
     return S.product(...sxs);
   }
@@ -146,7 +159,7 @@ export class SumSchema<T extends string, A extends {}> extends Schema<
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A[keyof A]]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A[keyof A]]> {
     const keys = Object.keys(this.xs) as (keyof A)[];
     const sxs = keys.reduce(
       (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
@@ -161,7 +174,7 @@ export class DeferSchema<A> extends Schema<A> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [A]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
     return S.defer(() => this.thunk().interpret(S));
   }
 }
@@ -175,7 +188,7 @@ export class ImapSchema<A, B> extends Schema<B> {
     super();
   }
 
-  public interpret<S>(S: Schemable<S>): Kind<S, [B]> {
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [B]> {
     return S.imap(this.sa.interpret(S), this.f, this.g);
   }
 }

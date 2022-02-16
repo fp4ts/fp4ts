@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, Kind } from '@fp4ts/core';
+import { $, Kind, lazyVal } from '@fp4ts/core';
 import { ArrayF, ConstF, FunctionK, IdentityF, OptionF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schema } from '../schema';
@@ -12,10 +12,19 @@ import { SchemableK } from '../schemable-k';
 import { ProductK, StructK, SumK } from '../kinds';
 
 export abstract class SchemaK<F> {
+  private readonly cache = new Map<SchemableK<any>, any>();
   private readonly __void!: void;
 
   // public abstract toSchema<A>(sa: Schema<A>): Schema<Kind<F, [A]>>;
-  public abstract interpret<S>(S: SchemableK<S>): Kind<S, [F]>;
+  public interpret<S>(S: SchemableK<S>): Kind<S, [F]> {
+    if (this.cache.has(S)) {
+      return this.cache.get(S)!;
+    }
+    const SF = this.interpret0(S);
+    this.cache.set(S, SF);
+    return SF;
+  }
+  protected abstract interpret0<S>(S: SchemableK<S>): Kind<S, [F]>;
 }
 
 export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
@@ -29,7 +38,7 @@ export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
     return Schema.literal(...this.xs);
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [A[number]]>]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [A[number]]>]> {
     return S.literal(...this.xs);
   }
 }
@@ -40,7 +49,7 @@ export const BooleanSchemaK: SchemaK<$<ConstF, [boolean]>> =
       return Schema.boolean;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [boolean]>]> {
+    protected interpret0<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [boolean]>]> {
       return S.boolean;
     }
   })();
@@ -52,7 +61,7 @@ export const NumberSchemaK: SchemaK<$<ConstF, [number]>> =
       return Schema.number;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [number]>]> {
+    protected interpret0<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [number]>]> {
       return S.number;
     }
   })();
@@ -64,7 +73,7 @@ export const StringSchemaK: SchemaK<$<ConstF, [string]>> =
       return Schema.string;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [string]>]> {
+    protected interpret0<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [string]>]> {
       return S.string;
     }
   })();
@@ -76,7 +85,7 @@ export const ParSchemaK: SchemaK<IdentityF> =
       return sa;
     }
 
-    public interpret<S>(S: SchemableK<S>): Kind<S, [IdentityF]> {
+    protected interpret0<S>(S: SchemableK<S>): Kind<S, [IdentityF]> {
       return S.par;
     }
   })();
@@ -87,7 +96,7 @@ export class ArraySchemaK<F> extends SchemaK<[ArrayF, F]> {
     super();
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [[ArrayF, F]]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [[ArrayF, F]]> {
     return S.array(this.sf.interpret(S));
   }
 }
@@ -97,7 +106,7 @@ export class OptionalSchemaK<F> extends SchemaK<[OptionF, F]> {
     super();
   }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [[OptionF, F]]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [[OptionF, F]]> {
     return S.optional(this.sf.interpret(S));
   }
 }
@@ -118,7 +127,7 @@ export class StructSchemaK<F extends {}> extends SchemaK<StructK<F>> {
   //   );
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [StructK<F>]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [StructK<F>]> {
     const keys = Object.keys(this.fs) as (keyof F)[];
     const ss = keys.reduce(
       (acc, k) => ({ ...acc, [k]: this.fs[k].interpret(S) }),
@@ -140,7 +149,7 @@ export class ProductSchemaK<F extends unknown[]> extends SchemaK<ProductK<F>> {
   //   return Schema.product(...(ss as any));
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [ProductK<F>]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [ProductK<F>]> {
     const ss = this.fs.map(f => f.interpret(S)) as {
       [k in keyof F]: Kind<S, [F[k]]>;
     };
@@ -167,7 +176,7 @@ export class SumSchemaK<T extends string, F extends {}> extends SchemaK<
   //   return Schema.sum(this.tag)(ss as any) as any;
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [SumK<F[keyof F]>]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [SumK<F[keyof F]>]> {
     const keys = Object.keys(this.fs) as (keyof F)[];
     const ss = keys.reduce(
       (acc, k) => ({ ...acc, [k]: this.fs[k].interpret(S) }),
@@ -186,7 +195,7 @@ export class DeferSchemaK<F> extends SchemaK<F> {
   //   return Schema.defer(() => this.thunk().toSchema(sa));
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [F]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [F]> {
     return S.defer(() => this.thunk().interpret(S));
   }
 }
@@ -204,7 +213,7 @@ export class ImapSchemaK<F, G> extends SchemaK<G> {
   //   return this.sf.toSchema(sa).imap(this.f, this.g);
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [G]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [G]> {
     return S.imap_(this.sf.interpret(S), this.f, this.g);
   }
 }
@@ -221,7 +230,7 @@ export class ComposeSchemaK<F, G> extends SchemaK<[F, G]> {
   //   return this.sf.toSchema(this.sg.toSchema(sa));
   // }
 
-  public interpret<S>(S: SchemableK<S>): Kind<S, [[F, G]]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [[F, G]]> {
     return S.compose_(this.sf.interpret(S), this.sg.interpret(S));
   }
 }
