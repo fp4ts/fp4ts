@@ -3,12 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-/**
- * @module core
- */
-export * from './function';
-export * from './hkt';
+export * from './common';
+export * from './deriving';
 export * from './newtype';
-export * from './primitive-type';
-export * from './char';
-export * from './byte';
+export * from './type-ref';
