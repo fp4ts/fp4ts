@@ -28,7 +28,7 @@ import {
   struct,
   sum,
 } from './constructors';
-import { Encoder } from './algebra';
+import { Encoder, safeEncode, SafeEncoder } from './algebra';
 
 export const encoderFunctor: <A>() => Functor<λ<EncoderF, [α, Fix<A>]>> = () =>
   Functor.of({ map_ });
@@ -67,6 +67,6 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
         ea: Encoder<A, A>,
         f: (a: A) => B,
         g: (b: B) => A,
-      ): Encoder<B, B> => contramap_(map_(ea, f), g),
+      ): Encoder<B, B> => new SafeEncoder(a => safeEncode(ea, g(a)).map(f)),
     }),
 );

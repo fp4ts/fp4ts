@@ -3,9 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval } from '@fp4ts/cats';
 import { id } from '@fp4ts/core';
 import { Literal } from '@fp4ts/schema-kernel';
-import { Encoder } from './algebra';
+import { Encoder, safeEncode, SafeEncoder } from './algebra';
 import { OutputOf, TypeOf } from './types';
 
 export const lift = <O, A>(f: (a: A) => O): Encoder<O, A> => new Encoder(f);
@@ -15,7 +16,16 @@ export const literal = <A extends [Literal, ...Literal[]]>(
 ): Encoder<A[number], A[number]> => lift(id);
 
 export const array = <O, A>(fa: Encoder<O, A>): Encoder<O[], A[]> =>
-  new Encoder(xs => xs.map(fa.encode));
+  new SafeEncoder(xs => {
+    const loop = (acc: O[], idx: number): Eval<O[]> =>
+      idx >= xs.length
+        ? Eval.now(acc)
+        : Eval.defer(() => safeEncode(fa, xs[idx])).flatMap(x =>
+            loop([...acc, x], idx + 1),
+          );
+
+    return loop([], 0);
+  });
 
 export const struct = <P extends Record<string, Encoder<unknown, unknown>>>(
   xs: P,
@@ -23,12 +33,19 @@ export const struct = <P extends Record<string, Encoder<unknown, unknown>>>(
   { [k in keyof P]: OutputOf<P[k]> },
   { [k in keyof P]: TypeOf<P[k]> }
 > =>
-  new Encoder(a => {
+  new SafeEncoder(a => {
     const keys = Object.keys(xs) as (keyof P)[];
-    return keys.reduce(
-      (acc, k) => ({ ...acc, [k]: xs[k].encode(a[k]) }),
-      {} as { [k in keyof P]: OutputOf<P[k]> },
-    );
+    const loop = (
+      acc: Partial<{ [k in keyof P]: OutputOf<P[k]> }>,
+      idx: number,
+    ): Eval<{ [k in keyof P]: OutputOf<P[k]> }> =>
+      idx >= keys.length
+        ? Eval.now(acc as { [k in keyof P]: OutputOf<P[k]> })
+        : Eval.defer(() => safeEncode(xs[keys[idx]], a[keys[idx]])).flatMap(x =>
+            loop({ ...acc, [keys[idx]]: x }, idx + 1),
+          );
+
+    return loop({}, 0);
   });
 
 export const partial = <P extends Record<string, Encoder<unknown, unknown>>>(
@@ -51,15 +68,18 @@ export const partial = <P extends Record<string, Encoder<unknown, unknown>>>(
 export const record = <O, A>(
   fa: Encoder<O, A>,
 ): Encoder<Record<string, O>, Record<string, A>> =>
-  new Encoder(a => {
+  new SafeEncoder(a => {
     const keys = Object.keys(a);
-    return keys.reduce(
-      (acc, k) => ({
-        ...acc,
-        [k]: fa.encode(a[k]),
-      }),
-      {} as Record<string, O>,
-    );
+    const loop = (
+      acc: Record<string, O>,
+      idx: number,
+    ): Eval<Record<string, O>> =>
+      idx >= keys.length
+        ? Eval.now(acc)
+        : Eval.defer(() => safeEncode(fa, a[keys[idx]])).flatMap(x =>
+            loop({ ...acc, [(a as any)[keys[idx]]]: x }, idx + 1),
+          );
+    return loop({}, 0);
   });
 
 export const product = <P extends Encoder<unknown, unknown>[]>(
@@ -68,19 +88,25 @@ export const product = <P extends Encoder<unknown, unknown>[]>(
   { [k in keyof P]: OutputOf<P[k]> },
   { [k in keyof P]: TypeOf<P[k]> }
 > =>
-  new Encoder(
-    as =>
-      xs.map((e, idx) => e.encode(as[idx])) as {
-        [k in keyof P]: OutputOf<P[k]>;
-      },
-  );
+  new SafeEncoder(as => {
+    const loop = (
+      acc: any[],
+      idx: number,
+    ): Eval<{ [k in keyof P]: OutputOf<P[k]> }> =>
+      idx >= xs.length
+        ? Eval.now(acc as { [k in keyof P]: OutputOf<P[k]> })
+        : Eval.defer(() => safeEncode(xs[idx], as[idx])).flatMap(x =>
+            loop([...acc, x], idx + 1),
+          );
+    return loop([], 0);
+  });
 
 export const sum =
   <T extends string>(tag: T) =>
   <P extends Record<string, Encoder<any, any>>>(
     xs: P,
   ): Encoder<OutputOf<P[keyof P]>, TypeOf<P[keyof P]>> =>
-    new Encoder(a => xs[a[tag]].encode(a));
+    new SafeEncoder(a => safeEncode(xs[a[tag]], a));
 
 export const defer = <O, A>(thunk: () => Encoder<O, A>): Encoder<O, A> =>
-  new Encoder(a => thunk().encode(a));
+  new SafeEncoder(a => safeEncode(thunk(), a));
