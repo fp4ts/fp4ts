@@ -12,6 +12,7 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
   Schemable.of({
     boolean: Eq.primitive,
     null: Eq.fromUniversalEquals(),
+    number: Eq.primitive,
     string: Eq.primitive,
     defer: <A>(thunk: () => Eq<A>) =>
       SafeEq.of<A>({ safeEquals: (x, y) => safeEquals(thunk(), x, y) }),
@@ -66,7 +67,6 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
         },
       }),
 
-    number: Eq.primitive,
     record: <A>(E: Eq<A>): Eq<Record<string, A>> =>
       SafeEq.of({
         safeEquals: (x, y) => {

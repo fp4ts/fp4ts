@@ -16,7 +16,7 @@ export abstract class Eval<A> {
 }
 
 export class Now<A> extends Eval<A> {
-  public readonly tag = 'now';
+  public readonly tag = 0;
   public constructor(public readonly value: A) {
     super();
   }
@@ -25,7 +25,7 @@ export class Now<A> extends Eval<A> {
 }
 
 export class Later<A> extends Eval<A> {
-  public readonly tag = 'later';
+  public readonly tag = 1;
   public constructor(private thunk: () => A) {
     super();
   }
@@ -44,7 +44,7 @@ export class Later<A> extends Eval<A> {
 }
 
 export class Always<A> extends Eval<A> {
-  public readonly tag = 'always';
+  public readonly tag = 2;
   public constructor(private readonly thunk: () => A) {
     super();
   }
@@ -57,7 +57,7 @@ export class Always<A> extends Eval<A> {
 }
 
 export class Defer<A> extends Eval<A> {
-  public readonly tag = 'defer';
+  public readonly tag = 3;
   public constructor(public readonly thunk: () => Eval<A>) {
     super();
   }
@@ -70,7 +70,7 @@ export class Defer<A> extends Eval<A> {
 }
 
 export class FlatMap<E, A> extends Eval<A> {
-  public readonly tag = 'flatMap';
+  public readonly tag = 4;
   public constructor(
     public readonly self: Eval<E>,
     public readonly run: (e: E) => Eval<A>,
@@ -85,7 +85,7 @@ export class FlatMap<E, A> extends Eval<A> {
 }
 
 export class Memoize<A> extends Eval<A> {
-  public readonly tag = 'memoize';
+  public readonly tag = 5;
   public result: Option<A> = None;
   public constructor(public readonly self: Eval<A>) {
     super();

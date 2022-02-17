@@ -23,9 +23,9 @@ export const evaluate = <A>(e: Eval<A>): A => {
     if (!cur) throw new Error();
 
     switch (cur.tag) {
-      case 'now':
-      case 'later':
-      case 'always': {
+      case 0: // 'now'
+      case 1: // 'later'
+      case 2: /* 'always' */ {
         const a = cur.value;
         const next = stack.pop()!;
         if (!next) return a as A;
@@ -33,16 +33,16 @@ export const evaluate = <A>(e: Eval<A>): A => {
         continue;
       }
 
-      case 'defer':
+      case 3: // 'defer'
         _cur = cur.thunk();
         continue;
 
-      case 'flatMap':
+      case 4: // 'flatMap'
         stack.push(cur.run);
         _cur = cur.self;
         continue;
 
-      case 'memoize': {
+      case 5: /* 'memoize' */ {
         const m = cur;
         m.result.fold(
           () => {
@@ -55,8 +55,6 @@ export const evaluate = <A>(e: Eval<A>): A => {
         );
         continue;
       }
-      default:
-        throw new Error();
     }
   }
 };
