@@ -5,9 +5,27 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Kind, Lazy, lazyVal } from '@fp4ts/core';
-import { Array, Const, Eq, EqK, EqKF, Identity, Option } from '@fp4ts/cats';
+import {
+  Array,
+  Const,
+  Eq,
+  EqK,
+  EqKF,
+  Eval,
+  FunctionK,
+  Identity,
+  Option,
+} from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
 import { ProductK, StructK, SumK } from './kinds';
+import {
+  deferSafeEq,
+  imapSafeEq,
+  productSafeEq,
+  SafeEq,
+  structSafeEq,
+  sumSafeEq,
+} from './eq';
 
 export const eqKSchemableK: Lazy<SchemableK<EqKF>> = lazyVal(() =>
   SchemableK.of({
@@ -15,63 +33,138 @@ export const eqKSchemableK: Lazy<SchemableK<EqKF>> = lazyVal(() =>
     number: Const.EqK(Eq.fromUniversalEquals<number>()),
     string: Const.EqK(Eq.fromUniversalEquals<string>()),
     null: Const.EqK(Eq.fromUniversalEquals<null>()),
-    literal: () => Const.EqK(Eq.fromUniversalEquals<any>()),
+    literal: lazyVal(() => Const.EqK(Eq.fromUniversalEquals<any>())),
     array: f => EqK.compose(Array.EqK(), f),
 
     compose_: EqK.compose,
-    defer: thunk => {
-      const t = lazyVal(thunk);
-      return EqK.of({ liftEq: E => t().liftEq(E) });
-    },
-    imap_: (fa, f, g) => EqK.by(fa, g),
+    imap_: (fa, f, g) => new ImapSafeEqK(fa, f, g),
 
     optional: f => EqK.compose(Option.EqK, f),
 
     par: Identity.EqK,
 
-    product: product as SchemableK<EqKF>['product'],
-    struct,
-    sum: sum as SchemableK<EqKF>['sum'],
+    product: (<F extends unknown[]>(...fs: { [k in keyof F]: EqK<F[k]> }) =>
+      new ProductSafeEqK<F>(fs)) as SchemableK<EqKF>['product'],
+    struct: fs => new StructSafeEqK(fs),
+    sum: (t => fs => new SumSafeEqK(t, fs)) as SchemableK<EqKF>['sum'],
+
+    defer: thunk => new DeferSafeEqK(thunk),
   }),
 );
 
-const product = <F extends unknown[]>(
-  ...fs: { [k in keyof F]: EqK<F[k]> }
-): EqK<ProductK<F>> =>
-  EqK.of({
-    liftEq: <A>(E: Eq<A>): Eq<Kind<ProductK<F>, [A]>> =>
-      Eq.of({
-        equals: (xs, ys) =>
-          xs.every((x, i) => fs[i].liftEq(E).equals(x, ys[i])),
-      }),
-  });
+const SafeEqKTag = Symbol('@fp4ts/schema/kernel/safe-eq-k');
+function isSafeEqK<F>(F: EqK<F>): F is SafeEqK<F> {
+  return SafeEqKTag in F;
+}
 
-export const struct = <F extends {}>(fs: { [k in keyof F]: EqK<F[k]> }): EqK<
-  StructK<F>
-> =>
-  EqK.of({
-    liftEq: <A>(E: Eq<A>): Eq<Kind<StructK<F>, [A]>> => {
-      const keys = Object.keys(fs) as (keyof typeof fs)[];
-      return Eq.of({
-        equals: (xs, ys) =>
-          keys.every(k => fs[k].liftEq(E).equals(xs[k], ys[k])),
+function liftSafeEq<F, A>(F: EqK<F>, E: Eq<A>): SafeEq<Kind<F, [A]>> {
+  return isSafeEqK(F)
+    ? F.liftSafeEq(E)
+    : SafeEq.of({
+        safeEquals: (x, y) =>
+          Eval.delay(() => F.liftEq(E)).map(E => E.equals(x, y)),
       });
-    },
-  });
+}
 
-export const sum =
-  <T extends string>(tag: T) =>
-  <F extends {}>(fs: {
-    [k in keyof F]: EqK<F[k]>;
-  }): EqK<SumK<F>> =>
-    EqK.of<SumK<F>>({
-      liftEq: <A>(E: Eq<A>): Eq<Kind<SumK<F>, [A]>> =>
-        Eq.of({
-          equals: (xs, ys) => {
-            const lt = (xs as any)[tag] as keyof typeof fs;
-            const rt = (ys as any)[tag] as keyof typeof fs;
-            if (lt !== rt) return false;
-            return fs[lt].liftEq(E).equals(xs, ys);
-          },
-        }),
-    });
+abstract class SafeEqK<F> implements EqK<F> {
+  public readonly _F!: any;
+  public readonly [SafeEqKTag] = true;
+
+  private readonly cache = new Map<Eq<any>, SafeEq<Kind<F, [any]>>>();
+  private readonly __void!: void;
+
+  public liftEq<A>(E: Eq<A>): Eq<Kind<F, [A]>> {
+    return this.liftSafeEq(E);
+  }
+
+  public lift<A>(p: (l: A, r: A) => boolean): Eq<Kind<F, [A]>> {
+    return this.liftSafeEq(
+      SafeEq.of({ safeEquals: (x, y) => Eval.delay(() => p(x, y)) }),
+    );
+  }
+
+  public liftSafeEq<A>(E: Eq<A>): SafeEq<Kind<F, [A]>> {
+    if (this.cache.has(E)) {
+      return this.cache.get(E)!;
+    }
+    const EA = this.listSafeEq0(E);
+    this.cache.set(E, EA);
+    return EA;
+  }
+
+  protected abstract listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<F, [A]>>;
+}
+
+class ProductSafeEqK<F extends unknown[]> extends SafeEqK<ProductK<F>> {
+  public constructor(private readonly fs: { [k in keyof F]: EqK<F[k]> }) {
+    super();
+  }
+
+  protected listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<StructK<F>, [A]>> {
+    const fs = this.fs.map(f => liftSafeEq(f, E)) as {
+      [k in keyof F]: SafeEq<Kind<F[k], [A]>>;
+    };
+    return productSafeEq<Kind<ProductK<F>, [A]>>(
+      ...(fs as { [k in keyof F]: SafeEq<Kind<F[k], [A]>> }),
+    );
+  }
+}
+
+class StructSafeEqK<F extends {}> extends SafeEqK<StructK<F>> {
+  public constructor(private readonly fs: { [k in keyof F]: EqK<F[k]> }) {
+    super();
+  }
+
+  protected listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<StructK<F>, [A]>> {
+    const fs: Partial<{ [k in keyof F]: SafeEq<Kind<F[k], [A]>> }> = {};
+    for (const k in this.fs) {
+      fs[k] = liftSafeEq(this.fs[k], E) as any;
+    }
+    return structSafeEq<Kind<StructK<F>, [A]>>(
+      fs as { [k in keyof F]: SafeEq<Kind<F[k], [A]>> },
+    );
+  }
+}
+
+class SumSafeEqK<T extends string, F extends {}> extends SafeEqK<SumK<F>> {
+  public constructor(
+    private readonly tag: T,
+    private readonly fs: { [k in keyof F]: EqK<F[k]> },
+  ) {
+    super();
+  }
+
+  protected listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<SumK<F>, [A]>> {
+    const fs: Partial<{ [k in keyof F]: SafeEq<Kind<F[k], [A]>> }> = {};
+    for (const k in this.fs) {
+      fs[k] = liftSafeEq(this.fs[k], E) as any;
+    }
+    return sumSafeEq(this.tag)<Kind<StructK<F>, [A]>>(
+      fs as { [k in keyof F]: SafeEq<Kind<F[k], [A]>> },
+    );
+  }
+}
+
+class ImapSafeEqK<F, G> extends SafeEqK<G> {
+  public constructor(
+    private readonly sf: EqK<F>,
+    private readonly f: FunctionK<F, G>,
+    private readonly g: FunctionK<G, F>,
+  ) {
+    super();
+  }
+
+  protected listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<G, [A]>> {
+    return imapSafeEq(liftSafeEq(this.sf, E), this.f, this.g);
+  }
+}
+
+class DeferSafeEqK<F> extends SafeEqK<F> {
+  public constructor(private readonly thunk: () => EqK<F>) {
+    super();
+  }
+
+  protected listSafeEq0<A>(E: Eq<A>): SafeEq<Kind<F, [A]>> {
+    return deferSafeEq(() => liftSafeEq(this.thunk(), E));
+  }
+}

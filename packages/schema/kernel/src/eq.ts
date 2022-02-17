@@ -14,45 +14,14 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
     null: Eq.fromUniversalEquals(),
     number: Eq.primitive,
     string: Eq.primitive,
-    defer: <A>(thunk: () => Eq<A>) =>
-      SafeEq.of<A>({ safeEquals: (x, y) => safeEquals(thunk(), x, y) }),
     literal: () => Eq.fromUniversalEquals(),
     array: <A>(E: Eq<A>) =>
       SafeEq.of<A[]>({
         safeEquals: (x, y) => Eval.defer(() => safeEquals(Array.Eq(E), x, y)),
       }),
     product: productSafeEq as Schemable<EqF>['product'],
-    struct: <A extends {}>(fs: { [k in keyof A]: Eq<A[k]> }): Eq<A> => {
-      const keys = Object.keys(fs) as (keyof A)[];
-      return SafeEq.of({
-        safeEquals: (x, y) => {
-          const loop = (idx: number): Eval<boolean> =>
-            idx >= keys.length
-              ? Eval.now(true)
-              : Eval.defer(() =>
-                  safeEquals(fs[keys[idx]], x[keys[idx]], y[keys[idx]]).flatMap(
-                    eq => (eq ? loop(idx + 1) : Eval.now(false)),
-                  ),
-                );
-
-          return loop(0);
-        },
-      });
-    },
-    sum:
-      <T extends string>(tag: T) =>
-      <A extends {}>(es: { [k in keyof A]: Eq<A[k] & Record<T, k>> }): Eq<
-        A[keyof A]
-      > =>
-        SafeEq.of({
-          safeEquals: (l, r) => {
-            const tl = l[tag as any as keyof typeof l];
-            const rt = r[tag as any as keyof typeof r];
-            if (tl !== rt) return Eval.now(false);
-            const E = es[tl as any as keyof A];
-            return safeEquals(E, l as any, r as any);
-          },
-        }),
+    struct: structSafeEq,
+    sum: sumSafeEq,
     optional: <A>(E: Eq<A>) =>
       SafeEq.of<Option<A>>({
         safeEquals: (x, y) => Eval.defer(() => safeEquals(Option.Eq(E), x, y)),
@@ -90,10 +59,9 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
         },
       }),
 
-    imap: <A, B>(E: Eq<A>, f: (a: A) => B, g: (b: B) => A): Eq<B> =>
-      SafeEq.of<B>({
-        safeEquals: (x, y) => Eval.defer(() => safeEquals(E, g(x), g(y))),
-      }),
+    imap: imapSafeEq,
+
+    defer: deferSafeEq,
   }),
 );
 
@@ -149,6 +117,18 @@ export const sumSafeEq =
         return safeEquals(E, l as any, r as any);
       },
     });
+
+export const imapSafeEq = <A, B>(
+  E: Eq<A>,
+  f: (a: A) => B,
+  g: (b: B) => A,
+): SafeEq<B> =>
+  SafeEq.of<B>({
+    safeEquals: (x, y) => Eval.defer(() => safeEquals(E, g(x), g(y))),
+  });
+
+export const deferSafeEq = <A>(thunk: () => Eq<A>) =>
+  SafeEq.of<A>({ safeEquals: (x, y) => safeEquals(thunk(), x, y) });
 
 const SafeEqTag = Symbol('@fp4ts/schema/kernel/safe-eq');
 function isSafeEquals<A>(E: Eq<A>): E is SafeEq<A> {
