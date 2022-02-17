@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { lazyVal } from '@fp4ts/core';
 import { Literal } from '../literal';
 import {
   ArraySchema,
@@ -58,4 +59,4 @@ export const sum =
     new SumSchema(tag, xs);
 
 export const defer = <A>(thunk: () => Schema<A>): Schema<A> =>
-  new DeferSchema(thunk);
+  new DeferSchema(lazyVal(thunk));

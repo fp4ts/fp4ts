@@ -5,7 +5,14 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $, Kind } from '@fp4ts/core';
-import { ArrayF, ConstF, FunctionK, IdentityF, OptionF } from '@fp4ts/cats';
+import {
+  ArrayF,
+  ConstF,
+  FunctionK,
+  IdentityF,
+  Option,
+  OptionF,
+} from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schema } from '../schema';
 import { SchemableK } from '../schemable-k';
@@ -13,9 +20,20 @@ import { ProductK, StructK, SumK } from '../kinds';
 
 export abstract class SchemaK<F> {
   private readonly cache = new Map<SchemableK<any>, any>();
+  private readonly schemaCache = new Map<Schema<any>, Schema<any>>();
   private readonly __void!: void;
 
-  // public abstract toSchema<A>(sa: Schema<A>): Schema<Kind<F, [A]>>;
+  public toSchema<A>(sa: Schema<A>): Schema<Kind<F, [A]>> {
+    if (this.schemaCache.has(sa)) {
+      return this.schemaCache.get(sa)!;
+    }
+    const sfa = this.toSchema0(sa);
+    this.schemaCache.set(sa, sfa);
+    return sfa;
+  }
+
+  protected abstract toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [A]>>;
+
   public interpret<S>(S: SchemableK<S>): Kind<S, [F]> {
     if (this.cache.has(S)) {
       return this.cache.get(S)!;
@@ -34,7 +52,7 @@ export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
     super();
   }
 
-  public toSchema<B>(sa: Schema<B>): Schema<A[number]> {
+  public toSchema0<B>(sa: Schema<B>): Schema<A[number]> {
     return Schema.literal(...this.xs);
   }
 
@@ -45,7 +63,7 @@ export class LiteralSchemaK<A extends [Literal, ...Literal[]]> extends SchemaK<
 
 export const BooleanSchemaK: SchemaK<$<ConstF, [boolean]>> =
   new (class BooleanSchemaK extends SchemaK<$<ConstF, [boolean]>> {
-    public toSchema<A>(sa: Schema<A>): Schema<boolean> {
+    protected toSchema0<A>(sa: Schema<A>): Schema<boolean> {
       return Schema.boolean;
     }
 
@@ -57,7 +75,7 @@ export type BooleanSchemaK = typeof BooleanSchemaK;
 
 export const NumberSchemaK: SchemaK<$<ConstF, [number]>> =
   new (class NumberSchemaK extends SchemaK<$<ConstF, [number]>> {
-    public toSchema<A>(sa: Schema<A>): Schema<number> {
+    protected toSchema0<A>(sa: Schema<A>): Schema<number> {
       return Schema.number;
     }
 
@@ -69,7 +87,7 @@ export type NumberSchemaK = typeof NumberSchemaK;
 
 export const StringSchemaK: SchemaK<$<ConstF, [string]>> =
   new (class StringSchemaK extends SchemaK<$<ConstF, [string]>> {
-    public toSchema<A>(sa: Schema<A>): Schema<string> {
+    protected toSchema0<A>(sa: Schema<A>): Schema<string> {
       return Schema.string;
     }
 
@@ -81,7 +99,7 @@ export type StringSchemaK = typeof StringSchemaK;
 
 export const ParSchemaK: SchemaK<IdentityF> =
   new (class ParSchemaK extends SchemaK<IdentityF> {
-    public toSchema<A>(sa: Schema<A>): Schema<A> {
+    protected toSchema0<A>(sa: Schema<A>): Schema<A> {
       return sa;
     }
 
@@ -96,6 +114,10 @@ export class ArraySchemaK<F> extends SchemaK<[ArrayF, F]> {
     super();
   }
 
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [A]>[]> {
+    return this.sf.toSchema(sa).array;
+  }
+
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [[ArrayF, F]]> {
     return S.array(this.sf.interpret(S));
   }
@@ -104,6 +126,10 @@ export class ArraySchemaK<F> extends SchemaK<[ArrayF, F]> {
 export class OptionalSchemaK<F> extends SchemaK<[OptionF, F]> {
   public constructor(private readonly sf: SchemaK<F>) {
     super();
+  }
+
+  protected toSchema0<A>(sa: Schema<A>): Schema<Option<Kind<F, [A]>>> {
+    return this.sf.toSchema(sa).optional;
   }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [[OptionF, F]]> {
@@ -116,16 +142,16 @@ export class StructSchemaK<F extends {}> extends SchemaK<StructK<F>> {
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<StructK<F>, [A]>> {
-  //   const keys = Object.keys(this.fs) as (keyof F)[];
-  //   const ss = keys.reduce(
-  //     (acc, k) => ({ ...acc, [k]: this.fs[k].toSchema(sa) }),
-  //     {} as Partial<{ [k in keyof F]: Schema<Kind<F[k], [A]>> }>,
-  //   );
-  //   return Schema.struct<Kind<StructK<F>, [A]>>(
-  //     ss as { [k in keyof F]: Schema<Kind<F[k], [A]>> },
-  //   );
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<StructK<F>, [A]>> {
+    const keys = Object.keys(this.fs) as (keyof F)[];
+    const ss = keys.reduce(
+      (acc, k) => ({ ...acc, [k]: this.fs[k].toSchema(sa) }),
+      {} as Partial<{ [k in keyof F]: Schema<Kind<F[k], [A]>> }>,
+    );
+    return Schema.struct<Kind<StructK<F>, [A]>>(
+      ss as { [k in keyof F]: Schema<Kind<F[k], [A]>> },
+    );
+  }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [StructK<F>]> {
     const keys = Object.keys(this.fs) as (keyof F)[];
@@ -142,12 +168,12 @@ export class ProductSchemaK<F extends unknown[]> extends SchemaK<ProductK<F>> {
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<ProductK<F>, [A]>> {
-  //   const ss = this.fs.map(f => f.toSchema(sa)) as {
-  //     [k in keyof F]: Schema<Kind<F[k], [A]>>;
-  //   };
-  //   return Schema.product(...(ss as any));
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<ProductK<F>, [A]>> {
+    const ss = this.fs.map(f => f.toSchema(sa)) as {
+      [k in keyof F]: Schema<Kind<F[k], [A]>>;
+    };
+    return Schema.product(...(ss as any));
+  }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [ProductK<F>]> {
     const ss = this.fs.map(f => f.interpret(S)) as {
@@ -167,16 +193,16 @@ export class SumSchemaK<T extends string, F extends {}> extends SchemaK<
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<SumK<F[keyof F]>, [A]>> {
-  //   const keys = Object.keys(this.fs) as (keyof F)[];
-  //   const ss = keys.reduce(
-  //     (acc, k) => ({ ...acc, [k]: this.fs[k].toSchema(sa) }),
-  //     {} as Partial<{ [k in keyof F]: Schema<Kind<F[k], [A]>> }>,
-  //   );
-  //   return Schema.sum(this.tag)(ss as any) as any;
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<SumK<F>, [A]>> {
+    const keys = Object.keys(this.fs) as (keyof F)[];
+    const ss = keys.reduce(
+      (acc, k) => ({ ...acc, [k]: this.fs[k].toSchema(sa) }),
+      {} as Partial<{ [k in keyof F]: Schema<Kind<F[k], [A]>> }>,
+    );
+    return Schema.sum(this.tag)(ss as any) as any;
+  }
 
-  protected interpret0<S>(S: SchemableK<S>): Kind<S, [SumK<F[keyof F]>]> {
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [SumK<F>]> {
     const keys = Object.keys(this.fs) as (keyof F)[];
     const ss = keys.reduce(
       (acc, k) => ({ ...acc, [k]: this.fs[k].interpret(S) }),
@@ -191,9 +217,9 @@ export class DeferSchemaK<F> extends SchemaK<F> {
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<F, [A]>> {
-  //   return Schema.defer(() => this.thunk().toSchema(sa));
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [A]>> {
+    return Schema.defer(() => this.thunk().toSchema(sa));
+  }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [F]> {
     return S.defer(() => this.thunk().interpret(S));
@@ -209,9 +235,9 @@ export class ImapSchemaK<F, G> extends SchemaK<G> {
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<G, [A]>> {
-  //   return this.sf.toSchema(sa).imap(this.f, this.g);
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<G, [A]>> {
+    return this.sf.toSchema(sa).imap(this.f, this.g);
+  }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [G]> {
     return S.imap_(this.sf.interpret(S), this.f, this.g);
@@ -226,9 +252,9 @@ export class ComposeSchemaK<F, G> extends SchemaK<[F, G]> {
     super();
   }
 
-  // public toSchema<A>(sa: Schema<A>): Schema<Kind<F, [Kind<G, [A]>]>> {
-  //   return this.sf.toSchema(this.sg.toSchema(sa));
-  // }
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [Kind<G, [A]>]>> {
+    return this.sf.toSchema(this.sg.toSchema(sa));
+  }
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [[F, G]]> {
     return S.compose_(this.sf.interpret(S), this.sg.interpret(S));

@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Option } from '@fp4ts/cats';
+import { EqF, Option } from '@fp4ts/cats';
 import { Base, instance, Kind } from '@fp4ts/core';
+import { eqSchemable } from './eq';
 import { Literal } from './literal';
 
 export interface Schemable<S> extends Base<S> {
@@ -46,4 +47,8 @@ export const Schemable = Object.freeze({
     instance<Schemable<S>>({
       ...S,
     }),
+
+  get Eq(): Schemable<EqF> {
+    return eqSchemable();
+  },
 });
