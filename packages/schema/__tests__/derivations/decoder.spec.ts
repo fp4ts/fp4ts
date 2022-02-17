@@ -4,13 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eq, Eval, List } from '@fp4ts/cats';
+import { Eq, List } from '@fp4ts/cats';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Schema, SchemableK } from '@fp4ts/schema-kernel';
+import { Decoder } from '@fp4ts/schema-core';
 import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
-import { DecoderT } from '@fp4ts/schema-core';
 
-describe('DecoderT derivation', () => {
+describe('Decoder derivation', () => {
   const SnocEqK = Snoc.schemaK.interpret(SchemableK.EqK);
   const IListEqK = IList.schemaK.interpret(SchemableK.EqK);
   const TreeEqK = Tree.schemaK.interpret(SchemableK.EqK);
@@ -23,10 +23,10 @@ describe('DecoderT derivation', () => {
     const sxs = Snoc.fromList(List.range(0, 50_000));
     const id = IList.schemaK
       .toSchema(Schema.number)
-      .interpret(DecoderT.Schemable(Eval.Monad));
+      .interpret(Decoder.Schemable);
     const sd = Snoc.schemaK
       .toSchema(Schema.number)
-      .interpret(DecoderT.Schemable(Eval.Monad));
+      .interpret(Decoder.Schemable);
 
     expect(id.decode(ixs).value.value.isRight).toBe(true);
     expect(sd.decode(sxs).value.value.isRight).toBe(true);
@@ -38,7 +38,7 @@ describe('DecoderT derivation', () => {
     E: Eq<A>,
     arbA: Arbitrary<A>,
   ) {
-    const D = S.interpret(DecoderT.Schemable(Eval.Monad));
+    const D = S.interpret(Decoder.Schemable);
     test(
       `Decoder<Eval, *, ${type}>`,
       forAll(arbA, a => new IsEq(D.decode(a).value.value.get, a))(E),

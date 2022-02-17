@@ -9,6 +9,8 @@ import {
   Category,
   Either,
   EitherT,
+  Eval,
+  EvalF,
   Functor,
   Monad,
   MonoidK,
@@ -64,8 +66,13 @@ import {
 } from './instances';
 
 export type DecoderT<F, I, A> = DecoderTBase<F, I, A>;
+export type Decoder<I, A> = DecoderTBase<EvalF, I, A>;
 
 export const DecoderT: DecoderTObj = function (f) {
+  return new DecoderTBase(f);
+};
+
+export const Decoder: DecoderObj = function (f) {
   return new DecoderTBase(f);
 };
 
@@ -196,8 +203,108 @@ DecoderT.Refining = decoderTRefining;
 DecoderT.Schemable = decoderTSchemable;
 DecoderT.Constraining = decoderTConstraining;
 
+interface DecoderObj {
+  <I, A>(f: (i: I) => EitherT<EvalF, DecodeFailure, A>): Decoder<I, A>;
+  succeed<A, I = unknown>(x: A): Decoder<I, A>;
+  fail<A = never, I = unknown>(e: DecodeFailure): Decoder<I, A>;
+  failWith<A = never, I = unknown>(cause: string): Decoder<I, A>;
+
+  identity<A>(): DecoderT<EvalF, A, A>;
+
+  empty<A = never>(): Decoder<unknown, A>;
+
+  tailRecM<S>(
+    s0: S,
+  ): <I, A>(f: (s: S) => Decoder<I, Either<S, A>>) => Decoder<I, A>;
+  tailRecM_<S, I, A>(
+    s0: S,
+    f: (s: S) => Decoder<I, Either<S, A>>,
+  ): Decoder<I, A>;
+
+  // -- Schema specific
+  fromRefinement<I, A extends I>(
+    r: (i: I) => i is A,
+    expected?: string,
+  ): Decoder<I, A>;
+  fromGuard<I, A extends I>(g: Guard<I, A>, expected?: string): Decoder<I, A>;
+  literal<A extends [Literal, ...Literal[]]>(
+    ...xs: A
+  ): Decoder<unknown, A[number]>;
+  boolean: Decoder<unknown, boolean>;
+  number: Decoder<unknown, number>;
+  string: Decoder<unknown, string>;
+  nullDecoderT: Decoder<unknown, null>;
+  unknownArray: Decoder<unknown, unknown[]>;
+  unknownRecord: Decoder<unknown, Record<string, unknown>>;
+  array<A>(da: Decoder<unknown, A>): Decoder<unknown, A[]>;
+  record<A>(ds: Decoder<unknown, A>): Decoder<unknown, Record<string, A>>;
+  struct<A extends {}>(ds: {
+    [k in keyof A]: Decoder<unknown, A[k]>;
+  }): Decoder<unknown, A>;
+  partial<A extends {}>(ds: {
+    [k in keyof A]: Decoder<unknown, A[k]>;
+  }): Decoder<unknown, Partial<A>>;
+  product<A extends unknown[]>(
+    ...ds: { [k in keyof A]: Decoder<unknown, A[k]> }
+  ): Decoder<unknown, A>;
+  sum<T extends string>(
+    tag: T,
+  ): <A extends {}>(ds: {
+    [k in keyof A]: Decoder<unknown, A[k] & Record<T, k>>;
+  }) => Decoder<unknown, A[keyof A]>;
+  defer<A>(thunk: () => Decoder<unknown, A>): Decoder<unknown, A>;
+
+  // -- Instances
+
+  MonoidK<I>(): MonoidK<$<DecoderF, [I]>>;
+  Functor<I>(): Functor<$<DecoderF, [I]>>;
+  Profunctor: Profunctor<DecoderF>;
+  Category: Category<DecoderF>;
+  Monad<I>(): Monad<$<DecoderF, [I]>>;
+  Refining: Refining<$<DecoderF, [unknown]>>;
+  Schemable: Schemable<$<DecoderF, [unknown]>>;
+  Constraining: Constraining<$<DecoderF, [unknown]>>;
+}
+
+Decoder.succeed = succeed(Eval.Monad);
+Decoder.fail = fail(Eval.Monad);
+Decoder.failWith = failWith(Eval.Monad);
+Decoder.identity = identity(Eval.Monad);
+Decoder.empty = empty(Eval.Monad);
+Decoder.tailRecM = tailRecM(Eval.Monad);
+Decoder.tailRecM_ = tailRecM_(Eval.Monad);
+Decoder.fromRefinement = fromRefinement(Eval.Monad);
+Decoder.fromGuard = fromGuard(Eval.Monad);
+Decoder.literal = literal(Eval.Monad);
+Decoder.boolean = boolean(Eval.Monad);
+Decoder.number = number(Eval.Monad);
+Decoder.string = string(Eval.Monad);
+Decoder.nullDecoderT = nullDecoderT(Eval.Monad);
+Decoder.unknownArray = unknownArray(Eval.Monad);
+Decoder.unknownRecord = unknownRecord(Eval.Monad);
+Decoder.array = array(Eval.Monad);
+Decoder.record = record(Eval.Monad);
+Decoder.struct = struct(Eval.Monad);
+Decoder.partial = partial(Eval.Monad);
+Decoder.product = product(Eval.Monad) as DecoderObj['product'];
+Decoder.sum = sum(Eval.Monad);
+Decoder.defer = defer;
+
+Decoder.MonoidK = <I>() => decoderTMonoidK<EvalF, I>(Eval.Monad) as any;
+Decoder.Functor = <I>() => decoderTFunctor<EvalF, I>(Eval.Monad) as any;
+Decoder.Profunctor = decoderTProfunctor(Eval.Functor) as any;
+Decoder.Category = decoderTCategory(Eval.Monad);
+Decoder.Monad = <I>() => decoderTMonad<EvalF, I>(Eval.Monad) as any;
+Decoder.Refining = decoderTRefining(Eval.Monad) as any;
+Decoder.Schemable = decoderTSchemable(Eval.Monad) as any;
+Decoder.Constraining = decoderTConstraining(Eval.Monad) as any;
+
 // -- HKT
 
 export interface DecoderTF extends TyK<[unknown, unknown, unknown]> {
   [$type]: DecoderT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
+}
+
+export interface DecoderF extends TyK<[unknown, unknown]> {
+  [$type]: Decoder<TyVar<this, 0>, TyVar<this, 1>>;
 }

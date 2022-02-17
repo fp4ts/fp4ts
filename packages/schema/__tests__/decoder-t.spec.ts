@@ -5,7 +5,13 @@
 
 import { pipe, throwError } from '@fp4ts/core';
 import { Identity, Left, Right } from '@fp4ts/cats';
-import { DecoderT, DecodeFailure, DecodeResultT } from '@fp4ts/schema-core';
+import {
+  Decoder,
+  DecoderT,
+  DecodeFailure,
+  DecodeResultT,
+  DecodeResult,
+} from '@fp4ts/schema-core';
 import { Constraining } from '@fp4ts/schema-kernel';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
 import fc from 'fast-check';
@@ -15,11 +21,11 @@ describe('DecoderT', () => {
 
   describe('flatMapR', () => {
     it('should transform to success', () => {
-      const r = DecoderT.string(IdM)
-        .flatMapR(IdM)(() => DecodeResultT.success(IdM)('bar'))
+      const r = Decoder.string
+        .flatMapR(() => DecodeResult.success('bar'))
         .decode('foo').value;
 
-      expect(r).toEqual(Right('bar'));
+      expect(r.value).toEqual(Right('bar'));
     });
 
     it('should transform to failure', () => {
@@ -31,21 +37,19 @@ describe('DecoderT', () => {
     });
 
     it('should fallthrough on failure', () => {
-      const r = DecoderT.string(IdM)
-        .flatMapR(IdM)(() => DecodeResultT.failure(IdM)(new DecodeFailure()))
+      const r = Decoder.string
+        .flatMapR(() => DecodeResult.failure(new DecodeFailure()))
         .decode(42).value;
 
-      expect(r).toEqual(Left(new DecodeFailure('string')));
+      expect(r.value).toEqual(Left(new DecodeFailure('string')));
     });
   });
 
   describe('handleError', () => {
     it('should recover from failure into success', () => {
-      const r = DecoderT.string(IdM)
-        .handleError(IdM)(() => 'foo')
-        .decode(42).value;
+      const r = Decoder.string.handleError(() => 'foo').decode(42).value;
 
-      expect(r).toEqual(Right('foo'));
+      expect(r.value).toEqual(Right('foo'));
     });
 
     it('should ignore recovery when successful', () => {
@@ -59,11 +63,11 @@ describe('DecoderT', () => {
 
   describe('handleErrorWithR', () => {
     it('should recover from failure into success', () => {
-      const r = DecoderT.string(IdM)
-        .handleErrorWithR(IdM)(() => DecodeResultT.success(IdM)('foo'))
+      const r = Decoder.string
+        .handleErrorWithR(() => DecodeResult.success('foo'))
         .decode(42).value;
 
-      expect(r).toEqual(Right('foo'));
+      expect(r.value).toEqual(Right('foo'));
     });
 
     it('should recover from failure into failure', () => {
@@ -77,23 +81,23 @@ describe('DecoderT', () => {
     });
 
     it('should ignore recovery when successful', () => {
-      const r = DecoderT.string(IdM)
-        .handleErrorWithR(IdM)(() =>
-          DecodeResultT.failure(IdM)(new DecodeFailure('My failure')),
+      const r = Decoder.string
+        .handleErrorWithR(() =>
+          DecodeResult.failure(new DecodeFailure('My failure')),
         )
         .decode('bar').value;
 
-      expect(r).toEqual(Right('bar'));
+      expect(r.value).toEqual(Right('bar'));
     });
   });
 
   describe('handleErrorWith', () => {
     it('should recover from failure into success', () => {
-      const r = DecoderT.string(IdM)
-        .handleErrorWith(IdM)(() => DecoderT.succeed(IdM)('foo'))
+      const r = Decoder.string
+        .handleErrorWith(() => Decoder.succeed('foo'))
         .decode(42).value;
 
-      expect(r).toEqual(Right('foo'));
+      expect(r.value).toEqual(Right('foo'));
     });
 
     it('should recover from failure into failure', () => {
@@ -105,11 +109,11 @@ describe('DecoderT', () => {
     });
 
     it('should ignore recovery when successful', () => {
-      const r = DecoderT.string(IdM)
-        .handleErrorWith(IdM)(() => DecoderT.failWith(IdM)('My failure'))
+      const r = Decoder.string
+        .handleErrorWith(() => Decoder.failWith('My failure'))
         .decode('bar').value;
 
-      expect(r).toEqual(Right('bar'));
+      expect(r.value).toEqual(Right('bar'));
     });
   });
 

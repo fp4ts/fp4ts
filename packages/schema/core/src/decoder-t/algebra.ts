@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, EitherT, Eval } from '@fp4ts/cats';
-import { Kind } from '@fp4ts/core';
+import { EitherT } from '@fp4ts/cats';
 import { DecodeFailure } from '../decode-failure';
 
 export class DecoderT<F, I, A> {

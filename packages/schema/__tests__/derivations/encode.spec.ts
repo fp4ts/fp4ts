@@ -7,8 +7,8 @@ import fc, { Arbitrary } from 'fast-check';
 import { Eq, Eval, List } from '@fp4ts/cats';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Schema, SchemableK } from '@fp4ts/schema-kernel';
-import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
 import { DecoderT, Encoder } from '@fp4ts/schema-core';
+import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
 
 describe('Encoder derivation', () => {
   const SnocEqK = Snoc.schemaK.interpret(SchemableK.EqK);
