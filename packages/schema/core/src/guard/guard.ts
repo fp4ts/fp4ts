@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, TyK, TyVar } from '@fp4ts/core';
+import { Schemable } from '@fp4ts/schema-kernel';
 import { Literal } from '@fp4ts/schema-kernel/src/literal';
 import { Guard as GuardBase } from './algebra';
 import {
@@ -23,10 +24,11 @@ import {
   struct,
   sum,
 } from './constructors';
+import { guardSchemable } from './instances';
 
 export type Guard<I, A extends I> = GuardBase<I, A>;
 
-export const Guard: GuardObj = function () {};
+export const Guard: GuardObj = function () {} as any;
 
 interface GuardObj {
   identity<A>(): Guard<A, A>;
@@ -56,6 +58,10 @@ interface GuardObj {
     [k in keyof A]: Guard<unknown, A[k] & Record<T, k>>;
   }) => Guard<unknown, A[keyof A]>;
   defer<A>(thunk: () => Guard<unknown, A>): Guard<unknown, A>;
+
+  // -- Instances
+
+  readonly Schemable: Schemable<$<GuardF, [unknown]>>;
 }
 
 Guard.identity = identity;
@@ -72,6 +78,12 @@ Guard.record = record;
 Guard.product = product as GuardObj['product'];
 Guard.sum = sum;
 Guard.defer = defer;
+
+Object.defineProperty(Guard, 'Schemable', {
+  get() {
+    return guardSchemable();
+  },
+});
 
 // -- HKT
 

@@ -1,0 +1,21 @@
+{
+  "name": "@fp4ts/schema-perf",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/schema-core": "*",
+    "@fp4ts/schema-kernel": "*",
+    "benny": "^3.7.1"
+  },
+  "devDependencies": {
+    "typescript": "4.5.5"
+  }
+}

@@ -4,9 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Lazy, lazyVal } from '@fp4ts/core';
-import { Constraining } from '@fp4ts/schema-kernel/src/constraining';
-import { Refining } from '@fp4ts/schema-kernel/src/refining';
-import { Schemable } from '@fp4ts/schema-kernel/src/schemable';
+import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 import { Guard } from './algebra';
 import {
   array,
