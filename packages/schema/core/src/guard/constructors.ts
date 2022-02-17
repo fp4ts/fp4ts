@@ -5,8 +5,9 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 
+import { Eval } from '@fp4ts/cats';
 import { Literal } from '@fp4ts/schema-kernel/src/literal';
-import { Guard } from './algebra';
+import { Guard, SafeGuard, safeTest } from './algebra';
 
 export const identity = <A>(): Guard<A, A> => new Guard((_): _ is A => true);
 
@@ -34,24 +35,42 @@ export const nullGuard: Guard<unknown, null> = new Guard(
 );
 
 export const array = <A>(ga: Guard<unknown, A>): Guard<unknown, A[]> =>
-  new Guard(
-    (xs: unknown): xs is A[] => Array.isArray(xs) && xs.every(x => ga.test(x)),
-  );
+  new SafeGuard((xs: unknown): Eval<boolean> => {
+    if (!Array.isArray(xs)) return Eval.now(false);
+
+    const loop = (idx: number): Eval<boolean> =>
+      idx >= xs.length
+        ? Eval.now(true)
+        : Eval.defer(() =>
+            safeTest(ga, xs[idx]).flatMap(r =>
+              r ? loop(idx + 1) : Eval.now(false),
+            ),
+          );
+
+    return loop(0);
+  });
 
 export const struct = <A extends {}>(ga: {
   [k in keyof A]: Guard<unknown, A[k]>;
 }): Guard<unknown, A> =>
-  new Guard((xs: unknown): xs is A => {
+  new SafeGuard((xs: unknown): Eval<boolean> => {
     if (xs === null || typeof xs !== 'object' || Array.isArray(xs))
-      return false;
+      return Eval.now(false);
 
-    const ys = xs as Record<string, unknown>;
+    const keys = Object.keys(ga) as (keyof A)[];
+    const loop = (idx: number): Eval<boolean> => {
+      if (idx >= keys.length) return Eval.now(true);
+      const k = keys[idx];
+      if (!(k in xs)) return Eval.now(false);
 
-    for (const k in ga) {
-      if (!(k in xs) || !ga[k].test(ys[k])) return false;
-    }
+      return Eval.defer(() =>
+        safeTest(ga[k], (xs as any)[k]).flatMap(r =>
+          r ? loop(idx + 1) : Eval.now(false),
+        ),
+      );
+    };
 
-    return true;
+    return loop(0);
   });
 
 export const partial = <A>(ga: { [k in keyof A]: Guard<unknown, A[k]> }): Guard<
@@ -73,34 +92,54 @@ export const partial = <A>(ga: { [k in keyof A]: Guard<unknown, A[k]> }): Guard<
 export const record = <A>(
   ga: Guard<unknown, A>,
 ): Guard<unknown, Record<string, A>> =>
-  new Guard((xs: unknown): xs is Record<string, A> => {
-    if (xs == null || typeof xs !== 'object' || Array.isArray(xs)) return false;
+  new SafeGuard((xs: unknown): Eval<boolean> => {
+    if (xs == null || typeof xs !== 'object' || Array.isArray(xs))
+      return Eval.now(false);
 
-    return Object.values(xs).every(x => ga.test(x));
+    const keys = Object.keys(xs);
+    const loop = (idx: number): Eval<boolean> =>
+      idx >= keys.length
+        ? Eval.now(true)
+        : Eval.defer(() =>
+            safeTest(ga, (xs as any)[keys[idx]]).flatMap(r =>
+              r ? loop(idx + 1) : Eval.now(false),
+            ),
+          );
+
+    return loop(0);
   });
 
 export const product = <A extends unknown[]>(
   ...ga: { [k in keyof A]: Guard<unknown, A[k]> }
 ): Guard<unknown, A> =>
-  new Guard(
-    (xs: unknown): xs is A =>
-      Array.isArray(xs) &&
-      xs.length === ga.length &&
-      xs.every((x, i) => ga[i].test(x)),
-  );
+  new SafeGuard((xs: unknown): Eval<boolean> => {
+    if (!Array.isArray(xs) || xs.length !== ga.length) return Eval.now(false);
+    const loop = (idx: number): Eval<boolean> =>
+      idx >= ga.length
+        ? Eval.now(true)
+        : Eval.defer(() =>
+            safeTest(ga[idx], xs[idx]).flatMap(r =>
+              r ? loop(idx + 1) : Eval.now(false),
+            ),
+          );
+
+    return loop(0);
+  });
 
 export const sum =
   <T extends string>(tag: T) =>
   <A extends {}>(ga: {
     [k in keyof A]: Guard<unknown, A[k] & Record<T, k>>;
   }): Guard<unknown, A[keyof A]> =>
-    new Guard((x: unknown): x is A[keyof A] => {
-      if (x === null || typeof x !== 'object' || Array.isArray(x)) return false;
+    new SafeGuard((x: unknown): Eval<boolean> => {
+      if (x === null || typeof x !== 'object' || Array.isArray(x))
+        return Eval.now(false);
 
       const y = x as Record<string, unknown>;
       const k = y[tag] as keyof A;
-      return ga[k]?.test(y) ?? false;
+      if (!ga[k]) return Eval.now(false);
+      return safeTest(ga[k], y);
     });
 
 export const defer = <A>(thunk: () => Guard<unknown, A>): Guard<unknown, A> =>
-  new Guard((x: unknown): x is A => thunk().test(x));
+  new SafeGuard((x: unknown): Eval<boolean> => safeTest(thunk(), x));

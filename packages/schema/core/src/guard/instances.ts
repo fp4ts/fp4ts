@@ -5,7 +5,7 @@
 
 import { $, Lazy, lazyVal } from '@fp4ts/core';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
-import { Guard } from './algebra';
+import { Guard, SafeGuard, safeTest } from './algebra';
 import {
   array,
   boolean,
@@ -57,8 +57,11 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       record,
       sum,
 
-      imap: <A, B>(ga: Guard<unknown, A>, f: (a: A) => B, g: (b: B) => A) =>
-        new Guard((x): x is B => ga.test(x)),
+      imap: <A, B>(
+        ga: Guard<unknown, A>,
+        f: (a: A) => B,
+        g: (b: B) => A,
+      ): Guard<unknown, B> => new SafeGuard(x => safeTest(ga, x)),
     }),
 );
 
