@@ -25,7 +25,7 @@ export class Server<F> {
       'application/json': {
         'todo-api/create-todo': Codable.json.fromSchema(CreateTodo),
         'todo-api/todo': Codable.json.fromSchema(Todo),
-        'todo-api/todo-array': Codable.json.fromSchema(TodoArrayType.schema),
+        'todo-api/todo-array': Codable.json.fromSchema(Todo.array),
       },
     })(S => [
       version(this.F),

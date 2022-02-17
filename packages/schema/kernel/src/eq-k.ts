@@ -73,15 +73,15 @@ abstract class SafeEqK<F> implements EqK<F> {
   private readonly cache = new Map<Eq<any>, SafeEq<Kind<F, [any]>>>();
   private readonly __void!: void;
 
-  public liftEq<A>(E: Eq<A>): Eq<Kind<F, [A]>> {
+  public liftEq = <A>(E: Eq<A>): Eq<Kind<F, [A]>> => {
     return this.liftSafeEq(E);
-  }
+  };
 
-  public lift<A>(p: (l: A, r: A) => boolean): Eq<Kind<F, [A]>> {
+  public lift = <A>(p: (l: A, r: A) => boolean): Eq<Kind<F, [A]>> => {
     return this.liftSafeEq(
       SafeEq.of({ safeEquals: (x, y) => Eval.delay(() => p(x, y)) }),
     );
-  }
+  };
 
   public liftSafeEq<A>(E: Eq<A>): SafeEq<Kind<F, [A]>> {
     if (this.cache.has(E)) {

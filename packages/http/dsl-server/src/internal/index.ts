@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { compose, id, pipe, tupled } from '@fp4ts/core';
+import { compose, id, pipe, tupled, TypeRef, TypeOf } from '@fp4ts/core';
 import { Either, EitherT, Kleisli, List } from '@fp4ts/cats';
 import {
   Accept,
@@ -33,7 +33,6 @@ import {
   QueryElement,
   StaticElement,
   VerbElement,
-  Type,
   ReqBodyElement,
   ContentTypeWithMime,
   FromHttpApiDataTag,
@@ -187,13 +186,17 @@ export function route<F>(F: Concurrent<F, Error>) {
   }
 
   function routeCapture<api, context extends unknown[], env, A>(
-    a: CaptureElement<any, Type<any, A>>,
+    a: CaptureElement<any, TypeRef<any, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<CaptureElement<any, Type<any, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
+    d: Delayed<
+      F,
+      env,
+      Server<F, Sub<CaptureElement<any, TypeRef<any, A>>, api>>
+    >,
+    codings: DeriveCoding<F, Sub<CaptureElement<any, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
+    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.Ref];
     return new CaptureRouter(
       route(
         api,
@@ -213,13 +216,13 @@ export function route<F>(F: Concurrent<F, Error>) {
   }
 
   function routeQuery<api, context extends unknown[], env, A>(
-    a: QueryElement<any, Type<any, A>>,
+    a: QueryElement<any, TypeRef<any, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<QueryElement<any, Type<any, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<CaptureElement<any, Type<any, A>>, api>>,
+    d: Delayed<F, env, Server<F, Sub<QueryElement<any, TypeRef<any, A>>, api>>>,
+    codings: DeriveCoding<F, Sub<CaptureElement<any, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { fromQueryParameter } = codings[FromHttpApiDataTag][a.type.ref];
+    const { fromQueryParameter } = codings[FromHttpApiDataTag][a.type.Ref];
     return route(
       api,
       ctx,
@@ -262,13 +265,17 @@ export function route<F>(F: Concurrent<F, Error>) {
     H extends string,
     A,
   >(
-    a: RawHeaderElement<H, Type<any, A>>,
+    a: RawHeaderElement<H, TypeRef<any, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<RawHeaderElement<H, Type<any, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<RawHeaderElement<H, Type<any, A>>, api>>,
+    d: Delayed<
+      F,
+      env,
+      Server<F, Sub<RawHeaderElement<H, TypeRef<any, A>>, api>>
+    >,
+    codings: DeriveCoding<F, Sub<RawHeaderElement<H, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { parseHeader } = codings[FromHttpApiDataTag][a.type.ref];
+    const { parseHeader } = codings[FromHttpApiDataTag][a.type.Ref];
     const headerCheck = DelayedCheck.withRequest(F)(req =>
       pipe(
         req.headers
@@ -292,13 +299,17 @@ export function route<F>(F: Concurrent<F, Error>) {
     M extends string,
     CT extends ContentTypeWithMime<M>,
   >(
-    body: ReqBodyElement<CT, Type<any, A>>,
+    body: ReqBodyElement<CT, TypeRef<any, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<ReqBodyElement<CT, Type<any, A>>, api>>,
+    d: Delayed<
+      F,
+      env,
+      Server<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>
+    >,
+    codings: DeriveCoding<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { decode } = codings[body.ct.mime][body.body.ref];
+    const { decode } = codings[body.ct.mime][body.body.Ref];
     const ctCheck = DelayedCheck.withRequest(F)(req =>
       req.contentType.fold(
         () => RouteResultT.succeed(F)(req.bodyText),
@@ -335,13 +346,17 @@ export function route<F>(F: Concurrent<F, Error>) {
     R extends string,
     A,
   >(
-    a: CaptureAllElement<any, Type<R, A>>,
+    a: CaptureAllElement<any, TypeRef<R, A>>,
     api: api,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, Sub<CaptureAllElement<any, Type<R, A>>, api>>>,
-    codings: DeriveCoding<F, Sub<CaptureAllElement<any, Type<R, A>>, api>>,
+    d: Delayed<
+      F,
+      env,
+      Server<F, Sub<CaptureAllElement<any, TypeRef<R, A>>, api>>
+    >,
+    codings: DeriveCoding<F, Sub<CaptureAllElement<any, TypeRef<R, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.ref];
+    const { fromPathComponent } = codings[FromHttpApiDataTag][a.type.Ref];
     return new CatchAllRouter(
       route(
         api,
@@ -377,12 +392,12 @@ export function route<F>(F: Concurrent<F, Error>) {
     env,
     M extends string,
     CT extends ContentTypeWithMime<M>,
-    A,
+    T extends TypeRef<any, any>,
   >(
-    verb: VerbElement<any, CT, Type<any, A>>,
+    verb: VerbElement<any, CT, T>,
     ctx: Context<context>,
-    d: Delayed<F, env, Server<F, VerbElement<any, CT, Type<any, A>>>>,
-    codings: DeriveCoding<F, VerbElement<any, CT, Type<any, A>>>,
+    d: Delayed<F, env, Server<F, VerbElement<any, CT, T>>>,
+    codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): Router<env, RoutingApplication<F>> {
     return routeMethod(
       verb.method,
@@ -401,8 +416,8 @@ export function route<F>(F: Concurrent<F, Error>) {
     env,
     M extends string,
     CT extends ContentTypeWithMime<M>,
-    A,
-    H extends HeadersElement<any, Type<any, A>>,
+    T extends TypeRef<any, any>,
+    H extends HeadersElement<any, T>,
   >(
     verb: HeadersVerbElement<any, CT, H>,
     ctx: Context<context>,
@@ -459,19 +474,19 @@ export function route<F>(F: Concurrent<F, Error>) {
     env,
     M extends string,
     CT extends ContentTypeWithMime<M>,
-    A,
     R extends string,
+    T extends TypeRef<R, any>,
   >(
     method: Method,
     status: Status,
-    headers: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
-    body: Type<R, A>,
+    headers: (HeaderElement<any> | RawHeaderElement<any, TypeRef<any, any>>)[],
+    body: T,
     ct: CT,
     ctx: Context<context>,
-    d: Delayed<F, env, Handler<F, A>>,
-    codings: { [_ in CT['mime']]: { [_ in R]: Codable<A> } },
+    d: Delayed<F, env, Handler<F, TypeOf<T>>>,
+    codings: { [_ in CT['mime']]: { [_ in R]: Codable<TypeOf<T>> } },
   ): Router<env, RoutingApplication<F>> {
-    const { encode } = codings[ct.mime][body.ref];
+    const { encode } = codings[ct.mime][body.Ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>
       pipe(
         req.headers
@@ -487,7 +502,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     );
 
     const getHeadersEncoder = (
-      hs: (HeaderElement<any> | RawHeaderElement<any, Type<any, any>>)[],
+      hs: (HeaderElement<any> | RawHeaderElement<any, TypeRef<any, any>>)[],
       a: AddHeader<any, any> | any,
     ) => {
       let acc: List<RawHeader> = List.empty;
@@ -498,7 +513,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           acc = acc['+++'](raw);
           a = a.body;
         } else if (h instanceof RawHeaderElement) {
-          const { toHeader } = (codings as any)[ToHttpApiDataTag][h.type.ref];
+          const { toHeader } = (codings as any)[ToHttpApiDataTag][h.type.Ref];
           const raw = new RawHeader(h.key, toHeader(a.header));
           acc = acc.prepend(raw);
           a = a.body;

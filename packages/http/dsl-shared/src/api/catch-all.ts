@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Type } from '../type';
+import { TypeRef } from '@fp4ts/core';
 import { BaseElement } from './base-element';
 import { ElementTag } from './api-element';
 
@@ -12,7 +12,7 @@ export type CaptureAllElementTag = typeof CaptureAllElementTag;
 
 export class CaptureAllElement<
   S extends string,
-  T extends Type<any, any>,
+  T extends TypeRef<any, any>,
 > extends BaseElement<CaptureAllElementTag> {
   [ElementTag]: CaptureAllElementTag;
 
@@ -21,7 +21,7 @@ export class CaptureAllElement<
   }
 }
 
-export const CaptureAll = <S extends string, T extends Type<any, any>>(
+export const CaptureAll = <S extends string, T extends TypeRef<any, any>>(
   name: S,
   type: T,
 ): CaptureAllElement<S, T> => new CaptureAllElement(name, type);

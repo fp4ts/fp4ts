@@ -36,11 +36,4 @@ export {
 
   JSON,
   PlainText,
-  
-  typeDef,
-  booleanType,
-  numberType,
-  stringType,
-  nullType,
-  Type,
 } from '@fp4ts/http-dsl-shared';

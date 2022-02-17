@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { typeref } from '@fp4ts/core';
 import {
   Capture,
   DeleteNoContent,
@@ -13,14 +14,13 @@ import {
   Put,
   ReqBody,
   Route,
-  typeDef,
 } from '@fp4ts/http-dsl';
 import { CreateTodo, Todo } from '../todo';
 import { pagination } from './pagination';
 
-export const TodoArrayType = typeDef('todo-api/todo-array', Todo.array);
-export const TodoType = typeDef('todo-api/todo', Todo);
-export const CreateTodoType = typeDef('todo-api/create-todo', CreateTodo);
+export const TodoArrayType = typeref<Todo[]>()('todo-api/todo-array');
+export const TodoType = typeref<Todo>()('todo-api/todo');
+export const CreateTodoType = typeref<CreateTodo>()('todo-api/create-todo');
 
 export const todoApi = group(
   pagination[':>'](Get(JSON, TodoArrayType)),

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Type } from '../type';
+import { TypeRef } from '@fp4ts/core';
 import { SelectHeader } from '@fp4ts/http-core';
 import { ElementTag } from './api-element';
 import { BaseElement } from './base-element';
@@ -26,7 +26,7 @@ export type RawHeaderTag = typeof RawHeaderTag;
 
 export class RawHeaderElement<
   H extends string,
-  T extends Type<any, any>,
+  T extends TypeRef<any, any>,
 > extends BaseElement<RawHeaderTag> {
   public readonly [ElementTag] = RawHeaderTag;
 
@@ -38,7 +38,7 @@ export class RawHeaderElement<
 export function Header<H extends SelectHeader<any, any>>(
   header: H,
 ): HeaderElement<H>;
-export function Header<H extends string, T extends Type<any, any>>(
+export function Header<H extends string, T extends TypeRef<any, any>>(
   header: H,
   type: T,
 ): RawHeaderElement<H, T>;

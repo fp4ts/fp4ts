@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'supertest';
-import { id, pipe } from '@fp4ts/core';
+import { booleanType, id, numberType, pipe, stringType } from '@fp4ts/core';
 import { IO, IOF } from '@fp4ts/effect-core';
 import {
   Accept,
@@ -17,54 +17,51 @@ import {
 import {
   group,
   JSON,
-  numberType,
   PlainText,
   Post,
   Put,
   ReqBody,
   Route,
-  stringType,
   Verb,
   VerbNoContent,
   Header,
   Get,
   Headers,
-  booleanType,
   Raw,
   CaptureAll,
   DeleteNoContent,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
-import { Person, PersonCodable, PersonType, PersonTypeTag } from './person';
+import { Person, PersonCodable, PersonTypeTag } from './person';
 import { Kleisli, Monoid } from '@fp4ts/cats';
-import { Animal, AnimalCodable, AnimalType, AnimalTypeTag } from './animal';
+import { Animal, AnimalCodable, AnimalTypeTag } from './animal';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
   group(
-    Verb(method, status)(JSON, PersonType),
+    Verb(method, status)(JSON, Person),
     Route('no-content')[':>'](VerbNoContent(method)),
     Route('header')[':>'](
       Verb(method, status)(
         JSON,
-        Headers(Header('H', numberType), Header('F', booleanType))(PersonType),
+        Headers(Header('H', numberType), Header('F', booleanType))(Person),
       ),
     ),
     Route('accept')[':>'](
       group(
-        Verb(method, status)(JSON, PersonType),
+        Verb(method, status)(JSON, Person),
         Verb(method, status)(PlainText, stringType),
       ),
     ),
   );
 
-const alice: Person = {
+const alice = Person({
   name: 'Alice',
   age: 42,
-};
-const jerry: Animal = { spieces: 'mouse', legs: 4 };
-const tweety: Animal = { spieces: 'bird', legs: 2 };
-const beholder: Animal = { spieces: 'beholder', legs: 0 };
+});
+const jerry = Animal({ spieces: 'mouse', legs: 4 });
+const tweety = Animal({ spieces: 'bird', legs: 2 });
+const beholder = Animal({ spieces: 'beholder', legs: 0 });
 
 describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IOF> =>
@@ -290,14 +287,14 @@ describe('Header', () => {
 });
 
 const reqBodyApi = group(
-  ReqBody(JSON, PersonType)[':>'](Post(JSON, PersonType)),
-  Route('foo')[':>'](ReqBody(JSON, PersonType))[':>'](Put(JSON, numberType)),
+  ReqBody(JSON, Person)[':>'](Post(JSON, Person)),
+  Route('foo')[':>'](ReqBody(JSON, Person))[':>'](Put(JSON, numberType)),
 );
 
 describe('ReqBody', () => {
   const server = toHttpAppIO(reqBodyApi, {
     [JSON.mime]: { [PersonTypeTag]: PersonCodable },
-  })(S => [S.return, ({ age }) => S.return(age)]);
+  })(S => [S.return, p => S.return(Person.unapply(p).age)]);
 
   it('should pass argument to the method handler', async () => {
     await withServerP(server)(server =>
@@ -325,9 +322,7 @@ describe('ReqBody', () => {
   });
 });
 
-const captureAllApi = CaptureAll('legs', numberType)[':>'](
-  Get(JSON, AnimalType),
-);
+const captureAllApi = CaptureAll('legs', numberType)[':>'](Get(JSON, Animal));
 
 describe('Capture All', () => {
   const server = toHttpAppIO(captureAllApi, {
@@ -451,11 +446,11 @@ describe('Raw', () => {
 });
 
 const alternativeApi = group(
-  Route('foo')[':>'](Get(JSON, PersonType)),
-  Route('bar')[':>'](Get(JSON, AnimalType)),
+  Route('foo')[':>'](Get(JSON, Person)),
+  Route('bar')[':>'](Get(JSON, Animal)),
   Route('foo')[':>'](Get(PlainText, stringType)),
-  Route('bar')[':>'](Post(JSON, AnimalType)),
-  Route('bar')[':>'](Put(JSON, AnimalType)),
+  Route('bar')[':>'](Post(JSON, Animal)),
+  Route('bar')[':>'](Put(JSON, Animal)),
   Route('bar')[':>'](DeleteNoContent),
 );
 

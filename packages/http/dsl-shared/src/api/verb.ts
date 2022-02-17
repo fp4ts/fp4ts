@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { TypeRef } from '@fp4ts/core';
 import { Method, Status } from '@fp4ts/http-core';
 import { ContentTypeWithMime } from './content-types';
-import { Type } from '../type';
 import { ApiElement, ElementTag } from './api-element';
 import { HeadersElement } from './headers';
 
@@ -15,7 +15,7 @@ export type VerbTag = typeof VerbTag;
 export class VerbElement<
   M extends Method,
   CT extends ContentTypeWithMime<any>,
-  A extends Type<any, any>,
+  A extends TypeRef<any, any>,
 > implements ApiElement<VerbTag>
 {
   public readonly [ElementTag]: VerbTag;
@@ -50,7 +50,7 @@ export class HeadersVerbElement<
 export const Verb = <M extends Method>(m: M, s: Status) => {
   function curried<
     CT extends ContentTypeWithMime<any>,
-    A extends Type<any, any>,
+    A extends TypeRef<any, any>,
   >(ct: CT, b: A): VerbElement<M, CT, A>;
   function curried<
     CT extends ContentTypeWithMime<any>,

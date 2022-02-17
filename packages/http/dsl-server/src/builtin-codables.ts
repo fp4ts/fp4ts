@@ -3,10 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { booleanType, numberType, stringType } from '@fp4ts/core';
 import {
-  booleanType,
-  numberType,
-  stringType,
   PlainText,
   JSON,
   FromHttpApiDataTag,
@@ -17,24 +15,24 @@ import { fromHttpApiData, json, plainText, toHttpApiData } from './builtins';
 
 export const builtins = Object.freeze({
   [FromHttpApiDataTag]: {
-    [booleanType.ref]: fromHttpApiData.boolean,
-    [numberType.ref]: fromHttpApiData.number,
-    [stringType.ref]: fromHttpApiData.string,
+    [booleanType.Ref]: fromHttpApiData.boolean,
+    [numberType.Ref]: fromHttpApiData.number,
+    [stringType.Ref]: fromHttpApiData.string,
   },
   [ToHttpApiDataTag]: {
-    [booleanType.ref]: toHttpApiData.boolean,
-    [numberType.ref]: toHttpApiData.number,
-    [stringType.ref]: toHttpApiData.string,
+    [booleanType.Ref]: toHttpApiData.boolean,
+    [numberType.Ref]: toHttpApiData.number,
+    [stringType.Ref]: toHttpApiData.string,
   },
   [PlainText.mime]: {
-    [booleanType.ref]: plainText.boolean,
-    [numberType.ref]: plainText.number,
-    [stringType.ref]: plainText.string,
+    [booleanType.Ref]: plainText.boolean,
+    [numberType.Ref]: plainText.number,
+    [stringType.Ref]: plainText.string,
   },
   [JSON.mime]: {
-    [booleanType.ref]: json.boolean,
-    [numberType.ref]: json.number,
-    [stringType.ref]: json.string,
+    [booleanType.Ref]: json.boolean,
+    [numberType.Ref]: json.number,
+    [stringType.Ref]: json.string,
   },
 });
 export type builtins = typeof builtins;

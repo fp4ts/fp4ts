@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { stringType } from '@fp4ts/core';
 import { IO, IOF } from '@fp4ts/effect';
 import { Request, Method, EntityEncoder, uri } from '@fp4ts/http-core';
 import {
@@ -13,7 +14,6 @@ import {
   Post,
   ReqBody,
   Route,
-  stringType,
 } from '@fp4ts/http-dsl';
 import { toHttpApp } from '@fp4ts/http-dsl-server';
 

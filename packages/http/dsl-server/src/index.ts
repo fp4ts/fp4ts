@@ -8,5 +8,5 @@
  */
 export { toHttpApp, toHttpAppIO, toHttpRoutes } from './internal';
 export { TermDerivates, SubDerivates, CodingDerivates } from './type-level';
-export { Codable } from './codable';
+export { Codable, CodableF } from './codable';
 export * from './server-m';

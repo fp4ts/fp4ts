@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Type } from '../type';
+import { TypeRef } from '@fp4ts/core';
 import { BaseElement } from './base-element';
 import { ElementTag } from './api-element';
 import { ContentTypeWithMime } from './content-types';
@@ -13,7 +13,7 @@ export type ReqBodyTag = typeof ReqBodyTag;
 
 export class ReqBodyElement<
   CT extends ContentTypeWithMime<any>,
-  A extends Type<any, any>,
+  A extends TypeRef<any, any>,
 > extends BaseElement<ReqBodyTag> {
   [ElementTag]: ReqBodyTag;
 
@@ -24,7 +24,7 @@ export class ReqBodyElement<
 
 export const ReqBody = <
   CT extends ContentTypeWithMime<any>,
-  A extends Type<any, any>,
+  A extends TypeRef<any, any>,
 >(
   ct: CT,
   body: A,

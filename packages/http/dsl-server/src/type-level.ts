@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { Kind, TypeOf } from '@fp4ts/core';
 import { List, Option } from '@fp4ts/cats';
-import { Kind } from '@fp4ts/core';
 import { HttpApp, SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,
@@ -18,7 +18,6 @@ import {
   ReqBodyTag,
   StaticTag,
   Sub,
-  Type,
   VerbElement,
   VerbNoContentTag,
   VerbTag,
@@ -99,11 +98,11 @@ type DeriveAltCodings<F, xs extends unknown[], z = {}> =
 
 // prettier-ignore
 export interface TermDerivates<F, api, m> {
-  [VerbTag]: api extends VerbElement<any, any, Type<any, infer A>>
-    ? Kind<m, [F, A]>
+  [VerbTag]: api extends VerbElement<any, any, infer T>
+    ? Kind<m, [F, TypeOf<T>]>
     : never;
-  [HeadersVerbTag]: api extends HeadersVerbElement<any, any, HeadersElement<infer hs, Type<any, infer A>>>
-    ? Kind<m, [F, AddHeaders<hs, A>]>
+  [HeadersVerbTag]: api extends HeadersVerbElement<any, any, HeadersElement<infer hs, infer T>>
+    ? Kind<m, [F, AddHeaders<hs, TypeOf<T>>]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
   [RawElementTag]: HttpApp<F>,
@@ -113,28 +112,22 @@ export interface TermDerivates<F, api, m> {
 type AddHeaders<hs, a> =
   hs extends []
     ? a
-  : hs extends [...infer hs, RawHeaderElement<any, Type<any, infer h>>]
-    ? AddHeaders<hs, AddHeader<h, a>>
+  : hs extends [...infer hs, RawHeaderElement<any, infer h>]
+    ? AddHeaders<hs, AddHeader<TypeOf<h>, a>>
   : hs extends [...infer hs, HeaderElement<SelectHeader<infer f, infer aa>>]
     ? AddHeaders<hs, AddHeader<Kind<f, [aa]>, a>>
   : never;
 
 export interface SubDerivates<F, x, api, m> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
-    ? T extends Type<any, infer X>
-      ? (x: X) => ServerT<F, api, m>
-      : never
+    ? (x: TypeOf<T>) => ServerT<F, api, m>
     : never;
   [QueryTag]: x extends QueryElement<any, infer T>
-    ? T extends Type<any, infer X>
-      ? (x: Option<X>) => ServerT<F, api, m>
-      : never
+    ? (x: Option<TypeOf<T>>) => ServerT<F, api, m>
     : never;
   [StaticTag]: ServerT<F, api, m>;
   [ReqBodyTag]: x extends ReqBodyElement<any, infer T>
-    ? T extends Type<any, infer A>
-      ? (a: A) => ServerT<F, api, m>
-      : never
+    ? (a: TypeOf<T>) => ServerT<F, api, m>
     : never;
   [HeaderTag]: x extends HeaderElement<infer H>
     ? H extends SelectHeader<infer G, infer A>
@@ -142,56 +135,50 @@ export interface SubDerivates<F, x, api, m> {
       : never
     : never;
   [RawHeaderTag]: x extends RawHeaderElement<any, infer T>
-    ? T extends Type<any, infer A>
-      ? (h: Option<A>) => ServerT<F, api, m>
-      : never
+    ? (h: Option<TypeOf<T>>) => ServerT<F, api, m>
     : never;
-  [CaptureAllElementTag]: x extends CaptureAllElement<any, Type<any, infer A>>
-    ? (xs: List<A>) => ServerT<F, api, m>
+  // prettier-ignore
+  [CaptureAllElementTag]: x extends CaptureAllElement<any, infer T>
+    ? (xs: List<TypeOf<T>>) => ServerT<F, api, m>
     : never;
 }
 
 export interface CodingDerivates<F, x, z> {
   [CaptureTag]: x extends CaptureElement<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
-      : never
+    ? z & {
+        [FromHttpApiDataTag]: { [k in T['Ref']]: FromHttpApiData<TypeOf<T>> };
+      }
     : never;
   [QueryTag]: x extends QueryElement<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
-      : never
+    ? z & {
+        [FromHttpApiDataTag]: { [k in T['Ref']]: FromHttpApiData<TypeOf<T>> };
+      }
     : never;
-  [CaptureAllElementTag]: x extends CaptureAllElement<
-    any,
-    Type<infer R, infer A>
-  >
-    ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
+  [CaptureAllElementTag]: x extends CaptureAllElement<any, infer T>
+    ? z & {
+        [FromHttpApiDataTag]: { [k in T['Ref']]: FromHttpApiData<TypeOf<T>> };
+      }
     : never;
   [StaticTag]: z;
   [VerbTag]: x extends VerbElement<any, infer CT, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
-      : never
+    ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
     : never;
   // prettier-ignore
   [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
-    ? H extends HeadersElement<infer hs, Type<infer R, infer A>>
-      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
+    ? H extends HeadersElement<infer hs, infer T>
+      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
           & { [ToHttpApiDataTag]: ExtractResponseHeaderCodings<hs>; }
       : never
     : never;
   [VerbNoContentTag]: z;
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [_ in CT['mime']]: { [k in R]: Codable<A> } }
-      : never
+    ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
     : never;
   [HeaderTag]: z;
   [RawHeaderTag]: x extends RawHeaderElement<any, infer T>
-    ? T extends Type<infer R, infer A>
-      ? z & { [FromHttpApiDataTag]: { [k in R]: FromHttpApiData<A> } }
-      : never
+    ? z & {
+        [FromHttpApiDataTag]: { [k in T['Ref']]: FromHttpApiData<TypeOf<T>> };
+      }
     : never;
 }
 
@@ -201,8 +188,8 @@ type ExtractResponseHeaderCodings<hs, acc = {}> =
     ? acc
   : hs extends [HeaderElement<any>, ...infer hs]
     ? ExtractResponseHeaderCodings<hs, acc>
-  : hs extends [RawHeaderElement<any, Type<infer R, infer A>>, ...infer hs]
-    ? ExtractResponseHeaderCodings<hs, acc & { [_ in R]: ToHttpApiData<A> }>
+  : hs extends [RawHeaderElement<any, infer T>, ...infer hs]
+    ? ExtractResponseHeaderCodings<hs, acc & { [_ in T['Ref']]: ToHttpApiData<TypeOf<T>> }>
   : never;
 
 // prettier-ignore

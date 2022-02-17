@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Either, EitherT, Identity, Try } from '@fp4ts/cats';
 import { MessageFailure, ParsingFailure } from '@fp4ts/http-core';
 import { DecoderT, Encoder, Schema, DecodeFailure } from '@fp4ts/schema';
@@ -40,3 +41,7 @@ export const Codable = Object.freeze({
     },
   },
 });
+
+export interface CodableF extends TyK<[unknown]> {
+  [$type]: Codable<TyVar<this, 0>>;
+}

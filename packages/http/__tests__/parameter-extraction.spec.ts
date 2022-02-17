@@ -3,21 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EitherT, Left, Right } from '@fp4ts/cats';
-import { id } from '@fp4ts/core';
+import { Left, Right } from '@fp4ts/cats';
+import { booleanType, id, numberType, stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect';
 import { Request, EntityDecoder, uri, Method } from '@fp4ts/http-core';
-import {
-  booleanType,
-  Capture,
-  Get,
-  group,
-  JSON,
-  numberType,
-  Query,
-  Route,
-  stringType,
-} from '@fp4ts/http-dsl';
+import { Capture, Get, group, JSON, Query, Route } from '@fp4ts/http-dsl';
 import { toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('parameter extraction', () => {

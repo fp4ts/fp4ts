@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Type } from '../type';
-import { booleanType, numberType, stringType } from '../types';
+import { booleanType, numberType, stringType, TypeRef } from '@fp4ts/core';
 import { ElementTag } from './api-element';
 import { BaseElement } from './base-element';
 
@@ -13,7 +12,7 @@ export type CaptureTag = typeof CaptureTag;
 
 export class CaptureElement<
   P extends string,
-  T extends Type<any, any>,
+  T extends TypeRef<any, any>,
 > extends BaseElement<CaptureTag> {
   public readonly [ElementTag] = CaptureTag;
 
@@ -23,10 +22,10 @@ export class CaptureElement<
 }
 
 export const Capture = Object.freeze({
-  boolean: <P extends string>(prop: P): CaptureElement<P, booleanType> =>
+  boolean: <P extends string>(prop: P): CaptureElement<P, typeof booleanType> =>
     new CaptureElement(prop, booleanType),
-  number: <P extends string>(prop: P): CaptureElement<P, numberType> =>
+  number: <P extends string>(prop: P): CaptureElement<P, typeof numberType> =>
     new CaptureElement(prop, numberType),
-  string: <P extends string>(prop: P): CaptureElement<P, stringType> =>
+  string: <P extends string>(prop: P): CaptureElement<P, typeof stringType> =>
     new CaptureElement(prop, stringType),
 });

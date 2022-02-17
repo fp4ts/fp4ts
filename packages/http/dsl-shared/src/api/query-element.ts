@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Type } from '../type';
-import { booleanType, numberType, stringType } from '../types';
+import { booleanType, numberType, stringType, TypeRef } from '@fp4ts/core';
 import { ElementTag } from './api-element';
 import { BaseElement } from './base-element';
 
@@ -13,7 +12,7 @@ export type QueryTag = typeof QueryTag;
 
 export class QueryElement<
   P extends string,
-  T extends Type<any, any>,
+  T extends TypeRef<any, any>,
 > extends BaseElement<QueryTag> {
   public readonly [ElementTag] = QueryTag;
   public constructor(public readonly property: P, public readonly type: T) {
@@ -22,10 +21,10 @@ export class QueryElement<
 }
 
 export const Query = Object.freeze({
-  boolean: <P extends string>(prop: P): QueryElement<P, booleanType> =>
+  boolean: <P extends string>(prop: P): QueryElement<P, typeof booleanType> =>
     new QueryElement(prop, booleanType),
-  number: <P extends string>(prop: P): QueryElement<P, numberType> =>
+  number: <P extends string>(prop: P): QueryElement<P, typeof numberType> =>
     new QueryElement(prop, numberType),
-  string: <P extends string>(prop: P): QueryElement<P, stringType> =>
+  string: <P extends string>(prop: P): QueryElement<P, typeof stringType> =>
     new QueryElement(prop, stringType),
 });
