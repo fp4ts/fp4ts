@@ -61,15 +61,15 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
     while (true) {
       const cur = view(_cur);
       switch (cur.tag) {
-        case 'pure':
+        case 0: // 'pure'
           result = { tag: 'success', value: cur.value };
           break;
 
-        case 'fail':
+        case 1: // 'fail'
           result = { tag: 'failure', error: cur.error };
           break;
 
-        case 'delay':
+        case 2: // 'delay'
           try {
             result = { tag: 'success', value: cur.thunk() };
           } catch (error) {
@@ -77,7 +77,7 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
           }
           break;
 
-        case 'defer': {
+        case 3: /* 'defer' */ {
           try {
             _cur = cur.thunk();
           } catch (error) {
@@ -86,25 +86,25 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
           continue;
         }
 
-        case 'map':
+        case 4: // 'map'
           stack.push(cur.fun);
           conts.push(Continuation.MapK);
           _cur = cur.self;
           continue;
 
-        case 'flatMap':
+        case 5: // 'flatMap'
           stack.push(cur.fun);
           conts.push(Continuation.FlatMapK);
           _cur = cur.self;
           continue;
 
-        case 'handleErrorWith':
+        case 6: // 'handleErrorWith'
           stack.push(cur.fun);
           conts.push(Continuation.HandleErrorWithK);
           _cur = cur.self;
           continue;
 
-        case 'attempt':
+        case 7: // 'attempt'
           conts.push(Continuation.AttemptK);
           _cur = cur.self;
           continue;
@@ -115,8 +115,10 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
           let v: unknown = result.value;
 
           while (true) {
-            switch (conts.pop()) {
-              case Continuation.MapK: {
+            const c = conts.pop();
+            if (c == null) return v as A;
+            switch (c) {
+              case 0: {
                 const f = stack.pop()! as (u: unknown) => unknown;
                 try {
                   v = f(v);
@@ -127,7 +129,7 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 }
               }
 
-              case Continuation.FlatMapK: {
+              case 1: {
                 const f = stack.pop()! as (u: unknown) => SyncIO<unknown>;
                 try {
                   _cur = f(v);
@@ -138,29 +140,28 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 }
               }
 
-              case Continuation.HandleErrorWithK:
+              case 2:
                 stack.pop(); // skip over error handlers
                 continue;
 
-              case Continuation.AttemptK:
+              case 3:
                 v = Right(v);
                 continue;
-
-              case undefined:
-                return v as A;
             }
           }
         } else {
           let e = result.error;
 
           while (true) {
-            switch (conts.pop()) {
-              case Continuation.MapK:
-              case Continuation.FlatMapK:
+            const c = conts.pop();
+            if (c == null) throw e;
+            switch (c) {
+              case 0:
+              case 1:
                 stack.pop(); // skip over success transformations
                 continue;
 
-              case Continuation.HandleErrorWithK: {
+              case 2: {
                 const handler = stack.pop()! as (e: Error) => SyncIO<unknown>;
                 try {
                   _cur = handler(e);
@@ -171,12 +172,9 @@ export const unsafeRunSync = <A>(ioa: SyncIO<A>): A => {
                 }
               }
 
-              case Continuation.AttemptK:
+              case 3:
                 result = { tag: 'success', value: Left(result.error) };
                 continue resultLoop;
-
-              case undefined:
-                throw e;
             }
           }
         }

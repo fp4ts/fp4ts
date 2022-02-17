@@ -10,35 +10,35 @@ export abstract class SyncIO<A> {
 }
 
 export class Pure<A> extends SyncIO<A> {
-  public readonly tag = 'pure';
+  public readonly tag = 0;
   public constructor(public readonly value: A) {
     super();
   }
 }
 
 export class Fail extends SyncIO<never> {
-  public readonly tag = 'fail';
+  public readonly tag = 1;
   public constructor(public readonly error: Error) {
     super();
   }
 }
 
 export class Delay<A> extends SyncIO<A> {
-  public readonly tag = 'delay';
+  public readonly tag = 2;
   public constructor(public readonly thunk: () => A) {
     super();
   }
 }
 
 export class Defer<A> extends SyncIO<A> {
-  public readonly tag = 'defer';
+  public readonly tag = 3;
   public constructor(public readonly thunk: () => SyncIO<A>) {
     super();
   }
 }
 
 export class Map<E, A> extends SyncIO<A> {
-  public readonly tag = 'map';
+  public readonly tag = 4;
   public constructor(
     public readonly self: SyncIO<E>,
     public readonly fun: (e: E) => A,
@@ -48,7 +48,7 @@ export class Map<E, A> extends SyncIO<A> {
 }
 
 export class FlatMap<E, A> extends SyncIO<A> {
-  public readonly tag = 'flatMap';
+  public readonly tag = 5;
   public constructor(
     public readonly self: SyncIO<E>,
     public readonly fun: (e: E) => SyncIO<A>,
@@ -58,7 +58,7 @@ export class FlatMap<E, A> extends SyncIO<A> {
 }
 
 export class HandleErrorWith<A> extends SyncIO<A> {
-  public readonly tag = 'handleErrorWith';
+  public readonly tag = 6;
   public constructor(
     public readonly self: SyncIO<A>,
     public readonly fun: (e: Error) => SyncIO<A>,
@@ -68,7 +68,7 @@ export class HandleErrorWith<A> extends SyncIO<A> {
 }
 
 export class Attempt<A> extends SyncIO<Either<Error, A>> {
-  public readonly tag = 'attempt';
+  public readonly tag = 7;
   public constructor(public readonly self: SyncIO<A>) {
     super();
   }
@@ -85,6 +85,11 @@ export type View<A> =
   | Attempt<A>;
 
 export const view = <A>(_: SyncIO<A>): View<A> => _ as any;
+
+export const MapK = 0;
+export const FlatMapK = 1;
+export const HandleErrorWithK = 2;
+export const AttemptK = 3;
 
 export enum Continuation {
   MapK,
