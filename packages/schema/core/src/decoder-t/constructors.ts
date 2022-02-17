@@ -130,14 +130,16 @@ export const array =
     pipe(
       unknownArray(F),
       andThen(F)(
-        new DecoderT(xs =>
-          pipe(
-            zipWithIndex(xs),
-            traverse(EitherT.Monad<F, DecodeFailure>(F))(([x, idx]) =>
-              mapFailure_(F)(da, f => `${f} at index ${idx}`).decode(x),
-            ),
-          ),
-        ),
+        new DecoderT(xs => {
+          const loop = (acc: A[], idx: number): DecodeResultT<F, A[]> =>
+            idx >= xs.length
+              ? DecodeResultT.success(F)(acc)
+              : da
+                  .decode(xs[idx])
+                  .leftMap(F)(f => f.mapCause(f => `${f} at index '${idx}'`))
+                  .flatMap(F)(x => loop([...acc, x], idx + 1));
+          return loop([], 0);
+        }),
       ),
     );
 
@@ -147,21 +149,22 @@ export const record =
     pipe(
       unknownRecord(F),
       andThen(F)(
-        new DecoderT(xs =>
-          pipe(
-            Object.keys(xs),
-            traverse(EitherT.Monad<F, DecodeFailure>(F))(k => {
-              return mapFailure_(F)(ds, f => `${f} at key ${k}`)
-                .decode(xs[k as string])
-                .map(F)(r => tupled(r, k));
-            }),
-          ).map(F)(rs =>
-            rs.reduce(
-              (acc, [x, k]) => ({ ...acc, [k]: x }),
-              {} as Record<string, A>,
-            ),
-          ),
-        ),
+        new DecoderT(xs => {
+          const keys = Object.keys(xs);
+          const loop = (
+            acc: Record<string, A>,
+            idx: number,
+          ): DecodeResultT<F, Record<string, A>> => {
+            const k = keys[idx];
+            return idx >= keys.length
+              ? DecodeResultT.success(F)(acc)
+              : ds
+                  .decode(xs[k as any])
+                  .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
+                  .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
+          };
+          return loop({}, 0);
+        }),
       ),
     );
 
@@ -171,29 +174,30 @@ export const struct =
     F,
     unknown,
     A
-  > =>
-    pipe(
+  > => {
+    const keys = Object.keys(ds) as (keyof A)[];
+    return pipe(
       unknownRecord(F),
       andThen(F)(
-        new DecoderT(xs =>
-          pipe(
-            Object.keys(ds) as (keyof A)[],
-            traverse(EitherT.Monad<F, DecodeFailure>(F))(k => {
-              if (!(k in xs))
-                return DecodeResultT.failure(F)(
-                  new DecodeFailure(`missing property '${k}'`),
-                );
+        new DecoderT(xs => {
+          const loop = (acc: Partial<A>, idx: number): DecodeResultT<F, A> => {
+            const k = keys[idx];
+            if (idx >= keys.length) return DecodeResultT.success(F)(acc as A);
+            if (!(k in xs))
+              return DecodeResultT.failure(F)(
+                new DecodeFailure(`missing property '${k}'`),
+              );
 
-              return mapFailure_(F)(ds[k], f => `${f} at key '${k}'`)
-                .decode(xs[k as string])
-                .map(F)(r => tupled(r, k));
-            }),
-          ).map(F)(rs =>
-            rs.reduce((acc, [x, k]) => ({ ...acc, [k]: x }), {} as A),
-          ),
-        ),
+            return ds[k]
+              .decode(xs[k as any])
+              .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
+              .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
+          };
+          return loop({}, 0);
+        }),
       ),
     );
+  };
 
 export const partial =
   <F>(F: Monad<F>) =>
@@ -237,21 +241,21 @@ export const product =
     pipe(
       unknownArray(F),
       andThen(F)(
-        fromRefinement(F)(
-          (xs: unknown[]): xs is unknown[] => xs.length === ds.length,
-          'Length mismatch',
-        ),
-      ),
-      andThen(F)(
-        new DecoderT(xs =>
-          pipe(
-            zipWithIndex(xs),
-            traverse(EitherT.Monad<F, DecodeFailure>(F))(([x, idx]) =>
-              ds[idx].decode(x),
-            ),
-            x => x as EitherT<F, DecodeFailure, A>,
-          ),
-        ),
+        new DecoderT(xs => {
+          if (xs.length !== ds.length)
+            return DecodeResultT.failure(F)(
+              new DecodeFailure('Length mismatch'),
+            );
+
+          const loop = (acc: any[], idx: number): DecodeResultT<F, A> =>
+            idx >= ds.length
+              ? DecodeResultT.success(F)(acc as A)
+              : ds[idx].decode(xs[idx]).flatMap(F)(x =>
+                  loop([...acc, x], idx + 1),
+                );
+
+          return loop([], 0);
+        }),
       ),
     );
 
