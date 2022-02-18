@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Option } from '@fp4ts/cats';
 import { EntityEncoder } from '../codec';
 import { Response } from './response';
 
@@ -24,6 +25,13 @@ export class Status {
   // prettier-ignore
   public static readonly InternalServerError = new Status(500, 'Internal Server Error');
 
+  public static fromKnownCode(code: number): Option<Status> {
+    return Option(this.all.find(s => s.code === code));
+  }
+  public static fromKnownCodeUnsafe(code: number): Status {
+    return Option(this.all.find(s => s.code === code)).get;
+  }
+
   private readonly __void!: void;
   private constructor(
     public readonly code: number,
@@ -39,6 +47,19 @@ export class Status {
       );
     return apply as this;
   }
+
+  private static all: Status[] = [
+    this.Ok,
+    this.Created,
+    this.Accepted,
+    this.NoContent,
+    this.BadRequest,
+    this.NotFound,
+    this.MethodNotAllowed,
+    this.NotAcceptable,
+    this.UnsupportedMediaType,
+    this.InternalServerError,
+  ];
 }
 
 export interface Status {

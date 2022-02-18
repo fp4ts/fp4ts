@@ -5,19 +5,15 @@
 
 import http from 'http';
 import { Kind, snd } from '@fp4ts/core';
-import { Either, List, Monad } from '@fp4ts/cats';
+import { Either, Monad } from '@fp4ts/cats';
 import { Async, Resource, Dispatcher } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
 import * as io from '@fp4ts/stream-io';
+import { HttpApp, Method, Uri, Request } from '@fp4ts/http-core';
 import {
-  Headers,
-  HttpApp,
-  Method,
-  Uri,
-  RawHeader,
-  Request,
-  Entity,
-} from '@fp4ts/http-core';
+  headersToOutgoingHeaders,
+  incomingHeadersToHeaders,
+} from '@fp4ts/http-node-shared';
 
 export const serve =
   <F>(F: Async<F>) =>
@@ -72,33 +68,3 @@ const mkConnectionHandler =
           .compileConcurrent(F).drain,
       );
     });
-
-const incomingHeadersToHeaders = (hs: http.IncomingHttpHeaders): Headers => {
-  const rawHeaders: RawHeader[] = [];
-  for (const [k, val] of Object.entries(hs)) {
-    if (val === undefined) continue;
-    if (Array.isArray(val)) {
-      rawHeaders.push(...val.map(v => new RawHeader(k, v)));
-    } else {
-      rawHeaders.push(new RawHeader(k, val));
-    }
-  }
-  return new Headers(List.fromArray(rawHeaders));
-};
-
-const headersToOutgoingHeaders = (hs: Headers): http.OutgoingHttpHeaders => {
-  const outgoingHeaders: http.OutgoingHttpHeaders = {};
-  for (const { headerName, headerValue } of hs.headers.toArray) {
-    if (Array.isArray(outgoingHeaders[headerName])) {
-      (outgoingHeaders[headerName] as any).push(headerValue);
-    }
-    if (typeof outgoingHeaders[headerName] === 'string') {
-      outgoingHeaders[headerName] = [
-        outgoingHeaders[headerName] as any,
-        headerValue,
-      ];
-    }
-    outgoingHeaders[headerName] = headerValue;
-  }
-  return outgoingHeaders;
-};

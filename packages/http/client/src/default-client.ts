@@ -20,7 +20,7 @@ import { RequestBuilder } from './request-builder';
 
 export class DefaultClient<F> implements Client<F> {
   public constructor(
-    private readonly F: Async<F>,
+    protected readonly F: Async<F>,
     public readonly run: (req: Request<F>) => Resource<F, Response<F>>,
   ) {}
 

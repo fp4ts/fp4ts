@@ -4,9 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module http/client
+ * @module http/node-client
  */
-
-export * from './client';
-export * from './default-client';
-export * from './request-builder';
+export * from './node-client';

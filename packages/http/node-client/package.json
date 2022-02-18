@@ -1,5 +1,5 @@
 {
-  "name": "@fp4ts/http-node-server",
+  "name": "@fp4ts/http-node-client",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -13,8 +13,7 @@
     "@fp4ts/core": "*",
     "@fp4ts/effect": "*",
     "@fp4ts/http-core": "*",
-    "@fp4ts/http-node-shared": "*",
-    "@fp4ts/schema": "*",
+    "@fp4ts/http-client": "*",
     "@fp4ts/stream": "*"
   },
   "devDependencies": {
