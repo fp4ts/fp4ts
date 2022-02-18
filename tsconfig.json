@@ -32,6 +32,8 @@
       "@fp4ts/http": ["./http/index.ts"],
       "@fp4ts/http-core": ["./http/core/src"],
       "@fp4ts/http-core/lib/*": ["./http/core/src/*"],
+      "@fp4ts/http-client": ["./http/client/src"],
+      "@fp4ts/http-client/lib/*": ["./http/client/src/*"],
       "@fp4ts/http-dsl": ["./http/dsl/src"],
       "@fp4ts/http-dsl/lib/*": ["./http/dsl/src/*"],
       "@fp4ts/http-dsl-shared": ["./http/dsl-shared/src"],
