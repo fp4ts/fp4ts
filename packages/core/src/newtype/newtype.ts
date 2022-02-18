@@ -8,7 +8,7 @@ import { TypeRef } from './type-ref';
 
 export interface Newtype<Ref extends string, A> {
   readonly Ref: Ref;
-  readonly value: A;
+  readonly _A: A;
 }
 
 export interface NewtypeF<Ref extends string, F> extends TyK<[unknown]> {

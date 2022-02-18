@@ -28,11 +28,11 @@ export const nullable = <O, A>(
   return new Codec0(c0.encoder.nullable, c0.decoder.nullable());
 };
 
-export const imap_ = <I, A, B>(
-  c: Codec<I, A, A>,
+export const imap_ = <I, O, A, B>(
+  c: Codec<I, O, A>,
   f: (a: A) => B,
   g: (b: B) => A,
-): Codec<I, A, B> => {
-  const c0 = c as Codec0<I, A, A>;
+): Codec<I, O, B> => {
+  const c0 = c as Codec0<I, O, A>;
   return new Codec0(c0.encoder.contramap(g), c0.decoder.map(f));
 };
