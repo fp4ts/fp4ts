@@ -5,6 +5,7 @@
 
 import { Fix, Lazy, lazyVal, α, λ } from '@fp4ts/core';
 import { Schemable } from '@fp4ts/schema-kernel';
+import { Codec0, Codec } from './algebra';
 import { CodecF } from './codec';
 import {
   array,
@@ -19,7 +20,7 @@ import {
   struct,
   sum,
 } from './constructors';
-import { imap_, nullable, optional } from './operators';
+import { nullable, optional } from './operators';
 
 export const codecSchemable: Lazy<Schemable<λ<CodecF, [Fix<unknown>, α, α]>>> =
   lazyVal(() =>
@@ -39,6 +40,13 @@ export const codecSchemable: Lazy<Schemable<λ<CodecF, [Fix<unknown>, α, α]>>>
       struct: struct,
       sum: sum as Schemable<λ<CodecF, [Fix<unknown>, α, α]>>['sum'],
       defer: defer,
-      imap: imap_,
+      imap: <A, B>(
+        fa: Codec<unknown, A, A>,
+        f: (a: A) => B,
+        g: (b: B) => A,
+      ) => {
+        const fa0 = fa as Codec0<unknown, A, A>;
+        return new Codec0(fa0.encoder.contramap(g).map(f), fa0.decoder.map(f));
+      },
     }),
   );

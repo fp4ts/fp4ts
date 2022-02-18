@@ -15,7 +15,6 @@ import {
   map_,
   optional,
   nullable,
-  imap_,
 } from './operators';
 import {
   array,
@@ -62,6 +61,6 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
       record: record,
       struct: struct as Schemable<λ<EncoderF, [α, α]>>['struct'],
       defer: defer,
-      imap: imap_,
+      imap: (encoder, f, g) => map_(contramap_(encoder, g), f),
     }),
 );

@@ -32,7 +32,7 @@ export const imap_ = <I, A, B>(
   c: Codec<I, A, A>,
   f: (a: A) => B,
   g: (b: B) => A,
-): Codec<I, B, B> => {
+): Codec<I, A, B> => {
   const c0 = c as Codec0<I, A, A>;
-  return new Codec0(c0.encoder.imap(f, g), c0.decoder.map(f));
+  return new Codec0(c0.encoder.contramap(g), c0.decoder.map(f));
 };

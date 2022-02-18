@@ -44,18 +44,12 @@ export const intersection: <O2, B>(
 export const map_ = <O1, O2, A>(
   fa: Encoder<O1, A>,
   f: (o: O1) => O2,
-): Encoder<O2, A> => new Encoder(AndThen(fa.encode).andThen(f));
+): Encoder<O2, A> => new SafeEncoder(x => safeEncode(fa, x).map(f));
 
 export const contramap_ = <O, A, B>(
   fa: Encoder<O, A>,
   f: (b: B) => A,
-): Encoder<O, B> => new Encoder(AndThen(f).andThen(fa.encode));
-
-export const imap_ = <A, B>(
-  encoder: Encoder<A, A>,
-  f: (a: A) => B,
-  g: (b: B) => A,
-): Encoder<B, B> => new SafeEncoder(a => safeEncode(encoder, g(a)).map(f));
+): Encoder<O, B> => new SafeEncoder(x => safeEncode(fa, f(x)));
 
 export const andThen_ = <A, B, O>(
   fab: Encoder<B, A>,

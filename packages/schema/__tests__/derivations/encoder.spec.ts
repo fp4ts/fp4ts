@@ -4,10 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eq, Eval, List } from '@fp4ts/cats';
+import { Eq, List } from '@fp4ts/cats';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Schema, SchemableK } from '@fp4ts/schema-kernel';
-import { DecoderT, Encoder } from '@fp4ts/schema-core';
+import { Encoder } from '@fp4ts/schema-core';
 import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
 
 describe('Encoder derivation', () => {
