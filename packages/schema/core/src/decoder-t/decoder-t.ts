@@ -125,7 +125,7 @@ interface DecoderTObj {
   boolean<F>(F: Applicative<F>): DecoderT<F, unknown, boolean>;
   number<F>(F: Applicative<F>): DecoderT<F, unknown, number>;
   string<F>(F: Applicative<F>): DecoderT<F, unknown, string>;
-  nullDecoderT<F>(F: Applicative<F>): DecoderT<F, unknown, null>;
+  null<F>(F: Applicative<F>): DecoderT<F, unknown, null>;
   unknownArray<F>(F: Applicative<F>): DecoderT<F, unknown, unknown[]>;
   unknownRecord<F>(
     F: Applicative<F>,
@@ -183,7 +183,7 @@ DecoderT.literal = literal;
 DecoderT.boolean = boolean;
 DecoderT.number = number;
 DecoderT.string = string;
-DecoderT.nullDecoderT = nullDecoderT;
+DecoderT.null = nullDecoderT;
 DecoderT.unknownArray = unknownArray;
 DecoderT.unknownRecord = unknownRecord;
 DecoderT.array = array;
@@ -233,7 +233,7 @@ interface DecoderObj {
   boolean: Decoder<unknown, boolean>;
   number: Decoder<unknown, number>;
   string: Decoder<unknown, string>;
-  nullDecoderT: Decoder<unknown, null>;
+  null: Decoder<unknown, null>;
   unknownArray: Decoder<unknown, unknown[]>;
   unknownRecord: Decoder<unknown, Record<string, unknown>>;
   array<A>(da: Decoder<unknown, A>): Decoder<unknown, A[]>;
@@ -252,7 +252,7 @@ interface DecoderObj {
   ): <A extends {}>(ds: {
     [k in keyof A]: Decoder<unknown, A[k] & Record<T, k>>;
   }) => Decoder<unknown, A[keyof A]>;
-  defer<A>(thunk: () => Decoder<unknown, A>): Decoder<unknown, A>;
+  defer<I, A>(thunk: () => Decoder<I, A>): Decoder<I, A>;
 
   // -- Instances
 
@@ -279,7 +279,7 @@ Decoder.literal = literal(Eval.Monad);
 Decoder.boolean = boolean(Eval.Monad);
 Decoder.number = number(Eval.Monad);
 Decoder.string = string(Eval.Monad);
-Decoder.nullDecoderT = nullDecoderT(Eval.Monad);
+Decoder.null = nullDecoderT(Eval.Monad);
 Decoder.unknownArray = unknownArray(Eval.Monad);
 Decoder.unknownRecord = unknownRecord(Eval.Monad);
 Decoder.array = array(Eval.Monad);

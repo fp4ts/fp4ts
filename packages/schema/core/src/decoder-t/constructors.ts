@@ -281,9 +281,9 @@ export const sum =
       ),
     );
 
-export const defer = <F, A>(
-  thunk: () => DecoderT<F, unknown, A>,
-): DecoderT<F, unknown, A> => new DecoderT(i => thunk().decode(i));
+export const defer = <F, I, A>(
+  thunk: () => DecoderT<F, I, A>,
+): DecoderT<F, I, A> => new DecoderT(i => thunk().decode(i));
 
 // -- Utils
 

@@ -37,13 +37,13 @@ interface EncoderObj {
 
   lift<O, A>(f: (a: A) => O): Encoder<O, A>;
   array<O, A>(fa: Encoder<O, A>): Encoder<O[], A[]>;
-  struct<P extends Record<string, Encoder<unknown, unknown>>>(
+  struct<P extends Record<string, Encoder<any, any>>>(
     xs: P,
   ): Encoder<
     { [k in keyof P]: OutputOf<P[k]> },
     { [k in keyof P]: TypeOf<P[k]> }
   >;
-  partial<P extends Record<string, Encoder<unknown, unknown>>>(
+  partial<P extends Record<string, Encoder<any, any>>>(
     xs: P,
   ): Encoder<
     Partial<{ [k in keyof P]: OutputOf<P[k]> }>,
@@ -52,7 +52,7 @@ interface EncoderObj {
   record<O, A>(
     fa: Encoder<O, A>,
   ): Encoder<Record<string, O>, Record<string, A>>;
-  product<P extends Encoder<unknown, unknown>[]>(
+  product<P extends Encoder<any, any>[]>(
     ...xs: P
   ): Encoder<
     { [k in keyof P]: OutputOf<P[k]> },

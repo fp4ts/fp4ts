@@ -11,9 +11,9 @@ export class Encoder<O, A> {
   public constructor(public readonly encode: (a: A) => O) {}
 }
 
-const SafeEvalTag = Symbol('@fp4ts/schema/core/safe-eval');
+const SafeEncodeTag = Symbol('@fp4ts/schema/core/safe-eval');
 function isSafeEval<O, A>(g: Encoder<O, A>): g is SafeEncoder<O, A> {
-  return SafeEvalTag in g;
+  return SafeEncodeTag in g;
 }
 
 export function safeEncode<O, A>(g: Encoder<O, A>, x: A): Eval<O> {
@@ -21,7 +21,7 @@ export function safeEncode<O, A>(g: Encoder<O, A>, x: A): Eval<O> {
 }
 
 export class SafeEncoder<O, A> extends Encoder<O, A> {
-  public readonly [SafeEvalTag] = true;
+  public readonly [SafeEncodeTag] = true;
   public constructor(public readonly safeEncode: (a: A) => Eval<O>) {
     super(a => safeEncode(a).value);
   }

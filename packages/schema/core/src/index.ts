@@ -9,4 +9,5 @@
 export * from './decode-failure';
 export * from './decoder-t';
 export * from './encoder';
+export * from './codec';
 export * from './guard';

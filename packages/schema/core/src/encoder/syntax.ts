@@ -9,6 +9,7 @@ import {
   andThen_,
   compose_,
   contramap_,
+  imap_,
   intersection_,
   map_,
   nullable,
@@ -22,6 +23,12 @@ declare module './algebra' {
 
     map<O2>(f: (o: O) => O2): Encoder<O2, A>;
     contramap<AA>(f: (aa: AA) => A): Encoder<O, AA>;
+
+    imap<AA, B>(
+      this: Encoder<AA, AA>,
+      f: (a: AA) => B,
+      g: (b: B) => AA,
+    ): Encoder<B, B>;
 
     andThen<OO, O2>(
       this: Encoder<OO, A>,
@@ -50,6 +57,9 @@ Encoder.prototype.map = function (f) {
 };
 Encoder.prototype.contramap = function (f) {
   return contramap_(this, f);
+};
+Encoder.prototype.imap = function (f, g) {
+  return imap_(this, f, g);
 };
 Encoder.prototype.andThen = function (that) {
   return andThen_(this, that);

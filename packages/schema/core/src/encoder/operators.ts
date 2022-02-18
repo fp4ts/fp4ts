@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen, Option } from '@fp4ts/cats';
-import { Encoder } from './algebra';
+import { AndThen, Eval, Option } from '@fp4ts/cats';
+import { Encoder, safeEncode, SafeEncoder } from './algebra';
 
 export const nullable = <O, A>(
   fa: Encoder<O, A>,
@@ -14,7 +14,7 @@ export const nullable = <O, A>(
 export const optional = <O, A>(
   fa: Encoder<O, A>,
 ): Encoder<Option<O>, Option<A>> =>
-  new Encoder(fx => fx.map(x => fa.encode(x)));
+  new SafeEncoder(fx => fx.traverse(Eval.Applicative)(x => safeEncode(fa, x)));
 
 export const map: <O1, O2>(
   f: (o: O1) => O2,
@@ -50,6 +50,12 @@ export const contramap_ = <O, A, B>(
   fa: Encoder<O, A>,
   f: (b: B) => A,
 ): Encoder<O, B> => new Encoder(AndThen(f).andThen(fa.encode));
+
+export const imap_ = <A, B>(
+  encoder: Encoder<A, A>,
+  f: (a: A) => B,
+  g: (b: B) => A,
+): Encoder<B, B> => new SafeEncoder(a => safeEncode(encoder, g(a)).map(f));
 
 export const andThen_ = <A, B, O>(
   fab: Encoder<B, A>,

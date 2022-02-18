@@ -12,17 +12,16 @@ import {
   andThen_,
   compose_,
   contramap_,
-  intersection_,
   map_,
   optional,
   nullable,
+  imap_,
 } from './operators';
 import {
   array,
   defer,
   lift,
   literal,
-  partial,
   product,
   record,
   struct,
@@ -63,10 +62,6 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
       record: record,
       struct: struct as Schemable<λ<EncoderF, [α, α]>>['struct'],
       defer: defer,
-      imap: <A, B>(
-        ea: Encoder<A, A>,
-        f: (a: A) => B,
-        g: (b: B) => A,
-      ): Encoder<B, B> => new SafeEncoder(a => safeEncode(ea, g(a)).map(f)),
+      imap: imap_,
     }),
 );
