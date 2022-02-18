@@ -5,10 +5,11 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, List } from '@fp4ts/cats';
-import { forAll, IsEq } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Schema, SchemableK } from '@fp4ts/schema-kernel';
 import { Codec } from '@fp4ts/schema-core';
 import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
+import { CodecSuite } from '@fp4ts/schema-laws';
 
 describe('Codec derivation', () => {
   const SnocEqK = Snoc.schemaK.interpret(SchemableK.EqK);
@@ -32,6 +33,13 @@ describe('Codec derivation', () => {
     );
   });
 
+  const EqAny = Eq.of({
+    equals: (x, y) => {
+      expect(x).toEqual(y);
+      return true;
+    },
+  });
+
   function testCodec<A>(
     type: string,
     S: Schema<A>,
@@ -39,9 +47,11 @@ describe('Codec derivation', () => {
     arbA: Arbitrary<A>,
   ) {
     const C = S.interpret(Codec.Schemable);
-    test(
+
+    const arbT = fc.oneof(arbA, fc.object());
+    checkAll(
       `Codec<unknown, ${type}, ${type}>`,
-      forAll(arbA, a => new IsEq(C.decode(C.encode(a)).value.value.get, a))(E),
+      CodecSuite(C).codec(arbA, arbT, E, EqAny),
     );
   }
 
