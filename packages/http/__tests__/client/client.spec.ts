@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kleisli } from '@fp4ts/cats';
 import { IO, IOF, IOOutcome } from '@fp4ts/effect';
 import {
   EntityDecoder,
@@ -17,7 +16,7 @@ import {
 import { Client } from '@fp4ts/http-client';
 
 describe('Mock Client', () => {
-  const app: HttpApp<IOF> = Kleisli(req =>
+  const app = HttpApp<IOF>(req =>
     IO.pure(Status.Ok<IOF>().withBodyStream(req.body)),
   );
 
@@ -50,7 +49,7 @@ describe('Mock Client', () => {
   it('should allow request to be canceled', async () => {
     await IO.deferred<void>()
       .flatMap(cancelSignal => {
-        const app: HttpApp<IOF> = Kleisli(() =>
+        const app = HttpApp<IOF>(() =>
           cancelSignal.complete()['>>>'](IO.never),
         );
         const cancelClient = Client.fromHttpApp(IO.Async)(app);
