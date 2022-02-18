@@ -55,16 +55,16 @@ export abstract class Message<F, Self> extends Media<F> {
           cl => e.headers.put(cl),
         ),
     );
-    return this.copy({ entity, headers: this.headers['+++'](hs) });
+    return this.copy({ body: entity.body, headers: this.headers['+++'](hs) });
   }
 
-  public withEntityBody(eb: EntityBody<F>): Self {
-    return this.copy({ entity: new Entity(eb) });
+  public withBodyStream(body: EntityBody<F>): Self {
+    return this.copy({ body });
   }
 }
 type Props<F> = {
   readonly httpVersion: HttpVersion;
   readonly headers: Headers;
-  readonly entity: Entity<F>;
+  readonly body: EntityBody<F>;
   readonly attributes: Attributes;
 };

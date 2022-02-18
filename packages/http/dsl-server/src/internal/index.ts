@@ -539,7 +539,7 @@ export function route<F>(F: Concurrent<F, Error>) {
             .putHeaders(ct.self)
             .putHeaders(hs);
           return req.method === Method.HEAD
-            ? res.withEntityBody(EntityBody.empty())
+            ? res.withBodyStream(EntityBody.empty())
             : res;
         }),
       ),

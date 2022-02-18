@@ -57,13 +57,7 @@ const mkConnectionHandler =
         io.suspendReadableAndRead(F)()(() => req),
       ).flatMap(snd);
 
-      const request = new Request(
-        method,
-        uri,
-        '1.1',
-        headers,
-        new Entity(body),
-      );
+      const request = new Request(method, uri, '1.1', headers, body);
       const response = yield* _(app.run(request));
 
       yield* _(
