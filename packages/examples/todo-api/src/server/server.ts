@@ -11,7 +11,7 @@ import { Codable, toHttpApp } from '@fp4ts/http-dsl-server';
 import { CreateTodo, Todo } from '../todo';
 import { TodoService } from './todo-service';
 
-import { api, TodoArrayType } from '../api';
+import { api } from '../api';
 import { version } from './version';
 
 export class Server<F> {

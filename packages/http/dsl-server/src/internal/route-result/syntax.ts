@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Functor, Monad, None, OptionT, Some } from '@fp4ts/cats';
+import { Functor, Monad, OptionT, Some } from '@fp4ts/cats';
 import { Response } from '@fp4ts/http-core';
 import { RouteResult, RouteResultT, view } from './algebra';
 import {
