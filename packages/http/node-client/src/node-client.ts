@@ -40,6 +40,7 @@ export class NodeClient<F> extends DefaultClient<F> {
               const headers = incomingHeadersToHeaders(res_.headers);
               const body = io.readReadable(F)(F.pure(res_));
               const res = new Response(status, '1.1', headers, body);
+              res_.on('error', e => console.log(e, new Error().stack));
               return respSignal.complete(res);
             }),
           ),
@@ -48,8 +49,7 @@ export class NodeClient<F> extends DefaultClient<F> {
 
       const resp = io
         .writeWritable(F)(req_)(req.body)
-        .covaryOutput<Response<F>>()
-        .merge(F)(Stream.evalF(respSignal.get()))
+        ['+++'](Stream.evalF(respSignal.get()))
         .compileConcurrent(F).last;
       return yield* _(Resource.evalF(resp));
     });
@@ -63,7 +63,7 @@ function requestToRequestOptions<F>(req: Request<F>): http.RequestOptions {
     hostname: req.uri.authority.map(a => a.host).getOrElse(() => 'localhost'),
     path: req.uri.path.components.join('/'),
     headers: headersToOutgoingHeaders(req.headers),
-    protocol: req.uri.scheme.getOrElse(() => 'http:'),
+    protocol: `${req.uri.scheme.getOrElse(() => 'http')}:`,
     defaultPort: 80,
   };
 }

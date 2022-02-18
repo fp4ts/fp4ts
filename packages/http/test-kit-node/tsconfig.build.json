@@ -11,9 +11,13 @@
     { "path": "../../effect/tsconfig.build.json" },
     { "path": "../../schema/tsconfig.build.json" },
     { "path": "../../stream/tsconfig.build.json" },
+    { "path": "../client/tsconfig.build.json" },
     { "path": "../core/tsconfig.build.json" },
     { "path": "../dsl-server/tsconfig.build.json" },
     { "path": "../dsl-shared/tsconfig.build.json" },
+    { "path": "../node-client/tsconfig.build.json" },
+    { "path": "../node-server/tsconfig.build.json" },
+    { "path": "../node-shared/tsconfig.build.json" },
     { "path": "../test-kit/tsconfig.build.json" },
   ]
 }

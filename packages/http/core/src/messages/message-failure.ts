@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { None, Option } from '@fp4ts/cats';
+import { None, Option, Some } from '@fp4ts/cats';
 import { EntityEncoder } from '../codec';
 import { HttpVersion } from '../http-version';
 import { Response } from './response';
@@ -105,6 +105,21 @@ export class NotFoundFailure extends MessageFailure {
     return new Response<F>(Status.NotFound, httpVersion).withEntity(
       this.sanitized,
       EntityEncoder.text<F>(),
+    );
+  }
+}
+
+export class InternalServerErrorFailure extends MessageFailure {
+  public constructor(public readonly error: Error) {
+    super(error.message);
+  }
+
+  public cause: Option<Error> = Some(this.error);
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.InternalServerError, httpVersion).withEntity(
+      this.error.toString(),
+      EntityEncoder.text(),
     );
   }
 }

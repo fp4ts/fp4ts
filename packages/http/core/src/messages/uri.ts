@@ -19,7 +19,7 @@ import {
 import { tupled } from '@fp4ts/core';
 import { ParsingFailure } from './message-failure';
 
-export function uri(strings: TemplateStringsArray, ...xs: string[]): Uri {
+export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {
   const results: string[] = [];
   let i = 0;
   let j = 0;
@@ -31,7 +31,7 @@ export function uri(strings: TemplateStringsArray, ...xs: string[]): Uri {
     results.push(strings[i++]);
   }
   while (j < xs.length) {
-    results.push(xs[j++]);
+    results.push(`${xs[j++]}`);
   }
   return Uri.fromStringUnsafe(results.join(''));
 }

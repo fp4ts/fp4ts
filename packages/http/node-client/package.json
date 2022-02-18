@@ -14,6 +14,7 @@
     "@fp4ts/effect": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/http-client": "*",
+    "@fp4ts/http-node-shared": "*",
     "@fp4ts/stream": "*"
   },
   "devDependencies": {
