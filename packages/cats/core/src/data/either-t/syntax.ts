@@ -92,6 +92,8 @@ declare module './algebra' {
 
     toOptionF(F: Functor<F>): Kind<F, [Option<B>]>;
     toOptionT(F: Functor<F>): OptionT<F, B>;
+
+    leftWiden<AA>(this: EitherT<F, AA, B>): EitherT<F, AA, B>;
   }
 }
 
@@ -146,4 +148,7 @@ EitherT.prototype.flatMapF = function (F) {
 
 EitherT.prototype.flatten = function (F) {
   return flatten(F)(this);
+};
+EitherT.prototype.leftWiden = function () {
+  return this;
 };
