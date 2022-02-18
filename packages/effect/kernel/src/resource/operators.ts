@@ -12,6 +12,7 @@ import {
   Left,
   Monoid,
   ApplicativeError,
+  Applicative,
 } from '@fp4ts/cats';
 
 import { Async } from '../async';
@@ -144,6 +145,13 @@ export const finalize: <F>(
   fin: (oc: Outcome<$<ResourceF, [F]>, Error, A>) => Resource<F, void>,
 ) => (r: Resource<F, A>) => Resource<F, A> = F => fin => r =>
   finalize_(F)(r, fin);
+
+export const onFinalize: <F>(
+  F: Applicative<F>,
+) => <A>(
+  r: Resource<F, A>,
+  fin: (ec: ExitCase) => Kind<F, [void]>,
+) => Resource<F, A> = F => (r, fin) => onFinalize_(F)(r, fin);
 
 export const both: <F>(
   F: Concurrent<F, Error>,
@@ -400,6 +408,17 @@ export const onCancel_ =
         F.onCancel(use_(F)(fin, () => F.unit)),
         F.map(([x, rel]) => [x, (_: ExitCase) => rel]),
       ),
+    );
+
+export const onFinalize_ =
+  <F>(F: Applicative<F>) =>
+  <A>(
+    r: Resource<F, A>,
+    fin: (ec: ExitCase) => Kind<F, [void]>,
+  ): Resource<F, A> =>
+    flatMap_(
+      make(F)(F.unit, (_, ec) => fin(ec)),
+      () => r,
     );
 
 export const finalize_ =

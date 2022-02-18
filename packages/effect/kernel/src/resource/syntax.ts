@@ -4,7 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
-import { Monoid, ApplicativeError, Either, Kleisli } from '@fp4ts/cats';
+import {
+  Monoid,
+  ApplicativeError,
+  Either,
+  Kleisli,
+  Applicative,
+} from '@fp4ts/cats';
 
 import { MonadCancel } from '../monad-cancel';
 import { Concurrent } from '../concurrent';
@@ -12,6 +18,7 @@ import { Outcome } from '../outcome';
 import { Fiber } from '../fiber';
 import { Resource } from './algebra';
 import { ResourceF } from './resource';
+import { ExitCase } from './exit-case';
 import {
   allocated,
   attempt,
@@ -28,6 +35,7 @@ import {
   handleError_,
   map_,
   onCancel_,
+  onFinalize_,
   race_,
   surround_,
   useKleisli_,
@@ -76,6 +84,9 @@ declare module './algebra' {
     onCancel(
       F: MonadCancel<F, Error>,
     ): (fin: Resource<F, void>) => Resource<F, A>;
+    onFinalize(
+      F: Applicative<F>,
+    ): (fin: (ec: ExitCase) => Kind<F, [void]>) => Resource<F, A>;
     finalize(
       F: MonadCancel<F, Error>,
     ): (
@@ -158,6 +169,9 @@ Resource.prototype.attempt = function (F) {
 
 Resource.prototype.onCancel = function (F) {
   return fin => onCancel_(F)(this, fin);
+};
+Resource.prototype.onFinalize = function (F) {
+  return fin => onFinalize_(F)(this, fin);
 };
 Resource.prototype.finalize = function (F) {
   return fin => finalize_(F)(this, fin);
