@@ -14,7 +14,6 @@
     "@fp4ts/effect": "*",
     "@fp4ts/http-client": "*",
     "@fp4ts/http-core": "*",
-    "@fp4ts/http-dsl-client": "*",
     "@fp4ts/http-dsl-server": "*",
     "@fp4ts/http-dsl-shared": "*",
     "@fp4ts/http-test-kit": "*",

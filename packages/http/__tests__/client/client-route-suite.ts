@@ -3,9 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Monad } from '@fp4ts/cats';
 import { stringType, tupled } from '@fp4ts/core';
+import { List, Monad } from '@fp4ts/cats';
 import { Resource, IO, IOF } from '@fp4ts/effect';
+import { Stream, text } from '@fp4ts/stream';
 import {
   EntityDecoder,
   EntityEncoder,
@@ -19,12 +20,10 @@ import { Client } from '@fp4ts/http-client';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { group, Header, Raw, Route } from '@fp4ts/http-dsl-shared';
 import { serverPort, withServerClient } from '@fp4ts/http-test-kit-node';
-import { Stream, text } from '@fp4ts/stream';
 import { GetRoutes, SimplePath } from './get-routes';
 
 const api = group(
   Route('request-splitting')[':>'](Header('Evil', stringType)[':>'](Raw)),
-  Route('request-splitting')[':>'](Raw),
   Raw,
 );
 
@@ -36,8 +35,12 @@ export function clientRouteSuite(
     api,
     {},
   )(() => [
-    () => HttpApp(() => IO.pure(Status.InternalServerError())),
-    HttpApp(() => IO.pure(Status.Ok())),
+    h =>
+      HttpApp(() =>
+        h
+          .map(() => IO.pure(Status.InternalServerError<IOF>()))
+          .getOrElse(() => IO.pure(Status.Ok())),
+      ),
     HttpApp(req =>
       req.method === Method.GET
         ? GetRoutes.lookup(req.uri.path.components.join('/')).getOrElse(() =>
@@ -115,6 +118,85 @@ export function clientRouteSuite(
             .fetch(rec => expected.flatMap(exp => checkResponse(rec, exp)));
         }).unsafeRunToPromise();
       });
+    });
+
+    it('should mitigate request splitting attack in the URI path', async () => {
+      await serverClient((server, client) => {
+        const port = serverPort(server);
+
+        const url = uri`http://localhost:${port}/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:`;
+        return client
+          .get(url)
+          .fetch(req => IO.pure(req.status))
+          .handleError(() => Status.NotFound)
+          .flatMap(status =>
+            IO(() => expect(status.code).toBe(Status.NotFound.code)),
+          );
+      }).unsafeRunToPromise();
+    });
+
+    it.skip('should mitigate request splitting attack in the host name', async () => {
+      await serverClient((server, client) => {
+        const port = serverPort(server);
+
+        const url = uri`http://localhost\r\nEvil:true\r\n:${port}/request-splitting`;
+        return client
+          .get(url)
+          .fetch(req => IO.pure(req.status))
+          .handleError(() => Status.NotFound)
+          .flatMap(status =>
+            IO(() => expect(status.code).toBe(Status.NotFound.code)),
+          );
+      }).unsafeRunToPromise();
+    });
+
+    it('should mitigate request splitting attack in the header field name', async () => {
+      await serverClient((server, client) => {
+        const port = serverPort(server);
+
+        const url = uri`http://localhost:${port}/request-splitting`;
+        return client
+          .get(url)
+          .set('Fine:\r\nEvil:true\r\n', 'oops')
+          .fetch(req => IO.pure(req.status))
+          .handleError(() => Status.Ok)
+          .flatMap(status =>
+            IO(() => expect(status.code).toBe(Status.Ok.code)),
+          );
+      }).unsafeRunToPromise();
+    });
+
+    it('should mitigate request splitting attack in the header field value (raw)', async () => {
+      await serverClient((server, client) => {
+        const port = serverPort(server);
+
+        const url = uri`http://localhost:${port}/request-splitting`;
+        return client
+          .get(url)
+          .set('X-Carrier', '\r\nEvil:true\r\n')
+          .fetch(req => IO.pure(req.status))
+          .handleError(() => Status.Ok)
+          .flatMap(status =>
+            IO(() => expect(status.code).toBe(Status.Ok.code)),
+          );
+      }).unsafeRunToPromise();
+    });
+
+    it('should mitigate request splitting attack in the header field value (encoded)', async () => {
+      await serverClient((server, client) => {
+        const port = serverPort(server);
+
+        const url = uri`http://localhost:${port}/request-splitting`;
+        return client
+          .get(url)
+          .set('X-Carrier', encodeURI('\r\nEvil:true\r\n'))
+          .fetch(req => IO.pure(req.status))
+          .onError(e => IO(() => console.log(e)))
+          .handleError(() => Status.Ok)
+          .flatMap(status =>
+            IO(() => expect(status.code).toBe(Status.Ok.code)),
+          );
+      }).unsafeRunToPromise();
     });
   });
 }

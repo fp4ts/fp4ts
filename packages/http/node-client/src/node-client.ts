@@ -40,7 +40,6 @@ export class NodeClient<F> extends DefaultClient<F> {
               const headers = incomingHeadersToHeaders(res_.headers);
               const body = io.readReadable(F)(F.pure(res_));
               const res = new Response(status, '1.1', headers, body);
-              res_.on('error', e => console.log(e, new Error().stack));
               return respSignal.complete(res);
             }),
           ),
