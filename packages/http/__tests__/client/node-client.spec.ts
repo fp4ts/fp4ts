@@ -13,7 +13,7 @@ import {
   uri,
 } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
-import { serverPort, withServer } from '@fp4ts/http-test-kit-node';
+import { withServer } from '@fp4ts/http-test-kit-node';
 import { clientRouteSuite } from './client-route-suite';
 
 const app = HttpApp<IOF>(req => {
@@ -30,7 +30,7 @@ const app = HttpApp<IOF>(req => {
 describe('Node Client', () => {
   it('should perform a simple request', async () => {
     await withServer(app)(server => {
-      const port = serverPort(server);
+      const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
       return client
@@ -42,7 +42,7 @@ describe('Node Client', () => {
 
   it('should echo the payload', async () => {
     await withServer(app)(server => {
-      const port = serverPort(server);
+      const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
       return client
@@ -55,7 +55,7 @@ describe('Node Client', () => {
 
   it('should return 404', async () => {
     await withServer(app)(server => {
-      const port = serverPort(server);
+      const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
       return client

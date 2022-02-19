@@ -141,6 +141,7 @@ export class Path {
   }
 
   public static readonly empty: Path = new Path([]);
+  public static readonly Root: Path = new Path(['']);
 
   public static fromString(s: string): Path {
     if (s === '') return Path.empty;

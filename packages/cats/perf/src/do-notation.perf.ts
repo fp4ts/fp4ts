@@ -23,7 +23,7 @@ function makeTests(calls: number) {
       }
       res.value;
     }),
-    add.only('do-gen', () => {
+    add('do-gen', () => {
       const res = Monad.Do(Eval.Monad)(function* (_) {
         for (let i = 0; i < calls; i++) {
           const x = yield* _(Eval.pure(undefined));

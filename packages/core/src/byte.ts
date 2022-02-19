@@ -15,5 +15,7 @@ export const Byte = Object.freeze({
 
   fromChar: (c: Char) => Char.toByte(c),
   fromNumber: (x: number): Byte => (x & 0xff) as Byte,
+  fromNumberOrNull: (x: number): Byte | null =>
+    x >= 0 && x <= 255 ? (x as Byte) : null,
   unsafeFromNumber: (x: number): Byte => x as Byte,
 });

@@ -6,4 +6,5 @@
 /**
  * @module http/node-server
  */
+export * from './serve';
 export * from './node-server';

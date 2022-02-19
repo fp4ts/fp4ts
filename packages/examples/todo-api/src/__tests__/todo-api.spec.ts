@@ -12,8 +12,10 @@ describe('Todo api', () => {
     it('should return 200 Ok', async () =>
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
-          IO.deferPromise(() => test(server).get('/version')).flatMap(
-            response => IO(() => expect(response.statusCode).toBe(200)),
+          IO.deferPromise(() =>
+            test(server.underlying).get('/version'),
+          ).flatMap(response =>
+            IO(() => expect(response.statusCode).toBe(200)),
           ),
         )
         .unsafeRunToPromise());
@@ -21,9 +23,9 @@ describe('Todo api', () => {
     it('should return v1.0.0', async () =>
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
-          IO.deferPromise(() => test(server).get('/version')).flatMap(
-            response => IO(() => expect(response.text).toBe('v1.0.0')),
-          ),
+          IO.deferPromise(() =>
+            test(server.underlying).get('/version'),
+          ).flatMap(response => IO(() => expect(response.text).toBe('v1.0.0'))),
         )
         .unsafeRunToPromise());
   });
@@ -32,8 +34,8 @@ describe('Todo api', () => {
     it('should return 400 Bad Request when no query params are provided', async () =>
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
-          IO.deferPromise(() => test(server).get('/todo')).flatMap(response =>
-            IO(() => expect(response.statusCode).toBe(400)),
+          IO.deferPromise(() => test(server.underlying).get('/todo')).flatMap(
+            response => IO(() => expect(response.statusCode).toBe(400)),
           ),
         )
         .unsafeRunToPromise());
@@ -42,7 +44,7 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server).get('/todo?limit=100&offset=0'),
+            test(server.underlying).get('/todo?limit=100&offset=0'),
           ).flatMap(response =>
             IO(() => expect(response.statusCode).toBe(200)),
           ),
@@ -53,10 +55,12 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).get('/todo?limit=100&offset=0')),
+              .then(() =>
+                test(server.underlying).get('/todo?limit=100&offset=0'),
+              ),
           ).flatMap(response =>
             IO(() =>
               expect(response.body).toEqual([
@@ -76,15 +80,17 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo 1', description: null })
               .then(() =>
-                test(server)
+                test(server.underlying)
                   .post('/todo')
                   .send({ text: 'Sample todo 2', description: null }),
               )
-              .then(() => test(server).get('/todo?limit=100&offset=0')),
+              .then(() =>
+                test(server.underlying).get('/todo?limit=100&offset=0'),
+              ),
           ).flatMap(response =>
             IO(() =>
               expect(response.body).toEqual([
@@ -110,10 +116,10 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).get('/todo/42')),
+              .then(() => test(server.underlying).get('/todo/42')),
           ).flatMap(response =>
             IO(() => expect(response.statusCode).toBe(404)),
           ),
@@ -124,10 +130,10 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).get('/todo/1')),
+              .then(() => test(server.underlying).get('/todo/1')),
           ).flatMap(response =>
             IO(() => {
               expect(response.statusCode).toBe(200);
@@ -146,11 +152,11 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).put('/todo/1/mark_complete'))
-              .then(() => test(server).get('/todo/1')),
+              .then(() => test(server.underlying).put('/todo/1/mark_complete'))
+              .then(() => test(server.underlying).get('/todo/1')),
           ).flatMap(response =>
             IO(() => {
               expect(response.statusCode).toBe(200);
@@ -169,12 +175,14 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).put('/todo/1/mark_complete'))
-              .then(() => test(server).put('/todo/1/un_mark_complete'))
-              .then(() => test(server).get('/todo/1')),
+              .then(() => test(server.underlying).put('/todo/1/mark_complete'))
+              .then(() =>
+                test(server.underlying).put('/todo/1/un_mark_complete'),
+              )
+              .then(() => test(server.underlying).get('/todo/1')),
           ).flatMap(response =>
             IO(() => {
               expect(response.statusCode).toBe(200);
@@ -193,11 +201,13 @@ describe('Todo api', () => {
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
           IO.deferPromise(() =>
-            test(server)
+            test(server.underlying)
               .post('/todo')
               .send({ text: 'Sample todo', description: null })
-              .then(() => test(server).delete('/todo/1'))
-              .then(() => test(server).get('/todo?limit=100&offset=0')),
+              .then(() => test(server.underlying).delete('/todo/1'))
+              .then(() =>
+                test(server.underlying).get('/todo?limit=100&offset=0'),
+              ),
           ).flatMap(response =>
             IO(() => {
               expect(response.statusCode).toBe(200);

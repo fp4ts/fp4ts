@@ -55,7 +55,7 @@ export function clientRouteSuite(
 
     it('should repeat a single request', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/${SimplePath}`;
         return IO.parTraverse_(List.Traversable)(List.range(0, 10), () =>
@@ -68,7 +68,7 @@ export function clientRouteSuite(
 
     it('should POST an empty body', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
         return client
@@ -80,7 +80,7 @@ export function clientRouteSuite(
 
     it('should POST a regular body', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
         return client
@@ -93,7 +93,7 @@ export function clientRouteSuite(
 
     it('should POST a chunked body', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
         const body = Stream.fromArray('Chunked body'.split(''))
@@ -110,7 +110,7 @@ export function clientRouteSuite(
     GetRoutes.forEach((expected, path) => {
       it(`should execute GET ${path}`, async () => {
         await serverClient((server, client) => {
-          const port = serverPort(server);
+          const port = server.address.port;
 
           const url = uri`http://localhost:${port}${path}`;
           return client
@@ -122,7 +122,7 @@ export function clientRouteSuite(
 
     it('should mitigate request splitting attack in the URI path', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:`;
         return client
@@ -137,7 +137,7 @@ export function clientRouteSuite(
 
     it.skip('should mitigate request splitting attack in the host name', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost\r\nEvil:true\r\n:${port}/request-splitting`;
         return client
@@ -152,7 +152,7 @@ export function clientRouteSuite(
 
     it('should mitigate request splitting attack in the header field name', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/request-splitting`;
         return client
@@ -168,7 +168,7 @@ export function clientRouteSuite(
 
     it('should mitigate request splitting attack in the header field value (raw)', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/request-splitting`;
         return client
@@ -184,7 +184,7 @@ export function clientRouteSuite(
 
     it('should mitigate request splitting attack in the header field value (encoded)', async () => {
       await serverClient((server, client) => {
-        const port = serverPort(server);
+        const port = server.address.port;
 
         const url = uri`http://localhost:${port}/request-splitting`;
         return client

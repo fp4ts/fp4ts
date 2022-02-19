@@ -46,6 +46,8 @@
       "@fp4ts/http-node-server/lib/*": ["./http/node-server/src/*"],
       "@fp4ts/http-node-shared": ["./http/node-shared/src"],
       "@fp4ts/http-node-shared/lib/*": ["./http/node-shared/src/*"],
+      "@fp4ts/http-server": ["./http/server/src"],
+      "@fp4ts/http-server/lib/*": ["./http/server/src/*"],
       "@fp4ts/http-test-kit": ["./http/test-kit/src"],
       "@fp4ts/http-test-kit/lib/*": ["./http/test-kit/src/*"],
       "@fp4ts/http-test-kit-node": ["./http/test-kit-node/src"],
