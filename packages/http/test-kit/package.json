@@ -10,12 +10,15 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
+    "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
     "@fp4ts/effect": "*",
+    "@fp4ts/effect-test-kit": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/http-dsl-server": "*",
     "@fp4ts/http-dsl-shared": "*",
-    "@fp4ts/stream": "*"
+    "@fp4ts/stream": "*",
+    "@fp4ts/stream-test-kit": "*"
   },
   "devDependencies": {
     "typescript": "4.5.5"

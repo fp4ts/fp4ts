@@ -36,7 +36,7 @@ export class NodeClient<F> extends DefaultClient<F> {
         http.request(requestToRequestOptions(req), res_ =>
           dispatcher.unsafeRunAndForget(
             F.defer(() => {
-              const status = Status.fromKnownCodeUnsafe(res_.statusCode!);
+              const status = Status.fromCodeUnsafe(res_.statusCode!);
               const headers = incomingHeadersToHeaders(res_.headers);
               const body = io.readReadable(F)(F.pure(res_));
               const res = new Response(status, '1.1', headers, body);
