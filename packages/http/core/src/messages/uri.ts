@@ -7,6 +7,7 @@ import {
   Either,
   Left,
   List,
+  Map,
   Monoid,
   None,
   Option,
@@ -34,6 +35,22 @@ export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {
   }
   return Uri.fromStringUnsafe(results.join(''));
 }
+export function path(strings: TemplateStringsArray, ...xs: any[]): Path {
+  const results: string[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < strings.length && j < xs.length) {
+    results.push(strings[i++]);
+    results.push(xs[j++]);
+  }
+  while (i < strings.length) {
+    results.push(strings[i++]);
+  }
+  while (j < xs.length) {
+    results.push(`${xs[j++]}`);
+  }
+  return Path.fromString(results.join(''));
+}
 
 export type Scheme = 'http' | 'https';
 
@@ -50,6 +67,32 @@ export class Uri {
     public readonly query: Query = Query.empty,
   ) {}
 
+  public copy({
+    scheme = this.scheme,
+    authority = this.authority,
+    path = this.path,
+    query = this.query,
+  }: Partial<UriProps>): Uri {
+    return new Uri(scheme, authority, path, query);
+  }
+
+  public withScheme(scheme: Scheme): Uri {
+    return this.copy({ scheme: Some(scheme) });
+  }
+
+  public withPath(path: Path): Uri {
+    return this.copy({ path });
+  }
+
+  public appendSegment(segment: string): Uri {
+    return new Uri(
+      this.scheme,
+      this.authority,
+      this.path.append(segment),
+      this.query,
+    );
+  }
+
   public render(M: Monoid<string>): Writer<string, void> {
     const w = Writer.unit(M);
     const scheme = this.scheme.fold(
@@ -60,8 +103,16 @@ export class Uri {
     return Writer.unit(M)
       .productR(M)(scheme)
       .productR(M)(this.authority.map(a => a.render(M)).getOrElse(() => w))
-      .productR(M)(this.path.render(M))
+      .productR(M)(
+        this.path !== Path.empty && !this.path.isAbsolute
+          ? Writer.tell('/').productR(M)(this.path.render(M))
+          : this.path.render(M),
+      )
       .productR(M)(this.query.render(M));
+  }
+
+  public toString(): string {
+    return this.render(Monoid.string).run[0];
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
@@ -110,12 +161,29 @@ export class Uri {
     return this.fromString(s).get;
   }
 }
+export interface Uri {
+  '/'(segment: string): Uri;
+}
+Uri.prototype['/'] = Uri.prototype.appendSegment;
+type UriProps = {
+  scheme: Option<Scheme>;
+  authority: Option<Authority>;
+  path: Path;
+  query: Query;
+};
 
 export class Authority {
   public constructor(
     public readonly host: string = 'localhost',
     public readonly port: Option<number> = None,
   ) {}
+
+  public copy({
+    host = this.host,
+    port = this.port,
+  }: Partial<AuthorityProps>): Authority {
+    return new Authority(host, port);
+  }
 
   public render(M: Monoid<string>): Writer<string, void> {
     const w = Writer<string, void>([this.host, undefined]);
@@ -132,9 +200,23 @@ export class Authority {
       .toRight(() => new ParsingFailure('Malformed authority'));
   }
 }
+type AuthorityProps = {
+  readonly host: string;
+  readonly port: Option<number>;
+};
 
 export class Path {
-  public constructor(public readonly components: readonly string[]) {}
+  public constructor(public readonly components: string[]) {}
+
+  public get isAbsolute(): boolean {
+    return this.components[0] === '';
+  }
+
+  public append(segment: string): Path {
+    return this === Path.empty
+      ? Path.Root.append(segment)
+      : new Path([...this.components, segment]);
+  }
 
   public render(M: Monoid<string>): Writer<string, void> {
     return Writer<string, void>([`${this.components.join('/')}`, undefined]);
@@ -145,13 +227,22 @@ export class Path {
 
   public static fromString(s: string): Path {
     if (s === '') return Path.empty;
+    if (s === '/') return Path.Root;
     const components = s.split('/');
     return new Path(components);
   }
 }
+export interface Path {
+  '/'(segment: string): Path;
+}
+Path.prototype['/'] = Path.prototype.append;
 
 export class Query {
   private constructor(private readonly xs: Vector<[string, Option<string>]>) {}
+
+  public get params(): Map<string, string> {
+    return Map(...this.xs.collect(([k, v]) => v.map(v => tupled(k, v))));
+  }
 
   public lookup(k: string): Option<Option<string>> {
     return this.xs.lookup(k);
@@ -200,6 +291,10 @@ export class Query {
   public static fromEntries(es: [string, Option<string>][]): Query {
     return new Query(Vector.fromArray(es));
   }
+
+  public static fromPairs(...es: [string, string][]): Query {
+    return new Query(Vector.fromArray(es.map(([k, v]) => tupled(k, Some(v)))));
+  }
 }
 
 // -- Regexes
@@ -209,4 +304,4 @@ const URI_REGEX =
 
 const SCHEME_REGEX = /^(https?)$/;
 
-const AUTHORITY_REGEX = /^([^:]+)?(:(\d+))?$/;
+const AUTHORITY_REGEX = /^([^:]+)?(:(\d+)?)?$/;
