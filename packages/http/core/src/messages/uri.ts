@@ -20,36 +20,36 @@ import {
 import { ParsingFailure } from './message-failure';
 
 export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {
-  const results: string[] = [];
+  let acc: string = '';
   let i = 0;
   let j = 0;
   while (i < strings.length && j < xs.length) {
-    results.push(strings[i++]);
-    results.push(xs[j++]);
+    acc += strings[i++];
+    acc += xs[j++];
   }
   while (i < strings.length) {
-    results.push(strings[i++]);
+    acc += strings[i++];
   }
   while (j < xs.length) {
-    results.push(`${xs[j++]}`);
+    acc += `${xs[j++]}`;
   }
-  return Uri.unsafeFromString(results.join(''));
+  return Uri.unsafeFromString(acc);
 }
 export function path(strings: TemplateStringsArray, ...xs: any[]): Path {
-  const results: string[] = [];
+  let acc: string = '';
   let i = 0;
   let j = 0;
   while (i < strings.length && j < xs.length) {
-    results.push(strings[i++]);
-    results.push(xs[j++]);
+    acc += strings[i++];
+    acc += xs[j++];
   }
   while (i < strings.length) {
-    results.push(strings[i++]);
+    acc += strings[i++];
   }
   while (j < xs.length) {
-    results.push(`${xs[j++]}`);
+    acc += `${xs[j++]}`;
   }
-  return Path.fromString(results.join(''));
+  return Path.fromString(acc);
 }
 
 export type Scheme = 'http' | 'https';

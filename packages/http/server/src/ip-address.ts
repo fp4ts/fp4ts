@@ -117,20 +117,20 @@ export class Ipv6Address extends IpAddress {
       idx += 1;
     }
     if (maxCondensedLength == 1) maxCondensedStart = -1;
-    const str: string[] = [];
+    let acc: string = '';
     idx = 0;
     while (idx < 8) {
       if (idx == maxCondensedStart) {
-        str.push('::');
+        acc += '::';
         idx += maxCondensedLength;
       } else {
         const hextet = fields[idx].toString(16);
-        str.push(hextet);
+        acc += hextet;
         idx += 1;
-        if (idx < 8 && idx != maxCondensedStart) str.push(':');
+        if (idx < 8 && idx != maxCondensedStart) acc += ':';
       }
     }
-    return str.join('');
+    return acc;
   }
 
   public toMixedString(): string {

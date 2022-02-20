@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Vector } from '@fp4ts/cats';
 import { Byte } from '@fp4ts/core';
+import { List, Vector } from '@fp4ts/cats';
 import { Chunk } from '../chunk';
 
 export interface Collector<A, Out> {
