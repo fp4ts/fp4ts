@@ -258,6 +258,18 @@ export class Query {
     return Map(...this.xs.collect(([k, v]) => v.map(v => tupled(k, v))));
   }
 
+  public get multiParams(): Map<string, List<string>> {
+    return this.xs.foldLeft(
+      Map.empty as Map<string, List<string>>,
+      (m, [k, v]) =>
+        m.insertWith(
+          k,
+          v.map(List).getOrElse(() => List.empty),
+          (xs, ys) => xs['+++'](ys),
+        ),
+    );
+  }
+
   public lookup(k: string): Option<Option<string>> {
     return this.xs.lookup(k);
   }
