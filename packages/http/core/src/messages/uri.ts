@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { tupled } from '@fp4ts/core';
 import {
   Either,
   Left,
@@ -16,7 +17,6 @@ import {
   Vector,
   Writer,
 } from '@fp4ts/cats';
-import { tupled } from '@fp4ts/core';
 import { ParsingFailure } from './message-failure';
 
 export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {
@@ -65,6 +65,7 @@ export class Uri {
     public readonly authority: Option<Authority> = None,
     public readonly path: Path = Path.empty,
     public readonly query: Query = Query.empty,
+    public readonly fragment: Option<string> = None,
   ) {}
 
   public copy({
@@ -72,8 +73,9 @@ export class Uri {
     authority = this.authority,
     path = this.path,
     query = this.query,
+    fragment = this.fragment,
   }: Partial<UriProps>): Uri {
-    return new Uri(scheme, authority, path, query);
+    return new Uri(scheme, authority, path, query, fragment);
   }
 
   public withScheme(scheme: Scheme): Uri {
@@ -82,6 +84,10 @@ export class Uri {
 
   public withPath(path: Path): Uri {
     return this.copy({ path });
+  }
+
+  public withQuery(query: Query): Uri {
+    return this.copy({ query });
   }
 
   public appendSegment(segment: string): Uri {
@@ -108,7 +114,8 @@ export class Uri {
           ? Writer.tell('/').productR(M)(this.path.render(M))
           : this.path.render(M),
       )
-      .productR(M)(this.query.render(M));
+      .productR(M)(this.query.render(M))
+      .tell(M)(this.fragment.map(f => `#${f}`).getOrElse(() => ''));
   }
 
   public toString(): string {
@@ -154,7 +161,11 @@ export class Uri {
         return q as any as Either<ParsingFailure, Uri>;
       }
     }
-    return Right(new Uri(scheme, authority, path, query));
+    let fragment: Option<string> = None;
+    if (m[8]) {
+      fragment = Some(m[9] ?? '');
+    }
+    return Right(new Uri(scheme, authority, path, query, fragment));
   }
 
   public static fromStringUnsafe(s: string): Uri {
@@ -166,10 +177,11 @@ export interface Uri {
 }
 Uri.prototype['/'] = Uri.prototype.appendSegment;
 type UriProps = {
-  scheme: Option<Scheme>;
-  authority: Option<Authority>;
-  path: Path;
-  query: Query;
+  readonly scheme: Option<Scheme>;
+  readonly authority: Option<Authority>;
+  readonly path: Path;
+  readonly query: Query;
+  readonly fragment: Option<string>;
 };
 
 export class Authority {
@@ -219,7 +231,9 @@ export class Path {
   }
 
   public render(M: Monoid<string>): Writer<string, void> {
-    return Writer<string, void>([`${this.components.join('/')}`, undefined]);
+    return this === Path.Root
+      ? Writer.tell('/')
+      : Writer.tell(this.components.join('/'));
   }
 
   public static readonly empty: Path = new Path([]);
@@ -253,9 +267,10 @@ export class Query {
   }
 
   public render(M: Monoid<string>): Writer<string, void> {
-    const isFirst = true;
+    let isFirst = true;
     return this.xs.foldLeft(Writer.unit(M), (w, [k, ov]) => {
       const sep = isFirst ? '?' : '&';
+      isFirst = false;
       const value = ov.fold(
         () => encodeURI(k),
         v => `${encodeURI(k)}=${encodeURI(v)}`,
@@ -267,6 +282,7 @@ export class Query {
   public static readonly empty: Query = new Query(Vector.empty);
 
   public static fromString(s: string): Either<ParsingFailure, Query> {
+    if (s === '') return Right(new Query(Vector(['', None])));
     const components = s.split('&');
 
     return Right(
@@ -288,6 +304,10 @@ export class Query {
     );
   }
 
+  public static fromStringUnsafe(value: string): Query {
+    return this.fromString(value).get;
+  }
+
   public static fromEntries(es: [string, Option<string>][]): Query {
     return new Query(Vector.fromArray(es));
   }
@@ -301,7 +321,5 @@ export class Query {
 
 const URI_REGEX =
   /^(([^:\/?#]+):\/\/)?(([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
-
-const SCHEME_REGEX = /^(https?)$/;
 
 const AUTHORITY_REGEX = /^([^:]+)?(:(\d+)?)?$/;
