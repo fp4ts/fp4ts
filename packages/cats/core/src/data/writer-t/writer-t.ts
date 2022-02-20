@@ -17,7 +17,7 @@ import { MonadError } from '../../monad-error';
 import { Identity, IdentityF } from '../identity';
 
 import { WriterT as WriterTBase } from './algebra';
-import { liftF, pure, unit } from './constructors';
+import { liftF, pure, tell, unit } from './constructors';
 import {
   writerTApplicative,
   writerTApplicativeError,
@@ -40,6 +40,7 @@ export const WriterT: WriterTObj = function (flv) {
 WriterT.liftF = liftF;
 WriterT.pure = pure;
 WriterT.unit = unit;
+WriterT.tell = tell;
 
 interface WriterTObj {
   <F, L, V>(flv: Kind<F, [[L, V]]>): WriterT<F, L, V>;
@@ -50,6 +51,7 @@ interface WriterTObj {
   ): <V>(fv: Kind<F, [V]>) => WriterT<F, L, V>;
   pure<F, L>(F: Applicative<F>, L: Monoid<L>): <V>(v: V) => WriterT<F, L, V>;
   unit<F, L>(F: Applicative<F>, L: Monoid<L>): WriterT<F, L, void>;
+  tell<F>(F: Applicative<F>): <L>(l: L) => WriterT<F, L, void>;
 
   // -- Instances
 
@@ -90,12 +92,14 @@ export const Writer: WriterObj = function <L, V>(lv: [L, V]): Writer<L, V> {
 } as any;
 Writer.pure = L => v => pure(Identity.Applicative, L)(v);
 Writer.unit = L => unit(Identity.Applicative, L);
+Writer.tell = x => tell(Identity.Applicative)(x);
 
 interface WriterObj {
   <L, V>(lv: [L, V]): Writer<L, V>;
 
   pure<L>(L: Monoid<L>): <V>(v: V) => Writer<L, V>;
   unit<L>(L: Monoid<L>): Writer<L, void>;
+  tell<L>(l: L): Writer<L, void>;
 
   // -- Instances
 
