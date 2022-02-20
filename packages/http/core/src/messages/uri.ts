@@ -119,7 +119,7 @@ export class Uri {
   }
 
   public toString(): string {
-    return this.render(Monoid.string).run[0];
+    return this.render(Monoid.string).written();
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
@@ -153,8 +153,8 @@ export class Uri {
     }
 
     let query = Query.empty;
-    if (m[7]) {
-      const q = Query.fromString(m[7]);
+    if (m[6]) {
+      const q = Query.fromString(m[7] ?? '');
       if (q.isRight) {
         query = q.get;
       } else {
@@ -255,7 +255,11 @@ export class Query {
   private constructor(private readonly xs: Vector<[string, Option<string>]>) {}
 
   public get params(): Map<string, string> {
-    return Map(...this.xs.collect(([k, v]) => v.map(v => tupled(k, v))));
+    return this.xs
+      .collect(([k, v]) => v.map(v => tupled(k, v)))
+      .foldLeft(Map.empty as Map<string, string>, (m, [k, v]) =>
+        m.insertWith(k, v, fst => fst),
+      );
   }
 
   public get multiParams(): Map<string, List<string>> {
@@ -278,6 +282,10 @@ export class Query {
     return this.xs.collect(([kk, v]) => (kk === k ? Some(v) : None)).toList;
   }
 
+  public toString(): string {
+    return this.render(Monoid.string).written();
+  }
+
   public render(M: Monoid<string>): Writer<string, void> {
     let isFirst = true;
     return this.xs.foldLeft(Writer.unit(M), (w, [k, ov]) => {
@@ -295,25 +303,24 @@ export class Query {
 
   public static fromString(s: string): Either<ParsingFailure, Query> {
     if (s === '') return Right(new Query(Vector(['', None])));
-    const components = s.split('&');
+    const components = s
+      .split('&')
+      .filter(s => s !== '')
+      .map(s => {
+        const xs = s.split('=');
+        if (xs.length === 1) {
+          return tupled(decodeURI(xs[0]), None);
+        } else {
+          return tupled(
+            decodeURI(xs[0]),
+            Some(decodeURI(xs.slice(1).join('='))),
+          );
+        }
+      });
 
-    return Right(
-      Query.fromEntries(
-        components
-          .filter(s => s !== '')
-          .map(s => {
-            const xs = s.split('=');
-            if (xs.length === 1) {
-              return tupled(decodeURI(xs[0]), None);
-            } else {
-              return tupled(
-                decodeURI(xs[0]),
-                Some(decodeURI(xs.slice(1).join('='))),
-              );
-            }
-          }),
-      ),
-    );
+    return components.length === 0
+      ? Right(new Query(Vector(['', None])))
+      : Right(Query.fromEntries(components));
   }
 
   public static fromStringUnsafe(value: string): Query {
