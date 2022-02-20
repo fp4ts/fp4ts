@@ -62,14 +62,14 @@ export class Ipv4Address extends IpAddress {
       bytes[i] = x;
     }
 
-    return Some(this.fromBytesUnsafe(bytes));
+    return Some(this.unsafeFromBytes(bytes));
   }
 
   public static override fromBytes(bytes: Byte[]): Option<Ipv4Address> {
-    return bytes.length === 4 ? Some(this.fromBytesUnsafe(bytes)) : None;
+    return bytes.length === 4 ? Some(this.unsafeFromBytes(bytes)) : None;
   }
 
-  private static fromBytesUnsafe(bytes: Byte[]): Ipv4Address {
+  private static unsafeFromBytes(bytes: Byte[]): Ipv4Address {
     return new Ipv4Address([...bytes]);
   }
 }
@@ -140,16 +140,16 @@ export class Ipv6Address extends IpAddress {
     bytes[13] = 1 as Byte;
     bytes[14] = 0 as Byte;
     bytes[15] = 1 as Byte;
-    const s = Ipv6Address.fromBytesUnsafe(bytes).toString();
+    const s = Ipv6Address.unsafeFromBytes(bytes).toString();
     const prefix = s.slice(0, s.length - 3);
     return prefix + v4.toString;
   }
 
   public static override fromBytes(bytes: Byte[]): Option<Ipv6Address> {
-    return bytes.length === 16 ? Some(this.fromBytesUnsafe(bytes)) : None;
+    return bytes.length === 16 ? Some(this.unsafeFromBytes(bytes)) : None;
   }
 
-  private static fromBytesUnsafe(bytes: Byte[]): Ipv6Address {
+  private static unsafeFromBytes(bytes: Byte[]): Ipv6Address {
     return new Ipv6Address([...bytes]);
   }
 
@@ -233,7 +233,7 @@ export class Ipv6Address extends IpAddress {
         suffixIdx -= 1;
         idx += 2;
       }
-      return Some(this.fromBytesUnsafe(bytes));
+      return Some(this.unsafeFromBytes(bytes));
     }
   }
 
@@ -252,7 +252,7 @@ export class Ipv6Address extends IpAddress {
       bytes[13] = v4bytes[1];
       bytes[14] = v4bytes[2];
       bytes[15] = v4bytes[3];
-      return Ipv6Address.fromBytesUnsafe(bytes);
+      return Ipv6Address.unsafeFromBytes(bytes);
     });
   }
 }

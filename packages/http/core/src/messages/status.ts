@@ -46,7 +46,7 @@ export class Status {
       .fold(() => Right(this.registry.register(new Status(code, ''))), Right);
   }
 
-  public static fromCodeUnsafe(code: number): Status {
+  public static unsafeFromCode(code: number): Status {
     return this.fromCode(code).get;
   }
 

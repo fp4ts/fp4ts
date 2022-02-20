@@ -12,4 +12,4 @@ export const fp4tsValidStatusCode = (): Arbitrary<number> =>
   fc.integer({ min: Status.MinCode, max: Status.MaxCode });
 
 export const fp4tsStatus = (): Arbitrary<Status> =>
-  fp4tsValidStatusCode().map(code => Status.fromCodeUnsafe(code));
+  fp4tsValidStatusCode().map(code => Status.unsafeFromCode(code));

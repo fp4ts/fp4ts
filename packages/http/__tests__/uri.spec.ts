@@ -204,7 +204,7 @@ describe('Uri', () => {
         new Uri()
           .copy({
             path: path`/`,
-            query: Query.fromStringUnsafe(''),
+            query: Query.unsafeFromString(''),
             fragment: None,
           })
           .toString(),
@@ -216,7 +216,7 @@ describe('Uri', () => {
         new Uri()
           .copy({
             path: path`/`,
-            query: Query.fromStringUnsafe(''),
+            query: Query.unsafeFromString(''),
             fragment: Some(''),
           })
           .toString(),
@@ -252,7 +252,7 @@ describe('Uri', () => {
         new Uri()
           .copy({
             path: path`/foo/bar`,
-            query: Query.fromStringUnsafe('foo=bar&ding=dong'),
+            query: Query.unsafeFromString('foo=bar&ding=dong'),
             fragment: Some('an_anchor'),
           })
           .toString(),
@@ -280,14 +280,14 @@ describe('Uri', () => {
 
     it('should render a query string without a path and an empty parameter', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('param1=test')).toString(),
+        new Uri().withQuery(Query.unsafeFromString('param1=test')).toString(),
       ).toEqual('?param1=test');
     });
 
     it('should render a string with a multiple values in a parameter', () => {
       expect(
         new Uri()
-          .withQuery(Query.fromStringUnsafe('param1=3&param2=2&param2=foo'))
+          .withQuery(Query.unsafeFromString('param1=3&param2=2&param2=foo'))
           .toString(),
       ).toEqual('?param1=3&param2=2&param2=foo');
     });
@@ -303,15 +303,15 @@ describe('Uri', () => {
           withQueryParameters: true,
           withFragments: true,
         })
-        .map(x => Uri.fromStringUnsafe(x)),
-      uri => uri.toString() === Uri.fromStringUnsafe(uri.toString()).toString(),
+        .map(x => Uri.unsafeFromString(x)),
+      uri => uri.toString() === Uri.unsafeFromString(uri.toString()).toString(),
     ),
   );
 
   describe('query params', () => {
     it('should find a first value with multi parameter query', () => {
       const u = new Uri().withQuery(
-        Query.fromStringUnsafe(
+        Query.unsafeFromString(
           'param1=value1&param1=value2&param1=value3&param2=value4&param2=value5',
         ),
       );
@@ -321,7 +321,7 @@ describe('Uri', () => {
 
     it('should find parameter with empty key and a value', () => {
       const u = new Uri().withQuery(
-        Query.fromStringUnsafe('param1=&=valueWithEmptyKey&param2=value2'),
+        Query.unsafeFromString('param1=&=valueWithEmptyKey&param2=value2'),
       );
       expect(u.query.params.lookup('')).toEqual(Some('valueWithEmptyKey'));
     });
@@ -330,37 +330,37 @@ describe('Uri', () => {
   describe('query multi params', () => {
     it('should parse empty query string', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('')).query.multiParams,
+        new Uri().withQuery(Query.unsafeFromString('')).query.multiParams,
       ).toEqual(Map(['', List.empty]));
     });
     it('should parse parameter without key or value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('=')).query.multiParams,
+        new Uri().withQuery(Query.unsafeFromString('=')).query.multiParams,
       ).toEqual(Map(['', List('')]));
     });
 
     it('should parse parameter without key and but with a value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('=value')).query.multiParams,
+        new Uri().withQuery(Query.unsafeFromString('=value')).query.multiParams,
       ).toEqual(Map(['', List('value')]));
     });
 
     it('should parse parameter with key and but without a value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('key=')).query.multiParams,
+        new Uri().withQuery(Query.unsafeFromString('key=')).query.multiParams,
       ).toEqual(Map(['key', List('')]));
     });
 
     it('should parse parameter with single key and single value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('key=value')).query
+        new Uri().withQuery(Query.unsafeFromString('key=value')).query
           .multiParams,
       ).toEqual(Map(['key', List('value')]));
     });
 
     it('should parse a single parameter without value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('parameter')).query
+        new Uri().withQuery(Query.unsafeFromString('parameter')).query
           .multiParams,
       ).toEqual(Map(['parameter', List.empty]));
     });
@@ -368,7 +368,7 @@ describe('Uri', () => {
     it('should parse many parameters with value', () => {
       expect(
         new Uri().withQuery(
-          Query.fromStringUnsafe(
+          Query.unsafeFromString(
             'param1=value&param2=value1&param2=value2&param3=value',
           ),
         ).query.multiParams,
@@ -383,7 +383,7 @@ describe('Uri', () => {
 
     it('should parse many parameter without value', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('param1&param2&param3'))
+        new Uri().withQuery(Query.unsafeFromString('param1&param2&param3'))
           .query.multiParams,
       ).toEqual(
         Map(
@@ -396,7 +396,7 @@ describe('Uri', () => {
 
     it('should parse empty key-value pairs', () => {
       expect(
-        new Uri().withQuery(Query.fromStringUnsafe('&&&&')).query.multiParams,
+        new Uri().withQuery(Query.unsafeFromString('&&&&')).query.multiParams,
       ).toEqual(Map(['', List.empty]));
     });
   });

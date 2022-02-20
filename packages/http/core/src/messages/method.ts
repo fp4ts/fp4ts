@@ -20,7 +20,7 @@ export class Method {
     );
   }
 
-  public static fromStringUnsafe(s: string): Method {
+  public static unsafeFromString(s: string): Method {
     return this.fromString(s).get;
   }
 

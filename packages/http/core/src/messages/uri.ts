@@ -33,7 +33,7 @@ export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {
   while (j < xs.length) {
     results.push(`${xs[j++]}`);
   }
-  return Uri.fromStringUnsafe(results.join(''));
+  return Uri.unsafeFromString(results.join(''));
 }
 export function path(strings: TemplateStringsArray, ...xs: any[]): Path {
   const results: string[] = [];
@@ -168,7 +168,7 @@ export class Uri {
     return Right(new Uri(scheme, authority, path, query, fragment));
   }
 
-  public static fromStringUnsafe(s: string): Uri {
+  public static unsafeFromString(s: string): Uri {
     return this.fromString(s).get;
   }
 }
@@ -323,7 +323,7 @@ export class Query {
       : Right(Query.fromEntries(components));
   }
 
-  public static fromStringUnsafe(value: string): Query {
+  public static unsafeFromString(value: string): Query {
     return this.fromString(value).get;
   }
 
