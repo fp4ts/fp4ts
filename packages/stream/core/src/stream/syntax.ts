@@ -125,6 +125,7 @@ import {
   enqueueNoneTerminated_,
   enqueueNoneTerminatedChunks_,
   mapK_,
+  uncons,
 } from './operators';
 import { PureF } from '../pure';
 import { CompileOps } from './compile-ops';
@@ -138,6 +139,8 @@ declare module './algebra' {
     readonly last: Stream<F, A>;
     readonly lastOption: Stream<F, Option<A>>;
     readonly init: Stream<F, A>;
+
+    readonly uncons: Stream<F, Option<[A, Stream<F, A>]>>;
 
     readonly repeat: Stream<F, A>;
     readonly drain: Stream<F, never>;
@@ -383,6 +386,12 @@ Object.defineProperty(Stream.prototype, 'lastOption', {
 Object.defineProperty(Stream.prototype, 'init', {
   get<F, A>(this: Stream<F, A>): Stream<F, A> {
     return init(this);
+  },
+});
+
+Object.defineProperty(Stream.prototype, 'uncons', {
+  get<F, A>(this: Stream<F, A>): Stream<F, Option<[A, Stream<F, A>]>> {
+    return uncons(this);
   },
 });
 

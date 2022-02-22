@@ -22,6 +22,7 @@ module.exports = {
     '<rootDir>/effect/laws/src',
     '<rootDir>/effect/std/src',
     '<rootDir>/http/__tests__',
+    '<rootDir>/parse/__tests__',
     '<rootDir>/schema/__tests__',
     '<rootDir>/schema/core/src',
     '<rootDir>/stream/__tests__',

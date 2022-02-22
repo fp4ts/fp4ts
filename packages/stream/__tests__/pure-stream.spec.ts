@@ -196,13 +196,21 @@ describe('Pure Stream', () => {
       expect(Stream(1, 2, 3).take(-1).toList).toEqual(List.empty);
     });
 
-    it('should be stack safe', () => {
-      const xs = [...new Array(10_000).keys()];
+    it('should be stack safe 1', () => {
+      const xs = [...new Array(50_000).keys()];
       const s = xs.reduce(
         (ss, i) => ss['+++'](Stream(i)),
         Stream.empty() as Stream<PureF, number>,
       );
-      expect(s.take(10_000).compile().toArray).toEqual(xs);
+      expect(s.take(50_000).compile().toArray).toEqual(xs);
+    });
+    it('should be stack safe 2', () => {
+      const xs = [...new Array(50_000).keys()];
+      const s = xs.reduce(
+        (ss, i) => ss.take(50_000),
+        Stream.fromArray(xs).flatMap(Stream) as Stream<PureF, number>,
+      );
+      expect(s.take(50_000).compile().toArray).toEqual(xs);
     });
   });
 

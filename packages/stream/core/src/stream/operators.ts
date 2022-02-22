@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { id, Kind, pipe } from '@fp4ts/core';
+import { id, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Applicative,
   Eq,
@@ -70,6 +70,15 @@ export const lastOption: <F, A>(s: Stream<F, A>) => Stream<F, Option<A>> = s =>
 
 export const init: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   dropRight_(s, 1);
+
+export const uncons: <F, A>(
+  s: Stream<F, A>,
+) => Stream<F, Option<[A, Stream<F, A>]>> = s =>
+  s.pull.uncons1
+    .flatMap(opt =>
+      Pull.output1(opt.map(([hd, tl]) => tupled(hd, new Stream(tl)))),
+    )
+    .stream();
 
 export const repeat: <F, A>(s: Stream<F, A>) => Stream<F, A> = s =>
   concat_(

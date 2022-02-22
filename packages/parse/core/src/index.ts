@@ -6,4 +6,8 @@
 /**
  * @module parse/core
  */
-export {};
+export * from './parser';
+export * from './parse-error';
+export * from './source-position';
+export * from './source';
+export * from './string-source';
