@@ -6,4 +6,5 @@
 /**
  * @module parse
  */
-export {};
+export { Parser, ParserT } from '@fp4ts/parse-core';
+export * as text from '@fp4ts/parse-text';

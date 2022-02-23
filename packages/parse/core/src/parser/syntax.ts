@@ -13,7 +13,7 @@ import { StringSource } from '../string-source';
 import { TokenType } from '../token-type';
 
 import { ParserT } from './algebra';
-import { Consumed } from './consumed';
+import { Consumed } from '../consumed';
 import { ParseResult } from './parse-result';
 import {
   ap_,

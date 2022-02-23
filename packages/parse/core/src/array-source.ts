@@ -7,20 +7,20 @@ import { Source } from './source';
 
 export class ArraySource<A> extends Source<A, ArraySource<A>> {
   public static fromString<A>(source: A[]): ArraySource<A> {
-    return new ArraySource(source, 0);
+    return new ArraySource(source, 1);
   }
 
-  private constructor(public readonly source: A[], idx: number) {
-    super(idx, source.length);
+  private constructor(public readonly source: A[], cursor: number) {
+    super(cursor, source.length);
   }
 
-  protected elem(idx: number): A {
-    return this.source[idx];
+  protected elem(cursor: number): A {
+    return this.source[cursor - 1];
   }
 
   protected copy({
-    idx = this.cursor,
-  }: Partial<{ readonly idx: number }> = {}): ArraySource<A> {
-    return new ArraySource(this.source, idx);
+    cursor = this.cursor,
+  }: Partial<{ readonly cursor: number }> = {}): ArraySource<A> {
+    return new ArraySource(this.source, cursor);
   }
 }

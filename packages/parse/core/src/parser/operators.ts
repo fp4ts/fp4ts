@@ -21,7 +21,7 @@ import { SourcePosition } from '../source-position';
 
 import { Stream } from '../stream';
 import { FlatMap, Map, ManyAccumulate, OrElse, ParserT, View } from './algebra';
-import { Consumed } from './consumed';
+import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
 import { empty, succeed } from './constructors';
@@ -222,6 +222,13 @@ function parseLoopImpl<S, M, X, End>(
       case 'uncons-prim': {
         const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
         return tokenPrimParse(ctx, cur.showToken, cur.nextPos, cur.test);
+      }
+
+      case 'make-parser': {
+        const cons = cur.runParser(s);
+        return cons.tag === 'consumed'
+          ? cons.value.fold(cont.cok, cont.cerr)
+          : cons.value.fold(cont.eok, cont.eerr);
       }
 
       case 'make-parser-t':

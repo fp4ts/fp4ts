@@ -17,21 +17,21 @@ export abstract class Source<A, Self extends Source<A, Self>> {
   }
 
   public get isEmpty(): boolean {
-    return this.cursor === this.size;
+    return this.cursor > this.size;
   }
   public get nonEmpty(): boolean {
     return !this.isEmpty;
   }
 
-  protected abstract elem(idx: number): A;
+  protected abstract elem(cursor: number): A;
   protected abstract copy(props?: Partial<Props>): Self;
 
   public get uncons(): Option<[A, Self]> {
-    return this.cursor < this.size
-      ? Some([this.elem(this.cursor), this.copy({ idx: this.cursor + 1 })])
+    return this.cursor <= this.size
+      ? Some([this.elem(this.cursor), this.copy({ cursor: this.cursor + 1 })])
       : None;
   }
 }
 type Props = {
-  readonly idx: number;
+  readonly cursor: number;
 };

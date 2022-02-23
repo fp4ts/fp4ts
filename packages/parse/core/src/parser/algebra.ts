@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, Lazy } from '@fp4ts/core';
-import { Monad, Option } from '@fp4ts/cats';
+import { EvalF, Monad, Option } from '@fp4ts/cats';
 import { ParseResult } from './parse-result';
-import { Consumed } from './consumed';
+import { Consumed } from '../consumed';
 import { State } from './state';
 import { TokenType } from '../token-type';
 import { SourcePosition } from '../source-position';
@@ -54,6 +54,15 @@ export class UnconsPrim<S, M, A> extends ParserT<S, M, A> {
       s: S,
     ) => SourcePosition,
     public readonly test: (t: TokenType<S>) => Option<A>,
+  ) {
+    super();
+  }
+}
+
+export class MakeParser<S, A> extends ParserT<S, EvalF, A> {
+  public readonly tag = 'make-parser';
+  public constructor(
+    public readonly runParser: (s: State<S>) => Consumed<ParseResult<S, A>>,
   ) {
     super();
   }
@@ -124,6 +133,7 @@ export type View<S, M, A> =
   | Empty<S, M>
   | Defer<S, M, A>
   | UnconsPrim<S, M, any>
+  | MakeParser<S, A>
   | MakeParserT<S, M, A>
   | ManyAccumulate<S, M, any, A>
   | Map<S, M, any, A>

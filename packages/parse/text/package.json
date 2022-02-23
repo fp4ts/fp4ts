@@ -1,8 +1,8 @@
 {
-  "name": "@fp4ts/parse",
+  "name": "@fp4ts/parse-text",
   "version": "1.0.0",
   "main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
@@ -11,13 +11,9 @@
   "dependencies": {
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
-    "@fp4ts/parse-core": "*",
-    "@fp4ts/parse-text": "*"
+    "@fp4ts/parse-core": "*"
   },
   "devDependencies": {
-    "@fp4ts/cats-laws": "*",
-    "@fp4ts/cats-test-kit": "*",
-    "fast-check": "^2.21.0",
     "typescript": "4.5.5"
   }
 }

@@ -6,8 +6,11 @@
 /**
  * @module parse/core
  */
+export * from './consumed';
 export * from './parser';
 export * from './parse-error';
 export * from './source-position';
 export * from './source';
+export * from './stream';
 export * from './string-source';
+export * from './token-type';
