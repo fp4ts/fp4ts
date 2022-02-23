@@ -30,6 +30,10 @@ export class SourcePosition {
     throw new Error('Unhandled case');
   }
 
+  public toString(): string {
+    return `${this.line}:${this.column}`;
+  }
+
   // -- Instances
 
   public get Ord(): Ord<SourcePosition> {

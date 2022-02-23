@@ -20,7 +20,15 @@ import { ParseError } from '../parse-error';
 import { SourcePosition } from '../source-position';
 
 import { Stream } from '../stream';
-import { FlatMap, Map, ManyAccumulate, OrElse, ParserT, View } from './algebra';
+import {
+  FlatMap,
+  Map,
+  ManyAccumulate,
+  OrElse,
+  ParserT,
+  View,
+  Debug,
+} from './algebra';
 import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
@@ -229,6 +237,13 @@ export const parseConsumedF =
       ),
     );
 
+// -- Debug
+
+export const debug_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  name: string,
+): ParserT<S, M, A> => new Debug(p, name);
+
 // -- Private implementation of the parsing of the input stream
 
 interface ParseCtx<S, M, X, End> {
@@ -336,6 +351,13 @@ function parseLoopImpl<S, M, X, End>(
         cont_ = orElseCont(ctx, cur.rhs);
         break;
       }
+
+      case 'debug': {
+        cur_ = cur.self;
+        cont_ = cont.debug(cur.name);
+        console.log(`Debug: ${cur.name} ${s.position}`);
+        break;
+      }
     }
   }
 }
@@ -383,6 +405,21 @@ class Cont<S, M, X, End> {
 
   public eerrMergeError(error: ParseError) {
     return AndThen(this.eerr).compose((suc: Failure) => suc.mergeError(error));
+  }
+
+  public debug(name: string): Cont<S, M, X, End> {
+    const log =
+      (case_: string) =>
+      <X>(x: X): X => {
+        console.log(`Debug: ---> ${name} ${case_} ${x}`);
+        return x;
+      };
+    return this.copy({
+      cok: AndThen(this.cok).compose(log('cok')),
+      cerr: AndThen(this.cerr).compose(log('cerr')),
+      eok: AndThen(this.eok).compose(log('eok')),
+      eerr: AndThen(this.eerr).compose(log('eerr')),
+    });
   }
 }
 

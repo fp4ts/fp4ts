@@ -24,6 +24,7 @@ import {
   chainRight1_,
   chainRight_,
   collect_,
+  debug_,
   filter_,
   flatMap_,
   map2_,
@@ -149,6 +150,8 @@ declare module './algebra' {
       S: Stream<S, M>,
       M: Monad<M>,
     ): (s: S) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>;
+
+    debug(name: string): ParserT<S, M, A>;
   }
 }
 
@@ -249,3 +252,7 @@ ParserT.prototype.parseStream = function (this: any, ...args: any[]) {
     ? (s: any) => parseStream(args[0])(this, s)
     : (s: any) => parseStreamF(args[0], args[1])(this, s);
 } as any;
+
+ParserT.prototype.debug = function (name) {
+  return debug_(this, name);
+};

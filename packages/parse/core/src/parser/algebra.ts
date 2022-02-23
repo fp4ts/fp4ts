@@ -127,6 +127,16 @@ export class OrElse<S, M, A> extends ParserT<S, M, A> {
   }
 }
 
+export class Debug<S, M, A> extends ParserT<S, M, A> {
+  public readonly tag = 'debug';
+  public constructor(
+    public readonly self: ParserT<S, M, A>,
+    public readonly name: string,
+  ) {
+    super();
+  }
+}
+
 export type View<S, M, A> =
   | Succeed<S, M, A>
   | Fail<S, M>
@@ -139,4 +149,5 @@ export type View<S, M, A> =
   | Map<S, M, any, A>
   | FlatMap<S, M, any, A>
   | Backtrack<S, M, A>
-  | OrElse<S, M, A>;
+  | OrElse<S, M, A>
+  | Debug<S, M, A>;
