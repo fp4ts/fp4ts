@@ -1,3 +1,8 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import * as C from 'parser-ts/lib/char';
 import * as P from 'parser-ts/lib/Parser';
 import * as S from 'parser-ts/Stream';
