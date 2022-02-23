@@ -1736,6 +1736,11 @@ formidable@^2.0.1:
     once "1.4.0"
     qs "6.9.3"
 
+fp-ts@2.11.8:
+  version "2.11.8"
+  resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.11.8.tgz#411cde116c446d568f5597b03352d8b3f98e8f82"
+  integrity sha512-WQT6rP6Jt3TxMdQB3IKzvfZKLuldumntgumLhIUhvPrukTHdWNI4JgEHY04Bd0LIOR9IQRpB+7RuxgUU0Vhmcg==
+
 fs-extra@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.0.0.tgz#9ff61b655dde53fb34a82df84bb214ce802e17c1"
@@ -2960,6 +2965,13 @@ parse5@6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/parse5/-/parse5-6.0.1.tgz#e1a1c085c569b3dc08321184f19a39cc27f7c30b"
   integrity sha512-Ofn/CTFzRGTTxwpNEs9PP93gXShHcTq255nzRYSKe8AkVpZY7e1fpmTfOyoIvjP5HG7Z2ZM7VS9PPhQGW2pOpw==
+
+parser-ts@0.6.16:
+  version "0.6.16"
+  resolved "https://registry.yarnpkg.com/parser-ts/-/parser-ts-0.6.16.tgz#e1477d6eea789325ca94dc3a48802dba67506a64"
+  integrity sha512-BC5HBg1UfaGKi/PKwUZKmFwQq56qVsMel1Gx0Lu2JeHf/J+XCqV9fahCil0GOMC+sH2ON3N6jdyIoI6RzCyQqw==
+  dependencies:
+    "@babel/code-frame" "^7.0.0"
 
 path-exists@^4.0.0:
   version "4.0.0"

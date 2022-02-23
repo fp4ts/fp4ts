@@ -1,0 +1,23 @@
+{
+  "name": "@fp4ts/parse-perf",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/parse-core": "*",
+    "@fp4ts/parse-text": "*",
+    "benny": "^3.7.1",
+    "fp-ts": "2.11.8",
+    "parser-ts": "0.6.16"
+  },
+  "devDependencies": {
+    "typescript": "4.5.5"
+  }
+}
