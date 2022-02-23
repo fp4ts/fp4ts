@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { isTypeClassInstance, Kind, Lazy } from '@fp4ts/core';
-import { Either, EvalF, List, Monad } from '@fp4ts/cats';
+import { Either, EvalF, List, Monad, Option } from '@fp4ts/cats';
 
 import { ParseError } from '../parse-error';
 import { Source } from '../source';
@@ -17,8 +17,12 @@ import { Consumed } from './consumed';
 import { ParseResult } from './parse-result';
 import {
   ap_,
+  as_,
+  collect_,
+  filter_,
   flatMap_,
   map2_,
+  mapAccumulate_,
   map_,
   orElse_,
   parse,
@@ -38,7 +42,11 @@ import {
 
 declare module './algebra' {
   interface ParserT<S, M, A> {
+    filter(f: (a: A) => boolean): ParserT<S, M, A>;
+    collect<B>(f: (a: A) => Option<B>): ParserT<S, M, B>;
+
     map<B>(f: (a: A) => B): ParserT<S, M, B>;
+    as<B>(b: B): ParserT<S, M, B>;
 
     orElse<B>(
       this: ParserT<S, M, B>,
@@ -67,6 +75,8 @@ declare module './algebra' {
     '*>'<B>(that: ParserT<S, M, B>): ParserT<S, M, B>;
 
     flatMap<B>(f: (a: A) => ParserT<S, M, B>): ParserT<S, M, B>;
+
+    mapAccumulate<B>(z: B, f: (b: B, a: A) => B): ParserT<S, M, B>;
 
     rep(): ParserT<S, M, List<A>>;
     rep1(): ParserT<S, M, List<A>>;
@@ -110,8 +120,18 @@ declare module './algebra' {
   }
 }
 
+ParserT.prototype.filter = function (f) {
+  return filter_(this, f);
+};
+ParserT.prototype.collect = function (f) {
+  return collect_(this, f);
+};
+
 ParserT.prototype.map = function (f) {
   return map_(this, f);
+};
+ParserT.prototype.as = function (b) {
+  return as_(this, b);
 };
 ParserT.prototype.orElse = function (that) {
   return orElse_(this, that);
@@ -138,6 +158,10 @@ ParserT.prototype['*>'] = ParserT.prototype.productR;
 
 ParserT.prototype.flatMap = function (f) {
   return flatMap_(this, f);
+};
+
+ParserT.prototype.mapAccumulate = function (z, f) {
+  return mapAccumulate_(this, z, f);
 };
 ParserT.prototype.rep = function () {
   return rep_(this);

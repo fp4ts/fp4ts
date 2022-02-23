@@ -56,7 +56,7 @@ describe('Parser', () => {
     );
 
     it('should be stack safe', () => {
-      const input = 'x'.repeat(50_000);
+      const input = 'x'.repeat(1_000_000);
       expect(singleCharP.rep().parse(input).isRight).toBe(true);
     });
   });
@@ -79,7 +79,7 @@ describe('Parser', () => {
     );
 
     it('should be stack safe', () => {
-      const input = 'x'.repeat(50_000);
+      const input = 'x'.repeat(1_000_000);
       expect(singleCharP.rep1().parse(input).isRight).toBe(true);
     });
   });

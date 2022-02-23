@@ -3,31 +3,55 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, Kind, Lazy, lazyVal, pipe, tupled } from '@fp4ts/core';
-import { AndThen, Either, Eval, EvalF, List, Monad, Option } from '@fp4ts/cats';
+import { flow, Kind, Lazy, pipe, tupled } from '@fp4ts/core';
+import {
+  AndThen,
+  Either,
+  Eval,
+  EvalF,
+  List,
+  Monad,
+  None,
+  Option,
+  Some,
+} from '@fp4ts/cats';
 
 import { ParseError } from '../parse-error';
 import { SourcePosition } from '../source-position';
 
 import { Stream } from '../stream';
-import { FlatMap, Map, OrElse, ParserT, View } from './algebra';
+import { FlatMap, Map, ManyAccumulate, OrElse, ParserT, View } from './algebra';
 import { Consumed } from './consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
-import { succeed } from './constructors';
+import { empty, succeed } from './constructors';
 import { TokenType } from '../token-type';
 import { StringSource } from '../string-source';
 import { Source } from '../source';
+
+export const filter_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  f: (a: A) => boolean,
+): ParserT<S, M, A> => collect_(p, x => (f(x) ? Some(x) : None));
+
+export const collect_ = <S, M, A, B>(
+  p: ParserT<S, M, A>,
+  f: (a: A) => Option<B>,
+): ParserT<S, M, B> =>
+  flatMap_(p, x => f(x).fold<ParserT<S, M, B>>(() => empty(), succeed));
 
 export const map_ = <S, M, A, B>(
   p: ParserT<S, M, A>,
   f: (a: A) => B,
 ): ParserT<S, M, B> => new Map(p, f);
 
+export const as_ = <S, M, A, B>(p: ParserT<S, M, A>, b: B): ParserT<S, M, B> =>
+  new Map(p, () => b);
+
 export const orElse_ = <S, M, A>(
   p1: ParserT<S, M, A>,
   p2: Lazy<ParserT<S, M, A>>,
-): ParserT<S, M, A> => new OrElse(p1, lazyVal(p2));
+): ParserT<S, M, A> => new OrElse(p1, p2);
 
 export const ap_ = <S, M, A, B>(
   pf: ParserT<S, M, (a: A) => B>,
@@ -59,8 +83,17 @@ export const flatMap_ = <S, M, A, B>(
   f: (a: A) => ParserT<S, M, B>,
 ): ParserT<S, M, B> => new FlatMap(pa, f);
 
+export const mapAccumulate_ = <S, M, A, B>(
+  p: ParserT<S, M, A>,
+  init: B,
+  f: (acc: B, a: A) => B,
+): ParserT<S, M, B> => new ManyAccumulate(p, init, f);
+
 export const rep_ = <S, M, A>(pa: ParserT<S, M, A>): ParserT<S, M, List<A>> =>
-  orElse_(rep1_(pa), () => succeed(List.empty));
+  map_(
+    mapAccumulate_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
+    xs => xs.reverse,
+  );
 
 export const rep1_ = <S, M, A>(pa: ParserT<S, M, A>): ParserT<S, M, List<A>> =>
   flatMap_(pa, x => map_(rep_(pa), xs => xs.prepend(x)));
@@ -219,6 +252,13 @@ function parseLoopImpl<S, M, X, End>(
         break;
       }
 
+      case 'many-accumulate': {
+        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        cur_ = cur.self;
+        cont_ = mapAccumulateCont(ctx, cur.self, cur.init, cur.fun);
+        break;
+      }
+
       case 'backtrack':
         cur_ = cur.self;
         cont_ = cont.copy({ cerr: cont.eerr });
@@ -355,6 +395,28 @@ function flatMapCont<S, M, Y, X, End>(
   return new Cont(mcok, mcerr, meok, meerr);
 }
 
+function mapAccumulateCont<S, M, X, Z, End>(
+  { go, s, cont }: ParseCtx<S, M, Z, End>,
+  p: ParserT<S, M, X>,
+  init: Z,
+  f: (acc: Z, x: X) => Z,
+): Cont<S, M, X, End> {
+  const walk =
+    (acc: Z) =>
+    (suc: Success<S, X>): Kind<M, [End]> =>
+      go(
+        suc.remainder,
+        p,
+        new Cont(walk(f(acc, suc.output)), cont.cerr, repError, fail =>
+          cont.cok(new Success(f(acc, suc.output), suc.remainder, fail.error)),
+        ),
+      );
+
+  return new Cont(walk(init), cont.cerr, repError, e =>
+    cont.eok(new Success(init, s, e.error)),
+  );
+}
+
 function orElseCont<S, M, X, End>(
   { go, s, cont }: ParseCtx<S, M, X, End>,
   r: Lazy<ParserT<S, M, X>>,
@@ -370,4 +432,11 @@ function orElseCont<S, M, X, End>(
     );
 
   return cont.copy({ eerr: meerr });
+}
+
+class ParserRepError extends Error {}
+function repError(): never {
+  throw new ParserRepError(
+    'Combinator `rep` applied to a parser that accepts an empty input',
+  );
 }

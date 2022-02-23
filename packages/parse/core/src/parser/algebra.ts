@@ -3,14 +3,13 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Monad, Option } from '@fp4ts/cats';
 import { Kind, Lazy } from '@fp4ts/core';
+import { Monad, Option } from '@fp4ts/cats';
 import { ParseResult } from './parse-result';
 import { Consumed } from './consumed';
 import { State } from './state';
 import { TokenType } from '../token-type';
 import { SourcePosition } from '../source-position';
-import { Stream } from '../stream';
 
 export abstract class ParserT<S, M, A> {
   private readonly __void!: void;
@@ -91,6 +90,17 @@ export class FlatMap<S, M, E, A> extends ParserT<S, M, A> {
   }
 }
 
+export class ManyAccumulate<S, M, E, A> extends ParserT<S, M, A> {
+  public readonly tag = 'many-accumulate';
+  public constructor(
+    public readonly self: ParserT<S, M, E>,
+    public readonly init: A,
+    public readonly fun: (acc: A, x: E) => A,
+  ) {
+    super();
+  }
+}
+
 export class Backtrack<S, M, A> extends ParserT<S, M, A> {
   public readonly tag = 'backtrack';
   public constructor(public readonly self: ParserT<S, M, A>) {
@@ -115,6 +125,7 @@ export type View<S, M, A> =
   | Defer<S, M, A>
   | UnconsPrim<S, M, any>
   | MakeParserT<S, M, A>
+  | ManyAccumulate<S, M, any, A>
   | Map<S, M, any, A>
   | FlatMap<S, M, any, A>
   | Backtrack<S, M, A>
