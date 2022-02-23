@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Char, id } from '@fp4ts/core';
+import { Char, id, throwError } from '@fp4ts/core';
 import { None, Some } from '@fp4ts/cats';
 import {
   Consumed,
@@ -55,19 +55,98 @@ export const parens = <A>(
 ): Parser<StringSource, A> => p.between(char('(' as Char), char(')' as Char));
 
 export const string = (str: string): Parser<StringSource, string> =>
-  Parser(s =>
-    s.input.source.startsWith(str)
-      ? Consumed.Consumed(
-          new Success(
-            str,
-            new State(
-              s.input.drop(str.length),
-              updatePositionByString(s.position, str),
-            ),
-            ParseError.empty(s.position),
-          ),
-        )
-      : Consumed.Empty(
-          new Failure(new ParseError(s.position, [`Expected '${str}'`])),
+  str === ''
+    ? Parser.succeed('') // -- Trivial success
+    : Parser(s => {
+        let input = s.input;
+        for (let i = 0, len = str.length; i < len; i++) {
+          const h = input.uncons;
+          if (h.isEmpty) {
+            if (i === 0) {
+              return Consumed.Empty(
+                new Failure(
+                  new ParseError(s.position, [
+                    `Unexpected EOF, expected ${str}`,
+                  ]),
+                ),
+              );
+            } else {
+              return Consumed.Consumed(
+                new Failure(
+                  new ParseError(
+                    updatePositionByString(s.position, str.substring(0, i)),
+                    [`Unexpected EOF, expected ${str}`],
+                  ),
+                ),
+              );
+            }
+          }
+
+          const [hd, tl] = h.get;
+          const t = str.charAt(i);
+          if (t !== hd) {
+            if (i === 0) {
+              return Consumed.Empty(
+                new Failure(
+                  new ParseError(s.position, [
+                    `Unexpected token ${t}, expected ${str}`,
+                  ]),
+                ),
+              );
+            } else {
+              return Consumed.Consumed(
+                new Failure(
+                  new ParseError(
+                    updatePositionByString(s.position, str.substring(0, i)),
+                    [`Unexpected token ${t}, expected ${str}`],
+                  ),
+                ),
+              );
+            }
+          }
+
+          input = tl;
+        }
+
+        const newPos = updatePositionByString(s.position, str);
+        return Consumed.Consumed(
+          new Success(str, new State(input, newPos), ParseError.empty(newPos)),
+        );
+      });
+
+/**
+ * **WARNING:** as we cannot check for partial prefix match of the regex, this
+ * combinator is _always_ backtracking. I.e., can produce either _consumed ok_,
+ * or _empty error_.
+ */
+export const regex = (re: RegExp): Parser<StringSource, string> =>
+  !re.source.startsWith('^')
+    ? throwError(
+        new Error(
+          'RegExpError: Parser regular expressions mush start with `^`',
         ),
-  );
+      )
+    : Parser(s => {
+        const m = s.input.source
+          .substring(s.input.cursor - 1, s.input.source.length)
+          .match(re);
+        const r = m?.[0];
+        return r != null
+          ? r === ''
+            ? Consumed.Empty(new Success('', s, ParseError.empty(s.position)))
+            : Consumed.Consumed(
+                new Success(
+                  r,
+                  new State(
+                    s.input.drop(r.length),
+                    updatePositionByString(s.position, r),
+                  ),
+                  ParseError.empty(s.position),
+                ),
+              )
+          : Consumed.Empty(
+              new Failure(
+                new ParseError(s.position, [`Did not match ${re.source}`]),
+              ),
+            );
+      });
