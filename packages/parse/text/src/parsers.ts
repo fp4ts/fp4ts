@@ -22,6 +22,7 @@ import {
 const alphaRegex = /^[a-zA-Z]/;
 const digitRegex = /^[0-9]/;
 const alphaNumRegex = /^\w/;
+const whitespaceRegex = /^\s/;
 
 export const satisfy = (p: (c: Char) => boolean): Parser<StringSource, Char> =>
   Parser.unconsPrim<StringSource, Char>(
@@ -29,6 +30,9 @@ export const satisfy = (p: (c: Char) => boolean): Parser<StringSource, Char> =>
     (sp, t) => updatePositionByChar(sp, t),
     x => (p(x) ? Some(x) : None),
   );
+
+export const char = (c: Char): Parser<StringSource, Char> =>
+  satisfy(x => x === c);
 
 export const anyChar: Parser<StringSource, Char> = satisfy(() => true);
 
@@ -41,6 +45,14 @@ export const digit: Parser<StringSource, Char> = satisfy(x =>
 export const alphaNum: Parser<StringSource, Char> = satisfy(x =>
   alphaNumRegex.test(x),
 );
+export const space: Parser<StringSource, Char> = satisfy(x =>
+  whitespaceRegex.test(x),
+);
+export const spaces: Parser<StringSource, void> = space.skipRep();
+
+export const parens = <A>(
+  p: Parser<StringSource, A>,
+): Parser<StringSource, A> => p.between(char('(' as Char), char(')' as Char));
 
 export const string = (str: string): Parser<StringSource, string> =>
   Parser(s =>

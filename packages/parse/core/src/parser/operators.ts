@@ -89,6 +89,9 @@ export const mapAccumulate_ = <S, M, A, B>(
   f: (acc: B, a: A) => B,
 ): ParserT<S, M, B> => new ManyAccumulate(p, init, f);
 
+export const skipRep_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, void> =>
+  mapAccumulate_(p, undefined, () => {});
+
 export const rep_ = <S, M, A>(pa: ParserT<S, M, A>): ParserT<S, M, List<A>> =>
   map_(
     mapAccumulate_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
@@ -109,6 +112,62 @@ export const sepBy1_ = <S, M, A>(
   tok: ParserT<S, M, TokenType<S>>,
 ): ParserT<S, M, List<A>> =>
   flatMap_(pa, x => map_(rep_(productR_(tok, pa)), xs => xs.prepend(x)));
+
+export const chainLeft_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  z: A,
+  op: ParserT<S, M, (x: A, y: A) => A>,
+): ParserT<S, M, A> => orElse_(chainLeft1_(p, op), () => succeed(z));
+
+export const chainLeft1_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  op: ParserT<S, M, (x: A, y: A) => A>,
+): ParserT<S, M, A> => {
+  const rest = (x: A): ParserT<S, M, A> =>
+    orElse_(
+      flatMap_(
+        map2_(op, p)((f, y) => f(x, y)),
+        rest,
+      ),
+      () => succeed(x),
+    );
+
+  return flatMap_(p, rest);
+};
+
+export const chainRight_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  z: A,
+  op: ParserT<S, M, (x: A, y: A) => A>,
+): ParserT<S, M, A> => orElse_(chainRight1_(p, op), () => succeed(z));
+
+export const chainRight1_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  op: ParserT<S, M, (x: A, y: A) => A>,
+): ParserT<S, M, A> => {
+  const rest = (x: A): ParserT<S, M, A> =>
+    orElse_(
+      flatMap_(
+        map2_(op, scan)((f, y) => f(x, y)),
+        rest,
+      ),
+      () => succeed(x),
+    );
+  const scan = flatMap_(p, rest);
+
+  return scan;
+};
+
+export const between_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  l: ParserT<S, M, any>,
+  r: ParserT<S, M, any>,
+): ParserT<S, M, A> => productR_(l, productL_(p, r));
+
+export const surroundedBy_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  s: ParserT<S, M, any>,
+): ParserT<S, M, A> => between_(p, s, s);
 
 // -- Parsing functions
 
@@ -160,7 +219,7 @@ export const parseConsumedF =
     parseLoopImpl(
       S,
       M,
-      new State(s, new SourcePosition(0, 0)),
+      new State(s, new SourcePosition(1, 1)),
       p,
       new Cont(
         /*cok: */ flow(M.pure, Consumed.Consumed, M.pure),
@@ -348,7 +407,7 @@ function tokenPrimParse<S, M, X, End>(
       ([tok, tl]) =>
         test(tok).fold(
           () =>
-            cont.cerr(
+            cont.eerr(
               new Failure(
                 new ParseError(s.position, [
                   `Unexpected token '${showToken(tok)}'`,

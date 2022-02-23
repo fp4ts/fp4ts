@@ -18,6 +18,11 @@ import { ParseResult } from './parse-result';
 import {
   ap_,
   as_,
+  between_,
+  chainLeft1_,
+  chainLeft_,
+  chainRight1_,
+  chainRight_,
   collect_,
   filter_,
   flatMap_,
@@ -38,6 +43,8 @@ import {
   rep_,
   sepBy1_,
   sepBy_,
+  skipRep_,
+  surroundedBy_,
 } from './operators';
 
 declare module './algebra' {
@@ -78,11 +85,36 @@ declare module './algebra' {
 
     mapAccumulate<B>(z: B, f: (b: B, a: A) => B): ParserT<S, M, B>;
 
+    skipRep(): ParserT<S, M, void>;
+
     rep(): ParserT<S, M, List<A>>;
     rep1(): ParserT<S, M, List<A>>;
 
     sepBy(tok: ParserT<S, M, TokenType<S>>): ParserT<S, M, List<A>>;
     sepBy1(tok: ParserT<S, M, TokenType<S>>): ParserT<S, M, List<A>>;
+
+    chainLeft<B>(
+      this: ParserT<S, M, B>,
+      z: B,
+      op: ParserT<S, M, (x: B, y: B) => B>,
+    ): ParserT<S, M, B>;
+    chainLeft1<B>(
+      this: ParserT<S, M, B>,
+      op: ParserT<S, M, (x: B, y: B) => B>,
+    ): ParserT<S, M, B>;
+
+    chainRight<B>(
+      this: ParserT<S, M, B>,
+      z: B,
+      op: ParserT<S, M, (x: B, y: B) => B>,
+    ): ParserT<S, M, B>;
+    chainRight1<B>(
+      this: ParserT<S, M, B>,
+      op: ParserT<S, M, (x: B, y: B) => B>,
+    ): ParserT<S, M, B>;
+
+    between(l: ParserT<S, M, any>, r: ParserT<S, M, any>): ParserT<S, M, A>;
+    surroundedBy(that: ParserT<S, M, any>): ParserT<S, M, A>;
 
     // Parsing functions
 
@@ -163,6 +195,9 @@ ParserT.prototype.flatMap = function (f) {
 ParserT.prototype.mapAccumulate = function (z, f) {
   return mapAccumulate_(this, z, f);
 };
+ParserT.prototype.skipRep = function () {
+  return skipRep_(this);
+};
 ParserT.prototype.rep = function () {
   return rep_(this);
 };
@@ -175,6 +210,26 @@ ParserT.prototype.sepBy = function (tok) {
 };
 ParserT.prototype.sepBy1 = function (tok) {
   return sepBy1_(this, tok);
+};
+
+ParserT.prototype.chainLeft = function (z, op) {
+  return chainLeft_(this, z, op);
+};
+ParserT.prototype.chainLeft1 = function (op) {
+  return chainLeft1_(this, op);
+};
+ParserT.prototype.chainRight = function (z, op) {
+  return chainRight_(this, z, op);
+};
+ParserT.prototype.chainRight1 = function (op) {
+  return chainRight1_(this, op);
+};
+
+ParserT.prototype.between = function (l, r) {
+  return between_(this, l, r);
+};
+ParserT.prototype.surroundedBy = function (that) {
+  return surroundedBy_(this, that);
 };
 
 ParserT.prototype.parse = function (this: any, M: any) {

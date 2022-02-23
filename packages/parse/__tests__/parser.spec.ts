@@ -5,9 +5,15 @@
 
 import fc from 'fast-check';
 import { Eq, Left, List, Right } from '@fp4ts/cats';
-import { ParseError, SourcePosition } from '@fp4ts/parse-core';
-import { anyChar } from '@fp4ts/parse-text';
+import {
+  Parser,
+  ParseError,
+  SourcePosition,
+  StringSource,
+} from '@fp4ts/parse-core';
+import { anyChar, char, digit, parens, spaces } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
+import { Char } from '@fp4ts/core';
 
 describe('Parser', () => {
   it('should parse a single character from a string', () => {
@@ -16,7 +22,7 @@ describe('Parser', () => {
 
   it('should fail to parse a single character when the input is empty', () => {
     expect(anyChar.parse('')).toEqual(
-      Left(new ParseError(new SourcePosition(0, 0), [expect.any(String)])),
+      Left(new ParseError(new SourcePosition(1, 1), [expect.any(String)])),
     );
   });
 
@@ -65,6 +71,47 @@ describe('Parser', () => {
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
       expect(anyChar.rep1().parse(input).isRight).toBe(true);
+    });
+  });
+
+  describe('expressions', () => {
+    const add = (x: number, y: number) => x + y;
+    const sub = (x: number, y: number) => x - y;
+    const mul = (x: number, y: number) => x * y;
+    const div = (x: number, y: number) => x / y;
+    const exp = (x: number, y: number) => x ** y;
+
+    /* eslint-disable prettier/prettier */
+    const addOp =   char('+' as Char).as(add)
+      ['<|>'](() => char('-' as Char).as(sub));
+    const mulOp =   char('*' as Char).as(mul)
+      ['<|>'](() => char('/' as Char).as(div));
+    const expOp =   char('^' as Char).as(exp)
+
+    const number = digit.rep1().map(xs => parseInt(xs.toArray.join('')));
+
+    const atom: Parser<StringSource, number> =
+      number['<|>'](() => parens(Parser.defer(() => expr)))
+        .surroundedBy(spaces);
+    const factor: Parser<StringSource, number> =
+      atom.chainLeft1(expOp);
+    const term: Parser<StringSource, number> =
+      factor.chainLeft1(mulOp);
+    const expr: Parser<StringSource, number> =
+      term.chainLeft1(addOp);
+    /* eslint-enable prettier/prettier */
+
+    it.each`
+      expr                      | result
+      ${'12'}                   | ${12}
+      ${'1+1'}                  | ${2}
+      ${'4*3'}                  | ${12}
+      ${'2+4*3'}                | ${14}
+      ${'(2+4)*3'}              | ${18}
+      ${'2^3^3'}                | ${512}
+      ${'( 2 +   4 ) *   3   '} | ${18}
+    `('should parse "$expr" into $result', ({ expr: e, result }) => {
+      expect(expr.chainLeft1(addOp).parse(e)).toEqual(Right(result));
     });
   });
 });
