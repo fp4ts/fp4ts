@@ -113,5 +113,11 @@ describe('Parser', () => {
     `('should parse "$expr" into $result', ({ expr: e, result }) => {
       expect(expr.chainLeft1(addOp).parse(e)).toEqual(Right(result));
     });
+
+    it('should be stack safe', () => {
+      const input = '1' + '+1'.repeat(50_000);
+
+      expect(expr.parse(input)).toEqual(Right(50_001));
+    });
   });
 });

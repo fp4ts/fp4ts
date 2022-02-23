@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow } from '@fp4ts/core';
 import { AndThen, Concat, Single, view } from './algebra';
 import { fusionMaxStackDepth } from './consts';
 
@@ -26,13 +25,13 @@ export const andThen_ = <A, E, B>(
   switch (fv.tag) {
     case 'single':
       if (fv.idx < fusionMaxStackDepth)
-        return new Single(flow(f, g), fv.idx + 1);
+        return new Single(x => g(f(x)), fv.idx + 1);
       return new Concat(f, new Single(g, 0));
 
     case 'concat': {
       const rv = view(fv.right);
       if (rv.tag === 'single' && rv.idx < fusionMaxStackDepth)
-        return new Concat(fv.left, new Single(flow(rv.fun, g), rv.idx + 1));
+        return new Concat(fv.left, new Single(x => g(rv.fun(x)), rv.idx + 1));
       return new Concat(f, new Single(g, 0));
     }
   }
@@ -47,13 +46,13 @@ export const compose_ = <A, E, B>(
   switch (gv.tag) {
     case 'single':
       if (gv.idx < fusionMaxStackDepth)
-        return new Single(flow(f, g), gv.idx + 1);
+        return new Single(x => g(f(x)), gv.idx + 1);
       return new Concat(new Single(f, 0), g);
 
     case 'concat': {
       const lv = view(gv.left);
       if (lv.tag === 'single' && lv.idx < fusionMaxStackDepth)
-        return new Concat(new Single(flow(f, lv.fun), lv.idx + 1), gv.right);
+        return new Concat(new Single(x => lv.fun(f(x)), lv.idx + 1), gv.right);
       return new Concat(new Single(f, 0), g);
     }
   }
@@ -72,13 +71,13 @@ const _andThen = <A, B, C>(
       const [g, indexG] = [gv.fun, gv.idx];
 
       return indexF + indexG < fusionMaxStackDepth
-        ? new Single(flow(f, g), indexF + indexG)
+        ? new Single(x => g(f(x)), indexF + indexG)
         : new Concat(ab, bc);
     } else {
       const leftV = view(gv.left);
       if (leftV.tag === 'single' && indexF + leftV.idx < fusionMaxStackDepth) {
         return new Concat(
-          new Single(flow(f, leftV.fun), indexF + leftV.idx),
+          new Single(x => leftV.fun(f(x)), indexF + leftV.idx),
           gv.right,
         );
       } else {
@@ -94,7 +93,7 @@ const _andThen = <A, B, C>(
     if (gv.tag === 'single') {
       const [g, indexG] = [gv.fun, gv.idx];
       return indexF + indexG < fusionMaxStackDepth
-        ? new Concat(fv.left, new Single(flow(f, g), indexF + indexG))
+        ? new Concat(fv.left, new Single(x => g(f(x)), indexF + indexG))
         : new Concat(ab, bc);
     } else {
       const leftV = view(gv.left);
@@ -102,7 +101,7 @@ const _andThen = <A, B, C>(
         return new Concat(
           fv.left,
           new Concat(
-            new Single(flow(f, leftV.fun), indexF + leftV.idx),
+            new Single(x => leftV.fun(f(x)), indexF + leftV.idx),
             gv.right,
           ),
         );

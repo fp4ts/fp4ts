@@ -20,9 +20,11 @@ export class Single<A, B> extends AndThen<A, B> {
   ) {
     super();
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
     const apply = function (this: AndThen<A, B>, a: A): B {
-      return runLoop_(this, a);
-    }.bind(this);
+      return runLoop_(self, a);
+    };
 
     Object.setPrototypeOf(apply, this.constructor.prototype);
     (apply as any).tag = this.tag;
@@ -40,9 +42,11 @@ export class Concat<A, E, B> extends AndThen<A, B> {
   ) {
     super();
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
     const apply = function (this: AndThen<A, B>, a: A): B {
-      return runLoop_(this, a);
-    }.bind(this);
+      return runLoop_(self, a);
+    };
 
     Object.setPrototypeOf(apply, this.constructor.prototype);
     (apply as any).tag = this.tag;
