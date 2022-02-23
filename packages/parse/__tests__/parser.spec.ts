@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Char } from '@fp4ts/core';
 import { Eq, Left, List, Right } from '@fp4ts/cats';
 import {
   Parser,
@@ -13,7 +14,6 @@ import {
 } from '@fp4ts/parse-core';
 import { anyChar, char, digit, parens, spaces } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
-import { Char } from '@fp4ts/core';
 
 describe('Parser', () => {
   it('should parse a single character from a string', () => {
