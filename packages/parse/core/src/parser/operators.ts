@@ -396,81 +396,6 @@ function parseLoopImpl<S, M, X, End>(
   }
 }
 
-class Cont<S, M, X, End> {
-  // prettier-ignore
-  public constructor(
-    public readonly cok : (suc: Success<S, X>) => Kind<M, [End]>,
-    public readonly cerr: (fail: Failure  ) => Kind<M, [End]>,
-    public readonly eok : (suc: Success<S, X>) => Kind<M, [End]>,
-    public readonly eerr: (fail: Failure  ) => Kind<M, [End]>,
-  ) {}
-
-  public copy({
-    cok = this.cok,
-    cerr = this.cerr,
-    eok = this.eok,
-    eerr = this.eerr,
-  }: Partial<Props<S, M, X, End>> = {}): Cont<S, M, X, End> {
-    return new Cont(cok, cerr, eok, eerr);
-  }
-
-  public cokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
-    return AndThen(this.cok).compose(f);
-  }
-  public cerrContramap(f: (suc: Failure) => Failure) {
-    return AndThen(this.cerr).compose(f);
-  }
-  public eokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
-    return AndThen(this.eok).compose(f);
-  }
-  public eerrContramap(f: (suc: Failure) => Failure) {
-    return AndThen(this.eerr).compose(f);
-  }
-
-  public cokMergeError(error: ParseError) {
-    return AndThen(this.cok).compose((suc: Success<S, X>) =>
-      suc.mergeError(error),
-    );
-  }
-
-  public cerrMergeError(error: ParseError) {
-    return AndThen(this.cerr).compose((suc: Failure) => suc.mergeError(error));
-  }
-
-  public eokMergeError(error: ParseError) {
-    return AndThen(this.eok).compose((suc: Success<S, X>) =>
-      suc.mergeError(error),
-    );
-  }
-
-  public eerrMergeError(error: ParseError) {
-    return AndThen(this.eerr).compose((suc: Failure) => suc.mergeError(error));
-  }
-
-  public debug(name: string): Cont<S, M, X, End> {
-    const log =
-      (case_: string) =>
-      <X>(x: X): X => {
-        console.log(`Debug: ---> ${name} ${case_} ${x}`);
-        return x;
-      };
-    return this.copy({
-      cok: AndThen(this.cok).compose(log('cok')),
-      cerr: AndThen(this.cerr).compose(log('cerr')),
-      eok: AndThen(this.eok).compose(log('eok')),
-      eerr: AndThen(this.eerr).compose(log('eerr')),
-    });
-  }
-}
-
-// prettier-ignore
-type Props<S, M, X, End> = {
-    readonly cok : (suc: Success<S, X>) => Kind<M, [End]>
-    readonly cerr: (fail: Failure  ) => Kind<M, [End]>
-    readonly eok : (suc: Success<S, X>) => Kind<M, [End]>
-    readonly eerr: (fail: Failure  ) => Kind<M, [End]>
-  };
-
 function tokenPrimParse<S, M, X, End>(
   { S, M, s, cont }: ParseCtx<S, M, X, End>,
   showToken: (t: TokenType<S>) => string,
@@ -605,3 +530,78 @@ function repError(): never {
     'Combinator `rep` applied to a parser that accepts an empty input',
   );
 }
+
+class Cont<S, M, X, End> {
+  // prettier-ignore
+  public constructor(
+    public readonly cok : (suc: Success<S, X>) => Kind<M, [End]>,
+    public readonly cerr: (fail: Failure  ) => Kind<M, [End]>,
+    public readonly eok : (suc: Success<S, X>) => Kind<M, [End]>,
+    public readonly eerr: (fail: Failure  ) => Kind<M, [End]>,
+  ) {}
+
+  public copy({
+    cok = this.cok,
+    cerr = this.cerr,
+    eok = this.eok,
+    eerr = this.eerr,
+  }: Partial<Props<S, M, X, End>> = {}): Cont<S, M, X, End> {
+    return new Cont(cok, cerr, eok, eerr);
+  }
+
+  public cokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
+    return AndThen(this.cok).compose(f);
+  }
+  public cerrContramap(f: (suc: Failure) => Failure) {
+    return AndThen(this.cerr).compose(f);
+  }
+  public eokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
+    return AndThen(this.eok).compose(f);
+  }
+  public eerrContramap(f: (suc: Failure) => Failure) {
+    return AndThen(this.eerr).compose(f);
+  }
+
+  public cokMergeError(error: ParseError) {
+    return AndThen(this.cok).compose((suc: Success<S, X>) =>
+      suc.mergeError(error),
+    );
+  }
+
+  public cerrMergeError(error: ParseError) {
+    return AndThen(this.cerr).compose((suc: Failure) => suc.mergeError(error));
+  }
+
+  public eokMergeError(error: ParseError) {
+    return AndThen(this.eok).compose((suc: Success<S, X>) =>
+      suc.mergeError(error),
+    );
+  }
+
+  public eerrMergeError(error: ParseError) {
+    return AndThen(this.eerr).compose((suc: Failure) => suc.mergeError(error));
+  }
+
+  public debug(name: string): Cont<S, M, X, End> {
+    const log =
+      (case_: string) =>
+      <X>(x: X): X => {
+        console.log(`Debug: ---> ${name} ${case_} ${x}`);
+        return x;
+      };
+    return this.copy({
+      cok: AndThen(this.cok).compose(log('cok')),
+      cerr: AndThen(this.cerr).compose(log('cerr')),
+      eok: AndThen(this.eok).compose(log('eok')),
+      eerr: AndThen(this.eerr).compose(log('eerr')),
+    });
+  }
+}
+
+// prettier-ignore
+type Props<S, M, X, End> = {
+  readonly cok : (suc: Success<S, X>) => Kind<M, [End]>
+  readonly cerr: (fail: Failure  ) => Kind<M, [End]>
+  readonly eok : (suc: Success<S, X>) => Kind<M, [End]>
+  readonly eerr: (fail: Failure  ) => Kind<M, [End]>
+};

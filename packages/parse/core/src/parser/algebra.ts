@@ -45,7 +45,7 @@ export class Defer<S, M, A> extends ParserT<S, M, A> {
   }
 }
 
-export class UnconsPrim<S, M, A> extends ParserT<S, M, A> {
+export class TokenPrim<S, M, A> extends ParserT<S, M, A> {
   public readonly tag = 'uncons-prim';
 
   public constructor(
@@ -154,7 +154,7 @@ export type View<S, M, A> =
   | Fail<S, M, A>
   | Empty<S, M>
   | Defer<S, M, A>
-  | UnconsPrim<S, M, any>
+  | TokenPrim<S, M, any>
   | MakeParser<S, A>
   | MakeParserT<S, M, A>
   | Map<S, M, any, A>

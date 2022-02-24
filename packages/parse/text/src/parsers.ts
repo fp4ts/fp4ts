@@ -26,7 +26,7 @@ const alphaNumRegex = /^\w/;
 const whitespaceRegex = /^\s/;
 
 export const satisfy = (p: (c: Char) => boolean): Parser<StringSource, Char> =>
-  Parser.unconsPrim<StringSource, Char>(
+  Parser.tokenPrim<StringSource, Char>(
     c => `'${c}'`,
     (sp, t) => updatePositionByChar(sp, t),
     x => (p(x) ? Some(x) : None),

@@ -97,6 +97,7 @@
       "./http/test-kit-node",
       "./parse/",
       "./parse/core",
+      "./parse/perf",
       "./parse/text",
       "./schema/",
       "./schema/core/src",

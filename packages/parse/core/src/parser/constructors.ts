@@ -17,7 +17,7 @@ import {
   MakeParserT,
   ParserT,
   Succeed,
-  UnconsPrim,
+  TokenPrim,
 } from './algebra';
 import { ParseResult } from './parse-result';
 import { State } from './state';
@@ -43,23 +43,23 @@ export const defer = <S, M, A>(
 ): ParserT<S, M, A> => new Defer(lazyVal(thunk));
 
 export const anyToken = <S, M, A>(): ParserT<S, M, TokenType<S>> =>
-  unconsPrim(
+  tokenPrim(
     x => `${x}`,
     pos => pos,
     Some,
   );
 
-export const uncons = <S, M, A>(
+export const token = <S, M, A>(
   showToken: (t: TokenType<S>) => string,
   nextPos: (t: TokenType<S>) => SourcePosition,
   test: (t: TokenType<S>) => Option<A>,
-): ParserT<S, M, A> => unconsPrim(showToken, (sp, t, s) => nextPos(t), test);
+): ParserT<S, M, A> => tokenPrim(showToken, (sp, t, s) => nextPos(t), test);
 
-export const unconsPrim = <S, M, A>(
+export const tokenPrim = <S, M, A>(
   showToken: (t: TokenType<S>) => string,
   nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
   test: (t: TokenType<S>) => Option<A>,
-): ParserT<S, M, A> => new UnconsPrim(showToken, nextPos, test);
+): ParserT<S, M, A> => new TokenPrim(showToken, nextPos, test);
 
 export const makeParser = <S, A>(
   runParser: (s: State<S>) => Consumed<ParseResult<S, A>>,

@@ -16,8 +16,8 @@ import {
   makeParser,
   makeParserT,
   succeed,
-  uncons,
-  unconsPrim,
+  token,
+  tokenPrim,
 } from './constructors';
 import { ParseResult } from './parse-result';
 import { State } from './state';
@@ -45,12 +45,12 @@ interface ParserTObj {
 
   defer<S, M, A>(thunk: () => ParserT<S, M, A>): ParserT<S, M, A>;
 
-  uncons<S, M, A>(
+  token<S, M, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (t: TokenType<S>) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
   ): ParserT<S, M, A>;
-  unconsPrim<S, M, A>(
+  tokenPrim<S, M, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
@@ -61,8 +61,8 @@ ParserT.succeed = succeed;
 ParserT.fail = fail;
 ParserT.empty = empty;
 ParserT.defer = defer;
-ParserT.uncons = uncons;
-ParserT.unconsPrim = unconsPrim;
+ParserT.token = token;
+ParserT.tokenPrim = tokenPrim;
 
 interface ParserObj {
   <S, A>(runParser: (s: State<S>) => Consumed<ParseResult<S, A>>): Parser<S, A>;
@@ -72,12 +72,12 @@ interface ParserObj {
 
   defer<S, A>(thunk: () => Parser<S, A>): Parser<S, A>;
 
-  uncons<S, A>(
+  token<S, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (t: TokenType<S>) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
   ): Parser<S, A>;
-  unconsPrim<S, A>(
+  tokenPrim<S, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
@@ -88,5 +88,5 @@ Parser.succeed = succeed;
 Parser.fail = fail;
 Parser.empty = empty;
 Parser.defer = defer;
-Parser.uncons = uncons;
-Parser.unconsPrim = unconsPrim;
+Parser.token = token;
+Parser.tokenPrim = tokenPrim;

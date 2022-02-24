@@ -1,11 +1,11 @@
 {
   "name": "@fp4ts/parse-perf",
   "version": "1.0.0",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "clean": "rm -rf dist && rm -f *.tsbuildinfo && rm -rf node_modules",
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
