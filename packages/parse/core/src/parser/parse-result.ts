@@ -45,6 +45,10 @@ export class Success<S, A> extends ParseResult<S, A> {
   public mergeError(error: ParseError): Success<S, A> {
     return new Success(this.output, this.remainder, error.merge(this.error));
   }
+
+  public withError(error: ParseError): Success<S, A> {
+    return new Success(this.output, this.remainder, error);
+  }
 }
 
 export class Failure extends ParseResult<never, never> {
@@ -69,5 +73,9 @@ export class Failure extends ParseResult<never, never> {
 
   public mergeError(error: ParseError): Failure {
     return new Failure(error.merge(this.error));
+  }
+
+  public withError(error: ParseError): Failure {
+    return new Failure(error);
   }
 }

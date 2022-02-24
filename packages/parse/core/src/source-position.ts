@@ -31,7 +31,7 @@ export class SourcePosition {
   }
 
   public toString(): string {
-    return `${this.line}:${this.column}`;
+    return `(line: ${this.line}, column: ${this.column})`;
   }
 
   // -- Instances

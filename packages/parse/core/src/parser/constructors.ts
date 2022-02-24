@@ -3,10 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EvalF, Monad, Option } from '@fp4ts/cats';
+import { EvalF, Monad, Option, Some } from '@fp4ts/cats';
 import { Kind, lazyVal } from '@fp4ts/core';
 import { SourcePosition } from '../source-position';
 import { TokenType } from '../token-type';
+import { Consumed } from '../consumed';
+import { Message } from '../parse-error';
 import {
   Defer,
   Empty,
@@ -17,19 +19,35 @@ import {
   Succeed,
   UnconsPrim,
 } from './algebra';
-import { Consumed } from '../consumed';
 import { ParseResult } from './parse-result';
 import { State } from './state';
+import { label_, notFollowedBy_ } from './operators';
 
 export const succeed = <S, M, A>(x: A): ParserT<S, M, A> => new Succeed(x);
 
+export const unit = <S, M>(): ParserT<S, M, void> => succeed(undefined);
+
 export const fail = <S, M, A = never>(msg: string): ParserT<S, M, A> =>
-  new Fail(msg);
+  new Fail(Message.Raw(msg));
+
+export const unexpected = <S, M, A = never>(msg: string): ParserT<S, M, A> =>
+  new Fail(Message.Unexpected(msg));
+
 export const empty = <S, M, A = never>(): ParserT<S, M, A> => new Empty();
+
+export const eof = <S, M>(): ParserT<S, M, void> =>
+  label_(notFollowedBy_(unit(), anyToken()), 'end of input');
 
 export const defer = <S, M, A>(
   thunk: () => ParserT<S, M, A>,
 ): ParserT<S, M, A> => new Defer(lazyVal(thunk));
+
+export const anyToken = <S, M, A>(): ParserT<S, M, TokenType<S>> =>
+  unconsPrim(
+    x => `${x}`,
+    pos => pos,
+    Some,
+  );
 
 export const uncons = <S, M, A>(
   showToken: (t: TokenType<S>) => string,

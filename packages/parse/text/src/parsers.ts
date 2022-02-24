@@ -8,6 +8,7 @@ import { None, Some } from '@fp4ts/cats';
 import {
   Consumed,
   Failure,
+  Message,
   ParseError,
   Parser,
   State,
@@ -26,29 +27,31 @@ const whitespaceRegex = /^\s/;
 
 export const satisfy = (p: (c: Char) => boolean): Parser<StringSource, Char> =>
   Parser.unconsPrim<StringSource, Char>(
-    id,
+    c => `'${c}'`,
     (sp, t) => updatePositionByChar(sp, t),
     x => (p(x) ? Some(x) : None),
   );
 
 export const char = (c: Char): Parser<StringSource, Char> =>
-  satisfy(x => x === c);
+  satisfy(x => x === c)['<?>'](`'${c}'`);
 
 export const anyChar: Parser<StringSource, Char> = satisfy(() => true);
 
 export const letter: Parser<StringSource, Char> = satisfy(x =>
   alphaRegex.test(x),
-);
+)['<?>']('letter');
 export const digit: Parser<StringSource, Char> = satisfy(x =>
   digitRegex.test(x),
-);
+)['<?>']('digit');
 export const alphaNum: Parser<StringSource, Char> = satisfy(x =>
   alphaNumRegex.test(x),
-);
+)['<?>']('letter or digit');
 export const space: Parser<StringSource, Char> = satisfy(x =>
   whitespaceRegex.test(x),
-);
-export const spaces: Parser<StringSource, void> = space.skipRep();
+)['<?>']('space');
+export const spaces: Parser<StringSource, void> = space
+  .skipRep()
+  ['<?>']('white space');
 
 export const parens = <A>(
   p: Parser<StringSource, A>,
@@ -65,17 +68,16 @@ export const string = (str: string): Parser<StringSource, string> =>
             if (i === 0) {
               return Consumed.Empty(
                 new Failure(
-                  new ParseError(s.position, [
-                    `Unexpected EOF, expected ${str}`,
-                  ]),
+                  ParseError.unexpected(s.position, '').addMessage(
+                    Message.Expected(str),
+                  ),
                 ),
               );
             } else {
               return Consumed.Consumed(
                 new Failure(
-                  new ParseError(
-                    updatePositionByString(s.position, str.substring(0, i)),
-                    [`Unexpected EOF, expected ${str}`],
+                  ParseError.unexpected(s.position, '').addMessage(
+                    Message.Expected(str),
                   ),
                 ),
               );
@@ -88,17 +90,16 @@ export const string = (str: string): Parser<StringSource, string> =>
             if (i === 0) {
               return Consumed.Empty(
                 new Failure(
-                  new ParseError(s.position, [
-                    `Unexpected token ${t}, expected ${str}`,
-                  ]),
+                  ParseError.unexpected(s.position, hd).addMessage(
+                    Message.Expected(str),
+                  ),
                 ),
               );
             } else {
               return Consumed.Consumed(
                 new Failure(
-                  new ParseError(
-                    updatePositionByString(s.position, str.substring(0, i)),
-                    [`Unexpected token ${t}, expected ${str}`],
+                  ParseError.unexpected(s.position, hd).addMessage(
+                    Message.Expected(str),
                   ),
                 ),
               );
@@ -146,7 +147,9 @@ export const regex = (re: RegExp): Parser<StringSource, string> =>
               )
           : Consumed.Empty(
               new Failure(
-                new ParseError(s.position, [`Did not match ${re.source}`]),
+                new ParseError(s.position, [
+                  Message.Expected(`Re(${re.source})`),
+                ]),
               ),
             );
       });

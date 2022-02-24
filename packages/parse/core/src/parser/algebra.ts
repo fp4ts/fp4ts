@@ -5,11 +5,13 @@
 
 import { Kind, Lazy } from '@fp4ts/core';
 import { EvalF, Monad, Option } from '@fp4ts/cats';
+import { Message } from '../parse-error';
+import { SourcePosition } from '../source-position';
+
 import { ParseResult } from './parse-result';
 import { Consumed } from '../consumed';
 import { State } from './state';
 import { TokenType } from '../token-type';
-import { SourcePosition } from '../source-position';
 
 export abstract class ParserT<S, M, A> {
   private readonly __void!: void;
@@ -25,9 +27,9 @@ export class Succeed<S, M, A> extends ParserT<S, M, A> {
   }
 }
 
-export class Fail<S, M> extends ParserT<S, M, never> {
+export class Fail<S, M, A> extends ParserT<S, M, A> {
   public readonly tag = 'fail';
-  public constructor(public readonly msg: string) {
+  public constructor(public readonly msg: Message) {
     super();
   }
 }
@@ -127,6 +129,16 @@ export class OrElse<S, M, A> extends ParserT<S, M, A> {
   }
 }
 
+export class Labels<S, M, A> extends ParserT<S, M, A> {
+  public readonly tag = 'labels';
+  public constructor(
+    public readonly self: ParserT<S, M, A>,
+    public readonly messages: string[],
+  ) {
+    super();
+  }
+}
+
 export class Debug<S, M, A> extends ParserT<S, M, A> {
   public readonly tag = 'debug';
   public constructor(
@@ -139,7 +151,7 @@ export class Debug<S, M, A> extends ParserT<S, M, A> {
 
 export type View<S, M, A> =
   | Succeed<S, M, A>
-  | Fail<S, M>
+  | Fail<S, M, A>
   | Empty<S, M>
   | Defer<S, M, A>
   | UnconsPrim<S, M, any>
@@ -150,4 +162,5 @@ export type View<S, M, A> =
   | FlatMap<S, M, any, A>
   | Backtrack<S, M, A>
   | OrElse<S, M, A>
+  | Labels<S, M, A>
   | Debug<S, M, A>;

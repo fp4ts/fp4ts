@@ -16,7 +16,7 @@ import {
   Some,
 } from '@fp4ts/cats';
 
-import { ParseError } from '../parse-error';
+import { ParseError, Message } from '../parse-error';
 import { SourcePosition } from '../source-position';
 
 import { Stream } from '../stream';
@@ -28,11 +28,12 @@ import {
   ParserT,
   View,
   Debug,
+  Labels,
 } from './algebra';
 import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
-import { empty, succeed } from './constructors';
+import { anyToken, empty, eof, succeed, unexpected } from './constructors';
 import { TokenType } from '../token-type';
 import { StringSource } from '../string-source';
 import { Source } from '../source';
@@ -96,6 +97,15 @@ export const mapAccumulate_ = <S, M, A, B>(
   init: B,
   f: (acc: B, a: A) => B,
 ): ParserT<S, M, B> => new ManyAccumulate(p, init, f);
+
+export const notFollowedBy_ = <S, M, A, B>(
+  p: ParserT<S, M, A>,
+  p2: ParserT<S, M, B>,
+): ParserT<S, M, A> =>
+  productL_(
+    p,
+    flatMap_(p2, c => unexpected(`${c}`)),
+  );
 
 export const skipRep_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, void> =>
   mapAccumulate_(p, undefined, () => {});
@@ -177,6 +187,9 @@ export const surroundedBy_ = <S, M, A>(
   s: ParserT<S, M, any>,
 ): ParserT<S, M, A> => between_(p, s, s);
 
+export const complete_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, A> =>
+  productL_(p, eof());
+
 // -- Parsing functions
 
 export const parse = <A>(
@@ -238,6 +251,11 @@ export const parseConsumedF =
     );
 
 // -- Debug
+
+export const label_ = <S, M, A>(
+  p: ParserT<S, M, A>,
+  ...msgs: string[]
+): ParserT<S, M, A> => new Labels(p, msgs);
 
 export const debug_ = <S, M, A>(
   p: ParserT<S, M, A>,
@@ -352,6 +370,13 @@ function parseLoopImpl<S, M, X, End>(
         break;
       }
 
+      case 'labels': {
+        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        cur_ = cur.self;
+        cont_ = labelsCont(ctx, cur.messages);
+        break;
+      }
+
       case 'debug': {
         cur_ = cur.self;
         cont_ = cont.debug(cur.name);
@@ -383,8 +408,14 @@ class Cont<S, M, X, End> {
   public cokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
     return AndThen(this.cok).compose(f);
   }
+  public cerrContramap(f: (suc: Failure) => Failure) {
+    return AndThen(this.cerr).compose(f);
+  }
   public eokContramap<Y>(f: (suc: Success<S, Y>) => Success<S, X>) {
     return AndThen(this.eok).compose(f);
+  }
+  public eerrContramap(f: (suc: Failure) => Failure) {
+    return AndThen(this.eerr).compose(f);
   }
 
   public cokMergeError(error: ParseError) {
@@ -439,17 +470,12 @@ function tokenPrimParse<S, M, X, End>(
 ): Kind<M, [End]> {
   return M.flatMap_(S.uncons(s.input), opt =>
     opt.fold(
-      () =>
-        cont.eerr(new Failure(new ParseError(s.position, ['Empty uncons']))),
+      () => cont.eerr(new Failure(ParseError.unexpected(s.position, ''))),
       ([tok, tl]) =>
         test(tok).fold(
           () =>
             cont.eerr(
-              new Failure(
-                new ParseError(s.position, [
-                  `Unexpected token '${showToken(tok)}'`,
-                ]),
-              ),
+              new Failure(ParseError.unexpected(s.position, showToken(tok))),
             ),
           x =>
             cont.cok(
@@ -535,6 +561,29 @@ function orElseCont<S, M, X, End>(
     );
 
   return cont.copy({ eerr: meerr });
+}
+
+function labelsCont<S, M, X, End>(
+  { cont }: ParseCtx<S, M, X, End>,
+  msgs: string[],
+): Cont<S, M, X, End> {
+  function setExpectedMsgs(error: ParseError): ParseError {
+    if (msgs.length === 0) return error.withMessage(Message.Expected(''));
+    let err0 = error.withMessage(Message.Expected(msgs[0]));
+    for (let i = 1; i < msgs.length; i++) {
+      err0 = err0.addMessage(Message.Expected(msgs[i]));
+    }
+    return err0;
+  }
+
+  return cont.copy({
+    eok: cont.eokContramap(suc =>
+      suc.error.isEmpty ? suc : suc.withError(setExpectedMsgs(suc.error)),
+    ),
+    eerr: cont.eerrContramap(fail =>
+      fail.withError(setExpectedMsgs(fail.error)),
+    ),
+  });
 }
 
 class ParserRepError extends Error {}

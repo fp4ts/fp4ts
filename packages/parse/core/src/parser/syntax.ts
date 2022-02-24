@@ -24,12 +24,15 @@ import {
   chainRight1_,
   chainRight_,
   collect_,
+  complete_,
   debug_,
   filter_,
   flatMap_,
+  label_,
   map2_,
   mapAccumulate_,
   map_,
+  notFollowedBy_,
   orElse_,
   parse,
   parseF,
@@ -86,6 +89,8 @@ declare module './algebra' {
 
     mapAccumulate<B>(z: B, f: (b: B, a: A) => B): ParserT<S, M, B>;
 
+    notFollowedBy<B>(that: ParserT<S, M, B>): ParserT<S, M, B>;
+
     skipRep(): ParserT<S, M, void>;
 
     rep(): ParserT<S, M, List<A>>;
@@ -116,6 +121,8 @@ declare module './algebra' {
 
     between(l: ParserT<S, M, any>, r: ParserT<S, M, any>): ParserT<S, M, A>;
     surroundedBy(that: ParserT<S, M, any>): ParserT<S, M, A>;
+
+    complete(): ParserT<S, M, A>;
 
     // Parsing functions
 
@@ -150,6 +157,9 @@ declare module './algebra' {
       S: Stream<S, M>,
       M: Monad<M>,
     ): (s: S) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>;
+
+    label(...msgs: string[]): ParserT<S, M, A>;
+    '<?>'(...msgs: string[]): ParserT<S, M, A>;
 
     debug(name: string): ParserT<S, M, A>;
   }
@@ -198,6 +208,9 @@ ParserT.prototype.flatMap = function (f) {
 ParserT.prototype.mapAccumulate = function (z, f) {
   return mapAccumulate_(this, z, f);
 };
+ParserT.prototype.notFollowedBy = function (that) {
+  return notFollowedBy_(this, that);
+};
 ParserT.prototype.skipRep = function () {
   return skipRep_(this);
 };
@@ -234,6 +247,9 @@ ParserT.prototype.between = function (l, r) {
 ParserT.prototype.surroundedBy = function (that) {
   return surroundedBy_(this, that);
 };
+ParserT.prototype.complete = function () {
+  return complete_(this);
+};
 
 ParserT.prototype.parse = function (this: any, M: any) {
   return typeof M === 'string'
@@ -253,6 +269,10 @@ ParserT.prototype.parseStream = function (this: any, ...args: any[]) {
     : (s: any) => parseStreamF(args[0], args[1])(this, s);
 } as any;
 
+ParserT.prototype.label = function (...msgs) {
+  return label_(this, ...msgs);
+};
+ParserT.prototype['<?>'] = ParserT.prototype.label;
 ParserT.prototype.debug = function (name) {
   return debug_(this, name);
 };

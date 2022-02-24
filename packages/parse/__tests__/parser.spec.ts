@@ -120,4 +120,18 @@ describe('Parser', () => {
       expect(expr.parse(input)).toEqual(Right(50_001));
     });
   });
+
+  describe('message formatting', () => {
+    it("should print unexpected '3', expecting space or ','", () => {
+      expect(
+        digit
+          .sepBy(char(',' as Char).surroundedBy(spaces))
+          .complete()
+          .parse('1, 2 3')
+          .leftMap(e => e.toString()).getLeft,
+      ).toEqual(`(line: 1, column: 6)
+unexpected '3'
+expecting space or ','`);
+    });
+  });
 });
