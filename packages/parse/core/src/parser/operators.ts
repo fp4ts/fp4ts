@@ -216,7 +216,7 @@ export const parseSource = <A, S extends Source<any, any>>(
   p: ParserT<S, EvalF, A>,
   s: S,
 ): Either<ParseError, A> =>
-  parseStream(Stream.forSource<EvalF, S>(Eval.Monad))(p, s);
+  parseStream(Stream.forSource<EvalF, S>(Eval.Monad))(p, s).value;
 
 export const parseSourceF =
   <F>(F: Monad<F>) =>
@@ -224,36 +224,30 @@ export const parseSourceF =
     p: ParserT<S, F, A>,
     s: S,
   ): Kind<F, [Either<ParseError, A>]> =>
-    parseStreamF(Stream.forSource<F, S>(F), F)(p, s);
+    parseStream(Stream.forSource<F, S>(F))(p, s);
 
 export const parseStream =
-  <S>(S: Stream<S, EvalF>) =>
-  <A>(p: ParserT<S, EvalF, A>, s: S): Either<ParseError, A> =>
-    parseStreamF(S, Eval.Monad)(p, s).value;
-
-export const parseStreamF =
-  <S, F>(S: Stream<S, F>, F: Monad<F>) =>
+  <S, F>(S: Stream<S, F>) =>
   <A>(p: ParserT<S, F, A>, s: S): Kind<F, [Either<ParseError, A>]> =>
-    F.flatMap_(parseConsumedF(S, F)(p, s), cons =>
-      F.map_(cons.value, result => result.toEither),
+    S.monad.flatMap_(parseConsumedF(S)(p, s), cons =>
+      S.monad.map_(cons.value, result => result.toEither),
     );
 
 export const parseConsumedF =
-  <S, F>(S: Stream<S, F>, F: Monad<F>) =>
+  <S, F>(S: Stream<S, F>) =>
   <A>(
     p: ParserT<S, F, A>,
     s: S,
   ): Kind<F, [Consumed<Kind<F, [ParseResult<S, A>]>>]> =>
     parseLoopImpl(
       S,
-      F,
       new State(s, new SourcePosition(1, 1)),
       p,
       new Cont(
-        /*cok: */ flow(F.pure, Consumed.Consumed, F.pure),
-        /*cerr: */ flow(F.pure, Consumed.Consumed, F.pure),
-        /*eok: */ flow(F.pure, Consumed.Empty, F.pure),
-        /*eerr: */ flow(F.pure, Consumed.Empty, F.pure),
+        /*cok: */ flow(S.monad.pure, Consumed.Consumed, S.monad.pure),
+        /*cerr: */ flow(S.monad.pure, Consumed.Consumed, S.monad.pure),
+        /*eok: */ flow(S.monad.pure, Consumed.Empty, S.monad.pure),
+        /*eerr: */ flow(S.monad.pure, Consumed.Empty, S.monad.pure),
       ),
     );
 
@@ -273,7 +267,6 @@ export const debug_ = <S, F, A>(
 
 interface ParseCtx<S, F, X, End> {
   readonly S: Stream<S, F>;
-  readonly F: Monad<F>;
   readonly s: State<S>;
   readonly cont: Cont<S, F, X, End>;
   readonly go: <Z, End2>(
@@ -285,7 +278,6 @@ interface ParseCtx<S, F, X, End> {
 
 function parseLoopImpl<S, F, X, End>(
   S: Stream<S, F>,
-  F: Monad<F>,
   s: State<S>,
   parser: ParserT<S, F, X>,
   cont0: Cont<S, F, X, End>,
@@ -294,7 +286,8 @@ function parseLoopImpl<S, F, X, End>(
     s: State<S>,
     p0: ParserT<S, F, Y>,
     c0: Cont<S, F, Y, End>,
-  ): Kind<F, [End]> => F.flatMap_(F.unit, () => parseLoopImpl(S, F, s, p0, c0));
+  ): Kind<F, [End]> =>
+    S.monad.flatMap_(S.monad.unit, () => parseLoopImpl(S, s, p0, c0));
   let cur_: ParserT<S, F, any> = parser;
   let cont_: Cont<S, F, any, End> = cont0;
 
@@ -319,7 +312,7 @@ function parseLoopImpl<S, F, X, End>(
         break;
 
       case 'uncons-prim': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         return tokenPrimParse(ctx, cur.showToken, cur.nextPos, cur.test);
       }
 
@@ -332,12 +325,12 @@ function parseLoopImpl<S, F, X, End>(
 
       case 'make-parser-t':
         return pipe(
-          F.unit,
-          F.flatMap(() => cur.runParserT(F)(s)),
-          F.flatMap(cons =>
+          S.monad.unit,
+          S.monad.flatMap(() => cur.runParserT(S.monad)(s)),
+          S.monad.flatMap(cons =>
             cons.tag === 'consumed'
-              ? F.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))
-              : F.flatMap_(cons.value, r => r.fold(cont.eok, cont.eerr)),
+              ? S.monad.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))
+              : S.monad.flatMap_(cons.value, r => r.fold(cont.eok, cont.eerr)),
           ),
         );
 
@@ -352,14 +345,14 @@ function parseLoopImpl<S, F, X, End>(
         break;
 
       case 'flatMap': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         cur_ = cur.self;
         cont_ = flatMapCont(ctx, cur.fun);
         break;
       }
 
       case 'many-accumulate': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         cur_ = cur.self;
         cont_ = mapAccumulateCont(ctx, cur.self, cur.init, cur.fun);
         break;
@@ -371,14 +364,14 @@ function parseLoopImpl<S, F, X, End>(
         break;
 
       case 'or-else': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         cur_ = cur.lhs;
         cont_ = orElseCont(ctx, cur.rhs);
         break;
       }
 
       case 'labels': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         cur_ = cur.self;
         cont_ = labelsCont(ctx, cur.messages);
         break;
@@ -395,12 +388,12 @@ function parseLoopImpl<S, F, X, End>(
 }
 
 function tokenPrimParse<S, F, X, End>(
-  { S, F, s, cont }: ParseCtx<S, F, X, End>,
+  { S, s, cont }: ParseCtx<S, F, X, End>,
   showToken: (t: TokenType<S>) => string,
   nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
   test: (t: TokenType<S>) => Option<X>,
 ): Kind<F, [End]> {
-  return F.flatMap_(S.uncons(s.input), opt =>
+  return S.monad.flatMap_(S.uncons(s.input), opt =>
     opt.fold(
       () => cont.eerr(new Failure(ParseError.unexpected(s.position, ''))),
       ([tok, tl]) =>
@@ -437,8 +430,8 @@ function flatMapCont<S, F, Y, X, End>(
           suc.remainder,
           fun(suc.output),
           cont.copy({
-            cok: cont.cokMergeError(suc.error),
-            cerr: cont.cerrMergeError(suc.error),
+            eok: cont.cokMergeError(suc.error),
+            eerr: cont.cerrMergeError(suc.error),
           }),
         );
 

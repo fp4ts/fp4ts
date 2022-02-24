@@ -61,7 +61,7 @@ describe('Parser', () => {
         char('x' as Char)
           .flatMap(() => Parser.fail(''))
           .orElse(() => Parser.succeed(84))
-          .parse('x'),
+          .parse('y'),
       ).toEqual(Right(84));
     });
 

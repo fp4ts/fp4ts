@@ -33,11 +33,11 @@ import {
   notFollowedBy_,
   orElse_,
   parse,
+  parseConsumedF,
   parseF,
   parseSource,
   parseSourceF,
   parseStream,
-  parseStreamF,
   productL_,
   productR_,
   product_,
@@ -142,18 +142,10 @@ declare module './algebra' {
       M: Monad<F>,
     ): (s: SS) => Kind<F, [Either<ParseError, A>]>;
 
-    parseStream(
-      this: ParserT<S, EvalF, A>,
-      S: Stream<S, EvalF>,
-    ): Either<ParseError, A>;
-    parseStream(
-      S: Stream<S, F>,
-      F: Monad<F>,
-    ): (s: S) => Kind<F, [Either<ParseError, A>]>;
+    parseStream(S: Stream<S, F>): (s: S) => Kind<F, [Either<ParseError, A>]>;
 
     parseConsumedF(
       S: Stream<S, F>,
-      F: Monad<F>,
     ): (s: S) => Kind<F, [Consumed<Kind<F, [ParseResult<S, A>]>>]>;
 
     label(...msgs: string[]): ParserT<S, F, A>;
@@ -261,11 +253,12 @@ ParserT.prototype.parseSource = function (this: any, M: any) {
     : parseSource(this, M);
 } as any;
 
-ParserT.prototype.parseStream = function (this: any, ...args: any[]) {
-  return args.length === 1
-    ? (s: any) => parseStream(args[0])(this, s)
-    : (s: any) => parseStreamF(args[0], args[1])(this, s);
-} as any;
+ParserT.prototype.parseStream = function (S) {
+  return s => parseStream(S)(this, s);
+};
+ParserT.prototype.parseConsumedF = function (S) {
+  return s => parseConsumedF(S)(this, s);
+};
 
 ParserT.prototype.label = function (...msgs) {
   return label_(this, ...msgs);
