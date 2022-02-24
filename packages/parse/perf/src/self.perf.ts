@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char } from '@fp4ts/core';
-import { char, digit } from '@fp4ts/parse-text';
+import { char, digit, string, stringF } from '@fp4ts/parse-text';
 import { timed } from './common/timed';
 
 const number = digit()
@@ -35,4 +35,28 @@ const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
 {
   const input = '1' + '+1-1'.repeat(25_000) + '-';
   timed('sequence of 1+1-1+1-1+..-1- (Error)', () => console.log(parse(input)));
+}
+
+{
+  const input = 'a'.repeat(1_000_000);
+  timed('sequence of "aa"s plain parse', () =>
+    console.log(string('aa').rep().complete().parse(input).isRight),
+  );
+}
+{
+  const input = 'a'.repeat(1_000_000);
+  timed('sequence of "a"s tokenPrim parse', () =>
+    console.log(
+      char('a' as Char)
+        .rep()
+        .complete()
+        .parse(input).isRight,
+    ),
+  );
+}
+{
+  const input = 'a'.repeat(1_000_000);
+  timed('sequence of "aa"s prim parse', () =>
+    console.log(stringF('aa').rep().complete().parse(input).isRight),
+  );
 }

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, throwError } from '@fp4ts/core';
-import { EvalF, None, Some } from '@fp4ts/cats';
+import { EvalF, List, None, Some } from '@fp4ts/cats';
 import {
   Consumed,
   Failure,
@@ -20,7 +20,7 @@ import {
   updatePositionByChar,
   updatePositionByString,
 } from './source-position';
-import { HasTokenType } from '@fp4ts/parse-kernel';
+import { HasTokenType, TokenType } from '@fp4ts/parse-kernel';
 
 const alphaRegex = /^[a-zA-Z]/;
 const digitRegex = /^[0-9]/;
@@ -135,6 +135,19 @@ export const string = (str: string): Parser<StringSource, string> =>
           new Success(str, new State(input, newPos), ParseError.empty(newPos)),
         );
       });
+
+const listToString = (xs: List<Char>): string => xs.toArray.join('');
+export const stringF = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+  str: string,
+): ParserT<S, F, string> => {
+  const tts = List.fromArray(str.split('')) as List<Char>;
+
+  return ParserT.tokens<S, F>(
+    listToString,
+    (sp, ts) => updatePositionByString(sp, listToString(ts)),
+    tts as List<TokenType<S>>,
+  ).map(listToString);
+};
 
 /**
  * **WARNING:** as we cannot check for partial prefix match of the regex, this

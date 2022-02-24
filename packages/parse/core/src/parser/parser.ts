@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
-import { EvalF, Option } from '@fp4ts/cats';
-import { Stream, TokenType } from '@fp4ts/parse-kernel';
+import { Kind, PrimitiveType } from '@fp4ts/core';
+import { Eq, EvalF, List, Option } from '@fp4ts/cats';
+import { HasTokenType, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { Consumed } from '../consumed';
 import { SourcePosition } from '../source-position';
@@ -20,6 +20,7 @@ import {
   succeed,
   token,
   tokenPrim,
+  tokens,
 } from './constructors';
 import { ParseResult } from './parse-result';
 import { State } from './state';
@@ -36,27 +37,39 @@ export const Parser: ParserObj = function (runParser) {
 };
 
 interface ParserTObj {
-  <S, M, A>(
+  <S, F, A>(
     runParserT: (
-      M: Stream<S, M>,
-    ) => (s: State<S>) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>,
-  ): ParserT<S, M, A>;
-  succeed<S, M, A>(x: A): ParserT<S, M, A>;
-  fail<S, M, A = never>(msg: string): ParserT<S, M, A>;
-  empty<S, M, A = never>(): ParserT<S, M, A>;
+      S: Stream<S, F>,
+    ) => (s: State<S>) => Kind<F, [Consumed<Kind<F, [ParseResult<S, A>]>>]>,
+  ): ParserT<S, F, A>;
+  succeed<S, F, A>(x: A): ParserT<S, F, A>;
+  fail<S, F, A = never>(msg: string): ParserT<S, F, A>;
+  empty<S, F, A = never>(): ParserT<S, F, A>;
 
-  defer<S, M, A>(thunk: () => ParserT<S, M, A>): ParserT<S, M, A>;
+  defer<S, F, A>(thunk: () => ParserT<S, F, A>): ParserT<S, F, A>;
 
-  token<S, M, A>(
+  token<S, F, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (t: TokenType<S>) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
-  ): ParserT<S, M, A>;
-  tokenPrim<S, M, A>(
+  ): ParserT<S, F, A>;
+  tokenPrim<S, F, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
-  ): ParserT<S, M, A>;
+  ): ParserT<S, F, A>;
+
+  tokens<S extends HasTokenType<PrimitiveType>, M>(
+    showTokens: (t: List<TokenType<S>>) => string,
+    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
+    tts: List<TokenType<S>>,
+  ): ParserT<S, M, List<TokenType<S>>>;
+  tokens<S, F>(
+    showTokens: (t: List<TokenType<S>>) => string,
+    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
+    tts: List<TokenType<S>>,
+    E: Eq<TokenType<S>>,
+  ): ParserT<S, F, List<TokenType<S>>>;
 }
 
 ParserT.succeed = succeed;
@@ -65,6 +78,7 @@ ParserT.empty = empty;
 ParserT.defer = defer;
 ParserT.token = token;
 ParserT.tokenPrim = tokenPrim;
+ParserT.tokens = tokens;
 
 interface ParserObj {
   <S, A>(
@@ -88,6 +102,18 @@ interface ParserObj {
     nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
     test: (t: TokenType<S>) => Option<A>,
   ): Parser<S, A>;
+
+  tokens<S extends HasTokenType<PrimitiveType>>(
+    showTokens: (t: List<TokenType<S>>) => string,
+    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
+    tts: List<TokenType<S>>,
+  ): Parser<S, List<TokenType<S>>>;
+  tokens<S>(
+    showTokens: (t: List<TokenType<S>>) => string,
+    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
+    tts: List<TokenType<S>>,
+    E: Eq<TokenType<S>>,
+  ): Parser<S, List<TokenType<S>>>;
 }
 
 Parser.succeed = succeed;
@@ -96,3 +122,4 @@ Parser.empty = empty;
 Parser.defer = defer;
 Parser.token = token;
 Parser.tokenPrim = tokenPrim;
+Parser.tokens = tokens;
