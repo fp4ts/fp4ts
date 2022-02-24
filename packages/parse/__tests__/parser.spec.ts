@@ -12,7 +12,14 @@ import {
   SourcePosition,
   StringSource,
 } from '@fp4ts/parse-core';
-import { anyChar, char, digit, parens, spaces } from '@fp4ts/parse-text';
+import {
+  anyChar,
+  char,
+  digit,
+  parens,
+  spaces,
+  string,
+} from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
 
 describe('Parser', () => {
@@ -22,12 +29,50 @@ describe('Parser', () => {
 
   it('should fail to parse a single character when the input is empty', () => {
     expect(anyChar.parse('')).toEqual(
-      Left(new ParseError(new SourcePosition(1, 1), [expect.any(String)])),
+      Left(new ParseError(new SourcePosition(1, 1), [expect.any(Object)])),
     );
   });
 
   it('should consume two characters from the input', () => {
     expect(anyChar.product(anyChar).parse('xyz')).toEqual(Right(['x', 'y']));
+  });
+
+  describe('flatMap', () => {
+    it('should recover when the initial parser does not consume any input', () => {
+      expect(
+        char('x' as Char)
+          .flatMap(() => Parser.succeed(42))
+          .orElse(() => Parser.succeed(84))
+          .parse('y'),
+      ).toEqual(Right(84));
+    });
+
+    it('should not recover when the initial parser does consume some input', () => {
+      expect(
+        string('xy')
+          .flatMap(() => Parser.succeed(42))
+          .orElse(() => Parser.succeed(84))
+          .parse('x').isLeft,
+      ).toBe(true);
+    });
+
+    it('should recover from second failure when the first parser does not consume', () => {
+      expect(
+        char('x' as Char)
+          .flatMap(() => Parser.fail(''))
+          .orElse(() => Parser.succeed(84))
+          .parse('x'),
+      ).toEqual(Right(84));
+    });
+
+    it('should not recover from second failure when the first parser does consume', () => {
+      expect(
+        char('x' as Char)
+          .flatMap(() => Parser.fail(''))
+          .orElse(() => Parser.succeed(84))
+          .parse('x').isLeft,
+      ).toBe(true);
+    });
   });
 
   describe('rep', () => {
@@ -70,7 +115,7 @@ describe('Parser', () => {
 
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
-      expect(anyChar.rep1().parse(input).isRight).toBe(true);
+      expect(anyChar.rep1().complete().parse(input).isRight).toBe(true);
     });
   });
 
@@ -117,7 +162,7 @@ describe('Parser', () => {
     it('should be stack safe', () => {
       const input = '1' + '+1'.repeat(50_000);
 
-      expect(expr.parse(input)).toEqual(Right(50_001));
+      expect(expr.complete().parse(input)).toEqual(Right(50_001));
     });
   });
 
@@ -132,6 +177,22 @@ describe('Parser', () => {
       ).toEqual(`(line: 1, column: 6)
 unexpected '3'
 expecting space or ','`);
+    });
+
+    it('should print expecting digit', () => {
+      const number = digit.rep1().map(xs => parseInt(xs.toArray.join('')));
+
+      // prettier-ignore
+      const addOp =   char('+' as Char).as((x: number, y: number) => x + y)
+        ['<|>'](() => char('-' as Char).as((x: number, y: number) => x - y));
+
+      const expr = number.chainLeft1(addOp).complete();
+
+      expect(expr.parse('1+1+').leftMap(p => p.toString())).toEqual(
+        Left(`(line: 1, column: 5)
+unexpected end of input
+expecting digit`),
+      );
     });
   });
 });

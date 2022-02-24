@@ -4,14 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fs from 'fs';
-import { jsonP } from './json';
-
-const timed = (msg: string, f: () => void): void => {
-  const start = Date.now();
-  f();
-  const end = Date.now();
-  console.log(`${msg}: ${end - start}ms`);
-};
+import { jsonP } from './common/json';
+import { timed } from './common/timed';
 
 {
   const file = fs.readFileSync('./src/resources/bla25.json');

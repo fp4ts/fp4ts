@@ -5,7 +5,7 @@
 
 import fs from 'fs';
 import { add, complete, cycle, suite } from 'benny';
-import { jsonP } from './json';
+import { jsonP } from './common/json';
 
 function runTest(fileName: string) {
   const file = fs.readFileSync(fileName);
