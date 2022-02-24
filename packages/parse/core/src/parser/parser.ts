@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { EvalF, Monad, Option } from '@fp4ts/cats';
-import { TokenType } from '@fp4ts/parse-kernel';
+import { EvalF, Option } from '@fp4ts/cats';
+import { Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { Consumed } from '../consumed';
 import { SourcePosition } from '../source-position';
@@ -38,7 +38,7 @@ export const Parser: ParserObj = function (runParser) {
 interface ParserTObj {
   <S, M, A>(
     runParserT: (
-      M: Monad<M>,
+      M: Stream<S, M>,
     ) => (s: State<S>) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>,
   ): ParserT<S, M, A>;
   succeed<S, M, A>(x: A): ParserT<S, M, A>;
@@ -67,7 +67,11 @@ ParserT.token = token;
 ParserT.tokenPrim = tokenPrim;
 
 interface ParserObj {
-  <S, A>(runParser: (s: State<S>) => Consumed<ParseResult<S, A>>): Parser<S, A>;
+  <S, A>(
+    runParser: (
+      S: Stream<S, EvalF>,
+    ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
+  ): Parser<S, A>;
   succeed<S, A>(x: A): Parser<S, A>;
   fail<S, A = never>(msg: string): Parser<S, A>;
   empty<S, A = never>(): Parser<S, A>;

@@ -51,19 +51,19 @@ const rawStringP = regex(/^"(?:[^"\\]|\\.)*"/)
 
 const stringP = rawStringP.map(JString);
 
-const sep = char(',' as Char).surroundedBy(spaces);
+const sep = char(',' as Char).surroundedBy(spaces());
 const arrayP = jsonP
   .sepBy(sep)
-  .surroundedBy(spaces)
+  .surroundedBy(spaces())
   .between(char('[' as Char), char(']' as Char))
   .map(xs => JArray(xs.toArray));
 
 const kv: Parser<StringSource, [string, Json]> = rawStringP['<*'](
-  char(':' as Char).surroundedBy(spaces),
+  char(':' as Char).surroundedBy(spaces()),
 ).product(jsonP);
 const objectP: Parser<StringSource, Json> = kv
   .sepBy(sep)
-  .surroundedBy(spaces)
+  .surroundedBy(spaces())
   .between(char('{' as Char), char('}' as Char))
   .map(xs =>
     JObject(

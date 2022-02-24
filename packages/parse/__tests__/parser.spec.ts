@@ -24,17 +24,19 @@ import { forAll } from '@fp4ts/cats-test-kit';
 
 describe('Parser', () => {
   it('should parse a single character from a string', () => {
-    expect(anyChar.parse('x')).toEqual(Right('x'));
+    expect(anyChar().parse('x')).toEqual(Right('x'));
   });
 
   it('should fail to parse a single character when the input is empty', () => {
-    expect(anyChar.parse('')).toEqual(
+    expect(anyChar().parse('')).toEqual(
       Left(new ParseError(new SourcePosition(1, 1), [expect.any(Object)])),
     );
   });
 
   it('should consume two characters from the input', () => {
-    expect(anyChar.product(anyChar).parse('xyz')).toEqual(Right(['x', 'y']));
+    expect(anyChar().product(anyChar()).parse('xyz')).toEqual(
+      Right(['x', 'y']),
+    );
   });
 
   describe('flatMap', () => {
@@ -77,13 +79,13 @@ describe('Parser', () => {
 
   describe('rep', () => {
     it('should succeed to parse an empty input', () => {
-      expect(anyChar.rep().parse('')).toEqual(Right(List.empty));
+      expect(anyChar().rep().parse('')).toEqual(Right(List.empty));
     });
 
     it(
       'should all of the characters from the input',
       forAll(fc.string(), s =>
-        anyChar
+        anyChar()
           .rep()
           .parse(s)
           .get.equals(Eq.primitive, List.fromArray(s.split(''))),
@@ -92,30 +94,30 @@ describe('Parser', () => {
 
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
-      expect(anyChar.rep().parse(input).isRight).toBe(true);
+      expect(anyChar().rep().parse(input).isRight).toBe(true);
     });
   });
 
   describe('rep1', () => {
     it('should fail to parse an empty input', () => {
-      expect(anyChar.rep1().parse('').isLeft).toBe(true);
+      expect(anyChar().rep1().parse('').isLeft).toBe(true);
     });
 
     it(
       'should all of the characters from the input and succeed only if the input is non-empty',
       forAll(fc.string(), s =>
         s !== ''
-          ? anyChar
+          ? anyChar()
               .rep1()
               .parse(s)
               .get.equals(Eq.primitive, List.fromArray(s.split('')))
-          : anyChar.rep1().parse(s).isLeft,
+          : anyChar().rep1().parse(s).isLeft,
       ),
     );
 
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
-      expect(anyChar.rep1().complete().parse(input).isRight).toBe(true);
+      expect(anyChar().rep1().complete().parse(input).isRight).toBe(true);
     });
   });
 
@@ -133,11 +135,11 @@ describe('Parser', () => {
       ['<|>'](() => char('/' as Char).as(div));
     const expOp =   char('^' as Char).as(exp)
 
-    const number = digit.rep1().map(xs => parseInt(xs.toArray.join('')));
+    const number = digit().rep1().map(xs => parseInt(xs.toArray.join('')));
 
     const atom: Parser<StringSource, number> =
       number['<|>'](() => parens(Parser.defer(() => expr)))
-        .surroundedBy(spaces);
+        .surroundedBy(spaces());
     const factor: Parser<StringSource, number> =
       atom.chainLeft1(expOp);
     const term: Parser<StringSource, number> =
@@ -169,8 +171,8 @@ describe('Parser', () => {
   describe('message formatting', () => {
     it("should print unexpected '3', expecting space or ','", () => {
       expect(
-        digit
-          .sepBy(char(',' as Char).surroundedBy(spaces))
+        digit()
+          .sepBy(char(',' as Char).surroundedBy(spaces()))
           .complete()
           .parse('1, 2 3')
           .leftMap(e => e.toString()).getLeft,
@@ -180,7 +182,9 @@ expecting space or ','`);
     });
 
     it('should print expecting digit', () => {
-      const number = digit.rep1().map(xs => parseInt(xs.toArray.join('')));
+      const number = digit()
+        .rep1()
+        .map(xs => parseInt(xs.toArray.join('')));
 
       // prettier-ignore
       const addOp =   char('+' as Char).as((x: number, y: number) => x + y)

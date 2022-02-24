@@ -7,7 +7,9 @@ import { Char } from '@fp4ts/core';
 import { char, digit } from '@fp4ts/parse-text';
 import { timed } from './common/timed';
 
-const number = digit.rep1().map(xs => parseInt(xs.toArray.join('')));
+const number = digit()
+  .rep1()
+  .map(xs => parseInt(xs.toArray.join('')));
 
 // prettier-ignore
 const addOp =   char('+' as Char).as((x: number, y: number) => x + y)

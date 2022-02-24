@@ -317,7 +317,7 @@ function parseLoopImpl<S, F, X, End>(
       }
 
       case 'make-parser': {
-        const cons = cur.runParser(s);
+        const cons = cur.runParser(S as any)(s);
         return cons.tag === 'consumed'
           ? cons.value.fold(cont.cok, cont.cerr)
           : cons.value.fold(cont.eok, cont.eerr);
@@ -325,8 +325,7 @@ function parseLoopImpl<S, F, X, End>(
 
       case 'make-parser-t':
         return pipe(
-          S.monad.unit,
-          S.monad.flatMap(() => cur.runParserT(S.monad)(s)),
+          cur.runParserT(S)(s),
           S.monad.flatMap(cons =>
             cons.tag === 'consumed'
               ? S.monad.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))

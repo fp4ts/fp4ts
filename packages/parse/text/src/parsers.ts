@@ -4,13 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, throwError } from '@fp4ts/core';
-import { None, Some } from '@fp4ts/cats';
+import { EvalF, None, Some } from '@fp4ts/cats';
 import {
   Consumed,
   Failure,
   Message,
   ParseError,
   Parser,
+  ParserT,
   State,
   StringSource,
   Success,
@@ -19,43 +20,63 @@ import {
   updatePositionByChar,
   updatePositionByString,
 } from './source-position';
+import { HasTokenType } from '@fp4ts/parse-kernel';
 
 const alphaRegex = /^[a-zA-Z]/;
 const digitRegex = /^[0-9]/;
 const alphaNumRegex = /^\w/;
 const whitespaceRegex = /^\s/;
 
-export const satisfy = (p: (c: Char) => boolean): Parser<StringSource, Char> =>
-  Parser.tokenPrim<StringSource, Char>(
+export const satisfy = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+  p: (c: Char) => boolean,
+): ParserT<S, F, Char> =>
+  ParserT.tokenPrim<S, F, Char>(
     c => `'${c}'`,
     (sp, t) => updatePositionByChar(sp, t),
     x => (p(x) ? Some(x) : None),
   );
 
-export const char = (c: Char): Parser<StringSource, Char> =>
-  satisfy(x => x === c)['<?>'](`'${c}'`);
+export const char = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+  c: Char,
+): ParserT<S, F, Char> => satisfy<S, F>(x => x === c)['<?>'](`'${c}'`);
 
-export const anyChar: Parser<StringSource, Char> = satisfy(() => true);
+export const anyChar = <S extends HasTokenType<Char> = StringSource>(): Parser<
+  S,
+  Char
+> => satisfy(() => true);
 
-export const letter: Parser<StringSource, Char> = satisfy(x =>
-  alphaRegex.test(x),
-)['<?>']('letter');
-export const digit: Parser<StringSource, Char> = satisfy(x =>
-  digitRegex.test(x),
-)['<?>']('digit');
-export const alphaNum: Parser<StringSource, Char> = satisfy(x =>
-  alphaNumRegex.test(x),
-)['<?>']('letter or digit');
-export const space: Parser<StringSource, Char> = satisfy(x =>
-  whitespaceRegex.test(x),
-)['<?>']('space');
-export const spaces: Parser<StringSource, void> = space
-  .skipRep()
-  ['<?>']('white space');
+export const letter = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, Char> =>
+  satisfy<S, F>(x => alphaRegex.test(x))['<?>']('letter');
+export const digit = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, Char> =>
+  satisfy<S, F>(x => digitRegex.test(x))['<?>']('digit');
+export const alphaNum = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, Char> =>
+  satisfy<S, F>(x => alphaNumRegex.test(x))['<?>']('letter or digit');
+export const space = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, Char> =>
+  satisfy<S, F>(x => whitespaceRegex.test(x))['<?>']('space');
+export const spaces = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, void> => space<S, F>().skipRep()['<?>']('white space');
 
-export const parens = <A>(
-  p: Parser<StringSource, A>,
-): Parser<StringSource, A> => p.between(char('(' as Char), char(')' as Char));
+export const parens = <
+  A,
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(
+  p: ParserT<S, F, A>,
+): ParserT<S, F, A> => p.between(char('(' as Char), char(')' as Char));
 
 export const string = (str: string): Parser<StringSource, string> =>
   str === ''

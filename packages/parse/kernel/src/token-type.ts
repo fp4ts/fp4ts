@@ -8,6 +8,8 @@ export type TokenTypeTag = typeof TokenTypeTag;
 
 export type TokenType<S> = S extends { [TokenTypeTag]: infer T } ? T : never;
 
+export type HasTokenType<T> = { [TokenTypeTag]: T };
+
 declare module '@fp4ts/cats-core/lib/data/collections/list/algebra' {
   interface List<A> {
     readonly [TokenTypeTag]: A;

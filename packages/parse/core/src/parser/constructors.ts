@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EvalF, Monad, Option, Some } from '@fp4ts/cats';
+import { EvalF, Option, Some } from '@fp4ts/cats';
 import { Kind, lazyVal } from '@fp4ts/core';
-import { TokenType } from '@fp4ts/parse-kernel';
+import { Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { SourcePosition } from '../source-position';
 import { Consumed } from '../consumed';
@@ -64,11 +64,13 @@ export const tokenPrim = <S, M, A>(
 ): ParserT<S, M, A> => new TokenPrim(showToken, nextPos, test);
 
 export const makeParser = <S, A>(
-  runParser: (s: State<S>) => Consumed<ParseResult<S, A>>,
+  runParser: (
+    S: Stream<S, EvalF>,
+  ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
 ): ParserT<S, EvalF, A> => new MakeParser(runParser);
 
 export const makeParserT = <S, M, A>(
   runParserT: (
-    M: Monad<M>,
+    S: Stream<S, M>,
   ) => (s: State<S>) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>,
 ): ParserT<S, M, A> => new MakeParserT(runParserT);
