@@ -81,7 +81,7 @@ export const parens = <
 export const string = (str: string): Parser<StringSource, string> =>
   str === ''
     ? Parser.succeed('') // -- Trivial success
-    : Parser(s => {
+    : Parser(S => s => {
         let input = s.input;
         for (let i = 0, len = str.length; i < len; i++) {
           const h = input.uncons;
@@ -148,7 +148,7 @@ export const regex = (re: RegExp): Parser<StringSource, string> =>
           'RegExpError: Parser regular expressions mush start with `^`',
         ),
       )
-    : Parser(s => {
+    : Parser(S => s => {
         const m = s.input.source
           .substring(s.input.cursor - 1, s.input.source.length)
           .match(re);

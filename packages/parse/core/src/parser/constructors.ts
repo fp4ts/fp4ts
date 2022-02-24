@@ -10,18 +10,10 @@ import { Stream, TokenType } from '@fp4ts/parse-kernel';
 import { SourcePosition } from '../source-position';
 import { Consumed } from '../consumed';
 import { Message } from '../parse-error';
+import { ParseError } from '../parse-error';
 
-import {
-  Defer,
-  Empty,
-  Fail,
-  MakeParser,
-  MakeParserT,
-  ParserT,
-  Succeed,
-  TokenPrim,
-} from './algebra';
-import { ParseResult } from './parse-result';
+import { Defer, Empty, Fail, ParserPrim, ParserT, Succeed } from './algebra';
+import { ParseResult, Failure, Success } from './parse-result';
 import { State } from './state';
 import { label_, notFollowedBy_ } from './operators';
 
@@ -61,16 +53,55 @@ export const tokenPrim = <S, M, A>(
   showToken: (t: TokenType<S>) => string,
   nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
   test: (t: TokenType<S>) => Option<A>,
-): ParserT<S, M, A> => new TokenPrim(showToken, nextPos, test);
+): ParserT<S, M, A> =>
+  new ParserPrim(
+    S => s => (cok, cerr, eok, eerr) =>
+      S.monad.flatMap_(S.uncons(s.input), opt =>
+        opt.fold(
+          () => eerr(new Failure(ParseError.unexpected(s.position, ''))),
+          ([tok, tl]) =>
+            test(tok).fold(
+              () =>
+                eerr(
+                  new Failure(
+                    ParseError.unexpected(s.position, showToken(tok)),
+                  ),
+                ),
+              x =>
+                cok(
+                  new Success(
+                    x,
+                    new State(tl, nextPos(s.position, tok, tl)),
+                    ParseError.empty(s.position),
+                  ),
+                ),
+            ),
+        ),
+      ),
+  );
 
 export const makeParser = <S, A>(
   runParser: (
     S: Stream<S, EvalF>,
   ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
-): ParserT<S, EvalF, A> => new MakeParser(runParser);
+): ParserT<S, EvalF, A> =>
+  new ParserPrim(S => s => (cok, cerr, eok, eerr) => {
+    const cons = runParser(S)(s);
+    return cons.tag === 'consumed'
+      ? cons.value.fold(cok, cerr)
+      : cons.value.fold(eok, eerr);
+  });
 
 export const makeParserT = <S, M, A>(
   runParserT: (
     S: Stream<S, M>,
   ) => (s: State<S>) => Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]>,
-): ParserT<S, M, A> => new MakeParserT(runParserT);
+): ParserT<S, M, A> =>
+  new ParserPrim(S => s => (cok, cerr, eok, eerr) => {
+    const F = S.monad;
+    return F.flatMap_(runParserT(S)(s), cons =>
+      cons.tag === 'consumed'
+        ? F.flatMap_(cons.value, r => r.fold(cok, cerr))
+        : F.flatMap_(cons.value, r => r.fold(eok, eerr)),
+    );
+  });

@@ -4,15 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, Lazy } from '@fp4ts/core';
-import { EvalF, Option } from '@fp4ts/cats';
-import { Stream, TokenType } from '@fp4ts/parse-kernel';
+import { Stream } from '@fp4ts/parse-kernel';
 
 import { Message } from '../parse-error';
-import { SourcePosition } from '../source-position';
 
-import { ParseResult } from './parse-result';
-import { Consumed } from '../consumed';
 import { State } from './state';
+import { Failure, Success } from './parse-result';
 
 export abstract class ParserT<S, F, A> {
   private readonly __void!: void;
@@ -46,39 +43,19 @@ export class Defer<S, F, A> extends ParserT<S, F, A> {
   }
 }
 
-export class TokenPrim<S, F, A> extends ParserT<S, F, A> {
-  public readonly tag = 'uncons-prim';
-
+export class ParserPrim<S, F, A> extends ParserT<S, F, A> {
+  public readonly tag = 'prim';
   public constructor(
-    public readonly showToken: (t: TokenType<S>) => string,
-    public readonly nextPos: (
-      sp: SourcePosition,
-      t: TokenType<S>,
-      s: S,
-    ) => SourcePosition,
-    public readonly test: (t: TokenType<S>) => Option<A>,
-  ) {
-    super();
-  }
-}
-
-export class MakeParser<S, A> extends ParserT<S, EvalF, A> {
-  public readonly tag = 'make-parser';
-  public constructor(
-    public readonly runParser: (
-      S: Stream<S, EvalF>,
-    ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
-  ) {
-    super();
-  }
-}
-
-export class MakeParserT<S, F, A> extends ParserT<S, F, A> {
-  public readonly tag = 'make-parser-t';
-  public constructor(
-    public readonly runParserT: (
+    public readonly runPrimParser: (
       S: Stream<S, F>,
-    ) => (s: State<S>) => Kind<F, [Consumed<Kind<F, [ParseResult<S, A>]>>]>,
+    ) => (
+      s: State<S>,
+    ) => <B>(
+      cok: (suc: Success<S, A>) => Kind<F, [B]>,
+      cerr: (fail: Failure) => Kind<F, [B]>,
+      eok: (suc: Success<S, A>) => Kind<F, [B]>,
+      eerr: (fail: Failure) => Kind<F, [B]>,
+    ) => Kind<F, [B]>,
   ) {
     super();
   }
@@ -157,9 +134,7 @@ export type View<S, F, A> =
   | Fail<S, F, A>
   | Empty<S, F>
   | Defer<S, F, A>
-  | TokenPrim<S, F, any>
-  | MakeParser<S, A>
-  | MakeParserT<S, F, A>
+  | ParserPrim<S, F, A>
   | Map<S, F, any, A>
   | FlatMap<S, F, any, A>
   | ManyAccumulate<S, F, any, A>

@@ -311,26 +311,12 @@ function parseLoopImpl<S, F, X, End>(
         cur_ = cur.thunk();
         break;
 
-      case 'uncons-prim': {
-        const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
-        return tokenPrimParse(ctx, cur.showToken, cur.nextPos, cur.test);
-      }
-
-      case 'make-parser': {
-        const cons = cur.runParser(S as any)(s);
-        return cons.tag === 'consumed'
-          ? cons.value.fold(cont.cok, cont.cerr)
-          : cons.value.fold(cont.eok, cont.eerr);
-      }
-
-      case 'make-parser-t':
-        return pipe(
-          cur.runParserT(S)(s),
-          S.monad.flatMap(cons =>
-            cons.tag === 'consumed'
-              ? S.monad.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))
-              : S.monad.flatMap_(cons.value, r => r.fold(cont.eok, cont.eerr)),
-          ),
+      case 'prim':
+        return cur.runPrimParser(S)(s)(
+          cont.cok,
+          cont.cerr,
+          cont.eok,
+          cont.eerr,
         );
 
       case 'map':
