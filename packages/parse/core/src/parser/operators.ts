@@ -29,11 +29,12 @@ import {
   View,
   Debug,
   Labels,
+  Backtrack,
 } from './algebra';
 import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
-import { anyToken, empty, eof, succeed, unexpected } from './constructors';
+import { anyToken, empty, succeed, unexpected, unit } from './constructors';
 import { TokenType } from '../token-type';
 import { StringSource } from '../string-source';
 import { Source } from '../source';
@@ -104,7 +105,12 @@ export const notFollowedBy_ = <S, M, A, B>(
 ): ParserT<S, M, A> =>
   productL_(
     p,
-    flatMap_(p2, c => unexpected(`${c}`)),
+    backtrack(
+      orElse_(
+        flatMap_(backtrack(p2), c => unexpected(`${c}`)),
+        () => unit(),
+      ),
+    ),
   );
 
 export const skipRep_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, void> =>
@@ -187,8 +193,11 @@ export const surroundedBy_ = <S, M, A>(
   s: ParserT<S, M, any>,
 ): ParserT<S, M, A> => between_(p, s, s);
 
+export const backtrack = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, A> =>
+  new Backtrack(p);
+
 export const complete_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, A> =>
-  productL_(p, eof());
+  label_(notFollowedBy_(p, anyToken()), 'end of input');
 
 // -- Parsing functions
 
@@ -496,13 +505,17 @@ function flatMapCont<S, M, Y, X, End>(
 ): Cont<S, M, Y, End> {
   const mcok = (suc: Success<S, Y>): Kind<M, [End]> =>
     suc.error.isEmpty
-      ? go(suc.remainder, fun(suc.output), cont)
+      ? go(
+          suc.remainder,
+          fun(suc.output),
+          cont.copy({ eok: cont.cok, eerr: cont.cerr }),
+        )
       : go(
           suc.remainder,
           fun(suc.output),
           cont.copy({
-            eok: cont.cokMergeError(suc.error),
-            eerr: cont.cerrMergeError(suc.error),
+            cok: cont.cokMergeError(suc.error),
+            cerr: cont.cerrMergeError(suc.error),
           }),
         );
 

@@ -157,9 +157,9 @@ export type View<S, M, A> =
   | UnconsPrim<S, M, any>
   | MakeParser<S, A>
   | MakeParserT<S, M, A>
-  | ManyAccumulate<S, M, any, A>
   | Map<S, M, any, A>
   | FlatMap<S, M, any, A>
+  | ManyAccumulate<S, M, any, A>
   | Backtrack<S, M, A>
   | OrElse<S, M, A>
   | Labels<S, M, A>
