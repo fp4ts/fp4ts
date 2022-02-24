@@ -5,10 +5,12 @@
 
 import { EvalF, Monad, Option, Some } from '@fp4ts/cats';
 import { Kind, lazyVal } from '@fp4ts/core';
+import { TokenType } from '@fp4ts/parse-kernel';
+
 import { SourcePosition } from '../source-position';
-import { TokenType } from '../token-type';
 import { Consumed } from '../consumed';
 import { Message } from '../parse-error';
+
 import {
   Defer,
   Empty,

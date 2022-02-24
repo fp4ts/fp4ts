@@ -15,11 +15,11 @@ import {
   Option,
   Some,
 } from '@fp4ts/cats';
+import { Source, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { ParseError, Message } from '../parse-error';
 import { SourcePosition } from '../source-position';
 
-import { Stream } from '../stream';
 import {
   FlatMap,
   Map,
@@ -35,74 +35,72 @@ import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
 import { anyToken, empty, succeed, unexpected, unit } from './constructors';
-import { TokenType } from '../token-type';
 import { StringSource } from '../string-source';
-import { Source } from '../source';
 
-export const filter_ = <S, M, A>(
-  p: ParserT<S, M, A>,
+export const filter_ = <S, F, A>(
+  p: ParserT<S, F, A>,
   f: (a: A) => boolean,
-): ParserT<S, M, A> => collect_(p, x => (f(x) ? Some(x) : None));
+): ParserT<S, F, A> => collect_(p, x => (f(x) ? Some(x) : None));
 
-export const collect_ = <S, M, A, B>(
-  p: ParserT<S, M, A>,
+export const collect_ = <S, F, A, B>(
+  p: ParserT<S, F, A>,
   f: (a: A) => Option<B>,
-): ParserT<S, M, B> =>
-  flatMap_(p, x => f(x).fold<ParserT<S, M, B>>(() => empty(), succeed));
+): ParserT<S, F, B> =>
+  flatMap_(p, x => f(x).fold<ParserT<S, F, B>>(() => empty(), succeed));
 
-export const map_ = <S, M, A, B>(
-  p: ParserT<S, M, A>,
+export const map_ = <S, F, A, B>(
+  p: ParserT<S, F, A>,
   f: (a: A) => B,
-): ParserT<S, M, B> => new Map(p, f);
+): ParserT<S, F, B> => new Map(p, f);
 
-export const as_ = <S, M, A, B>(p: ParserT<S, M, A>, b: B): ParserT<S, M, B> =>
+export const as_ = <S, F, A, B>(p: ParserT<S, F, A>, b: B): ParserT<S, F, B> =>
   new Map(p, () => b);
 
-export const orElse_ = <S, M, A>(
-  p1: ParserT<S, M, A>,
-  p2: Lazy<ParserT<S, M, A>>,
-): ParserT<S, M, A> => new OrElse(p1, p2);
+export const orElse_ = <S, F, A>(
+  p1: ParserT<S, F, A>,
+  p2: Lazy<ParserT<S, F, A>>,
+): ParserT<S, F, A> => new OrElse(p1, p2);
 
-export const ap_ = <S, M, A, B>(
-  pf: ParserT<S, M, (a: A) => B>,
-  pa: ParserT<S, M, A>,
-): ParserT<S, M, B> => map2_(pf, pa)((f, a) => f(a));
+export const ap_ = <S, F, A, B>(
+  pf: ParserT<S, F, (a: A) => B>,
+  pa: ParserT<S, F, A>,
+): ParserT<S, F, B> => map2_(pf, pa)((f, a) => f(a));
 
 export const map2_ =
-  <S, M, A, B>(p1: ParserT<S, M, A>, p2: ParserT<S, M, B>) =>
-  <C>(f: (a: A, b: B) => C): ParserT<S, M, C> =>
+  <S, F, A, B>(p1: ParserT<S, F, A>, p2: ParserT<S, F, B>) =>
+  <C>(f: (a: A, b: B) => C): ParserT<S, F, C> =>
     flatMap_(p1, a => map_(p2, b => f(a, b)));
 
-export const product_ = <S, M, A, B>(
-  p1: ParserT<S, M, A>,
-  p2: ParserT<S, M, B>,
-): ParserT<S, M, [A, B]> => map2_(p1, p2)(tupled);
+export const product_ = <S, F, A, B>(
+  p1: ParserT<S, F, A>,
+  p2: ParserT<S, F, B>,
+): ParserT<S, F, [A, B]> => map2_(p1, p2)(tupled);
 
-export const productL_ = <S, M, A, B>(
-  p1: ParserT<S, M, A>,
-  p2: ParserT<S, M, B>,
-): ParserT<S, M, A> => map2_(p1, p2)(a => a);
+export const productL_ = <S, F, A, B>(
+  p1: ParserT<S, F, A>,
+  p2: ParserT<S, F, B>,
+): ParserT<S, F, A> => map2_(p1, p2)(a => a);
 
-export const productR_ = <S, M, A, B>(
-  p1: ParserT<S, M, A>,
-  p2: ParserT<S, M, B>,
-): ParserT<S, M, B> => map2_(p1, p2)((_, b) => b);
+export const productR_ = <S, F, A, B>(
+  p1: ParserT<S, F, A>,
+  p2: ParserT<S, F, B>,
+): ParserT<S, F, B> => map2_(p1, p2)((_, b) => b);
 
-export const flatMap_ = <S, M, A, B>(
-  pa: ParserT<S, M, A>,
-  f: (a: A) => ParserT<S, M, B>,
-): ParserT<S, M, B> => new FlatMap(pa, f);
+export const flatMap_ = <S, F, A, B>(
+  pa: ParserT<S, F, A>,
+  f: (a: A) => ParserT<S, F, B>,
+): ParserT<S, F, B> => new FlatMap(pa, f);
 
-export const mapAccumulate_ = <S, M, A, B>(
-  p: ParserT<S, M, A>,
+export const mapAccumulate_ = <S, F, A, B>(
+  p: ParserT<S, F, A>,
   init: B,
   f: (acc: B, a: A) => B,
-): ParserT<S, M, B> => new ManyAccumulate(p, init, f);
+): ParserT<S, F, B> => new ManyAccumulate(p, init, f);
 
-export const notFollowedBy_ = <S, M, A, B>(
-  p: ParserT<S, M, A>,
-  p2: ParserT<S, M, B>,
-): ParserT<S, M, A> =>
+export const notFollowedBy_ = <S, F, A, B>(
+  p: ParserT<S, F, A>,
+  p2: ParserT<S, F, B>,
+): ParserT<S, F, A> =>
   productL_(
     p,
     backtrack(
@@ -113,41 +111,41 @@ export const notFollowedBy_ = <S, M, A, B>(
     ),
   );
 
-export const skipRep_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, void> =>
+export const skipRep_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
   mapAccumulate_(p, undefined, () => {});
 
-export const rep_ = <S, M, A>(pa: ParserT<S, M, A>): ParserT<S, M, List<A>> =>
+export const rep_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   map_(
     mapAccumulate_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
     xs => xs.reverse,
   );
 
-export const rep1_ = <S, M, A>(pa: ParserT<S, M, A>): ParserT<S, M, List<A>> =>
+export const rep1_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   flatMap_(pa, x => map_(rep_(pa), xs => xs.prepend(x)));
 
-export const sepBy_ = <S, M, A>(
-  pa: ParserT<S, M, A>,
-  tok: ParserT<S, M, TokenType<S>>,
-): ParserT<S, M, List<A>> =>
+export const sepBy_ = <S, F, A>(
+  pa: ParserT<S, F, A>,
+  tok: ParserT<S, F, TokenType<S>>,
+): ParserT<S, F, List<A>> =>
   orElse_(sepBy1_(pa, tok), () => succeed(List.empty));
 
-export const sepBy1_ = <S, M, A>(
-  pa: ParserT<S, M, A>,
-  tok: ParserT<S, M, TokenType<S>>,
-): ParserT<S, M, List<A>> =>
+export const sepBy1_ = <S, F, A>(
+  pa: ParserT<S, F, A>,
+  tok: ParserT<S, F, TokenType<S>>,
+): ParserT<S, F, List<A>> =>
   flatMap_(pa, x => map_(rep_(productR_(tok, pa)), xs => xs.prepend(x)));
 
-export const chainLeft_ = <S, M, A>(
-  p: ParserT<S, M, A>,
+export const chainLeft_ = <S, F, A>(
+  p: ParserT<S, F, A>,
   z: A,
-  op: ParserT<S, M, (x: A, y: A) => A>,
-): ParserT<S, M, A> => orElse_(chainLeft1_(p, op), () => succeed(z));
+  op: ParserT<S, F, (x: A, y: A) => A>,
+): ParserT<S, F, A> => orElse_(chainLeft1_(p, op), () => succeed(z));
 
-export const chainLeft1_ = <S, M, A>(
-  p: ParserT<S, M, A>,
-  op: ParserT<S, M, (x: A, y: A) => A>,
-): ParserT<S, M, A> => {
-  const rest = (x: A): ParserT<S, M, A> =>
+export const chainLeft1_ = <S, F, A>(
+  p: ParserT<S, F, A>,
+  op: ParserT<S, F, (x: A, y: A) => A>,
+): ParserT<S, F, A> => {
+  const rest = (x: A): ParserT<S, F, A> =>
     orElse_(
       flatMap_(
         map2_(op, p)((f, y) => f(x, y)),
@@ -159,17 +157,17 @@ export const chainLeft1_ = <S, M, A>(
   return flatMap_(p, rest);
 };
 
-export const chainRight_ = <S, M, A>(
-  p: ParserT<S, M, A>,
+export const chainRight_ = <S, F, A>(
+  p: ParserT<S, F, A>,
   z: A,
-  op: ParserT<S, M, (x: A, y: A) => A>,
-): ParserT<S, M, A> => orElse_(chainRight1_(p, op), () => succeed(z));
+  op: ParserT<S, F, (x: A, y: A) => A>,
+): ParserT<S, F, A> => orElse_(chainRight1_(p, op), () => succeed(z));
 
-export const chainRight1_ = <S, M, A>(
-  p: ParserT<S, M, A>,
-  op: ParserT<S, M, (x: A, y: A) => A>,
-): ParserT<S, M, A> => {
-  const rest = (x: A): ParserT<S, M, A> =>
+export const chainRight1_ = <S, F, A>(
+  p: ParserT<S, F, A>,
+  op: ParserT<S, F, (x: A, y: A) => A>,
+): ParserT<S, F, A> => {
+  const rest = (x: A): ParserT<S, F, A> =>
     orElse_(
       flatMap_(
         map2_(op, scan)((f, y) => f(x, y)),
@@ -182,21 +180,21 @@ export const chainRight1_ = <S, M, A>(
   return scan;
 };
 
-export const between_ = <S, M, A>(
-  p: ParserT<S, M, A>,
-  l: ParserT<S, M, any>,
-  r: ParserT<S, M, any>,
-): ParserT<S, M, A> => productR_(l, productL_(p, r));
+export const between_ = <S, F, A>(
+  p: ParserT<S, F, A>,
+  l: ParserT<S, F, any>,
+  r: ParserT<S, F, any>,
+): ParserT<S, F, A> => productR_(l, productL_(p, r));
 
-export const surroundedBy_ = <S, M, A>(
-  p: ParserT<S, M, A>,
-  s: ParserT<S, M, any>,
-): ParserT<S, M, A> => between_(p, s, s);
+export const surroundedBy_ = <S, F, A>(
+  p: ParserT<S, F, A>,
+  s: ParserT<S, F, any>,
+): ParserT<S, F, A> => between_(p, s, s);
 
-export const backtrack = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, A> =>
+export const backtrack = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, A> =>
   new Backtrack(p);
 
-export const complete_ = <S, M, A>(p: ParserT<S, M, A>): ParserT<S, M, A> =>
+export const complete_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, A> =>
   label_(notFollowedBy_(p, anyToken()), 'end of input');
 
 // -- Parsing functions
@@ -221,12 +219,12 @@ export const parseSource = <A, S extends Source<any, any>>(
   parseStream(Stream.forSource<EvalF, S>(Eval.Monad))(p, s);
 
 export const parseSourceF =
-  <M>(M: Monad<M>) =>
+  <F>(F: Monad<F>) =>
   <A, S extends Source<any, any>>(
-    p: ParserT<S, M, A>,
+    p: ParserT<S, F, A>,
     s: S,
-  ): Kind<M, [Either<ParseError, A>]> =>
-    parseStreamF(Stream.forSource<M, S>(M), M)(p, s);
+  ): Kind<F, [Either<ParseError, A>]> =>
+    parseStreamF(Stream.forSource<F, S>(F), F)(p, s);
 
 export const parseStream =
   <S>(S: Stream<S, EvalF>) =>
@@ -234,74 +232,74 @@ export const parseStream =
     parseStreamF(S, Eval.Monad)(p, s).value;
 
 export const parseStreamF =
-  <S, M>(S: Stream<S, M>, M: Monad<M>) =>
-  <A>(p: ParserT<S, M, A>, s: S): Kind<M, [Either<ParseError, A>]> =>
-    M.flatMap_(parseConsumedF(S, M)(p, s), cons =>
-      M.map_(cons.value, result => result.toEither),
+  <S, F>(S: Stream<S, F>, F: Monad<F>) =>
+  <A>(p: ParserT<S, F, A>, s: S): Kind<F, [Either<ParseError, A>]> =>
+    F.flatMap_(parseConsumedF(S, F)(p, s), cons =>
+      F.map_(cons.value, result => result.toEither),
     );
 
 export const parseConsumedF =
-  <S, M>(S: Stream<S, M>, M: Monad<M>) =>
+  <S, F>(S: Stream<S, F>, F: Monad<F>) =>
   <A>(
-    p: ParserT<S, M, A>,
+    p: ParserT<S, F, A>,
     s: S,
-  ): Kind<M, [Consumed<Kind<M, [ParseResult<S, A>]>>]> =>
+  ): Kind<F, [Consumed<Kind<F, [ParseResult<S, A>]>>]> =>
     parseLoopImpl(
       S,
-      M,
+      F,
       new State(s, new SourcePosition(1, 1)),
       p,
       new Cont(
-        /*cok: */ flow(M.pure, Consumed.Consumed, M.pure),
-        /*cerr: */ flow(M.pure, Consumed.Consumed, M.pure),
-        /*eok: */ flow(M.pure, Consumed.Empty, M.pure),
-        /*eerr: */ flow(M.pure, Consumed.Empty, M.pure),
+        /*cok: */ flow(F.pure, Consumed.Consumed, F.pure),
+        /*cerr: */ flow(F.pure, Consumed.Consumed, F.pure),
+        /*eok: */ flow(F.pure, Consumed.Empty, F.pure),
+        /*eerr: */ flow(F.pure, Consumed.Empty, F.pure),
       ),
     );
 
 // -- Debug
 
-export const label_ = <S, M, A>(
-  p: ParserT<S, M, A>,
+export const label_ = <S, F, A>(
+  p: ParserT<S, F, A>,
   ...msgs: string[]
-): ParserT<S, M, A> => new Labels(p, msgs);
+): ParserT<S, F, A> => new Labels(p, msgs);
 
-export const debug_ = <S, M, A>(
-  p: ParserT<S, M, A>,
+export const debug_ = <S, F, A>(
+  p: ParserT<S, F, A>,
   name: string,
-): ParserT<S, M, A> => new Debug(p, name);
+): ParserT<S, F, A> => new Debug(p, name);
 
 // -- Private implementation of the parsing of the input stream
 
-interface ParseCtx<S, M, X, End> {
-  readonly S: Stream<S, M>;
-  readonly M: Monad<M>;
+interface ParseCtx<S, F, X, End> {
+  readonly S: Stream<S, F>;
+  readonly F: Monad<F>;
   readonly s: State<S>;
-  readonly cont: Cont<S, M, X, End>;
+  readonly cont: Cont<S, F, X, End>;
   readonly go: <Z, End2>(
     s: State<S>,
-    parser: ParserT<S, M, Z>,
-    cont: Cont<S, M, Z, End2>,
-  ) => Kind<M, [End2]>;
+    parser: ParserT<S, F, Z>,
+    cont: Cont<S, F, Z, End2>,
+  ) => Kind<F, [End2]>;
 }
 
-function parseLoopImpl<S, M, X, End>(
-  S: Stream<S, M>,
-  M: Monad<M>,
+function parseLoopImpl<S, F, X, End>(
+  S: Stream<S, F>,
+  F: Monad<F>,
   s: State<S>,
-  parser: ParserT<S, M, X>,
-  cont0: Cont<S, M, X, End>,
-): Kind<M, [End]> {
+  parser: ParserT<S, F, X>,
+  cont0: Cont<S, F, X, End>,
+): Kind<F, [End]> {
   const go = <Y>(
     s: State<S>,
-    p0: ParserT<S, M, Y>,
-    c0: Cont<S, M, Y, End>,
-  ): Kind<M, [End]> => M.flatMap_(M.unit, () => parseLoopImpl(S, M, s, p0, c0));
-  let cur_: ParserT<S, M, any> = parser;
-  let cont_: Cont<S, M, any, End> = cont0;
+    p0: ParserT<S, F, Y>,
+    c0: Cont<S, F, Y, End>,
+  ): Kind<F, [End]> => F.flatMap_(F.unit, () => parseLoopImpl(S, F, s, p0, c0));
+  let cur_: ParserT<S, F, any> = parser;
+  let cont_: Cont<S, F, any, End> = cont0;
 
   while (true) {
-    const cur = cur_ as View<S, M, unknown>;
+    const cur = cur_ as View<S, F, unknown>;
     const cont = cont_;
 
     switch (cur.tag) {
@@ -321,7 +319,7 @@ function parseLoopImpl<S, M, X, End>(
         break;
 
       case 'uncons-prim': {
-        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
         return tokenPrimParse(ctx, cur.showToken, cur.nextPos, cur.test);
       }
 
@@ -334,12 +332,12 @@ function parseLoopImpl<S, M, X, End>(
 
       case 'make-parser-t':
         return pipe(
-          M.unit,
-          M.flatMap(() => cur.runParserT(M)(s)),
-          M.flatMap(cons =>
+          F.unit,
+          F.flatMap(() => cur.runParserT(F)(s)),
+          F.flatMap(cons =>
             cons.tag === 'consumed'
-              ? M.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))
-              : M.flatMap_(cons.value, r => r.fold(cont.eok, cont.eerr)),
+              ? F.flatMap_(cons.value, r => r.fold(cont.cok, cont.cerr))
+              : F.flatMap_(cons.value, r => r.fold(cont.eok, cont.eerr)),
           ),
         );
 
@@ -354,14 +352,14 @@ function parseLoopImpl<S, M, X, End>(
         break;
 
       case 'flatMap': {
-        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
         cur_ = cur.self;
         cont_ = flatMapCont(ctx, cur.fun);
         break;
       }
 
       case 'many-accumulate': {
-        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
         cur_ = cur.self;
         cont_ = mapAccumulateCont(ctx, cur.self, cur.init, cur.fun);
         break;
@@ -373,14 +371,14 @@ function parseLoopImpl<S, M, X, End>(
         break;
 
       case 'or-else': {
-        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
         cur_ = cur.lhs;
         cont_ = orElseCont(ctx, cur.rhs);
         break;
       }
 
       case 'labels': {
-        const ctx: ParseCtx<S, M, unknown, End> = { S, M, s, cont, go };
+        const ctx: ParseCtx<S, F, unknown, End> = { S, F, s, cont, go };
         cur_ = cur.self;
         cont_ = labelsCont(ctx, cur.messages);
         break;
@@ -396,13 +394,13 @@ function parseLoopImpl<S, M, X, End>(
   }
 }
 
-function tokenPrimParse<S, M, X, End>(
-  { S, M, s, cont }: ParseCtx<S, M, X, End>,
+function tokenPrimParse<S, F, X, End>(
+  { S, F, s, cont }: ParseCtx<S, F, X, End>,
   showToken: (t: TokenType<S>) => string,
   nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
   test: (t: TokenType<S>) => Option<X>,
-): Kind<M, [End]> {
-  return M.flatMap_(S.uncons(s.input), opt =>
+): Kind<F, [End]> {
+  return F.flatMap_(S.uncons(s.input), opt =>
     opt.fold(
       () => cont.eerr(new Failure(ParseError.unexpected(s.position, ''))),
       ([tok, tl]) =>
@@ -424,11 +422,11 @@ function tokenPrimParse<S, M, X, End>(
   );
 }
 
-function flatMapCont<S, M, Y, X, End>(
-  { go, cont }: ParseCtx<S, M, X, End>,
-  fun: (y: Y) => ParserT<S, M, X>,
-): Cont<S, M, Y, End> {
-  const mcok = (suc: Success<S, Y>): Kind<M, [End]> =>
+function flatMapCont<S, F, Y, X, End>(
+  { go, cont }: ParseCtx<S, F, X, End>,
+  fun: (y: Y) => ParserT<S, F, X>,
+): Cont<S, F, Y, End> {
+  const mcok = (suc: Success<S, Y>): Kind<F, [End]> =>
     suc.error.isEmpty
       ? go(
           suc.remainder,
@@ -446,7 +444,7 @@ function flatMapCont<S, M, Y, X, End>(
 
   const mcerr = cont.cerr;
 
-  const meok = (suc: Success<S, Y>): Kind<M, [End]> =>
+  const meok = (suc: Success<S, Y>): Kind<F, [End]> =>
     suc.error.isEmpty
       ? go(suc.remainder, fun(suc.output), cont)
       : go(
@@ -462,15 +460,15 @@ function flatMapCont<S, M, Y, X, End>(
   return new Cont(mcok, mcerr, meok, meerr);
 }
 
-function mapAccumulateCont<S, M, X, Z, End>(
-  { go, s, cont }: ParseCtx<S, M, Z, End>,
-  p: ParserT<S, M, X>,
+function mapAccumulateCont<S, F, X, Z, End>(
+  { go, s, cont }: ParseCtx<S, F, Z, End>,
+  p: ParserT<S, F, X>,
   init: Z,
   f: (acc: Z, x: X) => Z,
-): Cont<S, M, X, End> {
+): Cont<S, F, X, End> {
   const walk =
     (acc: Z) =>
-    (suc: Success<S, X>): Kind<M, [End]> =>
+    (suc: Success<S, X>): Kind<F, [End]> =>
       go(
         suc.remainder,
         p,
@@ -484,10 +482,10 @@ function mapAccumulateCont<S, M, X, Z, End>(
   );
 }
 
-function orElseCont<S, M, X, End>(
-  { go, s, cont }: ParseCtx<S, M, X, End>,
-  r: Lazy<ParserT<S, M, X>>,
-): Cont<S, M, X, End> {
+function orElseCont<S, F, X, End>(
+  { go, s, cont }: ParseCtx<S, F, X, End>,
+  r: Lazy<ParserT<S, F, X>>,
+): Cont<S, F, X, End> {
   const meerr = (fail: Failure) =>
     go(
       s,
@@ -501,10 +499,10 @@ function orElseCont<S, M, X, End>(
   return cont.copy({ eerr: meerr });
 }
 
-function labelsCont<S, M, X, End>(
-  { cont }: ParseCtx<S, M, X, End>,
+function labelsCont<S, F, X, End>(
+  { cont }: ParseCtx<S, F, X, End>,
   msgs: string[],
-): Cont<S, M, X, End> {
+): Cont<S, F, X, End> {
   function setExpectedMsgs(error: ParseError): ParseError {
     if (msgs.length === 0) return error.withMessage(Message.Expected(''));
     let err0 = error.withMessage(Message.Expected(msgs[0]));
@@ -531,13 +529,13 @@ function repError(): never {
   );
 }
 
-class Cont<S, M, X, End> {
+class Cont<S, F, X, End> {
   // prettier-ignore
   public constructor(
-    public readonly cok : (suc: Success<S, X>) => Kind<M, [End]>,
-    public readonly cerr: (fail: Failure  ) => Kind<M, [End]>,
-    public readonly eok : (suc: Success<S, X>) => Kind<M, [End]>,
-    public readonly eerr: (fail: Failure  ) => Kind<M, [End]>,
+    public readonly cok : (suc: Success<S, X>) => Kind<F, [End]>,
+    public readonly cerr: (fail: Failure  ) => Kind<F, [End]>,
+    public readonly eok : (suc: Success<S, X>) => Kind<F, [End]>,
+    public readonly eerr: (fail: Failure  ) => Kind<F, [End]>,
   ) {}
 
   public copy({
@@ -545,7 +543,7 @@ class Cont<S, M, X, End> {
     cerr = this.cerr,
     eok = this.eok,
     eerr = this.eerr,
-  }: Partial<Props<S, M, X, End>> = {}): Cont<S, M, X, End> {
+  }: Partial<Props<S, F, X, End>> = {}): Cont<S, F, X, End> {
     return new Cont(cok, cerr, eok, eerr);
   }
 
@@ -582,7 +580,7 @@ class Cont<S, M, X, End> {
     return AndThen(this.eerr).compose((suc: Failure) => suc.mergeError(error));
   }
 
-  public debug(name: string): Cont<S, M, X, End> {
+  public debug(name: string): Cont<S, F, X, End> {
     const log =
       (case_: string) =>
       <X>(x: X): X => {
@@ -599,9 +597,9 @@ class Cont<S, M, X, End> {
 }
 
 // prettier-ignore
-type Props<S, M, X, End> = {
-  readonly cok : (suc: Success<S, X>) => Kind<M, [End]>
-  readonly cerr: (fail: Failure  ) => Kind<M, [End]>
-  readonly eok : (suc: Success<S, X>) => Kind<M, [End]>
-  readonly eerr: (fail: Failure  ) => Kind<M, [End]>
+type Props<S, F, X, End> = {
+  readonly cok : (suc: Success<S, X>) => Kind<F, [End]>
+  readonly cerr: (fail: Failure  ) => Kind<F, [End]>
+  readonly eok : (suc: Success<S, X>) => Kind<F, [End]>
+  readonly eerr: (fail: Failure  ) => Kind<F, [End]>
 };

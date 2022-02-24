@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { None, Option, Some } from '@fp4ts/cats';
 import { Char } from '@fp4ts/core';
-import { Source } from './source';
+import { None, Option, Some } from '@fp4ts/cats';
+import { Source } from '@fp4ts/parse-kernel';
 
 export class StringSource extends Source<Char, StringSource> {
   public static fromString(source: string): StringSource {

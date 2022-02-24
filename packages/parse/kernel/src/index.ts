@@ -4,10 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module parse/core
+ * @module parse/kernel
  */
-export * from './consumed';
-export * from './parser';
-export * from './parse-error';
-export * from './source-position';
-export * from './string-source';
+export * from './source';
+export * from './stream';
+export * from './token-type';
