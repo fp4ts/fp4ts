@@ -4,16 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, lazyVal, PrimitiveType, tupled } from '@fp4ts/core';
-import {
-  Either,
-  Eq,
-  EvalF,
-  Left,
-  List,
-  Option,
-  Right,
-  Some,
-} from '@fp4ts/cats';
+import { Either, Eq, EvalF, Left, Option, Right, Some } from '@fp4ts/cats';
 import { HasTokenType, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { SourcePosition } from '../source-position';
@@ -90,33 +81,34 @@ export const tokenPrim = <S, M, A>(
   );
 
 export function tokens<S extends HasTokenType<PrimitiveType>, F>(
-  showTokens: (t: List<TokenType<S>>) => string,
-  nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-  tts: List<TokenType<S>>,
-): ParserT<S, F, List<TokenType<S>>>;
+  showTokens: (t: TokenType<S>[]) => string,
+  nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+  tts: TokenType<S>[],
+): ParserT<S, F, TokenType<S>[]>;
 export function tokens<S, F>(
-  showTokens: (t: List<TokenType<S>>) => string,
-  nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-  tts: List<TokenType<S>>,
+  showTokens: (t: TokenType<S>[]) => string,
+  nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+  tts: TokenType<S>[],
   E: Eq<TokenType<S>>,
-): ParserT<S, F, List<TokenType<S>>>;
+): ParserT<S, F, TokenType<S>[]>;
 export function tokens<S, F>(
-  showTokens: (t: List<TokenType<S>>) => string,
-  nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-  tts: List<TokenType<S>>,
+  showTokens: (t: TokenType<S>[]) => string,
+  nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+  tts: TokenType<S>[],
   E: Eq<TokenType<S>> = Eq.fromUniversalEquals(),
-): ParserT<S, F, List<TokenType<S>>> {
-  return new ParserPrim<S, F, List<TokenType<S>>>(
+): ParserT<S, F, TokenType<S>[]> {
+  return new ParserPrim<S, F, TokenType<S>[]>(
     S =>
       s =>
       <B>(
-        cok: (suc: Success<S, List<TokenType<S>>>) => Kind<F, [B]>,
+        cok: (suc: Success<S, TokenType<S>[]>) => Kind<F, [B]>,
         cerr: (fail: Failure) => Kind<F, [B]>,
-        eok: (suc: Success<S, List<TokenType<S>>>) => Kind<F, [B]>,
+        eok: (suc: Success<S, TokenType<S>[]>) => Kind<F, [B]>,
         eerr: (fail: Failure) => Kind<F, [B]>,
       ): Kind<F, [B]> => {
-        if (tts.isEmpty)
-          return eok(new Success(List.empty, s, ParseError.empty(s.position)));
+        const length = tts.length;
+        if (length === 0)
+          return eok(new Success([], s, ParseError.empty(s.position)));
 
         const errEof = () =>
           new Failure(
@@ -127,7 +119,7 @@ export function tokens<S, F>(
         const errExpect = (x: TokenType<S>) =>
           new Failure(
             new ParseError(s.position, [Message.Unexpected('')]).withMessage(
-              Message.Expected(showTokens(List(x))),
+              Message.Expected(showTokens([x])),
             ),
           );
 
@@ -138,29 +130,27 @@ export function tokens<S, F>(
         };
 
         const F = S.monad;
-        const walk = (ts: List<TokenType<S>>, xs: S) =>
-          F.tailRecM(tupled(ts, xs))(
-            ([ts, rs]): Kind<F, [Either<[List<TokenType<S>>, S], B>]> =>
-              ts.uncons.fold(
-                () => F.map_(ok(rs), Right),
-                ([t, ts]) =>
-                  F.flatMap_(S.uncons(rs), opt =>
+        const walk = (idx: number, xs: S) =>
+          F.tailRecM(tupled(idx, xs))(
+            ([idx, rs]): Kind<F, [Either<[number, S], B>]> =>
+              idx >= length
+                ? F.map_(ok(rs), Right)
+                : F.flatMap_(S.uncons(rs), opt =>
                     opt.fold(
                       () => F.map_(cerr(errEof()), Right),
-                      ({ 0: x, 1: xs }) =>
-                        E.equals(t, x)
-                          ? F.pure(Left(tupled(ts, xs)))
+                      ([x, xs]) =>
+                        E.equals(tts[idx], x)
+                          ? F.pure(Left(tupled(idx + 1, xs)))
                           : F.map_(cerr(errExpect(x)), Right),
                     ),
                   ),
-              ),
           );
 
         return F.flatMap_(S.uncons(s.input), opt =>
           opt.fold(
             () => eerr(errEof()),
             ([x, xs]) =>
-              E.equals(tts.head, x) ? walk(tts.tail, xs) : eerr(errExpect(x)),
+              E.equals(tts[0], x) ? walk(1, xs) : eerr(errExpect(x)),
           ),
         );
       },

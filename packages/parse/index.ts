@@ -5,6 +5,8 @@
 
 /**
  * @module parse
+ *
+ * Adaptation of the [Parsec](https://hackage.haskell.org/package/parsec-3.1.15.0/docs/Text-Parsec.html) library
  */
 export * from '@fp4ts/parse-core';
 export * from '@fp4ts/parse-kernel';

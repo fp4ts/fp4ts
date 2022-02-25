@@ -136,17 +136,17 @@ export const string = (str: string): Parser<StringSource, string> =>
         );
       });
 
-const listToString = (xs: List<Char>): string => xs.toArray.join('');
+const arrToString = (xs: Char[]): string => xs.join('');
 export const stringF = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
   str: string,
 ): ParserT<S, F, string> => {
-  const tts = List.fromArray(str.split('')) as List<Char>;
+  const tts = str.split('') as TokenType<S>[];
 
   return ParserT.tokens<S, F>(
-    listToString,
-    (sp, ts) => updatePositionByString(sp, listToString(ts)),
-    tts as List<TokenType<S>>,
-  ).map(listToString);
+    arrToString,
+    (sp, ts) => updatePositionByString(sp, arrToString(ts)),
+    tts,
+  ).map(arrToString);
 };
 
 /**

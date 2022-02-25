@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, PrimitiveType } from '@fp4ts/core';
-import { Eq, EvalF, List, Option } from '@fp4ts/cats';
+import { Eq, EvalF, Option } from '@fp4ts/cats';
 import { HasTokenType, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { Consumed } from '../consumed';
@@ -60,16 +60,16 @@ interface ParserTObj {
   ): ParserT<S, F, A>;
 
   tokens<S extends HasTokenType<PrimitiveType>, M>(
-    showTokens: (t: List<TokenType<S>>) => string,
-    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-    tts: List<TokenType<S>>,
-  ): ParserT<S, M, List<TokenType<S>>>;
+    showTokens: (t: TokenType<S>[]) => string,
+    nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+    tts: TokenType<S>[],
+  ): ParserT<S, M, TokenType<S>[]>;
   tokens<S, F>(
-    showTokens: (t: List<TokenType<S>>) => string,
-    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-    tts: List<TokenType<S>>,
+    showTokens: (t: TokenType<S>[]) => string,
+    nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+    tts: TokenType<S>[],
     E: Eq<TokenType<S>>,
-  ): ParserT<S, F, List<TokenType<S>>>;
+  ): ParserT<S, F, TokenType<S>[]>;
 }
 
 ParserT.succeed = succeed;
@@ -104,16 +104,16 @@ interface ParserObj {
   ): Parser<S, A>;
 
   tokens<S extends HasTokenType<PrimitiveType>>(
-    showTokens: (t: List<TokenType<S>>) => string,
-    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-    tts: List<TokenType<S>>,
-  ): Parser<S, List<TokenType<S>>>;
+    showTokens: (t: TokenType<S>[]) => string,
+    nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+    tts: TokenType<S>[],
+  ): Parser<S, TokenType<S>[]>;
   tokens<S>(
-    showTokens: (t: List<TokenType<S>>) => string,
-    nextPos: (sp: SourcePosition, ts: List<TokenType<S>>) => SourcePosition,
-    tts: List<TokenType<S>>,
+    showTokens: (t: TokenType<S>[]) => string,
+    nextPos: (sp: SourcePosition, ts: TokenType<S>[]) => SourcePosition,
+    tts: TokenType<S>[],
     E: Eq<TokenType<S>>,
-  ): Parser<S, List<TokenType<S>>>;
+  ): Parser<S, TokenType<S>[]>;
 }
 
 Parser.succeed = succeed;
