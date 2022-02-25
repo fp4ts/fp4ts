@@ -30,8 +30,16 @@ laws, to verify correctness of those implementations.
 providing minimal functional interface for building HTTP services. In addition
 to the http4s, this port also includes [Servant](https://haskell-servant.github.io/)-like [dsl](./packages/http/dsl) for API declaration.
 
+- `@fp4ts/parse` Adaptation of the [Parsec](https://hackage.haskell.org/package/parsec-3.1.15.0/docs/Text-Parsec.html) library,
+a parser combinator library with polymorphic input and evaluation effect type.
+By default, the library provides tools for text parsing. Parsec was chosen instead
+of the [cats-parse](https://github.com/typelevel/cats-parse/) existing in the Typelevel
+ecosystem for the simplicity of the implementation, support for polymorphic input types
+and contrary to the decision made in cats-pase, unification of parsers guaranteed
+to consume input and ones that do not.
+
 - `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
-for purely functional, effectul, and polymorphic stream processing.
+for purely functional, effect-ful, and polymorphic stream processing.
 
 - `@fp4ts/schema` The library for describing types of Kind-0 and Kind-1, with
 derivation capabilities for common typeclasses such as Eq, Functor, Foldable, and more.
