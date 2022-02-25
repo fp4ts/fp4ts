@@ -3,8 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, PrimitiveType } from '@fp4ts/core';
-import { Eq, EvalF, Option } from '@fp4ts/cats';
+import { $, $type, Kind, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
+import {
+  Alternative,
+  Eq,
+  EvalF,
+  Functor,
+  Monad,
+  MonoidK,
+  Option,
+} from '@fp4ts/cats';
 import { HasTokenType, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { Consumed } from '../consumed';
@@ -24,6 +32,12 @@ import {
 } from './constructors';
 import { ParseResult } from './parse-result';
 import { State } from './state';
+import {
+  parserTAlternative,
+  parserTFunctor,
+  parserTMonad,
+  parserTMonoidK,
+} from './instances';
 
 export type ParserT<S, M, A> = ParserTBase<S, M, A>;
 
@@ -70,6 +84,13 @@ interface ParserTObj {
     tts: TokenType<S>[],
     E: Eq<TokenType<S>>,
   ): ParserT<S, F, TokenType<S>[]>;
+
+  // -- Instances
+
+  MonoidK<S, F>(): MonoidK<$<ParserTF, [S, F]>>;
+  Functor<S, F>(): Functor<$<ParserTF, [S, F]>>;
+  Alternative<S, F>(): Alternative<$<ParserTF, [S, F]>>;
+  Monad<S, F>(): Monad<$<ParserTF, [S, F]>>;
 }
 
 ParserT.succeed = succeed;
@@ -79,6 +100,11 @@ ParserT.defer = defer;
 ParserT.token = token;
 ParserT.tokenPrim = tokenPrim;
 ParserT.tokens = tokens;
+
+ParserT.MonoidK = parserTMonoidK;
+ParserT.Functor = parserTFunctor;
+ParserT.Alternative = parserTAlternative;
+ParserT.Monad = parserTMonad;
 
 interface ParserObj {
   <S, A>(
@@ -114,6 +140,11 @@ interface ParserObj {
     tts: TokenType<S>[],
     E: Eq<TokenType<S>>,
   ): Parser<S, TokenType<S>[]>;
+
+  MonoidK<S>(): MonoidK<$<ParserTF, [S, EvalF]>>;
+  Functor<S>(): Functor<$<ParserTF, [S, EvalF]>>;
+  Alternative<S>(): Alternative<$<ParserTF, [S, EvalF]>>;
+  Monad<S>(): Monad<$<ParserTF, [S, EvalF]>>;
 }
 
 Parser.succeed = succeed;
@@ -123,3 +154,17 @@ Parser.defer = defer;
 Parser.token = token;
 Parser.tokenPrim = tokenPrim;
 Parser.tokens = tokens;
+
+Parser.MonoidK = parserTMonoidK;
+Parser.Functor = parserTFunctor;
+Parser.Alternative = parserTAlternative;
+Parser.Monad = parserTMonad;
+
+// -- HKT
+
+export interface ParserTF extends TyK<[unknown, unknown, unknown]> {
+  [$type]: ParserT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
+}
+export interface ParserF extends TyK<[unknown, unknown]> {
+  [$type]: Parser<TyVar<this, 0>, TyVar<this, 1>>;
+}
