@@ -47,8 +47,8 @@ interface PullObj {
     resource: Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ): Pull<F, never, R>;
-  acquireCancelable<F>(
-    F: MonadCancel<F, Error>,
+  acquireCancelable<F, E>(
+    F: MonadCancel<F, E>,
   ): <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,

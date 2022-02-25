@@ -142,22 +142,22 @@ interface StreamObj {
     resource: Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ): Stream<F, R>;
-  bracketFull<F>(
-    F: MonadCancel<F, Error>,
+  bracketFull<F, E>(
+    F: MonadCancel<F, E>,
   ): <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ) => Stream<F, R>;
-  bracketFullWeak<F>(
-    F: MonadCancel<F, Error>,
+  bracketFullWeak<F, E>(
+    F: MonadCancel<F, E>,
   ): <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
   ) => Stream<F, R>;
 
-  resource<F>(F: MonadCancel<F, Error>): <A>(r: Resource<F, A>) => Stream<F, A>;
-  resourceWeak<F>(
-    F: MonadCancel<F, Error>,
+  resource<F, E>(F: MonadCancel<F, E>): <A>(r: Resource<F, A>) => Stream<F, A>;
+  resourceWeak<F, E>(
+    F: MonadCancel<F, E>,
   ): <A>(r: Resource<F, A>) => Stream<F, A>;
 
   fromQueueNoneTerminated<F, A>(

@@ -63,7 +63,7 @@ export const acquire = <F, R>(
 ): Pull<F, never, R> => new Acquire(resource, release, /* cancelable */ false);
 
 export const acquireCancelable =
-  <F>(F: MonadCancel<F, Error>) =>
+  <F, E>(F: MonadCancel<F, E>) =>
   <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,

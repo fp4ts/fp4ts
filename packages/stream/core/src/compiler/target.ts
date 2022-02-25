@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Option } from '@fp4ts/cats';
-import { Ref, UniqueToken, Resource, MonadCancel } from '@fp4ts/effect';
+import { Ref, UniqueToken, Resource, MonadCancelThrow } from '@fp4ts/effect';
 
 import { Chunk } from '../chunk';
 import { InterruptContext, Scope } from '../internal';
@@ -13,7 +13,7 @@ import { Pull } from '../pull';
 import { concurrentTarget, syncTarget } from './instances';
 
 export interface CompilerTarget<F> {
-  readonly F: MonadCancel<F, Error>;
+  readonly F: MonadCancelThrow<F>;
   readonly unique: Kind<F, [UniqueToken]>;
   readonly ref: <A>(a: A) => Kind<F, [Ref<F, A>]>;
   readonly interruptContext: (

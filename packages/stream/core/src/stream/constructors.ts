@@ -205,7 +205,7 @@ export const bracketWeak = <F, R>(
   new Stream(Pull.acquire(resource, release).flatMap(Pull.output1));
 
 export const bracketFull =
-  <F>(F: MonadCancel<F, Error>) =>
+  <F, E>(F: MonadCancel<F, E>) =>
   <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
@@ -213,7 +213,7 @@ export const bracketFull =
     scope(bracketFullWeak(F)(acquire, release));
 
 export const bracketFullWeak =
-  <F>(F: MonadCancel<F, Error>) =>
+  <F, E>(F: MonadCancel<F, E>) =>
   <R>(
     acquire: (p: Poll<F>) => Kind<F, [R]>,
     release: (r: R, ec: ExitCase) => Kind<F, [void]>,
@@ -223,11 +223,11 @@ export const bracketFullWeak =
     );
 
 export const resource =
-  <F>(F: MonadCancel<F, Error>) =>
+  <F, E>(F: MonadCancel<F, E>) =>
   <A>(r: Resource<F, A>): Stream<F, A> =>
     scope(resourceWeak(F)(r));
 
-export const resourceWeak = <F>(F: MonadCancel<F, Error>) => {
+export const resourceWeak = <F, E>(F: MonadCancel<F, E>) => {
   return function go<A>(r0: Resource<F, A>): Stream<F, A> {
     const r = view(r0);
     switch (r.tag) {
