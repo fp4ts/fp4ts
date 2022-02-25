@@ -372,34 +372,6 @@ function parseLoopImpl<S, F, X, End>(
   }
 }
 
-function tokenPrimParse<S, F, X, End>(
-  { S, s, cont }: ParseCtx<S, F, X, End>,
-  showToken: (t: TokenType<S>) => string,
-  nextPos: (sp: SourcePosition, t: TokenType<S>, s: S) => SourcePosition,
-  test: (t: TokenType<S>) => Option<X>,
-): Kind<F, [End]> {
-  return S.monad.flatMap_(S.uncons(s.input), opt =>
-    opt.fold(
-      () => cont.eerr(new Failure(ParseError.unexpected(s.position, ''))),
-      ([tok, tl]) =>
-        test(tok).fold(
-          () =>
-            cont.eerr(
-              new Failure(ParseError.unexpected(s.position, showToken(tok))),
-            ),
-          x =>
-            cont.cok(
-              new Success(
-                x,
-                new State(tl, nextPos(s.position, tok, tl)),
-                ParseError.empty(s.position),
-              ),
-            ),
-        ),
-    ),
-  );
-}
-
 function flatMapCont<S, F, Y, X, End>(
   { go, cont }: ParseCtx<S, F, X, End>,
   fun: (y: Y) => ParserT<S, F, X>,
