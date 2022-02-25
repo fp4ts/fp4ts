@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, throwError } from '@fp4ts/core';
-import { EvalF, List, None, Some } from '@fp4ts/cats';
+import { EvalF, None, Some } from '@fp4ts/cats';
 import {
   Consumed,
   Failure,

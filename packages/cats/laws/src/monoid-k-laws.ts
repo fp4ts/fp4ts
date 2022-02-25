@@ -20,7 +20,7 @@ export const MonoidKLaws = <F>(F: MonoidK<F>): MonoidKLaws<F> => ({
 
   monoidKLeftIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
     new IsEq(
-      F.combineK_(F.emptyK(), () => fa),
+      F.combineK_(fa, () => F.emptyK()),
       fa,
     ),
 

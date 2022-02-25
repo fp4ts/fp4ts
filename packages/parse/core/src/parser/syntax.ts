@@ -16,6 +16,7 @@ import { ParseResult } from './parse-result';
 import {
   ap_,
   as_,
+  backtrack,
   between_,
   chainLeft1_,
   chainLeft_,
@@ -30,6 +31,7 @@ import {
   map2_,
   mapAccumulate_,
   map_,
+  not,
   notFollowedBy_,
   orElse_,
   parse,
@@ -47,6 +49,7 @@ import {
   sepBy_,
   skipRep_,
   surroundedBy_,
+  toUnit,
 } from './operators';
 
 declare module './algebra' {
@@ -56,6 +59,8 @@ declare module './algebra' {
 
     map<B>(f: (a: A) => B): ParserT<S, F, B>;
     as<B>(b: B): ParserT<S, F, B>;
+
+    readonly void: ParserT<S, F, void>;
 
     orElse<B>(
       this: ParserT<S, F, B>,
@@ -87,6 +92,7 @@ declare module './algebra' {
 
     mapAccumulate<B>(z: B, f: (b: B, a: A) => B): ParserT<S, F, B>;
 
+    not(): ParserT<S, F, void>;
     notFollowedBy<B>(that: ParserT<S, F, B>): ParserT<S, F, B>;
 
     skipRep(): ParserT<S, F, void>;
@@ -94,8 +100,8 @@ declare module './algebra' {
     rep(): ParserT<S, F, List<A>>;
     rep1(): ParserT<S, F, List<A>>;
 
-    sepBy(tok: ParserT<S, F, TokenType<S>>): ParserT<S, F, List<A>>;
-    sepBy1(tok: ParserT<S, F, TokenType<S>>): ParserT<S, F, List<A>>;
+    sepBy(tok: ParserT<S, F, unknown>): ParserT<S, F, List<A>>;
+    sepBy1(tok: ParserT<S, F, unknown>): ParserT<S, F, List<A>>;
 
     chainLeft<B>(
       this: ParserT<S, F, B>,
@@ -116,6 +122,8 @@ declare module './algebra' {
       this: ParserT<S, F, B>,
       op: ParserT<S, F, (x: B, y: B) => B>,
     ): ParserT<S, F, B>;
+
+    backtrack(): ParserT<S, F, A>;
 
     between(l: ParserT<S, F, any>, r: ParserT<S, F, any>): ParserT<S, F, A>;
     surroundedBy(that: ParserT<S, F, any>): ParserT<S, F, A>;
@@ -168,6 +176,12 @@ ParserT.prototype.map = function (f) {
 ParserT.prototype.as = function (b) {
   return as_(this, b);
 };
+Object.defineProperty(ParserT.prototype, 'void', {
+  get() {
+    return toUnit(this);
+  },
+});
+
 ParserT.prototype.orElse = function (that) {
   return orElse_(this, that);
 };
@@ -176,6 +190,7 @@ ParserT.prototype['<|>'] = ParserT.prototype.orElse;
 ParserT.prototype.ap = function (ff) {
   return ap_(ff, this);
 };
+ParserT.prototype['<*>'] = ParserT.prototype.ap;
 ParserT.prototype.map2 = function (that, f) {
   return map2_(this, that)(f);
 };
@@ -197,6 +212,9 @@ ParserT.prototype.flatMap = function (f) {
 
 ParserT.prototype.mapAccumulate = function (z, f) {
   return mapAccumulate_(this, z, f);
+};
+ParserT.prototype.not = function () {
+  return not(this);
 };
 ParserT.prototype.notFollowedBy = function (that) {
   return notFollowedBy_(this, that);
@@ -229,6 +247,10 @@ ParserT.prototype.chainRight = function (z, op) {
 };
 ParserT.prototype.chainRight1 = function (op) {
   return chainRight1_(this, op);
+};
+
+ParserT.prototype.backtrack = function () {
+  return backtrack(this);
 };
 
 ParserT.prototype.between = function (l, r) {

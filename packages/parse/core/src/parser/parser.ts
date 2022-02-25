@@ -9,6 +9,7 @@ import {
   Eq,
   EvalF,
   Functor,
+  FunctorFilter,
   Monad,
   MonoidK,
   Option,
@@ -20,6 +21,7 @@ import { SourcePosition } from '../source-position';
 
 import { ParserT as ParserTBase } from './algebra';
 import {
+  anyToken,
   defer,
   empty,
   fail,
@@ -29,12 +31,14 @@ import {
   token,
   tokenPrim,
   tokens,
+  unit,
 } from './constructors';
 import { ParseResult } from './parse-result';
 import { State } from './state';
 import {
   parserTAlternative,
   parserTFunctor,
+  parserTFunctorFilter,
   parserTMonad,
   parserTMonoidK,
 } from './instances';
@@ -58,10 +62,12 @@ interface ParserTObj {
   ): ParserT<S, F, A>;
   succeed<S, F, A>(x: A): ParserT<S, F, A>;
   fail<S, F, A = never>(msg: string): ParserT<S, F, A>;
+  unit<S, F>(): ParserT<S, F, void>;
   empty<S, F, A = never>(): ParserT<S, F, A>;
 
   defer<S, F, A>(thunk: () => ParserT<S, F, A>): ParserT<S, F, A>;
 
+  anyToken<S, F>(): ParserT<S, F, TokenType<S>>;
   token<S, F, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (t: TokenType<S>) => SourcePosition,
@@ -89,20 +95,24 @@ interface ParserTObj {
 
   MonoidK<S, F>(): MonoidK<$<ParserTF, [S, F]>>;
   Functor<S, F>(): Functor<$<ParserTF, [S, F]>>;
+  FunctorFilter<S, F>(): FunctorFilter<$<ParserTF, [S, F]>>;
   Alternative<S, F>(): Alternative<$<ParserTF, [S, F]>>;
   Monad<S, F>(): Monad<$<ParserTF, [S, F]>>;
 }
 
 ParserT.succeed = succeed;
 ParserT.fail = fail;
+ParserT.unit = unit;
 ParserT.empty = empty;
 ParserT.defer = defer;
+ParserT.anyToken = anyToken;
 ParserT.token = token;
 ParserT.tokenPrim = tokenPrim;
 ParserT.tokens = tokens;
 
 ParserT.MonoidK = parserTMonoidK;
 ParserT.Functor = parserTFunctor;
+ParserT.FunctorFilter = parserTFunctorFilter;
 ParserT.Alternative = parserTAlternative;
 ParserT.Monad = parserTMonad;
 
@@ -114,10 +124,12 @@ interface ParserObj {
   ): Parser<S, A>;
   succeed<S, A>(x: A): Parser<S, A>;
   fail<S, A = never>(msg: string): Parser<S, A>;
+  unit<S>(): Parser<S, void>;
   empty<S, A = never>(): Parser<S, A>;
 
   defer<S, A>(thunk: () => Parser<S, A>): Parser<S, A>;
 
+  anyToken<S>(): Parser<S, TokenType<S>>;
   token<S, A>(
     showToken: (t: TokenType<S>) => string,
     nextPos: (t: TokenType<S>) => SourcePosition,
@@ -141,22 +153,28 @@ interface ParserObj {
     E: Eq<TokenType<S>>,
   ): Parser<S, TokenType<S>[]>;
 
+  // -- instances
+
   MonoidK<S>(): MonoidK<$<ParserTF, [S, EvalF]>>;
   Functor<S>(): Functor<$<ParserTF, [S, EvalF]>>;
+  FunctorFilter<S>(): FunctorFilter<$<ParserTF, [S, EvalF]>>;
   Alternative<S>(): Alternative<$<ParserTF, [S, EvalF]>>;
   Monad<S>(): Monad<$<ParserTF, [S, EvalF]>>;
 }
 
 Parser.succeed = succeed;
 Parser.fail = fail;
+Parser.unit = unit;
 Parser.empty = empty;
 Parser.defer = defer;
+Parser.anyToken = anyToken;
 Parser.token = token;
 Parser.tokenPrim = tokenPrim;
 Parser.tokens = tokens;
 
 Parser.MonoidK = parserTMonoidK;
 Parser.Functor = parserTFunctor;
+Parser.FunctorFilter = parserTFunctorFilter;
 Parser.Alternative = parserTAlternative;
 Parser.Monad = parserTMonad;
 

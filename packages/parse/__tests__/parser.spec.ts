@@ -5,13 +5,14 @@
 
 import fc from 'fast-check';
 import { Char } from '@fp4ts/core';
-import { Eq, Left, List, Right } from '@fp4ts/cats';
+import { Eq, Eval, Left, List, Right } from '@fp4ts/cats';
 import {
   Parser,
   ParseError,
   SourcePosition,
   StringSource,
 } from '@fp4ts/parse-core';
+import { Stream } from '@fp4ts/parse-kernel';
 import {
   anyChar,
   char,
@@ -19,8 +20,10 @@ import {
   parens,
   spaces,
   string,
+  stringF,
 } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
+import { eq, fp4tsStringParser, fp4tsStringParser0 } from './arbitraries';
 
 describe('Parser', () => {
   it('should parse a single character from a string', () => {
@@ -78,6 +81,10 @@ describe('Parser', () => {
   });
 
   describe('rep', () => {
+    it('should throw when repeating empty parser', () => {
+      expect(() => Parser.unit().rep().parse('')).toThrow();
+    });
+
     it('should succeed to parse an empty input', () => {
       expect(anyChar().rep().parse('')).toEqual(Right(List.empty));
     });
@@ -198,5 +205,190 @@ unexpected end of input
 expecting digit`),
       );
     });
+  });
+
+  describe('Laws', () => {
+    test(
+      'consume identity input',
+      forAll(fc.string(), s => string(s).parse(s).get === s),
+    );
+
+    test(
+      'consume identity input',
+      forAll(fc.string(), s => stringF(s).parse(s).get === s),
+    );
+
+    test(
+      'label to be identity',
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) =>
+        p
+          .label('my helpful message')
+          .parse(s)
+          .fold(
+            () => p.parse(s).isLeft,
+            x => {
+              expect(x).toEqual(p.parse(s).get);
+              return true;
+            },
+          ),
+      ),
+    );
+
+    test(
+      'p.void <=> p.map(() => undefined)',
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) =>
+        eq(p.void.parse(s), p.map(() => undefined).parse(s)),
+      ),
+    );
+
+    test(
+      'p orElse p is p',
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
+        expect(p.orElse(() => p).parse(s).toOption).toEqual(
+          p.parse(s).toOption,
+        );
+        return true;
+      }),
+    );
+
+    test(
+      'p1 backtrack orElse p2 succeeds if p1 or p2 succeeds',
+      forAll(
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fc.string(),
+        (p1, p2, s) => {
+          const r = p1
+            .backtrack()
+            .orElse(() => p2)
+            .parse(s);
+          const p1r = p1.parse(s);
+          const p2r = p2.parse(s);
+
+          return r.isRight === (p1r.isRight || p2r.isRight);
+        },
+      ),
+    );
+
+    test(
+      'orElse map distributes',
+      forAll(
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fc.func<[string], string>(fc.string()),
+        fc.string(),
+        (l, r, f, s) => {
+          const r1 = l
+            .orElse(() => r)
+            .map(f)
+            .parse(s);
+          const r2 = l
+            .map(f)
+            .orElse(() => r.map(f))
+            .parse(s);
+          expect(r1).toEqual(r2);
+          return true;
+        },
+      ),
+    );
+
+    test(
+      'backtrack orElse succeed always succeeds',
+      forAll(
+        fp4tsStringParser0(),
+        fc.string(),
+        (p, s) =>
+          p
+            .backtrack()
+            .orElse(() => Parser.succeed(''))
+            .parse(s).isRight,
+      ),
+    );
+
+    test(
+      'a.backtrack orElse b succeeds iff b.backtrack orElse a succeeds',
+      forAll(
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fc.string(),
+        (l, r, s) =>
+          l
+            .backtrack()
+            .orElse(() => r)
+            .parse(s).isRight ===
+          r
+            .backtrack()
+            .orElse(() => l)
+            .parse(s).isRight,
+      ),
+    );
+
+    test(
+      'backtrack either succeeds or fails without consuming any input',
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
+        const r = p.backtrack().parseConsumedF(Stream.forSource(Eval.Monad))(
+          StringSource.fromString(s),
+        ).value;
+
+        return r.tag === 'consumed'
+          ? r.value.value.fold(
+              () => true,
+              () => false,
+            )
+          : true;
+      }),
+    );
+
+    test(
+      'rep1 consistent with product . rep',
+      forAll(fp4tsStringParser(), fc.string(), (p, s) => {
+        const rep1 = p.rep1().parse(s);
+        const rep = p.flatMap(x => p.rep().map(xs => xs.prepend(x))).parse(s);
+        expect(rep1).toEqual(rep);
+        return true;
+      }),
+    );
+
+    test(
+      'rep is sepBy uni',
+      forAll(fp4tsStringParser(), fc.string(), (p, s) => {
+        const lhs = p.rep().parse(s);
+        const rhs = p.sepBy(Parser.unit()).parse(s);
+        expect(lhs).toEqual(rhs);
+        return true;
+      }),
+    );
+
+    test(
+      'p1 between p2 p3 is p2 *> p1 <* p3',
+      forAll(
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fc.string(),
+        (p1, p2, p3, s) =>
+          eq(p1.between(p2, p3).parse(s), p2['*>'](p1)['<*'](p3).parse(s)),
+      ),
+    );
+
+    test(
+      'surroundedBy consistent with between',
+      forAll(
+        fp4tsStringParser0(),
+        fp4tsStringParser0(),
+        fc.string(),
+        (p1, p2, s) =>
+          eq(p1.surroundedBy(p2).parse(s), p1.between(p2, p2).parse(s)),
+      ),
+    );
+
+    test(
+      'complete parse consistent with notFollowedBy anyToken',
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
+        const l = p.complete().parse(s);
+        const r = p.notFollowedBy(Parser.anyToken()).parse(s);
+        return (l.isLeft && r.isLeft) || (expect(l).toEqual(r), true);
+      }),
+    );
   });
 });

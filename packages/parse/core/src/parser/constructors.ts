@@ -15,7 +15,7 @@ import { ParseError } from '../parse-error';
 import { Defer, Empty, Fail, ParserPrim, ParserT, Succeed } from './algebra';
 import { ParseResult, Failure, Success } from './parse-result';
 import { State } from './state';
-import { label_, notFollowedBy_ } from './operators';
+import { label_, not } from './operators';
 
 export const succeed = <S, M, A>(x: A): ParserT<S, M, A> => new Succeed(x);
 
@@ -30,7 +30,7 @@ export const unexpected = <S, M, A = never>(msg: string): ParserT<S, M, A> =>
 export const empty = <S, M, A = never>(): ParserT<S, M, A> => new Empty();
 
 export const eof = <S, M>(): ParserT<S, M, void> =>
-  label_(notFollowedBy_(unit(), anyToken()), 'end of input');
+  label_(not(anyToken()), 'end of input');
 
 export const defer = <S, M, A>(
   thunk: () => ParserT<S, M, A>,

@@ -30,6 +30,7 @@ import {
   Debug,
   Labels,
   Backtrack,
+  ParserPrim,
 } from './algebra';
 import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
@@ -55,6 +56,9 @@ export const map_ = <S, F, A, B>(
 
 export const as_ = <S, F, A, B>(p: ParserT<S, F, A>, b: B): ParserT<S, F, B> =>
   new Map(p, () => b);
+
+export const toUnit = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
+  as_(p, undefined);
 
 export const orElse_ = <S, F, A>(
   p1: ParserT<S, F, A>,
@@ -97,19 +101,18 @@ export const mapAccumulate_ = <S, F, A, B>(
   f: (acc: B, a: A) => B,
 ): ParserT<S, F, B> => new ManyAccumulate(p, init, f);
 
+export const not = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
+  backtrack(
+    orElse_(
+      flatMap_(backtrack(p), c => unexpected(`${c}`)),
+      () => unit(),
+    ),
+  );
+
 export const notFollowedBy_ = <S, F, A, B>(
   p: ParserT<S, F, A>,
   p2: ParserT<S, F, B>,
-): ParserT<S, F, A> =>
-  productL_(
-    p,
-    backtrack(
-      orElse_(
-        flatMap_(backtrack(p2), c => unexpected(`${c}`)),
-        () => unit(),
-      ),
-    ),
-  );
+): ParserT<S, F, A> => productL_(p, not(p2));
 
 export const skipRep_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
   mapAccumulate_(p, undefined, () => {});
