@@ -205,12 +205,12 @@ describe('Pure Stream', () => {
       expect(s.take(50_000).compile().toArray).toEqual(xs);
     });
     it('should be stack safe 2', () => {
-      const xs = [...new Array(50_000).keys()];
-      const s = xs.reduce(
-        (ss, i) => ss.take(50_000),
+      const xs = [...new Array(10_000).keys()];
+      const s = [...new Array(100).keys()].reduce(
+        ss => ss.take(10_000),
         Stream.fromArray(xs).flatMap(Stream) as Stream<PureF, number>,
       );
-      expect(s.take(50_000).compile().toArray).toEqual(xs);
+      expect(s.take(10_000).compile().toArray).toEqual(xs);
     });
   });
 
@@ -724,66 +724,70 @@ describe('Pure Stream', () => {
     });
   });
 
-  const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureF, X>> =>
-    Eq.by(List.Eq(EqX), s => s.compile().toList);
+  describe('Laws', () => {
+    const pureEqStream = <X>(EqX: Eq<X>): Eq<Stream<PureF, X>> =>
+      Eq.by(List.Eq(EqX), s => s.compile().toList);
 
-  const monoidKTests = MonoidKSuite(Stream.MonoidK<PureF>());
-  checkAll(
-    'MonoidK<$<StreamK, [PureK]>>',
-    monoidKTests.monoidK(
-      fc.integer(),
-      Eq.primitive,
-      A.fp4tsPureStreamGenerator,
-      pureEqStream,
-    ),
-  );
+    const monoidKTests = MonoidKSuite(Stream.MonoidK<PureF>());
+    checkAll(
+      'MonoidK<$<StreamK, [PureK]>>',
+      monoidKTests.monoidK(
+        fc.integer(),
+        Eq.primitive,
+        A.fp4tsPureStreamGenerator,
+        pureEqStream,
+      ),
+    );
 
-  const alignTests = AlignSuite(Stream.Align<PureF>());
-  checkAll(
-    'Align<$<StreamK, [PureK]>>',
-    alignTests.align(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsPureStreamGenerator,
-      pureEqStream,
-    ),
-  );
+    const alignTests = AlignSuite(Stream.Align<PureF>());
+    checkAll(
+      'Align<$<StreamK, [PureK]>>',
+      alignTests.align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsPureStreamGenerator,
+        pureEqStream,
+      ),
+    );
 
-  const functorFilterTests = FunctorFilterSuite(Stream.FunctorFilter<PureF>());
-  checkAll(
-    'FunctorFilter<$<StreamK, [PureK]>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsPureStreamGenerator,
-      pureEqStream,
-    ),
-  );
+    const functorFilterTests = FunctorFilterSuite(
+      Stream.FunctorFilter<PureF>(),
+    );
+    checkAll(
+      'FunctorFilter<$<StreamK, [PureK]>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsPureStreamGenerator,
+        pureEqStream,
+      ),
+    );
 
-  const monadTests = MonadSuite(Stream.Monad<PureF>());
-  checkAll(
-    'Monad<$<StreamK, [PureK]>>',
-    monadTests.monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsPureStreamGenerator,
-      pureEqStream,
-    ),
-  );
+    const monadTests = MonadSuite(Stream.Monad<PureF>());
+    checkAll(
+      'Monad<$<StreamK, [PureK]>>',
+      monadTests.monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsPureStreamGenerator,
+        pureEqStream,
+      ),
+    );
+  });
 });
