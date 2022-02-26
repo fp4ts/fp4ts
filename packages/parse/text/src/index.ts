@@ -7,3 +7,4 @@
  * @module parse/text
  */
 export * from './parsers';
+export * from './interpolator';
