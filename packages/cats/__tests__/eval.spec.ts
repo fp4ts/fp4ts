@@ -9,7 +9,7 @@ import { Eval } from '@fp4ts/cats-core';
 import { Memoize } from '@fp4ts/cats-core/lib/eval/algebra';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { DeferSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { CoflatMapSuite, DeferSuite, MonadSuite } from '@fp4ts/cats-laws';
 
 describe('Eval', () => {
   describe('memoization', () => {
@@ -78,6 +78,21 @@ describe('Eval', () => {
   checkAll(
     'Defer<Eval>',
     deferTests.defer(fc.integer(), Eq.primitive, A.fp4tsEval, Eval.Eq),
+  );
+
+  const coflatMapTests = CoflatMapSuite(Eval.CoflatMap);
+  checkAll(
+    'CoflatMap<Eval>',
+    coflatMapTests.coflatMap(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.fp4tsEval,
+      Eval.Eq,
+    ),
   );
 
   const tests = MonadSuite(Eval.Monad);

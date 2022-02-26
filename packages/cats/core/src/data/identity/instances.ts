@@ -10,12 +10,21 @@ import { Functor } from '../../functor';
 import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Monad } from '../../monad';
+import { Comonad } from '../../comonad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
-import { IdentityF } from './identity';
-import { flatMap_, map_, tailRecM_ } from './operators';
+import type { IdentityF } from './identity';
+import {
+  coflatMap_,
+  coflatten,
+  extract,
+  flatMap_,
+  map_,
+  tailRecM_,
+} from './operators';
 import { pure, unit } from './constructors';
 import { Identity } from './identity';
 
@@ -46,11 +55,23 @@ export const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
   FlatMap.of({ ...identityApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
 );
 
+export const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
+  CoflatMap.of({
+    ...identityFunctor(),
+    coflatMap_: coflatMap_,
+    coflatten: coflatten,
+  }),
+);
+
 export const identityMonad: Lazy<Monad<IdentityF>> = lazyVal(() =>
   Monad.of({
     ...identityApplicative(),
     ...identityFlatMap(),
   }),
+);
+
+export const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
+  Comonad.of({ ...identityCoflatMap(), extract: extract }),
 );
 
 export const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>

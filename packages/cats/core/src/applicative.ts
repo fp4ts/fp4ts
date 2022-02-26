@@ -6,6 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { Functor } from './functor';
 import { Apply } from './apply';
+import { CoflatMap } from './coflat-map';
 import { ComposedApplicative } from './composed';
 import { Array } from './data';
 
@@ -30,7 +31,7 @@ export const Applicative = Object.freeze({
 
       tupled: (...xs) => Array.Traversable().sequence(self)(xs),
 
-      ...Apply.of<F>({ ...Applicative.deriveFunctor<F>(F), ...F }),
+      ...Apply.of<F>({ ...Applicative.functor<F>(F), ...F }),
       ...F,
     };
     return self;
@@ -41,9 +42,12 @@ export const Applicative = Object.freeze({
     G: Applicative<G>,
   ): ComposedApplicative<F, G> => ComposedApplicative.of(F, G),
 
-  deriveFunctor: <F>(F: ApplicativeRequirements<F>): Functor<F> =>
+  functor: <F>(F: ApplicativeRequirements<F>): Functor<F> =>
     Functor.of<F>({
       map_: (fa, f) => F.ap_(F.pure(f), fa),
       ...F,
     }),
+
+  coflatMap: <F>(F: Applicative<F>): CoflatMap<F> =>
+    CoflatMap.of({ ...F, coflatMap_: (fa, f) => F.pure(f(fa)) }),
 });

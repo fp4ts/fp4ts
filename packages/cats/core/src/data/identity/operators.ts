@@ -22,6 +22,14 @@ export const flatMap: <A, B>(
   f: (a: A) => Identity<B>,
 ) => (fa: Identity<A>) => Identity<B> = f => fa => flatMap_(fa, f);
 
+export const coflatMap: <A, B>(
+  f: (a: Identity<A>) => B,
+) => (fa: Identity<A>) => Identity<B> = f => fa => coflatMap_(fa, f);
+
+export const coflatten: <A>(fa: Identity<A>) => Identity<Identity<A>> = a => a;
+
+export const extract: <A>(fa: Identity<A>) => A = a => a;
+
 export const flatTap: <A>(
   f: (a: A) => Identity<unknown>,
 ) => (fa: Identity<A>) => Identity<A> = f => fa => flatTap_(fa, f);
@@ -47,6 +55,11 @@ export const tap_ = <A>(fa: Identity<A>, f: (a: A) => unknown): Identity<A> => {
 export const flatMap_ = <A, B>(
   fa: Identity<A>,
   f: (a: A) => Identity<B>,
+): Identity<B> => f(fa);
+
+export const coflatMap_ = <A, B>(
+  fa: Identity<A>,
+  f: (a: Identity<A>) => Identity<B>,
 ): Identity<B> => f(fa);
 
 export const flatTap_ = <A>(

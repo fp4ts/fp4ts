@@ -10,6 +10,7 @@ import { Functor } from '../functor';
 import { Apply } from '../apply';
 import { Applicative } from '../applicative';
 import { FlatMap } from '../flat-map';
+import { CoflatMap } from '../coflat-map';
 import { Monad } from '../monad';
 
 import { Eval as EvalBase, Now } from './algebra';
@@ -17,6 +18,7 @@ import { always, defer, delay, later, now, pure, unit } from './constructors';
 import {
   evalApplicative,
   evalApply,
+  evalCoflatMap,
   evalDefer,
   evalEq,
   evalFlatMap,
@@ -49,6 +51,7 @@ interface EvalObj {
   readonly Apply: Apply<EvalF>;
   readonly Applicative: Applicative<EvalF>;
   readonly FlatMap: FlatMap<EvalF>;
+  readonly CoflatMap: CoflatMap<EvalF>;
   readonly Monad: Monad<EvalF>;
 
   Eq<A>(E: Eq<A>): Eq<Eval<A>>;
@@ -87,6 +90,11 @@ Object.defineProperty(Eval, 'Applicative', {
 Object.defineProperty(Eval, 'FlatMap', {
   get() {
     return evalFlatMap();
+  },
+});
+Object.defineProperty(Eval, 'CoflatMap', {
+  get() {
+    return evalCoflatMap();
   },
 });
 Object.defineProperty(Eval, 'Monad', {

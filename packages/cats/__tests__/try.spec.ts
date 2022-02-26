@@ -16,6 +16,7 @@ import {
   Right,
 } from '@fp4ts/cats-core/lib/data';
 import {
+  CoflatMapSuite,
   FunctorFilterSuite,
   MonadErrorSuite,
   SemigroupKSuite,
@@ -263,6 +264,21 @@ describe('Try', () => {
       Eq.primitive,
       A.fp4tsTry,
       E => Try.Eq(Eq.Error.allEqual, E),
+    ),
+  );
+
+  const coflatMapTests = CoflatMapSuite(Try.CoflatMap);
+  checkAll(
+    'CoflatMap<Try>',
+    coflatMapTests.coflatMap(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.fp4tsTry,
+      E => Try.Eq(Eq.Error.strict, E),
     ),
   );
 

@@ -10,8 +10,10 @@ import { Contravariant } from '../../contravariant';
 import { Bifunctor } from '../../bifunctor';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Applicative } from '../../applicative';
 import { Monad } from '../../monad';
+import { Comonad } from '../../comonad';
 import { ApplicativeError } from '../../applicative-error';
 import { MonadError } from '../../monad-error';
 import { Identity, IdentityF } from '../identity';
@@ -23,6 +25,8 @@ import {
   writerTApplicativeError,
   writerTApply,
   writerTBifunctor,
+  writerTCoflatMap,
+  writerTComonad,
   writerTContravariant,
   writerTEq,
   writerTFlatMap,
@@ -61,11 +65,13 @@ interface WriterTObj {
   Bifunctor<F>(F: Functor<F>): Bifunctor<$<WriterTF, [F]>>;
   Apply<F, L>(F: Apply<F>, L: Semigroup<L>): Apply<$<WriterTF, [F, L]>>;
   FlatMap<F, L>(F: FlatMap<F>, L: Monoid<L>): FlatMap<$<WriterTF, [F, L]>>;
+  CoflatMap<F, L>(F: Functor<F>): CoflatMap<$<WriterTF, [F, L]>>;
   Applicative<F, L>(
     F: Applicative<F>,
     L: Monoid<L>,
   ): Applicative<$<WriterTF, [F, L]>>;
   Monad<F, L>(F: Monad<F>, L: Monoid<L>): Monad<$<WriterTF, [F, L]>>;
+  Comonad<F, L>(F: Comonad<F>): Comonad<$<WriterTF, [F, L]>>;
   ApplicativeError<F, L, E>(
     F: ApplicativeError<F, E>,
     L: Monoid<L>,
@@ -82,8 +88,10 @@ WriterT.Contravariant = writerTContravariant;
 WriterT.Apply = writerTApply;
 WriterT.Bifunctor = writerTBifunctor;
 WriterT.FlatMap = writerTFlatMap;
+WriterT.CoflatMap = writerTCoflatMap;
 WriterT.Applicative = writerTApplicative;
 WriterT.Monad = writerTMonad;
+WriterT.Comonad = writerTComonad;
 WriterT.ApplicativeError = writerTApplicativeError;
 WriterT.MonadError = writerTMonadError;
 
@@ -108,16 +116,20 @@ interface WriterObj {
   readonly Bifunctor: Bifunctor<$<WriterTF, [IdentityF]>>;
   Apply<L>(L: Semigroup<L>): Apply<$<WriterTF, [IdentityF, L]>>;
   FlatMap<L>(L: Monoid<L>): FlatMap<$<WriterTF, [IdentityF, L]>>;
+  CoflatMap<L>(): CoflatMap<$<WriterTF, [IdentityF, L]>>;
   Applicative<L>(L: Monoid<L>): Applicative<$<WriterTF, [IdentityF, L]>>;
   Monad<L>(L: Monoid<L>): Monad<$<WriterTF, [IdentityF, L]>>;
+  Comonad<L>(): Comonad<$<WriterTF, [IdentityF, L]>>;
 }
 
 Writer.Eq = writerTEq;
 Writer.Functor = () => writerTFunctor(Identity.Functor);
 Writer.Apply = L => writerTApply(Identity.Apply, L);
 Writer.FlatMap = L => writerTFlatMap(Identity.FlatMap, L);
+Writer.CoflatMap = () => writerTCoflatMap(Identity.CoflatMap);
 Writer.Applicative = L => writerTApplicative(Identity.Applicative, L);
 Writer.Monad = L => writerTMonad(Identity.Monad, L);
+Writer.Comonad = () => writerTComonad(Identity.Comonad);
 
 Object.defineProperty(Writer, 'Bifunctor', {
   get(): Bifunctor<$<WriterTF, [IdentityF]>> {

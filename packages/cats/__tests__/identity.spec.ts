@@ -10,9 +10,24 @@ import { Eval } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { MonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
+import { ComonadSuite, MonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
 
 describe('Identity Laws', () => {
+  const comonadTests = ComonadSuite(Identity.Comonad);
+  checkAll(
+    'Comonad<Identity>',
+    comonadTests.comonad(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      id,
+      id,
+    ),
+  );
+
   const monadTests = MonadSuite(Identity.Monad);
   checkAll(
     'Monad<Identity>',

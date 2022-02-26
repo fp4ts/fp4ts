@@ -14,6 +14,7 @@ import {
   MonadSuite,
   AlternativeSuite,
   TraversableSuite,
+  CoflatMapSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Option', () => {
@@ -145,10 +146,24 @@ describe('Option', () => {
 
   describe('Laws', () => {
     const alternativeTests = AlternativeSuite(Option.Alternative);
-
     checkAll(
       'Alternative<OptionK>',
       alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(Option.CoflatMap);
+    checkAll(
+      'CoflatMap<OptionK>',
+      coflatMapTests.coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),

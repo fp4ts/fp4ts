@@ -15,7 +15,13 @@ import {
   EitherF,
   Chain,
 } from '@fp4ts/cats-core/lib/data';
-import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import {
+  BifunctorSuite,
+  CoflatMapSuite,
+  ComonadSuite,
+  MonadErrorSuite,
+  MonadSuite,
+} from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -104,6 +110,21 @@ describe('WriterT', () => {
       ),
     );
 
+    const comonadTests = ComonadSuite(Writer.Comonad<string>());
+    checkAll(
+      'Comonad<Writer<string, *>>',
+      comonadTests.comonad(
+        fc.string(),
+        fc.integer(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
+        E => Writer.Eq(Eq.tuple2(Eq.primitive as any, E)),
+      ),
+    );
+
     const monadArrayTests = MonadSuite(
       Writer.Monad<string[]>(Array.MonoidK().algebra<string>()),
     );
@@ -144,6 +165,25 @@ describe('WriterT', () => {
           A.fp4tsWriterT(A.fp4tsEval(fc.tuple(arbX, arbY))),
         <X, Y>(EX: Eq<X>, EY: Eq<Y>): Eq<WriterT<EvalF, X, Y>> =>
           WriterT.Eq(Eval.Eq(Eq.tuple2(EX, EY))),
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(
+      WriterT.CoflatMap<EvalF, string>(Eval.CoflatMap),
+    );
+    checkAll(
+      'CoflatMap<WriterT<Eval, string, *>>',
+      coflatMapTests.coflatMap(
+        fc.string(),
+        fc.integer(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, string, X>> =>
+          A.fp4tsWriterT(A.fp4tsEval(fc.tuple(fc.string(), arbX))),
+        <X>(E: Eq<X>): Eq<WriterT<EvalF, string, X>> =>
+          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive as any, E))),
       ),
     );
 

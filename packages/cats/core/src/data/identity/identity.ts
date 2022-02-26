@@ -8,8 +8,10 @@ import { EqK } from '../../eq-k';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Functor } from '../../functor';
 import { Monad } from '../../monad';
+import { Comonad } from '../../comonad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
 
@@ -19,6 +21,8 @@ import { pure } from './constructors';
 import {
   identityApplicative,
   identityApply,
+  identityCoflatMap,
+  identityComonad,
   identityEqK,
   identityFlatMap,
   identityFoldable,
@@ -47,7 +51,9 @@ interface IdentityObj {
   readonly Apply: Apply<IdentityF>;
   readonly Applicative: Applicative<IdentityF>;
   readonly FlatMap: FlatMap<IdentityF>;
+  readonly CoflatMap: CoflatMap<IdentityF>;
   readonly Monad: Monad<IdentityF>;
+  readonly Comonad: Comonad<IdentityF>;
   readonly Foldable: Foldable<IdentityF>;
   readonly Traversable: Traversable<IdentityF>;
 }
@@ -83,9 +89,19 @@ Object.defineProperty(Identity, 'FlatMap', {
     return identityFlatMap();
   },
 });
+Object.defineProperty(Identity, 'CoflatMap', {
+  get(): CoflatMap<IdentityF> {
+    return identityCoflatMap();
+  },
+});
 Object.defineProperty(Identity, 'Monad', {
   get(): Monad<IdentityF> {
     return identityMonad();
+  },
+});
+Object.defineProperty(Identity, 'Comonad', {
+  get(): Comonad<IdentityF> {
+    return identityComonad();
   },
 });
 Object.defineProperty(Identity, 'Foldable', {

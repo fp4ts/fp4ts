@@ -3,15 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind, tupled } from '@fp4ts/core';
+import { $, Kind, snd, tupled } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Contravariant } from '../../contravariant';
 import { Bifunctor } from '../../bifunctor';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Applicative } from '../../applicative';
 import { Monad } from '../../monad';
+import { Comonad } from '../../comonad';
 import { ApplicativeError } from '../../applicative-error';
 import { MonadError } from '../../monad-error';
 
@@ -75,6 +77,14 @@ export const writerTFlatMap: <F, L>(
     },
   });
 
+export const writerTCoflatMap: <F, L>(
+  F: Functor<F>,
+) => CoflatMap<$<WriterTF, [F, L]>> = F =>
+  CoflatMap.of({
+    ...writerTFunctor(F),
+    coflatMap_: (flv, f) => map_(F)(flv, () => f(flv)),
+  });
+
 export const writerTApplicative: <F, L>(
   F: Applicative<F>,
   L: Monoid<L>,
@@ -99,6 +109,14 @@ export const writerTApplicativeError: <F, L, E>(
     throwError: <V>(e: E) => new WriterT<F, L, V>(F.throwError(e)),
     handleErrorWith_: (fa, h) =>
       new WriterT(F.handleErrorWith_(fa.run, e => h(e).run)),
+  });
+
+export const writerTComonad: <F, L>(
+  F: Comonad<F>,
+) => Comonad<$<WriterTF, [F, L]>> = F =>
+  Comonad.of({
+    ...writerTCoflatMap(F),
+    extract: fa => F.extract(F.map_(fa.run, snd)),
   });
 
 export const writerTMonadError: <F, L, E>(

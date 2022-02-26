@@ -15,6 +15,7 @@ import { Alternative } from '../../alternative';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
@@ -85,6 +86,10 @@ export const optionFlatMap: Lazy<FlatMap<OptionF>> = lazyVal(() =>
     flatten: flatten,
     tailRecM_: tailRecM_,
   }),
+);
+
+export const optionCoflatMap: Lazy<CoflatMap<OptionF>> = lazyVal(() =>
+  Applicative.coflatMap(optionApplicative()),
 );
 
 export const optionMonad: Lazy<Monad<OptionF>> = lazyVal(() =>

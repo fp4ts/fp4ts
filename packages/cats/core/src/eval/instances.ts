@@ -10,6 +10,7 @@ import { Functor } from '../functor';
 import { Apply } from '../apply';
 import { Applicative } from '../applicative';
 import { FlatMap } from '../flat-map';
+import { CoflatMap } from '../coflat-map';
 import { Monad } from '../monad';
 
 import { Eval, EvalF } from './eval';
@@ -43,6 +44,10 @@ export const evalFlatMap: Lazy<FlatMap<EvalF>> = lazyVal(() =>
     flatMap_: flatMap_,
     tailRecM_: tailRecM_,
   }),
+);
+
+export const evalCoflatMap: Lazy<CoflatMap<EvalF>> = lazyVal(() =>
+  Applicative.coflatMap(evalApplicative()),
 );
 
 export const evalMonad: Lazy<Monad<EvalF>> = lazyVal(() =>

@@ -14,6 +14,7 @@ import { Alternative } from '../../alternative';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Traversable } from '../../traversable';
@@ -26,6 +27,7 @@ import {
   optionAlternative,
   optionApplicative,
   optionApply,
+  optionCoflatMap,
   optionEq,
   optionEqK,
   optionFlatMap,
@@ -79,6 +81,7 @@ export interface OptionObj {
   readonly Applicative: Applicative<OptionF>;
   readonly Alternative: Alternative<OptionF>;
   readonly FlatMap: FlatMap<OptionF>;
+  readonly CoflatMap: CoflatMap<OptionF>;
   readonly Monad: Monad<OptionF>;
   readonly Foldable: Foldable<OptionF>;
   readonly Traversable: Traversable<OptionF>;
@@ -136,6 +139,11 @@ Object.defineProperty(Option, 'Alternative', {
 Object.defineProperty(Option, 'FlatMap', {
   get(): FlatMap<OptionF> {
     return optionFlatMap();
+  },
+});
+Object.defineProperty(Option, 'CoflatMap', {
+  get(): CoflatMap<OptionF> {
+    return optionCoflatMap();
   },
 });
 Object.defineProperty(Option, 'Monad', {

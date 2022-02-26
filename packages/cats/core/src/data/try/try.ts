@@ -12,6 +12,7 @@ import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 import { Option } from '../option';
@@ -23,6 +24,7 @@ import {
   tryApplicative,
   tryApplicativeError,
   tryApply,
+  tryCoflatMap,
   tryEq,
   tryFlatMap,
   tryFunctor,
@@ -59,6 +61,7 @@ interface TryObj {
   readonly Applicative: Applicative<TryF>;
   readonly ApplicativeError: ApplicativeError<TryF, Error>;
   readonly FlatMap: FlatMap<TryF>;
+  readonly CoflatMap: CoflatMap<TryF>;
   readonly Monad: Monad<TryF>;
   readonly MonadError: MonadError<TryF, Error>;
 }
@@ -103,6 +106,11 @@ Object.defineProperty(Try, 'ApplicativeError', {
 Object.defineProperty(Try, 'FlatMap', {
   get(): FlatMap<TryF> {
     return tryFlatMap();
+  },
+});
+Object.defineProperty(Try, 'CoflatMap', {
+  get(): CoflatMap<TryF> {
+    return tryCoflatMap();
   },
 });
 Object.defineProperty(Try, 'Monad', {

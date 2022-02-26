@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { FunctionK } from '@fp4ts/cats-core';
+import { Applicative, FunctionK } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -20,7 +20,11 @@ import {
   SomeF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
-import { AlternativeSuite, MonadErrorSuite } from '@fp4ts/cats-laws';
+import {
+  AlternativeSuite,
+  CoflatMapSuite,
+  MonadErrorSuite,
+} from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -203,6 +207,29 @@ describe('OptionT', () => {
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsOptionT<IdentityF, X>(A.fp4tsOption(arbX)),
         <X>(eqX: Eq<X>) => OptionT.Eq<IdentityF, X>(Option.Eq(eqX)),
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(
+      Applicative.coflatMap(OptionT.Applicative(Either.Monad<string>())),
+    );
+    checkAll(
+      'CoflatMap<OptionT<EitherF<string, *>>>',
+      coflatMapTests.coflatMap(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsOptionT<$<EitherF, [string]>, X>(
+            A.fp4tsEither(fc.string(), A.fp4tsOption(arbX)),
+          ),
+        <X>(eqX: Eq<X>) =>
+          OptionT.Eq<$<EitherF, [string]>, X>(
+            Either.Eq(Eq.primitive, Option.Eq(eqX)),
+          ),
       ),
     );
 

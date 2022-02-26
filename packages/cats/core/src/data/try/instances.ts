@@ -12,6 +12,7 @@ import { Apply } from '../../apply';
 import { Applicative } from '../../applicative';
 import { ApplicativeError } from '../../applicative-error';
 import { FlatMap } from '../../flat-map';
+import { CoflatMap } from '../../coflat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 
@@ -76,6 +77,10 @@ export const tryApplicativeError: Lazy<ApplicativeError<TryF, Error>> = lazyVal(
 
 export const tryFlatMap: Lazy<FlatMap<TryF>> = lazyVal(() =>
   FlatMap.of({ ...tryApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
+);
+
+export const tryCoflatMap: Lazy<CoflatMap<TryF>> = lazyVal(() =>
+  Applicative.coflatMap(tryApplicative()),
 );
 
 export const tryMonad: Lazy<Monad<TryF>> = lazyVal(() =>
