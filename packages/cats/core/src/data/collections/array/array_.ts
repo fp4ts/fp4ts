@@ -14,6 +14,7 @@ import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
@@ -23,6 +24,7 @@ import {
   arrayAlternative,
   arrayApplicative,
   arrayApply,
+  arrayCoflatMap,
   arrayEq,
   arrayEqK,
   arrayFlatMap,
@@ -48,6 +50,7 @@ export const Array = {
   Applicative: arrayApplicative,
   Alternative: arrayAlternative,
   FlatMap: arrayFlatMap,
+  CoflatMap: arrayCoflatMap,
   Monad: arrayMonad,
   Foldable: arrayFoldable,
   Traversable: arrayTraversable,
@@ -65,6 +68,7 @@ interface Array {
   Applicative: Applicative<ArrayF>;
   Alternative: Alternative<ArrayF>;
   FlatMap: FlatMap<ArrayF>;
+  CoflatMap: CoflatMap<ArrayF>;
   Monad: Monad<ArrayF>;
   Foldable: Foldable<ArrayF>;
   Traversable: Traversable<ArrayF>;

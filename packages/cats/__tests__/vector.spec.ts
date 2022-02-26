@@ -10,7 +10,6 @@ import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Some,
   None,
-  Either,
   Left,
   Right,
   List,
@@ -26,6 +25,7 @@ import {
   TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
+  CoflatMapSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Vector', () => {
@@ -980,6 +980,21 @@ describe('Vector', () => {
     checkAll(
       'Alternative<Vector>',
       alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(Vector.CoflatMap);
+    checkAll(
+      'CoflatMap<Vector>',
+      coflatMapTests.coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),

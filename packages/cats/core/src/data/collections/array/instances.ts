@@ -14,6 +14,7 @@ import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
@@ -25,6 +26,7 @@ import {
   align_,
   all_,
   any_,
+  coflatMap_,
   collect_,
   concat_,
   count_,
@@ -90,6 +92,10 @@ export const arrayAlternative: () => Alternative<ArrayF> = lazyVal(() =>
 
 export const arrayFlatMap: () => FlatMap<ArrayF> = lazyVal(() =>
   FlatMap.of({ ...arrayApply(), flatMap_: flatMap_, tailRecM_: tailRecM_ }),
+);
+
+export const arrayCoflatMap: () => CoflatMap<ArrayF> = lazyVal(() =>
+  CoflatMap.of({ ...arrayFunctor(), coflatMap_ }),
 );
 
 export const arrayMonad: () => Monad<ArrayF> = lazyVal(() =>

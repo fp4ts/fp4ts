@@ -9,6 +9,7 @@ import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Foldable } from '../../../foldable';
@@ -23,6 +24,7 @@ import {
   align_,
   all_,
   any_,
+  coflatMap_,
   collect_,
   concat_,
   count_,
@@ -78,6 +80,10 @@ export const queueApplicative: Lazy<Applicative<QueueF>> = lazyVal(() =>
 );
 
 export const queueFlatMap: Lazy<FlatMap<QueueF>> = lazyVal(() => queueMonad());
+
+export const queueCoflatMap: Lazy<CoflatMap<QueueF>> = lazyVal(() =>
+  CoflatMap.of({ ...queueFunctor(), coflatMap_ }),
+);
 
 export const queueAlternative: Lazy<Alternative<QueueF>> = lazyVal(() =>
   Alternative.of({ ...queueMonad(), ...queueMonoidK() }),

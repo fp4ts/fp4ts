@@ -16,7 +16,7 @@ import { Chain } from '../chain';
 import { Iter } from '../iterator';
 
 import { Queue } from './algebra';
-import { empty, fromIterator } from './constructors';
+import { empty, fromArray, fromIterator } from './constructors';
 import { queueFoldable } from './instances';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
@@ -160,6 +160,10 @@ export const map: <A, B>(f: (a: A) => B) => (q: Queue<A>) => Queue<B> =
 export const flatMap: <A, B>(
   f: (a: A) => Queue<B>,
 ) => (q: Queue<A>) => Queue<B> = f => q => flatMap_(q, f);
+
+export const coflatMap: <A, B>(
+  f: (as: Queue<A>) => B,
+) => (q: Queue<A>) => Queue<B> = f => q => coflatMap_(q, f);
 
 export const flatten = <A>(q: Queue<Queue<A>>): Queue<A> => flatMap_(q, id);
 
@@ -345,6 +349,18 @@ export const map_ = <A, B>(q: Queue<A>, f: (a: A) => B): Queue<B> =>
 
 export const flatMap_ = <A, B>(q: Queue<A>, f: (a: A) => Queue<B>): Queue<B> =>
   pipe(iterator(q), Iter.flatMap(compose(iterator, f)), fromIterator);
+
+export const coflatMap_ = <A, B>(
+  q: Queue<A>,
+  f: (as: Queue<A>) => B,
+): Queue<B> => {
+  const buf: B[] = [];
+  while (nonEmpty(q)) {
+    buf.push(f(q));
+    q = tail(q);
+  }
+  return fromArray(buf);
+};
 
 export const foldLeft_ = <A, B>(q: Queue<A>, z: B, f: (b: B, a: A) => B): B =>
   pipe(iterator(q), Iter.fold(z, f));

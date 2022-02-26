@@ -19,6 +19,7 @@ import {
   all_,
   any_,
   append_,
+  coflatMap_,
   collectWhile_,
   collect_,
   concat_,
@@ -146,6 +147,7 @@ declare module './algebra' {
     map: <B>(f: (a: A) => B) => Queue<B>;
 
     flatMap<B>(f: (a: A) => Queue<B>): Queue<B>;
+    coflatMap<B>(f: (as: Queue<A>) => B): Queue<B>;
 
     readonly flatten: A extends Queue<infer B> ? Queue<B> : never;
 
@@ -387,6 +389,10 @@ Queue.prototype.map = function (f) {
 
 Queue.prototype.flatMap = function (f) {
   return flatMap_(this, f);
+};
+
+Queue.prototype.coflatMap = function (f) {
+  return coflatMap_(this, f);
 };
 
 Object.defineProperty(Queue.prototype, 'flatten', {

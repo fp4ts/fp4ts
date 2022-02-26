@@ -9,6 +9,7 @@ import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Foldable } from '../../../foldable';
@@ -38,6 +39,7 @@ import {
   queueAlternative,
   queueApplicative,
   queueApply,
+  queueCoflatMap,
   queueFlatMap,
   queueFoldable,
   queueFunctor,
@@ -76,6 +78,7 @@ interface QueueObj {
   readonly Apply: Apply<QueueF>;
   readonly Applicative: Applicative<QueueF>;
   readonly FlatMap: FlatMap<QueueF>;
+  readonly CoflatMap: CoflatMap<QueueF>;
   readonly Alternative: Alternative<QueueF>;
   readonly Monad: Monad<QueueF>;
   readonly Foldable: Foldable<QueueF>;
@@ -133,6 +136,11 @@ Object.defineProperty(Queue, 'Applicative', {
 Object.defineProperty(Queue, 'FlatMap', {
   get(): FlatMap<QueueF> {
     return queueFlatMap();
+  },
+});
+Object.defineProperty(Queue, 'CoflatMap', {
+  get(): CoflatMap<QueueF> {
+    return queueCoflatMap();
   },
 });
 Object.defineProperty(Queue, 'Alternative', {

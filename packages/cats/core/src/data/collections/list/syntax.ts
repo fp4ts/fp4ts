@@ -76,6 +76,7 @@ import {
   append_,
   forEach_,
   popLast,
+  coflatMap_,
 } from './operators';
 
 declare module './algebra' {
@@ -146,6 +147,7 @@ declare module './algebra' {
     map: <B>(f: (a: A) => B) => List<B>;
 
     flatMap<B>(f: (a: A) => List<B>): List<B>;
+    coflatMap<B>(f: (aa: List<A>) => B): List<B>;
 
     readonly flatten: A extends List<infer B> ? List<B> : never;
 
@@ -429,6 +431,10 @@ List.prototype.flatMap = function <A, B>(
   f: (a: A) => List<B>,
 ): List<B> {
   return flatMap_(this, f);
+};
+
+List.prototype.coflatMap = function (f) {
+  return coflatMap_(this, f);
 };
 
 Object.defineProperty(List.prototype, 'flatten', {

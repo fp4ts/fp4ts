@@ -10,6 +10,7 @@ import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
+  CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
   TraversableSuite,
@@ -54,6 +55,21 @@ describe('Array laws', () => {
   checkAll(
     'Alternative<Array>',
     alternativeTests.alternative(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      fc.array,
+      Array.Eq,
+    ),
+  );
+
+  const coflatMapTests = CoflatMapSuite(Array.CoflatMap());
+  checkAll(
+    'CoflatMap<Array>',
+    coflatMapTests.coflatMap(
       fc.integer(),
       fc.integer(),
       fc.integer(),

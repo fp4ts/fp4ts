@@ -13,6 +13,7 @@ import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { Apply } from '../../../apply';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
@@ -26,6 +27,7 @@ import {
   align_,
   all_,
   any_,
+  coflatMap_,
   collect_,
   concat_,
   count_,
@@ -114,6 +116,10 @@ export const listFlatMap: Lazy<FlatMap<ListF>> = lazyVal(() =>
     flatten: flatten,
     tailRecM_: tailRecM_,
   }),
+);
+
+export const listCoflatMap: Lazy<CoflatMap<ListF>> = lazyVal(() =>
+  CoflatMap.of({ ...listFunctor(), coflatMap_ }),
 );
 
 export const listMonad: Lazy<Monad<ListF>> = lazyVal(() =>

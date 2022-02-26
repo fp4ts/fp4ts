@@ -207,6 +207,10 @@ export const flatMap: <A, B>(
   f: (a: A) => List<B>,
 ) => (xs: List<A>) => List<B> = f => xs => flatMap_(xs, f);
 
+export const coflatMap: <A, B>(
+  f: (as: List<A>) => B,
+) => (xs: List<A>) => List<B> = f => xs => coflatMap_(xs, f);
+
 export const flatten: <A>(xs: List<List<A>>) => List<A> = flatMap(id);
 
 export const tailRecM: <A>(
@@ -559,6 +563,27 @@ export const flatMap_ = <A, B>(xs: List<A>, f: (a: A) => List<B>): List<B> => {
 
       bs = (bs as Cons<B>)._tail;
     }
+
+    xs = (xs as Cons<A>)._tail;
+  }
+
+  return h ?? nil;
+};
+
+export const coflatMap_ = <A, B>(
+  xs: List<A>,
+  f: (xs: List<A>) => B,
+): List<B> => {
+  let h: Cons<B> | undefined;
+  let t: Cons<B> | undefined;
+  while (xs !== nil) {
+    const nx = new Cons(f(xs), nil);
+    if (!t) {
+      h = nx;
+    } else {
+      t!._tail = nx;
+    }
+    t = nx;
 
     xs = (xs as Cons<A>)._tail;
   }

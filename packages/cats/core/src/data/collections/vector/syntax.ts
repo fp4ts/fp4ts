@@ -18,6 +18,7 @@ import {
   align_,
   all_,
   any_,
+  coflatMap_,
   collectWhile_,
   collect_,
   count_,
@@ -113,6 +114,7 @@ declare module './algebra' {
     collectWhile<B>(f: (a: A) => Option<A>): Vector<B>;
 
     flatMap<B>(f: (a: A) => Vector<B>): Vector<B>;
+    coflatMap<B>(f: (as: Vector<A>) => B): Vector<B>;
 
     forEach(f: (a: A) => void): void;
 
@@ -301,6 +303,9 @@ Vector.prototype.collectWhile = function (f) {
 
 Vector.prototype.flatMap = function (f) {
   return flatMap_(this, f);
+};
+Vector.prototype.coflatMap = function (f) {
+  return coflatMap_(this, f);
 };
 Vector.prototype.forEach = function (f) {
   return forEach_(this, f);

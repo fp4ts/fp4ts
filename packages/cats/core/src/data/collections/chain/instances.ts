@@ -11,6 +11,7 @@ import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Alternative } from '../../../alternative';
+import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Traversable } from '../../../traversable';
 
@@ -18,6 +19,7 @@ import type { ChainF } from './chain';
 import { Chain } from './algebra';
 import {
   align_,
+  coflatMap_,
   collect_,
   concat_,
   equals_,
@@ -56,6 +58,10 @@ export const chainFunctorFilter: Lazy<FunctorFilter<ChainF>> = lazyVal(() =>
 
 export const chainAlternative: Lazy<Alternative<ChainF>> = lazyVal(() =>
   Alternative.of({ ...chainMonad(), ...chainMonoidK() }),
+);
+
+export const chainCoflatMap: Lazy<CoflatMap<ChainF>> = lazyVal(() =>
+  CoflatMap.of({ ...chainFunctor(), coflatMap_ }),
 );
 
 export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>

@@ -10,6 +10,7 @@ import { Alternative } from '../../../alternative';
 import { Applicative } from '../../../applicative';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
+import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
@@ -23,6 +24,7 @@ import {
   vectorAlign,
   vectorAlternative,
   vectorApplicative,
+  vectorCoflatMap,
   vectorEq,
   vectorFoldable,
   vectorFunctor,
@@ -54,6 +56,7 @@ interface VectorObj {
   readonly FunctorFilter: FunctorFilter<VectorF>;
   readonly Applicative: Applicative<VectorF>;
   readonly Alternative: Alternative<VectorF>;
+  readonly CoflatMap: CoflatMap<VectorF>;
   readonly Monad: Monad<VectorF>;
   readonly Foldable: Foldable<VectorF>;
   readonly Traversable: Traversable<VectorF>;
@@ -98,6 +101,11 @@ Object.defineProperty(Vector, 'Applicative', {
 Object.defineProperty(Vector, 'Alternative', {
   get() {
     return vectorAlternative();
+  },
+});
+Object.defineProperty(Vector, 'CoflatMap', {
+  get() {
+    return vectorCoflatMap();
   },
 });
 Object.defineProperty(Vector, 'Monad', {

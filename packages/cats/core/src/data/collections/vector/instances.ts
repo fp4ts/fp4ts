@@ -10,6 +10,7 @@ import { Alternative } from '../../../alternative';
 import { Applicative } from '../../../applicative';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
+import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
@@ -21,6 +22,7 @@ import {
   align_,
   all_,
   any_,
+  coflatMap_,
   collect_,
   count_,
   equals_,
@@ -76,6 +78,10 @@ export const vectorApplicative: Lazy<Applicative<VectorF>> = lazyVal(() =>
 
 export const vectorAlternative: Lazy<Alternative<VectorF>> = lazyVal(() =>
   Alternative.of({ ...vectorMonoidK(), ...vectorApplicative() }),
+);
+
+export const vectorCoflatMap: Lazy<CoflatMap<VectorF>> = lazyVal(() =>
+  CoflatMap.of({ ...vectorFunctor(), coflatMap_ }),
 );
 
 export const vectorMonad: Lazy<Monad<VectorF>> = lazyVal(() =>

@@ -247,6 +247,20 @@ export const flatMap_ = <A, B>(
   return b.toVector();
 };
 
+export const coflatMap_ = <A, B>(
+  xs: Vector<A>,
+  f: (a: Vector<A>) => B,
+): Vector<B> => {
+  const b = new VectorBuilder<B>();
+
+  while (xs !== Vector0) {
+    b.addOne(f(xs));
+    xs = tail(xs);
+  }
+
+  return b.toVector();
+};
+
 export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>
   Iter.forEach_(iterator(xs), f);
 

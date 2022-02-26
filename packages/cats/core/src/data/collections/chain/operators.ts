@@ -17,7 +17,7 @@ import { Vector } from '../vector';
 import { Array as CatsArray } from '../array';
 
 import { Chain, Concat, Empty, NonEmpty, View, view } from './algebra';
-import { empty, fromList, fromVector, pure } from './constructors';
+import { empty, fromArray, fromList, fromVector, pure } from './constructors';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
 
@@ -226,6 +226,10 @@ export const flatMap: <A, B>(
   f: (a: A) => Chain<B>,
 ) => (xs: Chain<A>) => Chain<B> = f => xs => flatMap_(xs, f);
 
+export const coflatMap: <A, B>(
+  f: (as: Chain<A>) => B,
+) => (xs: Chain<A>) => Chain<B> = f => xs => coflatMap_(xs, f);
+
 export const flatten = <A>(xxs: Chain<Chain<A>>): Chain<A> => flatMap_(xxs, id);
 
 export const align: <B>(
@@ -394,6 +398,18 @@ export const flatMap_ = <A, B>(
   for (let next = iter.next(); !next.done; next = iter.next())
     result = concat_(result, f(next.value));
   return result;
+};
+
+export const coflatMap_ = <A, B>(
+  xs: Chain<A>,
+  f: (as: Chain<A>) => B,
+): Chain<B> => {
+  const buf: B[] = [];
+  while (nonEmpty(xs)) {
+    buf.push(f(xs));
+    xs = tail(xs);
+  }
+  return fromArray(buf);
 };
 
 export const align_ = <A, B>(xs: Chain<A>, ys: Chain<B>): Chain<Ior<A, B>> => {

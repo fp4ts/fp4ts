@@ -26,6 +26,7 @@ import {
   TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
+  CoflatMapSuite,
 } from '@fp4ts/cats-laws';
 
 describe('List', () => {
@@ -1211,6 +1212,21 @@ describe('List', () => {
     checkAll(
       'Alternative<List>',
       alternativeTests.alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(List.CoflatMap);
+    checkAll(
+      'CoflatMap<List>',
+      coflatMapTests.coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),

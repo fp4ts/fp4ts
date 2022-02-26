@@ -10,6 +10,7 @@ import { Chain, Option } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
   AlternativeSuite,
+  CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
   TraversableSuite,
@@ -101,6 +102,27 @@ describe('Chain', () => {
         Eq.primitive,
         A.fp4tsChain,
         Chain.Eq,
+      ),
+    );
+
+    const coflatMapTests = CoflatMapSuite(Chain.CoflatMap);
+    checkAll(
+      'CoflatMap<ChainK>',
+      coflatMapTests.coflatMap(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsChain,
+        Chain.Eq,
+        fc
+          .func<[number[]], number>(fc.integer())
+          .map(f => (c: Chain<number>) => f(c.toArray)),
+        fc
+          .func<[number[]], number>(fc.integer())
+          .map(f => (c: Chain<number>) => f(c.toArray)),
       ),
     );
 

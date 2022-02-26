@@ -67,6 +67,9 @@ export const tap: <A>(f: (a: A) => unknown) => (xs: A[]) => A[] = f => xs =>
 
 export const flatMap: <A, B>(f: (a: A) => B[]) => (xs: A[]) => B[] = f => xs =>
   flatMap_(xs, f);
+export const coflatMap: <A, B>(f: (as: A[]) => B) => (xs: A[]) => B[] =
+  f => xs =>
+    coflatMap_(xs, f);
 
 export const flatten: <A>(xss: A[][]) => A[] = xss => xss.flatMap(id);
 
@@ -152,6 +155,15 @@ export const collect_ = <A, B>(xs: A[], f: (a: A) => Option<B>): B[] => {
 
 export const flatMap_: <A, B>(xs: A[], f: (a: A) => B[]) => B[] = (xs, f) =>
   xs.flatMap(x => f(x));
+
+export const coflatMap_ = <A, B>(xs: A[], f: (as: A[]) => B): B[] => {
+  const buf: B[] = [];
+  while (xs.length > 0) {
+    buf.push(f(xs));
+    xs = xs.slice(1);
+  }
+  return buf;
+};
 
 export const tailRecM_ = <S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] => {
   const results: A[] = [];

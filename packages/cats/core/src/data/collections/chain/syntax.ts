@@ -15,6 +15,7 @@ import { Chain } from './algebra';
 import {
   align_,
   append_,
+  coflatMap_,
   collectWhile_,
   collect_,
   concat_,
@@ -102,6 +103,7 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Chain<B>;
 
     flatMap<B>(f: (a: A) => Chain<B>): Chain<B>;
+    coflatMap<B>(f: (as: Chain<A>) => B): Chain<B>;
 
     readonly flatten: A extends Chain<infer B> ? Chain<B> : never;
 
@@ -261,6 +263,9 @@ Chain.prototype.map = function (f) {
 };
 Chain.prototype.flatMap = function (f) {
   return flatMap_(this, f);
+};
+Chain.prototype.coflatMap = function (f) {
+  return coflatMap_(this, f);
 };
 
 Object.defineProperty(Chain.prototype, 'flatten', {

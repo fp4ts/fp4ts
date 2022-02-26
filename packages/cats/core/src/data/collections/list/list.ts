@@ -11,6 +11,7 @@ import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { Foldable } from '../../../foldable';
 import { FlatMap } from '../../../flat-map';
+import { CoflatMap } from '../../../coflat-map';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
@@ -45,6 +46,7 @@ import {
   listAlternative,
   listEq,
   listAlign,
+  listCoflatMap,
 } from './instances';
 import { tailRecM } from './operators';
 
@@ -77,6 +79,7 @@ interface ListObj {
   readonly Applicative: Applicative<ListF>;
   readonly Alternative: Alternative<ListF>;
   readonly FlatMap: FlatMap<ListF>;
+  readonly CoflatMap: CoflatMap<ListF>;
   readonly Monad: Monad<ListF>;
   readonly Foldable: Foldable<ListF>;
   readonly Traversable: Traversable<ListF>;
@@ -135,6 +138,11 @@ Object.defineProperty(List, 'Alternative', {
 Object.defineProperty(List, 'FlatMap', {
   get(): FlatMap<ListF> {
     return listFlatMap();
+  },
+});
+Object.defineProperty(List, 'CoflatMap', {
+  get(): CoflatMap<ListF> {
+    return listCoflatMap();
   },
 });
 Object.defineProperty(List, 'Monad', {

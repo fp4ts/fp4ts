@@ -16,6 +16,7 @@ import {
   TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
+  CoflatMapSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Queue', () => {
@@ -400,6 +401,21 @@ describe('Queue', () => {
   checkAll(
     'Alternative<Queue>',
     alternativeTests.alternative(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      A.fp4tsQueue,
+      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+    ),
+  );
+
+  const coflatMapTests = CoflatMapSuite(Queue.CoflatMap);
+  checkAll(
+    'CoflatMap<Queue>',
+    coflatMapTests.coflatMap(
       fc.integer(),
       fc.integer(),
       fc.integer(),

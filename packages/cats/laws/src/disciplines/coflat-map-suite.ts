@@ -26,6 +26,9 @@ export const CoflatMapSuite = <F>(F: CoflatMap<F>) => {
       EqC: Eq<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
+      // in case internal representation can differ for the same values
+      arbFAtoB?: Arbitrary<(fa: Kind<F, [A]>) => B>,
+      arbFBtoC?: Arbitrary<(fb: Kind<F, [B]>) => C>,
     ): RuleSet =>
       new RuleSet(
         'coflatMap',
@@ -34,8 +37,8 @@ export const CoflatMapSuite = <F>(F: CoflatMap<F>) => {
             'coflatMap associativity',
             forAll(
               mkArbF(arbA),
-              fc.func<[Kind<F, [A]>], B>(arbB),
-              fc.func<[Kind<F, [B]>], C>(arbC),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
+              arbFBtoC ?? fc.func<[Kind<F, [B]>], C>(arbC),
               laws.coflatMapAssociativity,
             )(mkEqF(EqC)),
           ],
@@ -50,7 +53,7 @@ export const CoflatMapSuite = <F>(F: CoflatMap<F>) => {
             'coflatMap coflatten coherence',
             forAll(
               mkArbF(arbA),
-              fc.func<[Kind<F, [A]>], B>(arbB),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
               laws.coflattenCoherence,
             )(mkEqF(EqB)),
           ],
