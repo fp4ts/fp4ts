@@ -23,3 +23,6 @@ export * from './traversable-suite';
 export * from './unordered-foldable-suite';
 export * from './unordered-traversable-suite';
 export * from './bifunctor-suite';
+
+export * from './coflat-map-suite';
+export * from './comonad-suite';

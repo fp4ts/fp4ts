@@ -25,6 +25,8 @@ export * from './monad';
 export * from './stack-safe-monad';
 export * from './monad-error';
 export * from './monad-throw';
+export * from './coflat-map';
+export * from './comonad';
 export * from './defer';
 export * from './foldable';
 export * from './traversable';

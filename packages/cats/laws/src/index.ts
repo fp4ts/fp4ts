@@ -25,6 +25,8 @@ export * from './traversable-laws';
 export * from './unordered-foldable-laws';
 export * from './unordered-traversable-laws';
 export * from './bifunctor-laws';
+export * from './coflat-map-laws';
+export * from './comonad-laws';
 
 export * from './disciplines';
 
