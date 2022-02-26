@@ -36,6 +36,14 @@ export const satisfy = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
     x => (p(x) ? Some(x) : None),
   );
 
+export const oneOf = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+  chars: string,
+): ParserT<S, F, Char> => satisfy(c => chars.includes(c));
+
+export const noneOf = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+  chars: string,
+): ParserT<S, F, Char> => satisfy(c => !chars.includes(c));
+
 export const char = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
   c: Char,
 ): ParserT<S, F, Char> => satisfy<S, F>(x => x === c)['<?>'](`'${c}'`);

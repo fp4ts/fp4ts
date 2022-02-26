@@ -34,6 +34,8 @@ export const fp4tsStringParser0 = (): Arbitrary<
 
   const leaf: Arbitrary<Parser<StringSource, A>> = fc.oneof(
     satisfy(),
+    oneOf(),
+    noneOf(),
     char(),
     letter(),
     digit(),
@@ -117,6 +119,8 @@ export const fp4tsStringParser = (): Arbitrary<
 
   const leaf: Arbitrary<Parser<StringSource, A>> = fc.oneof(
     satisfy(),
+    oneOf(),
+    noneOf(),
     char(),
     letter(),
     digit(),
@@ -255,6 +259,17 @@ export const satisfy = <
   F = EvalF,
 >(): Arbitrary<ParserT<S, F, Char>> =>
   fc.func<[Char], boolean>(fc.boolean()).map(p => text.satisfy<S, F>(p));
+
+export const oneOf = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): Arbitrary<ParserT<S, F, Char>> =>
+  fc.string().map(s => text.oneOf<S, F>(s));
+export const noneOf = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): Arbitrary<ParserT<S, F, Char>> =>
+  fc.string().map(s => text.noneOf<S, F>(s));
 
 export const char = <
   S extends HasTokenType<Char> = StringSource,
