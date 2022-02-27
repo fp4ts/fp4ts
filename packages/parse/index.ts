@@ -10,4 +10,4 @@
  */
 export * from '@fp4ts/parse-core';
 export * from '@fp4ts/parse-kernel';
-export * as text from '@fp4ts/parse-text';
+export * from '@fp4ts/parse-text';

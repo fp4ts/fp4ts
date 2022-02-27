@@ -8,7 +8,7 @@ import { Char, tupled } from '@fp4ts/core';
 import { Either, Eval, EvalF, List, Option } from '@fp4ts/cats';
 import { ParseError, Parser, ParserT, StringSource } from '@fp4ts/parse-core';
 import { HasTokenType } from '@fp4ts/parse-kernel';
-import * as text from '@fp4ts/parse-text';
+import { text } from '@fp4ts/parse-text';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 export const eq = (

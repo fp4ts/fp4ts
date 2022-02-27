@@ -4,16 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char } from '@fp4ts/core';
-import { char, digit, string, stringF } from '@fp4ts/parse-text';
+import { text } from '@fp4ts/parse-text';
 import { timed } from './common/timed';
 
-const number = digit()
+const number = text
+  .digit()
   .rep1()
   .map(xs => parseInt(xs.toArray.join('')));
 
 // prettier-ignore
-const addOp =   char('+' as Char).as((x: number, y: number) => x + y)
-  ['<|>'](() => char('-' as Char).as((x: number, y: number) => x - y));
+const addOp =   text.char('+' as Char).as((x: number, y: number) => x + y)
+  ['<|>'](() => text.char('-' as Char).as((x: number, y: number) => x - y));
 
 const expr = number.chainLeft1(addOp).complete();
 const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
@@ -40,14 +41,15 @@ const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s plain parse', () =>
-    console.log(string('aa').rep().complete().parse(input).isRight),
+    console.log(text.string('aa').rep().complete().parse(input).isRight),
   );
 }
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "a"s tokenPrim parse', () =>
     console.log(
-      char('a' as Char)
+      text
+        .char('a' as Char)
         .rep()
         .complete()
         .parse(input).isRight,
@@ -57,6 +59,6 @@ const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s prim parse', () =>
-    console.log(stringF('aa').rep().complete().parse(input).isRight),
+    console.log(text.stringF('aa').rep().complete().parse(input).isRight),
   );
 }

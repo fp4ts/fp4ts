@@ -6,5 +6,6 @@
 /**
  * @module parse/text
  */
-export * from './parsers';
+export * as text from './parsers';
 export * from './interpolator';
+export * as Rfc5234 from './rfc5234';

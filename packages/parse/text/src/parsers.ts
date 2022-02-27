@@ -58,11 +58,29 @@ export const letter = <
   F = EvalF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => alphaRegex.test(x))['<?>']('letter');
+
 export const digit = <
   S extends HasTokenType<Char> = StringSource,
   F = EvalF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => digitRegex.test(x))['<?>']('digit');
+export const digits = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, string> =>
+  digit<S, F>()
+    .rep()
+    .map(xs => xs.toArray.join(''))
+    ['<?>']('digits');
+export const digits1 = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, string> =>
+  digit<S, F>()
+    .rep()
+    .map(xs => xs.toArray.join(''))
+    ['<?>']('digits1');
+
 export const alphaNum = <
   S extends HasTokenType<Char> = StringSource,
   F = EvalF,

@@ -5,7 +5,7 @@
 
 import { Char } from '@fp4ts/core';
 import { Parser, StringSource } from '@fp4ts/parse-core';
-import { char, regex, spaces, string } from '@fp4ts/parse-text';
+import { text } from '@fp4ts/parse-text';
 
 type Json =
   | { tag: 'null' }
@@ -32,16 +32,19 @@ export const jsonP: Parser<StringSource, Json> = Parser.defer(() => nullP)
   ['<|>'](() => arrayP)
   ['<|>'](() => objectP);
 
-const nullP = string('null').as(JNull);
-const boolP = string('true')
-  ['<|>'](() => string('false'))
+const nullP = text.string('null').as(JNull);
+const boolP = text
+  .string('true')
+  ['<|>'](() => text.string('false'))
   .map(Boolean)
   .map(JBool);
 
-const numberP = regex(/^-?\d+(\.(\d+)?)?(e[-+]?\d+)?/)
+const numberP = text
+  .regex(/^-?\d+(\.(\d+)?)?(e[-+]?\d+)?/)
   .map(Number)
   .map(JNumber);
-const rawStringP = regex(/^"(?:[^"\\]|\\.)*"/)
+const rawStringP = text
+  .regex(/^"(?:[^"\\]|\\.)*"/)
   .map(s => s.slice(1, s.length - 1))
   // strip leading  ^      ^ and trailing quote
   .map(s => s.replace(/\\"/g, '"'))
@@ -51,20 +54,20 @@ const rawStringP = regex(/^"(?:[^"\\]|\\.)*"/)
 
 const stringP = rawStringP.map(JString);
 
-const sep = char(',' as Char).surroundedBy(spaces());
+const sep = text.char(',' as Char).surroundedBy(text.spaces());
 const arrayP = jsonP
   .sepBy(sep)
-  .surroundedBy(spaces())
-  .between(char('[' as Char), char(']' as Char))
+  .surroundedBy(text.spaces())
+  .between(text.char('[' as Char), text.char(']' as Char))
   .map(xs => JArray(xs.toArray));
 
 const kv: Parser<StringSource, [string, Json]> = rawStringP['<*'](
-  char(':' as Char).surroundedBy(spaces()),
+  text.char(':' as Char).surroundedBy(text.spaces()),
 ).product(jsonP);
 const objectP: Parser<StringSource, Json> = kv
   .sepBy(sep)
-  .surroundedBy(spaces())
-  .between(char('{' as Char), char('}' as Char))
+  .surroundedBy(text.spaces())
+  .between(text.char('{' as Char), text.char('}' as Char))
   .map(xs =>
     JObject(
       xs.foldLeft({} as Record<string, Json>, (xs, [k, v]) => ({

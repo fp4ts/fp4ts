@@ -16,4 +16,6 @@ export const Char = Object.freeze({
   fromByte: (x: Byte) => String.fromCharCode(x) as Char,
   fromString: (s: string) => (s === '' ? undefined : (s[0] as Char)),
   unsafeFromString: (s: string) => s as Char,
+
+  MaxValue: 65535,
 });
