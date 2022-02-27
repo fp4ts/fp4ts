@@ -10,7 +10,7 @@ import { Eval, FunctionK } from '@fp4ts/cats-core';
 import { List, ListF, OptionF, None, Some } from '@fp4ts/cats-core/lib/data';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { Cofree, CofreeF } from '../cofree';
+import { Cofree, CofreeF } from '@fp4ts/cats-free';
 
 export type CofreeNel<A> = Cofree<OptionF, A>;
 export type CofreeNelF = $<CofreeF, [OptionF]>;

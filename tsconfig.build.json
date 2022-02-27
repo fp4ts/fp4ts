@@ -24,6 +24,7 @@
     "esModuleInterop": true,
 
     "inlineSourceMap": true,
+    "declarationMap": true,
     
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true

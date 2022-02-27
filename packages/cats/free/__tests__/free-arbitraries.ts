@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 
-import { Free } from '../free';
+import { Free } from '@fp4ts/cats-free';
 
 interface FreeConstraints {
   readonly minDepth?: number;

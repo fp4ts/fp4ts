@@ -19,7 +19,7 @@ import { MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { Free } from '../free';
+import { Free } from '@fp4ts/cats-free';
 
 import { fp4tsFree } from './free-arbitraries';
 

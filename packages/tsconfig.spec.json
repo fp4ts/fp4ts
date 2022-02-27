@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./cats/tsconfig.spec.json" },
+    { "path": "./core/tsconfig.spec.json" },
+    { "path": "./effect/tsconfig.spec.json" },
+    { "path": "./http/tsconfig.spec.json" },
+    { "path": "./parse/tsconfig.spec.json" },
+    { "path": "./schema/tsconfig.spec.json" },
+    { "path": "./stream/tsconfig.spec.json" },
+    { "path": "./examples/tsconfig.spec.json" },
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.spec.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./lib",
+  },
+  "include": ["./index.ts", "./__tests__"],
+  "references": [
+    { "path": "./core/tsconfig.spec.json" },
+    { "path": "./client/tsconfig.spec.json" },
+    { "path": "./dsl/tsconfig.spec.json" },
+    { "path": "./dsl-shared/tsconfig.spec.json" },
+    { "path": "./dsl-server/tsconfig.spec.json" },
+    { "path": "./node-client/tsconfig.spec.json" },
+    { "path": "./node-server/tsconfig.spec.json" },
+    { "path": "./node-shared/tsconfig.spec.json" },
+    { "path": "./server/tsconfig.spec.json" },
+    { "path": "./test-kit/tsconfig.spec.json" },
+    { "path": "./test-kit-node/tsconfig.spec.json" },
+  ]
+}

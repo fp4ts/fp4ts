@@ -8,7 +8,7 @@ module.exports = {
   roots: [
     '<rootDir>/cats/__tests__',
     '<rootDir>/cats/core/src',
-    '<rootDir>/cats/free/src',
+    '<rootDir>/cats/free/__tests__',
     '<rootDir>/cats/laws/src',
     '<rootDir>/core/src',
     '<rootDir>/effect/__tests__',

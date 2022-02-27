@@ -21,7 +21,7 @@ import { ComonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { Cofree } from '../cofree';
+import { Cofree } from '@fp4ts/cats-free';
 import {
   cofNelToList,
   CofreeNel,
