@@ -33,6 +33,7 @@ import {
   map_,
   not,
   notFollowedBy_,
+  optional,
   orElse_,
   parse,
   parseConsumedF,
@@ -54,6 +55,8 @@ import {
 
 declare module './algebra' {
   interface ParserT<S, F, A> {
+    optional(): ParserT<S, F, Option<A>>;
+
     filter(f: (a: A) => boolean): ParserT<S, F, A>;
     collect<B>(f: (a: A) => Option<B>): ParserT<S, F, B>;
 
@@ -162,6 +165,10 @@ declare module './algebra' {
     debug(name: string): ParserT<S, F, A>;
   }
 }
+
+ParserT.prototype.optional = function () {
+  return optional(this);
+};
 
 ParserT.prototype.filter = function (f) {
   return filter_(this, f);

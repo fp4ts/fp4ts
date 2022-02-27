@@ -30,13 +30,16 @@ import {
   Debug,
   Labels,
   Backtrack,
-  ParserPrim,
 } from './algebra';
 import { Consumed } from '../consumed';
 import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
 import { anyToken, empty, succeed, unexpected, unit } from './constructors';
 import { StringSource } from '../string-source';
+
+export const optional = <S, F, A>(
+  p: ParserT<S, F, A>,
+): ParserT<S, F, Option<A>> => orElse_(map_(p, Some), () => succeed(None));
 
 export const filter_ = <S, F, A>(
   p: ParserT<S, F, A>,

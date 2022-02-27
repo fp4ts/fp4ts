@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Char } from '@fp4ts/core';
-import { Eq, Eval, Left, List, Right } from '@fp4ts/cats';
+import { Eq, Eval, Left, List, None, Right, Some } from '@fp4ts/cats';
 import {
   Parser,
   ParseError,
@@ -40,6 +40,30 @@ describe('Parser', () => {
     expect(anyChar().product(anyChar()).parse('xyz')).toEqual(
       Right(['x', 'y']),
     );
+  });
+
+  describe('optional', () => {
+    it('should succeed with original parser when failed', () => {
+      expect(
+        char('x' as Char)
+          .optional()
+          .parse('x'),
+      ).toEqual(Right(Some('x')));
+    });
+
+    it('should succeed with none when did not consume any input', () => {
+      expect(Parser.fail('').optional().parse('x')).toEqual(Right(None));
+      expect(
+        char('y' as Char)
+          .optional()
+          .parse('x'),
+      ).toEqual(Right(None));
+    });
+
+    it('should fail when the p consumes and fails', () => {
+      expect(Parser.fail('').optional().parse('x')).toEqual(Right(None));
+      expect(string('xy').optional().parse('x').isLeft).toBe(true);
+    });
   });
 
   describe('flatMap', () => {
