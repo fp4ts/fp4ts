@@ -23,7 +23,6 @@ export const nestedFunctor: <F, G>(
   G: Functor<G>,
 ): Functor<$<NestedF, [F, G]>> => {
   const FG = Functor.compose(F, G);
-  // @ts-ignore
   return Functor.of({ map_: (fa, f) => new Nested(FG.map_(fa.value, f)) });
 };
 
@@ -36,9 +35,7 @@ export const nestedApplicative: <F, G>(
 ): Applicative<$<NestedF, [F, G]>> => {
   const FG = Applicative.compose(F, G);
   return Applicative.of({
-    // @ts-ignore
     ap_: (ff, fa) => new Nested(FG.ap_(ff.value, fa.value)),
-    // @ts-ignore
     pure: a => new Nested(FG.pure(a)),
   });
 };
