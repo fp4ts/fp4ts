@@ -57,7 +57,7 @@ interface OptionTObj {
   pure: <F>(F: Applicative<F>) => <A>(a: A) => OptionT<F, A>;
   some: <F>(F: Applicative<F>) => <A>(a: A) => OptionT<F, A>;
   none: <F>(F: Applicative<F>) => OptionT<F, never>;
-  liftF: <F>(F: Applicative<F>) => <A>(a: Kind<F, [A]>) => OptionT<F, A>;
+  liftF: <F>(F: Functor<F>) => <A>(a: Kind<F, [A]>) => OptionT<F, A>;
   fromOption: <F>(F: Applicative<F>) => <A>(a: Option<A>) => OptionT<F, A>;
   fromNullable: <F>(
     F: Applicative<F>,
