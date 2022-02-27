@@ -6,6 +6,8 @@
 /**
  * @module parse
  *
+ * Copyright 1999-2000, Daan Leijen; 2007, Paolo Martini. All rights reserved.
+ *
  * Adaptation of the [Parsec](https://hackage.haskell.org/package/parsec-3.1.15.0/docs/Text-Parsec.html) library
  */
 export * from '@fp4ts/parse-core';
