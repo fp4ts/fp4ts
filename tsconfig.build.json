@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* Basic Options */
     "incremental": true,
-    "target": "es2020",
+    "target": "es2021",
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./packages",
