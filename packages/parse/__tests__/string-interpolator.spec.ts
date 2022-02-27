@@ -5,7 +5,9 @@
 
 import { Right } from '@fp4ts/cats';
 import { Parser, StringSource } from '@fp4ts/parse-core';
-import { digit, parser, string } from '@fp4ts/parse-text';
+import { parser, text } from '@fp4ts/parse-text';
+
+const { digit, string } = text;
 
 describe('String Interpolator', () => {
   it('should parse an empty input', () => {

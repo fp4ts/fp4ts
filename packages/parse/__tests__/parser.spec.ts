@@ -13,17 +13,11 @@ import {
   StringSource,
 } from '@fp4ts/parse-core';
 import { Stream } from '@fp4ts/parse-kernel';
-import {
-  anyChar,
-  char,
-  digit,
-  parens,
-  spaces,
-  string,
-  stringF,
-} from '@fp4ts/parse-text';
+import { text } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { eq, fp4tsStringParser, fp4tsStringParser0 } from './arbitraries';
+
+const { anyChar, char, digit, parens, spaces, string, stringF } = text;
 
 describe('Parser', () => {
   it('should parse a single character from a string', () => {
