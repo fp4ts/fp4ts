@@ -46,6 +46,20 @@ export const Ord = Object.freeze({
   by: <A, B>(O: Ord<A>, f: (b: B) => A): Ord<B> =>
     Ord.of({ compare: (lhs, rhs) => O.compare(f(lhs), f(rhs)) }),
 
+  tuple2: <A, B>(ordA: Ord<A>, ordB: Ord<B>): Ord<[A, B]> =>
+    Ord.of({
+      compare: (x, y) => {
+        switch (ordA.compare(x[0], y[0])) {
+          case Compare.LT:
+            return Compare.LT;
+          case Compare.GT:
+            return Compare.GT;
+          case Compare.EQ:
+            return ordB.compare(x[1], y[1]);
+        }
+      },
+    }),
+
   primitive: {
     ...Eq.primitive,
     compare: (lhs: PrimitiveType, rhs: PrimitiveType) =>
