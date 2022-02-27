@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { IdentityF, List } from '@fp4ts/cats';
+import { lazyVal } from '@fp4ts/core';
 import { Credentials } from '../credentials';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
 import { ParseResult, Rfc7235 } from '../parsing';
@@ -27,7 +28,7 @@ Authorization.Header = {
     return `${a.credentials}`;
   },
   parse(s: string): ParseResult<AuthorizationHeader> {
-    return ParseResult.fromParser(parser, 'Invalid Authorization header')(s);
+    return ParseResult.fromParser(parser(), 'Invalid Authorization header')(s);
   },
 };
 
@@ -39,4 +40,4 @@ interface AuthorizationObj {
   Select: SelectHeader<IdentityF, Authorization>;
 }
 
-const parser = Rfc7235.credentials.map(Authorization);
+const parser = lazyVal(() => Rfc7235.credentials.map(Authorization));
