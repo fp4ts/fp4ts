@@ -3,6 +3,7 @@ dist
 lib
 *.tsbuildinfo
 .clinic
+.swc
 
 # Created by https://www.gitignore.io/api/node,code,linux,macos
 

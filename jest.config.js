@@ -2,14 +2,9 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: './packages',
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': '@swc-node/jest',
   },
   testRegex: '.spec.ts$',
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.build.json',
-    },
-  },
   roots: [
     '<rootDir>/cats/__tests__',
     '<rootDir>/cats/core/src',
