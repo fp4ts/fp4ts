@@ -5,3 +5,4 @@
 
 export * from './parse-result';
 export * as Rfc7230 from './rfc7230';
+export * as Rfc7235 from './rfc7235';
