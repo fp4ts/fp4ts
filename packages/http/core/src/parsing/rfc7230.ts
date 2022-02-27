@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Char } from '@fp4ts/core';
+import { List } from '@fp4ts/cats';
+import { Char, id } from '@fp4ts/core';
 import { Parser, text, Rfc5234, StringSource } from '@fp4ts/parse';
 import { charRange } from './char-range';
 
@@ -69,5 +70,27 @@ export const comment: Parser<StringSource, string> = cText
   .orElse(() => quotedPair)
   .orElse(() => comment)
   .between(text.char('(' as Char), text.char(')' as Char));
+
+export const headerRep = <A>(
+  element: Parser<StringSource, A>,
+): Parser<StringSource, List<A>> =>
+  headerRep1(element)['<|>'](() => Parser.succeed(List.empty));
+
+// `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )`
+export const headerRep1 = <A>(
+  element: Parser<StringSource, A>,
+): Parser<StringSource, List<A>> => {
+  const ch = text.char;
+
+  const prelude = ch(',' as Char)
+    ['*>'](ows)
+    .rep();
+  const tailOpt = ows['*>'](ch(',' as Char))
+    ['*>'](ows['*>'](element).optional())
+    .rep();
+  const tail = tailOpt.map(xs => xs.collect(id));
+
+  return prelude['*>'](element.product(tail)).map(([h, t]) => t.cons(h));
+};
 
 export const listSep = text.char(',' as Char).surroundedBy(ows);

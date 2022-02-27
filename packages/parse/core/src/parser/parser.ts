@@ -24,6 +24,7 @@ import {
   anyToken,
   defer,
   empty,
+  eof,
   fail,
   makeParser,
   makeParserT,
@@ -67,6 +68,8 @@ interface ParserTObj {
 
   defer<S, F, A>(thunk: () => ParserT<S, F, A>): ParserT<S, F, A>;
 
+  eof<S, F>(): ParserT<S, F, void>;
+
   anyToken<S, F>(): ParserT<S, F, TokenType<S>>;
   token<S, F, A>(
     showToken: (t: TokenType<S>) => string,
@@ -105,6 +108,7 @@ ParserT.fail = fail;
 ParserT.unit = unit;
 ParserT.empty = empty;
 ParserT.defer = defer;
+ParserT.eof = eof;
 ParserT.anyToken = anyToken;
 ParserT.token = token;
 ParserT.tokenPrim = tokenPrim;
@@ -128,6 +132,8 @@ interface ParserObj {
   empty<S, A = never>(): Parser<S, A>;
 
   defer<S, A>(thunk: () => Parser<S, A>): Parser<S, A>;
+
+  eof<S>(): Parser<S, void>;
 
   anyToken<S>(): Parser<S, TokenType<S>>;
   token<S, A>(
@@ -167,6 +173,7 @@ Parser.fail = fail;
 Parser.unit = unit;
 Parser.empty = empty;
 Parser.defer = defer;
+Parser.eof = eof;
 Parser.anyToken = anyToken;
 Parser.token = token;
 Parser.tokenPrim = tokenPrim;

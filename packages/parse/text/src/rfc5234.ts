@@ -9,8 +9,6 @@ import { HasTokenType } from '@fp4ts/parse-kernel';
 import * as text from './parsers';
 
 /**
- * @module parse/text/rfc5234
- *
  * Parsers for the common rules of RFC5234. These rules are referenced by several RFCs.
  * @see https://datatracker.ietf.org/doc/html/rfc5234
  */

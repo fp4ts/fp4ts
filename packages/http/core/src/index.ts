@@ -17,4 +17,4 @@ export * from './http-routes';
 export * from './http-version';
 export * from './media';
 export * from './header';
-export * from './media-type';
+export { MediaRange, MediaType } from './media-type';

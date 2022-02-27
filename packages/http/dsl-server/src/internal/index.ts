@@ -492,7 +492,7 @@ export function route<F>(F: Concurrent<F, Error>) {
         req.headers
           .get(Accept.Select)
           .map(ah =>
-            ah.mediaRanges.any(mr => mr.satisfiedBy(ct.self.mediaType))
+            ah.accepts(ct.self.mediaType)
               ? RouteResult.succeedUnit
               : RouteResult.fail(new NotAcceptFailure(ct.self, ah)),
           )

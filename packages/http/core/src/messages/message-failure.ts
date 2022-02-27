@@ -47,11 +47,7 @@ export class NotAcceptFailure extends MessageFailure {
     public readonly supplied: ContentType,
     public readonly expected: Accept,
   ) {
-    super(
-      `Expected ${expected.mediaRanges.toArray.join(';')}, supplied: ${
-        supplied.mediaType
-      }`,
-    );
+    super(`Expected ${expected.head}, supplied: ${supplied.mediaType}`);
   }
 
   public readonly cause = None;

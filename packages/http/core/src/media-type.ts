@@ -112,7 +112,7 @@ export class MediaType extends MediaRange {
     return `${this.mainType}/${this.subType}`;
   }
 
-  public static get parser(): Parser<StringSource, MediaType> {
+  public static override get parser(): Parser<StringSource, MediaType> {
     const mt = mediaRangeParser(getMediaType);
     const extensions = mediaTypeExtensionParser.rep();
 
@@ -165,17 +165,18 @@ const mediaRangeParser = <A>(
     .map(([s1, s2]) => builder(s1, s2));
 };
 
-const mediaTypeExtensionParser: Parser<StringSource, [string, string]> = text
-  .char(';' as Char)
-  ['*>'](Rfc7230.ows)
-  ['*>'](Rfc7230.token)
-  .product(
-    text
-      .char('=' as Char)
-      ['*>'](Rfc7230.token.orElse(() => Rfc7230.quotedString))
-      .optional(),
-  )
-  .map(([str, ostr]) => [
-    str,
-    ostr.getOrElse(() => '').replace(/\\\\/gm, '\\'),
-  ]);
+export const mediaTypeExtensionParser: Parser<StringSource, [string, string]> =
+  text
+    .char(';' as Char)
+    ['*>'](Rfc7230.ows)
+    ['*>'](Rfc7230.token)
+    .product(
+      text
+        .char('=' as Char)
+        ['*>'](Rfc7230.token.orElse(() => Rfc7230.quotedString))
+        .optional(),
+    )
+    .map(([str, ostr]) => [
+      str,
+      ostr.getOrElse(() => '').replace(/\\\\/gm, '\\'),
+    ]);
