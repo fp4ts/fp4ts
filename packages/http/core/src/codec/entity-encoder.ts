@@ -37,13 +37,15 @@ export class EntityEncoder<F, A> {
             Some(s.length),
           ),
       ),
-      Headers.fromToRaw(ContentType(MediaType.text_plain)),
+      Headers.fromToRaw(ContentType(MediaType['text/plain'])),
     );
   }
 
   public static json<F, A>(): EntityEncoder<F, A> {
     return this.text<F>()
       .contramap(x => JSON.stringify(x))
-      .withHeaders(Headers.fromToRaw(ContentType(MediaType.application_json)));
+      .withHeaders(
+        Headers.fromToRaw(ContentType(MediaType['application/json'])),
+      );
   }
 }

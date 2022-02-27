@@ -63,7 +63,7 @@ export class EntityDecoder<F, A> {
   public static text<F>(F: Concurrent<F, Error>): EntityDecoder<F, string> {
     return new EntityDecoder(
       DecoderT(compose(EitherT.rightT(F), this.decodeText(F))),
-      new Set([MediaType.text_plain]),
+      new Set([MediaType['text/plain']]),
     );
   }
 
@@ -80,7 +80,7 @@ export class EntityDecoder<F, A> {
           EitherT,
         ),
       ),
-      new Set([MediaType.application_json]),
+      new Set([MediaType['application/json']]),
     );
   }
 

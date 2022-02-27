@@ -28,7 +28,7 @@ class AcceptHeader {
 Accept.Header = {
   headerName: 'Accept',
   value(a: AcceptHeader): string {
-    return a.mediaRanges.map(mr => `${mr.mainType}/*`).toArray.join(';');
+    return a.mediaRanges.map(mr => mr.toString()).toArray.join(';');
   },
   parse(s: string): Either<Error, AcceptHeader> {
     const xs = List.fromArray(s.split(';'));
