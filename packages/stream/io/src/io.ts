@@ -48,18 +48,20 @@ export const suspendReadableAndRead =
 
       const resourceReadable = Monad.Do(RS)(function* (_) {
         const readable = yield* _(
-          Resource.make(S)(SyncIO(thunk), (readable, ec) =>
-            ec.fold(
-              () =>
-                destroyIfCanceled
-                  ? SyncIO(() => readable.destroy())
-                  : SyncIO.unit,
-              e => SyncIO(() => readable.destroy(e)),
-              () =>
-                !readable.readableEnded && destroyIfNotEnded
-                  ? SyncIO(() => readable.destroy())
-                  : SyncIO.unit,
-            ),
+          Resource.make(S)(
+            SyncIO(thunk),
+            (readable, ec) =>
+              ec.fold(
+                () =>
+                  destroyIfCanceled
+                    ? SyncIO(() => readable.destroy())
+                    : SyncIO.unit,
+                e => SyncIO(() => readable.destroy(e)),
+                () =>
+                  !readable.readableEnded && destroyIfNotEnded
+                    ? SyncIO(() => readable.destroy())
+                    : SyncIO.unit,
+              ).void,
           ),
         );
 
