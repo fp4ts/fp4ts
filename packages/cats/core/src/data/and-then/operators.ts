@@ -22,20 +22,18 @@ export const andThen_ = <A, E, B>(
 ): AndThen<A, B> => {
   if (isAndThen(g)) return _andThen(f, g);
   const fv = view(f);
-  switch (fv.tag) {
-    case 'single':
-      if (fv.idx < fusionMaxStackDepth) return Single(x => g(f(x)), fv.idx + 1);
-      return Concat(f, Single(g, 0));
-
-    case 'concat': {
-      const rv = view(fv.right);
-      if (rv.tag === 'single' && rv.idx < fusionMaxStackDepth)
-        return Concat(
-          fv.left,
-          Single(x => g(rv.fun(x)), rv.idx + 1),
-        );
-      return Concat(f, Single(g, 0));
-    }
+  if (fv.tag === 'single') {
+    if (fv.idx < fusionMaxStackDepth)
+      return Single(x => g(fv.fun(x)), fv.idx + 1);
+    return Concat(f, Single(g, 0));
+  } else {
+    const rv = view(fv.right);
+    if (rv.tag === 'single' && rv.idx < fusionMaxStackDepth)
+      return Concat(
+        fv.left,
+        Single(x => g(rv.fun(x)), rv.idx + 1),
+      );
+    return Concat(f, Single(g, 0));
   }
 };
 
@@ -45,20 +43,18 @@ export const compose_ = <A, E, B>(
 ): AndThen<A, B> => {
   if (isAndThen(f)) return _andThen(f, g);
   const gv = view(g);
-  switch (gv.tag) {
-    case 'single':
-      if (gv.idx < fusionMaxStackDepth) return Single(x => g(f(x)), gv.idx + 1);
-      return Concat(Single(f, 0), g);
-
-    case 'concat': {
-      const lv = view(gv.left);
-      if (lv.tag === 'single' && lv.idx < fusionMaxStackDepth)
-        return Concat(
-          Single(x => lv.fun(f(x)), lv.idx + 1),
-          gv.right,
-        );
-      return Concat(Single(f, 0), g);
-    }
+  if (gv.tag === 'single') {
+    if (gv.idx < fusionMaxStackDepth)
+      return Single(x => gv.fun(f(x)), gv.idx + 1);
+    return Concat(Single(f, 0), g);
+  } else {
+    const lv = view(gv.left);
+    if (lv.tag === 'single' && lv.idx < fusionMaxStackDepth)
+      return Concat(
+        Single(x => lv.fun(f(x)), lv.idx + 1),
+        gv.right,
+      );
+    return Concat(Single(f, 0), g);
   }
 };
 

@@ -9,9 +9,7 @@ export function runLoop_<A, B>(f: AndThen<A, B>, start: A): B {
   let current: unknown = start;
   let self: View<unknown, B> = f as View<unknown, B>;
 
-  while (true) {
-    if (self.tag === 'single') return self.fun(current);
-
+  while (self.tag !== 'single') {
     const leftV = self.left as View<unknown, unknown>;
     if (leftV.tag === 'single') {
       self = self.right as View<unknown, B>;
@@ -20,6 +18,7 @@ export function runLoop_<A, B>(f: AndThen<A, B>, start: A): B {
       self = rotateAcc(leftV, self.right) as View<unknown, B>;
     }
   }
+  return self.fun(current);
 }
 
 function rotateAcc<A, B, C>(

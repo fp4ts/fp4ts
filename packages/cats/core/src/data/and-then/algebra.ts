@@ -22,7 +22,7 @@ export interface Single<A, B> extends AndThen<A, B> {
 
 export function Single<A, B>(fun: (a: A) => B, idx: number): Single<A, B> {
   const apply = function (this: AndThen<A, B>, a: A): B {
-    return runLoop_({ [AndThenTag]: true, tag: 'single', fun, idx } as any, a);
+    return runLoop_({ tag: 'single', fun, idx } as any, a);
   };
 
   (apply as any)[AndThenTag] = true;
