@@ -5,6 +5,8 @@
 
 import { runLoop_ } from './runLoop';
 
+const AndThenTag = Symbol('@fp4ts/cats/core/and-then');
+
 export abstract class AndThen<A, B> {
   private readonly __void!: void;
 }
@@ -12,48 +14,51 @@ export interface AndThen<A, B> {
   (a: A): B;
 }
 
-export class Single<A, B> extends AndThen<A, B> {
-  public readonly tag = 'single';
-  public constructor(
-    public readonly fun: (a: A) => B,
-    public readonly idx: number,
-  ) {
-    super();
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    const apply = function (this: AndThen<A, B>, a: A): B {
-      return runLoop_(self, a);
-    };
-
-    Object.setPrototypeOf(apply, this.constructor.prototype);
-    (apply as any).tag = this.tag;
-    (apply as any).fun = fun;
-    (apply as any).idx = idx;
-    return apply as this;
-  }
+export interface Single<A, B> extends AndThen<A, B> {
+  readonly tag: 'single';
+  readonly fun: (a: A) => B;
+  readonly idx: number;
 }
 
-export class Concat<A, E, B> extends AndThen<A, B> {
-  public readonly tag = 'concat';
-  public constructor(
-    public readonly left: AndThen<A, E>,
-    public readonly right: AndThen<E, B>,
-  ) {
-    super();
+export function Single<A, B>(fun: (a: A) => B, idx: number): Single<A, B> {
+  const apply = function (this: AndThen<A, B>, a: A): B {
+    return runLoop_({ [AndThenTag]: true, tag: 'single', fun, idx } as any, a);
+  };
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    const apply = function (this: AndThen<A, B>, a: A): B {
-      return runLoop_(self, a);
-    };
+  (apply as any)[AndThenTag] = true;
+  (apply as any).tag = 'single';
+  (apply as any).fun = fun;
+  (apply as any).idx = idx;
+  (apply as any).andThen = AndThen.prototype.andThen;
+  (apply as any).compose = AndThen.prototype.compose;
+  return apply as any;
+}
 
-    Object.setPrototypeOf(apply, this.constructor.prototype);
-    (apply as any).tag = this.tag;
-    (apply as any).left = left;
-    (apply as any).right = right;
-    return apply as this;
-  }
+export interface Concat<A, E, B> extends AndThen<A, B> {
+  readonly tag: 'concat';
+  readonly left: AndThen<A, E>;
+  readonly right: AndThen<E, B>;
+}
+
+export function Concat<A, E, B>(
+  left: AndThen<A, E>,
+  right: AndThen<E, B>,
+): Concat<A, E, B> {
+  const apply = function (this: AndThen<A, B>, a: A): B {
+    return runLoop_({ tag: 'concat', left, right } as any, a);
+  };
+
+  (apply as any)[AndThenTag] = true;
+  (apply as any).tag = 'concat';
+  (apply as any).left = left;
+  (apply as any).right = right;
+  (apply as any).andThen = AndThen.prototype.andThen;
+  (apply as any).compose = AndThen.prototype.compose;
+  return apply as any;
+}
+
+export function isAndThen<A, B>(f: (a: A) => B): f is AndThen<A, B> {
+  return AndThenTag in f;
 }
 
 export type View<A, B> = Single<A, B> | Concat<A, any, B>;

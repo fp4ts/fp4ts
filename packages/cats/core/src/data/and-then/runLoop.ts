@@ -30,9 +30,9 @@ function rotateAcc<A, B, C>(
   let right: AndThen<unknown, C> = right0 as AndThen<unknown, C>;
 
   while (left.tag === 'concat') {
-    right = new Concat(left.right, right) as AndThen<unknown, C>;
+    right = Concat(left.right, right) as AndThen<unknown, C>;
     left = left.left as View<A, unknown>;
   }
 
-  return new Concat(left, right);
+  return Concat(left, right);
 }

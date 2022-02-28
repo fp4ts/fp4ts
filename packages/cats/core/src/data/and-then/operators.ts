@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen, Concat, Single, view } from './algebra';
+import { AndThen, Concat, isAndThen, Single, view } from './algebra';
 import { fusionMaxStackDepth } from './consts';
 
 export const andThen: <E, B>(
@@ -20,19 +20,21 @@ export const andThen_ = <A, E, B>(
   f: AndThen<A, E>,
   g: (e: E) => B,
 ): AndThen<A, B> => {
-  if (g instanceof AndThen) return _andThen(f, g);
+  if (isAndThen(g)) return _andThen(f, g);
   const fv = view(f);
   switch (fv.tag) {
     case 'single':
-      if (fv.idx < fusionMaxStackDepth)
-        return new Single(x => g(f(x)), fv.idx + 1);
-      return new Concat(f, new Single(g, 0));
+      if (fv.idx < fusionMaxStackDepth) return Single(x => g(f(x)), fv.idx + 1);
+      return Concat(f, Single(g, 0));
 
     case 'concat': {
       const rv = view(fv.right);
       if (rv.tag === 'single' && rv.idx < fusionMaxStackDepth)
-        return new Concat(fv.left, new Single(x => g(rv.fun(x)), rv.idx + 1));
-      return new Concat(f, new Single(g, 0));
+        return Concat(
+          fv.left,
+          Single(x => g(rv.fun(x)), rv.idx + 1),
+        );
+      return Concat(f, Single(g, 0));
     }
   }
 };
@@ -41,19 +43,21 @@ export const compose_ = <A, E, B>(
   g: AndThen<E, B>,
   f: (e: A) => E,
 ): AndThen<A, B> => {
-  if (f instanceof AndThen) return _andThen(f, g);
+  if (isAndThen(f)) return _andThen(f, g);
   const gv = view(g);
   switch (gv.tag) {
     case 'single':
-      if (gv.idx < fusionMaxStackDepth)
-        return new Single(x => g(f(x)), gv.idx + 1);
-      return new Concat(new Single(f, 0), g);
+      if (gv.idx < fusionMaxStackDepth) return Single(x => g(f(x)), gv.idx + 1);
+      return Concat(Single(f, 0), g);
 
     case 'concat': {
       const lv = view(gv.left);
       if (lv.tag === 'single' && lv.idx < fusionMaxStackDepth)
-        return new Concat(new Single(x => lv.fun(f(x)), lv.idx + 1), gv.right);
-      return new Concat(new Single(f, 0), g);
+        return Concat(
+          Single(x => lv.fun(f(x)), lv.idx + 1),
+          gv.right,
+        );
+      return Concat(Single(f, 0), g);
     }
   }
 };
@@ -71,17 +75,17 @@ const _andThen = <A, B, C>(
       const [g, indexG] = [gv.fun, gv.idx];
 
       return indexF + indexG < fusionMaxStackDepth
-        ? new Single(x => g(f(x)), indexF + indexG)
-        : new Concat(ab, bc);
+        ? Single(x => g(f(x)), indexF + indexG)
+        : Concat(ab, bc);
     } else {
       const leftV = view(gv.left);
       if (leftV.tag === 'single' && indexF + leftV.idx < fusionMaxStackDepth) {
-        return new Concat(
-          new Single(x => leftV.fun(f(x)), indexF + leftV.idx),
+        return Concat(
+          Single(x => leftV.fun(f(x)), indexF + leftV.idx),
           gv.right,
         );
       } else {
-        return new Concat(ab, bc);
+        return Concat(ab, bc);
       }
     }
   }
@@ -93,23 +97,26 @@ const _andThen = <A, B, C>(
     if (gv.tag === 'single') {
       const [g, indexG] = [gv.fun, gv.idx];
       return indexF + indexG < fusionMaxStackDepth
-        ? new Concat(fv.left, new Single(x => g(f(x)), indexF + indexG))
-        : new Concat(ab, bc);
+        ? Concat(
+            fv.left,
+            Single(x => g(f(x)), indexF + indexG),
+          )
+        : Concat(ab, bc);
     } else {
       const leftV = view(gv.left);
       if (leftV.tag === 'single' && indexF + leftV.idx < fusionMaxStackDepth) {
-        return new Concat(
+        return Concat(
           fv.left,
-          new Concat(
-            new Single(x => leftV.fun(f(x)), indexF + leftV.idx),
+          Concat(
+            Single(x => leftV.fun(f(x)), indexF + leftV.idx),
             gv.right,
           ),
         );
       } else {
-        return new Concat(ab, bc);
+        return Concat(ab, bc);
       }
     }
   } else {
-    return new Concat(ab, bc);
+    return Concat(ab, bc);
   }
 };
