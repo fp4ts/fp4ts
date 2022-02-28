@@ -23,7 +23,7 @@ import { SourcePosition } from '../source-position';
 import {
   FlatMap,
   Map,
-  ManyAccumulate,
+  RepAs,
   OrElse,
   ParserT,
   View,
@@ -36,6 +36,7 @@ import { Failure, ParseResult, Success } from './parse-result';
 import { State } from './state';
 import { anyToken, empty, succeed, unexpected, unit } from './constructors';
 import { StringSource } from '../string-source';
+import { Accumulator, Accumulator1, Builder } from '../accumulator';
 
 export const optional = <S, F, A>(
   p: ParserT<S, F, A>,
@@ -98,12 +99,6 @@ export const flatMap_ = <S, F, A, B>(
   f: (a: A) => ParserT<S, F, B>,
 ): ParserT<S, F, B> => new FlatMap(pa, f);
 
-export const mapAccumulate_ = <S, F, A, B>(
-  p: ParserT<S, F, A>,
-  init: B,
-  f: (acc: B, a: A) => B,
-): ParserT<S, F, B> => new ManyAccumulate(p, init, f);
-
 export const not = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
   backtrack(
     orElse_(
@@ -118,16 +113,57 @@ export const notFollowedBy_ = <S, F, A, B>(
 ): ParserT<S, F, A> => productL_(p, not(p2));
 
 export const skipRep_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
-  mapAccumulate_(p, undefined, () => {});
+  repAs_(p, undefined, () => {});
 
 export const rep_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   map_(
-    mapAccumulate_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
+    repAs_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
     xs => xs.reverse,
   );
 
+export function repAs_<S, F, A, B>(
+  p: ParserT<S, F, A>,
+  init: B,
+  f: (acc: B, a: A) => B,
+): ParserT<S, F, B>;
+export function repAs_<S, F, A, B>(
+  p: ParserT<S, F, A>,
+  acc: Accumulator<A, B>,
+): ParserT<S, F, B>;
+export function repAs_(
+  p: ParserT<any, any, any>,
+  init: any,
+  f?: any,
+): ParserT<any, any, any> {
+  return f === undefined
+    ? new RepAs(p, init)
+    : new RepAs(p, Accumulator.make(init, f));
+}
+
 export const rep1_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   flatMap_(pa, x => map_(rep_(pa), xs => xs.prepend(x)));
+
+export function repAs1_<S, F, A>(
+  p: ParserT<S, F, A>,
+  f: (acc: A, a: A) => A,
+): ParserT<S, F, A>;
+export function repAs1_<S, F, A, B>(
+  p: ParserT<S, F, A>,
+  acc: Accumulator1<A, B>,
+): ParserT<S, F, B>;
+export function repAs1_(
+  p: ParserT<any, any, any>,
+  f: any,
+): ParserT<any, any, any> {
+  return typeof f === 'function'
+    ? flatMap_(p, (x: any) => repAs_(p, x, f))
+    : flatMap_(p, (x: any) =>
+        repAs_(
+          p,
+          Accumulator.fromMkBuilder(() => f.makeBuilder(x)),
+        ),
+      );
+}
 
 export const sepBy_ = <S, F, A>(
   pa: ParserT<S, F, A>,
@@ -345,7 +381,7 @@ function parseLoopImpl<S, F, X, End>(
       case 'many-accumulate': {
         const ctx: ParseCtx<S, F, unknown, End> = { S, s, cont, go };
         cur_ = cur.self;
-        cont_ = mapAccumulateCont(ctx, cur.self, cur.init, cur.fun);
+        cont_ = mapAccumulateCont(ctx, cur.self, cur.acc);
         break;
       }
 
@@ -419,22 +455,23 @@ function flatMapCont<S, F, Y, X, End>(
 function mapAccumulateCont<S, F, X, Z, End>(
   { go, s, cont }: ParseCtx<S, F, Z, End>,
   p: ParserT<S, F, X>,
-  init: Z,
-  f: (acc: Z, x: X) => Z,
+  acc: Accumulator<X, Z>,
 ): Cont<S, F, X, End> {
   const walk =
-    (acc: Z) =>
-    (suc: Success<S, X>): Kind<F, [End]> =>
-      go(
+    (bldr: Builder<X, Z>) =>
+    (suc: Success<S, X>): Kind<F, [End]> => {
+      bldr = bldr.append(suc.output);
+      return go(
         suc.remainder,
         p,
-        new Cont(walk(f(acc, suc.output)), cont.cerr, repError, fail =>
-          cont.cok(new Success(f(acc, suc.output), suc.remainder, fail.error)),
+        new Cont(walk(bldr), cont.cerr, repError, fail =>
+          cont.cok(new Success(bldr.result, suc.remainder, fail.error)),
         ),
       );
+    };
 
-  return new Cont(walk(init), cont.cerr, repError, e =>
-    cont.eok(new Success(init, s, e.error)),
+  return new Cont(walk(acc.newBuilder()), cont.cerr, repError, e =>
+    cont.eok(new Success(acc.newBuilder().result, s, e.error)),
   );
 }
 

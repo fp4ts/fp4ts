@@ -36,7 +36,7 @@ export const defer = <S, M, A>(
   thunk: () => ParserT<S, M, A>,
 ): ParserT<S, M, A> => new Defer(lazyVal(thunk));
 
-export const anyToken = <S, M, A>(): ParserT<S, M, TokenType<S>> =>
+export const anyToken = <S, M>(): ParserT<S, M, TokenType<S>> =>
   tokenPrim(
     x => `${x}`,
     pos => pos,
@@ -97,6 +97,8 @@ export function tokens<S, F>(
   tts: TokenType<S>[],
   E: Eq<TokenType<S>> = Eq.fromUniversalEquals(),
 ): ParserT<S, F, TokenType<S>[]> {
+  const length = tts.length;
+  if (length === 0) return succeed([]);
   return new ParserPrim<S, F, TokenType<S>[]>(
     S =>
       s =>
@@ -106,10 +108,6 @@ export function tokens<S, F>(
         eok: (suc: Success<S, TokenType<S>[]>) => Kind<F, [B]>,
         eerr: (fail: Failure) => Kind<F, [B]>,
       ): Kind<F, [B]> => {
-        const length = tts.length;
-        if (length === 0)
-          return eok(new Success([], s, ParseError.empty(s.position)));
-
         const errEof = () =>
           new Failure(
             new ParseError(s.position, [Message.Unexpected('')]).withMessage(

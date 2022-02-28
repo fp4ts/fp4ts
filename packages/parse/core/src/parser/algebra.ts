@@ -10,6 +10,7 @@ import { Message } from '../parse-error';
 
 import { State } from './state';
 import { Failure, Success } from './parse-result';
+import { Accumulator } from '../accumulator';
 
 export abstract class ParserT<S, F, A> {
   private readonly __void!: void;
@@ -81,12 +82,11 @@ export class FlatMap<S, F, E, A> extends ParserT<S, F, A> {
   }
 }
 
-export class ManyAccumulate<S, F, E, A> extends ParserT<S, F, A> {
+export class RepAs<S, F, E, A> extends ParserT<S, F, A> {
   public readonly tag = 'many-accumulate';
   public constructor(
     public readonly self: ParserT<S, F, E>,
-    public readonly init: A,
-    public readonly fun: (acc: A, x: E) => A,
+    public readonly acc: Accumulator<E, A>,
   ) {
     super();
   }
@@ -137,7 +137,7 @@ export type View<S, F, A> =
   | ParserPrim<S, F, A>
   | Map<S, F, any, A>
   | FlatMap<S, F, any, A>
-  | ManyAccumulate<S, F, any, A>
+  | RepAs<S, F, any, A>
   | Backtrack<S, F, A>
   | OrElse<S, F, A>
   | Labels<S, F, A>

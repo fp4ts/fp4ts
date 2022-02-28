@@ -43,8 +43,8 @@ const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
   const eof = Parser.eof<StringSource>();
   const ch = text.char;
   const decQValue = Rfc5234.digit()
-    .rep1()
-    .collect(xs => QValue.fromString(xs.toArray.join('')).toOption);
+    .repAs1<string>((x, y) => x + y)
+    .collect(s => QValue.fromString(s).toOption);
 
   const qvalue = ch('0' as Char)
     ['*>'](eof.as(QValue.zero).orElse(() => decQValue))

@@ -30,7 +30,7 @@ describe('String Interpolator', () => {
     // prettier-ignore
     const foo: Parser<StringSource, boolean> = string('spam').as(true)['<|>'](() => string('eggs').as(false));
     // prettier-ignore
-    const bar: Parser<StringSource, number> = digit().rep1().map(xs => parseInt(xs.toArray.join('')))
+    const bar: Parser<StringSource, number> = digit().repAs1<string>((x, y) => x + y).map(parseInt);
     // prettier-ignore
     const quxx: Parser<StringSource, number> = parser`quxx`.as(42);
 

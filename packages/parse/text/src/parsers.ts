@@ -81,16 +81,14 @@ export const digits = <
   F = EvalF,
 >(): ParserT<S, F, string> =>
   digit<S, F>()
-    .rep()
-    .map(xs => xs.toArray.join(''))
+    .repAs('', (x, y) => x + y)
     ['<?>']('digits');
 export const digits1 = <
   S extends HasTokenType<Char> = StringSource,
   F = EvalF,
 >(): ParserT<S, F, string> =>
   digit<S, F>()
-    .rep()
-    .map(xs => xs.toArray.join(''))
+    .repAs1<string>((x, y) => x + y)
     ['<?>']('digits1');
 
 export const alphaNum = <

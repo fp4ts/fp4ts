@@ -9,8 +9,8 @@ import { timed } from './common/timed';
 
 const number = text
   .digit()
-  .rep1()
-  .map(xs => parseInt(xs.toArray.join('')));
+  .repAs1<string>((x, y) => x + y)
+  .map(parseInt);
 
 // prettier-ignore
 const addOp =   text.char('+' as Char).as((x: number, y: number) => x + y)

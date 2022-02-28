@@ -17,9 +17,9 @@ export const tchar: Parser<StringSource, Char> = text
   .orElse(() => Rfc5234.digit())
   .orElse(() => Rfc5234.alpha());
 
-export const token: Parser<StringSource, string> = tchar
-  .rep1()
-  .map(xs => xs.toArray.join(''));
+export const token: Parser<StringSource, string> = tchar.repAs1<string>(
+  (x, y) => x + y,
+);
 
 // `obs-text = %x80-FF`
 export const obsText: Parser<StringSource, Char> = text.oneOf(0x80, 0xff);
@@ -50,8 +50,7 @@ export const quotedPair: Parser<StringSource, Char> = text
 // quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
 export const quotedString: Parser<StringSource, string> = qdText
   .orElse(() => quotedPair)
-  .rep()
-  .map(xs => xs.toArray.join(''))
+  .repAs('', (xs, s) => xs + s)
   .surroundedBy(Rfc5234.dquote());
 
 // HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text

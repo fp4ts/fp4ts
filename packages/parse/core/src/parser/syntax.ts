@@ -29,7 +29,7 @@ import {
   flatMap_,
   label_,
   map2_,
-  mapAccumulate_,
+  repAs_,
   map_,
   not,
   notFollowedBy_,
@@ -51,7 +51,9 @@ import {
   skipRep_,
   surroundedBy_,
   toUnit,
+  repAs1_,
 } from './operators';
+import { Accumulator, Accumulator1 } from '../accumulator';
 
 declare module './algebra' {
   interface ParserT<S, F, A> {
@@ -93,15 +95,21 @@ declare module './algebra' {
 
     flatMap<B>(f: (a: A) => ParserT<S, F, B>): ParserT<S, F, B>;
 
-    mapAccumulate<B>(z: B, f: (b: B, a: A) => B): ParserT<S, F, B>;
-
     not(): ParserT<S, F, void>;
     notFollowedBy<B>(that: ParserT<S, F, B>): ParserT<S, F, B>;
 
     skipRep(): ParserT<S, F, void>;
 
     rep(): ParserT<S, F, List<A>>;
+    repAs<B>(z: B, f: (b: B, a: A) => B): ParserT<S, F, B>;
+    repAs<B>(acc: Accumulator<A, B>): ParserT<S, F, B>;
+
     rep1(): ParserT<S, F, List<A>>;
+    repAs1<AA>(
+      this: ParserT<S, F, AA>,
+      f: (x: AA, b: AA) => AA,
+    ): ParserT<S, F, AA>;
+    repAs1<B>(acc: Accumulator1<A, B>): ParserT<S, F, B>;
 
     sepBy(tok: ParserT<S, F, unknown>): ParserT<S, F, List<A>>;
     sepBy1(tok: ParserT<S, F, unknown>): ParserT<S, F, List<A>>;
@@ -217,9 +225,6 @@ ParserT.prototype.flatMap = function (f) {
   return flatMap_(this, f);
 };
 
-ParserT.prototype.mapAccumulate = function (z, f) {
-  return mapAccumulate_(this, z, f);
-};
 ParserT.prototype.not = function () {
   return not(this);
 };
@@ -232,9 +237,15 @@ ParserT.prototype.skipRep = function () {
 ParserT.prototype.rep = function () {
   return rep_(this);
 };
+ParserT.prototype.repAs = function (this: any, z: any, f?: any) {
+  return repAs_(this, z, f);
+} as any;
 ParserT.prototype.rep1 = function () {
   return rep1_(this);
 };
+ParserT.prototype.repAs1 = function (this: any, f: any) {
+  return repAs1_(this, f);
+} as any;
 
 ParserT.prototype.sepBy = function (tok) {
   return sepBy_(this, tok);

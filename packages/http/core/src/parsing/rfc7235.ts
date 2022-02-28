@@ -15,9 +15,9 @@ export const t68Chars: Parser<StringSource, Char> = text
   .orElse(() => Rfc5234.alpha());
 
 export const token68: Parser<StringSource, string> = t68Chars
-  .rep1()
-  .product(text.oneOf('=').rep())
-  .map(([xs, ys]) => [...xs, ...ys].join(''));
+  .repAs1<string>((x, y) => x + y)
+  .product(text.oneOf('=').repAs('', (x, y) => x + y))
+  .map(([xs, ys]) => xs + ys);
 
 export const scheme: Parser<StringSource, string> = Rfc7230.token;
 
