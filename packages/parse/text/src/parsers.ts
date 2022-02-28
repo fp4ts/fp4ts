@@ -36,22 +36,34 @@ export const satisfy = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
     x => (p(x) ? Some(x) : None),
   );
 
-export const oneOf = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
-  chars: string,
-): ParserT<S, F, Char> => satisfy(c => chars.includes(c));
+/* eslint-disable prettier/prettier */
+export function oneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(lo: number, hi: number): ParserT<S, F, Char>;
+export function oneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(chars: string): ParserT<S, F, Char>;
+export function oneOf(lo: any, hi?: any): any {
+  return hi === undefined
+    ? satisfy(c => lo.includes(c))
+    : satisfy(c => { const x = c.charCodeAt(0); return x >= lo && x <= hi });
+}
+/* eslint-enable prettier/prettier */
 
-export const noneOf = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
-  chars: string,
-): ParserT<S, F, Char> => satisfy(c => !chars.includes(c));
+/* eslint-disable prettier/prettier */
+export function noneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(lo: number, hi: number): ParserT<S, F, Char>;
+export function noneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(chars: string): ParserT<S, F, Char>;
+export function noneOf(lo: any, hi?: any): any {
+  return hi === undefined
+    ? satisfy(c => !lo.includes(c))
+    : satisfy(c => { const x = c.charCodeAt(0); return !(x >= lo && x <= hi) });
+}
+/* eslint-enable prettier/prettier */
 
 export const char = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
   c: Char,
 ): ParserT<S, F, Char> => satisfy<S, F>(x => x === c)['<?>'](`'${c}'`);
 
-export const anyChar = <S extends HasTokenType<Char> = StringSource>(): Parser<
-  S,
-  Char
-> => satisfy(() => true);
+export const anyChar = <
+  S extends HasTokenType<Char> = StringSource,
+  F = EvalF,
+>(): ParserT<S, F, Char> => satisfy(() => true);
 
 export const letter = <
   S extends HasTokenType<Char> = StringSource,
