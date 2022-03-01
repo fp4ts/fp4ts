@@ -79,15 +79,12 @@ export const tailRecM_ = <A, B>(
   let result: B;
 
   while (!resolved) {
-    cur.fold(
-      a => {
-        cur = f(a);
-      },
-      b => {
-        resolved = true;
-        result = b;
-      },
-    );
+    if (cur.isLeft) {
+      cur = f(cur.getLeft);
+    } else {
+      resolved = true;
+      result = cur.get;
+    }
   }
 
   return pure(result!);
