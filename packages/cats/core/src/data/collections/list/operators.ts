@@ -570,21 +570,12 @@ export const coflatMap_ = <A, B>(
   xs: List<A>,
   f: (xs: List<A>) => B,
 ): List<B> => {
-  let h: Cons<B> | undefined;
-  let t: Cons<B> | undefined;
+  const buf = new ListBuffer<B>();
   while (xs !== nil) {
-    const nx = new Cons(f(xs), nil);
-    if (!t) {
-      h = nx;
-    } else {
-      t!._tail = nx;
-    }
-    t = nx;
-
+    buf.addOne(f(xs));
     xs = (xs as Cons<A>)._tail;
   }
-
-  return h ?? nil;
+  return buf.toList;
 };
 
 export const fold_ = <A, B1, B2 = B1>(
@@ -601,8 +592,7 @@ export const tailRecM_ = <A, B>(
   f: (a: A) => List<Either<A, B>>,
 ): List<B> => {
   let stack: List<List<Either<A, B>>> = pure(f(a));
-  let h: Cons<B> | undefined;
-  let t: Cons<B> | undefined;
+  const buf = new ListBuffer<B>();
 
   while (nonEmpty(stack)) {
     const xhd = head(stack);
@@ -616,22 +606,16 @@ export const tailRecM_ = <A, B>(
     const nx = head(xhd);
     nx.fold(
       a => {
-        stack = cons(f(a), cons(tail(xhd), xtl));
+        stack = new Cons(f(a), new Cons(tail(xhd), xtl));
       },
       b => {
-        const tmp = new Cons(b, nil);
-        if (!t) {
-          h = tmp;
-        } else {
-          t!._tail = tmp;
-        }
-        t = tmp;
+        buf.addOne(b);
         stack = cons(tail(xhd), xtl);
       },
     );
   }
 
-  return h ?? nil;
+  return buf.toList;
 };
 
 export const foldLeft_ = <A, B>(xs: List<A>, z: B, f: (b: B, a: A) => B): B => {
