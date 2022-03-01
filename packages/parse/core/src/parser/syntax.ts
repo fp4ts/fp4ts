@@ -52,6 +52,8 @@ import {
   surroundedBy_,
   toUnit,
   repAs1_,
+  repVoid_,
+  repVoid1_,
 } from './operators';
 import { Accumulator, Accumulator1 } from '../accumulator';
 
@@ -101,10 +103,12 @@ declare module './algebra' {
     skipRep(): ParserT<S, F, void>;
 
     rep(): ParserT<S, F, List<A>>;
+    repVoid(): ParserT<S, F, void>;
     repAs<B>(z: B, f: (b: B, a: A) => B): ParserT<S, F, B>;
     repAs<B>(acc: Accumulator<A, B>): ParserT<S, F, B>;
 
     rep1(): ParserT<S, F, List<A>>;
+    repVoid1(): ParserT<S, F, void>;
     repAs1<AA>(
       this: ParserT<S, F, AA>,
       f: (x: AA, b: AA) => AA,
@@ -237,11 +241,17 @@ ParserT.prototype.skipRep = function () {
 ParserT.prototype.rep = function () {
   return rep_(this);
 };
+ParserT.prototype.repVoid = function () {
+  return repVoid_(this);
+};
 ParserT.prototype.repAs = function (this: any, z: any, f?: any) {
   return repAs_(this, z, f);
 } as any;
 ParserT.prototype.rep1 = function () {
   return rep1_(this);
+};
+ParserT.prototype.repVoid1 = function () {
+  return repVoid1_(this);
 };
 ParserT.prototype.repAs1 = function (this: any, f: any) {
   return repAs1_(this, f);

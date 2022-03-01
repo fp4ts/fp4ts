@@ -56,28 +56,23 @@ export const tokenPrim = <S, M, A>(
 ): ParserT<S, M, A> =>
   new ParserPrim(
     S => s => (cok, cerr, eok, eerr) =>
-      S.monad.flatMap_(S.uncons(s.input), opt =>
-        opt.fold(
-          () => eerr(new Failure(ParseError.unexpected(s.position, ''))),
-          ([tok, tl]) =>
-            test(tok).fold(
-              () =>
-                eerr(
-                  new Failure(
-                    ParseError.unexpected(s.position, showToken(tok)),
-                  ),
-                ),
-              x =>
-                cok(
-                  new Success(
-                    x,
-                    new State(tl, nextPos(s.position, tok, tl)),
-                    ParseError.empty(s.position),
-                  ),
-                ),
-            ),
-        ),
-      ),
+      S.monad.flatMap_(S.uncons(s.input), opt => {
+        if (opt.isEmpty)
+          return eerr(new Failure(ParseError.unexpected(s.position, '')));
+
+        const [tok, tl] = opt.get;
+        const res = test(tok);
+
+        return res.isEmpty
+          ? eerr(new Failure(ParseError.unexpected(s.position, showToken(tok))))
+          : cok(
+              new Success(
+                res.get,
+                new State(tl, nextPos(s.position, tok, tl)),
+                ParseError.empty(s.position),
+              ),
+            );
+      }),
   );
 
 export function tokens<S extends HasTokenType<PrimitiveType>, F>(

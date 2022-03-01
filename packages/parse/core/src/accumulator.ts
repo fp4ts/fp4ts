@@ -22,11 +22,24 @@ export const Accumulator = Object.freeze({
 
   list: <A>(): Accumulator<A, List<A>> =>
     Accumulator.fromMkBuilder(() => new ListBuilder()),
+
+  void: <A>(): Accumulator<A, void> => Accumulator.make(undefined, () => {}),
 });
 
 export interface Accumulator1<A, Out> {
   newBuilder(first: A): Builder<A, Out>;
 }
+
+export const Accumulator1 = Object.freeze({
+  fromMkBuilder: <A, Out>(
+    builder: (first: A) => Builder<A, Out>,
+  ): Accumulator1<A, Out> => ({ newBuilder: builder }),
+
+  list: <A>(): Accumulator1<A, List<A>> =>
+    Accumulator1.fromMkBuilder(fst => new ListBuilder1(fst)),
+
+  void: <A>(): Accumulator1<A, void> => Accumulator.make(undefined, () => {}),
+});
 
 // -- Builders
 
@@ -89,5 +102,12 @@ class ListBuilder<A> extends Builder<A, List<A>> {
   public append(a: A): this {
     this.buffer.addOne(a);
     return this;
+  }
+}
+
+class ListBuilder1<A> extends ListBuilder<A> {
+  public constructor(first: A) {
+    super();
+    this.append(first);
   }
 }

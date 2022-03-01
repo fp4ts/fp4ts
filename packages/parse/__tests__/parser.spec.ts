@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Char } from '@fp4ts/core';
-import { Eq, Eval, Left, List, None, Right, Some } from '@fp4ts/cats';
+import { Eq, Identity, Left, List, None, Right, Some } from '@fp4ts/cats';
 import {
   Parser,
   ParseError,
@@ -344,12 +344,14 @@ expecting digit`),
     test(
       'backtrack either succeeds or fails without consuming any input',
       forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
-        const r = p.backtrack().parseConsumedF(Stream.forSource(Eval.Monad))(
+        const r = p
+          .backtrack()
+          .parseConsumedF(Stream.forSource(Identity.Monad))(
           StringSource.fromString(s),
-        ).value;
+        );
 
         return r.tag === 'consumed'
-          ? r.value.value.fold(
+          ? r.value.fold(
               () => true,
               () => false,
             )

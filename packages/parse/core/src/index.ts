@@ -6,6 +6,7 @@
 /**
  * @module parse/core
  */
+export * from './accumulator';
 export * from './consumed';
 export * from './parser';
 export * from './parse-error';

@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { IdentityF } from '@fp4ts/cats';
 import { Byte, Char, lazyVal } from '@fp4ts/core';
-import { ParserT } from '@fp4ts/parse-core';
+import { ParserT, StringSource } from '@fp4ts/parse-core';
 import { HasTokenType } from '@fp4ts/parse-kernel';
 import * as text from './parsers';
 
@@ -49,7 +50,9 @@ export const lf: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   );
 
 // standard internet line newline
-export const crlf: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
+export const crlf = text.string('\r\n').void;
+// standard internet line newline
+export const crlfF: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   lazyVal(
     <S extends HasTokenType<Char>, F>(): ParserT<S, F, void> =>
       text.stringF<S, F>('\r\n').void,
@@ -87,28 +90,34 @@ export const hexdigit: <S extends HasTokenType<Char>, F>() => ParserT<
     digit().orElse(() => text.oneOf('ABCDEFabcdef')),
 );
 
+const htabChar = '\t' as Char;
 export const htab: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   lazyVal(
     <S extends HasTokenType<Char>, F>(): ParserT<S, F, void> =>
-      text.char<S, F>('\t' as Char).void,
+      text.char<S, F>(htabChar).void,
   );
 
+const spChar = ' ' as Char;
 export const sp: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   lazyVal(
     <S extends HasTokenType<Char>, F>(): ParserT<S, F, void> =>
-      text.char<S, F>(' ' as Char).void,
+      text.char<S, F>(spChar).void,
   );
 
 export const wsp: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   lazyVal(
     <S extends HasTokenType<Char>, F>(): ParserT<S, F, void> =>
-      sp().orElse(() => htab()),
+      text.oneOf<S, F>(`${htabChar}${spChar}`).void,
   );
 
-export const lwsp: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
+export const lwsp = wsp<StringSource, IdentityF>().orElse(() =>
+  crlf['*>'](wsp()),
+).void;
+
+export const lwspF: <S extends HasTokenType<Char>, F>() => ParserT<S, F, void> =
   lazyVal(
     <S extends HasTokenType<Char>, F>(): ParserT<S, F, void> =>
-      wsp().orElse(() => crlf()['*>'](wsp())).void,
+      wsp().orElse(() => crlfF()['*>'](wsp())).void,
   );
 
 // 8 bits of data

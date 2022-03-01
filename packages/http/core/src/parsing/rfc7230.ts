@@ -5,7 +5,7 @@
 
 import { List } from '@fp4ts/cats';
 import { Char, id } from '@fp4ts/core';
-import { Parser, text, Rfc5234, StringSource } from '@fp4ts/parse';
+import { Accumulator, Parser, text, Rfc5234, StringSource } from '@fp4ts/parse';
 
 /**
  * Parsers for the common rules of RFC7230. These rules are referenced by several RFCs.
@@ -17,17 +17,15 @@ export const tchar: Parser<StringSource, Char> = text
   .orElse(() => Rfc5234.digit())
   .orElse(() => Rfc5234.alpha());
 
-export const token: Parser<StringSource, string> = tchar.repAs1<string>(
-  (x, y) => x + y,
+export const token: Parser<StringSource, string> = tchar.repAs1(
+  Accumulator.string(),
 );
 
 // `obs-text = %x80-FF`
 export const obsText: Parser<StringSource, Char> = text.oneOf(0x80, 0xff);
 
 // `OWS = *( SP / HTAB )`
-export const ows: Parser<StringSource, void> = Rfc5234.sp()
-  .orElse(() => Rfc5234.htab())
-  .rep().void;
+export const ows: Parser<StringSource, void> = Rfc5234.wsp().repVoid();
 
 export const bws: Parser<StringSource, void> = ows;
 
@@ -50,7 +48,7 @@ export const quotedPair: Parser<StringSource, Char> = text
 // quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE
 export const quotedString: Parser<StringSource, string> = qdText
   .orElse(() => quotedPair)
-  .repAs('', (xs, s) => xs + s)
+  .repAs(Accumulator.string())
   .surroundedBy(Rfc5234.dquote());
 
 // HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text
@@ -80,7 +78,7 @@ export const headerRep1 = <A>(
 
   const prelude = ch(',' as Char)
     ['*>'](ows)
-    .rep();
+    .repVoid();
   const tailOpt = ows['*>'](ch(',' as Char))
     ['*>'](ows['*>'](element).optional())
     .rep();

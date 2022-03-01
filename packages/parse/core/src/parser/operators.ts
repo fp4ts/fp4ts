@@ -120,6 +120,9 @@ export const skipRep_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
 export const rep_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   repAs_(pa, Accumulator.list());
 
+export const repVoid_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, void> =>
+  repAs_(pa, Accumulator.void());
+
 export function repAs_<S, F, A, B>(
   p: ParserT<S, F, A>,
   init: B,
@@ -142,6 +145,9 @@ export function repAs_(
 export const rep1_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
   flatMap_(pa, x => map_(rep_(pa), xs => xs.prepend(x)));
 
+export const repVoid1_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, void> =>
+  repAs1_(pa, Accumulator1.void());
+
 export function repAs1_<S, F, A>(
   p: ParserT<S, F, A>,
   f: (acc: A, a: A) => A,
@@ -159,7 +165,7 @@ export function repAs1_(
     : flatMap_(p, (x: any) =>
         repAs_(
           p,
-          Accumulator.fromMkBuilder(() => f.makeBuilder(x)),
+          Accumulator.fromMkBuilder(() => f.newBuilder(x)),
         ),
       );
 }
@@ -310,7 +316,7 @@ interface ParseCtx<S, F, X, End> {
   readonly S: Stream<S, F>;
   readonly s: State<S>;
   readonly p: ParserT<S, F, unknown>;
-  readonly cont: Cont<S, F, X, End>;
+  readonly c: Cont<S, F, X, End>;
 }
 
 export function parseLoopRec<S, F, X, End>(
@@ -328,12 +334,7 @@ function loop<S, F, X, End>({
   s,
   p,
   c,
-}: {
-  S: Stream<S, F>;
-  s: State<S>;
-  p: ParserT<S, F, X>;
-  c: Cont<S, F, X, End>;
-}): Kind<F, [Either<ParseCtx<S, F, any, End>, End>]> {
+}: ParseCtx<S, F, X, End>): Kind<F, [Either<ParseCtx<S, F, any, End>, End>]> {
   let cur_: ParserT<S, F, any> = p;
   let cont_: Cont<S, F, any, End> = c;
 
@@ -419,10 +420,10 @@ function flatMapCont<S, F, Y, X, End>(
   cont: Cont<S, F, X, End>,
   fun: (y: Y) => ParserT<S, F, X>,
 ): Cont<S, F, Y, End> {
-  const mcok = (
+  function mcok(
     suc: Success<S, Y>,
-  ): Kind<F, [Either<ParseCtx<S, F, X, End>, End>]> =>
-    S.monad.pure(
+  ): Kind<F, [Either<ParseCtx<S, F, X, End>, End>]> {
+    return S.monad.pure(
       suc.error.isEmpty
         ? Left({
             S,
@@ -440,13 +441,14 @@ function flatMapCont<S, F, Y, X, End>(
             }),
           }),
     );
+  }
 
   const mcerr = cont.cerr;
 
-  const meok = (
+  function meok(
     suc: Success<S, Y>,
-  ): Kind<F, [Either<ParseCtx<S, F, X, End>, End>]> =>
-    S.monad.pure(
+  ): Kind<F, [Either<ParseCtx<S, F, X, End>, End>]> {
+    return S.monad.pure(
       suc.error.isEmpty
         ? Left({ S, s: suc.remainder, p: fun(suc.output), c: cont })
         : Left({
@@ -459,6 +461,7 @@ function flatMapCont<S, F, Y, X, End>(
             }),
           }),
     );
+  }
   const meerr = cont.eerr;
 
   return new Cont(mcok, mcerr, meok, meerr);
@@ -467,13 +470,13 @@ function flatMapCont<S, F, Y, X, End>(
 function mapAccumulateCont<S, F, X, Z, End>(
   S: Stream<S, F>,
   s: State<S>,
-  cont: Cont<S, F, X, End>,
+  cont: Cont<S, F, Z, End>,
   p: ParserT<S, F, X>,
   acc: Accumulator<X, Z>,
 ): Cont<S, F, X, End> {
   const walk =
     (bldr: Builder<X, Z>) =>
-    (suc: Success<S, X>): Kind<F, [End]> => {
+    (suc: Success<S, X>): Kind<F, [Either<ParseCtx<S, F, X, End>, End>]> => {
       bldr = bldr.append(suc.output);
       return S.monad.pure(
         Left({
@@ -481,16 +484,14 @@ function mapAccumulateCont<S, F, X, Z, End>(
           s: suc.remainder,
           p,
           c: new Cont(walk(bldr), cont.cerr, repError, fail =>
-            cont.cok(
-              new Success(bldr.result, suc.remainder, fail.error) as any,
-            ),
+            cont.cok(new Success(bldr.result, suc.remainder, fail.error)),
           ),
         }),
       );
     };
 
   return new Cont(walk(acc.newBuilder()), cont.cerr, repError, e =>
-    cont.eok(new Success(acc.newBuilder().result, s, e.error) as any),
+    cont.eok(new Success(acc.newBuilder().result, s, e.error)),
   );
 }
 
@@ -500,8 +501,8 @@ function orElseCont<S, F, X, End>(
   cont: Cont<S, F, X, End>,
   r: Lazy<ParserT<S, F, X>>,
 ): Cont<S, F, X, End> {
-  const meerr = (fail: Failure) =>
-    S.monad.pure(
+  function meerr(fail: Failure) {
+    return S.monad.pure(
       Left({
         S,
         s,
@@ -512,6 +513,7 @@ function orElseCont<S, F, X, End>(
         }),
       }),
     );
+  }
 
   return cont.copy({ eerr: meerr });
 }
