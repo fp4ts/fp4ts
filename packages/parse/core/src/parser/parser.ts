@@ -10,6 +10,7 @@ import {
   EvalF,
   Functor,
   FunctorFilter,
+  IdentityF,
   Monad,
   MonoidK,
   Option,
@@ -46,7 +47,7 @@ import {
 
 export type ParserT<S, M, A> = ParserTBase<S, M, A>;
 
-export type Parser<S, A> = ParserT<S, EvalF, A>;
+export type Parser<S, A> = ParserT<S, IdentityF, A>;
 
 export const ParserT: ParserTObj = function (runParserT) {
   return makeParserT(runParserT);

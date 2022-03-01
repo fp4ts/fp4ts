@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, throwError } from '@fp4ts/core';
-import { EvalF, None, Some } from '@fp4ts/cats';
+import { IdentityF, None, Some } from '@fp4ts/cats';
 import {
   Consumed,
   Failure,
@@ -27,7 +27,10 @@ const digitRegex = /^[0-9]/;
 const alphaNumRegex = /^\w/;
 const whitespaceRegex = /^\s/;
 
-export const satisfy = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+export const satisfy = <
+  S extends HasTokenType<Char> = StringSource,
+  F = IdentityF,
+>(
   p: (c: Char) => boolean,
 ): ParserT<S, F, Char> =>
   ParserT.tokenPrim<S, F, Char>(
@@ -37,8 +40,8 @@ export const satisfy = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
   );
 
 /* eslint-disable prettier/prettier */
-export function oneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(lo: number, hi: number): ParserT<S, F, Char>;
-export function oneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(chars: string): ParserT<S, F, Char>;
+export function oneOf<S extends HasTokenType<Char> = StringSource, F = IdentityF>(lo: number, hi: number): ParserT<S, F, Char>;
+export function oneOf<S extends HasTokenType<Char> = StringSource, F = IdentityF>(chars: string): ParserT<S, F, Char>;
 export function oneOf(lo: any, hi?: any): any {
   return hi === undefined
     ? satisfy(c => lo.includes(c))
@@ -47,8 +50,8 @@ export function oneOf(lo: any, hi?: any): any {
 /* eslint-enable prettier/prettier */
 
 /* eslint-disable prettier/prettier */
-export function noneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(lo: number, hi: number): ParserT<S, F, Char>;
-export function noneOf<S extends HasTokenType<Char> = StringSource, F = EvalF>(chars: string): ParserT<S, F, Char>;
+export function noneOf<S extends HasTokenType<Char> = StringSource, F = IdentityF>(lo: number, hi: number): ParserT<S, F, Char>;
+export function noneOf<S extends HasTokenType<Char> = StringSource, F = IdentityF>(chars: string): ParserT<S, F, Char>;
 export function noneOf(lo: any, hi?: any): any {
   return hi === undefined
     ? satisfy(c => !lo.includes(c))
@@ -56,36 +59,39 @@ export function noneOf(lo: any, hi?: any): any {
 }
 /* eslint-enable prettier/prettier */
 
-export const char = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+export const char = <
+  S extends HasTokenType<Char> = StringSource,
+  F = IdentityF,
+>(
   c: Char,
 ): ParserT<S, F, Char> => satisfy<S, F>(x => x === c)['<?>'](`'${c}'`);
 
 export const anyChar = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, Char> => satisfy(() => true);
 
 export const letter = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => alphaRegex.test(x))['<?>']('letter');
 
 export const digit = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => digitRegex.test(x))['<?>']('digit');
 export const digits = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, string> =>
   digit<S, F>()
     .repAs('', (x, y) => x + y)
     ['<?>']('digits');
 export const digits1 = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, string> =>
   digit<S, F>()
     .repAs1<string>((x, y) => x + y)
@@ -93,23 +99,23 @@ export const digits1 = <
 
 export const alphaNum = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => alphaNumRegex.test(x))['<?>']('letter or digit');
 export const space = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, Char> =>
   satisfy<S, F>(x => whitespaceRegex.test(x))['<?>']('space');
 export const spaces = <
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(): ParserT<S, F, void> => space<S, F>().skipRep()['<?>']('white space');
 
 export const parens = <
   A,
   S extends HasTokenType<Char> = StringSource,
-  F = EvalF,
+  F = IdentityF,
 >(
   p: ParserT<S, F, A>,
 ): ParserT<S, F, A> => p.between(char('(' as Char), char(')' as Char));
@@ -173,7 +179,10 @@ export const string = (str: string): Parser<StringSource, string> =>
       });
 
 const arrToString = (xs: Char[]): string => xs.join('');
-export const stringF = <S extends HasTokenType<Char> = StringSource, F = EvalF>(
+export const stringF = <
+  S extends HasTokenType<Char> = StringSource,
+  F = IdentityF,
+>(
   str: string,
 ): ParserT<S, F, string> => {
   const tts = str.split('') as TokenType<S>[];
