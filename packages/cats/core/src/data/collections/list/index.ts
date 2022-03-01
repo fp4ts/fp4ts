@@ -6,3 +6,4 @@
 import './syntax';
 
 export { List, ListF } from './list';
+export { ListBuffer } from './list-buffer';

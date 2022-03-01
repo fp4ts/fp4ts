@@ -20,6 +20,7 @@ import { Iter } from '../iterator';
 
 import { Cons, List, View } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
+import { ListBuffer } from './list-buffer';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -491,18 +492,13 @@ export const slice_ = <A>(xs: List<A>, from: number, until: number): List<A> =>
   pipe(xs, drop(from), take(until - from));
 
 export const splitAt_ = <A>(xs: List<A>, idx: number): [List<A>, List<A>] => {
-  if (xs === nil || idx-- <= 0) return [nil, xs];
-
-  const ys = new Cons((xs as Cons<A>)._head, nil);
-  let cur = ys;
-  xs = tail(xs);
-  while (nonEmpty(xs) && idx-- > 0) {
-    const tmp = new Cons((xs as Cons<A>)._head, nil);
-    cur._tail = tmp;
-    cur = tmp;
+  const b = new ListBuffer<A>();
+  let i = 0;
+  while (xs !== nil && i++ < idx) {
+    b.addOne((xs as Cons<A>)._head);
     xs = (xs as Cons<A>)._tail;
   }
-  return [ys, xs];
+  return [b.toList, xs];
 };
 
 export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> => {
