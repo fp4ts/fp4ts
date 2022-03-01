@@ -313,7 +313,7 @@ export class VectorBuilder<A> {
     }
   }
 
-  public toVector(): Vector<A> {
+  public get toVector(): Vector<A> {
     const len = this.len1 + this.lenRest;
     const realLen = len - this.offset;
     if (realLen === 0) return Vector0;

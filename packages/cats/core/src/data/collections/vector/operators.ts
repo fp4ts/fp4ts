@@ -152,7 +152,7 @@ export function* reverseIterator<A>(v: Vector<A>): Generator<A> {
 }
 
 export const reverse = <A>(xs: Vector<A>): Vector<A> =>
-  new VectorBuilder<A>().addIterator(reverseIterator(xs)).toVector();
+  new VectorBuilder<A>().addIterator(reverseIterator(xs)).toVector;
 
 export const toArray = <A>(xs: Vector<A>): A[] => {
   const res = new Array<A>(xs.size);
@@ -219,7 +219,7 @@ export const lookup_ = <K, V>(
 
 export const filter_ = <A>(xs: Vector<A>, p: (a: A) => boolean): Vector<A> => {
   const iter = Iter.filter_(iterator(xs), p);
-  return new VectorBuilder<A>().addIterator(iter).toVector();
+  return new VectorBuilder<A>().addIterator(iter).toVector;
 };
 
 export const collect_ = <A, B>(
@@ -227,7 +227,7 @@ export const collect_ = <A, B>(
   f: (a: A) => Option<B>,
 ): Vector<B> => {
   const iter = Iter.collect_(iterator(xs), f);
-  return new VectorBuilder<B>().addIterator(iter).toVector();
+  return new VectorBuilder<B>().addIterator(iter).toVector;
 };
 
 export const collectWhile_ = <A, B>(
@@ -235,7 +235,7 @@ export const collectWhile_ = <A, B>(
   f: (a: A) => Option<B>,
 ): Vector<B> => {
   const iter = Iter.collectWhile_(iterator(xs), f);
-  return new VectorBuilder<B>().addIterator(iter).toVector();
+  return new VectorBuilder<B>().addIterator(iter).toVector;
 };
 
 export const flatMap_ = <A, B>(
@@ -244,7 +244,7 @@ export const flatMap_ = <A, B>(
 ): Vector<B> => {
   const b = new VectorBuilder<B>();
   forEach_(xs, x => b.addVector(f(x)));
-  return b.toVector();
+  return b.toVector;
 };
 
 export const coflatMap_ = <A, B>(
@@ -258,7 +258,7 @@ export const coflatMap_ = <A, B>(
     xs = tail(xs);
   }
 
-  return b.toVector();
+  return b.toVector;
 };
 
 export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>
@@ -308,7 +308,7 @@ export const zipWith_ =
   <A, B>(xs: Vector<A>, ys: Vector<B>) =>
   <C>(f: (a: A, b: B) => C): Vector<C> => {
     const iter = Iter.zipWith_(iterator(xs), iterator(ys))(f);
-    return new VectorBuilder<C>().addIterator(iter).toVector();
+    return new VectorBuilder<C>().addIterator(iter).toVector;
   };
 
 export const zipAll_ = <A, B>(
@@ -328,7 +328,7 @@ export const zipAllWith_ =
       defaultX,
       defaultY,
     )(f);
-    return b.addIterator(iter).toVector();
+    return b.addIterator(iter).toVector;
   };
 
 export const partition_ = <A, L, R>(
@@ -347,7 +347,7 @@ export const partition_ = <A, L, R>(
     }
   });
 
-  return [l.toVector(), r.toVector()];
+  return [l.toVector, r.toVector];
 };
 
 export const scanLeft_ = <A, B>(
@@ -360,7 +360,7 @@ export const scanLeft_ = <A, B>(
     z = f(z, x);
     r.addOne(z);
   });
-  return r.toVector();
+  return r.toVector;
 };
 
 export const scanLeft1_ = <A>(xs: Vector<A>, f: (b: A, a: A) => A): Vector<A> =>

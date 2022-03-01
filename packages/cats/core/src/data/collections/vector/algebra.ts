@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { throwError } from '@fp4ts/core';
-import { Iter } from '../iterator';
 import { Option, Some, None } from '../../option';
 import {
   BITS,
@@ -18,8 +17,6 @@ import {
   WIDTH4,
   BITS5,
   WIDTH5,
-  BITS6,
-  WIDTH6,
   LASTWIDTH,
   Log2ConcatFaster,
   Arr1,
@@ -95,10 +92,7 @@ export abstract class Vector<A> {
       return v;
     }
 
-    return new VectorBuilder<B>()
-      .initFromVector(this)
-      .addVector(that)
-      .toVector();
+    return new VectorBuilder<B>().initFromVector(this).addVector(that).toVector;
   }
 }
 

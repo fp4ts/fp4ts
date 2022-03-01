@@ -10,7 +10,9 @@ import { Eval } from './eval';
 import { UnorderedFoldable } from './unordered-foldable';
 import {
   List,
+  ListBuffer,
   Vector,
+  VectorBuilder,
   Option,
   Some,
   None,
@@ -123,20 +125,11 @@ export const Foldable = Object.freeze({
       },
 
       toList: <A>(fa: Kind<F, [A]>) =>
-        List.fromArray(
-          self.foldLeft_(fa, [] as A[], (as, a) => {
-            as.push(a);
-            return as;
-          }),
-        ),
+        self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
 
       toVector: <A>(fa: Kind<F, [A]>) =>
-        Vector.fromArray(
-          self.foldLeft_(fa, [] as A[], (as, a) => {
-            as.push(a);
-            return as;
-          }),
-        ),
+        self.foldLeft_(fa, new VectorBuilder<A>(), (as, a) => as.addOne(a))
+          .toVector,
 
       ...UnorderedFoldable.of({
         unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),

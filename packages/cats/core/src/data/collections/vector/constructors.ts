@@ -18,13 +18,13 @@ export const fromArray = <A>(xs: A[]): Vector<A> =>
     ? Vector0
     : xs.length < WIDTH
     ? new Vector1(xs)
-    : xs.reduce((b, x) => b.addOne(x), new VectorBuilder<A>()).toVector();
+    : xs.reduce((b, x) => b.addOne(x), new VectorBuilder<A>()).toVector;
 
 export const fromList = <A>(xs: List<A>): Vector<A> =>
   fromIterator(xs.iterator);
 
 export const fromIterator = <A>(iter: Iterator<A>): Vector<A> =>
-  new VectorBuilder<A>().addIterator(iter).toVector();
+  new VectorBuilder<A>().addIterator(iter).toVector;
 
 export const tailRecM_ = <S, A>(
   s: S,
@@ -46,5 +46,5 @@ export const tailRecM_ = <S, A>(
     }
   }
 
-  return buf.toVector();
+  return buf.toVector;
 };
