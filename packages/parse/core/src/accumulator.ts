@@ -80,7 +80,7 @@ class StringBuilder extends Builder<string, string> {
 }
 
 class ListBuilder<A> extends Builder<A, List<A>> {
-  private buffer: ListBuffer<A>;
+  private buffer: ListBuffer<A> = new ListBuffer<A>();
 
   public get result(): List<A> {
     return this.buffer.toList;
