@@ -116,10 +116,7 @@ export const skipRep_ = <S, F, A>(p: ParserT<S, F, A>): ParserT<S, F, void> =>
   repAs_(p, undefined, () => {});
 
 export const rep_ = <S, F, A>(pa: ParserT<S, F, A>): ParserT<S, F, List<A>> =>
-  map_(
-    repAs_(pa, List.empty as List<A>, (xs, x) => xs.prepend(x)),
-    xs => xs.reverse,
-  );
+  repAs_(pa, Accumulator.list());
 
 export function repAs_<S, F, A, B>(
   p: ParserT<S, F, A>,

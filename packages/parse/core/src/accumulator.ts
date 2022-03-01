@@ -1,3 +1,5 @@
+import { List, ListBuffer } from '@fp4ts/cats';
+
 export interface Accumulator<A, Out> {
   newBuilder(): Builder<A, Out>;
 }
@@ -12,6 +14,9 @@ export const Accumulator = Object.freeze({
 
   string: (): Accumulator<string, string> =>
     Accumulator.fromMkBuilder(() => new StringBuilder()),
+
+  list: <A>(): Accumulator<A, List<A>> =>
+    Accumulator.fromMkBuilder(() => new ListBuilder()),
 });
 
 export interface Accumulator1<A, Out> {
@@ -65,6 +70,19 @@ class StringBuilder extends Builder<string, string> {
 
   public append(a: string): this {
     this.result += a;
+    return this;
+  }
+}
+
+class ListBuilder<A> extends Builder<A, List<A>> {
+  private buffer: ListBuffer<A>;
+
+  public get result(): List<A> {
+    return this.buffer.toList;
+  }
+
+  public append(a: A): this {
+    this.buffer.addOne(a);
     return this;
   }
 }
