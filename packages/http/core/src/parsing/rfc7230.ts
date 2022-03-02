@@ -5,7 +5,14 @@
 
 import { List } from '@fp4ts/cats';
 import { Char, id } from '@fp4ts/core';
-import { Accumulator, Parser, text, Rfc5234, StringSource } from '@fp4ts/parse';
+import {
+  Accumulator,
+  Parser,
+  text,
+  Rfc5234,
+  StringSource,
+  Accumulator1,
+} from '@fp4ts/parse';
 
 /**
  * Parsers for the common rules of RFC7230. These rules are referenced by several RFCs.
@@ -18,7 +25,7 @@ export const tchar: Parser<StringSource, Char> = text
   .orElse(() => Rfc5234.alpha());
 
 export const token: Parser<StringSource, string> = tchar.repAs1(
-  Accumulator.string(),
+  Accumulator1.string(),
 );
 
 // `obs-text = %x80-FF`

@@ -38,6 +38,9 @@ export const Accumulator1 = Object.freeze({
   list: <A>(): Accumulator1<A, List<A>> =>
     Accumulator1.fromMkBuilder(fst => new ListBuilder1(fst)),
 
+  string: (): Accumulator1<string, string> =>
+    Accumulator1.fromMkBuilder(fst => new StringBuilder(fst)),
+
   void: <A>(): Accumulator1<A, void> => Accumulator.make(undefined, () => {}),
 });
 
