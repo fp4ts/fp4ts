@@ -30,6 +30,7 @@ import {
   Writer,
   Set,
   Endo,
+  NonEmptyList,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -92,6 +93,9 @@ export const fp4tsList = <A>(
   arbA: Arbitrary<A>,
   constraints: ListConstraints = {},
 ): Arbitrary<List<A>> => fc.array(arbA, constraints).map(List.fromArray);
+
+export const fp4tsNel = <A>(arbA: Arbitrary<A>): Arbitrary<NonEmptyList<A>> =>
+  fc.tuple(arbA, fp4tsList(arbA)).map(([hd, tl]) => NonEmptyList(hd, tl));
 
 interface VectorConstraints {
   readonly minLength?: number;
