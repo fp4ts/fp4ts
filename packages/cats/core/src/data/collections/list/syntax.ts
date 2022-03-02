@@ -13,6 +13,7 @@ import { Ior } from '../../ior';
 import { Option } from '../../option';
 import { Either } from '../../either';
 import { Vector } from '../vector';
+import { NonEmptyList } from '../non-empty-list';
 
 import { List } from './algebra';
 import {
@@ -77,6 +78,7 @@ import {
   forEach_,
   popLast,
   coflatMap_,
+  toNel,
 } from './operators';
 
 declare module './algebra' {
@@ -101,6 +103,7 @@ declare module './algebra' {
     readonly toArray: A[];
     readonly toList: List<A>;
     readonly toVector: Vector<A>;
+    readonly toNel: Option<NonEmptyList<A>>;
 
     readonly iterator: Iterator<A>;
     readonly reverseIterator: Iterator<A>;
@@ -292,6 +295,12 @@ Object.defineProperty(List.prototype, 'toList', {
 Object.defineProperty(List.prototype, 'toVector', {
   get<A>(this: List<A>): Vector<A> {
     return toVector(this);
+  },
+});
+
+Object.defineProperty(List.prototype, 'toNel', {
+  get() {
+    return toNel(this);
   },
 });
 

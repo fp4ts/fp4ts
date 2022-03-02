@@ -17,6 +17,7 @@ import { Array } from '../array';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
 import { Iter } from '../iterator';
+import { NonEmptyList } from '../non-empty-list';
 
 import { Cons, List, View } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
@@ -100,6 +101,9 @@ export const toArray = <A>(xs: List<A>): A[] => {
   }
   return results;
 };
+
+export const toNel = <A>(xs: List<A>): Option<NonEmptyList<A>> =>
+  NonEmptyList.fromList(xs);
 
 export const toVector = <A>(xs: List<A>): Vector<A> => {
   let results: Vector<A> = Vector.empty;

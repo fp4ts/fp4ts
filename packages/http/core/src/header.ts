@@ -9,12 +9,15 @@ import {
   IdentityF,
   Ior,
   List,
-  ListF,
   None,
+  NonEmptyList,
+  NonEmptyListF,
   Option,
   Semigroup,
   Some,
 } from '@fp4ts/cats';
+
+type Nel<A> = NonEmptyList<A>;
 
 export interface Header<H, T extends HeaderType> {
   headerName: string;
@@ -33,19 +36,24 @@ export class RawHeader {
   ) {}
 }
 
-export type ToRaw = { toRaw(): List<RawHeader> } | [string, string] | RawHeader;
+export type ToRaw =
+  | { toRaw(): NonEmptyList<RawHeader> }
+  | [string, string]
+  | RawHeader;
 
 export interface SelectHeader<F, A> {
   readonly header: Header<A, any>;
   toRaw1(fa: A): RawHeader;
-  toRaw(fa: Kind<F, [A]>): List<RawHeader>;
-  from(hs: List<RawHeader>): Option<Ior<List<Error>, Kind<F, [A]>>>;
+  toRaw(fa: Kind<F, [A]>): NonEmptyList<RawHeader>;
+  from(hs: List<RawHeader>): Option<Ior<NonEmptyList<Error>, Kind<F, [A]>>>;
 }
 
-export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListF, A> {
+export class RecurringSelectHeaderNoMerge<A>
+  implements SelectHeader<NonEmptyListF, A>
+{
   public constructor(public readonly header: Header<A, 'recurring'>) {}
 
-  toRaw(fa: List<A>): List<RawHeader> {
+  toRaw(fa: NonEmptyList<A>): NonEmptyList<RawHeader> {
     return fa.map(a => this.toRaw1(a));
   }
 
@@ -53,51 +61,47 @@ export class RecurringSelectHeaderNoMerge<A> implements SelectHeader<ListF, A> {
     return new RawHeader(this.header.headerName, this.header.value(a));
   }
 
-  from(hs: List<RawHeader>): Option<Ior<List<Error>, List<A>>> {
-    const rs = hs
-      .filter(
-        h =>
-          h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
-      )
-      .map(rh =>
-        Ior.fromEither(this.header.parse(rh.headerValue).bimap(List, List)),
+  from(hs: List<RawHeader>): Option<Ior<Nel<Error>, Nel<A>>> {
+    const S = NonEmptyList.SemigroupK;
+    return hs.foldLeft(None as Option<Ior<Nel<Error>, Nel<A>>>, (a, h) => {
+      if (h.headerName.toLowerCase() !== this.header.headerName.toLowerCase())
+        return a;
+
+      const aa = Ior.fromEither(this.header.parse(h.headerValue)).bimap(
+        NonEmptyList.pure,
+        NonEmptyList.pure,
       );
 
-    return rs.isEmpty
-      ? None
-      : Some(
-          rs.foldLeft(
-            Ior.Both<List<Error>, List<A>>(List.empty, List.empty),
-            (r, n) =>
-              r.combine(
-                List.SemigroupK.algebra<Error>(),
-                List.SemigroupK.algebra<A>(),
-              )(n),
-          ),
-        );
+      return a.fold(
+        () => Some(aa),
+        a => Some(a.combine(S.algebra(), S.algebra())(aa)),
+      );
+    });
   }
 }
 
 export class SingleSelectHeader<A> implements SelectHeader<IdentityF, A> {
   public constructor(public readonly header: Header<A, 'single'>) {}
 
-  toRaw(fa: A): List<RawHeader> {
-    return List(this.toRaw1(fa));
+  toRaw(fa: A): NonEmptyList<RawHeader> {
+    return NonEmptyList.pure(this.toRaw1(fa));
   }
 
   toRaw1(fa: A): RawHeader {
     return new RawHeader(this.header.headerName, this.header.value(fa));
   }
 
-  from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
+  from(hs: List<RawHeader>): Option<Ior<NonEmptyList<Error>, A>> {
     return hs
       .filter(
         h =>
           h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
       )
-      .headOption.map(h =>
-        Ior.fromEither(this.header.parse(h.headerValue).leftMap(List)),
-      );
+      .map(h =>
+        Ior.fromEither(
+          this.header.parse(h.headerValue).leftMap(NonEmptyList.pure),
+        ),
+      ).headOption;
   }
 }
 
@@ -109,30 +113,28 @@ export class RecurringSelectHeaderMerge<A>
     private readonly S: Semigroup<A>,
   ) {}
 
-  toRaw(fa: A): List<RawHeader> {
-    return List(this.toRaw1(fa));
+  toRaw(fa: A): NonEmptyList<RawHeader> {
+    return NonEmptyList.pure(this.toRaw1(fa));
   }
 
   toRaw1(a: A): RawHeader {
     return new RawHeader(this.header.headerName, this.header.value(a));
   }
 
-  from(hs: List<RawHeader>): Option<Ior<List<Error>, A>> {
-    const rs = hs
-      .filter(
-        h =>
-          h.headerName.toLowerCase() === this.header.headerName.toLowerCase(),
-      )
-      .map(rh =>
-        Ior.fromEither(this.header.parse(rh.headerValue).leftMap(List)),
+  from(hs: List<RawHeader>): Option<Ior<NonEmptyList<Error>, A>> {
+    return hs.foldLeft(None as Option<Ior<NonEmptyList<Error>, A>>, (a, h) => {
+      if (h.headerName.toLowerCase() !== this.header.headerName.toLowerCase())
+        return a;
+
+      const aa = Ior.fromEither(
+        this.header.parse(h.headerValue).leftMap(NonEmptyList.pure),
       );
 
-    return rs.isEmpty
-      ? None
-      : Some(
-          rs.foldLeft1((r, n) =>
-            r.combine(List.SemigroupK.algebra<Error>(), this.S)(n),
-          ),
-        );
+      const S = NonEmptyList.SemigroupK;
+      return a.fold(
+        () => Some(aa),
+        a => Some(a.combine(S.algebra(), this.S)(aa)),
+      );
+    });
   }
 }

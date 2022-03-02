@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { List, Option, Some, None } from '@fp4ts/cats';
+import { List, Option, NonEmptyList } from '@fp4ts/cats';
 import { RawHeader, SelectHeader, ToRaw } from '../header';
 
 export class Headers {
@@ -24,11 +24,10 @@ export class Headers {
     return sh.from(this.headers).flatMap(r => r.toOption);
   }
 
-  public getRaw(key: string): Option<List<string>> {
-    const xs = this.headers
+  public getRaw(key: string): Option<NonEmptyList<string>> {
+    return this.headers
       .filter(x => x.headerName.toLowerCase() === key.toLowerCase())
-      .map(x => x.headerValue);
-    return xs.nonEmpty ? Some(xs) : None;
+      .map(x => x.headerValue).toNel;
   }
 
   public put(...hs: ToRaw[]): Headers {
@@ -52,7 +51,7 @@ export class Headers {
 
   private static convertToRaw = (h: ToRaw): List<RawHeader> => {
     if (typeof h === 'object' && 'toRaw' in h) {
-      return h.toRaw();
+      return h.toRaw().toList;
     }
     if (Array.isArray(h) && h.length === 2) {
       return List(new RawHeader(h[0], h[1]));

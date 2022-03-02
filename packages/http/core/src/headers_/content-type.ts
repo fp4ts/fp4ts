@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, IdentityF, List } from '@fp4ts/cats';
+import { Either, IdentityF, NonEmptyList } from '@fp4ts/cats';
 import { Header, SelectHeader, RawHeader, SingleSelectHeader } from '../header';
 import { MediaType } from '../media-type';
 
@@ -15,7 +15,7 @@ export const ContentType: ContentTypeObj = function (mt) {
 export class ContentTypeHeader {
   public constructor(public readonly mediaType: MediaType) {}
 
-  public toRaw(): List<RawHeader> {
+  public toRaw(): NonEmptyList<RawHeader> {
     return ContentType.Select.toRaw(this);
   }
 }

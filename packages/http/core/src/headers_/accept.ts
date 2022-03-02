@@ -4,7 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Lazy, lazyVal, tupled } from '@fp4ts/core';
-import { IdentityF, List, Map, Ord, Semigroup } from '@fp4ts/cats';
+import {
+  IdentityF,
+  List,
+  NonEmptyList,
+  Map,
+  Ord,
+  Semigroup,
+} from '@fp4ts/cats';
 import { Parser, StringSource } from '@fp4ts/parse';
 
 import { QValue } from '../q-value';
@@ -31,7 +38,7 @@ class AcceptHeader {
     public readonly tail: List<MediaRangeAndQValue>,
   ) {}
 
-  public toRaw(): List<RawHeader> {
+  public toRaw(): NonEmptyList<RawHeader> {
     return Accept.Select.toRaw(this);
   }
 

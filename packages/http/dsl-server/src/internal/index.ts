@@ -280,7 +280,7 @@ export function route<F>(F: Concurrent<F, Error>) {
       pipe(
         req.headers
           .getRaw(a.key)
-          .flatMap(xs => xs.headOption)
+          .map(xs => xs.head)
           .traverse(RouteResult.Monad)(
           compose(RouteResult.fromEitherFatal, parseHeader),
         ),

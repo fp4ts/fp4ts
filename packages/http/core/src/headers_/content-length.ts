@@ -7,7 +7,7 @@ import {
   Either,
   IdentityF,
   Left,
-  List,
+  NonEmptyList,
   None,
   Option,
   Right,
@@ -23,7 +23,7 @@ export const ContentLength: ContentLengthObj = function (n: number) {
 class ContentLengthHeader {
   public constructor(public readonly length: number) {}
 
-  public toRaw(): List<RawHeader> {
+  public toRaw(): NonEmptyList<RawHeader> {
     return ContentLength.Select.toRaw(this);
   }
 }

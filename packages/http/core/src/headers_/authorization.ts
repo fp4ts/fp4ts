@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IdentityF, List } from '@fp4ts/cats';
+import { IdentityF, NonEmptyList } from '@fp4ts/cats';
 import { lazyVal } from '@fp4ts/core';
 import { Credentials } from '../credentials';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
@@ -17,7 +17,7 @@ export const Authorization: AuthorizationObj = function (creds) {
 class AuthorizationHeader {
   public constructor(public readonly credentials: Credentials) {}
 
-  public toRaw(): List<RawHeader> {
+  public toRaw(): NonEmptyList<RawHeader> {
     return Authorization.Select.toRaw(this);
   }
 }
