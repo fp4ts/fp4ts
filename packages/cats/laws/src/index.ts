@@ -25,8 +25,16 @@ export * from './traversable-laws';
 export * from './unordered-foldable-laws';
 export * from './unordered-traversable-laws';
 export * from './bifunctor-laws';
+
 export * from './coflat-map-laws';
 export * from './comonad-laws';
+
+export * from './profunctor-laws';
+export * from './strong-laws';
+export * from './compose-laws';
+export * from './category-laws';
+export * from './choice-laws';
+export * from './arrow-laws';
 
 export * from './disciplines';
 

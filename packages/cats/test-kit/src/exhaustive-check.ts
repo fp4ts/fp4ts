@@ -8,6 +8,10 @@ import { MiniInt } from './mini-int';
 
 export class ExhaustiveCheck<A> {
   public constructor(public readonly allValues: List<A>) {}
+
+  public product<B>(that: ExhaustiveCheck<B>): ExhaustiveCheck<[A, B]> {
+    return tuple2(this, that);
+  }
 }
 
 export const miniInt = (): ExhaustiveCheck<MiniInt> =>

@@ -26,3 +26,10 @@ export * from './bifunctor-suite';
 
 export * from './coflat-map-suite';
 export * from './comonad-suite';
+
+export * from './profunctor-suite';
+export * from './strong-suite';
+export * from './compose-suite';
+export * from './category-suite';
+export * from './choice-suite';
+export * from './arrow-suite';
