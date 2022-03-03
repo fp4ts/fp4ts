@@ -19,6 +19,7 @@ import {
   Some,
   Ior,
   FunctionK,
+  Monad,
 } from '@fp4ts/cats';
 import {
   Temporal,
@@ -1169,81 +1170,74 @@ export const zipAllWith_ =
 export const merge_ =
   <F>(F: Concurrent<F, Error>) =>
   <A>(s1: Stream<F, A>, s2: Stream<F, A>): Stream<F, A> => {
-    const fStream = pipe(
-      F.Do,
-      F.bindTo('interrupt', F.deferred<void>()),
-      F.bindTo('resultL', F.deferred<Either<Error, void>>()),
-      F.bindTo('resultR', F.deferred<Either<Error, void>>()),
-      F.bindTo('otherSideDone', F.ref<boolean>(false)),
-      F.bindTo('resultChan', Channel.unbounded<F, Stream<F, A>>(F)),
-      F.map(({ interrupt, resultL, resultR, otherSideDone, resultChan }) => {
-        const watchInterrupted = (s: Stream<F, A>): Stream<F, A> =>
-          interruptWhen_(s, F.attempt(interrupt.get()));
+    const fStream = Monad.Do(F)(function* (_) {
+      const interrupt = yield* _(F.deferred<void>());
+      const resultL = yield* _(F.deferred<Either<Error, void>>());
+      const resultR = yield* _(F.deferred<Either<Error, void>>());
+      const otherSideDone = yield* _(F.ref<boolean>(false));
+      const resultChan = yield* _(Channel.unbounded<F, Stream<F, A>>(F));
+      const watchInterrupted = (s: Stream<F, A>): Stream<F, A> =>
+        interruptWhen_(s, F.attempt(interrupt.get()));
 
-        const doneAndClose: Kind<F, [void]> = F.flatten(
-          otherSideDone.modify(done =>
-            done ? [true, F.void(resultChan.close)] : [true, F.unit],
+      const doneAndClose: Kind<F, [void]> = F.flatten(
+        otherSideDone.modify(done =>
+          done ? [true, F.void(resultChan.close)] : [true, F.unit],
+        ),
+      );
+
+      const signalInterruption: Kind<F, [void]> = interrupt.complete();
+
+      const go = (
+        pull: Pull<F, A, void>,
+        sem: Semaphore<F>,
+      ): Pull<F, A, void> =>
+        Pull.evalF(sem.acquire())['>>>'](() =>
+          pull.uncons.flatMap(opt =>
+            opt.fold(
+              () => Pull.done(),
+              ([hd, tl]) => {
+                const send = resultChan.send(
+                  onFinalize_(F)(emitChunk(hd), sem.release()),
+                );
+                return Pull.evalF(send)['>>>'](() => go(tl, sem));
+              },
+            ),
           ),
         );
 
-        const signalInterruption: Kind<F, [void]> = interrupt.complete();
-
-        const go = (
-          pull: Pull<F, A, void>,
-          sem: Semaphore<F>,
-        ): Pull<F, A, void> =>
-          Pull.evalF(sem.acquire())['>>>'](() =>
-            pull.uncons.flatMap(opt =>
-              opt.fold(
-                () => Pull.done(),
-                ([hd, tl]) => {
-                  const send = resultChan.send(
-                    onFinalize_(F)(emitChunk(hd), sem.release()),
-                  );
-                  return Pull.evalF(send)['>>>'](() => go(tl, sem));
-                },
-              ),
+      const runStream = (
+        s: Stream<F, A>,
+        whenDone: Deferred<F, Either<Error, void>>,
+      ): Kind<F, [void]> =>
+        F.flatMap_(Semaphore.withPermits(F)(1), sem => {
+          const str = watchInterrupted(go(s.pull, sem).stream());
+          return F.flatMap_(F.attempt(str.compileConcurrent(F).drain), r =>
+            r.fold(
+              () => F.productR_(whenDone.complete(r), signalInterruption),
+              () => F.productR_(whenDone.complete(r), doneAndClose),
             ),
           );
+        });
 
-        const runStream = (
-          s: Stream<F, A>,
-          whenDone: Deferred<F, Either<Error, void>>,
-        ): Kind<F, [void]> =>
-          F.flatMap_(Semaphore.withPermits(F)(1), sem => {
-            const str = watchInterrupted(go(s.pull, sem).stream());
-            return F.flatMap_(F.attempt(str.compileConcurrent(F).drain), r =>
-              r.fold(
-                () => F.productR_(whenDone.complete(r), signalInterruption),
-                () => F.productR_(whenDone.complete(r), doneAndClose),
-              ),
-            );
-          });
-
-        const runAtEnd: Kind<F, [void]> = pipe(
-          F.Do,
-          F.bind(signalInterruption),
-          F.bindTo('left', resultL.get()),
-          F.bindTo('right', resultR.get()),
-          F.flatMap(({ left, right }) =>
-            CompositeFailure.fromResults(left, right).fold(
-              F.throwError,
-              F.pure,
-            ),
-          ),
+      const runAtEnd: Kind<F, [void]> = Monad.Do(F)(function* (_) {
+        yield* _(signalInterruption);
+        const left = yield* _(resultL.get());
+        const right = yield* _(resultR.get());
+        return yield* _(
+          CompositeFailure.fromResults(left, right).fold(F.throwError, F.pure),
         );
+      });
 
-        const runStreams = F.productR_(
-          F.fork(runStream(s1, resultL)),
-          F.fork(runStream(s2, resultR)),
-        );
+      const runStreams = F.productR_(
+        F.fork(runStream(s1, resultL)),
+        F.fork(runStream(s2, resultR)),
+      );
 
-        return flatMap_(
-          bracket(runStreams, () => runAtEnd),
-          () => watchInterrupted(flatten(resultChan.stream)),
-        );
-      }),
-    );
+      return flatMap_(
+        bracket(runStreams, () => runAtEnd),
+        () => watchInterrupted(flatten(resultChan.stream)),
+      );
+    });
 
     return flatten(evalF(fStream));
   };
@@ -1269,154 +1263,149 @@ export const parJoin_ =
     assert(maxOpen > 0, 'maxOpen has to be >0');
     if (maxOpen === 1) return flatten(outer);
 
-    const fStream = pipe(
-      F.Do,
-      F.bindTo('done', SignallingRef(F)(None as Option<Option<Error>>)),
-      F.bindTo('available', Semaphore.withPermits(F)(maxOpen)),
-      F.bindTo('running', SignallingRef(F)(1)),
-      F.bindTo('outcomes', Channel.unbounded<F, Kind<F, [void]>>(F)),
-      F.bindTo('output', Channel.synchronous<F, Chunk<A>>(F)),
-      F.map(({ done, available, running, outcomes, output }) => {
-        const stop = (res: Option<Error>): Kind<F, [void]> =>
-          done.update(res0 =>
-            res0.fold<Option<Option<Error>>>(
-              () => Some(res),
-              res1 =>
-                res1.fold(
-                  () => Some(res),
-                  err0 =>
-                    res.fold(
-                      () => res0,
-                      err => Some(Some(CompositeFailure.from(err0, err))),
-                    ),
-                ),
-            ),
-          );
-
-        const incrementRunning: Kind<F, [void]> = running.update(x => x + 1);
-        const decrementRunning: Kind<F, [void]> = pipe(
-          running.updateAndGet(x => x - 1),
-          F.flatMap(now => (now === 0 ? F.void(outcomes.close) : F.unit)),
-        );
-
-        const awaitWhileRunning: Kind<F, [void]> = pipe(
-          running.discrete(),
-          takeWhile(n => n > 0),
-          s => compileConcurrent(s, F),
-        ).drain;
-
-        const onOutcome = (
-          oc: Outcome<F, Error, void>,
-          cancelResult: Either<Error, void>,
-        ): Kind<F, [void]> =>
-          oc.fold(
-            () =>
-              cancelResult.fold(
-                e => stop(Some(e)),
-                () => F.unit,
-              ),
-            e =>
-              CompositeFailure.fromResults(Left(e), cancelResult).fold(
-                e => stop(Some(e)),
-                () => F.unit,
-              ),
-            fu =>
-              cancelResult.fold(
-                e => stop(Some(e)),
-                () => F.void(outcomes.send(fu)),
-              ),
-          );
-
-        const runInner = (
-          inner: Stream<F, A>,
-          outerScope: Scope<F>,
-        ): Kind<F, [void]> =>
-          F.uncancelable(() =>
-            pipe(
-              outerScope.lease,
-              F.flatTap(() =>
-                F.productR_(available.acquire(), incrementRunning),
-              ),
-              F.flatMap(lease =>
-                pipe(
-                  chunks(inner),
-                  forEach(s => F.void(output.send(s))),
-                  interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
-                  s => compileConcurrent(s, F).drain,
-                  F.finalize(oc =>
-                    pipe(
-                      lease.cancel,
-                      F.flatMap(r => onOutcome(oc, r)),
-                      F.productR(available.release()),
-                      F.productR(decrementRunning),
-                    ),
+    const fStream = Monad.Do(F)(function* (_) {
+      const done = yield* _(SignallingRef(F)(None as Option<Option<Error>>));
+      const available = yield* _(Semaphore.withPermits(F)(maxOpen));
+      const running = yield* _(SignallingRef(F)(1));
+      const outcomes = yield* _(Channel.unbounded<F, Kind<F, [void]>>(F));
+      const output = yield* _(Channel.synchronous<F, Chunk<A>>(F));
+      const stop = (res: Option<Error>): Kind<F, [void]> =>
+        done.update(res0 =>
+          res0.fold<Option<Option<Error>>>(
+            () => Some(res),
+            res1 =>
+              res1.fold(
+                () => Some(res),
+                err0 =>
+                  res.fold(
+                    () => res0,
+                    err => Some(Some(CompositeFailure.from(err0, err))),
                   ),
-                  F.handleError(() => {}),
-                  F.fork,
-                ),
               ),
-              F.void,
-            ),
-          );
-
-        const runOuter: Kind<F, [void]> = F.uncancelable(() =>
-          pipe(
-            outer,
-            flatMap(
-              inner =>
-                new Stream(
-                  Pull.getScope<F>().flatMap(outerScope =>
-                    Pull.evalF(runInner(inner, outerScope)),
-                  ),
-                ),
-            ),
-            drain,
-            interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
-            s => compileConcurrent(s, F).drain,
-            F.finalize(oc =>
-              F.productR_(onOutcome(oc, Either.rightUnit), decrementRunning),
-            ),
-            F.handleError(() => {}),
           ),
         );
 
-        const outerJoiner: Kind<F, [void]> = pipe(
-          outcomes.stream,
-          evalMap(id),
+      const incrementRunning: Kind<F, [void]> = running.update(x => x + 1);
+      const decrementRunning: Kind<F, [void]> = pipe(
+        running.updateAndGet(x => x - 1),
+        F.flatMap(now => (now === 0 ? F.void(outcomes.close) : F.unit)),
+      );
+
+      const awaitWhileRunning: Kind<F, [void]> = pipe(
+        running.discrete(),
+        takeWhile(n => n > 0),
+        s => compileConcurrent(s, F),
+      ).drain;
+
+      const onOutcome = (
+        oc: Outcome<F, Error, void>,
+        cancelResult: Either<Error, void>,
+      ): Kind<F, [void]> =>
+        oc.fold(
+          () =>
+            cancelResult.fold(
+              e => stop(Some(e)),
+              () => F.unit,
+            ),
+          e =>
+            CompositeFailure.fromResults(Left(e), cancelResult).fold(
+              e => stop(Some(e)),
+              () => F.unit,
+            ),
+          fu =>
+            cancelResult.fold(
+              e => stop(Some(e)),
+              () => F.void(outcomes.send(fu)),
+            ),
+        );
+
+      const runInner = (
+        inner: Stream<F, A>,
+        outerScope: Scope<F>,
+      ): Kind<F, [void]> =>
+        F.uncancelable(() =>
+          pipe(
+            outerScope.lease,
+            F.flatTap(() => F.productR_(available.acquire(), incrementRunning)),
+            F.flatMap(lease =>
+              pipe(
+                chunks(inner),
+                forEach(s => F.void(output.send(s))),
+                interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
+                s => compileConcurrent(s, F).drain,
+                F.finalize(oc =>
+                  pipe(
+                    lease.cancel,
+                    F.flatMap(r => onOutcome(oc, r)),
+                    F.productR(available.release()),
+                    F.productR(decrementRunning),
+                  ),
+                ),
+                F.handleError(() => {}),
+                F.fork,
+              ),
+            ),
+            F.void,
+          ),
+        );
+
+      const runOuter: Kind<F, [void]> = F.uncancelable(() =>
+        pipe(
+          outer,
+          flatMap(
+            inner =>
+              new Stream(
+                Pull.getScope<F>().flatMap(outerScope =>
+                  Pull.evalF(runInner(inner, outerScope)),
+                ),
+              ),
+          ),
+          drain,
+          interruptWhenTrue(F)(map_(done.discrete(), s => s.nonEmpty)),
           s => compileConcurrent(s, F).drain,
           F.finalize(oc =>
-            oc.fold(
-              () => F.productR_(stop(None), F.void(output.close)),
-              e => F.productR_(stop(Some(e)), F.void(output.close)),
-              () => F.productR_(stop(None), F.void(output.close)),
-            ),
+            F.productR_(onOutcome(oc, Either.rightUnit), decrementRunning),
           ),
           F.handleError(() => {}),
-        );
+        ),
+      );
 
-        const signalResult = (fiber: Fiber<F, Error, void>): Kind<F, [void]> =>
-          pipe(
-            done.get(),
-            F.flatMap(res =>
-              res.flatten.fold<Kind<F, [void]>>(
-                () => fiber.joinWithNever(F),
-                F.throwError,
-              ),
-            ),
-          );
+      const outerJoiner: Kind<F, [void]> = pipe(
+        outcomes.stream,
+        evalMap(id),
+        s => compileConcurrent(s, F).drain,
+        F.finalize(oc =>
+          oc.fold(
+            () => F.productR_(stop(None), F.void(output.close)),
+            e => F.productR_(stop(Some(e)), F.void(output.close)),
+            () => F.productR_(stop(None), F.void(output.close)),
+          ),
+        ),
+        F.handleError(() => {}),
+      );
 
-        return pipe(
-          bracket(F.productR_(F.fork(runOuter), F.fork(outerJoiner)), fiber =>
-            pipe(
-              stop(None),
-              F.productR(awaitWhileRunning),
-              F.productR(signalResult(fiber)),
+      const signalResult = (fiber: Fiber<F, Error, void>): Kind<F, [void]> =>
+        pipe(
+          done.get(),
+          F.flatMap(res =>
+            res.flatten.fold<Kind<F, [void]>>(
+              () => fiber.joinWithNever(F),
+              F.throwError,
             ),
           ),
-          flatMap(() => flatMap_(output.stream, c => emitChunk<F, A>(c))),
         );
-      }),
-    );
+
+      return pipe(
+        bracket(F.productR_(F.fork(runOuter), F.fork(outerJoiner)), fiber =>
+          pipe(
+            stop(None),
+            F.productR(awaitWhileRunning),
+            F.productR(signalResult(fiber)),
+          ),
+        ),
+        flatMap(() => flatMap_(output.stream, c => emitChunk<F, A>(c))),
+      );
+    });
 
     return flatten(evalF(fStream));
   };
@@ -1445,43 +1434,40 @@ export const interruptWhenTrue_ =
   <F>(F: Concurrent<F, Error>) =>
   <A>(s: Stream<F, A>, haltWhenTrue: Stream<F, boolean>): Stream<F, A> =>
     force(
-      pipe(
-        F.Do,
-        F.bindTo('interruptL', F.deferred<void>()),
-        F.bindTo('interruptR', F.deferred<void>()),
-        F.bindTo('backResult', F.deferred<Either<Error, void>>()),
-        F.map(({ interruptL, interruptR, backResult }) => {
-          const watch = pipe(
-            haltWhenTrue,
-            filter(id),
-            take(1),
-            interruptWhen(F.attempt(interruptR.get())),
-            s => compileConcurrent(s, F).drain,
-          );
+      Monad.Do(F)(function* (_) {
+        const interruptL = yield* _(F.deferred<void>());
+        const interruptR = yield* _(F.deferred<void>());
+        const backResult = yield* _(F.deferred<Either<Error, void>>());
+        const watch = pipe(
+          haltWhenTrue,
+          filter(id),
+          take(1),
+          interruptWhen(F.attempt(interruptR.get())),
+          s => compileConcurrent(s, F).drain,
+        );
 
-          const wakeWatch = F.finalize_(watch, oc => {
-            const r = oc.fold(
-              () => Either.rightUnit,
-              e => Left(e),
-              () => Either.rightUnit,
-            );
-            return F.productR_(backResult.complete(r), interruptL.complete());
-          });
+        const wakeWatch = F.finalize_(watch, oc => {
+          const r = oc.fold(
+            () => Either.rightUnit,
+            e => Left(e),
+            () => Either.rightUnit,
+          );
+          return F.productR_(backResult.complete(r), interruptL.complete());
+        });
 
-          const stopWatch = F.productR_(
-            interruptR.complete(),
-            F.flatMap_(backResult.get(), ea => ea.fold(F.throwError, F.pure)),
-          );
-          const backWatch = bracket(
-            F.fork(F.attempt(wakeWatch)),
-            () => stopWatch,
-          );
+        const stopWatch = F.productR_(
+          interruptR.complete(),
+          F.flatMap_(backResult.get(), ea => ea.fold(F.throwError, F.pure)),
+        );
+        const backWatch = bracket(
+          F.fork(F.attempt(wakeWatch)),
+          () => stopWatch,
+        );
 
-          return flatMap_(backWatch, () =>
-            interruptWhen_(s, F.attempt(interruptL.get())),
-          );
-        }),
-      ),
+        return flatMap_(backWatch, () =>
+          interruptWhen_(s, F.attempt(interruptL.get())),
+        );
+      }),
     );
 
 export const onFinalize_ =
@@ -1506,40 +1492,37 @@ export const interruptWhen_ = <F, A>(
 export const concurrently_ =
   <F>(F: Concurrent<F, Error>) =>
   <A, B>(s1: Stream<F, A>, s2: Stream<F, B>): Stream<F, A> => {
-    const fStream = pipe(
-      F.Do,
-      F.bindTo('interrupt', F.deferred<void>()),
-      F.bindTo('backResult', F.deferred<Either<Error, void>>()),
-      F.map(({ interrupt, backResult }) => {
-        const watch = <X>(str: Stream<F, X>) =>
-          interruptWhen_(str, F.attempt(interrupt.get()));
+    const fStream = Monad.Do(F)(function* (_) {
+      const interrupt = yield* _(F.deferred<void>());
+      const backResult = yield* _(F.deferred<Either<Error, void>>());
+      const watch = <X>(str: Stream<F, X>) =>
+        interruptWhen_(str, F.attempt(interrupt.get()));
 
-        const compileBack: Kind<F, [void]> = pipe(
-          watch(s2),
-          s_ => compileConcurrent(s_, F).drain,
-          F.finalize(oc =>
-            oc.fold(
-              () => backResult.complete(Either.rightUnit),
-              e =>
-                F.productR_(backResult.complete(Left(e)), interrupt.complete()),
-              () => backResult.complete(Either.rightUnit),
-            ),
+      const compileBack: Kind<F, [void]> = pipe(
+        watch(s2),
+        s_ => compileConcurrent(s_, F).drain,
+        F.finalize(oc =>
+          oc.fold(
+            () => backResult.complete(Either.rightUnit),
+            e =>
+              F.productR_(backResult.complete(Left(e)), interrupt.complete()),
+            () => backResult.complete(Either.rightUnit),
           ),
-        );
+        ),
+      );
 
-        const stopBack: Kind<F, [void]> = F.productR_(
-          interrupt.complete(),
-          F.flatMap_<Either<Error, void>, void>(backResult.get(), ea =>
-            ea.fold(F.throwError, F.pure),
-          ),
-        );
+      const stopBack: Kind<F, [void]> = F.productR_(
+        interrupt.complete(),
+        F.flatMap_<Either<Error, void>, void>(backResult.get(), ea =>
+          ea.fold(F.throwError, F.pure),
+        ),
+      );
 
-        return flatMap_(
-          bracket(F.fork(F.attempt(compileBack)), () => stopBack),
-          () => watch(s1),
-        );
-      }),
-    );
+      return flatMap_(
+        bracket(F.fork(F.attempt(compileBack)), () => stopBack),
+        () => watch(s1),
+      );
+    });
 
     return flatten(evalF(fStream));
   };
