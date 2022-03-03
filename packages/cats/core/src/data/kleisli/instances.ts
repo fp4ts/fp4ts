@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Fix, α, λ } from '@fp4ts/core';
+import { $, cached, Fix, α, λ } from '@fp4ts/core';
 import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
@@ -110,11 +110,12 @@ export const kleisliApplicative: <F, A>(
 
 export const kleisliAlternative: <F, A>(
   F: Alternative<F>,
-) => Alternative<$<KleisliF, [F, A]>> = F =>
+) => Alternative<$<KleisliF, [F, A]>> = cached(F =>
   Alternative.of({
     ...kleisliMonoidK(F),
     ...kleisliApplicative(F),
-  });
+  }),
+);
 
 export const kleisliApplicativeError: <F, A, E>(
   F: ApplicativeError<F, E>,

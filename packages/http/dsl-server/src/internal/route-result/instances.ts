@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Lazy, lazyVal, flow } from '@fp4ts/core';
+import { $, Lazy, lazyVal, flow, cached } from '@fp4ts/core';
 import { Alternative, Either, Functor, Left, Monad, Right } from '@fp4ts/cats';
 
 import { Route, RouteResult, RouteResultT, view } from './algebra';
@@ -76,46 +76,41 @@ export const routeResultTFunctor: <F>(
 
 export const routeResultTAlternative: <F>(
   F: Monad<F>,
-) => Alternative<$<RouteResultTF, [F]>> = F =>
+) => Alternative<$<RouteResultTF, [F]>> = cached(F =>
   Alternative.of({
     ...routeResultTMonad(F),
     emptyK: <A>() => new RouteResultT(F.pure(fail<A>(new NotFoundFailure()))),
     combineK_: orElseT_(F),
-  });
+  }),
+);
 
 export const routeResultTMonad: <F>(
   F: Monad<F>,
-) => Monad<$<RouteResultTF, [F]>> = (() => {
-  const cache = new Map<any, Monad<any>>();
-  return <F>(F: Monad<F>) => {
-    if (cache.has(F)) return cache.get(F)!;
-    const instance = Monad.of({
-      ...routeResultTFunctor(F),
-      flatMap_: flatMapT_(F),
-      pure: flow(F.pure, liftF(F)),
-      tailRecM_: <A, B>(
-        s0: A,
-        f: (a: A) => RouteResultT<F, Either<A, B>>,
-      ): RouteResultT<F, B> =>
-        new RouteResultT(
-          F.tailRecM_(s0, s0 =>
-            F.map_(f(s0).value, rr => {
-              const vr = view(rr);
-              switch (vr.tag) {
-                case 'route':
-                  return vr.value.fold(
-                    s => Left(s),
-                    a => Right(new Route(a)),
-                  );
-                case 'fail':
-                case 'fatal-fail':
-                  return Right(vr);
-              }
-            }),
-          ),
+) => Monad<$<RouteResultTF, [F]>> = cached(<F>(F: Monad<F>) =>
+  Monad.of({
+    ...routeResultTFunctor(F),
+    flatMap_: flatMapT_(F),
+    pure: flow(F.pure, liftF(F)),
+    tailRecM_: <A, B>(
+      s0: A,
+      f: (a: A) => RouteResultT<F, Either<A, B>>,
+    ): RouteResultT<F, B> =>
+      new RouteResultT(
+        F.tailRecM_(s0, s0 =>
+          F.map_(f(s0).value, rr => {
+            const vr = view(rr);
+            switch (vr.tag) {
+              case 'route':
+                return vr.value.fold(
+                  s => Left(s),
+                  a => Right(new Route(a)),
+                );
+              case 'fail':
+              case 'fatal-fail':
+                return Right(vr);
+            }
+          }),
         ),
-    });
-    cache.set(F, instance);
-    return instance;
-  };
-})();
+      ),
+  }),
+);
