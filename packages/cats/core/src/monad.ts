@@ -13,7 +13,13 @@ import { Functor } from './functor';
 /**
  * @category Type Class
  */
-export interface Monad<F> extends FlatMap<F>, Applicative<F> {}
+export interface Monad<F> extends FlatMap<F>, Applicative<F> {
+  do<Eff extends GenKind<Kind<F, [any]>, any>, R>(
+    f: (
+      fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
+    ) => Generator<Eff, R, any>,
+  ): Kind<F, [R]>;
+}
 
 export type MonadRequirements<F> = Pick<
   Monad<F>,
@@ -25,11 +31,8 @@ export const Monad = Object.freeze({
     const F = Monad.deriveFlatMap(M);
     const A = Monad.deriveApplicative(M);
 
-    const self: Monad<M> = {
-      ...F,
-      ...A,
-      ...M,
-    };
+    const self: Monad<M> = { ...F, ...A, ...M } as any;
+    self.do = Monad.Do(self);
     return self;
   },
 

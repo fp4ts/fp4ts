@@ -191,7 +191,7 @@ export class Delayed<F, env, c> {
     const RF = ReaderT.Monad<$<RouteResultTF, [F]>, Request<F>>(F);
     return (env, req) =>
       this.fold(props =>
-        Monad.Do(RF)(function* (_) {
+        RF.do(function* (_) {
           const c = yield* _(props.captures(env));
           yield* _(props.method);
           yield* _(props.accept);

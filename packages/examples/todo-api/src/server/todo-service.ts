@@ -34,7 +34,7 @@ export class TodoService<F> {
   public create = (todo: CreateTodo): Kind<F, [Todo]> => {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
-    return Monad.Do(this.F)(function* (_) {
+    return this.F.do(function* (_) {
       const id = yield* _(self.nextId.updateAndGet(id => id + 1));
       const newTodo = yield* _(self.F.pure({ ...todo, id, completed: false }));
       yield* _(self.repo.update(repo => repo.insert(newTodo.id, newTodo)));

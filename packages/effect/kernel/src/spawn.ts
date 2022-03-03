@@ -17,7 +17,6 @@ import {
   OptionTF,
   OptionT,
   Traversable,
-  Monad,
 } from '@fp4ts/cats';
 
 import { Poll } from './poll';
@@ -302,7 +301,7 @@ export const Spawn = Object.freeze({
         <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
         <C>(f: (a: A, b: B) => C) =>
           F.uncancelable(poll =>
-            Monad.Do(F)(function* (_) {
+            F.do(function* (_) {
               const fiberA = yield* _(F.fork(fa));
               const fiberB = yield* _(F.fork(fb));
 

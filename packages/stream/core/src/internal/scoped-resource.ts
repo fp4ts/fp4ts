@@ -4,15 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import {
-  Either,
-  Right,
-  Option,
-  Some,
-  None,
-  Monad,
-  MonadError,
-} from '@fp4ts/cats';
+import { Either, Right, Option, Some, None, MonadError } from '@fp4ts/cats';
 import { ExitCase, Ref, UniqueToken } from '@fp4ts/effect';
 
 import { CompilerTarget } from '../compiler';
@@ -74,7 +66,7 @@ export class ScopedResource<F> {
     const { F } = target;
     const initialState = new State(true, None, 0);
 
-    return Monad.Do(F)(function* (_) {
+    return F.do(function* (_) {
       const state = yield* _(target.ref<State<F>>(initialState));
       const token = yield* _(target.unique);
       const pru: Kind<F, [Either<Error, void>]> = F.pure(Either.rightUnit);

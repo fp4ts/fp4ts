@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
-import { pipe } from '@fp4ts/core';
 import { List, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';

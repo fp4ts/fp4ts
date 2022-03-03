@@ -43,7 +43,7 @@ export const gameLoop = <F>(
   );
 
   const guessLoop = (hidden: number): Kind<F, [void]> =>
-    Monad.Do(F)(function* (_) {
+    F.do(function* (_) {
       const guess = yield* _(enterGuess);
       const isCorrect = guess === hidden;
       yield* _(printResults(F)(hidden)(guess));
@@ -51,7 +51,7 @@ export const gameLoop = <F>(
       yield* _(isCorrect ? F.unit : guessLoop(hidden));
     });
 
-  return Monad.Do(F)(function* (_) {
+  return F.do(function* (_) {
     const hidden = yield* _(F.nextIntBetween(1, 101));
     yield* _(guessLoop(hidden));
 

@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import http from 'http';
-import { Monad } from '@fp4ts/cats';
 import { Async, Dispatcher, Resource } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
 import * as io from '@fp4ts/stream-io';
@@ -28,7 +27,7 @@ export class NodeClient<F> extends DefaultClient<F> {
     const F = this.F;
     const RA = Resource.Async(this.F);
 
-    return Monad.Do(RA)(function* (_) {
+    return RA.do(function* (_) {
       const dispatcher = yield* _(Dispatcher(F));
       const respSignal = yield* _(Resource.evalF(F.deferred<Response<F>>()));
 

@@ -11,7 +11,6 @@ import {
   Kleisli,
   FunctionK,
   KleisliF,
-  Monad,
 } from '@fp4ts/cats';
 
 import { MonadCancel } from '../monad-cancel';
@@ -183,7 +182,7 @@ export const cont =
                   ),
                 );
 
-              return Monad.Do(G)(function* (_) {
+              return G.do(function* (_) {
                 const r = yield* _(
                   lift(F.map_(F.ref(F.unit), x => x.mapK(lift))),
                 );

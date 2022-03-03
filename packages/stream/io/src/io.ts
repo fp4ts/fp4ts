@@ -5,7 +5,7 @@
 
 import { Duplex, Readable, Writable } from 'stream';
 import { Byte, fst, Kind, pipe, snd, tupled } from '@fp4ts/core';
-import { Option, Some, None, Either, Show, Monad } from '@fp4ts/cats';
+import { Option, Some, None, Either, Show } from '@fp4ts/cats';
 import { Async, Resource, SyncIO, Dispatcher, Queue } from '@fp4ts/effect';
 import { Stream, Chunk, Pull, Pipe, text } from '@fp4ts/stream-core';
 
@@ -39,14 +39,14 @@ export const suspendReadableAndRead =
     const RF = Resource.Monad<F>();
     const RS = Resource.Sync(SyncIO.Sync);
 
-    return Monad.Do(RF)(function* (_) {
+    return RF.do(function* (_) {
       const dispatcher = yield* _(Dispatcher(F));
       const queue = yield* _(
         Resource.evalF(Queue.synchronous<F, Option<void>>(F)),
       );
       const error = yield* _(Resource.evalF(F.deferred<Error>()));
 
-      const resourceReadable = Monad.Do(RS)(function* (_) {
+      const resourceReadable = RS.do(function* (_) {
         const readable = yield* _(
           Resource.make(S)(
             SyncIO(thunk),
@@ -216,7 +216,7 @@ const mkDuplex =
   (is: Stream<F, Byte>): Resource<F, [Duplex, Stream<F, Byte>]> => {
     const RF = Resource.Monad<F>();
 
-    return Monad.Do(RF)(function* (_) {
+    return RF.do(function* (_) {
       const dispatcher = yield* _(Dispatcher(F));
       const readQueue = yield* _(
         Resource.evalF(Queue.bounded(F)<Option<Chunk<Byte>>>(1)),

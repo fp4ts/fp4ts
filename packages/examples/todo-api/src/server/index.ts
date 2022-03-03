@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Map, Monad } from '@fp4ts/cats';
+import { Map } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect';
 import { serve, NodeServer } from '@fp4ts/http-node-server';
 
@@ -15,7 +15,7 @@ export const makeServer =
   <F>(F: Async<F>) =>
   (port: number = 3000): Resource<F, NodeServer> => {
     const R = Resource.Async(F);
-    return Monad.Do(R)(function* (_) {
+    return R.do(function* (_) {
       const ids = yield* _(Resource.evalF(F.ref(0)));
       const repo = yield* _(
         Resource.evalF(F.ref(Map.empty as Map<number, Todo>)),

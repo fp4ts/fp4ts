@@ -14,7 +14,6 @@ import {
   Kleisli,
   OptionTF,
   OptionT,
-  Monad,
 } from '@fp4ts/cats';
 import { Spawn, SpawnRequirements } from './spawn';
 import { Ref } from './ref';
@@ -94,7 +93,7 @@ export const Concurrent = Object.freeze({
             ]
           > =>
             self.uncancelable(poll =>
-              Monad.Do(self)(function* (_) {
+              self.do(function* (_) {
                 const result = yield* _(
                   self.deferred<Either<Outcome<F, E, A>, Outcome<F, E, B>>>(),
                 );
@@ -117,7 +116,7 @@ export const Concurrent = Object.freeze({
                 const back = yield* _(
                   F.onCancel_(
                     poll(result.get()),
-                    Monad.Do(self)(function* (_) {
+                    self.do(function* (_) {
                       const cancelA = yield* _(self.fork(fiberA.cancel));
                       const cancelB = yield* _(self.fork(fiberB.cancel));
                       yield* _(cancelA.join);

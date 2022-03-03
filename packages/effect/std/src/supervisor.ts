@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, snd } from '@fp4ts/core';
-import { Map, List, Monad } from '@fp4ts/cats';
+import { Map, List } from '@fp4ts/cats';
 import {
   Fiber,
   Concurrent,
@@ -44,7 +44,7 @@ class SupervisorImpl<F> implements Supervisor<F> {
   public supervise<A>(fa: Kind<F, [A]>): Kind<F, [Fiber<F, Error, A>]> {
     const { F, state } = this;
     return F.uncancelable(() =>
-      Monad.Do(F)(function* (_) {
+      F.do(function* (_) {
         const done = yield* _(F.ref<boolean>(false));
         const token = yield* _(F.unique);
 

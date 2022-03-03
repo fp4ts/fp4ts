@@ -276,7 +276,7 @@ export class Scope<F> {
       F.flatMap(prevState =>
         prevState.tag === 'closed'
           ? F.pure(Either.rightUnit)
-          : Monad.Do(F)(function* (_) {
+          : F.do(function* (_) {
               const resultChildren = yield* _(
                 self.traverseError<Scope<F>>(prevState.children, x =>
                   x.close(ec),
@@ -317,7 +317,7 @@ export class Scope<F> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
 
-    return Monad.Do(F)(function* (_) {
+    return F.do(function* (_) {
       const children = yield* _(
         F.flatMap_(self.state.get(), s =>
           s.tag === 'open'

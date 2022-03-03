@@ -4,15 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError } from '@fp4ts/core';
-import {
-  FunctionK,
-  MonadError,
-  Either,
-  Option,
-  None,
-  Some,
-  Monad,
-} from '@fp4ts/cats';
+import { FunctionK, MonadError, Either, Option, None, Some } from '@fp4ts/cats';
 import { UniqueToken, ExitCase } from '@fp4ts/effect';
 
 import * as PO from './operators';
@@ -1363,7 +1355,7 @@ function goCloseScope<F, G, X, End>(
             ),
           );
 
-        return Monad.Do(F)(function* (_) {
+        return F.do(function* (_) {
           const r = yield* _(toClose.close(close.exitCase));
           const ancestor = yield* _(toClose.openAncestor);
           const res = closeTerminal(r, ancestor);

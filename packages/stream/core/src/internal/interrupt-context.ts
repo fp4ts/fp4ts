@@ -4,15 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import {
-  Option,
-  Some,
-  None,
-  Either,
-  Left,
-  IdentityF,
-  Monad,
-} from '@fp4ts/cats';
+import { Option, Some, None, Either, Left, IdentityF } from '@fp4ts/cats';
 import {
   Deferred,
   Ref,
@@ -41,7 +33,7 @@ export class InterruptContext<F> {
       newScopeId: UniqueToken,
       cancelParent: Kind<F, [void]>,
     ): Kind<F, [InterruptContext<F>]> =>
-      Monad.Do(F)(function* (_) {
+      F.do(function* (_) {
         const deferred = yield* _(F.deferred<InterruptionOutcome>());
         const ref = yield* _(F.ref<Option<InterruptionOutcome>>(None));
         return new InterruptContext(F, deferred, ref, newScopeId, cancelParent);
@@ -62,7 +54,7 @@ export class InterruptContext<F> {
 
     if (!interruptible) return F.pure(this.copy({ cancelParent: F.unit }));
 
-    return Monad.Do(F)(function* (_) {
+    return F.do(function* (_) {
       const fiber = yield* _(F.fork(deferred.get()));
       const context = yield* _(
         InterruptContext.create(F)(newScopeId, fiber.cancel),

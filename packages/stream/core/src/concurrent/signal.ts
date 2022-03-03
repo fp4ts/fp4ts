@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe } from '@fp4ts/core';
-import { Map, Monad } from '@fp4ts/cats';
+import { Map } from '@fp4ts/cats';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
 
@@ -18,7 +18,7 @@ export interface SignallingRef<F, A> extends Ref<F, A>, Signal<F, A> {}
 
 export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
   return <A>(initial: A): Kind<F, [SignallingRef<F, A>]> =>
-    Monad.Do(F)(function* (_) {
+    F.do(function* (_) {
       const state = yield* _(F.ref(new State<F, A>(initial, 0, Map.empty)));
       const ids = yield* _(F.ref(0));
       const newId = ids.updateAndGet(x => x + 1);

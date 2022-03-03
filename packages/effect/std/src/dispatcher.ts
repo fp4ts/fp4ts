@@ -5,7 +5,7 @@
 
 import os from 'os';
 import { Kind, pipe } from '@fp4ts/core';
-import { Either, List, Monad } from '@fp4ts/cats';
+import { Either, List } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect-kernel';
 
 import { Supervisor } from './supervisor';
@@ -49,7 +49,7 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
 
   const R = Resource.Async(F);
 
-  return Monad.Do(R)(function* (_) {
+  return R.do(function* (_) {
     const supervisor = yield* _(Supervisor(F));
     const latches = yield* _(
       R.delay(() => {
@@ -80,7 +80,7 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
       latch: AtomicRef<() => void>,
       state: AtomicRef<List<Registration>>,
     ): Kind<F, [void]> =>
-      Monad.Do(F)(function* (_) {
+      F.do(function* (_) {
         yield* _(F.delay(() => latch.set(Noop)));
         const rgs = yield* _(
           F.delay(() =>

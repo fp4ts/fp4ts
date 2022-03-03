@@ -5,7 +5,7 @@
 
 import http from 'http';
 import { Kind, snd } from '@fp4ts/core';
-import { Either, Monad } from '@fp4ts/cats';
+import { Either } from '@fp4ts/cats';
 import { Async, Resource, Dispatcher } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
 import * as io from '@fp4ts/stream-io';
@@ -21,7 +21,7 @@ export const serve =
   (app: HttpApp<F>, port?: number): Resource<F, NodeServer> => {
     const handleConnection = mkConnectionHandler(F)(app);
     const RF = Resource.Async(F);
-    return Monad.Do(RF)(function* (_) {
+    return RF.do(function* (_) {
       const dispatcher = yield* _(Dispatcher(F));
       const server = yield* _(
         Resource.makeFull(F)(
@@ -46,7 +46,7 @@ const mkConnectionHandler =
   <F>(F: Async<F>) =>
   (app: HttpApp<F>) =>
   (req: http.IncomingMessage, res: http.ServerResponse): Kind<F, [void]> =>
-    Monad.Do(F)(function* (_) {
+    F.do(function* (_) {
       const method = yield* _(
         F.fromEither(Method.fromString(req.method ?? '')),
       );

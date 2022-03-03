@@ -19,7 +19,6 @@ import {
   Some,
   Ior,
   FunctionK,
-  Monad,
 } from '@fp4ts/cats';
 import {
   Temporal,
@@ -1170,7 +1169,7 @@ export const zipAllWith_ =
 export const merge_ =
   <F>(F: Concurrent<F, Error>) =>
   <A>(s1: Stream<F, A>, s2: Stream<F, A>): Stream<F, A> => {
-    const fStream = Monad.Do(F)(function* (_) {
+    const fStream = F.do(function* (_) {
       const interrupt = yield* _(F.deferred<void>());
       const resultL = yield* _(F.deferred<Either<Error, void>>());
       const resultR = yield* _(F.deferred<Either<Error, void>>());
@@ -1219,7 +1218,7 @@ export const merge_ =
           );
         });
 
-      const runAtEnd: Kind<F, [void]> = Monad.Do(F)(function* (_) {
+      const runAtEnd: Kind<F, [void]> = F.do(function* (_) {
         yield* _(signalInterruption);
         const left = yield* _(resultL.get());
         const right = yield* _(resultR.get());
@@ -1263,7 +1262,7 @@ export const parJoin_ =
     assert(maxOpen > 0, 'maxOpen has to be >0');
     if (maxOpen === 1) return flatten(outer);
 
-    const fStream = Monad.Do(F)(function* (_) {
+    const fStream = F.do(function* (_) {
       const done = yield* _(SignallingRef(F)(None as Option<Option<Error>>));
       const available = yield* _(Semaphore.withPermits(F)(maxOpen));
       const running = yield* _(SignallingRef(F)(1));
@@ -1434,7 +1433,7 @@ export const interruptWhenTrue_ =
   <F>(F: Concurrent<F, Error>) =>
   <A>(s: Stream<F, A>, haltWhenTrue: Stream<F, boolean>): Stream<F, A> =>
     force(
-      Monad.Do(F)(function* (_) {
+      F.do(function* (_) {
         const interruptL = yield* _(F.deferred<void>());
         const interruptR = yield* _(F.deferred<void>());
         const backResult = yield* _(F.deferred<Either<Error, void>>());
@@ -1492,7 +1491,7 @@ export const interruptWhen_ = <F, A>(
 export const concurrently_ =
   <F>(F: Concurrent<F, Error>) =>
   <A, B>(s1: Stream<F, A>, s2: Stream<F, B>): Stream<F, A> => {
-    const fStream = Monad.Do(F)(function* (_) {
+    const fStream = F.do(function* (_) {
       const interrupt = yield* _(F.deferred<void>());
       const backResult = yield* _(F.deferred<Either<Error, void>>());
       const watch = <X>(str: Stream<F, X>) =>
