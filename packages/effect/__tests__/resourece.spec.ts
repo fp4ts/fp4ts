@@ -5,8 +5,8 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { $, fst, pipe, snd } from '@fp4ts/core';
-import { FunctionK, Eq, List, Vector, Either, Left, Right } from '@fp4ts/cats';
+import { $, fst, snd } from '@fp4ts/core';
+import { FunctionK, Eq, List, Either, Left, Right, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { AsyncSuite } from '@fp4ts/effect-laws';
 import { Resource, ResourceF, Outcome } from '@fp4ts/effect-kernel';
@@ -202,17 +202,16 @@ describe('Resource', () => {
 
         const ioa = release['>>>'](resource).allocated(IO.MonadCancel);
 
-        return pipe(
-          IO.Do,
-          IO.bindTo('close', ioa.map(snd)),
-          IO.bind(
+        return Monad.Do(IO.Monad)(function* (_) {
+          const close = yield* _(ioa.map(snd));
+          yield* _(
             released.get().flatMap(rel => IO(() => expect(rel).toBe(false))),
-          ),
-          IO.bind(({ close }) => close),
-          IO.bind(
+          );
+          yield* _(close);
+          yield* _(
             released.get().flatMap(rel => IO(() => expect(rel).toBe(true))),
-          ),
-        ).void;
+          );
+        });
       });
 
       expect(io).toCompleteWith(undefined, ticker);

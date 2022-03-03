@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind, pipe } from '@fp4ts/core';
-import { Option, None, Queue as CatsQueue } from '@fp4ts/cats';
+import { id, Kind } from '@fp4ts/core';
+import { Option, None, Queue as CatsQueue, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Queue } from '@fp4ts/effect-std';
 import { AssertionError } from 'assert';
@@ -36,44 +36,31 @@ describe('Queue', () => {
     });
 
     test('offer with zero capacity', () =>
-      Q.construct(0)
-        .flatMap(q =>
-          pipe(
-            IO.Do,
-            IO.bind(Q.offer(q, 1).fork),
-            IO.bindTo('v1', Q.take(q)),
-            IO.bindTo('f', Q.take(q).fork),
-            IO.bind(Q.offer(q, 2)),
-            IO.bindTo('v2', ({ f }) => f.joinWithNever()),
-            IO.bind(({ v1, v2 }) => IO(() => expect([v1, v2]).toEqual([1, 2]))),
-          ),
-        )
-        .unsafeRunToPromise());
+      Monad.Do(IO.Monad)(function* (_) {
+        const q = yield* _(Q.construct(0));
+        yield* _(Q.offer(q, 1).fork);
+        const v1 = yield* _(Q.take(q));
+        const f = yield* _(Q.take(q).fork);
+        yield* _(Q.offer(q, 2));
+        const v2 = yield* _(f.joinWithNever());
+        yield* _(IO(() => expect([v1, v2]).toEqual([1, 2])));
+      }).unsafeRunToPromise());
 
     test('async take with zero capacity', () =>
-      Q.construct(0)
-        .flatMap(q =>
-          pipe(
-            IO.Do,
-            IO.bindTo('ref', IO.ref(false)),
-            IO.bind(Q.offer(q, 1).fork),
-            IO.bindTo('v1', Q.take(q)),
-            IO.bind(({ v1 }) => IO(() => expect(v1).toBe(1))),
-            IO.bindTo(
-              'p',
-              IO(() => Q.take(q).unsafeRunToPromise()),
-            ),
-            IO.bind(({ ref }) =>
-              ref
-                .get()
-                .flatMap(resolved => IO(() => expect(resolved).toBe(false))),
-            ),
-            IO.bind(Q.offer(q, 2)),
-            IO.bindTo('v2', ({ p }) => IO.fromPromise(IO.pure(p))),
-            IO.bind(({ v2 }) => IO(() => expect(v2).toBe(2))),
-          ),
-        )
-        .unsafeRunToPromise());
+      Monad.Do(IO.Monad)(function* (_) {
+        const q = yield* _(Q.construct(0));
+        const ref = yield* _(IO.ref(false));
+        yield* _(Q.offer(q, 1).fork);
+        const v1 = yield* _(Q.take(q));
+        yield* _(IO(() => expect(v1).toBe(1)));
+        const p = yield* _(IO(() => Q.take(q).unsafeRunToPromise()));
+        yield* _(
+          ref.get().flatMap(resolved => IO(() => expect(resolved).toBe(false))),
+        );
+        yield* _(Q.offer(q, 2));
+        const v2 = yield* _(IO.fromPromise(IO.pure(p)));
+        yield* _(IO(() => expect(v2).toBe(2)));
+      }).unsafeRunToPromise());
 
     test('offer/take with zero capacity', () => {
       const count = 1000;
@@ -92,20 +79,14 @@ describe('Queue', () => {
           ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.enqueue(a)))
           : IO.pure(acc.foldLeft(0, (x, y) => x + y));
 
-      return Q.construct(0)
-        .flatMap(q =>
-          pipe(
-            IO.Do,
-            IO.bindTo('p', producer(q, count).fork),
-            IO.bindTo('c', consumer(q, count).fork),
-            IO.bind(({ p }) => p.join),
-            IO.bindTo('r', ({ c }) => c.joinWithNever()),
-            IO.bind(({ r }) =>
-              IO(() => expect(r).toBe((count * (count - 1)) / 2)),
-            ),
-          ),
-        )
-        .unsafeRunToPromise();
+      return Monad.Do(IO.Monad)(function* (_) {
+        const q = yield* _(Q.construct(0));
+        const p = yield* _(producer(q, count).fork);
+        const c = yield* _(consumer(q, count).fork);
+        yield* _(p.join);
+        const r = yield* _(c.joinWithNever());
+        yield* _(IO(() => expect(r).toBe((count * (count - 1)) / 2)));
+      }).unsafeRunToPromise();
     });
 
     negativeCapacityConstructor(Q);
@@ -220,16 +201,12 @@ function negativeCapacityConstructor(Q: QueueLike<IOF, number>) {
 
 function tryOfferOnFull(Q: QueueLike<IOF, number>, expected: boolean) {
   test('tryOffer on full', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bind(Q.offer(q, 0)),
-          IO.bindTo('r', Q.tryOffer(q, 1)),
-          IO.bind(({ r }) => IO(() => expect(r).toBe(expected))),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      yield* _(Q.offer(q, 0));
+      const r = yield* _(Q.tryOffer(q, 1));
+      yield* _(IO(() => expect(r).toBe(expected)));
+    }).unsafeRunToPromise());
 }
 
 function offerTakeOverCapacityTests(Q: QueueLike<IOF, number>) {
@@ -248,41 +225,29 @@ function offerTakeOverCapacityTests(Q: QueueLike<IOF, number>) {
         ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.enqueue(a)))
         : IO.pure(acc.foldLeft(0, (x, y) => x + y));
 
-    return Q.construct(10)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bindTo('p', producer(q, count).fork),
-          IO.bindTo('c', consumer(q, count).fork),
-          IO.bind(({ p }) => p.join),
-          IO.bindTo('r', ({ c }) => c.joinWithNever()),
-          IO.bind(({ r }) =>
-            IO(() => expect(r).toBe((count * (count - 1)) / 2)),
-          ),
-        ),
-      )
-      .unsafeRunToPromise();
+    return Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(10));
+      const p = yield* _(producer(q, count).fork);
+      const c = yield* _(consumer(q, count).fork);
+      yield* _(p.join);
+      const r = yield* _(c.joinWithNever());
+      yield* _(IO(() => expect(r).toBe((count * (count - 1)) / 2)));
+    }).unsafeRunToPromise();
   });
 }
 
 function cancelableOfferTests(Q: QueueLike<IOF, number>) {
   it('should cancel pending offer', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bind(Q.offer(q, 1)),
-          IO.bindTo('f', Q.offer(q, 2).fork),
-          IO.bind(IO.sleep(10)),
-          IO.bind(({ f }) => f.cancel),
-          IO.bindTo('v1', Q.take(q)),
-          IO.bindTo('v2', Q.tryTake(q)),
-          IO.bind(({ v1, v2 }) =>
-            IO(() => expect([v1, v2]).toEqual([1, None])),
-          ),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      yield* _(Q.offer(q, 1));
+      const f = yield* _(Q.offer(q, 2).fork);
+      yield* _(IO.sleep(10));
+      yield* _(f.cancel);
+      const v1 = yield* _(Q.take(q));
+      const v2 = yield* _(Q.tryTake(q));
+      yield* _(IO(() => expect([v1, v2]).toEqual([1, None])));
+    }).unsafeRunToPromise());
 }
 
 function tryOfferTryTakeTests(Q: QueueLike<IOF, number>) {
@@ -310,37 +275,27 @@ function tryOfferTryTakeTests(Q: QueueLike<IOF, number>) {
           )
         : IO.pure(acc.foldLeft(0, (x, y) => x + y));
 
-    return Q.construct(10)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bindTo('p', producer(q, count).fork),
-          IO.bindTo('c', consumer(q, count).fork),
-          IO.bind(({ p }) => p.join),
-          IO.bindTo('r', ({ c }) => c.joinWithNever()),
-          IO.bind(({ r }) =>
-            IO(() => expect(r).toBe((count * (count - 1)) / 2)),
-          ),
-        ),
-      )
-      .unsafeRunToPromise();
+    return Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(10));
+      const p = yield* _(producer(q, count).fork);
+      const c = yield* _(consumer(q, count).fork);
+      yield* _(p.join);
+      const r = yield* _(c.joinWithNever());
+      yield* _(IO(() => expect(r).toBe((count * (count - 1)) / 2)));
+    }).unsafeRunToPromise();
   });
 }
 
 function commonTests(Q: QueueLike<IOF, number>) {
   it('should the queue size after offer/take', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bind(Q.offer(q, 1)),
-          IO.bind(Q.take(q)),
-          IO.bind(Q.offer(q, 2)),
-          IO.bindTo('size', Q.size(q)),
-          IO.bind(({ size }) => IO(() => expect(size).toBe(1))),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      yield* _(Q.offer(q, 1));
+      yield* _(Q.take(q));
+      yield* _(Q.offer(q, 2));
+      const size = yield* _(Q.size(q));
+      IO.bind(({ size }) => IO(() => expect(size).toBe(1)));
+    }).unsafeRunToPromise());
 
   it('should return None when the queue is empty', () =>
     Q.construct(1)
@@ -349,55 +304,38 @@ function commonTests(Q: QueueLike<IOF, number>) {
       .unsafeRunToPromise());
 
   it('should return values in FIFO order', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bind(Q.offer(q, 1)),
-          IO.bindTo('v1', Q.take(q)),
-          IO.bind(Q.offer(q, 2)),
-          IO.bindTo('v2', Q.take(q)),
-          IO.bind(({ v1, v2 }) => IO(() => expect([v1, v2]).toEqual([1, 2]))),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      yield* _(Q.offer(q, 1));
+      const v1 = yield* _(Q.take(q));
+      yield* _(Q.offer(q, 2));
+      const v2 = yield* _(Q.take(q));
+      yield* _(IO(() => expect([v1, v2]).toEqual([1, 2])));
+    }).unsafeRunToPromise());
 
   test('cancelable take', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bindTo('f', Q.take(q).fork),
-          IO.bind(IO.sleep(10)),
-          IO.bind(({ f }) => f.cancel),
-          IO.bindTo('v', Q.tryOffer(q, 1)),
-          IO.bind(({ v }) => IO(() => expect(v).toBe(true))),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      const f = yield* _(Q.take(q).fork);
+      yield* _(IO.sleep(10));
+      yield* _(f.cancel);
+      const v = yield* _(Q.tryOffer(q, 1));
+      yield* _(IO(() => expect(v).toBe(true)));
+    }).unsafeRunToPromise());
 
   test('async take', () =>
-    Q.construct(1)
-      .flatMap(q =>
-        pipe(
-          IO.Do,
-          IO.bindTo('ref', IO.ref(false)),
-          IO.bind(Q.offer(q, 1)),
-          IO.bindTo('v1', Q.take(q)),
-          IO.bind(({ v1 }) => IO(() => expect(v1).toBe(1))),
-          IO.bindTo(
-            'p',
-            IO(() => Q.take(q).unsafeRunToPromise()),
-          ),
-          IO.bind(({ ref }) =>
-            ref
-              .get()
-              .flatMap(resolved => IO(() => expect(resolved).toBe(false))),
-          ),
-          IO.bind(Q.offer(q, 2)),
-          IO.bindTo('v2', ({ p }) => IO.fromPromise(IO.pure(p))),
-          IO.bind(({ v2 }) => IO(() => expect(v2).toBe(2))),
-        ),
-      )
-      .unsafeRunToPromise());
+    Monad.Do(IO.Monad)(function* (_) {
+      const q = yield* _(Q.construct(1));
+      const ref = yield* _(IO.ref(false));
+      yield* _(Q.offer(q, 1));
+      const v1 = yield* _(Q.take(q));
+      yield* _(IO(() => expect(v1).toBe(1)));
+      const p = yield* _(IO(() => Q.take(q).unsafeRunToPromise()));
+      yield* _(
+        ref.get().flatMap(resolved => IO(() => expect(resolved).toBe(false))),
+      );
+      yield* _(Q.offer(q, 2));
+      const v2 = yield* _(IO.fromPromise(IO.pure(p)));
+      yield* _(IO(() => expect(v2).toBe(2)));
+    }).unsafeRunToPromise());
 }

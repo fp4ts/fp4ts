@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Outcome } from '@fp4ts/effect-kernel';
-import { IO } from './io';
-import { IOF } from './io/io';
+import { IO, IOF } from './io';
 
 export type IOOutcome<A> = Outcome<IOF, Error, A>;
 

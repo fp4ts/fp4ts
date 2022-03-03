@@ -5,8 +5,7 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { pipe } from '@fp4ts/core';
-import { Eq, List, Either, Left, Right, Some, None } from '@fp4ts/cats';
+import { Eq, List, Either, Left, Right, Some, None, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -121,49 +120,50 @@ describe('Stream merge', () => {
         A.fp4tsPureStreamGenerator(fc.integer()),
         fc.boolean(),
         (s, leftBias) =>
-          pipe(
-            IO.Do,
-            IO.bindTo('finalizerRef', IO.ref<List<string>>(List.empty)),
-            IO.bindTo('sideRunRef', IO.ref<[boolean, boolean]>([false, false])),
-            IO.bindTo('halt', IO.deferred<void>()),
-          )
-            .flatMap(({ finalizerRef, sideRunRef, halt }) => {
-              const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
-                finalizerRef.update(xs => xs['::+']('Outer')),
+          Monad.Do(IO.Monad)(function* (_) {
+            const finalizerRef = yield* _(IO.ref<List<string>>(List.empty));
+            const sideRunRef = yield* _(
+              IO.ref<[boolean, boolean]>([false, false]),
+            );
+            const halt = yield* _(IO.deferred<void>());
+
+            const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
+              finalizerRef.update(xs => xs['::+']('Outer')),
+            );
+
+            const register = (side: string): IO<void> =>
+              sideRunRef.update(([left, right]) =>
+                side === 'L' ? [true, right] : [left, true],
               );
 
-              const register = (side: string): IO<void> =>
-                sideRunRef.update(([left, right]) =>
-                  side === 'L' ? [true, right] : [left, true],
+            const finalizer = (side: string): IO<void> => {
+              if (leftBias && side === 'L')
+                return IO.sleep(50)
+                  ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                  ['>>>'](IO.throwError(new TestError()));
+              else if (!leftBias && side === 'R')
+                return IO.sleep(50)
+                  ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                  ['>>>'](IO.throwError(new TestError()));
+              else
+                return IO.sleep(25)['>>>'](
+                  finalizerRef.update(s => s['::+'](`Inner ${side}`)),
                 );
+            };
 
-              const finalizer = (side: string): IO<void> => {
-                if (leftBias && side === 'L')
-                  return IO.sleep(50)
-                    ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
-                    ['>>>'](IO.throwError(new TestError()));
-                else if (!leftBias && side === 'R')
-                  return IO.sleep(50)
-                    ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
-                    ['>>>'](IO.throwError(new TestError()));
-                else
-                  return IO.sleep(25)['>>>'](
-                    finalizerRef.update(s => s['::+'](`Inner ${side}`)),
-                  );
-              };
+            const prg = bracketed
+              .flatMap(() =>
+                Stream.bracket<IOF, void>(register('L'), () => finalizer('L'))
+                  .flatMap(() => s.map(() => {}))
+                  .merge(IO.Concurrent)(
+                    Stream.bracket(register('R'), () => finalizer('R')),
+                  )
+                  .flatMap(() => Stream.evalF<IOF, void>(halt.complete())),
+              )
+              .interruptWhen(halt.get().attempt);
 
-              const prg = bracketed
-                .flatMap(() =>
-                  Stream.bracket<IOF, void>(register('L'), () => finalizer('L'))
-                    .flatMap(() => s.map(() => {}))
-                    .merge(IO.Concurrent)(
-                      Stream.bracket(register('R'), () => finalizer('R')),
-                    )
-                    .flatMap(() => Stream.evalF<IOF, void>(halt.complete())),
-                )
-                .interruptWhen(halt.get().attempt);
-
-              return prg.compileConcurrent().drain.attempt.flatMap(r =>
+            yield* _(
+              prg.compileConcurrent().drain.attempt.flatMap(r =>
                 finalizerRef.get().map(finalizers => {
                   return (
                     List('Inner L', 'Inner R', 'Outer').all(x =>
@@ -174,9 +174,9 @@ describe('Stream merge', () => {
                     r.getLeft instanceof TestError
                   );
                 }),
-              );
-            })
-            .unsafeRunToPromise(),
+              ),
+            );
+          }).unsafeRunToPromise(),
       ),
       { numRuns: 50 },
     ));

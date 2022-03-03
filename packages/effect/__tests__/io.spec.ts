@@ -5,8 +5,8 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { id, pipe, throwError } from '@fp4ts/core';
-import { Either, Left, Right, Some, List, Eq, None } from '@fp4ts/cats';
+import { id, pipe, throwError, tupled } from '@fp4ts/core';
+import { Either, Left, Right, Some, List, Eq, None, Monad } from '@fp4ts/cats';
 import { Semaphore } from '@fp4ts/effect-kernel';
 import { IO, IOOutcome } from '@fp4ts/effect-core';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -195,12 +195,14 @@ describe('IO', () => {
     it.ticked(
       'should throw first bracket release error if use effect succeeded',
       ticker => {
-        const inner = IO.unit.bracket(() => IO.unit)(() =>
-          IO.throwError(new Error('first error')),
+        const inner = IO.unit.bracket(
+          () => IO.unit,
+          () => IO.throwError(new Error('first error')),
         );
 
-        const io = IO.unit.bracket(() => inner)(() =>
-          IO.throwError(new Error('second error')),
+        const io = IO.unit.bracket(
+          () => inner,
+          () => IO.throwError(new Error('second error')),
         ).attempt;
 
         expect(io).toCompleteWith(Left(new Error('first error')), ticker);
@@ -227,11 +229,11 @@ describe('IO', () => {
         return counter;
       });
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('a', () => x),
-        IO.bindTo('b', () => x),
-      ).map(({ a, b }) => [a, b] as [number, number]);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const a = yield* _(x);
+        const b = yield* _(x);
+        return tupled(a, b);
+      });
 
       expect(io).toCompleteWith([43, 44], ticker);
     });
@@ -282,12 +284,11 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel already canceled fiber', ticker => {
-      const ioa = pipe(
-        IO.Do,
-        IO.bindTo('f', () => IO.canceled.fork),
-        IO.bind(() => IO(() => ticker.ctx.tickAll())),
-        IO.bind(({ f }) => f.cancel),
-      ).void;
+      const ioa = Monad.Do(IO.Monad)(function* (_) {
+        const f = yield* _(IO.canceled.fork);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        yield* _(f.cancel);
+      });
 
       expect(ioa).toCompleteWith(undefined, ticker);
     });
@@ -359,16 +360,16 @@ describe('IO', () => {
           }),
         );
 
-        const io = pipe(
-          IO.Do,
-          IO.bindTo('f', () => async.fork),
-          IO.bind(IO(() => ticker.ctx.tickAll())),
-          IO.bind(IO(() => cb(Right(42)))),
-          IO.bind(IO(() => ticker.ctx.tickAll())),
-          IO.bind(IO(() => cb(Right(43)))),
-          IO.bind(IO(() => ticker.ctx.tickAll())),
-          IO.bind(IO(() => cb(Left(new Error('test error'))))),
-        ).flatMap(({ f }) => f.join);
+        const io = Monad.Do(IO.Monad)(function* (_) {
+          const f = yield* _(async.fork);
+          yield* _(IO(() => ticker.ctx.tickAll()));
+          yield* _(IO(() => cb(Right(42))));
+          yield* _(IO(() => ticker.ctx.tickAll()));
+          yield* _(IO(() => cb(Right(43))));
+          yield* _(IO(() => ticker.ctx.tickAll()));
+          yield* _(IO(() => cb(Left(new Error('test error')))));
+          return yield* _(f.join);
+        });
 
         expect(io).toCompleteWith(IOOutcome.success(IO.pure(42)), ticker);
       },
@@ -455,36 +456,34 @@ describe('IO', () => {
     });
 
     it.ticked('should propagate cancelation', ticker => {
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('f', IO.both(IO.never, IO.never).fork),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-        IO.bind(({ f }) => f.cancel),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-      ).flatMap(({ f }) => f.join);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const f = yield* _(IO.both(IO.never, IO.never).fork);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        yield* _(f.cancel);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        return yield* _(f.join);
+      });
 
       expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
     });
 
     it.ticked('should cancel both fibers', ticker => {
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('l', IO.ref<boolean>(false)),
-        IO.bindTo('r', IO.ref<boolean>(false)),
-        IO.bindTo(
-          'fiber',
-          ({ l, r }) =>
-            IO.both(
-              IO.never.onCancel(l.set(true)),
-              IO.never.onCancel(r.set(true)),
-            ).fork,
-        ),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-        IO.bind(({ fiber }) => fiber.cancel),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-        IO.bindTo('l2', ({ l }) => l.get()),
-        IO.bindTo('r2', ({ r }) => r.get()),
-      ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const l = yield* _(IO.ref(false));
+        const r = yield* _(IO.ref(false));
+        const fiber = yield* _(
+          IO.both(
+            IO.never.onCancel(l.set(true)),
+            IO.never.onCancel(r.set(true)),
+          ).fork,
+        );
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        yield* _(fiber.cancel);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        const l2 = yield* _(l.get());
+        const r2 = yield* _(r.get());
+        return tupled(l2, r2);
+      });
 
       expect(io).toCompleteWith([true, true], ticker);
     });
@@ -566,23 +565,22 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel both fibers when canceled', ticker => {
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('l', IO.ref(false)),
-        IO.bindTo('r', IO.ref(false)),
-        IO.bindTo(
-          'fiber',
-          ({ l, r }) =>
-            IO.race(
-              IO.never.onCancel(l.set(true)),
-              IO.never.onCancel(r.set(true)),
-            ).fork,
-        ),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-        IO.bind(({ fiber }) => fiber.cancel),
-        IO.bindTo('l2', ({ l }) => l.get()),
-        IO.bindTo('r2', ({ r }) => r.get()),
-      ).map(({ l2, r2 }) => [l2, r2] as [boolean, boolean]);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const l = yield* _(IO.ref(false));
+        const r = yield* _(IO.ref(false));
+        const fiber = yield* _(
+          IO.race(
+            IO.never.onCancel(l.set(true)),
+            IO.never.onCancel(r.set(true)),
+          ).fork,
+        );
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        yield* _(fiber.cancel);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        const l2 = yield* _(l.get());
+        const r2 = yield* _(r.get());
+        return tupled(l2, r2);
+      });
 
       expect(io).toCompleteWith([true, true], ticker);
     });
@@ -611,11 +609,11 @@ describe('IO', () => {
 
       const target = IO.async(() => IO.pure(Some(IO(cleanup))));
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('f', () => target.fork),
-        IO.bind(() => IO(() => ticker.ctx.tickAll())),
-      ).flatMap(({ f }) => f.cancel);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const f = yield* _(target.fork);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        return yield* _(f.cancel);
+      });
 
       expect(io).toCompleteWith(undefined, ticker);
       expect(cleanup).toHaveBeenCalled();
@@ -701,15 +699,14 @@ describe('IO', () => {
 
       const body = IO.async<never>(() => IO.pure(Some(pushResult(1))));
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo(
-          'fiber',
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const fiber = yield* _(
           body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
-        ),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-        IO.bind(({ fiber }) => fiber.cancel),
-      ).flatMap(({ fiber }) => fiber.join);
+        );
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        yield* _(fiber.cancel);
+        return yield* _(fiber.join);
+      });
 
       expect(io).toCompleteWith(IOOutcome.canceled(), ticker);
       expect(results).toEqual([1, 2, 3]);
@@ -865,11 +862,11 @@ describe('IO', () => {
         ),
       );
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('fiber', body.fork),
-        IO.bind(IO(() => ticker.ctx.tickAll())), // start async task
-      ).flatMap(({ fiber }) => fiber.cancel); // cancel after the async task is running;
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const fiber = yield* _(body.fork);
+        yield* _(IO(() => ticker.ctx.tickAll())); // start async task
+        return yield* _(fiber.cancel); // cancel after the async task is running;
+      });
 
       expect(io).toCompleteWith(undefined, ticker);
       expect(fin).toHaveBeenCalled();
@@ -904,18 +901,17 @@ describe('IO', () => {
     );
 
     it.ticked('should run finalizer on failed bracket use', ticker => {
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('ref', IO.ref(false)),
-        IO.bind(
-          ({ ref }) =>
-            IO.bracketFull(
-              () => IO.unit,
-              () => throwError(new Error('Uncaught error')),
-              () => ref.set(true),
-            ).attempt,
-        ),
-      ).flatMap(({ ref }) => ref.get());
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const ref = yield* _(IO.ref(false));
+        yield* _(
+          IO.bracketFull(
+            () => IO.unit,
+            () => throwError(new Error('Uncaught error')),
+            () => ref.set(true),
+          ).attempt,
+        );
+        return yield* _(ref.get());
+      });
 
       expect(io).toCompleteWith(true, ticker);
     });
@@ -923,24 +919,23 @@ describe('IO', () => {
     it.ticked(
       'should cancel never completing use of acquired resource',
       ticker => {
-        const io = pipe(
-          IO.Do,
-          IO.bindTo('def', IO.deferred<void>()),
-          IO.bindTo('bracket', ({ def }) =>
-            IO.pure(
-              IO.bracketFull(
-                () => IO.unit,
-                () => IO.never,
-                () => def.complete(undefined),
-              ),
-            ),
-          ),
-          IO.bindTo('dFiber', ({ def }) => def.get().fork),
-          IO.bind(IO(() => ticker.ctx.tickAll())), // start waiting for the result of cancelation
-          IO.bindTo('bFiber', ({ bracket }) => bracket.fork),
-          IO.bind(IO(() => ticker.ctx.tickAll())), // start `use` with resource
-          IO.bind(({ bFiber }) => bFiber.cancel),
-        ).flatMap(({ dFiber }) => dFiber.join); // await the cancelation result
+        const io = Monad.Do(IO.Monad)(function* (_) {
+          const def = yield* _(IO.deferred<void>());
+          const bracket = IO.bracketFull(
+            () => IO.unit,
+            () => IO.never,
+            () => def.complete(undefined),
+          );
+
+          const dFiber = yield* _(def.get().fork);
+          yield* _(IO(() => ticker.ctx.tickAll())); // start waiting for the result of cancelation
+
+          const bFiber = yield* _(bracket.fork);
+          yield* _(IO(() => ticker.ctx.tickAll())); // start `use` with resource
+
+          yield* _(bFiber.cancel);
+          return yield* _(dFiber.join); // await the cancelation result
+        });
 
         expect(io).toCompleteWith(IOOutcome.success(IO.unit), ticker);
       },
@@ -1031,11 +1026,11 @@ describe('IO', () => {
         IO.parTraverseN(List.Traversable)(2, () => IO.never),
       );
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('fiber', () => traverse.fork),
-        IO.bind(() => IO(() => ticker.ctx.tickAll())),
-      ).flatMap(({ fiber }) => fiber.cancel);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const fiber = yield* _(traverse.fork);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        return yield* _(fiber.cancel);
+      });
 
       expect(io).toCompleteWith(undefined, ticker);
     });
@@ -1048,11 +1043,11 @@ describe('IO', () => {
         IO.parTraverseN(List.Traversable)(2, fin => IO.never.onCancel(IO(fin))),
       );
 
-      const io = pipe(
-        IO.Do,
-        IO.bindTo('fiber', () => traverse.fork),
-        IO.bind(IO(() => ticker.ctx.tickAll())),
-      ).flatMap(({ fiber }) => fiber.cancel);
+      const io = Monad.Do(IO.Monad)(function* (_) {
+        const fiber = yield* _(traverse.fork);
+        yield* _(IO(() => ticker.ctx.tickAll()));
+        return yield* _(fiber.cancel);
+      });
 
       expect(io).toCompleteWith(undefined, ticker);
       expect(fins.elem(0)).toHaveBeenCalled();
@@ -1085,15 +1080,15 @@ describe('IO', () => {
       ticker => {
         const cont = jest.fn();
 
-        const io = pipe(
-          IO.Do,
-          IO.bindTo('sem', Semaphore.withPermits(IO.Async)(1)),
-          IO.bindTo('f1', ({ sem }) => sem.withPermit(IO.never).fork),
-          IO.bindTo('f2', ({ sem }) => sem.withPermit(IO.never).fork),
-          IO.bind(IO(() => ticker.ctx.tickAll())),
-          IO.bind(({ sem }) => sem.withPermit(IO(cont)).fork),
-          IO.bind(IO(() => ticker.ctx.tickAll())),
-        ).flatMap(({ f2 }) => f2.cancel);
+        const io = Monad.Do(IO.Monad)(function* (_) {
+          const sem = yield* _(Semaphore.withPermits(IO.Async)(1));
+          const f1 = yield* _(sem.withPermit(IO.never).fork);
+          const f2 = yield* _(sem.withPermit(IO.never).fork);
+          yield* _(IO(() => ticker.ctx.tickAll()));
+          yield* _(sem.withPermit(IO(cont)).fork);
+          yield* _(IO(() => ticker.ctx.tickAll()));
+          return yield* _(f2.cancel);
+        });
 
         expect(io).toCompleteWith(undefined, ticker);
         expect(cont).not.toHaveBeenCalled();

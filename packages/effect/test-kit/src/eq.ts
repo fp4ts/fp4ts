@@ -6,7 +6,6 @@
 import { Eq, Option, Some, None, Try, Either, IdentityF } from '@fp4ts/cats';
 import { SyncIO, IO, IORuntime, IOOutcome } from '@fp4ts/effect-core';
 import { Outcome, ExecutionContext } from '@fp4ts/effect-kernel';
-import { Pure } from '@fp4ts/effect-core/lib/io/algebra';
 
 import { Ticker } from './ticker';
 
@@ -43,7 +42,7 @@ export const eqIOOutcome = <A>(E: Eq<A>): Eq<IOOutcome<A>> =>
       () => Outcome.canceled(),
       Outcome.failure,
       ioa => {
-        if (ioa instanceof Pure) return ioa.value;
+        if ((ioa as any).tag === 0) return (ioa as any).value;
         throw new Error('Unexpected IO result');
       },
     ),

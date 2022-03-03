@@ -79,7 +79,10 @@ function makeTests(size: number) {
       const loop = (i: number): IO<number> =>
         i < size
           ? IO(() => i)
-              .bracket(i => IO(() => i + 1))(() => IO.unit)
+              .bracket(
+                i => IO(() => i + 1),
+                () => IO.unit,
+              )
               .flatMap(loop)
           : IO.pure(i);
 

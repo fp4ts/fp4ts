@@ -4,8 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { pipe, $ } from '@fp4ts/core';
-import { Eq, List, Left, Right, Some, OptionTF, KleisliF } from '@fp4ts/cats';
+import { $ } from '@fp4ts/core';
+import {
+  Eq,
+  List,
+  Left,
+  Right,
+  Some,
+  OptionTF,
+  KleisliF,
+  Monad,
+} from '@fp4ts/cats';
 import { IO, IOF, Ref, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -88,13 +97,11 @@ describe('Stream Parallel Join', () => {
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]));
 
-          return pipe(
-            IO.Do,
-            IO.bindTo('pj', parJoined),
-            IO.bindTo('merged', merged),
-          )
-            .map(({ pj, merged }) => setsEqual(pj)(merged))
-            .unsafeRunToPromise();
+          return Monad.Do(IO.Monad)(function* (_) {
+            const pj = yield* _(parJoined);
+            const merged_ = yield* _(merged);
+            return setsEqual(pj)(merged_);
+          }).unsafeRunToPromise();
         },
       ),
     ));
@@ -126,49 +133,46 @@ describe('Stream Parallel Join', () => {
           const err = new TestError();
           const biasIdx = bias ? 1 : 0;
 
-          return pipe(
-            IO.Do,
-            IO.bindTo('finalizerRef', IO.ref<List<string>>(List.empty)),
-            IO.bindTo('runEvidenceRef', IO.ref<List<number>>(List.empty)),
-            IO.bindTo('halt', IO.deferred<void>()),
-          )
-            .flatMap(({ finalizerRef, runEvidenceRef, halt }) => {
-              const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
-                finalizerRef.update(xs => xs.append('Outer')),
-              );
+          return Monad.Do(IO.Monad)(function* (_) {
+            const finalizerRef = yield* _(IO.ref<List<string>>(List.empty));
+            const runEvidenceRef = yield* _(IO.ref<List<number>>(List.empty));
+            const halt = yield* _(IO.deferred<void>());
 
-              const registerRun = (idx: number): IO<void> =>
-                runEvidenceRef.update(xs => xs.append(idx));
+            const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
+              finalizerRef.update(xs => xs.append('Outer')),
+            );
 
-              const finalizer = (idx: number): IO<void> =>
-                idx === biasIdx
-                  ? IO.sleep(50)
-                      ['>>>'](
-                        finalizerRef.update(xs => xs.append(`Inner ${idx}`)),
-                      )
-                      ['>>>'](IO.throwError(err))
-                  : finalizerRef.update(xs => xs.append(`Inner ${idx}`));
+            const registerRun = (idx: number): IO<void> =>
+              runEvidenceRef.update(xs => xs.append(idx));
 
-              const prg0 = bracketed.flatMap(() =>
-                Stream<IOF, Stream<IOF, number>>(
-                  Stream.bracket<IOF, void>(registerRun(0), () =>
-                    finalizer(0),
-                  ).flatMap(() => s),
-                  Stream.bracket<IOF, void>(registerRun(1), () =>
-                    finalizer(1),
-                  ).flatMap(() => Stream.execF<IOF, void>(halt.complete())),
-                ),
-              );
+            const finalizer = (idx: number): IO<void> =>
+              idx === biasIdx
+                ? IO.sleep(50)
+                    ['>>>'](
+                      finalizerRef.update(xs => xs.append(`Inner ${idx}`)),
+                    )
+                    ['>>>'](IO.throwError(err))
+                : finalizerRef.update(xs => xs.append(`Inner ${idx}`));
 
-              return prg0
+            const prg0 = bracketed.flatMap(() =>
+              Stream<IOF, Stream<IOF, number>>(
+                Stream.bracket<IOF, void>(registerRun(0), () =>
+                  finalizer(0),
+                ).flatMap(() => s),
+                Stream.bracket<IOF, void>(registerRun(1), () =>
+                  finalizer(1),
+                ).flatMap(() => Stream.execF<IOF, void>(halt.complete())),
+              ),
+            );
+
+            return yield* _(
+              prg0
                 .parJoinUnbounded(IO.Concurrent)
                 .compileConcurrent(IO.Concurrent)
                 .drain.attempt.flatMap(result =>
-                  pipe(
-                    IO.Do,
-                    IO.bindTo('finalizers', finalizerRef.get()),
-                    IO.bindTo('streamExecuted', runEvidenceRef.get()),
-                  ).map(({ finalizers, streamExecuted }) => {
+                  Monad.Do(IO.Monad)(function* (_) {
+                    const finalizers = yield* _(finalizerRef.get());
+                    const streamExecuted = yield* _(runEvidenceRef.get());
                     const expectedFinalizers = streamExecuted
                       .map(idx => `Inner ${idx}`)
                       .append('Outer');
@@ -183,9 +187,9 @@ describe('Stream Parallel Join', () => {
                         : result.isRight)
                     );
                   }),
-                );
-            })
-            .unsafeRunToPromise();
+                ),
+            );
+          }).unsafeRunToPromise();
         },
       ),
       { numRuns: 40 },

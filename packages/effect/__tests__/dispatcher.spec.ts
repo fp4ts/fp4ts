@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { pipe } from '@fp4ts/core';
-import { List } from '@fp4ts/cats';
+import { List, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
 import { Dispatcher } from '@fp4ts/effect-std';
@@ -65,32 +65,27 @@ describe('Dispatcher', () => {
   it('should run multiple IOs in parallel', () => {
     const num = 10;
 
-    return pipe(
-      IO.Do,
-      IO.bindTo(
-        'latches',
+    return Monad.Do(IO.Monad)(function* (_) {
+      const latches = yield* _(
         List.range(0, num).traverse(IO.Applicative)(() => IO.deferred<void>()),
-      ),
-      IO.bindTo('awaitAll', ({ latches }) =>
+      );
+      const awaitAll = yield* _(
         IO.pure(IO.parTraverse_(List.Traversable)(latches, l => l.get())),
-      ),
+      );
       // engineer a deadlock: all subjects must be run in parallel or this will hang
-      IO.bindTo('subjects', ({ latches, awaitAll }) =>
+      const subjects = yield* _(
         IO.pure(latches.map(l => l.complete()['>>>'](awaitAll))),
-      ),
+      );
 
-      IO.bind(({ subjects }) => {
-        const rec = Dispatcher(IO.Async).flatMap(runner =>
-          Resource.evalF(
-            IO.parTraverse_(List.Traversable)(subjects, act =>
-              IO(() => runner.unsafeRunAndForget(act)),
-            ),
+      const rec = Dispatcher(IO.Async).flatMap(runner =>
+        Resource.evalF(
+          IO.parTraverse_(List.Traversable)(subjects, act =>
+            IO(() => runner.unsafeRunAndForget(act)),
           ),
-        );
-
-        return rec.use(IO.MonadCancel)(() => IO.unit);
-      }),
-    ).void.unsafeRunToPromise();
+        ),
+      );
+      yield* _(rec.use(IO.MonadCancel)(() => IO.unit));
+    }).unsafeRunToPromise();
   });
 
   it('should forward cancelation onto the inner action', () => {

@@ -6,7 +6,7 @@
 /**
  * @module effect/core
  */
-export * from './io';
+export { IO, IOF } from './io';
 export * from './sync-io';
 export * from './exit-code';
 export * from './io-fiber';
