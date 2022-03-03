@@ -294,7 +294,7 @@ function commonTests(Q: QueueLike<IOF, number>) {
       yield* _(Q.take(q));
       yield* _(Q.offer(q, 2));
       const size = yield* _(Q.size(q));
-      IO.bind(({ size }) => IO(() => expect(size).toBe(1)));
+      yield* _(IO(() => expect(size).toBe(1)));
     }).unsafeRunToPromise());
 
   it('should return None when the queue is empty', () =>

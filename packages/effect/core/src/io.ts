@@ -809,12 +809,6 @@ const ioAsync: Lazy<Async<IOF>> = lazyVal(() =>
   }),
 );
 
-Object.defineProperty(IO, 'Do', {
-  get() {
-    return ioAsync().Do;
-  },
-});
-
 Object.defineProperty(IO, 'Defer', {
   get(): Defer<IOF> {
     return ioDefer();

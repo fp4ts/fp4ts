@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, compose, id, pipe } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Eval, Monad } from '@fp4ts/cats-core';
 import {
   Either,
   EitherF,
@@ -220,12 +220,12 @@ describe('State', () => {
 
   it('should support do notation', () => {
     const S = State.Monad<number>();
-    const r = pipe(
-      S.Do,
-      S.bind(() => State.modify(x => x + 1)),
-      S.bind(() => State.modify(x => x + 1)),
-      S.productR(State.get()),
-    );
+    const r = Monad.Do(S)(function* (_) {
+      yield* _(State.modify(x => x + 1));
+      yield* _(State.modify(x => x + 1));
+      const result = yield* _(State.get());
+      return result;
+    });
 
     expect(r.run(42).value).toEqual([44, 44]);
   });

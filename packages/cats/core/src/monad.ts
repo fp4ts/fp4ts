@@ -13,44 +13,7 @@ import { Functor } from './functor';
 /**
  * @category Type Class
  */
-export interface Monad<F> extends FlatMap<F>, Applicative<F> {
-  // -- Simple Do notations
-
-  readonly Do: Kind<F, [{}]>;
-
-  readonly let: <N extends string, S extends {}, B>(
-    name: N,
-    fb: (s: S) => B,
-  ) => (
-    fs: Kind<F, [S]>,
-  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
-  readonly let_: <N extends string, S extends {}, B>(
-    name: N,
-    fb: B,
-  ) => (
-    fs: Kind<F, [S]>,
-  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
-
-  readonly bindTo: <N extends string, S extends {}, B>(
-    name: N,
-    fb: Kind<F, [B]> | ((s: S) => Kind<F, [B]>),
-  ) => (
-    fs: Kind<F, [S]>,
-  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
-  readonly bindTo_: <N extends string, S extends {}, B>(
-    fs: Kind<F, [S]>,
-    name: N,
-    fb: Kind<F, [B]> | ((s: S) => Kind<F, [B]>),
-  ) => Kind<F, [{ readonly [K in keyof S | N]: K extends keyof S ? S[K] : B }]>;
-
-  readonly bind: <S extends {}, B>(
-    fb: Kind<F, [B]> | ((s: S) => Kind<F, [B]>),
-  ) => (fs: Kind<F, [S]>) => Kind<F, [S]>;
-  readonly bind_: <S extends {}, B>(
-    fs: Kind<F, [S]>,
-    fb: Kind<F, [B]> | ((s: S) => Kind<F, [B]>),
-  ) => Kind<F, [S]>;
-}
+export interface Monad<F> extends FlatMap<F>, Applicative<F> {}
 
 export type MonadRequirements<F> = Pick<
   Monad<F>,
@@ -63,26 +26,6 @@ export const Monad = Object.freeze({
     const A = Monad.deriveApplicative(M);
 
     const self: Monad<M> = {
-      Do: A.pure({}),
-
-      let: (name, fb) => fs => self.map_(fs, s => ({ ...s, [name]: fb(s) })),
-      let_: (name, b) => fs => self.map_(fs, s => ({ ...s, [name]: b })),
-
-      bindTo: (name, fb) => fs => self.bindTo_(fs, name, fb),
-      bindTo_: (fs, name, fb) =>
-        self.flatMap_(fs, s =>
-          self.map_(
-            typeof fb === 'function' ? (fb as any)(s) : fb,
-            b => ({ ...s, [name]: b } as any),
-          ),
-        ),
-
-      bind: fb => fs => self.bind_(fs, fb),
-      bind_: (fs, fb) =>
-        self.flatMap_(fs, s =>
-          self.map_(typeof fb === 'function' ? (fb as any)(s) : fb, () => s),
-        ),
-
       ...F,
       ...A,
       ...M,
