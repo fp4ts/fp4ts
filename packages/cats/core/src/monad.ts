@@ -140,7 +140,7 @@ export const Monad = Object.freeze({
           ): Kind<F, [R]> =>
             state.done
               ? F.pure(state.value)
-              : F.flatMap_(state.value.effect, val => {
+              : F.flatMap_((state.value as Eff).effect, val => {
                   const next = iterator.next(val);
                   return run(next);
                 });

@@ -15,6 +15,7 @@ import { TracingEvent } from '../tracing';
 
 export abstract class IO<A> {
   readonly __void!: void;
+  readonly _A!: () => A;
 }
 
 export class Pure<A> extends IO<A> {
