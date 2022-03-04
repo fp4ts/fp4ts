@@ -19,6 +19,7 @@ export * from './endo';
 
 export * from './and-then';
 export * from './kleisli';
+export * from './identity-t';
 export * from './option-t';
 export * from './either-t';
 export * from './reader-t';
