@@ -9,6 +9,10 @@ export class CancellationError extends Error {}
 
 export abstract class Outcome<F, E, A> {
   private readonly __void!: void;
+
+  private readonly _F!: F;
+  private readonly _E!: () => E;
+  private readonly _A!: () => A;
 }
 
 export class Success<F, A> extends Outcome<F, never, A> {

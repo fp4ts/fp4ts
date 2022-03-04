@@ -16,18 +16,25 @@ export abstract class Builder<A, X> {
   public abstract readonly result: X;
 
   public mapResult<Y>(f: (x: X) => Y): Builder<A, Y> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return new (class extends Builder<A, Y> {
-      public override append(a: Chunk<A>) {
-        self.append(a);
-        return this;
-      }
+    return new MappedBuilder(this, f);
+  }
+}
 
-      public override get result() {
-        return f(self.result);
-      }
-    })();
+class MappedBuilder<A, Y, X> extends Builder<A, X> {
+  public constructor(
+    public readonly self: Builder<A, Y>,
+    public readonly f: (y: Y) => X,
+  ) {
+    super();
+  }
+
+  public get result(): X {
+    return this.f(this.self.result);
+  }
+
+  public append(a: Chunk<A>): this {
+    this.self.append(a);
+    return this;
   }
 }
 

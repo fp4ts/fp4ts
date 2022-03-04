@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, compose, fst, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
+import { $, fst, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
 import {
   Kleisli,
   List,
@@ -34,6 +34,7 @@ import {
 import { ExitCase } from './exit-case';
 import { ResourceF } from './resource';
 import { resourceConcurrent } from './instances';
+import { Ref } from '../ref';
 
 export const use: <F>(
   F: MonadCancel<F, Error>,
@@ -170,24 +171,8 @@ export const race: <F>(
 export const fork =
   <F>(F: Concurrent<F, Error>) =>
   <A>(r: Resource<F, A>): Resource<F, Fiber<$<ResourceF, [F]>, Error, A>> => {
-    class State {
-      constructor(
-        readonly fin: Kind<F, [void]> = F.unit,
-        readonly finalizeOnComplete: boolean = false,
-        readonly confirmedFinalizeOnComplete: boolean = false,
-      ) {}
-
-      public copy({
-        fin = this.fin,
-        finalizeOnComplete = this.finalizeOnComplete,
-        confirmedFinalizeOnComplete = this.confirmedFinalizeOnComplete,
-      }: Omit<Partial<State>, 'copy'> = {}): State {
-        return new State(fin, finalizeOnComplete, confirmedFinalizeOnComplete);
-      }
-    }
-
     return pipe(
-      F.ref(new State()),
+      F.ref(new State(F.unit, false, false)),
       F.flatMap(state => {
         const finalized: Kind<F, [A]> = F.uncancelable(poll =>
           pipe(
@@ -214,44 +199,11 @@ export const fork =
         );
 
         return F.map_(F.fork(finalized), outer => {
-          const fiber: Fiber<
-            $<ResourceF, [F]>,
-            Error,
-            A
-          > = new (class extends Fiber<$<ResourceF, [F]>, Error, A> {
-            get cancel(): Resource<F, void> {
-              return evalF(
-                F.uncancelable(poll =>
-                  pipe(
-                    poll(outer.cancel),
-                    F.productR(
-                      state.update(s => s.copy({ finalizeOnComplete: true })),
-                    ),
-                  ),
-                ),
-              );
-            }
-
-            get join(): Resource<F, Outcome<$<ResourceF, [F]>, Error, A>> {
-              return evalF(
-                F.flatMap_(outer.join, oc =>
-                  oc.fold(
-                    () => F.pure(Outcome.canceled()),
-                    error => F.pure(Outcome.failure(error)),
-                    fp =>
-                      pipe(
-                        state.get(),
-                        F.map(s =>
-                          s.confirmedFinalizeOnComplete
-                            ? Outcome.canceled()
-                            : Outcome.success<$<ResourceF, [F]>, A>(evalF(fp)),
-                        ),
-                      ),
-                  ),
-                ),
-              );
-            }
-          })();
+          const fiber: Fiber<$<ResourceF, [F]>, Error, A> = new ResourceFiber(
+            F,
+            outer,
+            state,
+          );
 
           const finalizeOuter = state.modify(s => [
             s.copy({ finalizeOnComplete: true }),
@@ -389,7 +341,7 @@ export const combine_ =
 export const handleError_ =
   <F>(F: ApplicativeError<F, Error>) =>
   <A>(r: Resource<F, A>, h: (e: Error) => A): Resource<F, A> =>
-    handleErrorWith_(F)(r, compose(pure, h));
+    handleErrorWith_(F)(r, e => pure(h(e)));
 
 export const handleErrorWith_ =
   <F>(F: ApplicativeError<F, Error>) =>
@@ -555,3 +507,62 @@ export const executeOn_ =
         tupled(a, (_: ExitCase) => fin),
       ),
     );
+
+class State<F> {
+  constructor(
+    readonly fin: Kind<F, [void]>,
+    readonly finalizeOnComplete: boolean,
+    readonly confirmedFinalizeOnComplete: boolean,
+  ) {}
+
+  public copy({
+    fin = this.fin,
+    finalizeOnComplete = this.finalizeOnComplete,
+    confirmedFinalizeOnComplete = this.confirmedFinalizeOnComplete,
+  }: Omit<Partial<State<F>>, 'copy'> = {}): State<F> {
+    return new State(fin, finalizeOnComplete, confirmedFinalizeOnComplete);
+  }
+}
+
+class ResourceFiber<F, A> extends Fiber<$<ResourceF, [F]>, Error, A> {
+  public constructor(
+    private readonly F: Concurrent<F, Error>,
+    private readonly outer: Fiber<F, Error, A>,
+    private readonly state: Ref<F, State<F>>,
+  ) {
+    super();
+  }
+
+  get cancel(): Resource<F, void> {
+    const { F, outer, state } = this;
+    return evalF(
+      F.uncancelable(poll =>
+        pipe(
+          poll(outer.cancel),
+          F.productR(state.update(s => s.copy({ finalizeOnComplete: true }))),
+        ),
+      ),
+    );
+  }
+
+  get join(): Resource<F, Outcome<$<ResourceF, [F]>, Error, A>> {
+    const { F, outer, state } = this;
+    return evalF(
+      F.flatMap_(outer.join, oc =>
+        oc.fold(
+          () => F.pure(Outcome.canceled()),
+          error => F.pure(Outcome.failure(error)),
+          fp =>
+            pipe(
+              state.get(),
+              F.map(s =>
+                s.confirmedFinalizeOnComplete
+                  ? Outcome.canceled()
+                  : Outcome.success<$<ResourceF, [F]>, A>(evalF(fp)),
+              ),
+            ),
+        ),
+      ),
+    );
+  }
+}

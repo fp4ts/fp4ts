@@ -83,7 +83,12 @@ export const tailRecM_ = <F, A, S>(
   s: S,
   f: (s: S) => Resource<F, Either<S, A>>,
 ): Resource<F, A> =>
-  flatMap_(f(s), ea => ea.fold(ss => tailRecM_(ss, f), pure));
+  flatMap_(f(s), ea =>
+    ea.fold(
+      ss => tailRecM_(ss, f),
+      x => pure(x),
+    ),
+  );
 
 export const throwError =
   <F>(F: ApplicativeError<F, Error>) =>
