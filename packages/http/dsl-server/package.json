@@ -14,7 +14,7 @@
     "@fp4ts/effect": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/http-dsl-shared": "*",
-    "@fp4ts/schema-kernel": "*",
+    "@fp4ts/schema": "*",
     "@fp4ts/stream": "*"
   },
   "devDependencies": {

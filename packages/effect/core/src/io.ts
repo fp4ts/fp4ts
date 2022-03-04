@@ -883,5 +883,5 @@ Object.defineProperty(IO, 'Async', {
 // -- HKT
 
 export interface IOF extends TyK<[unknown]> {
-  [$type]: _IO<TyVar<this, 0>>;
+  [$type]: IO<TyVar<this, 0>>;
 }

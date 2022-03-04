@@ -66,6 +66,10 @@ export class Status {
     return apply as this;
   }
 
+  public get isSuccessful(): boolean {
+    return this.code >= 200 && this.code <= 299;
+  }
+
   public toString(): string {
     return `[Status ${this.code} ${this.name}]`;
   }

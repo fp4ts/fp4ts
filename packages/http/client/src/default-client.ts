@@ -13,6 +13,7 @@ import {
   Method,
   Request,
   Response,
+  uri,
   Uri,
 } from '@fp4ts/http-core';
 import { Client } from './client';
@@ -22,13 +23,28 @@ export class DefaultClient<F> implements Client<F> {
   public constructor(
     protected readonly F: Async<F>,
     public readonly run: (req: Request<F>) => Resource<F, Response<F>>,
+    private readonly baseUri?: Uri,
   ) {}
 
   public fetch<A>(
     req: Request<F>,
     f: (res: Response<F>) => Kind<F, [A]>,
   ): Kind<F, [A]> {
-    return this.run(req).use(this.F)(f);
+    return this.baseUri
+      ? this.run(
+          req.withUri(
+            // TODO: allow for base path as well
+            req.uri.copy({
+              scheme: this.baseUri.scheme,
+              authority: this.baseUri.authority,
+            }),
+          ),
+        ).use(this.F)(f)
+      : this.run(req).use(this.F)(f);
+  }
+
+  public withBaseUri(uri: Uri): Client<F> {
+    return new DefaultClient(this.F, this.run, uri);
   }
 
   public fetchAs<A>(req: Request<F>, d: EntityDecoder<F, A>): Kind<F, [A]> {

@@ -20,6 +20,8 @@ import { RequestBuilder } from './request-builder';
 export interface Client<F> {
   run(req: Request<F>): Resource<F, Response<F>>;
 
+  withBaseUri(uri: Uri): Client<F>;
+
   fetch<A>(
     req: Request<F>,
     f: (res: Response<F>) => Kind<F, [A]>,

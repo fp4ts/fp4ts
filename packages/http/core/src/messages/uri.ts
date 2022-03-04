@@ -98,6 +98,21 @@ export class Uri {
       this.query,
     );
   }
+  public '/'(segment: string): Uri {
+    return this.appendSegment(segment);
+  }
+
+  public appendQuery(k: string, v: Option<string>): Uri {
+    return new Uri(
+      this.scheme,
+      this.authority,
+      this.path,
+      this.query.append(k, v),
+    );
+  }
+  public '&+'(k: string, v: Option<string>): Uri {
+    return this.appendQuery(k, v);
+  }
 
   public render(M: Monoid<string>): Writer<string, void> {
     const w = Writer.unit(M);
@@ -172,10 +187,7 @@ export class Uri {
     return this.fromString(s).get;
   }
 }
-export interface Uri {
-  '/'(segment: string): Uri;
-}
-Uri.prototype['/'] = Uri.prototype.appendSegment;
+
 type UriProps = {
   readonly scheme: Option<Scheme>;
   readonly authority: Option<Authority>;
@@ -280,6 +292,13 @@ export class Query {
 
   public lookupAll(k: string): List<Option<string>> {
     return this.xs.collect(([kk, v]) => (kk === k ? Some(v) : None)).toList;
+  }
+
+  public append(k: string, v: Option<string>): Query {
+    return new Query(this.xs.append([k, v]));
+  }
+  public '&+'(k: string, v: Option<string>): Query {
+    return this.append(k, v);
   }
 
   public toString(): string {

@@ -9,6 +9,7 @@
     { "path": "./core/tsconfig.build.json" },
     { "path": "./client/tsconfig.build.json" },
     { "path": "./dsl/tsconfig.build.json" },
+    { "path": "./dsl-client/tsconfig.build.json" },
     { "path": "./dsl-shared/tsconfig.build.json" },
     { "path": "./dsl-server/tsconfig.build.json" },
     { "path": "./node-client/tsconfig.build.json" },
