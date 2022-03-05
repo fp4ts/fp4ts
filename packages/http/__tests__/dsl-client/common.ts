@@ -7,12 +7,20 @@ import {
   booleanType,
   newtype,
   numberType,
+  pipe,
   stringType,
   TypeOf,
   typeref,
 } from '@fp4ts/core';
 import { Schema } from '@fp4ts/schema';
-import { Codable } from '@fp4ts/http-dsl-client';
+import {
+  EntityEncoder,
+  HttpApp,
+  ParsingFailure,
+  Response,
+  Status,
+} from '@fp4ts/http-core';
+import { builtins, Codable, toClientIOIn } from '@fp4ts/http-dsl-client';
 import {
   Capture,
   CaptureAll,
@@ -29,11 +37,8 @@ import {
   Route,
 } from '@fp4ts/http-dsl-shared';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
-import { Server } from '@fp4ts/http-dsl-server/src/type-level';
-import { IOF } from '@fp4ts/effect-core';
-import { DeriveCoding } from '@fp4ts/http-dsl-server/src/type-level';
-import { OmitBuiltins } from '@fp4ts/http-dsl-server/lib/type-level';
-import { builtins } from '@fp4ts/http-dsl-server/lib/builtin-codables';
+import { builtins as serverBuiltins } from '@fp4ts/http-dsl-server/lib/builtin-codables';
+import { IO, IOF } from '@fp4ts/effect-core';
 
 export const PersonTypeTag = '@fp4ts/http/__tests__/dsl-client/person';
 export type PersonTypeTag = typeof PersonTypeTag;
@@ -68,6 +73,22 @@ export const stringNumberArrayTuple = typeref<[string, number[]]>()(
 export const stringNumberArrayCodable: Codable<[string, number[]]> =
   Codable.json.fromSchema(Schema.product(Schema.string, Schema.number.array));
 
+const multiTupleTupleTag = '@fp4ts/http/__tests__/dsl-client/multiTupleTuple';
+export const multiTupleTuple =
+  typeref<[string, number | null, boolean, [string, number[]]]>()(
+    multiTupleTupleTag,
+  );
+export const multiTupleCodable: Codable<
+  [string, number | null, boolean, [string, number[]]]
+> = Codable.json.fromSchema(
+  Schema.product(
+    Schema.string,
+    Schema.number.nullable,
+    Schema.boolean,
+    Schema.product(Schema.string, Schema.number.array),
+  ),
+);
+
 const TestHeaders = Headers(
   Header('X-Example-1', numberType),
   Header('X-Example-2', stringType),
@@ -89,22 +110,86 @@ const api = group(
   Route('rawFailure')[':>'](Raw),
   Route('multiple')
     [':>'](Capture.string('first'))
-    [':>'](Query.string('second'))
+    [':>'](Query.number('second'))
     [':>'](Query.boolean('third'))
     [':>'](ReqBody(JSON, stringNumberArrayTuple))
-    [':>'](Get(JSON, stringNumberArrayTuple)),
+    [':>'](Post(JSON, multiTupleTuple)),
   Route('headers')[':>'](Get(JSON, TestHeaders(booleanType))),
 );
 
-type server = Server<IOF, typeof api>;
-type D = DeriveCoding<IOF, typeof api>;
-type codables = OmitBuiltins<D>;
-
 export const server = toHttpAppIO(api, {
+  ...serverBuiltins,
+  [JSON.mime]: {
+    [PersonTypeTag]: PersonCodable,
+    [PersonArrayTypeTag]: PersonArrayCodable,
+    [stringNumberArrayTupleTag]: stringNumberArrayCodable,
+    [multiTupleTupleTag]: multiTupleCodable,
+  },
+})(S => [
+  S.return(carol),
+  S.return(alice),
+  S.unit,
+  name => S.return(Person({ name, age: 0 })),
+  names =>
+    S.return(
+      names.zipWithIndex.map(([name, age]) => Person({ name, age })).toArray,
+    ),
+  S.return,
+  name =>
+    name.fold(
+      () => S.throwError(new ParsingFailure('empty parameter')),
+      name =>
+        name === 'alice'
+          ? S.return(alice)
+          : S.throwError(new ParsingFailure(`'${name}' not found`)),
+    ),
+  HttpApp(_req =>
+    IO.pure(
+      new Response<IOF>(Status.Ok).withEntity(
+        'raw success',
+        EntityEncoder.text(),
+      ),
+    ),
+  ),
+  HttpApp(req =>
+    IO.pure(
+      new Response<IOF>(Status.Ok)
+        .withEntity('raw success', EntityEncoder.text())
+        .putHeaders(req.headers),
+    ),
+  ),
+  HttpApp(_req =>
+    IO.pure(
+      new Response<IOF>(Status.BadRequest).withEntity(
+        'raw failure',
+        EntityEncoder.text(),
+      ),
+    ),
+  ),
+  a => b => c => d =>
+    S.return([a, b.getOrElse(() => null), c.getOrElse(() => false), d]),
+  pipe(true, S.addHeader('eg2'), S.addHeader(42), S.return),
+]);
+
+export const [
+  getRoot,
+  getGet,
+  deleteEmpty,
+  getCapture,
+  getCaptureAll,
+  postBody,
+  getParam,
+  rawSuccess,
+  rawSuccessPassHeaders,
+  rawFailure,
+  postMultiple,
+  getHeaders,
+] = toClientIOIn(api, {
   ...builtins,
   [JSON.mime]: {
     [PersonTypeTag]: PersonCodable,
     [PersonArrayTypeTag]: PersonArrayCodable,
     [stringNumberArrayTupleTag]: stringNumberArrayCodable,
+    [multiTupleTupleTag]: multiTupleCodable,
   },
 });
