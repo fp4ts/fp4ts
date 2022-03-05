@@ -21,6 +21,6 @@
     "@fp4ts/effect-laws": "*",
     "@fp4ts/effect-test-kit": "*",
     "fast-check": "^2.22.0",
-    "typescript": "4.5.5"
+    "typescript": "4.6.2"
   }
 }

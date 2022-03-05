@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Kind, TypeOf } from '@fp4ts/core';
 import { List, Option } from '@fp4ts/cats';
-import { HttpApp, Method, Response, SelectHeader } from '@fp4ts/http-core';
+import { Method, Response, SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -78,7 +78,7 @@ export type DeriveCoding<F, api, z = {}> =
     ? DeriveCoding<F, api, DeriveTermCoding<F, x, z>>
   : api extends Alt<infer xs>
     ? DeriveAltCodings<F, xs, z>
-  : DeriveTermCoding<F, api, z>;
+  :  DeriveTermCoding<F, api, z>;
 
 // prettier-ignore
 type DeriveTermCoding<F, api, z = {}> =
@@ -180,6 +180,7 @@ export interface CodingDerivates<F, x, z> {
         [ToHttpApiDataTag]: { [k in T['Ref']]: ToHttpApiData<TypeOf<T>> };
       }
     : never;
+  [RawElementTag]: z;
 }
 
 // prettier-ignore
@@ -194,13 +195,8 @@ type ExtractResponseHeaderCodings<hs, acc = {}> =
 
 // prettier-ignore
 export type OmitBuiltins<Provided> =
-  OmitEmpty<{ [k in keyof Provided]:
+  { [k in keyof Provided]:
       k extends keyof builtins
         ? Omit<Provided[k], keyof builtins[k]>
         : Provided[k]
-  }>;
-
-type OmitEmpty<X> = Omit<
-  X,
-  { [k in keyof X]: {} extends X[k] ? k : never }[keyof X]
->;
+  };

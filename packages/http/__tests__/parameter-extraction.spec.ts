@@ -8,7 +8,7 @@ import { booleanType, id, numberType, stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect';
 import { Request, EntityDecoder, uri, Method } from '@fp4ts/http-core';
 import { Capture, Get, group, JSON, Query, Route } from '@fp4ts/http-dsl';
-import { toHttpApp } from '@fp4ts/http-dsl-server';
+import { builtins, toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('parameter extraction', () => {
   const api = group(
@@ -39,7 +39,7 @@ describe('parameter extraction', () => {
       ),
     ),
   );
-  const app = toHttpApp(IO.Concurrent)(api, {})(S => [
+  const app = toHttpApp(IO.Concurrent)(api, builtins)(S => [
     [
       flag => S.return(flag),
       number => S.return(number),

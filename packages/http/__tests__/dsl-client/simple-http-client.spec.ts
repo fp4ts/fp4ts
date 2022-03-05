@@ -7,7 +7,7 @@ import fc from 'fast-check';
 import { stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
-import { toClientIOIn } from '@fp4ts/http-dsl-client';
+import { builtins, toClientIOIn } from '@fp4ts/http-dsl-client';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import {
   Get,
@@ -29,9 +29,12 @@ const api = group(
     [':>'](Post(PlainText, stringType)),
 );
 
-const app = toHttpAppIO(api, {})(S => [S.unit, S.return('pong'), S.return]);
+const app = toHttpAppIO(
+  api,
+  builtins,
+)(S => [S.unit, S.return('pong'), S.return]);
 
-const [version, ping, echo] = toClientIOIn(api, {});
+const [version, ping, echo] = toClientIOIn(api, builtins);
 
 describe('Simple HTTP api dsl client', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));

@@ -12,4 +12,4 @@ export class RawElement implements ApiElement<RawElementTag> {
   [ElementTag]: RawElementTag;
 }
 
-export const Raw = new RawElement();
+export const Raw: RawElement = new RawElement();

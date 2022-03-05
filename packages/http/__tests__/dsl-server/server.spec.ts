@@ -31,7 +31,7 @@ import {
   CaptureAll,
   DeleteNoContent,
 } from '@fp4ts/http-dsl-shared';
-import { toHttpAppIO } from '@fp4ts/http-dsl-server';
+import { builtins, toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonTypeTag } from './person';
 import { Kleisli, Monoid } from '@fp4ts/cats';
@@ -66,6 +66,7 @@ const beholder = Animal({ spieces: 'beholder', legs: 0 });
 describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IOF> =>
     toHttpAppIO(verbApi(m, status), {
+      ...builtins,
       [JSON.mime]: { [PersonTypeTag]: PersonCodable },
     })(S => [
       S.return(alice),
@@ -227,7 +228,7 @@ const headerApi = group(
 describe('Header', () => {
   const server = toHttpAppIO(
     headerApi,
-    {},
+    builtins,
   )(S => [
     ah =>
       S.return(
@@ -326,6 +327,7 @@ const captureAllApi = CaptureAll('legs', numberType)[':>'](Get(JSON, Animal));
 
 describe('Capture All', () => {
   const server = toHttpAppIO(captureAllApi, {
+    ...builtins,
     [JSON.mime]: { [AnimalTypeTag]: AnimalCodable },
   })(S => xs => {
     switch (xs.foldMap(Monoid.addition)(id)) {
@@ -456,6 +458,7 @@ const alternativeApi = group(
 
 describe('Alternative', () => {
   const server = toHttpAppIO(alternativeApi, {
+    ...builtins,
     [JSON.mime]: {
       [PersonTypeTag]: PersonCodable,
       [AnimalTypeTag]: AnimalCodable,

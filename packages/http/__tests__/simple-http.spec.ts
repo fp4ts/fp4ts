@@ -15,7 +15,7 @@ import {
   ReqBody,
   Route,
 } from '@fp4ts/http-dsl';
-import { toHttpApp } from '@fp4ts/http-dsl-server';
+import { builtins, toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('dsl routing', () => {
   const api = group(
@@ -26,7 +26,7 @@ describe('dsl routing', () => {
       [':>'](Post(PlainText, stringType)),
   );
 
-  const app = toHttpApp(IO.Concurrent)(api, {})(S => [
+  const app = toHttpApp(IO.Concurrent)(api, builtins)(S => [
     S.unit,
     S.return('pong'),
     x => S.return(x),

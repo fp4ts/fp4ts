@@ -6,7 +6,7 @@
 import { EitherT } from '@fp4ts/cats';
 import { Async } from '@fp4ts/effect';
 import { HttpApp } from '@fp4ts/http';
-import { Codable, toHttpApp } from '@fp4ts/http-dsl-server';
+import { builtins, Codable, toHttpApp } from '@fp4ts/http-dsl-server';
 
 import { CreateTodo, Todo } from '../todo';
 import { TodoService } from './todo-service';
@@ -22,6 +22,7 @@ export class Server<F> {
 
   public get toHttpApp(): HttpApp<F> {
     return toHttpApp(this.F)(api, {
+      ...builtins,
       'application/json': {
         'todo-api/create-todo': Codable.json.fromSchema(CreateTodo),
         'todo-api/todo': Codable.json.fromSchema(Todo),

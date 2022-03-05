@@ -78,7 +78,7 @@ export type DeriveCoding<F, api, z = {}> =
     ? DeriveCoding<F, api, DeriveTermCoding<F, x, z>>
   : api extends Alt<infer xs>
     ? DeriveAltCodings<F, xs, z>
-  : DeriveTermCoding<F, api, z>;
+  :  DeriveTermCoding<F, api, z>;
 
 // prettier-ignore
 type DeriveTermCoding<F, api, z = {}> =
@@ -180,6 +180,7 @@ export interface CodingDerivates<F, x, z> {
         [FromHttpApiDataTag]: { [k in T['Ref']]: FromHttpApiData<TypeOf<T>> };
       }
     : never;
+  [RawElementTag]: z;
 }
 
 // prettier-ignore
@@ -194,13 +195,8 @@ type ExtractResponseHeaderCodings<hs, acc = {}> =
 
 // prettier-ignore
 export type OmitBuiltins<Provided> =
-  OmitEmpty<{ [k in keyof Provided]:
+  { [k in keyof Provided]:
       k extends keyof builtins
         ? Omit<Provided[k], keyof builtins[k]>
         : Provided[k]
-  }>;
-
-type OmitEmpty<X> = Omit<
-  X,
-  { [k in keyof X]: {} extends X[k] ? k : never }[keyof X]
->;
+  };

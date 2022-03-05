@@ -18,6 +18,6 @@
   },
   "devDependencies": {
     "fast-check": "^2.22.0",
-    "typescript": "4.5.5"
+    "typescript": "4.6.2"
   }
 }

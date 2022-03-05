@@ -71,7 +71,7 @@ import { Codable } from '../codable';
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>
   (makeServer: (f: ServerM<IOF>) => Server<IOF, api>): HttpApp<IOF> =>
-    toHttpApp(IO.Async)(api, codings)(makeServer);
+    toHttpApp(IO.Async)(api, codings as any)(makeServer);
 
 export const toHttpApp =
   <F>(F: Concurrent<F, Error>) =>
@@ -309,7 +309,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     >,
     codings: DeriveCoding<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { decode } = codings[body.ct.mime][body.body.Ref];
+    const { decode } = (codings as any)[body.ct.mime][body.body.Ref];
     const ctCheck = DelayedCheck.withRequest(F)(req =>
       req.contentType.fold(
         () => RouteResultT.succeed(F)(req.bodyText),
@@ -335,7 +335,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           ),
         ),
       ),
-      codings,
+      codings as any,
     );
   }
 
