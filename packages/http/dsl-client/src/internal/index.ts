@@ -36,7 +36,7 @@ import {
   VerbNoContentElement,
 } from '@fp4ts/http-dsl-shared';
 import { ClientM } from '../client-m';
-import { Headers } from '../headers';
+import { ResponseHeaders } from '../headers';
 import { builtins } from '../builtin-codables';
 
 export const toClientIn =
@@ -262,8 +262,13 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
           .withMethod(verb.method),
         res => {
           if (!res.status.isSuccessful)
-            return F.throwError(
-              new Error(`Failed with status ${res.status.code}`),
+            return pipe(
+              res.bodyText.compileConcurrent(F).string,
+              F.flatMap(txt =>
+                F.throwError(
+                  new Error(`Failed with status ${res.status.code}\n${txt}`),
+                ),
+              ),
             );
 
           return F.flatMap_(res.bodyText.compileConcurrent(F).string, txt =>
@@ -310,7 +315,9 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
                 return F.throwError(new Error(`Header '${h.key}' not present`));
               const C = (codings as any)[FromHttpApiDataTag][h.type.Ref];
               const h_ = C.parseHeader(hh.get.head);
-              hs.push(h_);
+              if (h_.isEmpty)
+                return F.throwError(new Error(`Header '${h.key}' not present`));
+              hs.push(h_.get);
             } else {
               const hh = res.headers.get(h.header);
               if (hh.isEmpty)
@@ -326,7 +333,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
           return pipe(
             res.bodyText.compileConcurrent(F).string,
             F.flatMap(txt => F.fromEither(C.decode(txt))),
-            F.map(r => new Headers(hs, r)),
+            F.map(r => new ResponseHeaders(hs, r)),
           );
         },
       ),

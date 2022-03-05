@@ -36,7 +36,7 @@ import {
   CaptureAllElementTag,
   CaptureAllElement,
 } from '@fp4ts/http-dsl-shared';
-import { Headers } from './headers';
+import { ResponseHeaders } from './headers';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
 import { ClientMF } from './client-m';
@@ -111,7 +111,7 @@ export interface TermDerivates<F, api, m> {
 // prettier-ignore
 type BuildHeaders<xs, a, hs extends unknown[] = []> =
   xs extends []
-    ? Headers<hs, a>
+    ? ResponseHeaders<hs, a>
   : xs extends [...infer xs, RawHeaderElement<any, infer h>]
     ? BuildHeaders<xs, a, [...hs, TypeOf<h>]>
   : xs extends [...infer xs, HeaderElement<SelectHeader<infer f, infer aa>>]

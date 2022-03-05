@@ -48,3 +48,4 @@ export * from './client-m';
 export { TermDerivates, SubDerivates, CodingDerivates } from './type-level';
 export { Codable, CodableF } from './codable';
 export * from './builtin-codables';
+export * from './headers';
