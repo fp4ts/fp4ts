@@ -59,7 +59,7 @@ function requestToRequestOptions<F>(req: Request<F>): http.RequestOptions {
     method: req.method.methodName.toUpperCase(),
     port: req.uri.authority.flatMap(a => a.port).getOrElse(() => undefined),
     hostname: req.uri.authority.map(a => a.host).getOrElse(() => 'localhost'),
-    path: req.uri.path.components.join('/'),
+    path: `${req.uri.path.components.join('/')}${req.uri.query}`,
     headers: headersToOutgoingHeaders(req.headers),
     protocol: `${req.uri.scheme.getOrElse(() => 'http')}:`,
     defaultPort: 80,
