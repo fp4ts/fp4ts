@@ -20,6 +20,7 @@ import {
   NotAcceptFailure,
   NotFoundFailure,
   ParsingFailure,
+  UnauthorizedFailure,
   UnsupportedMediaTypeFailure,
 } from '@fp4ts/http-core';
 import { Route, RouteResult, RouteResultT, view } from './algebra';
@@ -176,7 +177,7 @@ const _pickBetterFailure = (
 const _toPriority = (f: MessageFailure): number => {
   if (f instanceof NotFoundFailure) return 0;
   if (f instanceof MethodNotAllowedFailure) return 1;
-  // if (f instanceof UnauthorizedFailure) return 2;
+  if (f instanceof UnauthorizedFailure) return 2;
   if (f instanceof UnsupportedMediaTypeFailure) return 3;
   if (f instanceof NotAcceptFailure) return 4;
   if (f instanceof ParsingFailure) return 5;

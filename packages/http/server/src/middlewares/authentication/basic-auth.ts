@@ -51,7 +51,7 @@ const challenge =
       ),
     );
 
-const validatePassword =
+export const validatePassword =
   <F>(F: Applicative<F>) =>
   <A>(
     validate: BasicAuthenticator<F, A>,

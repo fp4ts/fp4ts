@@ -105,6 +105,21 @@ export class NotFoundFailure extends MessageFailure {
   }
 }
 
+export class UnauthorizedFailure extends MessageFailure {
+  public constructor(public readonly sanitized: string = '') {
+    super(sanitized);
+  }
+
+  public readonly cause = None;
+
+  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.Unauthorized, httpVersion).withEntity(
+      this.sanitized,
+      EntityEncoder.text<F>(),
+    );
+  }
+}
+
 export class InternalServerErrorFailure extends MessageFailure {
   public constructor(public readonly error: Error) {
     super(error.message);

@@ -8,16 +8,20 @@ import { Some } from '@fp4ts/cats';
 import { Concurrent, IO } from '@fp4ts/effect';
 import {
   Accept,
+  Authorization,
+  AuthScheme,
   ContentType,
   EntityEncoder,
   MediaRange,
   Method,
   Request,
   SelectHeader,
+  Token,
 } from '@fp4ts/http-core';
 import { Client, DeriveCoding, OmitBuiltins } from '../type-level';
 import {
   Alt,
+  BasicAuthElement,
   CaptureAllElement,
   CaptureElement,
   ContentTypeWithMime,
@@ -93,6 +97,9 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
       }
       if (lhs instanceof CaptureAllElement) {
         return routeCaptureAll(lhs, rhs, req, codings as any) as any;
+      }
+      if (lhs instanceof BasicAuthElement) {
+        return routeBasicAuth(lhs, rhs, req, codings as any) as any;
       }
     }
 
@@ -198,6 +205,22 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
         h.fold(
           () => req,
           h => req.putHeaders([a.key, C.toHeader(h)]),
+        ),
+        codings,
+      );
+  }
+
+  function routeBasicAuth<api>(
+    a: BasicAuthElement<any, any>,
+    api: api,
+    req: Request<F>,
+    codings: DeriveCoding<F, Sub<BasicAuthElement<any, any>, api>>,
+  ): Client<F, Sub<BasicAuthElement<any, any>, api>> {
+    return creds =>
+      clientWithRoute(
+        api,
+        req.putHeaders(
+          ...Authorization(new Token(AuthScheme.Basic, creds.token)).toRaw(),
         ),
         codings,
       );

@@ -16,3 +16,6 @@ export type stringType = TypeOf<typeof stringType>;
 
 export const nullType = typeref<null>()('@fp4ts/core/null');
 export type nullType = TypeOf<typeof nullType>;
+
+export const voidType = typeref<void>()('@fp4ts/core/void');
+export type voidType = TypeOf<typeof voidType>;

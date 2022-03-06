@@ -11,6 +11,7 @@ import {
   stringType,
   TypeOf,
   typeref,
+  voidType,
 } from '@fp4ts/core';
 import { Schema } from '@fp4ts/schema';
 import {
@@ -25,6 +26,7 @@ import {
 } from '@fp4ts/http-core';
 import { builtins, Codable, toClientIOIn } from '@fp4ts/http-dsl-client';
 import {
+  BasicAuth,
   Capture,
   CaptureAll,
   DeleteNoContent,
@@ -42,6 +44,7 @@ import {
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { builtins as serverBuiltins } from '@fp4ts/http-dsl-server/lib/builtin-codables';
 import { IO, IOF } from '@fp4ts/effect-core';
+import { None, Some } from '@fp4ts/cats';
 
 export const PersonTypeTag = '@fp4ts/http/__tests__/dsl-client/person';
 export type PersonTypeTag = typeof PersonTypeTag;
@@ -234,3 +237,19 @@ export const failServer = toHttpAppIO(
     ),
   ),
 ]);
+
+export const basicAuthApi = BasicAuth('foo-realm', voidType)
+  [':>']('private')
+  [':>']('basic')
+  [':>'](Get(JSON, Person));
+
+export const basicAuthServer = toHttpAppIO(basicAuthApi, {
+  ...builtins,
+  [JSON.mime]: { [PersonTypeTag]: PersonCodable },
+  '@fp4ts/dsl-server/basic-auth-validator-tag': {
+    'foo-realm': ({ username, password }) =>
+      IO.pure(
+        username === 'fp4ts' && password === 'server' ? Some(undefined) : None,
+      ),
+  },
+})(S => () => S.return(alice));

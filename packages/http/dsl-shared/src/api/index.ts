@@ -19,3 +19,4 @@ export * from './header-element';
 export * from './headers';
 export * from './raw-element';
 export * from './catch-all';
+export * from './basic-auth-element';

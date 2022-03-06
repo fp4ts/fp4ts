@@ -22,6 +22,7 @@ export class Delayed<F, env, c> {
           captures: constant(r),
           method: r,
           accept: r,
+          auth: r,
           content: r,
           params: r,
           headers: r,
@@ -35,11 +36,12 @@ export class Delayed<F, env, c> {
     // T - Result of the computation over the existential record
     public readonly fold: <T>(
       // Existential types
-      transform: <captures, contentType, params, headers, body>(
+      transform: <auth, captures, contentType, params, headers, body>(
         props: DelayedProps<
           F,
           env,
           c,
+          auth,
           captures,
           contentType,
           params,
@@ -78,8 +80,8 @@ export class Delayed<F, env, c> {
           transform({
             ...props,
             captures: ([txt, env]) => props.captures(env).product(F)(f(txt)),
-            server: ([x, v]: [capturesOf<typeof props>, A], p, h, b, req) =>
-              F.map_(props.server(x, p, h, b, req), applyTo(v)),
+            server: ([x, v]: [capturesOf<typeof props>, A], p, h, a, b, req) =>
+              F.map_(props.server(x, p, h, a, b, req), applyTo(v)),
           }),
         ),
       );
@@ -95,8 +97,8 @@ export class Delayed<F, env, c> {
           transform({
             ...props,
             params: props.params.product(F)(that),
-            server: (c, [p, pNew], h, b, req) =>
-              F.map_(props.server(c, p, h, b, req), applyTo(pNew)),
+            server: (c, [p, pNew], h, a, b, req) =>
+              F.map_(props.server(c, p, h, a, b, req), applyTo(pNew)),
           }),
         ),
       );
@@ -112,8 +114,8 @@ export class Delayed<F, env, c> {
           transform({
             ...props,
             headers: props.headers.product(F)(that),
-            server: (c, p, [h, hNew], b, req) =>
-              F.map_(props.server(c, p, h, b, req), applyTo(hNew)),
+            server: (c, p, [h, hNew], a, b, req) =>
+              F.map_(props.server(c, p, h, a, b, req), applyTo(hNew)),
           }),
         ),
       );
@@ -126,6 +128,23 @@ export class Delayed<F, env, c> {
       new Delayed(transform =>
         this.fold(props =>
           transform({ ...props, method: props.method.productL(F)(that) }),
+        ),
+      );
+  }
+
+  public addAuthCheck<A, B>(
+    this: Delayed<F, env, (a: A) => B>,
+    F: FlatMap<$<RouteResultTF, [F]>>,
+  ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
+    return (newAuth: DelayedCheck<F, A>) =>
+      new Delayed(transform =>
+        this.fold(props =>
+          transform({
+            ...props,
+            auth: props.auth.product(F)(newAuth),
+            server: (c, p, h, [y, v], b, req) =>
+              F.map_(props.server(c, p, h, y, b, req), applyTo(v)),
+          }),
         ),
       );
   }
@@ -148,8 +167,8 @@ export class Delayed<F, env, c> {
             content: props.content.product(F)(newContent),
             body: ([content, c]: [contentTypeOf<typeof props>, C]) =>
               props.body(content).product(F)(newBody(c)),
-            server: (c, p, h, [z, v], req) =>
-              F.map_(props.server(c, p, h, z, req), applyTo(v)),
+            server: (c, p, h, a, [z, v], req) =>
+              F.map_(props.server(c, p, h, a, z, req), applyTo(v)),
           }),
         ),
       );
@@ -178,8 +197,8 @@ export class Delayed<F, env, c> {
         this.fold(props =>
           transform({
             ...props,
-            server: (c, p, h, b, req) =>
-              F.map_(props.server(c, p, h, b, req), applyTo(f(req))),
+            server: (c, p, h, a, b, req) =>
+              F.map_(props.server(c, p, h, a, b, req), applyTo(f(req))),
           }),
         ),
       );
@@ -194,13 +213,14 @@ export class Delayed<F, env, c> {
         RF.do(function* (_) {
           const c = yield* _(props.captures(env));
           yield* _(props.method);
+          const a = yield* _(props.auth);
           yield* _(props.accept);
           const content = yield* _(props.content);
           const p = yield* _(props.params);
           const h = yield* _(props.headers);
           const b = yield* _(props.body(content));
           return yield* _(
-            DelayedCheck.liftRouteResult(props.server(c, p, h, b, req)),
+            DelayedCheck.liftRouteResult(props.server(c, p, h, a, b, req)),
           );
         }).run(req),
       );
@@ -208,6 +228,7 @@ export class Delayed<F, env, c> {
 }
 
 type capturesOf<X> = X extends DelayedProps<
+  any,
   any,
   any,
   any,
@@ -225,6 +246,7 @@ type contentTypeOf<X> = X extends DelayedProps<
   any,
   any,
   any,
+  any,
   infer contentType,
   any,
   any,
@@ -237,6 +259,7 @@ interface DelayedProps<
   F,
   env,
   c,
+  auth,
   captures,
   contentType,
   params,
@@ -245,12 +268,13 @@ interface DelayedProps<
 > {
   readonly captures: (e: env) => DelayedCheck<F, captures>;
   readonly method: DelayedCheck<F, void>;
+  readonly auth: DelayedCheck<F, auth>;
   readonly accept: DelayedCheck<F, void>;
   readonly content: DelayedCheck<F, contentType>;
   readonly params: DelayedCheck<F, params>;
   readonly headers: DelayedCheck<F, headers>;
   readonly body: (ct: contentType) => DelayedCheck<F, body>;
   readonly server: (
-    ...xs: [captures, params, headers, body, Request<F>]
+    ...xs: [captures, params, headers, auth, body, Request<F>]
   ) => RouteResultT<F, c>;
 }

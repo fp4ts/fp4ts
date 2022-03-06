@@ -6,7 +6,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Kind, TypeOf } from '@fp4ts/core';
 import { List, Option } from '@fp4ts/cats';
-import { Method, Response, SelectHeader } from '@fp4ts/http-core';
+import {
+  BasicCredentials,
+  Method,
+  Response,
+  SelectHeader,
+} from '@fp4ts/http-core';
 import {
   Alt,
   ApiElement,
@@ -35,6 +40,8 @@ import {
   RawElementTag,
   CaptureAllElementTag,
   CaptureAllElement,
+  BasicAuthTag,
+  BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
 import { ResponseHeaders } from './headers';
 import { builtins } from './builtin-codables';
@@ -141,6 +148,9 @@ export interface SubDerivates<F, x, api, m> {
   [CaptureAllElementTag]: x extends CaptureAllElement<any, infer T>
     ? (xs: List<TypeOf<T>>) => ClientT<F, api, m>
     : never;
+  [BasicAuthTag]: x extends BasicAuthElement<any, any>
+    ? (creds: BasicCredentials) => ClientT<F, api, m>
+    : never;
 }
 
 export interface CodingDerivates<F, x, z> {
@@ -181,6 +191,7 @@ export interface CodingDerivates<F, x, z> {
       }
     : never;
   [RawElementTag]: z;
+  [BasicAuthTag]: z;
 }
 
 // prettier-ignore

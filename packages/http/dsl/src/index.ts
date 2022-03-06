@@ -18,6 +18,8 @@ export {
   Route,
   CaptureAll,
 
+  BasicAuth,
+
   Get,
   Post,
   Put,

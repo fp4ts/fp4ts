@@ -5,7 +5,14 @@
 
 import '@fp4ts/effect-test-kit';
 import test from 'supertest';
-import { booleanType, id, numberType, pipe, stringType } from '@fp4ts/core';
+import {
+  booleanType,
+  id,
+  numberType,
+  pipe,
+  stringType,
+  voidType,
+} from '@fp4ts/core';
 import { IO, IOF } from '@fp4ts/effect-core';
 import {
   Accept,
@@ -31,11 +38,12 @@ import {
   Raw,
   CaptureAll,
   DeleteNoContent,
+  BasicAuth,
 } from '@fp4ts/http-dsl-shared';
 import { builtins, toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonTypeTag } from './person';
-import { Kleisli, Monoid } from '@fp4ts/cats';
+import { Kleisli, Monoid, None, Some } from '@fp4ts/cats';
 import { Animal, AnimalCodable, AnimalTypeTag } from './animal';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>
@@ -512,6 +520,76 @@ describe('Alternative', () => {
       test(server)
         .get('/non-existent-path')
         .then(response => expect(response.statusCode).toBe(404)),
+    ),
+  );
+});
+
+const basicAuthApi = group(
+  BasicAuth('foo', voidType)[':>']('basic')[':>'](Get(JSON, Animal)),
+  Raw,
+);
+
+describe('Basic Auth', () => {
+  const server = toHttpAppIO(basicAuthApi, {
+    ...builtins,
+    'application/json': { '@fp4ts/http/__tests__/animal': AnimalCodable },
+    '@fp4ts/dsl-server/basic-auth-validator-tag': {
+      foo: ({ username, password }) =>
+        IO.pure(
+          username === 'fp4ts' && password === 'server'
+            ? Some(undefined)
+            : None,
+        ),
+    },
+  })(S => [
+    () => S.return(jerry),
+    HttpApp(_req => IO.pure(Status.ImATeapot<IOF>())),
+  ]);
+
+  it.M(
+    'should respond with 401 Unauthorized without Authorization header',
+    () =>
+      withServerP(server)(server =>
+        test(server)
+          .get('/basic')
+          .then(response => {
+            expect(response.statusCode).toBe(401);
+            expect(response.text).toBe('Unauthorized');
+          }),
+      ),
+  );
+
+  it.M('should respond with 401 Unauthorized when password mismatch', () =>
+    withServerP(server)(server =>
+      test(server)
+        .get('/basic')
+        .auth('fp4ts', 'wrong')
+        .then(response => {
+          expect(response.statusCode).toBe(401);
+          expect(response.text).toBe('Unauthorized');
+        }),
+    ),
+  );
+
+  it.M('should respond with 200 when the auth succeeds', () =>
+    withServerP(server)(server =>
+      test(server)
+        .get('/basic')
+        .auth('fp4ts', 'server')
+        .then(response => {
+          expect(response.statusCode).toBe(200);
+          expect(response.body).toEqual(jerry);
+        }),
+    ),
+  );
+
+  it.M('should work with alternate routes', () =>
+    withServerP(server)(server =>
+      test(server)
+        .get('/foo')
+        .then(response => {
+          expect(response.statusCode).toBe(418);
+        }),
     ),
   );
 });

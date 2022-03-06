@@ -35,11 +35,15 @@ import {
   RawElementTag,
   CaptureAllElementTag,
   CaptureAllElement,
+  BasicAuthTag,
+  BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
+import { BasicAuthenticator } from '@fp4ts/http-server';
 import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
 import { Codable } from './codable';
 import { HandlerF } from './internal/handler';
+import { BasicAuthValidatorTag } from './basic-auth-validator';
 
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
@@ -141,6 +145,9 @@ export interface SubDerivates<F, x, api, m> {
   [CaptureAllElementTag]: x extends CaptureAllElement<any, infer T>
     ? (xs: List<TypeOf<T>>) => ServerT<F, api, m>
     : never;
+  [BasicAuthTag]: x extends BasicAuthElement<any, infer T>
+    ? (userData: TypeOf<T>) => ServerT<F, api, m>
+    : never;
 }
 
 export interface CodingDerivates<F, x, z> {
@@ -181,6 +188,11 @@ export interface CodingDerivates<F, x, z> {
       }
     : never;
   [RawElementTag]: z;
+  [BasicAuthTag]: x extends BasicAuthElement<infer N, infer T>
+    ? z & {
+        [BasicAuthValidatorTag]: { [k in N]: BasicAuthenticator<F, TypeOf<T>> };
+      }
+    : never;
 }
 
 // prettier-ignore

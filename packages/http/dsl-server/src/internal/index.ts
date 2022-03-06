@@ -33,6 +33,7 @@ import {
   SelectHeader,
   RawHeader,
   Headers,
+  UnauthorizedFailure,
 } from '@fp4ts/http-core';
 import {
   Alt,
@@ -52,6 +53,7 @@ import {
   HeadersVerbElement,
   RawElement,
   CaptureAllElement,
+  BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IOF } from '@fp4ts/effect';
 
@@ -76,6 +78,8 @@ import { ServerM } from '../server-m';
 import { AddHeader } from '../add-header';
 import { Handler } from './handler';
 import { Codable } from '../codable';
+import { BasicAuthValidatorTag } from '../basic-auth-validator';
+import { validatePassword } from '@fp4ts/http-server/src/middlewares/authentication/basic-auth';
 
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>
@@ -149,6 +153,9 @@ export function route<F>(F: Concurrent<F, Error>) {
       }
       if (lhs instanceof CaptureAllElement) {
         return routeCatchAll(lhs, rhs, ctx, server as any, codings as any);
+      }
+      if (lhs instanceof BasicAuthElement) {
+        return routeBasicAuth(lhs, rhs, ctx, server as any, codings as any);
       }
       throw new Error('Invalid sub');
     }
@@ -295,6 +302,41 @@ export function route<F>(F: Concurrent<F, Error>) {
     );
 
     return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
+  }
+
+  function routeBasicAuth<
+    api,
+    context extends unknown[],
+    env,
+    N extends string,
+    A,
+  >(
+    auth: BasicAuthElement<N, TypeRef<any, A>>,
+    api: api,
+    ctx: Context<context>,
+    d: Delayed<
+      F,
+      env,
+      Server<F, Sub<BasicAuthElement<N, TypeRef<any, A>>, api>>
+    >,
+    codings: DeriveCoding<F, Sub<BasicAuthElement<N, TypeRef<any, A>>, api>>,
+  ): Router<env, RoutingApplication<F>> {
+    const validate = codings[BasicAuthValidatorTag][auth.realm];
+    const authCheck = DelayedCheck.withRequest(F)(req =>
+      pipe(
+        validatePassword(F)(validate, req),
+        F.map(opt =>
+          opt.fold(
+            () =>
+              RouteResult.fatalFail(new UnauthorizedFailure('Unauthorized')),
+            a => RouteResult.succeed(a),
+          ),
+        ),
+        RouteResultT,
+      ),
+    );
+
+    return route(api, ctx, d.addAuthCheck(EF)(authCheck), codings as any);
   }
 
   function routeReqBody<
