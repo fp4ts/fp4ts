@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import http from 'http';
+import { Either, Left } from '@fp4ts/cats';
 import { Async, Dispatcher, Resource } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
 import * as io from '@fp4ts/stream-io';
@@ -29,10 +30,11 @@ export class NodeClient<F> extends DefaultClient<F> {
 
     return RA.do(function* (_) {
       const dispatcher = yield* _(Dispatcher(F));
+      const errSignal = yield* _(Resource.evalF(F.deferred<Error>()));
       const respSignal = yield* _(Resource.evalF(F.deferred<Response<F>>()));
 
-      const req_ = F.delay(() =>
-        http.request(requestToRequestOptions(req), res_ =>
+      const req_ = F.delay(() => {
+        const r = http.request(requestToRequestOptions(req), res_ =>
           dispatcher.unsafeRunAndForget(
             F.defer(() => {
               const status = Status.unsafeFromCode(res_.statusCode!);
@@ -42,11 +44,21 @@ export class NodeClient<F> extends DefaultClient<F> {
               return respSignal.complete(res);
             }),
           ),
-        ),
-      );
+        );
+
+        r.on('error', e =>
+          dispatcher.unsafeRunAndForget(errSignal.complete(e)),
+        );
+
+        return r;
+      });
 
       const resp = io
         .writeWritable(F)(req_)(req.body)
+        // interrupt on connection error
+        .interruptWhen(F.map_(errSignal.get(), Left))
+        // interrupt as soon as server responds -- possibility of not consuming the body
+        .interruptWhen(F.map_(respSignal.get(), () => Either.rightUnit))
         ['+++'](Stream.evalF(respSignal.get()))
         .compileConcurrent(F).last;
       return yield* _(Resource.evalF(resp));
