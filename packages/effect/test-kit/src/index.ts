@@ -10,3 +10,4 @@ import './jest-extension';
 export * from './test-execution-context';
 export * from './ticked';
 export * from './ticker';
+export * from './for-all-m';

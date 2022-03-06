@@ -68,7 +68,10 @@ describe('Failure', () => {
         return getCapture('foo')
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
-            IO(() => expect((r.getLeft as any).code).toBe('EINVAL')),
+            IO(() => {
+              const code = (r.getLeft as any).code;
+              expect(code === 'EINVAL' || code === 'ECONNREFUSED').toBe(true);
+            }),
           );
       }),
     );

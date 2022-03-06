@@ -4,71 +4,72 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable prettier/prettier */
-import { Eq } from '@fp4ts/cats-kernel';
 import fc, { Arbitrary } from 'fast-check';
-import { IsEq } from './rules';
+import { Eq } from '@fp4ts/cats';
+import { IsEq } from '@fp4ts/cats-test-kit';
+import { IO } from '@fp4ts/effect-core';
 
-export function forAll<A0, R>(
+export function forAllM<A0, R>(
   arb0: Arbitrary<A0>,
   predicate: (a0: A0) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, R>(
   arb0: Arbitrary<A0>,
-  predicate: (a0: A0) => boolean | void,
-): () => void;
-export function forAll<A0, A1, R>(
+  predicate: (a0: A0) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   predicate: (a0: A0, a1: A1) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
-  predicate: (a0: A0, a1: A1) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, R>(
+  predicate: (a0: A0, a1: A1) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   predicate: (a0: A0, a1: A1, a2: A2) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
-  predicate: (a0: A0, a1: A1, a2: A2) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, R>(
+  predicate: (a0: A0, a1: A1, a2: A2) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   arb3: Arbitrary<A3>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   arb3: Arbitrary<A3>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   arb3: Arbitrary<A3>,
   arb4: Arbitrary<A4>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   arb3: Arbitrary<A3>,
   arb4: Arbitrary<A4>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, A5, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, A5, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -76,17 +77,17 @@ export function forAll<A0, A1, A2, A3, A4, A5, R>(
   arb4: Arbitrary<A4>,
   arb5: Arbitrary<A5>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, A5, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, A5, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
   arb3: Arbitrary<A3>,
   arb4: Arbitrary<A4>,
   arb5: Arbitrary<A5>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, A5, A6, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -95,8 +96,8 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, R>(
   arb5: Arbitrary<A5>,
   arb6: Arbitrary<A6>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, A5, A6, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -104,9 +105,9 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, R>(
   arb4: Arbitrary<A4>,
   arb5: Arbitrary<A5>,
   arb6: Arbitrary<A6>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -116,8 +117,8 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, R>(
   arb6: Arbitrary<A6>,
   arb7: Arbitrary<A7>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -126,9 +127,9 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, R>(
   arb5: Arbitrary<A5>,
   arb6: Arbitrary<A6>,
   arb7: Arbitrary<A7>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -139,8 +140,8 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
   arb7: Arbitrary<A7>,
   arb8: Arbitrary<A8>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -150,9 +151,9 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, R>(
   arb6: Arbitrary<A6>,
   arb7: Arbitrary<A7>,
   arb8: Arbitrary<A8>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => boolean | void,
-): () => void;
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -164,8 +165,8 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   arb8: Arbitrary<A8>,
   arb9: Arbitrary<A9>,
   predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => IsEq<R>,
-): ((E: Eq<R>) => () => void)
-export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
+): ((E: Eq<R>) => () => IO<void>)
+export function forAllM<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   arb0: Arbitrary<A0>,
   arb1: Arbitrary<A1>,
   arb2: Arbitrary<A2>,
@@ -176,24 +177,24 @@ export function forAll<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, R>(
   arb7: Arbitrary<A7>,
   arb8: Arbitrary<A8>,
   arb9: Arbitrary<A9>,
-  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => boolean | void,
-): () => void;
-export function forAll(...args: any[]): any {
+  predicate: (a0: A0, a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => IO<boolean | void>,
+): () => IO<void>;
+export function forAllM(...args: any[]): any {
   const [predicate] = args.splice(-1);
-  const run = (E?: any) => {
-    fc.assert(
+  const run = async (E?: any) => {
+    await fc.assert(
       // @ts-ignore
-      fc.property(...[...args, (...args0) => {
-        if (!E) return predicate(...args0);
-        if (typeof E === 'function') return E(predicate(...args0));
-        const { lhs, rhs } = predicate(...args0);
-        return E.equals(lhs, rhs);
+      fc.asyncProperty(...[...args, (...args0) => {
+        if (!E) return predicate(...args0).unsafeRunToPromise();
+        return predicate(...args0)
+          .map(({ lhs, rhs }: any) => E.equals(lhs, rhs))
+          .unsafeRunToPromise();
       }]),
     )
   }
 
   return (...args: any[]) => {
     const [E] = args;
-    return E != null ? (() => run(E)) : run()
+    return E != null ? (() => IO.deferPromise(() => run(E))) : IO.deferPromise(() => run())
   };
 }

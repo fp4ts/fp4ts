@@ -13,7 +13,6 @@ import {
   Method,
   Request,
   Response,
-  uri,
   Uri,
 } from '@fp4ts/http-core';
 import { Client } from './client';

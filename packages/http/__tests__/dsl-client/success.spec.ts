@@ -12,6 +12,7 @@ import { ResponseHeaders } from '@fp4ts/http-dsl-client';
 import { Client } from '@fp4ts/http-client';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
+import { forAllM } from '@fp4ts/effect-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   alice,
@@ -284,37 +285,35 @@ describe('Success', () => {
     );
   });
 
-  test('Combinations of Capture, Query and ReqBody', async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.webSegment().filter(s => s.length > 0),
-        A.fp4tsOption(fc.integer()),
-        A.fp4tsOption(fc.boolean()),
-        fc.tuple(fc.string(), fc.array(fc.integer())),
-        async (str, num, flag, body) => {
-          await withServerClient(
-            server,
-            clientResource,
-          )((server, client) => {
-            const baseUri = server.baseUri;
+  test.M(
+    'Combinations of Capture, Query and ReqBody',
+    forAllM(
+      fc.webSegment().filter(s => s.length > 0),
+      A.fp4tsOption(fc.integer()),
+      A.fp4tsOption(fc.boolean()),
+      fc.tuple(fc.string(), fc.array(fc.integer())),
+      (str, num, flag, body) =>
+        withServerClient(
+          server,
+          clientResource,
+        )((server, client) => {
+          const baseUri = server.baseUri;
 
-            return postMultiple(str)(num)(flag)(body)
-              .run(client.withBaseUri(baseUri))
-              .flatMap(res =>
-                IO(() =>
-                  expect(res).toEqual([
-                    str,
-                    num.getOrElse(() => null),
-                    flag.getOrElse(() => false),
-                    body,
-                  ]),
-                ),
-              );
-          }).unsafeRunToPromise();
-        },
-      ),
-    );
-  });
+          return postMultiple(str)(num)(flag)(body)
+            .run(client.withBaseUri(baseUri))
+            .flatMap(res =>
+              IO(() =>
+                expect(res).toEqual([
+                  str,
+                  num.getOrElse(() => null),
+                  flag.getOrElse(() => false),
+                  body,
+                ]),
+              ),
+            );
+        }),
+    ),
+  );
 
   it.M('should attach receive attached headers', () =>
     withServerClient(
