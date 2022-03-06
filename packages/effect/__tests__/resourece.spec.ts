@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import '@fp4ts/effect-test-kit/lib/jest-extension';
+import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { $, fst, snd } from '@fp4ts/core';
 import { FunctionK, Eq, List, Either, Left, Right, Monad } from '@fp4ts/cats';

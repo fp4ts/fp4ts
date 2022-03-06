@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import test from 'supertest';
 import { booleanType, id, numberType, pipe, stringType } from '@fp4ts/core';
 import { IO, IOF } from '@fp4ts/effect-core';
@@ -83,8 +84,8 @@ describe('verbs', () => {
     const m = method.methodName.toLowerCase() as StringMethod;
 
     if (method !== Method.HEAD) {
-      it('should return a person', async () => {
-        await withServerP(server)(server =>
+      it.M('should return a person', () =>
+        withServerP(server)(server =>
           test(server)
             [m]('/')
             .accept('application/json')
@@ -92,12 +93,12 @@ describe('verbs', () => {
               expect(response.statusCode).toBe(status.code);
               expect(response.body).toEqual({ name: 'Alice', age: 42 });
             }),
-        ).unsafeRunToPromise();
-      });
+        ),
+      );
     }
 
-    it('should return no content', async () => {
-      await withServerP(server)(server =>
+    it.M('should return no content', () =>
+      withServerP(server)(server =>
         test(server)
           [m]('/no-content')
           .then(response => {
@@ -107,12 +108,12 @@ describe('verbs', () => {
             );
             expect(response.body).toEqual({});
           }),
-      ).unsafeRunToPromise();
-    });
+      ),
+    );
 
     if (method === Method.HEAD) {
-      it('should return no body on HEAD', async () => {
-        await withServerP(server)(server =>
+      it.M('should return no body on HEAD', () =>
+        withServerP(server)(server =>
           test(server)
             [m]('/')
             .accept('application/json')
@@ -120,22 +121,21 @@ describe('verbs', () => {
               expect(response.statusCode).toBe(status.code);
               expect(response.body).toEqual({});
             }),
-        ).unsafeRunToPromise();
-      });
+        ),
+      );
     }
 
-    it('should return Method Not Allowed', async () => {
-      await withServerP(server)(server =>
+    it('should return Method Not Allowed', async () =>
+      withServerP(server)(server =>
         test(server)
           [wrongMethod(m)]('/')
           .then(response => {
             expect(response.statusCode).toBe(405);
           }),
-      ).unsafeRunToPromise();
-    });
+      ));
 
-    it('should return headers', async () => {
-      await withServerP(server)(server =>
+    it.M('should return headers', () =>
+      withServerP(server)(server =>
         test(server)
           [m]('/header')
           .then(response => {
@@ -152,22 +152,22 @@ describe('verbs', () => {
                 expect(response.headers.f).toBe('false');
               }),
           ),
-      ).unsafeRunToPromise();
-    });
+      ),
+    );
 
-    it(`should handle trailing '/' gracefully`, async () => {
-      await withServerP(server)(server =>
+    it.M(`should handle trailing '/' gracefully`, () =>
+      withServerP(server)(server =>
         test(server)
           [m]('/no-content/')
           .then(response => {
             expect(response.statusCode).toBe(204);
           }),
-      ).unsafeRunToPromise();
-    });
+      ),
+    );
 
     if (method !== Method.HEAD) {
-      it('should route based on accept header to text', async () => {
-        await withServerP(server)(server =>
+      it.M('should route based on accept header to text', () =>
+        withServerP(server)(server =>
           test(server)
             [m]('/accept')
             .accept('text/plain')
@@ -175,12 +175,12 @@ describe('verbs', () => {
               expect(response.statusCode).toBe(status.code);
               expect(response.text).toBe('A');
             }),
-        ).unsafeRunToPromise();
-      });
+        ),
+      );
     }
 
-    it('should route based on accept header to json', async () => {
-      await withServerP(server)(server =>
+    it.M('should route based on accept header to json', () =>
+      withServerP(server)(server =>
         test(server)
           [m]('/accept')
           .accept('application/json')
@@ -188,17 +188,17 @@ describe('verbs', () => {
             expect(response.statusCode).toBe(status.code);
             expect(response.headers['content-type']).toBe('application/json');
           }),
-      ).unsafeRunToPromise();
-    });
+      ),
+    );
 
-    it('should return 406 when Accept header not supported', async () => {
-      await withServerP(server)(server =>
+    it.M('should return 406 when Accept header not supported', () =>
+      withServerP(server)(server =>
         test(server)
           [m]('/accept')
           .accept('image/jpeg')
           .then(response => expect(response.statusCode).toBe(406)),
-      ).unsafeRunToPromise();
-    });
+      ),
+    );
   }
 
   const getOk = makeServer(Method.GET, Status.Ok);
@@ -240,8 +240,8 @@ describe('Header', () => {
     hv => S.return(hv.get),
   ]);
 
-  it('should capture Accept header', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture Accept header', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/accept')
         .accept('text/plain')
@@ -249,22 +249,22 @@ describe('Header', () => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('text/plain;q=1');
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should handle case when the header is not provided', async () => {
-    await withServerP(server)(server =>
+  it.M('should handle case when the header is not provided', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/accept')
         .then(response => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('no header');
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should capture custom raw header', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture custom raw header', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/custom')
         .set('X-Custom-Header', '42')
@@ -272,19 +272,19 @@ describe('Header', () => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('42');
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should return 400 Bad Request when header value is string', async () => {
-    await withServerP(server)(server =>
+  it.M('should return 400 Bad Request when header value is string', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/custom')
         .set('X-Custom-Header', 'my string')
         .then(response => {
           expect(response.statusCode).toBe(400);
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 });
 
 const reqBodyApi = group(
@@ -297,8 +297,8 @@ describe('ReqBody', () => {
     [JSON.mime]: { [PersonTypeTag]: PersonCodable },
   })(S => [S.return, p => S.return(Person.unapply(p).age)]);
 
-  it('should pass argument to the method handler', async () => {
-    await withServerP(server)(server =>
+  it.M('should pass argument to the method handler', () =>
+    withServerP(server)(server =>
       test(server)
         .post('/')
         .type('application/json')
@@ -307,11 +307,11 @@ describe('ReqBody', () => {
           expect(response.statusCode).toBe(200);
           expect(response.body).toEqual(alice);
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should reject invalid content type with status code 415', async () => {
-    await withServerP(server)(server =>
+  it.M('should reject invalid content type with status code 415', () =>
+    withServerP(server)(server =>
       test(server)
         .put('/foo')
         .type('text/plain')
@@ -319,8 +319,8 @@ describe('ReqBody', () => {
         .then(response => {
           expect(response.statusCode).toBe(415);
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 });
 
 const captureAllApi = CaptureAll('legs', numberType)[':>'](Get(JSON, Animal));
@@ -342,61 +342,65 @@ describe('Capture All', () => {
     }
   });
 
-  it('should capture a single path component', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture a single path component', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/2')
         .then(response => expect(response.body).toEqual(tweety)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should capture two path components', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture two path components', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/2/2')
         .then(response => expect(response.body).toEqual(jerry)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should many path components', async () => {
-    await withServerP(server)(server =>
+  it.M('should many path components', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/1/1/0/1/0/1/')
         .then(response => expect(response.body).toEqual(jerry)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should capture no elements from the path', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture no elements from the path', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/')
         .then(response => expect(response.body).toEqual(beholder)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should respond with 400 Bad Request when parsing fails', async () => {
-    await withServerP(server)(server =>
+  it.M('should respond with 400 Bad Request when parsing fails', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/not-a-number')
         .then(response => expect(response.statusCode).toBe(400)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should respond with 400 Bad Request when parsing fails for any of the elements', async () => {
-    await withServerP(server)(server =>
-      test(server)
-        .get('/1/2/3/not-a-number')
-        .then(response => expect(response.statusCode).toBe(400)),
-    ).unsafeRunToPromise();
-  });
+  it.M(
+    'should respond with 400 Bad Request when parsing fails for any of the elements',
+    () =>
+      withServerP(server)(server =>
+        test(server)
+          .get('/1/2/3/not-a-number')
+          .then(response => expect(response.statusCode).toBe(400)),
+      ),
+  );
 
-  it('should respond with 400 Bad Request when parsing fails for any of the elements more than once', async () => {
-    await withServerP(server)(server =>
-      test(server)
-        .get('/1/2/3/not-a-number/4/5/another-string')
-        .then(response => expect(response.statusCode).toBe(400)),
-    ).unsafeRunToPromise();
-  });
+  it.M(
+    'should respond with 400 Bad Request when parsing fails for any of the elements more than once',
+    () =>
+      withServerP(server)(server =>
+        test(server)
+          .get('/1/2/3/not-a-number/4/5/another-string')
+          .then(response => expect(response.statusCode).toBe(400)),
+      ),
+  );
 });
 
 const rawApi = group(Route('foo')[':>'](Raw), Route('bar')[':>'](Raw));
@@ -416,8 +420,8 @@ describe('Raw', () => {
     ),
   ]);
 
-  it('should pass request with any method to the router', async () => {
-    await withServerP(server)(server =>
+  it.M('should pass request with any method to the router', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/foo')
         .then(response => {
@@ -432,19 +436,19 @@ describe('Raw', () => {
               expect(response.text).toBe('POST');
             }),
         ),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should capture the entire reminder of the route', async () => {
-    await withServerP(server)(server =>
+  it.M('should capture the entire reminder of the route', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/bar/baz/foo')
         .then(response => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('/bar/baz/foo');
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 });
 
 const alternativeApi = group(
@@ -472,8 +476,8 @@ describe('Alternative', () => {
     S.NoContent,
   ]);
 
-  it('should union the endpoints', async () => {
-    await withServerP(server)(server =>
+  it.M('should union the endpoints', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/foo')
         .then(response => {
@@ -488,11 +492,11 @@ describe('Alternative', () => {
               expect(response.body).toEqual(jerry);
             }),
         ),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should route based on the accept header', async () => {
-    await withServerP(server)(server =>
+  it.M('should route based on the accept header', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/foo')
         .accept('text/plain')
@@ -500,14 +504,14 @@ describe('Alternative', () => {
           expect(response.statusCode).toBe(200);
           expect(response.text).toBe('a string');
         }),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 
-  it('should return 404 when the path does not exist', async () => {
-    await withServerP(server)(server =>
+  it.M('should return 404 when the path does not exist', () =>
+    withServerP(server)(server =>
       test(server)
         .get('/non-existent-path')
         .then(response => expect(response.statusCode).toBe(404)),
-    ).unsafeRunToPromise();
-  });
+    ),
+  );
 });

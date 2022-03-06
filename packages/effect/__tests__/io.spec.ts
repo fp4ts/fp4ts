@@ -971,25 +971,19 @@ describe('IO', () => {
   });
 
   describe('parTraverse', () => {
-    it('should traverse sync list (real)', async () => {
-      const r = await IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
-        IO(() => x),
-      )
+    it.real('should traverse sync list (real)', () =>
+      IO.parTraverse_(List.Traversable)(List.range(0, 5), x => IO(() => x))
         .map(xs => xs.toArray)
-        .unsafeRunToPromise();
+        .map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
+    );
 
-      expect(r).toEqual([0, 1, 2, 3, 4]);
-    });
-
-    it('should traverse async list (real)', async () => {
-      const r = await IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
+    it.real('should traverse async list (real)', () =>
+      IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
         IO.suspend.map(() => x),
       )
         .map(xs => xs.toArray)
-        .unsafeRunToPromise();
-
-      expect(r).toEqual([0, 1, 2, 3, 4]);
-    });
+        .map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
+    );
 
     it.ticked('should traverse sync list', ticker => {
       const io = IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>

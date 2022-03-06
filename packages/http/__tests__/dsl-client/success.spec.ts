@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { Left, List, None, NonEmptyList, Some } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
@@ -35,8 +36,8 @@ describe('Success', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
 
   describe('Get', () => {
-    it('should get root', async () => {
-      await withServerClient(
+    it.M('should get root', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -45,11 +46,11 @@ describe('Success', () => {
         return getRoot
           .run(client.withBaseUri(baseUri))
           .flatMap(person => IO(() => expect(person).toEqual(carol)));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should get simple endpoint', async () => {
-      await withServerClient(
+    it.M('should get simple endpoint', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -58,11 +59,11 @@ describe('Success', () => {
         return getGet
           .run(client.withBaseUri(baseUri))
           .flatMap(person => IO(() => expect(person).toEqual(alice)));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should get simple endpoint', async () => {
-      await withServerClient(
+    it.M('should get simple endpoint', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -71,13 +72,13 @@ describe('Success', () => {
         return getGet
           .run(client.withBaseUri(baseUri))
           .flatMap(person => IO(() => expect(person).toEqual(alice)));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Delete', () => {
-    it('should perform delete with empty content', async () => {
-      await withServerClient(
+    it.M('should perform delete with empty content', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -86,13 +87,13 @@ describe('Success', () => {
         return deleteEmpty
           .run(client.withBaseUri(baseUri))
           .flatMap(res => IO(() => expect(res).toBeUndefined()));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Capture', () => {
-    it('should capture the parameter', async () => {
-      await withServerClient(
+    it.M('should capture the parameter', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -103,13 +104,13 @@ describe('Success', () => {
           .flatMap(res =>
             IO(() => expect(res).toEqual(Person({ name: 'Paula', age: 0 }))),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Capture All', () => {
-    it('should capture no parameters', async () => {
-      await withServerClient(
+    it.M('should capture no parameters', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -118,11 +119,11 @@ describe('Success', () => {
         return getCaptureAll(List.empty)
           .run(client.withBaseUri(baseUri))
           .flatMap(res => IO(() => expect(res).toEqual([])));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should capture a single parameter', async () => {
-      await withServerClient(
+    it.M('should capture a single parameter', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -133,11 +134,11 @@ describe('Success', () => {
           .flatMap(res =>
             IO(() => expect(res).toEqual([Person({ name: 'Paula', age: 0 })])),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should capture a multiple parameters', async () => {
-      await withServerClient(
+    it.M('should capture a multiple parameters', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -154,13 +155,13 @@ describe('Success', () => {
               ]),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Request Body', () => {
-    it('should pass request body', async () => {
-      await withServerClient(
+    it.M('should pass request body', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -170,13 +171,13 @@ describe('Success', () => {
         return postBody(clara)
           .run(client.withBaseUri(baseUri))
           .flatMap(res => IO(() => expect(res).toEqual(clara)));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Query Parameter', () => {
-    it('should pass query parameter', async () => {
-      await withServerClient(
+    it.M('should pass query parameter', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -185,11 +186,11 @@ describe('Success', () => {
         return getParam(Some('alice'))
           .run(client.withBaseUri(baseUri))
           .flatMap(res => IO(() => expect(res).toEqual(alice)));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should throw an error on wrong value', async () => {
-      await withServerClient(
+    it.M('should throw an error on wrong value', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -204,11 +205,11 @@ describe('Success', () => {
               ),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should throw an error on empty value', async () => {
-      await withServerClient(
+    it.M('should throw an error on empty value', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -223,13 +224,13 @@ describe('Success', () => {
               ),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   describe('Raw', () => {
-    it('should respond with success', async () => {
-      await withServerClient(
+    it.M('should respond with success', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -240,11 +241,11 @@ describe('Success', () => {
           .flatTap(res => IO(() => expect(res.status === Status.Ok).toBe(true)))
           .flatMap(res => res.bodyText.compileConcurrent().string)
           .flatMap(txt => IO(() => expect(txt).toBe('raw success')));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should respond with failure', async () => {
-      await withServerClient(
+    it.M('should respond with failure', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -257,11 +258,11 @@ describe('Success', () => {
           )
           .flatMap(res => res.bodyText.compileConcurrent().string)
           .flatMap(txt => IO(() => expect(txt).toBe('raw failure')));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should attach headers', async () => {
-      await withServerClient(
+    it.M('should attach headers', () =>
+      withServerClient(
         server,
         clientResource,
       )((server, client) => {
@@ -279,8 +280,8 @@ describe('Success', () => {
               ),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 
   test('Combinations of Capture, Query and ReqBody', async () => {
@@ -315,8 +316,8 @@ describe('Success', () => {
     );
   });
 
-  it('should attach receive attached headers', async () => {
-    await withServerClient(
+  it.M('should attach receive attached headers', () =>
+    withServerClient(
       server,
       clientResource,
     )((server, client) => {
@@ -327,6 +328,6 @@ describe('Success', () => {
         .flatMap(res =>
           IO(() => expect(res).toEqual(new ResponseHeaders([42, 'eg2'], true))),
         );
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 });

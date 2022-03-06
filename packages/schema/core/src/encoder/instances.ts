@@ -26,7 +26,6 @@ import {
   struct,
   sum,
 } from './constructors';
-import { Encoder, safeEncode, SafeEncoder } from './algebra';
 
 export const encoderFunctor: <A>() => Functor<λ<EncoderF, [α, Fix<A>]>> = () =>
   Functor.of({ map_ });

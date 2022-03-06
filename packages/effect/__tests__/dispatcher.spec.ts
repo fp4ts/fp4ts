@@ -3,14 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import '@fp4ts/effect-test-kit/lib/jest-extension';
+import '@fp4ts/effect-test-kit';
 import { List, Monad } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
 import { Dispatcher } from '@fp4ts/effect-std';
 
 describe('Dispatcher', () => {
-  it('should run a sync action', () => {
+  it.real('should run a sync action', () => {
     const ioa = IO.pure(42).map(x => x + 2);
     const rec = Dispatcher(IO.Async).flatMap(runner =>
       Resource.evalF<IOF, number>(
@@ -18,12 +18,10 @@ describe('Dispatcher', () => {
       ),
     );
 
-    return rec
-      .use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)))
-      .unsafeRunToPromise();
+    return rec.use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)));
   });
 
-  it('should run an async action', () => {
+  it.real('should run an async action', () => {
     const ioa = IO.pure(42)
       ['<<<'](IO.suspend)
       .map(x => x + 2);
@@ -33,12 +31,10 @@ describe('Dispatcher', () => {
       ),
     );
 
-    return rec
-      .use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)))
-      .unsafeRunToPromise();
+    return rec.use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)));
   });
 
-  it('should run several IOs back to back', () => {
+  it.real('should run several IOs back to back', () => {
     let counter = 0;
     const increment = IO(() => (counter += 1)).void;
     const rec = Dispatcher(IO.Async).flatMap(runner =>
@@ -56,12 +52,10 @@ describe('Dispatcher', () => {
       ),
     );
 
-    return rec
-      .use(IO.MonadCancel)(() => IO(() => expect(counter).toBe(5)))
-      .unsafeRunToPromise();
+    return rec.use(IO.MonadCancel)(() => IO(() => expect(counter).toBe(5)));
   });
 
-  it('should run multiple IOs in parallel', () => {
+  it.real('should run multiple IOs in parallel', () => {
     const num = 10;
 
     return Monad.Do(IO.Monad)(function* (_) {
@@ -84,10 +78,10 @@ describe('Dispatcher', () => {
         ),
       );
       yield* _(rec.use(IO.MonadCancel)(() => IO.unit));
-    }).unsafeRunToPromise();
+    });
   });
 
-  it('should forward cancelation onto the inner action', () => {
+  it.real('should forward cancelation onto the inner action', () => {
     let canceled = false;
 
     const rec = Dispatcher(IO.Async).flatMap(runner => {
@@ -103,17 +97,14 @@ describe('Dispatcher', () => {
       );
     });
 
-    return rec
-      .use(IO.MonadCancel)(() => IO(() => expect(canceled).toBe(true)))
-      .unsafeRunToPromise();
+    return rec.use(IO.MonadCancel)(() => IO(() => expect(canceled).toBe(true)));
   });
 
-  it('should throw an error on on a leaked runner', () => {
+  it.real('should throw an error on on a leaked runner', () => {
     return Dispatcher(IO.Async)
       .use(IO.MonadCancel)(IO.pure)
       .flatMap(runner =>
         IO(() => expect(() => runner.unsafeRunAndForget(IO.unit)).toThrow()),
-      )
-      .void.unsafeRunToPromise();
+      ).void;
   });
 });

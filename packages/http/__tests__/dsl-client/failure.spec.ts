@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import { Left, Some } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
 import { Authority, ParsingFailure } from '@fp4ts/http-core';
@@ -14,8 +15,8 @@ describe('Failure', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
 
   describe('client reports failures appropriately', () => {
-    it('should respond with 404 Not Found', async () => {
-      await withServerClient(
+    it.M('should respond with 404 Not Found', () =>
+      withServerClient(
         failServer,
         clientResource,
       )((server, client) => {
@@ -28,11 +29,11 @@ describe('Failure', () => {
               expect(r).toEqual(Left(new Error('Failed with status 404'))),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should respond with a parsing failure', async () => {
-      await withServerClient(
+    it.M('should respond with a parsing failure', () =>
+      withServerClient(
         failServer,
         clientResource,
       )((server, client) => {
@@ -43,11 +44,11 @@ describe('Failure', () => {
           .attempt.flatMap(r =>
             IO(() => expect(r.getLeft).toBeInstanceOf(ParsingFailure)),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should respond with a connection failure', async () => {
-      await withServerClient(
+    it.M('should respond with a connection failure', () =>
+      withServerClient(
         failServer,
         clientResource,
       )((server, client) => {
@@ -69,11 +70,11 @@ describe('Failure', () => {
           .attempt.flatMap(r =>
             IO(() => expect((r.getLeft as any).code).toBe('EINVAL')),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should respond with a Unsupported Media Type', async () => {
-      await withServerClient(
+    it.M('should respond with a Unsupported Media Type', () =>
+      withServerClient(
         failServer,
         clientResource,
       )((server, client) => {
@@ -86,7 +87,7 @@ describe('Failure', () => {
               expect(r.getLeft).toEqual(new Error('Unsupported media type')),
             ),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
   });
 });

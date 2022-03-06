@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect-core';
@@ -39,8 +40,8 @@ const [version, ping, echo] = toClientIOIn(api, builtins);
 describe('Simple HTTP api dsl client', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
 
-  it('should respond with a unit response', async () => {
-    await withServerClient(
+  it.M('should respond with a unit response', () =>
+    withServerClient(
       app,
       clientResource,
     )((server, client) => {
@@ -48,11 +49,11 @@ describe('Simple HTTP api dsl client', () => {
       return version
         .run(client.withBaseUri(baseUri))
         .flatMap(resp => IO(() => expect(resp).toBeUndefined()));
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 
-  it("should respond with a 'pong'", async () => {
-    await withServerClient(
+  it.M("should respond with a 'pong'", () =>
+    withServerClient(
       app,
       clientResource,
     )((server, client) => {
@@ -60,8 +61,8 @@ describe('Simple HTTP api dsl client', () => {
       return ping
         .run(client.withBaseUri(baseUri))
         .flatMap(resp => IO(() => expect(resp).toBe('pong')));
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 
   it('should respond with sent payload', async () => {
     await fc.assert(

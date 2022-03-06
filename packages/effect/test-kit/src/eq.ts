@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eq, Option, Some, None, Try, Either, IdentityF } from '@fp4ts/cats';
+import { Eq, Option, Some, None, Try, Either } from '@fp4ts/cats';
 import { SyncIO, IO, IORuntime, IOOutcome } from '@fp4ts/effect-core';
 import { Outcome, ExecutionContext } from '@fp4ts/effect-kernel';
 

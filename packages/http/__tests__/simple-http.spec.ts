@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import { stringType } from '@fp4ts/core';
 import { IO, IOF } from '@fp4ts/effect';
 import { Request, Method, EntityEncoder, uri } from '@fp4ts/http-core';
@@ -32,25 +33,21 @@ describe('dsl routing', () => {
     x => S.return(x),
   ]);
 
-  it('should return 204', async () => {
-    const response = await app
+  it.M('should return 204', () =>
+    app
       .run(new Request(Method.GET, uri`/version`))
-      .unsafeRunToPromise();
+      .map(response => expect(response.status.code).toBe(204)),
+  );
 
-    expect(response.status.code).toBe(204);
-  });
-
-  it('should return pong', async () => {
-    const response = await app
+  it.M('should return pong', () =>
+    app
       .run(new Request(Method.GET, uri`/ping`))
       .flatMap(response => response.bodyText.compileConcurrent().string)
-      .unsafeRunToPromise();
+      .map(response => expect(response).toBe('pong')),
+  );
 
-    expect(response).toBe('pong');
-  });
-
-  it('should echo the body request', async () => {
-    const response = await app
+  it.M('should echo the body request', () =>
+    app
       .run(
         new Request<IOF>(Method.POST, uri`/echo`).withEntity(
           'sample payload',
@@ -58,16 +55,12 @@ describe('dsl routing', () => {
         ),
       )
       .flatMap(response => response.bodyText.compileConcurrent().string)
-      .unsafeRunToPromise();
+      .map(response => expect(response).toBe('sample payload')),
+  );
 
-    expect(response).toBe('sample payload');
-  });
-
-  it('should return 404 when route is not found', async () => {
-    const response = await app
+  it.M('should return 404 when route is not found', () =>
+    app
       .run(new Request(Method.GET, uri`/some/random/uri`))
-      .unsafeRunToPromise();
-
-    expect(response.status.code).toBe(404);
-  });
+      .map(response => expect(response.status.code).toBe(404)),
+  );
 });

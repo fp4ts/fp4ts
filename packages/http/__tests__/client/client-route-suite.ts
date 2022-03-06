@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import { stringType, tupled } from '@fp4ts/core';
 import { List, Monad } from '@fp4ts/cats';
 import { Resource, IO, IOF } from '@fp4ts/effect';
@@ -17,9 +18,9 @@ import {
   uri,
 } from '@fp4ts/http-core';
 import { Client } from '@fp4ts/http-client';
-import { toHttpAppIO } from '@fp4ts/http-dsl-server';
+import { builtins, toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { group, Header, Raw, Route } from '@fp4ts/http-dsl-shared';
-import { serverPort, withServerClient } from '@fp4ts/http-test-kit-node';
+import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { GetRoutes, SimplePath } from './get-routes';
 
 const api = group(
@@ -33,7 +34,7 @@ export function clientRouteSuite(
 ) {
   const app = toHttpAppIO(
     api,
-    {},
+    builtins,
   )(() => [
     h =>
       HttpApp(() =>
@@ -53,8 +54,8 @@ export function clientRouteSuite(
   describe(name, () => {
     const serverClient = withServerClient(app, clientResource);
 
-    it('should repeat a single request', async () => {
-      await serverClient((server, client) => {
+    it.M('should repeat a single request', () =>
+      serverClient((server, client) => {
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/${SimplePath}`;
@@ -63,11 +64,11 @@ export function clientRouteSuite(
         ).flatMap(xs =>
           IO(() => expect(xs.all(x => x.length === 0)).toBe(true)),
         ).void;
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should POST an empty body', async () => {
-      await serverClient((server, client) => {
+    it.M('should POST an empty body', () =>
+      serverClient((server, client) => {
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
@@ -75,11 +76,11 @@ export function clientRouteSuite(
           .post(url)
           .fetchAs(EntityDecoder.text(IO.Async))
           .flatMap(body => IO(() => expect(body).toBe('')));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should POST a regular body', async () => {
-      await serverClient((server, client) => {
+    it.M('should POST a regular body', () =>
+      serverClient((server, client) => {
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
@@ -88,11 +89,11 @@ export function clientRouteSuite(
           .send('Normal body', EntityEncoder.text())
           .fetchAs(EntityDecoder.text(IO.Async))
           .flatMap(body => IO(() => expect(body).toBe('Normal body')));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
-    it('should POST a chunked body', async () => {
-      await serverClient((server, client) => {
+    it.M('should POST a chunked body', () =>
+      serverClient((server, client) => {
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
@@ -104,24 +105,24 @@ export function clientRouteSuite(
           .send(body)
           .fetchAs(EntityDecoder.text(IO.Async))
           .flatMap(body => IO(() => expect(body).toBe('Chunked body')));
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
     GetRoutes.forEach((expected, path) => {
-      it(`should execute GET ${path}`, async () => {
-        await serverClient((server, client) => {
+      it.M(`should execute GET ${path}`, () =>
+        serverClient((server, client) => {
           const port = server.address.port;
 
           const url = uri`http://localhost:${port}${path}`;
           return client
             .get(url)
             .fetch(rec => expected.flatMap(exp => checkResponse(rec, exp)));
-        }).unsafeRunToPromise();
-      });
+        }),
+      );
     });
 
-    it('should mitigate request splitting attack in the URI path', async () => {
-      await serverClient((server, client) => {
+    it.M('should mitigate request splitting attack in the URI path', () =>
+      serverClient((server, client) => {
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:`;
@@ -132,8 +133,8 @@ export function clientRouteSuite(
           .flatMap(status =>
             IO(() => expect(status.code).toBe(Status.NotFound.code)),
           );
-      }).unsafeRunToPromise();
-    });
+      }),
+    );
 
     it.skip('should mitigate request splitting attack in the host name', async () => {
       await serverClient((server, client) => {
@@ -150,54 +151,60 @@ export function clientRouteSuite(
       }).unsafeRunToPromise();
     });
 
-    it('should mitigate request splitting attack in the header field name', async () => {
-      await serverClient((server, client) => {
-        const port = server.address.port;
+    it.M(
+      'should mitigate request splitting attack in the header field name',
+      () =>
+        serverClient((server, client) => {
+          const port = server.address.port;
 
-        const url = uri`http://localhost:${port}/request-splitting`;
-        return client
-          .get(url)
-          .set('Fine:\r\nEvil:true\r\n', 'oops')
-          .fetch(req => IO.pure(req.status))
-          .handleError(() => Status.Ok)
-          .flatMap(status =>
-            IO(() => expect(status.code).toBe(Status.Ok.code)),
-          );
-      }).unsafeRunToPromise();
-    });
+          const url = uri`http://localhost:${port}/request-splitting`;
+          return client
+            .get(url)
+            .set('Fine:\r\nEvil:true\r\n', 'oops')
+            .fetch(req => IO.pure(req.status))
+            .handleError(() => Status.Ok)
+            .flatMap(status =>
+              IO(() => expect(status.code).toBe(Status.Ok.code)),
+            );
+        }),
+    );
 
-    it('should mitigate request splitting attack in the header field value (raw)', async () => {
-      await serverClient((server, client) => {
-        const port = server.address.port;
+    it.M(
+      'should mitigate request splitting attack in the header field value (raw)',
+      () =>
+        serverClient((server, client) => {
+          const port = server.address.port;
 
-        const url = uri`http://localhost:${port}/request-splitting`;
-        return client
-          .get(url)
-          .set('X-Carrier', '\r\nEvil:true\r\n')
-          .fetch(req => IO.pure(req.status))
-          .handleError(() => Status.Ok)
-          .flatMap(status =>
-            IO(() => expect(status.code).toBe(Status.Ok.code)),
-          );
-      }).unsafeRunToPromise();
-    });
+          const url = uri`http://localhost:${port}/request-splitting`;
+          return client
+            .get(url)
+            .set('X-Carrier', '\r\nEvil:true\r\n')
+            .fetch(req => IO.pure(req.status))
+            .handleError(() => Status.Ok)
+            .flatMap(status =>
+              IO(() => expect(status.code).toBe(Status.Ok.code)),
+            );
+        }),
+    );
 
-    it('should mitigate request splitting attack in the header field value (encoded)', async () => {
-      await serverClient((server, client) => {
-        const port = server.address.port;
+    it.M(
+      'should mitigate request splitting attack in the header field value (encoded)',
+      () =>
+        serverClient((server, client) => {
+          const port = server.address.port;
 
-        const url = uri`http://localhost:${port}/request-splitting`;
-        return client
-          .get(url)
-          .set('X-Carrier', encodeURI('\r\nEvil:true\r\n'))
-          .fetch(req => IO.pure(req.status))
-          .onError(e => IO(() => console.log(e)))
-          .handleError(() => Status.Ok)
-          .flatMap(status =>
-            IO(() => expect(status.code).toBe(Status.Ok.code)),
-          );
-      }).unsafeRunToPromise();
-    });
+          const url = uri`http://localhost:${port}/request-splitting`;
+          return client
+            .get(url)
+            .set('X-Carrier', encodeURI('\r\nEvil:true\r\n'))
+            .fetch(req => IO.pure(req.status))
+            .onError(e => IO(() => console.log(e)))
+            .handleError(() => Status.Ok)
+            .flatMap(status =>
+              IO(() => expect(status.code).toBe(Status.Ok.code)),
+            );
+        }),
+    );
   });
 }
 
@@ -219,7 +226,7 @@ function checkResponse(rec: Response<IOF>, exp: Response<IOF>): IO<void> {
     const diffHs = expHds.filter(
       ([n, v]) => !hds.any(h => h[0] === n && h[1] === v),
     );
-    yield* _(IO(() => expect(diffHs).toEqual(List.empty)));
-    yield* _(IO(() => expect(rec.httpVersion).toEqual(exp.httpVersion)));
+    expect(diffHs).toEqual(List.empty);
+    expect(rec.httpVersion).toEqual(exp.httpVersion);
   });
 }

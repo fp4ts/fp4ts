@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import '@fp4ts/effect-test-kit';
 import { IO, IOF, Resource } from '@fp4ts/effect';
 import {
   EntityDecoder,
@@ -28,8 +29,8 @@ const app = HttpApp<IOF>(req => {
 });
 
 describe('Node Client', () => {
-  it('should perform a simple request', async () => {
-    await withServer(app)(server => {
+  it.M('should perform a simple request', () =>
+    withServer(app)(server => {
       const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
@@ -37,11 +38,11 @@ describe('Node Client', () => {
         .get(uri`localhost:${port}/path1`)
         .fetchAs(EntityDecoder.text(IO.Async))
         .flatMap(resp => IO(() => expect(resp).toEqual('path1')));
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 
-  it('should echo the payload', async () => {
-    await withServer(app)(server => {
+  it.M('should echo the payload', () =>
+    withServer(app)(server => {
       const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
@@ -50,11 +51,11 @@ describe('Node Client', () => {
         .send('My simple payload', EntityEncoder.text())
         .fetchAs(EntityDecoder.text(IO.Async))
         .flatMap(resp => IO(() => expect(resp).toBe('My simple payload')));
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 
-  it('should return 404', async () => {
-    await withServer(app)(server => {
+  it.M('should return 404', () =>
+    withServer(app)(server => {
       const port = server.address.port;
       const client = NodeClient.makeClient(IO.Async);
 
@@ -63,8 +64,8 @@ describe('Node Client', () => {
         .send('My simple payload', EntityEncoder.text())
         .fetchAs(EntityDecoder.text(IO.Async))
         .flatMap(resp => IO(() => expect(resp).toBe('Not Found')));
-    }).unsafeRunToPromise();
-  });
+    }),
+  );
 
   clientRouteSuite(
     'node-client',

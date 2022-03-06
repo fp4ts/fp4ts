@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IOOutcome } from '@fp4ts/effect-core';
+import { IO, IOOutcome } from '@fp4ts/effect-core';
 import { ticked } from '../ticked';
 import { Ticker } from '../ticker';
 
@@ -22,7 +22,10 @@ declare global {
       ticked(
         message: string,
         body: (ticker: Ticker) => unknown | Promise<unknown>,
+        timeout?: number,
       ): void;
+      real(message: string, body: () => IO<unknown>, timeout?: number): void;
+      M(message: string, body: () => IO<unknown>, timeout?: number): void;
     }
   }
 }
@@ -49,4 +52,21 @@ test.ticked = (
     ticked(ticker => testBody(ticker)),
     timeout,
   );
+};
+
+it.real = (message: string, testBody: () => IO<unknown>, timeout?: number) => {
+  it(message, () => testBody().unsafeRunToPromise(), timeout);
+};
+test.real = (
+  message: string,
+  testBody: () => IO<unknown>,
+  timeout?: number,
+) => {
+  it(message, () => testBody().unsafeRunToPromise(), timeout);
+};
+it.M = (message: string, testBody: () => IO<unknown>, timeout?: number) => {
+  it(message, () => testBody().unsafeRunToPromise(), timeout);
+};
+test.M = (message: string, testBody: () => IO<unknown>, timeout?: number) => {
+  it(message, () => testBody().unsafeRunToPromise(), timeout);
 };
