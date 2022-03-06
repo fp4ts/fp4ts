@@ -3,13 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { booleanType, numberType, stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect';
 import { InternalServerErrorFailure } from '@fp4ts/http-core';
 import {
   group,
   Capture,
   GetNoContent,
-  Query,
+  QueryParam,
   Raw,
   Route,
 } from '@fp4ts/http-dsl';
@@ -79,13 +80,13 @@ const staticRef = Route('a')[':>'](
 
 // prettier-ignore
 const dynamic = group(
-  Route('a')[':>'](Capture.number('foo'))[':>']('b')[':>'](End),
-  Route('a')[':>'](Capture.boolean('bar'))[':>']('c')[':>'](End),
-  Route('a')[':>'](Capture.string('baz'))[':>']('d')[':>'](End),
+  Route('a')[':>'](Capture('foo', numberType))[':>']('b')[':>'](End),
+  Route('a')[':>'](Capture('bar', booleanType))[':>']('c')[':>'](End),
+  Route('a')[':>'](Capture('baz', stringType))[':>']('d')[':>'](End),
 );
 // prettier-ignore
 const dynamicRef =
-  Route('a')[':>'](Capture.string('anything'))[':>'](
+  Route('a')[':>'](Capture('anything', stringType))[':>'](
     group(Route('b')[':>'](End), Route('c')[':>'](End), Route('d')[':>'](End)),
   );
 
@@ -114,12 +115,12 @@ const permuteRef = group(
 );
 
 const permuteQuery = group(
-  Query.number('1')[':>']('a')[':>']('b')[':>']('c')[':>'](End),
-  Query.number('2')[':>']('b')[':>']('a')[':>']('c')[':>'](End),
-  Query.number('3')[':>']('a')[':>']('c')[':>']('b')[':>'](End),
-  Query.number('4')[':>']('c')[':>']('a')[':>']('b')[':>'](End),
-  Query.number('5')[':>']('b')[':>']('c')[':>']('a')[':>'](End),
-  Query.number('6')[':>']('c')[':>']('b')[':>']('a')[':>'](End),
+  QueryParam('1', numberType)[':>']('a')[':>']('b')[':>']('c')[':>'](End),
+  QueryParam('2', numberType)[':>']('b')[':>']('a')[':>']('c')[':>'](End),
+  QueryParam('3', numberType)[':>']('a')[':>']('c')[':>']('b')[':>'](End),
+  QueryParam('4', numberType)[':>']('c')[':>']('a')[':>']('b')[':>'](End),
+  QueryParam('5', numberType)[':>']('b')[':>']('c')[':>']('a')[':>'](End),
+  QueryParam('6', numberType)[':>']('c')[':>']('b')[':>']('a')[':>'](End),
 );
 
 const permuteRawEnd = group(

@@ -12,7 +12,7 @@ export {
 
   ReqBody,
   Capture,
-  Query,
+  QueryParam,
   Header,
   Headers,
   Route,

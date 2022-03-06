@@ -36,7 +36,7 @@ import {
   Headers,
   JSON,
   Post,
-  Query,
+  QueryParam,
   Raw,
   ReqBody,
   Route,
@@ -104,20 +104,20 @@ const api = group(
   Get(JSON, Person),
   Route('get')[':>'](Get(JSON, Person)),
   Route('deleteEmpty')[':>'](DeleteNoContent),
-  Route('capture')[':>'](Capture.string('name'))[':>'](Get(JSON, Person)),
+  Route('capture')[':>'](Capture('name', stringType))[':>'](Get(JSON, Person)),
   Route('captureAll')
     [':>'](CaptureAll('name', stringType))
     [':>'](Get(JSON, PersonArray)),
   Route('body')[':>'](ReqBody(JSON, Person))[':>'](Post(JSON, Person)),
-  Route('param')[':>'](Query.string('name'))[':>'](Get(JSON, Person)),
+  Route('param')[':>'](QueryParam('name', stringType))[':>'](Get(JSON, Person)),
   // TODO Fragment
   Route('rawSuccess')[':>'](Raw),
   Route('rawSuccessPassHeaders')[':>'](Raw),
   Route('rawFailure')[':>'](Raw),
   Route('multiple')
-    [':>'](Capture.string('first'))
-    [':>'](Query.number('second'))
-    [':>'](Query.boolean('third'))
+    [':>'](Capture('first', stringType))
+    [':>'](QueryParam('second', numberType))
+    [':>'](QueryParam('third', booleanType))
     [':>'](ReqBody(JSON, stringNumberArrayTuple))
     [':>'](Post(JSON, multiTupleTuple)),
   Route('headers')[':>'](Get(JSON, TestHeaders(booleanType))),
@@ -202,7 +202,7 @@ export const [
 
 const failApi = group(
   Route('get')[':>'](Raw),
-  Route('capture')[':>'](Capture.string('name'))[':>'](Raw),
+  Route('capture')[':>'](Capture('name', stringType))[':>'](Raw),
   Route('body')[':>'](Raw),
   Route('headers')[':>'](Raw),
 );

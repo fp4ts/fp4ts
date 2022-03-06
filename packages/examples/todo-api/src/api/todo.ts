@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { typeref } from '@fp4ts/core';
+import { numberType, typeref } from '@fp4ts/core';
 import {
   Capture,
   DeleteNoContent,
@@ -25,7 +25,7 @@ export const CreateTodoType = typeref<CreateTodo>()('todo-api/create-todo');
 export const todoApi = group(
   pagination[':>'](Get(JSON, TodoArrayType)),
   ReqBody(JSON, CreateTodoType)[':>'](PostCreated(JSON, TodoType)),
-  Capture.number('todoId')[':>'](
+  Capture('todoId', numberType)[':>'](
     group(
       Get(JSON, TodoType),
       DeleteNoContent,

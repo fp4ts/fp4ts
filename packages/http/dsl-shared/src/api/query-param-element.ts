@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { booleanType, numberType, stringType, TypeRef } from '@fp4ts/core';
+import { TypeRef } from '@fp4ts/core';
 import { ElementTag } from './api-element';
 import { BaseElement } from './base-element';
 
@@ -20,11 +20,9 @@ export class QueryElement<
   }
 }
 
-export const Query = Object.freeze({
-  boolean: <P extends string>(prop: P): QueryElement<P, typeof booleanType> =>
-    new QueryElement(prop, booleanType),
-  number: <P extends string>(prop: P): QueryElement<P, typeof numberType> =>
-    new QueryElement(prop, numberType),
-  string: <P extends string>(prop: P): QueryElement<P, typeof stringType> =>
-    new QueryElement(prop, stringType),
-});
+export function QueryParam<P extends string, T extends TypeRef<any, any>>(
+  property: P,
+  type: T,
+): QueryElement<P, T> {
+  return new QueryElement(property, type);
+}

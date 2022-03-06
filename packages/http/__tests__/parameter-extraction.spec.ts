@@ -7,7 +7,7 @@ import { Left, Right } from '@fp4ts/cats';
 import { booleanType, id, numberType, stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect';
 import { Request, EntityDecoder, uri, Method } from '@fp4ts/http-core';
-import { Capture, Get, group, JSON, Query, Route } from '@fp4ts/http-dsl';
+import { Capture, Get, group, JSON, QueryParam, Route } from '@fp4ts/http-dsl';
 import { builtins, toHttpApp } from '@fp4ts/http-dsl-server';
 
 describe('parameter extraction', () => {
@@ -15,26 +15,26 @@ describe('parameter extraction', () => {
     Route('capture')[':>'](
       group(
         Route('boolean')
-          [':>'](Capture.boolean('flag'))
+          [':>'](Capture('flag', booleanType))
           [':>'](Get(JSON, booleanType)),
         Route('number')
-          [':>'](Capture.number('number'))
+          [':>'](Capture('number', numberType))
           [':>'](Get(JSON, numberType)),
         Route('string')
-          [':>'](Capture.string('string'))
+          [':>'](Capture('string', stringType))
           [':>'](Get(JSON, stringType)),
       ),
     ),
     Route('query')[':>'](
       group(
         Route('boolean')
-          [':>'](Query.boolean('boolean'))
+          [':>'](QueryParam('boolean', booleanType))
           [':>'](Get(JSON, stringType)),
         Route('number')
-          [':>'](Query.number('number'))
+          [':>'](QueryParam('number', numberType))
           [':>'](Get(JSON, stringType)),
         Route('string')
-          [':>'](Query.string('string'))
+          [':>'](QueryParam('string', stringType))
           [':>'](Get(JSON, stringType)),
       ),
     ),
