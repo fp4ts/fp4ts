@@ -5,7 +5,14 @@
 
 import { Either, Left, List, Right } from '@fp4ts/cats';
 import { Char } from '@fp4ts/core';
-import { Accumulator, Parser, StringSource, Rfc5234, text } from '@fp4ts/parse';
+import {
+  Accumulator,
+  Parser,
+  StringSource,
+  Rfc5234,
+  text,
+  Accumulator1,
+} from '@fp4ts/parse';
 import { AuthParams, Credentials, Token } from '../credentials';
 import * as Rfc7230 from './rfc7230';
 
@@ -15,7 +22,7 @@ export const t68Chars: Parser<StringSource, Char> = text
   .orElse(() => Rfc5234.alpha());
 
 export const token68: Parser<StringSource, string> = t68Chars
-  .repAs1(Accumulator.string())
+  .repAs1(Accumulator1.string())
   .product(text.oneOf('=').repAs(Accumulator.string()))
   .map(([xs, ys]) => xs + ys);
 

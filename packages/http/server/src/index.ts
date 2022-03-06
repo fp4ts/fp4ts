@@ -12,3 +12,4 @@ export * from './server';
 export * from './ip-address';
 export * from './port';
 export * from './socket-address';
+export * from './middlewares';

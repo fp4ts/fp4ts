@@ -25,7 +25,7 @@ class AuthorizationHeader {
 Authorization.Header = {
   headerName: 'Authorization',
   value(a: AuthorizationHeader): string {
-    return `${a.credentials}`;
+    return `${a.credentials.toString()}`;
   },
   parse(s: string): ParseResult<AuthorizationHeader> {
     return ParseResult.fromParser(parser(), 'Invalid Authorization header')(s);
