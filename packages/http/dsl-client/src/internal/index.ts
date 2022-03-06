@@ -253,13 +253,10 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): ClientM<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.body.Ref];
-    return ClientM(underlying =>
-      underlying.fetch(
-        req
-          .putHeaders(
-            ...Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
-          )
-          .withMethod(verb.method),
+    return ClientM(underlying => {
+      const accept = MediaRange.fromString(verb.contentType.mime).get;
+      return underlying.fetch(
+        req.putHeaders(...Accept(accept).toRaw()).withMethod(verb.method),
         res => {
           if (!res.status.isSuccessful)
             return pipe(
@@ -271,12 +268,20 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
               ),
             );
 
+          if (
+            !res.contentType
+              .map(ct => ct.mediaType.satisfiedBy(accept))
+              .getOrElse(() => true)
+          ) {
+            return F.throwError(new Error('Unsupported media type'));
+          }
+
           return F.flatMap_(res.bodyText.compileConcurrent(F).string, txt =>
             F.fromEither(C.decode(txt)),
           );
         },
-      ),
-    );
+      );
+    });
   }
 
   function routeHeadersVerbContent<

@@ -14,9 +14,12 @@ import {
 } from '@fp4ts/core';
 import { Schema } from '@fp4ts/schema';
 import {
+  ContentType,
   EntityEncoder,
   HttpApp,
+  MediaType,
   ParsingFailure,
+  RawHeader,
   Response,
   Status,
 } from '@fp4ts/http-core';
@@ -193,3 +196,41 @@ export const [
     [multiTupleTupleTag]: multiTupleCodable,
   },
 });
+
+const failApi = group(
+  Route('get')[':>'](Raw),
+  Route('capture')[':>'](Capture.string('name'))[':>'](Raw),
+  Route('body')[':>'](Raw),
+  Route('headers')[':>'](Raw),
+);
+
+export const failServer = toHttpAppIO(
+  failApi,
+  serverBuiltins,
+)(S => [
+  HttpApp(_req => IO.pure(new Response<IOF>(Status.Ok))),
+  _capture =>
+    HttpApp(_req =>
+      IO.pure(
+        new Response<IOF>(Status.Ok).putHeaders(
+          ContentType(MediaType['application/json']),
+        ),
+      ),
+    ),
+  HttpApp(_req =>
+    IO.pure(
+      new Response<IOF>(Status.Ok).putHeaders(
+        new RawHeader('Content-Type', 'foooo/bar'),
+      ),
+    ),
+  ),
+  HttpApp(_req =>
+    IO.pure(
+      new Response<IOF>(Status.Ok).putHeaders(
+        ContentType(MediaType['application/json']),
+        new RawHeader('X-Example-1', '1'),
+        new RawHeader('X-Example-2', 'foo'),
+      ),
+    ),
+  ),
+]);
