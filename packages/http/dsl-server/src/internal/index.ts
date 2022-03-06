@@ -5,7 +5,16 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { compose, id, pipe, tupled, TypeRef, TypeOf } from '@fp4ts/core';
-import { Either, EitherT, Kleisli, List } from '@fp4ts/cats';
+import {
+  Either,
+  EitherT,
+  Kleisli,
+  Left,
+  List,
+  None,
+  Right,
+  Some,
+} from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
@@ -229,14 +238,11 @@ export function route<F>(F: Concurrent<F, Error>) {
       d.addParamCheck(EF)(
         DelayedCheck.withRequest(F)(req => {
           const value = req.uri.query.lookup(a.property);
-          const result = value
-            .map(v =>
-              v.traverse(Either.Applicative<MessageFailure>())(
-                fromQueryParameter,
-              ),
-            )
-            .toRight(() => new ParsingFailure('Missing query'))
-            .flatMap(id);
+          const result = value.isEmpty
+            ? Right(None)
+            : value.get.isEmpty
+            ? Left(new ParsingFailure('Missing query value'))
+            : fromQueryParameter(value.get.get).map(Some);
           return pipe(RouteResult.fromEither(result), RouteResultT.lift(F));
         }),
       ),

@@ -34,8 +34,10 @@ describe('Todo api', () => {
     it('should return 400 Bad Request when no query params are provided', async () =>
       makeServer(IO.Async)(3000)
         .use(IO.Async)(server =>
-          IO.deferPromise(() => test(server.underlying).get('/todo')).flatMap(
-            response => IO(() => expect(response.statusCode).toBe(400)),
+          IO.deferPromise(() =>
+            test(server.underlying).get('/todo?limit'),
+          ).flatMap(response =>
+            IO(() => expect(response.statusCode).toBe(400)),
           ),
         )
         .unsafeRunToPromise());

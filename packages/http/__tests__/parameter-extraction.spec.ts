@@ -116,18 +116,15 @@ describe('parameter extraction', () => {
     );
 
     it.each`
-      url                 | name
-      ${'/query/boolean'} | ${'boolean'}
-      ${'/query/boolean'} | ${'boolean'}
-      ${'/query/number'}  | ${'number'}
-      ${'/query/number'}  | ${'number'}
-      ${'/query/string'}  | ${'string'}
-      ${'/query/string'}  | ${'string'}
+      url
+      ${'/query/boolean'}
+      ${'/query/number'}
+      ${'/query/string'}
     `(
-      'should return none when the param value is not present in $url?$name',
-      async ({ url, name }) => {
+      'should return none when the param not present in $url',
+      async ({ url }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}?${name}`))
+          .run(new Request(Method.GET, uri`${url}`))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
