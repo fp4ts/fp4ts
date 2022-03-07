@@ -220,7 +220,9 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
       clientWithRoute(
         api,
         req.putHeaders(
-          ...Authorization(new Token(AuthScheme.Basic, creds.token)).toRaw(),
+          ...new Authorization(
+            new Token(AuthScheme.Basic, creds.token),
+          ).toRaw(),
         ),
         codings,
       );
@@ -278,7 +280,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     const C = codings[verb.contentType.mime][verb.body.Ref];
     const accept = MediaRange.fromString(verb.contentType.mime).get;
     const req_ = req
-      .putHeaders(...Accept(accept).toRaw())
+      .putHeaders(...new Accept(accept).toRaw())
       .withMethod(verb.method);
     return ClientM(underlying => {
       return underlying.fetch(req_, res => {
@@ -324,7 +326,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     const C = codings[verb.contentType.mime][verb.headers.body.Ref];
     const req_ = req
       .putHeaders(
-        ...Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
+        ...new Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
       )
       .withMethod(verb.method);
     return ClientM(underlying =>

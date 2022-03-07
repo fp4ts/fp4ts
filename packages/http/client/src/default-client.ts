@@ -48,7 +48,9 @@ export class DefaultClient<F> implements Client<F> {
 
   public fetchAs<A>(req: Request<F>, d: EntityDecoder<F, A>): Kind<F, [A]> {
     const r =
-      d.consumes.size !== 0 ? req.withHeaders(Accept([...d.consumes][0])) : req;
+      d.consumes.size !== 0
+        ? req.withHeaders(new Accept([...d.consumes][0]))
+        : req;
 
     return this.run(r).use(this.F)(response =>
       this.F.rethrow(d.decode(response).leftWiden<Error>().value),

@@ -13,42 +13,41 @@ import {
 import { Challenge } from '../challenge';
 import { ParseResult, Rfc7235 } from '../parsing';
 
-export type WWWAuthenticate = WWWAuthenticateHeader;
-export const WWWAuthenticate: WWWAuthenticateObj = function (head, ...tail) {
-  return new WWWAuthenticateHeader(NonEmptyList(head, List.fromArray(tail)));
-};
+export class WWWAuthenticate {
+  public readonly values: NonEmptyList<Challenge>;
 
-export class WWWAuthenticateHeader {
-  public constructor(public readonly values: NonEmptyList<Challenge>) {}
+  public constructor(head: Challenge, ...tail: Challenge[]);
+  public constructor(values: NonEmptyList<Challenge>);
+  public constructor(head: any, ...tail: any[]) {
+    if (head instanceof Challenge) {
+      this.values = NonEmptyList(head, List.fromArray(tail));
+    } else {
+      this.values = head;
+    }
+  }
 
   public toRaw(): NonEmptyList<RawHeader> {
     return WWWAuthenticate.Select.toRaw(this);
   }
-}
 
-WWWAuthenticate.Header = {
-  headerName: 'WWW-Authenticate',
-  value(a: WWWAuthenticateHeader): string {
-    return a.values.toArray.join(', ');
-  },
-  parse(s: string): Either<Error, WWWAuthenticateHeader> {
-    return ParseResult.fromParser(
-      Rfc7235.challenges,
-      'Invalid WWW-Authenticate header',
-    )(s).map(nel => new WWWAuthenticateHeader(nel));
-  },
-};
-
-WWWAuthenticate.Select = new RecurringSelectHeaderMerge(
-  WWWAuthenticate.Header,
-  Semigroup.of({
-    combine_: (xs, ys) =>
-      new WWWAuthenticateHeader(xs.values.concatNel(ys().values)),
-  }),
-);
-
-interface WWWAuthenticateObj {
-  (head: Challenge, ...tail: Challenge[]): WWWAuthenticateHeader;
-  Header: Header<WWWAuthenticate, 'recurring'>;
-  Select: SelectHeader<IdentityF, WWWAuthenticate>;
+  public static Header: Header<WWWAuthenticate, 'recurring'> = {
+    headerName: 'WWW-Authenticate',
+    value(a: WWWAuthenticate): string {
+      return a.values.toArray.join(', ');
+    },
+    parse(s: string): Either<Error, WWWAuthenticate> {
+      return ParseResult.fromParser(
+        Rfc7235.challenges,
+        'Invalid WWW-Authenticate header',
+      )(s).map(nel => new WWWAuthenticate(nel));
+    },
+  };
+  public static Select: SelectHeader<IdentityF, WWWAuthenticate> =
+    new RecurringSelectHeaderMerge(
+      WWWAuthenticate.Header,
+      Semigroup.of({
+        combine_: (xs, ys) =>
+          new WWWAuthenticate(xs.values.concatNel(ys().values)),
+      }),
+    );
 }

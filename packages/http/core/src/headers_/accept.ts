@@ -24,57 +24,52 @@ import {
 import { MediaRange, MediaType, mediaTypeExtensionParser } from '../media-type';
 import { ParseResult, Rfc7230 } from '../parsing';
 
-export type Accept = AcceptHeader;
-export const Accept: AcceptObj = function (mr, ...mrs) {
-  return new AcceptHeader(
-    MediaRangeAndQValue.from(mr),
-    List.fromArray(mrs.map(MediaRangeAndQValue.from)),
-  );
-};
+export class Accept {
+  public readonly values: NonEmptyList<MediaRangeAndQValue>;
 
-class AcceptHeader {
+  public constructor(head: MediaRange, ...tail: MediaRange[]);
   public constructor(
-    public readonly head: MediaRangeAndQValue,
-    public readonly tail: List<MediaRangeAndQValue>,
-  ) {}
+    head: MediaRangeAndQValue,
+    tail: List<MediaRangeAndQValue>,
+  );
+  public constructor(values: NonEmptyList<MediaRangeAndQValue>);
+  public constructor(head: any, ...tail: any[]) {
+    if (head instanceof MediaRange) {
+      this.values = NonEmptyList(
+        new MediaRangeAndQValue(head),
+        List.fromArray(tail.map(x => new MediaRangeAndQValue(x))),
+      );
+    } else if (tail[0]) {
+      this.values = NonEmptyList(head, tail[0]);
+    } else {
+      this.values = head;
+    }
+  }
 
   public toRaw(): NonEmptyList<RawHeader> {
     return Accept.Select.toRaw(this);
   }
 
   public accepts(mt: MediaType): boolean {
-    return this.tail.cons(this.head).any(mr => mr.mediaRange.satisfiedBy(mt));
+    return this.values.any(mr => mr.mediaRange.satisfiedBy(mt));
   }
-}
 
-Accept.Header = {
-  headerName: 'Accept',
-  value(a: AcceptHeader): string {
-    const hd = `${a.head}`;
-    return [hd, a.tail.toArray.map(xs => `${xs}`)].join(', ');
-  },
-  parse(s: string): ParseResult<AcceptHeader> {
-    return ParseResult.fromParser(parser(), 'Invalid Accept Header')(s);
-  },
-};
-
-Accept.Select = new RecurringSelectHeaderMerge(
-  Accept.Header,
-  Semigroup.of({
-    combine_: (x, y) => {
-      const yy = y();
-      return new AcceptHeader(x.head, x.tail['+++'](yy.tail.cons(yy.head)));
+  public static readonly Header: Header<Accept, 'recurring'> = {
+    headerName: 'Accept',
+    value(a: Accept): string {
+      return [a.values.toArray.map(xs => `${xs}`)].join(', ');
     },
-  }),
-);
-
-interface AcceptObj {
-  (
-    mt: MediaRange | MediaRangeAndQValue,
-    ...mts: (MediaRange | MediaRangeAndQValue)[]
-  ): AcceptHeader;
-  Header: Header<Accept, 'recurring'>;
-  Select: SelectHeader<IdentityF, Accept>;
+    parse(s: string): ParseResult<Accept> {
+      return ParseResult.fromParser(parser(), 'Invalid Accept Header')(s);
+    },
+  };
+  public static readonly Select: SelectHeader<IdentityF, Accept> =
+    new RecurringSelectHeaderMerge(
+      Accept.Header,
+      Semigroup.of({
+        combine_: (x, y) => new Accept(x.values.concatNel(y().values)),
+      }),
+    );
 }
 
 export class MediaRangeAndQValue {
@@ -94,7 +89,7 @@ export class MediaRangeAndQValue {
   }
 }
 
-const parser: Lazy<Parser<StringSource, AcceptHeader>> = lazyVal(() => {
+const parser: Lazy<Parser<StringSource, Accept>> = lazyVal(() => {
   const acceptParams = QValue.parser.product(mediaTypeExtensionParser.rep());
 
   const qAndExtension = acceptParams.orElse(() =>
@@ -113,7 +108,5 @@ const parser: Lazy<Parser<StringSource, AcceptHeader>> = lazyVal(() => {
       );
     });
 
-  return Rfc7230.headerRep1(fullRange).map(
-    xs => new AcceptHeader(xs.head, xs.tail),
-  );
+  return Rfc7230.headerRep1(fullRange).map(xs => new Accept(xs.head, xs.tail));
 });

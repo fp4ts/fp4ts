@@ -48,7 +48,7 @@ export class NotAcceptFailure extends MessageFailure {
     public readonly supplied: ContentType,
     public readonly expected: Accept,
   ) {
-    super(`Expected ${expected.head}, supplied: ${supplied.mediaType}`);
+    super(`Expected ${expected.values.head}, supplied: ${supplied.mediaType}`);
   }
 
   public readonly cause = None;
@@ -132,7 +132,7 @@ export class BasicAuthFailure extends UnauthorizedFailure {
   public override toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
     return new Response<F>(Status.Unauthorized, httpVersion)
       .withEntity(this.sanitized, EntityEncoder.text<F>())
-      .putHeaders(WWWAuthenticate(this.challenge));
+      .putHeaders(new WWWAuthenticate(this.challenge));
   }
 }
 

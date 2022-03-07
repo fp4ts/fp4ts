@@ -242,7 +242,7 @@ describe('Header', () => {
       S.return(
         ah.fold(
           () => 'no header',
-          ah => `${ah.tail.cons(ah.head).toArray}`,
+          ah => `${ah.values.toArray}`,
         ),
       ),
     hv => S.return(hv.get),

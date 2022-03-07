@@ -37,7 +37,7 @@ export class EntityEncoder<F, A> {
             Some(s.length),
           ),
       ),
-      Headers.fromToRaw(ContentType(MediaType['text/plain'])),
+      Headers.fromToRaw(new ContentType(MediaType['text/plain'])),
     );
   }
 
@@ -45,7 +45,7 @@ export class EntityEncoder<F, A> {
     return this.text<F>()
       .contramap(x => JSON.stringify(x))
       .withHeaders(
-        Headers.fromToRaw(ContentType(MediaType['application/json'])),
+        Headers.fromToRaw(new ContentType(MediaType['application/json'])),
       );
   }
 }

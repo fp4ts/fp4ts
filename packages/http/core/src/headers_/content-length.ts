@@ -5,68 +5,41 @@
 
 import {
   Either,
-  IdentityF,
   Left,
   NonEmptyList,
   None,
   Option,
   Right,
   Some,
+  IdentityF,
 } from '@fp4ts/cats';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
 
-export type ContentLength = ContentLengthHeader;
-export const ContentLength: ContentLengthObj = function (n: number) {
-  return new ContentLengthHeader(n);
-} as any;
-
-class ContentLengthHeader {
+export class ContentLength {
   public constructor(public readonly length: number) {}
 
   public toRaw(): NonEmptyList<RawHeader> {
     return ContentLength.Select.toRaw(this);
   }
+
+  public static readonly zero = new ContentLength(0);
+  public static fromNumber(n: number): Option<ContentLength> {
+    return n >= 0 ? Some(new ContentLength(n)) : None;
+  }
+
+  public static readonly Header: Header<ContentLength, 'single'> = {
+    headerName: 'Content-Length',
+    value(a: ContentLength): string {
+      return `${a.length}`;
+    },
+    parse(s: string): Either<Error, ContentLength> {
+      const x = parseInt(s, 10);
+      return !Number.isNaN(x) && x >= 0
+        ? Right(new ContentLength(x))
+        : Left(new Error(`Invalid content length '${x}'`));
+    },
+  };
+
+  public static readonly Select: SelectHeader<IdentityF, ContentLength> =
+    new SingleSelectHeader(ContentLength.Header);
 }
-
-interface ContentLengthObj {
-  (n: number): ContentLength;
-  zero: ContentLength;
-  fromNumber(n: number): Option<ContentLength>;
-
-  Header: Header<ContentLength, 'single'>;
-  Select: SelectHeader<IdentityF, ContentLength>;
-}
-
-Object.defineProperty(ContentLength, 'zero', {
-  get() {
-    return ContentLength(0);
-  },
-});
-Object.defineProperty(ContentLength, 'fromNumber', {
-  get() {
-    return (n: number) => (n >= 0 ? Some(ContentLength(n)) : None);
-  },
-});
-
-Object.defineProperty(ContentLength, 'Header', {
-  get() {
-    return {
-      headerName: 'Content-Length',
-      value(a: ContentLengthHeader): string {
-        return `${a.length}`;
-      },
-      parse(s: string): Either<Error, ContentLengthHeader> {
-        const x = parseInt(s, 10);
-        return !Number.isNaN(x) && x >= 0
-          ? Right(new ContentLengthHeader(x))
-          : Left(new Error(`Invalid content length '${x}'`));
-      },
-    };
-  },
-});
-
-Object.defineProperty(ContentLength, 'Select', {
-  get() {
-    return new SingleSelectHeader(ContentLength.Header);
-  },
-});

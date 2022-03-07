@@ -220,7 +220,7 @@ export const failServer = toHttpAppIO(
     HttpApp(_req =>
       IO.pure(
         new Response<IOF>(Status.Ok).putHeaders(
-          ContentType(MediaType['application/json']),
+          new ContentType(MediaType['application/json']),
         ),
       ),
     ),
@@ -234,7 +234,7 @@ export const failServer = toHttpAppIO(
   HttpApp(_req =>
     IO.pure(
       new Response<IOF>(Status.Ok).putHeaders(
-        ContentType(MediaType['application/json']),
+        new ContentType(MediaType['application/json']),
         new RawHeader('X-Example-1', '1'),
         new RawHeader('X-Example-2', 'foo'),
       ),

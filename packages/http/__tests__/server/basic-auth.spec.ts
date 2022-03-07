@@ -85,7 +85,7 @@ describe('Basic Auth', () => {
       .run(req)
       .tap(res =>
         expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
-          Some(WWWAuthenticate(new Challenge('Basic', realm))),
+          Some(new WWWAuthenticate(new Challenge('Basic', realm))),
         ),
       )
       .map(res => expect(res.status.code).toBe(Status.Unauthorized.code));
@@ -93,7 +93,7 @@ describe('Basic Auth', () => {
 
   it.M('should return Unauthorized when wrong user passed in', () => {
     const req = new Request<IOF>(Method.GET, uri`/`).putHeaders(
-      Authorization(
+      new Authorization(
         new Token(
           AuthScheme.Basic,
           new BasicCredentials('wrong user', password).token,
@@ -108,7 +108,7 @@ describe('Basic Auth', () => {
       .run(req)
       .tap(res =>
         expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
-          Some(WWWAuthenticate(new Challenge('Basic', realm))),
+          Some(new WWWAuthenticate(new Challenge('Basic', realm))),
         ),
       )
       .map(res => expect(res.status.code).toBe(Status.Unauthorized.code));
@@ -116,7 +116,7 @@ describe('Basic Auth', () => {
 
   it.M('should return ok when authentication succeeds', () => {
     const req = new Request<IOF>(Method.GET, uri`/`).putHeaders(
-      Authorization(
+      new Authorization(
         new Token(
           AuthScheme.Basic,
           new BasicCredentials(username, password).token,

@@ -9,35 +9,29 @@ import { Credentials } from '../credentials';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
 import { ParseResult, Rfc7235 } from '../parsing';
 
-export type Authorization = AuthorizationHeader;
-export const Authorization: AuthorizationObj = function (creds) {
-  return new AuthorizationHeader(creds);
-};
-
-class AuthorizationHeader {
+export class Authorization {
   public constructor(public readonly credentials: Credentials) {}
 
   public toRaw(): NonEmptyList<RawHeader> {
     return Authorization.Select.toRaw(this);
   }
+
+  public static readonly Header: Header<Authorization, 'single'> = {
+    headerName: 'Authorization',
+    value(a: Authorization): string {
+      return `${a.credentials.toString()}`;
+    },
+    parse(s: string): ParseResult<Authorization> {
+      return ParseResult.fromParser(
+        parser(),
+        'Invalid Authorization header',
+      )(s);
+    },
+  };
+  public static readonly Select: SelectHeader<IdentityF, Authorization> =
+    new SingleSelectHeader(Authorization.Header);
 }
 
-Authorization.Header = {
-  headerName: 'Authorization',
-  value(a: AuthorizationHeader): string {
-    return `${a.credentials.toString()}`;
-  },
-  parse(s: string): ParseResult<AuthorizationHeader> {
-    return ParseResult.fromParser(parser(), 'Invalid Authorization header')(s);
-  },
-};
-
-Authorization.Select = new SingleSelectHeader(Authorization.Header);
-
-interface AuthorizationObj {
-  (creds: Credentials): AuthorizationHeader;
-  Header: Header<Authorization, 'single'>;
-  Select: SelectHeader<IdentityF, Authorization>;
-}
-
-const parser = lazyVal(() => Rfc7235.credentials.map(Authorization));
+const parser = lazyVal(() =>
+  Rfc7235.credentials.map(creds => new Authorization(creds)),
+);

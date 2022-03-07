@@ -29,7 +29,9 @@ export const challenged =
             challenge =>
               F.pure(
                 Some(
-                  Status.Unauthorized().putHeaders(WWWAuthenticate(challenge)),
+                  Status.Unauthorized().putHeaders(
+                    new WWWAuthenticate(challenge),
+                  ),
                 ),
               ),
             authedRequest => routes.run(authedRequest).value,

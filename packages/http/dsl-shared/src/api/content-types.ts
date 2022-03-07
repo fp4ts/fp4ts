@@ -19,12 +19,12 @@ export const attachMime = <M extends string>(
 
 export const JSON = attachMime(
   'application/json',
-  ContentType(MediaType['application/json']),
+  new ContentType(MediaType['application/json']),
 );
 export type JSON = typeof JSON;
 
 export const PlainText = attachMime(
   'text/plain',
-  ContentType(MediaType['text/plain']),
+  new ContentType(MediaType['text/plain']),
 );
 export type PlainText = typeof PlainText;

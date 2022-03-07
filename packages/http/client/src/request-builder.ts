@@ -60,9 +60,9 @@ export class RequestBuilder<F> {
   public accept(x: any): RequestBuilder<F> {
     const h =
       typeof x === 'string'
-        ? Accept(MediaRange.fromString(x).get)
+        ? new Accept(MediaRange.fromString(x).get)
         : x instanceof MediaRange
-        ? Accept(x)
+        ? new Accept(x)
         : x;
     return this.withRequest(this.request.putHeaders(h));
   }
@@ -76,9 +76,9 @@ export class RequestBuilder<F> {
   public contentType(x: any): RequestBuilder<F> {
     const h =
       typeof x === 'string'
-        ? ContentType(MediaType.fromString(x).get)
+        ? new ContentType(MediaType.fromString(x).get)
         : x instanceof MediaType
-        ? ContentType(x)
+        ? new ContentType(x)
         : x;
     return this.withRequest(this.request.putHeaders(h));
   }
