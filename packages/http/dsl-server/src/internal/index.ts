@@ -34,8 +34,9 @@ import {
   RawHeader,
   Headers,
   UnauthorizedFailure,
+  BasicAuthFailure,
 } from '@fp4ts/http-core';
-import { validatePassword } from '@fp4ts/http-server';
+import { challenge } from '@fp4ts/http-server';
 import {
   Alt,
   Sub,
@@ -324,12 +325,11 @@ export function route<F>(F: Concurrent<F, Error>) {
     const validate = codings[BasicAuthValidatorTag][auth.realm];
     const authCheck = DelayedCheck.withRequest(F)(req =>
       pipe(
-        validatePassword(F)(validate, req),
+        challenge(F)(auth.realm, validate).run(req),
         F.map(opt =>
           opt.fold(
-            () =>
-              RouteResult.fatalFail(new UnauthorizedFailure('Unauthorized')),
-            a => RouteResult.succeed(a),
+            challenge => RouteResult.fatalFail(new BasicAuthFailure(challenge)),
+            ar => RouteResult.succeed(ar.context),
           ),
         ),
         RouteResultT,
