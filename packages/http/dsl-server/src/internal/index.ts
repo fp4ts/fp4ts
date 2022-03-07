@@ -35,6 +35,7 @@ import {
   Headers,
   UnauthorizedFailure,
 } from '@fp4ts/http-core';
+import { validatePassword } from '@fp4ts/http-server';
 import {
   Alt,
   Sub,
@@ -79,7 +80,6 @@ import { AddHeader } from '../add-header';
 import { Handler } from './handler';
 import { Codable } from '../codable';
 import { BasicAuthValidatorTag } from '../basic-auth-validator';
-import { validatePassword } from '@fp4ts/http-server/src/middlewares/authentication/basic-auth';
 
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>

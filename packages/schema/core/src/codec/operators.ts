@@ -4,28 +4,18 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Option } from '@fp4ts/cats';
-import { Encoder } from '../encoder';
-import { Decoder } from '../decoder-t';
-import { Codec, Codec0 } from './algebra';
-
-export const toEncoder = <I, O, A>(codec: Codec<I, O, A>): Encoder<O, A> =>
-  (codec as Codec0<I, O, A>).encoder;
-
-export const toDecoder = <I, O, A>(codec: Codec<I, O, A>): Decoder<I, A> =>
-  (codec as Codec0<I, O, A>).decoder;
+import { Codec } from './algebra';
 
 export const optional = <O, A>(
   c: Codec<unknown, O, A>,
 ): Codec<unknown, Option<O>, Option<A>> => {
-  const c0 = c as Codec0<unknown, O, A>;
-  return new Codec0(c0.encoder.optional, c0.decoder.optional());
+  return new Codec(c.toEncoder.optional, c.toDecoder.optional() as any);
 };
 
 export const nullable = <O, A>(
   c: Codec<unknown, O, A>,
 ): Codec<unknown, O | null, A | null> => {
-  const c0 = c as Codec0<unknown, O, A>;
-  return new Codec0(c0.encoder.nullable, c0.decoder.nullable());
+  return new Codec(c.toEncoder.nullable, c.toDecoder.nullable());
 };
 
 export const imap_ = <I, O, A, B>(
@@ -33,6 +23,15 @@ export const imap_ = <I, O, A, B>(
   f: (a: A) => B,
   g: (b: B) => A,
 ): Codec<I, O, B> => {
-  const c0 = c as Codec0<I, O, A>;
-  return new Codec0(c0.encoder.contramap(g), c0.decoder.map(f));
+  return new Codec(c.toEncoder.contramap(g), c.toDecoder.map(f));
+};
+
+export const andThen_ = <A, B, C>(
+  c1: Codec<A, A, B>,
+  c2: Codec<B, B, C>,
+): Codec<A, A, C> => {
+  return new Codec(
+    c1.toEncoder.compose(c2.toEncoder),
+    c1.toDecoder.andThen(c2.toDecoder),
+  );
 };

@@ -3,10 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Eq } from '@fp4ts/cats';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
-import { Codec } from '@fp4ts/schema-core';
 import { Arbitrary } from 'fast-check';
+import { Either, Eq } from '@fp4ts/cats';
+import { Codec } from '@fp4ts/schema-core';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import { CodecLaws } from '../codec-laws';
 
 export const CodecSuite = <A>(C: Codec<unknown, any, A>) => {

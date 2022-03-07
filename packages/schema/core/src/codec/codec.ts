@@ -8,7 +8,7 @@ import { EvalF, Invariant } from '@fp4ts/cats';
 import { Schemable } from '@fp4ts/schema-kernel';
 import { Encoder } from '../encoder';
 import { Decoder, DecodeResultT } from '../decoder-t';
-import { Codec as CodecBase, Codec0 } from './algebra';
+import { Codec as CodecBase } from './algebra';
 import { fromDecoder, make } from './constructors';
 import { codecInvariant, codecSchemable } from './instances';
 
@@ -18,7 +18,7 @@ export const Codec: CodecObj = function <I, O, A>(
   encode: (a: A) => O,
   decode: (i: I) => DecodeResultT<EvalF, A>,
 ) {
-  return new Codec0(Encoder(encode), Decoder(decode));
+  return new CodecBase(Encoder(encode), Decoder(decode));
 } as any;
 
 interface CodecObj {

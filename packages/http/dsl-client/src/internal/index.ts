@@ -276,34 +276,34 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): ClientM<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.body.Ref];
+    const accept = MediaRange.fromString(verb.contentType.mime).get;
+    const req_ = req
+      .putHeaders(...Accept(accept).toRaw())
+      .withMethod(verb.method);
     return ClientM(underlying => {
-      const accept = MediaRange.fromString(verb.contentType.mime).get;
-      return underlying.fetch(
-        req.putHeaders(...Accept(accept).toRaw()).withMethod(verb.method),
-        res => {
-          if (!res.status.isSuccessful)
-            return pipe(
-              res.bodyText.compileConcurrent(F).string,
-              F.flatMap(txt =>
-                F.throwError(
-                  new Error(`Failed with status ${res.status.code}\n${txt}`),
-                ),
+      return underlying.fetch(req_, res => {
+        if (!res.status.isSuccessful)
+          return pipe(
+            res.bodyText.compileConcurrent(F).string,
+            F.flatMap(txt =>
+              F.throwError(
+                new Error(`Failed with status ${res.status.code}\n${txt}`),
               ),
-            );
-
-          if (
-            !res.contentType
-              .map(ct => ct.mediaType.satisfiedBy(accept))
-              .getOrElse(() => true)
-          ) {
-            return F.throwError(new Error('Unsupported media type'));
-          }
-
-          return F.flatMap_(res.bodyText.compileConcurrent(F).string, txt =>
-            F.fromEither(C.decode(txt)),
+            ),
           );
-        },
-      );
+
+        if (
+          !res.contentType
+            .map(ct => ct.mediaType.satisfiedBy(accept))
+            .getOrElse(() => true)
+        ) {
+          return F.throwError(new Error('Unsupported media type'));
+        }
+
+        return F.flatMap_(res.bodyText.compileConcurrent(F).string, txt =>
+          F.fromEither(C.decode(txt)),
+        );
+      });
     });
   }
 
@@ -322,49 +322,45 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): ClientM<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.headers.body.Ref];
+    const req_ = req
+      .putHeaders(
+        ...Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
+      )
+      .withMethod(verb.method);
     return ClientM(underlying =>
-      underlying.fetch(
-        req
-          .putHeaders(
-            ...Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
-          )
-          .withMethod(verb.method),
-        res => {
-          if (!res.status.isSuccessful)
-            return F.throwError(
-              new Error(`Failed with status ${res.status.code}`),
-            );
-
-          const hs: any[] = [];
-          for (const h of verb.headers.headers) {
-            if (h instanceof RawHeaderElement) {
-              const hh = res.headers.getRaw(h.key);
-              if (hh.isEmpty)
-                return F.throwError(new Error(`Header '${h.key}' not present`));
-              const C = (codings as any)[FromHttpApiDataTag][h.type.Ref];
-              const h_ = C.parseHeader(hh.get.head);
-              if (h_.isEmpty)
-                return F.throwError(new Error(`Header '${h.key}' not present`));
-              hs.push(h_.get);
-            } else {
-              const hh = res.headers.get(h.header);
-              if (hh.isEmpty)
-                return F.throwError(
-                  new Error(
-                    `Header '${h.header.header.headerName}' not present`,
-                  ),
-                );
-              hs.push(hh.get);
-            }
-          }
-
-          return pipe(
-            res.bodyText.compileConcurrent(F).string,
-            F.flatMap(txt => F.fromEither(C.decode(txt))),
-            F.map(r => new ResponseHeaders(hs, r)),
+      underlying.fetch(req_, res => {
+        if (!res.status.isSuccessful)
+          return F.throwError(
+            new Error(`Failed with status ${res.status.code}`),
           );
-        },
-      ),
+
+        const hs: any[] = [];
+        for (const h of verb.headers.headers) {
+          if (h instanceof RawHeaderElement) {
+            const hh = res.headers.getRaw(h.key);
+            if (hh.isEmpty)
+              return F.throwError(new Error(`Header '${h.key}' not present`));
+            const C = (codings as any)[FromHttpApiDataTag][h.type.Ref];
+            const h_ = C.parseHeader(hh.get.head);
+            if (h_.isEmpty)
+              return F.throwError(new Error(`Header '${h.key}' not present`));
+            hs.push(h_.get);
+          } else {
+            const hh = res.headers.get(h.header);
+            if (hh.isEmpty)
+              return F.throwError(
+                new Error(`Header '${h.header.header.headerName}' not present`),
+              );
+            hs.push(hh.get);
+          }
+        }
+
+        return pipe(
+          res.bodyText.compileConcurrent(F).string,
+          F.flatMap(txt => F.fromEither(C.decode(txt))),
+          F.map(r => new ResponseHeaders(hs, r)),
+        );
+      }),
     );
   }
 

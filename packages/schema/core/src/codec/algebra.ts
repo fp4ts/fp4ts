@@ -7,21 +7,12 @@ import { Encoder } from '../encoder';
 import { Decoder } from '../decoder-t';
 import { DecodeResult } from '../decoder-t';
 
-export abstract class Codec<I, O, A> {
-  private readonly __void!: void;
-
-  public abstract encode(a: A): O;
-  public abstract decode(i: I): DecodeResult<A>;
-}
-
-export class Codec0<I, O, A> extends Codec<I, O, A> {
+export class Codec<I, O, A> {
   public constructor(
-    public readonly encoder: Encoder<O, A>,
-    public readonly decoder: Decoder<I, A>,
-  ) {
-    super();
-  }
+    public readonly toEncoder: Encoder<O, A>,
+    public readonly toDecoder: Decoder<I, A>,
+  ) {}
 
-  public readonly encode: (a: A) => O = this.encoder.encode;
-  public readonly decode: (i: I) => DecodeResult<A> = this.decoder.decode;
+  public readonly encode: (a: A) => O = this.toEncoder.encode;
+  public readonly decode: (i: I) => DecodeResult<A> = this.toDecoder.decode;
 }

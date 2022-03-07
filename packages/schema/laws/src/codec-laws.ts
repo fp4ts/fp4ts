@@ -7,12 +7,12 @@ import { Either, Right } from '@fp4ts/cats';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { Codec, DecodeFailure } from '@fp4ts/schema-core';
 
-export const CodecLaws = <A>(C: Codec<unknown, any, A>) => ({
+export const CodecLaws = <A>(C: Codec<unknown, unknown, A>) => ({
   codecDecodeToEncodeIdentity: <T>(t: T): IsEq<T> =>
     new IsEq(
       C.decode(t).value.value.fold(
         () => t,
-        a => C.encode(a),
+        a => C.encode(a) as T,
       ),
       t,
     ),
