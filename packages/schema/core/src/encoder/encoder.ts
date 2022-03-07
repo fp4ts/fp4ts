@@ -71,7 +71,7 @@ interface EncoderObj {
   Contravariant<O>(): Contravariant<$<EncoderF, [O]>>;
   readonly Compose: Compose<λ<EncoderF, [β, α]>>;
   readonly Category: Category<λ<EncoderF, [β, α]>>;
-  readonly Schemable: Schemable<λ<EncoderF, [α, α]>>;
+  readonly Schemable: Schemable<λ<EncoderF, [Fix<unknown>, α]>>;
 }
 
 Encoder.lift = lift;

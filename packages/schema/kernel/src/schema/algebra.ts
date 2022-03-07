@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
+import { Option } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schemable } from '../schemable';
 
@@ -100,21 +100,6 @@ export class StructSchema<A extends {}> extends Schema<A> {
   }
 }
 
-// export class PartialSchema<A extends {}> extends Schema<Partial<A>> {
-//   public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
-//     super();
-//   }
-
-// protected   public interpret0<S>(S: Schemable<S>): Kind<S, [Partial<A>]> {
-//     const keys = Object.keys(this.xs) as (keyof A)[];
-//     const sxs = keys.reduce(
-//       (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
-//       {} as { [k in keyof A]: Kind<S, [A[k]]> },
-//     );
-//     return S.partial(sxs);
-//   }
-// }
-
 export class RecordSchema<A> extends Schema<Record<string, A>> {
   public constructor(private readonly sa: Schema<A>) {
     super();
@@ -134,19 +119,6 @@ export class NullableSchema<A> extends Schema<A | null> {
     return S.nullable(this.sa.interpret(S));
   }
 }
-
-// export class IntersectionSchema<A, B> extends Schema<A & B> {
-//   public constructor(
-//     private readonly sa: Schema<A>,
-//     private readonly sb: Schema<B>,
-//   ) {
-//     super();
-//   }
-
-// protected   public interpret0<S>(S: Schemable<S>): Kind<S, [A & B]> {
-//     return S.intersection_(this.sa.interpret(S), this.sb.interpret(S));
-//   }
-// }
 
 export class ProductSchema<A extends unknown[]> extends Schema<A> {
   public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {

@@ -305,7 +305,7 @@ describe('Success', () => {
               IO(() =>
                 expect(res).toEqual([
                   str,
-                  num.getOrElse(() => null),
+                  num,
                   flag.getOrElse(() => false),
                   body,
                 ]),

@@ -13,7 +13,6 @@ import {
   LiteralSchema,
   NullSchema,
   NumberSchema,
-  // PartialSchema,
   ProductSchema,
   RecordSchema,
   Schema,
@@ -39,10 +38,6 @@ export const array = <A>(sa: Schema<A>): Schema<A[]> => new ArraySchema(sa);
 export const struct = <A extends {}>(xs: {
   [k in keyof A]: Schema<A[k]>;
 }): Schema<A> => new StructSchema(xs);
-
-// export const partial = <A extends {}>(xs: {
-//   [k in keyof A]: Schema<A>;
-// }): Schema<A> => new PartialSchema(xs);
 
 export const record = <A>(sa: Schema<A>): Schema<Record<string, A>> =>
   new RecordSchema(sa);

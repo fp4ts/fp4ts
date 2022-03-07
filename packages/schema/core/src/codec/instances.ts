@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { $, Lazy, lazyVal } from '@fp4ts/core';
 import { Invariant } from '@fp4ts/cats';
-import { $, Fix, Lazy, lazyVal, α, λ } from '@fp4ts/core';
 import { Schemable } from '@fp4ts/schema-kernel';
 import { Codec0, Codec } from './algebra';
 import { CodecF } from './codec';
@@ -27,10 +27,10 @@ export const codecInvariant: <I, O>() => Invariant<$<CodecF, [I, O]>> = lazyVal(
   () => Invariant.of({ imap_: imap_ }),
 );
 
-export const codecSchemable: Lazy<Schemable<λ<CodecF, [Fix<unknown>, α, α]>>> =
+export const codecSchemable: Lazy<Schemable<$<CodecF, [unknown, unknown]>>> =
   lazyVal(() =>
     Schemable.of({
-      literal: literal as Schemable<λ<CodecF, [Fix<unknown>, α, α]>>['literal'],
+      literal: literal as Schemable<$<CodecF, [unknown, unknown]>>['literal'],
       boolean: boolean,
       number: number,
       string: string,
@@ -41,9 +41,9 @@ export const codecSchemable: Lazy<Schemable<λ<CodecF, [Fix<unknown>, α, α]>>>
       optional: optional,
 
       record: record,
-      product: product as Schemable<λ<CodecF, [Fix<unknown>, α, α]>>['product'],
+      product: product as Schemable<$<CodecF, [unknown, unknown]>>['product'],
       struct: struct,
-      sum: sum as Schemable<λ<CodecF, [Fix<unknown>, α, α]>>['sum'],
+      sum: sum as Schemable<$<CodecF, [unknown, unknown]>>['sum'],
       defer: defer,
       imap: <A, B>(
         fa: Codec<unknown, A, A>,
@@ -51,7 +51,7 @@ export const codecSchemable: Lazy<Schemable<λ<CodecF, [Fix<unknown>, α, α]>>>
         g: (b: B) => A,
       ) => {
         const fa0 = fa as Codec0<unknown, A, A>;
-        return new Codec0(fa0.encoder.contramap(g).map(f), fa0.decoder.map(f));
+        return new Codec0(fa0.encoder.contramap(g), fa0.decoder.map(f));
       },
     }),
   );

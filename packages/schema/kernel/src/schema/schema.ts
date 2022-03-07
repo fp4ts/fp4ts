@@ -13,7 +13,6 @@ import {
   literal,
   nullSchema,
   number,
-  // partial,
   product,
   record,
   string,
@@ -41,10 +40,6 @@ interface SchemaObj {
     [k in keyof A]: Schema<A[k]>;
   }): Schema<A>;
 
-  // partial<A extends {}>(xs: {
-  //   [k in keyof A]: Schema<A[k]>;
-  // }): Schema<A>;
-
   record<A>(sa: Schema<A>): Schema<Record<string, A>>;
 
   product<A extends unknown[]>(
@@ -67,7 +62,6 @@ Schema.string = string;
 Schema.null = nullSchema;
 Schema.array = array;
 Schema.struct = struct;
-// Schema.partial = partial;
 Schema.record = record;
 Schema.product = product as SchemaObj['product'];
 Schema.sum = sum;

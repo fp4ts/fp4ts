@@ -3,14 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Fix, TyK, TyVar, α, λ } from '@fp4ts/core';
+import { $, $type, TyK, TyVar } from '@fp4ts/core';
 import { EvalF, Invariant } from '@fp4ts/cats';
+import { Schemable } from '@fp4ts/schema-kernel';
 import { Encoder } from '../encoder';
 import { Decoder, DecodeResultT } from '../decoder-t';
 import { Codec as CodecBase, Codec0 } from './algebra';
 import { fromDecoder, make } from './constructors';
 import { codecInvariant, codecSchemable } from './instances';
-import { Schemable } from '@fp4ts/schema-kernel';
 
 export type Codec<I, O, A> = CodecBase<I, O, A>;
 
@@ -33,7 +33,7 @@ interface CodecObj {
   // -- Instances
 
   Invariant<I, O>(): Invariant<$<CodecF, [I, O]>>;
-  Schemable: Schemable<λ<CodecF, [Fix<unknown>, α, α]>>;
+  Schemable: Schemable<$<CodecF, [unknown, unknown]>>;
 }
 
 Codec.make = make;

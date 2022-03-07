@@ -13,6 +13,8 @@ import {
   typeref,
   voidType,
 } from '@fp4ts/core';
+import { None, Option, Some } from '@fp4ts/cats';
+import { IO, IOF } from '@fp4ts/effect-core';
 import { Schema } from '@fp4ts/schema';
 import {
   ContentType,
@@ -41,10 +43,10 @@ import {
   ReqBody,
   Route,
 } from '@fp4ts/http-dsl-shared';
-import { toHttpAppIO } from '@fp4ts/http-dsl-server';
-import { builtins as serverBuiltins } from '@fp4ts/http-dsl-server/lib/builtin-codables';
-import { IO, IOF } from '@fp4ts/effect-core';
-import { None, Some } from '@fp4ts/cats';
+import {
+  toHttpAppIO,
+  builtins as serverBuiltins,
+} from '@fp4ts/http-dsl-server';
 
 export const PersonTypeTag = '@fp4ts/http/__tests__/dsl-client/person';
 export type PersonTypeTag = typeof PersonTypeTag;
@@ -81,17 +83,20 @@ export const stringNumberArrayCodable: Codable<[string, number[]]> =
 
 const multiTupleTupleTag = '@fp4ts/http/__tests__/dsl-client/multiTupleTuple';
 export const multiTupleTuple =
-  typeref<[string, number | null, boolean, [string, number[]]]>()(
+  typeref<[string, Option<number>, boolean, [string, number[]]]>()(
     multiTupleTupleTag,
   );
 export const multiTupleCodable: Codable<
-  [string, number | null, boolean, [string, number[]]]
+  [string, Option<number>, boolean, [string, number[]]]
 > = Codable.json.fromSchema(
   Schema.product(
     Schema.string,
     Schema.number.nullable,
     Schema.boolean,
     Schema.product(Schema.string, Schema.number.array),
+  ).imap(
+    ([s, n, f, b]) => [s, Option(n), f, b],
+    ([s, n, f, b]) => [s, n.getOrElse(() => null), f, b],
   ),
 );
 
@@ -172,8 +177,7 @@ export const server = toHttpAppIO(api, {
       ),
     ),
   ),
-  a => b => c => d =>
-    S.return([a, b.getOrElse(() => null), c.getOrElse(() => false), d]),
+  a => b => c => d => S.return([a, b, c.getOrElse(() => false), d]),
   pipe(true, S.addHeader('eg2'), S.addHeader(42), S.return),
 ]);
 

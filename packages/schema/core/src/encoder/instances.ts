@@ -44,8 +44,8 @@ export const encoderCategory: Lazy<Category<λ<EncoderF, [β, α]>>> = lazyVal(
     Category.of({ ...encoderCompose(), id: <A>() => lift<A, A>(id) } as any),
 );
 
-export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal(
-  () =>
+export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [Fix<unknown>, α]>>> =
+  lazyVal(() =>
     Schemable.of({
       string: lift(id),
       number: lift(id),
@@ -55,11 +55,11 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [α, α]>>> = lazyVal
       array: array,
       literal: literal,
       nullable: nullable,
-      product: product as Schemable<λ<EncoderF, [α, α]>>['product'],
-      sum: sum as Schemable<λ<EncoderF, [α, α]>>['sum'],
+      product: product as Schemable<λ<EncoderF, [Fix<unknown>, α]>>['product'],
+      sum: sum as Schemable<λ<EncoderF, [Fix<unknown>, α]>>['sum'],
       record: record,
-      struct: struct as Schemable<λ<EncoderF, [α, α]>>['struct'],
+      struct: struct as Schemable<λ<EncoderF, [Fix<unknown>, α]>>['struct'],
       defer: defer,
-      imap: (encoder, f, g) => map_(contramap_(encoder, g), f),
+      imap: (encoder, _f, g) => contramap_(encoder, g),
     }),
-);
+  );
