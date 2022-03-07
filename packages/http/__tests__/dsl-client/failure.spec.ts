@@ -47,7 +47,7 @@ describe('Failure', () => {
       }),
     );
 
-    it.M('should respond with a connection failure', () =>
+    it.skip('should respond with a connection failure', () =>
       withServerClient(
         failServer,
         clientResource,
@@ -73,8 +73,7 @@ describe('Failure', () => {
               expect(code === 'EINVAL' || code === 'ECONNREFUSED').toBe(true);
             }),
           );
-      }),
-    );
+      }));
 
     it.M('should respond with a Unsupported Media Type', () =>
       withServerClient(

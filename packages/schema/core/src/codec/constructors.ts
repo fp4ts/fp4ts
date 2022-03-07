@@ -84,11 +84,11 @@ export const struct = <P extends Record<string, Codec<any, any, any>>>(
 > => {
   const keys = Object.keys(fs) as (keyof P)[];
   const es = keys.reduce(
-    (acc, k) => ({ ...acc, [k]: (fs as any)[k].encoder }),
+    (acc, k) => ({ ...acc, [k]: (fs as any)[k].toEncoder }),
     {} as { [k in keyof P]: Encoder<OutputOf<P[k]>, TypeOf<P[k]>> },
   );
   const ds = keys.reduce(
-    (acc, k) => ({ ...acc, [k]: (fs as any)[k].decoder }),
+    (acc, k) => ({ ...acc, [k]: (fs as any)[k].toDecoder }),
     {} as { [k in keyof P]: Decoder<unknown, TypeOf<P[k]>> },
   );
 
@@ -106,11 +106,11 @@ export const sum =
   ): Codec<unknown, OutputOf<P[keyof P]>, TypeOf<P[keyof P]>> => {
     const keys = Object.keys(fs) as (keyof P)[];
     const es = keys.reduce(
-      (acc, k) => ({ ...acc, [k]: (fs as any)[k].encoder }),
+      (acc, k) => ({ ...acc, [k]: (fs as any)[k].toEncoder }),
       {} as Record<string, Encoder<any, any>>,
     );
     const ds = keys.reduce(
-      (acc, k) => ({ ...acc, [k]: (fs as any)[k].decoder }),
+      (acc, k) => ({ ...acc, [k]: (fs as any)[k].toDecoder }),
       {} as Record<string, Decoder<any, any>>,
     );
     return new Codec(Encoder.sum(tag)(es), Decoder.sum(tag)(ds));

@@ -11,6 +11,7 @@ import {
   Authorization,
   AuthScheme,
   BasicCredentials,
+  Challenge,
   EntityEncoder,
   HttpRoutes,
   Method,
@@ -18,6 +19,7 @@ import {
   Status,
   Token,
   uri,
+  WWWAuthenticate,
 } from '@fp4ts/http-core';
 import { BasicAuth } from '@fp4ts/http-server';
 
@@ -73,6 +75,22 @@ describe('Basic Auth', () => {
       );
   });
 
+  it.M('should return Unauthorized no user passed', () => {
+    const req = new Request<IOF>(Method.GET, uri`/`);
+    const authenticatedService = HttpRoutes.orNotFound(IO.Monad)(
+      basicMiddleware(service),
+    );
+
+    return authenticatedService
+      .run(req)
+      .tap(res =>
+        expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
+          Some(WWWAuthenticate(new Challenge('Basic', realm))),
+        ),
+      )
+      .map(res => expect(res.status.code).toBe(Status.Unauthorized.code));
+  });
+
   it.M('should return Unauthorized when wrong user passed in', () => {
     const req = new Request<IOF>(Method.GET, uri`/`).putHeaders(
       Authorization(
@@ -88,6 +106,11 @@ describe('Basic Auth', () => {
 
     return authenticatedService
       .run(req)
+      .tap(res =>
+        expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
+          Some(WWWAuthenticate(new Challenge('Basic', realm))),
+        ),
+      )
       .map(res => expect(res.status.code).toBe(Status.Unauthorized.code));
   });
 
