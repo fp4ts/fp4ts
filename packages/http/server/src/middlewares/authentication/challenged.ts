@@ -13,6 +13,7 @@ import {
   Request,
   Response,
   Status,
+  WWWAuthenticate,
 } from '@fp4ts/http-core';
 
 export const challenged =
@@ -25,7 +26,12 @@ export const challenged =
       OptionT<F, Response<F>>(
         F.flatMap_(challenge.run(req), ea =>
           ea.fold(
-            challenge => F.pure(Some(Status.Unauthorized())),
+            challenge =>
+              F.pure(
+                Some(
+                  Status.Unauthorized().putHeaders(WWWAuthenticate(challenge)),
+                ),
+              ),
             authedRequest => routes.run(authedRequest).value,
           ),
         ),

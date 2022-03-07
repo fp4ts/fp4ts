@@ -36,7 +36,7 @@ export function BasicAuth<F>(F: Sync<F>) {
   ): AuthMiddleware<F, A> => challenged(F)(challenge(F)(realm, validate));
 }
 
-const challenge =
+export const challenge =
   <F>(F: Applicative<F>) =>
   <A>(
     realm: string,
