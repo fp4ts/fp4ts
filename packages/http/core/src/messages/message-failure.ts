@@ -6,11 +6,12 @@
 import { None, Option, Some } from '@fp4ts/cats';
 import { EntityEncoder } from '../codec';
 import { HttpVersion } from '../http-version';
+import { Accept, ContentType, WWWAuthenticate } from '../headers_';
+import { MediaType } from '../media-type';
+import { Challenge } from '../challenge';
 import { Response } from './response';
 import { Status } from './status';
 import { Method } from './method';
-import { Accept, ContentType } from '../headers_';
-import { MediaType } from '../media-type';
 
 export abstract class MessageFailure extends Error {
   public abstract readonly cause: Option<Error>;
@@ -117,6 +118,21 @@ export class UnauthorizedFailure extends MessageFailure {
       this.sanitized,
       EntityEncoder.text<F>(),
     );
+  }
+}
+
+export class BasicAuthFailure extends UnauthorizedFailure {
+  public constructor(
+    public readonly challenge: Challenge,
+    sanitized: string = 'Unauthorized',
+  ) {
+    super(sanitized);
+  }
+
+  public override toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+    return new Response<F>(Status.Unauthorized, httpVersion)
+      .withEntity(this.sanitized, EntityEncoder.text<F>())
+      .putHeaders(WWWAuthenticate(this.challenge));
   }
 }
 

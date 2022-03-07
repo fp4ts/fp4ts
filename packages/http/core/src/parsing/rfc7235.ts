@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Left, List, Right } from '@fp4ts/cats';
+import { Either, Left, List, Map, NonEmptyList, Ord, Right } from '@fp4ts/cats';
 import { Char } from '@fp4ts/core';
 import {
   Accumulator,
@@ -13,6 +13,7 @@ import {
   text,
   Accumulator1,
 } from '@fp4ts/parse';
+import { Challenge } from '../challenge';
 import { AuthParams, Credentials, Token } from '../credentials';
 import * as Rfc7230 from './rfc7230';
 
@@ -34,6 +35,29 @@ export const authParamValue: Parser<StringSource, string> =
 export const authParam: Parser<StringSource, [string, string]> = Rfc7230.token
   .productL(text.char('=' as Char).surroundedBy(Rfc7230.bws))
   .product(authParamValue);
+
+export const challenge: Parser<StringSource, Challenge> = scheme['<*'](
+  Rfc5234.sp(),
+)
+  .product(
+    authParam
+      .backtrack()
+      .sepBy(text.char(',' as Char).surroundedBy(Rfc7230.ows))
+      .map(xs => Map.fromList(Ord.primitive as Ord<string>)(xs)),
+  )
+  .map(
+    ([scheme, params]) =>
+      new Challenge(
+        scheme,
+        params.lookup('realm').getOrElse(() => ''),
+        params.remove('realm'),
+      ),
+  );
+
+export const challenges: Parser<
+  StringSource,
+  NonEmptyList<Challenge>
+> = Rfc7230.headerRep1(challenge).map(xs => NonEmptyList(xs.head, xs.tail));
 
 export const credentials: Parser<StringSource, Credentials> = scheme['<*'](
   Rfc5234.sp(),

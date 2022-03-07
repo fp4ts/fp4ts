@@ -8,3 +8,4 @@ export * from './authorization';
 export * from './content-length';
 export * from './content-type';
 export * from './headers';
+export * from './www-authenticate';

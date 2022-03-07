@@ -13,7 +13,11 @@ export class ContextRequest<F, A> {
     public readonly request: Request<F>,
   ) {}
 
-  public static create<F>(F: Functor<F>) {
+  public static create<F>(
+    F: Functor<F>,
+  ): <A>(
+    getContext: (req: Request<F>) => Kind<F, [A]>,
+  ) => Kleisli<F, Request<F>, ContextRequest<F, A>> {
     return <A>(
       getContext: (req: Request<F>) => Kind<F, [A]>,
     ): Kleisli<F, Request<F>, ContextRequest<F, A>> =>
