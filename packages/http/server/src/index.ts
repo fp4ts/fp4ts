@@ -13,3 +13,4 @@ export * from './ip-address';
 export * from './port';
 export * from './socket-address';
 export * from './middlewares';
+export * from './server-builder';

@@ -12,6 +12,7 @@
     { "path": "./dsl-client/tsconfig.spec.json" },
     { "path": "./dsl-shared/tsconfig.spec.json" },
     { "path": "./dsl-server/tsconfig.spec.json" },
+    { "path": "./laws/tsconfig.spec.json" },
     { "path": "./node-client/tsconfig.spec.json" },
     { "path": "./node-server/tsconfig.spec.json" },
     { "path": "./node-shared/tsconfig.spec.json" },

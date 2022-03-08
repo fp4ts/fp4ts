@@ -3,8 +3,19 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Status } from '@fp4ts/http-core';
 import fc, { Arbitrary } from 'fast-check';
+import { Byte, Char, snd } from '@fp4ts/core';
+import {
+  Status,
+  QValue,
+  MediaType,
+  MediaRange,
+  Accept,
+  MediaRangeAndQValue,
+  ContentType,
+} from '@fp4ts/http-core';
+import { Map, Ord } from '@fp4ts/cats';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 export * from '@fp4ts/stream-test-kit/lib/arbitraries';
 
@@ -13,3 +24,96 @@ export const fp4tsValidStatusCode = (): Arbitrary<number> =>
 
 export const fp4tsStatus = (): Arbitrary<Status> =>
   fp4tsValidStatusCode().map(code => Status.unsafeFromCode(code));
+
+const arbChar = fc
+  .integer({ min: 0x00, max: 0x07f })
+  .map(x => Char.fromByte(x as Byte));
+const ctlChar = [
+  Char.fromByte(0x07f as Byte),
+  ...[...new Array(0x1f).keys()].map(x => Char.fromByte(x as Byte)),
+];
+const arbCtlChar = fc.constantFrom(...ctlChar);
+
+const lws = [' ', '\t'];
+
+const arbCrLf = fc.constant('\r\n');
+
+const arbRightLws = fc
+  .array(fc.constantFrom(...lws), { minLength: 1 })
+  .map(xs => xs.join(''));
+const arbLws = fc.oneof(
+  fc.array(fc.oneof(arbCrLf, arbRightLws)).map(x => x.join('')),
+  arbRightLws,
+);
+
+const octets = [...new Array(0xff).keys()].map(x => Char.fromByte(x as Byte));
+const arbOctet = fc.constantFrom(...octets);
+
+const allowedText = octets.filter(x => !ctlChar.includes(x));
+
+const arbText = fc.oneof(
+  fc
+    .array(fc.constantFrom(...allowedText), { minLength: 1 })
+    .map(x => x.join('')),
+  arbLws,
+);
+
+const allowedQDText = allowedText.filter(c => c !== '"' && c !== '\\');
+const arbQDText = fc
+  .array(fc.constantFrom(allowedQDText), { minLength: 1 })
+  .map(xs => xs.join(''));
+// prettier-ignore
+const tchars = [
+  '!', '#', '$', '%', '&', "'", '*', '+', '-', '.', '^', '_', '`', '|', '~',
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+];
+const arbTchar = fc.constantFrom(...tchars);
+const arbToken = fc.array(arbTchar, { minLength: 1 }).map(xs => xs.join(''));
+
+const vToken = [...new Array(0x07e - 0x021 + 1).keys()].map(x =>
+  Char.fromByte((x + 0x21) as Byte),
+);
+const arbVToken = fc.constantFrom(...vToken);
+const arbFieldVchar = arbVToken;
+
+export const fp4tsQValue = (): Arbitrary<QValue> =>
+  fc
+    .oneof(fc.constantFrom(0, 1000), fc.integer({ min: 0, max: 1000 }))
+    .map(xs => QValue.fromThousands(xs).get);
+
+const allowedQuotedText = allowedText.map(c =>
+  c === '"' ? ('\\"' as Char) : c === '\\' ? c === ('\\\\' as Char) : c,
+);
+const arbQuotedText = fc
+  .array(fc.constantFrom(allowedQuotedText), { minLength: 1 })
+  .map(s => `"${s.join('')}"`);
+
+const arbUnquotedText = arbQDText;
+const arbMediaRangeExtension = fc.tuple(arbToken, fc.oneof(arbQDText, arbText));
+
+const arbMediaRangeExtensions: Arbitrary<Map<string, string>> = fc
+  .array(arbMediaRangeExtension)
+  .map(xs => Map.fromArray(Ord.primitive as Ord<string>)(xs));
+
+export const fp4tsMediaType = (): Arbitrary<MediaType> =>
+  fc.constantFrom(...MediaType.all.toArray.map(snd));
+
+export const fp4tsMediaRange = (): Arbitrary<MediaRange> =>
+  fc
+    .tuple(
+      arbToken.map(xs => xs.toLowerCase()),
+      arbMediaRangeExtensions,
+    )
+    .map(([type, extensions]) => new MediaRange(type, extensions));
+
+const arbMediaRangeAndQValue = fc
+  .tuple(fp4tsMediaRange(), fp4tsQValue())
+  .map(([mr, qv]) => new MediaRangeAndQValue(mr, qv));
+
+export const fp4tsAcceptHeader = (): Arbitrary<Accept> =>
+  A.fp4tsNel(arbMediaRangeAndQValue).map(xs => new Accept(xs));
+
+export const fp4tsContentTypeHeader = (): Arbitrary<ContentType> =>
+  fp4tsMediaType().map(mt => new ContentType(mt));
