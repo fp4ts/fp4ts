@@ -14,6 +14,11 @@ export class ContentType {
     return ContentType.Select.toRaw(this);
   }
 
+  public toString(): string {
+    const H = ContentType.Header;
+    return `${H.headerName}: ${H.value(this)}`;
+  }
+
   public static readonly Header: Header<ContentType, 'single'> = {
     headerName: 'Content-Type',
     value(a: ContentType): string {
