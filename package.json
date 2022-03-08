@@ -8,6 +8,8 @@
     "./packages/effect",
     "./packages/http",
     "./packages/http/*",
+    "./packages/optics",
+    "./packages/optics/*",
     "./packages/parse",
     "./packages/parse/*",
     "./packages/schema",

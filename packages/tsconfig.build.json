@@ -5,6 +5,7 @@
     { "path": "./core/tsconfig.build.json" },
     { "path": "./effect/tsconfig.build.json" },
     { "path": "./http/tsconfig.build.json" },
+    { "path": "./optics/tsconfig.build.json" },
     { "path": "./parse/tsconfig.build.json" },
     { "path": "./schema/tsconfig.build.json" },
     { "path": "./stream/tsconfig.build.json" },
