@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
-    "@fp4ts/core": "*"
+    "@fp4ts/core": "*",
+    "@fp4ts/parse-kernel": "*"
   },
   "devDependencies": {
     "typescript": "4.6.2"
