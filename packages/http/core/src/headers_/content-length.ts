@@ -22,6 +22,11 @@ export class ContentLength {
     return ContentLength.Select.toRaw(this);
   }
 
+  public toString(): string {
+    const H = ContentLength.Header;
+    return `${H.headerName}: ${H.value(this)}`;
+  }
+
   public static readonly zero = new ContentLength(0);
   public static fromNumber(n: number): Option<ContentLength> {
     return n >= 0 ? Some(new ContentLength(n)) : None;

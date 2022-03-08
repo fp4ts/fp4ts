@@ -11,10 +11,19 @@ import {
   MediaType,
   MediaRange,
   Accept,
+  AccessControlAllowMethod,
   MediaRangeAndQValue,
   ContentType,
+  Method,
+  Challenge,
+  AuthScheme,
+  Token,
+  AuthParams,
+  BasicCredentials,
+  Credentials,
+  Authorization,
 } from '@fp4ts/http-core';
-import { Map, Ord } from '@fp4ts/cats';
+import { List, Map, Ord } from '@fp4ts/cats';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 export * from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -24,6 +33,9 @@ export const fp4tsValidStatusCode = (): Arbitrary<number> =>
 
 export const fp4tsStatus = (): Arbitrary<Status> =>
   fp4tsValidStatusCode().map(code => Status.unsafeFromCode(code));
+
+export const fp4tsMethod = (): Arbitrary<Method> =>
+  fc.constantFrom(...Method.all);
 
 const arbChar = fc
   .integer({ min: 0x00, max: 0x07f })
@@ -60,7 +72,7 @@ const arbText = fc.oneof(
 
 const allowedQDText = allowedText.filter(c => c !== '"' && c !== '\\');
 const arbQDText = fc
-  .array(fc.constantFrom(allowedQDText), { minLength: 1 })
+  .array(fc.constantFrom(...allowedQDText), { minLength: 1 })
   .map(xs => xs.join(''));
 // prettier-ignore
 const tchars = [
@@ -87,7 +99,7 @@ const allowedQuotedText = allowedText.map(c =>
   c === '"' ? ('\\"' as Char) : c === '\\' ? c === ('\\\\' as Char) : c,
 );
 const arbQuotedText = fc
-  .array(fc.constantFrom(allowedQuotedText), { minLength: 1 })
+  .array(fc.constantFrom(...allowedQuotedText), { minLength: 1 })
   .map(s => `"${s.join('')}"`);
 
 const arbUnquotedText = arbQDText;
@@ -114,6 +126,62 @@ const arbMediaRangeAndQValue = fc
 
 export const fp4tsAcceptHeader = (): Arbitrary<Accept> =>
   A.fp4tsNel(arbMediaRangeAndQValue).map(xs => new Accept(xs));
+
+export const fp4tsAccessControlAllowMethodHeader =
+  (): Arbitrary<AccessControlAllowMethod> =>
+    fp4tsMethod().map(m => new AccessControlAllowMethod(m));
+
+const arbAuthScheme: Arbitrary<AuthScheme> = fc.constantFrom(
+  AuthScheme.Basic,
+  AuthScheme.Bearer,
+  AuthScheme.Digest,
+  AuthScheme.OAuth,
+);
+
+// const arbT68Char: Arbitrary<Char> = fc
+//   .char()
+//   .filter(c => /\W-\._+\//.test(c)) as Arbitrary<Char>;
+// const arbAuthToken: Arbitrary<Token> = fc
+//   .tuple(arbAuthScheme, arbT68Char)
+//   .map(([scheme, tok]) => new Token(scheme, tok));
+// const arbAuthParam: Arbitrary<[string, string]> = fc.tuple(
+//   arbToken,
+//   fc.oneof(arbQDText, arbQuotedText),
+// );
+// const arbAuthParams_: Arbitrary<List<[string, string]>> = fc
+//   .array(arbAuthParam, { minLength: 1 })
+//   .map(xs => List.fromArray(xs));
+
+// const arbAuthParams: Arbitrary<AuthParams> = fc
+//   .tuple(arbAuthScheme, arbAuthParams_)
+//   .map(([scheme, params]) => new AuthParams(scheme, params));
+
+// export const fp4tsCredentials = (): Arbitrary<Credentials> =>
+//   fc.oneof(arbAuthToken, arbAuthParams);
+
+// export const fp4tsAuthorizationHeader = (): Arbitrary<Authorization> =>
+//   fp4tsCredentials().map(creds => new Authorization(creds));
+
+export const fp4tsBasicCredentials = (): Arbitrary<BasicCredentials> =>
+  fc
+    .tuple(fc.unicodeString(), fc.unicodeString())
+    .map(([username, password]) => new BasicCredentials(username, password));
+
+// export const fp4tsCredentials = (): Arbitrary<Credentials> =>
+//   fc.oneof(arbAuthParams, arbBasicCredentials);
+
+const arbRealm: Arbitrary<string> = arbToken;
+const arbChallengeParam: Arbitrary<[string, string]> = fc
+  .tuple(arbToken, fc.oneof(arbQDText, arbText))
+  .filter(x => x[0] !== 'realm');
+const arbChallengeParams: Arbitrary<Map<string, string>> = fc
+  .array(arbChallengeParam)
+  .map(xs => Map.fromArray(Ord.primitive as Ord<string>)(xs));
+
+export const fp4tsChallenge = (): Arbitrary<Challenge> =>
+  fc
+    .tuple(arbAuthScheme, arbRealm, arbChallengeParams)
+    .map(([scheme, realm, params]) => new Challenge(scheme, realm, params));
 
 export const fp4tsContentTypeHeader = (): Arbitrary<ContentType> =>
   fp4tsMediaType().map(mt => new ContentType(mt));

@@ -28,6 +28,12 @@ export class AuthParams {
     public readonly authScheme: AuthScheme,
     public readonly params: List<[string, string]>,
   ) {}
+
+  public toString(): string {
+    return `${this.authScheme} ${this.params.toArray
+      .map(([x, y]) => `${x}=${y}`)
+      .join(',')}`;
+  }
 }
 
 export class BasicCredentials {

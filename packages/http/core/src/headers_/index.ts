@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './accept';
+export * from './access-control-allow-method';
 export * from './authorization';
 export * from './content-length';
 export * from './content-type';

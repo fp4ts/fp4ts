@@ -16,6 +16,11 @@ export class Authorization {
     return Authorization.Select.toRaw(this);
   }
 
+  public toString(): string {
+    const H = Authorization.Header;
+    return `${H.headerName}: ${H.value(this)}`;
+  }
+
   public static readonly Header: Header<Authorization, 'single'> = {
     headerName: 'Authorization',
     value(a: Authorization): string {
@@ -28,6 +33,7 @@ export class Authorization {
       )(s);
     },
   };
+
   public static readonly Select: SelectHeader<IdentityF, Authorization> =
     new SingleSelectHeader(Authorization.Header);
 }

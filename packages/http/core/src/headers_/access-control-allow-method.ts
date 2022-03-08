@@ -14,6 +14,11 @@ export class AccessControlAllowMethod {
     return AccessControlAllowMethod.Select.toRaw(this);
   }
 
+  public toString(): string {
+    const H = AccessControlAllowMethod.Header;
+    return `${H.headerName}: ${H.value(this)}`;
+  }
+
   public static readonly Header: Header<AccessControlAllowMethod, 'single'> = {
     headerName: 'Access-Control-Request-Method',
     value: h => h.method.methodName,

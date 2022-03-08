@@ -63,7 +63,7 @@ export class Method {
     return this.fromString(s).get;
   }
 
-  private static readonly all: Method[] = [
+  public static readonly all: Method[] = [
     this.ACL,
     this['BASELINE-CONTROL'],
     this.BIND,
