@@ -156,6 +156,7 @@ const mediaRangeParser = <A>(
   return text
     .string('*/*')
     .as(['*', '*'] as [string, string])
+    .backtrack()
     .orElse(() =>
       Rfc7230.token['<*'](text.char('/' as Char)).product(
         anyStr1.as('*').orElse(() => Rfc7230.token),

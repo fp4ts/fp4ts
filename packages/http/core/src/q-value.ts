@@ -16,7 +16,9 @@ export const QValue = Object.freeze({
 
   toThousands: QValueCotr.unapply,
 
-  toString: (q: QValue): string => `q=${0.001 * QValueCotr.unapply(q)}`,
+  toString: (q: QValue): string =>
+    // toFixed used to ensure correct rounding
+    `;q=${(0.001 * QValueCotr.unapply(q)).toFixed(3)}`,
 
   fromThousands: (x: number): ParseResult<QValue> =>
     mkQValue(x, `${0.001 * x}`),
@@ -47,7 +49,9 @@ const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
     .collect(s => QValue.fromString(s).toOption);
 
   const qvalue = ch('0' as Char)
-    ['*>'](eof.as(QValue.zero).orElse(() => decQValue))
+    ['*>'](
+      eof.as(QValue.zero).orElse(() => text.char('.' as Char)['*>'](decQValue)),
+    )
     .orElse(() =>
       ch('1' as Char)
         ['*>'](

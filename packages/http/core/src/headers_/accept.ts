@@ -54,6 +54,10 @@ export class Accept {
     return this.values.any(mr => mr.mediaRange.satisfiedBy(mt));
   }
 
+  public toString(): string {
+    return `${Accept.Header.headerName}: ${Accept.Header.value(this)}`;
+  }
+
   public static readonly Header: Header<Accept, 'recurring'> = {
     headerName: 'Accept',
     value(a: Accept): string {
@@ -85,7 +89,7 @@ export class MediaRangeAndQValue {
   ) {}
 
   public toString(): string {
-    return `${this.mediaRange};${QValue.toString(this.qValue)}`;
+    return `${this.mediaRange}${QValue.toString(this.qValue)}`;
   }
 }
 
