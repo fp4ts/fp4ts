@@ -79,4 +79,4 @@ export class PPrism<S, T, A, B> {
   }
 }
 
-export type Prism<S, A> = PPrism<S, S, A, A>;
+export class Prism<S, A> extends PPrism<S, S, A, A> {}

@@ -8,6 +8,7 @@ import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
 import { PSetter } from './setter';
 import { PTraversal } from './traversal';
 import { Fold } from './fold';
+import { At } from './function';
 
 export class POptional<S, T, A, B> {
   public static filter<A, B extends A>(f: (a: A) => a is B): Optional<A, B>;
@@ -84,6 +85,25 @@ export class POptional<S, T, A, B> {
   public asTraversal(): PTraversal<S, T, A, B> {
     return new PTraversal(this.modifyA.bind(this));
   }
+
+  // -- Additional Syntax
+
+  public filter<B extends A>(
+    this: Optional<S, A>,
+    f: (a: A) => a is B,
+  ): Optional<S, B>;
+  public filter(this: Optional<S, A>, f: (a: A) => boolean): Optional<S, A>;
+  public filter(this: Optional<S, A>, f: (a: A) => boolean): Optional<S, A> {
+    return this.andThen(Optional.filter(f));
+  }
+
+  public at<I, A1>(
+    this: Optional<S, A>,
+    i: I,
+    at: At<A, I, A1>,
+  ): Optional<S, A1> {
+    return this.andThen(at.at(i).asOptional());
+  }
 }
 
-export type Optional<S, A> = POptional<S, S, A, A>;
+export class Optional<S, A> extends POptional<S, S, A, A> {}

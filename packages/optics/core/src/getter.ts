@@ -5,7 +5,10 @@
 
 import { Either } from '@fp4ts/cats';
 import { compose } from '@fp4ts/core';
+
 import { Fold } from './fold';
+import { Optional } from './optional';
+import { At } from './function';
 
 export class Getter<S, A> {
   public constructor(public readonly get: (s: S) => A) {}
@@ -22,6 +25,8 @@ export class Getter<S, A> {
     return new Getter(s => [this.get(s), that.get(s)]);
   }
 
+  // -- Composition
+
   public andThen<B>(that: Getter<A, B>): Getter<S, B> {
     return new Getter(s => that.get(this.get(s)));
   }
@@ -30,5 +35,17 @@ export class Getter<S, A> {
 
   public asFold(): Fold<S, A> {
     return new Fold(_M => f => compose(f, this.get));
+  }
+
+  // -- Additional Syntax
+
+  public filter<B extends A>(f: (a: A) => a is B): Fold<S, B>;
+  public filter(f: (a: A) => boolean): Fold<S, A>;
+  public filter(f: (a: A) => boolean): Fold<S, A> {
+    return this.asFold().andThen(Optional.filter(f).asFold());
+  }
+
+  public at<I, A1>(i: I, at: At<A, I, A1>): Getter<S, A1> {
+    return this.andThen(at.at(i).asGetter());
   }
 }

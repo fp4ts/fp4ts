@@ -3,12 +3,20 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Monoid, None, Option, Some } from '@fp4ts/cats';
+import { Kind } from '@fp4ts/core';
+import { Foldable, List, Monoid, None, Option, Some } from '@fp4ts/cats';
 
 import { Getter } from './getter';
+import { Optional } from './optional';
 import * as Monoids from './internal/monoids';
 
 export class Fold<S, A> {
+  public static fromFoldable<F>(
+    F: Foldable<F>,
+  ): <A>() => Fold<Kind<F, [A]>, A> {
+    return <A>() => new Fold<Kind<F, [A]>, A>(F.foldMap);
+  }
+
   public constructor(
     public readonly foldMap: <M>(
       M: Monoid<M>,
@@ -65,5 +73,13 @@ export class Fold<S, A> {
         (f: (b: B) => M) =>
           this.foldMap(M)(that.foldMap(M)(f)),
     );
+  }
+
+  // -- Additional Syntax
+
+  public filter<B extends A>(f: (a: A) => a is B): Fold<S, B>;
+  public filter(f: (a: A) => boolean): Fold<S, A>;
+  public filter(f: (a: A) => boolean): Fold<S, A> {
+    return this.andThen(Optional.filter(f).asFold());
   }
 }

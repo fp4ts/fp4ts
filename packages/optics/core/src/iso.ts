@@ -65,4 +65,4 @@ export class PIso<S, T, A, B> {
   }
 }
 
-export type Iso<S, A> = PIso<S, S, A, A>;
+export class Iso<S, A> extends PIso<S, S, A, A> {}
