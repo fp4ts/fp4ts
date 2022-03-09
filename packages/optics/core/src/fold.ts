@@ -5,6 +5,7 @@
 
 import { List, Monoid, None, Option, Some } from '@fp4ts/cats';
 
+import { Getter } from './getter';
 import * as Monoids from './internal/monoids';
 
 export class Fold<S, A> {
@@ -53,6 +54,10 @@ export class Fold<S, A> {
   public nonEmpty: (s: S) => boolean = this.foldMap(Monoid.conjunction)(
     () => false,
   );
+
+  public to<C>(f: (a: A) => C): Fold<S, C> {
+    return this.andThen(new Getter(f).asFold());
+  }
 
   public andThen<B>(that: Fold<A, B>): Fold<S, B> {
     return new Fold(

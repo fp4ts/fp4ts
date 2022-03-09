@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either } from '@fp4ts/cats';
+import { compose } from '@fp4ts/core';
 import { Fold } from './fold';
 
 export class Getter<S, A> {
@@ -28,6 +29,6 @@ export class Getter<S, A> {
   // -- Conversion functions
 
   public asFold(): Fold<S, A> {
-    return new Fold(_M => f => s => f(this.get(s)));
+    return new Fold(_M => f => compose(f, this.get));
   }
 }
