@@ -9,14 +9,15 @@ import { PSetter } from './setter';
 import { PTraversal } from './traversal';
 import { Fold } from './fold';
 import { At } from './function';
+import { isOptional } from './internal/lens-hierarchy';
 
 export class POptional<S, T, A, B> {
   public static filter<A, B extends A>(f: (a: A) => a is B): Optional<A, B>;
   public static filter<A>(f: (a: A) => boolean): Optional<A, A>;
   public static filter<A>(f: (a: A) => boolean): Optional<A, A> {
     return new POptional(
-      value => (f(value) ? Left(value) : Right(value)),
-      b => current => f(b) ? b : current,
+      value => (f(value) ? Right(value) : Left(value)),
+      newValue => current => f(newValue) ? newValue : current,
     );
   }
 
@@ -62,14 +63,24 @@ export class POptional<S, T, A, B> {
     );
   }
 
-  public andThen<C, D>(that: POptional<A, B, C, D>): POptional<S, T, C, D> {
-    return new POptional(
-      s =>
-        this.getOrModify(s).flatMap(a =>
-          that.getOrModify(a).leftMap(x => this.replace(x)(s)),
-        ),
-      d => this.modify(that.replace(d)),
-    );
+  // -- Composition
+
+  public andThen<C, D>(that: POptional<A, B, C, D>): POptional<S, T, C, D>;
+  public andThen<C, D>(that: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
+  public andThen<C, D>(that: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
+  public andThen<C, D>(that: Fold<A, C>): Fold<S, C>;
+  public andThen<C, D>(
+    that: PSetter<A, B, C, D> | Fold<A, C>,
+  ): PSetter<S, T, C, D> | Fold<S, C> {
+    return isOptional(that)
+      ? new POptional(
+          s =>
+            this.getOrModify(s).flatMap(a =>
+              that.getOrModify(a).leftMap(x => this.replace(x)(s)),
+            ),
+          d => this.modify(that.replace(d)),
+        )
+      : this.asTraversal().andThen(that as any);
   }
 
   // -- Conversions
@@ -102,8 +113,12 @@ export class POptional<S, T, A, B> {
     i: I,
     at: At<A, I, A1>,
   ): Optional<S, A1> {
-    return this.andThen(at.at(i).asOptional());
+    return this.andThen(at.at(i));
   }
+}
+
+export interface POptional<S, T, A, B> extends PTraversal<S, T, A, B> {
+  at<I, A1>(this: Optional<S, A>, i: I, at: At<A, I, A1>): Optional<S, A1>;
 }
 
 export class Optional<S, A> extends POptional<S, S, A, A> {}

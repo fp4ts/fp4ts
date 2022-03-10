@@ -3,14 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Applicative, Either, Option } from '@fp4ts/cats';
 import { compose, Kind } from '@fp4ts/core';
-import { Fold } from './fold';
+import { Applicative, Either, Option } from '@fp4ts/cats';
 
+import { Fold } from './fold';
 import { Getter } from './getter';
 import { POptional } from './optional';
 import { PSetter } from './setter';
 import { PTraversal } from './traversal';
+import { isPrism } from './internal/lens-hierarchy';
 
 export class PPrism<S, T, A, B> {
   public constructor(
@@ -50,14 +51,23 @@ export class PPrism<S, T, A, B> {
 
   // -- Composition
 
-  public andThen<C, D>(that: PPrism<A, B, C, D>): PPrism<S, T, C, D> {
-    return new PPrism(
-      s =>
-        this.getOrModify(s).flatMap(a =>
-          that.getOrModify(a).leftMap(x => this.replace(x)(s)),
-        ),
-      compose(this.reverseGet, that.reverseGet),
-    );
+  public andThen<C, D>(that: PPrism<A, B, C, D>): PPrism<S, T, C, D>;
+  public andThen<C, D>(that: POptional<A, B, C, D>): POptional<S, T, C, D>;
+  public andThen<C, D>(that: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
+  public andThen<C, D>(that: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
+  public andThen<C, D>(that: Fold<A, C>): Fold<S, C>;
+  public andThen<C, D>(
+    that: Fold<A, C> | PSetter<A, B, C, D>,
+  ): Fold<S, C> | PSetter<S, T, C, D> {
+    return isPrism(that)
+      ? new PPrism(
+          s =>
+            this.getOrModify(s).flatMap(a =>
+              that.getOrModify(a).leftMap(x => this.replace(x)(s)),
+            ),
+          compose(this.reverseGet, that.reverseGet),
+        )
+      : this.asOptional().andThen(that as any);
   }
 
   // -- Conversions
@@ -75,8 +85,9 @@ export class PPrism<S, T, A, B> {
   }
 
   public asOptional(): POptional<S, T, A, B> {
-    return new POptional(this.getOrModify, b => () => this.reverseGet(b));
+    return new POptional(this.getOrModify, this.replace.bind(this));
   }
 }
 
+export interface PPrism<S, T, A, B> extends POptional<S, T, A, B> {}
 export class Prism<S, A> extends PPrism<S, S, A, A> {}
