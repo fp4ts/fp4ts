@@ -6,7 +6,8 @@
 import fc from 'fast-check';
 import { Eq, List, Map, None, Ord, Some } from '@fp4ts/cats';
 import { At, Iso, PSetter, Setter } from '@fp4ts/optics-core';
-import { forAll } from '@fp4ts/cats-test-kit';
+import { SetterSuite } from '@fp4ts/optics-laws';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Setter', () => {
@@ -72,5 +73,18 @@ describe('Setter', () => {
       Map([1, 'one'], [0, 'two']),
     );
     expect(mapSetter.at(1, at).replace(None)(map)).toEqual(Map.empty);
+  });
+
+  describe('Laws', () => {
+    const setterTests = SetterSuite(eachLi);
+    checkAll(
+      'Setter<List<number>, number>',
+      setterTests.setter(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
   });
 });

@@ -6,7 +6,8 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, List, Map, Monoid, None, Option, Ord, Some } from '@fp4ts/cats';
 import { At, Iso, Lens, Traversal } from '@fp4ts/optics-core';
-import { forAll } from '@fp4ts/cats-test-kit';
+import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Traversal', () => {
@@ -27,23 +28,23 @@ describe('Traversal', () => {
     Traversal.fromTraversable(List.Traversable)<A>();
   const eachLi = eachL<number>();
 
-  // const locationArb: Arbitrary<Location> = fc
-  //   .tuple(fc.integer(), fc.integer(), fc.string())
-  //   .map(([latitude, longitude, name]) => ({ latitude, longitude, name }));
+  const locationArb: Arbitrary<Location> = fc
+    .tuple(fc.integer(), fc.integer(), fc.string())
+    .map(([latitude, longitude, name]) => ({ latitude, longitude, name }));
 
-  // const locationEq: Eq<Location> = Eq.struct({
-  //   latitude: Eq.fromUniversalEquals<number>(),
-  //   longitude: Eq.fromUniversalEquals<number>(),
-  //   name: Eq.fromUniversalEquals<string>(),
-  // });
+  const locationEq: Eq<Location> = Eq.struct({
+    latitude: Eq.fromUniversalEquals<number>(),
+    longitude: Eq.fromUniversalEquals<number>(),
+    name: Eq.fromUniversalEquals<string>(),
+  });
 
   it('should compose', () => {
     expect(
       eachL<Location>()
         .andThen(coordinates)
         .modify(({ longitude, latitude }) => ({
-          longitude: longitude + 1,
           latitude: latitude + 1,
+          longitude: longitude + 1,
         }))(List(Location(1, 2, 'a'), Location(3, 4, 'b'))),
     ).toEqual(List(Location(2, 3, 'a'), Location(4, 5, 'b')));
   });
@@ -177,5 +178,47 @@ describe('Traversal', () => {
       Map([0, 'two'], [1, 'one']),
     );
     expect(mapTraversal.at(1, at).replace(None)(map)).toEqual(Map.empty);
+  });
+
+  describe('Laws', () => {
+    checkAll(
+      'Traversal<List<number>, number>',
+      TraversalSuite(eachLi).traversal(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'Traversal<List<number>, number> as Setter',
+      SetterSuite(eachLi.asSetter()).setter(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'Traversal<Location, { longitude: number, latitude: number  }>',
+      TraversalSuite(coordinates).traversal(
+        locationArb,
+        fc.record({ latitude: fc.integer(), longitude: fc.integer() }),
+        locationEq,
+        Eq.struct({ latitude: Eq.primitive, longitude: Eq.primitive }),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Location, { longitude: number, latitude: number  }> as Setter',
+      SetterSuite(coordinates.asSetter()).setter(
+        locationArb,
+        fc.record({ latitude: fc.integer(), longitude: fc.integer() }),
+        locationEq,
+        Eq.struct({ latitude: Eq.primitive, longitude: Eq.primitive }),
+      ),
+    );
   });
 });

@@ -1,7 +1,13 @@
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import fc from 'fast-check';
 import { Eq, List, Map, Monoid, None, Option, Ord, Some } from '@fp4ts/cats';
 import { At, Iso, Optional } from '@fp4ts/optics-core';
-import { forAll } from '@fp4ts/cats-test-kit';
+import { OptionalSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Optional', () => {
@@ -198,5 +204,37 @@ describe('Optional', () => {
       Map([0, 'two'], [1, 'one']),
     );
     expect(mapOptional.at(1, at).replace(None)(map)).toEqual(Map.empty);
+  });
+
+  describe('Laws', () => {
+    checkAll(
+      'Optional<List<number>, number>',
+      OptionalSuite(headOptionalI).optional(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'optional.asTraverse',
+      TraversalSuite(headOptionalI.asTraversal()).traversal(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'optional.asSetter',
+      SetterSuite(headOptionalI.asSetter()).setter(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.primitive),
+        Eq.primitive,
+      ),
+    );
   });
 });

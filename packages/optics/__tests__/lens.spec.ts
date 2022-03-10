@@ -1,8 +1,20 @@
-import fc, { Arbitrary } from 'fast-check';
-import { List, Map, Monoid, None, Ord, Some } from '@fp4ts/cats';
+// Copyright (c) 2021-2022 Peter Matta
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
+import fc from 'fast-check';
+import { Eq, List, Map, Monoid, None, Ord, Some } from '@fp4ts/cats';
 import { At, Iso, Lens } from '@fp4ts/optics-core';
+import {
+  LensSuite,
+  OptionalSuite,
+  SetterSuite,
+  TraversalSuite,
+} from '@fp4ts/optics-laws';
 import { Schema, Schemable, TypeOf } from '@fp4ts/schema';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
+import { checkAll } from '@fp4ts/cats-test-kit';
 
 describe('Lens', () => {
   const _Point = Schema.struct({ x: Schema.number, y: Schema.number });
@@ -14,7 +26,7 @@ describe('Lens', () => {
   const _Example = Schema.struct({ s: Schema.string, p: _Point });
   type Example = TypeOf<typeof _Example>;
   const Example = (s: string, p: Point): Example => ({ s, p });
-  const arExample = _Example.interpret(ArbitraryInstances.Schemable);
+  const arbExample = _Example.interpret(ArbitraryInstances.Schemable);
   const eqExample = _Example.interpret(Schemable.Eq);
 
   const s = Lens.fromProp<Example>()('s');
@@ -111,5 +123,43 @@ describe('Lens', () => {
       Map([0, 'two'], [1, 'one']),
     );
     expect(mapLens.at(1, at).replace(None)(map)).toEqual(Map.empty);
+  });
+
+  describe('Laws', () => {
+    checkAll(
+      'Lens<Example, string>',
+      LensSuite(s).lens(arbExample, fc.string(), eqExample, Eq.primitive),
+    );
+    checkAll(
+      'Lens<Example, Point> . Lens<Point, number>',
+      LensSuite(p.andThen(x)).lens(
+        arbExample,
+        fc.integer(),
+        eqExample,
+        Eq.primitive,
+      ),
+    );
+    checkAll(
+      'lens.asOptional',
+      OptionalSuite(s).optional(
+        arbExample,
+        fc.string(),
+        eqExample,
+        Eq.primitive,
+      ),
+    );
+    checkAll(
+      'lens.asTraversal',
+      TraversalSuite(s).traversal(
+        arbExample,
+        fc.string(),
+        eqExample,
+        Eq.primitive,
+      ),
+    );
+    checkAll(
+      'lens.asSetter',
+      SetterSuite(s).setter(arbExample, fc.string(), eqExample, Eq.primitive),
+    );
   });
 });
