@@ -32,28 +32,11 @@ export class PLens<S, T, A, B> {
       );
   }
 
-  public static fromProps<S>(): <KS extends (keyof S)[]>(
-    ...ks: KS
-  ) => Lens<S, { [k in KS[number]]: S[k] }> {
-    return (...ks) =>
+  public static fromProps<S>(): FromProps<S> {
+    return (...ks: any[]) =>
       new PLens<any, any, any, any>(
-        s => {
-          const a = s;
-          const r: any = {};
-          for (const k of ks) {
-            r[k] = a[k];
-          }
-          return r as any;
-        },
-        a => s => {
-          const oa = s;
-          for (const k of ks) {
-            if (a[k] !== oa[k]) {
-              return Object.assign({}, oa, a);
-            }
-          }
-          return s;
-        },
+        a => Object.fromEntries(ks.map(k => [k, a[k]])),
+        a => s => ({ ...s, ...a }),
       ) as any;
   }
 
@@ -151,6 +134,145 @@ export interface PLens<S, T, A, B>
   extends POptional<S, T, A, B>,
     Getter<S, A> {}
 export class Lens<S, A> extends PLens<S, S, A, A> {}
+
+export interface FromProps<S> {
+  (...path: []): Lens<S, S>;
+  <K1 extends keyof S>(...path: [K1]): Lens<S, { [k in K1]: S[k] }>;
+  <K1 extends keyof S, K2 extends keyof Omit<S, K1>>(...path: [K1, K2]): Lens<
+    S,
+    { [k in K1 | K2]: S[k] }
+  >;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+  >(
+    ...props: [K1, K2, K3]
+  ): Lens<S, { [k in K1 | K2 | K3]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+  >(
+    ...props: [K1, K2, K3, K4]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+  >(
+    ...props: [K1, K2, K3, K4, K5]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5]: S[k] }>;
+
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6]: S[k] }>;
+
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7, K8]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
+    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
+    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
+    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10]
+  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10]: S[k] }>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
+    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
+    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
+    K11 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10>,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11]
+  ): Lens<
+    S,
+    {
+      [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11]: S[k];
+    }
+  >;
+  <
+    K1 extends keyof S,
+    K2 extends keyof Omit<S, K1>,
+    K3 extends keyof Omit<S, K1 | K2>,
+    K4 extends keyof Omit<S, K1 | K2 | K3>,
+    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
+    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
+    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
+    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
+    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
+    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
+    K11 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10>,
+    K12 extends keyof Omit<
+      S,
+      K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11
+    >,
+  >(
+    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12]
+  ): Lens<
+    S,
+    {
+      [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11 | K12]: S[k];
+    }
+  >;
+}
 
 export interface LensPath<S> {
   <
