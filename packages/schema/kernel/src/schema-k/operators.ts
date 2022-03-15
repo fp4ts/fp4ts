@@ -3,20 +3,21 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ArrayF, FunctionK, OptionF } from '@fp4ts/cats';
+import { ArrayF, FunctionK } from '@fp4ts/cats';
+import { NullableK } from '../kinds';
 import {
   ArraySchemaK,
   ComposeSchemaK,
   ImapSchemaK,
-  OptionalSchemaK,
+  NullableSchemaK,
   SchemaK,
 } from './algebra';
 
 export const array = <F>(sf: SchemaK<F>): SchemaK<[ArrayF, F]> =>
   new ArraySchemaK(sf);
 
-export const optional = <F>(sf: SchemaK<F>): SchemaK<[OptionF, F]> =>
-  new OptionalSchemaK(sf);
+export const nullable = <F>(sf: SchemaK<F>): SchemaK<[NullableK, F]> =>
+  new NullableSchemaK(sf);
 
 export const compose_ = <F, G>(
   sf: SchemaK<F>,

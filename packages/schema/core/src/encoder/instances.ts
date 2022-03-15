@@ -8,14 +8,7 @@ import { Category, Compose, Contravariant, Functor } from '@fp4ts/cats';
 import { Schemable } from '@fp4ts/schema-kernel';
 
 import { EncoderF } from './encoder';
-import {
-  andThen_,
-  compose_,
-  contramap_,
-  map_,
-  optional,
-  nullable,
-} from './operators';
+import { andThen_, compose_, contramap_, map_, nullable } from './operators';
 import {
   array,
   defer,
@@ -51,7 +44,6 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [Fix<unknown>, α]>>>
       number: lift(id),
       boolean: lift(id),
       null: lift(id),
-      optional,
       array: array,
       literal: literal,
       nullable: nullable,

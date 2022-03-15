@@ -7,7 +7,6 @@
 import { Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
-  Option,
   Const,
   Eval,
   Foldable,
@@ -16,7 +15,7 @@ import {
   FoldableF,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
-import { ProductK, StructK, SumK } from './kinds';
+import { NullableK, ProductK, StructK, SumK } from './kinds';
 
 export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
   const self: SchemableK<FoldableF> = SchemableK.of({
@@ -28,8 +27,13 @@ export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
     par: Identity.Foldable,
 
     array: f => self.compose_(Array.Foldable(), f),
+    nullable: <F>(F: Foldable<F>) =>
+      SafeFoldable.of<[NullableK, F]>({
+        safeFoldLeft_: (fa, z, f) =>
+          fa === null ? Eval.now(z) : safeFoldLeft(F, fa, z, f),
 
-    optional: f => self.compose_(Option.Foldable, f),
+        foldRight_: (fa, z, f) => (fa === null ? z : F.foldRight_(fa, z, f)),
+      }),
 
     product: productSafeFoldable as SchemableK<FoldableF>['product'],
     sum: sumSafeFoldable as SchemableK<FoldableF>['sum'],
@@ -49,7 +53,7 @@ function isSafeFoldable<F>(F: Foldable<F>): F is SafeFoldable<F> {
   return SafeFoldableTag in F;
 }
 
-function safeFoldLeft<F, A, B>(
+export function safeFoldLeft<F, A, B>(
   F: Foldable<F>,
   fa: Kind<F, [A]>,
   z: B,

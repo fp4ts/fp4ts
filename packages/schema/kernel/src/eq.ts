@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { Array, Eq, EqF, Eval, Option } from '@fp4ts/cats';
+import { Array, Eq, EqF, Eval } from '@fp4ts/cats';
 import { Schemable } from './schemable';
 
 export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
@@ -22,10 +22,6 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
     product: productSafeEq as Schemable<EqF>['product'],
     struct: structSafeEq,
     sum: sumSafeEq,
-    optional: <A>(E: Eq<A>) =>
-      SafeEq.of<Option<A>>({
-        safeEquals: (x, y) => Eval.defer(() => safeEquals(Option.Eq(E), x, y)),
-      }),
     nullable: <A>(E: Eq<A>) =>
       SafeEq.of<A | null>({
         safeEquals: (l, r) => {
@@ -135,7 +131,7 @@ function isSafeEquals<A>(E: Eq<A>): E is SafeEq<A> {
   return SafeEqTag in E;
 }
 
-function safeEquals<A>(E: Eq<A>, x: A, y: A): Eval<boolean> {
+export function safeEquals<A>(E: Eq<A>, x: A, y: A): Eval<boolean> {
   return isSafeEquals(E)
     ? E.safeEquals(x, y)
     : Eval.delay(() => E.equals(x, y));

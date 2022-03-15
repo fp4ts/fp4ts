@@ -21,7 +21,6 @@ import {
 } from './constructors';
 import { GuardF } from './guard';
 import {
-  intersection_,
   maxExclusive_,
   maxLength_,
   max_,
@@ -30,7 +29,6 @@ import {
   min_,
   nonEmpty,
   nullable,
-  optional,
   refine_,
 } from './operators';
 
@@ -48,7 +46,6 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       string,
       number,
       null: nullGuard,
-      optional,
       array,
       struct,
       defer,

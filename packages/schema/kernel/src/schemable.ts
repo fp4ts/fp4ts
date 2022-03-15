@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { EqF, Option } from '@fp4ts/cats';
+import { EqF } from '@fp4ts/cats';
 import { Base, instance, Kind } from '@fp4ts/core';
 import { eqSchemable } from './eq';
 import { Literal } from './literal';
@@ -17,7 +17,6 @@ export interface Schemable<S> extends Base<S> {
   readonly null: Kind<S, [null]>;
 
   array<A>(sa: Kind<S, [A]>): Kind<S, [A[]]>;
-  optional<A>(sa: Kind<S, [A]>): Kind<S, [Option<A>]>;
 
   struct<A extends {}>(xs: { [k in keyof A]: Kind<S, [A[k]]> }): Kind<S, [A]>;
 

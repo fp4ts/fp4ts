@@ -12,11 +12,10 @@ import {
   FoldableF,
   FunctorF,
   IdentityF,
-  OptionF,
   TraversableF,
 } from '@fp4ts/cats';
 import { Literal } from './literal';
-import { ProductK, StructK, SumK } from './kinds';
+import { NullableK, ProductK, StructK, SumK } from './kinds';
 import { functorSchemableK } from './functor';
 import { foldableSchemableK } from './foldable';
 import { eqKSchemableK } from './eq-k';
@@ -34,7 +33,7 @@ export interface SchemableK<S> extends Base<S> {
   readonly par: Kind<S, [IdentityF]>;
 
   array<F>(f: Kind<S, [F]>): Kind<S, [[ArrayF, F]]>;
-  optional<F>(f: Kind<S, [F]>): Kind<S, [[OptionF, F]]>;
+  nullable<F>(f: Kind<S, [F]>): Kind<S, [[NullableK, F]]>;
 
   struct<F extends {}>(xs: { [k in keyof F]: Kind<S, [F[k]]> }): Kind<
     S,

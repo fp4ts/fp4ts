@@ -13,10 +13,9 @@ import {
   Functor,
   FunctorF,
   Identity,
-  Option,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
-import { ProductK, SumK, StructK } from './kinds';
+import { ProductK, SumK, StructK, NullableK } from './kinds';
 
 export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
   const self: SchemableK<FunctorF> = SchemableK.of({
@@ -28,8 +27,11 @@ export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
     par: Identity.Functor,
 
     array: f => self.compose_(Array.Functor(), f),
-
-    optional: f => self.compose_(Option.Functor, f),
+    nullable: <F>(F: Functor<F>) =>
+      SafeFunctor.of<[NullableK, F]>({
+        safeMap_: (fa, f) =>
+          fa === null ? Eval.now(null) : Eval.defer(() => safeMap(F, fa, f)),
+      }),
 
     product: productSafeFunctor as SchemableK<FunctorF>['product'],
     sum: sumSafeFunctor as SchemableK<FunctorF>['sum'],
@@ -42,7 +44,7 @@ export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
   return self;
 });
 
-function safeMap<F, A, B>(
+export function safeMap<F, A, B>(
   F: Functor<F>,
   fa: Kind<F, [A]>,
   f: (a: A) => Eval<B>,

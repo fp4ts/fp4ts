@@ -19,13 +19,13 @@ export abstract class GenericAdt<A> {
   public static schemaK: SchemaK<GenericAdtF> = SchemaK.sum('tag')({
     case: SchemaK.struct({
       tag: SchemaK.literal('case'),
-      value: SchemaK.par.optional,
+      value: SchemaK.par.nullable,
     }),
   }).imap(
-    ({ value }) => new GenericAdtCase(value),
+    ({ value }) => new GenericAdtCase(Option(value)),
     <A>(x: GenericAdt<A>) => ({
       tag: 'case',
-      value: (x as GenericAdtCase<A>).value,
+      value: (x as GenericAdtCase<A>).value.getOrElse(() => null),
     }),
   );
 }

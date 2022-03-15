@@ -17,3 +17,7 @@ export interface ProductK<A extends unknown[]> extends TyK<[unknown]> {
 export interface SumK<A extends {}> extends TyK<[unknown]> {
   [$type]: { [k in keyof A]: Kind<A[k], [TyVar<this, 0>]> }[keyof A];
 }
+
+export interface NullableK extends TyK<[unknown]> {
+  [$type]: TyVar<this, 0> | null;
+}

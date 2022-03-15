@@ -5,7 +5,6 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Kind } from '@fp4ts/core';
-import { Option } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schemable } from '../schemable';
 
@@ -73,15 +72,6 @@ export class ArraySchema<A> extends Schema<A[]> {
 
   protected interpret0<S>(S: Schemable<S>): Kind<S, [A[]]> {
     return S.array(this.sa.interpret(S));
-  }
-}
-export class OptionalSchema<A> extends Schema<Option<A>> {
-  public constructor(private readonly sa: Schema<A>) {
-    super();
-  }
-
-  protected interpret0<S>(S: Schemable<S>): Kind<S, [Option<A>]> {
-    return S.optional(this.sa.interpret(S));
   }
 }
 

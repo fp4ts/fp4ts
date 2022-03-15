@@ -3,14 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { FunctionK, OptionF } from '@fp4ts/cats';
+import { ArrayF, FunctionK } from '@fp4ts/cats';
+import { NullableK } from '../kinds';
 import { SchemaK } from './algebra';
-import { array, compose_, imap_, optional } from './operators';
+import { array, compose_, imap_, nullable } from './operators';
 
 declare module './algebra' {
   interface SchemaK<F> {
-    readonly array: SchemaK<[OptionF, F]>;
-    readonly optional: SchemaK<[OptionF, F]>;
+    readonly array: SchemaK<[ArrayF, F]>;
+    readonly nullable: SchemaK<[NullableK, F]>;
 
     compose<G>(that: SchemaK<G>): SchemaK<[F, G]>;
     imap<G>(f: FunctionK<F, G>, g: FunctionK<G, F>): SchemaK<G>;
@@ -22,9 +23,9 @@ Object.defineProperty(SchemaK.prototype, 'array', {
     return array(this);
   },
 });
-Object.defineProperty(SchemaK.prototype, 'optional', {
+Object.defineProperty(SchemaK.prototype, 'nullable', {
   get<F>(this: SchemaK<F>) {
-    return optional(this);
+    return nullable(this);
   },
 });
 

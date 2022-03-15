@@ -5,18 +5,11 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { $, Kind } from '@fp4ts/core';
-import {
-  ArrayF,
-  ConstF,
-  FunctionK,
-  IdentityF,
-  Option,
-  OptionF,
-} from '@fp4ts/cats';
+import { ArrayF, ConstF, FunctionK, IdentityF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { Schema } from '../schema';
 import { SchemableK } from '../schemable-k';
-import { ProductK, StructK, SumK } from '../kinds';
+import { NullableK, ProductK, StructK, SumK } from '../kinds';
 
 export abstract class SchemaK<F> {
   private readonly cache = new Map<SchemableK<any>, any>();
@@ -123,17 +116,17 @@ export class ArraySchemaK<F> extends SchemaK<[ArrayF, F]> {
   }
 }
 
-export class OptionalSchemaK<F> extends SchemaK<[OptionF, F]> {
+export class NullableSchemaK<F> extends SchemaK<[NullableK, F]> {
   public constructor(private readonly sf: SchemaK<F>) {
     super();
   }
 
-  protected toSchema0<A>(sa: Schema<A>): Schema<Option<Kind<F, [A]>>> {
-    return this.sf.toSchema(sa).optional;
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [A]> | null> {
+    return this.sf.toSchema(sa).nullable;
   }
 
-  protected interpret0<S>(S: SchemableK<S>): Kind<S, [[OptionF, F]]> {
-    return S.optional(this.sf.interpret(S));
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [[NullableK, F]]> {
+    return S.nullable(this.sf.interpret(S));
   }
 }
 

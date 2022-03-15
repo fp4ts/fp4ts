@@ -4,13 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { List } from '@fp4ts/cats';
+import { List, None } from '@fp4ts/cats';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Schema } from '@fp4ts/schema-kernel';
 import { Guard } from '@fp4ts/schema-core';
-import { AndString, GenericAdt, IList, Snoc, Tree } from '../adt-definitions';
+import {
+  AndString,
+  GenericAdt,
+  GenericAdtCase,
+  IList,
+  Snoc,
+  Tree,
+} from '../adt-definitions';
 
-describe('Guard derivation', () => {
+describe.skip('Guard derivation', () => {
   test('test to be stack safe', () => {
     const ixs = IList.fromList(List.range(0, 50_000));
     const sxs = Snoc.fromList(List.range(0, 50_000));
@@ -28,6 +35,14 @@ describe('Guard derivation', () => {
       forAll(arbA, a => G.test(a)),
     );
   }
+
+  test('something', () => {
+    const G = GenericAdt.schemaK
+      .toSchema(Schema.string)
+      .interpret(Guard.Schemable);
+
+    G.test(new GenericAdtCase(None));
+  });
 
   testGuard(
     'IList<number>',

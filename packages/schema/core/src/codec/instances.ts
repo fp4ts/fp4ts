@@ -21,7 +21,7 @@ import {
   struct,
   sum,
 } from './constructors';
-import { imap_, nullable, optional } from './operators';
+import { imap_, nullable } from './operators';
 
 export const codecInvariant: <I, O>() => Invariant<$<CodecF, [I, O]>> = lazyVal(
   () => Invariant.of({ imap_: imap_ }),
@@ -36,11 +36,10 @@ export const codecSchemable: Lazy<Schemable<$<CodecF, [unknown, unknown]>>> =
       string: string,
       null: nullType,
 
-      nullable: nullable,
-      array: array,
-      optional: optional,
+      nullable,
+      array,
 
-      record: record,
+      record,
       product: product as Schemable<$<CodecF, [unknown, unknown]>>['product'],
       struct: struct as Schemable<$<CodecF, [unknown, unknown]>>['struct'],
       sum: sum as Schemable<$<CodecF, [unknown, unknown]>>['sum'],

@@ -12,7 +12,6 @@ import {
   Eval,
   FunctionK,
   Identity,
-  Option,
   Traversable,
   TraversableF,
 } from '@fp4ts/cats';
@@ -21,6 +20,7 @@ import {
   imapSafeFoldable,
   productSafeFoldable,
   SafeFoldable,
+  safeFoldLeft,
   structSafeFoldable,
   sumSafeFoldable,
 } from './foldable';
@@ -29,11 +29,12 @@ import {
   imapSafeFunctor,
   productSafeFunctor,
   SafeFunctor,
+  safeMap,
   structSafeFunctor,
   sumSafeFunctor,
 } from './functor';
 import { SchemableK } from './schemable-k';
-import { ProductK, StructK, SumK } from './kinds';
+import { NullableK, ProductK, StructK, SumK } from './kinds';
 
 export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
   () => {
@@ -46,7 +47,31 @@ export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
       par: Identity.Traversable,
 
       array: f => self.compose_(Array.Traversable(), f),
-      optional: f => self.compose_(Option.Traversable, f),
+      nullable: <F>(F: Traversable<F>) =>
+        SafeTraversable.of<[NullableK, F]>({
+          ...SafeFunctor.of<[NullableK, F]>({
+            safeMap_: (fa, f) =>
+              fa === null
+                ? Eval.now(null)
+                : Eval.defer(() => safeMap(F, fa, f)),
+          }),
+
+          ...SafeFoldable.of<[NullableK, F]>({
+            safeFoldLeft_: (fa, z, f) =>
+              fa === null ? Eval.now(z) : safeFoldLeft(F, fa, z, f),
+
+            foldRight_: (fa, z, f) =>
+              fa === null ? z : F.foldRight_(fa, z, f),
+          }),
+
+          safeTraverse_:
+            <G>(G: Applicative<G>) =>
+            <A, B>(
+              fa: Kind<F, [A]> | null,
+              f: (a: A) => Eval<Kind<G, [Kind<F, [B]> | null]>>,
+            ) =>
+              fa === null ? Eval.now(G.pure(null)) : safeTraverse(G)(F, fa, f),
+        }),
 
       product: productSafeTraversable as SchemableK<TraversableF>['product'],
       sum: sumSafeTraversable as SchemableK<TraversableF>['sum'],

@@ -39,7 +39,6 @@ import {
   min_,
   nonEmpty,
   nullable,
-  optional,
   orElse_,
   refine_,
 } from './operators';
@@ -101,7 +100,6 @@ export const decoderTSchemable: <F>(
     null: nullDecoderT(F),
     record: record(F),
     nullable: nullable(F),
-    optional: optional(F),
     imap: <A, B>(
       da: DecoderT<F, unknown, A>,
       f: (a: A) => B,
