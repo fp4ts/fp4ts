@@ -164,3 +164,15 @@ export class ImapSchema<A, B> extends Schema<B> {
     return S.imap(this.sa.interpret(S), this.f, this.g);
   }
 }
+
+export class MakeSchema<A> extends Schema<A> {
+  public constructor(
+    public readonly make: <S>(S: Schemable<S>) => Kind<S, [A]>,
+  ) {
+    super();
+  }
+
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
+    return this.make(S);
+  }
+}

@@ -10,6 +10,7 @@ import { Literal } from '../literal';
 import { Schema } from '../schema';
 import { SchemableK } from '../schemable-k';
 import { NullableK, ProductK, StructK, SumK } from '../kinds';
+import { schemaKSchemableK } from './instances';
 
 export abstract class SchemaK<F> {
   private readonly cache = new Map<SchemableK<any>, any>();
@@ -89,6 +90,18 @@ export const StringSchemaK: SchemaK<$<ConstF, [string]>> =
     }
   })();
 export type StringSchemaK = typeof StringSchemaK;
+
+export const NullSchemaK: SchemaK<$<ConstF, [null]>> =
+  new (class NullSchemaK extends SchemaK<$<ConstF, [null]>> {
+    protected toSchema0<A>(sa: Schema<A>): Schema<null> {
+      return Schema.null;
+    }
+
+    protected interpret0<S>(S: SchemableK<S>): Kind<S, [$<ConstF, [null]>]> {
+      return S.null;
+    }
+  })();
+export type NullSchemaK = typeof StringSchemaK;
 
 export const ParSchemaK: SchemaK<IdentityF> =
   new (class ParSchemaK extends SchemaK<IdentityF> {
@@ -251,5 +264,23 @@ export class ComposeSchemaK<F, G> extends SchemaK<[F, G]> {
 
   protected interpret0<S>(S: SchemableK<S>): Kind<S, [[F, G]]> {
     return S.compose_(this.sf.interpret(S), this.sg.interpret(S));
+  }
+}
+
+export class MakeSchemaK<F> extends SchemaK<F> {
+  public constructor(
+    private readonly make: <S>(S: SchemableK<S>) => Kind<S, [F]>,
+  ) {
+    super();
+  }
+
+  protected toSchema0<A>(sa: Schema<A>): Schema<Kind<F, [A]>> {
+    return Schema.make(S =>
+      this.make(schemaKSchemableK()).toSchema(sa).interpret(S),
+    );
+  }
+
+  protected interpret0<S>(S: SchemableK<S>): Kind<S, [F]> {
+    return this.make(S);
   }
 }

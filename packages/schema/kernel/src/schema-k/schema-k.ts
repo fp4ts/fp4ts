@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $ } from '@fp4ts/core';
+import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { ConstF, IdentityF } from '@fp4ts/cats';
 import { ProductK, StructK, SumK } from '../kinds';
 import { SchemaK as SchemaKBase } from './algebra';
@@ -13,6 +13,8 @@ import {
   booleanSchemaK,
   defer,
   literal,
+  make,
+  nullSchemaK,
   numberSchemaK,
   par,
   product,
@@ -20,6 +22,7 @@ import {
   struct,
   sum,
 } from './constructors';
+import { SchemableK } from '../schemable-k';
 
 export type SchemaK<F> = SchemaKBase<F>;
 export const SchemaK: SchemaKObj = function () {};
@@ -33,6 +36,7 @@ interface SchemaKObj {
   boolean: SchemaK<$<ConstF, [boolean]>>;
   number: SchemaK<$<ConstF, [number]>>;
   string: SchemaK<$<ConstF, [string]>>;
+  null: SchemaK<$<ConstF, [null]>>;
   par: SchemaK<IdentityF>;
 
   struct<F extends {}>(fs: {
@@ -48,14 +52,24 @@ interface SchemaKObj {
   ): <F extends {}>(fs: { [k in keyof F]: SchemaK<F[k]> }) => SchemaK<SumK<F>>;
 
   defer<F>(thunk: () => SchemaK<F>): SchemaK<F>;
+
+  make<F>(f: <S>(S: SchemableK<S>) => Kind<S, [F]>): SchemaK<F>;
 }
 
 SchemaK.literal = literal;
 SchemaK.boolean = booleanSchemaK;
 SchemaK.number = numberSchemaK;
 SchemaK.string = stringSchemaK;
+SchemaK.null = nullSchemaK;
 SchemaK.par = par;
 SchemaK.struct = struct;
 SchemaK.product = product;
 SchemaK.sum = sum;
 SchemaK.defer = defer;
+SchemaK.make = make;
+
+// -- HKT
+
+export interface SchemaKF extends TyK<[unknown]> {
+  [$type]: SchemaK<TyVar<this, 0>>;
+}

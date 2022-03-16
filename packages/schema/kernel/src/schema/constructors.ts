@@ -4,13 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { lazyVal } from '@fp4ts/core';
+import { Kind, lazyVal } from '@fp4ts/core';
 import { Literal } from '../literal';
+import { Schemable } from '../schemable';
 import {
   ArraySchema,
   BooleanSchema,
   DeferSchema,
   LiteralSchema,
+  MakeSchema,
   NullSchema,
   NumberSchema,
   ProductSchema,
@@ -55,3 +57,6 @@ export const sum =
 
 export const defer = <A>(thunk: () => Schema<A>): Schema<A> =>
   new DeferSchema(lazyVal(thunk));
+
+export const make = <A>(f: <S>(S: Schemable<S>) => Kind<S, [A]>): Schema<A> =>
+  new MakeSchema(f);

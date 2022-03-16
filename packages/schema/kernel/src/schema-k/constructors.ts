@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, lazyVal } from '@fp4ts/core';
+import { $, Kind, lazyVal } from '@fp4ts/core';
 import { ConstF, IdentityF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { ProductK, SumK, StructK } from '../kinds';
@@ -12,6 +12,8 @@ import {
   BooleanSchemaK,
   DeferSchemaK,
   LiteralSchemaK,
+  MakeSchemaK,
+  NullSchemaK,
   NumberSchemaK,
   ParSchemaK,
   ProductSchemaK,
@@ -20,6 +22,7 @@ import {
   StructSchemaK,
   SumSchemaK,
 } from './algebra';
+import { SchemableK } from '../schemable-k';
 
 export const literal = <A extends [Literal, ...Literal[]]>(
   ...xs: A
@@ -28,6 +31,7 @@ export const literal = <A extends [Literal, ...Literal[]]>(
 export const booleanSchemaK: SchemaK<$<ConstF, [boolean]>> = BooleanSchemaK;
 export const numberSchemaK: SchemaK<$<ConstF, [number]>> = NumberSchemaK;
 export const stringSchemaK: SchemaK<$<ConstF, [string]>> = StringSchemaK;
+export const nullSchemaK: SchemaK<$<ConstF, [null]>> = NullSchemaK;
 export const par: SchemaK<IdentityF> = ParSchemaK;
 
 export const struct = <F extends {}>(fs: {
@@ -45,3 +49,6 @@ export const sum =
 
 export const defer = <F>(thunk: () => SchemaK<F>): SchemaK<F> =>
   new DeferSchemaK(lazyVal(thunk));
+
+export const make = <F>(f: <S>(S: SchemableK<S>) => Kind<S, [F]>): SchemaK<F> =>
+  new MakeSchemaK(f);

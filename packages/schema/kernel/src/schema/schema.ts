@@ -4,13 +4,16 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { Kind } from '@fp4ts/core';
 import { Literal } from '../literal';
+import { Schemable } from '../schemable';
 import { Schema as SchemaBase } from './algebra';
 import {
   array,
   boolean,
   defer,
   literal,
+  make,
   nullSchema,
   number,
   product,
@@ -53,6 +56,8 @@ interface SchemaObj {
   }) => Schema<A[keyof A]>;
 
   defer<A>(thunk: () => Schema<A>): Schema<A>;
+
+  make<A>(f: <S>(S: Schemable<S>) => Kind<S, [A]>): Schema<A>;
 }
 
 Schema.literal = literal;
@@ -66,3 +71,4 @@ Schema.record = record;
 Schema.product = product as SchemaObj['product'];
 Schema.sum = sum;
 Schema.defer = defer;
+Schema.make = make;
