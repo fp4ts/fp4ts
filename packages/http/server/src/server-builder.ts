@@ -5,15 +5,19 @@
 
 import { ExitCode, Concurrent, Resource, Ref } from '@fp4ts/effect';
 import { Stream, SignallingRef, Signal } from '@fp4ts/stream';
-import { IpAddress } from './ip-address';
+import { IpAddress, Ipv4Address } from './ip-address';
 import { Server } from './server';
 
 export abstract class ServerBuilder<F, Self extends ServerBuilder<F, Self>> {
   public abstract readonly F: Concurrent<F, Error>;
 
-  public abstract bindHttp(port?: number, host?: IpAddress): Self;
-  public abstract bindLocal(port: number): Self;
-  public abstract bindAny(): Self;
+  public abstract bindHttp(port: number, host: IpAddress): Self;
+  public bindLocal(port: number): Self {
+    return this.bindHttp(port, Ipv4Address.local);
+  }
+  public bindAny(): Self {
+    return this.bindHttp(0, Ipv4Address.local);
+  }
 
   public abstract resource(): Resource<F, Server>;
 
@@ -36,4 +40,7 @@ export abstract class ServerBuilder<F, Self extends ServerBuilder<F, Self>> {
       .flatMap(() => terminateWhenTrue.discrete())
       .takeWhile(x => x === false)
       .drain['+++'](Stream.evalF(exitWith.get()));
+
+  public abstract withBanner(banner: string): Self;
+  public abstract withoutBanner(): Self;
 }

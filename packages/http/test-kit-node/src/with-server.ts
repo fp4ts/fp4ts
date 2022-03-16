@@ -22,10 +22,23 @@ export const withServerP =
       IO.deferPromise(() => run(server.underlying)),
     );
 
+export const withServerResource =
+  (server: Resource<IOF, HttpApp<IOF>>) =>
+  (run: (server: Server) => IO<void>): IO<void> =>
+    server.flatMap(serve(IO.Async)).use(IO.Async)(run);
+
 export const withServerClient =
   (app: HttpApp<IOF>, client: Resource<IOF, Client<IOF>>) =>
   (run: (server: Server, client: Client<IOF>) => IO<void>): IO<void> =>
     serve(IO.Async)(app)
+      .flatMap(server => client.map(client => [server, client] as const))
+      .use(IO.Async)(([s, c]) => run(s, c));
+
+export const withServerClientResource =
+  (app: Resource<IOF, HttpApp<IOF>>, client: Resource<IOF, Client<IOF>>) =>
+  (run: (server: Server, client: Client<IOF>) => IO<void>): IO<void> =>
+    app
+      .flatMap(serve(IO.Async))
       .flatMap(server => client.map(client => [server, client] as const))
       .use(IO.Async)(([s, c]) => run(s, c));
 

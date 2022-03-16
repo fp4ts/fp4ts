@@ -18,7 +18,7 @@ import { NodeServer } from './node-server';
 
 export const serve =
   <F>(F: Async<F>) =>
-  (app: HttpApp<F>, port?: number): Resource<F, NodeServer> => {
+  (app: HttpApp<F>, port?: number, host?: string): Resource<F, NodeServer> => {
     const handleConnection = mkConnectionHandler(F)(app);
     const RF = Resource.Async(F);
     return RF.do(function* (_) {
@@ -37,7 +37,9 @@ export const serve =
       return server;
     })
       .evalTap(server =>
-        F.async_<void>(cb => server.listen(port, () => cb(Either.rightUnit))),
+        F.async_<void>(cb =>
+          server.listen(port, host, () => cb(Either.rightUnit)),
+        ),
       )
       .map(server => new NodeServer(server));
   };

@@ -5,12 +5,20 @@
 
 import { pipe } from '@fp4ts/core';
 import { IO, unsafeRunMain } from '@fp4ts/effect';
+import { NodeServerBuilder } from '@fp4ts/http-node-server';
 
-import { makeServer } from './server';
+import { makeApp } from './server';
 
 function main(): void {
   pipe(
-    makeServer(IO.Async)(3000).use(IO.Async)(() => IO.never),
+    makeApp(IO.Async).flatMap(
+      app =>
+        NodeServerBuilder.make(IO.Async)
+          .bindLocal(3000)
+          .withHttpApp(app)
+          .serve()
+          .compileConcurrent().last,
+    ),
     unsafeRunMain,
   );
 }

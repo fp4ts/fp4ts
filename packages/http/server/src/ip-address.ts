@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Monad, None, Option, Some } from '@fp4ts/cats';
 import { Byte } from '@fp4ts/core';
+import { List, Monad, None, Option, Some } from '@fp4ts/cats';
 
 export abstract class IpAddress {
   private readonly __void!: void;
@@ -67,6 +67,10 @@ export class Ipv4Address extends IpAddress {
 
   public static override fromBytes(bytes: Byte[]): Option<Ipv4Address> {
     return bytes.length === 4 ? Some(this.unsafeFromBytes(bytes)) : None;
+  }
+
+  public static get local(): Ipv4Address {
+    return Ipv4Address.fromString('127.0.0.1').get;
   }
 
   private static unsafeFromBytes(bytes: Byte[]): Ipv4Address {

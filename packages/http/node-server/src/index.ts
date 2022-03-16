@@ -8,3 +8,4 @@
  */
 export * from './serve';
 export * from './node-server';
+export * from './node-server-builder';
