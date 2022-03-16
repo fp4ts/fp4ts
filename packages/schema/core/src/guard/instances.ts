@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval, Try } from '@fp4ts/cats';
 import { $, Lazy, lazyVal } from '@fp4ts/core';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 import { Guard, SafeGuard, safeTest } from './algebra';
@@ -58,7 +59,13 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
         ga: Guard<unknown, A>,
         f: (a: A) => B,
         g: (b: B) => A,
-      ): Guard<unknown, B> => new SafeGuard(x => safeTest(ga, x)),
+      ): Guard<unknown, B> =>
+        new SafeGuard(x =>
+          Try(() => g(x as any)).fold(
+            () => Eval.now(false),
+            y => safeTest(ga, y),
+          ),
+        ),
     }),
 );
 

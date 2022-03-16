@@ -17,7 +17,7 @@ import {
   Tree,
 } from '../adt-definitions';
 
-describe.skip('Guard derivation', () => {
+describe('Guard derivation', () => {
   test('test to be stack safe', () => {
     const ixs = IList.fromList(List.range(0, 50_000));
     const sxs = Snoc.fromList(List.range(0, 50_000));
