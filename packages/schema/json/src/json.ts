@@ -3,10 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-/**
- * @module schema/json
- */
-export * from './json';
-export * from './json-codec';
-export * from './json-decoder';
-export * from './json-encoder';
+export type Json =
+  | null
+  | boolean
+  | number
+  | string
+  | Json[]
+  | { [k: string]: Json };
