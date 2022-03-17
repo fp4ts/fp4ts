@@ -81,6 +81,7 @@ import { AddHeader } from '../add-header';
 import { Handler } from './handler';
 import { Codable } from '../codable';
 import { BasicAuthValidatorTag } from '../basic-auth-validator';
+import { DecodeFailure } from '@fp4ts/schema';
 
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>
@@ -221,7 +222,9 @@ export function route<F>(F: Concurrent<F, Error>) {
         d.addCapture(EF)(txt =>
           DelayedCheck.withRequest(F)(() =>
             pipe(
-              fromPathComponent(txt),
+              fromPathComponent(txt).leftMap(
+                f => new ParsingFailure(f.toString()),
+              ),
               RouteResult.fromEither,
               RouteResultT.lift(F),
             ),
@@ -249,9 +252,14 @@ export function route<F>(F: Concurrent<F, Error>) {
           const result = value.isEmpty
             ? Right(None)
             : value.get.isEmpty
-            ? Left(new ParsingFailure('Missing query value'))
+            ? Left(new DecodeFailure('Missing query value'))
             : fromQueryParameter(value.get.get).map(Some);
-          return pipe(RouteResult.fromEither(result), RouteResultT.lift(F));
+          return pipe(
+            RouteResult.fromEither(
+              result.leftMap(f => new ParsingFailure(f.toString())),
+            ),
+            RouteResultT.lift(F),
+          );
         }),
       ),
       codings,
@@ -296,7 +304,11 @@ export function route<F>(F: Concurrent<F, Error>) {
           .getRaw(a.key)
           .map(xs => xs.head)
           .traverse(RouteResult.Monad)(
-          compose(RouteResult.fromEitherFatal, parseHeader),
+          compose(
+            RouteResult.fromEitherFatal,
+            ea => ea.leftMap(f => new ParsingFailure(f.toString())),
+            parseHeader,
+          ),
         ),
         RouteResultT.lift(F),
       ),
@@ -412,9 +424,11 @@ export function route<F>(F: Concurrent<F, Error>) {
         d.addCapture(EF)(txts =>
           DelayedCheck.withRequest(F)(() =>
             pipe(
-              List.fromArray(txts).traverse(
-                Either.Applicative<MessageFailure>(),
-              )(fromPathComponent),
+              List.fromArray(txts)
+                .traverse(Either.Applicative<DecodeFailure>())(
+                  fromPathComponent,
+                )
+                .leftMap(f => new ParsingFailure(f.toString())),
               RouteResult.fromEither,
               RouteResultT.lift(F),
             ),

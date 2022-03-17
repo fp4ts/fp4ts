@@ -4,20 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either } from '@fp4ts/cats';
-import { MessageFailure } from '@fp4ts/http-core';
+import { DecodeFailure } from '@fp4ts/schema';
 
 export const FromHttpApiDataTag = '@fp4ts/http/dsl/from-htt-api-data';
 export type FromHttpApiDataTag = typeof FromHttpApiDataTag;
 
 export interface FromHttpApiData<A> {
-  fromPathComponent(x: string): Either<MessageFailure, A>;
-  fromQueryParameter(x: string): Either<MessageFailure, A>;
-  parseHeader(x: string): Either<MessageFailure, A>;
+  fromPathComponent(x: string): Either<DecodeFailure, A>;
+  fromQueryParameter(x: string): Either<DecodeFailure, A>;
+  parseHeader(x: string): Either<DecodeFailure, A>;
 }
 
 export const FromHttpApiData = Object.freeze({
   fromUniversal: <A>(
-    f: (x: string) => Either<MessageFailure, A>,
+    f: (x: string) => Either<DecodeFailure, A>,
   ): FromHttpApiData<A> => ({
     fromPathComponent: f,
     fromQueryParameter: f,

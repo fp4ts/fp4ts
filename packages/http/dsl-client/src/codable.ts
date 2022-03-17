@@ -5,12 +5,11 @@
 
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Either, EitherT, Eval, Try } from '@fp4ts/cats';
-import { MessageFailure, ParsingFailure } from '@fp4ts/http-core';
 import { Schema, DecodeFailure, Codec } from '@fp4ts/schema';
 
 export interface Codable<A> {
   encode: (a: A) => string;
-  decode: (a: string) => Either<MessageFailure, A>;
+  decode: (a: string) => Either<DecodeFailure, A>;
 }
 
 const JsonCodec = Codec<string, string, unknown>(
@@ -33,8 +32,7 @@ export const Codable = Object.freeze({
 
       return {
         encode: res.encode,
-        decode: s =>
-          res.decode(s).value.value.leftMap(f => new ParsingFailure(f.message)),
+        decode: s => res.decode(s).value.value,
       };
     },
   },

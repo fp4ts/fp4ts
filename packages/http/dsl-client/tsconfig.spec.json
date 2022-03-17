@@ -8,6 +8,10 @@
   "references": [
     { "path": "../../core/tsconfig.spec.json" },
     { "path": "../../cats/tsconfig.spec.json" },
+    { "path": "../../effect/tsconfig.spec.json" },
+    { "path": "../../schema/tsconfig.spec.json" },
+    { "path": "../../stream/tsconfig.spec.json" },
+    { "path": "../client/tsconfig.spec.json" },
     { "path": "../core/tsconfig.spec.json" },
     { "path": "../dsl-shared/tsconfig.spec.json" },
   ]

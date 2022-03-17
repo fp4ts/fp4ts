@@ -10,6 +10,7 @@ import { Authority, ParsingFailure } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { alice, deleteEmpty, failServer, getCapture, postBody } from './common';
+import { DecodeFailure } from '@fp4ts/schema';
 
 describe('Failure', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
@@ -32,7 +33,7 @@ describe('Failure', () => {
       }),
     );
 
-    it.M('should respond with a parsing failure', () =>
+    it.M('should respond with a decode failure', () =>
       withServerClient(
         failServer,
         clientResource,
@@ -42,7 +43,7 @@ describe('Failure', () => {
         return getCapture('foo')
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
-            IO(() => expect(r.getLeft).toBeInstanceOf(ParsingFailure)),
+            IO(() => expect(r.getLeft).toBeInstanceOf(DecodeFailure)),
           );
       }),
     );

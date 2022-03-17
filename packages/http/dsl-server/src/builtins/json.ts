@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either, Try } from '@fp4ts/cats';
-import { MessageFailure, ParsingFailure } from '@fp4ts/http-core';
+import { DecodeFailure } from '@fp4ts/schema';
 import { Codable } from '../codable';
 
-const fromJSON = <A>(x: string): Either<MessageFailure, A> =>
-  Try(() => JSON.parse(x)).toEither.leftMap(e => new ParsingFailure(e.message));
+const fromJSON = <A>(x: string): Either<DecodeFailure, A> =>
+  Try(() => JSON.parse(x)).toEither.leftMap(e => new DecodeFailure(e.message));
 const toJSON = <A>(x: A): string => JSON.stringify(x);
 
 export const boolean: Codable<boolean> = Object.freeze({
