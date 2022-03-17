@@ -8,6 +8,7 @@
   "references": [
     { "path": "./core/tsconfig.spec.json" },
     { "path": "./kernel/tsconfig.spec.json" },
+    { "path": "./json/tsconfig.spec.json" },
     { "path": "./laws/tsconfig.spec.json" },
     { "path": "./perf/tsconfig.spec.json" },
     { "path": "./test-kit/tsconfig.spec.json" },
