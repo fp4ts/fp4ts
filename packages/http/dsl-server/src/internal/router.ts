@@ -3,11 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, pipe, tupled } from '@fp4ts/core';
+import { pipe, tupled } from '@fp4ts/core';
 import { Kleisli, Monad } from '@fp4ts/cats';
 import { Schema, Schemable } from '@fp4ts/schema';
-import { NotFoundFailure, Request } from '@fp4ts/http-core';
-import { RouteResultT, RouteResultTF } from './route-result';
+import { NotFoundFailure, Request, Response } from '@fp4ts/http-core';
+import { RouteResultT } from './route-result';
 import { RoutingApplication } from './routing-application';
 
 export type Router<env, a> =
@@ -116,34 +116,30 @@ export const runRouterEnv =
     router: Router<env, RoutingApplication<F>>,
     env: env,
   ): RoutingApplication<F> => {
-    const KA = Kleisli.Alternative<$<RouteResultTF, [F]>, Request<F>>(
-      RouteResultT.Alternative(F),
-    );
-
     const loop =
       <env>(
         req: Request<F>,
         router: Router<env, RoutingApplication<F>>,
         rem: string[],
       ) =>
-      (env: env): RoutingApplication<F> => {
+      (env: env): RouteResultT<F, Response<F>> => {
         switch (router.tag) {
           case 'static': {
             if (rem.length === 0) {
-              return runChoices(env, router.matches);
+              return runChoices(req, env, router.matches);
             }
 
             if (router.table[rem[0]]) {
               return loop(req, router.table[rem[0]], rem.slice(1))(env);
             }
 
-            return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
+            return RouteResultT.fail(F)(new NotFoundFailure());
           }
 
           case 'capture': {
             if (rem.length === 0)
               // nothing to capture
-              return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
+              return RouteResultT.fail(F)(new NotFoundFailure());
 
             const [pfx, ...sfx] = rem;
             return loop(req, router.next, sfx)([pfx, env]);
@@ -154,46 +150,49 @@ export const runRouterEnv =
           }
 
           case 'raw':
-            return router.app(env);
+            return router.app(env).run(req);
 
           case 'choice':
-            return runChoices(env, [
-              loop(req, router.lhs, rem),
-              loop(req, router.rhs, rem),
-            ]);
+            return loop(req, router.lhs, rem)(env).orElse(F)(() =>
+              loop(req, router.rhs, rem)(env),
+            );
         }
       };
 
     const runChoices = <env>(
+      req: Request<F>,
       env: env,
       ls: ((env: env) => RoutingApplication<F>)[],
-    ): RoutingApplication<F> => {
+    ): RouteResultT<F, Response<F>> => {
       switch (ls.length) {
         case 0:
-          return Kleisli(() => RouteResultT.fail(F)(new NotFoundFailure()));
+          return RouteResultT.fail(F)(new NotFoundFailure());
 
         case 1:
-          return ls[0](env);
+          return ls[0](env).run(req);
 
         case 2:
-          return KA.orElse_(ls[0](env), () => ls[1](env));
+          return ls[0](env).run(req).orElse(F)(() => ls[1](env).run(req));
 
         default: {
           const [hd, ...rest] = ls;
-          return KA.orElse_(hd(env), () => runChoices(env, rest));
+          return hd(env).run(req).orElse(F)(() => runChoices(req, env, rest));
         }
       }
     };
 
     return Kleisli(req => {
+      const path = req.uri.path;
       // ensure to trip the leading '' introduced by /
-      const pathComponents = req.uri.path.components.slice(1);
+      const pathComponents = req.uri.path.isAbsolute
+        ? path.components.slice(1)
+        : path.components;
       // ensure to trip the trailing '' introduced by /
       const routablePathComponents =
         pathComponents[pathComponents.length - 1] === ''
           ? pathComponents.slice(0, pathComponents.length - 1)
           : pathComponents;
-      return loop(req, router, routablePathComponents)(env).run(req);
+      return loop(req, router, routablePathComponents)(env);
     });
   };
 
