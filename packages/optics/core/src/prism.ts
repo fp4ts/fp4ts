@@ -23,6 +23,13 @@ export class PPrism<S, T, A, B> {
     );
   }
 
+  public static collect<S, A>(
+    getOption: (a: S) => Option<A>,
+    reverseGet: (a: A) => S,
+  ): Prism<S, A> {
+    return new PPrism(s => getOption(s).toRight(() => s), reverseGet);
+  }
+
   public constructor(
     public readonly getOrModify: (s: S) => Either<T, A>,
     public readonly reverseGet: (b: B) => T,
