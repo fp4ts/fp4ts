@@ -6,6 +6,7 @@
 import fc from 'fast-check';
 import { Eq, List, Map, Monoid, None, Ord, Some } from '@fp4ts/cats';
 import { At, Iso, Lens } from '@fp4ts/optics-core';
+import { deriveLenses } from '@fp4ts/optics-derivation';
 import {
   LensSuite,
   OptionalSuite,
@@ -32,8 +33,7 @@ describe('Lens', () => {
   const s = Lens.fromProp<Example>()('s');
   const p = Lens.fromProp<Example>()('p');
 
-  const x = Lens.fromProp<Point>()('x');
-  const y = Lens.fromProp<Point>()('y');
+  const { x, y } = deriveLenses(_Point);
   const xy = new Lens<Point, [number, number]>(
     ({ x, y }) => [x, y],
     ([x, y]) =>

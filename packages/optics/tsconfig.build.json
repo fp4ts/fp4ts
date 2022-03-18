@@ -8,5 +8,6 @@
   "references": [
     { "path": "./core/tsconfig.build.json" },
     { "path": "./laws/tsconfig.build.json" },
+    { "path": "./derivation/tsconfig.build.json" },
   ]
 }
