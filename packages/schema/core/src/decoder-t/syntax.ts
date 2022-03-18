@@ -132,7 +132,7 @@ declare module './algebra' {
     ): <I2 extends I, B>(f: (a: A) => DecoderT<F, I2, B>) => DecoderT<F, I2, B>;
     flatMapR<B>(
       this: Decoder<I, A>,
-      f: (a: A) => DecodeResult<B>,
+      f: (a: A) => DecodeResultT<F, B>,
     ): Decoder<I, B>;
     flatMapR(
       F: Monad<F>,
@@ -153,7 +153,7 @@ declare module './algebra' {
     ): (h: (e: DecodeFailure) => AA) => DecoderT<F, I, AA>;
     handleErrorWithR<AA>(
       this: Decoder<I, AA>,
-      h: (e: DecodeFailure) => DecodeResult<AA>,
+      h: (e: DecodeFailure) => DecodeResultT<F, AA>,
     ): Decoder<I, AA>;
     handleErrorWithR<AA>(
       this: DecoderT<F, I, AA>,
@@ -179,7 +179,7 @@ declare module './algebra' {
     ) => DecoderT<F, I, B>;
     transformWithR<B>(
       this: Decoder<I, A>,
-      f: (ea: Either<DecodeFailure, A>) => DecodeResult<B>,
+      f: (ea: Either<DecodeFailure, A>) => DecodeResultT<F, B>,
     ): Decoder<I, B>;
     transformWithR(
       F: Monad<F>,

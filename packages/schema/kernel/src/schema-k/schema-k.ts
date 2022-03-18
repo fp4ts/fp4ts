@@ -7,21 +7,16 @@
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { ConstF, IdentityF } from '@fp4ts/cats';
 import { ProductK, StructK, SumK } from '../kinds';
-import { SchemaK as SchemaKBase } from './algebra';
-import { Literal } from '../literal';
 import {
-  booleanSchemaK,
-  defer,
-  literal,
-  make,
-  nullSchemaK,
-  numberSchemaK,
-  par,
-  product,
-  stringSchemaK,
-  struct,
-  sum,
-} from './constructors';
+  BooleanSchemaK,
+  NullSchemaK,
+  NumberSchemaK,
+  ParSchemaK,
+  SchemaK as SchemaKBase,
+  StringSchemaK,
+} from './algebra';
+import { Literal } from '../literal';
+import { defer, literal, make, product, struct, sum } from './constructors';
 import { SchemableK } from '../schemable-k';
 
 export type SchemaK<F> = SchemaKBase<F>;
@@ -57,11 +52,11 @@ interface SchemaKObj {
 }
 
 SchemaK.literal = literal;
-SchemaK.boolean = booleanSchemaK;
-SchemaK.number = numberSchemaK;
-SchemaK.string = stringSchemaK;
-SchemaK.null = nullSchemaK;
-SchemaK.par = par;
+SchemaK.boolean = BooleanSchemaK;
+SchemaK.number = NumberSchemaK;
+SchemaK.string = StringSchemaK;
+SchemaK.null = NullSchemaK;
+SchemaK.par = ParSchemaK;
 SchemaK.struct = struct;
 SchemaK.product = product;
 SchemaK.sum = sum;
