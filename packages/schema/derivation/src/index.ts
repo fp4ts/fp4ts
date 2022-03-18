@@ -4,8 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module schema
+ * @module schema/derivation
  */
-export * from '@fp4ts/schema-core';
-export * from '@fp4ts/schema-kernel';
-export * from '@fp4ts/schema-derivation';
+export * from './derive-constructors';
