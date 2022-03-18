@@ -48,6 +48,8 @@ import { DecodeResult } from './decode-result';
 
 declare module './algebra' {
   interface DecoderT<F, I, A> {
+    decode(this: Decoder<I, A>, i: I): DecodeResult<A>;
+
     nullable(this: Decoder<I, A>): Decoder<I | null, A | null>;
     nullable(F: Applicative<F>): DecoderT<F, I | null, A | null>;
     optional(this: Decoder<I, A>): Decoder<Option<I>, Option<A>>;
@@ -266,6 +268,12 @@ declare module './algebra' {
     ): (n: number) => DecoderT<F, I, B[]>;
   }
 }
+
+Object.defineProperty(DecoderT.prototype, 'decode', {
+  get<I, A>(this: Decoder<I, A>) {
+    return (i: I): Either<DecodeFailure, A> => this.decodeT(i).value.value;
+  },
+});
 
 DecoderT.prototype.nullable = function (this: any, F?: any) {
   return F ? nullable(F) : nullable(Eval.Applicative)(this);

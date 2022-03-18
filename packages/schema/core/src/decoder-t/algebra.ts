@@ -10,6 +10,6 @@ export class DecoderT<F, I, A> {
   private readonly __void!: void;
 
   public constructor(
-    public readonly decode: (i: I) => EitherT<F, DecodeFailure, A>,
+    public readonly decodeT: (i: I) => EitherT<F, DecodeFailure, A>,
   ) {}
 }

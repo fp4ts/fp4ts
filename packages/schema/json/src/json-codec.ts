@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Codec } from '@fp4ts/schema-core';
+import { Schema } from '@fp4ts/schema-kernel';
 import { Json } from './json';
 import { JsonDecoder } from './json-decoder';
 import { JsonEncoder } from './json-encoder';
@@ -16,7 +17,10 @@ export const JsonCodec: JsonCodecObj = Codec.make(
 ) as any;
 
 JsonCodec.fromCodec = codec => JsonCodec.andThen(codec);
+JsonCodec.fromSchema = <A>(sa: Schema<A>) =>
+  JsonCodec.fromCodec(sa.interpret(Codec.Schemable) as Codec<Json, Json, A>);
 
 interface JsonCodecObj extends JsonCodec {
   fromCodec<A>(encoder: Codec<Json, Json, A>): Codec<string, string, A>;
+  fromSchema<A>(sa: Schema<A>): Codec<string, string, A>;
 }

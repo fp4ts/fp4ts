@@ -10,7 +10,7 @@ import { Codec, DecodeFailure } from '@fp4ts/schema-core';
 export const CodecLaws = <A>(C: Codec<unknown, unknown, A>) => ({
   codecDecodeToEncodeIdentity: <T>(t: T): IsEq<T> =>
     new IsEq(
-      C.decode(t).value.value.fold(
+      C.decode(t).fold(
         () => t,
         a => C.encode(a) as T,
       ),
@@ -18,5 +18,5 @@ export const CodecLaws = <A>(C: Codec<unknown, unknown, A>) => ({
     ),
 
   codecEncodeToDecodeIdentity: (a: A): IsEq<Either<DecodeFailure, A>> =>
-    new IsEq(C.decode(C.encode(a)).value.value, Right(a)),
+    new IsEq(C.decode(C.encode(a)), Right(a)),
 });

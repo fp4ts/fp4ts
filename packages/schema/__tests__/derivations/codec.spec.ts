@@ -25,10 +25,10 @@ describe('Codec derivation', () => {
     const ic = IList.schemaK.toSchema(Schema.number).interpret(Codec.Schemable);
     const sc = Snoc.schemaK.toSchema(Schema.number).interpret(Codec.Schemable);
 
-    expect(IList.toList(ic.decode(ic.encode(ixs)).value.value.get)).toEqual(
+    expect(IList.toList(ic.decode(ic.encode(ixs)).get)).toEqual(
       List.range(0, 50_000),
     );
-    expect(Snoc.toList(sc.decode(sc.encode(sxs)).value.value.get)).toEqual(
+    expect(Snoc.toList(sc.decode(sc.encode(sxs)).get)).toEqual(
       List.range(0, 50_000),
     );
   });
@@ -49,10 +49,10 @@ describe('Codec derivation', () => {
       .toSchema(Schema.number)
       .interpret(Decoder.Schemable);
 
-    expect(IList.toList(id.decode(ie.encode(ixs)).value.value.get)).toEqual(
+    expect(IList.toList(id.decode(ie.encode(ixs)).get)).toEqual(
       List.range(0, 50_000),
     );
-    expect(Snoc.toList(sd.decode(se.encode(sxs)).value.value.get)).toEqual(
+    expect(Snoc.toList(sd.decode(se.encode(sxs)).get)).toEqual(
       List.range(0, 50_000),
     );
   });
@@ -81,7 +81,7 @@ describe('Codec derivation', () => {
     );
     test(
       `Decoder<unknown, ${type}> <-> Encoder<unknown, ${type}>`,
-      forAll(arbA, a => new IsEq(D.decode(E_.encode(a)).value.value.get, a))(E),
+      forAll(arbA, a => new IsEq(D.decode(E_.encode(a)).get, a))(E),
     );
   }
 

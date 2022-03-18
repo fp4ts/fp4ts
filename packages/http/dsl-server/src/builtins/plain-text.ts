@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Left, Right } from '@fp4ts/cats';
-import { DecodeFailure } from '@fp4ts/schema';
-import { Codable } from '../codable';
+import { Codec, DecodeFailure } from '@fp4ts/schema';
 
-export const boolean: Codable<boolean> = Object.freeze({
-  decode: x => {
+export const boolean: Codec<string, string, boolean> = Codec(
+  x => `${x}`,
+  x => {
     switch (x) {
       case 'true':
         return Right(true);
@@ -18,20 +18,19 @@ export const boolean: Codable<boolean> = Object.freeze({
         return Left(new DecodeFailure(`Expected boolean, found '${x}'`));
     }
   },
-  encode: x => `${x}`,
-});
+);
 
-export const number: Codable<number> = Object.freeze({
-  decode: x => {
+export const number: Codec<string, string, number> = Codec(
+  x => `${x}`,
+  x => {
     const n = parseFloat(x);
     return Number.isNaN(n) || !Number.isFinite(n)
       ? Left(new DecodeFailure(`Expected number, found ${x}`))
       : Right(n);
   },
-  encode: x => `${x}`,
-});
+);
 
-export const string: Codable<string> = Object.freeze({
-  decode: x => Right(x),
-  encode: x => x,
-});
+export const string: Codec<string, string, string> = Codec(
+  x => x,
+  x => Right(x),
+);

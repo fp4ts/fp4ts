@@ -19,6 +19,7 @@
     "@fp4ts/http-dsl-server": "*",
     "@fp4ts/http-node-server": "*",
     "@fp4ts/schema": "*",
+    "@fp4ts/schema-json": "*",
     "@fp4ts/stream": "*"
   },
   "devDependencies": {

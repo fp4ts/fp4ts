@@ -23,7 +23,7 @@ export class EntityDecoder<F, A> {
   }
 
   public decode(m: Media<F>): DecodeResult<F, A> {
-    return this.decoder.decode(m);
+    return this.decoder.decodeT(m);
   }
 
   public map(F: Functor<F>): <B>(f: (a: A) => B) => EntityDecoder<F, B> {

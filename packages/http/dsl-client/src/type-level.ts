@@ -45,8 +45,8 @@ import {
 } from '@fp4ts/http-dsl-shared';
 import { ResponseHeaders } from './headers';
 import { builtins } from './builtin-codables';
-import { Codable } from './codable';
 import { ClientMF } from './client-m';
+import { Codec } from '@fp4ts/schema';
 
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
@@ -171,18 +171,26 @@ export interface CodingDerivates<F, x, z> {
     : never;
   [StaticTag]: z;
   [VerbTag]: x extends VerbElement<any, infer CT, infer T>
-    ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
+    ? z & {
+        [_ in CT['mime']]: {
+          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+        };
+      }
     : never;
   // prettier-ignore
   [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
     ? H extends HeadersElement<infer hs, infer T>
-      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
+      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codec<string, string, TypeOf<T>> } }
           & { [FromHttpApiDataTag]: ExtractResponseHeaderCodings<hs>; }
       : never
     : never;
   [VerbNoContentTag]: z;
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
-    ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codable<TypeOf<T>> } }
+    ? z & {
+        [_ in CT['mime']]: {
+          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+        };
+      }
     : never;
   [HeaderTag]: z;
   [RawHeaderTag]: x extends RawHeaderElement<any, infer T>

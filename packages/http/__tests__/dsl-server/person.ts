@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { newtype, TypeOf } from '@fp4ts/core';
-import { Schema } from '@fp4ts/schema';
-import { Codable } from '@fp4ts/http-dsl-server';
+import { Codec, Schema } from '@fp4ts/schema';
+import { JsonCodec } from '@fp4ts/schema-json';
 
 export const PersonTypeTag = '@fp4ts/http/__tests__/person';
 export type PersonTypeTag = typeof PersonTypeTag;
@@ -18,5 +18,5 @@ export const PersonSchema = Schema.struct({
   age: Schema.number,
 }).imap(Person, Person.unapply);
 
-export const PersonCodable: Codable<Person> =
-  Codable.json.fromSchema(PersonSchema);
+export const PersonCodable: Codec<string, string, Person> =
+  JsonCodec.fromSchema(PersonSchema);

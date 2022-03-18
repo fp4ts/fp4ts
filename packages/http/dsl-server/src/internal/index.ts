@@ -33,7 +33,6 @@ import {
   SelectHeader,
   RawHeader,
   Headers,
-  UnauthorizedFailure,
   BasicAuthFailure,
 } from '@fp4ts/http-core';
 import { challenge } from '@fp4ts/http-server';
@@ -58,6 +57,7 @@ import {
   BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IOF } from '@fp4ts/effect';
+import { Codec, DecodeFailure } from '@fp4ts/schema';
 
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
@@ -79,9 +79,7 @@ import { RoutingApplication } from './routing-application';
 import { ServerM } from '../server-m';
 import { AddHeader } from '../add-header';
 import { Handler } from './handler';
-import { Codable } from '../codable';
 import { BasicAuthValidatorTag } from '../basic-auth-validator';
-import { DecodeFailure } from '@fp4ts/schema';
 
 export const toHttpAppIO =
   <api>(api: api, codings: OmitBuiltins<DeriveCoding<IOF, api>>) =>
@@ -546,7 +544,9 @@ export function route<F>(F: Concurrent<F, Error>) {
     ct: CT,
     ctx: Context<context>,
     d: Delayed<F, env, Handler<F, TypeOf<T>>>,
-    codings: { [_ in CT['mime']]: { [_ in R]: Codable<TypeOf<T>> } },
+    codings: {
+      [_ in CT['mime']]: { [_ in R]: Codec<string, string, TypeOf<T>> };
+    },
   ): Router<env, RoutingApplication<F>> {
     const { encode } = codings[ct.mime][body.Ref];
     const acceptCheck = DelayedCheck.withRequest(F)(req =>

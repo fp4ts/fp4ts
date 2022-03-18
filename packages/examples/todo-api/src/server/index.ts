@@ -7,10 +7,11 @@ import { Kind } from '@fp4ts/core';
 import { EitherT, Map } from '@fp4ts/cats';
 import { Async } from '@fp4ts/effect';
 import { HttpApp } from '@fp4ts/http';
+import { JsonCodec } from '@fp4ts/schema-json';
+import { builtins, toHttpApp } from '@fp4ts/http-dsl-server';
 
 import { CreateTodo, Todo } from '../todo';
 import { TodoService } from './todo-service';
-import { builtins, Codable, toHttpApp } from '@fp4ts/http-dsl-server';
 import { api } from '../api';
 import { version } from './version';
 
@@ -24,9 +25,9 @@ export const makeApp = <F>(F: Async<F>): Kind<F, [HttpApp<F>]> => {
     return toHttpApp(F)(api, {
       ...builtins,
       'application/json': {
-        'todo-api/create-todo': Codable.json.fromSchema(CreateTodo),
-        'todo-api/todo': Codable.json.fromSchema(Todo),
-        'todo-api/todo-array': Codable.json.fromSchema(Todo.array),
+        'todo-api/create-todo': JsonCodec.fromSchema(CreateTodo),
+        'todo-api/todo': JsonCodec.fromSchema(Todo),
+        'todo-api/todo-array': JsonCodec.fromSchema(Todo.array),
       },
     })(S => [
       version(F),

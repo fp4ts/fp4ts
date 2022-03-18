@@ -15,7 +15,8 @@ import {
 } from '@fp4ts/core';
 import { None, Option, Some } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
-import { Schema } from '@fp4ts/schema';
+import { Codec, Schema } from '@fp4ts/schema';
+import { JsonCodec } from '@fp4ts/schema-json';
 import {
   ContentType,
   EntityEncoder,
@@ -26,7 +27,7 @@ import {
   Response,
   Status,
 } from '@fp4ts/http-core';
-import { builtins, Codable, toClientIOIn } from '@fp4ts/http-dsl-client';
+import { builtins, toClientIOIn } from '@fp4ts/http-dsl-client';
 import {
   BasicAuth,
   Capture,
@@ -65,10 +66,10 @@ export const PersonSchema = Schema.struct({
 }).imap(Person, Person.unapply);
 export const PersonArraySchema = PersonSchema.array;
 
-export const PersonCodable: Codable<Person> =
-  Codable.json.fromSchema(PersonSchema);
-export const PersonArrayCodable: Codable<Person[]> =
-  Codable.json.fromSchema(PersonArraySchema);
+export const PersonCodable: Codec<string, string, Person> =
+  JsonCodec.fromSchema(PersonSchema);
+export const PersonArrayCodable: Codec<string, string, Person[]> =
+  JsonCodec.fromSchema(PersonArraySchema);
 
 export const carol = Person({ name: 'Carol', age: 42 });
 export const alice = Person({ name: 'Alice', age: 18 });
@@ -78,17 +79,22 @@ const stringNumberArrayTupleTag =
 export const stringNumberArrayTuple = typeref<[string, number[]]>()(
   stringNumberArrayTupleTag,
 );
-export const stringNumberArrayCodable: Codable<[string, number[]]> =
-  Codable.json.fromSchema(Schema.product(Schema.string, Schema.number.array));
+export const stringNumberArrayCodable: Codec<
+  string,
+  string,
+  [string, number[]]
+> = JsonCodec.fromSchema(Schema.product(Schema.string, Schema.number.array));
 
 const multiTupleTupleTag = '@fp4ts/http/__tests__/dsl-client/multiTupleTuple';
 export const multiTupleTuple =
   typeref<[string, Option<number>, boolean, [string, number[]]]>()(
     multiTupleTupleTag,
   );
-export const multiTupleCodable: Codable<
+export const multiTupleCodable: Codec<
+  string,
+  string,
   [string, Option<number>, boolean, [string, number[]]]
-> = Codable.json.fromSchema(
+> = JsonCodec.fromSchema(
   Schema.product(
     Schema.string,
     Schema.number.nullable,

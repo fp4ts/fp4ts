@@ -23,15 +23,15 @@ describe('DecoderT', () => {
     it('should transform to success', () => {
       const r = Decoder.string
         .flatMapR(() => DecodeResult.success('bar'))
-        .decode('foo').value;
+        .decode('foo');
 
-      expect(r.value).toEqual(Right('bar'));
+      expect(r).toEqual(Right('bar'));
     });
 
     it('should transform to failure', () => {
       const r = DecoderT.string(IdM)
         .flatMapR(IdM)(() => DecodeResultT.failure(IdM)(new DecodeFailure()))
-        .decode('foo').value;
+        .decodeT('foo').value;
 
       expect(r).toEqual(Left(new DecodeFailure()));
     });
@@ -39,23 +39,23 @@ describe('DecoderT', () => {
     it('should fallthrough on failure', () => {
       const r = Decoder.string
         .flatMapR(() => DecodeResult.failure(new DecodeFailure()))
-        .decode(42).value;
+        .decode(42);
 
-      expect(r.value).toEqual(Left(new DecodeFailure('string')));
+      expect(r).toEqual(Left(new DecodeFailure('string')));
     });
   });
 
   describe('handleError', () => {
     it('should recover from failure into success', () => {
-      const r = Decoder.string.handleError(() => 'foo').decode(42).value;
+      const r = Decoder.string.handleError(() => 'foo').decode(42);
 
-      expect(r.value).toEqual(Right('foo'));
+      expect(r).toEqual(Right('foo'));
     });
 
     it('should ignore recovery when successful', () => {
       const r = DecoderT.string(IdM)
         .handleError(IdM)(() => throwError(new DecodeFailure('My failure')))
-        .decode('bar').value;
+        .decodeT('bar').value;
 
       expect(r).toEqual(Right('bar'));
     });
@@ -65,9 +65,9 @@ describe('DecoderT', () => {
     it('should recover from failure into success', () => {
       const r = Decoder.string
         .handleErrorWithR(() => DecodeResult.success('foo'))
-        .decode(42).value;
+        .decode(42);
 
-      expect(r.value).toEqual(Right('foo'));
+      expect(r).toEqual(Right('foo'));
     });
 
     it('should recover from failure into failure', () => {
@@ -75,7 +75,7 @@ describe('DecoderT', () => {
         .handleErrorWithR(IdM)(() =>
           DecodeResultT.failure(IdM)(new DecodeFailure('My failure')),
         )
-        .decode(42).value;
+        .decodeT(42).value;
 
       expect(r).toEqual(Left(new DecodeFailure('My failure')));
     });
@@ -85,9 +85,9 @@ describe('DecoderT', () => {
         .handleErrorWithR(() =>
           DecodeResult.failure(new DecodeFailure('My failure')),
         )
-        .decode('bar').value;
+        .decode('bar');
 
-      expect(r.value).toEqual(Right('bar'));
+      expect(r).toEqual(Right('bar'));
     });
   });
 
@@ -95,15 +95,15 @@ describe('DecoderT', () => {
     it('should recover from failure into success', () => {
       const r = Decoder.string
         .handleErrorWith(() => Decoder.succeed('foo'))
-        .decode(42).value;
+        .decode(42);
 
-      expect(r.value).toEqual(Right('foo'));
+      expect(r).toEqual(Right('foo'));
     });
 
     it('should recover from failure into failure', () => {
       const r = DecoderT.string(IdM)
         .handleErrorWith(IdM)(() => DecoderT.failWith(IdM)('My failure'))
-        .decode(42).value;
+        .decodeT(42).value;
 
       expect(r).toEqual(Left(new DecodeFailure('My failure')));
     });
@@ -111,9 +111,9 @@ describe('DecoderT', () => {
     it('should ignore recovery when successful', () => {
       const r = Decoder.string
         .handleErrorWith(() => Decoder.failWith('My failure'))
-        .decode('bar').value;
+        .decode('bar');
 
-      expect(r.value).toEqual(Right('bar'));
+      expect(r).toEqual(Right('bar'));
     });
   });
 
@@ -140,9 +140,9 @@ describe('DecoderT', () => {
     it('should decode person with correct data', () => {
       fc.assert(
         fc.property(arbPerson, person =>
-          expect(personDecoder.decode(person).value).toEqual(Right(person)),
+          expect(personDecoder.decodeT(person).value).toEqual(Right(person)),
         ),
-        { numRuns: 20 },
+        { numRuns: 20, unbiased: true },
       );
     });
   });

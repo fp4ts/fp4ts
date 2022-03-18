@@ -72,7 +72,7 @@ export const tailRecM_ =
     f: (s: S) => DecoderT<F, I, Either<S, A>>,
   ): DecoderT<F, I, A> =>
     new DecoderT(i =>
-      EitherT.Monad<F, DecodeFailure>(F).tailRecM(s0)(s => f(s).decode(i)),
+      EitherT.Monad<F, DecodeFailure>(F).tailRecM(s0)(s => f(s).decodeT(i)),
     );
 
 // -- Schema specific
@@ -135,7 +135,7 @@ export const array =
             idx >= xs.length
               ? DecodeResultT.success(F)(acc)
               : da
-                  .decode(xs[idx])
+                  .decodeT(xs[idx])
                   .leftMap(F)(f => f.mapCause(f => `${f} at index '${idx}'`))
                   .flatMap(F)(x => loop([...acc, x], idx + 1));
           return loop([], 0);
@@ -159,7 +159,7 @@ export const record =
             return idx >= keys.length
               ? DecodeResultT.success(F)(acc)
               : ds
-                  .decode(xs[k as any])
+                  .decodeT(xs[k as any])
                   .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
                   .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
           };
@@ -189,7 +189,7 @@ export const struct =
               );
 
             return ds[k]
-              .decode(xs[k as any])
+              .decodeT(xs[k as any])
               .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
               .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
           };
@@ -216,7 +216,7 @@ export const partial =
               if (!(k in xs)) return DecodeResultT.success(F)(None);
 
               return mapFailure_(F)(ds[k], f => `'${f}' at key '${k}'`)
-                .decode(xs[k as string])
+                .decodeT(xs[k as string])
                 .map(F)(r => Some(tupled(r, k)));
             }),
           ).map(F)(rs =>
@@ -250,7 +250,7 @@ export const product =
           const loop = (acc: any[], idx: number): DecodeResultT<F, A> =>
             idx >= ds.length
               ? DecodeResultT.success(F)(acc as A)
-              : ds[idx].decode(xs[idx]).flatMap(F)(x =>
+              : ds[idx].decodeT(xs[idx]).flatMap(F)(x =>
                   loop([...acc, x], idx + 1),
                 );
 
@@ -276,14 +276,14 @@ export const sum =
             return DecodeResultT.failure(F)(
               new DecodeFailure(`Invalid tag '${tag}'`),
             );
-          return ds[t].decode(x);
+          return ds[t].decodeT(x);
         }),
       ),
     );
 
 export const defer = <F, I, A>(
   thunk: () => DecoderT<F, I, A>,
-): DecoderT<F, I, A> => new DecoderT(i => thunk().decode(i));
+): DecoderT<F, I, A> => new DecoderT(i => thunk().decodeT(i));
 
 // -- Utils
 

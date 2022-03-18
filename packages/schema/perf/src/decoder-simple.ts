@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { add, complete, cycle, suite } from 'benny';
-import { Identity } from '@fp4ts/cats';
-import { DecoderT, Guard } from '@fp4ts/schema-core';
+import { Decoder, Guard } from '@fp4ts/schema-core';
 import { Schema, TypeOf } from '@fp4ts/schema-kernel';
 
 const Person = Schema.struct({
@@ -14,7 +13,7 @@ const Person = Schema.struct({
 });
 type Person = TypeOf<typeof Person>;
 
-const PersonD = Person.interpret(DecoderT.Schemable(Identity.Monad));
+const PersonD = Person.interpret(Decoder.Schemable);
 const PersonG = Person.interpret(Guard.Schemable);
 
 const good: Person = {
