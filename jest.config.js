@@ -16,6 +16,7 @@ module.exports = {
     '<rootDir>/effect/kernel/src',
     '<rootDir>/effect/laws/src',
     '<rootDir>/effect/std/src',
+    '<rootDir>/logging/__tests__',
     '<rootDir>/http/__tests__',
     '<rootDir>/optics/__tests__',
     '<rootDir>/parse/__tests__',
