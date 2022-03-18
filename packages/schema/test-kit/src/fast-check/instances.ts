@@ -22,7 +22,7 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
     record: x => fc.dictionary(fc.string(), x),
     sum: (tag => (xs: any) =>
       fc.oneof(
-        Object.keys(xs).map(k => fc.record(xs[k])) as any,
+        ...(Object.keys(xs).map(k => xs[k]) as any),
       )) as Schemable<ArbitraryF>['sum'],
     product: ((...xs) => fc.tuple(...xs)) as Schemable<ArbitraryF>['product'],
     imap: (arb, f, g) => arb.map(f),
