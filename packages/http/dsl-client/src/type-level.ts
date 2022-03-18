@@ -46,7 +46,7 @@ import {
 import { ResponseHeaders } from './headers';
 import { builtins } from './builtin-codables';
 import { ClientMF } from './client-m';
-import { Codec } from '@fp4ts/schema';
+import { JsonCodec } from '@fp4ts/schema-json';
 
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
@@ -173,14 +173,14 @@ export interface CodingDerivates<F, x, z> {
   [VerbTag]: x extends VerbElement<any, infer CT, infer T>
     ? z & {
         [_ in CT['mime']]: {
-          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+          [k in T['Ref']]: JsonCodec<TypeOf<T>>;
         };
       }
     : never;
   // prettier-ignore
   [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
     ? H extends HeadersElement<infer hs, infer T>
-      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codec<string, string, TypeOf<T>> } }
+      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: JsonCodec<TypeOf<T>> } }
           & { [FromHttpApiDataTag]: ExtractResponseHeaderCodings<hs>; }
       : never
     : never;
@@ -188,7 +188,7 @@ export interface CodingDerivates<F, x, z> {
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
     ? z & {
         [_ in CT['mime']]: {
-          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+          [k in T['Ref']]: JsonCodec<TypeOf<T>>;
         };
       }
     : never;

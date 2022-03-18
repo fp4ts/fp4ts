@@ -57,7 +57,8 @@ import {
   BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
 import { Concurrent, IO, IOF } from '@fp4ts/effect';
-import { Codec, DecodeFailure } from '@fp4ts/schema';
+import { DecodeFailure } from '@fp4ts/schema';
+import { JsonCodec } from '@fp4ts/schema-json';
 
 import { Context, EmptyContext } from './context';
 import { Delayed } from './delayed';
@@ -545,7 +546,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Handler<F, TypeOf<T>>>,
     codings: {
-      [_ in CT['mime']]: { [_ in R]: Codec<string, string, TypeOf<T>> };
+      [_ in CT['mime']]: { [_ in R]: JsonCodec<TypeOf<T>> };
     },
   ): Router<env, RoutingApplication<F>> {
     const { encode } = codings[ct.mime][body.Ref];

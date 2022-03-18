@@ -66,9 +66,9 @@ export const PersonSchema = Schema.struct({
 }).imap(Person, Person.unapply);
 export const PersonArraySchema = PersonSchema.array;
 
-export const PersonCodable: Codec<string, string, Person> =
+export const PersonCodable: JsonCodec<Person> =
   JsonCodec.fromSchema(PersonSchema);
-export const PersonArrayCodable: Codec<string, string, Person[]> =
+export const PersonArrayCodable: JsonCodec<Person[]> =
   JsonCodec.fromSchema(PersonArraySchema);
 
 export const carol = Person({ name: 'Carol', age: 42 });

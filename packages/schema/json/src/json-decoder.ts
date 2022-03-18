@@ -8,9 +8,23 @@ import { DecodeFailure, Decoder } from '@fp4ts/schema-core';
 import { Schema } from '@fp4ts/schema-kernel';
 import { Json } from './json';
 
-export type JsonDecoder = Decoder<string, Json>;
+export type JsonDecoder<A> = Decoder<string, A>;
 
-export const JsonDecoder: JsonDecoderObj = Decoder((input: string) =>
+export const JsonDecoder: JsonDecoderObj = function () {};
+
+JsonDecoder.fromDecoder = decoder => RawJsonDecoder.andThen(decoder);
+JsonDecoder.fromSchema = sa => sa.interpret(Decoder.Schemable);
+
+interface JsonDecoderObj {
+  fromDecoder<A>(decoder: Decoder<unknown, A>): JsonDecoder<A>;
+  fromSchema<A>(sa: Schema<A>): JsonDecoder<A>;
+}
+
+// -- Raw
+
+export type RawJsonDecoder = JsonDecoder<Json>;
+
+export const RawJsonDecoder: RawJsonDecoder = Decoder((input: string) =>
   EitherT(
     Eval.delay(() =>
       Try(() => JSON.parse(input)).toEither.leftMap(
@@ -18,12 +32,4 @@ export const JsonDecoder: JsonDecoderObj = Decoder((input: string) =>
       ),
     ),
   ),
-) as any;
-
-JsonDecoder.fromDecoder = decoder => JsonDecoder.andThen(decoder);
-JsonDecoder.fromSchema = sa => sa.interpret(Decoder.Schemable);
-
-interface JsonDecoderObj extends JsonDecoder {
-  fromDecoder<A>(decoder: Decoder<Json, A>): Decoder<string, A>;
-  fromSchema<A>(sa: Schema<A>): Decoder<string, A>;
-}
+);

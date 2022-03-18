@@ -39,11 +39,11 @@ import {
   BasicAuthElement,
 } from '@fp4ts/http-dsl-shared';
 import { BasicAuthenticator } from '@fp4ts/http-server';
+import { JsonCodec } from '@fp4ts/schema-json';
 import { AddHeader } from './add-header';
 import { builtins } from './builtin-codables';
 import { HandlerF } from './internal/handler';
 import { BasicAuthValidatorTag } from './basic-auth-validator';
-import { Codec } from '@fp4ts/schema';
 
 export interface TermDerivates<F, api, m> {}
 export interface SubDerivates<F, x, api, m> {}
@@ -170,14 +170,14 @@ export interface CodingDerivates<F, x, z> {
   [VerbTag]: x extends VerbElement<any, infer CT, infer T>
     ? z & {
         [_ in CT['mime']]: {
-          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+          [k in T['Ref']]: JsonCodec<TypeOf<T>>;
         };
       }
     : never;
   // prettier-ignore
   [HeadersVerbTag]: x extends HeadersVerbElement<any, infer CT, infer H>
     ? H extends HeadersElement<infer hs, infer T>
-      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: Codec<string, string, TypeOf<T>> } }
+      ? z & { [_ in CT['mime']]: { [k in T['Ref']]: JsonCodec<TypeOf<T>> } }
           & { [ToHttpApiDataTag]: ExtractResponseHeaderCodings<hs>; }
       : never
     : never;
@@ -185,7 +185,7 @@ export interface CodingDerivates<F, x, z> {
   [ReqBodyTag]: x extends ReqBodyElement<infer CT, infer T>
     ? z & {
         [_ in CT['mime']]: {
-          [k in T['Ref']]: Codec<string, string, TypeOf<T>>;
+          [k in T['Ref']]: JsonCodec<TypeOf<T>>;
         };
       }
     : never;

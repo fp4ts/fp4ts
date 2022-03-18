@@ -6,21 +6,28 @@
 import { Codec } from '@fp4ts/schema-core';
 import { Schema } from '@fp4ts/schema-kernel';
 import { Json } from './json';
-import { JsonDecoder } from './json-decoder';
-import { JsonEncoder } from './json-encoder';
+import { RawJsonDecoder } from './json-decoder';
+import { RawJsonEncoder } from './json-encoder';
 
-export type JsonCodec = Codec<string, string, Json>;
+export type JsonCodec<A> = Codec<string, string, A>;
 
-export const JsonCodec: JsonCodecObj = Codec.make(
-  JsonEncoder,
-  JsonDecoder,
-) as any;
+export const JsonCodec: JsonCodecObj = function () {};
 
-JsonCodec.fromCodec = codec => JsonCodec.andThen(codec);
+JsonCodec.fromCodec = <A>(codec: Codec<unknown, unknown, A>) =>
+  RawJsonCodec.andThen(codec as Codec<Json, Json, A>);
 JsonCodec.fromSchema = <A>(sa: Schema<A>) =>
-  JsonCodec.fromCodec(sa.interpret(Codec.Schemable) as Codec<Json, Json, A>);
+  JsonCodec.fromCodec(sa.interpret(Codec.Schemable));
 
-interface JsonCodecObj extends JsonCodec {
-  fromCodec<A>(encoder: Codec<Json, Json, A>): Codec<string, string, A>;
-  fromSchema<A>(sa: Schema<A>): Codec<string, string, A>;
+interface JsonCodecObj {
+  fromCodec<A>(encoder: Codec<unknown, unknown, A>): JsonCodec<A>;
+  fromSchema<A>(sa: Schema<A>): JsonCodec<A>;
 }
+
+// -- Raw
+
+export type RawJsonCodec = JsonCodec<Json>;
+
+export const RawJsonCodec: RawJsonCodec = Codec.make(
+  RawJsonEncoder,
+  RawJsonDecoder,
+) as any;

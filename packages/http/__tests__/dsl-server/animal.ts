@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, newtype, newtypeDerive, TypeOf } from '@fp4ts/core';
-import { Codec, CodecF, Schema, TypeOf as TypeOfSchema } from '@fp4ts/schema';
+import { CodecF, Schema, TypeOf as TypeOfSchema } from '@fp4ts/schema';
 import { JsonCodec } from '@fp4ts/schema-json';
 
 export const AnimalSchema = Schema.struct({
@@ -19,6 +19,6 @@ export const Animal =
   newtype<TypeOfSchema<typeof AnimalSchema>>()(AnimalTypeTag);
 export type Animal = TypeOf<typeof Animal>;
 
-export const AnimalCodable: Codec<string, string, Animal> = newtypeDerive<
+export const AnimalCodable: JsonCodec<Animal> = newtypeDerive<
   $<CodecF, [string, string]>
 >()(Animal, JsonCodec.fromSchema(AnimalSchema));
