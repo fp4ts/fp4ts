@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { compose, Kind } from '@fp4ts/core';
-import { Applicative, Either, Option } from '@fp4ts/cats';
+import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
 
 import { Fold } from './fold';
 import { Getter } from './getter';
@@ -14,6 +14,15 @@ import { PTraversal } from './traversal';
 import { isPrism } from './internal/lens-hierarchy';
 
 export class PPrism<S, T, A, B> {
+  public static filter<A, B extends A>(f: (a: A) => a is B): Prism<A, B>;
+  public static filter<A>(f: (a: A) => boolean): Prism<A, A>;
+  public static filter<A>(f: (a: A) => boolean): Prism<A, A> {
+    return new PPrism(
+      value => (f(value) ? Right(value) : Left(value)),
+      value => value,
+    );
+  }
+
   public constructor(
     public readonly getOrModify: (s: S) => Either<T, A>,
     public readonly reverseGet: (b: B) => T,
@@ -86,6 +95,17 @@ export class PPrism<S, T, A, B> {
 
   public asOptional(): POptional<S, T, A, B> {
     return new POptional(this.getOrModify, this.replace.bind(this));
+  }
+
+  // -- Additional Syntax
+
+  public filter<B extends A>(
+    this: Prism<S, A>,
+    f: (a: A) => a is B,
+  ): Prism<S, B>;
+  public filter(this: Prism<S, A>, f: (a: A) => boolean): Prism<S, A>;
+  public filter(this: Prism<S, A>, f: (a: A) => boolean): Prism<S, A> {
+    return this.andThen(Prism.filter(f));
   }
 }
 

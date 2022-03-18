@@ -18,3 +18,4 @@ export * from './prism';
 export * from './iso';
 
 export * from './function';
+export * from './match';

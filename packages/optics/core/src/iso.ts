@@ -7,8 +7,8 @@ import { compose, Kind } from '@fp4ts/core';
 import { Applicative, Either, Functor, Right } from '@fp4ts/cats';
 
 import { Lens, PLens } from './lens';
-import { PPrism } from './prism';
-import { Optional, POptional } from './optional';
+import { PPrism, Prism } from './prism';
+import { POptional } from './optional';
 import { PTraversal } from './traversal';
 import { PSetter } from './setter';
 import { Getter } from './getter';
@@ -122,8 +122,8 @@ export class PIso<S, T, A, B> {
 export interface PIso<S, T, A, B>
   extends PLens<S, T, A, B>,
     PPrism<S, T, A, B> {
-  filter<B extends A>(this: Iso<S, A>, f: (a: A) => a is B): Optional<S, B>;
-  filter(this: Iso<S, A>, f: (a: A) => boolean): Optional<S, A>;
+  filter<B extends A>(this: Iso<S, A>, f: (a: A) => a is B): Prism<S, B>;
+  filter(this: Iso<S, A>, f: (a: A) => boolean): Prism<S, A>;
   at<I, A1>(this: Iso<S, A>, i: I, at: At<A, I, A1>): Lens<S, A1>;
 }
 
