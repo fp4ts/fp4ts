@@ -447,13 +447,13 @@ describe('Raw', () => {
     ),
   );
 
-  it.M('should capture the entire reminder of the route', () =>
+  it.M('should capture the reminder of the route', () =>
     withServerP(server)(server =>
       test(server)
         .get('/bar/baz/foo')
         .then(response => {
           expect(response.statusCode).toBe(200);
-          expect(response.text).toBe('/bar/baz/foo');
+          expect(response.text).toBe('/baz/foo');
         }),
     ),
   );

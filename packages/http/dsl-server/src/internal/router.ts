@@ -6,7 +6,7 @@
 import { pipe, tupled } from '@fp4ts/core';
 import { Kleisli, Monad } from '@fp4ts/cats';
 import { Schema, Schemable } from '@fp4ts/schema';
-import { NotFoundFailure, Request, Response } from '@fp4ts/http-core';
+import { NotFoundFailure, Path, Request, Response } from '@fp4ts/http-core';
 import { RouteResultT } from './route-result';
 import { RoutingApplication } from './routing-application';
 
@@ -150,7 +150,14 @@ export const runRouterEnv =
           }
 
           case 'raw':
-            return router.app(env).run(req);
+            return (
+              router
+                .app(env)
+                // pass remainder of the path to the raw router
+                // Note: We always artificially prepend absolute path in case
+                //       an empty segment is encountered
+                .run(req.withUri(req.uri.withPath(new Path(['', ...rem]))))
+            );
 
           case 'choice':
             return loop(req, router.lhs, rem)(env).orElse(F)(() =>
