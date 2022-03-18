@@ -39,7 +39,7 @@ export const array = <A>(sa: Schema<A>): Schema<A[]> => new ArraySchema(sa);
 
 export const struct = <A extends {}>(xs: {
   [k in keyof A]: Schema<A[k]>;
-}): Schema<A> => new StructSchema(xs);
+}): StructSchema<A> => new StructSchema(xs);
 
 export const record = <A>(sa: Schema<A>): Schema<Record<string, A>> =>
   new RecordSchema(sa);
@@ -50,9 +50,9 @@ export const product = <A extends unknown[]>(
 
 export const sum =
   <T extends string>(tag: T) =>
-  <A extends {}>(xs: { [k in keyof A]: Schema<A[k] & Record<T, k>> }): Schema<
-    A[keyof A]
-  > =>
+  <A extends {}>(xs: {
+    [k in keyof A]: Schema<A[k] & Record<T, k>>;
+  }): SumSchema<T, A> =>
     new SumSchema(tag, xs);
 
 export const defer = <A>(thunk: () => Schema<A>): Schema<A> =>

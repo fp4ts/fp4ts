@@ -7,7 +7,7 @@
 import { Kind } from '@fp4ts/core';
 import { Literal } from '../literal';
 import { Schemable } from '../schemable';
-import { Schema as SchemaBase } from './algebra';
+import { Schema as SchemaBase, StructSchema, SumSchema } from './algebra';
 import {
   array,
   boolean,
@@ -23,6 +23,7 @@ import {
   sum,
 } from './constructors';
 
+export type { StructSchema, SumSchema } from './algebra';
 export type Schema<A> = SchemaBase<A>;
 
 export type TypeOf<A> = A extends Schema<infer B> ? B : never;
@@ -41,7 +42,7 @@ interface SchemaObj {
 
   struct<A extends {}>(xs: {
     [k in keyof A]: Schema<A[k]>;
-  }): Schema<A>;
+  }): StructSchema<A>;
 
   record<A>(sa: Schema<A>): Schema<Record<string, A>>;
 
@@ -53,7 +54,7 @@ interface SchemaObj {
     tag: T,
   ): <A extends {}>(xs: {
     [k in keyof A]: Schema<A[k] & Record<T, k>>;
-  }) => Schema<A[keyof A]>;
+  }) => SumSchema<T, A>;
 
   defer<A>(thunk: () => Schema<A>): Schema<A>;
 

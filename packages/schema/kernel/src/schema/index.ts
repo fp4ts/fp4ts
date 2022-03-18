@@ -5,3 +5,4 @@
 
 import './syntax';
 export { Schema, TypeOf } from './schema';
+export type { StructSchema, SumSchema } from './schema';

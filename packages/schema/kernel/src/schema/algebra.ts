@@ -76,14 +76,14 @@ export class ArraySchema<A> extends Schema<A[]> {
 }
 
 export class StructSchema<A extends {}> extends Schema<A> {
-  public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
+  public constructor(public readonly struct: { [k in keyof A]: Schema<A[k]> }) {
     super();
   }
 
   protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
-    const keys = Object.keys(this.xs) as (keyof A)[];
+    const keys = Object.keys(this.struct) as (keyof A)[];
     const sxs = keys.reduce(
-      (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
+      (acc, k) => ({ ...acc, [k]: this.struct[k].interpret(S) }),
       {} as { [k in keyof A]: Kind<S, [A[k]]> },
     );
     return S.struct(sxs);
@@ -125,16 +125,16 @@ export class SumSchema<T extends string, A extends {}> extends Schema<
   A[keyof A]
 > {
   public constructor(
-    private readonly tag: T,
-    private readonly xs: { [k in keyof A]: Schema<A[k] & Record<T, k>> },
+    public readonly tag: T,
+    public readonly sum: { [k in keyof A]: Schema<A[k] & Record<T, k>> },
   ) {
     super();
   }
 
   protected interpret0<S>(S: Schemable<S>): Kind<S, [A[keyof A]]> {
-    const keys = Object.keys(this.xs) as (keyof A)[];
+    const keys = Object.keys(this.sum) as (keyof A)[];
     const sxs = keys.reduce(
-      (acc, k) => ({ ...acc, [k]: this.xs[k].interpret(S) }),
+      (acc, k) => ({ ...acc, [k]: this.sum[k].interpret(S) }),
       {} as { [k in keyof A]: Kind<S, [A[k] & Record<T, k>]> },
     );
     return S.sum(this.tag)(sxs);
