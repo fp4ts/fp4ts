@@ -28,6 +28,7 @@ module.exports = {
     '<rootDir>/stream/__tests__',
     '<rootDir>/stream/core/src',
     '<rootDir>/examples/fp-to-the-max',
+    '<rootDir>/examples/shopping-cart',
     '<rootDir>/examples/todo-api',
   ],
   testEnvironment: 'node',

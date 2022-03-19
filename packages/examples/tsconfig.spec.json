@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./fp-to-the-max/tsconfig.spec.json" },
+    { "path": "./shopping-cart/tsconfig.spec.json" },
     { "path": "./todo-api/tsconfig.spec.json" },
   ]
 }

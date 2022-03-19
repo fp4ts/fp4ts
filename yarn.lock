@@ -1541,6 +1541,11 @@ diff-sequences@^27.5.1:
   resolved "https://registry.yarnpkg.com/diff-sequences/-/diff-sequences-27.5.1.tgz#eaecc0d327fd68c8d9672a1e64ab8dccb2ef5327"
   integrity sha512-k1gCAXAsNgLwEL+Y8Wvl+M6oEFj5bgazfZULpS5CneoPPXRaCCW7dm+q21Ky2VEE5X+VeRDBVg1Pcvvsr4TtNQ==
 
+dinero.js@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/dinero.js/-/dinero.js-1.9.1.tgz#64b10ce7277a07805dac9c8cd6500e9b7d0aee96"
+  integrity sha512-1HXiF2vv3ZeRQ23yr+9lFxj/PbZqutuYWJnE0qfCB9xYBPnuaJ8lXtli1cJM0TvUXW1JTOaePldmqN5JVNxKSA==
+
 dir-glob@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/dir-glob/-/dir-glob-3.0.1.tgz#56dbf73d992a4a93ba1584f4534063fd2e41717f"
