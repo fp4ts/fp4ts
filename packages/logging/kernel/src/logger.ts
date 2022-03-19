@@ -8,6 +8,8 @@ import {
   Alternative,
   Applicative,
   Contravariant,
+  FlatMap,
+  FunctionK,
   MonoidK,
   Option,
   Some,
@@ -17,6 +19,7 @@ import {
   WriterTF,
 } from '@fp4ts/cats';
 import { LogLevel } from './log-level';
+import { LogFormat } from './log-format';
 import { LogMessage } from './log-message';
 
 export function WriterLogger<G, A>(
@@ -40,9 +43,17 @@ export class Logger<F, A> {
     <A = unknown>(): Logger<F, A> =>
       new Logger(F, () => F.unit);
 
+  public static fromFormat =
+    <F>(F: Applicative<F>) =>
+    <A = unknown>(
+      format: LogFormat<A>,
+      log: (msg: string) => Kind<F, [void]>,
+    ): Logger<F, A> =>
+      new Logger(F, msg => log(format(msg)));
+
   public constructor(
-    private readonly F: Applicative<F>,
-    private readonly log: (msg: LogMessage<A>) => Kind<F, [void]>,
+    protected readonly F: Applicative<F>,
+    public readonly log: (msg: LogMessage<A>) => Kind<F, [void]>,
   ) {}
 
   public error(message: A): Kind<F, [void]>;
@@ -100,6 +111,12 @@ export class Logger<F, A> {
     return new Logger(this.F, mb => this.log(f(mb)));
   }
 
+  public contramapMessageF(
+    F: FlatMap<F>,
+  ): <B>(f: (b: LogMessage<B>) => Kind<F, [LogMessage<A>]>) => Logger<F, B> {
+    return f => new Logger(this.F, mb => F.flatMap_(f(mb), this.log));
+  }
+
   public filter(f: (a: A) => boolean): Logger<F, A> {
     return this.filterMessage(msg => f(msg.message));
   }
@@ -118,6 +135,10 @@ export class Logger<F, A> {
     f: (a: LogMessage<B>) => Option<LogMessage<A>>,
   ): Logger<F, B> {
     return new Logger(this.F, msg => f(msg).fold(() => this.F.unit, this.log));
+  }
+
+  public mapK<G>(G: Applicative<G>, nt: FunctionK<F, G>): Logger<G, A> {
+    return new TransformLogger(G, this, nt);
   }
 
   private buildMessage(lvl: LogLevel, args: any[]): LogMessage<A> {
@@ -145,4 +166,14 @@ export class Logger<F, A> {
 
 export interface LoggerF extends TyK<[unknown, unknown]> {
   [$type]: Logger<TyVar<this, 0>, TyVar<this, 1>>;
+}
+
+class TransformLogger<F, G, A> extends Logger<G, A> {
+  public constructor(
+    G: Applicative<G>,
+    self: Logger<F, A>,
+    nt: FunctionK<F, G>,
+  ) {
+    super(G, msg => nt(self.log(msg)));
+  }
 }

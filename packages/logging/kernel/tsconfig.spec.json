@@ -8,7 +8,5 @@
   "references": [
     { "path": "../../core/tsconfig.spec.json" },
     { "path": "../../cats/tsconfig.spec.json" },
-    { "path": "../../effect/tsconfig.spec.json" },
-    { "path": "../kernel/tsconfig.spec.json" },
   ]
 }

@@ -6,10 +6,5 @@
 /**
  * @module logging/core
  */
-export * from './logger';
-export * from './logging';
-export * from './structured-logging';
-
-export * from './log-level';
-export * from './log-format';
-export * from './log-message';
+export * from './console-logger';
+export * from './sync-logger';

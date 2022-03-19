@@ -20,19 +20,20 @@ export function logFormat<A = unknown>(
   while (i < strings.length) {
     acc = concat(acc, text(strings[i++]));
   }
-  while (j < strings.length) {
+  while (j < xs.length) {
     acc = concat(acc, xs[j++]);
   }
 
   return acc;
 }
 
-type LogFormat<A = unknown> = (msg: LogMessage<A>) => string;
+export type LogFormat<A = unknown> = (msg: LogMessage<A>) => string;
 export const LogFormat = Object.freeze({
   get default(): LogFormat {
-    return logFormat`timestamp: ${fixed(42, timestamp())} ${level} ${quoted(
-      message(),
-    )}`;
+    return logFormat`timestamp: ${fixed(
+      42,
+      timestamp(),
+    )} level: ${level} message: ${quoted(message())}`;
   },
 });
 
@@ -94,9 +95,9 @@ export const quoted =
 export const concat =
   <A>(l: LogFormat<A>, ...rs: LogFormat<A>[]): LogFormat<A> =>
   msg =>
-    [l(msg), rs.map(r => r(msg))].join('');
+    [l(msg), ...rs.map(r => r(msg))].join('');
 
 export const spaced =
   <A>(l: LogFormat<A>, ...rs: LogFormat<A>[]): LogFormat<A> =>
   msg =>
-    [l(msg), rs.map(r => r(msg))].join(' ');
+    [l(msg), ...rs.map(r => r(msg))].join(' ');

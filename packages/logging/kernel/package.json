@@ -1,8 +1,8 @@
 {
-  "name": "@fp4ts/logging",
+  "name": "@fp4ts/logging-kernel",
   "version": "1.0.0",
   "main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
@@ -10,10 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
-    "@fp4ts/core": "*",
-    "@fp4ts/effect": "*",
-    "@fp4ts/logging-core": "*",
-    "@fp4ts/logging-kernel": "*"
+    "@fp4ts/core": "*"
   },
   "devDependencies": {
     "typescript": "4.6.2"

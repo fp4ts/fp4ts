@@ -6,4 +6,5 @@
 /**
  * @module logging
  */
-export {};
+export * from '@fp4ts/logging-core';
+export * from '@fp4ts/logging-kernel';
