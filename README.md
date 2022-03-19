@@ -33,7 +33,7 @@ to the http4s, this port also includes [Servant](https://haskell-servant.github.
 - `@fp4ts/logging` Logging library inspired by [log4cats](https://github.com/typelevel/log4cats),
 [purescript-logging](https://github.com/rightfold/purescript-logging),
 and [zio-logging](https://github.com/zio/zio-logging). The library provides
-brackets using Writer, WriterT and Console type classes.
+brackets using `Writer`, `WriterT` and `Console` type classes.
 
 - `@fp4ts/optics` Port of the [Monocle](https://github.com/optics-dev/Monocle) library,
 a Scala optics library for easy data access and transformation.
@@ -50,7 +50,7 @@ to consume input and ones that do not.
 for purely functional, effect-ful, and polymorphic stream processing.
 
 - `@fp4ts/schema` The library for describing types of Kind-0 and Kind-1, with
-derivation capabilities for common typeclasses such as Eq, Functor, Foldable, and more.
+derivation capabilities for common typeclasses such as `Eq`, `Functor`, `Foldable`, and more.
 Inspired by [io-ts](https://github.com/gcanti/io-ts), [shapeless](https://github.com/milessabin/shapeless), and [kittens](https://github.com/typelevel/kittens).
 
 
