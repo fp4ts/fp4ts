@@ -30,6 +30,11 @@ laws, to verify correctness of those implementations.
 providing minimal functional interface for building HTTP services. In addition
 to the http4s, this port also includes [Servant](https://haskell-servant.github.io/)-like [dsl](./packages/http/dsl) for API declaration.
 
+- `@fp4ts/logging` Logging library inspired by [log4cats](https://github.com/typelevel/log4cats),
+[purescript-logging](https://github.com/rightfold/purescript-logging),
+and [zio-logging](https://github.com/zio/zio-logging). The library provides
+brackets using Writer, WriterT and Console type classes.
+
 - `@fp4ts/optics` Port of the [Monocle](https://github.com/optics-dev/Monocle) library,
 a Scala optics library for easy data access and transformation.
 
