@@ -7,4 +7,4 @@
  * @module logging/core
  */
 export * from './console-logger';
-export * from './sync-logger';
+export * from './timestamp-logger';

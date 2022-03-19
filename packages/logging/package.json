@@ -16,6 +16,7 @@
     "@fp4ts/logging-kernel": "*"
   },
   "devDependencies": {
+    "@fp4ts/effect-test-kit": "*",
     "typescript": "4.6.2"
   }
 }
