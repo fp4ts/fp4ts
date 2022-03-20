@@ -26,7 +26,7 @@ Password.schema = Schema.string.imap(_Password, _Password.unapply);
 Password.Eq = Password.schema.interpret(Schemable.Eq);
 
 interface PasswordObj {
-  (username: string): Option<Password>;
+  (password: string): Option<Password>;
   unsafeFromString(s: string): Password;
   toPlainText(p: Password): string;
   schema: Schema<Password>;
