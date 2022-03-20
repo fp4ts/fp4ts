@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export * from './bcrypt-hash';
-export * from './date-schema';
-export * from './gen-uuid';
-export * from './uuid';
+import { BasicAuth } from '@fp4ts/http-dsl';
+import { User } from '../../domain/auth';
+
+export const UserBasicAuth = BasicAuth('auth', User.Ref);

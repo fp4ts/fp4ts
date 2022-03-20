@@ -22,7 +22,7 @@ export const User: UserObj = function () {};
 User.schema = _User;
 User.Eq = _User.interpret(Schemable.Eq);
 
-const UserTypeTag = '@fp4ts/domain/auth/user';
+const UserTypeTag = '@fp4ts/shopping-cart/domain/auth/user';
 type UserTypeTag = typeof UserTypeTag;
 User.Ref = typeref<User>()(UserTypeTag);
 
