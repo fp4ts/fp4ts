@@ -19,6 +19,16 @@ export interface Monad<F> extends FlatMap<F>, Applicative<F> {
       fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
     ) => Generator<Eff, R, any>,
   ): Kind<F, [R]>;
+
+  ifM<A>(
+    then: Kind<F, [A]>,
+    else_: Kind<F, [A]>,
+  ): (fc: Kind<F, [boolean]>) => Kind<F, [A]>;
+  ifM_<A>(
+    fc: Kind<F, [boolean]>,
+    then: Kind<F, [A]>,
+    else_: Kind<F, [A]>,
+  ): Kind<F, [A]>;
 }
 
 export type MonadRequirements<F> = Pick<
@@ -33,6 +43,8 @@ function of<M>(M: MonadRequirements<HKT1<M>>): Monad<HKT1<M>> {
   const A = Monad.deriveApplicative(M);
 
   const self: Monad<HKT1<M>> = { ...F, ...A, ...M } as any;
+  self.ifM = (t, e) => fc => self.ifM_(fc, t, e);
+  self.ifM_ = (fc, t, e) => self.flatMap_(fc, c => (c ? t : e));
   self.do = Monad.Do(self);
   return self;
 }

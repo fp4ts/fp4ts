@@ -19,7 +19,7 @@ export const Password: PasswordObj = function (
   return PasswordRegex.test(password) ? Some(_Password(password)) : None;
 };
 
-const PasswordRegex = /^.{8,}+$/;
+const PasswordRegex = /^.{8,}$/;
 Password.unsafeFromString = _Password;
 Password.toPlainText = _Password.unapply;
 Password.schema = Schema.string.imap(_Password, _Password.unapply);

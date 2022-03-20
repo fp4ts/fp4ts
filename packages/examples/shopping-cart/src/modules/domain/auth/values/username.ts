@@ -20,11 +20,15 @@ export const Username: UsernameObj = function (
 };
 
 const UsernameRegex = /^[\w_-]+$/;
+Username.unsafeFromString = _Username;
+Username.toString = _Username.unapply;
 Username.schema = Schema.string.imap(_Username, _Username.unapply);
 Username.Eq = Username.schema.interpret(Schemable.Eq);
 
 interface UsernameObj {
   (username: string): Option<Username>;
+  unsafeFromString(s: string): Username;
+  toString(username: Username): string;
   schema: Schema<Username>;
   Eq: Eq<Username>;
 }

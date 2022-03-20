@@ -23,6 +23,7 @@ HashedPassword.fromPassword =
   (pwd: Password) =>
     F.hash(Password.toPlainText(pwd));
 HashedPassword.unsafeFromString = _HashedPassword;
+HashedPassword.toPlainText = _HashedPassword.unapply;
 HashedPassword.schema = Schema.string.imap(
   _HashedPassword,
   _HashedPassword.unapply,
@@ -34,6 +35,7 @@ interface HashedPasswordObj {
     F: BcryptHash<F>,
   ): (pwd: Password) => Kind<F, [HashedPassword]>;
   unsafeFromString(s: string): HashedPassword;
+  toPlainText(hp: HashedPassword): string;
   schema: Schema<HashedPassword>;
   Eq: Eq<HashedPassword>;
 }

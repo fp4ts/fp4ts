@@ -29,7 +29,11 @@ export type RegistrationError = TypeOf<typeof _RegistrationError>;
 const cts = deriveConstructors(_RegistrationError);
 
 export const InvalidUsernameError = cts['Invalid-username'];
-export const UsernameExistsError = cts['Username-exists'];
+export const UsernameExistsError = (username: Username) =>
+  cts['Username-exists']({
+    message: `Username '${username}' is already taken`,
+    username: username,
+  });
 export const ShortPasswordError = cts['Short-password'];
 
 const prs = derivePrisms(_RegistrationError);

@@ -4,16 +4,22 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Kind } from '@fp4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 import { Either, Left, Monad, OptionT, Right } from '@fp4ts/cats';
 
 import { BcryptHash, GenUUID } from '../../../../common';
 
-import { RegistrationError, UsernameExistsError } from '../errors';
+import {
+  InvalidUsernameOrPassword,
+  LoginError,
+  RegistrationError,
+  UsernameExistsError,
+} from '../errors';
 import { RegisterUser } from '../register-user';
+import { LoginUser } from '../login-user';
 import { UserRepository } from '../repositories';
 import { User } from '../user';
-import { HashedPassword, UserId, Username } from '../values';
+import { HashedPassword, Password, UserId, Username } from '../values';
 
 export class AuthenticationService<F> {
   public constructor(
@@ -26,7 +32,7 @@ export class AuthenticationService<F> {
   ): Kind<F, [Either<RegistrationError, User>]> {
     const { F, repo } = this;
 
-    return this.ensuringUsernameAvailable<User>(user.username)(
+    return this.ensuringUsernameAvailable(user.username)(
       F.do(function* (_) {
         const id = yield* _(F.map_(F.genUUID, UserId));
         const password = yield* _(
@@ -39,23 +45,41 @@ export class AuthenticationService<F> {
     );
   }
 
-  private ensuringUsernameAvailable<A>(
+  public loginUser({
+    username,
+    password,
+  }: LoginUser): Kind<F, [Either<LoginError, User>]> {
+    const { F, repo } = this;
+
+    return pipe(
+      repo.findByUsername(username),
+      F.flatMap(opt =>
+        opt.fold(
+          () => F.pure(Left(InvalidUsernameOrPassword())),
+          user =>
+            F.ifM_(
+              F.compare(
+                HashedPassword.toPlainText(user.password),
+                Password.toPlainText(password),
+              ),
+              F.pure(Right(user)),
+              F.pure(Left(InvalidUsernameOrPassword())),
+            ),
+        ),
+      ),
+    );
+  }
+
+  private ensuringUsernameAvailable(
     username: Username,
-  ): (register: Kind<F, [A]>) => Kind<F, [Either<RegistrationError, A>]> {
+  ): <A>(register: Kind<F, [A]>) => Kind<F, [Either<RegistrationError, A>]> {
     const { F } = this;
 
     return register =>
-      F.flatMap_(this.isTaken(username), isTaken =>
-        isTaken
-          ? F.pure(
-              Left(
-                UsernameExistsError({
-                  message: `Username '${username}' is already taken`,
-                  username: username,
-                }),
-              ),
-            )
-          : F.map_(register, Right),
+      F.ifM_(
+        this.isTaken(username),
+        F.pure(Left(UsernameExistsError(username))),
+        F.map_(register, Right),
       );
   }
 
