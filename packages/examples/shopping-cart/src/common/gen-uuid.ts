@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import uuid from 'uuid';
+import { v4 } from 'uuid';
 
 import { Base, instance, Kind } from '@fp4ts/core';
 import { Sync } from '@fp4ts/effect';
@@ -15,5 +15,7 @@ export interface GenUUID<F> extends Base<F> {
 
 export const GenUUID = Object.freeze({
   v4: <F>(F: Sync<F>): GenUUID<F> =>
-    instance({ genUUID: F.delay(() => UUID.unsafeFromString(uuid.v4())) }),
+    instance({
+      genUUID: F.delay(() => UUID.unsafeFromString(v4())),
+    }),
 });

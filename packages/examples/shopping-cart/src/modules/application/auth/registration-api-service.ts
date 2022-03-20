@@ -73,7 +73,7 @@ export class RegistrationApiService<F> {
         ({ message }) => new ParsingFailure(message),
       )
       .case(
-        RegistrationError._InvalidUsernameError,
+        RegistrationError._UsernameExistsError,
         ({ message }) => new ParsingFailure(message),
       )
       .get();

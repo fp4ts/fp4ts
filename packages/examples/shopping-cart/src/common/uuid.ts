@@ -14,11 +14,13 @@ export type UUID = TypeOf<typeof _UUID>;
 export const UUID: UUIDObj = function () {};
 
 UUID.unsafeFromString = _UUID;
+UUID.toString = _UUID.unapply;
 UUID.schema = Schema.string.imap(_UUID, _UUID.unapply);
 UUID.Eq = UUID.schema.interpret(Schemable.Eq);
 
 interface UUIDObj {
   unsafeFromString(s: string): UUID;
+  toString(uuid: UUID): string;
   schema: Schema<UUID>;
   Eq: Eq<UUID>;
 }

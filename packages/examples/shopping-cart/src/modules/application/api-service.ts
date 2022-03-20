@@ -8,15 +8,20 @@ import { HttpApp } from '@fp4ts/http';
 import { toHttpApp } from '@fp4ts/http-dsl-server';
 
 import { Api } from './api';
+import { VersionApiService } from './version';
 import { AuthApiService } from './auth';
 
 export class ApiService<F> {
   public constructor(
     private readonly F: Concurrent<F, Error>,
+    private readonly version: VersionApiService<F>,
     private readonly auth: AuthApiService<F>,
   ) {}
 
   public get toHttpApp(): HttpApp<F> {
-    return toHttpApp(this.F)(Api, {})(() => [this.auth.toHttpApp]);
+    return toHttpApp(this.F)(Api, {})(() => [
+      this.version.toHttpApp,
+      this.auth.toHttpApp,
+    ]);
   }
 }

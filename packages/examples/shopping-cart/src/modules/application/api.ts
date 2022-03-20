@@ -5,4 +5,4 @@
 
 import { group, Raw, Route } from '@fp4ts/http-dsl';
 
-export const Api = group(Route('auth')[':>'](Raw));
+export const Api = group(Route('version')[':>'](Raw), Route('auth')[':>'](Raw));
