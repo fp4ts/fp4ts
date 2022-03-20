@@ -12,7 +12,7 @@ import {
   RegistrationApiService,
 } from '../../application/auth';
 
-import { AuthenticationService } from '../../domain/auth';
+import { AuthenticationService, UserRepository } from '../../domain/auth';
 
 import { IORefUserRepository } from './io-ref-user-repository';
 
@@ -29,9 +29,15 @@ export class IOAuthModule {
 
       return new IOAuthModule(
         new AuthApiService(F, regApiService, editService, loginService),
+        service,
+        repo,
       );
     });
   }
 
-  private constructor(public readonly apiService: AuthApiService<IOF>) {}
+  private constructor(
+    public readonly apiService: AuthApiService<IOF>,
+    public readonly authenticationService: AuthenticationService<IOF>,
+    public readonly userRepository: UserRepository<IOF>,
+  ) {}
 }

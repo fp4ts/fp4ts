@@ -6,17 +6,16 @@
 import { Kind } from '@fp4ts/core';
 import { Option } from '@fp4ts/cats';
 import { Sync } from '@fp4ts/effect';
-import { User } from '../../domain/auth/user';
-import { Username } from '../../domain/auth/values';
+import { User, Username, UserRepository } from '../../domain/auth';
 
-export class InMemoryUserRepository<F> {
+export class InMemoryUserRepository<F> implements UserRepository<F> {
   public constructor(
     private readonly F: Sync<F>,
     private readonly store: Record<string, User> = {},
   ) {}
 
   public findByUsername(username: Username): Kind<F, [Option<User>]> {
-    return this.F.pure(Option(this.store[Username.toString(username)]));
+    return this.F.delay(() => Option(this.store[Username.toString(username)]));
   }
 
   public save(user: User): Kind<F, [User]> {

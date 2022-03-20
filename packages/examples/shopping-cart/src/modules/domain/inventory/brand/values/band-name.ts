@@ -8,7 +8,7 @@ import { None, Option, Some } from '@fp4ts/cats';
 import { Schema, Schemable } from '@fp4ts/schema';
 
 const _BrandName = newtype<string>()(
-  '@fp4ts/shipping-cart/domain/inventory/brand/brand-id',
+  '@fp4ts/shipping-cart/domain/inventory/brand/brand-name',
 );
 
 export type BrandName = TypeOf<typeof _BrandName>;
