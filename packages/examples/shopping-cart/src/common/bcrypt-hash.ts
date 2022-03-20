@@ -9,7 +9,7 @@ import { Async, Sync } from '@fp4ts/effect';
 
 export interface BcryptHash<F> extends Base<F> {
   hash(value: string): Kind<F, [string]>;
-  compare(lhs: string, rhs: string): Kind<F, [boolean]>;
+  compare(raw: string, encrypted: string): Kind<F, [boolean]>;
 }
 
 export const BcryptHash = Object.freeze({
@@ -26,8 +26,8 @@ export const BcryptHash = Object.freeze({
           return hashed;
         }),
 
-      compare: (lhs, rhs) =>
-        F.fromPromise(F.delay(() => bcrypt.compare(lhs, rhs))),
+      compare: (raw, encrypted) =>
+        F.fromPromise(F.delay(() => bcrypt.compare(raw, encrypted))),
     }),
 
   sync: <F>(F: Sync<F>): BcryptHash<F> =>

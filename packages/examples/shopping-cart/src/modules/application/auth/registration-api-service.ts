@@ -5,25 +5,20 @@
 
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { EitherT, Monad } from '@fp4ts/cats';
-import { MessageFailure, ParsingFailure } from '@fp4ts/http';
-import { match } from '@fp4ts/optics';
+import { MessageFailure } from '@fp4ts/http';
 
-import {
-  AuthenticationService,
-  InvalidUsernameError,
-  Password,
-  RegistrationError,
-  ShortPasswordError,
-  Username,
-} from '../../domain/auth';
+import { AuthenticationService, RegistrationError } from '../../domain/auth';
+import { AuthApiServiceOps } from './auth-api-service-ops';
 
 import { RegisterUserDto, UserDto } from './dto';
 
-export class RegistrationApiService<F> {
+export class RegistrationApiService<F> extends AuthApiServiceOps<F> {
   public constructor(
-    private readonly F: Monad<F>,
+    protected readonly F: Monad<F>,
     private readonly service: AuthenticationService<F>,
-  ) {}
+  ) {
+    super();
+  }
 
   public registerUser({
     username,
@@ -43,38 +38,4 @@ export class RegistrationApiService<F> {
       return UserDto.fromUser(user);
     }).leftMap(this.F)(this.registrationErrorToMessageFailure);
   }
-
-  private usernameFromPlain(
-    plain: string,
-  ): EitherT<F, RegistrationError, Username> {
-    return EitherT(
-      this.F.pure(Username(plain).toRight(() => InvalidUsernameError())),
-    );
-  }
-
-  private passwordFromPlain(
-    plain: string,
-  ): EitherT<F, RegistrationError, Password> {
-    return EitherT(
-      this.F.pure(Password(plain).toRight(() => ShortPasswordError())),
-    );
-  }
-
-  private registrationErrorToMessageFailure = (
-    e: RegistrationError,
-  ): MessageFailure =>
-    match(e)
-      .case(
-        RegistrationError._InvalidUsernameError,
-        ({ message }) => new ParsingFailure(message),
-      )
-      .case(
-        RegistrationError._ShortPasswordError,
-        ({ message }) => new ParsingFailure(message),
-      )
-      .case(
-        RegistrationError._UsernameExistsError,
-        ({ message }) => new ParsingFailure(message),
-      )
-      .get();
 }

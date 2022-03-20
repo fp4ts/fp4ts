@@ -8,6 +8,7 @@ import { IOF, IO } from '@fp4ts/effect';
 import { UUID } from '../../../../common';
 import {
   AuthenticationService,
+  InvalidUsernameOrPassword,
   Password,
   Username,
   UsernameExistsError,
@@ -30,37 +31,110 @@ describe('Authentication', () => {
     );
   });
 
-  it.M('should be able to login after registration', () =>
-    IO.Monad.do(function* (_) {
-      const registeredUser = yield* _(
-        service.registerUser({
+  describe('registration', () => {
+    it.M('should be able to login after registration', () =>
+      IO.Monad.do(function* (_) {
+        const registeredUser = yield* _(
+          service.registerUser({
+            username: Username.unsafeFromString('user123'),
+            password: Password.unsafeFromString('password'),
+          }),
+        );
+
+        const loggedInUser = yield* _(
+          service.loginUser({
+            username: Username.unsafeFromString('user123'),
+            password: Password.unsafeFromString('password'),
+          }),
+        );
+
+        expect(loggedInUser.get).toEqual(registeredUser.get);
+      }),
+    );
+
+    it.M('should error on username collision', () =>
+      IO.Monad.do(function* (_) {
+        const credentials = {
           username: Username.unsafeFromString('user123'),
           password: Password.unsafeFromString('password'),
-        }),
-      );
+        };
 
-      const loggedInUser = yield* _(
-        service.loginUser({
+        yield* _(service.registerUser(credentials));
+        const res = yield* _(service.registerUser(credentials));
+
+        expect(res.getLeft).toEqual(UsernameExistsError(credentials.username));
+      }),
+    );
+  });
+
+  describe('change of username', () => {
+    it.M('should change the username', () =>
+      IO.Monad.do(function* (_) {
+        const credentials = {
           username: Username.unsafeFromString('user123'),
           password: Password.unsafeFromString('password'),
-        }),
-      );
+        };
+        const newUsername = Username.unsafeFromString('new-username');
+        const user = yield* _(service.registerUser(credentials));
 
-      expect(loggedInUser.get).toEqual(registeredUser.get);
-    }),
-  );
+        const res = yield* _(service.changeUsername(user.get, newUsername));
 
-  it.M('should error on username collision', () =>
-    IO.Monad.do(function* (_) {
-      const credentials = {
-        username: Username.unsafeFromString('user123'),
-        password: Password.unsafeFromString('password'),
-      };
+        expect(res.get).toEqual({ ...user.get, username: 'new-username' });
+      }),
+    );
 
-      yield* _(service.registerUser(credentials));
-      const res = yield* _(service.registerUser(credentials));
+    it.M("should not allow to change for username if it's already taken ", () =>
+      IO.Monad.do(function* (_) {
+        const credentials = {
+          username: Username.unsafeFromString('user123'),
+          password: Password.unsafeFromString('password'),
+        };
+        const newUsername = Username.unsafeFromString('new-username');
+        const user = yield* _(service.registerUser(credentials));
+        yield* _(
+          service.registerUser({ ...credentials, username: newUsername }),
+        );
 
-      expect(res.getLeft).toEqual(UsernameExistsError(credentials.username));
-    }),
-  );
+        const res = yield* _(service.changeUsername(user.get, newUsername));
+
+        expect(res.getLeft).toEqual(UsernameExistsError(newUsername));
+      }),
+    );
+  });
+
+  describe('change password', () => {
+    it.M('should allow to login with new password after a change', () =>
+      IO.Monad.do(function* (_) {
+        const credentials = {
+          username: Username.unsafeFromString('user123'),
+          password: Password.unsafeFromString('password'),
+        };
+        const user = yield* _(service.registerUser(credentials));
+        const newPassword = Password.unsafeFromString('password2');
+
+        yield* _(service.changePassword(user.get, newPassword));
+        const res = yield* _(
+          service.loginUser({ ...credentials, password: newPassword }),
+        );
+
+        expect(res.get).toEqual({ ...user.get, password: 'password2_hashed' });
+      }),
+    );
+
+    it.M('should return error on using old password after a change', () =>
+      IO.Monad.do(function* (_) {
+        const credentials = {
+          username: Username.unsafeFromString('user123'),
+          password: Password.unsafeFromString('password'),
+        };
+        const user = yield* _(service.registerUser(credentials));
+        const newPassword = Password.unsafeFromString('password2');
+
+        yield* _(service.changePassword(user.get, newPassword));
+        const res = yield* _(service.loginUser({ ...credentials }));
+
+        expect(res.getLeft).toEqual(InvalidUsernameOrPassword());
+      }),
+    );
+  });
 });

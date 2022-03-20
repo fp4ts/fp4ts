@@ -8,13 +8,22 @@ import { HttpApp } from '@fp4ts/http';
 import { toHttpApp, builtins } from '@fp4ts/http-dsl-server';
 
 import { AuthApi } from './auth-api';
-import { RegisterUserDto, UserDto } from './dto';
+import { ChangeCredentialsApiService } from './change-credentials-api-service';
+import {
+  ChangePasswordDto,
+  ChangeUsernameDto,
+  RegisterUserDto,
+  UserDto,
+} from './dto';
+import { LoginApiService } from './login-api-service';
 import { RegistrationApiService } from './registration-api-service';
 
 export class AuthApiService<F> {
   public constructor(
     private readonly F: Concurrent<F, Error>,
     private readonly registration: RegistrationApiService<F>,
+    private readonly edit: ChangeCredentialsApiService<F>,
+    private readonly login: LoginApiService<F>,
   ) {}
 
   public get toHttpApp(): HttpApp<F> {
@@ -24,7 +33,20 @@ export class AuthApiService<F> {
         '@fp4ts/shopping-cart/application/auth/register-user-dto':
           RegisterUserDto.jsonCodec,
         '@fp4ts/shopping-cart/application/auth/user-dto': UserDto.jsonCodec,
+        '@fp4ts/shopping-cart/application/auth/change-password-dto':
+          ChangePasswordDto.jsonCodec,
+        '@fp4ts/shopping-cart/application/auth/change-username-dto':
+          ChangeUsernameDto.jsonCodec,
       },
-    })(() => [credentials => this.registration.registerUser(credentials)]);
+      '@fp4ts/dsl-server/basic-auth-validator-tag': {
+        auth: this.login.basicAuthenticator,
+      },
+    })(() => [
+      credentials => this.registration.registerUser(credentials),
+      user => [
+        payload => this.edit.changeUsername(user, payload),
+        payload => this.edit.changePassword(user, payload),
+      ],
+    ]);
   }
 }

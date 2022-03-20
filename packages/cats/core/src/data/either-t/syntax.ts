@@ -29,6 +29,8 @@ import {
   orElseF_,
   orElse_,
   swapped,
+  toOptionF,
+  toOptionT,
 } from './operators';
 
 declare module './algebra' {
@@ -151,4 +153,11 @@ EitherT.prototype.flatten = function (F) {
 };
 EitherT.prototype.leftWiden = function () {
   return this;
+};
+
+EitherT.prototype.toOptionF = function (F) {
+  return toOptionF(F)(this);
+};
+EitherT.prototype.toOptionT = function (F) {
+  return toOptionT(F)(this);
 };

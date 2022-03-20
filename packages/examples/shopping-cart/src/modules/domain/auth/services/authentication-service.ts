@@ -59,8 +59,8 @@ export class AuthenticationService<F> {
           user =>
             F.ifM_(
               F.compare(
-                HashedPassword.toPlainText(user.password),
                 Password.toPlainText(password),
+                HashedPassword.toPlainText(user.password),
               ),
               F.pure(Right(user)),
               F.pure(Left(InvalidUsernameOrPassword())),
@@ -70,9 +70,25 @@ export class AuthenticationService<F> {
     );
   }
 
+  public changeUsername(
+    user: User,
+    username: Username,
+  ): Kind<F, [Either<UsernameExistsError, User>]> {
+    return this.ensuringUsernameAvailable(username)(
+      this.repo.save({ ...user, username }),
+    );
+  }
+
+  public changePassword(user: User, password: Password): Kind<F, [User]> {
+    return pipe(
+      HashedPassword.fromPassword(this.F)(password),
+      this.F.flatMap(hashed => this.repo.save({ ...user, password: hashed })),
+    );
+  }
+
   private ensuringUsernameAvailable(
     username: Username,
-  ): <A>(register: Kind<F, [A]>) => Kind<F, [Either<RegistrationError, A>]> {
+  ): <A>(register: Kind<F, [A]>) => Kind<F, [Either<UsernameExistsError, A>]> {
     const { F } = this;
 
     return register =>

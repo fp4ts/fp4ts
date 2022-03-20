@@ -6,4 +6,7 @@
 export * from './auth-api';
 export * from './auth-api-service';
 export * from './registration-api-service';
+export * from './change-credentials-api-service';
+export * from './login-api-service';
+
 export * from './dto';

@@ -5,3 +5,6 @@
 
 export * from './login-error';
 export * from './registration-error';
+export * from './username-exists-error';
+export * from './invalid-username-error';
+export * from './short-password-error';
