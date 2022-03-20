@@ -19,6 +19,7 @@
     "@fp4ts/http-dsl": "*",
     "@fp4ts/http-dsl-server": "*",
     "@fp4ts/http-node-server": "*",
+    "@fp4ts/http-server": "*",
     "@fp4ts/optics": "*",
     "@fp4ts/schema": "*",
     "@fp4ts/schema-json": "*",
@@ -30,6 +31,9 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@fp4ts/http-client": "*",
+    "@fp4ts/http-dsl-client": "*",
+    "@fp4ts/http-node-client": "*",
     "@fp4ts/http-test-kit-node": "*",
     "typescript": "4.6.2"
   }

@@ -24,7 +24,7 @@ describe('Authentication', () => {
       {
         ...IO.Monad,
         hash: pwd => IO.pure(`${pwd}_hashed`),
-        compare: (lhs, rhs) => IO.pure(lhs === `${rhs}_hashed`),
+        compare: (raw, hashed) => IO.pure(`${raw}_hashed` === hashed),
         genUUID: IO.pure(UUID.unsafeFromString('12345')),
       },
       memo,
