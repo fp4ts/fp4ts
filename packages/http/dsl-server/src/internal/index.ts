@@ -368,7 +368,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     >,
     codings: DeriveCoding<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
-    const { decode } = (codings as any)[body.ct.mime][body.body.Ref];
+    const { decode } = codings[body.ct.mime][body.body.Ref];
     const ctCheck = DelayedCheck.withRequest(F)(req =>
       req.contentType.fold(
         () => RouteResultT.succeed(F)(req.bodyText),
@@ -390,7 +390,11 @@ export function route<F>(F: Concurrent<F, Error>) {
             // Fatal fail ^ as we cannot consume body more than once
             pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
               .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
-              .flatMap(F)(str => EitherT(F.pure(decode(str)))),
+              .flatMap(F)(str =>
+              EitherT(
+                F.pure(decode(str).leftMap(e => new ParsingFailure(e.message))),
+              ),
+            ),
           ),
         ),
       ),
