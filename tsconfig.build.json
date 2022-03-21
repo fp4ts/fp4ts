@@ -23,7 +23,7 @@
     "noImplicitOverride": true,
     "esModuleInterop": true,
 
-    "inlineSourceMap": true,
+    "sourceMap": true,
     "declarationMap": true,
     
     "skipLibCheck": true,
