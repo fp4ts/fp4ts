@@ -9,6 +9,7 @@ import { ApiService } from '../application';
 
 import { IOAuthModule } from './auth';
 import { IOVersionModule } from './version';
+import { IOInventoryModule } from './inventory';
 
 export class IOAppModule {
   public static make(): IO<IOAppModule> {
@@ -18,11 +19,13 @@ export class IOAppModule {
 
       const version = yield* _(IOVersionModule.make());
       const auth = yield* _(IOAuthModule.make({ ...bcrypt, ...genUUID }));
+      const inventory = yield* _(IOInventoryModule.make(genUUID, auth));
 
       const apiService = new ApiService(
         IO.Concurrent,
         version.apiService,
         auth.apiService,
+        inventory.apiService,
       );
       return new IOAppModule(apiService);
     });

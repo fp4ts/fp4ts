@@ -8,5 +8,5 @@ import { UserBasicAuth } from '../../auth';
 import { BrandOwner } from '../../../domain/inventory/brand-owner';
 
 export const BrandOwnerApi = group(
-  UserBasicAuth[':>'](Route('/register')[':>'](Put(JSON, BrandOwner.Ref))),
+  UserBasicAuth[':>'](Route('register')[':>'](Put(JSON, BrandOwner.Ref))),
 );

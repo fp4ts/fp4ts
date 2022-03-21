@@ -9,6 +9,6 @@ import { BrandApi } from './brand';
 import { BrandManagementAuth } from './brand-management-auth';
 
 export const InventoryApi = group(
-  BrandManagementAuth[':>'](group(Route('/brand')[':>'](BrandApi))),
-  Route('/brand-owner')[':>'](Raw),
+  BrandManagementAuth[':>'](group(Route('brand')[':>'](BrandApi))),
+  Route('brand-owner')[':>'](Raw),
 );
