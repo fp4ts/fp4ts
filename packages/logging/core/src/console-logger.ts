@@ -5,16 +5,15 @@
 
 import { Applicative } from '@fp4ts/cats';
 import { Console } from '@fp4ts/effect';
-import { Logger, LogFormat, LogMessage } from '@fp4ts/logging-kernel';
+import { Logger, LogMessage } from '@fp4ts/logging-kernel';
 
-export const ConsoleLogger: ConsoleLoggerObj = function <F, A>(
+export const ConsoleLogger: ConsoleLoggerObj = function <F>(
   F: Applicative<F>,
   C: Console<F>,
-  format: LogFormat<A> = LogFormat.default,
 ) {
-  return new Logger(F, (msg: LogMessage<A>) => C.printLn(format(msg)));
+  return new Logger(F, (msg: LogMessage<string>) => C.printLn(msg.message));
 };
 
 interface ConsoleLoggerObj {
-  <F, A>(F: Applicative<F>, C: Console<F>, format?: LogFormat<A>): Logger<F, A>;
+  <F>(F: Applicative<F>, C: Console<F>): Logger<F, string>;
 }

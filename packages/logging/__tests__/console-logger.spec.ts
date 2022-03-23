@@ -8,7 +8,7 @@ import { State } from '@fp4ts/cats';
 import { Clock } from '@fp4ts/effect';
 import { ConsoleStateState, TestConsoleState } from '@fp4ts/effect-test-kit';
 import { ConsoleLogger, TimestampLogger } from '@fp4ts/logging-core';
-import { LogLevel } from '@fp4ts/logging-kernel';
+import { LogFormat, LogLevel } from '@fp4ts/logging-kernel';
 
 describe('ConsoleLogger', () => {
   const F = State.Monad<ConsoleStateState>();
@@ -20,7 +20,7 @@ describe('ConsoleLogger', () => {
       monotonic: F.pure(D.valueOf()),
       realTime: F.pure(D.valueOf()),
     }),
-    ConsoleLogger(F, new TestConsoleState()),
+    ConsoleLogger(F, new TestConsoleState()).format(LogFormat.default),
   );
 
   it('should format the message', () => {

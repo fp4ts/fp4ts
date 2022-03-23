@@ -43,14 +43,6 @@ export class Logger<F, A> {
     <A = unknown>(): Logger<F, A> =>
       new Logger(F, () => F.unit);
 
-  public static fromFormat =
-    <F>(F: Applicative<F>) =>
-    <A = unknown>(
-      format: LogFormat<A>,
-      log: (msg: string) => Kind<F, [void]>,
-    ): Logger<F, A> =>
-      new Logger(F, msg => log(format(msg)));
-
   public constructor(
     protected readonly F: Applicative<F>,
     public readonly log: (msg: LogMessage<A>) => Kind<F, [void]>,
@@ -90,6 +82,13 @@ export class Logger<F, A> {
     return new Logger(this.F, msg =>
       this.log(msg.transformContext(ctx => ({ ...ctx, ...context }))),
     );
+  }
+
+  public format<B>(
+    this: Logger<F, string>,
+    format: LogFormat<B>,
+  ): Logger<F, B> {
+    return this.contramapMessage(msg => msg.withMessage(format(msg)));
   }
 
   public concat<B extends A>(that: Logger<F, B>): Logger<F, B> {
