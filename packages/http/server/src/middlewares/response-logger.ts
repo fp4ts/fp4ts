@@ -68,9 +68,11 @@ class ResponseLogFormats<F> {
   ): ResponseLogFormat<F> {
     return message({
       show: msg =>
-        `[Header ${msg.headers
-          .redactSensitive(isSensitive)
-          .headers.toArray.join(', ')}]`,
+        msg.headers.headers.isEmpty
+          ? '[Headers]'
+          : `[Headers ${msg.headers
+              .redactSensitive(isSensitive)
+              .headers.toArray.join(', ')}]`,
     });
   }
 }
