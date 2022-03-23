@@ -34,6 +34,10 @@ export class RawHeader {
     public readonly headerName: string,
     public readonly headerValue: string,
   ) {}
+
+  public toString(): string {
+    return `${this.headerName}: ${this.headerValue}`;
+  }
 }
 
 export type ToRaw =

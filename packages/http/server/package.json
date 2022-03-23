@@ -12,6 +12,7 @@
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
     "@fp4ts/effect": "*",
+    "@fp4ts/logging": "*",
     "@fp4ts/http-core": "*",
     "@fp4ts/stream": "*"
   },

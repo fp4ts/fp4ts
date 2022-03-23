@@ -4,14 +4,19 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { List, Option, NonEmptyList } from '@fp4ts/cats';
+import { List, Option, NonEmptyList, Set as CSet } from '@fp4ts/cats';
 import { RawHeader, SelectHeader, ToRaw } from '../header';
+import { Authorization } from './authorization';
 
 export class Headers {
   public static readonly empty: Headers = new Headers(List.empty);
 
   public static fromToRaw(...hs: ToRaw[]): Headers {
     return new Headers(List.fromArray(hs).flatMap(this.convertToRaw));
+  }
+
+  public static get sensitive(): CSet<string> {
+    return CSet(Authorization.Header.headerName);
   }
 
   public constructor(public readonly headers: List<RawHeader>) {}
@@ -47,6 +52,18 @@ export class Headers {
         this.headers.filter(h => !s.has(h.headerName))['+++'](that.headers),
       );
     }
+  }
+
+  public redactSensitive(
+    isSensitive: (hn: string) => boolean = hn => Headers.sensitive.contains(hn),
+  ): Headers {
+    return this.transform(hs =>
+      hs.map(h =>
+        isSensitive(h.headerName)
+          ? new RawHeader(h.headerName, '<REDACTED>')
+          : h,
+      ),
+    );
   }
 
   private static convertToRaw = (h: ToRaw): List<RawHeader> => {

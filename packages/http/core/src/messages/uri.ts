@@ -248,6 +248,10 @@ export class Path {
       : Writer.tell(this.components.join('/'));
   }
 
+  public toString(): string {
+    return this.render(Monoid.string).written();
+  }
+
   public startsWith(that: Path): boolean {
     return this.components.length < that.components.length
       ? false
