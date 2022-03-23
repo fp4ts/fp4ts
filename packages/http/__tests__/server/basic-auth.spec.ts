@@ -6,6 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import { None, Option, OptionT, Some } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect';
+import { match } from '@fp4ts/optics';
 import {
   AuthedRoutes,
   Authorization,
@@ -20,6 +21,8 @@ import {
   Token,
   uri,
   WWWAuthenticate,
+  Get_,
+  path,
 } from '@fp4ts/http-core';
 import { BasicAuth } from '@fp4ts/http-server';
 
@@ -36,27 +39,25 @@ describe('Basic Auth', () => {
     );
 
   const nukeService = (launchNukes: () => void) =>
-    AuthedRoutes<IOF, string>(req => {
-      const path = req.request.uri.path;
-      if (path[0] === '' && path[1] === 'launch-the-nukes') {
-        return OptionT.liftF(IO.Applicative)(
-          IO(launchNukes).map(() => Status.Gone<IOF>()),
-        );
-      } else {
-        return OptionT.none(IO.Applicative);
-      }
-    });
+    AuthedRoutes<IOF, string>(req =>
+      match(req.request)
+        .case(Get_(path`/launch-the-nukes`), () =>
+          OptionT.liftF(IO.Applicative)(
+            IO(launchNukes).map(() => Status.Gone<IOF>()),
+          ),
+        )
+        .getOrElse(() => OptionT.none(IO.Applicative)),
+    );
 
-  const service = AuthedRoutes<IOF, string>(req => {
-    const path = req.request.uri.path;
-    if (path.components[0] === '') {
-      return OptionT.liftF(IO.Applicative)(
-        IO.pure(Status.Ok(req.context)(EntityEncoder.text<IOF>())),
-      );
-    } else {
-      return OptionT.none(IO.Applicative);
-    }
-  });
+  const service = AuthedRoutes<IOF, string>(req =>
+    match(req.request)
+      .case(Get_(path`/`), () =>
+        OptionT.liftF(IO.Applicative)(
+          IO.pure(Status.Ok(req.context)(EntityEncoder.text<IOF>())),
+        ),
+      )
+      .getOrElse(() => OptionT.none(IO.Applicative)),
+  );
 
   const basicMiddleware = BasicAuth(IO.Sync)(realm, validatePassword);
 

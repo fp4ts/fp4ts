@@ -21,4 +21,5 @@ export * from './auth-scheme';
 export * from './credentials';
 export * from './challenge';
 export * from './q-value';
+export * from './routing';
 export { MediaRange, MediaType } from './media-type';

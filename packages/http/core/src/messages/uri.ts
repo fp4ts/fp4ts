@@ -248,6 +248,12 @@ export class Path {
       : Writer.tell(this.components.join('/'));
   }
 
+  public startsWith(that: Path): boolean {
+    return this.components.length < that.components.length
+      ? false
+      : this.components.join('/').startsWith(that.components.join('/'));
+  }
+
   public static readonly empty: Path = new Path([]);
   public static readonly Root: Path = new Path(['']);
 
