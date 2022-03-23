@@ -13,19 +13,21 @@ import { LogFormat, LogLevel } from '@fp4ts/logging-kernel';
 describe('ConsoleLogger', () => {
   const F = State.Monad<ConsoleStateState>();
   const D = new Date('2020-01-01');
-  const L = TimestampLogger(
-    F,
-    Clock.of({
-      applicative: F,
-      monotonic: F.pure(D.valueOf()),
-      realTime: F.pure(D.valueOf()),
-    }),
-    ConsoleLogger(F, new TestConsoleState()).format(LogFormat.default),
+  const L = pipe(
+    ConsoleLogger(F, new TestConsoleState()).format(LogFormat.default()),
+    TimestampLogger(
+      F,
+      Clock.of({
+        applicative: F,
+        monotonic: F.pure(D.valueOf()),
+        realTime: F.pure(D.valueOf()),
+      }),
+    ),
   );
 
   it('should format the message', () => {
     expect(L.info('msg').runS(ConsoleStateState.empty).value.output).toEqual([
-      'timestamp: 2020-01-01T00:00:00.000Z                   level: info message: "msg"',
+      '2020-01-01T00:00:00.000Z INFO - msg',
     ]);
   });
 
@@ -37,9 +39,9 @@ describe('ConsoleLogger', () => {
         F.productL(L.error(new Error('test error'), 'msg3')),
       ).runS(ConsoleStateState.empty).value.output,
     ).toEqual([
-      'timestamp: 2020-01-01T00:00:00.000Z                   level: info message: "msg1"',
-      'timestamp: 2020-01-01T00:00:00.000Z                   level: warn message: "msg2"',
-      'timestamp: 2020-01-01T00:00:00.000Z                   level: error message: "msg3"',
+      '2020-01-01T00:00:00.000Z INFO - msg1',
+      '2020-01-01T00:00:00.000Z WARN - msg2',
+      '2020-01-01T00:00:00.000Z ERROR - msg3',
     ]);
   });
 
@@ -51,8 +53,6 @@ describe('ConsoleLogger', () => {
         F.productL(LL.warn('msg2')),
         F.productL(LL.error(new Error('test error'), 'msg3')),
       ).runS(ConsoleStateState.empty).value.output,
-    ).toEqual([
-      'timestamp: 2020-01-01T00:00:00.000Z                   level: error message: "msg3"',
-    ]);
+    ).toEqual(['2020-01-01T00:00:00.000Z ERROR - msg3']);
   });
 });

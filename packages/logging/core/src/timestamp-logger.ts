@@ -10,9 +10,9 @@ import { Logger } from '@fp4ts/logging-kernel';
 export function TimestampLogger<F, A>(
   F: Monad<F>,
   C: Clock<F>,
-  logger: Logger<F, A>,
-): Logger<F, A> {
-  return logger.contramapMessageF(F)(msg =>
-    F.map_(C.realTime, t => msg.withTimestamp(new Date(t))),
-  );
+): (logger: Logger<F, A>) => Logger<F, A> {
+  return logger =>
+    logger.contramapMessageF(F)(msg =>
+      F.map_(C.realTime, t => msg.withTimestamp(new Date(t))),
+    );
 }

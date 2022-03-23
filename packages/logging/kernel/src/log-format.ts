@@ -29,11 +29,9 @@ export function logFormat<A = unknown>(
 
 export type LogFormat<A = unknown> = (msg: LogMessage<A>) => string;
 export const LogFormat = Object.freeze({
-  get default(): LogFormat {
-    return logFormat`timestamp: ${fixed(
-      42,
-      timestamp(),
-    )} level: ${level} message: ${quoted(message())}`;
+  default<F>(): LogFormat<F> {
+    // prettier-ignore
+    return logFormat`${timestamp()} ${level} - ${message()}`;
   },
 });
 
@@ -51,7 +49,7 @@ export const timestamp =
   ({ timestamp }) =>
     timestamp.map(format).getOrElse(() => '');
 
-export const level: LogFormat = ({ level }) => level;
+export const level: LogFormat = ({ level }) => level.toUpperCase();
 
 export const message =
   <A = unknown>(S: Show<A> = Show.fromToString<A>()): LogFormat<A> =>

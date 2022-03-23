@@ -15,13 +15,14 @@ import {
   bracketed,
   context,
   contextKey,
+  LogMessage,
 } from '@fp4ts/logging-kernel';
 
 describe('LogFormat', () => {
   const M = List.Alternative.algebra<string>();
   const F = Writer.Applicative<List<string>>(M);
   const mkLogger = <A>(format: LogFormat<A>) =>
-    Logger.fromFormat(F)(format, str => Writer.tell(List(str)));
+    new Logger(F, (msg: LogMessage<A>) => Writer.tell(List(format(msg))));
 
   it('should accept and empty format', () => {
     const f = logFormat``;
@@ -34,21 +35,21 @@ describe('LogFormat', () => {
     const f = logFormat`${level}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written()).toEqual(List('info'));
+    expect(L.info('test').written()).toEqual(List('INFO'));
   });
 
   it('should accept and format with a bracketed level', () => {
     const f = logFormat`${bracketed(level)}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written()).toEqual(List('[info]'));
+    expect(L.info('test').written()).toEqual(List('[INFO]'));
   });
 
   it('should accept and format with a labeled level', () => {
     const f = logFormat`${label('Level', level)}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written()).toEqual(List('Level: info'));
+    expect(L.info('test').written()).toEqual(List('Level: INFO'));
   });
 
   it('should accept and format with a message', () => {
@@ -84,7 +85,7 @@ describe('LogFormat', () => {
   });
 
   it('should use the default log format', () => {
-    const f = LogFormat.default;
+    const f = LogFormat.default();
     const L = mkLogger(f);
     const T = new Date('2020-01-01');
 
@@ -92,10 +93,6 @@ describe('LogFormat', () => {
       L.contramapMessage(msg => msg.copy({ timestamp: Some(T) }))
         .info('my message')
         .written(),
-    ).toEqual(
-      List(
-        'timestamp: 2020-01-01T00:00:00.000Z                   level: info message: "my message"',
-      ),
-    );
+    ).toEqual(List('2020-01-01T00:00:00.000Z INFO - my message'));
   });
 });
