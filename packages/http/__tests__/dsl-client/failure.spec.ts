@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import { Left, Some } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
-import { Authority, ParsingFailure } from '@fp4ts/http-core';
+import { Authority } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { alice, deleteEmpty, failServer, getCapture, postBody } from './common';
