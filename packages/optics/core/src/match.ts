@@ -17,7 +17,7 @@ export function case_<T, B, C>(
   f?: (b: B) => C,
 ): Matcher_<T, B | C> {
   return <A>(ea: Either<T, A>) =>
-    ea.fold<Either<T, A | B | C>>(
+    ea.fold(
       value => (f ? p.getOrModify(value).map(f) : p.getOrModify(value)),
       Right,
     );

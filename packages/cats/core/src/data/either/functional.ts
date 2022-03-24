@@ -6,4 +6,4 @@
 export * from './constructors';
 export * from './operators';
 export * from './instances';
-export { Either, EitherF as EitherK } from './either';
+export { Either, EitherF } from './either';
