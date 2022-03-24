@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Kind, instance, id } from '@fp4ts/core';
+import { Base, Kind, instance, id, HKT2 } from '@fp4ts/core';
 
 /**
  * @category Type Class
@@ -45,21 +45,25 @@ export interface Profunctor<F> extends Base<F> {
 
 export type ProfunctorRequirements<F> = Pick<Profunctor<F>, 'dimap_'> &
   Partial<Profunctor<F>>;
+
+function of<F>(F: ProfunctorRequirements<F>): Profunctor<F>;
+function of<F>(F: ProfunctorRequirements<HKT2<F>>): Profunctor<HKT2<F>> {
+  const self: Profunctor<HKT2<F>> = instance<Profunctor<HKT2<F>>>({
+    dimap: (f, g) => fab => F.dimap_(fab, f, g),
+
+    lmap: f => fab => self.lmap_(fab, f),
+    lmap_: (fab, f) => F.dimap_(fab, f, id),
+
+    rmap: f => fab => self.rmap_(fab, f),
+    rmap_: (fab, g) => F.dimap_(fab, id, g),
+
+    leftNarrow: id as Profunctor<HKT2<F>>['leftNarrow'],
+    rightWiden: id as Profunctor<HKT2<F>>['rightWiden'],
+    ...F,
+  });
+  return self;
+}
+
 export const Profunctor = Object.freeze({
-  of: <F>(F: ProfunctorRequirements<F>): Profunctor<F> => {
-    const self: Profunctor<F> = instance<Profunctor<F>>({
-      dimap: (f, g) => fab => F.dimap_(fab, f, g),
-
-      lmap: f => fab => self.lmap_(fab, f),
-      lmap_: (fab, f) => F.dimap_(fab, f, id),
-
-      rmap: f => fab => self.rmap_(fab, f),
-      rmap_: (fab, g) => F.dimap_(fab, id, g),
-
-      leftNarrow: id,
-      rightWiden: id,
-      ...F,
-    });
-    return self;
-  },
+  of,
 });

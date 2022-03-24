@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT1, Kind } from '@fp4ts/core';
 import { Monad, MonadRequirements } from './monad';
 import {
   ApplicativeError,
@@ -42,23 +42,28 @@ export type MonadErrorRequirements<F, E> = MonadRequirements<F> &
   ApplicativeErrorRequirements<F, E> &
   Partial<MonadError<F, E>>;
 
+function of<F, E>(F: MonadErrorRequirements<F, E>): MonadError<F, E>;
+function of<F, E>(
+  F: MonadErrorRequirements<HKT1<F>, E>,
+): MonadError<HKT1<F>, E> {
+  const self: MonadError<HKT1<F>, E> = {
+    redeemWith: (h, f) => fa => self.redeemWith_(fa, h, f),
+    redeemWith_: (fa, h, f) =>
+      self.flatMap_(self.attempt(fa), ea => ea.fold(h, f)),
+
+    rethrow: fea =>
+      self.flatMap_(fea, ea => ea.fold(self.throwError, self.pure)),
+
+    attemptTap: f => fa => self.attemptTap_(fa, f),
+    attemptTap_: (fa, f) => self.rethrow(self.flatTap_(self.attempt(fa), f)),
+
+    ...ApplicativeError.of({ ...F }),
+    ...Monad.of({ ...F }),
+    ...F,
+  };
+  return self;
+}
+
 export const MonadError = Object.freeze({
-  of: <F, E>(F: MonadErrorRequirements<F, E>): MonadError<F, E> => {
-    const self: MonadError<F, E> = {
-      redeemWith: (h, f) => fa => self.redeemWith_(fa, h, f),
-      redeemWith_: (fa, h, f) =>
-        self.flatMap_(self.attempt(fa), ea => ea.fold(h, f)),
-
-      rethrow: fea =>
-        self.flatMap_(fea, ea => ea.fold(self.throwError, self.pure)),
-
-      attemptTap: f => fa => self.attemptTap_(fa, f),
-      attemptTap_: (fa, f) => self.rethrow(self.flatTap_(self.attempt(fa), f)),
-
-      ...ApplicativeError.of({ ...F }),
-      ...Monad.of({ ...F }),
-      ...F,
-    };
-    return self;
-  },
+  of,
 });

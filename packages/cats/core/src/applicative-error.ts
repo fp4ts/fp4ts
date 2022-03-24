@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind, pipe } from '@fp4ts/core';
+import { HKT, HKT1, instance, Kind, pipe } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { Either, Right, Left } from './data';
 
@@ -58,30 +58,42 @@ export type ApplicativeErrorRequirements<F, E> = Pick<
   ApplicativeRequirements<F> &
   Partial<ApplicativeError<F, E>>;
 
+function of<F, E>(
+  F: ApplicativeErrorRequirements<F, E>,
+): ApplicativeError<F, E>;
+function of<F, E>(
+  F: ApplicativeErrorRequirements<HKT1<F>, E>,
+): ApplicativeError<HKT1<F>, E> {
+  const self: ApplicativeError<HKT1<F>, E> = instance<
+    ApplicativeError<HKT1<F>, E>
+  >({
+    handleError: f => fa => self.handleError_(fa, f),
+    handleError_: (fa, f) => self.handleErrorWith_(fa, e => self.pure(f(e))),
+
+    handleErrorWith: f => fa => self.handleErrorWith_(fa, f),
+
+    attempt: <A>(fa: HKT<F, [A]>) =>
+      pipe(
+        fa,
+        self.map(a => Right(a) as Either<E, A>),
+        self.handleError(e => Left(e) as Either<E, A>),
+      ),
+
+    redeem: (h, f) => fa => self.redeem_(fa, h, f),
+    redeem_: (fa, h, f) => pipe(fa, self.map(f), self.handleError(h)),
+
+    onError: h => fa => self.onError_(fa, h),
+    onError_: (fa, h) =>
+      self.handleErrorWith_(fa, e => self.productR_(h(e), self.throwError(e))),
+
+    fromEither: ea => ea.fold(self.throwError, self.pure),
+
+    ...Applicative.of(F),
+    ...F,
+  });
+  return self;
+}
+
 export const ApplicativeError = Object.freeze({
-  of: <F, E>(F: ApplicativeErrorRequirements<F, E>): ApplicativeError<F, E> => {
-    const self: ApplicativeError<F, E> = instance<ApplicativeError<F, E>>({
-      handleError: f => fa => self.handleError_(fa, f),
-      handleError_: (fa, f) => self.handleErrorWith_(fa, e => self.pure(f(e))),
-
-      handleErrorWith: f => fa => self.handleErrorWith_(fa, f),
-
-      attempt: fa => pipe(fa, self.map(Right), self.handleError(Left)),
-
-      redeem: (h, f) => fa => self.redeem_(fa, h, f),
-      redeem_: (fa, h, f) => pipe(fa, self.map(f), self.handleError(h)),
-
-      onError: h => fa => self.onError_(fa, h),
-      onError_: (fa, h) =>
-        self.handleErrorWith_(fa, e =>
-          self.productR_(h(e), self.throwError(e)),
-        ),
-
-      fromEither: ea => ea.fold(self.throwError, self.pure),
-
-      ...Applicative.of(F),
-      ...F,
-    });
-    return self;
-  },
+  of,
 });

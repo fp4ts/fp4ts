@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
+import {
+  Kind,
+  instance,
+  tupled,
+  TyK,
+  $type,
+  TyVar,
+  HKT1,
+  HKT,
+} from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { Eval } from './eval';
@@ -78,70 +87,72 @@ export type FoldableRequirements<F> = Pick<
 > &
   Partial<Foldable<F>> &
   Partial<UnorderedFoldable<F>>;
-export const Foldable = Object.freeze({
-  of: <F>(F: FoldableRequirements<F>): Foldable<F> => {
-    const self: Foldable<F> = instance<Foldable<F>>({
-      foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
-      foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
+function of<F>(F: FoldableRequirements<F>): Foldable<F>;
+function of<F>(F: FoldableRequirements<HKT1<F>>): Foldable<HKT1<F>> {
+  const self: Foldable<HKT1<F>> = instance<Foldable<HKT1<F>>>({
+    foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
+    foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
 
-      foldMap: M => f => fa => self.foldMap_(M)(fa, f),
-      foldMap_: M => (fa, f) =>
-        self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, () => f(x))),
+    foldMap: M => f => fa => self.foldMap_(M)(fa, f),
+    foldMap_: M => (fa, f) =>
+      self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, () => f(x))),
 
-      foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
-      foldM_: G => (fa, z, f) => {
-        const src = Source.fromFoldable(self)(fa);
-        return G.tailRecM(tupled(z, src))(([b, src]) =>
-          src.uncons.fold(
-            () => G.pure(Right(b)),
-            ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src.value))),
-          ),
+    foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
+    foldM_: G => (fa, z, f) => {
+      const src = Source.fromFoldable(self)(fa);
+      return G.tailRecM(tupled(z, src))(([b, src]) =>
+        src.uncons.fold(
+          () => G.pure(Right(b)),
+          ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src.value))),
+        ),
+      );
+    },
+
+    elem: idx => fa => self.elem_(fa, idx),
+    elem_: <A>(fa: HKT<F, [A]>, idx: number) => {
+      if (idx < 0) return None;
+      return self
+        .foldM_(Either.Monad<A>())(fa, 0, (i, a) =>
+          i === idx ? Left(a) : Right(i + 1),
+        )
+        .fold(
+          a => Some(a),
+          () => None,
         );
-      },
+    },
 
-      elem: idx => fa => self.elem_(fa, idx),
-      elem_: <A>(fa: Kind<F, [A]>, idx: number) => {
-        if (idx < 0) return None;
-        return self
-          .foldM_(Either.Monad<A>())(fa, 0, (i, a) =>
-            i === idx ? Left(a) : Right(i + 1),
-          )
-          .fold(
-            a => Some(a),
-            () => None,
-          );
-      },
+    iterator: <A>(fa: HKT<F, [A]>): Iterator<A> => {
+      let src = Eval.now(Source.fromFoldable(self)(fa));
+      return Iter.lift(() => {
+        const next = src.value.uncons;
+        if (next.isEmpty) return Iter.Result.done;
 
-      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => {
-        let src = Eval.now(Source.fromFoldable(self)(fa));
-        return Iter.lift(() => {
-          const next = src.value.uncons;
-          if (next.isEmpty) return Iter.Result.done;
+        const [a, src_] = next.get;
+        src = src_;
+        return Iter.Result.pure(a);
+      });
+    },
 
-          const [a, src_] = next.get;
-          src = src_;
-          return Iter.Result.pure(a);
-        });
-      },
+    toList: <A>(fa: HKT<F, [A]>) =>
+      self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
 
-      toList: <A>(fa: Kind<F, [A]>) =>
-        self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
+    toVector: <A>(fa: HKT<F, [A]>) =>
+      self.foldLeft_(fa, new VectorBuilder<A>(), (as, a) => as.addOne(a))
+        .toVector,
 
-      toVector: <A>(fa: Kind<F, [A]>) =>
-        self.foldLeft_(fa, new VectorBuilder<A>(), (as, a) => as.addOne(a))
-          .toVector,
-
-      ...UnorderedFoldable.of({
-        unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
-        ...F,
-      }),
+    ...UnorderedFoldable.of({
+      unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
       ...F,
-    });
-    return self;
-  },
+    }),
+    ...F,
+  });
+  return self;
+}
+export const Foldable = Object.freeze({
+  of,
 
   compose: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> =>
-    ComposedFoldable.of(F, G),
+    ComposedFoldable(F, G),
 });
 
 interface Source<A> {

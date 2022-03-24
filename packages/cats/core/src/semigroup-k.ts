@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, instance, Kind, Lazy } from '@fp4ts/core';
+import { Base, HKT1, instance, Kind, Lazy } from '@fp4ts/core';
 import { Semigroup } from '@fp4ts/cats-kernel';
 
 /**
@@ -23,14 +23,17 @@ export interface SemigroupK<F> extends Base<F> {
 
 export type SemigroupKRequirements<F> = Pick<SemigroupK<F>, 'combineK_'> &
   Partial<SemigroupK<F>>;
-export const SemigroupK = Object.freeze({
-  of: <F>(F: SemigroupKRequirements<F>): SemigroupK<F> =>
-    instance<SemigroupK<F>>({
-      combineK: y => x => F.combineK_(x, y),
-      algebra: () => ({
-        combine: F.combineK ?? (y => x => F.combineK_(x, y)),
-        combine_: F.combineK_,
-      }),
-      ...F,
+function of<F>(F: SemigroupKRequirements<F>): SemigroupK<F>;
+function of<F>(F: SemigroupKRequirements<HKT1<F>>): SemigroupK<HKT1<F>> {
+  return instance<SemigroupK<HKT1<F>>>({
+    combineK: y => x => F.combineK_(x, y),
+    algebra: () => ({
+      combine: F.combineK ?? (y => x => F.combineK_(x, y)),
+      combine_: F.combineK_,
     }),
+    ...F,
+  });
+}
+export const SemigroupK = Object.freeze({
+  of,
 });

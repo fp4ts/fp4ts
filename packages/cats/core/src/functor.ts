@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, instance, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $type, instance, Kind, TyK, TyVar, HKT1 } from '@fp4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
 
@@ -22,24 +22,28 @@ export interface Functor<F> extends Invariant<F> {
 
 export type FunctorRequirements<F> = Pick<Functor<F>, 'map_'> &
   Partial<Functor<F>>;
+function of<F>(F: FunctorRequirements<F>): Functor<F>;
+function of<F>(F: FunctorRequirements<HKT1<F>>): Functor<HKT1<F>> {
+  return instance<Functor<HKT1<F>>>({
+    map: f => fa => F.map_(fa, f),
+
+    imap: f => fa => F.map_(fa, f),
+    imap_: (fa, f) => F.map_(fa, f),
+
+    tap: f => fa => F.map_(fa, x => (f(x), x)),
+    tap_: (fa, f) => F.map_(fa, x => (f(x), x)),
+
+    void: fa => F.map_(fa, () => undefined),
+
+    ...F,
+  });
+}
+
 export const Functor = Object.freeze({
-  of: <F>(F: FunctorRequirements<F>): Functor<F> =>
-    instance<Functor<F>>({
-      map: f => fa => F.map_(fa, f),
-
-      imap: f => fa => F.map_(fa, f),
-      imap_: (fa, f) => F.map_(fa, f),
-
-      tap: f => fa => F.map_(fa, x => (f(x), x)),
-      tap_: (fa, f) => F.map_(fa, x => (f(x), x)),
-
-      void: fa => F.map_(fa, () => undefined),
-
-      ...F,
-    }),
+  of,
 
   compose: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> =>
-    ComposedFunctor.of(F, G),
+    ComposedFunctor(F, G),
 });
 
 // -- HKT

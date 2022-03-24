@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT1, Kind } from '@fp4ts/core';
 import { Functor, FunctorRequirements } from './functor';
 
 export interface CoflatMap<F> extends Functor<F> {
@@ -18,15 +18,17 @@ export interface CoflatMap<F> extends Functor<F> {
 export type CoflatMapRequirements<F> = Pick<CoflatMap<F>, 'coflatMap_'> &
   FunctorRequirements<F> &
   Partial<CoflatMap<F>>;
-export const CoflatMap = Object.freeze({
-  of: <F>(F: CoflatMapRequirements<F>): CoflatMap<F> => {
-    const self: CoflatMap<F> = {
-      coflatMap: f => fa => self.coflatMap_(fa, f),
-      coflatten: fa => self.coflatMap_(fa, fa => fa),
-      ...Functor.of(F),
-      ...F,
-    };
+function of<F>(F: CoflatMapRequirements<F>): CoflatMap<F>;
+function of<F>(F: CoflatMapRequirements<HKT1<F>>): CoflatMap<HKT1<F>> {
+  const self: CoflatMap<HKT1<F>> = {
+    coflatMap: f => fa => self.coflatMap_(fa, f),
+    coflatten: fa => self.coflatMap_(fa, fa => fa),
+    ...Functor.of(F),
+    ...F,
+  };
 
-    return self;
-  },
+  return self;
+}
+export const CoflatMap = Object.freeze({
+  of,
 });

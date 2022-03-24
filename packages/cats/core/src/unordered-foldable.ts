@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, id, instance, Kind } from '@fp4ts/core';
+import { Base, HKT1, id, instance, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Eval } from './eval';
 
@@ -39,9 +39,12 @@ export type UnorderedFoldableRequirements<F> = Pick<
   'unorderedFoldMap_'
 > &
   Partial<UnorderedFoldable<F>>;
-export const UnorderedFoldable = Object.freeze({
-  of: <F>(F: UnorderedFoldableRequirements<F>): UnorderedFoldable<F> => {
-    const self: UnorderedFoldable<F> = instance<UnorderedFoldable<F>>({
+function of<F>(F: UnorderedFoldableRequirements<F>): UnorderedFoldable<F>;
+function of<F>(
+  F: UnorderedFoldableRequirements<HKT1<F>>,
+): UnorderedFoldable<HKT1<F>> {
+  const self: UnorderedFoldable<HKT1<F>> = instance<UnorderedFoldable<HKT1<F>>>(
+    {
       unorderedFoldMap: M => f => fa => F.unorderedFoldMap_(M)(fa, f),
 
       unorderedFold: M => fa => F.unorderedFoldMap_(M)(fa, id),
@@ -68,7 +71,8 @@ export const UnorderedFoldable = Object.freeze({
       size: fa => self.unorderedFoldMap_(Monoid.addition)(fa, () => 1),
 
       ...F,
-    });
-    return self;
-  },
-});
+    },
+  );
+  return self;
+}
+export const UnorderedFoldable = Object.freeze({ of });

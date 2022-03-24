@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT1, Kind } from '@fp4ts/core';
 import { CoflatMap, CoflatMapRequirements } from './coflat-map';
 
 export interface Comonad<F> extends CoflatMap<F> {
@@ -13,9 +13,11 @@ export interface Comonad<F> extends CoflatMap<F> {
 export type ComonadRequirements<F> = Pick<Comonad<F>, 'extract'> &
   CoflatMapRequirements<F> &
   Partial<Comonad<F>>;
+
+function of<F>(F: ComonadRequirements<F>): Comonad<F>;
+function of<F>(F: ComonadRequirements<HKT1<F>>): Comonad<HKT1<F>> {
+  return { ...CoflatMap.of(F), ...F };
+}
 export const Comonad = Object.freeze({
-  of: <F>(F: ComonadRequirements<F>): Comonad<F> => ({
-    ...CoflatMap.of(F),
-    ...F,
-  }),
+  of,
 });

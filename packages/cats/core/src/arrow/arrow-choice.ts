@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { HKT, HKT2, id, Kind } from '@fp4ts/core';
 import { Either } from '../data';
 
 import { Arrow, ArrowRequirements } from './arrow';
@@ -31,25 +31,27 @@ export type ArrowChoiceRequirements<F> = Pick<ArrowChoice<F>, 'choose'> &
   ArrowRequirements<F> &
   Omit<ChoiceRequirements<F>, 'choice'> &
   Partial<ArrowChoice<F>>;
-export const ArrowChoice = Object.freeze({
-  of: <F>(F: ArrowChoiceRequirements<F>): ArrowChoice<F> => {
-    const self: ArrowChoice<F> = {
-      left: fab => self.choose(fab, self.lift(id)),
-      right: fab => self.choose(self.lift(id), fab),
 
-      ...Choice.of({
-        ...F,
-        choice:
-          F.choice ??
-          (<A, B, C>(
-            f: Kind<F, [A, C]>,
-            g: Kind<F, [B, C]>,
-          ): Kind<F, [Either<A, B>, C]> =>
-            self.rmap_(F.choose(f, g), ea => ea.fold(id, id))),
-      }),
-      ...Arrow.of(F),
+function of<F>(F: ArrowChoiceRequirements<F>): ArrowChoice<F>;
+function of<F>(F: ArrowChoiceRequirements<HKT2<F>>): ArrowChoice<HKT2<F>> {
+  const self: ArrowChoice<HKT2<F>> = {
+    left: fab => self.choose(fab, self.lift(id)),
+    right: fab => self.choose(self.lift(id), fab),
+
+    ...Choice.of({
       ...F,
-    };
-    return self;
-  },
-});
+      choice:
+        F.choice ??
+        (<A, B, C>(
+          f: HKT<F, [A, C]>,
+          g: HKT<F, [B, C]>,
+        ): HKT<F, [Either<A, B>, C]> =>
+          self.rmap_(F.choose(f, g), ea => ea.fold(id, id))),
+    }),
+    ...Arrow.of(F),
+    ...F,
+  };
+  return self;
+}
+
+export const ArrowChoice = Object.freeze({ of });

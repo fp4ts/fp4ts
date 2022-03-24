@@ -3,11 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id, TyK, $type, TyVar } from '@fp4ts/core';
+import { Kind, id, TyK, $type, TyVar, HKT1, HKT } from '@fp4ts/core';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
 import { Foldable, FoldableRequirements } from './foldable';
-import { Functor, FunctorRequirements } from './functor';
+import { Functor } from './functor';
 import {
   UnorderedTraversable,
   UnorderedTraversableRequirements,
@@ -63,40 +63,43 @@ export type TraversableRequirements<T> = Pick<Traversable<T>, 'traverse_'> &
   Partial<Traversable<T>> &
   Partial<UnorderedTraversableRequirements<T>>;
 
-export const Traversable = Object.freeze({
-  of: <T>(T: TraversableRequirements<T>): Traversable<T> => {
-    const self: Traversable<T> = {
-      traverse: G => f => fa => self.traverse_(G)(fa, f),
+function of<T>(T: TraversableRequirements<T>): Traversable<T>;
+function of<T>(T: TraversableRequirements<HKT1<T>>): Traversable<HKT1<T>> {
+  const self: Traversable<HKT1<T>> = {
+    traverse: G => f => fa => self.traverse_(G)(fa, f),
 
-      sequence: G => fga => self.traverse_(G)(fga, id),
+    sequence: G => fga => self.traverse_(G)(fga, id),
 
-      flatTraverse: (F, G) => f => fa => self.flatTraverse_(F, G)(fa, f),
-      flatTraverse_: (F, G) => (fa, f) =>
-        G.map_(self.traverse_(G)(fa, f), F.flatten),
+    flatTraverse: (F, G) => f => fa => self.flatTraverse_(F, G)(fa, f),
+    flatTraverse_: (F, G) => (fa, f) =>
+      G.map_(self.traverse_(G)(fa, f), F.flatten),
 
-      flatSequence: (F, G) => fgfa => self.flatTraverse_(F, G)(fgfa, id),
+    flatSequence: (F, G) => fgfa => self.flatTraverse_(F, G)(fgfa, id),
 
-      ...UnorderedTraversable.of({
-        unorderedTraverse_: T.unorderedTraverse_ ?? (G => self.traverse_(G)),
-        unorderedFoldMap_: T.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
-      }),
-      ...Foldable.of(T),
-      ...Functor.of({
-        map_:
-          T.map_ ??
-          (<A, B>(fa: Kind<T, [A]>, f: (a: A) => B): Kind<T, [B]> =>
-            self.traverse_(Identity.Applicative)(fa, f)),
-        ...T,
-      }),
+    ...UnorderedTraversable.of({
+      unorderedTraverse_: T.unorderedTraverse_ ?? (G => self.traverse_(G)),
+      unorderedFoldMap_: T.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
+    }),
+    ...Foldable.of(T),
+    ...Functor.of({
+      map_:
+        T.map_ ??
+        (<A, B>(fa: HKT<T, [A]>, f: (a: A) => B): HKT<T, [B]> =>
+          self.traverse_(Identity.Applicative)(fa, f)),
       ...T,
-    };
-    return self;
-  },
+    }),
+    ...T,
+  };
+  return self;
+}
+
+export const Traversable = Object.freeze({
+  of,
 
   compose: <F, G>(
     F: Traversable<F>,
     G: Traversable<G>,
-  ): ComposedTraversable<F, G> => ComposedTraversable.of(F, G),
+  ): ComposedTraversable<F, G> => ComposedTraversable(F, G),
 });
 
 // -- HKT

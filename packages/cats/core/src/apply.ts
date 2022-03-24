@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT, HKT1, Kind } from '@fp4ts/core';
 import { Eval } from './eval';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
@@ -78,44 +78,46 @@ export interface Apply<F> extends Functor<F> {
 export type ApplyRequirements<F> = Pick<Apply<F>, 'ap_'> &
   FunctorRequirements<F> &
   Partial<Apply<F>>;
+function of<F>(F: ApplyRequirements<F>): Apply<F>;
+function of<F>(F: ApplyRequirements<HKT1<F>>): Apply<HKT1<F>> {
+  const self: Apply<HKT1<F>> = {
+    ap: fa => ff => self.ap_(ff, fa),
+
+    product: fb => fa => self.product_(fa, fb),
+    product_: <A, B>(fa: HKT<F, [A]>, fb: HKT<F, [B]>) =>
+      F.ap_(
+        F.map_(fa, a => (b: B) => [a, b] as [A, B]),
+        fb,
+      ),
+
+    map2: (fb, f) => fa => self.map2_(fa, fb)(f),
+    map2_: (fa, fb) => f =>
+      self.map_(self.product_(fa, fb), ([a, b]) => f(a, b)),
+
+    map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc)(f),
+    map3_: (fa, fb, fc) => f =>
+      self.map_(self.product_(fa, self.product_(fb, fc)), ([a, [b, c]]) =>
+        f(a, b, c),
+      ),
+
+    map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
+    map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),
+
+    productL: fb => fa => self.productL_(fa, fb),
+    productL_: (fa, fb) => self.map_(self.product_(fa, fb), ([a]) => a),
+
+    productR: fb => fa => self.productR_(fa, fb),
+    productR_: (fa, fb) => self.map_(self.product_(fa, fb), ([, b]) => b),
+
+    ...Functor.of(F),
+    ...F,
+  };
+
+  return self;
+}
 export const Apply = Object.freeze({
-  of: <F>(F: ApplyRequirements<F>): Apply<F> => {
-    const self: Apply<F> = {
-      ap: fa => ff => self.ap_(ff, fa),
-
-      product: fb => fa => self.product_(fa, fb),
-      product_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-        F.ap_(
-          F.map_(fa, a => (b: B) => [a, b] as [A, B]),
-          fb,
-        ),
-
-      map2: (fb, f) => fa => self.map2_(fa, fb)(f),
-      map2_: (fa, fb) => f =>
-        self.map_(self.product_(fa, fb), ([a, b]) => f(a, b)),
-
-      map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc)(f),
-      map3_: (fa, fb, fc) => f =>
-        self.map_(self.product_(fa, self.product_(fb, fc)), ([a, [b, c]]) =>
-          f(a, b, c),
-        ),
-
-      map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
-      map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),
-
-      productL: fb => fa => self.productL_(fa, fb),
-      productL_: (fa, fb) => self.map_(self.product_(fa, fb), ([a]) => a),
-
-      productR: fb => fa => self.productR_(fa, fb),
-      productR_: (fa, fb) => self.map_(self.product_(fa, fb), ([, b]) => b),
-
-      ...Functor.of<F>(F),
-      ...F,
-    };
-
-    return self;
-  },
+  of,
 
   compose: <F, G>(F: Apply<F>, G: Apply<G>): ComposedApply<F, G> =>
-    ComposedApply.of(F, G),
+    ComposedApply(F, G),
 });

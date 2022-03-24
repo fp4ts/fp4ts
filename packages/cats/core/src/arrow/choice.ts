@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT2, Kind } from '@fp4ts/core';
 import { Either } from '../data';
 import { Category, CategoryRequirements } from './category';
 
@@ -22,14 +22,16 @@ export interface Choice<F> extends Category<F> {
 export type ChoiceRequirements<F> = Pick<Choice<F>, 'choice'> &
   CategoryRequirements<F> &
   Partial<Choice<F>>;
-export const Choice = Object.freeze({
-  of: <F>(F: ChoiceRequirements<F>): Choice<F> => {
-    const self: Choice<F> = {
-      codiagonal: () => self.choice(self.id(), self.id()),
 
-      ...Category.of(F),
-      ...F,
-    };
-    return self;
-  },
-});
+function of<F>(F: ChoiceRequirements<F>): Choice<F>;
+function of<F>(F: ChoiceRequirements<HKT2<F>>): Choice<HKT2<F>> {
+  const self: Choice<HKT2<F>> = {
+    codiagonal: () => self.choice(self.id(), self.id()),
+
+    ...Category.of(F),
+    ...F,
+  };
+  return self;
+}
+
+export const Choice = Object.freeze({ of });

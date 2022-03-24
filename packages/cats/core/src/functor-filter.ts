@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id } from '@fp4ts/core';
+import { Kind, id, HKT1 } from '@fp4ts/core';
 import { Functor, FunctorRequirements } from './functor';
 import { Option, Some, None } from './data/option';
 
@@ -50,25 +50,28 @@ export type FunctorFilterRequirements<F> = Pick<
   FunctorRequirements<F> &
   Partial<FunctorFilter<F>>;
 
+function of<F>(F: FunctorFilterRequirements<F>): FunctorFilter<F>;
+function of<F>(F: FunctorFilterRequirements<HKT1<F>>): FunctorFilter<HKT1<F>> {
+  const self: FunctorFilter<HKT1<F>> = {
+    mapFilter: f => fa => self.mapFilter_(fa, f),
+
+    collect: f => fa => self.mapFilter_(fa, f),
+    collect_: (fa, f) => self.mapFilter_(fa, f),
+
+    flattenOption: fa => self.collect_(fa, id),
+
+    filter: f => fa => self.filter_(fa, f),
+    filter_: (fa, p) => self.collect_(fa, x => (p(x) ? Some(x) : None)),
+
+    filterNot: f => fa => self.filterNot_(fa, f),
+    filterNot_: (fa, p) => self.filter_(fa, x => !p(x)),
+
+    ...Functor.of(F),
+    ...F,
+  };
+  return self;
+}
+
 export const FunctorFilter = Object.freeze({
-  of: <F>(F: FunctorFilterRequirements<F>): FunctorFilter<F> => {
-    const self: FunctorFilter<F> = {
-      mapFilter: f => fa => self.mapFilter_(fa, f),
-
-      collect: f => fa => self.mapFilter_(fa, f),
-      collect_: (fa, f) => self.mapFilter_(fa, f),
-
-      flattenOption: fa => self.collect_(fa, id),
-
-      filter: f => fa => self.filter_(fa, f),
-      filter_: (fa, p) => self.collect_(fa, x => (p(x) ? Some(x) : None)),
-
-      filterNot: f => fa => self.filterNot_(fa, f),
-      filterNot_: (fa, p) => self.filter_(fa, x => !p(x)),
-
-      ...Functor.of<F>(F),
-      ...F,
-    };
-    return self;
-  },
+  of,
 });

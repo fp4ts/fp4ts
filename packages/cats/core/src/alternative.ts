@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT, HKT1, Kind } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';
@@ -27,21 +27,23 @@ export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
 export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
   MonoidKRequirements<F> &
   Partial<Alternative<F>>;
+function of<F>(F: AlternativeRequirements<F>): Alternative<F>;
+function of<F>(F: AlternativeRequirements<HKT1<F>>): Alternative<HKT1<F>> {
+  const self: Alternative<HKT1<F>> = {
+    many: <A>(fa: HKT<F, [A]>): HKT<F, [List<A>]> =>
+      self.combineK_(self.many1(fa), () => self.pure(List.empty as List<A>)),
+
+    many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+
+    orElse: fb => fa => self.orElse_(fa, fb),
+    orElse_: (fa, fb) => self.combineK_(fa, fb),
+
+    ...MonoidK.of(F),
+    ...Applicative.of(F),
+    ...F,
+  };
+  return self;
+}
 export const Alternative = Object.freeze({
-  of: <F>(F: AlternativeRequirements<F>): Alternative<F> => {
-    const self: Alternative<F> = {
-      many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> =>
-        self.combineK_(self.many1(fa), () => self.pure(List.empty as List<A>)),
-
-      many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
-
-      orElse: fb => fa => self.orElse_(fa, fb),
-      orElse_: (fa, fb) => self.combineK_(fa, fb),
-
-      ...MonoidK.of(F),
-      ...Applicative.of(F),
-      ...F,
-    };
-    return self;
-  },
+  of,
 });

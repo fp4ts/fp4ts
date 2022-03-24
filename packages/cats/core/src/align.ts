@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, instance, Kind } from '@fp4ts/core';
+import { Base, HKT1, instance, Kind } from '@fp4ts/core';
 import { Semigroup } from '@fp4ts/cats-kernel';
 
 import { Functor } from './functor';
@@ -45,11 +45,11 @@ export interface Align<F> extends Base<F> {
 
   padZip: <B>(
     fb: Kind<F, [B]>,
-  ) => <A>(fa: Kind<F, [A]>) => Kind<F, [Option<A>, Option<B>]>;
+  ) => <A>(fa: Kind<F, [A]>) => Kind<F, [[Option<A>, Option<B>]]>;
   padZip_: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
-  ) => Kind<F, [Option<A>, Option<B>]>;
+  ) => Kind<F, [[Option<A>, Option<B>]]>;
 
   padZipWith: <A, B, C>(
     fb: Kind<F, [B]>,
@@ -70,49 +70,51 @@ export interface Align<F> extends Base<F> {
 
 export type AlignRequirements<F> = Pick<Align<F>, 'align_' | 'functor'> &
   Partial<Align<F>>;
-export const Align = Object.freeze({
-  of: <F>(F: AlignRequirements<F>): Align<F> => {
-    const self: Align<F> = instance<Align<F>>({
-      align: fb => fa => self.align_(fa, fb),
+function of<F>(F: AlignRequirements<F>): Align<F>;
+function of<F>(F: AlignRequirements<HKT1<F>>): Align<HKT1<F>> {
+  const self: Align<HKT1<F>> = instance<Align<HKT1<F>>>({
+    align: fb => fa => self.align_(fa, fb),
 
-      alignWith: (fb, f) => fa => self.alignWith_(fa, fb)(f),
-      alignWith_: (fa, fb) => f => self.functor.map_(self.align_(fa, fb), f),
+    alignWith: (fb, f) => fa => self.alignWith_(fa, fb)(f),
+    alignWith_: (fa, fb) => f => self.functor.map_(self.align_(fa, fb), f),
 
-      alignCombine: S => fb => fa => self.alignCombine_(S)(fa, fb),
-      alignCombine_: S => (fa, fb) =>
-        self.functor.map_(self.align_(fa, fb), ior => ior.merge(S)),
+    alignCombine: S => fb => fa => self.alignCombine_(S)(fa, fb),
+    alignCombine_: S => (fa, fb) =>
+      self.functor.map_(self.align_(fa, fb), ior => ior.merge(S)),
 
-      alignMergeWith: (fb, f) => fa => self.alignMergeWith_(fa, fb)(f),
-      alignMergeWith_: (fa, fb) => f =>
-        self.functor.map_(self.align_(fa, fb), ior => ior.mergeWith(f)),
+    alignMergeWith: (fb, f) => fa => self.alignMergeWith_(fa, fb)(f),
+    alignMergeWith_: (fa, fb) => f =>
+      self.functor.map_(self.align_(fa, fb), ior => ior.mergeWith(f)),
 
-      padZip: fb => fa => self.padZip_(fa, fb),
-      padZip_: (fa, fb) => self.alignWith_(fa, fb)(ior => ior.pad),
+    padZip: fb => fa => self.padZip_(fa, fb),
+    padZip_: (fa, fb) => self.alignWith_(fa, fb)(ior => ior.pad),
 
-      padZipWith: (fb, f) => fa => self.padZipWith_(fa, fb)(f),
-      padZipWith_: (fa, fb) => f =>
-        self.alignWith_(
-          fa,
-          fb,
-        )(ior => {
-          const [oa, ob] = ior.pad;
-          return f(oa, ob);
-        }),
+    padZipWith: (fb, f) => fa => self.padZipWith_(fa, fb)(f),
+    padZipWith_: (fa, fb) => f =>
+      self.alignWith_(
+        fa,
+        fb,
+      )(ior => {
+        const [oa, ob] = ior.pad;
+        return f(oa, ob);
+      }),
 
-      zipAll: (fa, fb, a, b) =>
-        self.alignWith_(
-          fa,
-          fb,
-        )(ior =>
-          ior.fold(
-            x => [x, b],
-            x => [a, x],
-            (a, b) => [a, b],
-          ),
+    zipAll: (fa, fb, a, b) =>
+      self.alignWith_(
+        fa,
+        fb,
+      )(ior =>
+        ior.fold(
+          x => [x, b],
+          x => [a, x],
+          (a, b) => [a, b],
         ),
+      ),
 
-      ...F,
-    });
-    return self;
-  },
+    ...F,
+  });
+  return self;
+}
+export const Align = Object.freeze({
+  of,
 });

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT2, Kind } from '@fp4ts/core';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 
 /**
@@ -17,9 +17,15 @@ export interface Strong<F> extends Profunctor<F> {
 export type StrongRequirements<F> = Pick<Strong<F>, 'first' | 'second'> &
   ProfunctorRequirements<F> &
   Partial<Strong<F>>;
-export const Strong = Object.freeze({
-  of: <F>(F: StrongRequirements<F>): Strong<F> => ({
+
+function of<F>(F: StrongRequirements<F>): Strong<F>;
+function of<F>(F: StrongRequirements<HKT2<F>>): Strong<HKT2<F>> {
+  return {
     ...Profunctor.of(F),
     ...F,
-  }),
+  };
+}
+
+export const Strong = Object.freeze({
+  of,
 });

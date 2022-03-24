@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { HKT1, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
 
@@ -18,8 +18,10 @@ export interface MonoidK<F> extends SemigroupK<F> {
 export type MonoidKRequirements<F> = Pick<MonoidK<F>, 'emptyK'> &
   SemigroupKRequirements<F> &
   Partial<MonoidK<F>>;
-export const MonoidK = Object.freeze({
-  of: <F>(F: MonoidKRequirements<F>): MonoidK<F> => ({
+
+function of<F>(F: MonoidKRequirements<F>): MonoidK<F>;
+function of<F>(F: MonoidKRequirements<HKT1<F>>): MonoidK<HKT1<F>> {
+  return {
     ...SemigroupK.of(F),
     ...F,
 
@@ -27,5 +29,9 @@ export const MonoidK = Object.freeze({
       ...SemigroupK.of(F).algebra(),
       empty: F.emptyK(),
     }),
-  }),
+  };
+}
+
+export const MonoidK = Object.freeze({
+  of,
 });

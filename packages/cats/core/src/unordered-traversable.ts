@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { HKT1, id, Kind } from '@fp4ts/core';
 import { Applicative } from './applicative';
 import {
   UnorderedFoldable,
@@ -38,16 +38,21 @@ export type UnorderedTraversableRequirements<T> = Pick<
   UnorderedFoldableRequirements<T> &
   Partial<UnorderedTraversable<T>>;
 
+function of<T>(T: UnorderedTraversableRequirements<T>): UnorderedTraversable<T>;
+function of<T>(
+  T: UnorderedTraversableRequirements<HKT1<T>>,
+): UnorderedTraversable<HKT1<T>> {
+  const self: UnorderedTraversable<HKT1<T>> = {
+    unorderedTraverse: G => f => fa => self.unorderedTraverse_(G)(fa, f),
+
+    unorderedSequence: G => fga => self.unorderedTraverse_(G)(fga, id),
+
+    ...UnorderedFoldable.of(T),
+    ...T,
+  };
+  return self;
+}
+
 export const UnorderedTraversable = Object.freeze({
-  of: <T>(T: UnorderedTraversableRequirements<T>): UnorderedTraversable<T> => {
-    const self: UnorderedTraversable<T> = {
-      unorderedTraverse: G => f => fa => self.unorderedTraverse_(G)(fa, f),
-
-      unorderedSequence: G => fga => self.unorderedTraverse_(G)(fga, id),
-
-      ...UnorderedFoldable.of(T),
-      ...T,
-    };
-    return self;
-  },
+  of,
 });
