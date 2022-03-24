@@ -17,7 +17,7 @@ export abstract class Either<E, A> {
   ): B1 | B2;
 }
 
-export class Right<A> extends Either<never, A> {
+export class Right<A, E = never> extends Either<E, A> {
   public readonly tag = 'right';
   public constructor(public readonly value: A) {
     super();
@@ -26,12 +26,12 @@ export class Right<A> extends Either<never, A> {
   public get get(): A {
     return this.value;
   }
-  public get getLeft(): never {
+  public get getLeft(): E {
     throw new Error('Right.getLeft');
   }
 
   public fold<B1, B2 = B1>(
-    onLeft: (e: never) => B1,
+    onLeft: (e: E) => B1,
     onRight: (a: A) => B2,
   ): B1 | B2 {
     return onRight(this.value);
@@ -42,13 +42,13 @@ export class Right<A> extends Either<never, A> {
   }
 }
 
-export class Left<E> extends Either<E, never> {
+export class Left<E, A = never> extends Either<E, A> {
   public readonly tag = 'left';
   public constructor(public readonly value: E) {
     super();
   }
 
-  public get get(): never {
+  public get get(): A {
     throw new Error('Left.get');
   }
   public get getLeft(): E {
@@ -57,7 +57,7 @@ export class Left<E> extends Either<E, never> {
 
   public fold<B1, B2 = B1>(
     onLeft: (e: E) => B1,
-    onRight: (a: never) => B2,
+    onRight: (a: A) => B2,
   ): B1 | B2 {
     return onLeft(this.value);
   }

@@ -82,7 +82,7 @@ export const tailRecM_ =
           ab.fold(
             l => Right(Left(l)),
             rsb =>
-              rsb.fold<Either<S, Either<A, B>>>(
+              rsb.fold(
                 s1 => Left(s1),
                 b => Right(Right(b)),
               ),

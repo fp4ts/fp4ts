@@ -508,7 +508,7 @@ export const attempt = <F, A>(s: Stream<F, A>): Stream<F, Either<Error, A>> =>
   pipe(
     s,
     map(x => Right(x)),
-    handleErrorWith(e => pure(Left(e) as Either<Error, A>)),
+    handleErrorWith(e => pure(Left(e))),
   );
 
 export const attempts: <F>(

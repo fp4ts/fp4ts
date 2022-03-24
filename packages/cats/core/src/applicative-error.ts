@@ -75,8 +75,8 @@ function of<F, E>(
     attempt: <A>(fa: HKT<F, [A]>) =>
       pipe(
         fa,
-        self.map(a => Right(a) as Either<E, A>),
-        self.handleError(e => Left(e) as Either<E, A>),
+        self.map(a => Right(a)),
+        self.handleError(e => Left(e)),
       ),
 
     redeem: (h, f) => fa => self.redeem_(fa, h, f),

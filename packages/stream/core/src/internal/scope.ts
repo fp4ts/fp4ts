@@ -304,9 +304,9 @@ export class Scope<F> {
                 ['+++'](resultResources.fold(List, () => List.empty));
 
               return CompositeFailure.fromList(results).fold(
-                () => Either.rightUnit,
+                () => Either.rightUnit as Either<Error, void>,
                 Left,
-              ) as Either<Error, void>;
+              );
             }),
       ),
     );
@@ -372,7 +372,7 @@ export class Scope<F> {
               () => None,
             ),
           ).toList,
-        ).fold<Either<Error, void>>(
+        ).fold(
           () => Either.rightUnit,
           e => Left(e),
         ),

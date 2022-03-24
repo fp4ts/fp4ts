@@ -173,7 +173,10 @@ function of<F, E>(F: SpawnRequirements<HKT1<F>, E>): Spawn<HKT1<F>, E> {
     },
 
     raceOutcome: fb => fa => self.raceOutcome_(fa, fb),
-    raceOutcome_: <A, B>(fa: HKT<F, [A]>, fb: HKT<F, [B]>) =>
+    raceOutcome_: <A, B>(
+      fa: HKT<F, [A]>,
+      fb: HKT<F, [B]>,
+    ): HKT<F, [Either<Outcome<HKTF, E, A>, Outcome<HKTF, E, B>>]> =>
       self.uncancelable(() =>
         pipe(
           self.racePair_(fa, fb),
@@ -182,13 +185,7 @@ function of<F, E>(F: SpawnRequirements<HKT1<F>, E>): Spawn<HKT1<F>, E> {
               ([oc, f]) =>
                 pipe(
                   f.cancel,
-                  self.map(
-                    () =>
-                      Left(oc) as Either<
-                        Outcome<HKTF, E, A>,
-                        Outcome<HKTF, E, B>
-                      >,
-                  ),
+                  self.map(() => Left(oc)),
                 ),
               ([f, oc]) =>
                 pipe(

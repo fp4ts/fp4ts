@@ -85,7 +85,7 @@ export class InterruptContext<F> {
         ocOpt.fold<Kind<F, [Either<InterruptionOutcome, A>]>>(
           () =>
             F.map_(F.race_(deferred.get(), F.attempt(fa)), ear =>
-              ear.fold<Either<InterruptionOutcome, A>>(
+              ear.fold(
                 ioc => Left(ioc),
                 result => result.leftMap(e => Outcome.failure(e)),
               ),
