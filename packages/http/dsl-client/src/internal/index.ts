@@ -381,8 +381,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   }
 
   function routeRaw(raw: RawElement, req: Request<F>): Client<F, RawElement> {
-    return method =>
-      ClientM(underlying => underlying.fetch(req.withMethod(method), F.pure));
+    return runRequest => runRequest(req);
   }
 
   return clientWithRoute;

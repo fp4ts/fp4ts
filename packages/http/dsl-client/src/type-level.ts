@@ -9,6 +9,7 @@ import { List, Option } from '@fp4ts/cats';
 import {
   BasicCredentials,
   Method,
+  Request,
   Response,
   SelectHeader,
 } from '@fp4ts/http-core';
@@ -112,7 +113,7 @@ export interface TermDerivates<F, api, m> {
     ? Kind<m, [F, BuildHeaders<hs, TypeOf<T>>]>
     : never;
   [VerbNoContentTag]: Kind<m, [F, void]>;
-  [RawElementTag]: (m: Method) => Kind<m, [F, Response<F>]>,
+  [RawElementTag]: (runRequest: (req: Request<F>) => Kind<m, [F, Response<F>]>) => Kind<m, [F, Response<F>]>,
 }
 
 // prettier-ignore

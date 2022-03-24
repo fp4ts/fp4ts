@@ -8,7 +8,7 @@ import fc from 'fast-check';
 import { Left, List, None, NonEmptyList, Some } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
 import { Method, RawHeader, Status } from '@fp4ts/http-core';
-import { ResponseHeaders } from '@fp4ts/http-dsl-client';
+import { ClientM, ResponseHeaders } from '@fp4ts/http-dsl-client';
 import { Client } from '@fp4ts/http-client';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
@@ -237,7 +237,9 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return rawSuccess(Method.GET)
+        return rawSuccess(req =>
+          ClientM(client => client.fetch(req.withMethod(Method.GET), IO.pure)),
+        )
           .run(client.withBaseUri(baseUri))
           .flatTap(res => IO(() => expect(res.status === Status.Ok).toBe(true)))
           .flatMap(res => res.bodyText.compileConcurrent().string)
@@ -252,7 +254,9 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return rawFailure(Method.GET)
+        return rawFailure(req =>
+          ClientM(client => client.fetch(req.withMethod(Method.GET), IO.pure)),
+        )
           .run(client.withBaseUri(baseUri))
           .flatTap(res =>
             IO(() => expect(res.status === Status.BadRequest).toBe(true)),
@@ -272,7 +276,9 @@ describe('Success', () => {
           client.run(req.putHeaders(new RawHeader('X-Added-Header', 'XXX'))),
         );
 
-        return rawSuccessPassHeaders(Method.GET)
+        return rawSuccessPassHeaders(req =>
+          ClientM(client => client.fetch(req.withMethod(Method.GET), IO.pure)),
+        )
           .run(client_.withBaseUri(baseUri))
           .flatMap(res =>
             IO(() =>
