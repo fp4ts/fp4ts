@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, fst, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
+import { $, fst, HKT, HKT1, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
 import {
   Kleisli,
   List,
@@ -168,13 +168,21 @@ export const race: <F>(
 ) => <A>(ra: Resource<F, A>) => Resource<F, Either<A, B>> = F => rb => ra =>
   race_(F)(ra, rb);
 
-export const fork =
-  <F>(F: Concurrent<F, Error>) =>
-  <A>(r: Resource<F, A>): Resource<F, Fiber<$<ResourceF, [F]>, Error, A>> => {
-    return pipe(
-      F.ref(new State(F.unit, false, false)),
+export function fork<F>(
+  F: Concurrent<F, Error>,
+): <A>(r: Resource<F, A>) => Resource<F, Fiber<$<ResourceF, [F]>, Error, A>>;
+export function fork<F>(
+  F: Concurrent<HKT1<F>, Error>,
+): <A>(
+  r: Resource<HKT1<F>, A>,
+) => Resource<HKT1<F>, Fiber<$<ResourceF, [HKT1<F>]>, Error, A>> {
+  return <A>(
+    r: Resource<HKT1<F>, A>,
+  ): Resource<HKT1<F>, Fiber<$<ResourceF, [HKT1<F>]>, Error, A>> =>
+    pipe(
+      F.ref(new State<HKT1<F>>(F.unit, false, false)),
       F.flatMap(state => {
-        const finalized: Kind<F, [A]> = F.uncancelable(poll =>
+        const finalized: HKT<F, [A]> = F.uncancelable(poll =>
           pipe(
             poll(allocated(F)(r)),
             F.finalize(() =>
@@ -199,35 +207,39 @@ export const fork =
         );
 
         return F.map_(F.fork(finalized), outer => {
-          const fiber: Fiber<$<ResourceF, [F]>, Error, A> = new ResourceFiber(
-            F,
-            outer,
-            state,
-          );
+          const fiber: Fiber<
+            $<ResourceF, [HKT1<F>]>,
+            Error,
+            A
+          > = new ResourceFiber(F, outer, state);
 
           const finalizeOuter = state.modify(s => [
             s.copy({ finalizeOnComplete: true }),
             s.fin,
           ]);
 
-          return [fiber, F.flatten(finalizeOuter)] as const;
+          return tupled(fiber, F.flatten(finalizeOuter));
         });
       }),
       allocate(F),
     );
-  };
+}
 
-export const allocated =
-  <F>(F: MonadCancel<F, Error>) =>
-  <A>(r: Resource<F, A>): Kind<F, [[A, Kind<F, [void]>]]> => {
-    type Frame = (u: unknown) => Resource<F, unknown>;
+export function allocated<F>(
+  F: MonadCancel<F, Error>,
+): <A>(r: Resource<F, A>) => Kind<F, [[A, Kind<F, [void]>]]>;
+export function allocated<F>(
+  F: MonadCancel<HKT1<F>, Error>,
+): <A>(r: Resource<HKT1<F>, A>) => HKT<F, [[A, HKT<F, [void]>]]> {
+  return <A>(r: Resource<HKT1<F>, A>): HKT<F, [[A, HKT<F, [void]>]]> => {
+    type Frame = (u: unknown) => Resource<HKT1<F>, unknown>;
     type Stack = List<Frame>;
 
     const loop = (
-      cur0: Resource<F, unknown>,
+      cur0: Resource<HKT1<F>, unknown>,
       stack: Stack,
-      release: Kind<F, [void]>,
-    ): Kind<F, [[A, Kind<F, [void]>]]> => {
+      release: HKT<F, [void]>,
+    ): HKT<F, [[A, HKT<F, [void]>]]> => {
       let _cur = cur0;
       while (true) {
         const cur = view(_cur);
@@ -240,7 +252,7 @@ export const allocated =
 
           case 'pure': {
             const next = stack.uncons;
-            if (next.isEmpty) return F.pure([cur.value, release]);
+            if (next.isEmpty) return F.pure([cur.value as A, release]);
             const [hd, tl] = next.get;
             _cur = hd(cur.value);
             stack = tl;
@@ -258,7 +270,7 @@ export const allocated =
                   );
 
                   return stack.fold(
-                    () => F.pure([b, rel2]),
+                    () => F.pure([b as A, rel2]),
                     (hd, tl) =>
                       pipe(
                         poll(loop(hd(b), tl, rel2)),
@@ -280,6 +292,7 @@ export const allocated =
 
     return loop(r, List.empty, F.unit);
   };
+}
 
 export const fold: <F>(
   F: MonadCancel<F, Error>,
@@ -453,17 +466,32 @@ export const race_ =
   <A, B>(ra: Resource<F, A>, rb: Resource<F, B>): Resource<F, Either<A, B>> =>
     resourceConcurrent(F).race_(ra, rb);
 
-export const fold_ =
-  <F>(F: MonadCancel<F, Error>) =>
-  <A, B>(
-    r: Resource<F, A>,
-    onOutput: (a: A) => Kind<F, [B]>,
-    onRelease: (fv: Kind<F, [void]>) => Kind<F, [void]>,
-  ): Kind<F, [B]> => {
-    type Frame = (u: unknown) => Resource<F, unknown>;
+export function fold_<F>(
+  F: MonadCancel<F, Error>,
+): <A, B>(
+  r: Resource<F, A>,
+  onOutput: (a: A) => Kind<F, [B]>,
+  onRelease: (fv: Kind<F, [void]>) => Kind<F, [void]>,
+) => Kind<F, [B]>;
+export function fold_<F>(
+  F: MonadCancel<HKT1<F>, Error>,
+): <A, B>(
+  r: Resource<HKT1<F>, A>,
+  onOutput: (a: A) => HKT<F, [B]>,
+  onRelease: (fv: HKT<F, [void]>) => HKT<F, [void]>,
+) => HKT<F, [B]> {
+  return <A, B>(
+    r: Resource<HKT1<F>, A>,
+    onOutput: (a: A) => HKT<F, [B]>,
+    onRelease: (fv: HKT<F, [void]>) => HKT<F, [void]>,
+  ): HKT<F, [B]> => {
+    type Frame = (u: unknown) => Resource<HKT1<F>, unknown>;
     type Stack = List<Frame>;
 
-    const loop = (cur0: Resource<F, unknown>, stack: Stack): Kind<F, [B]> => {
+    const loop = (
+      cur0: Resource<HKT1<F>, unknown>,
+      stack: Stack,
+    ): HKT<F, [B]> => {
       let _cur = cur0;
       while (true) {
         const cur = view(_cur);
@@ -498,6 +526,7 @@ export const fold_ =
 
     return loop(r, List.empty);
   };
+}
 
 export const executeOn_ =
   <F>(F: Async<F>) =>

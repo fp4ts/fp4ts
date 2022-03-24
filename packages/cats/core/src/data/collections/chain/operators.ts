@@ -3,7 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, fst, snd, throwError, pipe, id, tupled } from '@fp4ts/core';
+import {
+  Kind,
+  fst,
+  snd,
+  throwError,
+  pipe,
+  id,
+  tupled,
+  HKT1,
+  HKT,
+} from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 import { Applicative } from '../../../applicative';
@@ -16,7 +26,7 @@ import { List } from '../list';
 import { Vector } from '../vector';
 import { Array as CatsArray } from '../array';
 
-import { Chain, Concat, Empty, NonEmpty, View, view } from './algebra';
+import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
 import { empty, fromArray, fromList, fromVector, pure } from './constructors';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
@@ -282,15 +292,24 @@ export const toList = <A>(xs: Chain<A>): List<A> =>
 export const toVector = <A>(xs: Chain<A>): Vector<A> =>
   Vector.fromIterator(iterator(xs));
 
-export const traverseViaChain =
-  <G, F>(G: Applicative<G>, F: Foldable<F>) =>
-  <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> => {
+export function traverseViaChain<G, F>(
+  G: Applicative<G>,
+  F: Foldable<F>,
+): <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) => Kind<G, [Chain<B>]>;
+export function traverseViaChain<G, F>(
+  G: Applicative<HKT1<G>>,
+  F: Foldable<HKT1<F>>,
+): <A, B>(xs: HKT<F, [A]>, f: (a: A) => HKT<G, [B]>) => HKT<G, [Chain<B>]> {
+  return <A, B>(
+    xs: HKT<F, [A]>,
+    f: (a: A) => HKT<G, [B]>,
+  ): HKT<G, [Chain<B>]> => {
     if (F.isEmpty(xs)) return G.pure(empty);
 
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
 
-    const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
+    const loop = (start: number, end: number): Eval<HKT<G, [Chain<B>]>> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
         let first = Eval.delay(() => G.map_(f(F.elem_(xs, end - 1).get), List));
@@ -322,6 +341,7 @@ export const traverseViaChain =
 
     return loop(0, F.size(xs)).value;
   };
+}
 
 // -- Point-ful operators
 

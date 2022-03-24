@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind } from '@fp4ts/core';
+import { $, HKT1, Kind } from '@fp4ts/core';
 import { KleisliF, Kleisli, OptionTF, OptionT } from '@fp4ts/cats';
 import { Concurrent, ConcurrentRequirements } from './concurrent';
 import { Clock, ClockRequirements } from './clock';
@@ -42,39 +42,44 @@ export type TemporalRequirements<F, E> = Pick<Temporal<F, E>, 'sleep'> &
   ConcurrentRequirements<F, E> &
   ClockRequirements<F> &
   Partial<Temporal<F, E>>;
+
+function of<F, E>(F: TemporalRequirements<F, E>): Temporal<F, E>;
+function of<F, E>(F: TemporalRequirements<HKT1<F>, E>): Temporal<HKT1<F>, E> {
+  const self: Temporal<HKT1<F>, E> = {
+    delayBy: ms => fa => self.delayBy_(fa, ms),
+    delayBy_: (fa, ms) => self.productR_(self.sleep(ms), fa),
+
+    andWait: ms => fa => self.andWait_(fa, ms),
+    andWait_: (fa, ms) => self.productL_(fa, self.sleep(ms)),
+
+    timeoutTo: (ms, fallback) => fa => self.timeoutTo_(fa, ms, fallback),
+    timeoutTo_: (fa, ms, fallback) =>
+      self.flatMap_(self.race_(fa, self.sleep(ms)), ea =>
+        ea.fold(
+          a => self.pure(a),
+          () => fallback,
+        ),
+      ),
+
+    timeout: ms => fa =>
+      (self as any as Temporal<HKT1<F>, Error>).timeout_(fa, ms),
+    timeout_: (fa, ms) =>
+      self.flatMap_(self.race_(fa, self.sleep(ms)), ea =>
+        ea.fold(
+          a => self.pure(a),
+          () => self.throwError(new Error('Timeout Error') as any as E),
+        ),
+      ),
+
+    ...Concurrent.of(F),
+    ...Clock.of(F),
+    ...F,
+  };
+  return self;
+}
+
 export const Temporal = Object.freeze({
-  of: <F, E>(F: TemporalRequirements<F, E>): Temporal<F, E> => {
-    const self: Temporal<F, E> = {
-      delayBy: ms => fa => self.delayBy_(fa, ms),
-      delayBy_: (fa, ms) => self.productR_(self.sleep(ms), fa),
-
-      andWait: ms => fa => self.andWait_(fa, ms),
-      andWait_: (fa, ms) => self.productL_(fa, self.sleep(ms)),
-
-      timeoutTo: (ms, fallback) => fa => self.timeoutTo_(fa, ms, fallback),
-      timeoutTo_: (fa, ms, fallback) =>
-        self.flatMap_(self.race_(fa, self.sleep(ms)), ea =>
-          ea.fold(
-            a => self.pure(a),
-            () => fallback,
-          ),
-        ),
-
-      timeout: ms => fa => (self as any as Temporal<F, Error>).timeout_(fa, ms),
-      timeout_: (fa, ms) =>
-        self.flatMap_(self.race_(fa, self.sleep(ms)), ea =>
-          ea.fold(
-            a => self.pure(a),
-            () => self.throwError(new Error('Timeout Error') as any as E),
-          ),
-        ),
-
-      ...Concurrent.of(F),
-      ...Clock.of(F),
-      ...F,
-    };
-    return self;
-  },
+  of,
 
   temporalForKleisli: <F, E, R>(
     F: Temporal<F, E>,

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
+import { $, HKT, HKT1, id, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Traversable,
   Either,
@@ -59,112 +59,129 @@ export type ConcurrentRequirements<F, E> = Pick<
 > &
   Omit<SpawnRequirements<F, E>, 'racePair_'> &
   Partial<Concurrent<F, E>>;
-export const Concurrent = Object.freeze({
-  of: <F, E>(F: ConcurrentRequirements<F, E>): Concurrent<F, E> => {
-    const self: Concurrent<F, E> = {
-      parTraverseN: T => (maxConcurrent, f) => ta =>
-        self.parTraverseN_(T)(ta, maxConcurrent)(f),
-      parTraverseN_: T => (ta, maxConcurrent) => f => {
-        assert(maxConcurrent >= 1, 'Concurrency limit must be >= 1');
 
-        return F.flatMap_(Semaphore.withPermits(self)(maxConcurrent), sem =>
-          self.parTraverse_(T)(ta, a => sem.withPermit(f(a))),
-        );
-      },
+function of<F, E>(F: ConcurrentRequirements<F, E>): Concurrent<F, E>;
+function of<F, E>(
+  F: ConcurrentRequirements<HKT1<F>, E>,
+): Concurrent<HKT1<F>, E> {
+  type HKTF = HKT1<F>;
+  const self: Concurrent<HKTF, E> = {
+    parTraverseN: T => (maxConcurrent, f) => ta =>
+      self.parTraverseN_(T)(ta, maxConcurrent)(f),
+    parTraverseN_: T => (ta, maxConcurrent) => f => {
+      assert(maxConcurrent >= 1, 'Concurrency limit must be >= 1');
 
-      parSequenceN: T => maxConcurrent => tfa =>
-        self.parSequenceN_(T)(tfa, maxConcurrent),
-      parSequenceN_: T => (tfa, maxConcurrent) =>
-        self.parTraverseN_(T)(tfa, maxConcurrent)(id),
+      return F.flatMap_(Semaphore.withPermits(self)(maxConcurrent), sem =>
+        self.parTraverse_(T)(ta, a => sem.withPermit(f(a))),
+      );
+    },
 
-      ...Spawn.of({
-        racePair_:
-          F.racePair_ ??
-          (<A, B>(
-            fa: Kind<F, [A]>,
-            fb: Kind<F, [B]>,
-          ): Kind<
-            F,
-            [
-              Either<
-                [Outcome<F, E, A>, Fiber<F, E, B>],
-                [Fiber<F, E, A>, Outcome<F, E, B>]
-              >,
-            ]
-          > =>
-            self.uncancelable(poll =>
-              self.do(function* (_) {
-                const result = yield* _(
-                  self.deferred<Either<Outcome<F, E, A>, Outcome<F, E, B>>>(),
-                );
+    parSequenceN: T => maxConcurrent => tfa =>
+      self.parSequenceN_(T)(tfa, maxConcurrent),
+    parSequenceN_: T => (tfa, maxConcurrent) =>
+      self.parTraverseN_(T)(tfa, maxConcurrent)(id),
 
-                const fiberA = yield* _(
-                  pipe(
-                    fa,
-                    self.finalize(oc => result.complete(Left(oc))),
-                    self.fork,
-                  ),
-                );
-                const fiberB = yield* _(
-                  pipe(
-                    fb,
-                    self.finalize(oc => result.complete(Right(oc))),
-                    self.fork,
-                  ),
-                );
+    ...Spawn.of({
+      racePair_:
+        F.racePair_ ??
+        (<A, B>(
+          fa: HKT<F, [A]>,
+          fb: HKT<F, [B]>,
+        ): HKT<
+          F,
+          [
+            Either<
+              [Outcome<HKTF, E, A>, Fiber<HKTF, E, B>],
+              [Fiber<HKTF, E, A>, Outcome<HKTF, E, B>]
+            >,
+          ]
+        > =>
+          self.uncancelable(poll =>
+            self.do(function* (_) {
+              const result = yield* _(
+                self.deferred<
+                  Either<Outcome<HKTF, E, A>, Outcome<HKTF, E, B>>
+                >(),
+              );
 
-                const back = yield* _(
-                  F.onCancel_(
-                    poll(result.get()),
-                    self.do(function* (_) {
-                      const cancelA = yield* _(self.fork(fiberA.cancel));
-                      const cancelB = yield* _(self.fork(fiberB.cancel));
-                      yield* _(cancelA.join);
-                      yield* _(cancelB.join);
-                    }),
-                  ),
-                );
+              const fiberA = yield* _(
+                pipe(
+                  fa,
+                  self.finalize(oc => result.complete(Left(oc))),
+                  self.fork,
+                ),
+              );
+              const fiberB = yield* _(
+                pipe(
+                  fb,
+                  self.finalize(oc => result.complete(Right(oc))),
+                  self.fork,
+                ),
+              );
 
-                return back.fold(
-                  oc => Left(tupled(oc, fiberB)),
-                  oc => Right(tupled(fiberA, oc)),
-                );
-              }),
-            )),
-        ...F,
-      }),
+              const back = yield* _(
+                F.onCancel_(
+                  poll(result.get()),
+                  self.do(function* (_) {
+                    const cancelA = yield* _(self.fork(fiberA.cancel));
+                    const cancelB = yield* _(self.fork(fiberB.cancel));
+                    yield* _(cancelA.join);
+                    yield* _(cancelB.join);
+                  }),
+                ),
+              );
+
+              return back.fold(
+                oc => Left(tupled(oc, fiberB)),
+                oc => Right(tupled(fiberA, oc)),
+              );
+            }),
+          )),
       ...F,
-    };
-    return self;
-  },
-
-  forKleisli: <F, E, R>(
-    F: Concurrent<F, E>,
-  ): Concurrent<$<KleisliF, [F, R]>, E> =>
-    Concurrent.of<$<KleisliF, [F, R]>, E>({
-      ...Spawn.forKleisli<F, E, R>(F),
-
-      ref: <A>(a: A) =>
-        Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
-
-      deferred: () =>
-        Kleisli.liftF(
-          F.map_(F.deferred(), deferred => deferred.mapK(Kleisli.liftF)),
-        ),
     }),
+    ...F,
+  };
+  return self;
+}
 
-  forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTF, [F]>, E> =>
-    Concurrent.of<$<OptionTF, [F]>, E>({
-      ...Spawn.forOptionT<F, E>(F),
+function forKleisli<F, E, R>(
+  F: Concurrent<F, E>,
+): Concurrent<$<KleisliF, [F, R]>, E>;
+function forKleisli<F, E, R>(
+  F: Concurrent<HKT1<F>, E>,
+): Concurrent<$<KleisliF, [HKT1<F>, R]>, E> {
+  return Concurrent.of<$<KleisliF, [HKT1<F>, R]>, E>({
+    ...Spawn.forKleisli<HKT1<F>, E, R>(F),
 
-      ref: <A>(a: A) =>
-        OptionT.liftF(F)(
-          F.map_(F.ref<A>(a), ref => ref.mapK(OptionT.liftF(F))),
-        ),
+    ref: <A>(a: A): Kleisli<HKT1<F>, R, Ref<$<KleisliF, [HKT1<F>, R]>, A>> =>
+      Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
 
-      deferred: <A>() =>
-        OptionT.liftF(F)(
-          F.map_(F.deferred<A>(), deferred => deferred.mapK(OptionT.liftF(F))),
-        ),
-    }),
+    deferred: () =>
+      Kleisli.liftF(
+        F.map_(F.deferred(), deferred => deferred.mapK(Kleisli.liftF)),
+      ),
+  });
+}
+
+function forOptionT<F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTF, [F]>, E>;
+function forOptionT<F, E>(
+  F: Concurrent<HKT1<F>, E>,
+): Concurrent<$<OptionTF, [HKT1<F>]>, E> {
+  return Concurrent.of<$<OptionTF, [HKT1<F>]>, E>({
+    ...Spawn.forOptionT<HKT1<F>, E>(F),
+
+    ref: <A>(a: A) =>
+      OptionT.liftF(F)(F.map_(F.ref<A>(a), ref => ref.mapK(OptionT.liftF(F)))),
+
+    deferred: <A>() =>
+      OptionT.liftF(F)(
+        F.map_(F.deferred<A>(), deferred => deferred.mapK(OptionT.liftF(F))),
+      ),
+  });
+}
+
+export const Concurrent = Object.freeze({
+  of,
+  forKleisli,
+  forOptionT,
 });

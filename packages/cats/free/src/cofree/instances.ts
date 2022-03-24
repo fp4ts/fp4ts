@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
+import { $, HKT, HKT1 } from '@fp4ts/core';
 import {
+  Applicative,
   CoflatMap,
   Comonad,
   Foldable,
@@ -22,6 +23,7 @@ import {
   map_,
   traverse_,
 } from './operators';
+import { Cofree } from './algebra';
 
 export const cofreeFunctor: <S>(
   S: Functor<S>,
@@ -55,5 +57,11 @@ export const cofreeTraversable: <S>(
 ) => Traversable<$<CofreeF, [S]>> = <S>(S: Traversable<S>) =>
   Traversable.of({
     ...cofreeFoldable(S),
-    traverse_: G => traverse_(S, G),
+    traverse_:
+      <G>(G: Applicative<HKT1<G>>) =>
+      <A, B>(
+        fa: Cofree<S, A>,
+        f: (a: A) => HKT<G, [B]>,
+      ): HKT<G, [Cofree<S, B>]> =>
+        traverse_(S, G)(fa, f),
   });

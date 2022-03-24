@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flip, Kind, throwError, tupled } from '@fp4ts/core';
+import { flip, HKT, HKT1, Kind, throwError, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -288,10 +288,15 @@ export const foldMap_ =
   <A>(xs: Vector<A>, f: (a: A) => M): M =>
     foldLeft_(xs, M.empty, (m, x) => M.combine_(m, () => f(x)));
 
-export const foldMapK_ =
-  <F>(F: MonoidK<F>) =>
-  <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldMap_<Kind<F, [B]>>(F.algebra())(xs, f);
+export function foldMapK_<F>(
+  F: MonoidK<F>,
+): <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+export function foldMapK_<F>(
+  F: MonoidK<HKT1<F>>,
+): <A, B>(xs: Vector<A>, f: (a: A) => HKT<F, [B]>) => HKT<F, [B]> {
+  return <A, B>(xs: Vector<A>, f: (a: A) => HKT<F, [B]>): HKT<F, [B]> =>
+    foldMap_<HKT<F, [B]>>(F.algebra())(xs, f);
+}
 
 export const align_ = <A, B>(xs: Vector<A>, ys: Vector<B>): Vector<Ior<A, B>> =>
   zipAllWith_(
@@ -389,13 +394,18 @@ export const scanRight1_ = <A>(
     .map(([l, i]) => scanRight_(i, l, f))
     .getOrElse(() => throwError(new Error('Vector0.scanRight1')));
 
-export const traverse_ =
-  <F>(F: Applicative<F>) =>
-  <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [Vector<B>]> =>
+export function traverse_<F>(
+  F: Applicative<F>,
+): <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>) => Kind<F, [Vector<B>]>;
+export function traverse_<F>(
+  F: Applicative<HKT1<F>>,
+): <A, B>(xs: Vector<A>, f: (a: A) => HKT<F, [B]>) => HKT<F, [Vector<B>]> {
+  return (xs, f) =>
     F.map_(
       Chain.traverseViaChain(F, vectorFoldable())(xs, f),
       ys => ys.toVector,
     );
+}
 
 export const equals_ =
   <A>(E: Eq<A>) =>

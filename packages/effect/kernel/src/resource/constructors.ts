@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, Kind, tupled } from '@fp4ts/core';
+import { $, HKT, HKT1, id, Kind, tupled } from '@fp4ts/core';
 import {
   Functor,
   ApplicativeError,
@@ -155,65 +155,78 @@ export const sleep =
   (ms: number): Resource<F, void> =>
     evalF(F.sleep(ms));
 
-export const cont =
-  <F>(F: Async<F>) =>
-  <K, R>(body: Cont<$<ResourceF, [F]>, K, R>): Resource<F, R> =>
-    allocateFull(poll =>
-      poll(
-        F.cont<K, (r: R, ec: ExitCase) => Kind<F, [void]>>(
-          <G>(G: MonadCancel<G, Error>) =>
-            (
-              resume: (ea: Either<Error, K>) => void,
-              get: Kind<G, [K]>,
-              lift: FunctionK<F, G>,
-            ) => {
-              type D = $<KleisliF, [G, Ref<G, Kind<F, [void]>>]>;
-
-              const lift2: FunctionK<$<ResourceF, [F]>, D> = rfa =>
-                Kleisli(r =>
-                  G.flatMap_(lift(allocated(F)(rfa)), ([a, fin]) =>
-                    G.map_(
-                      r.update(fv =>
-                        F.finalize_(fv, oc =>
-                          oc.fold(
-                            () => F.unit,
-                            () => fin,
-                            () => fin,
-                          ),
-                        ),
-                      ),
-                      () => a,
+export function cont<F>(
+  F: Async<F>,
+): <K, R>(body: Cont<$<ResourceF, [F]>, K, R>) => Resource<F, R>;
+export function cont<F>(
+  F: Async<HKT1<F>>,
+): <K, R>(body: Cont<$<ResourceF, [HKT1<F>]>, K, R>) => Resource<HKT1<F>, R> {
+  return <K, R>(
+    body: Cont<$<ResourceF, [HKT1<F>]>, K, R>,
+  ): Resource<HKT1<F>, R> => {
+    function body_<G>(
+      G: MonadCancel<G, Error>,
+    ): (
+      resume: (ea: Either<Error, K>) => void,
+      get: Kind<G, [K]>,
+      lift: FunctionK<HKT1<F>, G>,
+    ) => Kind<G, [[R, (_: ExitCase) => Kind<F, [void]>]]>;
+    function body_<G>(
+      G: MonadCancel<HKT1<G>, Error>,
+    ): (
+      resume: (ea: Either<Error, K>) => void,
+      get: HKT<G, [K]>,
+      lift: FunctionK<HKT1<F>, HKT1<G>>,
+    ) => HKT<G, [[R, (_: ExitCase) => HKT<F, [void]>]]> {
+      type D = $<KleisliF, [HKT1<G>, Ref<HKT1<G>, HKT<F, [void]>>]>;
+      return (resume, get, lift) => {
+        const lift2: FunctionK<$<ResourceF, [HKT1<F>]>, D> = rfa =>
+          Kleisli(r =>
+            G.flatMap_(lift(allocated(F)(rfa)), ([a, fin]) =>
+              G.map_(
+                r.update(fv =>
+                  F.finalize_(fv, oc =>
+                    oc.fold(
+                      () => F.unit,
+                      () => fin,
+                      () => fin,
                     ),
                   ),
-                );
+                ),
+                () => a,
+              ),
+            ),
+          );
 
-              return G.do(function* (_) {
-                const r = yield* _(
-                  lift(F.map_(F.ref(F.unit), x => x.mapK(lift))),
-                );
+        return G.do(function* (_) {
+          const r = yield* _(lift(F.map_(F.ref(F.unit), x => x.mapK(lift))));
 
-                const a = yield* _(
-                  G.finalize_(
-                    body<D>(MonadCancel.forKleisli(G))(
-                      resume,
-                      Kleisli.liftF<G, K>(get),
-                      lift2,
-                    ).run(r),
-                    oc =>
-                      oc.fold(
-                        () => G.flatMap_(r.get(), lift),
-                        () => G.flatMap_(r.get(), lift),
-                        () => G.unit,
-                      ),
-                  ),
-                );
-                const fin = yield* _(r.get());
-                return tupled(a, (_: ExitCase) => fin);
-              });
-            },
-        ),
-      ),
+          const a = yield* _(
+            G.finalize_(
+              body<D>(MonadCancel.forKleisli(G))(
+                resume,
+                Kleisli.liftF<HKT1<G>, K>(get),
+                lift2,
+              ).run(r),
+              oc =>
+                oc.fold(
+                  () => G.flatMap_(r.get(), lift),
+                  () => G.flatMap_(r.get(), lift),
+                  () => G.unit,
+                ),
+            ),
+          );
+          const fin = yield* _(r.get());
+          return tupled(a, (_: ExitCase) => fin);
+        });
+      };
+    }
+
+    return allocateFull(poll =>
+      poll(F.cont<K, [R, (ec: ExitCase) => HKT<F, [void]>]>(body_)),
     );
+  };
+}
 
 export const readExecutionContext = <F>(
   F: Async<F>,

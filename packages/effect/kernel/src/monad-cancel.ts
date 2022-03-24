@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
+import { $, HKT1 } from '@fp4ts/core';
 import { id, Kind, pipe } from '@fp4ts/core';
 import {
   Kleisli,
@@ -75,51 +75,115 @@ export type MonadCancelRequirements<F, E> = Pick<
   MonadErrorRequirements<F, E> &
   Partial<MonadCancel<F, E>>;
 
-export const MonadCancel = Object.freeze({
-  of: <F, E>(F: MonadCancelRequirements<F, E>): MonadCancel<F, E> => {
-    const self: MonadCancel<F, E> = {
-      onCancel: fin => fa => self.onCancel_(fa, fin),
+function of<F, E>(F: MonadCancelRequirements<F, E>): MonadCancel<F, E>;
+function of<F, E>(
+  F: MonadCancelRequirements<HKT1<F>, E>,
+): MonadCancel<HKT1<F>, E> {
+  const self: MonadCancel<HKT1<F>, E> = {
+    onCancel: fin => fa => self.onCancel_(fa, fin),
 
-      finalize: fin => fa => self.finalize_(fa, fin),
-      finalize_: (fa, fin) =>
-        self.uncancelable(poll => {
-          const finalized = self.onCancel_(poll(fa), fin(Outcome.canceled()));
-          const handled = self.onError_(finalized, e =>
-            self.handleError_(fin(Outcome.failure(e)), () => {}),
-          );
-          return self.flatTap_(handled, a =>
-            fin(Outcome.success(self.pure(a))),
-          );
-        }),
+    finalize: fin => fa => self.finalize_(fa, fin),
+    finalize_: (fa, fin) =>
+      self.uncancelable(poll => {
+        const finalized = self.onCancel_(poll(fa), fin(Outcome.canceled()));
+        const handled = self.onError_(finalized, e =>
+          self.handleError_(fin(Outcome.failure(e)), () => {}),
+        );
+        return self.flatTap_(handled, a => fin(Outcome.success(self.pure(a))));
+      }),
 
-      bracket: use => release => acquire =>
-        self.bracket_(acquire, use, release),
+    bracket: use => release => acquire => self.bracket_(acquire, use, release),
 
-      bracket_: (acquire, use, release) =>
-        self.bracketOutcome_(acquire, use, a => release(a)),
+    bracket_: (acquire, use, release) =>
+      self.bracketOutcome_(acquire, use, a => release(a)),
 
-      bracketOutcome: use => release => acquire =>
-        self.bracketOutcome_(acquire, use, release),
-      bracketOutcome_: (acquire, use, release) =>
-        self.bracketFull(() => acquire, use, release),
+    bracketOutcome: use => release => acquire =>
+      self.bracketOutcome_(acquire, use, release),
+    bracketOutcome_: (acquire, use, release) =>
+      self.bracketFull(() => acquire, use, release),
 
-      bracketFull: (acquire, use, release) =>
-        self.uncancelable(poll =>
-          pipe(
-            acquire(poll),
-            self.flatMap(a =>
-              self.finalize_(poll(self.flatMap_(self.unit, () => use(a))), oc =>
-                release(a, oc),
-              ),
+    bracketFull: (acquire, use, release) =>
+      self.uncancelable(poll =>
+        pipe(
+          acquire(poll),
+          self.flatMap(a =>
+            self.finalize_(poll(self.flatMap_(self.unit, () => use(a))), oc =>
+              release(a, oc),
             ),
           ),
         ),
+      ),
 
-      ...MonadError.of(F),
-      ...F,
-    };
-    return self;
-  },
+    ...MonadError.of(F),
+    ...F,
+  };
+  return self;
+}
+
+function forKleisli<F, R, E>(
+  F: MonadCancel<F, E>,
+): MonadCancel<$<KleisliF, [F, R]>, E>;
+function forKleisli<F, R, E>(
+  F: MonadCancel<HKT1<F>, E>,
+): MonadCancel<$<KleisliF, [HKT1<F>, R]>, E> {
+  return MonadCancel.of({
+    ...Kleisli.MonadError(F),
+
+    onCancel_: <A>(
+      fa: Kleisli<HKT1<F>, R, A>,
+      fin: Kleisli<HKT1<F>, R, void>,
+    ): Kleisli<HKT1<F>, R, A> =>
+      Kleisli(r => F.onCancel_(fa.run(r), fin.run(r))),
+
+    canceled: Kleisli.liftF(F.canceled),
+
+    uncancelable: <A>(
+      body: (poll: Poll<$<KleisliF, [HKT1<F>, R]>>) => Kleisli<HKT1<F>, R, A>,
+    ): Kleisli<HKT1<F>, R, A> =>
+      Kleisli(r =>
+        F.uncancelable(nat => {
+          const natT: Poll<$<KleisliF, [HKT1<F>, R]>> = <X>(
+            frx: Kleisli<HKT1<F>, R, X>,
+          ): Kleisli<HKT1<F>, R, X> => Kleisli(r => nat(frx.run(r)));
+
+          return body(natT).run(r);
+        }),
+      ),
+  });
+}
+
+function forOptionT<F, E>(
+  F: MonadCancel<F, E>,
+): MonadCancel<$<OptionTF, [F]>, E>;
+function forOptionT<F, E>(
+  F: MonadCancel<HKT1<F>, E>,
+): MonadCancel<$<OptionTF, [HKT1<F>]>, E> {
+  return MonadCancel.of({
+    ...OptionT.MonadError(F),
+
+    canceled: OptionT.liftF(F)(F.canceled),
+
+    onCancel_: <A>(
+      fa: OptionT<HKT1<F>, A>,
+      fin: OptionT<HKT1<F>, void>,
+    ): OptionT<HKT1<F>, A> => OptionT(F.onCancel_(fa.value, F.void(fin.value))),
+
+    uncancelable: <A>(
+      body: (poll: Poll<$<OptionTF, [HKT1<F>]>>) => OptionT<HKT1<F>, A>,
+    ): OptionT<HKT1<F>, A> =>
+      OptionT(
+        F.uncancelable(nat => {
+          const natT: Poll<$<OptionTF, [HKT1<F>]>> = <A>(
+            optfa: OptionT<HKT1<F>, A>,
+          ): OptionT<HKT1<F>, A> => OptionT(nat(optfa.value));
+          return body(natT).value;
+        }),
+      ),
+  });
+}
+
+export const MonadCancel = Object.freeze({
+  of,
 
   Uncancelable: <F, E>(F: MonadErrorRequirements<F, E>): MonadCancel<F, E> =>
     MonadCancel.of({
@@ -132,48 +196,6 @@ export const MonadCancel = Object.freeze({
       ...F,
     }),
 
-  forKleisli: <F, R, E>(
-    F: MonadCancel<F, E>,
-  ): MonadCancel<$<KleisliF, [F, R]>, E> =>
-    MonadCancel.of({
-      ...Kleisli.MonadError(F),
-
-      onCancel_: (fa, fin) => Kleisli(r => F.onCancel_(fa.run(r), fin.run(r))),
-
-      canceled: Kleisli.liftF(F.canceled),
-
-      uncancelable: <A>(
-        body: (poll: Poll<$<KleisliF, [F, R]>>) => Kleisli<F, R, A>,
-      ): Kleisli<F, R, A> =>
-        Kleisli(r =>
-          F.uncancelable(nat => {
-            const natT: Poll<$<KleisliF, [F, R]>> = <X>(
-              frx: Kleisli<F, R, X>,
-            ): Kleisli<F, R, X> => Kleisli(r => nat(frx.run(r)));
-
-            return body(natT).run(r);
-          }),
-        ),
-    }),
-
-  forOptionT: <F, E>(F: MonadCancel<F, E>): MonadCancel<$<OptionTF, [F]>, E> =>
-    MonadCancel.of({
-      ...OptionT.MonadError(F),
-
-      canceled: OptionT.liftF(F)(F.canceled),
-
-      onCancel_: (fa, fin) => OptionT(F.onCancel_(fa.value, F.void(fin.value))),
-
-      uncancelable: <A>(
-        body: (poll: Poll<$<OptionTF, [F]>>) => OptionT<F, A>,
-      ): OptionT<F, A> =>
-        OptionT(
-          F.uncancelable(nat => {
-            const natT: Poll<$<OptionTF, [F]>> = <A>(
-              optfa: OptionT<F, A>,
-            ): OptionT<F, A> => OptionT(nat(optfa.value));
-            return body(natT).value;
-          }),
-        ),
-    }),
+  forKleisli,
+  forOptionT,
 });

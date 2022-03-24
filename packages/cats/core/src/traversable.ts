@@ -22,14 +22,26 @@ export interface Traversable<T>
   extends Functor<T>,
     Foldable<T>,
     UnorderedTraversable<T> {
-  readonly traverse: <G>(
+  traverse<G>(
+    G: Applicative<HKT1<G>>,
+  ): <A, B>(
+    f: (a: A) => HKT<G, [B]>,
+  ) => (fa: Kind<T, [A]>) => HKT<G, [Kind<T, [B]>]>;
+  traverse<G>(
     G: Applicative<G>,
-  ) => <A, B>(
+  ): <A, B>(
     f: (a: A) => Kind<G, [B]>,
   ) => (fa: Kind<T, [A]>) => Kind<G, [Kind<T, [B]>]>;
-  readonly traverse_: <G>(
+
+  traverse_<G>(
+    G: Applicative<HKT1<G>>,
+  ): <A, B>(
+    fa: Kind<T, [A]>,
+    f: (a: A) => HKT<G, [B]>,
+  ) => HKT<G, [Kind<T, [B]>]>;
+  traverse_<G>(
     G: Applicative<G>,
-  ) => <A, B>(
+  ): <A, B>(
     fa: Kind<T, [A]>,
     f: (a: A) => Kind<G, [B]>,
   ) => Kind<G, [Kind<T, [B]>]>;
@@ -66,7 +78,11 @@ export type TraversableRequirements<T> = Pick<Traversable<T>, 'traverse_'> &
 function of<T>(T: TraversableRequirements<T>): Traversable<T>;
 function of<T>(T: TraversableRequirements<HKT1<T>>): Traversable<HKT1<T>> {
   const self: Traversable<HKT1<T>> = {
-    traverse: G => f => fa => self.traverse_(G)(fa, f),
+    traverse:
+      <G>(G: Applicative<HKT1<G>>) =>
+      <A, B>(f: (a: A) => HKT<G, [B]>) =>
+      (fa: HKT<T, [A]>): HKT<G, [HKT<T, [B]>]> =>
+        self.traverse_(G)(fa, f),
 
     sequence: G => fga => self.traverse_(G)(fga, id),
 

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, fst, snd, throwError, constant } from '@fp4ts/core';
+import { Kind, fst, snd, throwError, constant, HKT1, HKT } from '@fp4ts/core';
 import { Eq, Monoid, Ord, Compare } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Option, Some, None } from '../../option';
@@ -407,10 +407,15 @@ export const foldMap_ =
   <A>(sa: Set<A>, f: (a: A) => M): M =>
     foldLeft_(sa, M.empty, (acc, x) => M.combine_(acc, () => f(x)));
 
-export const foldMapK_ =
-  <F>(F: MonoidK<F>) =>
-  <A, B>(sa: Set<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldLeft_(sa, F.emptyK<A>(), (acc, x) => F.combineK_(acc, () => f(x)));
+export function foldMapK_<F>(
+  F: MonoidK<F>,
+): <A, B>(sa: Set<A>, f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
+export function foldMapK_<F>(
+  F: MonoidK<HKT1<F>>,
+): <A, B>(sa: Set<A>, f: (a: A) => HKT<F, [B]>) => HKT<F, [B]> {
+  return (sa, f) =>
+    foldLeft_(sa, F.emptyK(), (acc, x) => F.combineK_(acc, () => f(x)));
+}
 
 export const equals_ =
   <A>(E: Eq<A>) =>
