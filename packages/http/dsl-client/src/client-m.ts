@@ -6,10 +6,13 @@
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Kleisli } from '@fp4ts/cats';
 import { Client } from '@fp4ts/http-client';
+import { Request } from '@fp4ts/http-core';
 
 export type ClientM<F, A> = Kleisli<F, Client<F>, A>;
 export const ClientM = Kleisli;
 
 export interface ClientMF extends TyK<[unknown, unknown]> {
-  [$type]: ClientM<TyVar<this, 0>, TyVar<this, 1>>;
+  [$type]: (
+    req: Request<TyVar<this, 0>>,
+  ) => ClientM<TyVar<this, 0>, TyVar<this, 1>>;
 }
