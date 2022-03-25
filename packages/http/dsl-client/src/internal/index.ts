@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { pipe, TypeRef } from '@fp4ts/core';
+import { id, pipe, TypeRef } from '@fp4ts/core';
 import { Some } from '@fp4ts/cats';
 import { Concurrent, IO } from '@fp4ts/effect';
 import {
@@ -49,7 +49,7 @@ export const toClientIn =
     api: api,
     codings: OmitBuiltins<DeriveCoding<F, api>>,
   ): Client<F, api> =>
-    clientWithRoute(F)(api, new Request(), merge(builtins, codings));
+    clientWithRoute(F)(api, id, merge(builtins, codings));
 
 export const toIOClientIn = toClientIn(IO.Concurrent);
 
@@ -67,56 +67,56 @@ const merge = (xs: any, ys: any): any => {
 export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function clientWithRoute<api>(
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, api>,
   ): Client<F, api> {
     if (api instanceof Alt) {
-      return routeAlt(api, req, codings) as any;
+      return routeAlt(api, br, codings) as any;
     }
 
     if (api instanceof Sub) {
       const { lhs, rhs } = api;
 
       if (lhs instanceof CaptureElement) {
-        return routeCapture(lhs, rhs, req, codings as any) as any;
+        return routeCapture(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof QueryElement) {
-        return routeQuery(lhs, rhs, req, codings as any) as any;
+        return routeQuery(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof StaticElement) {
-        return routeStatic(lhs, rhs, req, codings as any) as any;
+        return routeStatic(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof HeaderElement) {
-        return routeHeader(lhs, rhs, req, codings as any) as any;
+        return routeHeader(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof RawHeaderElement) {
-        return routeRawHeader(lhs, rhs, req, codings as any) as any;
+        return routeRawHeader(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof ReqBodyElement) {
-        return routeReqBody(lhs, rhs, req, codings as any) as any;
+        return routeReqBody(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof CaptureAllElement) {
-        return routeCaptureAll(lhs, rhs, req, codings as any) as any;
+        return routeCaptureAll(lhs, rhs, br, codings as any) as any;
       }
       if (lhs instanceof BasicAuthElement) {
-        return routeBasicAuth(lhs, rhs, req, codings as any) as any;
+        return routeBasicAuth(lhs, rhs, br, codings as any) as any;
       }
     }
 
     if (api instanceof VerbElement) {
-      return routeVerbContent(api, req, codings) as any;
+      return routeVerbContent(api, br, codings) as any;
     }
 
     if (api instanceof HeadersVerbElement) {
-      return routeHeadersVerbContent(api, req, codings as any) as any;
+      return routeHeadersVerbContent(api, br, codings as any) as any;
     }
 
     if (api instanceof VerbNoContentElement) {
-      return routeVerbNoContent(api, req, codings as any) as any;
+      return routeVerbNoContent(api, br, codings as any) as any;
     }
 
     if (api instanceof RawElement) {
-      return routeRaw(api, req) as any;
+      return routeRaw(api, br) as any;
     }
 
     throw new Error('Invalid API');
@@ -124,23 +124,24 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
 
   function routeAlt<xs extends [unknown, ...unknown[]]>(
     api: Alt<xs>,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Alt<xs>>,
   ): Client<F, Alt<xs>> {
-    return api.xs.map((x: any) => clientWithRoute(x, req, codings)) as any;
+    return api.xs.map((x: any) => clientWithRoute(x, br, codings)) as any;
   }
 
   function routeCapture<api, A>(
     a: CaptureElement<string, TypeRef<any, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<CaptureElement<any, TypeRef<any, A>>, api>>,
   ): Client<F, Sub<CaptureElement<any, TypeRef<any, A>>, api>> {
     const C = codings[ToHttpApiDataTag][a.type.Ref];
     return element =>
       clientWithRoute(
         api,
-        req.withUri(req.uri['/'](C.toPathComponent(element))),
+        req =>
+          br(req).transformUri(uri => uri['/'](C.toPathComponent(element))),
         codings,
       );
   }
@@ -148,7 +149,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function routeQuery<api, A>(
     a: QueryElement<string, TypeRef<any, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<QueryElement<any, TypeRef<any, A>>, api>>,
   ): Client<F, Sub<QueryElement<any, TypeRef<any, A>>, api>> {
     const C = codings[ToHttpApiDataTag][a.type.Ref];
@@ -156,10 +157,10 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
       clientWithRoute(
         api,
         element.fold(
-          () => req,
-          element =>
-            req.withUri(
-              req.uri['&+'](a.property, Some(C.toQueryParameter(element))),
+          () => br,
+          element => req =>
+            br(req).transformUri(uri =>
+              uri['&+'](a.property, Some(C.toQueryParameter(element))),
             ),
         ),
         codings,
@@ -169,24 +170,28 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function routeStatic<api>(
     a: StaticElement<string>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<StaticElement<string>, api>>,
   ): Client<F, Sub<StaticElement<string>, api>> {
-    return clientWithRoute(api, req.withUri(req.uri['/'](a.path)), codings);
+    return clientWithRoute(
+      api,
+      req => br(req).transformUri(uri => uri['/'](a.path)),
+      codings,
+    );
   }
 
   function routeHeader<api, G, A>(
     a: HeaderElement<SelectHeader<G, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<HeaderElement<SelectHeader<G, A>>, api>>,
   ): Client<F, Sub<HeaderElement<SelectHeader<G, A>>, api>> {
     return h =>
       clientWithRoute(
         api,
         h.fold(
-          () => req,
-          h => req.putHeaders(...a.header.toRaw(h)),
+          () => br,
+          h => req => br(req).putHeaders(...a.header.toRaw(h)),
         ),
         codings,
       );
@@ -195,7 +200,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function routeRawHeader<api, H extends string, A>(
     a: RawHeaderElement<H, TypeRef<any, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<RawHeaderElement<H, TypeRef<any, A>>, api>>,
   ): Client<F, Sub<RawHeaderElement<H, TypeRef<any, A>>, api>> {
     const C = codings[ToHttpApiDataTag][a.type.Ref];
@@ -203,8 +208,8 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
       clientWithRoute(
         api,
         h.fold(
-          () => req,
-          h => req.putHeaders([a.key, C.toHeader(h)]),
+          () => br,
+          h => req => br(req).putHeaders([a.key, C.toHeader(h)]),
         ),
         codings,
       );
@@ -213,17 +218,18 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function routeBasicAuth<api>(
     a: BasicAuthElement<any, any>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<BasicAuthElement<any, any>, api>>,
   ): Client<F, Sub<BasicAuthElement<any, any>, api>> {
     return creds =>
       clientWithRoute(
         api,
-        req.putHeaders(
-          ...new Authorization(
-            new Token(AuthScheme.Basic, creds.token),
-          ).toRaw(),
-        ),
+        req =>
+          br(req).putHeaders(
+            ...new Authorization(
+              new Token(AuthScheme.Basic, creds.token),
+            ).toRaw(),
+          ),
         codings,
       );
   }
@@ -236,16 +242,17 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   >(
     a: ReqBodyElement<CT, TypeRef<any, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>,
   ): Client<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>> {
     const C = codings[a.ct.mime][a.body.Ref];
     return b =>
       clientWithRoute(
         api,
-        req
-          .withEntity(C.encode(b), EntityEncoder.text())
-          .putHeaders(...ContentType.Header.parse(a.ct.mime).get.toRaw()),
+        req =>
+          br(req)
+            .withEntity(C.encode(b), EntityEncoder.text())
+            .putHeaders(...ContentType.Header.parse(a.ct.mime).get.toRaw()),
         codings,
       );
   }
@@ -253,16 +260,17 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   function routeCaptureAll<api, R extends string, A>(
     a: CaptureAllElement<any, TypeRef<R, A>>,
     api: api,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, Sub<CaptureAllElement<any, TypeRef<R, A>>, api>>,
   ): Client<F, Sub<CaptureAllElement<any, TypeRef<R, A>>, api>> {
     const C = codings[ToHttpApiDataTag][a.type.Ref];
     return es =>
       clientWithRoute(
         api,
-        req.withUri(
-          es.foldLeft(req.uri, (uri, e) => uri['/'](C.toPathComponent(e))),
-        ),
+        req =>
+          br(req).transformUri(uri =>
+            es.foldLeft(uri, (uri, e) => uri['/'](C.toPathComponent(e))),
+          ),
         codings,
       );
   }
@@ -274,15 +282,15 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     T extends TypeRef<R, any>,
   >(
     verb: VerbElement<any, CT, T>,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): ClientM<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.body.Ref];
     const accept = MediaRange.fromString(verb.contentType.mime).get;
-    const req_ = req
-      .putHeaders(...new Accept(accept).toRaw())
-      .withMethod(verb.method);
     return ClientM(underlying => {
+      const req_ = br(new Request())
+        .putHeaders(...new Accept(accept).toRaw())
+        .withMethod(verb.method);
       return underlying.fetch(req_, res => {
         if (!res.status.isSuccessful)
           return pipe(
@@ -320,17 +328,20 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     >,
   >(
     verb: HeadersVerbElement<any, CT, H>,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): ClientM<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.headers.body.Ref];
-    const req_ = req
-      .putHeaders(
-        ...new Accept(MediaRange.fromString(verb.contentType.mime).get).toRaw(),
-      )
-      .withMethod(verb.method);
-    return ClientM(underlying =>
-      underlying.fetch(req_, res => {
+    return ClientM(underlying => {
+      const req_ = br(new Request())
+        .putHeaders(
+          ...new Accept(
+            MediaRange.fromString(verb.contentType.mime).get,
+          ).toRaw(),
+        )
+        .withMethod(verb.method);
+
+      return underlying.fetch(req_, res => {
         if (!res.status.isSuccessful)
           return F.throwError(
             new Error(`Failed with status ${res.status.code}`),
@@ -362,17 +373,17 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
           F.flatMap(txt => F.fromEither(C.decode(txt))),
           F.map(r => new ResponseHeaders(hs, r)),
         );
-      }),
-    );
+      });
+    });
   }
 
   function routeVerbNoContent(
     verb: VerbNoContentElement<Method>,
-    req: Request<F>,
+    br: (req: Request<F>) => Request<F>,
     codings: DeriveCoding<F, VerbNoContentElement<any>>,
   ): Client<F, VerbNoContentElement<any>> {
     return ClientM(underlying =>
-      underlying.fetch(req.withMethod(verb.method), res =>
+      underlying.fetch(br(new Request()).withMethod(verb.method), res =>
         res.status.isSuccessful
           ? F.unit
           : F.throwError(new Error(`Failed with status ${res.status.code}`)),
@@ -380,8 +391,11 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     );
   }
 
-  function routeRaw(raw: RawElement, req: Request<F>): Client<F, RawElement> {
-    return runRequest => runRequest(req);
+  function routeRaw(
+    raw: RawElement,
+    br: (req: Request<F>) => Request<F>,
+  ): Client<F, RawElement> {
+    return runRequest => runRequest(br(new Request()));
   }
 
   return clientWithRoute;
