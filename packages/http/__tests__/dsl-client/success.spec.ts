@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { Left, List, None, NonEmptyList, Some } from '@fp4ts/cats';
-import { IO, Resource } from '@fp4ts/effect';
+import { IO, IOF, Resource } from '@fp4ts/effect';
 import { Method, RawHeader, Request, Status } from '@fp4ts/http-core';
 import { ClientM, ResponseHeaders } from '@fp4ts/http-dsl-client';
 import { Client } from '@fp4ts/http-client';
@@ -44,8 +44,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getRoot(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getRoot(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(person => IO(() => expect(person).toEqual(carol)));
       }),
     );
@@ -57,8 +57,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getGet(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getGet(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(person => IO(() => expect(person).toEqual(alice)));
       }),
     );
@@ -70,8 +70,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getGet(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getGet(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(person => IO(() => expect(person).toEqual(alice)));
       }),
     );
@@ -85,8 +85,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return deleteEmpty(new Request())
-          .run(client.withBaseUri(baseUri))
+        return deleteEmpty(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res => IO(() => expect(res).toBeUndefined()));
       }),
     );
@@ -100,8 +100,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCapture('Paula')(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCapture('Paula')(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res =>
             IO(() => expect(res).toEqual(Person({ name: 'Paula', age: 0 }))),
           );
@@ -117,8 +117,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCaptureAll(List.empty)(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCaptureAll(List.empty)(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res => IO(() => expect(res).toEqual([])));
       }),
     );
@@ -130,8 +130,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCaptureAll(List('Paula'))(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCaptureAll(List('Paula'))(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res =>
             IO(() => expect(res).toEqual([Person({ name: 'Paula', age: 0 })])),
           );
@@ -145,8 +145,10 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCaptureAll(List('Paula', 'Kim', 'Jessica'))(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCaptureAll(List('Paula', 'Kim', 'Jessica'))(
+          new Request({ uri: baseUri }),
+        )
+          .run(client)
           .flatMap(res =>
             IO(() =>
               expect(res).toEqual([
@@ -169,8 +171,8 @@ describe('Success', () => {
         const baseUri = server.baseUri;
         const clara = Person({ name: 'Clara', age: 34 });
 
-        return postBody(clara)(new Request())
-          .run(client.withBaseUri(baseUri))
+        return postBody(clara)(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res => IO(() => expect(res).toEqual(clara)));
       }),
     );
@@ -184,8 +186,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getParam(Some('alice'))(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getParam(Some('alice'))(new Request({ uri: baseUri }))
+          .run(client)
           .flatMap(res => IO(() => expect(res).toEqual(alice)));
       }),
     );
@@ -197,8 +199,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getParam(Some('Carol'))(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getParam(Some('Carol'))(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(res =>
             IO(() =>
               expect(res).toEqual(
@@ -216,8 +218,8 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getParam(None)(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getParam(None)(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(res =>
             IO(() =>
               expect(res).toEqual(
@@ -242,8 +244,8 @@ describe('Success', () => {
             ClientM(client =>
               client.fetch(req.withMethod(Method.GET), IO.pure),
             ),
-        )(new Request())
-          .run(client.withBaseUri(baseUri))
+        )(new Request({ uri: baseUri }))
+          .run(client)
           .flatTap(res => IO(() => expect(res.status === Status.Ok).toBe(true)))
           .flatMap(res => res.bodyText.compileConcurrent().string)
           .flatMap(txt => IO(() => expect(txt).toBe('raw success')));
@@ -262,8 +264,8 @@ describe('Success', () => {
             ClientM(client =>
               client.fetch(req.withMethod(Method.GET), IO.pure),
             ),
-        )(new Request())
-          .run(client.withBaseUri(baseUri))
+        )(new Request({ uri: baseUri }))
+          .run(client)
           .flatTap(res =>
             IO(() => expect(res.status === Status.BadRequest).toBe(true)),
           )
@@ -278,17 +280,18 @@ describe('Success', () => {
         clientResource,
       )((server, client) => {
         const baseUri = server.baseUri;
-        const client_ = Client(IO.Async, req =>
-          client.run(req.putHeaders(new RawHeader('X-Added-Header', 'XXX'))),
-        );
 
         return rawSuccessPassHeaders(
           req => () =>
             ClientM(client =>
               client.fetch(req.withMethod(Method.GET), IO.pure),
             ),
-        )(new Request())
-          .run(client_.withBaseUri(baseUri))
+        )(
+          new Request<IOF>({ uri: baseUri }).putHeaders(
+            new RawHeader('X-Added-Header', 'XXX'),
+          ),
+        )
+          .run(client)
           .flatMap(res =>
             IO(() =>
               expect(res.headers.getRaw('X-Added-Header')).toEqual(
@@ -314,8 +317,10 @@ describe('Success', () => {
         )((server, client) => {
           const baseUri = server.baseUri;
 
-          return postMultiple(str)(num)(flag)(body)(new Request())
-            .run(client.withBaseUri(baseUri))
+          return postMultiple(str)(num)(flag)(body)(
+            new Request({ uri: baseUri }),
+          )
+            .run(client)
             .flatMap(res =>
               IO(() =>
                 expect(res).toEqual([
@@ -337,8 +342,8 @@ describe('Success', () => {
     )((server, client) => {
       const baseUri = server.baseUri;
 
-      return getHeaders(new Request())
-        .run(client.withBaseUri(baseUri))
+      return getHeaders(new Request({ uri: baseUri }))
+        .run(client)
         .flatMap(res =>
           IO(() => expect(res).toEqual(new ResponseHeaders([42, 'eg2'], true))),
         );

@@ -23,8 +23,8 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return deleteEmpty(new Request())
-          .run(client.withBaseUri(baseUri))
+        return deleteEmpty(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(r =>
             IO(() =>
               expect(r).toEqual(Left(new Error('Failed with status 404'))),
@@ -40,8 +40,8 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCapture('foo')(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCapture('foo')(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(r =>
             IO(() => expect(r.getLeft).toBeInstanceOf(DecodeFailure)),
           );
@@ -66,8 +66,8 @@ describe('Failure', () => {
           ),
         });
 
-        return getCapture('foo')(new Request())
-          .run(client.withBaseUri(baseUri))
+        return getCapture('foo')(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(r =>
             IO(() => {
               const code = (r.getLeft as any).code;
@@ -83,8 +83,8 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return postBody(alice)(new Request())
-          .run(client.withBaseUri(baseUri))
+        return postBody(alice)(new Request({ uri: baseUri }))
+          .run(client)
           .attempt.flatMap(r =>
             IO(() =>
               expect(r.getLeft).toEqual(new Error('Unsupported media type')),

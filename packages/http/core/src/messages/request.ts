@@ -18,15 +18,28 @@ import { Attributes } from './attributes';
 import { EntityBody } from '../entity-body';
 
 export class Request<F> extends Message<F, Request<F>> {
-  public constructor(
-    public readonly method: Method = Method.GET,
-    public readonly uri: Uri = Uri.Root,
-    public readonly httpVersion: HttpVersion = '1.1',
-    public readonly headers: Headers = Headers.empty,
-    public readonly body: EntityBody<F> = EntityBody.empty(),
-    public readonly attributes: Attributes = Attributes.empty,
-  ) {
+  public readonly method: Method = Method.GET;
+  public readonly uri: Uri = Uri.Root;
+  public readonly httpVersion: HttpVersion = '1.1';
+  public readonly headers: Headers = Headers.empty;
+  public readonly body: EntityBody<F> = EntityBody.empty();
+  public readonly attributes: Attributes = Attributes.empty;
+
+  public constructor({
+    method = Method.GET,
+    uri = Uri.Root,
+    httpVersion = '1.1',
+    headers = Headers.empty,
+    body = EntityBody.empty(),
+    attributes = Attributes.empty,
+  }: Partial<Props<F>> = {}) {
     super();
+    this.method = method;
+    this.uri = uri;
+    this.httpVersion = httpVersion;
+    this.headers = headers;
+    this.body = body;
+    this.attributes = attributes;
   }
 
   protected copy({
@@ -37,17 +50,17 @@ export class Request<F> extends Message<F, Request<F>> {
     body = this.body,
     attributes = this.attributes,
   }: Partial<Props<F>> = {}): Request<F> {
-    return new Request(method, uri, httpVersion, headers, body, attributes);
+    return new Request({ method, uri, httpVersion, headers, body, attributes });
   }
 
   public mapK<G>(nt: FunctionK<F, G>): Request<G> {
-    return new Request(
-      this.method,
-      this.uri,
-      this.httpVersion,
-      this.headers,
-      this.body.mapK(nt),
-    );
+    return new Request({
+      method: this.method,
+      uri: this.uri,
+      httpVersion: this.httpVersion,
+      headers: this.headers,
+      body: this.body.mapK(nt),
+    });
   }
 
   public withMethod(method: Method): Request<F> {
