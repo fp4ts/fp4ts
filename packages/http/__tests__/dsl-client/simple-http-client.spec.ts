@@ -8,7 +8,7 @@ import fc from 'fast-check';
 import { stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
-import { builtins, toClientIOIn } from '@fp4ts/http-dsl-client';
+import { builtins, ClientM, toClientIn } from '@fp4ts/http-dsl-client';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import {
   Get,
@@ -22,6 +22,7 @@ import {
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { Request } from '@fp4ts/http-core';
+import { Either, EitherT, Right } from '@fp4ts/cats';
 
 const api = group(
   Route('version')[':>'](GetNoContent),
@@ -36,7 +37,11 @@ const app = toHttpAppIO(
   builtins,
 )(S => [S.unit, S.return('pong'), S.return]);
 
-const [version, ping, echo] = toClientIOIn(api, builtins);
+const [version, ping, echo] = toClientIn(
+  IO.Async,
+  ClientM.RunClientIO(NodeClient.makeClient(IO.Async)),
+  EitherT.rightT(IO.Async),
+)(api, builtins);
 
 describe('Simple HTTP api dsl client', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
@@ -47,9 +52,9 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return version(new Request({ uri: baseUri }))
-        .run(client)
-        .flatMap(resp => IO(() => expect(resp).toBeUndefined()));
+      return version(new Request({ uri: baseUri })).value.flatMap(resp =>
+        IO(() => expect(resp).toEqual(Either.rightUnit)),
+      );
     }),
   );
 
@@ -59,9 +64,9 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return ping(new Request({ uri: baseUri }))
-        .run(client)
-        .flatMap(resp => IO(() => expect(resp).toBe('pong')));
+      return ping(new Request({ uri: baseUri })).value.flatMap(resp =>
+        IO(() => expect(resp).toEqual(Right('pong'))),
+      );
     }),
   );
 
@@ -73,9 +78,9 @@ describe('Simple HTTP api dsl client', () => {
           clientResource,
         )((server, client) => {
           const baseUri = server.baseUri;
-          return echo(s)(new Request({ uri: baseUri }))
-            .run(client)
-            .flatMap(resp => IO(() => expect(resp).toBe(s)));
+          return echo(s)(new Request({ uri: baseUri })).value.flatMap(resp =>
+            IO(() => expect(resp).toEqual(Right(s))),
+          );
         }).unsafeRunToPromise(),
       ),
     );

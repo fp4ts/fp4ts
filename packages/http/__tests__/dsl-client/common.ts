@@ -13,7 +13,7 @@ import {
   typeref,
   voidType,
 } from '@fp4ts/core';
-import { None, Option, Some } from '@fp4ts/cats';
+import { EitherT, None, Option, Some } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Codec, Schema } from '@fp4ts/schema';
 import { JsonCodec } from '@fp4ts/schema-json';
@@ -27,7 +27,7 @@ import {
   Response,
   Status,
 } from '@fp4ts/http-core';
-import { builtins, toClientIOIn } from '@fp4ts/http-dsl-client';
+import { builtins, toClientIn, ClientM } from '@fp4ts/http-dsl-client';
 import {
   BasicAuth,
   Capture,
@@ -48,6 +48,7 @@ import {
   toHttpAppIO,
   builtins as serverBuiltins,
 } from '@fp4ts/http-dsl-server';
+import { NodeClient } from '@fp4ts/http-node-client';
 
 export const PersonTypeTag = '@fp4ts/http/__tests__/dsl-client/person';
 export type PersonTypeTag = typeof PersonTypeTag;
@@ -200,7 +201,11 @@ export const [
   rawFailure,
   postMultiple,
   getHeaders,
-] = toClientIOIn(api, {
+] = toClientIn(
+  IO.Async,
+  ClientM.RunClientIO(NodeClient.makeClient(IO.Async)),
+  EitherT.rightT(IO.Monad),
+)(api, {
   ...builtins,
   [JSON.mime]: {
     [PersonTypeTag]: PersonCodable,
