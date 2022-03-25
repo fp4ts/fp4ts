@@ -43,8 +43,9 @@ export {
 /**
  * @module http/dsl-client
  */
-export { toClientIn, toIOClientIn as toClientIOIn } from './internal';
+export { toClientIn } from './internal';
 export * from './client-m';
 export { TermDerivates, SubDerivates, CodingDerivates } from './type-level';
 export * from './builtin-codables';
 export * from './headers';
+export * from './client-error';

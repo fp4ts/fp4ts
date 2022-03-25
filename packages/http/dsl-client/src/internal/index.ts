@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, pipe, TypeRef } from '@fp4ts/core';
-import { Some } from '@fp4ts/cats';
+import { FunctionK, Some } from '@fp4ts/cats';
 import { Concurrent, IO } from '@fp4ts/effect';
 import {
   Accept,
@@ -18,7 +18,7 @@ import {
   SelectHeader,
   Token,
 } from '@fp4ts/http-core';
-import { Client, DeriveCoding, OmitBuiltins } from '../type-level';
+import { Client, ClientT, DeriveCoding, OmitBuiltins } from '../type-level';
 import {
   Alt,
   BasicAuthElement,
@@ -39,19 +39,24 @@ import {
   VerbElement,
   VerbNoContentElement,
 } from '@fp4ts/http-dsl-shared';
-import { ClientM } from '../client-m';
 import { ResponseHeaders } from '../headers';
 import { builtins } from '../builtin-codables';
 
+import { RunClient } from './run-client';
+import {
+  ClientDecodeFailure,
+  ContentTypeFailure,
+  ResponseFailure,
+} from '../client-error';
+import { DecodeFailure } from '@fp4ts/schema';
+
 export const toClientIn =
-  <F>(F: Concurrent<F, Error>) =>
+  <F, G>(F: Concurrent<F, Error>, RC: RunClient<G, F>, nt: FunctionK<F, G>) =>
   <api>(
     api: api,
     codings: OmitBuiltins<DeriveCoding<F, api>>,
   ): Client<F, api> =>
-    clientWithRoute(F)(api, id, merge(builtins, codings));
-
-export const toIOClientIn = toClientIn(IO.Concurrent);
+    clientWithRoute(F, RC, nt)(api, id, merge(builtins, codings));
 
 const merge = (xs: any, ys: any): any => {
   const zs = {} as Record<string, any>;
@@ -64,7 +69,12 @@ const merge = (xs: any, ys: any): any => {
   return zs;
 };
 
-export function clientWithRoute<F>(F: Concurrent<F, Error>) {
+export function clientWithRoute<F, G>(
+  F: Concurrent<F, Error>,
+  RC: RunClient<G, F>,
+  nt: FunctionK<F, G>,
+) {
+  type Client<F, api> = ClientT<F, api, G>;
   function clientWithRoute<api>(
     api: api,
     br: (req: Request<F>) => Request<F>,
@@ -287,35 +297,40 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
   ): Client<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.body.Ref];
     const accept = MediaRange.fromString(verb.contentType.mime).get;
-    return req =>
-      ClientM(underlying => {
-        const req_ = br(req)
-          .putHeaders(...new Accept(accept).toRaw())
-          .withMethod(verb.method);
-        return underlying.fetch(req_, res => {
+    return req => {
+      const req_ = br(req)
+        .putHeaders(...new Accept(accept).toRaw())
+        .withMethod(verb.method);
+
+      return pipe(
+        RC.runRequest(req_),
+        RC.flatMap(res => {
           if (!res.status.isSuccessful)
-            return pipe(
-              res.bodyText.compileConcurrent(F).string,
-              F.flatMap(txt =>
-                F.throwError(
-                  new Error(`Failed with status ${res.status.code}\n${txt}`),
-                ),
-              ),
-            );
+            return RC.throwClientError(new ResponseFailure(req_, res));
 
           if (
             !res.contentType
               .map(ct => ct.mediaType.satisfiedBy(accept))
               .getOrElse(() => true)
           ) {
-            return F.throwError(new Error('Unsupported media type'));
+            return RC.throwClientError(
+              new ContentTypeFailure(res.contentType.get, res),
+            );
           }
 
-          return F.flatMap_(res.bodyText.compileConcurrent(F).string, txt =>
-            F.fromEither(C.decode(txt)),
+          return pipe(
+            res.bodyText.compileConcurrent(F).string,
+            nt,
+            RC.flatMap(txt =>
+              C.decode(txt).fold(
+                e => RC.throwClientError(new ClientDecodeFailure(e, res)),
+                RC.pure,
+              ),
+            ),
           );
-        });
-      });
+        }),
+      );
+    };
   }
 
   function routeHeadersVerbContent<
@@ -333,52 +348,72 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, VerbElement<any, CT, T>>,
   ): Client<F, VerbElement<any, CT, T>> {
     const C = codings[verb.contentType.mime][verb.headers.body.Ref];
-    return req =>
-      ClientM(underlying => {
-        const req_ = br(req)
-          .putHeaders(
-            ...new Accept(
-              MediaRange.fromString(verb.contentType.mime).get,
-            ).toRaw(),
-          )
-          .withMethod(verb.method);
+    return req => {
+      const req_ = br(req)
+        .putHeaders(
+          ...new Accept(
+            MediaRange.fromString(verb.contentType.mime).get,
+          ).toRaw(),
+        )
+        .withMethod(verb.method);
 
-        return underlying.fetch(req_, res => {
+      return pipe(
+        RC.runRequest(req_),
+        RC.flatMap(res => {
           if (!res.status.isSuccessful)
-            return F.throwError(
-              new Error(`Failed with status ${res.status.code}`),
-            );
+            return RC.throwClientError(new ResponseFailure(req_, res));
 
           const hs: any[] = [];
           for (const h of verb.headers.headers) {
             if (h instanceof RawHeaderElement) {
               const hh = res.headers.getRaw(h.key);
               if (hh.isEmpty)
-                return F.throwError(new Error(`Header '${h.key}' not present`));
+                return RC.throwClientError(
+                  new ClientDecodeFailure(
+                    new DecodeFailure(`Header '${h.key}' not present`),
+                    res,
+                  ),
+                );
               const C = (codings as any)[FromHttpApiDataTag][h.type.Ref];
               const h_ = C.parseHeader(hh.get.head);
               if (h_.isEmpty)
-                return F.throwError(new Error(`Header '${h.key}' not present`));
+                return RC.throwClientError(
+                  new ClientDecodeFailure(
+                    new DecodeFailure(`Header '${h.key}' not present`),
+                    res,
+                  ),
+                );
               hs.push(h_.get);
             } else {
               const hh = res.headers.get(h.header);
               if (hh.isEmpty)
-                return F.throwError(
-                  new Error(
-                    `Header '${h.header.header.headerName}' not present`,
+                return RC.throwClientError(
+                  new ClientDecodeFailure(
+                    new DecodeFailure(
+                      `Header '${h.header.header.headerName}' not present`,
+                    ),
+                    res,
                   ),
                 );
+
               hs.push(hh.get);
             }
           }
 
           return pipe(
             res.bodyText.compileConcurrent(F).string,
-            F.flatMap(txt => F.fromEither(C.decode(txt))),
-            F.map(r => new ResponseHeaders(hs, r)),
+            nt,
+            RC.flatMap(txt =>
+              C.decode(txt).fold(
+                e => RC.throwClientError(new ClientDecodeFailure(e, res)),
+                RC.pure,
+              ),
+            ),
+            RC.map(r => new ResponseHeaders(hs, r)),
           );
-        });
-      });
+        }),
+      );
+    };
   }
 
   function routeVerbNoContent(
@@ -387,11 +422,12 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, VerbNoContentElement<any>>,
   ): Client<F, VerbNoContentElement<any>> {
     return req =>
-      ClientM(underlying =>
-        underlying.fetch(br(req).withMethod(verb.method), res =>
+      pipe(
+        RC.runRequest(br(req).withMethod(verb.method)),
+        RC.flatMap(res =>
           res.status.isSuccessful
-            ? F.unit
-            : F.throwError(new Error(`Failed with status ${res.status.code}`)),
+            ? RC.unit
+            : RC.throwClientError(new ResponseFailure(req, res)),
         ),
       );
   }
@@ -400,10 +436,7 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     raw: RawElement,
     br: (req: Request<F>) => Request<F>,
   ): Client<F, RawElement> {
-    return runRequest => req => {
-      const r2 = br(req);
-      return runRequest(r2)(r2);
-    };
+    return runRequest => runRequest(br(new Request()));
   }
 
   return clientWithRoute;

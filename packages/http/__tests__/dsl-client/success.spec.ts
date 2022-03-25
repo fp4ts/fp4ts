@@ -5,13 +5,21 @@
 
 import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
-import { Left, List, None, NonEmptyList, Some } from '@fp4ts/cats';
-import { IO, IOF, Resource } from '@fp4ts/effect';
+import {
+  Either,
+  EitherT,
+  Left,
+  List,
+  None,
+  NonEmptyList,
+  Right,
+  Some,
+} from '@fp4ts/cats';
+import { IO, Resource } from '@fp4ts/effect';
 import { Method, RawHeader, Request, Status } from '@fp4ts/http-core';
-import { ClientM, ResponseHeaders } from '@fp4ts/http-dsl-client';
-import { Client } from '@fp4ts/http-client';
+import { ResponseHeaders, ResponseFailure } from '@fp4ts/http-dsl-client';
 import { NodeClient } from '@fp4ts/http-node-client';
-import { withServerClient } from '@fp4ts/http-test-kit-node';
+import { withServer, withServerClient } from '@fp4ts/http-test-kit-node';
 import { forAllM } from '@fp4ts/effect-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
@@ -38,195 +46,160 @@ describe('Success', () => {
 
   describe('Get', () => {
     it.M('should get root', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getRoot(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(person => IO(() => expect(person).toEqual(carol)));
+        return getRoot(new Request({ uri: baseUri })).value.flatMap(person =>
+          IO(() => expect(person).toEqual(Right(carol))),
+        );
       }),
     );
 
     it.M('should get simple endpoint', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getGet(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(person => IO(() => expect(person).toEqual(alice)));
+        return getGet(new Request({ uri: baseUri })).value.flatMap(person =>
+          IO(() => expect(person).toEqual(Right(alice))),
+        );
       }),
     );
 
     it.M('should get simple endpoint', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getGet(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(person => IO(() => expect(person).toEqual(alice)));
+        return getGet(new Request({ uri: baseUri })).value.flatMap(person =>
+          IO(() => expect(person).toEqual(Right(alice))),
+        );
       }),
     );
   });
 
   describe('Delete', () => {
     it.M('should perform delete with empty content', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return deleteEmpty(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res => IO(() => expect(res).toBeUndefined()));
+        return deleteEmpty(new Request({ uri: baseUri })).value.flatMap(res =>
+          IO(() => expect(res).toEqual(Either.rightUnit)),
+        );
       }),
     );
   });
 
   describe('Capture', () => {
     it.M('should capture the parameter', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getCapture('Paula')(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res =>
-            IO(() => expect(res).toEqual(Person({ name: 'Paula', age: 0 }))),
-          );
+        return getCapture('Paula')(new Request({ uri: baseUri })).value.flatMap(
+          res =>
+            IO(() =>
+              expect(res).toEqual(Right(Person({ name: 'Paula', age: 0 }))),
+            ),
+        );
       }),
     );
   });
 
   describe('Capture All', () => {
     it.M('should capture no parameters', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getCaptureAll(List.empty)(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res => IO(() => expect(res).toEqual([])));
+        return getCaptureAll(List.empty)(
+          new Request({ uri: baseUri }),
+        ).value.flatMap(res => IO(() => expect(res).toEqual(Right([]))));
       }),
     );
 
     it.M('should capture a single parameter', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getCaptureAll(List('Paula'))(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res =>
-            IO(() => expect(res).toEqual([Person({ name: 'Paula', age: 0 })])),
-          );
+        return getCaptureAll(List('Paula'))(
+          new Request({ uri: baseUri }),
+        ).value.flatMap(res =>
+          IO(() =>
+            expect(res).toEqual(Right([Person({ name: 'Paula', age: 0 })])),
+          ),
+        );
       }),
     );
 
     it.M('should capture a multiple parameters', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
         return getCaptureAll(List('Paula', 'Kim', 'Jessica'))(
           new Request({ uri: baseUri }),
-        )
-          .run(client)
-          .flatMap(res =>
-            IO(() =>
-              expect(res).toEqual([
+        ).value.flatMap(res =>
+          IO(() =>
+            expect(res).toEqual(
+              Right([
                 Person({ name: 'Paula', age: 0 }),
                 Person({ name: 'Kim', age: 1 }),
                 Person({ name: 'Jessica', age: 2 }),
               ]),
             ),
-          );
+          ),
+        );
       }),
     );
   });
 
   describe('Request Body', () => {
     it.M('should pass request body', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
         const clara = Person({ name: 'Clara', age: 34 });
 
-        return postBody(clara)(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res => IO(() => expect(res).toEqual(clara)));
+        return postBody(clara)(new Request({ uri: baseUri })).value.flatMap(
+          res => IO(() => expect(res).toEqual(Right(clara))),
+        );
       }),
     );
   });
 
   describe('Query Parameter', () => {
     it.M('should pass query parameter', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getParam(Some('alice'))(new Request({ uri: baseUri }))
-          .run(client)
-          .flatMap(res => IO(() => expect(res).toEqual(alice)));
+        return getParam(Some('alice'))(
+          new Request({ uri: baseUri }),
+        ).value.flatMap(res => IO(() => expect(res).toEqual(Right(alice))));
       }),
     );
 
     it.M('should throw an error on wrong value', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getParam(Some('Carol'))(new Request({ uri: baseUri }))
-          .run(client)
-          .attempt.flatMap(res =>
-            IO(() =>
-              expect(res).toEqual(
-                Left(new Error(`Failed with status 400\n'Carol' not found`)),
-              ),
-            ),
+        return IO.Monad.do(function* (_) {
+          const res = yield* _(
+            getParam(Some('Carol'))(new Request({ uri: baseUri })).value,
           );
+
+          expect(res).toEqual(Left(expect.any(ResponseFailure)));
+          expect((res.getLeft as any).response.status.code).toBe(400);
+        });
       }),
     );
 
     it.M('should throw an error on empty value', () =>
-      withServerClient(
-        server,
-        clientResource,
-      )((server, client) => {
+      withServer(server)(server => {
         const baseUri = server.baseUri;
 
-        return getParam(None)(new Request({ uri: baseUri }))
-          .run(client)
-          .attempt.flatMap(res =>
-            IO(() =>
-              expect(res).toEqual(
-                Left(new Error('Failed with status 400\nempty parameter')),
-              ),
-            ),
+        return IO.Monad.do(function* (_) {
+          const res = yield* _(
+            getParam(None)(new Request({ uri: baseUri })).value,
           );
+
+          expect(res).toEqual(Left(expect.any(ResponseFailure)));
+          expect((res.getLeft as any).response.status.code).toBe(400);
+        });
       }),
     );
   });
@@ -239,15 +212,17 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return rawSuccess(
-          req => () =>
-            ClientM(client =>
-              client.fetch(req.withMethod(Method.GET), IO.pure),
-            ),
-        )(new Request({ uri: baseUri }))
-          .run(client)
-          .flatTap(res => IO(() => expect(res.status === Status.Ok).toBe(true)))
-          .flatMap(res => res.bodyText.compileConcurrent().string)
+        return rawSuccess(req =>
+          EitherT.rightT(IO.Monad)(
+            client
+              .withBaseUri(baseUri)
+              .fetch(req.withMethod(Method.GET), IO.pure),
+          ),
+        )
+          .value.flatTap(res =>
+            IO(() => expect(res.get.status === Status.Ok).toBe(true)),
+          )
+          .flatMap(res => res.get.bodyText.compileConcurrent().string)
           .flatMap(txt => IO(() => expect(txt).toBe('raw success')));
       }),
     );
@@ -259,17 +234,17 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return rawFailure(
-          req => () =>
-            ClientM(client =>
-              client.fetch(req.withMethod(Method.GET), IO.pure),
-            ),
-        )(new Request({ uri: baseUri }))
-          .run(client)
-          .flatTap(res =>
-            IO(() => expect(res.status === Status.BadRequest).toBe(true)),
+        return rawFailure(req =>
+          EitherT.rightT(IO.Monad)(
+            client
+              .withBaseUri(baseUri)
+              .fetch(req.withMethod(Method.GET), IO.pure),
+          ),
+        )
+          .value.flatTap(res =>
+            IO(() => expect(res.get.status === Status.BadRequest).toBe(true)),
           )
-          .flatMap(res => res.bodyText.compileConcurrent().string)
+          .flatMap(res => res.get.bodyText.compileConcurrent().string)
           .flatMap(txt => IO(() => expect(txt).toBe('raw failure')));
       }),
     );
@@ -281,24 +256,24 @@ describe('Success', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return rawSuccessPassHeaders(
-          req => () =>
-            ClientM(client =>
-              client.fetch(req.withMethod(Method.GET), IO.pure),
-            ),
-        )(
-          new Request<IOF>({ uri: baseUri }).putHeaders(
-            new RawHeader('X-Added-Header', 'XXX'),
-          ),
-        )
-          .run(client)
-          .flatMap(res =>
-            IO(() =>
-              expect(res.headers.getRaw('X-Added-Header')).toEqual(
-                Some(NonEmptyList('XXX', List.empty)),
+        return rawSuccessPassHeaders(req =>
+          EitherT.rightT(IO.Monad)(
+            client
+              .withBaseUri(baseUri)
+              .fetch(
+                req
+                  .withMethod(Method.GET)
+                  .putHeaders(new RawHeader('X-Added-Header', 'XXX')),
+                IO.pure,
               ),
+          ),
+        ).value.flatMap(res =>
+          IO(() =>
+            expect(res.get.headers.getRaw('X-Added-Header')).toEqual(
+              Some(NonEmptyList('XXX', List.empty)),
             ),
-          );
+          ),
+        );
       }),
     );
   });
@@ -311,42 +286,31 @@ describe('Success', () => {
       A.fp4tsOption(fc.boolean()),
       fc.tuple(fc.string(), fc.array(fc.integer())),
       (str, num, flag, body) =>
-        withServerClient(
-          server,
-          clientResource,
-        )((server, client) => {
+        withServer(server)(server => {
           const baseUri = server.baseUri;
 
           return postMultiple(str)(num)(flag)(body)(
             new Request({ uri: baseUri }),
-          )
-            .run(client)
-            .flatMap(res =>
-              IO(() =>
-                expect(res).toEqual([
-                  str,
-                  num,
-                  flag.getOrElse(() => false),
-                  body,
-                ]),
+          ).value.flatMap(res =>
+            IO(() =>
+              expect(res).toEqual(
+                Right([str, num, flag.getOrElse(() => false), body]),
               ),
-            );
+            ),
+          );
         }),
     ),
   );
 
   it.M('should attach receive attached headers', () =>
-    withServerClient(
-      server,
-      clientResource,
-    )((server, client) => {
+    withServer(server)(server => {
       const baseUri = server.baseUri;
 
-      return getHeaders(new Request({ uri: baseUri }))
-        .run(client)
-        .flatMap(res =>
-          IO(() => expect(res).toEqual(new ResponseHeaders([42, 'eg2'], true))),
-        );
+      return getHeaders(new Request({ uri: baseUri })).value.flatMap(res =>
+        IO(() =>
+          expect(res).toEqual(Right(new ResponseHeaders([42, 'eg2'], true))),
+        ),
+      );
     }),
   );
 });
