@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { EntityEncoder } from '../codec';
-import { Entity } from '../entity';
 import { EntityBody } from '../entity-body';
 import { ToRaw } from '../header';
 import { ContentLength, Headers } from '../headers_';

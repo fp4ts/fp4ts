@@ -58,6 +58,10 @@ export class Request<F> extends Message<F, Request<F>> {
     return this.copy({ uri });
   }
 
+  public transformUri(f: (uri: Uri) => Uri): Request<F> {
+    return this.copy({ uri: f(this.uri) });
+  }
+
   public decode<A>(
     F: Monad<F>,
     decoder: EntityDecoder<F, A>,
