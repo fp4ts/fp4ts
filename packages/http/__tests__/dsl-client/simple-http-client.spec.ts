@@ -21,6 +21,7 @@ import {
 } from '@fp4ts/http-dsl-shared';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
+import { Request } from '@fp4ts/http-core';
 
 const api = group(
   Route('version')[':>'](GetNoContent),
@@ -46,7 +47,7 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return version
+      return version(new Request())
         .run(client.withBaseUri(baseUri))
         .flatMap(resp => IO(() => expect(resp).toBeUndefined()));
     }),
@@ -58,7 +59,7 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return ping
+      return ping(new Request())
         .run(client.withBaseUri(baseUri))
         .flatMap(resp => IO(() => expect(resp).toBe('pong')));
     }),
@@ -72,7 +73,7 @@ describe('Simple HTTP api dsl client', () => {
           clientResource,
         )((server, client) => {
           const baseUri = server.baseUri;
-          return echo(s)
+          return echo(s)(new Request())
             .run(client.withBaseUri(baseUri))
             .flatMap(resp => IO(() => expect(resp).toBe(s)));
         }).unsafeRunToPromise(),

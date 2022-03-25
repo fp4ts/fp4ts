@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import { Left } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
-import { BasicCredentials } from '@fp4ts/http-core';
+import { BasicCredentials, Request } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { alice, basicAuthApi, basicAuthServer, PersonCodable } from './common';
@@ -28,7 +28,7 @@ describe('BasicAuth', () => {
     )((server, client) => {
       const baseUri = server.baseUri;
 
-      return getBasic(new BasicCredentials('fp4ts', 'server'))
+      return getBasic(new BasicCredentials('fp4ts', 'server'))(new Request())
         .run(client.withBaseUri(baseUri))
         .flatMap(r => IO(() => expect(r).toEqual(alice)));
     }),
@@ -41,7 +41,7 @@ describe('BasicAuth', () => {
     )((server, client) => {
       const baseUri = server.baseUri;
 
-      return getBasic(new BasicCredentials('fp4ts', 'wrong'))
+      return getBasic(new BasicCredentials('fp4ts', 'wrong'))(new Request())
         .run(client.withBaseUri(baseUri))
         .attempt.flatMap(r =>
           IO(() =>

@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import { Left, Some } from '@fp4ts/cats';
 import { IO, Resource } from '@fp4ts/effect';
-import { Authority } from '@fp4ts/http-core';
+import { Authority, Request } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
 import { alice, deleteEmpty, failServer, getCapture, postBody } from './common';
@@ -23,7 +23,7 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return deleteEmpty
+        return deleteEmpty(new Request())
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
             IO(() =>
@@ -40,7 +40,7 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return getCapture('foo')
+        return getCapture('foo')(new Request())
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
             IO(() => expect(r.getLeft).toBeInstanceOf(DecodeFailure)),
@@ -66,7 +66,7 @@ describe('Failure', () => {
           ),
         });
 
-        return getCapture('foo')
+        return getCapture('foo')(new Request())
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
             IO(() => {
@@ -83,7 +83,7 @@ describe('Failure', () => {
       )((server, client) => {
         const baseUri = server.baseUri;
 
-        return postBody(alice)
+        return postBody(alice)(new Request())
           .run(client.withBaseUri(baseUri))
           .attempt.flatMap(r =>
             IO(() =>
