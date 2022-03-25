@@ -107,13 +107,13 @@ type DeriveAltCodings<F, xs extends unknown[], z = {}> =
 // prettier-ignore
 export interface TermDerivates<F, api, m> {
   [VerbTag]: api extends VerbElement<any, any, infer T>
-    ? (req: Request<F>) => Kind<m, [F, TypeOf<T>]>
+    ? (req: Request<F>) => Kind<m, [TypeOf<T>]>
     : never;
   [HeadersVerbTag]: api extends HeadersVerbElement<any, any, HeadersElement<infer hs, infer T>>
-    ? (req: Request<F>) => Kind<m, [F, BuildHeaders<hs, TypeOf<T>>]>
+    ? (req: Request<F>) => Kind<m, [BuildHeaders<hs, TypeOf<T>>]>
     : never;
-  [VerbNoContentTag]: (req: Request<F>) => Kind<m, [F, void]>;
-  [RawElementTag]: (runRequest: (req: Request<F>) => Kind<m, [F, Response<F>]>) => Kind<m, [F, Response<F>]>,
+  [VerbNoContentTag]: (req: Request<F>) => Kind<m, [void]>;
+  [RawElementTag]: (runRequest: (req: Request<F>) => Kind<m, [Response<F>]>) => (req: Request<F>) => Kind<m, [Response<F>]>,
 }
 
 // prettier-ignore

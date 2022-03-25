@@ -5,7 +5,8 @@
 
 import { id, pipe, TypeRef } from '@fp4ts/core';
 import { FunctionK, Some } from '@fp4ts/cats';
-import { Concurrent, IO } from '@fp4ts/effect';
+import { Concurrent } from '@fp4ts/effect';
+import { DecodeFailure } from '@fp4ts/schema';
 import {
   Accept,
   Authorization,
@@ -18,7 +19,6 @@ import {
   SelectHeader,
   Token,
 } from '@fp4ts/http-core';
-import { Client, ClientT, DeriveCoding, OmitBuiltins } from '../type-level';
 import {
   Alt,
   BasicAuthElement,
@@ -39,6 +39,7 @@ import {
   VerbElement,
   VerbNoContentElement,
 } from '@fp4ts/http-dsl-shared';
+import { ClientT, DeriveCoding, OmitBuiltins } from '../type-level';
 import { ResponseHeaders } from '../headers';
 import { builtins } from '../builtin-codables';
 
@@ -48,14 +49,13 @@ import {
   ContentTypeFailure,
   ResponseFailure,
 } from '../client-error';
-import { DecodeFailure } from '@fp4ts/schema';
 
 export const toClientIn =
   <F, G>(F: Concurrent<F, Error>, RC: RunClient<G, F>, nt: FunctionK<F, G>) =>
   <api>(
     api: api,
     codings: OmitBuiltins<DeriveCoding<F, api>>,
-  ): Client<F, api> =>
+  ): ClientT<F, api, G> =>
     clientWithRoute(F, RC, nt)(api, id, merge(builtins, codings));
 
 const merge = (xs: any, ys: any): any => {
@@ -436,7 +436,7 @@ export function clientWithRoute<F, G>(
     raw: RawElement,
     br: (req: Request<F>) => Request<F>,
   ): Client<F, RawElement> {
-    return runRequest => runRequest(br(new Request()));
+    return runRequest => req => runRequest(br(req));
   }
 
   return clientWithRoute;
