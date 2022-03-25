@@ -47,8 +47,8 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return version(new Request())
-        .run(client.withBaseUri(baseUri))
+      return version(new Request({ uri: baseUri }))
+        .run(client)
         .flatMap(resp => IO(() => expect(resp).toBeUndefined()));
     }),
   );
@@ -59,8 +59,8 @@ describe('Simple HTTP api dsl client', () => {
       clientResource,
     )((server, client) => {
       const baseUri = server.baseUri;
-      return ping(new Request())
-        .run(client.withBaseUri(baseUri))
+      return ping(new Request({ uri: baseUri }))
+        .run(client)
         .flatMap(resp => IO(() => expect(resp).toBe('pong')));
     }),
   );
@@ -73,8 +73,8 @@ describe('Simple HTTP api dsl client', () => {
           clientResource,
         )((server, client) => {
           const baseUri = server.baseUri;
-          return echo(s)(new Request())
-            .run(client.withBaseUri(baseUri))
+          return echo(s)(new Request({ uri: baseUri }))
+            .run(client)
             .flatMap(resp => IO(() => expect(resp).toBe(s)));
         }).unsafeRunToPromise(),
       ),

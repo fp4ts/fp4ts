@@ -6,7 +6,7 @@
 import { Left, Right } from '@fp4ts/cats';
 import { booleanType, id, numberType, stringType } from '@fp4ts/core';
 import { IO } from '@fp4ts/effect';
-import { Request, EntityDecoder, uri, Method } from '@fp4ts/http-core';
+import { Request, EntityDecoder, uri } from '@fp4ts/http-core';
 import { Capture, Get, group, JSON, QueryParam, Route } from '@fp4ts/http-dsl';
 import { builtins, toHttpApp } from '@fp4ts/http-dsl-server';
 
@@ -67,7 +67,7 @@ describe('parameter extraction', () => {
       'should capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}/${param}`))
+          .run(new Request({ uri: uri`${url}/${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -85,7 +85,7 @@ describe('parameter extraction', () => {
       'should fail to capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}/${param}`))
+          .run(new Request({ uri: uri`${url}/${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -107,7 +107,7 @@ describe('parameter extraction', () => {
       'should capture query $param from url $url?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}?${name}=${param}`))
+          .run(new Request({ uri: uri`${url}?${name}=${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -124,7 +124,7 @@ describe('parameter extraction', () => {
       'should return none when the param not present in $url',
       async ({ url }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}`))
+          .run(new Request({ uri: uri`${url}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -142,7 +142,7 @@ describe('parameter extraction', () => {
       'should fail to capture query parameter $param from url $url?$name=$param',
       async ({ url, param, name }) => {
         const response = await app
-          .run(new Request(Method.GET, uri`${url}?${name}=${param}`))
+          .run(new Request({ uri: uri`${url}?${name}=${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 

@@ -151,7 +151,7 @@ export class DefaultClient<F> implements Client<F> {
     return typeof uri === 'string'
       ? this.method(method, Uri.unsafeFromString(uri), f)
       : f != null
-      ? this.fetch(new Request(method, uri), f)
-      : new RequestBuilder(this, new Request(method, uri));
+      ? this.fetch(new Request({ method, uri }), f)
+      : new RequestBuilder(this, new Request({ method, uri }));
   }
 }

@@ -9,8 +9,8 @@ import { IO, Resource } from '@fp4ts/effect';
 import { BasicCredentials, Request } from '@fp4ts/http-core';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServerClient } from '@fp4ts/http-test-kit-node';
-import { alice, basicAuthApi, basicAuthServer, PersonCodable } from './common';
 import { builtins, toClientIOIn } from '@fp4ts/http-dsl-client';
+import { alice, basicAuthApi, basicAuthServer, PersonCodable } from './common';
 
 describe('BasicAuth', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
@@ -28,8 +28,10 @@ describe('BasicAuth', () => {
     )((server, client) => {
       const baseUri = server.baseUri;
 
-      return getBasic(new BasicCredentials('fp4ts', 'server'))(new Request())
-        .run(client.withBaseUri(baseUri))
+      return getBasic(new BasicCredentials('fp4ts', 'server'))(
+        new Request({ uri: baseUri }),
+      )
+        .run(client)
         .flatMap(r => IO(() => expect(r).toEqual(alice)));
     }),
   );
@@ -41,8 +43,10 @@ describe('BasicAuth', () => {
     )((server, client) => {
       const baseUri = server.baseUri;
 
-      return getBasic(new BasicCredentials('fp4ts', 'wrong'))(new Request())
-        .run(client.withBaseUri(baseUri))
+      return getBasic(new BasicCredentials('fp4ts', 'wrong'))(
+        new Request({ uri: baseUri }),
+      )
+        .run(client)
         .attempt.flatMap(r =>
           IO(() =>
             expect(r).toEqual(

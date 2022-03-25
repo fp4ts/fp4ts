@@ -53,13 +53,13 @@ describe('Logger', () => {
 
     it.M('should not affect on Get request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.GET, uri`/request`))
+        .run(new Request<IOF>({ uri: uri`/request` }))
         .map(res => expect(res.status.code).toBe(Status.Ok.code)),
     );
 
     it.M('should not affect on Post request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.POST, uri`/post`).withBodyStream(body))
+        .run(new Request<IOF>({ method: Method.POST, uri: uri`/post`, body }))
         .flatMap(res => res.bodyText.compileConcurrent().string)
         .map(body => expect(body).toBe(expectedBody)),
     );
@@ -73,7 +73,7 @@ describe('Logger', () => {
 
       return logger(testApp)
         .run(
-          new Request<IOF>(Method.POST, uri`/post`)
+          new Request<IOF>({ method: Method.POST, uri: uri`/post` })
             .withBodyStream(body)
             .putHeaders(new RawHeader('X-Request-H', 'request')),
         )
@@ -96,13 +96,13 @@ describe('Logger', () => {
 
     it.M('should not affect on Get request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.GET, uri`/request`))
+        .run(new Request<IOF>({ uri: uri`/request` }))
         .map(res => expect(res.status.code).toBe(Status.Ok.code)),
     );
 
     it.M('should not affect on Post request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.POST, uri`/post`).withBodyStream(body))
+        .run(new Request<IOF>({ method: Method.POST, uri: uri`/post`, body }))
         .flatMap(res => res.bodyText.compileConcurrent().string)
         .map(body => expect(body).toBe(expectedBody)),
     );
@@ -116,7 +116,7 @@ describe('Logger', () => {
 
       return logger(testApp)
         .run(
-          new Request<IOF>(Method.POST, uri`/post`)
+          new Request<IOF>({ method: Method.POST, uri: uri`/post` })
             .withBodyStream(body)
             .putHeaders(new RawHeader('X-Request-H', 'request')),
         )
@@ -139,13 +139,13 @@ describe('Logger', () => {
 
     it.M('should not affect on Get request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.GET, uri`/request`))
+        .run(new Request<IOF>({ uri: uri`/request` }))
         .map(res => expect(res.status.code).toBe(Status.Ok.code)),
     );
 
     it.M('should not affect on Post request', () =>
       logger(testApp)
-        .run(new Request<IOF>(Method.POST, uri`/post`).withBodyStream(body))
+        .run(new Request<IOF>({ method: Method.POST, uri: uri`/post`, body }))
         .flatMap(res => res.bodyText.compileConcurrent().string)
         .map(body => expect(body).toBe(expectedBody)),
     );
@@ -160,7 +160,7 @@ describe('Logger', () => {
 
     return logger(testApp)
       .run(
-        new Request<IOF>(Method.POST, uri`/post`)
+        new Request<IOF>({ method: Method.POST, uri: uri`/post` })
           .withBodyStream(body)
           .putHeaders(new RawHeader('X-Request-H', 'request')),
       )

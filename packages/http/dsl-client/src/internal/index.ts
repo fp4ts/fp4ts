@@ -400,7 +400,10 @@ export function clientWithRoute<F>(F: Concurrent<F, Error>) {
     raw: RawElement,
     br: (req: Request<F>) => Request<F>,
   ): Client<F, RawElement> {
-    return runRequest => runRequest(br(new Request()));
+    return runRequest => req => {
+      const r2 = br(req);
+      return runRequest(r2)(r2);
+    };
   }
 
   return clientWithRoute;

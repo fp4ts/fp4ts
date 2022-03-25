@@ -35,13 +35,13 @@ describe('dsl routing', () => {
 
   it.M('should return 204', () =>
     app
-      .run(new Request(Method.GET, uri`/version`))
+      .run(new Request({ uri: uri`/version` }))
       .map(response => expect(response.status.code).toBe(204)),
   );
 
   it.M('should return pong', () =>
     app
-      .run(new Request(Method.GET, uri`/ping`))
+      .run(new Request({ uri: uri`/ping` }))
       .flatMap(response => response.bodyText.compileConcurrent().string)
       .map(response => expect(response).toBe('pong')),
   );
@@ -49,7 +49,7 @@ describe('dsl routing', () => {
   it.M('should echo the body request', () =>
     app
       .run(
-        new Request<IOF>(Method.POST, uri`/echo`).withEntity(
+        new Request<IOF>({ method: Method.POST, uri: uri`/echo` }).withEntity(
           'sample payload',
           EntityEncoder.text(),
         ),
@@ -60,7 +60,7 @@ describe('dsl routing', () => {
 
   it.M('should return 404 when route is not found', () =>
     app
-      .run(new Request(Method.GET, uri`/some/random/uri`))
+      .run(new Request({ uri: uri`/some/random/uri` }))
       .map(response => expect(response.status.code).toBe(404)),
   );
 });
