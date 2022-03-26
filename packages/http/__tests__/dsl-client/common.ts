@@ -13,7 +13,7 @@ import {
   typeref,
   voidType,
 } from '@fp4ts/core';
-import { EitherT, None, Option, Some } from '@fp4ts/cats';
+import { None, Option, Some } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Codec, Schema } from '@fp4ts/schema';
 import { JsonCodec } from '@fp4ts/schema-json';
@@ -75,7 +75,7 @@ export const PersonArrayCodable: JsonCodec<Person[]> =
 export const carol = Person({ name: 'Carol', age: 42 });
 export const alice = Person({ name: 'Alice', age: 18 });
 
-const stringNumberArrayTupleTag =
+export const stringNumberArrayTupleTag =
   '@fp4ts/http/__tests__/dsl-client/stringNumberArrayTuple';
 export const stringNumberArrayTuple = typeref<[string, number[]]>()(
   stringNumberArrayTupleTag,
@@ -86,7 +86,8 @@ export const stringNumberArrayCodable: Codec<
   [string, number[]]
 > = JsonCodec.fromSchema(Schema.product(Schema.string, Schema.number.array));
 
-const multiTupleTupleTag = '@fp4ts/http/__tests__/dsl-client/multiTupleTuple';
+export const multiTupleTupleTag =
+  '@fp4ts/http/__tests__/dsl-client/multiTupleTuple';
 export const multiTupleTuple =
   typeref<[string, Option<number>, boolean, [string, number[]]]>()(
     multiTupleTupleTag,
@@ -112,7 +113,7 @@ const TestHeaders = Headers(
   Header('X-Example-2', stringType),
 );
 
-const api = group(
+export const api = group(
   Get(JSON, Person),
   Route('get')[':>'](Get(JSON, Person)),
   Route('deleteEmpty')[':>'](DeleteNoContent),
@@ -201,11 +202,7 @@ export const [
   rawFailure,
   postMultiple,
   getHeaders,
-] = toClientIn(
-  IO.Async,
-  ClientM.RunClientIO(NodeClient.makeClient(IO.Async)),
-  EitherT.rightT(IO.Monad),
-)(api, {
+] = toClientIn(ClientM.RunClientIO(NodeClient.makeClient(IO.Async)))(api, {
   ...builtins,
   [JSON.mime]: {
     [PersonTypeTag]: PersonCodable,

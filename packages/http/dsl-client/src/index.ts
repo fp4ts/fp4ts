@@ -37,8 +37,6 @@ export {
   JSON,
   PlainText,
 } from '@fp4ts/http-dsl-shared';
-// This source code is licensed under the MIT license found in the
-// LICENSE file in the root directory of this source tree.
 
 /**
  * @module http/dsl-client
@@ -49,3 +47,4 @@ export { TermDerivates, SubDerivates, CodingDerivates } from './type-level';
 export * from './builtin-codables';
 export * from './headers';
 export * from './client-error';
+export * from './free-client';
