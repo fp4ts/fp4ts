@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit';
 import { Left, Some } from '@fp4ts/cats';
-import { IO, Resource } from '@fp4ts/effect';
+import { IO } from '@fp4ts/effect';
 import {
   Authority,
   ContentType,
@@ -19,23 +19,17 @@ import {
   ContentTypeFailure,
   ResponseFailure,
 } from '@fp4ts/http-dsl-client';
-import { NodeClient } from '@fp4ts/http-node-client';
 import { withServer } from '@fp4ts/http-test-kit-node';
 import { alice, deleteEmpty, failServer, getCapture, postBody } from './common';
 
 describe('Failure', () => {
-  const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
-
   describe('client reports failures appropriately', () => {
     it.M('should respond with 404 Not Found', () =>
       withServer(failServer)(server => {
-        const baseUri = server.baseUri;
+        const uri = server.baseUri;
 
         return IO.Monad.do(function* (_) {
-          const res = yield* _(
-            deleteEmpty(new Request({ uri: baseUri })).value,
-          );
-
+          const res = yield* _(deleteEmpty(new Request({ uri })).value);
           expect(res).toEqual(Left(expect.any(ResponseFailure)));
           expect((res.getLeft as any).response.status.code).toBe(404);
         });
@@ -43,17 +37,11 @@ describe('Failure', () => {
     );
 
     it.M('should return a decode failure', () =>
-      withServer(failServer)(server => {
-        const baseUri = server.baseUri;
-
-        return IO.Monad.do(function* (_) {
-          const res = yield* _(
-            getCapture('foo')(new Request({ uri: baseUri })).value,
-          );
-
-          expect(res).toEqual(Left(expect.any(ClientDecodeFailure)));
-        });
-      }),
+      withServer(failServer)(server =>
+        getCapture('foo')(new Request({ uri: server.baseUri })).value.map(res =>
+          expect(res).toEqual(Left(expect.any(ClientDecodeFailure))),
+        ),
+      ),
     );
 
     it.skip('should respond with a connection failure', () =>
@@ -71,21 +59,14 @@ describe('Failure', () => {
           ),
         });
 
-        return getCapture('foo')(new Request({ uri: baseUri })).value.flatMap(
-          res =>
-            IO(() => expect(res.getLeft).toBeInstanceOf(ConnectionFailure)),
+        return getCapture('foo')(new Request({ uri: baseUri })).value.map(res =>
+          expect(res.getLeft).toBeInstanceOf(ConnectionFailure),
         );
       }));
 
     it.M('should respond with a Unsupported Media Type', () =>
-      withServer(failServer)(server => {
-        const baseUri = server.baseUri;
-
-        return IO.Monad.do(function* (_) {
-          const res = yield* _(
-            postBody(alice)(new Request({ uri: baseUri })).value,
-          );
-
+      withServer(failServer)(server =>
+        postBody(alice)(new Request({ uri: server.baseUri })).value.map(res =>
           expect(res).toEqual(
             Left(
               new ContentTypeFailure(
@@ -93,9 +74,9 @@ describe('Failure', () => {
                 expect.any(Response),
               ),
             ),
-          );
-        });
-      }),
+          ),
+        ),
+      ),
     );
   });
 });

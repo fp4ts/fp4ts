@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, pipe, TypeRef } from '@fp4ts/core';
-import { FunctionK, Some } from '@fp4ts/cats';
-import { Concurrent } from '@fp4ts/effect';
+import { Some } from '@fp4ts/cats';
 import { DecodeFailure } from '@fp4ts/schema';
 import {
   Accept,
@@ -51,12 +50,12 @@ import {
 } from '../client-error';
 
 export const toClientIn =
-  <F, G>(F: Concurrent<F, Error>, RC: RunClient<G, F>, nt: FunctionK<F, G>) =>
+  <F, G>(RC: RunClient<G, F>) =>
   <api>(
     api: api,
     codings: OmitBuiltins<DeriveCoding<F, api>>,
   ): ClientT<F, api, G> =>
-    clientWithRoute(F, RC, nt)(api, id, merge(builtins, codings));
+    clientWithRoute(RC)(api, id, merge(builtins, codings));
 
 const merge = (xs: any, ys: any): any => {
   const zs = {} as Record<string, any>;
@@ -69,11 +68,7 @@ const merge = (xs: any, ys: any): any => {
   return zs;
 };
 
-export function clientWithRoute<F, G>(
-  F: Concurrent<F, Error>,
-  RC: RunClient<G, F>,
-  nt: FunctionK<F, G>,
-) {
+export function clientWithRoute<F, G>(RC: RunClient<G, F>) {
   type Client<F, api> = ClientT<F, api, G>;
   function clientWithRoute<api>(
     api: api,
@@ -319,8 +314,7 @@ export function clientWithRoute<F, G>(
           }
 
           return pipe(
-            res.bodyText.compileConcurrent(F).string,
-            nt,
+            RC.compileBody(res.bodyText),
             RC.flatMap(txt =>
               C.decode(txt).fold(
                 e => RC.throwClientError(new ClientDecodeFailure(e, res)),
@@ -401,8 +395,7 @@ export function clientWithRoute<F, G>(
           }
 
           return pipe(
-            res.bodyText.compileConcurrent(F).string,
-            nt,
+            RC.compileBody(res.bodyText),
             RC.flatMap(txt =>
               C.decode(txt).fold(
                 e => RC.throwClientError(new ClientDecodeFailure(e, res)),

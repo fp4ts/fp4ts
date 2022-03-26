@@ -6,8 +6,9 @@
 import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { stringType } from '@fp4ts/core';
-import { IO } from '@fp4ts/effect-core';
-import { Resource } from '@fp4ts/effect-kernel';
+import { Either, Right } from '@fp4ts/cats';
+import { IO, Resource } from '@fp4ts/effect';
+import { Request } from '@fp4ts/http-core';
 import { builtins, ClientM, toClientIn } from '@fp4ts/http-dsl-client';
 import { toHttpAppIO } from '@fp4ts/http-dsl-server';
 import {
@@ -20,9 +21,7 @@ import {
   Route,
 } from '@fp4ts/http-dsl-shared';
 import { NodeClient } from '@fp4ts/http-node-client';
-import { withServerClient } from '@fp4ts/http-test-kit-node';
-import { Request } from '@fp4ts/http-core';
-import { Either, EitherT, Right } from '@fp4ts/cats';
+import { withServer } from '@fp4ts/http-test-kit-node';
 
 const api = group(
   Route('version')[':>'](GetNoContent),
@@ -38,19 +37,14 @@ const app = toHttpAppIO(
 )(S => [S.unit, S.return('pong'), S.return]);
 
 const [version, ping, echo] = toClientIn(
-  IO.Async,
   ClientM.RunClientIO(NodeClient.makeClient(IO.Async)),
-  EitherT.rightT(IO.Async),
 )(api, builtins);
 
 describe('Simple HTTP api dsl client', () => {
   const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
 
   it.M('should respond with a unit response', () =>
-    withServerClient(
-      app,
-      clientResource,
-    )((server, client) => {
+    withServer(app)(server => {
       const baseUri = server.baseUri;
       return version(new Request({ uri: baseUri })).value.flatMap(resp =>
         IO(() => expect(resp).toEqual(Either.rightUnit)),
@@ -59,10 +53,7 @@ describe('Simple HTTP api dsl client', () => {
   );
 
   it.M("should respond with a 'pong'", () =>
-    withServerClient(
-      app,
-      clientResource,
-    )((server, client) => {
+    withServer(app)(server => {
       const baseUri = server.baseUri;
       return ping(new Request({ uri: baseUri })).value.flatMap(resp =>
         IO(() => expect(resp).toEqual(Right('pong'))),
@@ -73,10 +64,7 @@ describe('Simple HTTP api dsl client', () => {
   it('should respond with sent payload', async () => {
     await fc.assert(
       fc.asyncProperty(fc.string(), s =>
-        withServerClient(
-          app,
-          clientResource,
-        )((server, client) => {
+        withServer(app)(server => {
           const baseUri = server.baseUri;
           return echo(s)(new Request({ uri: baseUri })).value.flatMap(resp =>
             IO(() => expect(resp).toEqual(Right(s))),

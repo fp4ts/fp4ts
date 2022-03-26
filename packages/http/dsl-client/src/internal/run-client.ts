@@ -5,17 +5,19 @@
 
 import { Kind } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats';
+import { Stream } from '@fp4ts/stream';
 import { Request, Response } from '@fp4ts/http-core';
 import { ClientError } from '../client-error';
 
 export interface RunClient<G, F> extends Monad<G> {
   runRequest(req: Request<F>): Kind<G, [Response<F>]>;
+  compileBody(bodyText: Stream<F, string>): Kind<G, [string]>;
   throwClientError<A = never>(e: ClientError<F>): Kind<G, [A]>;
 }
 
 type RunClientRequirements<G, F> = Pick<
   RunClient<G, F>,
-  'runRequest' | 'throwClientError'
+  'runRequest' | 'throwClientError' | 'compileBody'
 >;
 export const RunClient = Object.freeze({
   of: <G, F>(G: Monad<G>, R: RunClientRequirements<G, F>): RunClient<G, F> => ({

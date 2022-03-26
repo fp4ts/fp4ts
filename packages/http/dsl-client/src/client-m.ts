@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, instance, pipe, TyK, TyVar } from '@fp4ts/core';
-import { EitherT, MonadThrow } from '@fp4ts/cats';
-import { IO, IOF } from '@fp4ts/effect';
+import { EitherT } from '@fp4ts/cats';
+import { Concurrent, IO, IOF } from '@fp4ts/effect';
 import { Client } from '@fp4ts/http-client';
+
 import { ClientError, ConnectionFailure } from './client-error';
 import { RunClient } from './internal/run-client';
 
@@ -14,7 +15,7 @@ export type ClientM<F, A> = EitherT<F, ClientError<F>, A>;
 export const ClientM = Object.freeze({
   RunClient<F>(
     client: Client<F>,
-    F: MonadThrow<F>,
+    F: Concurrent<F, Error>,
   ): RunClient<$<ClientMF, [F]>, F> {
     return instance<RunClient<$<ClientMF, [F]>, F>>({
       ...EitherT.Monad<F, ClientError<F>>(F),
@@ -25,12 +26,14 @@ export const ClientM = Object.freeze({
           F.map(ea => ea.leftMap(e => new ConnectionFailure(e))),
           EitherT,
         ),
+      compileBody: bodyText =>
+        EitherT.rightT(F)(bodyText.compileConcurrent(F).string),
       throwClientError: err => EitherT.left(F)(err),
     });
   },
 
   RunClientIO(client: Client<IOF>): RunClient<$<ClientMF, [IOF]>, IOF> {
-    return ClientM.RunClient(client, IO.MonadError);
+    return ClientM.RunClient(client, IO.Concurrent);
   },
 });
 
