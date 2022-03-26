@@ -113,7 +113,7 @@ export interface TermDerivates<F, api, m> {
     ? (req: Request<F>) => Kind<m, [BuildHeaders<hs, TypeOf<T>>]>
     : never;
   [VerbNoContentTag]: (req: Request<F>) => Kind<m, [void]>;
-  [RawElementTag]: (runRequest: (req: Request<F>) => Kind<m, [Response<F>]>) => (req: Request<F>) => Kind<m, [Response<F>]>,
+  [RawElementTag]: <A>(runRequest: (req: Request<F>) => Kind<m, [A]>) => (req: Request<F>) => Kind<m, [A]>,
 }
 
 // prettier-ignore
