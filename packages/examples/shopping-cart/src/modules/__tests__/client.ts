@@ -19,6 +19,8 @@ import {
 import { InventoryApi } from '../application/inventory';
 import { BrandApi, CreateBrandDto } from '../application/inventory/brand';
 import { Brand } from '../domain/inventory/brand';
+import { BrandOwnerApi } from '../application/inventory/brand-owner';
+import { BrandOwner } from '../domain/inventory/brand-owner';
 
 const client = NodeClient.makeClient(IO.Async);
 const RC = ClientM.RunClientIO(client);
@@ -49,6 +51,13 @@ export const [loginBrand, brandOwner] = toClientIn(RC)(InventoryApi, {
     '@fp4ts/shipping-cart/domain/inventory/brand/brand-id': builtins[
       '@fp4ts/http/dsl/from-htt-api-data'
     ]['@fp4ts/core/string'] as any,
+  },
+});
+
+export const [registerBrandOwner] = toClientIn(RC)(BrandOwnerApi, {
+  'application/json': {
+    '@fp4ts/shopping-cart/domain/inventory/brand-owner/brand-owner':
+      JsonCodec.fromSchema(BrandOwner.schema),
   },
 });
 
