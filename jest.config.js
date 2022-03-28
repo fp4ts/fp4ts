@@ -2,7 +2,10 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: './packages',
   transform: {
-    '^.+\\.ts$': '@swc-node/jest',
+    '^.+\\.ts$': [
+      '@swc-node/jest',
+      { jsc: { target: 'es2021' }, sourceMaps: 'inline' },
+    ],
   },
   testRegex: '.spec.ts$',
   roots: [
@@ -29,4 +32,13 @@ module.exports = {
   ],
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/../jest-setup.js'],
+  coverageDirectory: '../coverage',
+  collectCoverageFrom: ['<rootDir>/**/*.{js,ts}'],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/*test-kit/',
+    '/examples/',
+    '/__tests__/',
+  ],
+  coverageProvider: 'v8',
 };
