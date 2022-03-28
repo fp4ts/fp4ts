@@ -35,7 +35,7 @@ export class ParsingFailure extends MessageFailure {
 
   public readonly cause = None;
 
-  public toHttpResponse<F>(httpVersion: HttpVersion): Response<F> {
+  public toHttpResponse<F>(httpVersion: HttpVersion = '1.1'): Response<F> {
     return new Response<F>(Status.BadRequest, httpVersion).withEntity(
       this.sanitized,
       EntityEncoder.text(),
