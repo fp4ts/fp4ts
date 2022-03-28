@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Fix, Lazy, lazyVal, tailrec, α, λ } from '@fp4ts/core';
+import { $, Fix, Lazy, lazyVal, α, λ } from '@fp4ts/core';
 import { Contravariant } from '../../contravariant';
 import { ArrowChoice } from '../../arrow';
 import { Monad } from '../../monad';
@@ -26,14 +26,11 @@ export const andThenMonad: <A>() => Monad<$<AndThenF, [A]>> = <A>() =>
       f: (s: S) => AndThen<A, Either<S, X>>,
     ): AndThen<A, X> =>
       lift((a: A): X => {
-        const step = tailrec(
-          (curS: S): X =>
-            f(curS)(a).fold(
-              nextS => step(nextS),
-              res => res,
-            ),
-        );
-        return step(s);
+        let cur: Either<S, X> = f(s)(a);
+        while (cur.isLeft) {
+          cur = f(cur.getLeft)(a);
+        }
+        return cur.get;
       }),
   });
 

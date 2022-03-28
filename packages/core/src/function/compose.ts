@@ -41,9 +41,6 @@ export function compose<A, B, C, D, E, F, G, H>(
   bc: (_: B) => C,
   ab: (_: A) => B,
 ): (a: A) => H;
-export function compose(
-  this: Function,
-  ...args: Function[]
-): (a: unknown) => unknown {
+export function compose(...args: Function[]): (a: unknown) => unknown {
   return x => args.reduceRight((x, f) => f(x), x);
 }

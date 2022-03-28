@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { hole, Kind } from '@fp4ts/core';
+import { Kind } from '@fp4ts/core';
 import { FunctionK, Monad } from '@fp4ts/cats';
 
 import { EntityDecoder } from '../codec';
@@ -16,6 +16,7 @@ import { Method } from './method';
 import { Uri } from './uri';
 import { Attributes } from './attributes';
 import { EntityBody } from '../entity-body';
+import { ParsingFailure } from './message-failure';
 
 export class Request<F> extends Message<F, Request<F>> {
   public readonly method: Method = Method.GET;
@@ -79,7 +80,11 @@ export class Request<F> extends Message<F, Request<F>> {
     F: Monad<F>,
     decoder: EntityDecoder<F, A>,
   ): (f: (a: A) => Response<F>) => Kind<F, [Response<F>]> {
-    return f => decoder.decode(this).fold(F)<Response<F>>(hole, f);
+    return f =>
+      decoder.decode(this).fold(F)<Response<F>>(
+        e => new ParsingFailure(e.cause.getOrElse(() => '')).toHttpResponse(),
+        f,
+      );
   }
 
   public decodeWith<A>(
@@ -87,7 +92,15 @@ export class Request<F> extends Message<F, Request<F>> {
     decoder: EntityDecoder<F, A>,
   ): (f: (a: A) => Kind<F, [Response<F>]>) => Kind<F, [Response<F>]> {
     return f =>
-      F.flatten(decoder.decode(this).fold(F)<Kind<F, [Response<F>]>>(hole, f));
+      F.flatten(
+        decoder.decode(this).fold(F)<Kind<F, [Response<F>]>>(
+          e =>
+            F.pure(
+              new ParsingFailure(e.cause.getOrElse(() => '')).toHttpResponse(),
+            ),
+          f,
+        ),
+      );
   }
 }
 type Props<F> = {
