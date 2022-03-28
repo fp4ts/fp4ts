@@ -29,17 +29,33 @@ jobs:
       env:
         NODE_OPTIONS: '--max_old_space_size=16384'
     - run: yarn test --ci
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: yarn
+    - run: yarn install --frozen-lockfile
+    - run: yarn compile
+      env:
+        NODE_OPTIONS: '--max_old_space_size=16384'
     - name: Generate Coverage
       run: yarn test --coverage --testTimeout 20000
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/reports/
-        env_vars: OS,NODE
+        directory: ./coverage
         fail_ci_if_error: true
-        files: ./clover.xml
-        flags: unittests
-        name: codecov-umbrella
+        files: ./coverage/clover.xml
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
