@@ -29,3 +29,17 @@ jobs:
       env:
         NODE_OPTIONS: '--max_old_space_size=16384'
     - run: yarn test --ci
+    - name: Generate Coverage
+      run: yarn test --coverage --testTimeout 20000
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./coverage/reports/
+        env_vars: OS,NODE
+        fail_ci_if_error: true
+        files: ./clover.xml
+        flags: unittests
+        name: codecov-umbrella
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
