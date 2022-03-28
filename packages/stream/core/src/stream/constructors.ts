@@ -267,7 +267,7 @@ const _fromQueueNoneTerminatedSingletons = <F, A>(
   tryTake: Kind<F, [Option<Option<A>>]>,
   limit: number,
 ): Stream<F, A> => {
-  const await: Stream<F, A> = flatMap_(evalF(take), opt =>
+  const await_: Stream<F, A> = flatMap_(evalF(take), opt =>
     opt.fold(
       () => empty(),
       c => pump(1, [c]),
@@ -276,11 +276,11 @@ const _fromQueueNoneTerminatedSingletons = <F, A>(
 
   const pump = (curSize: number, acc: A[]): Stream<F, A> => {
     if (curSize === limit) {
-      return concat_(fromArray(acc), await);
+      return concat_(fromArray(acc), await_);
     } else {
       return flatMap_(evalF(tryTake), opt =>
         opt.fold(
-          () => concat_(fromArray(acc), await),
+          () => concat_(fromArray(acc), await_),
           opt =>
             opt.fold(
               () => fromArray(acc),
@@ -294,7 +294,7 @@ const _fromQueueNoneTerminatedSingletons = <F, A>(
     }
   };
 
-  return await;
+  return await_;
 };
 
 const _fromQueueNoneTerminatedChunk = <F, A>(
@@ -302,7 +302,7 @@ const _fromQueueNoneTerminatedChunk = <F, A>(
   tryTake: Kind<F, [Option<Option<Chunk<A>>>]>,
   limit: number,
 ): Stream<F, A> => {
-  const await: Stream<F, A> = flatMap_(evalF(take), opt =>
+  const await_: Stream<F, A> = flatMap_(evalF(take), opt =>
     opt.fold(
       () => empty(),
       c => pump(c),
@@ -318,11 +318,11 @@ const _fromQueueNoneTerminatedChunk = <F, A>(
         defer(() => pump(sfx)),
       );
     } else if (sz === limit) {
-      return concat_(fromChunk(acc), await);
+      return concat_(fromChunk(acc), await_);
     } else {
       return flatMap_(evalF(tryTake), opt =>
         opt.fold(
-          () => concat_(fromChunk(acc), await),
+          () => concat_(fromChunk(acc), await_),
           opt =>
             opt.fold(
               () => fromChunk(acc),
@@ -333,5 +333,5 @@ const _fromQueueNoneTerminatedChunk = <F, A>(
     }
   };
 
-  return await;
+  return await_;
 };
