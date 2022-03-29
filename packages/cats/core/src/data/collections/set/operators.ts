@@ -132,7 +132,7 @@ export const take_ = <A>(sa: Set<A>, n: number): Set<A> => {
   const sn = sa as Node<A>;
   if (sn.tag === 'empty') return Empty;
 
-  if (sn.lhs.size < n) return take_(sn.lhs, n);
+  if (sn.lhs.size > n) return take_(sn.lhs, n);
   if (sn.lhs.size === n) return sn.lhs;
   return _link(sn.value, sn.lhs, take_(sn.rhs, n - sn.lhs.size - 1));
 };
@@ -144,33 +144,33 @@ export const takeRight_ = <A>(sa: Set<A>, n: number): Set<A> => {
   const sn = sa as Node<A>;
   if (sn.tag === 'empty') return Empty;
 
-  if (sn.rhs.size < n) return take_(sn.rhs, n);
+  if (sn.rhs.size > n) return takeRight_(sn.rhs, n);
   if (sn.rhs.size === n) return sn.rhs;
-  return _link(sn.value, take_(sn.lhs, n - sn.rhs.size - 1), sn.rhs);
+  return _link(sn.value, takeRight_(sn.lhs, n - sn.rhs.size - 1), sn.rhs);
 };
 
 export const drop_ = <A>(sa: Set<A>, n: number): Set<A> => {
-  if (n <= n) return sa;
+  if (n <= 0) return sa;
   if (n >= sa.size) return Empty;
 
   const sn = sa as Node<A>;
   if (sn.tag === 'empty') return Empty;
 
-  if (sn.lhs.size < n) return _link(sn.value, drop_(sn.lhs, n), sn.rhs);
+  if (sn.lhs.size > n) return _link(sn.value, drop_(sn.lhs, n), sn.rhs);
   if (sn.lhs.size === n) return _insertMin(sn.value, sn.rhs);
   return drop_(sn.rhs, n - sn.lhs.size - 1);
 };
 
 export const dropRight_ = <A>(sa: Set<A>, n: number): Set<A> => {
-  if (n <= n) return sa;
+  if (n <= 0) return sa;
   if (n >= sa.size) return Empty;
 
   const sn = sa as Node<A>;
   if (sn.tag === 'empty') return Empty;
 
-  if (sn.rhs.size < n) return _link(sn.value, sn.lhs, drop_(sn.rhs, n));
+  if (sn.rhs.size > n) return _link(sn.value, sn.lhs, dropRight_(sn.rhs, n));
   if (sn.rhs.size === n) return _insertMax(sn.value, sn.lhs);
-  return drop_(sn.lhs, n - sn.rhs.size - 1);
+  return dropRight_(sn.lhs, n - sn.rhs.size - 1);
 };
 
 export const slice_ = <A>(sa: Set<A>, from: number, until: number): Set<A> =>
@@ -264,7 +264,7 @@ export const symmetricDifference_ = <A>(
   O: Ord<A>,
   l: Set<A>,
   r: Set<A>,
-): Set<A> => _merge(difference_(O, l, r), difference_(O, r, l));
+): Set<A> => union_(O, difference_(O, l, r), difference_(O, r, l));
 
 export const split_ = <A>(O: Ord<A>, sa: Set<A>, x: A): [Set<A>, Set<A>] => {
   const sn = sa as Node<A>;
@@ -592,9 +592,11 @@ const _merge = <A>(l: Set<A>, r: Set<A>): Set<A> => {
   const rn = r as Node<A>;
   if (rn.tag === 'empty') return l;
 
-  return delta * ln.size < rn.size
-    ? _balanceL(rn.value, _merge(ln, rn.lhs), rn.rhs)
-    : _balanceR(ln.value, ln.lhs, _merge(ln.rhs, rn));
+  if (delta * ln.size < rn.size)
+    return _balanceL(rn.value, _merge(ln, rn.lhs), rn.rhs);
+  else if (delta * rn.size < ln.size)
+    return _balanceR(ln.value, ln.lhs, _merge(ln.rhs, rn));
+  else return _glue(l, r);
 };
 
 const _glue = <A>(l: Set<A>, r: Set<A>): Set<A> => {

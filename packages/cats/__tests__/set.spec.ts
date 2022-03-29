@@ -100,6 +100,13 @@ describe('set', () => {
     it('should return set without the min value', () => {
       expect(Set(5, 4, 3, 2, 1).tail.toArray).toEqual([2, 3, 4, 5]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+        isValid(Ord.primitive, xs.tail),
+      ),
+    );
   });
 
   describe('last', () => {
@@ -142,6 +149,13 @@ describe('set', () => {
     it('should return set without the max value', () => {
       expect(Set(5, 4, 3, 2, 1).init.toArray).toEqual([1, 2, 3, 4]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+        isValid(Ord.primitive, xs.init),
+      ),
+    );
   });
 
   describe('min', () => {
@@ -171,6 +185,16 @@ describe('set', () => {
       const [x, s] = Set(5, 4, 3, 2, 1).popMin.get;
       expect([x, s.toArray]).toEqual([1, [2, 3, 4, 5]]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+        xs.popMin.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('popMax', () => {
@@ -186,6 +210,16 @@ describe('set', () => {
       const [x, s] = Set(5, 4, 3, 2, 1).popMax.get;
       expect([x, s.toArray]).toEqual([5, [1, 2, 3, 4]]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+        xs.popMax.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('contains', () => {
@@ -239,6 +273,13 @@ describe('set', () => {
       expect(isValid(Ord.primitive, s));
       expect(s.toArray).toEqual([1, 2, 3, 4, 5]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (xs, ys) =>
+        isValid(Ord.primitive, xs.insert(ys)),
+      ),
+    );
   });
 
   describe('remove', () => {
@@ -255,6 +296,13 @@ describe('set', () => {
       expect(isValid(Ord.primitive, s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 4, 5]);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (xs, ys) =>
+        isValid(Ord.primitive, xs.remove(ys)),
+      ),
+    );
   });
 
   describe('union', () => {
@@ -303,6 +351,15 @@ describe('set', () => {
       expect(isValid(Ord.primitive, s)).toBe(true);
       expect(s.toArray).toEqual(xs);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.union(ys)),
+      ),
+    );
   });
 
   describe('intersect', () => {
@@ -351,6 +408,15 @@ describe('set', () => {
       expect(isValid(Ord.primitive, s)).toBe(true);
       expect(s.toArray).toEqual(xs);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.intersect(ys)),
+      ),
+    );
   });
 
   describe('difference', () => {
@@ -377,6 +443,15 @@ describe('set', () => {
     it('should return an empty set when difference with itself', () => {
       expect(Set(1, 2, 3)['\\'](Set(1, 2, 3))).toEqual(Set.empty);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs['\\'](ys)),
+      ),
+    );
   });
 
   describe('symmetric difference', () => {
@@ -405,6 +480,131 @@ describe('set', () => {
     it('should return an empty set when difference with itself', () => {
       expect(Set(1, 2, 3)['\\//'](Set(1, 2, 3))).toEqual(Set.empty);
     });
+
+    it(
+      'should remain valid tree',
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs['\\//'](ys)),
+      ),
+    );
+  });
+
+  describe('take', () => {
+    it('should return empty set when empty', () => {
+      expect(Set.empty.take(42)).toEqual(Set.empty);
+    });
+
+    it('should return empty set when taken zero elements', () => {
+      expect(Set(1, 2, 3).take(0)).toEqual(Set.empty);
+    });
+
+    it('should take first single element', () => {
+      expect(Set(1, 2, 3).take(1)).toEqual(Set(1));
+    });
+
+    it('should take some of the elements', () => {
+      expect(Set(1, 2, 3).take(2).toArray).toEqual([1, 2]);
+    });
+
+    it('should take all of the elements', () => {
+      expect(Set(1, 2, 3).take(42).toArray).toEqual([1, 2, 3]);
+    });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
+        isValid(Ord.primitive, s.take(n)),
+      ),
+    );
+  });
+
+  describe('takeRight', () => {
+    it('should return empty set when empty', () => {
+      expect(Set.empty.takeRight(42)).toEqual(Set.empty);
+    });
+
+    it('should return empty set when taken zero elements', () => {
+      expect(Set(1, 2, 3).takeRight(0)).toEqual(Set.empty);
+    });
+
+    it('should take first single element', () => {
+      expect(Set(1, 2, 3).takeRight(1)).toEqual(Set(3));
+    });
+
+    it('should take some of the elements', () => {
+      expect(Set(1, 2, 3).takeRight(2).toArray).toEqual([2, 3]);
+    });
+
+    it('should take all of the elements', () => {
+      expect(Set(1, 2, 3).takeRight(42).toArray).toEqual([1, 2, 3]);
+    });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
+        isValid(Ord.primitive, s.takeRight(n)),
+      ),
+    );
+  });
+
+  describe('drop', () => {
+    it('should return empty set when empty', () => {
+      expect(Set.empty.drop(42)).toEqual(Set.empty);
+    });
+
+    it('should return identity when zero elements dropped', () => {
+      expect(Set(1, 2, 3).drop(0)).toEqual(Set(1, 2, 3));
+    });
+
+    it('should drop first single element', () => {
+      expect(Set(1, 2, 3).drop(1).toArray).toEqual([2, 3]);
+    });
+
+    it('should drop some of the elements', () => {
+      expect(Set(1, 2, 3).drop(2)).toEqual(Set(3));
+    });
+
+    it('should drop all of the elements', () => {
+      expect(Set(1, 2, 3).drop(42)).toEqual(Set.empty);
+    });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
+        isValid(Ord.primitive, s.drop(n)),
+      ),
+    );
+  });
+
+  describe('dropRight', () => {
+    it('should return empty set when empty', () => {
+      expect(Set.empty.dropRight(42)).toEqual(Set.empty);
+    });
+
+    it('should return empty set when drop zero elements', () => {
+      expect(Set(1, 2, 3).dropRight(0)).toEqual(Set(1, 2, 3));
+    });
+
+    it('should drop last element', () => {
+      expect(Set(1, 2, 3).dropRight(1).toArray).toEqual([1, 2]);
+    });
+
+    it('should take some of the elements', () => {
+      expect(Set(1, 2, 3).dropRight(2)).toEqual(Set(1));
+    });
+
+    it('should take all of the elements', () => {
+      expect(Set(1, 2, 3).dropRight(42)).toEqual(Set.empty);
+    });
+
+    it(
+      'should remain valid tree',
+      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
+        isValid(Ord.primitive, s.dropRight(n)),
+      ),
+    );
   });
 
   describe('filter', () => {
@@ -576,6 +776,21 @@ describe('set', () => {
     it('should combine values of the set', () => {
       expect(Set(1, 2, 3, 4).foldMap(Monoid.addition)(id)).toBe(10);
       expect(Set(1, 2, 3, 4).foldMap(Monoid.product)(id)).toBe(24);
+    });
+  });
+
+  describe('foldMapK', () => {
+    it('should return an initial result when empty', () => {
+      expect(Set.empty.foldMapK(List.MonoidK)(List)).toEqual(List());
+    });
+
+    it('should combine values of the set', () => {
+      expect(Set(1, 2, 3, 4).foldMapK(List.MonoidK)(List)).toEqual(
+        List(1, 2, 3, 4),
+      );
+      expect(Set(1, 2, 3, 4).foldMapK(List.MonoidK)(x => List(x, x))).toEqual(
+        List(1, 1, 2, 2, 3, 3, 4, 4),
+      );
     });
   });
 
