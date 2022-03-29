@@ -9,7 +9,7 @@ import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
@@ -17,6 +17,7 @@ import {
   FunctorFilterSuite,
   TraversableSuite,
 } from '@fp4ts/cats-laws';
+import { isValid } from '@fp4ts/cats-core/lib/data/collections/map/operators';
 
 describe('Map', () => {
   describe('types', () => {
@@ -34,15 +35,19 @@ describe('Map', () => {
   describe('constructors', () => {
     test('empty map to be empty', () => {
       expect(Map.empty.isEmpty).toBe(true);
+      expect(Map.empty.nonEmpty).toBe(false);
     });
 
     test('map with value not to be empty', () => {
       expect(Map([1, 2]).nonEmpty).toBe(true);
+      expect(Map([1, 2]).isEmpty).toBe(false);
     });
 
     it('should create an ordered map from an unordered array', () => {
       const xs = [5, 1, 7, 8, 10, -5].map(x => [x, x] as [number, number]);
-      expect(Map(...xs).toArray).toEqual([
+      const m = Map(...xs);
+      expect(isValid(Ord.primitive, m)).toBe(true);
+      expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
         [5, 5],
@@ -54,7 +59,9 @@ describe('Map', () => {
 
     it('should create an ordered map from an unordered List', () => {
       const xs = List(5, 1, 7, 8, 10, -5).map(x => [x, x] as [number, number]);
-      expect(Map.fromList(Ord.primitive)(xs).toArray).toEqual([
+      const m = Map.fromList(Ord.primitive)(xs);
+      expect(isValid(Ord.primitive, m)).toBe(true);
+      expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
         [5, 5],
@@ -66,7 +73,9 @@ describe('Map', () => {
 
     it('should create an ordered map from a sorted array', () => {
       const xs = [-5, 1, 5, 7, 8, 10].map(x => [x, x] as [number, number]);
-      expect(Map.fromSortedArray(xs).toArray).toEqual([
+      const m = Map.fromSortedArray(xs);
+      expect(isValid(Ord.primitive, m)).toBe(true);
+      expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
         [5, 5],
@@ -105,6 +114,13 @@ describe('Map', () => {
     it('should remove element of the map', () => {
       expect(Map([1, 2], [-1, 4]).tail).toEqual(Map([1, 2]));
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        isValid(Ord.primitive, xs.init),
+      ),
+    );
   });
 
   describe('init', () => {
@@ -115,6 +131,13 @@ describe('Map', () => {
     it('should remove last element of the map', () => {
       expect(Map([1, 2], [-1, 4]).init).toEqual(Map([-1, 4]));
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        isValid(Ord.primitive, xs.init),
+      ),
+    );
   });
 
   describe('headOption', () => {
@@ -243,6 +266,16 @@ describe('Map', () => {
         [4, 5],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        xs.popMin.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('popMinWithKey', () => {
@@ -263,6 +296,16 @@ describe('Map', () => {
         [4, 5],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        xs.popMinWithKey.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('popMax', () => {
@@ -283,6 +326,16 @@ describe('Map', () => {
         [2, 3],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        xs.popMax.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('popMaxWithKey', () => {
@@ -303,6 +356,16 @@ describe('Map', () => {
         [2, 3],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
+        xs.popMaxWithKey.fold(
+          () => true,
+          ([, xs]) => isValid(Ord.primitive, xs),
+        ),
+      ),
+    );
   });
 
   describe('contains', () => {
@@ -356,6 +419,16 @@ describe('Map', () => {
 
       expect(m.toArray).toEqual;
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.integer(),
+        fc.string(),
+        (xs, k, v) => isValid(Ord.primitive, xs.insert(k, v)),
+      ),
+    );
   });
 
   describe('insertWith', () => {
@@ -376,6 +449,16 @@ describe('Map', () => {
         [2, 2],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.integer(),
+        fc.string(),
+        (xs, k, v) => isValid(Ord.primitive, xs.insertWith(k, v, id)),
+      ),
+    );
   });
 
   describe('remove', () => {
@@ -390,6 +473,15 @@ describe('Map', () => {
     it('should remove existing key from the map', () => {
       expect(Map([1, 2], [2, 3]).remove(2)).toEqual(Map([1, 2]));
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.integer(),
+        (xs, k) => isValid(Ord.primitive, xs.remove(k)),
+      ),
+    );
   });
 
   describe('update', () => {
@@ -463,6 +555,15 @@ describe('Map', () => {
 
       expect(rs).toEqual([...xs, ...ys]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.union(ys)),
+      ),
+    );
   });
 
   describe('unionWith', () => {
@@ -488,6 +589,15 @@ describe('Map', () => {
         [5, 6],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.unionWith(ys, id)),
+      ),
+    );
   });
 
   describe('intersect', () => {
@@ -523,6 +633,15 @@ describe('Map', () => {
 
       expect(rs).toEqual(xs.slice(5_000));
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.intersect(ys)),
+      ),
+    );
   });
 
   describe('intersectWith', () => {
@@ -539,6 +658,15 @@ describe('Map', () => {
           .toArray,
       ).toEqual([[3, 9]]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs.intersectWith(ys, id)),
+      ),
+    );
   });
 
   describe('difference', () => {
@@ -554,6 +682,15 @@ describe('Map', () => {
         [1, 2],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs['\\'](ys)),
+      ),
+    );
   });
 
   describe('symmetricDifference', () => {
@@ -572,6 +709,15 @@ describe('Map', () => {
         [3, 4],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        (xs, ys) => isValid(Ord.primitive, xs['\\//'](ys)),
+      ),
+    );
   });
 
   describe('filter', () => {
@@ -587,6 +733,15 @@ describe('Map', () => {
         [3, 3],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.func<[string, number], boolean>(fc.boolean()),
+        (xs, f) => isValid(Ord.primitive, xs.filter(f)),
+      ),
+    );
   });
 
   describe('map', () => {
@@ -597,6 +752,15 @@ describe('Map', () => {
     it('should double all values', () => {
       expect(Map([1, 2], [3, 4]).map(x => x * 2)).toEqual(Map([1, 4], [3, 8]));
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.func<[string, number], number>(fc.integer()),
+        (xs, f) => isValid(Ord.primitive, xs.map(f)),
+      ),
+    );
   });
 
   describe('collect', () => {
@@ -614,6 +778,15 @@ describe('Map', () => {
         [3, 4],
       ]);
     });
+
+    it(
+      'should remain valid',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        fc.func<[string, number], Option<number>>(A.fp4tsOption(fc.integer())),
+        (xs, f) => isValid(Ord.primitive, xs.collect(f)),
+      ),
+    );
   });
 
   describe('foldLeft', () => {
