@@ -18,9 +18,9 @@
   "devDependencies": {
     "@fp4ts/cats-laws": "*",
     "@fp4ts/cats-test-kit": "*",
-    "@fp4ts/schema-test-kit": "*",
     "@fp4ts/schema-laws": "*",
-    "fast-check": "^2.22.0",
+    "@fp4ts/schema-test-kit": "*",
+    "fast-check": "^2.23.2",
     "typescript": "4.6.2"
   }
 }
