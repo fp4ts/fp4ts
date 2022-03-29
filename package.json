@@ -39,7 +39,7 @@
     "supertest": "^6.2.2",
     "typedoc": "^0.22.13",
     "typedoc-plugin-missing-exports": "^0.22.6",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.3"
   },
   "scripts": {
     "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=50%",
