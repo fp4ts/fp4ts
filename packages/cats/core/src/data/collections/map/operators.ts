@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, throwError, id } from '@fp4ts/core';
+import { Kind, throwError, id, constant } from '@fp4ts/core';
 import { Monoid, Eq, Ord, Compare } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -564,7 +564,7 @@ export const symmetricDifference_ = <K, V>(
   O: Ord<K>,
   m1: Map<K, V>,
   m2: Map<K, V>,
-): Map<K, V> => _merge(difference_(O, m1, m2), difference_(O, m2, m1));
+): Map<K, V> => union_(O, difference_(O, m1, m2), difference_(O, m2, m1));
 
 export const split_ = <K, V>(
   O: Ord<K>,
@@ -791,7 +791,51 @@ export const equals_ = <K, V>(
   return true;
 };
 
-// Private implementation
+// -- Assertions
+
+export const isValid = <K, V = never>(O: Ord<K>, m: Map<K, V>): boolean =>
+  isOrdered(O, m) && isBalanced(m) && hasValidSize(m);
+
+export const isOrdered = <K, V>(O: Ord<K>, m: Map<K, V>): boolean => {
+  const bounded = (
+    sa: Map<K, V>,
+    lo: (a: K) => boolean,
+    hi: (a: K) => boolean,
+  ): boolean => {
+    const sn = sa as Node<K, V>;
+    if (sn.tag === 'empty') return true;
+
+    return (
+      lo(sn.key) &&
+      hi(sn.key) &&
+      bounded(sn.lhs, lo, x => O.lt(x, sn.key)) &&
+      bounded(sn.rhs, x => O.gt(x, sn.key), hi)
+    );
+  };
+
+  return bounded(m, constant(true), constant(true));
+};
+
+export const isBalanced = <K, V>(m: Map<K, V>): boolean => {
+  const sn = m as Node<K, V>;
+  return sn.tag === 'empty'
+    ? true
+    : (sn.lhs.size + sn.rhs.size <= 1 ||
+        (sn.lhs.size <= delta * sn.rhs.size &&
+          sn.rhs.size <= delta * sn.rhs.size)) &&
+        isBalanced(sn.lhs) &&
+        isBalanced(sn.rhs);
+};
+
+export const hasValidSize = <K, V>(m: Map<K, V>): boolean => {
+  const realSize = (m: Map<K, V>): number => {
+    const sn = m as Node<K, V>;
+    return sn.tag === 'empty' ? 0 : realSize(sn.lhs) + 1 + realSize(sn.rhs);
+  };
+  return m.size === realSize(m);
+};
+
+// -- Private implementation
 
 const delta = 3;
 const ratio = 2;

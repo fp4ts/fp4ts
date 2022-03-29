@@ -29,10 +29,12 @@ describe('set', () => {
   describe('constructors', () => {
     test('empty set to be empty', () => {
       expect(Set.empty.isEmpty).toBe(true);
+      expect(Set.empty.nonEmpty).toBe(false);
     });
 
     test('singleton list not to be empty', () => {
       expect(Set(42).nonEmpty).toBe(true);
+      expect(Set(42).isEmpty).toBe(false);
     });
 
     it('should create an ordered set from an unordered array', () => {
