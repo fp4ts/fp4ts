@@ -24,6 +24,7 @@ import {
   toLeft_,
   toRight_,
   traverse_,
+  filter_,
 } from './operators';
 
 declare module './algebra' {
@@ -35,6 +36,9 @@ declare module './algebra' {
 
     toLeft<B>(right: () => B): Either<A, B>;
     toRight<B>(left: () => B): Either<B, A>;
+
+    filter<B extends A>(f: (a: A) => a is B): Option<B>;
+    filter(f: (a: A) => boolean): Option<A>;
 
     map<B>(f: (a: A) => B): Option<B>;
     tap(f: (a: A) => unknown): Option<A>;
@@ -80,6 +84,10 @@ Option.prototype.toLeft = function (f) {
 };
 Option.prototype.toRight = function (f) {
   return toRight_(this, f);
+};
+
+Option.prototype.filter = function (f: any) {
+  return filter_(this, f);
 };
 
 Option.prototype.map = function <A, B>(

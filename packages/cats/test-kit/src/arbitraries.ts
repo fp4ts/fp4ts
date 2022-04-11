@@ -31,6 +31,8 @@ import {
   Set,
   Endo,
   NonEmptyList,
+  ValidationError,
+  Validation,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -267,3 +269,26 @@ export const fp4tsState = <S, A>(
   fp4tsIndexedStateT(
     fc.func<[S], Eval<[S, A]>>(fp4tsEval(fc.tuple(arbS, arbA))).map(Eval.pure),
   );
+
+export const fp4tsValidation = <E, A>(
+  arbVE: Arbitrary<ValidationError<E>>,
+  arbA: Arbitrary<A>,
+): Arbitrary<Validation<E, A>> =>
+  fc.oneof(arbVE.map(Validation.Invalid), arbA.map(Validation.Valid));
+
+export const fp4tsValidationError = <E>(
+  arbE: Arbitrary<E>,
+): Arbitrary<ValidationError<E>> => {
+  const { go } = fc.letrec(tie => ({
+    base: arbE.map(ValidationError),
+    rec: fc
+      .tuple(
+        tie('go') as Arbitrary<ValidationError<E>>,
+        tie('go') as Arbitrary<ValidationError<E>>,
+      )
+      .map(([l, r]) => l['<>'](r)),
+    go: fc.oneof({ maxDepth: 10 }, tie('base'), tie('rec')),
+  }));
+
+  return go as Arbitrary<ValidationError<E>>;
+};

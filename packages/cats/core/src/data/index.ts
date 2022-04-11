@@ -16,6 +16,7 @@ export * from './reader';
 export * from './try';
 export * from './ior';
 export * from './endo';
+export * from './validation';
 
 export * from './and-then';
 export * from './kleisli';

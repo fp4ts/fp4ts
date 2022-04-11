@@ -23,6 +23,7 @@ import { Traversable } from '../../traversable';
 import { OptionF } from './option';
 import {
   equals_,
+  filter_,
   flatMap_,
   flatTap_,
   flatten,
@@ -54,7 +55,7 @@ export const optionFunctor: Lazy<Functor<OptionF>> = lazyVal(() =>
 );
 
 export const optionFunctorFilter: Lazy<FunctorFilter<OptionF>> = lazyVal(() =>
-  FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_ }),
+  FunctorFilter.of({ ...optionFunctor(), mapFilter_: flatMap_, filter_ }),
 );
 
 export const optionApply: Lazy<Apply<OptionF>> = lazyVal(() =>

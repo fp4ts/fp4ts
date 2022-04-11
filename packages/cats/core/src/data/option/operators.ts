@@ -78,6 +78,19 @@ export const toLeft_ = <A, B>(o: Option<A>, right: () => B): Either<A, B> =>
 export const toRight_ = <A, B>(o: Option<A>, left: () => B): Either<B, A> =>
   o.fold(() => Either.left(left()), Either.right);
 
+export function filter_<A, B extends A>(
+  o: Option<A>,
+  f: (a: A) => a is B,
+): Option<B>;
+export function filter_<A>(o: Option<A>, f: (a: A) => boolean): Option<A>;
+export function filter_<A>(o: Option<A>, f: (a: A) => boolean): Option<A> {
+  return fold_(
+    o,
+    () => none,
+    x => (f(x) ? some(x) : none),
+  );
+}
+
 export const map_ = <A, B>(o: Option<A>, f: (a: A) => B): Option<B> =>
   fold_(o, () => none, flow(f, some));
 
