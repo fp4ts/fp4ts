@@ -15,6 +15,7 @@ import {
   AlternativeSuite,
   TraversableSuite,
   CoflatMapSuite,
+  FunctorFilterSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Option', () => {
@@ -145,9 +146,24 @@ describe('Option', () => {
   });
 
   describe('Laws', () => {
+    const functorFilterTests = FunctorFilterSuite(Option.FunctorFilter);
+    checkAll(
+      'FunctorFilter<Option>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+      ),
+    );
+
     const alternativeTests = AlternativeSuite(Option.Alternative);
     checkAll(
-      'Alternative<OptionK>',
+      'Alternative<Option>',
       alternativeTests.alternative(
         fc.integer(),
         fc.integer(),
@@ -162,7 +178,7 @@ describe('Option', () => {
 
     const coflatMapTests = CoflatMapSuite(Option.CoflatMap);
     checkAll(
-      'CoflatMap<OptionK>',
+      'CoflatMap<Option>',
       coflatMapTests.coflatMap(
         fc.integer(),
         fc.integer(),
@@ -177,7 +193,7 @@ describe('Option', () => {
 
     const monadTests = MonadSuite(Option.Monad);
     checkAll(
-      'Monad<OptionK>',
+      'Monad<Option>',
       monadTests.monad(
         fc.integer(),
         fc.integer(),
@@ -194,7 +210,7 @@ describe('Option', () => {
 
     const traversableTests = TraversableSuite(Option.Traversable);
     checkAll(
-      'Traversable<OptionK>',
+      'Traversable<Option>',
       traversableTests.traversable(
         fc.integer(),
         fc.integer(),

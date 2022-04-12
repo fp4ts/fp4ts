@@ -469,7 +469,7 @@ const validationBifunctor: Lazy<Bifunctor<ValidationF>> = lazyVal(() =>
 );
 
 const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazyVal(
-  () => SemigroupK.of({ combineK_: (fa, fb) => fa.orElse(fb) }),
+  () => SemigroupK.of({ combineK_: (fa, fb) => fa['<|>'](fb) }),
 );
 
 const validationApplicative: <E>() => Applicative<$<ValidationF, [E]>> = <

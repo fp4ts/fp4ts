@@ -19,20 +19,17 @@ export interface FunctorFilter<F> extends Functor<F> {
     f: (a: A) => Option<B>,
   ) => Kind<F, [B]>;
 
-  readonly collect: <A, B>(
-    f: (a: A) => Option<B>,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
-  readonly collect_: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Option<B>,
-  ) => Kind<F, [B]>;
+  collect<A, B>(f: (a: A) => Option<B>): (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  collect_<A, B>(fa: Kind<F, [A]>, f: (a: A) => Option<B>): Kind<F, [B]>;
 
-  readonly flattenOption: <A>(ffa: Kind<F, [Option<A>]>) => Kind<F, [A]>;
+  flattenOption<A>(ffa: Kind<F, [Option<A>]>): Kind<F, [A]>;
 
-  readonly filter: <A>(
-    p: (a: A) => boolean,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
-  readonly filter_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => Kind<F, [A]>;
+  filter<A, B extends A>(
+    p: (a: A) => a is B,
+  ): (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  filter<A>(p: (a: A) => boolean): (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  filter_<A, B extends A>(fa: Kind<F, [A]>, p: (a: A) => a is B): Kind<F, [B]>;
+  filter_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): Kind<F, [A]>;
 
   readonly filterNot: <A>(
     p: (a: A) => boolean,
@@ -59,9 +56,12 @@ export const FunctorFilter = Object.freeze({
       collect_: (fa, f) => self.mapFilter_(fa, f),
 
       flattenOption: fa => self.collect_(fa, id),
-
-      filter: f => fa => self.filter_(fa, f),
-      filter_: (fa, p) => self.collect_(fa, x => (p(x) ? Some(x) : None)),
+      filter:
+        <A>(f: (a: A) => boolean) =>
+        (fa: Kind<F, [A]>) =>
+          self.filter_(fa, f),
+      filter_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) =>
+        self.collect_(fa, x => (p(x) ? Some(x) : None)),
 
       filterNot: f => fa => self.filterNot_(fa, f),
       filterNot_: (fa, p) => self.filter_(fa, x => !p(x)),

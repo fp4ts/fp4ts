@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { EqF } from '@fp4ts/cats';
 import { Base, instance, Kind } from '@fp4ts/core';
+import { EqF } from '@fp4ts/cats';
 import { eqSchemable } from './eq';
 import { Literal } from './literal';
 
