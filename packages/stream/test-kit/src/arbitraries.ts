@@ -76,19 +76,19 @@ export const fp4tsStreamChunkGenerator = <O>(
 
   const base = fc.frequency(
     { weight: 1, arbitrary: fc.constant(Chunk.empty) },
-    { weight: 5, arbitrary: arbO.chain(x => fc.constant(Chunk.singleton(x))) },
+    { weight: 5, arbitrary: arbO.map(Chunk.singleton) },
     {
       weight: 20,
       arbitrary: fc.oneof(
-        fc.array(arbO).chain(xs => fc.constant(Chunk.fromArray(xs))),
+        fc.array(arbO).map(Chunk.fromArray),
         fc
           .array(arbO)
           .chain(xs =>
             fc
-              .integer(0, Math.floor(xs.length / 2))
+              .integer({ min: 0, max: Math.floor(xs.length / 2) })
               .chain(offset =>
                 fc
-                  .integer(0, xs.length - offset)
+                  .integer({ min: 0, max: xs.length - offset })
                   .map(len => Chunk.fromArray(xs).slice(offset, len)),
               ),
           ),
