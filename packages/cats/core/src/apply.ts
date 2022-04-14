@@ -41,6 +41,14 @@ export interface Apply<F> extends Functor<F> {
     fC: Kind<F, [C]>,
   ) => <D>(f: (a: A, b: B, c: C) => D) => Kind<F, [D]>;
 
+  readonly mapN: <BS extends unknown[]>(
+    ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
+  ) => <A, C>(f: (a: A, ...bs: BS) => C) => (fa: Kind<F, [A]>) => Kind<F, [C]>;
+  readonly mapN_: <A, BS extends unknown[]>(
+    fa: Kind<F, [A]>,
+    ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
+  ) => <C>(f: (a: A, ...bs: BS) => C) => Kind<F, [C]>;
+
   readonly map2Eval: <A, B, D>(
     fb: Eval<Kind<F, [B]>>,
     f: (a: A, b: B) => D,
@@ -99,6 +107,33 @@ export const Apply = Object.freeze({
         self.map_(self.product_(fa, self.product_(fb, fc)), ([a, [b, c]]) =>
           f(a, b, c),
         ),
+
+      mapN: (<BS extends unknown[]>(
+          ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
+        ) =>
+        <A, C>(f: (a: A, ...args: BS) => C) =>
+        (fa: Kind<F, [A]>): Kind<F, [C]> =>
+          self.mapN_<A, BS>(fa, ...fbs)(f)) as Apply<F>['mapN'],
+
+      mapN_: (<A, BS extends unknown[]>(
+          fa: Kind<F, [A]>,
+          ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
+        ) =>
+        <C>(f: (a: A, ...args: BS) => C): Kind<F, [C]> => {
+          const sz = fbs.length;
+          const go = (acc: Kind<F, [unknown[]]>, idx: number): Kind<F, [C]> =>
+            idx >= sz
+              ? self.map_(acc, xs => f(...(xs as [A, ...BS])))
+              : go(
+                  self.map2_(acc, fbs[idx])((xs, y) => [...xs, y]),
+                  idx + 1,
+                );
+
+          return go(
+            self.map_(fa, x => [x]),
+            0,
+          );
+        }) as Apply<F>['mapN_'],
 
       map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
       map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),

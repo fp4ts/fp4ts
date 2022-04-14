@@ -14,6 +14,7 @@ import { ApplySuite } from './apply-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const ApplicativeSuite = <F>(F: Applicative<F>) => {
+  const laws = ApplicativeLaws(F);
   const {
     applicativeIdentity,
     applicativeHomomorphism,
@@ -21,7 +22,7 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
     applicativeMap,
     apProductConsistent,
     applicativeUnit,
-  } = ApplicativeLaws(F);
+  } = laws;
   const self = {
     ...ApplySuite(F),
 

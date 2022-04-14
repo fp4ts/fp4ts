@@ -155,10 +155,10 @@ export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
 
   const base = fc.frequency(
     { weight: 1, arbitrary: fc.constant(Chain.empty) },
-    { weight: 5, arbitrary: arbA.chain(x => fc.constant(Chain.singleton(x))) },
+    { weight: 5, arbitrary: arbA.map(Chain.singleton) },
     {
       weight: 20,
-      arbitrary: fc.array(arbA).chain(xs => fc.constant(Chain.fromArray(xs))),
+      arbitrary: fc.array(arbA).map(Chain.fromArray),
     },
   );
 

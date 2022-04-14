@@ -93,18 +93,7 @@ abstract class _Validation<E, A> {
   ): <C>(
     f: (a: A, ...args: { [k in keyof BS]: BS[k] }) => C,
   ) => Validation<E2, C> {
-    return <C>(f: (a: A, ...args: BS) => C) =>
-      (function go(
-        acc: Validation<E2, unknown[]>,
-        rest: Validation<E2, unknown>[],
-      ): Validation<E2, C> {
-        return rest.length === 0
-          ? acc.map(xs => f(...(xs as [A, ...BS])))
-          : go(
-              acc.map2(rest[0], (xs, y) => [...xs, y]),
-              rest.slice(1),
-            );
-      })(Validation.pure([]), [this, ...thats]);
+    return Validation.Applicative<E2>().mapN_<A, BS>(this, ...thats);
   }
 
   public product<E2, B>(

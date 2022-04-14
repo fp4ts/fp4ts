@@ -66,6 +66,33 @@ export const ApplySuite = <F>(F: Apply<F>) => {
             )(mkEqF(EqC)),
           ],
           [
+            'mapN/map consistency',
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A], C>(arbC),
+              laws.mapNMapConsistency,
+            )(mkEqF(EqC)),
+          ],
+          [
+            'mapN/map2 consistency',
+            forAll(
+              mkArbF(arbA),
+              mkArbF(arbB),
+              fc.func<[A, B], C>(arbC),
+              laws.mapNMap2Consistency,
+            )(mkEqF(EqC)),
+          ],
+          [
+            'mapN/product consistency',
+            forAll(
+              mkArbF(arbA),
+              mkArbF(arbB),
+              mkArbF(arbC),
+              fc.func<[A, B, C], C>(arbC),
+              laws.mapNProductConsistency,
+            )(mkEqF(EqC)),
+          ],
+          [
             'productL consistent map2',
             forAll(mkArbF(arbA), mkArbF(arbC), productLConsistency)(mkEqF(EqA)),
           ],
