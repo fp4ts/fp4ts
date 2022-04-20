@@ -434,8 +434,8 @@ describe('State', () => {
             ec.miniInt(),
             MiniInt.Eq,
             EX,
-            Option.Eq,
-            Option.Monad,
+            X => Either.Eq(Eq.primitive, X),
+            Either.Monad<string>(),
           ),
       ),
     );

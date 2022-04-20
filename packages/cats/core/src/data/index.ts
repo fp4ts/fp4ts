@@ -27,5 +27,6 @@ export * from './reader-t';
 export * from './writer-t';
 export * from './nested';
 export * from './tuple2-k';
+export * from './function';
 
 export * from './collections';
