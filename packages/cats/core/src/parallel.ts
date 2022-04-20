@@ -33,9 +33,9 @@ export type ParallelRequirements<M, F> = Pick<
 export const Parallel = Object.freeze({
   of: <M, F>(P: ParallelRequirements<M, F>): Parallel<M, F> =>
     instance<Parallel<M, F>>({
-      applicativeError: E =>
+      applicativeError: <E>(E: MonadError<M, E>) =>
         ApplicativeError.of({
-          throwError: e => P.parallel(E.throwError(e)),
+          throwError: <A>(e: E) => P.parallel(E.throwError<A>(e)),
           handleErrorWith_: (fa, h) => {
             const x = E.handleErrorWith_(P.sequential(fa), e =>
               P.sequential(h(e)),

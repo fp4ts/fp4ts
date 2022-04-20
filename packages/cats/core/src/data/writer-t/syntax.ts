@@ -129,18 +129,18 @@ declare module './algebra' {
   }
 }
 
-WriterT.prototype.written = function (F: any = Identity.Functor) {
+WriterT.prototype.written = function (this: any, F: any = Identity.Functor) {
   return written(F)(this);
 };
-WriterT.prototype.value = function (F: any = Identity.Functor) {
+WriterT.prototype.value = function (this: any, F: any = Identity.Functor) {
   return value(F)(this);
 };
-WriterT.prototype.listen = function (F: any = Identity.Functor) {
+WriterT.prototype.listen = function (this: any, F: any = Identity.Functor) {
   return listen(F)(this);
-};
-WriterT.prototype.swap = function (F: any = Identity.Functor) {
+} as any;
+WriterT.prototype.swap = function (this: any, F: any = Identity.Functor) {
   return swap(F)(this);
-};
+} as any;
 WriterT.prototype.reset = function (this: any, ...xs: any[]) {
   return xs.length === 1
     ? reset(Identity.Functor, xs[0])(this)

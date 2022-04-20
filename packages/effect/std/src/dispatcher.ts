@@ -91,23 +91,26 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
         );
         const res = yield* _(
           rgs.isEmpty
-            ? F.async_(cb =>
+            ? F.async_<void>(cb =>
                 // Suspend the current dispatcher until someone invokes us
                 // and completes this async effect
                 !latch.compareAndSet(Noop, () => cb(Completed))
                   ? cb(Completed)
                   : void 0,
               )
-            : F.uncancelable(() =>
-                rgs.traverse(F)(({ action, active, prepareCancel }) => {
-                  const supervise: () => Kind<F, [void]> = () =>
-                    pipe(
-                      supervisor.supervise(action),
-                      F.flatMap(f => F.delay(() => prepareCancel(f.cancel))),
-                    );
+            : pipe(
+                F.uncancelable(() =>
+                  rgs.traverse(F)(({ action, active, prepareCancel }) => {
+                    const supervise: () => Kind<F, [void]> = () =>
+                      pipe(
+                        supervisor.supervise(action),
+                        F.flatMap(f => F.delay(() => prepareCancel(f.cancel))),
+                      );
 
-                  return active.get() ? supervise() : F.unit;
-                }),
+                    return active.get() ? supervise() : F.unit;
+                  }),
+                ),
+                F.void,
               ),
         );
         return res;

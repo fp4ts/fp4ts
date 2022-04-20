@@ -294,7 +294,9 @@ const mkDuplex =
           ),
           duplex =>
             duplex.readableEnded || duplex.writableEnded
-              ? F.delay(() => duplex.destroy())
+              ? F.delay(() => {
+                  duplex.destroy();
+                })
               : F.unit,
         ),
       );

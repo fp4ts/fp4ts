@@ -160,27 +160,31 @@ export const cont =
   <K, R>(body: Cont<$<ResourceF, [F]>, K, R>): Resource<F, R> =>
     allocateFull(poll =>
       poll(
-        F.cont<K, (r: R, ec: ExitCase) => Kind<F, [void]>>(
+        F.cont<K, [R, (ec: ExitCase) => Kind<F, [void]>]>(
           <G>(G: MonadCancel<G, Error>) =>
             (
               resume: (ea: Either<Error, K>) => void,
               get: Kind<G, [K]>,
               lift: FunctionK<F, G>,
             ) => {
-              type D = $<KleisliF, [G, Ref<G, Kind<F, [void]>>]>;
+              type D = $<
+                KleisliF,
+                [G, Ref<G, (_: ExitCase) => Kind<F, [void]>>]
+              >;
 
               const lift2: FunctionK<$<ResourceF, [F]>, D> = rfa =>
                 Kleisli(r =>
                   G.flatMap_(lift(allocated(F)(rfa)), ([a, fin]) =>
                     G.map_(
-                      r.update(fv =>
-                        F.finalize_(fv, oc =>
-                          oc.fold(
-                            () => F.unit,
-                            () => fin,
-                            () => fin,
+                      r.update(
+                        fv => (ec: ExitCase) =>
+                          F.finalize_(fv(ec), oc =>
+                            oc.fold(
+                              () => F.unit,
+                              () => fin,
+                              () => fin,
+                            ),
                           ),
-                        ),
                       ),
                       () => a,
                     ),
@@ -189,7 +193,12 @@ export const cont =
 
               return G.do(function* (_) {
                 const r = yield* _(
-                  lift(F.map_(F.ref(F.unit), x => x.mapK(lift))),
+                  lift(
+                    F.map_(
+                      F.ref((ec: ExitCase) => F.unit),
+                      x => x.mapK(lift),
+                    ),
+                  ),
                 );
 
                 const a = yield* _(
@@ -201,14 +210,20 @@ export const cont =
                     ).run(r),
                     oc =>
                       oc.fold(
-                        () => G.flatMap_(r.get(), lift),
-                        () => G.flatMap_(r.get(), lift),
+                        () =>
+                          G.flatMap_(r.get(), fin =>
+                            lift(fin(ExitCase.fromOutcome(oc))),
+                          ),
+                        () =>
+                          G.flatMap_(r.get(), fin =>
+                            lift(fin(ExitCase.fromOutcome(oc))),
+                          ),
                         () => G.unit,
                       ),
                   ),
                 );
                 const fin = yield* _(r.get());
-                return tupled(a, (_: ExitCase) => fin);
+                return tupled(a, fin);
               });
             },
         ),

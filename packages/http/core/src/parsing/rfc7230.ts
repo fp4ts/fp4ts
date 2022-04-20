@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List } from '@fp4ts/cats';
+import { IdentityF, List } from '@fp4ts/cats';
 import { Char, id } from '@fp4ts/core';
 import {
   Accumulator,
@@ -32,7 +32,10 @@ export const token: Parser<StringSource, string> = tchar.repAs1(
 export const obsText: Parser<StringSource, Char> = text.oneOf(0x80, 0xff);
 
 // `OWS = *( SP / HTAB )`
-export const ows: Parser<StringSource, void> = Rfc5234.wsp().repVoid();
+export const ows: Parser<StringSource, void> = Rfc5234.wsp<
+  StringSource,
+  IdentityF
+>().repVoid();
 
 export const bws: Parser<StringSource, void> = ows;
 

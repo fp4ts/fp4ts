@@ -33,7 +33,7 @@ class SyncRandom<F> extends Random<F> {
     );
   }
 
-  public nextIntBetween(min: number, max: number): Kind<F, [void]> {
+  public nextIntBetween(min: number, max: number): Kind<F, [number]> {
     assert(min <= max, 'lower has to be <= upper');
     return this.F.delay(() =>
       Math.floor(Math.random() * (max - min + 1) + min),

@@ -35,7 +35,7 @@ export const AlternativeLaws = <F>(F: Alternative<F>): AlternativeLaws<F> => ({
     fa: Kind<F, [A]>,
     ff: Kind<F, [(a: A) => B]>,
     fg: Kind<F, [(a: A) => B]>,
-  ): IsEq<Kind<F, [A]>> =>
+  ): IsEq<Kind<F, [B]>> =>
     new IsEq(
       pipe(
         F.combineK_(ff, () => fg),
@@ -60,5 +60,5 @@ export interface AlternativeLaws<F> extends ApplicativeLaws<F>, MonoidKLaws<F> {
     fa: Kind<F, [A]>,
     ff: Kind<F, [(a: A) => B]>,
     fg: Kind<F, [(a: A) => B]>,
-  ) => IsEq<Kind<F, [A]>>;
+  ) => IsEq<Kind<F, [B]>>;
 }

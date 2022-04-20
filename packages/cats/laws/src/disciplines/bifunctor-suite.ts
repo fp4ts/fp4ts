@@ -60,7 +60,7 @@ export const BifunctorSuite = <F>(F: Bifunctor<F>) => {
             fc.func<[A], C>(arbC),
             fc.func<[C], D>(arbD),
             laws.bifunctorLeftMapComposition,
-          )(mkEqF(EqC, EqB)),
+          )(mkEqF(EqD, EqB)),
         ],
         [
           'bifunctor map identity',

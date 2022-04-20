@@ -48,7 +48,7 @@ export interface SchemableK<S> extends Base<S> {
     tag: T,
   ): <F extends {}>(xs: {
     [k in keyof F]: Kind<S, [F[k]]>;
-  }) => Kind<S, [SumK<F[keyof F]>]>;
+  }) => Kind<S, [SumK<F>]>;
 
   defer<F>(thunk: () => Kind<S, [F]>): Kind<S, [F]>;
 

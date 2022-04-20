@@ -61,10 +61,10 @@ export const FunctorFilterSuite = <F>(F: FunctorFilter<F>) => {
           [
             'mapFilter flatten option consistent with map filter identity',
             forAll(
-              mkArbF(A.fp4tsOption(arbA)),
+              mkArbF(arbA),
               fc.func<[A], Option<B>>(A.fp4tsOption(arbB)),
               laws.collectConsistentWithMapFilter,
-            )(mkEqF(EqA)),
+            )(mkEqF(EqB)),
           ],
           [
             'mapFilter filter consistent with map filter',

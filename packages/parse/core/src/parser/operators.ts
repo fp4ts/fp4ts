@@ -290,7 +290,7 @@ export const parseConsumedF =
       S,
       new State(s, new SourcePosition(1, 1)),
       p,
-      new Cont(
+      new Cont<S, F, A, Consumed<Kind<F, [ParseResult<S, A>]>>>(
         /*cok: */ flow(S.monad.pure, Consumed.Consumed, Right, S.monad.pure),
         /*cerr: */ flow(S.monad.pure, Consumed.Consumed, Right, S.monad.pure),
         /*eok: */ flow(S.monad.pure, Consumed.Empty, Right, S.monad.pure),
@@ -315,7 +315,7 @@ export const debug_ = <S, F, A>(
 interface ParseCtx<S, F, X, End> {
   readonly S: Stream<S, F>;
   readonly s: State<S>;
-  readonly p: ParserT<S, F, unknown>;
+  readonly p: ParserT<S, F, any>;
   readonly c: Cont<S, F, X, End>;
 }
 
@@ -339,7 +339,7 @@ function loop<S, F, X, End>({
   let cont_: Cont<S, F, any, End> = c;
 
   while (true) {
-    const cur = cur_ as View<S, F, unknown>;
+    const cur = cur_ as View<S, F, any>;
     const cont = cont_;
 
     switch (cur.tag) {
@@ -617,8 +617,8 @@ export class Cont<S, F, X, End> {
 
 // prettier-ignore
 type Props<S, F, X, End> = {
-  readonly cok : (suc: Success<S, X>) => Kind<F, [End]>
-  readonly cerr: (fail: Failure  ) => Kind<F, [End]>
-  readonly eok : (suc: Success<S, X>) => Kind<F, [End]>
-  readonly eerr: (fail: Failure  ) => Kind<F, [End]>
+  readonly cok : (suc: Success<S, X>) => Kind<F, [Either<ParseCtx<S, F, X, End>, End>]>;
+  readonly cerr: (fail: Failure  ) => Kind<F, [Either<ParseCtx<S, F, X, End>, End>]>;
+  readonly eok : (suc: Success<S, X>) => Kind<F, [Either<ParseCtx<S, F, X, End>, End>]>;
+  readonly eerr: (fail: Failure  ) => Kind<F, [Either<ParseCtx<S, F, X, End>, End>]>;
 };

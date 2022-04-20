@@ -6,6 +6,7 @@
 import { TyK } from './ctor';
 import { Applied } from './lambda';
 import { $type, $variables } from './symbols';
+import { HKT } from './HKT';
 
 // prettier-ignore
 export type Kind<F, Vars extends unknown[]> =
@@ -17,4 +18,4 @@ export type Kind<F, Vars extends unknown[]> =
     ? Kind<Head, Vars>
   : F extends [infer Head, ...infer Rest]
     ? Kind<Head, [Kind<Rest, Vars>]>
-  : never;
+  : HKT<F, Vars>;

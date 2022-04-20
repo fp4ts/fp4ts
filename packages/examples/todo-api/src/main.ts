@@ -19,7 +19,7 @@ const logger = HttpLogger(IO.Async)<IOF, IOF>(
     ),
     TimestampLogger(IO.Async, IO.Async),
   ),
-  FunctionK.id(),
+  FunctionK.id<IOF>(),
 );
 const middleware = logger;
 

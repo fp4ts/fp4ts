@@ -44,7 +44,13 @@ export const flatMap_ = <F, A, B>(
 export const tailRecM_ = <F, A, B>(
   a: A,
   f: (a: A) => Free<F, Either<A, B>>,
-): Free<F, B> => flatMap_(f(a), ea => ea.fold(a => tailRecM_(a, f), pure));
+): Free<F, B> =>
+  flatMap_(f(a), ea =>
+    ea.fold(
+      a => tailRecM_(a, f),
+      x => pure(x),
+    ),
+  );
 
 export const mapK_ =
   <G>(G: Monad<G>) =>

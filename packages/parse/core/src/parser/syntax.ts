@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { isTypeClassInstance, Kind, Lazy } from '@fp4ts/core';
-import { Either, EvalF, List, Monad, Option } from '@fp4ts/cats';
-import { Source, Stream, TokenType } from '@fp4ts/parse-kernel';
+import { Either, IdentityF, List, Monad, Option } from '@fp4ts/cats';
+import { Source, Stream } from '@fp4ts/parse-kernel';
 
 import { ParseError } from '../parse-error';
 import { StringSource } from '../string-source';
@@ -148,16 +148,16 @@ declare module './algebra' {
     // Parsing functions
 
     parse(
-      this: ParserT<StringSource, EvalF, A>,
+      this: ParserT<StringSource, IdentityF, A>,
       input: string,
     ): Either<ParseError, A>;
     parse(
-      this: ParserT<StringSource, EvalF, A>,
+      this: ParserT<StringSource, IdentityF, A>,
       M: Monad<F>,
     ): (input: string) => Either<ParseError, A>;
 
     parseSource<SS extends Source<any, any>>(
-      this: ParserT<SS, EvalF, A>,
+      this: ParserT<SS, IdentityF, A>,
       s: SS,
     ): Either<ParseError, A>;
     parseSource<SS extends Source<any, any>>(

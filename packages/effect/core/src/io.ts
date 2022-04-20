@@ -514,7 +514,7 @@ export class UnmaskRunLoop<A> extends _IO<A> {
   public constructor(
     public readonly ioa: _IO<A>,
     public readonly id: number,
-    public readonly fiber: IOFiber<unknown>,
+    public readonly fiber: IOFiber<any>,
   ) {
     super();
   }

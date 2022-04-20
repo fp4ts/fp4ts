@@ -142,5 +142,5 @@ export const flatMap_ =
     );
 
 export const equals_ = <F, L, V>(
-  E: Eq<Kind<F, [[F, L, V]]>>,
+  E: Eq<Kind<F, [[L, V]]>>,
 ): Eq<WriterT<F, L, V>> => Eq.by(E, flv => flv.run);

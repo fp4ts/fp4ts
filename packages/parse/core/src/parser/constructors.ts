@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, lazyVal, PrimitiveType, tupled } from '@fp4ts/core';
-import { Either, Eq, EvalF, Left, Option, Right, Some } from '@fp4ts/cats';
+import { Either, Eq, IdentityF, Left, Option, Right, Some } from '@fp4ts/cats';
 import { HasTokenType, Stream, TokenType } from '@fp4ts/parse-kernel';
 
 import { SourcePosition } from '../source-position';
@@ -152,9 +152,9 @@ export function tokens<S, F>(
 
 export const makeParser = <S, A>(
   runParser: (
-    S: Stream<S, EvalF>,
+    S: Stream<S, IdentityF>,
   ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
-): ParserT<S, EvalF, A> =>
+): ParserT<S, IdentityF, A> =>
   new ParserPrim(S => s => (cok, cerr, eok, eerr) => {
     const cons = runParser(S)(s);
     return cons.tag === 'consumed'

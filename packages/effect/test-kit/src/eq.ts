@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eq, Option, Some, None, Try, Either } from '@fp4ts/cats';
-import { SyncIO, IO, IORuntime, IOOutcome } from '@fp4ts/effect-core';
+import { SyncIO, IO, IORuntime, IOOutcome, IOF } from '@fp4ts/effect-core';
 import { Outcome, ExecutionContext } from '@fp4ts/effect-kernel';
 
 import { Ticker } from './ticker';
@@ -36,8 +36,8 @@ export const eqIO = <A>(
   });
 };
 
-export const eqIOOutcome = <A>(E: Eq<A>): Eq<IOOutcome<A>> =>
-  Eq.by(Outcome.Eq(Eq.Error.strict, E), oc =>
+export const eqIOOutcome = <A>(E: Eq<IO<A>>): Eq<IOOutcome<A>> =>
+  Eq.by(Outcome.Eq<IOF, Error, A>(Eq.Error.strict, E), oc =>
     oc.fold(
       () => Outcome.canceled(),
       Outcome.failure,

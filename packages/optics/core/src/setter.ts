@@ -16,13 +16,13 @@ export class PSetter<S, T, A, B> {
 
   public static readonly fromContravariant =
     <A, B>() =>
-    <F>(F: Contravariant<F>): PSetter<Kind<F, [B]>, Kind<F, [A]>, B, A> =>
+    <F>(F: Contravariant<F>): PSetter<Kind<F, [B]>, Kind<F, [A]>, A, B> =>
       new PSetter(F.contramap);
 
   public static readonly fromProfunctor =
     <A, B, C>() =>
-    <F>(F: Profunctor<F>): PSetter<Kind<F, [A, C]>, Kind<F, [B, C]>, A, B> =>
-      new PSetter(F.lmap);
+    <F>(F: Profunctor<F>): PSetter<Kind<F, [B, C]>, Kind<F, [A, C]>, A, B> =>
+      new PSetter(f => F.lmap(f));
 
   public constructor(public readonly modify: (f: (a: A) => B) => (s: S) => T) {}
 

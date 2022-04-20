@@ -52,7 +52,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private cxts: ExecutionContext[] = [];
 
   private finalizers: IO<unknown>[] = [];
-  private callbacks: ((oc: IOOutcome<A>) => void)[] = [];
+  private callbacks: ((oc: IOOutcome<unknown>) => void)[] = [];
 
   private resumeIO: IO<unknown>;
   private currentEC: ExecutionContext;
@@ -96,15 +96,17 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.runLoop(cur);
   }
 
-  public onComplete(cb: (oc: IOOutcome<A>) => void): void {
-    this.outcome ? cb(this.outcome) : this.callbacks.push(cb);
+  public onComplete<B>(this: IOFiber<B>, cb: (oc: IOOutcome<A>) => void): void {
+    this.outcome
+      ? cb(this.outcome as IOOutcome<any>)
+      : this.callbacks.push(cb as (oc: IOOutcome<unknown>) => void);
   }
 
   private runLoop(_cur: IO<unknown>): void {
     let nextAutoSuspend = this.autoSuspendThreshold;
 
     while (true) {
-      if (_cur === IOEndFiber) {
+      if ((_cur as any) === IOEndFiber) {
         return;
       } else if (this.shouldFinalize()) {
         return this.cancelAsync();
@@ -450,10 +452,10 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.masks = 0;
     this.trace.invalidate();
     this.currentEC = undefined as any;
-    this.resumeIO = IOEndFiber;
+    this.resumeIO = IOEndFiber as any;
   }
 
-  private schedule(f: IOFiber<unknown>, ec: ExecutionContext): void {
+  private schedule(f: IOFiber<any>, ec: ExecutionContext): void {
     ec.executeAsync(() => f.run());
   }
 
@@ -588,7 +590,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     } else {
       this.complete(IOOutcome.success(IO.pure(r as A)));
     }
-    return IOEndFiber;
+    return IOEndFiber as any;
   }
 
   private terminateFailureK(e: Error): IO<unknown> {
@@ -598,7 +600,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     } else {
       this.complete(IOOutcome.failure(e));
     }
-    return IOEndFiber;
+    return IOEndFiber as any;
   }
 
   private flatMapK(r: unknown): IO<unknown> {
@@ -627,7 +629,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.currentEC = prevEC;
     this.resumeIO = IO.pure(r);
     this.schedule(this, prevEC);
-    return IOEndFiber;
+    return IOEndFiber as any;
   }
 
   private executeOnFailureK(e: Error): IO<unknown> {
@@ -635,7 +637,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.currentEC = prevEC;
     this.resumeIO = IO.throwError(e);
     this.schedule(this, prevEC);
-    return IOEndFiber;
+    return IOEndFiber as any;
   }
 
   private cancelationLoopSuccessK(): IO<unknown> {
@@ -652,7 +654,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
     this.complete(IOOutcome.canceled());
 
-    return IOEndFiber;
+    return IOEndFiber as any;
   }
 
   private cancelationLoopFailureK(e: Error): IO<unknown> {

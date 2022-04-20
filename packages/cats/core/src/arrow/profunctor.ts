@@ -56,8 +56,8 @@ export const Profunctor = Object.freeze({
       rmap: f => fab => self.rmap_(fab, f),
       rmap_: (fab, g) => F.dimap_(fab, id, g),
 
-      leftNarrow: id,
-      rightWiden: id,
+      leftNarrow: id as Profunctor<F>['leftNarrow'],
+      rightWiden: id as Profunctor<F>['rightWiden'],
       ...F,
     });
     return self;

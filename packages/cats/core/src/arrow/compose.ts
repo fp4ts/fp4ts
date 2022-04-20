@@ -38,7 +38,7 @@ export const Compose = Object.freeze({
     const self: Compose<F> = instance<Compose<F>>({
       compose: g => f => self.compose_(f, g),
 
-      andThen: g => f => self.andThen_(f, g),
+      andThen: (g => f => self.andThen_(f, g)) as Compose<F>['andThen'],
       andThen_: (f, g) => self.compose_(g, f),
 
       algebraK: () =>

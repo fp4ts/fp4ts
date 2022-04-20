@@ -44,28 +44,28 @@ export const StrongSuite = <F>(F: Strong<F>) => {
             forAll(
               mkArbF(arbA, arbB),
               laws.firstIsSwappedSecond,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqC))),
+            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqC)) as any),
           ],
           [
             'strong second is swapped first',
             forAll(
               mkArbF(arbA, arbB),
               laws.secondIsSwappedFirst,
-            )(mkEqF(Eq.tuple(EqC, EqA), Eq.tuple(EqC, EqB))),
+            )(mkEqF(Eq.tuple(EqC, EqA), Eq.tuple(EqC, EqB)) as any),
           ],
           [
             'strong lmap is first andThen rmap',
             forAll(
               mkArbF(arbA, arbB),
               laws.lmapEqualsFirstAndThenRmap,
-            )(mkEqF(Eq.tuple(EqA, EqC), EqB)),
+            )(mkEqF(Eq.tuple(EqA, EqC), EqB) as any),
           ],
           [
             'strong lmap is second andThen rmap',
             forAll(
               mkArbF(arbA, arbB),
               laws.lmapEqualsSecondAndThenRmap,
-            )(mkEqF(Eq.tuple(EqC, EqA), EqB)),
+            )(mkEqF(Eq.tuple(EqC, EqA), EqB) as any),
           ],
           [
             'strong dinaturality first',
@@ -92,7 +92,7 @@ export const StrongSuite = <F>(F: Strong<F>) => {
               mkEqF(
                 Eq.tuple(Eq.tuple(EqA, EqC), EqD),
                 Eq.tuple(Eq.tuple(EqB, EqC), EqD),
-              ),
+              ) as any,
             ),
           ],
           [
@@ -104,7 +104,7 @@ export const StrongSuite = <F>(F: Strong<F>) => {
               mkEqF(
                 Eq.tuple(EqD, Eq.tuple(EqC, EqA)),
                 Eq.tuple(EqD, Eq.tuple(EqC, EqB)),
-              ),
+              ) as any,
             ),
           ],
         ],

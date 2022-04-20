@@ -32,9 +32,9 @@ export const Category = Object.freeze({
           combineK_: (x, y) => self.compose_(x, y()),
         }),
 
-      algebra: () =>
-        Monoid.of({
-          empty: self.id(),
+      algebra: <A>() =>
+        Monoid.of<Kind<F, [A, A]>>({
+          empty: self.id<A>(),
           combine_: (x, y) => self.compose_(x, y()),
         }),
 

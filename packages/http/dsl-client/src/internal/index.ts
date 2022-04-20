@@ -399,10 +399,10 @@ export function clientWithRoute<F, G>(RC: RunClient<G, F>) {
             RC.flatMap(txt =>
               C.decode(txt).fold(
                 e => RC.throwClientError(new ClientDecodeFailure(e, res)),
-                RC.pure,
+                x => RC.pure(x),
               ),
             ),
-            RC.map(r => new ResponseHeaders(hs, r)),
+            RC.map(r => new ResponseHeaders(hs, r) as any),
           );
         }),
       );

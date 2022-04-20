@@ -115,10 +115,14 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
 
   raceCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
-  ): IsEq<Kind<F, [Either<never, A>]>> =>
+  ): IsEq<Kind<F, [Either<A, void>]>> =>
     new IsEq(
       F.race_(
-        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+        pipe(
+          fa,
+          F.flatMap(x => F.pure(x)),
+          F.handleErrorWith(e => F.throwError(e)),
+        ),
         F.canceled,
       ),
       F.map_(fa, Left),
@@ -126,11 +130,15 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
 
   raceCanceledIdentityRight: <A>(
     fa: Kind<F, [A]>,
-  ): IsEq<Kind<F, [Either<A, never>]>> =>
+  ): IsEq<Kind<F, [Either<void, A>]>> =>
     new IsEq(
       F.race_(
         F.canceled,
-        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
+        pipe(
+          fa,
+          F.flatMap(x => F.pure(x)),
+          F.handleErrorWith(e => F.throwError(e)),
+        ),
       ),
       F.map_(fa, Right),
     ),
@@ -140,13 +148,17 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   ): IsEq<Kind<F, [Either<never, A>]>> =>
     new IsEq(
       F.race_(
-        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
         F.never,
+        pipe(
+          fa,
+          F.flatMap(x => F.pure(x)),
+          F.handleErrorWith(e => F.throwError(e)),
+        ),
       ),
       pipe(
         fa,
-        F.flatMap(r => F.pure(Left(r))),
-        F.handleErrorWith(F.throwError),
+        F.flatMap(r => F.pure(Right(r))),
+        F.handleErrorWith(e => F.throwError(e)),
         F.onCancel(F.never),
       ),
     ),
@@ -156,13 +168,17 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   ): IsEq<Kind<F, [Either<A, never>]>> =>
     new IsEq(
       F.race_(
+        pipe(
+          fa,
+          F.flatMap(x => F.pure(x)),
+          F.handleErrorWith(e => F.throwError(e)),
+        ),
         F.never,
-        pipe(fa, F.flatMap(F.pure), F.handleErrorWith(F.throwError)),
       ),
       pipe(
         fa,
-        F.flatMap(r => F.pure(Right(r))),
-        F.handleErrorWith(F.throwError),
+        F.flatMap(r => F.pure(Left(r))),
+        F.handleErrorWith(e => F.throwError(e)),
         F.onCancel(F.never),
       ),
     ),
@@ -199,7 +215,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
       F.pure(Outcome.canceled()),
     ),
 
-  fiberNeverIsNever: (): IsEq<Kind<F, [never]>> =>
+  fiberNeverIsNever: (): IsEq<Kind<F, [Outcome<F, E, never>]>> =>
     new IsEq(
       pipe(
         F.never,
@@ -215,7 +231,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
   fiberJoinIsFinalize: <A>(
     fa0: Kind<F, [A]>,
     f: (oc: Outcome<F, E, A>) => Kind<F, [void]>,
-  ): IsEq<Kind<F, [void]>> => {
+  ): IsEq<Kind<F, [A]>> => {
     const fa = pipe(fa0, F.flatMap(F.pure), F.handleErrorWith<A>(F.throwError));
 
     return new IsEq(
@@ -225,9 +241,9 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
         F.flatMap(f => f.join),
         F.flatMap(oc =>
           F.uncancelable(poll => {
-            const result = oc.fold(
+            const result: Kind<F, [A]> = oc.fold(
               () => F.productR_(F.canceled, F.never),
-              F.throwError,
+              e => F.throwError(e),
               id,
             );
             const finalized = F.onCancel_(poll(result), f(Outcome.canceled()));
@@ -254,7 +270,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
       F.never,
     ),
 
-  uncancelableCancelCancels: (): IsEq<Kind<F, [void]>> =>
+  uncancelableCancelCancels: (): IsEq<Kind<F, [Outcome<F, E, void>]>> =>
     new IsEq(
       pipe(
         F.never,
@@ -269,7 +285,7 @@ export const SpawnLaws = <F, E>(F: Spawn<F, E>): SpawnLaws<F, E> => ({
       F.pure<Outcome<F, E, void>>(Outcome.canceled<F>()),
     ),
 
-  uncancelableForkIsCancelable: (): IsEq<Kind<F, [void]>> =>
+  uncancelableForkIsCancelable: (): IsEq<Kind<F, [Outcome<F, E, void>]>> =>
     new IsEq(
       F.uncancelable(() =>
         pipe(
@@ -293,19 +309,19 @@ export interface SpawnLaws<F, E> extends MonadCancelLaws<F, E> {
 
   raceCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
-  ) => IsEq<Kind<F, [Either<never, A>]>>;
+  ) => IsEq<Kind<F, [Either<A, void>]>>;
 
   raceCanceledIdentityRight: <A>(
     fa: Kind<F, [A]>,
-  ) => IsEq<Kind<F, [Either<A, never>]>>;
+  ) => IsEq<Kind<F, [Either<void, A>]>>;
 
   raceNeverNonCanceledIdentityLeft: <A>(
     fa: Kind<F, [A]>,
-  ) => IsEq<Kind<F, [Either<never, A>]>>;
+  ) => IsEq<Kind<F, [Either<void, A>]>>;
 
   raceNeverNonCanceledIdentityRight: <A>(
     fa: Kind<F, [A]>,
-  ) => IsEq<Kind<F, [Either<A, never>]>>;
+  ) => IsEq<Kind<F, [Either<A, void>]>>;
 
   fiberPureIsOutcomeCompletedPure: <A>(
     a: A,
@@ -315,20 +331,20 @@ export interface SpawnLaws<F, E> extends MonadCancelLaws<F, E> {
 
   fiberCancelationIsOutcomeCanceled: () => IsEq<Kind<F, [Outcome<F, E, void>]>>;
 
-  fiberNeverIsNever: () => IsEq<Kind<F, [never]>>;
+  fiberNeverIsNever: () => IsEq<Kind<F, [Outcome<F, E, never>]>>;
 
   fiberForkOfNeverIsUnit: () => IsEq<Kind<F, [void]>>;
 
   fiberJoinIsFinalize: <A>(
     fa0: Kind<F, [A]>,
     f: (oc: Outcome<F, E, A>) => Kind<F, [void]>,
-  ) => IsEq<Kind<F, [void]>>;
+  ) => IsEq<Kind<F, [A]>>;
 
   neverDominatesOverFlatMap: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
 
   uncancelableRaceNotInherited: () => IsEq<Kind<F, [void]>>;
 
-  uncancelableCancelCancels: () => IsEq<Kind<F, [void]>>;
+  uncancelableCancelCancels: () => IsEq<Kind<F, [Outcome<F, E, void>]>>;
 
-  uncancelableForkIsCancelable: () => IsEq<Kind<F, [void]>>;
+  uncancelableForkIsCancelable: () => IsEq<Kind<F, [Outcome<F, E, void>]>>;
 }

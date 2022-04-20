@@ -45,7 +45,7 @@ import {
 
 export type OptionT<F, A> = OptionTBase<F, A>;
 
-export const OptionT: OptionTObj = function <F, A>(fa: Kind<F, [A]>) {
+export const OptionT: OptionTObj = function <F, A>(fa: Kind<F, [Option<A>]>) {
   return new OptionTBase(fa);
 };
 

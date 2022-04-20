@@ -97,8 +97,8 @@ export const text = Object.freeze({
                 const nextBytes = byteChunks['!!'](idx);
                 buf1 = processSingleChunk(outBuf, buf1, nextBytes);
               }
-              return Pull.output(Chunk.fromArray(outBuf))['>>>'](() =>
-                doPull(buf1, tail),
+              return Pull.output<F, string>(Chunk.fromArray(outBuf))['>>>'](
+                () => doPull(buf1, tail),
               );
             },
           ),
@@ -129,9 +129,9 @@ export const text = Object.freeze({
                   : newBuffer;
                 return doPull(
                   Chunk.empty,
-                  Pull.output(Chunk.fromArray(rem.chunks.toArray))['>>>'](
-                    () => tl,
-                  ),
+                  Pull.output<F, Chunk<Byte>>(
+                    Chunk.fromArray(rem.chunks.toArray),
+                  )['>>>'](() => tl),
                 );
               } else return processByteOrderMark(newBuffer, tl);
             },
@@ -173,7 +173,7 @@ export const text = Object.freeze({
             const lines = next.split(matcher);
             const nextTrailing = lines.pop();
 
-            return Pull.output(Chunk.fromArray(lines))['>>>'](() =>
+            return Pull.output<F, string>(Chunk.fromArray(lines))['>>>'](() =>
               doPull(nextTrailing, tl),
             );
           },

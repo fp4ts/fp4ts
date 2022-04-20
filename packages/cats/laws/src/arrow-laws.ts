@@ -22,41 +22,48 @@ export const ArrowLaws = <F>(F: Arrow<F>) => ({
     new IsEq(F.lift(flow(f, g)), F.andThen_(F.lift(f), F.lift(g))),
 
   arrowExtension: <A, B, C>(f: (a: A) => B): IsEq<Kind<F, [[A, C], [B, C]]>> =>
-    new IsEq(pipe(F.lift(f), F.first), F.lift(split(id)(f))),
+    new IsEq<Kind<F, [[A, C], [B, C]]>>(
+      pipe(F.lift(f), fab => F.first(fab)),
+      F.lift(split<C, C>(id)(f)),
+    ),
 
   arrowFunctor: <A, B, C, D>(
     f: Kind<F, [A, B]>,
     g: Kind<F, [C, D]>,
   ): IsEq<Kind<F, [[A, D], [C, D]]>> =>
-    new IsEq(
-      F.first<A, C, D>(F.andThen_(f, g)),
-      F.andThen_(F.first(f), F.first(g)),
+    new IsEq<Kind<F, [[A, D], [C, D]]>>(
+      // TODO: fix types
+      F.first<A, C, D>(F.andThen_(f, g as any) as any),
+      F.andThen_(F.first(f), F.first(g) as any),
     ),
 
   arrowExchange: <A, B, C, D>(
-    f: Kind<F, [[A, B]]>,
+    f: Kind<F, [A, B]>,
     g: (c: C) => D,
   ): IsEq<Kind<F, [[A, C], [B, D]]>> =>
     new IsEq(
-      pipe(F.first(f), F.andThen(F.lift(split(g)((b: B) => b)))),
-      pipe(F.lift(split(g)((a: A) => a)), F.andThen(F.first(f))),
+      // TODO: fix types
+      pipe(F.first(f), F.andThen(F.lift(split(g)((b: B) => b))) as any),
+      pipe(F.lift(split(g)((a: A) => a)), F.andThen(F.first(f)) as any),
     ),
 
-  arrowUnit: <A, B, C>(f: Kind<F, [[A, B]]>): IsEq<Kind<F, [[A, C], B]>> =>
+  arrowUnit: <A, B, C>(f: Kind<F, [A, B]>): IsEq<Kind<F, [[A, C], B]>> =>
     new IsEq(
-      pipe(F.first<A, B, C>(f), F.andThen(F.lift(fst))),
-      pipe(F.lift<[A, B], A>(fst), F.andThen(f)),
+      // TODO: fix types
+      pipe(F.first<A, B, C>(f), F.andThen(F.lift(fst as any)) as any),
+      pipe(F.lift<[A, B], A>(fst), F.andThen(f) as any),
     ),
 
   arrowAssociation: <A, B, C, D>(
     f: Kind<F, [A, B]>,
   ): IsEq<Kind<F, [[A, [C, D]], [B, [C, D]]]>> =>
     new IsEq(
+      // TODO: fix types
       pipe(
         F.first(f),
         F.first,
-        F.andThen(F.lift<[[B, C], D], [B, [C, D]]>(assoc)),
-      ),
+        F.andThen(F.lift<[[B, C], D], [B, [C, D]]>(assoc) as any),
+      ) as any,
       pipe(F.lift<[[A, B], D], [A, [B, D]]>(assoc), F.andThen(F.first(f))),
     ),
 
@@ -64,7 +71,8 @@ export const ArrowLaws = <F>(F: Arrow<F>) => ({
     f: Kind<F, [A, B]>,
     g: Kind<F, [C, D]>,
   ): IsEq<Kind<F, [[A, C], [B, D]]>> =>
-    new IsEq(F.split_(f, g), pipe(F.first(f), F.andThen(F.second(g)))),
+    // TODO: fix types
+    new IsEq(F.split_(f, g), pipe(F.first(f), F.andThen(F.second(g)) as any)),
 
   mergeConsistentWithAndThen: <A, B, C>(
     f: Kind<F, [A, B]>,
@@ -74,7 +82,8 @@ export const ArrowLaws = <F>(F: Arrow<F>) => ({
       F.merge_(f, g),
       pipe(
         F.lift((x: A) => [x, x] as const),
-        F.andThen(F.split_(f, g)),
+        // TODO: fix types
+        F.andThen(F.split_(f, g)) as any,
       ),
     ),
 });

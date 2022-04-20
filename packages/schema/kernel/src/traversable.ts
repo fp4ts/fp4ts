@@ -66,10 +66,7 @@ export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
 
           safeTraverse_:
             <G>(G: Applicative<G>) =>
-            <A, B>(
-              fa: Kind<F, [A]> | null,
-              f: (a: A) => Eval<Kind<G, [Kind<F, [B]> | null]>>,
-            ) =>
+            <A, B>(fa: Kind<F, [A]> | null, f: (a: A) => Eval<Kind<G, [B]>>) =>
               fa === null ? Eval.now(G.pure(null)) : safeTraverse(G)(F, fa, f),
         }),
 
@@ -100,7 +97,7 @@ function safeTraverse<G>(G: Applicative<G>) {
     F: Traversable<F>,
     fa: Kind<F, [A]>,
     f: (a: A) => Eval<Kind<G, [B]>>,
-  ): Eval<Kind<G, [Kind<F, [A]>]>> {
+  ): Eval<Kind<G, [Kind<F, [B]>]>> {
     return isSafeTraversable(F)
       ? F.safeTraverse_(G)(fa, f)
       : Eval.delay(() => F.traverse_(G)(fa, x => f(x).value));
@@ -157,7 +154,7 @@ export const productSafeTraversable = <F extends unknown[]>(
       <A, B>(
         fas: Kind<ProductK<F>, [A]>,
         f: (a: A) => Eval<Kind<G, [B]>>,
-      ): Eval<Kind<G, [Kind<ProductK<F>, [A]>]>> =>
+      ): Eval<Kind<G, [Kind<ProductK<F>, [B]>]>> =>
         fas.reduce(
           (egac, fa, i) =>
             egac.flatMap(gac =>
@@ -182,7 +179,7 @@ export const structSafeTraversable = <F extends {}>(fs: {
       <A, B>(
         fas: Kind<StructK<F>, [A]>,
         f: (a: A) => Eval<Kind<G, [B]>>,
-      ): Eval<Kind<G, [Kind<StructK<F>, [A]>]>> => {
+      ): Eval<Kind<G, [Kind<StructK<F>, [B]>]>> => {
         const keys = Object.keys(fas) as (keyof F)[];
         return keys.reduce(
           (egac, k) =>
@@ -193,7 +190,7 @@ export const structSafeTraversable = <F extends {}>(fs: {
               )((ac, x) => ({ ...ac, [k]: x })),
             ),
           Eval.now(G.pure({} as Partial<Kind<StructK<F>, [B]>>)),
-        );
+        ) as Eval<Kind<G, [Kind<StructK<F>, [B]>]>>;
       },
   });
 
@@ -248,7 +245,7 @@ export const deferSafeTraversable = <F>(
       <A, B>(
         fa: Kind<F, [A]>,
         f: (a: A) => Eval<Kind<G, [B]>>,
-      ): Eval<Kind<G, [Kind<F, [A]>]>> =>
+      ): Eval<Kind<G, [Kind<F, [B]>]>> =>
         safeTraverse(G)(t(), fa, f),
   });
 };

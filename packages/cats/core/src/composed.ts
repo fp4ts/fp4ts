@@ -133,7 +133,7 @@ export const ComposedTraversable = Object.freeze({
         <A, B>(
           fga: Kind<[F, G], [A]>,
           f: (a: A) => Kind<H, [B]>,
-        ): Kind<H, [Kind<[F, G], [A]>]> =>
+        ): Kind<H, [Kind<[F, G], [B]>]> =>
           F.traverse_(H)(fga, ga => G.traverse_(H)(ga, f)),
     }),
   }),

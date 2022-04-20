@@ -8,7 +8,7 @@ import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats';
 import { MonadErrorSuite } from '@fp4ts/cats-laws';
 import { MonadCancel } from '@fp4ts/effect-kernel';
-import { forAll, RuleSet, Rule, IsEq, exec } from '@fp4ts/cats-test-kit';
+import { forAll, RuleSet, Rule, exec } from '@fp4ts/cats-test-kit';
 
 import { MonadCancelLaws } from '../monad-cancel-laws';
 
@@ -39,7 +39,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
         arbFA,
         arbFA.map(F.void),
         laws.uncancelableEliminatesOnCancel,
-      )(mkEqF(Eq.void)),
+      )(mkEqF(EqA)),
     ],
     [
       'monadCancel onCancel associates over uncancelable boundary',
@@ -47,7 +47,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
         arbFA,
         arbFA.map(F.void),
         laws.onCancelAssociatesOverUncancelableBoundary,
-      )(mkEqF(Eq.void)),
+      )(mkEqF(EqA)),
     ],
     [
       'monadCancel onCancel implies uncancelable',
@@ -86,7 +86,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
             forAll(
               mkArbF(arbA),
               laws.canceledAssociatesLeftOverFlatMap,
-            )(mkEqF(EqA)),
+            )(mkEqF(Eq.fromUniversalEquals())),
           ],
         ],
         {
@@ -131,7 +131,7 @@ export const MonadCancelSuite = <F, E>(F: MonadCancel<F, E>) => {
           ],
           [
             'monadCancel canceled unit identity',
-            exec(laws.canceledUnitIdentity)(mkEqF(Eq.primitive)),
+            exec(laws.canceledUnitIdentity)(mkEqF(Eq.fromUniversalEquals())),
           ],
         ],
         {

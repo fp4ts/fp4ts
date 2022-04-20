@@ -41,7 +41,7 @@ export class InterruptContext<F> {
 
   public completeWhen(
     outcome: Kind<F, [InterruptionOutcome]>,
-  ): Kind<F, [Fiber<F, Error, InterruptionOutcome>]> {
+  ): Kind<F, [Fiber<F, Error, void>]> {
     const { F } = this;
     return F.fork(F.flatMap_(outcome, this.complete));
   }

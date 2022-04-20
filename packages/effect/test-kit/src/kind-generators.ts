@@ -87,7 +87,7 @@ export const ApplicativeErrorGenerators = <F, E>(
     baseGen: <A>(arbA: Arbitrary<A>) =>
       applicativeGenerators
         .baseGen(arbA)
-        .prepend(['throwError', genThrowError()]),
+        .prepend(['throwError', genThrowError<A>()]),
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
       applicativeGenerators
         .recursiveGen(arbA, deeper)
@@ -143,8 +143,8 @@ export const MonadCancelGenerators = <F, E>(
     deeper(arbA).map(pc =>
       pipe(
         F.uncancelable(() => pc),
-        F.flatMap(F.pure),
-        F.handleErrorWith(F.throwError),
+        F.flatMap(x => F.pure(x)),
+        F.handleErrorWith(e => F.throwError<A>(e)),
       ),
     );
 
@@ -191,7 +191,10 @@ export const SpawnGenerators = <F, E>(
       ),
     );
 
-  const genRacePair = <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
+  const genRacePair = <A>(
+    arbA: Arbitrary<A>,
+    deeper: GenK<F>,
+  ): Arbitrary<Kind<F, [A]>> =>
     deeper(arbA).chain(fa =>
       deeper(arbA).chain(fb =>
         fc.boolean().map(cancel =>
@@ -235,7 +238,7 @@ export const SpawnGenerators = <F, E>(
 
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
       List<[string, Arbitrary<Kind<F, [A]>>]>(
-        ['racePair', genRacePair(arbA, deeper)],
+        ['racePair', genRacePair<A>(arbA, deeper)],
         ['fork', genFork(arbA, deeper)],
         ['join', genJoin(arbA, deeper)],
       )['+++'](monadCancelGens.recursiveGen(arbA, deeper)),
@@ -285,8 +288,8 @@ export const AsyncGenerators = <F>(
               () => fo,
             ),
           ),
-          F.flatMap(F.pure),
-          F.handleErrorWith(F.throwError),
+          F.flatMap(x => F.pure(x)),
+          F.handleErrorWith(e => F.throwError<A>(e)),
         ),
       ),
     );

@@ -140,7 +140,7 @@ export const flatMap_ =
 export const flatMapF_ =
   <F>(F: Monad<F>) =>
   <A, B>(fa: OptionT<F, A>, f: (a: A) => Kind<F, [B]>): OptionT<F, B> =>
-    flatMap_(F)(fa, a => new OptionT(f(a)));
+    flatMap_(F)(fa, a => new OptionT(F.map_(f(a), Some)));
 
 export const tailRecM_ =
   <F>(F: Monad<F>) =>

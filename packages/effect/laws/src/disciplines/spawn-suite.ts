@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq, Either } from '@fp4ts/cats';
 import { Spawn, Outcome } from '@fp4ts/effect-kernel';
-import { exec, forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
+import { exec, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { SpawnLaws } from '../spawn-laws';
 import { MonadCancelSuite } from './monad-cancel-suite';
@@ -42,42 +42,42 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
             forAll(
               mkArbF(arbA),
               laws.raceDerivesFromRacePairLeft,
-            )(mkEqF(Either.Eq(EqA, Eq.never))),
+            )(mkEqF(Either.Eq(EqA, Eq.fromUniversalEquals()))),
           ],
           [
             'spawn race derives from race pair right',
             forAll(
               mkArbF(arbA),
               laws.raceDerivesFromRacePairRight,
-            )(mkEqF(Either.Eq(Eq.never, EqA))),
+            )(mkEqF(Either.Eq(Eq.fromUniversalEquals(), EqA))),
           ],
           [
             'spawn race canceled identity left',
             forAll(
               mkArbF(arbA),
               laws.raceCanceledIdentityLeft,
-            )(mkEqF(Either.Eq(EqA, Eq.never))),
+            )(mkEqF(Either.Eq(EqA, Eq.fromUniversalEquals()))),
           ],
           [
             'spawn race canceled identity right',
             forAll(
               mkArbF(arbA),
               laws.raceCanceledIdentityRight,
-            )(mkEqF(Either.Eq(Eq.never, EqA))),
+            )(mkEqF(Either.Eq(Eq.fromUniversalEquals(), EqA))),
           ],
           [
             'spawn race never non canceled identity left',
             forAll(
               mkArbF(arbA),
               laws.raceNeverNonCanceledIdentityLeft,
-            )(mkEqF(Either.Eq(EqA, Eq.never))),
+            )(mkEqF(Either.Eq(Eq.fromUniversalEquals(), EqA))),
           ],
           [
             'spawn race never non canceled identity right',
             forAll(
               mkArbF(arbA),
               laws.raceNeverNonCanceledIdentityRight,
-            )(mkEqF(Either.Eq(Eq.never, EqA))),
+            )(mkEqF(Either.Eq(EqA, Eq.fromUniversalEquals()))),
           ],
           [
             'fiber pure is outcome completed pure',
@@ -92,15 +92,21 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
           ],
           [
             'fiber cancelation is outcome canceled',
-            exec(laws.fiberCancelationIsOutcomeCanceled)(mkEqF(EqOutcome)),
+            exec(laws.fiberCancelationIsOutcomeCanceled)(
+              mkEqF(Outcome.Eq(EqE, mkEqF(Eq.fromUniversalEquals()))),
+            ),
           ],
           [
             'fiber never is never',
-            exec(laws.fiberNeverIsNever)(mkEqF(Eq.never)),
+            exec(laws.fiberNeverIsNever)(
+              mkEqF(Outcome.Eq(EqE, mkEqF(Eq.fromUniversalEquals()))),
+            ),
           ],
           [
             'fiber fork of never is unit',
-            exec(laws.fiberNeverIsNever)(mkEqF(Eq.never)),
+            exec(laws.fiberNeverIsNever)(
+              mkEqF(Outcome.Eq(EqE, mkEqF(Eq.fromUniversalEquals()))),
+            ),
           ],
           [
             'fiber join is finalize',
@@ -110,7 +116,7 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
                 mkArbF(arbA).map(F.void),
               ),
               laws.fiberJoinIsFinalize,
-            )(mkEqF(Eq.void)),
+            )(mkEqF(EqA)),
           ],
           [
             'never dominates over flatMap',
@@ -122,11 +128,15 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
           ],
           [
             'uncancelable cancel cancels',
-            exec(laws.uncancelableCancelCancels)(mkEqF(Eq.void)),
+            exec(laws.uncancelableCancelCancels)(
+              mkEqF(Outcome.Eq(EqE, mkEqF(Eq.fromUniversalEquals()))),
+            ),
           ],
           [
             'uncancelable fork is cancelable',
-            exec(laws.uncancelableForkIsCancelable)(mkEqF(Eq.void)),
+            exec(laws.uncancelableForkIsCancelable)(
+              mkEqF(Outcome.Eq(EqE, mkEqF(Eq.fromUniversalEquals()))),
+            ),
           ],
         ],
         {

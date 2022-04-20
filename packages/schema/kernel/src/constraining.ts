@@ -53,8 +53,10 @@ export const Constraining = Object.freeze({
     max: n => sa => S.max_(sa, n),
     maxExclusive: n => sa => S.maxExclusive_(sa, n),
 
-    minLength: n => (sa: any) => S.minLength_(sa, n),
-    maxLength: n => (sa: any) => S.maxLength_(sa, n),
+    minLength: ((n: any) => (sa: any) =>
+      S.minLength_(sa, n)) as Constraining<S>['minLength'],
+    maxLength: ((n: any) => (sa: any) =>
+      S.maxLength_(sa, n)) as Constraining<S>['maxLength'],
     ...S,
   }),
 });

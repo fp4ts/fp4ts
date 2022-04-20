@@ -523,7 +523,7 @@ export const traverse_ =
         const appendF = (
           gbs: Kind<G, [HashMap<K, B>[]]>,
           m2: HashMap<K, V>,
-        ): Kind<G, HashMap<K, B>[]> =>
+        ): Kind<G, [HashMap<K, B>[]]> =>
           G.map2_(traverse_(G)(m2, f), gbs)((m, ms) => [...ms, m]);
 
         return pipe(

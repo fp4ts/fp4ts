@@ -29,7 +29,8 @@ export const Applicative = Object.freeze({
     const self: Applicative<F> = {
       unit: F.pure(undefined as void),
 
-      tupled: (...xs) => Array.Traversable().sequence(self)(xs),
+      tupled: ((...xs) =>
+        Array.Traversable().sequence(self)(xs)) as Applicative<F>['tupled'],
 
       ...Apply.of<F>({ ...Applicative.functor<F>(F), ...F }),
       ...F,

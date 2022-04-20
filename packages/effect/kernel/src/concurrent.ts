@@ -147,10 +147,10 @@ export const Concurrent = Object.freeze({
       ref: <A>(a: A) =>
         Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
 
-      deferred: () =>
+      deferred: (() =>
         Kleisli.liftF(
           F.map_(F.deferred(), deferred => deferred.mapK(Kleisli.liftF)),
-        ),
+        )) as Concurrent<$<KleisliF, [F, R]>, E>['deferred'],
     }),
 
   forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTF, [F]>, E> =>

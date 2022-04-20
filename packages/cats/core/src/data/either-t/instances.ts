@@ -50,7 +50,7 @@ export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTF, [F, AA]>> =
         tailRecM_: tailRecM_(F),
       });
       cache.set(F, instance);
-      return instance;
+      return instance as Monad<any>;
     };
   })();
 

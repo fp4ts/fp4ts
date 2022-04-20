@@ -45,7 +45,7 @@ import {
   parserTMonoidK,
 } from './instances';
 
-export type ParserT<S, M, A> = ParserTBase<S, M, A>;
+export type ParserT<S, F, A> = ParserTBase<S, F, A>;
 
 export type Parser<S, A> = ParserT<S, IdentityF, A>;
 
@@ -124,7 +124,7 @@ ParserT.Monad = parserTMonad;
 interface ParserObj {
   <S, A>(
     runParser: (
-      S: Stream<S, EvalF>,
+      S: Stream<S, IdentityF>,
     ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
   ): Parser<S, A>;
   succeed<S, A>(x: A): Parser<S, A>;

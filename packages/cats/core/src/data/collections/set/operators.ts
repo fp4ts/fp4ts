@@ -410,7 +410,7 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(sa: Set<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldLeft_(sa, F.emptyK<A>(), (acc, x) => F.combineK_(acc, () => f(x)));
+    foldLeft_(sa, F.emptyK<B>(), (acc, x) => F.combineK_(acc, () => f(x)));
 
 export const equals_ =
   <A>(E: Eq<A>) =>

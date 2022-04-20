@@ -14,21 +14,21 @@ export abstract class Pull<F, O, R> {
   readonly __void!: void;
 }
 
-export class Succeed<R> extends Pull<unknown, never, R> {
+export class Succeed<R> extends Pull<any, never, R> {
   public readonly tag = 'succeed';
   public constructor(public readonly result: R) {
     super();
   }
 }
 
-export class Fail extends Pull<unknown, never, never> {
+export class Fail extends Pull<any, never, never> {
   public readonly tag = 'fail';
   public constructor(public readonly error: Error) {
     super();
   }
 }
 
-export class Interrupted extends Pull<unknown, never, never> {
+export class Interrupted extends Pull<any, never, never> {
   public readonly tag = 'interrupted';
   public constructor(
     public readonly context: UniqueToken,
@@ -105,7 +105,7 @@ export class InterruptWhen<F> extends Pull<F, never, void> {
   }
 }
 
-export class SucceedScope extends Pull<unknown, never, void> {
+export class SucceedScope extends Pull<any, never, void> {
   public readonly tag = 'succeedScope';
   public readonly exitCase: ExitCase = ExitCase.Succeeded;
   public readonly interruption: Option<Interrupted> = None;
@@ -114,7 +114,7 @@ export class SucceedScope extends Pull<unknown, never, void> {
   }
 }
 
-export class CanceledScope extends Pull<unknown, never, void> {
+export class CanceledScope extends Pull<any, never, void> {
   public readonly tag = 'canceledScope';
   public readonly exitCase: ExitCase = ExitCase.Canceled;
   public readonly interruption: Option<Interrupted>;
@@ -124,7 +124,7 @@ export class CanceledScope extends Pull<unknown, never, void> {
   }
 }
 
-export class FailedScope extends Pull<unknown, never, void> {
+export class FailedScope extends Pull<any, never, void> {
   public readonly tag = 'failedScope';
   public readonly exitCase: ExitCase;
   public readonly interruption: Option<Interrupted> = None;

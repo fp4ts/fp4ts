@@ -87,7 +87,7 @@ export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
     a: A,
     f: (a: A) => Kind<F, [A]>,
   ): IsEq<Kind<F, [A]>> => {
-    const loop = (n: number) =>
+    const loop = (n: number): Kind<F, [A]> =>
       F.tailRecM<[A, number]>([a, n])(([a0, i]) =>
         i > 0 ? F.map_(f(a0), a1 => Left([a1, i - 1])) : F.map_(f(a0), Right),
       );
@@ -99,7 +99,7 @@ export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
     fa: Kind<F, [A]>,
     f: (a: A) => Kind<F, [B]>,
   ): IsEq<Kind<F, [B]>> => {
-    const tailRecMFlatMap = F.tailRecM(None as Option<A>)(opt =>
+    const tailRecMFlatMap: Kind<F, [B]> = F.tailRecM(None as Option<A>)(opt =>
       opt.fold(
         () => F.map_(fa, a => Left(Some(a))),
         a => F.map_(f(a), Right),

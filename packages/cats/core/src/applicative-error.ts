@@ -66,7 +66,12 @@ export const ApplicativeError = Object.freeze({
 
       handleErrorWith: f => fa => self.handleErrorWith_(fa, f),
 
-      attempt: fa => pipe(fa, self.map(Right), self.handleError(Left)),
+      attempt: fa =>
+        pipe(
+          fa,
+          self.map(x => Right(x)),
+          self.handleError(e => Left(e)),
+        ),
 
       redeem: (h, f) => fa => self.redeem_(fa, h, f),
       redeem_: (fa, h, f) => pipe(fa, self.map(f), self.handleError(h)),

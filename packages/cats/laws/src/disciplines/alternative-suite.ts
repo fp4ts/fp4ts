@@ -37,7 +37,7 @@ export const AlternativeSuite = <F>(F: Alternative<F>) => {
             forAll(
               mkArbF(fc.func<[A], B>(arbB)),
               laws.alternativeRightAbsorption,
-            )(mkEqF(EqA)),
+            )(mkEqF(EqB)),
           ],
           [
             'alternative left absorption',
@@ -46,7 +46,7 @@ export const AlternativeSuite = <F>(F: Alternative<F>) => {
               mkArbF(arbA),
               fc.func<[A], B>(arbB),
               laws.alternativeLeftDistributivity,
-            )(mkEqF(EqA)),
+            )(mkEqF(EqB)),
           ],
           [
             'alternative right absorption distributes',
@@ -55,7 +55,7 @@ export const AlternativeSuite = <F>(F: Alternative<F>) => {
               mkArbF(fc.func<[A], B>(arbB)),
               mkArbF(fc.func<[A], B>(arbB)),
               laws.alternativeRightDistributivity,
-            )(mkEqF(EqA)),
+            )(mkEqF(EqB)),
           ],
         ],
         {

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError } from '@fp4ts/core';
-import { List, Vector, Option, None, MonadError } from '@fp4ts/cats';
+import { List, Vector, Option, None, MonadError, Some } from '@fp4ts/cats';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';
@@ -42,7 +42,10 @@ export class CompileOps<F, G, A> {
 
   public lastOrError(G: MonadError<G, Error>): Kind<G, [Option<A>]> {
     return G.flatMap_(this.lastOption, lastOp =>
-      lastOp.fold(() => G.throwError(new Error('No such element')), G.pure),
+      lastOp.fold(
+        () => G.throwError(new Error('No such element')),
+        x => G.pure(Some(x)),
+      ),
     );
   }
 

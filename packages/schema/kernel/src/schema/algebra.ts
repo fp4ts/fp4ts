@@ -117,7 +117,7 @@ export class ProductSchema<A extends unknown[]> extends Schema<A> {
 
   protected interpret0<S>(S: Schemable<S>): Kind<S, [A]> {
     const sxs = this.xs.map(sa => sa.interpret(S));
-    return S.product(...sxs);
+    return S.product<A>(...(sxs as { [k in keyof A]: Kind<S, [A[k]]> }));
   }
 }
 

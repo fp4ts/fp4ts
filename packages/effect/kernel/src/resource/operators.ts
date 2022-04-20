@@ -210,7 +210,7 @@ export const fork =
             s.fin,
           ]);
 
-          return [fiber, F.flatten(finalizeOuter)] as const;
+          return tupled(fiber, F.flatten(finalizeOuter));
         });
       }),
       allocate(F),
@@ -240,7 +240,7 @@ export const allocated =
 
           case 'pure': {
             const next = stack.uncons;
-            if (next.isEmpty) return F.pure([cur.value, release]);
+            if (next.isEmpty) return F.pure([cur.value as A, release]);
             const [hd, tl] = next.get;
             _cur = hd(cur.value);
             stack = tl;
@@ -258,7 +258,7 @@ export const allocated =
                   );
 
                   return stack.fold(
-                    () => F.pure([b, rel2]),
+                    () => F.pure([b as A, rel2]),
                     (hd, tl) =>
                       pipe(
                         poll(loop(hd(b), tl, rel2)),

@@ -127,7 +127,10 @@ export const Spawn = Object.freeze({
       racePair: fb => fa => self.racePair_(fa, fb),
 
       race: fb => fa => self.race_(fa, fb),
-      race_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) => {
+      race_: <A, B>(
+        fa: Kind<F, [A]>,
+        fb: Kind<F, [B]>,
+      ): Kind<F, [Either<A, B>]> => {
         const cont = <X, Y>(
           poll: Poll<F>,
           oc: Outcome<F, E, X>,
@@ -179,7 +182,10 @@ export const Spawn = Object.freeze({
       },
 
       raceOutcome: fb => fa => self.raceOutcome_(fa, fb),
-      raceOutcome_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+      raceOutcome_: <A, B>(
+        fa: Kind<F, [A]>,
+        fb: Kind<F, [B]>,
+      ): Kind<F, [Either<Outcome<F, E, A>, Outcome<F, E, B>>]> =>
         self.uncancelable(() =>
           pipe(
             self.racePair_(fa, fb),

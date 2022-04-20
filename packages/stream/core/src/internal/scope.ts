@@ -127,10 +127,7 @@ export class Scope<F> {
   ): Kind<F, [Either<InterruptionOutcome, A>]> {
     const { F } = this.target;
     return this.interruptible.fold(
-      () =>
-        F.map_(F.attempt(fa), ea =>
-          ea.leftMap(e => Outcome.failure<F, Error>(e)),
-        ),
+      () => F.map_(F.attempt(fa), ea => ea.leftMap(e => Outcome.failure(e))),
       iCtx => iCtx.evalF(fa),
     );
   }
@@ -236,8 +233,10 @@ export class Scope<F> {
                               ),
                         )
                       : F.map_(finalizer(ExitCase.Canceled), () =>
-                          result.swapped.getOrElse(
-                            () => new Error('AcquireAfterClose'),
+                          Left(
+                            result.swapped.getOrElse(
+                              () => new Error('AcquireAfterClose'),
+                            ),
                           ),
                         ),
                   ),

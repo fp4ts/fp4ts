@@ -19,7 +19,7 @@ export const FunctorFilterLaws = <F>(
     fa: Kind<F, [A]>,
     f: (a: A) => Option<B>,
     g: (b: B) => Option<C>,
-  ): IsEq<Kind<F, [B]>> => {
+  ): IsEq<Kind<F, [C]>> => {
     const lhs = F.mapFilter_(F.mapFilter_(fa, f), g);
     const rhs = F.mapFilter_(fa, a => f(a).flatMap(g));
     return new IsEq(lhs, rhs);
@@ -28,7 +28,7 @@ export const FunctorFilterLaws = <F>(
   mapFilterMapConsistency: <A, B>(
     fa: Kind<F, [A]>,
     f: (a: A) => B,
-  ): IsEq<Kind<F, [A]>> =>
+  ): IsEq<Kind<F, [B]>> =>
     new IsEq(
       F.mapFilter_(fa, a => Some(f(a))),
       F.map_(fa, f),
@@ -68,12 +68,12 @@ export interface FunctorFilterLaws<F> extends FunctorLaws<F> {
     fa: Kind<F, [A]>,
     f: (a: A) => Option<B>,
     g: (b: B) => Option<C>,
-  ) => IsEq<Kind<F, [B]>>;
+  ) => IsEq<Kind<F, [C]>>;
 
   mapFilterMapConsistency: <A, B>(
     fa: Kind<F, [A]>,
     f: (a: A) => B,
-  ) => IsEq<Kind<F, [A]>>;
+  ) => IsEq<Kind<F, [B]>>;
 
   collectConsistentWithMapFilter: <A, B>(
     fa: Kind<F, [A]>,

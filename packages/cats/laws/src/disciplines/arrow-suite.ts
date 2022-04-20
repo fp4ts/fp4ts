@@ -43,7 +43,10 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
         [
           [
             'arrow identity',
-            forAll(fc.constant(null), laws.arrowIdentity)(mkEqF(EqA, EqA)),
+            forAll(
+              fc.constant(null),
+              laws.arrowIdentity,
+            )(mkEqF(EqA, EqA) as any),
           ],
           [
             'arrow composition',
@@ -58,7 +61,7 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
             forAll(
               fc.func<[A], B>(arbB),
               laws.arrowExtension,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqC))),
+            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqC)) as any),
           ],
           [
             'arrow functor',
@@ -66,7 +69,7 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkArbF(arbA, arbB),
               mkArbF(arbC, arbD),
               laws.arrowFunctor,
-            )(mkEqF(Eq.tuple(EqA, EqD), Eq.tuple(EqB, EqD))),
+            )(mkEqF(Eq.tuple(EqA, EqD), Eq.tuple(EqB, EqD)) as any),
           ],
           [
             'arrow exchange',
@@ -74,14 +77,14 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkArbF(arbA, arbB),
               fc.func<[C], D>(arbD),
               laws.arrowExchange,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqD))),
+            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqD)) as any),
           ],
           [
             'arrow unit',
             forAll(
               mkArbF(arbA, arbB),
               laws.arrowUnit,
-            )(mkEqF(Eq.tuple(EqA, EqC), EqB)),
+            )(mkEqF(Eq.tuple(EqA, EqC), EqB) as any),
           ],
           [
             'arrow association',
@@ -92,7 +95,7 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkEqF(
                 Eq.tuple(EqA, Eq.tuple(EqC, EqD)),
                 Eq.tuple(EqB, Eq.tuple(EqC, EqD)),
-              ),
+              ) as any,
             ),
           ],
           [

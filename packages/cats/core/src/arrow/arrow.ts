@@ -48,7 +48,10 @@ export const Arrow = Object.freeze({
           self.split_(f, g),
         ),
 
-      ...Category.of({ id: F.id ?? (() => self.lift(id)), ...F }),
+      ...Category.of({
+        id: F.id ?? ((() => self.lift(id)) as Category<F>['id']),
+        ...F,
+      }),
       ...Strong.of({
         dimap_:
           F.dimap_ ??
@@ -56,7 +59,7 @@ export const Arrow = Object.freeze({
             self.compose_(self.lift(g), self.andThen_(self.lift(f), fab))),
         second:
           F.second ??
-          (<A, B, C>(fab: Kind<F, [A, B]>) => {
+          (<A, B, C>(fab: Kind<F, [A, B]>): Kind<F, [[C, A], [C, B]]> => {
             const swap = <X, Y>(): Kind<F, [[X, Y], [Y, X]]> =>
               self.lift(([x, y]: [X, Y]) => [y, x] as [Y, X]);
 

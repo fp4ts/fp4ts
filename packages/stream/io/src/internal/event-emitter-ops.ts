@@ -17,7 +17,10 @@ export const registerListener0 =
       F.delay(() => {
         emitter.on(event, callback);
       }),
-      () => F.delay(() => emitter.removeListener(event, callback)),
+      () =>
+        F.delay(() => {
+          emitter.removeListener(event, callback);
+        }),
     );
 
 export const registerListener =
@@ -31,5 +34,8 @@ export const registerListener =
       F.delay(() => {
         emitter.on(event, callback);
       }),
-      () => F.delay(() => emitter.removeListener(event, callback)),
+      () =>
+        F.delay(() => {
+          emitter.removeListener(event, callback);
+        }),
     );

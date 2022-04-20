@@ -26,7 +26,9 @@ export function WriterLogger<G, A>(
   G: Alternative<G>,
 ): Logger<$<WriterF, [Kind<G, [LogMessage<A>]>]>, A> {
   const GW = Writer.Applicative(G.algebra<LogMessage<A>>());
-  return new Logger(GW, msg => Writer.tell(G.pure(msg))) as any;
+  return new Logger(GW, (msg: LogMessage<A>) =>
+    Writer.tell(G.pure(msg)),
+  ) as any;
 }
 
 export function WriterTLogger<F, G, A>(

@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { IdentityF } from '@fp4ts/cats';
 import { Char, Lazy, lazyVal, newtype, TypeOf } from '@fp4ts/core';
 import { parser, Parser, StringSource, text, Rfc5234 } from '@fp4ts/parse';
 import { ParseResult, Rfc7230 } from './parsing';
@@ -44,7 +45,7 @@ const mkQValue = (thousands: number, s: string): ParseResult<QValue> =>
 const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
   const eof = Parser.eof<StringSource>();
   const ch = text.char;
-  const decQValue = Rfc5234.digit()
+  const decQValue = Rfc5234.digit<StringSource, IdentityF>()
     .repAs1<string>((x, y) => x + y)
     .collect(s => QValue.fromString(s).toOption);
 

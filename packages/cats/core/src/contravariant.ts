@@ -33,8 +33,8 @@ export const Contravariant = Object.freeze({
     const self: Contravariant<F> = {
       contramap: f => fa => self.contramap_(fa, f),
 
-      narrow: <A, B extends A>(fa: Kind<F, [A]>): Kind<F, [B]> =>
-        fa as Kind<F, [B]>,
+      narrow: (<A, B extends A>(fa: Kind<F, [A]>): Kind<F, [B]> =>
+        fa as Kind<F, [B]>) as Contravariant<F>['narrow'],
 
       liftContravariant: f => fb => self.contramap_(fb, f),
 

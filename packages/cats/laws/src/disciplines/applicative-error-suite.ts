@@ -72,7 +72,7 @@ export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
             forAll(
               arbE,
               laws.throwErrorAttempt,
-            )(mkEqF(Either.Eq(EqE, Eq.primitive))),
+            )(mkEqF(Either.Eq(EqE, Eq.fromUniversalEquals<void>()))),
           ],
           [
             'applicativeError pure Attempt',
@@ -98,9 +98,9 @@ export const ApplicativeErrorSuite = <F, E>(F: ApplicativeError<F, E>) => {
             forAll(
               mkArbF(arbA),
               arbE,
-              mkArbF(arbB),
+              mkArbF(fc.constant(undefined as void)),
               laws.onErrorThrow,
-            )(mkEqF(EqB)),
+            )(mkEqF(EqA)),
           ],
           [
             'applicativeError redeem is derived from map . attempt',

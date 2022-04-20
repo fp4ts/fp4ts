@@ -29,7 +29,7 @@ export const challenged =
             challenge =>
               F.pure(
                 Some(
-                  Status.Unauthorized().putHeaders(
+                  Status.Unauthorized<F>().putHeaders(
                     new WWWAuthenticate(challenge),
                   ),
                 ),

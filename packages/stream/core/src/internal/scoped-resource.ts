@@ -21,7 +21,7 @@ export class ScopedResource<F> {
   ) {}
 
   public acquired(
-    finalizer: (ec: ExitCase) => Kind<F, [Either<Error, void>]>,
+    finalizer: (ec: ExitCase) => Kind<F, [void]>,
   ): Kind<F, [Either<Error, boolean>]> {
     const { F } = this;
     return pipe(
@@ -64,7 +64,7 @@ export class ScopedResource<F> {
     target: CompilerTarget<F>,
   ): Kind<F, [ScopedResource<F>]> {
     const { F } = target;
-    const initialState = new State(true, None, 0);
+    const initialState = new State<F>(true, None, 0);
 
     return F.do(function* (_) {
       const state = yield* _(target.ref<State<F>>(initialState));

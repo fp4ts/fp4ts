@@ -143,12 +143,12 @@ export const concat: <F, A>(
   s2: Stream<F, A>,
 ) => (s1: Stream<F, A>) => Stream<F, A> = s2 => s1 => concat_(s1, s2);
 
-export const chunks: <F, A>(s: Stream<F, A>) => Stream<F, Chunk<A>> = s =>
+export const chunks = <F, A>(s: Stream<F, A>): Stream<F, Chunk<A>> =>
   repeatPull_(s, p =>
     p.uncons.flatMap(opt =>
       opt.fold(
         () => Pull.pure(None),
-        ([hd, tl]) => Pull.output1(hd).map(() => Some(tl)),
+        ([hd, tl]) => Pull.output1<F, Chunk<A>>(hd).map(() => Some(tl)),
       ),
     ),
   );
@@ -343,11 +343,13 @@ export const unNoneTerminate = <F, A>(s: Stream<F, Option<A>>): Stream<F, A> =>
           hd
             .findIndex(x => x.isEmpty)
             .fold(
-              () => Pull.output(hd.map(x => x.get)).map(() => Some(tl)),
+              () => Pull.output<F, A>(hd.map(x => x.get)).map(() => Some(tl)),
               idx =>
                 idx === 0
                   ? Pull.pure(None)
-                  : Pull.output(hd.take(idx).map(x => x.get)).map(() => None),
+                  : Pull.output<F, A>(hd.take(idx).map(x => x.get)).map(
+                      () => None,
+                    ),
             ),
       ),
     ),
@@ -400,7 +402,9 @@ export const zipWithNext = <F, A>(
             next,
             [prev, Some(next)] as [A, Option<A>],
           ]);
-          return Pull.output(out)['>>>'](() => go(tl, newLast));
+          return Pull.output<F, [A, Option<A>]>(out)['>>>'](() =>
+            go(tl, newLast),
+          );
         },
       ),
     );
@@ -577,7 +581,7 @@ export const enqueueNoneTerminatedChunks: <F, A>(
 export const covary =
   <F2>() =>
   <F extends F2, A>(s: Stream<F, A>): Stream<F2, A> =>
-    s;
+    s as any as Stream<F2, A>;
 
 export const covaryOutput =
   <B>() =>
@@ -587,7 +591,7 @@ export const covaryOutput =
 export const covaryAll =
   <F2, B>() =>
   <F extends F2, A extends B>(s: Stream<F, A>): Stream<F2, B> =>
-    s;
+    s as any as Stream<F2, A>;
 
 export const mapK: <F, G>(
   nt: FunctionK<F, G>,
@@ -643,7 +647,7 @@ export const dropRight_ = <F, A>(s: Stream<F, A>, n: number): Stream<F, A> => {
         () => Pull.done(),
         ([hd, tl]) => {
           const all = acc['+++'](hd);
-          return Pull.output(all.dropRight(n))['>>>'](() =>
+          return Pull.output<F, A>(all.dropRight(n))['>>>'](() =>
             go(tl, all.takeRight(n)),
           );
         },
@@ -707,7 +711,7 @@ export const chunkLimit_ = <F, A>(
     p.unconsLimit(limit).flatMap(opt =>
       opt.fold(
         () => Pull.pure(None),
-        ([hd, tl]) => Pull.output1(hd).map(() => Some(tl)),
+        ([hd, tl]) => Pull.output1<F, Chunk<A>>(hd).map(() => Some(tl)),
       ),
     ),
   );
@@ -724,7 +728,7 @@ export const chunkMin_ = <F, A>(
         ([hd, tl]) => {
           const next = c['+++'](hd);
           return next.size >= n
-            ? Pull.output1(next)['>>>'](() => go(tl, Chunk.empty))
+            ? Pull.output1<F, Chunk<A>>(next)['>>>'](() => go(tl, Chunk.empty))
             : go(tl, next);
         },
       ),
@@ -736,7 +740,7 @@ export const chunkMin_ = <F, A>(
         () => Pull.done(),
         ([hd, tl]) =>
           hd.size >= n
-            ? Pull.output1(hd)['>>>'](() => go(tl, Chunk.empty))
+            ? Pull.output1<F, Chunk<A>>(hd)['>>>'](() => go(tl, Chunk.empty))
             : go(tl, hd),
       ),
     )
@@ -752,7 +756,7 @@ export const chunkN_ = <F, A>(
     p.unconsN(n, allowFewer).flatMap(opt =>
       opt.fold(
         () => Pull.pure(None),
-        ([hd, tl]) => Pull.output1(hd).map(() => Some(tl)),
+        ([hd, tl]) => Pull.output1<F, Chunk<A>>(hd).map(() => Some(tl)),
       ),
     ),
   );
@@ -780,7 +784,7 @@ export const sliding_ = <F, A>(
             arr.push(hdx.take(size));
             current = tlx;
           }
-          return Pull.output(Chunk.fromArray(arr))['>>>'](() =>
+          return Pull.output<F, Chunk<A>>(Chunk.fromArray(arr))['>>>'](() =>
             stepNotSmallerThanSize(tl, current),
           );
         },
@@ -797,7 +801,7 @@ export const sliding_ = <F, A>(
         () =>
           prev.isEmpty
             ? Pull.done()
-            : Pull.output1(window['+++'](prev).take(size)),
+            : Pull.output1<F, Chunk<A>>(window['+++'](prev).take(size)),
         ([hd, tl]) => {
           const arr: Chunk<A>[] = [];
           let w = window;
@@ -809,7 +813,7 @@ export const sliding_ = <F, A>(
             w = wind.drop(step);
             current = tlx;
           }
-          return Pull.output(Chunk.fromArray(arr))['>>>'](() =>
+          return Pull.output<F, Chunk<A>>(Chunk.fromArray(arr))['>>>'](() =>
             stepSmallerThanSize(tl, w, current),
           );
         },
@@ -822,7 +826,7 @@ export const sliding_ = <F, A>(
           opt.fold(
             () => Pull.done(),
             ([hd, tl]) =>
-              Pull.output1(hd)['>>>'](() =>
+              Pull.output1<F, Chunk<A>>(hd)['>>>'](() =>
                 stepSmallerThanSize(tl, hd.drop(step), Chunk.emptyChain),
               ),
           ),
@@ -856,7 +860,8 @@ export const filterWithPrevious_ = <F, A>(
             ([acc, last], a) => [acc && f(last, a), a],
           );
           // we can forward the chunk without modifications
-          if (allPass) return Pull.output(hd)['>>>'](() => go(tl, newLast));
+          if (allPass)
+            return Pull.output<F, A>(hd)['>>>'](() => go(tl, newLast));
 
           const arr: A[] = [];
           let curLast = last;
@@ -865,7 +870,7 @@ export const filterWithPrevious_ = <F, A>(
             curLast = a;
           });
 
-          return Pull.output(Chunk.fromArray(arr))['>>>'](() =>
+          return Pull.output<F, A>(Chunk.fromArray(arr))['>>>'](() =>
             go(tl, curLast),
           );
         },
@@ -876,7 +881,7 @@ export const filterWithPrevious_ = <F, A>(
     .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
-        ([hd, tl]) => Pull.output1(hd)['>>>'](() => go(tl, hd)),
+        ([hd, tl]) => Pull.output1<F, A>(hd)['>>>'](() => go(tl, hd)),
       ),
     )
     .stream();
@@ -922,7 +927,7 @@ export const mapChunks_ = <F, A, B>(
     p.uncons.flatMap(opt =>
       opt.fold(
         () => Pull.pure(None),
-        ([hd, tl]) => Pull.output(f(hd)).map(() => Some(tl)),
+        ([hd, tl]) => Pull.output<F, B>(f(hd)).map(() => Some(tl)),
       ),
     ),
   );
@@ -1030,7 +1035,7 @@ export const scan1_ = <F, A>(
         ([hd, tl]) => {
           const [pfx, sfx] = hd.splitAt(1);
           const z = pfx['!!'](0);
-          return Pull.output1(z)['>>>'](() => _scan(tl.cons(sfx), z, f));
+          return Pull.output1<F, A>(z)['>>>'](() => _scan(tl.cons(sfx), z, f));
         },
       ),
     )
@@ -1047,7 +1052,7 @@ export const evalScan_ = <F, A, B>(
         () => Pull.done(),
         ([hd, tl]) =>
           Pull.evalF(f(z, hd)).flatMap(b =>
-            Pull.output1(b)['>>>'](() => go(b, tl)),
+            Pull.output1<F, B>(b)['>>>'](() => go(b, tl)),
           ),
       ),
     );
@@ -1089,7 +1094,8 @@ export const intersperse_ = <F, A>(
     pull.uncons.flatMap(opt =>
       opt.fold(
         () => Pull.done(),
-        ([hd, tl]) => Pull.output(doChunk(hd, false))['>>>'](() => loop(tl)),
+        ([hd, tl]) =>
+          Pull.output<F, A>(doChunk(hd, false))['>>>'](() => loop(tl)),
       ),
     );
 
@@ -1097,7 +1103,8 @@ export const intersperse_ = <F, A>(
     .flatMap(opt =>
       opt.fold(
         () => Pull.done(),
-        ([hd, tl]) => Pull.output(doChunk(hd, true))['>>>'](() => loop(tl)),
+        ([hd, tl]) =>
+          Pull.output<F, A>(doChunk(hd, true))['>>>'](() => loop(tl)),
       ),
     )
     .stream();
@@ -1152,10 +1159,10 @@ export const zipAllWith_ =
   <F, A, B>(s1: Stream<F, A>, s2: Stream<F, B>, pad1: A, pad2: B) =>
   <C>(f: (a: A, b: B) => C): Stream<F, C> => {
     const cont1 = (hd: Chunk<A>, tl: Stream<F, A>): Pull<F, C, void> =>
-      Pull.output(hd.map(o1 => f(o1, pad2)))['>>>'](() => contLeft(tl));
+      Pull.output<F, C>(hd.map(o1 => f(o1, pad2)))['>>>'](() => contLeft(tl));
 
     const cont2 = (hd: Chunk<B>, tl: Stream<F, B>): Pull<F, C, void> =>
-      Pull.output(hd.map(o2 => f(pad1, o2)))['>>>'](() => contRight(tl));
+      Pull.output<F, C>(hd.map(o2 => f(pad1, o2)))['>>>'](() => contRight(tl));
 
     const contLeft = (s: Stream<F, A>): Pull<F, C, void> =>
       s.pull.mapOutput(x => f(x, pad2));
@@ -1223,7 +1230,10 @@ export const merge_ =
         const left = yield* _(resultL.get());
         const right = yield* _(resultR.get());
         return yield* _(
-          CompositeFailure.fromResults(left, right).fold(F.throwError, F.pure),
+          CompositeFailure.fromResults(left, right).fold(
+            e => F.throwError<void>(e),
+            x => F.pure(x),
+          ),
         );
       });
 
@@ -1456,7 +1466,12 @@ export const interruptWhenTrue_ =
 
         const stopWatch = F.productR_(
           interruptR.complete(),
-          F.flatMap_(backResult.get(), ea => ea.fold(F.throwError, F.pure)),
+          F.flatMap_(backResult.get(), ea =>
+            ea.fold(
+              e => F.throwError<void>(e),
+              x => F.pure(x),
+            ),
+          ),
         );
         const backWatch = bracket(
           F.fork(F.attempt(wakeWatch)),
@@ -1553,7 +1568,7 @@ export const _scan = <F, A, B>(
       () => Pull.done(),
       ([hd, tl]) => {
         const [out, carry] = hd.scanLeftCarry(z, f);
-        return Pull.output(out)['>>>'](() => _scan(tl, carry, f));
+        return Pull.output<F, B>(out)['>>>'](() => _scan(tl, carry, f));
       },
     ),
   );
@@ -1571,7 +1586,7 @@ const _zipWith = <F, A, B, C>(
     [l2h, l2t]: [Chunk<B>, Pull<F, B, void>],
   ): Pull<F, C, void> => {
     const out = l1h.zipWith(l2h, f);
-    return Pull.output(out)['>>>'](() => {
+    return Pull.output<F, C>(out)['>>>'](() => {
       if (l1h.size > l2h.size) {
         const extra1 = l1h.drop(l2h.size);
         return l2t.uncons.flatMap(opt =>

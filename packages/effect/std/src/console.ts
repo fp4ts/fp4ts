@@ -56,19 +56,27 @@ class AsyncConsole<F> extends Console<F> {
   }
 
   public print<A>(a: A, S: Show<A> = Show.fromToString()): Kind<F, [void]> {
-    return this.F.delay(() => process.stdout.write(S.show(a)));
+    return this.F.delay(() => {
+      process.stdout.write(S.show(a));
+    });
   }
 
   public printLn<A>(a: A, S: Show<A> = Show.fromToString()): Kind<F, [void]> {
-    return this.F.delay(() => process.stdout.write(`${S.show(a)}\n`));
+    return this.F.delay(() => {
+      process.stdout.write(`${S.show(a)}\n`);
+    });
   }
 
   public error<A>(a: A, S: Show<A> = Show.fromToString()): Kind<F, [void]> {
-    return this.F.delay(() => process.stderr.write(S.show(a)));
+    return this.F.delay(() => {
+      process.stderr.write(S.show(a));
+    });
   }
 
   public errorLn<A>(a: A, S: Show<A> = Show.fromToString()): Kind<F, [void]> {
-    return this.F.delay(() => process.stderr.write(`${S.show(a)}\n`));
+    return this.F.delay(() => {
+      process.stderr.write(`${S.show(a)}\n`);
+    });
   }
 }
 

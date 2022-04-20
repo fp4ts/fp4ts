@@ -96,7 +96,7 @@ export const productSafeFoldable = <F extends unknown[]>(
 ): SafeFoldable<ProductK<F>> =>
   SafeFoldable.of({
     foldRight_<A, B>(
-      fas: Kind<ProductK<F>, [B]>,
+      fas: Kind<ProductK<F>, [A]>,
       ez: Eval<B>,
       f: (a: A, eb: Eval<B>) => Eval<B>,
     ): Eval<B> {

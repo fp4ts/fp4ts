@@ -85,7 +85,7 @@ export const MonadCancelLaws = <F, E>(
 
   canceledAssociatesLeftOverFlatMap: <A>(
     fa: Kind<F, [A]>,
-  ): IsEq<Kind<F, [A]>> =>
+  ): IsEq<Kind<F, [void]>> =>
     new IsEq(
       F.productR_(
         F.canceled,
@@ -139,7 +139,7 @@ export interface MonadCancelLaws<F, E> extends MonadErrorLaws<F, E> {
 
   canceledAssociatesLeftOverFlatMap: <A>(
     fa: Kind<F, [A]>,
-  ) => IsEq<Kind<F, [A]>>;
+  ) => IsEq<Kind<F, [void]>>;
 
   // For Uncancelable
 

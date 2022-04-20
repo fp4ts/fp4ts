@@ -45,11 +45,11 @@ export interface Align<F> extends Base<F> {
 
   padZip: <B>(
     fb: Kind<F, [B]>,
-  ) => <A>(fa: Kind<F, [A]>) => Kind<F, [Option<A>, Option<B>]>;
+  ) => <A>(fa: Kind<F, [A]>) => Kind<F, [[Option<A>, Option<B>]]>;
   padZip_: <A, B>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
-  ) => Kind<F, [Option<A>, Option<B>]>;
+  ) => Kind<F, [[Option<A>, Option<B>]]>;
 
   padZipWith: <A, B, C>(
     fb: Kind<F, [B]>,

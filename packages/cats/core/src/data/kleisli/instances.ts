@@ -104,7 +104,7 @@ export const kleisliApplicative: <F, A>(
       pure: pure(F),
     });
     cache.set(F, instance);
-    return instance;
+    return instance as Applicative<any>;
   };
 })();
 
@@ -150,7 +150,7 @@ export const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliF, [F, A]>> =
         ...kleisliFlatMap(F),
       });
       cache.set(F, instance);
-      return instance;
+      return instance as Monad<any>;
     };
   })();
 

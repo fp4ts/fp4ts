@@ -85,7 +85,7 @@ export class Semaphore<F, E = Error> {
 
   public static readonly withPermits =
     <F, E = Error>(F: Concurrent<F, E>) =>
-    (permits: number): Kind<F, [Semaphore<F>]> => {
+    (permits: number): Kind<F, [Semaphore<F, E>]> => {
       assert(permits > 0, 'maxPermits must be > 0');
       return pipe(
         F.ref(new State<F>([], permits)),
@@ -96,7 +96,7 @@ export class Semaphore<F, E = Error> {
 
 export const of =
   <F, E = Error>(F: Concurrent<F, E>) =>
-  (permits: number): Kind<F, [Semaphore<F>]> =>
+  (permits: number): Kind<F, [Semaphore<F, E>]> =>
     Semaphore.withPermits(F)(permits);
 
 export const acquire: <F>(sem: Semaphore<F>) => Kind<F, [void]> = sem =>

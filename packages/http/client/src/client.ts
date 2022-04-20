@@ -106,7 +106,7 @@ Client.fromHttpApp = function <F>(F: Async<F>) {
                     Pull.evalF(disposed.get()).flatMap(disposed =>
                       disposed
                         ? Pull.throwError(new Error('response was destroyed'))
-                        : Pull.output(hd)['>>>'](() => go(tl)),
+                        : Pull.output<F, Byte>(hd)['>>>'](() => go(tl)),
                     ),
                 ),
               );

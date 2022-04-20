@@ -64,7 +64,7 @@ export const FlatMap = Object.freeze({
           fa,
           () => leftUnit,
         );
-        return self.tailRecM(undefined)(() => stepResult);
+        return self.tailRecM(undefined as void)(() => stepResult);
       },
 
       ...FlatMap.deriveApply(F),

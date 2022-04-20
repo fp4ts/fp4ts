@@ -37,7 +37,7 @@ export const fp4tsResource =
     );
 
     const arbEval: Arbitrary<Resource<F, A>> = mkArbF(arbA).map(Resource.evalF);
-    const genPure: Arbitrary<Resource<F, A>> = arbA.map(Resource.pure);
+    const genPure: Arbitrary<Resource<F, A>> = arbA.map(x => Resource.pure(x));
 
     return fc.frequency(
       { weight: 5, arbitrary: arbAllocate },
@@ -76,9 +76,7 @@ export const fp4tsKind = <F, A>(
   const { gen } = fc.letrec(tie => ({
     base: fc.oneof(...stripDuplicates(baseCase.reverse)),
     recursive: fc.oneof(
-      ...stripDuplicates(
-        recursiveCase(() => tie('gen') as Arbitrary<Kind<F, [A]>>),
-      ),
+      ...stripDuplicates(recursiveCase(() => tie('gen') as any)),
     ),
     gen: fc.oneof({ maxDepth }, tie('base'), tie('recursive')) as Arbitrary<
       Kind<F, [A]>

@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats';
 import { Outcome, Async, ExecutionContext } from '@fp4ts/effect-kernel';
-import { forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 import * as AA from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -82,7 +82,7 @@ export const AsyncSuite = <F>(F: Async<F>) => {
             forAll(
               mkArbF(arbA),
               laws.executionContextCommutativity,
-            )(mkEqF(EqA)),
+            )(mkEqF(E.eqExecutionContext)),
           ],
           [
             'async executeOn local pure',

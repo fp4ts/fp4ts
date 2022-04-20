@@ -185,7 +185,7 @@ export class ProductSchemaK<F extends unknown[]> extends SchemaK<ProductK<F>> {
     const ss = this.fs.map(f => f.interpret(S)) as {
       [k in keyof F]: Kind<S, [F[k]]>;
     };
-    return S.product(...ss);
+    return S.product<F>(...ss);
   }
 }
 

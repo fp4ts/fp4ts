@@ -293,7 +293,7 @@ Decoder.defer = defer;
 Decoder.MonoidK = <I>() => decoderTMonoidK<EvalF, I>(Eval.Monad) as any;
 Decoder.Functor = <I>() => decoderTFunctor<EvalF, I>(Eval.Monad) as any;
 Decoder.Profunctor = decoderTProfunctor(Eval.Functor) as any;
-Decoder.Category = decoderTCategory(Eval.Monad);
+Decoder.Category = decoderTCategory(Eval.Monad) as any;
 Decoder.Monad = <I>() => decoderTMonad<EvalF, I>(Eval.Monad) as any;
 Decoder.Refining = decoderTRefining(Eval.Monad) as any;
 Decoder.Schemable = decoderTSchemable(Eval.Monad) as any;

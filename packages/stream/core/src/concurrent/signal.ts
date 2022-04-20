@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, pipe } from '@fp4ts/core';
+import { Kind, pipe, tupled } from '@fp4ts/core';
 import { Map } from '@fp4ts/cats';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
@@ -44,7 +44,7 @@ class SignallingRefImpl<F, A> extends Ref<F, A> implements Signal<F, A> {
         F.flatMap(wait =>
           this.state.modify(s =>
             s.lastUpdate !== lastSeen
-              ? [s, F.pure([s.value, s.lastUpdate])]
+              ? [s, F.pure(tupled(s.value, s.lastUpdate))]
               : [
                   s.copy({ listeners: s.listeners.insert(id, wait) }),
                   wait.get(),

@@ -73,7 +73,7 @@ export const UnorderedTraversableSuite = <T>(T: UnorderedTraversable<T>) => {
                 mkArbF(arbB).chain(fb => fc.constant(T.map_(ta, () => fb))),
               ),
               laws.unorderedSequenceConsistent(F),
-            )(mkEqF(mkEqT(EqA))),
+            )(mkEqF(mkEqT(EqB))),
           ],
         ],
         { parent: self.unorderedFoldable(arbA, EqA, M, mkArbT) },

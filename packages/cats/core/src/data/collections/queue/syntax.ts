@@ -191,7 +191,7 @@ declare module './algebra' {
 
     traverse<G>(
       G: Applicative<G>,
-    ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [List<B>]>;
+    ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Queue<B>]>;
   }
 }
 

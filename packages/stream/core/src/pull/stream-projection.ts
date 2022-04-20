@@ -311,7 +311,7 @@ export const takeWhile_ = <F, O>(
             .fold(
               () =>
                 pipe(
-                  P.output(hd),
+                  P.output<F, O>(hd),
                   P.flatMap(() => takeWhile_(tl, pred, takeFailure)),
                 ),
               idx => {
@@ -462,7 +462,7 @@ export const scanChunksOpt_ = <F, O, O2, S>(
               ([hd, tl]) => {
                 const [s, c] = g(hd);
                 return pipe(
-                  P.output(c),
+                  P.output<F, O2>(c),
                   P.flatMap(() => go(tl, s)),
                 );
               },
@@ -819,7 +819,7 @@ interface GoContext<F, G, X, End> {
 }
 
 class BuildRun<F, G, X, End>
-  implements Run<F, G, X, Kind<F, [CallRun<F, G, X, Kind<G, [End]>>]>>
+  implements Run<F, G, X, Kind<F, [CallRun<F, G, X, Kind<F, [End]>>]>>
 {
   public constructor(public readonly ctx: GoContext<F, G, X, End>) {}
 

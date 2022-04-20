@@ -19,8 +19,8 @@ import { Pipe } from '../pipe';
 import { Pull } from '../pull';
 import { Stream } from '../stream';
 
-const ChannelClosed = Object.freeze({ tag: 'channel_closed' });
-type ChannelClosed = typeof ChannelClosed & { __void: never };
+const ChannelClosed = Object.freeze({ tag: 'channel_closed' as const });
+type ChannelClosed = typeof ChannelClosed;
 
 export class Channel<F, A> {
   private readonly __void!: void;
@@ -70,7 +70,11 @@ export class Channel<F, A> {
             F.flatten(
               F.uncancelable(poll =>
                 state.modify(s => {
-                  if (s.closed) return [s, F.pure(Channel.closed)];
+                  if (s.closed)
+                    return [
+                      s,
+                      F.pure(Channel.closed as Either<ChannelClosed, void>),
+                    ];
                   return s.size < capacity
                     ? [
                         s.copy({
@@ -78,7 +82,10 @@ export class Channel<F, A> {
                           size: s.size + 1,
                           waiting: None,
                         }),
-                        notifyStream(s.waiting),
+                        F.map_(
+                          notifyStream(s.waiting),
+                          () => Either.rightUnit as Either<ChannelClosed, void>,
+                        ),
                       ]
                     : [
                         s.copy({
@@ -86,7 +93,11 @@ export class Channel<F, A> {
                           producers: s.producers['::+']([a, producer]),
                         }),
                         F.productL_(
-                          notifyStream(s.waiting),
+                          F.map_(
+                            notifyStream(s.waiting),
+                            () =>
+                              Either.rightUnit as Either<ChannelClosed, void>,
+                          ),
                           waitOnBound(producer, poll),
                         ),
                       ];
@@ -102,7 +113,13 @@ export class Channel<F, A> {
                 ? [s, F.pure(Channel.closed)]
                 : [
                     s.copy({ closed: true, waiting: None }),
-                    F.productL_(notifyStream(s.waiting), signalClosure),
+                    F.productL_(
+                      F.map_(
+                        notifyStream(s.waiting),
+                        () => Either.rightUnit as Either<ChannelClosed, void>,
+                      ),
+                      signalClosure,
+                    ),
                   ],
             ),
           ),
@@ -142,7 +159,7 @@ export class Channel<F, A> {
                   s.copy({ waiting: Some(waiting) }),
                   F.pure(
                     s.closed
-                      ? Pull.done()
+                      ? Pull.done<F>()
                       : Pull.evalF(waiting.get())['>>>'](() => consumeLoop),
                   ),
                 ];
@@ -157,11 +174,7 @@ export class Channel<F, A> {
         const stream = consumeLoop.stream();
 
         const notifyStream = (waitForChanges: Option<Deferred<F, void>>) =>
-          waitForChanges.fold(
-            () => F.pure(Either.rightUnit),
-            changes =>
-              F.map_(changes.complete(undefined), () => Either.rightUnit),
-          );
+          waitForChanges.traverse(F)(a => a.complete(undefined));
 
         const waitOnBound = (producer: Deferred<F, void>, poll: Poll<F>) =>
           F.onCancel_(
