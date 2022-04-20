@@ -190,9 +190,10 @@ declare module './algebra' {
       this: Stream<F2, A>,
       F2: Functor<F2>,
     ): (f: (a: A) => Kind<F2, [unknown]>) => Stream<F2, A>;
-    evalMapChunk(
-      F: Applicative<F>,
-    ): <B>(f: (a: A) => Kind<F, [B]>) => Stream<F, B>;
+    evalMapChunk<F2>(
+      this: Stream<F2, A>,
+      F: Applicative<F2>,
+    ): <B>(f: (a: A) => Kind<F2, [B]>) => Stream<F2, B>;
 
     flatMap<F2, B>(f: (a: A) => Stream<F2, B>): Stream<F2, B>;
     readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
@@ -232,24 +233,31 @@ declare module './algebra' {
 
     intersperse<B>(this: Stream<F, B>, separator: B): Stream<F, B>;
 
-    align<B>(that: Stream<F, B>): Stream<F, Ior<A, B>>;
-    zip<B>(that: Stream<F, B>): Stream<F, [A, B]>;
-    zipLeft<B>(that: Stream<F, B>): Stream<F, A>;
-    zipRight<B>(that: Stream<F, B>): Stream<F, B>;
-    zipWith<B, C>(that: Stream<F, B>, f: (a: A, b: B) => C): Stream<F, C>;
+    align<F2, B>(
+      this: Stream<F2, A>,
+      that: Stream<F2, B>,
+    ): Stream<F2, Ior<A, B>>;
+    zip<F2, B>(this: Stream<F2, A>, that: Stream<F2, B>): Stream<F2, [A, B]>;
+    zipLeft<F2, B>(this: Stream<F2, A>, that: Stream<F2, B>): Stream<F2, A>;
+    zipRight<F2, B>(this: Stream<F2, A>, that: Stream<F2, B>): Stream<F2, B>;
+    zipWith<F2, B, C>(
+      this: Stream<F2, A>,
+      that: Stream<F2, B>,
+      f: (a: A, b: B) => C,
+    ): Stream<F2, C>;
 
     readonly zipWithIndex: Stream<F, [A, number]>;
     readonly zipWithNext: Stream<F, [A, Option<A>]>;
     readonly zipWithPrevious: Stream<F, [Option<A>, A]>;
 
-    zipAll<AA, B>(
-      this: Stream<F, AA>,
-      that: Stream<F, B>,
-    ): (pad1: AA, pad2: B) => Stream<F, [AA, B]>;
-    zipAllWith<AA, B>(
-      this: Stream<F, AA>,
-      that: Stream<F, B>,
-    ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F, C>;
+    zipAll<F2, AA, B>(
+      this: Stream<F2, AA>,
+      that: Stream<F2, B>,
+    ): (pad1: AA, pad2: B) => Stream<F2, [AA, B]>;
+    zipAllWith<F2, AA, B>(
+      this: Stream<F2, AA>,
+      that: Stream<F2, B>,
+    ): (pad1: AA, pad2: B) => <C>(f: (a: AA, b: B) => C) => Stream<F2, C>;
 
     merge<F2, B>(
       this: Stream<F2, B>,
@@ -278,14 +286,15 @@ declare module './algebra' {
     ): Stream<F2, B>;
 
     readonly attempt: Stream<F, Either<Error, A>>;
-    attempts<F>(
-      F: Temporal<F, Error>,
-    ): (delays: Stream<F, number>) => Stream<F, Either<Error, A>>;
+    attempts<F2>(
+      F: Temporal<F2, Error>,
+    ): (delays: Stream<F2, number>) => Stream<F2, Either<Error, A>>;
 
-    redeemWith<B>(
-      onFailure: (e: Error) => Stream<F, B>,
-      onSuccess: (a: A) => Stream<F, B>,
-    ): Stream<F, B>;
+    redeemWith<F2, B>(
+      this: Stream<F2, A>,
+      onFailure: (e: Error) => Stream<F2, B>,
+      onSuccess: (a: A) => Stream<F2, B>,
+    ): Stream<F2, B>;
 
     rethrow: A extends Either<Error, infer B> ? Stream<F, B> : never;
 
@@ -342,13 +351,19 @@ declare module './algebra' {
     mapK<G>(nt: FunctionK<F, G>): Stream<G, A>;
 
     compile(this: Stream<PureF, A>): CompileOps<PureF, IdentityF, A>;
-    compile<G>(compiler: Compiler<F, G>): CompileOps<F, G, A>;
+    compile<F2, G>(
+      this: Stream<F2, A>,
+      compiler: Compiler<F2, G>,
+    ): CompileOps<F2, G, A>;
 
     compileSync(this: Stream<SyncIOF, A>): CompileOps<SyncIOF, SyncIOF, A>;
-    compileSync(F: Sync<F>): CompileOps<F, F, A>;
+    compileSync<F2>(this: Stream<F2, A>, F: Sync<F2>): CompileOps<F2, F2, A>;
 
     compileConcurrent(this: Stream<IOF, A>): CompileOps<IOF, IOF, A>;
-    compileConcurrent(F: Concurrent<F, Error>): CompileOps<F, F, A>;
+    compileConcurrent<F2>(
+      this: Stream<F2, A>,
+      F: Concurrent<F2, Error>,
+    ): CompileOps<F2, F2, A>;
 
     toList: F extends PureF ? List<A> : never;
     toVector: F extends PureF ? Vector<A> : never;
@@ -744,13 +759,13 @@ Stream.prototype.compile = function (compiler = Compiler.Pure) {
   return compile(this, compiler);
 };
 
-Stream.prototype.compileSync = function (F = SyncIO.Sync) {
+Stream.prototype.compileSync = function (this: any, F = SyncIO.Sync) {
   return compileSync(this, F as any);
-};
+} as any;
 
-Stream.prototype.compileConcurrent = function (F = IO.Concurrent) {
+Stream.prototype.compileConcurrent = function (this: any, F = IO.Concurrent) {
   return compileConcurrent(this, F as any);
-};
+} as any;
 
 Object.defineProperty(Stream.prototype, 'toList', {
   get<A>(this: Stream<PureF, A>): List<A> {

@@ -124,24 +124,24 @@ declare module './algebra' {
 
     map<X, R2>(this: Pull<F, O, X>, f: (r: X) => R2): Pull<F, O, R2>;
 
-    flatMap<O2, X, R2>(
-      this: Pull<F, O2, X>,
-      f: (r: X) => Pull<F, O2, R2>,
-    ): Pull<F, O2, R2>;
-    '>>>'<O2, X, R2>(
-      this: Pull<F, O2, X>,
-      f: () => Pull<F, O2, R2>,
-    ): Pull<F, O2, R2>;
+    flatMap<F2, O2, X, R2>(
+      this: Pull<F2, O2, X>,
+      f: (r: X) => Pull<F2, O2, R2>,
+    ): Pull<F2, O2, R2>;
+    '>>>'<F2, O2, X, R2>(
+      this: Pull<F2, O2, X>,
+      f: () => Pull<F2, O2, R2>,
+    ): Pull<F2, O2, R2>;
 
-    handleErrorWith<O2, R2>(
-      this: Pull<F, O2, R2>,
-      h: (e: Error) => Pull<F, O2, R2>,
-    ): Pull<F, O2, R2>;
+    handleErrorWith<F2, O2, R2>(
+      this: Pull<F2, O2, R2>,
+      h: (e: Error) => Pull<F2, O2, R2>,
+    ): Pull<F2, O2, R2>;
 
-    onComplete<O2, R2>(
-      this: Pull<F, O2, R2>,
-      post: () => Pull<F, O2, R2>,
-    ): Pull<F, O2, R2>;
+    onComplete<F2, O2, R2>(
+      this: Pull<F2, O2, R2>,
+      post: () => Pull<F2, O2, R2>,
+    ): Pull<F2, O2, R2>;
 
     fold<P>(
       this: Pull<F, O, void>,

@@ -97,7 +97,7 @@ export function clientRouteSuite(
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/echo`;
-        const body = Stream.fromArray('Chunked body'.split(''))
+        const body = Stream.fromArray<IOF, string>('Chunked body'.split(''))
           .covary<IOF>()
           .through(text.utf8.encode());
         return client

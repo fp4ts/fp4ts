@@ -46,7 +46,9 @@ describe('Parser', () => {
     });
 
     it('should succeed with none when did not consume any input', () => {
-      expect(Parser.fail('').optional().parse('x')).toEqual(Right(None));
+      expect(
+        Parser.fail<StringSource, never>('').optional().parse('x'),
+      ).toEqual(Right(None));
       expect(
         char('y' as Char)
           .optional()
@@ -55,7 +57,9 @@ describe('Parser', () => {
     });
 
     it('should fail when the p consumes and fails', () => {
-      expect(Parser.fail('').optional().parse('x')).toEqual(Right(None));
+      expect(
+        Parser.fail<StringSource, never>('').optional().parse('x'),
+      ).toEqual(Right(None));
       expect(string('xy').optional().parse('x').isLeft).toBe(true);
     });
   });
@@ -100,7 +104,7 @@ describe('Parser', () => {
 
   describe('rep', () => {
     it('should throw when repeating empty parser', () => {
-      expect(() => Parser.unit().rep().parse('')).toThrow();
+      expect(() => Parser.unit<StringSource>().rep().parse('')).toThrow();
     });
 
     it('should succeed to parse an empty input', () => {

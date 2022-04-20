@@ -15,8 +15,9 @@ import {
   Right,
   Some,
 } from '@fp4ts/cats';
-import { IO, Resource } from '@fp4ts/effect';
+import { IO, IOF, Resource } from '@fp4ts/effect';
 import { RawHeader, Request, Status } from '@fp4ts/http-core';
+import { Client } from '@fp4ts/http-client';
 import { ResponseHeaders, ResponseFailure } from '@fp4ts/http-dsl-client';
 import { NodeClient } from '@fp4ts/http-node-client';
 import { withServer, withServerClient } from '@fp4ts/http-test-kit-node';
@@ -42,7 +43,9 @@ import {
 } from './common';
 
 describe('Success', () => {
-  const clientResource = Resource.pure(NodeClient.makeClient(IO.Async));
+  const clientResource = Resource.pure<IOF, Client<IOF>>(
+    NodeClient.makeClient(IO.Async),
+  );
 
   describe('Get', () => {
     it.M('should get root', () =>

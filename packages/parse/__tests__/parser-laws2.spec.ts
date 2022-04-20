@@ -194,8 +194,10 @@ describe('Parser Laws', () => {
         fc.integer(),
         fc.string(),
         (a, s) =>
-          eq(Parser.unit().as(a).parse(s), Parser.succeed(a).parse(s)) &&
-          eq(F.map_(F.unit, () => a).parse(s), F.pure(a).parse(s)),
+          eq(
+            Parser.unit<StringSource>().as(a).parse(s),
+            Parser.succeed<StringSource, number>(a).parse(s),
+          ) && eq(F.map_(F.unit, () => a).parse(s), F.pure(a).parse(s)),
       ),
     );
   });

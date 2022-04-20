@@ -7,7 +7,6 @@ import { $, $type, Kind, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
 import {
   Alternative,
   Eq,
-  EvalF,
   Functor,
   FunctorFilter,
   IdentityF,
@@ -162,11 +161,11 @@ interface ParserObj {
 
   // -- instances
 
-  MonoidK<S>(): MonoidK<$<ParserTF, [S, EvalF]>>;
-  Functor<S>(): Functor<$<ParserTF, [S, EvalF]>>;
-  FunctorFilter<S>(): FunctorFilter<$<ParserTF, [S, EvalF]>>;
-  Alternative<S>(): Alternative<$<ParserTF, [S, EvalF]>>;
-  Monad<S>(): Monad<$<ParserTF, [S, EvalF]>>;
+  MonoidK<S>(): MonoidK<$<ParserTF, [S, IdentityF]>>;
+  Functor<S>(): Functor<$<ParserTF, [S, IdentityF]>>;
+  FunctorFilter<S>(): FunctorFilter<$<ParserTF, [S, IdentityF]>>;
+  Alternative<S>(): Alternative<$<ParserTF, [S, IdentityF]>>;
+  Monad<S>(): Monad<$<ParserTF, [S, IdentityF]>>;
 }
 
 Parser.succeed = succeed;

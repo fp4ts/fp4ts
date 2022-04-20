@@ -21,10 +21,9 @@ export const flatMap: <F, O2, R, R2>(
 ) => <O extends O2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> = f => pull =>
   flatMap_(pull, f);
 
-export const handleErrorWith: <F, O2, R2>(
-  h: (e: Error) => Pull<F, O2, R2>,
-) => <O extends O2, R extends R2>(pull: Pull<F, O, R>) => Pull<F, O2, R2> =
-  h => pull =>
+export const handleErrorWith =
+  <F, O, R>(h: (e: Error) => Pull<F, O, R>) =>
+  (pull: Pull<F, O, R>): Pull<F, O, R> =>
     handleErrorWith_(pull, h);
 
 export const onComplete: <F, O2, R2>(
@@ -80,6 +79,6 @@ export const onComplete_ = <F, O, R, R2>(
 ): Pull<F, O, R2> =>
   pipe(
     pull,
-    handleErrorWith(e => flatMap_(post(), () => new Fail(e))),
+    handleErrorWith<F, O, R>(e => flatMap_(post(), () => new Fail(e))),
     flatMap(post),
   );

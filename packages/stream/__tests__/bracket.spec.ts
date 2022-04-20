@@ -8,7 +8,7 @@ import fc from 'fast-check';
 import { throwError } from '@fp4ts/core';
 import { List } from '@fp4ts/cats';
 import { IO, IOF, ExitCase, Ref } from '@fp4ts/effect';
-import { Stream } from '@fp4ts/stream-core';
+import { PureF, Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { Counter } from './counter';
 import { TestError } from './test-error';

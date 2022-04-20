@@ -12,6 +12,9 @@ import { Scope } from '../internal';
 
 export abstract class Pull<F, O, R> {
   readonly __void!: void;
+  readonly _F!: () => F;
+  readonly _O!: () => O;
+  readonly _R!: () => R;
 }
 
 export class Succeed<R> extends Pull<any, never, R> {

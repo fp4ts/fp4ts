@@ -581,7 +581,7 @@ export const enqueueNoneTerminatedChunks: <F, A>(
 export const covary =
   <F2>() =>
   <F extends F2, A>(s: Stream<F, A>): Stream<F2, A> =>
-    s as any as Stream<F2, A>;
+    s as Stream<F2, A>;
 
 export const covaryOutput =
   <B>() =>
@@ -591,7 +591,7 @@ export const covaryOutput =
 export const covaryAll =
   <F2, B>() =>
   <F extends F2, A extends B>(s: Stream<F, A>): Stream<F2, B> =>
-    s as any as Stream<F2, A>;
+    s as Stream<F2, A>;
 
 export const mapK: <F, G>(
   nt: FunctionK<F, G>,

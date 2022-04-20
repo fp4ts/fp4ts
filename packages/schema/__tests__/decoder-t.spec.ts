@@ -120,15 +120,15 @@ describe('DecoderT', () => {
   describe('decoding', () => {
     const make_person = <S>(S: Constraining<S>) =>
       S.struct({
-        first_name: pipe(S.string, S.nonEmpty),
-        last_name: pipe(S.string, S.nonEmpty),
+        first_name: S.nonEmpty(S.string),
+        last_name: S.nonEmpty(S.string),
         address: pipe(
           S.struct({
-            line1: pipe(S.string, S.nonEmpty),
-            line2: pipe(S.string, S.nonEmpty, S.nullable),
-            city: pipe(S.string, S.nonEmpty),
+            line1: S.nonEmpty(S.string),
+            line2: pipe(S.nonEmpty(S.string), S.nullable),
+            city: S.nonEmpty(S.string),
             zip: pipe(S.number, S.min(1000), S.max(10_000)),
-            state: pipe(S.string, S.nonEmpty, S.nullable),
+            state: pipe(S.nonEmpty(S.string), S.nullable),
             country: pipe(S.literal('US', 'SK')),
           }),
         ),
@@ -139,7 +139,7 @@ describe('DecoderT', () => {
 
     it('should decode person with correct data', () => {
       fc.assert(
-        fc.property(arbPerson, person =>
+        fc.property(arbPerson as any, person =>
           expect(personDecoder.decodeT(person).value).toEqual(Right(person)),
         ),
         { numRuns: 20, unbiased: true },

@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { $, pipe } from '@fp4ts/core';
-import { EvalF, Kleisli } from '@fp4ts/cats';
+import { IdentityF, Kleisli } from '@fp4ts/cats';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Parser, ParserTF, StringSource } from '@fp4ts/parse-core';
 import { eq, fp4tsStringParser0, mkStringParserArb0 } from './arbitraries';
@@ -68,7 +68,7 @@ describe('Parser Laws', () => {
         ),
         fc.string(),
         (a, f, g, h, s) => {
-          type F = $<ParserTF, [StringSource, EvalF]>;
+          type F = $<ParserTF, [StringSource, IdentityF]>;
           const kf = Kleisli<F, number, string>(f);
           const kg = Kleisli<F, string, string>(g);
           const kh = Kleisli<F, string, string>(h);
@@ -119,7 +119,7 @@ describe('Parser Laws', () => {
         fc.func<[number], Parser<StringSource, string>>(fp4tsStringParser0()),
         fc.string(),
         (a, f, s) => {
-          type F = $<ParserTF, [StringSource, EvalF]>;
+          type F = $<ParserTF, [StringSource, IdentityF]>;
           const kf = Kleisli<F, number, string>(f);
           const kp = Kleisli<F, number, number>(F.pure);
 
@@ -135,7 +135,7 @@ describe('Parser Laws', () => {
         fc.func<[number], Parser<StringSource, string>>(fp4tsStringParser0()),
         fc.string(),
         (a, f, s) => {
-          type F = $<ParserTF, [StringSource, EvalF]>;
+          type F = $<ParserTF, [StringSource, IdentityF]>;
           const kf = Kleisli<F, number, string>(f);
           const kp = Kleisli<F, string, string>(F.pure);
 

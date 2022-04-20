@@ -48,7 +48,7 @@ describe('Logger', () => {
   describe('RequestLogger', () => {
     const logger = RequestLogger(IO.Async)<IOF, IOF>(
       Logger.empty(IO.Applicative)(),
-      FunctionK.id(),
+      FunctionK.id<IOF>(),
     );
 
     it.M('should not affect on Get request', () =>
@@ -68,7 +68,7 @@ describe('Logger', () => {
       const msgs: LogMessage<string>[] = [];
       const logger = RequestLogger(IO.Async)<IOF, IOF>(
         new Logger(IO.Applicative, msg => IO.delay(() => msgs.push(msg)).void),
-        FunctionK.id(),
+        FunctionK.id<IOF>(),
       );
 
       return logger(testApp)
@@ -91,7 +91,7 @@ describe('Logger', () => {
   describe('ResponseLogger', () => {
     const logger = ResponseLogger(IO.Async)<IOF, IOF>(
       Logger.empty(IO.Applicative)(),
-      FunctionK.id(),
+      FunctionK.id<IOF>(),
     );
 
     it.M('should not affect on Get request', () =>
@@ -111,7 +111,7 @@ describe('Logger', () => {
       const msgs: LogMessage<string>[] = [];
       const logger = ResponseLogger(IO.Async)<IOF, IOF>(
         new Logger(IO.Applicative, msg => IO.delay(() => msgs.push(msg)).void),
-        FunctionK.id(),
+        FunctionK.id<IOF>(),
       );
 
       return logger(testApp)
@@ -134,7 +134,7 @@ describe('Logger', () => {
   describe('HttpLogger', () => {
     const logger = HttpLogger(IO.Async)<IOF, IOF>(
       Logger.empty(IO.Applicative)(),
-      FunctionK.id(),
+      FunctionK.id<IOF>(),
     );
 
     it.M('should not affect on Get request', () =>
@@ -155,7 +155,7 @@ describe('Logger', () => {
     const msgs: LogMessage<string>[] = [];
     const logger = HttpLogger(IO.Async)<IOF, IOF>(
       new Logger(IO.Applicative, msg => IO.delay(() => msgs.push(msg)).void),
-      FunctionK.id(),
+      FunctionK.id<IOF>(),
     );
 
     return logger(testApp)

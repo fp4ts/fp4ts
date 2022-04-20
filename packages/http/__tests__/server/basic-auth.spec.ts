@@ -62,7 +62,7 @@ describe('Basic Auth', () => {
   const basicMiddleware = BasicAuth(IO.Sync)(realm, validatePassword);
 
   it.M('should return Unauthorized when fails to authenticate', () => {
-    const req = new Request<IOF>(Method.GET, uri`/launch-the-nukes`);
+    const req = new Request<IOF>({ uri: uri`/launch-the-nukes` });
     let isNuked = false;
     const authenticatedService = HttpRoutes.orNotFound(IO.Monad)(
       basicMiddleware(nukeService(() => (isNuked = true))),
@@ -77,7 +77,7 @@ describe('Basic Auth', () => {
   });
 
   it.M('should return Unauthorized no user passed', () => {
-    const req = new Request<IOF>(Method.GET, uri`/`);
+    const req = new Request<IOF>({ method: Method.GET, uri: uri`/` });
     const authenticatedService = HttpRoutes.orNotFound(IO.Monad)(
       basicMiddleware(service),
     );
@@ -93,7 +93,7 @@ describe('Basic Auth', () => {
   });
 
   it.M('should return Unauthorized when wrong user passed in', () => {
-    const req = new Request<IOF>(Method.GET, uri`/`).putHeaders(
+    const req = new Request<IOF>({ uri: uri`/` }).putHeaders(
       new Authorization(
         new Token(
           AuthScheme.Basic,
@@ -116,7 +116,7 @@ describe('Basic Auth', () => {
   });
 
   it.M('should return ok when authentication succeeds', () => {
-    const req = new Request<IOF>(Method.GET, uri`/`).putHeaders(
+    const req = new Request<IOF>({ uri: uri`/` }).putHeaders(
       new Authorization(
         new Token(
           AuthScheme.Basic,

@@ -47,20 +47,22 @@ describe('String Interpolator', () => {
   });
 
   it('should compose with parser consuming no input', () => {
-    expect(parser`foo${Parser.unit()}`.complete().parse('foo')).toEqual(
-      Right([undefined]),
-    );
+    expect(
+      parser`foo${Parser.unit<StringSource>()}`.complete().parse('foo'),
+    ).toEqual(Right([undefined]));
   });
 
   it('should wrap a single parser consuming no input', () => {
-    expect(parser`${Parser.unit()}`.complete().parse('')).toEqual(
+    expect(parser`${Parser.unit<StringSource>()}`.complete().parse('')).toEqual(
       Right([undefined]),
     );
   });
 
   it('should wrap a multiple parsers consuming no input', () => {
     expect(
-      parser`${Parser.unit()}${Parser.unit()}`.complete().parse(''),
+      parser`${Parser.unit<StringSource>()}${Parser.unit<StringSource>()}`
+        .complete()
+        .parse(''),
     ).toEqual(Right([undefined, undefined]));
   });
 });

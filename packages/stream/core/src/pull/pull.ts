@@ -26,6 +26,7 @@ import {
 } from './constructors';
 import { loop } from './operators';
 import { Scope } from '../internal';
+import { PureF } from '../pure';
 
 export type Pull<F, O, R> = PullBase<F, O, R>;
 
@@ -37,9 +38,9 @@ interface PullObj {
   throwError<F>(e: Error): Pull<F, never, never>;
   evalF<F, R>(value: Kind<F, [R]>): Pull<F, never, R>;
   sleep<F>(t: Temporal<F, Error>): (ms: number) => Pull<F, never, void>;
-  output1<F, O>(value: O): Pull<F, O, void>;
-  outputOption1<F, O>(value: Option<O>): Pull<F, O, void>;
-  output<F, O>(chunk: Chunk<O>): Pull<F, O, void>;
+  output1<F = PureF, O = never>(value: O): Pull<F, O, void>;
+  outputOption1<F = PureF, O = never>(value: Option<O>): Pull<F, O, void>;
+  output<F = PureF, O = never>(chunk: Chunk<O>): Pull<F, O, void>;
   defer<F, O, R>(thunk: () => Pull<F, O, R>): Pull<F, O, R>;
 
   getScope<F>(): Pull<F, never, Scope<F>>;

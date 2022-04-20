@@ -287,5 +287,4 @@ export const lift_: <F, G, A, B>(
 ) => Kleisli<[G, F], A, B> = <F, G, A, B>(
   k: Kleisli<F, A, B>,
   G: Applicative<G>,
-): Kleisli<[G, F], A, B> =>
-  suspend<[G, F], A, B>((a: A) => G.pure(k.run(a)) as any);
+): Kleisli<[G, F], A, B> => suspend<[G, F], A, B>((a: A) => G.pure(k.run(a)));

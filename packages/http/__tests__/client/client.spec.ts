@@ -32,7 +32,10 @@ describe('Mock Client', () => {
 
   it.M('should fail to read body after dispose', () =>
     IO.pure(
-      new Request<IOF>(Method.POST).withEntity('foo', EntityEncoder.text()),
+      new Request<IOF>({ method: Method.POST }).withEntity(
+        'foo',
+        EntityEncoder.text(),
+      ),
     )
       .flatMap(req =>
         client

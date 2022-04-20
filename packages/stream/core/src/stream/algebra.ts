@@ -8,5 +8,8 @@ import { Pull } from '../pull';
 export class Stream<F, A> {
   private readonly __void!: void;
 
+  private readonly _F!: () => F;
+  private readonly _A!: () => A;
+
   public constructor(public readonly pull: Pull<F, A, void>) {}
 }
