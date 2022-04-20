@@ -19,6 +19,7 @@ import { empty, of, pure } from './constructors';
 import {
   constApplicative,
   constApply,
+  constContravariant,
   constEqK,
   constFoldable,
   constFunctor,
@@ -27,6 +28,7 @@ import {
   constSemigroupK,
   constTraversable,
 } from './instances';
+import { Contravariant } from '../../contravariant';
 
 export type Const<A, B> = A;
 
@@ -47,6 +49,7 @@ interface ConstObj {
   MonoidK<A>(A: Monoid<A>): MonoidK<$<ConstF, [A]>>;
   Functor<A>(): Functor<$<ConstF, [A]>>;
   FunctorFilter<A>(): FunctorFilter<$<ConstF, [A]>>;
+  Contravariant<A>(): Contravariant<$<ConstF, [A]>>;
   Apply<A>(A: Monoid<A>): Apply<$<ConstF, [A]>>;
   Applicative<A>(A: Monoid<A>): Applicative<$<ConstF, [A]>>;
   Foldable<A>(): Foldable<$<ConstF, [A]>>;
@@ -62,6 +65,7 @@ Const.SemigroupK = constSemigroupK;
 Const.MonoidK = constMonoidK;
 Const.Functor = constFunctor;
 Const.FunctorFilter = constFunctorFilter;
+Const.Contravariant = constContravariant;
 Const.Apply = constApply;
 Const.Applicative = constApplicative;
 Const.Foldable = constFoldable;

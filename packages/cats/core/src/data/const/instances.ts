@@ -18,6 +18,7 @@ import { Traversable } from '../../traversable';
 import { Const, ConstF } from './const';
 import { combine_, retag } from './operators';
 import { pure } from './constructors';
+import { Contravariant } from '../../contravariant';
 
 export const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
   EqK.of({ liftEq: () => E });
@@ -36,6 +37,9 @@ export const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
 export const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazyVal(<A>() =>
   Functor.of({ map_: retag<A>() }),
 );
+
+export const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> =
+  lazyVal(<A>() => Contravariant.of({ contramap_: retag<A>() }));
 
 export const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> =
   lazyVal(<A>() =>

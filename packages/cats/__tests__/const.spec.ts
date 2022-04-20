@@ -13,17 +13,32 @@ import {
   TraversableSuite,
   ApplicativeSuite,
   FunctorFilterSuite,
+  ContravariantSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Const Laws', () => {
   const functorFilterTests = FunctorFilterSuite(Const.FunctorFilter<number>());
   checkAll(
-    'Monad<Const>',
+    'FunctorFilter<Const<number, *>>',
     functorFilterTests.functorFilter(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      x => x.map(Const.pure(Monoid.addition)),
+      () => Eq.primitive,
+    ),
+  );
+
+  const contravariantTests = ContravariantSuite(Const.Contravariant<number>());
+  checkAll(
+    'Contravariant<Const<number, *>>',
+    contravariantTests.contravariant(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
       Eq.primitive,
       Eq.primitive,
       x => x.map(Const.pure(Monoid.addition)),
@@ -48,7 +63,7 @@ describe('Const Laws', () => {
 
   const traversableTests = TraversableSuite(Const.Traversable<number>());
   checkAll(
-    'Traversable<Const>',
+    'Traversable<Const<number, *>>',
     traversableTests.traversable(
       fc.integer(),
       fc.integer(),
