@@ -18,11 +18,11 @@ export interface ArrowChoice<F> extends Arrow<F>, Choice<F> {
     g: Kind<F, [B, D]>,
   ) => Kind<F, [Either<A, B>, Either<C, D>]>;
 
-  readonly left: <A, B, C>(
+  readonly left: <C>() => <A, B>(
     fab: Kind<F, [A, B]>,
   ) => Kind<F, [Either<A, C>, Either<B, C>]>;
 
-  readonly right: <A, B, C>(
+  readonly right: <C>() => <A, B>(
     fab: Kind<F, [A, B]>,
   ) => Kind<F, [Either<C, A>, Either<C, B>]>;
 }
@@ -34,8 +34,8 @@ export type ArrowChoiceRequirements<F> = Pick<ArrowChoice<F>, 'choose'> &
 export const ArrowChoice = Object.freeze({
   of: <F>(F: ArrowChoiceRequirements<F>): ArrowChoice<F> => {
     const self: ArrowChoice<F> = {
-      left: fab => self.choose(fab, self.lift(id)),
-      right: fab => self.choose(self.lift(id), fab),
+      left: () => fab => self.choose(fab, self.lift(id)),
+      right: () => fab => self.choose(self.lift(id), fab),
 
       ...Choice.of({
         ...F,
