@@ -105,7 +105,8 @@ const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
       (x: A) =>
         x,
     first:
-      <A, B, C>(f: (a: A) => B) =>
+      <C>() =>
+      <A, B>(f: (a: A) => B) =>
       ([a, c]: [A, C]): [B, C] =>
         [f(a), c],
     lift: id,

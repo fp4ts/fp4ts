@@ -46,8 +46,10 @@ export const andThenArrowChoice: Lazy<ArrowChoice<AndThenF>> = lazyVal(() =>
 
     lift,
 
-    first: <A, B, C>(fa: AndThen<A, B>): AndThen<[A, C], [B, C]> =>
-      lift(([a, c]) => [fa(a), c]),
+    first:
+      <C>() =>
+      <A, B>(fa: AndThen<A, B>): AndThen<[A, C], [B, C]> =>
+        lift(([a, c]) => [fa(a), c]),
 
     id: identity,
 

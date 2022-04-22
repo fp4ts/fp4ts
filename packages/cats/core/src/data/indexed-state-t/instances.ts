@@ -45,23 +45,29 @@ export const indexedStateTStrong: <F, V>(
   const self = Strong.of<λ<IndexedStateTF, [Fix<F>, α, β, Fix<V>]>>({
     ...indexedStateTProfunctor(F),
 
-    first: <A, B, C>(
-      fab: IndexedStateT<F, A, B, V>,
-    ): IndexedStateT<F, [A, C], [B, C], V> =>
-      new IndexedStateT(
-        F.pure(([a, c]: [A, C]) =>
-          F.map_(run_(F)(fab, a), ([b, v]: [B, V]) => tupled(tupled(b, c), v)),
+    first:
+      <C>() =>
+      <A, B>(
+        fab: IndexedStateT<F, A, B, V>,
+      ): IndexedStateT<F, [A, C], [B, C], V> =>
+        new IndexedStateT(
+          F.pure(([a, c]: [A, C]) =>
+            F.map_(run_(F)(fab, a), ([b, v]: [B, V]) =>
+              tupled(tupled(b, c), v),
+            ),
+          ),
         ),
-      ),
 
-    second: <A, B, C>(
-      fab: IndexedStateT<F, A, B, V>,
-    ): IndexedStateT<F, [C, A], [C, B], V> =>
-      dimap_(F)(
-        self.first<A, B, C>(fab),
-        ([c, a]) => tupled(a, c),
-        ([b, c]) => tupled(c, b),
-      ),
+    second:
+      <C>() =>
+      <A, B>(
+        fab: IndexedStateT<F, A, B, V>,
+      ): IndexedStateT<F, [C, A], [C, B], V> =>
+        dimap_(F)(
+          self.first<C>()(fab),
+          ([c, a]) => tupled(a, c),
+          ([b, c]) => tupled(c, b),
+        ),
   });
 
   return self;

@@ -21,7 +21,7 @@ export interface Compose<F> {
 
   readonly andThen: <B, C>(
     g: Kind<F, [B, C]>,
-  ) => <A>(f: Kind<F, [A, B]>) => Kind<F, [A, B]>;
+  ) => <A>(f: Kind<F, [A, B]>) => Kind<F, [A, C]>;
   readonly andThen_: <A, B, C>(
     f: Kind<F, [A, B]>,
     g: Kind<F, [B, C]>,

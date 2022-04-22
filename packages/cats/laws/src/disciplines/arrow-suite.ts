@@ -67,9 +67,9 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
             'arrow functor',
             forAll(
               mkArbF(arbA, arbB),
-              mkArbF(arbC, arbD),
+              mkArbF(arbB, arbC),
               laws.arrowFunctor,
-            )(mkEqF(Eq.tuple(EqA, EqD), Eq.tuple(EqB, EqD)) as any),
+            )(mkEqF(Eq.tuple(EqA, EqD), Eq.tuple(EqB, EqC)) as any),
           ],
           [
             'arrow exchange',

@@ -39,7 +39,8 @@ export const Arrow = Object.freeze({
   of: <F>(F: ArrowRequirements<F>): Arrow<F> => {
     const self: Arrow<F> = {
       split: g => f => self.split_(f, g),
-      split_: (f, g) => self.andThen_(self.first(f), self.second(g)),
+      split_: <A, B, C, D>(f: Kind<F, [A, B]>, g: Kind<F, [C, D]>) =>
+        self.andThen_(self.first<C>()(f), self.second<B>()(g)),
 
       merge: g => f => self.merge_(f, g),
       merge_: <A, B, C>(f: Kind<F, [A, B]>, g: Kind<F, [A, C]>) =>
@@ -59,15 +60,16 @@ export const Arrow = Object.freeze({
             self.compose_(self.lift(g), self.andThen_(self.lift(f), fab))),
         second:
           F.second ??
-          (<A, B, C>(fab: Kind<F, [A, B]>): Kind<F, [[C, A], [C, B]]> => {
-            const swap = <X, Y>(): Kind<F, [[X, Y], [Y, X]]> =>
-              self.lift(([x, y]: [X, Y]) => [y, x] as [Y, X]);
+          (<C>() =>
+            <A, B>(fab: Kind<F, [A, B]>): Kind<F, [[C, A], [C, B]]> => {
+              const swap = <X, Y>(): Kind<F, [[X, Y], [Y, X]]> =>
+                self.lift(([x, y]: [X, Y]) => [y, x] as [Y, X]);
 
-            return self.compose_(
-              swap(),
-              self.compose_(self.first<A, B, C>(fab), swap()),
-            );
-          }),
+              return self.compose_(
+                swap(),
+                self.compose_(self.first<C>()(fab), swap()),
+              );
+            }),
         ...F,
       }),
       ...F,

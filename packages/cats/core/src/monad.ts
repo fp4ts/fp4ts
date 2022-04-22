@@ -19,6 +19,8 @@ export interface Monad<F> extends FlatMap<F>, Applicative<F> {
       fa: <A>(fa: Kind<F, [A]>) => GenKind<Kind<F, [A]>, A>,
     ) => Generator<Eff, R, any>,
   ): Kind<F, [R]>;
+
+  liftM<A, B>(f: (a: A) => B): (fa: Kind<F, [A]>) => Kind<F, [B]>;
 }
 
 export type MonadRequirements<F> = Pick<
@@ -33,6 +35,7 @@ export const Monad = Object.freeze({
 
     const self: Monad<M> = { ...F, ...A, ...M } as any;
     self.do = Monad.Do(self);
+    self.liftM = f => fa => self.flatMap_(fa, a => self.pure(f(a)));
     return self;
   },
 
