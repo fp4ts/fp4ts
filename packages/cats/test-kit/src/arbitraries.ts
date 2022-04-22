@@ -31,6 +31,7 @@ import {
   Set,
   Endo,
   NonEmptyList,
+  Tagged,
   ValidationError,
   Validation,
 } from '@fp4ts/cats-core/lib/data';
@@ -269,6 +270,11 @@ export const fp4tsState = <S, A>(
   fp4tsIndexedStateT(
     fc.func<[S], Eval<[S, A]>>(fp4tsEval(fc.tuple(arbS, arbA))).map(Eval.pure),
   );
+
+export const fp4tsTagged =
+  <S>() =>
+  <A>(arbA: Arbitrary<A>): Arbitrary<Tagged<S, A>> =>
+    arbA.map(Tagged);
 
 export const fp4tsValidation = <E, A>(
   arbVE: Arbitrary<ValidationError<E>>,
