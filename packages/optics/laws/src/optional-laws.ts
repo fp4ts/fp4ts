@@ -3,10 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Const, Option, Some } from '@fp4ts/cats';
-import { Optional } from '@fp4ts/optics-core';
+import { Const, Function1, Option, Some } from '@fp4ts/cats';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
+import {
+  Optional,
+  getOrModify,
+  replace,
+  getOption,
+} from '@fp4ts/optics-core/lib/profunctor';
 import { firstOption } from '@fp4ts/optics-core/lib/internal/monoids';
 
 import { TraversalLaws } from './traversal-laws';
@@ -16,22 +21,25 @@ export const OptionalLaws = <S, A>(optional: Optional<S, A>) => ({
 
   getOptionReplace: (s: S): IsEq<S> =>
     new IsEq(
-      optional.getOrModify(s).fold(
+      getOrModify(optional)(s).fold(
         s => s,
-        x => optional.replace(x)(s),
+        x => replace(optional)(x)(s),
       ),
       s,
     ),
 
   replaceGetOption: (s: S, a: A): IsEq<Option<A>> =>
     new IsEq(
-      optional.getOption(optional.replace(a)(s)),
-      optional.getOption(s).map(() => a),
+      getOption(optional)(replace(optional)(a)(s)),
+      getOption(optional)(s).map(() => a),
     ),
 
   consistentGetOptionModifyId: (s: S): IsEq<Option<A>> =>
     new IsEq(
-      optional.getOption(s),
-      optional.modifyA(Const.Applicative(firstOption<A>()))(a => Some(a))(s),
+      getOption(optional)(s),
+      optional(
+        Const.Applicative(firstOption<A>()),
+        Function1.ArrowChoice,
+      )(a => Some(a))(s),
     ),
 });

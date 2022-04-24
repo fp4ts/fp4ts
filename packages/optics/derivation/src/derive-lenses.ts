@@ -5,7 +5,7 @@
 
 import type { StructSchema } from '@fp4ts/schema';
 
-import { Lens } from '@fp4ts/optics-core';
+import { Lens, fromProp } from '@fp4ts/optics-core/lib/profunctor';
 
 /* eslint-disable @typescript-eslint/ban-types */
 export function deriveLenses<A extends {}>(
@@ -16,7 +16,7 @@ export function deriveLenses<A extends {}>(
   const res: Partial<Ls> = {};
 
   for (const k of keys) {
-    res[k] = Lens.fromProp<A>()(k);
+    res[k] = fromProp<A>()(k);
   }
 
   return res as Ls;

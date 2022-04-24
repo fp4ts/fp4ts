@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats';
-import { Setter } from '@fp4ts/optics-core';
+import { Setter } from '@fp4ts/optics-core/lib/profunctor';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { SetterLaws } from '../setter-laws';

@@ -4,7 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Option, Some } from '@fp4ts/cats';
-import { Prism } from '@fp4ts/optics-core';
+import {
+  Prism,
+  getOrModify,
+  reverseGet,
+  getOption,
+} from '@fp4ts/optics-core/lib/profunctor';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { OptionalLaws } from './optional-laws';
@@ -14,10 +19,10 @@ export const PrismLaws = <S, A>(prism: Prism<S, A>) => ({
 
   partialRoundTripOneWay: (s: S): IsEq<S> =>
     new IsEq(
-      prism.getOrModify(s).fold(x => x, prism.reverseGet),
+      getOrModify(prism)(s).fold(x => x, reverseGet(prism)),
       s,
     ),
 
   roundTripOtherWay: (a: A): IsEq<Option<A>> =>
-    new IsEq(prism.getOption(prism.reverseGet(a)), Some(a)),
+    new IsEq(getOption(prism)(reverseGet(prism)(a)), Some(a)),
 });

@@ -5,7 +5,7 @@
 
 import { Arbitrary } from 'fast-check';
 import { Eq, Option } from '@fp4ts/cats';
-import { Prism } from '@fp4ts/optics-core';
+import { Prism } from '@fp4ts/optics-core/lib/profunctor';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { PrismLaws } from '../prism-laws';

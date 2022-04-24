@@ -17,6 +17,7 @@ export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
 };
 
 Tagged.pure = Tagged;
+Tagged.unTag = tsb => tsb.unTag;
 
 class _Tagged<S, B> {
   private readonly _S!: (s: S) => void;
@@ -48,6 +49,7 @@ interface TaggedObj {
   <S, B>(b: B): Tagged<S, B>;
 
   pure<S, B>(b: B): Tagged<S, B>;
+  unTag<S, B>(tsb: Tagged<S, B>): B;
 
   // -- Instances
 

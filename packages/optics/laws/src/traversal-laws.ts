@@ -3,8 +3,13 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Identity, List, Option } from '@fp4ts/cats';
-import { Traversal } from '@fp4ts/optics-core';
+import { Function1, Identity, List, Option } from '@fp4ts/cats';
+import {
+  Traversal,
+  headOption,
+  toList,
+  modify,
+} from '@fp4ts/optics-core/lib/profunctor';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SetterLaws } from './setter-laws';
@@ -13,17 +18,17 @@ export const TraversalLaws = <S, A>(traversal: Traversal<S, A>) => ({
   ...SetterLaws(traversal),
 
   headOption: (s: S): IsEq<Option<A>> =>
-    new IsEq(traversal.headOption(s), traversal.getAll(s).headOption),
+    new IsEq(headOption(traversal)(s), toList(traversal)(s).headOption),
 
   modifyGetAll: (s: S, f: (a: A) => A): IsEq<List<A>> =>
     new IsEq(
-      traversal.getAll(traversal.modify(f)(s)),
-      traversal.getAll(s).map(f),
+      toList(traversal)(modify(traversal)(f)(s)),
+      toList(traversal)(s).map(f),
     ),
 
   consistentModifyModifyId: (s: S, a: A): IsEq<S> =>
     new IsEq(
-      traversal.modify(() => a)(s),
-      traversal.modifyA(Identity.Applicative)(() => a)(s),
+      modify(traversal)(() => a)(s),
+      traversal(Identity.Applicative, Function1.ArrowChoice)(() => a)(s),
     ),
 });

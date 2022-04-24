@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either, Left, Option, Right } from '@fp4ts/cats';
-import { Prism } from './prism';
+import { Prism, getOrModify } from './profunctor';
 
 export function match<T>(t: T): Matcher<T, never> {
   return new Matcher(Left(t));
@@ -18,7 +18,7 @@ export function case_<T, B, C>(
 ): Matcher_<T, B | C> {
   return <A>(ea: Either<T, A>) =>
     ea.fold(
-      value => (f ? p.getOrModify(value).map(f) : p.getOrModify(value)),
+      value => (f ? getOrModify(p)(value).map(f) : getOrModify(p)(value)),
       Right,
     );
 }

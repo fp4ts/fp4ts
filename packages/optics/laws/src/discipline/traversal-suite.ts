@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, List, Option } from '@fp4ts/cats';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
-import { Traversal } from '@fp4ts/optics-core';
+import { Traversal } from '@fp4ts/optics-core/lib/profunctor';
 
 import { TraversalLaws } from '../traversal-laws';
 import { SetterSuite } from './setter-suite';

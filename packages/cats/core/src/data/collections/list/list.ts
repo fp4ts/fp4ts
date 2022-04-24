@@ -24,6 +24,7 @@ import { Vector } from '../vector';
 
 import { List as ListBase } from './algebra';
 import {
+  cons,
   empty,
   fromArray,
   fromIterator,
@@ -59,6 +60,8 @@ export const List: ListObj = function <A>(...xs: A[]): List<A> {
 interface ListObj {
   <A>(...xs: A[]): List<A>;
 
+  cons<A>(head: A, tail: List<A>): List<A>;
+
   pure: <A>(x: A) => List<A>;
   empty: List<never>;
   of: <A>(...xs: A[]) => List<A>;
@@ -86,6 +89,7 @@ interface ListObj {
   Eq<A>(E: Eq<A>): Eq<List<A>>;
 }
 
+List.cons = cons;
 List.pure = pure;
 List.empty = empty;
 List.of = of;

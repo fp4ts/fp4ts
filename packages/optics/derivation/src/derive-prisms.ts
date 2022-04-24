@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { SumSchema } from '@fp4ts/schema';
-
-import { Prism } from '@fp4ts/optics-core';
+import { Prism, filtered } from '@fp4ts/optics-core/lib/profunctor';
 
 /* eslint-disable @typescript-eslint/ban-types */
 export function derivePrisms<T extends string, A extends {}>(
@@ -16,9 +15,7 @@ export function derivePrisms<T extends string, A extends {}>(
   const res: Partial<Ps> = {};
 
   for (const tag of tags) {
-    res[tag] = Prism.filter<A, any>(
-      (x: any): x is any => x[sa.tag] === tag,
-    ) as any;
+    res[tag] = filtered<A, any>((x: any): x is any => x[sa.tag] === tag) as any;
   }
 
   return res as Ps;
