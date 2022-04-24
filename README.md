@@ -38,7 +38,7 @@ and [zio-logging](https://github.com/zio/zio-logging). The library provides
 brackets using `Writer`, `WriterT` and `Console` type classes.
 
 - `@fp4ts/optics` Port of the [Monocle](https://github.com/optics-dev/Monocle) library,
-a Scala optics library for easy data access and transformation.
+a Scala optics library for easy data access and transformation built on the profunctor optics.
 
 - `@fp4ts/parse` Adaptation of the [Parsec](https://hackage.haskell.org/package/parsec-3.1.15.0/docs/Text-Parsec.html) library,
 a parser combinator library with polymorphic input and evaluation effect type.

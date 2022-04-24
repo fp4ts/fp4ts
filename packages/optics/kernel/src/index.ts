@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module optics
+ * @module optics/kernel
  */
-export * from '@fp4ts/optics-core';
-export * from '@fp4ts/optics-derivation';
-export * from '@fp4ts/optics-kernel';
+export * from './affine';
+export * from './profunctor-choice';
+export * from './settable';

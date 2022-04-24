@@ -12,6 +12,7 @@
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
     "@fp4ts/optics-core": "*",
+    "@fp4ts/optics-kernel": "*",
     "@fp4ts/optics-derivation": "*"
   },
   "devDependencies": {

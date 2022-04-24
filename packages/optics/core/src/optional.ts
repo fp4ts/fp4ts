@@ -16,9 +16,8 @@ import {
   Tagged,
   TaggedF,
 } from '@fp4ts/cats';
-import { Affine } from './affine';
+import { Affine, ProfunctorChoice } from '@fp4ts/optics-kernel';
 import { Optic, POptic } from './optics';
-import { ProfunctorChoice } from './profunctor-choice';
 import { Getter, to } from './getter';
 
 export type POptional<S, T, A, B> = <F, P>(

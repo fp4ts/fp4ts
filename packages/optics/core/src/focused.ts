@@ -132,7 +132,7 @@ export class Focused<O> {
   }
 
   get<S, A>(this: Focused<G.Getter<S, A>>, s: S): A {
-    return this.asGetting().view(s);
+    return G.get(this.toOptic)(s);
   }
 
   to<S, A, C>(this: Focused<G.Getter<S, A>>, f: (a: A) => C): Focused<G.Getter<S, C>>;
@@ -290,49 +290,3 @@ export class Focused<O> {
       : new Focused(compose_(this.toOptic, that));
   }
 }
-
-import { Identity } from '@fp4ts/cats';
-
-// const r = focus<number[]>()
-//   .to(xs => xs.map(x => `${x}`))
-//   .asGetting()
-//   .view([]);
-
-// const s = focus<number[]>()
-//   .each()
-//   .traverse(Identity.Applicative);
-
-// const x = focus<number>()
-//   .filter(x => x % 2 == 0)
-//   .re();
-
-// const z = focus<number[]>()
-//   .each()
-//   .andThen(x)
-//   .filter(x => x % 2 === 0)
-//   .asGetting(Monoid.addition)
-//   .view([1, 2, 3, 4]);
-// console.log(z);
-
-const y = focus<number>()
-  .filter(x => x % 2 === 0);
-
-const x = focus<number[]>()
-  .prop(0)
-
-const z1 = x.andThen(y);
-const z2 = y.andThen(y.re());
-const z3 = compose_(y.toOptic, y.re().toOptic);
-
-type Address = { city: string; zipCode: number };
-type Person = { name: string, age: number, address: Address, friends: Person[] };
-
-const f = focus<Person>()
-  .prop('address')
-  .prop('city');
-
-const fs = focus<Person>()
-  .prop('friends')
-  .each()
-  .filter(({ age }) => age > 18)
-  .andThen(f);

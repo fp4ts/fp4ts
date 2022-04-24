@@ -5,7 +5,7 @@
 
 import { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats';
-import { Lens } from '@fp4ts/optics-core/lib/profunctor';
+import { Lens } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { LensLaws } from '../lens-laws';

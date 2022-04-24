@@ -9,15 +9,10 @@ export * from './iso';
 export * from './lens';
 export * from './optional';
 export * from './prism';
-export * from './settable';
 export * from './setter';
 export * from './traversal';
 
-export * from './affine';
-export * from './profunctor-choice';
-
 export * from './optics';
-
 export * from './focused';
 export * from './compose';
 export * from './match';

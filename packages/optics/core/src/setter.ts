@@ -3,19 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { constant, flow, Kind } from '@fp4ts/core';
 import {
   Contravariant,
   Function1,
   Function1F,
   Functor,
   IdentityF,
-  Monad,
   Profunctor,
 } from '@fp4ts/cats';
 import { POptic, POptical } from './optics';
-import { Settable } from './settable';
-import { Affine } from './affine';
+import { Affine, Settable } from '@fp4ts/optics-kernel';
 
 export type PSetter<S, T, A, B> = (
   F: Settable<IdentityF>,
@@ -32,25 +30,31 @@ export function modify<S, T, A, B>(
 export function replace<S, T, A, B>(
   l: PSetter<S, T, A, B>,
 ): (b: B) => (s: S) => T {
-  return b => modify(l)(() => b);
+  return flow(constant, modify(l));
 }
 
-export function mapped<F>(
+export function fromFunctor<F>(
   F: Functor<F>,
 ): <A, B>() => PSetter<Kind<F, [A]>, Kind<F, [B]>, A, B> {
   return () => (S, P) => sets(S, P, P)(F.map);
 }
 
-export function lifted<F>(
-  F: Monad<F>,
-): <A, B>() => PSetter<Kind<F, [A]>, Kind<F, [B]>, A, B> {
-  return () => (S, P) => sets(S, P, P)(F.liftM);
-}
-
-export function contramapped<F>(
+export function fromContravariant<F>(
   F: Contravariant<F>,
 ): <A, B>() => PSetter<Kind<F, [B]>, Kind<F, [A]>, A, B> {
   return () => (S, P) => sets(S, P, P)(F.contramap);
+}
+
+export function fromProfunctor<P>(
+  P_: Profunctor<P>,
+): <A, B, R>() => PSetter<Kind<P, [B, R]>, Kind<P, [A, R]>, A, B> {
+  return <A, B, R>() =>
+    ((S, P) => sets(S, P, P)(P_.lmap)) as PSetter<
+      Kind<P, [B, R]>,
+      Kind<P, [A, R]>,
+      A,
+      B
+    >;
 }
 
 export function sets<F, P, Q>(

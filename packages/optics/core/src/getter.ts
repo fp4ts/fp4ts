@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
+import { $, pipe } from '@fp4ts/core';
 import {
   Const,
   ConstF,
@@ -14,8 +14,8 @@ import {
   Monoid,
   Profunctor,
 } from '@fp4ts/cats';
+import { Affine } from '@fp4ts/optics-kernel';
 import { Optic } from './optics';
-import { Affine } from './affine';
 import { Fold } from './fold';
 
 export type Getter<S, A> = <F, P>(
@@ -38,6 +38,10 @@ export function asGetting(R?: Monoid<any>): <S, A>(l: any) => Getting<any, S, A>
 
 export function view<S, A>(g: Getting<A, S, A>): (s: S) => A {
   return g(Const);
+}
+
+export function get<S, A>(g: Getter<S, A>): (s: S) => A {
+  return pipe(g, asGetting(), view);
 }
 
 export function to<S, A>(f: (s: S) => A): Getter<S, A> {

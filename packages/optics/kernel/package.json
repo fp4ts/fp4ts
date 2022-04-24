@@ -1,5 +1,5 @@
 {
-  "name": "@fp4ts/optics-core",
+  "name": "@fp4ts/optics-kernel",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
-    "@fp4ts/core": "*",
-    "@fp4ts/optics-kernel": "*"
+    "@fp4ts/core": "*"
   },
   "devDependencies": {
     "typescript": "4.6.3"

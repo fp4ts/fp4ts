@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { SumSchema } from '@fp4ts/schema';
-import { Prism, filtered } from '@fp4ts/optics-core/lib/profunctor';
+import { Prism, filtered } from '@fp4ts/optics-core';
 
 /* eslint-disable @typescript-eslint/ban-types */
 export function derivePrisms<T extends string, A extends {}>(

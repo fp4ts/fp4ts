@@ -5,7 +5,7 @@
 
 import { Arbitrary } from 'fast-check';
 import { Eq, Option } from '@fp4ts/cats';
-import { Optional } from '@fp4ts/optics-core/lib/profunctor';
+import { Optional } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { OptionalLaws } from '../optional-laws';

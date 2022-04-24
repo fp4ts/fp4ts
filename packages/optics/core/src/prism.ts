@@ -13,7 +13,7 @@ import {
   Right,
   Tagged,
 } from '@fp4ts/cats';
-import { ProfunctorChoice } from './profunctor-choice';
+import { ProfunctorChoice } from '@fp4ts/optics-kernel';
 import { POptic } from './optics';
 
 export type PPrism<S, T, A, B> = <F, P>(

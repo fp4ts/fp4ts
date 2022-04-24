@@ -5,8 +5,8 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Applicative, Function1, Function1F, Traversable } from '@fp4ts/cats';
+import { Affine } from '@fp4ts/optics-kernel';
 import { POptic } from './optics';
-import { Affine } from './affine';
 
 export type PTraversal<S, T, A, B> = <F>(
   F: Applicative<F>,

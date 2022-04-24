@@ -19,21 +19,22 @@ import {
   Right,
   Some,
 } from '@fp4ts/cats';
+import { Affine, ProfunctorChoice } from '@fp4ts/optics-kernel';
 import * as Monoids from './internal/monoids';
 import { Optic, POptic } from './optics';
 import { asGetting, Getting } from './getter';
-import { Affine } from './affine';
-import { ProfunctorChoice } from './profunctor-choice';
 
 export type Fold<S, A> = <F>(
   F: Contravariant<F> & Applicative<F>,
   P: Affine<Function1F>,
 ) => Optic<F, Function1F, S, A>;
 
-export function fromFoldable<G>(
-  G: Foldable<G>,
-): <S, A>(sga: (s: S) => Kind<G, [A]>) => Fold<S, A> {
-  return <S, A>(sga: (s: S) => Kind<G, [A]>) =>
+export function fromFoldable<G>(G: Foldable<G>): {
+  <S, A>(sga: (s: S) => Kind<G, [A]>): Fold<S, A>;
+  <A>(): Fold<Kind<G, [A]>, A>;
+} {
+  const f =
+    <S, A>(sga: (s: S) => Kind<G, [A]>) =>
     <F>(F: Contravariant<F> & Applicative<F>) =>
     (afa: (a: A) => Kind<F, [A]>) =>
     (s: S): Kind<F, [S]> =>
@@ -42,6 +43,8 @@ export function fromFoldable<G>(
         F.map(() => {}),
         F.contramap(() => {}),
       );
+
+  return (sga: any = id) => f(sga) as Fold<any, any>;
 }
 
 export function foldMap<R, A>(

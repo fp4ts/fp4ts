@@ -5,7 +5,7 @@
 
 import type { StructSchema } from '@fp4ts/schema';
 
-import { Lens, fromProp } from '@fp4ts/optics-core/lib/profunctor';
+import { Lens, fromProp } from '@fp4ts/optics-core';
 
 /* eslint-disable @typescript-eslint/ban-types */
 export function deriveLenses<A extends {}>(

@@ -5,8 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Applicative, Contravariant, Function1F } from '@fp4ts/cats';
-import { Affine } from './affine';
-import { Settable } from './settable';
+import { Affine, Settable } from '@fp4ts/optics-kernel';
 
 export type POptical<F, P, Q, S, T, A, B> = {
   (pafb: Kind<P, [A, Kind<F, [B]>]>): Kind<Q, [S, Kind<F, [T]>]>;
