@@ -4,12 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { pipe } from '@fp4ts/core';
-import {
-  Iso,
-  reverseGet,
-  view,
-  asGetting,
-} from '@fp4ts/optics-core/lib/profunctor';
+import { Iso, reverseGet, view, asGetting } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { OptionalLaws } from './optional-laws';

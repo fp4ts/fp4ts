@@ -3,63 +3,44 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Monoid } from '@fp4ts/cats';
-
+import { $ } from '@fp4ts/core';
+import {
+  Const,
+  ConstF,
+  Contravariant,
+  Function1,
+  Function1F,
+  Functor,
+  Monoid,
+  Profunctor,
+} from '@fp4ts/cats';
+import { Optic } from './optics';
+import { Affine } from './affine';
 import { Fold } from './fold';
-import { Optional } from './optional';
-import { At } from './function';
-import { isGetter } from './internal/lens-hierarchy';
 
-export class Getter<S, A> {
-  public constructor(public readonly get: (s: S) => A) {}
+export type Getter<S, A> = <F, P>(
+  F: Contravariant<F> & Functor<F>,
+  P: Affine<P>,
+) => Optic<F, P, S, A>;
 
-  public foldMap<M>(_M: Monoid<M>): (f: (a: A) => M) => (s: S) => M {
-    return f => s => f(this.get(s));
-  }
+export type Getting<R, S, A> = Optic<$<ConstF, [R]>, Function1F, S, A>;
 
-  public choice<S1>(that: Getter<S1, A>): Getter<Either<S, S1>, A> {
-    return new Getter(ea => ea.fold(this.get, that.get));
-  }
+/* eslint-disable prettier/prettier */
+export function asGetting<R>(R: Monoid<R>): <S, A>(l: Fold<S, A>) => Getting<R, S, A>;
+export function asGetting(): <S, A>(l: Getter<S, A>) => Getting<A, S, A>;
+export function asGetting(R?: Monoid<any>): <S, A>(l: any) => Getting<any, S, A> {
+  const P = Function1.ArrowChoice;
+  return R != null
+    ? l => l({ ...Const.Applicative(R), ...Const.Contravariant<any>() }, P)
+    : l => l({ ...Const.Functor<any>(), ...Const.Contravariant<any>() }, P);
+}
+/* eslint-enable prettier/prettier */
 
-  public split<S1, A1>(that: Getter<S1, A1>): Getter<[S, S1], [A, A1]> {
-    return new Getter(([s, s1]) => [this.get(s), that.get(s1)]);
-  }
-
-  public zip<A1>(that: Getter<S, A1>): Getter<S, [A, A1]> {
-    return new Getter(s => [this.get(s), that.get(s)]);
-  }
-
-  public to<C>(this: Getter<S, A>, f: (a: A) => C): Getter<S, C> {
-    return this.andThen(new Getter(f));
-  }
-
-  // -- Composition
-
-  public andThen<B>(that: Getter<A, B>): Getter<S, B>;
-  public andThen<B>(that: Fold<A, B>): Fold<S, B>;
-  public andThen<B>(that: Fold<A, B>): Fold<S, B> {
-    return isGetter(that)
-      ? new Getter(s => that.get(this.get(s)))
-      : this.asFold().andThen(that);
-  }
-
-  // -- Conversion functions
-
-  public asFold(): Fold<S, A> {
-    return new Fold(this.foldMap.bind(this));
-  }
-
-  // -- Additional Syntax
-
-  public filter<B extends A>(f: (a: A) => a is B): Fold<S, B>;
-  public filter(f: (a: A) => boolean): Fold<S, A>;
-  public filter(f: (a: A) => boolean): Fold<S, A> {
-    return this.andThen(Optional.filter(f));
-  }
-
-  public at<I, A1>(this: Getter<S, A>, i: I, at: At<A, I, A1>): Getter<S, A1> {
-    return this.andThen(at.at(i));
-  }
+export function view<S, A>(g: Getting<A, S, A>): (s: S) => A {
+  return g(Const);
 }
 
-export interface Getter<S, A> extends Fold<S, A> {}
+export function to<S, A>(f: (s: S) => A): Getter<S, A> {
+  return <F, P>(F: Contravariant<F>, P: Profunctor<P>): Optic<F, P, S, A> =>
+    P.dimap(f, F.contramap(f));
+}

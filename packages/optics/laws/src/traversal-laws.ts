@@ -4,12 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Function1, Identity, List, Option } from '@fp4ts/cats';
-import {
-  Traversal,
-  headOption,
-  toList,
-  modify,
-} from '@fp4ts/optics-core/lib/profunctor';
+import { Traversal, headOption, toList, modify } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SetterLaws } from './setter-laws';

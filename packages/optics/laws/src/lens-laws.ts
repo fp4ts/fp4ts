@@ -5,13 +5,7 @@
 
 import { pipe } from '@fp4ts/core';
 import { Const, Function1, Identity } from '@fp4ts/cats';
-import {
-  Lens,
-  asGetting,
-  modify,
-  replace,
-  view,
-} from '@fp4ts/optics-core/lib/profunctor';
+import { Lens, asGetting, modify, replace, view } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { OptionalLaws } from './optional-laws';

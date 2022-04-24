@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { Eq, List, None, Some } from '@fp4ts/cats';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
-import { Prism } from '@fp4ts/optics-core';
+import { focus, prism_ } from '@fp4ts/optics-core';
 import { derivePrisms } from '@fp4ts/optics-derivation';
 import {
   PrismSuite,
@@ -31,25 +31,25 @@ describe('Prism', () => {
 
   const { I, S } = deriveConstructors(_IOrS);
   const prsms = derivePrisms(_IOrS);
-  const i = prsms.i.andThen(
-    Prism.collect(
+  const i = focus(prsms.i).andThen(
+    prism_<{ tag: 'i'; value: number }, number>(
       ({ value }) => Some(value),
       value => I({ value }),
     ),
   );
-  const s = prsms.s.andThen(
-    Prism.collect(
+  const s = focus(prsms.s).andThen(
+    prism_<{ tag: 's'; value: string }, string>(
       ({ value }) => Some(value),
       value => S({ value }),
     ),
   );
 
   test('getOption', () => {
-    expect(i.getOption(I({ value: 42 }))).toEqual(Some(42));
-    expect(i.getOption(S({ value: '42' }))).toEqual(None);
+    expect(i.getOptional(I({ value: 42 }))).toEqual(Some(42));
+    expect(i.getOptional(S({ value: '42' }))).toEqual(None);
 
-    expect(s.getOption(I({ value: 42 }))).toEqual(None);
-    expect(s.getOption(S({ value: '42' }))).toEqual(Some('42'));
+    expect(s.getOptional(I({ value: 42 }))).toEqual(None);
+    expect(s.getOptional(S({ value: '42' }))).toEqual(Some('42'));
   });
 
   test('reverseGet', () => {
@@ -115,19 +115,19 @@ describe('Prism', () => {
     );
   });
 
-  test('modifyOption', () => {
-    expect(i.modifyOption(x => x + 1)(I({ value: 42 }))).toEqual(
-      Some(I({ value: 43 })),
-    );
-    expect(i.modifyOption(x => x + 1)(S({ value: '' }))).toEqual(None);
+  // test('modifyOption', () => {
+  //   expect(i.modifyOption(x => x + 1)(I({ value: 42 }))).toEqual(
+  //     Some(I({ value: 43 })),
+  //   );
+  //   expect(i.modifyOption(x => x + 1)(S({ value: '' }))).toEqual(None);
 
-    expect(s.modifyOption(s => s.toUpperCase())(S({ value: 'aa' }))).toEqual(
-      Some(S({ value: 'AA' })),
-    );
-    expect(s.modifyOption(s => s.toUpperCase())(I({ value: 42 }))).toEqual(
-      None,
-    );
-  });
+  //   expect(s.modifyOption(s => s.toUpperCase())(S({ value: 'aa' }))).toEqual(
+  //     Some(S({ value: 'AA' })),
+  //   );
+  //   expect(s.modifyOption(s => s.toUpperCase())(I({ value: 42 }))).toEqual(
+  //     None,
+  //   );
+  // });
 
   test('replace', () => {
     expect(i.replace(1)(I({ value: 42 }))).toEqual(I({ value: 1 }));
@@ -137,24 +137,24 @@ describe('Prism', () => {
     expect(s.replace('')(I({ value: 42 }))).toEqual(I({ value: 42 }));
   });
 
-  test('replaceOption', () => {
-    expect(i.replaceOption(1)(I({ value: 42 }))).toEqual(Some(I({ value: 1 })));
-    expect(i.replaceOption(1)(S({ value: '' }))).toEqual(None);
+  // test('replaceOption', () => {
+  //   expect(i.replaceOption(1)(I({ value: 42 }))).toEqual(Some(I({ value: 1 })));
+  //   expect(i.replaceOption(1)(S({ value: '' }))).toEqual(None);
 
-    expect(s.replaceOption('')(S({ value: 'aa' }))).toEqual(
-      Some(S({ value: '' })),
-    );
-    expect(s.replaceOption('')(I({ value: 42 }))).toEqual(None);
-  });
+  //   expect(s.replaceOption('')(S({ value: 'aa' }))).toEqual(
+  //     Some(S({ value: '' })),
+  //   );
+  //   expect(s.replaceOption('')(I({ value: 42 }))).toEqual(None);
+  // });
 
   test('to', () => {
-    expect(i.to(x => `${x}`).getAll(I({ value: 42 }))).toEqual(List('42'));
-    expect(i.to(x => `${x}`).getAll(S({ value: '' }))).toEqual(List.empty);
+    expect(i.to(x => `${x}`).toList(I({ value: 42 }))).toEqual(List('42'));
+    expect(i.to(x => `${x}`).toList(S({ value: '' }))).toEqual(List.empty);
 
-    expect(s.to(x => x.toUpperCase()).getAll(S({ value: 'aa' }))).toEqual(
+    expect(s.to(x => x.toUpperCase()).toList(S({ value: 'aa' }))).toEqual(
       List('AA'),
     );
-    expect(s.to(x => x.toUpperCase()).getAll(I({ value: 42 }))).toEqual(
+    expect(s.to(x => x.toUpperCase()).toList(I({ value: 42 }))).toEqual(
       List.empty,
     );
   });
@@ -165,16 +165,16 @@ describe('Prism', () => {
 
     checkAll(
       'Prism<I>',
-      PrismSuite(i).prism(iorsArb, fc.integer(), iorsEq, Eq.primitive),
+      PrismSuite(i.toOptic).prism(iorsArb, fc.integer(), iorsEq, Eq.primitive),
     );
     checkAll(
       'Prism<S>',
-      PrismSuite(s).prism(iorsArb, fc.string(), iorsEq, Eq.primitive),
+      PrismSuite(s.toOptic).prism(iorsArb, fc.string(), iorsEq, Eq.primitive),
     );
 
     checkAll(
       'prism.asOptional',
-      OptionalSuite(s.asOptional()).optional(
+      OptionalSuite(s.toOptic).optional(
         iorsArb,
         fc.string(),
         iorsEq,
@@ -183,7 +183,7 @@ describe('Prism', () => {
     );
     checkAll(
       'prism.asTraversal',
-      TraversalSuite(s.asTraversal()).traversal(
+      TraversalSuite(s.toOptic).traversal(
         iorsArb,
         fc.string(),
         iorsEq,
@@ -192,12 +192,7 @@ describe('Prism', () => {
     );
     checkAll(
       'prism.asSetter',
-      SetterSuite(s.asSetter()).setter(
-        iorsArb,
-        fc.string(),
-        iorsEq,
-        Eq.primitive,
-      ),
+      SetterSuite(s.toOptic).setter(iorsArb, fc.string(), iorsEq, Eq.primitive),
     );
   });
 });

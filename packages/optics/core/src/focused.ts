@@ -107,9 +107,11 @@ export class Focused<O> {
   filter<S, A>(this: Focused<OP.Optional<S, A>>, p: (a: A) => boolean): Focused<OP.Optional<S, A>>;
   filter<S, A, B extends A>(this: Focused<T.Traversal<S, A>>, p: (a: A) => a is B): Focused<T.Traversal<S, B>>;
   filter<S, A>(this: Focused<T.Traversal<S, A>>, p: (a: A) => boolean): Focused<T.Traversal<S, A>>;
+  filter<S, A, B extends A>(this: Focused<ST.Setter<S, A>>, p: (a: A) => a is B): Focused<ST.Setter<S, B>>;
+  filter<S, A>(this: Focused<ST.Setter<S, A>>, p: (a: A) => boolean): Focused<ST.Setter<S, A>>;
   filter<S, A, B extends A>(this: Focused<F.Fold<S, A>>, p: (a: A) => a is B): Focused<F.Fold<S, B>>;
   filter<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): Focused<F.Fold<S, A>>;
-  filter<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): Focused<F.Fold<S, A>> {
+  filter<S, A>(this: Focused<AnyOptical<S, S, A, A>>, p: (a: A) => boolean): Focused<AnyOptical<S, S, A, A>> {
     return this.andThen(F.filtered(p));
   }
 

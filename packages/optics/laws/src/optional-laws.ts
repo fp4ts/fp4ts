@@ -6,12 +6,7 @@
 import { Const, Function1, Option, Some } from '@fp4ts/cats';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-import {
-  Optional,
-  getOrModify,
-  replace,
-  getOption,
-} from '@fp4ts/optics-core/lib/profunctor';
+import { Optional, getOrModify, replace, getOption } from '@fp4ts/optics-core';
 import { firstOption } from '@fp4ts/optics-core/lib/internal/monoids';
 
 import { TraversalLaws } from './traversal-laws';

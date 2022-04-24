@@ -3,53 +3,62 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, Kind } from '@fp4ts/core';
-import { Contravariant, Functor, Profunctor } from '@fp4ts/cats';
-import { At } from './function';
-import { Optional } from './optional';
+import { Kind } from '@fp4ts/core';
+import {
+  Contravariant,
+  Function1,
+  Function1F,
+  Functor,
+  IdentityF,
+  Monad,
+  Profunctor,
+} from '@fp4ts/cats';
+import { POptic, POptical } from './optics';
+import { Settable } from './settable';
+import { Affine } from './affine';
 
-export class PSetter<S, T, A, B> {
-  public static readonly fromFunctor =
-    <A, B>() =>
-    <F>(F: Functor<F>): PSetter<Kind<F, [A]>, Kind<F, [B]>, A, B> =>
-      new PSetter(F.map);
+export type PSetter<S, T, A, B> = (
+  F: Settable<IdentityF>,
+  P: Affine<Function1F>,
+) => POptic<IdentityF, Function1F, S, T, A, B>;
+export type Setter<S, A> = PSetter<S, S, A, A>;
 
-  public static readonly fromContravariant =
-    <A, B>() =>
-    <F>(F: Contravariant<F>): PSetter<Kind<F, [B]>, Kind<F, [A]>, A, B> =>
-      new PSetter(F.contramap);
-
-  public static readonly fromProfunctor =
-    <A, B, C>() =>
-    <F>(F: Profunctor<F>): PSetter<Kind<F, [B, C]>, Kind<F, [A, C]>, A, B> =>
-      new PSetter(f => F.lmap(f));
-
-  public constructor(public readonly modify: (f: (a: A) => B) => (s: S) => T) {}
-
-  public replace(b: B): (s: S) => T {
-    return this.modify(() => b);
-  }
-
-  // -- Composition
-
-  public andThen<C, D>(that: PSetter<A, B, C, D>): PSetter<S, T, C, D> {
-    return new PSetter(compose(this.modify, f => that.modify(f)));
-  }
-
-  // -- Additional Syntax
-
-  public filter<B extends A>(
-    this: Setter<S, A>,
-    f: (a: A) => a is B,
-  ): Setter<S, B>;
-  public filter(this: Setter<S, A>, f: (a: A) => boolean): Setter<S, A>;
-  public filter(this: Setter<S, A>, f: (a: A) => boolean): Setter<S, A> {
-    return this.andThen(Optional.filter(f));
-  }
-
-  public at<I, A1>(this: Setter<S, A>, i: I, at: At<A, I, A1>): Setter<S, A1> {
-    return this.andThen(at.at(i));
-  }
+export function modify<S, T, A, B>(
+  l: PSetter<S, T, A, B>,
+): (f: (a: A) => B) => (s: S) => T {
+  return l(Settable.Identity, Function1.ArrowChoice);
 }
 
-export class Setter<S, A> extends PSetter<S, S, A, A> {}
+export function replace<S, T, A, B>(
+  l: PSetter<S, T, A, B>,
+): (b: B) => (s: S) => T {
+  return b => modify(l)(() => b);
+}
+
+export function mapped<F>(
+  F: Functor<F>,
+): <A, B>() => PSetter<Kind<F, [A]>, Kind<F, [B]>, A, B> {
+  return () => (S, P) => sets(S, P, P)(F.map);
+}
+
+export function lifted<F>(
+  F: Monad<F>,
+): <A, B>() => PSetter<Kind<F, [A]>, Kind<F, [B]>, A, B> {
+  return () => (S, P) => sets(S, P, P)(F.liftM);
+}
+
+export function contramapped<F>(
+  F: Contravariant<F>,
+): <A, B>() => PSetter<Kind<F, [B]>, Kind<F, [A]>, A, B> {
+  return () => (S, P) => sets(S, P, P)(F.contramap);
+}
+
+export function sets<F, P, Q>(
+  F: Settable<F>,
+  P: Profunctor<P>,
+  Q: Profunctor<Q>,
+): <S, T, A, B>(
+  pabqst: (pab: Kind<P, [A, B]>) => Kind<Q, [S, T]>,
+) => POptical<F, P, Q, S, T, A, B> {
+  return pabqst => pafb => F.taintedDot(Q)(pabqst(F.untaintedDot(P)(pafb)));
+}

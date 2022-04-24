@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Either, Left, Option, Right } from '@fp4ts/cats';
-import { Prism, getOrModify } from './profunctor';
+import { Prism } from './prism';
+import { getOrModify } from './optional';
 
 export function match<T>(t: T): Matcher<T, never> {
   return new Matcher(Left(t));

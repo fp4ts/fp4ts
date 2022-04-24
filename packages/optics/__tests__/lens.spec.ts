@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List, Map, Monoid, None, Ord, Some } from '@fp4ts/cats';
-import { At, Iso, Lens } from '@fp4ts/optics-core';
+import { Eq, List, Monoid, None, Some } from '@fp4ts/cats';
+import { focus, fromProp } from '@fp4ts/optics-core';
 import { deriveLenses } from '@fp4ts/optics-derivation';
 import {
   LensSuite,
@@ -30,15 +30,11 @@ describe('Lens', () => {
   const arbExample = _Example.interpret(ArbitraryInstances.Schemable);
   const eqExample = _Example.interpret(Schemable.Eq);
 
-  const s = Lens.fromProp<Example>()('s');
-  const p = Lens.fromProp<Example>()('p');
+  const s = focus(fromProp<Example>()('s'));
+  const p = focus(fromProp<Example>()('p'));
 
-  const { x, y } = deriveLenses(_Point);
-  const xy = new Lens<Point, [number, number]>(
-    ({ x, y }) => [x, y],
-    ([x, y]) =>
-      () => ({ x, y }),
-  );
+  const x = focus(deriveLenses(_Point).x);
+  const y = focus(deriveLenses(_Point).y);
 
   it('should compose', () => {
     expect(p.andThen(x).get(Example('', Point(2, 3)))).toBe(2);
@@ -53,21 +49,23 @@ describe('Lens', () => {
   });
 
   it('should compose with subclasses', () => {
-    expect(p.andThen(x.asGetter()).get(Example('', Point(2, 3)))).toEqual(2);
     expect(
-      p.andThen(x.asOptional()).getOption(Example('', Point(2, 3))),
-    ).toEqual(Some(2));
-    expect(p.andThen(x.asTraversal()).getAll(Example('', Point(2, 3)))).toEqual(
-      List(2),
-    );
-    expect(
-      p.andThen(x.asFold()).foldMap(Monoid.addition)(x => x)(
-        Example('', Point(2, 3)),
-      ),
+      p
+        .andThen(x)
+        .asGetting()
+        .view(Example('', Point(2, 3))),
     ).toEqual(2);
+    expect(p.andThen(x).getOptional(Example('', Point(2, 3)))).toEqual(Some(2));
+    expect(p.andThen(x).toList(Example('', Point(2, 3)))).toEqual(List(2));
     expect(
-      p.andThen(x.asSetter()).replace(42)(Example('', Point(2, 3))),
-    ).toEqual(Example('', Point(42, 3)));
+      p
+        .andThen(x)
+        .asGetting(Monoid.addition)
+        .foldMap(x => x)(Example('', Point(2, 3))),
+    ).toEqual(2);
+    expect(p.andThen(x).replace(42)(Example('', Point(2, 3)))).toEqual(
+      Example('', Point(42, 3)),
+    );
   });
 
   test('get', () => {
@@ -105,34 +103,41 @@ describe('Lens', () => {
   });
 
   test('filter', () => {
-    expect(x.filter(x => x % 2 === 0).getOption(Point(2, 3))).toEqual(Some(2));
-    expect(y.filter(x => x % 2 === 0).getOption(Point(2, 3))).toEqual(None);
+    expect(x.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(
+      Some(2),
+    );
+    expect(y.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(None);
   });
 
-  test('at', () => {
-    const map = Map([1, 'one']);
-    const mapLens = Iso.id<Map<number, string>>().asLens();
-    const at = At.Map<number, string>(Ord.primitive);
+  // test('at', () => {
+  //   const map = Map([1, 'one']);
+  //   const mapLens = Iso.id<Map<number, string>>().asLens();
+  //   const at = At.Map<number, string>(Ord.primitive);
 
-    expect(mapLens.at(1, at).get(map)).toEqual(Some('one'));
-    expect(mapLens.at(0, at).get(map)).toEqual(None);
-    expect(mapLens.at(1, at).replace(Some('two'))(map)).toEqual(
-      Map([1, 'two']),
-    );
-    expect(mapLens.at(0, at).replace(Some('two'))(map)).toEqual(
-      Map([0, 'two'], [1, 'one']),
-    );
-    expect(mapLens.at(1, at).replace(None)(map)).toEqual(Map.empty);
-  });
+  //   expect(mapLens.at(1, at).get(map)).toEqual(Some('one'));
+  //   expect(mapLens.at(0, at).get(map)).toEqual(None);
+  //   expect(mapLens.at(1, at).replace(Some('two'))(map)).toEqual(
+  //     Map([1, 'two']),
+  //   );
+  //   expect(mapLens.at(0, at).replace(Some('two'))(map)).toEqual(
+  //     Map([0, 'two'], [1, 'one']),
+  //   );
+  //   expect(mapLens.at(1, at).replace(None)(map)).toEqual(Map.empty);
+  // });
 
   describe('Laws', () => {
     checkAll(
       'Lens<Example, string>',
-      LensSuite(s).lens(arbExample, fc.string(), eqExample, Eq.primitive),
+      LensSuite(s.toOptic).lens(
+        arbExample,
+        fc.string(),
+        eqExample,
+        Eq.primitive,
+      ),
     );
     checkAll(
       'Lens<Example, Point> . Lens<Point, number>',
-      LensSuite(p.andThen(x)).lens(
+      LensSuite(p.andThen(x).toOptic).lens(
         arbExample,
         fc.integer(),
         eqExample,
@@ -141,7 +146,7 @@ describe('Lens', () => {
     );
     checkAll(
       'lens.asOptional',
-      OptionalSuite(s).optional(
+      OptionalSuite(s.toOptic).optional(
         arbExample,
         fc.string(),
         eqExample,
@@ -150,7 +155,7 @@ describe('Lens', () => {
     );
     checkAll(
       'lens.asTraversal',
-      TraversalSuite(s).traversal(
+      TraversalSuite(s.toOptic).traversal(
         arbExample,
         fc.string(),
         eqExample,
@@ -159,7 +164,12 @@ describe('Lens', () => {
     );
     checkAll(
       'lens.asSetter',
-      SetterSuite(s).setter(arbExample, fc.string(), eqExample, Eq.primitive),
+      SetterSuite(s.toOptic).setter(
+        arbExample,
+        fc.string(),
+        eqExample,
+        Eq.primitive,
+      ),
     );
   });
 });

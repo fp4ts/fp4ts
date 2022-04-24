@@ -3,393 +3,79 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, Kind } from '@fp4ts/core';
-import { Applicative, Either, Functor, Option, Right, Some } from '@fp4ts/cats';
+import { Kind, pipe, tupled } from '@fp4ts/core';
+import { Functor, Strong } from '@fp4ts/cats';
+import { POptic } from './optics';
 
-import { PSetter } from './setter';
-import { PTraversal } from './traversal';
-import { Optional, POptional } from './optional';
-import { Getter } from './getter';
-import { Fold } from './fold';
-import { At } from './function';
-import { PIso } from './iso';
-import { isGetter, isLens } from './internal/lens-hierarchy';
+export type PLens<S, T, A, B> = <F, P>(
+  F: Functor<F>,
+  P: Strong<P>,
+) => POptic<F, P, S, T, A, B>;
+export type Lens<S, A> = PLens<S, S, A, A>;
 
-export class PLens<S, T, A, B> {
-  public static fromPath<S>(): LensPath<S> {
-    const id = PIso.id<S>();
-    const fromProp = PLens.fromProp<any>();
-    return (...path: any[]) => {
-      return path.reduce((acc, prop) => acc.andThen(fromProp(prop)), id);
-    };
-  }
-
-  public static fromProp<S>(): <K extends keyof S>(k: K) => Lens<S, S[K]> {
-    return k =>
-      new Lens(
-        s => s[k],
-        x => s => ({ ...s, [k]: x }),
+export function lens<S, T, A, B>(
+  get: (s: S) => A,
+  replace: (b: B) => (s: S) => T,
+): PLens<S, T, A, B> {
+  return <F, P>(F: Functor<F>, P: Strong<P>) =>
+    (pafb: Kind<P, [A, Kind<F, [B]>]>) =>
+      pipe(
+        pafb,
+        P.first<S>(),
+        P.dimap(
+          s => tupled(get(s), s),
+          ([fb, s]) => F.map_(fb, b => replace(b)(s)),
+        ),
       );
-  }
-
-  public static fromProps<S>(): FromProps<S> {
-    return (...ks: any[]) =>
-      new PLens<any, any, any, any>(
-        a => Object.fromEntries(ks.map(k => [k, a[k]])),
-        a => s => ({ ...s, ...a }),
-      ) as any;
-  }
-
-  public constructor(
-    public readonly get: (s: S) => A,
-    public readonly replace: (b: B) => (s: S) => T,
-  ) {}
-
-  public modifyF<F>(
-    F: Functor<F>,
-  ): (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]> {
-    return f => s => F.map_(f(this.get(s)), b => this.replace(b)(s));
-  }
-  public modifyA<F>(
-    F: Applicative<F>,
-  ): (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]> {
-    return this.modifyF(F);
-  }
-
-  public modify(f: (a: A) => B): (s: S) => T {
-    return s => this.replace(f(this.get(s)))(s);
-  }
-
-  public getOrModify(s: S): Either<T, A> {
-    return Right(this.get(s));
-  }
-
-  public getOption(s: S): Option<A> {
-    return Some(this.get(s));
-  }
-
-  // -- Composition
-
-  public andThen<C, D>(that: PLens<A, B, C, D>): PLens<S, T, C, D>;
-  public andThen<C, D>(that: POptional<A, B, C, D>): POptional<S, T, C, D>;
-  public andThen<C, D>(that: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
-  public andThen<C, D>(that: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
-  public andThen<C>(that: Getter<A, C>): Getter<S, C>;
-  public andThen<C>(that: Fold<A, C>): Fold<S, C>;
-  public andThen<C, D>(
-    that: Getter<A, C> | Fold<A, C> | PSetter<A, B, C, D>,
-  ): Getter<S, C> | Fold<S, C> | PSetter<S, T, C, D> {
-    return isLens(that)
-      ? new PLens(compose(that.get, this.get), d =>
-          this.modify(that.replace(d)),
-        )
-      : isGetter(that)
-      ? this.asGetter().andThen(that)
-      : this.asOptional().andThen(that as any);
-  }
-
-  // -- Conversions
-
-  public asFold(): Fold<S, A> {
-    return this.asGetter().asFold();
-  }
-
-  public asGetter(): Getter<S, A> {
-    return new Getter(this.get);
-  }
-
-  public asSetter(): PSetter<S, T, A, B> {
-    return new PSetter(this.modify.bind(this));
-  }
-
-  public asTraversal(): PTraversal<S, T, A, B> {
-    return new PTraversal(this.modifyA.bind(this));
-  }
-
-  public asOptional(): POptional<S, T, A, B> {
-    return new POptional(this.getOrModify.bind(this), this.replace);
-  }
-
-  public to<C>(this: Lens<S, A>, f: (a: A) => C): Getter<S, C> {
-    return this.andThen(new Getter(f));
-  }
-
-  // -- Additional Syntax
-
-  public filter<B extends A>(
-    this: Lens<S, A>,
-    f: (a: A) => a is B,
-  ): Optional<S, B>;
-  public filter(this: Lens<S, A>, f: (a: A) => boolean): Optional<S, A>;
-  public filter(this: Lens<S, A>, f: (a: A) => boolean): Optional<S, A> {
-    return this.asOptional().filter(f);
-  }
-
-  public at<I, A1>(this: Lens<S, A>, i: I, at: At<A, I, A1>): Lens<S, A1> {
-    return this.andThen(at.at(i));
-  }
 }
 
-export interface PLens<S, T, A, B>
-  extends POptional<S, T, A, B>,
-    Getter<S, A> {}
-export class Lens<S, A> extends PLens<S, S, A, A> {}
-
-export interface FromProps<S> {
-  (...path: []): Lens<S, S>;
-  <K1 extends keyof S>(...path: [K1]): Lens<S, { [k in K1]: S[k] }>;
-  <K1 extends keyof S, K2 extends keyof Omit<S, K1>>(...path: [K1, K2]): Lens<
-    S,
-    { [k in K1 | K2]: S[k] }
-  >;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-  >(
-    ...props: [K1, K2, K3]
-  ): Lens<S, { [k in K1 | K2 | K3]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-  >(
-    ...props: [K1, K2, K3, K4]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-  >(
-    ...props: [K1, K2, K3, K4, K5]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5]: S[k] }>;
-
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6]: S[k] }>;
-
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7, K8]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
-    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
-    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
-    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10]
-  ): Lens<S, { [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10]: S[k] }>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
-    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
-    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
-    K11 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10>,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11]
-  ): Lens<
-    S,
-    {
-      [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11]: S[k];
-    }
-  >;
-  <
-    K1 extends keyof S,
-    K2 extends keyof Omit<S, K1>,
-    K3 extends keyof Omit<S, K1 | K2>,
-    K4 extends keyof Omit<S, K1 | K2 | K3>,
-    K5 extends keyof Omit<S, K1 | K2 | K3 | K4>,
-    K6 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5>,
-    K7 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6>,
-    K8 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7>,
-    K9 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8>,
-    K10 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9>,
-    K11 extends keyof Omit<S, K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10>,
-    K12 extends keyof Omit<
-      S,
-      K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11
-    >,
-  >(
-    ...props: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12]
-  ): Lens<
-    S,
-    {
-      [k in K1 | K2 | K3 | K4 | K5 | K6 | K7 | K8 | K9 | K10 | K11 | K12]: S[k];
-    }
-  >;
+export function nth<S extends unknown[]>(): <I extends keyof S>(
+  i: I,
+) => Lens<S, S[I]> {
+  return <I extends keyof S>(i: I) =>
+    <F, P>(F: Functor<F>, P: Strong<P>) =>
+    (psifsi: Kind<P, [S[I], Kind<F, [S[I]]>]>) =>
+      pipe(
+        psifsi,
+        P.first<S>(),
+        P.dimap(
+          s => tupled(s[i], s),
+          ([fsi, s]) =>
+            F.map_(fsi, si => s.map((x, idx) => (idx === i ? si : x)) as S),
+        ),
+      );
 }
 
-export interface LensPath<S> {
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-    K8 extends keyof S[K1][K2][K3][K4][K5][K6][K7],
-    K9 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8],
-    K10 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9],
-    K11 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10],
-    K12 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10][K11],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10][K11][K12]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-    K8 extends keyof S[K1][K2][K3][K4][K5][K6][K7],
-    K9 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8],
-    K10 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9],
-    K11 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10][K11]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-    K8 extends keyof S[K1][K2][K3][K4][K5][K6][K7],
-    K9 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8],
-    K10 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8][K9],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7, K8, K9, K10]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7][K8][K9][K10]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-    K8 extends keyof S[K1][K2][K3][K4][K5][K6][K7],
-    K9 extends keyof S[K1][K2][K3][K4][K5][K6][K7][K8],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7, K8, K9]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7][K8][K9]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-    K8 extends keyof S[K1][K2][K3][K4][K5][K6][K7],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7, K8]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7][K8]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-    K7 extends keyof S[K1][K2][K3][K4][K5][K6],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6, K7]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6][K7]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-    K6 extends keyof S[K1][K2][K3][K4][K5],
-  >(
-    ...path: [K1, K2, K3, K4, K5, K6]
-  ): Lens<S, S[K1][K2][K3][K4][K5][K6]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-    K5 extends keyof S[K1][K2][K3][K4],
-  >(
-    ...path: [K1, K2, K3, K4, K5]
-  ): Lens<S, S[K1][K2][K3][K4][K5]>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S[K1],
-    K3 extends keyof S[K1][K2],
-    K4 extends keyof S[K1][K2][K3],
-  >(
-    ...path: [K1, K2, K3, K4]
-  ): Lens<S, S[K1][K2][K3][K4]>;
-  <K1 extends keyof S, K2 extends keyof S[K1], K3 extends keyof S[K1][K2]>(
-    ...path: [K1, K2, K3]
-  ): Lens<S, S[K1][K2][K3]>;
-  <K1 extends keyof S, K2 extends keyof S[K1]>(...path: [K1, K2]): Lens<
-    S,
-    S[K1][K2]
-  >;
-  <K1 extends keyof S>(...path: [K1]): Lens<S, S[K1]>;
-  (...path: []): Lens<S, S>;
+export function fst<A, C, B = A>(): PLens<[A, C], [B, C], A, B> {
+  return <F, P>(F: Functor<F>, P: Strong<P>) =>
+    (pafb: Kind<P, [A, Kind<F, [B]>]>) =>
+      pipe(
+        pafb,
+        P.first<C>(),
+        P.rmap(([fb, c]) => F.map_(fb, b => tupled(b, c))),
+      );
+}
+
+export function snd<C, A, B = A>(): PLens<[C, A], [C, B], A, B> {
+  return <F, P>(F: Functor<F>, P: Strong<P>) =>
+    (pafb: Kind<P, [A, Kind<F, [B]>]>) =>
+      pipe(
+        pafb,
+        P.second<C>(),
+        P.rmap(([c, fb]) => F.map_(fb, b => tupled(c, b))),
+      );
+}
+
+export function fromProp<S>(): <K extends keyof S>(k: K) => Lens<S, S[K]> {
+  return <K extends keyof S>(k: K) =>
+    <F, P>(F: Functor<F>, P: Strong<P>) =>
+    (pskfsk: Kind<P, [S[K], Kind<F, [S[K]]>]>) =>
+      pipe(
+        pskfsk,
+        P.first<S>(),
+        P.dimap(
+          s => tupled(s[k], s),
+          ([fsk, s]) => F.map_(fsk, sk => ({ ...s, [k]: sk })),
+        ),
+      );
 }

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { compose } from '@fp4ts/core';
-import { Setter, replace, modify } from '@fp4ts/optics-core/lib/profunctor';
+import { Setter, replace, modify } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const SetterLaws = <S, A>(setter: Setter<S, A>) => ({

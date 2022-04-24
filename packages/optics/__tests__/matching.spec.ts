@@ -5,7 +5,7 @@
 
 import { Left, Right } from '@fp4ts/cats';
 import { Char, flow, pipe } from '@fp4ts/core';
-import { Prism, match, case_ } from '@fp4ts/optics-core';
+import { match, case_, filtered, focus } from '@fp4ts/optics-core';
 
 describe('Matching', () => {
   type A = { type: 'a'; value: Char };
@@ -13,9 +13,9 @@ describe('Matching', () => {
   type C = { type: 'c'; value: number };
   type ABC = A | B | C;
 
-  const _A = Prism.filter<ABC, A>((x): x is A => x.type === 'a');
-  const _B = Prism.filter<ABC, B>((x): x is B => x.type === 'b');
-  const _C = Prism.filter<ABC, C>((x): x is C => x.type === 'c');
+  const _A = filtered<ABC, A>((x): x is A => x.type === 'a');
+  const _B = filtered<ABC, B>((x): x is B => x.type === 'b');
+  const _C = filtered<ABC, C>((x): x is C => x.type === 'c');
 
   describe('chaining', () => {
     it.each`
@@ -28,7 +28,7 @@ describe('Matching', () => {
       expect(
         match(input as ABC)
           .case(
-            _A.filter(({ value }) => value.length > 2),
+            focus(_A).filter(({ value }) => value.length > 2).toOptic,
             ({ value }) => `${value}`.toUpperCase(),
           )
           .case(_A, ({ value }) => `${value}`)
@@ -51,7 +51,7 @@ describe('Matching', () => {
         pipe(
           Left(input),
           case_(
-            _A.filter(({ value }) => value.length > 2),
+            focus(_A).filter(({ value }) => value.length > 2).toOptic,
             ({ value }) => `${value}`.toUpperCase(),
           ),
           case_(_A, ({ value }) => `${value}`),
@@ -73,7 +73,7 @@ describe('Matching', () => {
       expect(
         flow(
           case_(
-            _A.filter(({ value }) => value.length > 2),
+            focus(_A).filter(({ value }) => value.length > 2).toOptic,
             ({ value }) => `${value}`.toUpperCase(),
           ),
           case_(_A, ({ value }) => `${value}`),

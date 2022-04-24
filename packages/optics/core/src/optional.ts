@@ -3,122 +3,91 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
-import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
-import { PSetter } from './setter';
-import { PTraversal } from './traversal';
-import { Fold } from './fold';
-import { At } from './function';
-import { isOptional } from './internal/lens-hierarchy';
+import { flow, Kind, pipe } from '@fp4ts/core';
+import {
+  Applicative,
+  Either,
+  Function1,
+  Identity,
+  IdentityF,
+  Left,
+  Option,
+  Right,
+  Tagged,
+  TaggedF,
+} from '@fp4ts/cats';
+import { Affine } from './affine';
+import { Optic, POptic } from './optics';
+import { ProfunctorChoice } from './profunctor-choice';
+import { Getter, to } from './getter';
 
-export class POptional<S, T, A, B> {
-  public static filter<A, B extends A>(f: (a: A) => a is B): Optional<A, B>;
-  public static filter<A>(f: (a: A) => boolean): Optional<A, A>;
-  public static filter<A>(f: (a: A) => boolean): Optional<A, A> {
-    return new POptional(
-      value => (f(value) ? Right(value) : Left(value)),
-      newValue => current => f(newValue) ? newValue : current,
-    );
-  }
+export type POptional<S, T, A, B> = <F, P>(
+  F: Applicative<F>,
+  P: Affine<P>,
+) => POptic<F, P, S, T, A, B>;
+export type Optional<S, A> = POptional<S, S, A, A>;
 
-  public constructor(
-    public readonly getOrModify: (s: S) => Either<T, A>,
-    public readonly replace: (b: B) => (s: S) => T,
-  ) {}
-
-  public getOption(s: S): Option<A> {
-    return this.getOrModify(s).toOption;
-  }
-
-  public modifyA<F>(
-    F: Applicative<F>,
-  ): (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]> {
-    return f => s =>
-      this.getOrModify(s).fold(
-        t => F.pure(t),
-        a => F.map_(f(a), b => this.replace(b)(s)),
-      );
-  }
-
-  public modify(f: (a: A) => B): (s: S) => T {
-    return s =>
-      this.getOrModify(s).fold(
-        t => t,
-        a => this.replace(f(a))(s),
-      );
-  }
-
-  public modifyOption(f: (a: A) => B): (s: S) => Option<T> {
-    return s => this.getOption(s).map(a => this.replace(f(a))(s));
-  }
-
-  public replaceOption(b: B): (s: S) => Option<T> {
-    return this.modifyOption(() => b);
-  }
-
-  public orElse(that: POptional<S, T, A, B>): POptional<S, T, A, B> {
-    return new POptional(
-      s => this.getOrModify(s).orElse(() => that.getOrModify(s)),
-      b => s => this.replaceOption(b)(s).getOrElse(() => that.replace(b)(s)),
-    );
-  }
-
-  // -- Composition
-
-  public andThen<C, D>(that: POptional<A, B, C, D>): POptional<S, T, C, D>;
-  public andThen<C, D>(that: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
-  public andThen<C, D>(that: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
-  public andThen<C, D>(that: Fold<A, C>): Fold<S, C>;
-  public andThen<C, D>(
-    that: PSetter<A, B, C, D> | Fold<A, C>,
-  ): PSetter<S, T, C, D> | Fold<S, C> {
-    return isOptional(that)
-      ? new POptional(
-          s =>
-            this.getOrModify(s).flatMap(a =>
-              that.getOrModify(a).leftMap(x => this.replace(x)(s)),
+export function optional<S, T, A, B>(
+  getOrModify: (s: S) => Either<T, A>,
+  replace: (b: B) => (s: S) => T,
+): POptional<S, T, A, B> {
+  return <F, P>(F: Applicative<F>, P: Affine<P>) =>
+    (pafb: Kind<P, [A, Kind<F, [B]>]>): Kind<P, [S, Kind<F, [T]>]> =>
+      pipe(
+        pafb,
+        P.right<T>(),
+        P.second<S>(),
+        P.dimap(
+          s => [s, getOrModify(s)],
+          ([s, etfb]) =>
+            etfb.fold(
+              F.pure,
+              F.map(b => replace(b)(s)),
             ),
-          d => this.modify(that.replace(d)),
-        )
-      : this.asTraversal().andThen(that as any);
-  }
-
-  // -- Conversions
-
-  public asFold(): Fold<S, A> {
-    return this.asTraversal().asFold();
-  }
-
-  public asSetter(): PSetter<S, T, A, B> {
-    return new PSetter(this.modify.bind(this));
-  }
-
-  public asTraversal(): PTraversal<S, T, A, B> {
-    return new PTraversal(this.modifyA.bind(this));
-  }
-
-  // -- Additional Syntax
-
-  public filter<B extends A>(
-    this: Optional<S, A>,
-    f: (a: A) => a is B,
-  ): Optional<S, B>;
-  public filter(this: Optional<S, A>, f: (a: A) => boolean): Optional<S, A>;
-  public filter(this: Optional<S, A>, f: (a: A) => boolean): Optional<S, A> {
-    return this.andThen(Optional.filter(f));
-  }
-
-  public at<I, A1>(
-    this: Optional<S, A>,
-    i: I,
-    at: At<A, I, A1>,
-  ): Optional<S, A1> {
-    return this.andThen(at.at(i));
-  }
+        ),
+      );
 }
 
-export interface POptional<S, T, A, B> extends PTraversal<S, T, A, B> {
-  at<I, A1>(this: Optional<S, A>, i: I, at: At<A, I, A1>): Optional<S, A1>;
+export function optional_<S, A>(
+  getOptional: (s: S) => Option<A>,
+  replace: (a: A) => (s: S) => S,
+): Optional<S, A> {
+  return optional(
+    s =>
+      getOptional(s).fold(
+        () => Left(s),
+        a => Right(a),
+      ),
+    replace,
+  );
 }
 
-export class Optional<S, A> extends POptional<S, S, A, A> {}
+export function getOrModify<S, T, A, B>(
+  l: POptional<S, T, A, B>,
+): (s: S) => Either<T, A> {
+  return flow(
+    l(Either.Applicative<A>(), Function1.ArrowChoice)(Left),
+    at => at.swapped,
+  );
+}
+
+export function getOption<S, T, A, B>(
+  l: POptional<S, T, A, B>,
+): (s: S) => Option<A> {
+  return flow(getOrModify(l), ea => ea.toOption);
+}
+
+export function re<T, B>(
+  l: (
+    F: Applicative<IdentityF>,
+    P: ProfunctorChoice<TaggedF>,
+  ) => Optic<IdentityF, TaggedF, T, B>,
+): Getter<B, T> {
+  return to(
+    flow(
+      Tagged,
+      l(Identity.Applicative, ProfunctorChoice.Tagged),
+      Tagged.unTag,
+    ),
+  );
+}
