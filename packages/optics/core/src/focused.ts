@@ -7,10 +7,13 @@ import { Kind } from '@fp4ts/core';
 import {
   Applicative,
   Array,
+  Dual,
   Either,
+  Endo,
   List,
   Monoid,
   Option,
+  Semigroup,
   Traversable,
 } from '@fp4ts/cats';
 import * as I from './iso';
@@ -52,11 +55,18 @@ export class Focused<O> {
   }
 
   foldMap<R, S, A>(this: Focused<G.Getting<R, S, A>>, f: (a: A) => R): (s: S) => R {
-    return F.foldMap(f)(this.toOptic);
+    return F.foldMap(this.toOptic)(f);
   }
 
   fold<S, A>(this: Focused<G.Getting<A, S, A>>, s: S): A {
     return F.fold(this.toOptic)(s);
+  }
+
+  foldRight<R, S, A>(this: Focused<F.Fold<S, A>>, z: R, f: (a: A, r: R) => R):  (s: S) => R {
+    return F.foldRight(this.toOptic)(z, f);
+  }
+  foldLeft<R, S, A>(this: Focused<F.Fold<S, A>>, z: R, f: (r: R, a: A) => R):  (s: S) => R {
+    return F.foldLeft(this.toOptic)(z, f);
   }
 
   toList<S, A>(this: Focused<F.Fold<S, A>>, s: S): List<A> {
@@ -123,6 +133,28 @@ export class Focused<O> {
 
   replace<S, T, A, B>(this: Focused<ST.PSetter<S, T, A, B>>, b: B): (s: S) => T {
     return ST.replace(this.toOptic)(b);
+  }
+
+  plus<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
+    return ST.plus(this.toOptic)(n);
+  }
+  sub<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
+    return ST.sub(this.toOptic)(n);
+  }
+  mul<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
+    return ST.mul(this.toOptic)(n);
+  }
+  div<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
+    return ST.div(this.toOptic)(n);
+  }
+  and<S, T>(this: Focused<ST.PSetter<S, T, boolean, boolean>>, n: boolean): (s: S) => T {
+    return ST.and(this.toOptic)(n);
+  }
+  or<S, T>(this: Focused<ST.PSetter<S, T, boolean, boolean>>, n: boolean): (s: S) => T {
+    return ST.or(this.toOptic)(n);
+  }
+  concat<S, T, A>(this: Focused<ST.PSetter<S, T, A, A>>, S: Semigroup<A>): (a: A) => (s: S) => T {
+    return ST.concat(S)(this.toOptic);
   }
 
   // -- Getter

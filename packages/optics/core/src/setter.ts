@@ -11,9 +11,10 @@ import {
   Functor,
   IdentityF,
   Profunctor,
+  Semigroup,
 } from '@fp4ts/cats';
-import { POptic, POptical } from './optics';
 import { Affine, Settable } from '@fp4ts/optics-kernel';
+import { POptic, POptical } from './optics';
 
 export type PSetter<S, T, A, B> = (
   F: Settable<IdentityF>,
@@ -31,6 +32,48 @@ export function replace<S, T, A, B>(
   l: PSetter<S, T, A, B>,
 ): (b: B) => (s: S) => T {
   return flow(constant, modify(l));
+}
+
+export function plus<S, T>(
+  l: PSetter<S, T, number, number>,
+): (n: number) => (s: S) => T {
+  return n => modify(l)(x => x + n);
+}
+
+export function sub<S, T>(
+  l: PSetter<S, T, number, number>,
+): (n: number) => (s: S) => T {
+  return n => modify(l)(x => x - n);
+}
+
+export function mul<S, T>(
+  l: PSetter<S, T, number, number>,
+): (n: number) => (s: S) => T {
+  return n => modify(l)(x => x * n);
+}
+
+export function div<S, T>(
+  l: PSetter<S, T, number, number>,
+): (n: number) => (s: S) => T {
+  return n => modify(l)(x => x / n);
+}
+
+export function and<S, T>(
+  l: PSetter<S, T, boolean, boolean>,
+): (n: boolean) => (s: S) => T {
+  return n => modify(l)(x => x && n);
+}
+
+export function or<S, T>(
+  l: PSetter<S, T, boolean, boolean>,
+): (n: boolean) => (s: S) => T {
+  return n => modify(l)(x => x || n);
+}
+
+export function concat<A>(
+  S: Semigroup<A>,
+): <S, T>(l: PSetter<S, T, A, A>) => (a: A) => (s: S) => T {
+  return l => a => modify(l)(S.combine(() => a));
 }
 
 export function fromFunctor<F>(

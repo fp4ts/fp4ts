@@ -4,15 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List, Map, Monoid, None, Option, Ord, Some } from '@fp4ts/cats';
-import { focus, Optional, optional_ } from '@fp4ts/optics-core';
+import { Eq, List, Monoid, Option, Some } from '@fp4ts/cats';
+import { focus, Optional, Optional_ } from '@fp4ts/optics-core';
 import { OptionalSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Optional', () => {
   const headOptional = <A>(): Optional<List<A>, A> =>
-    optional_(
+    Optional_(
       xs => xs.headOption,
       a => xs =>
         xs.fold(

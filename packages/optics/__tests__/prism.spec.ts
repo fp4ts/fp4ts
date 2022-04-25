@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { Eq, List, None, Some } from '@fp4ts/cats';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
-import { focus, prism_ } from '@fp4ts/optics-core';
+import { focus, Prism_ } from '@fp4ts/optics-core';
 import { derivePrisms } from '@fp4ts/optics-derivation';
 import {
   PrismSuite,
@@ -32,13 +32,13 @@ describe('Prism', () => {
   const { I, S } = deriveConstructors(_IOrS);
   const prsms = derivePrisms(_IOrS);
   const i = focus(prsms.i).andThen(
-    prism_<{ tag: 'i'; value: number }, number>(
+    Prism_<{ tag: 'i'; value: number }, number>(
       ({ value }) => Some(value),
       value => I({ value }),
     ),
   );
   const s = focus(prsms.s).andThen(
-    prism_<{ tag: 's'; value: string }, string>(
+    Prism_<{ tag: 's'; value: string }, string>(
       ({ value }) => Some(value),
       value => S({ value }),
     ),

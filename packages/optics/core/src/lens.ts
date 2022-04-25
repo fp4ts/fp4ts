@@ -13,7 +13,7 @@ export type PLens<S, T, A, B> = <F, P>(
 ) => POptic<F, P, S, T, A, B>;
 export type Lens<S, A> = PLens<S, S, A, A>;
 
-export function lens<S, T, A, B>(
+export function Lens<S, T, A, B>(
   get: (s: S) => A,
   replace: (b: B) => (s: S) => T,
 ): PLens<S, T, A, B> {

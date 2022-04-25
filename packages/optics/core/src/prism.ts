@@ -22,7 +22,7 @@ export type PPrism<S, T, A, B> = <F, P>(
 ) => POptic<F, P, S, T, A, B>;
 export type Prism<S, A> = PPrism<S, S, A, A>;
 
-export function prism<S, T, A, B>(
+export function Prism<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   reverseGet: (t: B) => T,
 ): PPrism<S, T, A, B> {
@@ -35,11 +35,11 @@ export function prism<S, T, A, B>(
       );
 }
 
-export function prism_<S, A>(
+export function Prism_<S, A>(
   getOptional: (s: S) => Option<A>,
   reverseGet: (t: A) => S,
 ): Prism<S, A> {
-  return prism(
+  return Prism(
     s =>
       getOptional(s).fold(
         () => Left(s),

@@ -9,6 +9,7 @@ import {
   Array,
   Const,
   Contravariant,
+  Dual,
   Endo,
   Foldable,
   Function1F,
@@ -47,17 +48,37 @@ export function fromFoldable<G>(G: Foldable<G>): {
   return (sga: any = id) => f(sga) as Fold<any, any>;
 }
 
-export function foldMap<R, A>(
-  f: (a: A) => R,
-): <S>(l: Getting<R, S, A>) => (s: S) => R {
-  return applyTo(f);
+export function foldMap<R, S, A>(
+  l: Getting<R, S, A>,
+): (f: (a: A) => R) => (s: S) => R {
+  return l;
 }
 
-export function foldRight<R, S, A>(
-  z: R,
-  f: (a: A, r: R) => R,
-): (l: Getting<Endo<R>, S, A>) => (s: S) => R {
-  return l => s => foldMap((a: A) => (r: R) => f(a, r))(l)(s)(z);
+export function foldRight<S, A>(
+  l: Fold<S, A>,
+): <R>(z: R, f: (a: A, r: R) => R) => (s: S) => R {
+  return <R>(z: R, f: (a: A, r: R) => R) =>
+    s =>
+      pipe(
+        l,
+        asGetting(Endo.MonoidK.algebra<R>()),
+        foldMap,
+      )((a: A) => (r: R) => f(a, r))(s)(z);
+}
+
+export function foldLeft<S, A>(
+  l: Fold<S, A>,
+): <R>(z: R, f: (r: R, a: A) => R) => (s: S) => R {
+  return <R>(z: R, f: (r: R, a: A) => R) =>
+    s =>
+      pipe(
+        l,
+        asGetting(Dual.Monoid(Endo.MonoidK.algebra<R>())),
+        foldMap,
+        applyTo((a: A) => Dual((r: R) => f(r, a))),
+        applyTo(s),
+        Dual.getDual,
+      )(z);
 }
 
 export function fold<S, A>(l: Getting<A, S, A>): (s: S) => A {
@@ -65,26 +86,14 @@ export function fold<S, A>(l: Getting<A, S, A>): (s: S) => A {
 }
 
 export function toList<S, A>(l: Fold<S, A>): (s: S) => List<A> {
-  return pipe(
-    l,
-    asGetting(Endo.MonoidK.algebra<List<A>>()),
-    foldRight(List.empty as List<A>, List.cons),
-  );
+  return foldRight(l)(List.empty as List<A>, List.cons);
 }
 
 export function isEmpty<S, A>(l: Fold<S, A>): (s: S) => boolean {
-  return pipe(
-    l,
-    asGetting(Monoid.conjunction),
-    foldMap(() => false as boolean),
-  );
+  return pipe(l, asGetting(Monoid.conjunction), foldMap)(() => false);
 }
 export function nonEmpty<S, A>(l: Fold<S, A>): (s: S) => boolean {
-  return pipe(
-    l,
-    asGetting(Monoid.disjunction),
-    foldMap(() => true as boolean),
-  );
+  return pipe(l, asGetting(Monoid.disjunction), foldMap)(() => true);
 }
 
 export function find<A, B extends A>(
@@ -100,45 +109,37 @@ export function find<A>(
     pipe(
       l,
       asGetting(Monoids.firstOption<A>()),
-      foldMap(x => Some(x).filter(p)),
-    );
+      foldMap,
+    )(x => Some(x).filter(p));
 }
 
 export function headOption<S, A>(l: Fold<S, A>): (s: S) => Option<A> {
-  return pipe(l, asGetting(Monoids.firstOption<A>()), foldMap(Some));
+  return pipe(l, asGetting(Monoids.firstOption<A>()), foldMap)(Some);
 }
 export function lastOption<S, A>(l: Fold<S, A>): (s: S) => Option<A> {
-  return pipe(l, asGetting(Monoids.lastOption<A>()), foldMap(Some));
+  return pipe(l, asGetting(Monoids.lastOption<A>()), foldMap)(Some);
 }
 
 export function any<A>(
   p: (a: A) => boolean,
 ): <S>(l: Fold<S, A>) => (s: S) => boolean {
-  return l => pipe(l, asGetting(Monoid.disjunction), foldMap(p));
+  return l => pipe(l, asGetting(Monoid.disjunction), foldMap)(p);
 }
 export function all<A>(
   p: (a: A) => boolean,
 ): <S>(l: Fold<S, A>) => (s: S) => boolean {
-  return l => pipe(l, asGetting(Monoid.conjunction), foldMap(p));
+  return l => pipe(l, asGetting(Monoid.conjunction), foldMap)(p);
 }
 
 export function count<A>(
   p: (a: A) => boolean,
 ): <S>(l: Fold<S, A>) => (s: S) => number {
   return l =>
-    pipe(
-      l,
-      asGetting(Monoid.addition),
-      foldMap(x => (p(x) ? 1 : 0) as number),
-    );
+    pipe(l, asGetting(Monoid.addition), foldMap)(x => (p(x) ? 1 : 0) as number);
 }
 
 export function size<S, A>(l: Fold<S, A>): (s: S) => number {
-  return pipe(
-    l,
-    asGetting(Monoid.addition),
-    foldMap(() => 1),
-  );
+  return pipe(l, asGetting(Monoid.addition), foldMap)(() => 1);
 }
 
 type Filtered<A, B = A> = {

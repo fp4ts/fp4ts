@@ -26,7 +26,7 @@ export type POptional<S, T, A, B> = <F, P>(
 ) => POptic<F, P, S, T, A, B>;
 export type Optional<S, A> = POptional<S, S, A, A>;
 
-export function optional<S, T, A, B>(
+export function Optional<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   replace: (b: B) => (s: S) => T,
 ): POptional<S, T, A, B> {
@@ -47,11 +47,11 @@ export function optional<S, T, A, B>(
       );
 }
 
-export function optional_<S, A>(
+export function Optional_<S, A>(
   getOptional: (s: S) => Option<A>,
   replace: (a: A) => (s: S) => S,
 ): Optional<S, A> {
-  return optional(
+  return Optional(
     s =>
       getOptional(s).fold(
         () => Left(s),

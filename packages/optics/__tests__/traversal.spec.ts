@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, List, Monoid, Option } from '@fp4ts/cats';
-import { focus, fromTraversable, lens, Traversal } from '@fp4ts/optics-core';
+import { focus, fromTraversable, Lens, Traversal } from '@fp4ts/optics-core';
 import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -22,7 +22,7 @@ describe('Traversal', () => {
     name: string,
   ): Location => ({ latitude, longitude, name });
 
-  const coordinates = lens(
+  const coordinates = Lens(
     ({ latitude, longitude }: Location) => ({ latitude, longitude }),
     (x: { latitude: number; longitude: number }) => s => ({ ...s, ...x }),
   );

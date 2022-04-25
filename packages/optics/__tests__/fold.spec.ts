@@ -35,6 +35,24 @@ describe('Fold', () => {
   );
 
   test(
+    'foldRight',
+    forAll(
+      A.fp4tsList(fc.integer()),
+      fc.func<[number, string], string>(fc.string()),
+      (xs, f) => focus(eachli).foldRight('', f)(xs) === xs.foldRight('', f),
+    ),
+  );
+
+  test(
+    'foldLeft',
+    forAll(
+      A.fp4tsList(fc.integer()),
+      fc.func<[string, number], string>(fc.string()),
+      (xs, f) => focus(eachli).foldLeft('', f)(xs) === xs.foldLeft('', f),
+    ),
+  );
+
+  test(
     'getAll',
     forAll(A.fp4tsList(fc.integer()), xs =>
       focus(eachli).toList(xs).equals(Eq.primitive, xs),
