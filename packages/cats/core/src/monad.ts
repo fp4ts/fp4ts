@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind, pipe } from '@fp4ts/core';
+import { $type, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
@@ -111,4 +111,10 @@ class GenKind<FA, A> {
 
 function adapter<F, A>(fa: Kind<F, [A]>): GenKind<Kind<F, [A]>, A> {
   return new GenKind(fa);
+}
+
+// -- HKT
+
+export interface MonadF extends TyK<[unknown]> {
+  [$type]: Monad<TyVar<this, 0>>;
 }

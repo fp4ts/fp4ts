@@ -30,6 +30,7 @@ import {
   Writer,
   Set,
   Endo,
+  Dual,
   NonEmptyList,
   Tagged,
   ValidationError,
@@ -275,6 +276,9 @@ export const fp4tsTagged =
   <S>() =>
   <A>(arbA: Arbitrary<A>): Arbitrary<Tagged<S, A>> =>
     arbA.map(Tagged);
+
+export const fp4tsDual = <A>(arbA: Arbitrary<A>): Arbitrary<Dual<A>> =>
+  arbA.map(Dual);
 
 export const fp4tsValidation = <E, A>(
   arbVE: Arbitrary<ValidationError<E>>,
