@@ -7,9 +7,7 @@ import { Kind } from '@fp4ts/core';
 import {
   Applicative,
   Array,
-  Dual,
   Either,
-  Endo,
   List,
   Monoid,
   Option,
@@ -30,7 +28,7 @@ import { AnyOptical } from './optics';
 /* eslint-disable prettier/prettier */
 export function focus<A>(): Focused<I.Iso<A, A>>;
 export function focus<O extends AnyOptical<any, any, any, any>>(o: O): Focused<O>;
-export function focus(o: any = I.id_()): Focused<any> {
+export function focus(o: any = I.iso()): Focused<any> {
   return new Focused(o);
 }
 /* eslint-enabled prettier/prettier */
@@ -94,17 +92,17 @@ export class Focused<O> {
   find<S, A, B extends A>(this: Focused<F.Fold<S, A>>, p: (a: A) => a is B): (s: S) => Option<B>;
   find<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): (s: S) => Option<A>;
   find<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): (s: S) => Option<A> {
-    return F.find(p)(this.toOptic);
+    return F.find(this.toOptic)(p);
   }
 
   any<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): (s: S) => boolean {
-    return F.any(p)(this.toOptic);
+    return F.any(this.toOptic)(p);
   }
   all<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): (s: S) => boolean {
-    return F.all(p)(this.toOptic);
+    return F.all(this.toOptic)(p);
   }
   count<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): (s: S) => number {
-    return F.count(p)(this.toOptic);
+    return F.count(this.toOptic)(p);
   }
 
   size<S, A>(this: Focused<F.Fold<S, A>>, s: S): number {

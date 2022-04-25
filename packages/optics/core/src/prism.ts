@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, Kind, pipe } from '@fp4ts/core';
+import { flow } from '@fp4ts/core';
 import {
   Applicative,
   Either,
@@ -26,13 +26,14 @@ export function Prism<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   reverseGet: (t: B) => T,
 ): PPrism<S, T, A, B> {
-  return <F, P>(F: Applicative<F>, P: ProfunctorChoice<P>) =>
-    (pafb: Kind<P, [A, Kind<F, [B]>]>) =>
-      pipe(
-        pafb,
-        P.right<T>(),
-        P.dimap(getOrModify, ea => ea.fold(F.pure, F.map(reverseGet))),
-      );
+  return <F, P>(
+    F: Applicative<F>,
+    P: ProfunctorChoice<P>,
+  ): POptic<F, P, S, T, A, B> =>
+    flow(
+      P.right<T>(),
+      P.dimap(getOrModify, ea => ea.fold(F.pure, F.map(reverseGet))),
+    );
 }
 
 export function Prism_<S, A>(

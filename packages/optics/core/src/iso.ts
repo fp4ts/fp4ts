@@ -13,7 +13,15 @@ export type PIso<S, T, A, B> = <F, P>(
 ) => POptic<F, P, S, T, A, B>;
 export type Iso<S, A> = PIso<S, S, A, A>;
 
+export function iso<A>(): Iso<A, A>;
 export function iso<S, T, A, B>(
+  get: (s: S) => A,
+  reverseGet: (b: B) => T,
+): PIso<S, T, A, B>;
+export function iso(...args: any[]): Iso<any, any> {
+  return args.length === 2 ? iso_(args[0], args[1]) : id_();
+}
+function iso_<S, T, A, B>(
   get: (s: S) => A,
   reverseGet: (b: B) => T,
 ): PIso<S, T, A, B> {
@@ -21,6 +29,6 @@ export function iso<S, T, A, B>(
     P.dimap(get, F.map(reverseGet));
 }
 
-export function id_<A>(): Iso<A, A> {
+function id_<A>(): Iso<A, A> {
   return () => id;
 }

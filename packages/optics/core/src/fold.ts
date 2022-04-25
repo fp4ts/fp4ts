@@ -96,16 +96,13 @@ export function nonEmpty<S, A>(l: Fold<S, A>): (s: S) => boolean {
   return pipe(l, asGetting(Monoid.disjunction), foldMap)(() => true);
 }
 
-export function find<A, B extends A>(
-  p: (a: A) => a is B,
-): <S>(l: Fold<S, A>) => (s: S) => Option<B>;
-export function find<A>(
-  p: (a: A) => boolean,
-): <S>(l: Fold<S, A>) => (s: S) => Option<A>;
-export function find<A>(
-  p: (a: A) => boolean,
-): <S>(l: Fold<S, A>) => (s: S) => Option<A> {
-  return l =>
+export function find<S, A>(
+  l: Fold<S, A>,
+): {
+  <B extends A>(p: (a: A) => a is B): (s: S) => Option<B>;
+  (p: (a: A) => boolean): (s: S) => Option<A>;
+} {
+  return (p: (p: A) => boolean) =>
     pipe(
       l,
       asGetting(Monoids.firstOption<A>()),
@@ -120,21 +117,21 @@ export function lastOption<S, A>(l: Fold<S, A>): (s: S) => Option<A> {
   return pipe(l, asGetting(Monoids.lastOption<A>()), foldMap)(Some);
 }
 
-export function any<A>(
-  p: (a: A) => boolean,
-): <S>(l: Fold<S, A>) => (s: S) => boolean {
-  return l => pipe(l, asGetting(Monoid.disjunction), foldMap)(p);
+export function any<S, A>(
+  l: Fold<S, A>,
+): (p: (a: A) => boolean) => (s: S) => boolean {
+  return pipe(l, asGetting(Monoid.disjunction), foldMap);
 }
-export function all<A>(
-  p: (a: A) => boolean,
-): <S>(l: Fold<S, A>) => (s: S) => boolean {
-  return l => pipe(l, asGetting(Monoid.conjunction), foldMap)(p);
+export function all<S, A>(
+  l: Fold<S, A>,
+): (p: (a: A) => boolean) => (s: S) => boolean {
+  return pipe(l, asGetting(Monoid.conjunction), foldMap);
 }
 
-export function count<A>(
-  p: (a: A) => boolean,
-): <S>(l: Fold<S, A>) => (s: S) => number {
-  return l =>
+export function count<S, A>(
+  l: Fold<S, A>,
+): (p: (a: A) => boolean) => (s: S) => number {
+  return p =>
     pipe(l, asGetting(Monoid.addition), foldMap)(x => (p(x) ? 1 : 0) as number);
 }
 
