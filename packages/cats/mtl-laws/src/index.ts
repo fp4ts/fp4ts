@@ -9,6 +9,10 @@
 export * from './ask-laws';
 export * from './local-laws';
 
+export * from './censor-laws';
+export * from './listen-laws';
+export * from './tell-laws';
+
 export * from './monad-reader-laws';
 
 export * from './discipline';

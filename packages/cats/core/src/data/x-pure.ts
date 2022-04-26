@@ -71,7 +71,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   public listen(W?: Monoid<any>): XPure<any, S1, S2, R, E, [any, A]> {
     return W
       ? this.map2(XPure.written(), (a, b) => [
-          b.foldLeft(W.empty, (b, a) => W.combine_(a, () => b)),
+          b.foldLeft(W.empty, (a, b) => W.combine_(a, () => b)),
           a,
         ])
       : this.map2(XPure.written(), (a, b) => [b, a]);
@@ -85,9 +85,16 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   public written(W?: Monoid<any>): XPure<W, S1, S2, R, E, any> {
     return W
       ? this.map2(XPure.written(), (a, b) =>
-          b.foldLeft(W.empty, (b, a) => W.combine_(a, () => b)),
+          b.foldLeft(W.empty, (a, b) => W.combine_(a, () => b)),
         )
       : this.productR(XPure.written());
+  }
+
+  public mapWritten<WW>(
+    this: XPure<WW, S1, S2, R, E, A>,
+    f: (w: Chain<WW>) => Chain<WW>,
+  ): XPure<WW, S1, S2, R, E, A> {
+    return new MapWritten(this, f);
   }
 
   // -- State Methods
@@ -307,6 +314,14 @@ abstract class _XPure<W, S1, S2, R, E, A> {
           log = log.append(cur.w);
           _cur = new Pure(undefined);
           continue;
+        case 'written':
+          _cur = new Pure(log);
+          continue;
+        case 'mapWritten':
+          conts.push(Cont.MapWritten);
+          stack.push(cur.fun as any);
+          _cur = cur.self;
+          continue;
         case 'modify': {
           const sa = cur.fun(state);
           state = sa[0];
@@ -352,6 +367,9 @@ abstract class _XPure<W, S1, S2, R, E, A> {
               case Cont.Provide:
                 env = envStack.pop()!;
                 continue;
+              case Cont.MapWritten:
+                log = stack.pop()!(log) as Chain<unknown>;
+                continue;
             }
           }
         } else {
@@ -362,6 +380,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
             switch (c) {
               case Cont.Map:
               case Cont.FlatMap:
+              case Cont.MapWritten:
                 stack.pop();
                 continue;
               case Cont.Fold:
@@ -513,6 +532,16 @@ class Written<W> extends _XPure<W, unknown, never, unknown, never, Chain<W>> {
   public readonly tag = 'written';
 }
 
+class MapWritten<W, S1, S2, R, E, A> extends _XPure<W, S1, S2, R, E, A> {
+  public readonly tag = 'mapWritten';
+  public constructor(
+    public readonly self: XPure<W, S1, S2, R, E, A>,
+    public readonly fun: (w: Chain<W>) => Chain<W>,
+  ) {
+    super();
+  }
+}
+
 class Modify<S1, S2, A> extends _XPure<never, S1, S2, unknown, never, A> {
   public readonly tag = 'modify';
   public constructor(public readonly fun: (s: S1) => [S2, A]) {
@@ -572,7 +601,9 @@ type View<W, S1, S2, R, E, A> =
   | Fail<E>
   | Tell<W>
   | Ask<R>
+  | Written<W>
   | Provide<W, S1, S2, R, E, A>
+  | MapWritten<W, S1, S2, R, E, A>
   | Modify<S1, S2, A>
   | Map<W, S1, S2, R, E, any, A>
   | Fold<W, S1, any, S2, R, any, any, E, any, A>
@@ -581,6 +612,7 @@ type View<W, S1, S2, R, E, A> =
 enum Cont {
   Map,
   FlatMap,
+  MapWritten,
   Fold,
   Provide,
 }
