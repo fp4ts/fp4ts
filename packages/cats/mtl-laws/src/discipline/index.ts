@@ -12,3 +12,4 @@ export * from './tell-suite';
 
 export * from './monad-reader-suite';
 export * from './monad-writer-suite';
+export * from './monad-state-suite';

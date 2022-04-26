@@ -14,5 +14,7 @@ export * from './listen-laws';
 export * from './tell-laws';
 
 export * from './monad-reader-laws';
+export * from './monad-writer-laws';
+export * from './monad-state-laws';
 
 export * from './discipline';

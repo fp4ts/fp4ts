@@ -8,8 +8,12 @@ import { snd, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Either, Left, XPure } from '@fp4ts/cats-core/lib/data';
 import { MonadErrorSuite, SemigroupKSuite } from '@fp4ts/cats-laws';
-import { MonadReader, MonadWriter } from '@fp4ts/cats-mtl';
-import { MonadReaderSuite, MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
+import { MonadReader, MonadState, MonadWriter } from '@fp4ts/cats-mtl';
+import {
+  MonadReaderSuite,
+  MonadStateSuite,
+  MonadWriterSuite,
+} from '@fp4ts/cats-mtl-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -114,6 +118,25 @@ describe('XPure', () => {
                 ea.map(snd),
               );
             },
+          ),
+      ),
+    );
+
+    checkAll(
+      'MonadState<XPure<void, MiniInt, MiniInt, unknown, Error, *>, MiniInt>',
+      MonadStateSuite(
+        MonadState.XPure<void, MiniInt, unknown, Error>(),
+      ).monadState(
+        A.fp4tsMiniInt(),
+        MiniInt.Eq,
+        X => A.fp4tsXPure(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<XPure<void, MiniInt, MiniInt, unknown, Error, X>> =>
+          Eq.by(
+            eq.fn1Eq(
+              ec.miniInt(),
+              Either.Eq(Eq.Error.strict, Eq.tuple2(MiniInt.Eq, X)),
+            ),
+            fa => r => fa.runESA(undefined, r),
           ),
       ),
     );
