@@ -55,7 +55,7 @@ export const MonadReader = Object.freeze({
       local_: (fa, f) => fa.adapt(f),
     }),
 
-  EitherT: <F, R, E>(
+  EitherT: <F, E, R>(
     F: MonadReader<F, R>,
   ): MonadReader<$<EitherTF, [F, E]>, R> =>
     MonadReader.of<$<EitherTF, [F, E]>, R>({

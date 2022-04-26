@@ -9,11 +9,14 @@ import { Eq } from '@fp4ts/cats-kernel';
 import {
   Either,
   EitherF,
+  EitherT,
   Identity,
   IdentityF,
   Kleisli,
   Option,
   OptionF,
+  OptionT,
+  XPureF,
 } from '@fp4ts/cats-core/lib/data';
 import { MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
@@ -96,6 +99,77 @@ describe('MonadReader', () => {
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, EqX)),
             k => a => k.run(a),
+          ),
+      ),
+    );
+  });
+
+  describe('EitherT', () => {
+    checkAll(
+      'Local<EitherT<XPure<void, void, void, MiniInt, string, *>, Error, *>',
+      MonadReaderSuite(
+        MonadReader.EitherT<
+          $<XPureF, [void, void, void, MiniInt, string]>,
+          Error,
+          MiniInt
+        >(MonadReader.XPure()),
+      ).local(
+        fc.integer(),
+        fc.integer(),
+        A.fp4tsMiniInt(),
+        Eq.primitive,
+        Eq.primitive,
+        MiniInt.Eq,
+        <X>(
+          arbX: Arbitrary<X>,
+        ): Arbitrary<
+          EitherT<$<XPureF, [void, void, void, MiniInt, string]>, Error, X>
+        > =>
+          A.fp4tsEitherT(
+            A.fp4tsXPure(fc.string(), A.fp4tsEither(A.fp4tsError(), arbX)),
+          ),
+        <X>(
+          EqX: Eq<X>,
+        ): Eq<
+          EitherT<$<XPureF, [void, void, void, MiniInt, string]>, Error, X>
+        > =>
+          Eq.by(
+            eq.fn1Eq(
+              ec.miniInt(),
+              Either.Eq(Eq.primitive, Either.Eq(Eq.Error.strict, EqX)),
+            ),
+            k => a => k.value.runEA(a),
+          ),
+      ),
+    );
+  });
+
+  describe('OptionT', () => {
+    checkAll(
+      'Local<OptionT<XPure<void, void, void, MiniInt, string, *>, Error, *>',
+      MonadReaderSuite(
+        MonadReader.OptionT<
+          $<XPureF, [void, void, void, MiniInt, string]>,
+          MiniInt
+        >(MonadReader.XPure()),
+      ).local(
+        fc.integer(),
+        fc.integer(),
+        A.fp4tsMiniInt(),
+        Eq.primitive,
+        Eq.primitive,
+        MiniInt.Eq,
+        <X>(
+          arbX: Arbitrary<X>,
+        ): Arbitrary<
+          OptionT<$<XPureF, [void, void, void, MiniInt, string]>, X>
+        > => A.fp4tsOptionT(A.fp4tsXPure(fc.string(), A.fp4tsOption(arbX))),
+        <X>(
+          EqX: Eq<X>,
+        ): Eq<OptionT<$<XPureF, [void, void, void, MiniInt, string]>, X>> =>
+          Eq.by(
+            eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, Option.Eq(EqX))),
+            k => a => k.value.runEA(a),
           ),
       ),
     );

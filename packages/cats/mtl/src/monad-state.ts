@@ -5,7 +5,18 @@
 
 import { $, instance, Kind, pipe } from '@fp4ts/core';
 import { Monad, MonadRequirements } from '@fp4ts/cats-core';
-import { XPure, XPureF } from '@fp4ts/cats-core/lib/data';
+import {
+  EitherT,
+  EitherTF,
+  Kleisli,
+  KleisliF,
+  OptionT,
+  OptionTF,
+  Right,
+  Some,
+  XPure,
+  XPureF,
+} from '@fp4ts/cats-core/lib/data';
 
 export interface MonadState<F, S> extends Monad<F> {
   get: Kind<F, [S]>;
@@ -40,5 +51,26 @@ export const MonadState = Object.freeze({
       modify: f => XPure.modify(s => [f(s), undefined]),
       inspect: f => XPure.modify(s => [s, f(s)]),
       ...XPure.Monad<W, S, R, E>(),
+    }),
+
+  Kleisli: <F, R, S>(F: MonadState<F, S>): MonadState<$<KleisliF, [F, R]>, S> =>
+    MonadState.of<$<KleisliF, [F, R]>, S>({
+      ...Kleisli.Monad<F, R>(F),
+      get: Kleisli(() => F.get),
+      set: s => Kleisli(() => F.set(s)),
+    }),
+
+  EitherT: <F, E, S>(F: MonadState<F, S>): MonadState<$<EitherTF, [F, E]>, S> =>
+    MonadState.of<$<EitherTF, [F, E]>, S>({
+      ...EitherT.Monad<F, E>(F),
+      get: EitherT(F.map_(F.get, Right)),
+      set: s => EitherT(F.map_(F.set(s), Right)),
+    }),
+
+  OptionT: <F, S>(F: MonadState<F, S>): MonadState<$<OptionTF, [F]>, S> =>
+    MonadState.of<$<OptionTF, [F]>, S>({
+      ...OptionT.Monad<F>(F),
+      get: OptionT(F.map_(F.get, Some)),
+      set: s => OptionT(F.map_(F.set(s), Some)),
     }),
 });
