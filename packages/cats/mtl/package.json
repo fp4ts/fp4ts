@@ -1,0 +1,20 @@
+{
+  "name": "@fp4ts/cats-mtl",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@fp4ts/cats-core": "*",
+    "@fp4ts/cats-kernel": "*",
+    "@fp4ts/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "4.6.3"
+  }
+}
