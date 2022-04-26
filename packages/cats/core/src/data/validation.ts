@@ -548,6 +548,10 @@ Validation.Traversable = validationTraversable;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface ValidationF extends TyK<[unknown, unknown]> {
   [$type]: Validation<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -34,12 +34,7 @@ export const XPure: XPureObj = function (a) {
 };
 
 abstract class _XPure<W, S1, S2, R, E, A> {
-  _W!: () => W;
-  _S1!: (s1: S1) => void;
-  _S2!: () => S2;
-  _R!: (r: R) => void;
-  _E!: () => E;
-  _A!: () => A;
+  // -- Reader Methods
 
   public provide(r: R): XPure<W, S1, S2, unknown, E, A> {
     return new Provide(this, r);
@@ -52,6 +47,8 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   public local<R0>(f: (r0: R0) => R): XPure<W, S1, S2, R0, E, A> {
     return XPure.read<R0>().flatMap(r0 => this.provide(f(r0)));
   }
+
+  // -- Writer Methods
 
   public tell<WW>(
     this: XPure<WW, S1, S2, R, E, A>,
@@ -93,6 +90,8 @@ abstract class _XPure<W, S1, S2, R, E, A> {
       : this.productR(XPure.written());
   }
 
+  // -- State Methods
+
   public modify<S3, B>(
     this: XPure<W, S1, S2, R, E, A>,
     f: (s2: S2) => [S3, B],
@@ -129,15 +128,17 @@ abstract class _XPure<W, S1, S2, R, E, A> {
     return this.modify(() => [s, undefined]);
   }
 
-  public map<B>(f: (a: A) => B): XPure<W, S1, S2, R, E, B> {
-    return new Map(this, f);
-  }
-
   public bimap<S3, B>(
     f: (s2: S2) => S3,
     g: (a: A) => B,
   ): XPure<W, S1, S3, R, E, B> {
     return this.flatMap(a => XPure.modify(s2 => [f(s2), g(a)]));
+  }
+
+  // -- Value Methods
+
+  public map<B>(f: (a: A) => B): XPure<W, S1, S2, R, E, B> {
+    return new Map(this, f);
   }
 
   public map2<W2, S22, S3, R2, E2, B, C>(
@@ -187,6 +188,8 @@ abstract class _XPure<W, S1, S2, R, E, A> {
     return new FlatMap(this, fun);
   }
 
+  // -- Error Handling
+
   public fold<WW, S22, S3, R2, E2, B>(
     this: XPure<WW, S1, S22, R & R2, E, A>,
     onFailure: (e: E) => XPure<WW, S1, S3, R2, E2, B>,
@@ -231,6 +234,8 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   ): XPure<W, S1, S2, R, never, B> {
     return this.handleErrorWith(e => XPure(f(e)));
   }
+
+  // -- Running the Effects
 
   public runA(this: XPure<W, S1, S2, R, never, A>, r: R, s1: S1): A {
     return this.runAll(r, s1)[1].get[1];
@@ -284,10 +289,6 @@ abstract class _XPure<W, S1, S2, R, E, A> {
       type Res = Pure<unknown> | Fail<unknown>;
       let res: Res;
 
-      if (cur.tag === 'pure') {
-        cur.value;
-      }
-
       switch (cur.tag) {
         case 'pure':
         case 'fail':
@@ -297,6 +298,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
           _cur = new Pure(env);
           continue;
         case 'provide':
+          conts.push(Cont.Provide);
           envStack.push(env);
           env = cur.r;
           _cur = cur.self;
@@ -360,6 +362,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
             switch (c) {
               case Cont.Map:
               case Cont.FlatMap:
+                stack.pop();
                 continue;
               case Cont.Fold:
                 _cur = stack.pop()!(Left(res.error)) as AnyXPure;
@@ -584,6 +587,10 @@ enum Cont {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface XPureF extends TyK {
   [$type]: XPure<
     TyVar<this, 0>,

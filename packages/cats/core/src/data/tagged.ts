@@ -94,6 +94,10 @@ Tagged.Profunctor = taggedProfunctor();
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface TaggedF extends TyK<[unknown, unknown]> {
   [$type]: Tagged<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -19,6 +19,7 @@ export * from './endo';
 export * from './validation';
 export * from './tagged';
 export * from './dual';
+export * from './x-pure';
 
 export * from './and-then';
 export * from './kleisli';

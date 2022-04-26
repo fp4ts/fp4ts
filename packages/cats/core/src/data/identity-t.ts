@@ -67,6 +67,10 @@ IdentityT.Traversable = F => F as any;
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface IdentityTF extends TyK<[unknown, unknown]> {
   [$type]: IdentityT<TyVar<this, 0>, TyVar<this, 1>>;
 }

@@ -81,4 +81,8 @@ Object.defineProperty(Dual, 'Traversable', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export type DualF = KindOf<typeof Dual_>;

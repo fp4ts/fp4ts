@@ -121,9 +121,17 @@ Function1.ArrowChoice = function1ArrowChoice();
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface Function0F extends TyK<[unknown]> {
   [$type]: () => TyVar<this, 0>;
 }
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface Function1F extends TyK<[unknown, unknown]> {
   [$type]: (a: TyVar<this, 0>) => TyVar<this, 1>;
 }
