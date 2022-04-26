@@ -35,6 +35,7 @@ import {
   Tagged,
   ValidationError,
   Validation,
+  XPure,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -271,6 +272,39 @@ export const fp4tsState = <S, A>(
   fp4tsIndexedStateT(
     fc.func<[S], Eval<[S, A]>>(fp4tsEval(fc.tuple(arbS, arbA))).map(Eval.pure),
   );
+
+export const fp4tsXPure = <E, A>(
+  arbE: Arbitrary<E>,
+  arbA: Arbitrary<A>,
+): Arbitrary<XPure<never, unknown, never, unknown, E, A>> => {
+  type T = XPure<never, unknown, never, unknown, E, A>;
+  const { go } = fc.letrec(tie => ({
+    base: fc.oneof(arbA.map(XPure.pure), arbE.map(XPure.throwError)),
+    rec: fc.oneof(
+      fc
+        .tuple(tie('go') as Arbitrary<T>, fc.func<[A], A>(arbA))
+        .map(([fa, f]) => fa.map(f)),
+      fc
+        .tuple(tie('go') as Arbitrary<T>, fc.func<[E], A>(arbA))
+        .map(([fa, f]) => fa.handleError(f)),
+      fc
+        .tuple(
+          tie('go') as Arbitrary<T>,
+          fc.func<[A], T>(tie('go') as Arbitrary<T>),
+        )
+        .map(([fa, f]) => fa.flatMap(f)),
+      fc
+        .tuple(
+          tie('go') as Arbitrary<T>,
+          fc.func<[E], T>(tie('go') as Arbitrary<T>),
+        )
+        .map(([fa, f]) => fa.handleErrorWith(f)),
+    ),
+    go: fc.oneof({ maxDepth: 5 }, tie('base'), tie('rec')),
+  }));
+
+  return go as Arbitrary<T>;
+};
 
 export const fp4tsTagged =
   <S>() =>
