@@ -8,12 +8,15 @@ import { Monad, MonadRequirements } from '@fp4ts/cats-core';
 import {
   EitherT,
   EitherTF,
+  IndexedReaderWriterStateT as RWST,
+  IndexedReaderWriterStateTF as RWSTF,
   Kleisli,
   KleisliF,
   OptionT,
   OptionTF,
   Right,
   Some,
+  StateF,
   XPure,
   XPureF,
 } from '@fp4ts/cats-core/lib/data';
@@ -52,6 +55,18 @@ export const MonadState = Object.freeze({
       inspect: f => XPure.state(s => [s, f(s)]),
       ...XPure.Monad<W, S, R, E>(),
     }),
+
+  RWST: <F, W, S, R>(F: Monad<F>): MonadState<$<RWSTF, [F, W, S, S, R]>, S> =>
+    MonadState.of<$<RWSTF, [F, W, S, S, R]>, S>({
+      ...RWST.Monad(F),
+
+      get: RWST.state(F)(s => [s, s]),
+      set: s => RWST.state(F)(() => [s, undefined]),
+      modify: f => RWST.state(F)(s => [f(s), undefined]),
+      inspect: f => RWST.state(F)(s => [s, f(s)]),
+    }),
+
+  State: <S>(): MonadState<StateF<S>, S> => MonadState.XPure(),
 
   Kleisli: <F, R, S>(F: MonadState<F, S>): MonadState<$<KleisliF, [F, R]>, S> =>
     MonadState.of<$<KleisliF, [F, R]>, S>({

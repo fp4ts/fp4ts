@@ -31,7 +31,7 @@ export type XPure<W, S1, S2, R, E, A> = _XPure<W, S1, S2, R, E, A>;
 export const XPure: XPureObj = function <W, S1, S2, R, E, A>(
   runAll: (r: R, s1: S1) => [W, Either<E, [S2, A]>],
 ): XPure<W, S1, S2, R, E, A> {
-  return XPure.read<R, W, S1>()
+  return XPure.ask<R, W, S1>()
     .product(XPure.state((s1: S1) => [s1, s1]))
     .flatMap(args => {
       const [w, ea] = runAll(...args);
@@ -50,11 +50,11 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   }
 
   public ask<R2>(): XPure<W, S1, S2, R & R2, E, R2> {
-    return this.productR(XPure.read<R2>());
+    return this.productR(XPure.ask<R2>());
   }
 
   public local<R0>(f: (r0: R0) => R): XPure<W, S1, S2, R0, E, A> {
-    return XPure.read<R0>().flatMap(r0 => this.provide(f(r0)));
+    return XPure.ask<R0>().flatMap(r0 => this.provide(f(r0)));
   }
 
   // -- Writer Methods
@@ -99,6 +99,10 @@ abstract class _XPure<W, S1, S2, R, E, A> {
     f: (w: Chain<WW>) => Chain<WW>,
   ): XPure<WW, S1, S2, R, E, A> {
     return new Censor(this, f);
+  }
+
+  public reset(): XPure<W, S1, S2, R, E, A> {
+    return this.censor(() => Chain.empty);
   }
 
   // -- State Methods
@@ -427,7 +431,7 @@ interface XPureObj {
   pure<A, W = never, S1 = unknown, S2 = never, R = unknown, E = never>(a: A): XPure<W, S1, S2, R, E, A>;
   throwError<E, W = never, S1 = unknown, S2 = never, R = unknown, A = never>(e: E): XPure<W, S1, S2, R, E, A>;
 
-  read<R, W = never, S1 = unknown, S2 = never, E = never>(): XPure<W, S1, S2, R, E, R>;
+  ask<R, W = never, S1 = unknown, S2 = never, E = never>(): XPure<W, S1, S2, R, E, R>;
   tell<W, S1 = unknown, S2 = never, R = unknown, E = never>(w: W): XPure<W, S1, S2, R, E, void>;
   written<W, S1 = unknown, S2 = never, R = unknown, E = never>(): XPure<W, S1, S2, R, E, Chain<W>>;
   state<S1, S2, A, W = never, R = unknown, E = never>(modify: (s1: S1) => [S2, A]): XPure<W, S1, S2, R, E, A>;
@@ -438,7 +442,10 @@ interface XPureObj {
   SemigroupK<W, S, R, E>(): SemigroupK<$<XPureF, [W, S, S, R, E]>>;
   Monad<W, S, R, E>(): Monad<$<XPureF, [W, S, S, R, E]>>;
   MonadError<W, S, R, E>(): MonadError<$<XPureF, [W, S, S, R, E]>, E>;
-  Bifunctor<W, S1, R, E>(): Bifunctor<
+  // WriterBifunctor<S, R, E>(): Bifunctor<
+  //   λ<XPureF, [α, Fix<S>, Fix<S>, Fix<R>, Fix<E>, β]>
+  // >;
+  StateBifunctor<W, S1, R, E>(): Bifunctor<
     λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
   >;
   Profunctor<W, R, E, A>(): Profunctor<
@@ -448,7 +455,7 @@ interface XPureObj {
 
 XPure.pure = a => new Pure(a);
 XPure.throwError = e => new Fail(e);
-XPure.read = () => new Ask();
+XPure.ask = () => new Ask();
 XPure.tell = w => new Tell(w);
 XPure.state = modify => new State(modify);
 XPure.written = () => new Written();
@@ -488,7 +495,7 @@ const xpureMonadError: <W, S, R, E>() => MonadError<
   }),
 ) as <W, S, R, E>() => MonadError<$<XPureF, [W, S, S, R, E]>, E>;
 
-const xpureBifunctor: <W, S1, R, E>() => Bifunctor<
+const xpureStateBifunctor: <W, S1, R, E>() => Bifunctor<
   λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
 > = lazyVal(<W, S1, R, E>() =>
   Bifunctor.of<λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>>({
@@ -497,6 +504,16 @@ const xpureBifunctor: <W, S1, R, E>() => Bifunctor<
 ) as <W, S1, R, E>() => Bifunctor<
   λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
 >;
+
+// const xpureWriterBifunctor: <S1, S2, R, E>() => Bifunctor<
+//   λ<XPureF, [α, Fix<S1>, Fix<S2>, Fix<R>, Fix<E>, β]>
+// > = lazyVal(<S1, S2, R, E>() =>
+//   Bifunctor.of<λ<XPureF, [α, Fix<S1>, Fix<S2>, Fix<R>, Fix<E>, β]>>({
+//     bimap_: (fab, f, g) => fab.bimap(f, g),
+//   }),
+// ) as <W, S1, R, E>() => Bifunctor<
+//   λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
+// >;
 
 const xpureProfunctor: <W, R, E, A>() => Profunctor<
   λ<XPureF, [Fix<W>, α, β, Fix<R>, Fix<E>, Fix<A>]>
@@ -511,7 +528,7 @@ const xpureProfunctor: <W, R, E, A>() => Profunctor<
 XPure.SemigroupK = xpureSemigroupK;
 XPure.Monad = xpureMonad;
 XPure.MonadError = xpureMonadError;
-XPure.Bifunctor = xpureBifunctor;
+XPure.StateBifunctor = xpureStateBifunctor;
 XPure.Profunctor = xpureProfunctor;
 
 // -- Algebra

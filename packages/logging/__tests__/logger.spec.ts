@@ -12,12 +12,12 @@ describe('Logger', () => {
 
   it('should append various levels to the list', () => {
     const xs = L.error('my error')
-      .productL(M)(L.warn('my warn'))
-      .productL(M)(L.info('my info'))
-      .productL(M)(L.debug('my debug'))
-      .productL(M)(L.trace('my trace'));
+      .productL(L.warn('my warn'))
+      .productL(L.info('my info'))
+      .productL(L.debug('my debug'))
+      .productL(L.trace('my trace'));
 
-    expect(xs.written()).toEqual(
+    expect(xs.written(M).runA()).toEqual(
       List(
         new LogMessage(LogLevel.Error, 'my error'),
         new LogMessage(LogLevel.Warn, 'my warn'),
@@ -34,12 +34,12 @@ describe('Logger', () => {
         ({ level }) => level === LogLevel.Error || level === LogLevel.Warn,
       );
       const xs = LL.error('my error')
-        .productL(M)(LL.warn(new Error('test error'), 'my warn'))
-        .productL(M)(LL.info('my info'))
-        .productL(M)(LL.debug('my debug'))
-        .productL(M)(LL.trace('my trace'));
+        .productL(LL.warn(new Error('test error'), 'my warn'))
+        .productL(LL.info('my info'))
+        .productL(LL.debug('my debug'))
+        .productL(LL.trace('my trace'));
 
-      expect(xs.written()).toEqual(
+      expect(xs.written(M).runA()).toEqual(
         List(
           new LogMessage(LogLevel.Error, 'my error'),
           new LogMessage(
@@ -56,12 +56,12 @@ describe('Logger', () => {
         ({ level }) => level === LogLevel.Trace || level === LogLevel.Info,
       );
       const xs = LL.error('my error')
-        .productL(M)(LL.warn(new Error('test error'), 'my warn'))
-        .productL(M)(LL.info('my info'))
-        .productL(M)(LL.debug('my debug'))
-        .productL(M)(LL.trace('my trace'));
+        .productL(LL.warn(new Error('test error'), 'my warn'))
+        .productL(LL.info('my info'))
+        .productL(LL.debug('my debug'))
+        .productL(LL.trace('my trace'));
 
-      expect(xs.written()).toEqual(
+      expect(xs.written(M).runA()).toEqual(
         List(
           new LogMessage(LogLevel.Info, 'my info'),
           new LogMessage(LogLevel.Trace, 'my trace'),
@@ -72,18 +72,20 @@ describe('Logger', () => {
     it('should not allow any messages to be logged', () => {
       const LL = L.filterMessage(() => false);
       const xs = LL.error('my error')
-        .productL(M)(LL.warn(new Error('test error'), 'my warn'))
-        .productL(M)(LL.info('my info'))
-        .productL(M)(LL.debug('my debug'))
-        .productL(M)(LL.trace('my trace'));
+        .productL(LL.warn(new Error('test error'), 'my warn'))
+        .productL(LL.info('my info'))
+        .productL(LL.debug('my debug'))
+        .productL(LL.trace('my trace'));
 
-      expect(xs.written()).toEqual(List.empty);
+      expect(xs.written(M).runA()).toEqual(List.empty);
     });
   });
 
   describe('context', () => {
     it('should add a context to the logger', () => {
-      expect(L.addContext({ test: '42' }).info('msg').written()).toEqual(
+      expect(
+        L.addContext({ test: '42' }).info('msg').written(M).runA(),
+      ).toEqual(
         List(new LogMessage(LogLevel.Info, 'msg', None, { test: '42' })),
       );
     });
@@ -91,7 +93,9 @@ describe('Logger', () => {
     it('should context should be set for every subsequent invocation', () => {
       const LL = L.addContext({ test: '42' });
 
-      expect(LL.info('msg1').productL(M)(LL.debug('msg2')).written()).toEqual(
+      expect(
+        LL.info('msg1').productL(LL.debug('msg2')).written(M).runA(),
+      ).toEqual(
         List(
           new LogMessage(LogLevel.Info, 'msg1', None, { test: '42' }),
           new LogMessage(LogLevel.Debug, 'msg2', None, { test: '42' }),
@@ -103,7 +107,9 @@ describe('Logger', () => {
       const L1 = L.addContext({ test1: '42' });
       const L2 = L.addContext({ test2: '42' });
 
-      expect(L1.info('msg1').productL(M)(L2.debug('msg2')).written()).toEqual(
+      expect(
+        L1.info('msg1').productL(L2.debug('msg2')).written(M).runA(),
+      ).toEqual(
         List(
           new LogMessage(LogLevel.Info, 'msg1', None, { test1: '42' }),
           new LogMessage(LogLevel.Debug, 'msg2', None, { test2: '42' }),
@@ -117,7 +123,8 @@ describe('Logger', () => {
       expect(
         L.contramap((x: number) => `${x}`)
           .info(42)
-          .written(),
+          .written(M)
+          .runA(),
       ).toEqual(List(new LogMessage(LogLevel.Info, '42')));
     });
 
@@ -127,8 +134,9 @@ describe('Logger', () => {
 
       expect(
         L1.info(42)
-          .productL(M)(L2.debug({ value: 99 }))
-          .written(),
+          .productL(L2.debug({ value: 99 }))
+          .written(M)
+          .runA(),
       ).toEqual(
         List(
           new LogMessage(LogLevel.Info, '42'),
@@ -142,7 +150,7 @@ describe('Logger', () => {
     it('should log using both loggers', () => {
       const LL = L['+++'](L);
 
-      expect(LL.info('msg').written()).toEqual(
+      expect(LL.info('msg').written(M).runA()).toEqual(
         List(
           new LogMessage(LogLevel.Info, 'msg'),
           new LogMessage(LogLevel.Info, 'msg'),
@@ -160,9 +168,10 @@ describe('Logger', () => {
 
       expect(
         LL.error('msg1')
-          .productL(M)(LL.debug('msg2'))
-          .productL(M)(LL.info('msg3'))
-          .written(),
+          .productL(LL.debug('msg2'))
+          .productL(LL.info('msg3'))
+          .written(M)
+          .runA(),
       ).toEqual(
         List(
           new LogMessage(LogLevel.Error, 'msg1'),

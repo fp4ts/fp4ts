@@ -114,27 +114,27 @@ export class Uri {
     return this.appendQuery(k, v);
   }
 
-  public render(M: Monoid<string>): Writer<string, void> {
-    const w = Writer.unit(M);
+  public render(): Writer<string, void> {
+    const w = Writer.pure(undefined);
     const scheme = this.scheme.fold(
       () => w,
       s => Writer([`${s}://`, undefined as void]),
     );
 
-    return Writer.unit(M)
-      .productR(M)(scheme)
-      .productR(M)(this.authority.map(a => a.render(M)).getOrElse(() => w))
-      .productR(M)(
+    return Writer.pure(undefined)
+      .productR(scheme)
+      .productR(this.authority.map(a => a.render()).getOrElse(() => w))
+      .productR(
         this.path !== Path.empty && !this.path.isAbsolute
-          ? Writer.tell('/').productR(M)(this.path.render(M))
-          : this.path.render(M),
+          ? Writer.tell('/').productR(this.path.render())
+          : this.path.render(),
       )
-      .productR(M)(this.query.render(M))
-      .tell(M)(this.fragment.map(f => `#${f}`).getOrElse(() => ''));
+      .productR(this.query.render())
+      .tell(this.fragment.map(f => `#${f}`).getOrElse(() => ''));
   }
 
   public toString(): string {
-    return this.render(Monoid.string).written();
+    return this.render().runWriter()[0].folding(Monoid.string);
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
@@ -209,11 +209,11 @@ export class Authority {
     return new Authority(host, port);
   }
 
-  public render(M: Monoid<string>): Writer<string, void> {
+  public render(): Writer<string, void> {
     const w = Writer<string, void>([this.host, undefined]);
     return this.port.fold(
       () => w,
-      p => w['<<<'](M)(`:${p}`),
+      p => w.log(`:${p}`),
     );
   }
 
@@ -242,14 +242,14 @@ export class Path {
       : new Path([...this.components, segment]);
   }
 
-  public render(M: Monoid<string>): Writer<string, void> {
+  public render(): Writer<string, void> {
     return this === Path.Root
       ? Writer.tell('/')
       : Writer.tell(this.components.join('/'));
   }
 
   public toString(): string {
-    return this.render(Monoid.string).written();
+    return this.render().runWriter(Monoid.string)[0];
   }
 
   public startsWith(that: Path): boolean {
@@ -312,19 +312,19 @@ export class Query {
   }
 
   public toString(): string {
-    return this.render(Monoid.string).written();
+    return this.render().runWriter(Monoid.string)[0];
   }
 
-  public render(M: Monoid<string>): Writer<string, void> {
+  public render(): Writer<string, void> {
     let isFirst = true;
-    return this.xs.foldLeft(Writer.unit(M), (w, [k, ov]) => {
+    return this.xs.foldLeft(Writer.pure(undefined), (w, [k, ov]) => {
       const sep = isFirst ? '?' : '&';
       isFirst = false;
       const value = ov.fold(
         () => encodeURI(k),
         v => `${encodeURI(k)}=${encodeURI(v)}`,
       );
-      return w['<<<'](M)(sep)['<<<'](M)(value);
+      return w.log(sep).log(value);
     });
   }
 

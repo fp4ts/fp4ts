@@ -36,6 +36,8 @@ import {
 } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
+import { MonadReader } from '@fp4ts/cats-mtl';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>
@@ -279,7 +281,7 @@ describe('Kleisli', () => {
         .map(Option.Functor)(x => x + 1)
         .dimap(Option.Functor)(() => 42)(x => x * 2)
         .lift(Identity.Monad)
-        .mapK<OptionTF>(<X>(x: Identity<Option<X>>) =>
+        .mapK<$<OptionTF, [IdentityF]>>(<X>(x: Identity<Option<X>>) =>
           OptionT<IdentityF, X>(x),
         );
 
@@ -294,12 +296,11 @@ describe('Kleisli', () => {
     EqFB: Eq<Kind<F, [B]>>,
   ): Eq<Kleisli<F, A, B>> => Eq.by(fn1Eq(EA, EqFB), k => x => k.run(x));
 
-  const contravariantTests = ContravariantSuite(
-    Kleisli.Contravariant<IdentityF, number>(),
-  );
   checkAll(
     'Contravariant<Kleisli<IdentityK, MiniInt, number>>',
-    contravariantTests.contravariant(
+    ContravariantSuite(
+      Kleisli.Contravariant<IdentityF, number>(),
+    ).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
@@ -313,12 +314,11 @@ describe('Kleisli', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(
-    Kleisli.FunctorFilter<OptionF, MiniInt>(Option.FunctorFilter),
-  );
   checkAll(
     'FunctorFilter<Kleisli<OptionK, MiniInt, number>>',
-    functorFilterTests.functorFilter(
+    FunctorFilterSuite(
+      Kleisli.FunctorFilter<OptionF, MiniInt>(Option.FunctorFilter),
+    ).functorFilter(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -332,12 +332,11 @@ describe('Kleisli', () => {
     ),
   );
 
-  const alternativeTests = AlternativeSuite(
-    Kleisli.Alternative<ListF, MiniInt>(List.Alternative),
-  );
   checkAll(
     'Alternative<Kleisli<ListK, MiniInt, number>>',
-    alternativeTests.alternative(
+    AlternativeSuite(
+      Kleisli.Alternative<ListF, MiniInt>(List.Alternative),
+    ).alternative(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -350,14 +349,13 @@ describe('Kleisli', () => {
   );
 
   type EitherStringK = $<EitherF, [string]>;
-  const monadErrorTests = MonadErrorSuite(
-    Kleisli.MonadError<EitherStringK, MiniInt, string>(
-      Either.MonadError<string>(),
-    ),
-  );
   checkAll(
     'MonadError<Kleisli<$<EitherK, [string]>, MiniInt, number>>',
-    monadErrorTests.stackUnsafeMonadError(
+    MonadErrorSuite(
+      Kleisli.MonadError<EitherStringK, MiniInt, string>(
+        Either.MonadError<string>(),
+      ),
+    ).stackUnsafeMonadError(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -377,6 +375,22 @@ describe('Kleisli', () => {
           ec.miniInt(),
           Either.Eq(Eq.primitive, E),
         ),
+    ),
+  );
+
+  checkAll(
+    'Local<Kleisli<OptionK, MiniInt, number>>',
+    MonadReaderSuite(MonadReader.Kleisli<OptionF, MiniInt>(Option.Monad)).local(
+      fc.integer(),
+      fc.integer(),
+      A.fp4tsMiniInt(),
+      Eq.primitive,
+      Eq.primitive,
+      MiniInt.Eq,
+      <X>(x: Arbitrary<X>) =>
+        A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
+      <X>(E: Eq<X>) =>
+        eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
     ),
   );
 });

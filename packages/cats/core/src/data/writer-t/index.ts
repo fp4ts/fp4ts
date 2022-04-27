@@ -4,4 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 import './syntax';
-export { Writer, WriterT, WriterF, WriterTF } from './writer-t';
+export { WriterT, WriterTF } from './writer-t';

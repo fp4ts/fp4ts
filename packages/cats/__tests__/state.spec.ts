@@ -3,27 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc, { Arbitrary } from 'fast-check';
-import { $, compose, id } from '@fp4ts/core';
+import fc from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
-import {
-  Either,
-  EitherF,
-  List,
-  State,
-  StateT,
-  IndexedStateT,
-  IdentityF,
-  Identity,
-  Option,
-  OptionF,
-} from '@fp4ts/cats-core/lib/data';
-import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { List, State, Option } from '@fp4ts/cats-core/lib/data';
+import { MonadState } from '@fp4ts/cats-mtl';
+import { MonadSuite } from '@fp4ts/cats-laws';
+import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as E from '@fp4ts/cats-test-kit/lib/eq';
+import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { IndexedState } from '@fp4ts/cats-core/src/data';
 
 describe('State', () => {
   describe('types', () => {
@@ -35,31 +25,28 @@ describe('State', () => {
   });
 
   test('basic usage', () => {
-    const listHead: IndexedStateT<
-      IdentityF,
+    const listHead: IndexedState<
       List<number>,
       Option<number>,
       void
-    > = IndexedStateT.modify(Identity.Applicative)(xs => xs.headOption);
-    const getOrElse: IndexedStateT<
-      IdentityF,
+    > = IndexedState.modify(xs => xs.headOption);
+    const getOrElse: IndexedState<
       Option<number>,
       number,
       void
-    > = IndexedStateT.modify(Identity.Applicative)(x => x.getOrElse(() => 0));
-    const toString: IndexedStateT<IdentityF, number, string, void> =
-      IndexedStateT.modify(Identity.Applicative)(x => x.toString());
+    > = IndexedState.modify(x => x.getOrElse(() => 0));
+    const toString: IndexedState<number, string, void> = IndexedState.modify(
+      x => x.toString(),
+    );
 
-    const composite = listHead.flatMap(Identity.Monad)(() =>
-      getOrElse.flatMap(Identity.Monad)(() =>
-        toString.flatMap(Identity.Monad)(() =>
-          IndexedStateT.get<IdentityF, string>(Identity.Applicative),
-        ),
+    const composite = listHead.flatMap(() =>
+      getOrElse.flatMap(() =>
+        toString.flatMap(() => IndexedState.get<string>()),
       ),
     );
 
-    expect(composite.run(Identity.Monad)(List(1, 2, 3))).toEqual(['1', '1']);
-    expect(composite.run(Identity.Monad)(List.empty)).toEqual(['0', '0']);
+    expect(composite.runState(List(1, 2, 3))).toEqual(['1', '1']);
+    expect(composite.runState(List.empty)).toEqual(['0', '0']);
   });
 
   it('should be stack safe', () => {
@@ -68,22 +55,18 @@ describe('State', () => {
     const ns = List.range(0, 50_000);
     const x = ns.traverse(State.Monad<number>())(() => add1);
 
-    expect(x.runS(Eval.Monad)(0).value).toBe(50_000);
+    expect(x.runStateS(0)).toBe(50_000);
   });
 
-  describe('IndexedStateT, StateT, State consistency', () => {
+  describe('IndexedState, State consistency', () => {
     test(
       'pure is consistent',
       forAll(fc.string(), fc.integer(), (s, n) => {
         const state: State<string, number> = State.pure(n);
-        const stateT: State<string, number> = StateT.pure(Eval.Applicative)(n);
-        const indexedStateT: State<string, number> = IndexedStateT.pure(
-          Eval.Applicative,
-        )(n);
+        const indexedState: IndexedState<string, string, number> =
+          IndexedState.pure(n);
 
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
+        expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
     );
 
@@ -91,129 +74,49 @@ describe('State', () => {
       'get is consistent',
       forAll(fc.string(), fc.integer(), s => {
         const state: State<string, string> = State.get();
-        const stateT: State<string, string> = StateT.get(Eval.Applicative);
-        const indexedStateT: State<string, string> = IndexedStateT.get(
-          Eval.Applicative,
-        );
+        const indexedState: IndexedState<string, string, string> =
+          IndexedState.get<string>();
 
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
+        expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
     );
 
     test(
-      'inspect is consistent',
-      forAll(fc.string(), fc.func<[string], number>(fc.integer()), (s, f) => {
-        const state: State<string, number> = State.inspect(f);
-        const stateT: State<string, number> = StateT.inspect(Eval.Applicative)(
-          f,
-        );
-        const indexedStateT: State<string, number> = IndexedStateT.inspect(
-          Eval.Applicative,
-        )(f);
+      'state is consistent',
+      forAll(
+        fc.string(),
+        fc.func<[string], [string, number]>(
+          fc.tuple(fc.string(), fc.integer()),
+        ),
+        (s, f) => {
+          const state: State<string, number> = State.state(f);
+          const indexedState: IndexedState<string, string, number> =
+            IndexedState.state(f);
 
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
-      }),
-    );
-
-    test(
-      'inspect and inspectF are consistent',
-      forAll(fc.string(), fc.func<[string], number>(fc.integer()), (s, f) => {
-        const state: State<string, number> = State.inspect(f);
-        const stateT: State<string, number> = StateT.inspectF(Eval.Applicative)(
-          compose(Eval.now, f),
-        );
-        const indexedStateT: State<string, number> = IndexedStateT.inspectF(
-          Eval.Applicative,
-        )(compose(Eval.now, f));
-
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
-      }),
+          expect(state.runState(s)).toEqual(indexedState.runState(s));
+        },
+      ),
     );
 
     test(
       'modify is consistent',
       forAll(fc.string(), fc.func<[string], string>(fc.string()), (s, f) => {
         const state: State<string, void> = State.modify(f);
-        const stateT: State<string, void> = StateT.modify(Eval.Applicative)(f);
-        const indexedStateT: State<string, void> = IndexedStateT.modify(
-          Eval.Applicative,
-        )(f);
+        const indexedState: IndexedState<string, string, void> =
+          IndexedState.modify(f);
 
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
+        expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
     );
 
     test(
-      'modify and modifyF are consistent',
-      forAll(fc.string(), fc.func<[string], string>(fc.string()), (s, f) => {
-        const state: State<string, void> = State.modify(f);
-        const stateT: State<string, void> = StateT.modifyF(Eval.Applicative)(
-          compose(Eval.now, f),
-        );
-        const indexedStateT: State<string, void> = IndexedStateT.modifyF(
-          Eval.Applicative,
-        )(compose(Eval.now, f));
-
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
-      }),
-    );
-
-    test(
-      'pure and liftF are consistent',
-      forAll(fc.string(), fc.integer(), (s, n) => {
-        const state: State<string, number> = State.pure(n);
-        const stateT: State<string, number> = StateT.liftF(Eval.Applicative)(
-          Eval.now(n),
-        );
-        const indexedStateT: State<string, number> = IndexedStateT.liftF(
-          Eval.Applicative,
-        )(Eval.now(n));
-
-        expect(state.run(s).value).toEqual(stateT.run(s).value);
-        expect(state.run(s).value).toEqual(indexedStateT.run(s).value);
-        return true;
-      }),
-    );
-
-    test(
-      'set is consistent',
+      'replace is consistent',
       forAll(fc.string(), fc.string(), (s0, s1) => {
-        const state: State<string, void> = State.set(s1);
-        const stateT: State<string, void> = StateT.set(Eval.Applicative)(s1);
-        const indexedStateT: State<string, void> = IndexedStateT.set(
-          Eval.Applicative,
-        )(s1);
+        const state: State<string, void> = State.replace(s1);
+        const indexedState: IndexedState<string, string, void> =
+          IndexedState.replace(s1);
 
-        expect(state.run(s0).value).toEqual(stateT.run(s0).value);
-        expect(state.run(s0).value).toEqual(indexedStateT.run(s0).value);
-        return true;
-      }),
-    );
-
-    test(
-      'set and setF are consistent',
-      forAll(fc.string(), fc.string(), (s0, s1) => {
-        const state: State<string, void> = State.set(s1);
-        const stateT: State<string, void> = StateT.setF(Eval.Applicative)(
-          Eval.now(s1),
-        );
-        const indexedStateT: State<string, void> = IndexedStateT.setF(
-          Eval.Applicative,
-        )(Eval.now(s1));
-
-        expect(state.run(s0).value).toEqual(stateT.run(s0).value);
-        expect(state.run(s0).value).toEqual(indexedStateT.run(s0).value);
-        return true;
+        expect(state.runState(s0)).toEqual(indexedState.runState(s0));
       }),
     );
   });
@@ -227,7 +130,7 @@ describe('State', () => {
       return result;
     });
 
-    expect(r.run(42).value).toEqual([44, 44]);
+    expect(r.runState(42)).toEqual([44, 44]);
   });
 
   describe('state management', () => {
@@ -235,20 +138,20 @@ describe('State', () => {
       expect(
         State.get<number>()
           .map(x => x + 1)
-          .run(42).value,
+          .runState(42),
       ).toEqual([42, 43]);
     });
 
     it('should set state from a value', () => {
       expect(
         State.pure<number, number>(42)
-          .flatMap(x => State.set(x))
-          .run(-1).value,
+          .flatMap(x => State.replace(x))
+          .runState(-1),
       ).toEqual([42, undefined]);
     });
 
     it('should update the state', () => {
-      expect(State.modify<number>(x => x + 1).run(42).value).toEqual([
+      expect(State.modify<number>(x => x + 1).runState(42)).toEqual([
         43,
         undefined,
       ]);
@@ -258,7 +161,7 @@ describe('State', () => {
       expect(
         State.modify<number>(x => x + 1)
           .get()
-          .run(42).value,
+          .runState(42),
       ).toEqual([43, 43]);
     });
 
@@ -266,17 +169,17 @@ describe('State', () => {
       expect(
         State.modify<number>(x => x + 1)
           .map(() => 'test')
-          .run(42).value,
+          .runState(42),
       ).toEqual([43, 'test']);
     });
 
-    it('should update the state using previous value', () => {
-      expect(
-        State.pure<number, number>(42)
-          .transform(Eval.Functor)(([s, x]) => [s + 1, `${s + x}`])
-          .run(42).value,
-      ).toEqual([43, '84']);
-    });
+    // it('should update the state using previous value', () => {
+    //   expect(
+    //     State.pure<number, number>(42)
+    //       .transform(Eval.Functor)(([s, x]) => [s + 1, `${s + x}`])
+    //       .run(42).value,
+    //   ).toEqual([43, '84']);
+    // });
 
     it('should be stack safe', () => {
       const size = 10_000;
@@ -287,15 +190,14 @@ describe('State', () => {
               .flatMap(loop)
           : State.pure(undefined);
 
-      expect(loop(0).run(0).value).toEqual([10_000, undefined]);
+      expect(loop(0).runState(0)).toEqual([10_000, undefined]);
     });
   });
 
   describe('State Laws', () => {
-    const monadTests = MonadSuite(State.Monad<MiniInt>());
     checkAll(
       'Monad<State<MiniInt, *>>',
-      monadTests.monad(
+      MonadSuite(State.Monad<MiniInt>()).monad(
         fc.string(),
         fc.string(),
         fc.string(),
@@ -305,139 +207,157 @@ describe('State', () => {
         Eq.primitive,
         Eq.primitive,
         X => A.fp4tsState(A.fp4tsMiniInt(), X),
-        EX => E.stateEq(ec.miniInt(), MiniInt.Eq, EX),
+        <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
+          Eq.by(
+            eq.fn1Eq(ec.miniInt(), Eq.tuple(MiniInt.Eq, EX)),
+            fa => s => fa.runState(s),
+          ),
+      ),
+    );
+
+    checkAll(
+      'MonadState<State<MiniInt, *>, MiniInt>',
+      MonadStateSuite(MonadState.State<MiniInt>()).monadState(
+        A.fp4tsMiniInt(),
+        MiniInt.Eq,
+        X => A.fp4tsState(A.fp4tsMiniInt(), X),
+        <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
+          Eq.by(
+            eq.fn1Eq(ec.miniInt(), Eq.tuple(MiniInt.Eq, EX)),
+            fa => s => fa.runState(s),
+          ),
       ),
     );
   });
 
-  describe('IndexedStateT Laws', () => {
-    const identityMonadTests = MonadSuite(
-      IndexedStateT.Monad<IdentityF, MiniInt>(Identity.Monad),
-    );
-    checkAll(
-      'Monad<IndexedStateT<IdentityK, MiniInt, MiniInt, *>>',
-      identityMonadTests.monad(
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IndexedStateT<IdentityF, MiniInt, MiniInt, X>> =>
-          A.fp4tsIndexedStateT<IdentityF, MiniInt, MiniInt, X>(
-            fc.func<[MiniInt], Identity<[MiniInt, X]>>(
-              fc.tuple(A.fp4tsMiniInt(), X),
-            ),
-          ),
-        EX =>
-          E.indexedStateTEq(ec.miniInt(), MiniInt.Eq, EX, id, Identity.Monad),
-      ),
-    );
+  // describe('IndexedStateT Laws', () => {
+  //   const identityMonadTests = MonadSuite(
+  //     IndexedStateT.Monad<IdentityF, MiniInt>(Identity.Monad),
+  //   );
+  //   checkAll(
+  //     'Monad<IndexedStateT<IdentityK, MiniInt, MiniInt, *>>',
+  //     identityMonadTests.monad(
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       <X>(
+  //         X: Arbitrary<X>,
+  //       ): Arbitrary<IndexedStateT<IdentityF, MiniInt, MiniInt, X>> =>
+  //         A.fp4tsIndexedStateT<IdentityF, MiniInt, MiniInt, X>(
+  //           fc.func<[MiniInt], Identity<[MiniInt, X]>>(
+  //             fc.tuple(A.fp4tsMiniInt(), X),
+  //           ),
+  //         ),
+  //       EX =>
+  //         E.indexedStateTEq(ec.miniInt(), MiniInt.Eq, EX, id, Identity.Monad),
+  //     ),
+  //   );
 
-    const bifunctorTests = BifunctorSuite(
-      IndexedStateT.Bifunctor<IdentityF, MiniInt>(Identity.Monad),
-    );
-    checkAll(
-      'Bifunctor<IndexedStateT<IdentityK, MiniInt, *, *>>',
-      bifunctorTests.bifunctor(
-        fc.string(),
-        fc.integer(),
-        fc.string(),
-        fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        <X, Y>(
-          X: Arbitrary<X>,
-          Y: Arbitrary<Y>,
-        ): Arbitrary<IndexedStateT<IdentityF, MiniInt, X, Y>> =>
-          A.fp4tsIndexedStateT<IdentityF, MiniInt, X, Y>(
-            fc.func<[MiniInt], Identity<[X, Y]>>(fc.tuple(X, Y)),
-          ),
-        (EX, EY) => E.indexedStateTEq(ec.miniInt(), EX, EY, id, Identity.Monad),
-      ),
-    );
+  //   const bifunctorTests = BifunctorSuite(
+  //     IndexedStateT.Bifunctor<IdentityF, MiniInt>(Identity.Monad),
+  //   );
+  //   checkAll(
+  //     'Bifunctor<IndexedStateT<IdentityK, MiniInt, *, *>>',
+  //     bifunctorTests.bifunctor(
+  //       fc.string(),
+  //       fc.integer(),
+  //       fc.string(),
+  //       fc.integer(),
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       <X, Y>(
+  //         X: Arbitrary<X>,
+  //         Y: Arbitrary<Y>,
+  //       ): Arbitrary<IndexedStateT<IdentityF, MiniInt, X, Y>> =>
+  //         A.fp4tsIndexedStateT<IdentityF, MiniInt, X, Y>(
+  //           fc.func<[MiniInt], Identity<[X, Y]>>(fc.tuple(X, Y)),
+  //         ),
+  //       (EX, EY) => E.indexedStateTEq(ec.miniInt(), EX, EY, id, Identity.Monad),
+  //     ),
+  //   );
 
-    const optionMonadTests = MonadSuite(
-      IndexedStateT.Monad<OptionF, MiniInt>(Option.Monad),
-    );
-    checkAll(
-      'Monad<IndexedStateT<OptionK, MiniInt, MiniInt, *>>',
-      optionMonadTests.monad(
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IndexedStateT<OptionF, MiniInt, MiniInt, X>> =>
-          A.fp4tsIndexedStateT<OptionF, MiniInt, MiniInt, X>(
-            A.fp4tsOption(
-              fc.func<[MiniInt], Option<[MiniInt, X]>>(
-                A.fp4tsOption(fc.tuple(A.fp4tsMiniInt(), X)),
-              ),
-            ),
-          ),
-        EX =>
-          E.indexedStateTEq(
-            ec.miniInt(),
-            MiniInt.Eq,
-            EX,
-            Option.Eq,
-            Option.Monad,
-          ),
-      ),
-    );
+  //   const optionMonadTests = MonadSuite(
+  //     IndexedStateT.Monad<OptionF, MiniInt>(Option.Monad),
+  //   );
+  //   checkAll(
+  //     'Monad<IndexedStateT<OptionK, MiniInt, MiniInt, *>>',
+  //     optionMonadTests.monad(
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       <X>(
+  //         X: Arbitrary<X>,
+  //       ): Arbitrary<IndexedStateT<OptionF, MiniInt, MiniInt, X>> =>
+  //         A.fp4tsIndexedStateT<OptionF, MiniInt, MiniInt, X>(
+  //           A.fp4tsOption(
+  //             fc.func<[MiniInt], Option<[MiniInt, X]>>(
+  //               A.fp4tsOption(fc.tuple(A.fp4tsMiniInt(), X)),
+  //             ),
+  //           ),
+  //         ),
+  //       EX =>
+  //         E.indexedStateTEq(
+  //           ec.miniInt(),
+  //           MiniInt.Eq,
+  //           EX,
+  //           Option.Eq,
+  //           Option.Monad,
+  //         ),
+  //     ),
+  //   );
 
-    const eitherStringMonadErrorTests = MonadErrorSuite(
-      IndexedStateT.MonadError<$<EitherF, [string]>, MiniInt, string>(
-        Either.MonadError<string>(),
-      ),
-    );
-    checkAll(
-      'MonadError<IndexedStateT<Either<string, *>, MiniInt, MiniInt, *>, string>',
-      eitherStringMonadErrorTests.monadError(
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<
-          IndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>
-        > =>
-          A.fp4tsIndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>(
-            A.fp4tsEither(
-              fc.string(),
-              fc.func<[MiniInt], Either<string, [MiniInt, X]>>(
-                A.fp4tsEither(fc.string(), fc.tuple(A.fp4tsMiniInt(), X)),
-              ),
-            ),
-          ),
-        EX =>
-          E.indexedStateTEq(
-            ec.miniInt(),
-            MiniInt.Eq,
-            EX,
-            X => Either.Eq(Eq.primitive, X),
-            Either.Monad<string>(),
-          ),
-      ),
-    );
-  });
+  //   const eitherStringMonadErrorTests = MonadErrorSuite(
+  //     IndexedStateT.MonadError<$<EitherF, [string]>, MiniInt, string>(
+  //       Either.MonadError<string>(),
+  //     ),
+  //   );
+  //   checkAll(
+  //     'MonadError<IndexedStateT<Either<string, *>, MiniInt, MiniInt, *>, string>',
+  //     eitherStringMonadErrorTests.monadError(
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       fc.string(),
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       Eq.primitive,
+  //       <X>(
+  //         X: Arbitrary<X>,
+  //       ): Arbitrary<
+  //         IndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>
+  //       > =>
+  //         A.fp4tsIndexedStateT<$<EitherF, [string]>, MiniInt, MiniInt, X>(
+  //           A.fp4tsEither(
+  //             fc.string(),
+  //             fc.func<[MiniInt], Either<string, [MiniInt, X]>>(
+  //               A.fp4tsEither(fc.string(), fc.tuple(A.fp4tsMiniInt(), X)),
+  //             ),
+  //           ),
+  //         ),
+  //       EX =>
+  //         E.indexedStateTEq(
+  //           ec.miniInt(),
+  //           MiniInt.Eq,
+  //           EX,
+  //           X => Either.Eq(Eq.primitive, X),
+  //           Either.Monad<string>(),
+  //         ),
+  //     ),
+  //   );
+  // });
 });

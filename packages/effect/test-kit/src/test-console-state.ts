@@ -3,12 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
 import { Show, State, StateF } from '@fp4ts/cats';
 import { Console } from '@fp4ts/effect-std';
 
 export type ConsoleState<A> = State<ConsoleStateState, A>;
-export type ConsoleStateF = $<StateF, [ConsoleStateState]>;
+export type ConsoleStateF = StateF<ConsoleStateState>;
 
 export class TestConsoleState extends Console<ConsoleStateF> {
   public get readLine(): ConsoleState<string> {

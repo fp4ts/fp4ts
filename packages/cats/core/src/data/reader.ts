@@ -17,7 +17,8 @@ interface ReaderObj {
   <A, R = unknown>(a: A): Reader<R, A>;
 
   pure<A, R = unknown>(a: A): Reader<R, A>;
-  read<R>(): Reader<R, R>;
+  ask<R>(): Reader<R, R>;
+  lift<R, A>(f: (r: R) => A): Reader<R, A>;
 
   // -- Instances
 
@@ -25,7 +26,8 @@ interface ReaderObj {
 }
 
 Reader.pure = XPure.pure;
-Reader.read = XPure.read;
+Reader.ask = XPure.ask;
+Reader.lift = <R, A>(f: (r: R) => A): Reader<R, A> => Reader.ask<R>().map(f);
 
 // -- Instances
 

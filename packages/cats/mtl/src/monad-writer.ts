@@ -10,6 +10,8 @@ import {
   Chain,
   EitherT,
   EitherTF,
+  IndexedReaderWriterStateT as RWST,
+  IndexedReaderWriterStateTF as RWSTF,
   Kleisli,
   KleisliF,
   Left,
@@ -18,6 +20,9 @@ import {
   OptionTF,
   Right,
   Some,
+  WriterF,
+  WriterT,
+  WriterTF,
   XPure,
   XPureF,
 } from '@fp4ts/cats-core/lib/data';
@@ -48,6 +53,33 @@ export const MonadWriter = Object.freeze({
       censor_: (fa, f) => fa.censor(chain => Chain(f(chain.folding(W)))),
       listen: fa => fa.listen(W),
       tell: w => XPure.tell(w),
+    }),
+
+  RWST: <F, W, S, R>(
+    F: Monad<F>,
+    W: Monoid<W>,
+  ): MonadWriter<$<RWSTF, [F, W, S, S, R]>, W> =>
+    MonadWriter.of<$<RWSTF, [F, W, S, S, R]>, W>({
+      monoid: W,
+      ...RWST.Monad(F),
+      censor_: (fa, f) => fa.censor(F)(chain => Chain(f(chain.folding(W)))),
+      listen: fa => fa.listen(F, W),
+      tell: RWST.tell(F),
+    }),
+
+  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.XPure(L),
+
+  WriterT: <F, L>(
+    F: Monad<F>,
+    L: Monoid<L>,
+  ): MonadWriter<$<WriterTF, [F, L]>, L> =>
+    MonadWriter.of({
+      monoid: L,
+      ...WriterT.Monad(F, L),
+
+      censor_: (fa, f) => fa.mapWritten(F)(f),
+      listen: fa => fa.listen(F),
+      tell: WriterT.tell(F),
     }),
 
   Kleisli: <F, R, W>(

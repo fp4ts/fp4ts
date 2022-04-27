@@ -3,18 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, instance } from '@fp4ts/core';
-import { Eval, State, StateF } from '@fp4ts/cats';
+import { instance } from '@fp4ts/core';
+import { State, StateF } from '@fp4ts/cats';
 import { Program } from '../dsl';
 import { run } from '../program';
 
 describe('number guess game', () => {
   it('should guess the number on third try', () => {
-    const r = run(StateProgram).runS(Eval.Monad)(
+    const r = run(StateProgram).runStateS(
       new TestData(['50', '60', '80', 'n'], [], [80]),
     );
 
-    expect(r.value).toEqual(
+    expect(r).toEqual(
       new TestData(
         [],
         [
@@ -32,11 +32,11 @@ describe('number guess game', () => {
   });
 
   it('should restart the game when user presses Y', () => {
-    const r = run(StateProgram).runS(Eval.Monad)(
+    const r = run(StateProgram).runStateS(
       new TestData(['50', 'Y', '50', '75', 'n'], [], [50, 75]),
     );
 
-    expect(r.value).toEqual(
+    expect(r).toEqual(
       new TestData(
         [],
         [
@@ -77,13 +77,13 @@ describe('number guess game', () => {
     }
   }
 
-  const StateProgram: Program<$<StateF, [TestData]>> = instance({
+  const StateProgram: Program<StateF<TestData>> = instance({
     ...State.Monad<TestData>(),
 
     get readLine(): State<TestData, string> {
       return State.get<TestData>()
-        .map(Eval.Functor)(td => td.input[0])
-        .modify(Eval.Functor)(td => td.copy({ input: td.input.slice(1) }));
+        .map(td => td.input[0])
+        .modify(td => td.copy({ input: td.input.slice(1) }));
     },
 
     printLn(a: string): State<TestData, void> {
@@ -92,10 +92,8 @@ describe('number guess game', () => {
 
     nextIntBetween(): State<TestData, number> {
       return State.get<TestData>()
-        .map(Eval.Monad)(td => td.randomNumbers[0])
-        .modify(Eval.Functor)(td =>
-        td.copy({ randomNumbers: td.randomNumbers.slice(1) }),
-      );
+        .map(td => td.randomNumbers[0])
+        .modify(td => td.copy({ randomNumbers: td.randomNumbers.slice(1) }));
     },
   });
 });

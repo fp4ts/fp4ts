@@ -39,7 +39,7 @@ export const reset =
     mapWritten_(F)(flv, () => L.empty);
 
 export const flatten =
-  <F, L>(F: FlatMap<F>, L: Monoid<L>) =>
+  <F, L>(F: FlatMap<F>, L: Semigroup<L>) =>
   <V>(fflv: WriterT<F, L, WriterT<F, L, V>>): WriterT<F, L, V> =>
     flatMap_(F, L)(fflv, id);
 

@@ -8,6 +8,7 @@ import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import {
+  Reader,
   Chain,
   Either,
   HashMap,
@@ -24,7 +25,6 @@ import {
   EitherT,
   Queue,
   AndThen,
-  IndexedStateT,
   State,
   WriterT,
   Writer,
@@ -36,6 +36,7 @@ import {
   ValidationError,
   Validation,
   XPure,
+  IndexedReaderWriterStateT,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
@@ -236,6 +237,10 @@ export const fp4tsWriter = <L, V>(
   arbFLV: Arbitrary<[L, V]>,
 ): Arbitrary<Writer<L, V>> => arbFLV.map(Writer);
 
+export const fp4tsReader = <R, A>(
+  arbA: Arbitrary<A>,
+): Arbitrary<Reader<R, A>> => fc.func<[R], A>(arbA).map(Reader.lift);
+
 export const fp4tsKleisli = <F, A, B>(
   arbFB: Arbitrary<Kind<F, [B]>>,
 ): Arbitrary<Kleisli<F, A, B>> =>
@@ -261,17 +266,18 @@ export const fp4tsAndThen = <A>(
 export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<Endo<A>> =>
   fc.func<[A], A>(arbA);
 
-export const fp4tsIndexedStateT = <F, SA, SB, A>(
-  arbFSAFSBA: Arbitrary<Kind<F, [(sa: SA) => Kind<F, [[SB, A]]>]>>,
-): Arbitrary<IndexedStateT<F, SA, SB, A>> => arbFSAFSBA.map(IndexedStateT);
+export const fp4tsIndexedReaderWriterStateT = <F, W, SA, SB, R, A>(
+  arbFSAFSBA: Arbitrary<
+    Kind<F, [(r: R, sa: SA) => Kind<F, [[Chain<W>, SB, A]]>]>
+  >,
+): Arbitrary<IndexedReaderWriterStateT<F, W, SA, SB, R, A>> =>
+  arbFSAFSBA.map(IndexedReaderWriterStateT);
 
 export const fp4tsState = <S, A>(
   arbS: Arbitrary<S>,
   arbA: Arbitrary<A>,
 ): Arbitrary<State<S, A>> =>
-  fp4tsIndexedStateT(
-    fc.func<[S], Eval<[S, A]>>(fp4tsEval(fc.tuple(arbS, arbA))).map(Eval.pure),
-  );
+  fc.func<[S], [S, A]>(fc.tuple(arbS, arbA)).map(State);
 
 export const fp4tsXPure = <E, A>(
   arbE: Arbitrary<E>,

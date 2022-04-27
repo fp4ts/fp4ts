@@ -17,17 +17,17 @@ export const fn1Eq = <A, B>(
     equals: (fx, fy) => ec.allValues.all(a => EqB.equals(fx(a), fy(a))),
   });
 
-export const indexedStateTEq = <F, SA, SB, A>(
-  ec: ExhaustiveCheck<SA>,
-  EqSB: Eq<SB>,
-  EqA: Eq<A>,
-  mkEqFX: <X>(EqX: Eq<X>) => Eq<Kind<F, [X]>>,
-  F: FlatMap<F>,
-): Eq<IndexedStateT<F, SA, SB, A>> =>
-  Eq.by(fn1Eq(ec, mkEqFX(Eq.tuple2(EqSB, EqA))), fsasba => fsasba.run(F));
+// export const indexedStateTEq = <F, SA, SB, A>(
+//   ec: ExhaustiveCheck<SA>,
+//   EqSB: Eq<SB>,
+//   EqA: Eq<A>,
+//   mkEqFX: <X>(EqX: Eq<X>) => Eq<Kind<F, [X]>>,
+//   F: FlatMap<F>,
+// ): Eq<IndexedStateT<F, SA, SB, A>> =>
+//   Eq.by(fn1Eq(ec, mkEqFX(Eq.tuple2(EqSB, EqA))), fsasba => fsasba.run(F));
 
-export const stateEq = <S, A>(
-  ec: ExhaustiveCheck<S>,
-  EqS: Eq<S>,
-  EqA: Eq<A>,
-): Eq<State<S, A>> => indexedStateTEq(ec, EqS, EqA, Eval.Eq, Eval.Monad);
+// export const stateEq = <S, A>(
+//   ec: ExhaustiveCheck<S>,
+//   EqS: Eq<S>,
+//   EqA: Eq<A>,
+// ): Eq<State<S, A>> => indexedStateTEq(ec, EqS, EqA, Eval.Eq, Eval.Monad);

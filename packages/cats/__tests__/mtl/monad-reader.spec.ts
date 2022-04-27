@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $ } from '@fp4ts/core';
+import { $, snd } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import {
   Either,
@@ -138,7 +138,7 @@ describe('MonadReader', () => {
               ec.miniInt(),
               Either.Eq(Eq.primitive, Either.Eq(Eq.Error.strict, EqX)),
             ),
-            k => a => k.value.runEA(a),
+            k => a => k.value.runAll(a)[1].map(snd),
           ),
       ),
     );
@@ -169,7 +169,7 @@ describe('MonadReader', () => {
         ): Eq<OptionT<$<XPureF, [void, void, void, MiniInt, string]>, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, Option.Eq(EqX))),
-            k => a => k.value.runEA(a),
+            k => a => k.value.runAll(a)[1].map(snd),
           ),
       ),
     );

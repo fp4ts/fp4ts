@@ -8,13 +8,15 @@ import { $ } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
-  Writer,
   WriterT,
   Array,
   Either,
   EitherF,
   Chain,
+  Identity,
+  IdentityF,
 } from '@fp4ts/cats-core/lib/data';
+import { MonadWriter } from '@fp4ts/cats-mtl';
 import {
   BifunctorSuite,
   CoflatMapSuite,
@@ -22,45 +24,78 @@ import {
   MonadErrorSuite,
   MonadSuite,
 } from '@fp4ts/cats-laws';
+import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('WriterT', () => {
   describe('cumulating results', () => {
     it('should be empty when lifting the pure value', () => {
-      expect(Writer.pure(Monoid.string)(42).run).toEqual(['', 42]);
+      expect(
+        WriterT.pure(Eval.Applicative, Monoid.string)(42).run.value,
+      ).toEqual(['', 42]);
     });
 
     it('should concatenate two string', () => {
       expect(
-        Writer.pure(Monoid.string)(42)
-          ['<<<'](Monoid.string)('tell')
-          ['<<<'](Monoid.string)(' ')
-          ['<<<'](Monoid.string)('me')
-          ['<<<'](Monoid.string)(' ')
-          ['<<<'](Monoid.string)('more')
-          .written(),
+        WriterT.pure(Eval.Applicative, Monoid.string)(42)
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('tell')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )(' ')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('me')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )(' ')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('more')
+          .written(Eval.Monad).value,
       ).toBe('tell me more');
     });
 
     it('should reset cumulated result', () => {
       expect(
-        Writer.pure(Monoid.string)(42)
-          ['<<<'](Monoid.string)('tell')
-          ['<<<'](Monoid.string)(' ')
-          ['<<<'](Monoid.string)('me')
-          ['<<<'](Monoid.string)(' ')
-          ['<<<'](Monoid.string)('more')
-          .reset(Monoid.string)
-          .written(),
+        WriterT.pure(Eval.Applicative, Monoid.string)(42)
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('tell')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )(' ')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('me')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )(' ')
+          ['<<<'](
+            Eval.Monad,
+            Monoid.string,
+          )('more')
+          .reset(Eval.Monad, Monoid.string)
+          .written(Eval.Monad).value,
       ).toBe('');
     });
 
     it('should combine output of two writers', () => {
-      const lhs = Writer(['left side', 42]);
-      const rhs = Writer([' right side', 42]);
+      const lhs = WriterT<EvalF, string, number>(Eval.now(['left side', 42]));
+      const rhs = WriterT<EvalF, string, number>(Eval.now([' right side', 42]));
 
-      expect(lhs.product(Monoid.string)(rhs).run).toEqual([
+      expect(lhs.product(Eval.Monad, Monoid.string)(rhs).run.value).toEqual([
         'left side right side',
         [42, 42],
       ]);
@@ -68,35 +103,48 @@ describe('WriterT', () => {
 
     it('should combine result of the flatMap', () => {
       expect(
-        Writer([[1, 2, 3], 42]).flatMap(Array.MonoidK().algebra<number>())(x =>
-          Writer([[4, 5, 6], x + 1]),
-        ).run,
+        WriterT<EvalF, number[], number>(Eval.now([[1, 2, 3], 42])).flatMap(
+          Eval.Monad,
+          Array.MonoidK().algebra<number>(),
+        )(x => WriterT<EvalF, number[], number>(Eval.now([[4, 5, 6], x + 1])))
+          .run.value,
       ).toEqual([[1, 2, 3, 4, 5, 6], 43]);
     });
   });
 
-  describe('Writer Laws', () => {
-    const bifunctorTests = BifunctorSuite(Writer.Bifunctor);
+  describe('Laws', () => {
     checkAll(
-      'Bifunctor<Writer<string *>>',
-      bifunctorTests.bifunctor(
-        fc.string(),
+      'Censor<WriterT<Identity, string, *>, string>',
+      MonadWriterSuite(
+        MonadWriter.WriterT(Identity.Monad, Monoid.string),
+      ).censor(
         fc.integer(),
         fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<IdentityF, string, X>> =>
+          A.fp4tsWriterT(fc.tuple(fc.string(), arbX)),
+        <X>(E: Eq<X>): Eq<WriterT<IdentityF, string, X>> =>
+          WriterT.Eq(Eq.tuple2(Eq.primitive, E)),
+      ),
+    );
+    checkAll(
+      'Censor<WriterT<Eval, string, *>, string>',
+      MonadWriterSuite(MonadWriter.WriterT(Eval.Monad, Monoid.string)).censor(
         fc.integer(),
+        fc.string(),
         Eq.primitive,
         Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        (arbX, arbY) => A.fp4tsWriter(fc.tuple(arbX, arbY)),
-        (EX, EY) => Writer.Eq(Eq.tuple2(EX, EY)),
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, string, X>> =>
+          A.fp4tsWriterT(A.fp4tsEval(fc.tuple(fc.string(), arbX))),
+        <X>(E: Eq<X>): Eq<WriterT<EvalF, string, X>> =>
+          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive, E))),
       ),
     );
 
-    const monadTests = MonadSuite(Writer.Monad<string>(Monoid.string));
     checkAll(
-      'Monad<Writer<string, *>>',
-      monadTests.monad(
+      'Bifunctor<WriterT<Identity, string *>>',
+      BifunctorSuite(WriterT.Bifunctor(Identity.Monad)).bifunctor(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -105,51 +153,78 @@ describe('WriterT', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
-        E => Writer.Eq(Eq.tuple2(Eq.primitive as any, E)),
+        <X, Y>(
+          arbX: Arbitrary<X>,
+          arbY: Arbitrary<Y>,
+        ): Arbitrary<WriterT<IdentityF, X, Y>> =>
+          A.fp4tsWriterT(fc.tuple(arbX, arbY)),
+        <X, Y>(EX: Eq<X>, EY: Eq<Y>): Eq<WriterT<IdentityF, X, Y>> =>
+          WriterT.Eq(Eq.tuple2(EX, EY)),
       ),
     );
 
-    const comonadTests = ComonadSuite(Writer.Comonad<string>());
     checkAll(
-      'Comonad<Writer<string, *>>',
-      comonadTests.comonad(
+      'Monad<WriterT<Identity, string, *>>',
+      MonadSuite(WriterT.Monad(Identity.Monad, Monoid.string)).monad(
         fc.string(),
         fc.integer(),
         fc.string(),
+        fc.integer(),
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
-        E => Writer.Eq(Eq.tuple2(Eq.primitive as any, E)),
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<IdentityF, string, X>> =>
+          A.fp4tsWriterT(fc.tuple(fc.string(), arbX)),
+        <X>(E: Eq<X>): Eq<WriterT<IdentityF, string, X>> =>
+          WriterT.Eq(Eq.tuple2(Eq.primitive, E)),
       ),
     );
 
-    const monadArrayTests = MonadSuite(
-      Writer.Monad<string[]>(Array.MonoidK().algebra<string>()),
-    );
     checkAll(
-      'Monad<Writer<string[], *>>',
-      monadArrayTests.monad(
+      'Comonad<WriterT<Identity, string, *>>',
+      ComonadSuite(
+        WriterT.Comonad<IdentityF, string>(Identity.Comonad),
+      ).comonad(
         fc.string(),
         fc.integer(),
         fc.string(),
-        fc.integer(),
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
-        Eq.primitive,
-        arbX => A.fp4tsWriter(fc.tuple(fc.array(fc.string()), arbX)),
-        E => Writer.Eq(Eq.tuple2(Array.Eq(Eq.primitive as any), E)),
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<IdentityF, string, X>> =>
+          A.fp4tsWriterT(fc.tuple(fc.string(), arbX)),
+        <X>(E: Eq<X>): Eq<WriterT<IdentityF, string, X>> =>
+          WriterT.Eq(Eq.tuple2(Eq.primitive, E)),
       ),
     );
-  });
 
-  describe('WriterT Laws', () => {
-    const bifunctorTests = BifunctorSuite(WriterT.Bifunctor(Eval.Functor));
+    checkAll(
+      'Monad<WriterT<Identity, string[], *>>',
+      MonadSuite(
+        WriterT.Monad<IdentityF, string[]>(
+          Identity.Monad,
+          Array.MonoidK().algebra<string>(),
+        ),
+      ).monad(
+        fc.string(),
+        fc.integer(),
+        fc.string(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<IdentityF, string[], X>> =>
+          A.fp4tsWriterT(fc.tuple(fc.array(fc.string()), arbX)),
+        <X>(E: Eq<X>): Eq<WriterT<IdentityF, string[], X>> =>
+          WriterT.Eq(Eq.tuple2(Array.Eq(Eq.primitive), E)),
+      ),
+    );
+
     checkAll(
       'Bifunctor<WriterT<Eval, *, *>>',
-      bifunctorTests.bifunctor(
+      BifunctorSuite(WriterT.Bifunctor(Eval.Functor)).bifunctor(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -168,12 +243,11 @@ describe('WriterT', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(
-      WriterT.CoflatMap<EvalF, string>(Eval.CoflatMap),
-    );
     checkAll(
       'CoflatMap<WriterT<Eval, string, *>>',
-      coflatMapTests.coflatMap(
+      CoflatMapSuite(
+        WriterT.CoflatMap<EvalF, string>(Eval.CoflatMap),
+      ).coflatMap(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -183,16 +257,13 @@ describe('WriterT', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, string, X>> =>
           A.fp4tsWriterT(A.fp4tsEval(fc.tuple(fc.string(), arbX))),
         <X>(E: Eq<X>): Eq<WriterT<EvalF, string, X>> =>
-          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive as any, E))),
+          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive, E))),
       ),
     );
 
-    const monadTests = MonadSuite(
-      WriterT.Monad<EvalF, string>(Eval.Monad, Monoid.string),
-    );
     checkAll(
       'Monad<WriterT<Eval, string, *>>',
-      monadTests.monad(
+      MonadSuite(WriterT.Monad<EvalF, string>(Eval.Monad, Monoid.string)).monad(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -204,19 +275,18 @@ describe('WriterT', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<WriterT<EvalF, string, X>> =>
           A.fp4tsWriterT(A.fp4tsEval(fc.tuple(fc.string(), arbX))),
         <X>(E: Eq<X>): Eq<WriterT<EvalF, string, X>> =>
-          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive as any, E))),
+          WriterT.Eq(Eval.Eq(Eq.tuple2(Eq.primitive, E))),
       ),
     );
 
-    const monadErrorTests = MonadErrorSuite(
-      WriterT.MonadError<$<EitherF, [Error]>, string, Error>(
-        Either.MonadError(),
-        Monoid.string,
-      ),
-    );
     checkAll(
       'MonadError<WriterT<Either<Error, *>, string, *>, Error>',
-      monadErrorTests.monadError(
+      MonadErrorSuite(
+        WriterT.MonadError<$<EitherF, [Error]>, string, Error>(
+          Either.MonadError(),
+          Monoid.string,
+        ),
+      ).monadError(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -234,21 +304,18 @@ describe('WriterT', () => {
             A.fp4tsEither(A.fp4tsError(), fc.tuple(fc.string(), arbX)),
           ),
         <X>(E: Eq<X>): Eq<WriterT<$<EitherF, [Error]>, string, X>> =>
-          WriterT.Eq(
-            Either.Eq(Eq.Error.strict, Eq.tuple2(Eq.primitive as any, E)),
-          ),
+          WriterT.Eq(Either.Eq(Eq.Error.strict, Eq.tuple2(Eq.primitive, E))),
       ),
     );
 
-    const monadChainTests = MonadSuite(
-      WriterT.Monad<EvalF, Chain<string>>(
-        Eval.Monad,
-        Chain.MonoidK.algebra<string>(),
-      ),
-    );
     checkAll(
       'Monad<WriterT<Eval, Chain<string>, *>>',
-      monadChainTests.monad(
+      MonadSuite(
+        WriterT.Monad<EvalF, Chain<string>>(
+          Eval.Monad,
+          Chain.MonoidK.algebra<string>(),
+        ),
+      ).monad(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -262,7 +329,7 @@ describe('WriterT', () => {
             A.fp4tsEval(fc.tuple(A.fp4tsChain(fc.string()), arbX)),
           ),
         <X>(E: Eq<X>): Eq<WriterT<EvalF, Chain<string>, X>> =>
-          WriterT.Eq(Eval.Eq(Eq.tuple2(Chain.Eq(Eq.primitive) as any, E))),
+          WriterT.Eq(Eval.Eq(Eq.tuple2(Chain.Eq(Eq.primitive), E))),
       ),
     );
   });

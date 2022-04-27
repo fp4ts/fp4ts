@@ -24,8 +24,8 @@ import { LogMessage } from './log-message';
 
 export function WriterLogger<G, A>(
   G: Alternative<G>,
-): Logger<$<WriterF, [Kind<G, [LogMessage<A>]>]>, A> {
-  const GW = Writer.Applicative(G.algebra<LogMessage<A>>());
+): Logger<WriterF<Kind<G, [LogMessage<A>]>>, A> {
+  const GW = Writer.Monad();
   return new Logger(GW, (msg: LogMessage<A>) =>
     Writer.tell(G.pure(msg)),
   ) as any;

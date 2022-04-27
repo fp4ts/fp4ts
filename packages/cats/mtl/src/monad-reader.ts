@@ -10,10 +10,13 @@ import {
   EitherTF,
   Function1,
   Function1F,
+  IndexedReaderWriterStateT as RWST,
+  IndexedReaderWriterStateTF as RWSTF,
   Kleisli,
   KleisliF,
   OptionT,
   OptionTF,
+  ReaderF,
   XPure,
   XPureF,
 } from '@fp4ts/cats-core/lib/data';
@@ -34,11 +37,18 @@ export const MonadReader = Object.freeze({
   XPure: <W, S, R, E>(): MonadReader<$<XPureF, [W, S, S, R, E]>, R> =>
     MonadReader.of<$<XPureF, [W, S, S, R, E]>, R>({
       ...XPure.Monad<W, S, R, E>(),
-      ask: (() => XPure.read()) as MonadReader<
+      ask: (() => XPure.ask()) as MonadReader<
         $<XPureF, [W, S, S, R, E]>,
         R
       >['ask'],
       local_: (fa, f) => fa.local(f),
+    }),
+
+  RWST: <F, W, S, R>(F: Monad<F>): MonadReader<$<RWSTF, [F, W, S, S, R]>, R> =>
+    MonadReader.of<$<RWSTF, [F, W, S, S, R]>, R>({
+      ...RWST.Monad(F),
+      ask: RWST.ask(F) as MonadReader<$<RWSTF, [F, W, S, S, R]>, R>['ask'],
+      local_: (fa, f) => fa.local(F)(f),
     }),
 
   Function1: <R>(): MonadReader<$<Function1F, [R]>, R> =>
@@ -54,6 +64,8 @@ export const MonadReader = Object.freeze({
       ask: (() => Kleisli.ask(F)) as MonadReader<$<KleisliF, [F, R]>, R>['ask'],
       local_: (fa, f) => fa.adapt(f),
     }),
+
+  Reader: <R>(): MonadReader<ReaderF<R>, R> => MonadReader.XPure(),
 
   EitherT: <F, E, R>(
     F: MonadReader<F, R>,

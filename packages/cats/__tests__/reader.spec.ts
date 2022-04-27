@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import fc from 'fast-check';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Reader } from '@fp4ts/cats-core/lib/data';
+import { MonadReader } from '@fp4ts/cats-mtl';
+import { MonadSuite } from '@fp4ts/cats-laws';
+import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
+import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Reader', () => {
   describe('types', () => {
@@ -30,7 +39,7 @@ describe('Reader', () => {
 
     it('should widen environment as requirements accumulate', () => {
       expect(
-        Reader.read<{ a: number }>()
+        Reader.ask<{ a: number }>()
           .ask<{ b: string }>()
           .ask<{ c: null }>()
           .void.runReader({ a: 42, b: '42', c: null }),
@@ -41,7 +50,7 @@ describe('Reader', () => {
   describe('provide', () => {
     it('should erase requirements from the environment', () => {
       expect(
-        Reader.read<number>()
+        Reader.ask<number>()
           .map(x => x * 2)
           .provide(42)
           .runReader(undefined),
@@ -49,10 +58,10 @@ describe('Reader', () => {
     });
 
     it('should scope environments when composing', () => {
-      const fa = Reader.read<number>()
+      const fa = Reader.ask<number>()
         .map(x => x * 2)
         .provide(42);
-      const fb = Reader.read<string>()
+      const fb = Reader.ask<string>()
         .map(x => `${x} ${x}`)
         .provide('test');
 
@@ -65,38 +74,44 @@ describe('Reader', () => {
   describe('flatMap', () => {
     it('should widen the environment', () => {
       expect(
-        Reader.read<{ a: number }>()
-          ['>>>'](Reader.read<{ b: number }>().map(({ b }) => b))
+        Reader.ask<{ a: number }>()
+          ['>>>'](Reader.ask<{ b: number }>().map(({ b }) => b))
           .runReader({ a: 42, b: 84 }),
       ).toBe(84);
     });
   });
 
-  describe('monad', () => {
-    it('should a pure value', () => {
-      expect(Reader.pure(42).runReader(undefined)).toBe(42);
-    });
+  describe('Laws', () => {
+    checkAll(
+      'Reader<MiniInt, *>',
+      MonadSuite(Reader.Monad<MiniInt>()).monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        X => A.fp4tsReader(X),
+        <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
+          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+      ),
+    );
 
-    test('lest identity', () => {
-      const h = (x: number): Reader<unknown, number> => Reader(x * 2);
-      expect(Reader.pure(42).flatMap(h).runReader(undefined)).toEqual(
-        h(42).runReader(undefined),
-      );
-    });
-
-    test('right identity', () => {
-      expect(Reader(42).flatMap(Reader.pure).runReader(undefined)).toEqual(
-        Reader(42).runReader(undefined),
-      );
-    });
-
-    test('associativity', () => {
-      const h = (n: number): Reader<unknown, number> => Reader(n * 2);
-      const g = (n: number): Reader<unknown, number> => Reader(n);
-      const m = Reader(42);
-      expect(m.flatMap(h).flatMap(g).runReader(undefined)).toEqual(
-        m.flatMap(x => h(x).flatMap(g)).runReader(undefined),
-      );
-    });
+    checkAll(
+      'Local<Reader<MiniInt, *>, MiniInt>',
+      MonadReaderSuite(MonadReader.Reader<MiniInt>()).local(
+        fc.integer(),
+        fc.integer(),
+        A.fp4tsMiniInt(),
+        Eq.primitive,
+        Eq.primitive,
+        MiniInt.Eq,
+        X => A.fp4tsReader(X),
+        <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
+          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+      ),
+    );
   });
 });
