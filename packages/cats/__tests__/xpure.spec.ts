@@ -24,8 +24,8 @@ describe('XPure', () => {
     it('should recover from an error into success', () => {
       expect(
         XPure.throwError(new Error('test error'))
-          .handleErrorWith(() => XPure(42))
-          .runA(undefined, undefined),
+          .handleErrorWith(() => XPure.pure(42))
+          .runA(),
       ).toBe(42);
     });
 
@@ -33,7 +33,7 @@ describe('XPure', () => {
       expect(
         XPure.throwError(new Error('test error'))
           .handleErrorWith(() => XPure.throwError(new Error('test error 2')))
-          .runEA(undefined, undefined),
+          .runEA(),
       ).toEqual(Left(new Error('test error 2')));
     });
   });
@@ -48,9 +48,7 @@ describe('XPure', () => {
         Eq.primitive,
         X => A.fp4tsXPure(A.fp4tsError(), X),
         <X>(X: Eq<X>): Eq<XPure<void, void, void, unknown, Error, X>> =>
-          Eq.by(Either.Eq(Eq.Error.strict, X), p =>
-            p.runEA(undefined, undefined),
-          ),
+          Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
 
@@ -71,9 +69,7 @@ describe('XPure', () => {
         Eq.Error.allEqual,
         X => A.fp4tsXPure(A.fp4tsError(), X),
         <X>(X: Eq<X>): Eq<XPure<void, void, void, unknown, Error, X>> =>
-          Eq.by(Either.Eq(Eq.Error.strict, X), p =>
-            p.runEA(undefined, undefined),
-          ),
+          Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
 
@@ -90,7 +86,7 @@ describe('XPure', () => {
         <X>(X: Eq<X>): Eq<XPure<void, void, void, MiniInt, Error, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.Error.strict, X)),
-            fa => r => fa.runEA(r, undefined),
+            fa => r => fa.runAll(r, undefined)[1].map(snd),
           ),
       ),
     );
@@ -136,7 +132,7 @@ describe('XPure', () => {
               ec.miniInt(),
               Either.Eq(Eq.Error.strict, Eq.tuple2(MiniInt.Eq, X)),
             ),
-            fa => r => fa.runESA(undefined, r),
+            fa => s1 => fa.runAll(undefined, s1)[1],
           ),
       ),
     );

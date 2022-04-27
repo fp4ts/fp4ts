@@ -7,7 +7,6 @@ import {
   $,
   $type,
   Fix,
-  fst,
   lazyVal,
   snd,
   tupled,
@@ -29,8 +28,18 @@ import { Chain } from './collections';
 import { Either, Left, Right } from './either';
 
 export type XPure<W, S1, S2, R, E, A> = _XPure<W, S1, S2, R, E, A>;
-export const XPure: XPureObj = function (a) {
-  return new Pure(a);
+export const XPure: XPureObj = function <W, S1, S2, R, E, A>(
+  runAll: (r: R, s1: S1) => [W, Either<E, [S2, A]>],
+): XPure<W, S1, S2, R, E, A> {
+  return XPure.read<R, W, S1>()
+    .product(XPure.state((s1: S1) => [s1, s1]))
+    .flatMap(args => {
+      const [w, ea] = runAll(...args);
+      return ea.fold(
+        e => XPure.throwError(e),
+        sa => XPure.tell(w).state(() => sa),
+      );
+    });
 };
 
 abstract class _XPure<W, S1, S2, R, E, A> {
@@ -70,10 +79,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   ): XPure<WW, S1, S2, R, E, [WW, A]>;
   public listen(W?: Monoid<any>): XPure<any, S1, S2, R, E, [any, A]> {
     return W
-      ? this.map2(XPure.written(), (a, b) => [
-          b.foldLeft(W.empty, (a, b) => W.combine_(a, () => b)),
-          a,
-        ])
+      ? this.map2(XPure.written(), (a, b) => [b.folding(W), a])
       : this.map2(XPure.written(), (a, b) => [b, a]);
   }
 
@@ -84,68 +90,70 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   ): XPure<WW, S1, S2, R, E, W>;
   public written(W?: Monoid<any>): XPure<W, S1, S2, R, E, any> {
     return W
-      ? this.map2(XPure.written(), (a, b) =>
-          b.foldLeft(W.empty, (a, b) => W.combine_(a, () => b)),
-        )
+      ? this.map2(XPure.written(), (a, b) => b.folding(W))
       : this.productR(XPure.written());
   }
 
-  public mapWritten<WW>(
+  public censor<WW>(
     this: XPure<WW, S1, S2, R, E, A>,
     f: (w: Chain<WW>) => Chain<WW>,
   ): XPure<WW, S1, S2, R, E, A> {
-    return new MapWritten(this, f);
+    return new Censor(this, f);
   }
 
   // -- State Methods
 
-  public modify<S3, B>(
+  public state<S3, B>(
     this: XPure<W, S1, S2, R, E, A>,
     f: (s2: S2) => [S3, B],
   ): XPure<W, S1, S3, R, E, B> {
-    return this.flatMap(() => XPure.modify(f));
+    return this.productR(XPure.state(f));
   }
 
-  public mapState<S3>(f: (s2: S2) => S3): XPure<W, S1, S3, R, E, A> {
-    return this.flatMap(a => XPure.modify(s2 => [f(s2), a]));
+  public modify<S3>(f: (s2: S2) => S3): XPure<W, S1, S3, R, E, A> {
+    return this.flatMap(a => XPure.state(s2 => [f(s2), a]));
   }
-  public contramapState<S0>(f: (s0: S0) => S1): XPure<W, S0, S2, R, E, A> {
-    return XPure.modify((s0: S0) => [f(s0), undefined]).productR(this);
+  public contramap<S0>(f: (s0: S0) => S1): XPure<W, S0, S2, R, E, A> {
+    return XPure.state((s0: S0) => [f(s0), undefined]).productR(this);
   }
 
   public dimap<S0, S3>(
     f: (s0: S0) => S1,
     g: (s2: S2) => S3,
   ): XPure<W, S0, S3, R, E, A> {
-    return this.contramapState(f).mapState(g);
+    return this.contramap(f).modify(g);
   }
 
   public provideState(s1: S1): XPure<W, unknown, S2, R, E, A> {
-    return this.contramapState(() => s1);
+    return this.contramap(() => s1);
   }
 
   public get<S>(this: XPure<W, S, S, R, E, A>): XPure<W, S, S, R, E, S> {
-    return this.modify(s => [s, s]);
+    return this.state(s => [s, s]);
   }
 
   public replace<S22>(
     this: XPure<W, S1, S22, R, E, A>,
     s: S22,
   ): XPure<W, S1, S22, R, E, void> {
-    return this.modify(() => [s, undefined]);
+    return this.state(() => [s, undefined]);
   }
 
   public bimap<S3, B>(
     f: (s2: S2) => S3,
     g: (a: A) => B,
   ): XPure<W, S1, S3, R, E, B> {
-    return this.flatMap(a => XPure.modify(s2 => [f(s2), g(a)]));
+    return this.flatMap(a => XPure.state(s2 => [f(s2), g(a)]));
   }
 
   // -- Value Methods
 
   public map<B>(f: (a: A) => B): XPure<W, S1, S2, R, E, B> {
     return new Map(this, f);
+  }
+
+  public get void(): XPure<W, S1, S2, R, E, void> {
+    return this.map(() => {});
   }
 
   public map2<W2, S22, S3, R2, E2, B, C>(
@@ -207,8 +215,8 @@ abstract class _XPure<W, S1, S2, R, E, A> {
 
   public get attempt(): XPure<W, S1, S2, R, never, Either<E, A>> {
     return this.fold(
-      e => XPure(Left(e)),
-      a => XPure(Right(a)),
+      e => XPure.pure(Left(e)),
+      a => XPure.pure(Right(a)),
     );
   }
 
@@ -216,7 +224,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
     this: XPure<WW, S1, S22, R, E2, B>,
     that: XPure<WW, S1, S22, R2, E2, B>,
   ): XPure<WW, S1, S22, R & R2, E2, B> {
-    return this.fold(() => that, XPure);
+    return this.fold(() => that, XPure.pure);
   }
   public '<|>'<WW, S22, R2, E2, B>(
     this: XPure<WW, S1, S22, R, E2, B>,
@@ -231,7 +239,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
   ): XPure<W2, S1, S22, R & R2, E3, B> {
     return this.fold(
       e => f(e),
-      a => XPure(a),
+      a => XPure.pure(a),
     );
   }
 
@@ -239,42 +247,56 @@ abstract class _XPure<W, S1, S2, R, E, A> {
     this: XPure<W, S1, S2, R, E, B>,
     f: (e: E) => B,
   ): XPure<W, S1, S2, R, never, B> {
-    return this.handleErrorWith(e => XPure(f(e)));
+    return this.handleErrorWith(e => XPure.pure(f(e)));
   }
 
   // -- Running the Effects
 
-  public runA(this: XPure<W, S1, S2, R, never, A>, r: R, s1: S1): A {
-    return this.runAll(r, s1)[1].get[1];
+  public runA(this: XPure<unknown, unknown, unknown, unknown, never, A>): A {
+    return this.runAll(undefined, undefined)[1].get[1];
   }
-  public runS(this: XPure<W, S1, S2, R, never, A>, r: R, s1: S1): S2 {
-    return this.runAll(r, s1)[1].get[0];
+  public runEA(
+    this: XPure<unknown, unknown, unknown, unknown, E, A>,
+  ): Either<E, A> {
+    return this.runAll(undefined, undefined)[1].map(snd);
   }
-  public runSA(this: XPure<W, S1, S2, R, never, A>, r: R, s1: S1): [S2, A] {
-    return this.runAll(r, s1)[1].get;
+
+  public runStateA(this: XPure<unknown, S1, S2, unknown, never, A>, s1: S1): A {
+    return this.runState(s1)[1];
   }
-  public runESA(r: R, s1: S1): Either<E, [S2, A]> {
-    return this.runAll(r, s1)[1];
-  }
-  public runEA(r: R, s1: S1): Either<E, A> {
-    return this.runAll(r, s1)[1].map(snd);
-  }
-  public runES(r: R, s1: S1): Either<E, S2> {
-    return this.runAll(r, s1)[1].map(fst);
-  }
-  public runW(r: R, s1: S1): Chain<W>;
-  public runW<WW>(
-    this: XPure<WW, S1, S2, R, E, A>,
-    r: R,
+  public runStateS(
+    this: XPure<unknown, S1, S2, unknown, never, A>,
     s1: S1,
+  ): S2 {
+    return this.runState(s1)[0];
+  }
+  public runState(
+    this: XPure<unknown, S1, S2, unknown, never, A>,
+    s1: S1,
+  ): [S2, A] {
+    return this.runAll(undefined, s1)[1].get;
+  }
+
+  public runWriter(
+    this: XPure<W, unknown, unknown, unknown, never, A>,
+  ): [Chain<W>, A];
+  public runWriter<WW>(
+    this: XPure<WW, unknown, unknown, unknown, never, A>,
     W: Monoid<WW>,
-  ): WW;
-  public runW(r: R, s1: S1, W?: Monoid<any>): any {
-    return W
-      ? this.runAll(r, s1)[0].foldLeft(W.empty, (b, a) =>
-          W.combine_(a, () => b),
-        )
-      : this.runAll(r, s1)[0];
+  ): [WW, A];
+  public runWriter(
+    this: XPure<any, unknown, unknown, unknown, never, A>,
+    W?: Monoid<any>,
+  ): [any, A] {
+    const [w, ea] = this.runAll(undefined, undefined);
+    return W ? [w.folding(W), ea.get[1]] : [w, ea.get[1]];
+  }
+
+  public runReader(
+    this: XPure<unknown, unknown, unknown, R, never, A>,
+    r: R,
+  ): A {
+    return this.runAll(r, undefined)[1].get[1];
   }
 
   public runAll(r: R, s1: S1): [Chain<W>, Either<E, [S2, A]>] {
@@ -317,12 +339,12 @@ abstract class _XPure<W, S1, S2, R, E, A> {
         case 'written':
           _cur = new Pure(log);
           continue;
-        case 'mapWritten':
-          conts.push(Cont.MapWritten);
+        case 'censor':
+          conts.push(Cont.Censor);
           stack.push(cur.fun as any);
           _cur = cur.self;
           continue;
-        case 'modify': {
+        case 'state': {
           const sa = cur.fun(state);
           state = sa[0];
           _cur = new Pure(sa[1]);
@@ -367,7 +389,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
               case Cont.Provide:
                 env = envStack.pop()!;
                 continue;
-              case Cont.MapWritten:
+              case Cont.Censor:
                 log = stack.pop()!(log) as Chain<unknown>;
                 continue;
             }
@@ -380,7 +402,7 @@ abstract class _XPure<W, S1, S2, R, E, A> {
             switch (c) {
               case Cont.Map:
               case Cont.FlatMap:
-              case Cont.MapWritten:
+              case Cont.Censor:
                 stack.pop();
                 continue;
               case Cont.Fold:
@@ -399,14 +421,16 @@ abstract class _XPure<W, S1, S2, R, E, A> {
 
 interface XPureObj {
   /* eslint-disable prettier/prettier */
-  <A, W = never, S1 = unknown, S2 = never, R = unknown, E = never>(a: A): XPure<W, S1, S2, R, E, A>;
+  <W, S1, S2, R, E, A>(
+    runAll: (r: R, s1: S1) => [W, Either<E, [S2, A]>],
+  ): XPure<W, S1, S2, R, E, A>;
   pure<A, W = never, S1 = unknown, S2 = never, R = unknown, E = never>(a: A): XPure<W, S1, S2, R, E, A>;
   throwError<E, W = never, S1 = unknown, S2 = never, R = unknown, A = never>(e: E): XPure<W, S1, S2, R, E, A>;
 
   read<R, W = never, S1 = unknown, S2 = never, E = never>(): XPure<W, S1, S2, R, E, R>;
   tell<W, S1 = unknown, S2 = never, R = unknown, E = never>(w: W): XPure<W, S1, S2, R, E, void>;
   written<W, S1 = unknown, S2 = never, R = unknown, E = never>(): XPure<W, S1, S2, R, E, Chain<W>>;
-  modify<S1, S2, A, W = never, R = unknown, E = never>(modify: (s1: S1) => [S2, A]): XPure<W, S1, S2, R, E, A>;
+  state<S1, S2, A, W = never, R = unknown, E = never>(modify: (s1: S1) => [S2, A]): XPure<W, S1, S2, R, E, A>;
   /* eslint-enable prettier/prettier */
 
   // -- Instances
@@ -422,11 +446,11 @@ interface XPureObj {
   >;
 }
 
-XPure.pure = XPure;
+XPure.pure = a => new Pure(a);
 XPure.throwError = e => new Fail(e);
 XPure.read = () => new Ask();
 XPure.tell = w => new Tell(w);
-XPure.modify = modify => new Modify(modify);
+XPure.state = modify => new State(modify);
 XPure.written = () => new Written();
 
 // -- Instances
@@ -439,7 +463,7 @@ const xpureMonad: <W, S, R, E>() => Monad<$<XPureF, [W, S, S, R, E]>> = lazyVal(
   <W, S, R, E>() =>
     StackSafeMonad.of<$<XPureF, [W, S, S, R, E]>>({
       map_: (fa, f) => fa.map(f),
-      pure: x => XPure(x),
+      pure: x => XPure.pure(x),
       flatMap_: (fa, f) => fa.flatMap(f),
       map2_:
         <A, B>(fa: XPure<W, S, S, R, E, A>, fb: XPure<W, S, S, R, E, B>) =>
@@ -532,8 +556,8 @@ class Written<W> extends _XPure<W, unknown, never, unknown, never, Chain<W>> {
   public readonly tag = 'written';
 }
 
-class MapWritten<W, S1, S2, R, E, A> extends _XPure<W, S1, S2, R, E, A> {
-  public readonly tag = 'mapWritten';
+class Censor<W, S1, S2, R, E, A> extends _XPure<W, S1, S2, R, E, A> {
+  public readonly tag = 'censor';
   public constructor(
     public readonly self: XPure<W, S1, S2, R, E, A>,
     public readonly fun: (w: Chain<W>) => Chain<W>,
@@ -542,8 +566,8 @@ class MapWritten<W, S1, S2, R, E, A> extends _XPure<W, S1, S2, R, E, A> {
   }
 }
 
-class Modify<S1, S2, A> extends _XPure<never, S1, S2, unknown, never, A> {
-  public readonly tag = 'modify';
+class State<S1, S2, A> extends _XPure<never, S1, S2, unknown, never, A> {
+  public readonly tag = 'state';
   public constructor(public readonly fun: (s: S1) => [S2, A]) {
     super();
   }
@@ -603,8 +627,8 @@ type View<W, S1, S2, R, E, A> =
   | Ask<R>
   | Written<W>
   | Provide<W, S1, S2, R, E, A>
-  | MapWritten<W, S1, S2, R, E, A>
-  | Modify<S1, S2, A>
+  | Censor<W, S1, S2, R, E, A>
+  | State<S1, S2, A>
   | Map<W, S1, S2, R, E, any, A>
   | Fold<W, S1, any, S2, R, any, any, E, any, A>
   | FlatMap<S1, R, any, W, any, S2, R, E, A>;
@@ -612,7 +636,7 @@ type View<W, S1, S2, R, E, A> =
 enum Cont {
   Map,
   FlatMap,
-  MapWritten,
+  Censor,
   Fold,
   Provide,
 }

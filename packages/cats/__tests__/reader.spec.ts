@@ -21,8 +21,8 @@ describe('Reader', () => {
   describe('read', () => {
     it('should pull value from the environment', () => {
       expect(
-        Reader.unit
-          .read<{ a: number }>()
+        Reader.pure(undefined)
+          .ask<{ a: number }>()
           .map(({ a }) => a)
           .runReader({ a: 42 }),
       ).toEqual(42);
@@ -31,9 +31,9 @@ describe('Reader', () => {
     it('should widen environment as requirements accumulate', () => {
       expect(
         Reader.read<{ a: number }>()
-          .read<{ b: string }>()
-          .read<{ c: null }>()
-          .unit.runReader({ a: 42, b: '42', c: null }),
+          .ask<{ b: string }>()
+          .ask<{ c: null }>()
+          .void.runReader({ a: 42, b: '42', c: null }),
       ).toEqual(undefined);
     });
   });

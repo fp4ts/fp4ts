@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 
 import { Ior } from '../../ior';
@@ -24,7 +24,9 @@ import {
   filter_,
   flatMap_,
   flatten,
+  folding,
   foldLeft_,
+  foldMap_,
   foldRight_,
   forEach_,
   head,
@@ -117,6 +119,9 @@ declare module './algebra' {
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldRight<B>(z: B, f: (a: A, b: B) => B): B;
+
+    foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    folding<AA>(this: Chain<AA>, M: Monoid<AA>): AA;
 
     traverse<G>(
       G: Applicative<G>,
@@ -298,6 +303,13 @@ Chain.prototype.foldLeft = function (z, f) {
 };
 Chain.prototype.foldRight = function (z, f) {
   return foldRight_(this, z, f);
+};
+
+Chain.prototype.foldMap = function (M) {
+  return f => foldMap_(M)(this, f);
+};
+Chain.prototype.folding = function (M) {
+  return folding(M)(this);
 };
 
 Chain.prototype.traverse = function (G) {

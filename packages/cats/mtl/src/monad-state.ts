@@ -46,10 +46,10 @@ export const MonadState = Object.freeze({
 
   XPure: <W, S, R, E>(): MonadState<$<XPureF, [W, S, S, R, E]>, S> =>
     MonadState.of({
-      get: XPure.modify(s => [s, s]),
-      set: s => XPure.modify(() => [s, undefined]),
-      modify: f => XPure.modify(s => [f(s), undefined]),
-      inspect: f => XPure.modify(s => [s, f(s)]),
+      get: XPure.state(s => [s, s]),
+      set: s => XPure.state(() => [s, undefined]),
+      modify: f => XPure.state(s => [f(s), undefined]),
+      inspect: f => XPure.state(s => [s, f(s)]),
       ...XPure.Monad<W, S, R, E>(),
     }),
 

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, fst, snd, throwError, pipe, id, tupled } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 import { Applicative } from '../../../applicative';
 import { Eval } from '../../../eval';
@@ -262,6 +262,11 @@ export const foldRight: <A, B>(
   f: (a: A, b: B) => B,
 ) => (xs: Chain<A>) => B = (z, f) => xs => foldRight_(xs, z, f);
 
+export const folding =
+  <A>(M: Monoid<A>) =>
+  (c: Chain<A>) =>
+    foldMap_(M)(c, id);
+
 export const traverse: <G>(
   G: Applicative<G>,
 ) => <A, B>(
@@ -470,6 +475,11 @@ export const foldRight_ = <A, B>(
   }
   return acc;
 };
+
+export const foldMap_ =
+  <M>(M: Monoid<M>) =>
+  <A>(c: Chain<A>, f: (a: A) => M): M =>
+    foldLeft_(c, M.empty, (a, b) => M.combine_(a, () => f(b)));
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>

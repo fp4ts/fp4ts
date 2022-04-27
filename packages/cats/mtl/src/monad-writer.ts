@@ -45,10 +45,7 @@ export const MonadWriter = Object.freeze({
       monoid: W,
       ...XPure.Monad<W, S, R, E>(),
 
-      censor_: (fa, f) =>
-        fa.mapWritten(chain =>
-          Chain(f(chain.foldLeft(W.empty, (b, a) => W.combine_(a, () => b)))),
-        ),
+      censor_: (fa, f) => fa.censor(chain => Chain(f(chain.folding(W)))),
       listen: fa => fa.listen(W),
       tell: w => XPure.tell(w),
     }),
