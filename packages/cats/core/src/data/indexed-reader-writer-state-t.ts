@@ -25,6 +25,9 @@ export const IndexedReaderWriterStateT: IndexedReaderWriterStateTObj =
     return new _IndexedReaderWriterStateT(frs1fws2a);
   };
 
+export { IndexedReaderWriterStateT as RWST };
+export { IndexedReaderWriterStateTF as RWSTF };
+
 class _IndexedReaderWriterStateT<F, W, S1, S2, R, A> {
   public constructor(
     public readonly runAllF: Kind<

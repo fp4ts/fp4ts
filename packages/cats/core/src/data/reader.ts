@@ -5,12 +5,22 @@
 
 import { $ } from '@fp4ts/core';
 import { Monad } from '../monad';
-import { XPure, XPureF } from './x-pure';
+import {
+  IndexedReaderWriterState,
+  IndexedReaderWriterStateF,
+} from './indexed-reader-writer-state';
 
-export type Reader<R, A> = XPure<unknown, unknown, unknown, R, never, A>;
+export type Reader<R, A> = IndexedReaderWriterState<
+  unknown,
+  unknown,
+  unknown,
+  R,
+  never,
+  A
+>;
 
 export const Reader: ReaderObj = function <A, R = unknown>(a: A): Reader<R, A> {
-  return XPure.pure(a);
+  return IndexedReaderWriterState.pure(a);
 };
 
 interface ReaderObj {
@@ -25,14 +35,17 @@ interface ReaderObj {
   Monad<R>(): Monad<ReaderF<R>>;
 }
 
-Reader.pure = XPure.pure;
-Reader.ask = XPure.ask;
+Reader.pure = IndexedReaderWriterState.pure;
+Reader.ask = IndexedReaderWriterState.ask;
 Reader.lift = <R, A>(f: (r: R) => A): Reader<R, A> => Reader.ask<R>().map(f);
 
 // -- Instances
 
-Reader.Monad = XPure.Monad;
+Reader.Monad = IndexedReaderWriterState.Monad;
 
 // -- HKT
 
-export type ReaderF<R> = $<XPureF, [unknown, unknown, unknown, R, never]>;
+export type ReaderF<R> = $<
+  IndexedReaderWriterStateF,
+  [unknown, unknown, unknown, R, never]
+>;

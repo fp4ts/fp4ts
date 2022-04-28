@@ -24,7 +24,7 @@ export * from './writer';
 export * from './reader';
 export * from './state';
 export * from './indexed-state';
-export * from './x-pure';
+export * from './indexed-reader-writer-state';
 
 export * from './nested';
 export * from './kleisli';

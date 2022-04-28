@@ -16,7 +16,7 @@ import {
   Option,
   OptionF,
   OptionT,
-  XPureF,
+  RWSF,
 } from '@fp4ts/cats-core/lib/data';
 import { MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
@@ -106,13 +106,13 @@ describe('MonadReader', () => {
 
   describe('EitherT', () => {
     checkAll(
-      'Local<EitherT<XPure<void, void, void, MiniInt, string, *>, Error, *>',
+      'Local<EitherT<RWS<void, void, void, MiniInt, string, *>, Error, *>',
       MonadReaderSuite(
         MonadReader.EitherT<
-          $<XPureF, [void, void, void, MiniInt, string]>,
+          $<RWSF, [void, void, void, MiniInt, string]>,
           Error,
           MiniInt
-        >(MonadReader.XPure()),
+        >(MonadReader.RWS()),
       ).local(
         fc.integer(),
         fc.integer(),
@@ -123,15 +123,15 @@ describe('MonadReader', () => {
         <X>(
           arbX: Arbitrary<X>,
         ): Arbitrary<
-          EitherT<$<XPureF, [void, void, void, MiniInt, string]>, Error, X>
+          EitherT<$<RWSF, [void, void, void, MiniInt, string]>, Error, X>
         > =>
           A.fp4tsEitherT(
-            A.fp4tsXPure(fc.string(), A.fp4tsEither(A.fp4tsError(), arbX)),
+            A.fp4tsRWS(fc.string(), A.fp4tsEither(A.fp4tsError(), arbX)),
           ),
         <X>(
           EqX: Eq<X>,
         ): Eq<
-          EitherT<$<XPureF, [void, void, void, MiniInt, string]>, Error, X>
+          EitherT<$<RWSF, [void, void, void, MiniInt, string]>, Error, X>
         > =>
           Eq.by(
             eq.fn1Eq(
@@ -146,12 +146,12 @@ describe('MonadReader', () => {
 
   describe('OptionT', () => {
     checkAll(
-      'Local<OptionT<XPure<void, void, void, MiniInt, string, *>, Error, *>',
+      'Local<OptionT<RWS<void, void, void, MiniInt, string, *>, Error, *>',
       MonadReaderSuite(
         MonadReader.OptionT<
-          $<XPureF, [void, void, void, MiniInt, string]>,
+          $<RWSF, [void, void, void, MiniInt, string]>,
           MiniInt
-        >(MonadReader.XPure()),
+        >(MonadReader.RWS()),
       ).local(
         fc.integer(),
         fc.integer(),
@@ -162,11 +162,11 @@ describe('MonadReader', () => {
         <X>(
           arbX: Arbitrary<X>,
         ): Arbitrary<
-          OptionT<$<XPureF, [void, void, void, MiniInt, string]>, X>
-        > => A.fp4tsOptionT(A.fp4tsXPure(fc.string(), A.fp4tsOption(arbX))),
+          OptionT<$<RWSF, [void, void, void, MiniInt, string]>, X>
+        > => A.fp4tsOptionT(A.fp4tsRWS(fc.string(), A.fp4tsOption(arbX))),
         <X>(
           EqX: Eq<X>,
-        ): Eq<OptionT<$<XPureF, [void, void, void, MiniInt, string]>, X>> =>
+        ): Eq<OptionT<$<RWSF, [void, void, void, MiniInt, string]>, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, Option.Eq(EqX))),
             k => a => k.value.runAll(a)[1].map(snd),

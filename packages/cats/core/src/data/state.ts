@@ -5,12 +5,22 @@
 
 import { $ } from '@fp4ts/core';
 import { Monad } from '../monad';
-import { XPure, XPureF } from './x-pure';
+import {
+  IndexedReaderWriterState,
+  IndexedReaderWriterStateF,
+} from './indexed-reader-writer-state';
 
-export type State<S, A> = XPure<never, S, S, unknown, never, A>;
+export type State<S, A> = IndexedReaderWriterState<
+  never,
+  S,
+  S,
+  unknown,
+  never,
+  A
+>;
 
 export const State: StateObj = function (f) {
-  return XPure.state(f);
+  return IndexedReaderWriterState.state(f);
 };
 
 interface StateObj {
@@ -27,14 +37,17 @@ interface StateObj {
   Monad<S>(): Monad<StateF<S>>;
 }
 
-State.pure = XPure.pure;
+State.pure = IndexedReaderWriterState.pure;
 State.state = State;
 State.get = () => State(s => [s, s]);
 State.modify = f => State(s => [f(s), undefined]);
 State.replace = s => State.modify(() => s);
 
-State.Monad = XPure.Monad;
+State.Monad = IndexedReaderWriterState.Monad;
 
 // -- HKT
 
-export type StateF<S> = $<XPureF, [never, S, S, unknown, never]>;
+export type StateF<S> = $<
+  IndexedReaderWriterStateF,
+  [never, S, S, unknown, never]
+>;

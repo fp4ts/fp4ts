@@ -18,8 +18,8 @@ import {
   Some,
   StateF,
   StateTF,
-  XPure,
-  XPureF,
+  RWS,
+  RWSF,
 } from '@fp4ts/cats-core/lib/data';
 
 export interface MonadState<F, S> extends Monad<F> {
@@ -48,13 +48,13 @@ export const MonadState = Object.freeze({
     return self;
   },
 
-  XPure: <W, S, R, E>(): MonadState<$<XPureF, [W, S, S, R, E]>, S> =>
+  RWS: <W, S, R, E>(): MonadState<$<RWSF, [W, S, S, R, E]>, S> =>
     MonadState.of({
-      get: XPure.state(s => [s, s]),
-      set: s => XPure.state(() => [s, undefined]),
-      modify: f => XPure.state(s => [f(s), undefined]),
-      inspect: f => XPure.state(s => [s, f(s)]),
-      ...XPure.Monad<W, S, R, E>(),
+      get: RWS.state(s => [s, s]),
+      set: s => RWS.state(() => [s, undefined]),
+      modify: f => RWS.state(s => [f(s), undefined]),
+      inspect: f => RWS.state(s => [s, f(s)]),
+      ...RWS.Monad<W, S, R, E>(),
     }),
 
   RWST: <F, W, S, R>(F: Monad<F>): MonadState<$<RWSTF, [F, W, S, S, R]>, S> =>
@@ -70,7 +70,7 @@ export const MonadState = Object.freeze({
   StateT: <F, S>(F: Monad<F>): MonadState<StateTF<F, S>, S> =>
     MonadState.RWST(F),
 
-  State: <S>(): MonadState<StateF<S>, S> => MonadState.XPure(),
+  State: <S>(): MonadState<StateF<S>, S> => MonadState.RWS(),
 
   Kleisli: <F, R, S>(F: MonadState<F, S>): MonadState<$<KleisliF, [F, R]>, S> =>
     MonadState.of<$<KleisliF, [F, R]>, S>({

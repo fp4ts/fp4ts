@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { snd, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Either, Left, XPure } from '@fp4ts/cats-core/lib/data';
+import { Either, Left, RWS } from '@fp4ts/cats-core/lib/data';
 import { MonadErrorSuite, SemigroupKSuite } from '@fp4ts/cats-laws';
 import { MonadReader, MonadState, MonadWriter } from '@fp4ts/cats-mtl';
 import {
@@ -19,20 +19,20 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
-describe('XPure', () => {
+describe('RWS', () => {
   describe('handleErrorWith', () => {
     it('should recover from an error into success', () => {
       expect(
-        XPure.throwError(new Error('test error'))
-          .handleErrorWith(() => XPure.pure(42))
+        RWS.throwError(new Error('test error'))
+          .handleErrorWith(() => RWS.pure(42))
           .runA(),
       ).toBe(42);
     });
 
     it('should recover from an error into error', () => {
       expect(
-        XPure.throwError(new Error('test error'))
-          .handleErrorWith(() => XPure.throwError(new Error('test error 2')))
+        RWS.throwError(new Error('test error'))
+          .handleErrorWith(() => RWS.throwError(new Error('test error 2')))
           .runEA(),
       ).toEqual(Left(new Error('test error 2')));
     });
@@ -40,23 +40,19 @@ describe('XPure', () => {
 
   describe('Laws', () => {
     checkAll(
-      'SemigroupK<XPure<void, void, void, unknown, Error, *>>',
-      SemigroupKSuite(
-        XPure.SemigroupK<void, void, unknown, Error>(),
-      ).semigroupK(
+      'SemigroupK<RWS<void, void, void, unknown, Error, *>>',
+      SemigroupKSuite(RWS.SemigroupK<void, void, unknown, Error>()).semigroupK(
         fc.integer(),
         Eq.primitive,
-        X => A.fp4tsXPure(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<XPure<void, void, void, unknown, Error, X>> =>
+        X => A.fp4tsRWS(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<RWS<void, void, void, unknown, Error, X>> =>
           Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
 
     checkAll(
-      'MonadError<XPure<void, void, void, unknown, Error>, Error, *>',
-      MonadErrorSuite(
-        XPure.MonadError<void, void, unknown, Error>(),
-      ).monadError(
+      'MonadError<RWS<void, void, void, unknown, Error>, Error, *>',
+      MonadErrorSuite(RWS.MonadError<void, void, unknown, Error>()).monadError(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -67,23 +63,23 @@ describe('XPure', () => {
         Eq.primitive,
         Eq.primitive,
         Eq.Error.allEqual,
-        X => A.fp4tsXPure(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<XPure<void, void, void, unknown, Error, X>> =>
+        X => A.fp4tsRWS(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<RWS<void, void, void, unknown, Error, X>> =>
           Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
 
     checkAll(
-      'Local<XPure<void, void, void, MiniInt, Error, *>, MiniInt>',
-      MonadReaderSuite(MonadReader.XPure<void, void, MiniInt, Error>()).local(
+      'Local<RWS<void, void, void, MiniInt, Error, *>, MiniInt>',
+      MonadReaderSuite(MonadReader.RWS<void, void, MiniInt, Error>()).local(
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
         Eq.primitive,
         Eq.primitive,
         MiniInt.Eq,
-        X => A.fp4tsXPure(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<XPure<void, void, void, MiniInt, Error, X>> =>
+        X => A.fp4tsRWS(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<RWS<void, void, void, MiniInt, Error, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.Error.strict, X)),
             fa => r => fa.runAll(r, undefined)[1].map(snd),
@@ -92,16 +88,16 @@ describe('XPure', () => {
     );
 
     checkAll(
-      'Censor<XPure<string, void, void, unknown, Error, *>, string>',
+      'Censor<RWS<string, void, void, unknown, Error, *>, string>',
       MonadWriterSuite(
-        MonadWriter.XPure<string, void, void, Error>(Monoid.string),
+        MonadWriter.RWS<string, void, void, Error>(Monoid.string),
       ).censor(
         fc.integer(),
         fc.string(),
         Eq.primitive,
         Eq.primitive,
-        X => A.fp4tsXPure(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<XPure<string, void, void, unknown, Error, X>> =>
+        X => A.fp4tsRWS(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<RWS<string, void, void, unknown, Error, X>> =>
           Eq.by(
             Eq.tuple(
               Eq.fromUniversalEquals<string>(),
@@ -119,14 +115,14 @@ describe('XPure', () => {
     );
 
     checkAll(
-      'MonadState<XPure<void, MiniInt, MiniInt, unknown, Error, *>, MiniInt>',
+      'MonadState<RWS<void, MiniInt, MiniInt, unknown, Error, *>, MiniInt>',
       MonadStateSuite(
-        MonadState.XPure<void, MiniInt, unknown, Error>(),
+        MonadState.RWS<void, MiniInt, unknown, Error>(),
       ).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,
-        X => A.fp4tsXPure(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<XPure<void, MiniInt, MiniInt, unknown, Error, X>> =>
+        X => A.fp4tsRWS(A.fp4tsError(), X),
+        <X>(X: Eq<X>): Eq<RWS<void, MiniInt, MiniInt, unknown, Error, X>> =>
           Eq.by(
             eq.fn1Eq(
               ec.miniInt(),

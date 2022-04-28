@@ -36,7 +36,7 @@ import {
   Tagged,
   ValidationError,
   Validation,
-  XPure,
+  RWS,
   IndexedReaderWriterStateT,
   IndexedStateT,
 } from '@fp4ts/cats-core/lib/data';
@@ -291,13 +291,13 @@ export const fp4tsState = <S, A>(
 ): Arbitrary<State<S, A>> =>
   fc.func<[S], [S, A]>(fc.tuple(arbS, arbA)).map(State);
 
-export const fp4tsXPure = <E, A>(
+export const fp4tsRWS = <E, A>(
   arbE: Arbitrary<E>,
   arbA: Arbitrary<A>,
-): Arbitrary<XPure<never, unknown, never, unknown, E, A>> => {
-  type T = XPure<never, unknown, never, unknown, E, A>;
+): Arbitrary<RWS<never, unknown, never, unknown, E, A>> => {
+  type T = RWS<never, unknown, never, unknown, E, A>;
   const { go } = fc.letrec(tie => ({
-    base: fc.oneof(arbA.map(XPure.pure), arbE.map(XPure.throwError)),
+    base: fc.oneof(arbA.map(RWS.pure), arbE.map(RWS.throwError)),
     rec: fc.oneof(
       fc
         .tuple(tie('go') as Arbitrary<T>, fc.func<[A], A>(arbA))

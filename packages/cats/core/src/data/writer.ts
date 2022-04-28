@@ -6,12 +6,22 @@
 import { $, lazyVal } from '@fp4ts/core';
 import { Comonad } from '../comonad';
 import { Monad } from '../monad';
-import { XPure, XPureF } from './x-pure';
+import {
+  IndexedReaderWriterState,
+  IndexedReaderWriterStateF,
+} from './indexed-reader-writer-state';
 
-export type Writer<L, V> = XPure<L, unknown, unknown, unknown, never, V>;
+export type Writer<L, V> = IndexedReaderWriterState<
+  L,
+  unknown,
+  unknown,
+  unknown,
+  never,
+  V
+>;
 
 export const Writer: WriterObj = function ([l, v]) {
-  return XPure.tell(l).map(() => v);
+  return IndexedReaderWriterState.tell(l).map(() => v);
 };
 
 interface WriterObj {
@@ -25,9 +35,9 @@ interface WriterObj {
   Comonad<L>(): Comonad<WriterF<L>>;
 }
 
-Writer.pure = XPure.pure;
-Writer.tell = XPure.tell;
-Writer.Monad = XPure.Monad;
+Writer.pure = IndexedReaderWriterState.pure;
+Writer.tell = IndexedReaderWriterState.tell;
+Writer.Monad = IndexedReaderWriterState.Monad;
 
 Writer.Comonad = lazyVal(<L>() =>
   Comonad.of<WriterF<L>>({
@@ -39,4 +49,7 @@ Writer.Comonad = lazyVal(<L>() =>
 
 // -- HKT
 
-export type WriterF<L> = $<XPureF, [L, unknown, unknown, unknown, never]>;
+export type WriterF<L> = $<
+  IndexedReaderWriterStateF,
+  [L, unknown, unknown, unknown, never]
+>;

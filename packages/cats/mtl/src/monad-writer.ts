@@ -23,8 +23,8 @@ import {
   WriterF,
   WriterT,
   WriterTF,
-  XPure,
-  XPureF,
+  RWS,
+  RWSF,
 } from '@fp4ts/cats-core/lib/data';
 import { Censor, CensorRequirements } from './censor';
 
@@ -43,16 +43,14 @@ export const MonadWriter = Object.freeze({
     });
   },
 
-  XPure: <W, S, R, E>(
-    W: Monoid<W>,
-  ): MonadWriter<$<XPureF, [W, S, S, R, E]>, W> =>
+  RWS: <W, S, R, E>(W: Monoid<W>): MonadWriter<$<RWSF, [W, S, S, R, E]>, W> =>
     MonadWriter.of({
       monoid: W,
-      ...XPure.Monad<W, S, R, E>(),
+      ...RWS.Monad<W, S, R, E>(),
 
       censor_: (fa, f) => fa.censor(chain => Chain(f(chain.folding(W)))),
       listen: fa => fa.listen(W),
-      tell: w => XPure.tell(w),
+      tell: w => RWS.tell(w),
     }),
 
   RWST: <F, W, S, R>(
@@ -80,7 +78,7 @@ export const MonadWriter = Object.freeze({
       tell: WriterT.tell(F),
     }),
 
-  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.XPure(L),
+  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.RWS(L),
 
   Kleisli: <F, R, W>(
     F: MonadWriter<F, W>,

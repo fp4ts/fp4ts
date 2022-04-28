@@ -17,8 +17,8 @@ import {
   OptionT,
   OptionTF,
   ReaderF,
-  XPure,
-  XPureF,
+  RWS,
+  RWSF,
 } from '@fp4ts/cats-core/lib/data';
 import { Local, LocalRequirements } from './local';
 
@@ -34,13 +34,10 @@ export const MonadReader = Object.freeze({
     ...F,
   }),
 
-  XPure: <W, S, R, E>(): MonadReader<$<XPureF, [W, S, S, R, E]>, R> =>
-    MonadReader.of<$<XPureF, [W, S, S, R, E]>, R>({
-      ...XPure.Monad<W, S, R, E>(),
-      ask: (() => XPure.ask()) as MonadReader<
-        $<XPureF, [W, S, S, R, E]>,
-        R
-      >['ask'],
+  RWS: <W, S, R, E>(): MonadReader<$<RWSF, [W, S, S, R, E]>, R> =>
+    MonadReader.of<$<RWSF, [W, S, S, R, E]>, R>({
+      ...RWS.Monad<W, S, R, E>(),
+      ask: (() => RWS.ask()) as MonadReader<$<RWSF, [W, S, S, R, E]>, R>['ask'],
       local_: (fa, f) => fa.local(f),
     }),
 
@@ -65,7 +62,7 @@ export const MonadReader = Object.freeze({
       local_: (fa, f) => fa.adapt(f),
     }),
 
-  Reader: <R>(): MonadReader<ReaderF<R>, R> => MonadReader.XPure(),
+  Reader: <R>(): MonadReader<ReaderF<R>, R> => MonadReader.RWS(),
 
   EitherT: <F, E, R>(
     F: MonadReader<F, R>,
