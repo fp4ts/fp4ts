@@ -42,7 +42,7 @@
     "typescript": "^4.6.3"
   },
   "scripts": {
-    "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=50%",
+    "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=25%",
     "benchmark": "yarn compile && ./scripts/benchmark.sh",
     "compile": "yarn tsc --build tsconfig.build.json",
     "compile:watch": "yarn tsc --build tsconfig.build.json --watch",

@@ -35,7 +35,7 @@ export function WriterTLogger<F, G, A>(
   F: Applicative<F>,
   G: Alternative<G>,
 ): Logger<$<WriterTF, [F, Kind<G, [LogMessage<A>]>]>, A> {
-  const GW = WriterT.Applicative(F, G.algebra<LogMessage<A>>());
+  const GW = WriterT.Applicative<F, Kind<G, [LogMessage<A>]>>(F);
   return new Logger(GW, msg => WriterT.tell(F)(G.pure(msg)));
 }
 

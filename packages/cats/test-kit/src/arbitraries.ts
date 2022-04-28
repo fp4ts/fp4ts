@@ -232,7 +232,7 @@ export const fp4tsHashMap = <K, V>(
 };
 
 export const fp4tsWriterT = <F, L, V>(
-  arbFLV: Arbitrary<Kind<F, [[L, V]]>>,
+  arbFLV: Arbitrary<Kind<F, [[Chain<L>, V]]>>,
 ): Arbitrary<WriterT<F, L, V>> => arbFLV.map(WriterT);
 
 export const fp4tsWriter = <L, V>(

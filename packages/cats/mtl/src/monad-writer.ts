@@ -73,10 +73,10 @@ export const MonadWriter = Object.freeze({
   ): MonadWriter<$<WriterTF, [F, L]>, L> =>
     MonadWriter.of({
       monoid: L,
-      ...WriterT.Monad(F, L),
+      ...WriterT.Monad(F),
 
-      censor_: (fa, f) => fa.mapWritten(F)(f),
-      listen: fa => fa.listen(F),
+      censor_: (fa, f) => fa.censor(F)(lc => Chain(f(lc.folding(L)))),
+      listen: fa => fa.listen(F, L),
       tell: WriterT.tell(F),
     }),
 
