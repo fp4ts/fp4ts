@@ -5,9 +5,9 @@
 
 import fc from 'fast-check';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { Writer, Array } from '@fp4ts/cats-core/lib/data';
+import { Array } from '@fp4ts/cats-core/lib/data';
+import { Writer } from '@fp4ts/cats-mtl';
 import { ComonadSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { MonadWriter } from '@fp4ts/cats-mtl';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -137,7 +137,7 @@ describe('Writer', () => {
 
     checkAll(
       'Censor<Writer<string, *>, string>>',
-      MonadWriterSuite(MonadWriter.Writer<string>(Monoid.string)).censor(
+      MonadWriterSuite(Writer.MonadWriter<string>(Monoid.string)).censor(
         fc.integer(),
         fc.string(),
         Eq.primitive,

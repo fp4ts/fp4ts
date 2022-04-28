@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { instance } from '@fp4ts/core';
-import { State, StateF } from '@fp4ts/cats';
+import { State, StateF } from '@fp4ts/cats-mtl';
 import { Program } from '../dsl';
 import { run } from '../program';
 

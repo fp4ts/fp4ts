@@ -6,9 +6,9 @@
 import fc from 'fast-check';
 import { snd, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Either, Left, RWS } from '@fp4ts/cats-core/lib/data';
+import { Either, Left } from '@fp4ts/cats-core/lib/data';
 import { MonadErrorSuite, SemigroupKSuite } from '@fp4ts/cats-laws';
-import { MonadReader, MonadState, MonadWriter } from '@fp4ts/cats-mtl';
+import { RWS } from '@fp4ts/cats-mtl';
 import {
   MonadReaderSuite,
   MonadStateSuite,
@@ -71,7 +71,7 @@ describe('RWS', () => {
 
     checkAll(
       'Local<RWS<void, void, void, MiniInt, Error, *>, MiniInt>',
-      MonadReaderSuite(MonadReader.RWS<void, void, MiniInt, Error>()).local(
+      MonadReaderSuite(RWS.MonadReader<void, void, MiniInt, Error>()).local(
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
@@ -90,7 +90,7 @@ describe('RWS', () => {
     checkAll(
       'Censor<RWS<string, void, void, unknown, Error, *>, string>',
       MonadWriterSuite(
-        MonadWriter.RWS<string, void, void, Error>(Monoid.string),
+        RWS.MonadWriter<string, void, void, Error>(Monoid.string),
       ).censor(
         fc.integer(),
         fc.string(),
@@ -117,7 +117,7 @@ describe('RWS', () => {
     checkAll(
       'MonadState<RWS<void, MiniInt, MiniInt, unknown, Error, *>, MiniInt>',
       MonadStateSuite(
-        MonadState.RWS<void, MiniInt, unknown, Error>(),
+        RWS.MonadState<void, MiniInt, unknown, Error>(),
       ).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,

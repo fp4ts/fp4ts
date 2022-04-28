@@ -4,12 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, lazyVal } from '@fp4ts/core';
-import { Comonad } from '../comonad';
-import { Monad } from '../monad';
+import { Monad, Comonad } from '@fp4ts/cats-core';
+
 import {
   IndexedReaderWriterState,
   IndexedReaderWriterStateF,
 } from './indexed-reader-writer-state';
+import { Monoid } from '@fp4ts/cats-kernel';
+import { MonadWriter } from '../monad-writer';
 
 export type Writer<L, V> = IndexedReaderWriterState<
   L,
@@ -33,6 +35,7 @@ interface WriterObj {
 
   Monad<L>(): Monad<WriterF<L>>;
   Comonad<L>(): Comonad<WriterF<L>>;
+  MonadWriter<L>(L: Monoid<L>): MonadWriter<WriterF<L>, L>;
 }
 
 Writer.pure = IndexedReaderWriterState.pure;
@@ -46,6 +49,8 @@ Writer.Comonad = lazyVal(<L>() =>
     coflatMap_: (fa, f) => fa.map(() => f(fa)),
   }),
 ) as <L>() => Comonad<WriterF<L>>;
+
+Writer.MonadWriter = IndexedReaderWriterState.MonadWriter;
 
 // -- HKT
 

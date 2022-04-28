@@ -15,8 +15,8 @@ import {
   Right,
   Some,
   Vector,
-  Writer,
 } from '@fp4ts/cats';
+import { Writer } from '@fp4ts/cats-mtl';
 import { ParsingFailure } from './message-failure';
 
 export function uri(strings: TemplateStringsArray, ...xs: any[]): Uri {

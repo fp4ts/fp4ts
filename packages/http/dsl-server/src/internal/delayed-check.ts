@@ -4,23 +4,23 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { Applicative, Monad, ReaderT } from '@fp4ts/cats';
+import { Applicative, Monad, Kleisli } from '@fp4ts/cats';
 import { Request } from '@fp4ts/http-core';
 import { RouteResultT, RouteResultTF } from './route-result';
 
-export type DelayedCheck<F, A> = ReaderT<$<RouteResultTF, [F]>, Request<F>, A>;
+export type DelayedCheck<F, A> = Kleisli<$<RouteResultTF, [F]>, Request<F>, A>;
 
 export const DelayedCheck = Object.freeze({
   pure:
     <F>(F: Applicative<F>) =>
     <A>(a: A): DelayedCheck<F, A> =>
-      ReaderT.pure(F)(a) as any as DelayedCheck<F, A>,
+      Kleisli.pure(F)(a) as any as DelayedCheck<F, A>,
 
   liftRouteResult: <F, A>(ra: RouteResultT<F, A>): DelayedCheck<F, A> =>
-    ReaderT(() => ra),
+    Kleisli(() => ra),
 
   withRequest:
     <F>(F: Monad<F>) =>
     <A>(f: (req: Request<F>) => RouteResultT<F, A>): DelayedCheck<F, A> =>
-      ReaderT(f),
+      Kleisli(f),
 });

@@ -16,6 +16,7 @@
     "@fp4ts/effect": "*"
   },
   "devDependencies": {
+    "@fp4ts/cats-mtl": "*",
     "typescript": "4.6.3"
   }
 }

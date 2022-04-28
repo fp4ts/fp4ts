@@ -13,11 +13,8 @@ import {
   MonoidK,
   Option,
   Some,
-  Writer,
-  WriterF,
-  WriterT,
-  WriterTF,
 } from '@fp4ts/cats';
+import { Writer, WriterF, WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { LogLevel } from './log-level';
 import { LogFormat } from './log-format';
 import { LogMessage } from './log-message';

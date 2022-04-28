@@ -5,19 +5,20 @@
 
 import { $, $type, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { FunctionK } from '../arrow';
-import { Functor } from '../functor';
-import { FlatMap } from '../flat-map';
-import { Contravariant } from '../contravariant';
-import { Applicative } from '../applicative';
-import { Apply } from '../apply';
-import { Monad } from '../monad';
-import { MonadError } from '../monad-error';
-import { ApplicativeError } from '../applicative-error';
-
-import { Chain } from './collections';
-import { Either, Left, Right } from './either';
-import { EqK } from '../eq-k';
+import {
+  Applicative,
+  ApplicativeError,
+  Apply,
+  Contravariant,
+  EqK,
+  FunctionK,
+  Functor,
+  FlatMap,
+  Monad,
+  MonadError,
+} from '@fp4ts/cats-core';
+import { Chain, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { MonadWriter } from '../monad-writer';
 
 export type WriterT<F, L, V> = _WriterT<F, L, V>;
 export const WriterT: WriterTObj = function (flv) {
@@ -197,6 +198,11 @@ interface WriterTObj {
     F: ApplicativeError<F, E>,
   ): ApplicativeError<$<WriterTF, [F, L]>, E>;
   MonadError<F, L, E>(F: MonadError<F, E>): MonadError<$<WriterTF, [F, L]>, E>;
+
+  MonadWriter<F, L>(
+    F: Monad<F>,
+    L: Monoid<L>,
+  ): MonadWriter<$<WriterTF, [F, L]>, L>;
 }
 
 WriterT.liftF = F => fv => WriterT(F.map_(fv, v => [Chain.empty, v]));
@@ -285,6 +291,18 @@ const writerTMonadError = <F, L, E>(
     ...writerTMonad(F),
     ...writerTApplicativeError(F),
   });
+const writerTMonadWriter = <F, L>(
+  F: Monad<F>,
+  L: Monoid<L>,
+): MonadWriter<$<WriterTF, [F, L]>, L> =>
+  MonadWriter.of({
+    monoid: L,
+    ...WriterT.Monad(F),
+
+    censor_: (fa, f) => fa.censor(F)(lc => Chain(f(lc.folding(L)))),
+    listen: fa => fa.listen(F, L),
+    tell: WriterT.tell(F),
+  });
 
 WriterT.EqK = writerTEqK;
 WriterT.Functor = writerTFunctor;
@@ -295,6 +313,7 @@ WriterT.Applicative = writerTApplicative;
 WriterT.Monad = writerTMonad;
 WriterT.ApplicativeError = writerTApplicativeError;
 WriterT.MonadError = writerTMonadError;
+WriterT.MonadWriter = writerTMonadWriter;
 
 // -- HKT
 

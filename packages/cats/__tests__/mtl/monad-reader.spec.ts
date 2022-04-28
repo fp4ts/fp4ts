@@ -16,9 +16,8 @@ import {
   Option,
   OptionF,
   OptionT,
-  RWSF,
 } from '@fp4ts/cats-core/lib/data';
-import { MonadReader } from '@fp4ts/cats-mtl';
+import { RWS, RWSF, MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -112,7 +111,7 @@ describe('MonadReader', () => {
           $<RWSF, [void, void, void, MiniInt, string]>,
           Error,
           MiniInt
-        >(MonadReader.RWS()),
+        >(RWS.MonadReader()),
       ).local(
         fc.integer(),
         fc.integer(),
@@ -151,7 +150,7 @@ describe('MonadReader', () => {
         MonadReader.OptionT<
           $<RWSF, [void, void, void, MiniInt, string]>,
           MiniInt
-        >(MonadReader.RWS()),
+        >(RWS.MonadReader()),
       ).local(
         fc.integer(),
         fc.integer(),

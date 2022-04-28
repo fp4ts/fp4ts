@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, applyTo, constant } from '@fp4ts/core';
-import { FlatMap, Functor, Monad, ReaderT } from '@fp4ts/cats';
+import { FlatMap, Functor, Monad, Kleisli } from '@fp4ts/cats';
 import { Request } from '@fp4ts/http-core';
 import { DelayedCheck } from './delayed-check';
 import { RouteResult, RouteResultT, RouteResultTF } from './route-result';
@@ -15,7 +15,7 @@ export class Delayed<F, env, c> {
   public static empty<F>(
     F: Monad<F>,
   ): <A, env>(empty: RouteResult<A>) => Delayed<F, env, A> {
-    const r = ReaderT.pure(RouteResultT.Monad(F))(undefined as void);
+    const r = Kleisli.pure(RouteResultT.Monad(F))(undefined as void);
     return fea =>
       new Delayed(transform =>
         transform({
@@ -207,7 +207,7 @@ export class Delayed<F, env, c> {
   public runDelayed(
     F: Monad<$<RouteResultTF, [F]>>,
   ): (env: env, req: Request<F>) => RouteResultT<F, c> {
-    const RF = ReaderT.Monad<$<RouteResultTF, [F]>, Request<F>>(F);
+    const RF = Kleisli.Monad<$<RouteResultTF, [F]>, Request<F>>(F);
     return (env, req) =>
       this.fold(props =>
         RF.do(function* (_) {

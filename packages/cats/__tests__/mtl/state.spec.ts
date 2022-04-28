@@ -5,15 +5,14 @@
 
 import fc from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { List, State, Option } from '@fp4ts/cats-core/lib/data';
-import { MonadState } from '@fp4ts/cats-mtl';
+import { List, Option } from '@fp4ts/cats-core/lib/data';
+import { State, IndexedState } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { IndexedState } from '@fp4ts/cats-core/src/data';
 
 describe('State', () => {
   describe('types', () => {
@@ -63,8 +62,7 @@ describe('State', () => {
       'pure is consistent',
       forAll(fc.string(), fc.integer(), (s, n) => {
         const state: State<string, number> = State.pure(n);
-        const indexedState: IndexedState<string, string, number> =
-          IndexedState.pure(n);
+        const indexedState: State<string, number> = IndexedState.pure(n);
 
         expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
@@ -74,8 +72,7 @@ describe('State', () => {
       'get is consistent',
       forAll(fc.string(), fc.integer(), s => {
         const state: State<string, string> = State.get();
-        const indexedState: IndexedState<string, string, string> =
-          IndexedState.get<string>();
+        const indexedState: State<string, string> = IndexedState.get<string>();
 
         expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
@@ -90,8 +87,7 @@ describe('State', () => {
         ),
         (s, f) => {
           const state: State<string, number> = State.state(f);
-          const indexedState: IndexedState<string, string, number> =
-            IndexedState.state(f);
+          const indexedState: State<string, number> = IndexedState.state(f);
 
           expect(state.runState(s)).toEqual(indexedState.runState(s));
         },
@@ -102,8 +98,7 @@ describe('State', () => {
       'modify is consistent',
       forAll(fc.string(), fc.func<[string], string>(fc.string()), (s, f) => {
         const state: State<string, void> = State.modify(f);
-        const indexedState: IndexedState<string, string, void> =
-          IndexedState.modify(f);
+        const indexedState: State<string, void> = IndexedState.modify(f);
 
         expect(state.runState(s)).toEqual(indexedState.runState(s));
       }),
@@ -113,8 +108,7 @@ describe('State', () => {
       'replace is consistent',
       forAll(fc.string(), fc.string(), (s0, s1) => {
         const state: State<string, void> = State.replace(s1);
-        const indexedState: IndexedState<string, string, void> =
-          IndexedState.replace(s1);
+        const indexedState: State<string, void> = IndexedState.replace(s1);
 
         expect(state.runState(s0)).toEqual(indexedState.runState(s0));
       }),
@@ -217,7 +211,7 @@ describe('State', () => {
 
     checkAll(
       'MonadState<State<MiniInt, *>, MiniInt>',
-      MonadStateSuite(MonadState.State<MiniInt>()).monadState(
+      MonadStateSuite(State.MonadState<MiniInt>()).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,
         X => A.fp4tsState(A.fp4tsMiniInt(), X),

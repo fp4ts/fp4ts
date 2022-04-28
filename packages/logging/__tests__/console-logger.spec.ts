@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { pipe } from '@fp4ts/core';
-import { State } from '@fp4ts/cats';
+import { State } from '@fp4ts/cats-mtl';
 import { Clock } from '@fp4ts/effect';
 import { ConsoleStateState, TestConsoleState } from '@fp4ts/effect-test-kit';
 import { ConsoleLogger, TimestampLogger } from '@fp4ts/logging-core';

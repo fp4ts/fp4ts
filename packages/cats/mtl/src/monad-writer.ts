@@ -4,14 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, instance } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
 import { Monad, MonadRequirements } from '@fp4ts/cats-core';
 import {
-  Chain,
   EitherT,
   EitherTF,
-  IndexedReaderWriterStateT as RWST,
-  IndexedReaderWriterStateTF as RWSTF,
   Kleisli,
   KleisliF,
   Left,
@@ -20,11 +16,6 @@ import {
   OptionTF,
   Right,
   Some,
-  WriterF,
-  WriterT,
-  WriterTF,
-  RWS,
-  RWSF,
 } from '@fp4ts/cats-core/lib/data';
 import { Censor, CensorRequirements } from './censor';
 
@@ -42,43 +33,6 @@ export const MonadWriter = Object.freeze({
       ...F,
     });
   },
-
-  RWS: <W, S, R, E>(W: Monoid<W>): MonadWriter<$<RWSF, [W, S, S, R, E]>, W> =>
-    MonadWriter.of({
-      monoid: W,
-      ...RWS.Monad<W, S, R, E>(),
-
-      censor_: (fa, f) => fa.censor(chain => Chain(f(chain.folding(W)))),
-      listen: fa => fa.listen(W),
-      tell: w => RWS.tell(w),
-    }),
-
-  RWST: <F, W, S, R>(
-    F: Monad<F>,
-    W: Monoid<W>,
-  ): MonadWriter<$<RWSTF, [F, W, S, S, R]>, W> =>
-    MonadWriter.of<$<RWSTF, [F, W, S, S, R]>, W>({
-      monoid: W,
-      ...RWST.Monad(F),
-      censor_: (fa, f) => fa.censor(F)(chain => Chain(f(chain.folding(W)))),
-      listen: fa => fa.listen(F, W),
-      tell: RWST.tell(F),
-    }),
-
-  WriterT: <F, L>(
-    F: Monad<F>,
-    L: Monoid<L>,
-  ): MonadWriter<$<WriterTF, [F, L]>, L> =>
-    MonadWriter.of({
-      monoid: L,
-      ...WriterT.Monad(F),
-
-      censor_: (fa, f) => fa.censor(F)(lc => Chain(f(lc.folding(L)))),
-      listen: fa => fa.listen(F, L),
-      tell: WriterT.tell(F),
-    }),
-
-  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.RWS(L),
 
   Kleisli: <F, R, W>(
     F: MonadWriter<F, W>,

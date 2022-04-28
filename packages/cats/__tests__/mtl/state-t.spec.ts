@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Identity, IdentityF, StateT } from '@fp4ts/cats-core/lib/data';
-import { MonadState } from '@fp4ts/cats-mtl';
+import { Identity, IdentityF } from '@fp4ts/cats-core/lib/data';
+import { StateT } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
@@ -19,7 +19,7 @@ describe('StateT', () => {
   checkAll(
     'MonadState<StateT<Identity, MiniInt, *>, MiniInt>',
     MonadStateSuite(
-      MonadState.StateT<IdentityF, MiniInt>(Identity.Monad),
+      StateT.MonadState<IdentityF, MiniInt>(Identity.Monad),
     ).monadState(
       A.fp4tsMiniInt(),
       MiniInt.Eq,

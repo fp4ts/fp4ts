@@ -17,15 +17,18 @@ import {
   λ,
 } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Monad } from '../monad';
-import { StackSafeMonad } from '../stack-safe-monad';
-import { SemigroupK } from '../semigroup-k';
-import { MonadError } from '../monad-error';
-import { Profunctor } from '../arrow';
-import { Bifunctor } from '../bifunctor';
-
-import { Chain } from './collections';
-import { Either, Left, Right } from './either';
+import {
+  Monad,
+  StackSafeMonad,
+  SemigroupK,
+  MonadError,
+  Profunctor,
+  Bifunctor,
+} from '@fp4ts/cats-core';
+import { Chain, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { MonadReader } from '../monad-reader';
+import { MonadState } from '../monad-state';
+import { MonadWriter } from '../monad-writer';
 
 export type IndexedReaderWriterState<W, S1, S2, R, E, A> = _RWS<
   W,
@@ -523,6 +526,18 @@ interface ReaderWriterStateObj {
   Profunctor<W, R, E, A>(): Profunctor<
     λ<IndexedReaderWriterStateF, [Fix<W>, α, β, Fix<R>, Fix<E>, Fix<A>]>
   >;
+
+  MonadReader<W, S, R, E>(): MonadReader<
+    $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
+    R
+  >;
+  MonadState<W, S, R, E>(): MonadState<
+    $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
+    S
+  >;
+  MonadWriter<W, S, R, E>(
+    W: Monoid<W>,
+  ): MonadWriter<$<IndexedReaderWriterStateF, [W, S, S, R, E]>, W>;
 }
 
 IndexedReaderWriterState.pure = a => new Pure(a);
@@ -534,11 +549,11 @@ IndexedReaderWriterState.written = () => new Written();
 
 // -- Instances
 
-const xpureSemigroupK: <W, S, R, E>() => SemigroupK<
+const rwsSemigroupK: <W, S, R, E>() => SemigroupK<
   $<IndexedReaderWriterStateF, [W, S, S, R, E]>
 > = lazyVal(() => SemigroupK.of({ combineK_: (l, r) => l['<|>'](r()) }));
 
-const xpureMonad: <W, S, R, E>() => Monad<
+const rwsMonad: <W, S, R, E>() => Monad<
   $<IndexedReaderWriterStateF, [W, S, S, R, E]>
 > = lazyVal(<W, S, R, E>() =>
   StackSafeMonad.of<$<IndexedReaderWriterStateF, [W, S, S, R, E]>>({
@@ -558,12 +573,12 @@ const xpureMonad: <W, S, R, E>() => Monad<
   }),
 ) as <W, S, R, E>() => Monad<$<IndexedReaderWriterStateF, [W, S, S, R, E]>>;
 
-const xpureMonadError: <W, S, R, E>() => MonadError<
+const rwsMonadError: <W, S, R, E>() => MonadError<
   $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
   E
 > = lazyVal(<W, S, R, E>() =>
   MonadError.of<$<IndexedReaderWriterStateF, [W, S, S, R, E]>, E>({
-    ...xpureMonad(),
+    ...rwsMonad(),
     throwError: <A>(e: E) =>
       IndexedReaderWriterState.throwError<E, W, S, S, R, A>(e),
     handleErrorWith_: (fa, f) => fa.handleErrorWith(f),
@@ -575,7 +590,7 @@ const xpureMonadError: <W, S, R, E>() => MonadError<
   E
 >;
 
-const xpureStateBifunctor: <W, S1, R, E>() => Bifunctor<
+const rwsStateBifunctor: <W, S1, R, E>() => Bifunctor<
   λ<IndexedReaderWriterStateF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
 > = lazyVal(<W, S1, R, E>() =>
   Bifunctor.of<
@@ -597,7 +612,7 @@ const xpureStateBifunctor: <W, S1, R, E>() => Bifunctor<
 //   λ<XPureF, [Fix<W>, Fix<S1>, α, Fix<R>, Fix<E>, β]>
 // >;
 
-const xpureProfunctor: <W, R, E, A>() => Profunctor<
+const rwsProfunctor: <W, R, E, A>() => Profunctor<
   λ<IndexedReaderWriterStateF, [Fix<W>, α, β, Fix<R>, Fix<E>, Fix<A>]>
 > = lazyVal(<W, R, E, A>() =>
   Profunctor.of<
@@ -609,11 +624,49 @@ const xpureProfunctor: <W, R, E, A>() => Profunctor<
   λ<IndexedReaderWriterStateF, [Fix<W>, α, β, Fix<R>, Fix<E>, Fix<A>]>
 >;
 
-IndexedReaderWriterState.SemigroupK = xpureSemigroupK;
-IndexedReaderWriterState.Monad = xpureMonad;
-IndexedReaderWriterState.MonadError = xpureMonadError;
-IndexedReaderWriterState.StateBifunctor = xpureStateBifunctor;
-IndexedReaderWriterState.Profunctor = xpureProfunctor;
+const rwsMonadReader = <W, S, R, E>(): MonadReader<
+  $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
+  R
+> =>
+  MonadReader.of<$<IndexedReaderWriterStateF, [W, S, S, R, E]>, R>({
+    ...IndexedReaderWriterState.Monad<W, S, R, E>(),
+    ask: (() => IndexedReaderWriterState.ask()) as MonadReader<
+      $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
+      R
+    >['ask'],
+    local_: (fa, f) => fa.local(f),
+  });
+const rwsMonadState = <W, S, R, E>(): MonadState<
+  $<IndexedReaderWriterStateF, [W, S, S, R, E]>,
+  S
+> =>
+  MonadState.of({
+    ...IndexedReaderWriterState.Monad<W, S, R, E>(),
+    get: IndexedReaderWriterState.state(s => [s, s]),
+    set: s => IndexedReaderWriterState.state(() => [s, undefined]),
+    modify: f => IndexedReaderWriterState.state(s => [f(s), undefined]),
+    inspect: f => IndexedReaderWriterState.state(s => [s, f(s)]),
+  });
+const rwsMonadWriter = <W, S, R, E>(
+  W: Monoid<W>,
+): MonadWriter<$<IndexedReaderWriterStateF, [W, S, S, R, E]>, W> =>
+  MonadWriter.of({
+    monoid: W,
+    ...IndexedReaderWriterState.Monad<W, S, R, E>(),
+
+    censor_: (fa, f) => fa.censor(chain => Chain(f(chain.folding(W)))),
+    listen: fa => fa.listen(W),
+    tell: w => IndexedReaderWriterState.tell(w),
+  });
+
+IndexedReaderWriterState.SemigroupK = rwsSemigroupK;
+IndexedReaderWriterState.Monad = rwsMonad;
+IndexedReaderWriterState.MonadError = rwsMonadError;
+IndexedReaderWriterState.StateBifunctor = rwsStateBifunctor;
+IndexedReaderWriterState.Profunctor = rwsProfunctor;
+IndexedReaderWriterState.MonadReader = rwsMonadReader;
+IndexedReaderWriterState.MonadState = rwsMonadState;
+IndexedReaderWriterState.MonadWriter = rwsMonadWriter;
 
 // -- Algebra
 

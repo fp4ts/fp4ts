@@ -8,7 +8,6 @@ import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
 import { Applicative, Eval } from '@fp4ts/cats-core';
 import {
-  Reader,
   Chain,
   Either,
   HashMap,
@@ -25,10 +24,6 @@ import {
   EitherT,
   Queue,
   AndThen,
-  State,
-  StateT,
-  WriterT,
-  Writer,
   Set,
   Endo,
   Dual,
@@ -36,10 +31,17 @@ import {
   Tagged,
   ValidationError,
   Validation,
+} from '@fp4ts/cats-core/lib/data';
+import {
+  Reader,
+  State,
+  StateT,
+  WriterT,
+  Writer,
   RWS,
   IndexedReaderWriterStateT,
   IndexedStateT,
-} from '@fp4ts/cats-core/lib/data';
+} from '@fp4ts/cats-mtl';
 import { MiniInt } from './mini-int';
 
 export const fp4tsError = (): Arbitrary<Error> =>

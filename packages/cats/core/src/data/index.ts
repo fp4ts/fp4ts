@@ -19,12 +19,6 @@ export * from './function';
 export * from './and-then';
 export * from './tagged';
 export * from './dual';
-export * from './state';
-export * from './writer';
-export * from './reader';
-export * from './state';
-export * from './indexed-state';
-export * from './indexed-reader-writer-state';
 
 export * from './nested';
 export * from './kleisli';
@@ -32,10 +26,5 @@ export * from './tuple2-k';
 export * from './identity-t';
 export * from './option-t';
 export * from './either-t';
-export * from './reader-t';
-export * from './writer-t';
-export * from './state-t';
-export * from './indexed-state-t';
-export * from './indexed-reader-writer-state-t';
 
 export * from './collections';

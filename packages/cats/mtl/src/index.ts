@@ -15,3 +15,5 @@ export * from './tell';
 export * from './monad-reader';
 export * from './monad-state';
 export * from './monad-writer';
+
+export * from './data';

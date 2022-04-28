@@ -6,16 +6,19 @@
 import { $, $type, Fix, Kind, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 
-import { FlatMap } from '../flat-map';
-import { Functor } from '../functor';
-import { Monad } from '../monad';
-import { Applicative } from '../applicative';
-import { Kleisli } from './kleisli';
-import { MonadError } from '../monad-error';
-import { Profunctor, Strong } from '../arrow';
-
-import { Chain } from './collections';
-import { Either, Left, Right } from './either';
+import {
+  FlatMap,
+  Functor,
+  Monad,
+  Applicative,
+  MonadError,
+  Profunctor,
+  Strong,
+} from '@fp4ts/cats-core';
+import { Chain, Kleisli, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { MonadReader } from '../monad-reader';
+import { MonadState } from '../monad-state';
+import { MonadWriter } from '../monad-writer';
 
 export type IndexedReaderWriterStateT<F, W, S1, S2, R, A> =
   _IndexedReaderWriterStateT<F, W, S1, S2, R, A>;
@@ -425,6 +428,17 @@ interface IndexedReaderWriterStateTObj {
   ): Strong<
     λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
   >;
+
+  MonadReader<F, W, S, R>(
+    F: Monad<F>,
+  ): MonadReader<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, R>;
+  MonadState<F, W, S, R>(
+    F: Monad<F>,
+  ): MonadState<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, S>;
+  MonadWriter<F, W, S, R>(
+    F: Monad<F>,
+    W: Monoid<W>,
+  ): MonadWriter<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, W>;
 }
 
 IndexedReaderWriterStateT.pure = F => a =>
@@ -569,12 +583,49 @@ const irwstStrong: <F, W, R, A>(
         ),
   });
 
+const irwstMonadReader = <F, W, S, R>(
+  F: Monad<F>,
+): MonadReader<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, R> =>
+  MonadReader.of<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, R>({
+    ...IndexedReaderWriterStateT.Monad(F),
+    ask: IndexedReaderWriterStateT.ask(F) as MonadReader<
+      $<IndexedReaderWriterStateTF, [F, W, S, S, R]>,
+      R
+    >['ask'],
+    local_: (fa, f) => fa.local(F)(f),
+  });
+const irwstMonadState = <F, W, S, R>(
+  F: Monad<F>,
+): MonadState<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, S> =>
+  MonadState.of<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, S>({
+    ...IndexedReaderWriterStateT.Monad(F),
+
+    get: IndexedReaderWriterStateT.state(F)(s => F.pure([s, s])),
+    set: s => IndexedReaderWriterStateT.state(F)(() => F.pure([s, undefined])),
+    modify: f =>
+      IndexedReaderWriterStateT.state(F)(s => F.pure([f(s), undefined])),
+    inspect: f => IndexedReaderWriterStateT.state(F)(s => F.pure([s, f(s)])),
+  });
+const irwstMonadWriter = <F, W, S, R>(
+  F: Monad<F>,
+  W: Monoid<W>,
+): MonadWriter<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, W> =>
+  MonadWriter.of<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, W>({
+    monoid: W,
+    ...IndexedReaderWriterStateT.Monad(F),
+    censor_: (fa, f) => fa.censor(F)(chain => Chain(f(chain.folding(W)))),
+    listen: fa => fa.listen(F, W),
+    tell: IndexedReaderWriterStateT.tell(F),
+  });
+
 IndexedReaderWriterStateT.Functor = irwstFunctor;
 IndexedReaderWriterStateT.Monad = irwstMonad;
 IndexedReaderWriterStateT.MonadError = irwstMonadError;
 IndexedReaderWriterStateT.Profunctor = irwstProfunctor;
 IndexedReaderWriterStateT.Strong = irwstStrong;
-
+IndexedReaderWriterStateT.MonadReader = irwstMonadReader;
+IndexedReaderWriterStateT.MonadState = irwstMonadState;
+IndexedReaderWriterStateT.MonadWriter = irwstMonadWriter;
 // -- HKT
 
 /**

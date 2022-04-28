@@ -4,11 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Fix, α, β, λ } from '@fp4ts/core';
-import { Monad } from '../monad';
+import { Monad } from '@fp4ts/cats-core';
 import {
   IndexedReaderWriterState,
   IndexedReaderWriterStateF,
 } from './indexed-reader-writer-state';
+import { MonadState } from '../monad-state';
 
 export type IndexedState<SA, SB, A> = IndexedReaderWriterState<
   never,
@@ -35,6 +36,7 @@ interface IndexedStateObj {
   // -- Instances
 
   Monad<S>(): Monad<IndexedStateF<S, S>>;
+  MonadState<S>(): MonadState<IndexedStateF<S, S>, S>;
 }
 
 IndexedState.pure = IndexedReaderWriterState.pure;
@@ -44,6 +46,7 @@ IndexedState.modify = f => IndexedState(s => [f(s), undefined]);
 IndexedState.replace = s => IndexedState.modify(() => s);
 
 IndexedState.Monad = IndexedReaderWriterState.Monad;
+IndexedState.MonadState = IndexedReaderWriterState.MonadState;
 
 // -- HKT
 

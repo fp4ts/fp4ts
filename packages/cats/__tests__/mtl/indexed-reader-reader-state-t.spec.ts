@@ -11,11 +11,10 @@ import {
   Chain,
   Identity,
   Option,
-  IndexedReaderWriterStateT as RWST,
   EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
-import { MonadReader, MonadState, MonadWriter } from '@fp4ts/cats-mtl';
+import { IndexedReaderWriterStateT as RWST } from '@fp4ts/cats-mtl';
 import {
   MonadReaderSuite,
   MonadStateSuite,
@@ -36,7 +35,7 @@ describe('IndexedReaderWriterStateT', () => {
   ) {
     checkAll(
       `MonadState<IndexedReaderWriterStateT<${effectName}, ${W}, MiniInt, MiniInt, unknown, *>, MiniInt>`,
-      MonadStateSuite(MonadState.RWST<F, W, MiniInt, unknown>(F)).monadState(
+      MonadStateSuite(RWST.MonadState<F, W, MiniInt, unknown>(F)).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,
         <X>(
@@ -58,7 +57,7 @@ describe('IndexedReaderWriterStateT', () => {
 
     checkAll(
       `Censor<IndexedReaderWriterStateT<${effectName}, ${W}, unknown, unknown, unknown, *>, ${W}>`,
-      MonadWriterSuite(MonadWriter.RWST<F, W, unknown, unknown>(F, WM)).censor(
+      MonadWriterSuite(RWST.MonadWriter<F, W, unknown, unknown>(F, WM)).censor(
         fc.integer(),
         arbW,
         Eq.primitive,
@@ -80,7 +79,7 @@ describe('IndexedReaderWriterStateT', () => {
 
     checkAll(
       `Local<IndexedReaderWriterStateT<${effectName}, ${W}, unknown, unknown, MiniInt, *>, MiniInt>`,
-      MonadReaderSuite(MonadReader.RWST<F, W, unknown, MiniInt>(F)).local(
+      MonadReaderSuite(RWST.MonadReader<F, W, unknown, MiniInt>(F)).local(
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),

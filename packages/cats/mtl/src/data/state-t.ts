@@ -4,14 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
-import { Applicative } from '../applicative';
-import { Functor } from '../functor';
-import { Monad } from '../monad';
-import { MonadError } from '../monad-error';
+import { Applicative, Functor, Monad, MonadError } from '@fp4ts/cats-core';
 import {
   IndexedReaderWriterStateT,
   IndexedReaderWriterStateTF,
 } from './indexed-reader-writer-state-t';
+import { MonadState } from '../monad-state';
 
 export type StateT<F, S, A> = IndexedReaderWriterStateT<
   F,
@@ -35,11 +33,13 @@ interface StateTObj {
   Functor<F, S>(F: Functor<F>): Functor<StateTF<F, S>>;
   Monad<F, S>(F: Monad<F>): Monad<StateTF<F, S>>;
   MonadError<F, S, E>(F: MonadError<F, E>): MonadError<StateTF<F, S>, E>;
+  MonadState<F, S>(F: Monad<F>): MonadState<StateTF<F, S>, S>;
 }
 
 StateT.Functor = IndexedReaderWriterStateT.Functor;
 StateT.Monad = IndexedReaderWriterStateT.Monad;
 StateT.MonadError = IndexedReaderWriterStateT.MonadError;
+StateT.MonadState = IndexedReaderWriterStateT.MonadState;
 
 // -- HKT
 

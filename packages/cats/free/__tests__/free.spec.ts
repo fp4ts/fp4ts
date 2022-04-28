@@ -8,13 +8,12 @@ import { $type, id, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from '@fp4ts/cats-core';
 import {
-  State,
-  StateF,
   OptionF,
   Option,
   IdentityF,
   Identity,
 } from '@fp4ts/cats-core/lib/data';
+import { State, StateF } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
