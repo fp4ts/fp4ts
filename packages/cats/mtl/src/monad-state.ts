@@ -17,6 +17,7 @@ import {
   Right,
   Some,
   StateF,
+  StateTF,
   XPure,
   XPureF,
 } from '@fp4ts/cats-core/lib/data';
@@ -60,11 +61,14 @@ export const MonadState = Object.freeze({
     MonadState.of<$<RWSTF, [F, W, S, S, R]>, S>({
       ...RWST.Monad(F),
 
-      get: RWST.state(F)(s => [s, s]),
-      set: s => RWST.state(F)(() => [s, undefined]),
-      modify: f => RWST.state(F)(s => [f(s), undefined]),
-      inspect: f => RWST.state(F)(s => [s, f(s)]),
+      get: RWST.state(F)(s => F.pure([s, s])),
+      set: s => RWST.state(F)(() => F.pure([s, undefined])),
+      modify: f => RWST.state(F)(s => F.pure([f(s), undefined])),
+      inspect: f => RWST.state(F)(s => F.pure([s, f(s)])),
     }),
+
+  StateT: <F, S>(F: Monad<F>): MonadState<StateTF<F, S>, S> =>
+    MonadState.RWST(F),
 
   State: <S>(): MonadState<StateF<S>, S> => MonadState.XPure(),
 

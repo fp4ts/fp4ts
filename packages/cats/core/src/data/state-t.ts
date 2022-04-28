@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
+import { $, Kind } from '@fp4ts/core';
+import { Applicative } from '../applicative';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { MonadError } from '../monad-error';
@@ -21,9 +22,14 @@ export type StateT<F, S, A> = IndexedReaderWriterStateT<
   A
 >;
 
-export const StateT: StateTObj = function () {};
+export const StateT: StateTObj = function (F) {
+  return IndexedReaderWriterStateT.state(F);
+};
 
 interface StateTObj {
+  <F>(F: Applicative<F>): <S, A>(
+    f: (s: S) => Kind<F, [[S, A]]>,
+  ) => StateT<F, S, A>;
   // -- Instances
 
   Functor<F, S>(F: Functor<F>): Functor<StateTF<F, S>>;

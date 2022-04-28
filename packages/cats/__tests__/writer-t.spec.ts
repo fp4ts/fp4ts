@@ -39,23 +39,23 @@ describe('WriterT', () => {
     it('should concatenate two string', () => {
       expect(
         WriterT.pure(Eval.Applicative, Monoid.string)(42)
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('tell')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )(' ')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('me')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )(' ')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('more')
@@ -66,23 +66,23 @@ describe('WriterT', () => {
     it('should reset cumulated result', () => {
       expect(
         WriterT.pure(Eval.Applicative, Monoid.string)(42)
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('tell')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )(' ')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('me')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )(' ')
-          ['<<<'](
+          .log(
             Eval.Monad,
             Monoid.string,
           )('more')

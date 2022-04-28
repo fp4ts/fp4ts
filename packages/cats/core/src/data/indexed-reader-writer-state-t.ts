@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, Fix, Kind, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 
 import { FlatMap } from '../flat-map';
@@ -12,6 +12,7 @@ import { Monad } from '../monad';
 import { Applicative } from '../applicative';
 import { Kleisli } from './kleisli';
 import { MonadError } from '../monad-error';
+import { Profunctor, Strong } from '../arrow';
 
 import { Chain } from './collections';
 import { Either, Left, Right } from './either';
@@ -395,9 +396,9 @@ interface IndexedReaderWriterStateTObj {
     w: W,
   ) => IndexedReaderWriterStateT<F, W, S, S, R, void>;
   state<F>(
-    F: Monad<F>,
+    F: Applicative<F>,
   ): <S1, S2, A, W = unknown, R = unknown>(
-    f: (s1: S1) => [S2, A],
+    f: (s1: S1) => Kind<F, [[S2, A]]>,
   ) => IndexedReaderWriterStateT<F, W, S1, S2, R, A>;
 
   // -- Instances
@@ -411,6 +412,16 @@ interface IndexedReaderWriterStateTObj {
   MonadError<F, W, S, R, E>(
     F: MonadError<F, E>,
   ): MonadError<$<IndexedReaderWriterStateTF, [F, W, S, S, R]>, E>;
+  Profunctor<F, W, R, A>(
+    F: Functor<F>,
+  ): Profunctor<
+    λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+  >;
+  Strong<F, W, R, A>(
+    F: Functor<F>,
+  ): Strong<
+    λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+  >;
 }
 
 IndexedReaderWriterStateT.pure = F => a =>
@@ -421,7 +432,7 @@ IndexedReaderWriterStateT.tell = F => w =>
   IndexedReaderWriterStateT(F.pure((r, s) => F.pure([Chain(w), s, undefined])));
 IndexedReaderWriterStateT.state = F => modify =>
   IndexedReaderWriterStateT(
-    F.pure((r, s) => F.pure([Chain.empty, ...modify(s)])),
+    F.pure((r, s) => F.map_(modify(s), ([s2, a]) => [Chain.empty, s2, a])),
   );
 
 // -- Instances
@@ -495,9 +506,71 @@ const irwstMonadError: <F, W, S, R, E>(
       ),
   });
 
+const irwstProfunctor: <F, W, R, A>(
+  F: Functor<F>,
+) => Profunctor<
+  λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+> = <F, W, R, A>(
+  F: Functor<F>,
+): Profunctor<
+  λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+> =>
+  Profunctor.of<
+    λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+  >({
+    dimap_: (fa, f, g) => fa.dimap(F)(f, g),
+  });
+
+const irwstStrong: <F, W, R, A>(
+  F: Functor<F>,
+) => Strong<
+  λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+> = <F, W, R, A>(
+  F: Functor<F>,
+): Strong<
+  λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+> =>
+  Strong.of<
+    λ<IndexedReaderWriterStateTF, [Fix<F>, Fix<W>, α, β, Fix<R>, Fix<A>]>
+  >({
+    ...irwstProfunctor(F),
+    first:
+      <C>() =>
+      <S1, S2>(
+        fa: IndexedReaderWriterStateT<F, W, S1, S2, R, A>,
+      ): IndexedReaderWriterStateT<F, W, [S1, C], [S2, C], R, A> =>
+        IndexedReaderWriterStateT(
+          F.map_(
+            fa.runAllF,
+            rs1fws2a =>
+              (r: R, [s1, c]: [S1, C]) =>
+                F.map_(rs1fws2a(r, s1), ([w, s2, a]) =>
+                  tupled(w, tupled(s2, c), a),
+                ),
+          ),
+        ),
+    second:
+      <C>() =>
+      <S1, S2>(
+        fa: IndexedReaderWriterStateT<F, W, S1, S2, R, A>,
+      ): IndexedReaderWriterStateT<F, W, [C, S1], [C, S2], R, A> =>
+        IndexedReaderWriterStateT(
+          F.map_(
+            fa.runAllF,
+            rs1fws2a =>
+              (r: R, [c, s1]: [C, S1]) =>
+                F.map_(rs1fws2a(r, s1), ([w, s2, a]) =>
+                  tupled(w, tupled(c, s2), a),
+                ),
+          ),
+        ),
+  });
+
 IndexedReaderWriterStateT.Functor = irwstFunctor;
 IndexedReaderWriterStateT.Monad = irwstMonad;
 IndexedReaderWriterStateT.MonadError = irwstMonadError;
+IndexedReaderWriterStateT.Profunctor = irwstProfunctor;
+IndexedReaderWriterStateT.Strong = irwstStrong;
 
 // -- HKT
 

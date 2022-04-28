@@ -67,8 +67,6 @@ export const MonadWriter = Object.freeze({
       tell: RWST.tell(F),
     }),
 
-  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.XPure(L),
-
   WriterT: <F, L>(
     F: Monad<F>,
     L: Monoid<L>,
@@ -81,6 +79,8 @@ export const MonadWriter = Object.freeze({
       listen: fa => fa.listen(F),
       tell: WriterT.tell(F),
     }),
+
+  Writer: <L>(L: Monoid<L>): MonadWriter<WriterF<L>, L> => MonadWriter.XPure(L),
 
   Kleisli: <F, R, W>(
     F: MonadWriter<F, W>,

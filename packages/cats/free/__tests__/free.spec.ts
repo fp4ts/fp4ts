@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $, $type, id, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $type, id, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { FunctionK, Eval, Monad } from '@fp4ts/cats-core';
+import { FunctionK } from '@fp4ts/cats-core';
 import {
   State,
   StateF,
@@ -45,13 +45,14 @@ interface TestConsoleF extends TyK<[unknown]> {
 
 describe('Free', () => {
   type S = [string[], string[]];
-  const nt: FunctionK<TestConsoleF, $<StateF, [S]>> = <A>(
+  const nt: FunctionK<TestConsoleF, StateF<S>> = <A>(
     c: TestConsole<A>,
   ): State<S, A> => {
     if (c.tag === 'readLine') {
-      return State.inspect<S, string>(([[h]]) => h).modify(Eval.Functor)(
-        ([[, ...t], o]) => tupled(t, o),
-      ) as any as State<S, A>;
+      return State.state(([[h, ...t], o]: S) => [
+        [t, o] as S,
+        h,
+      ]) as any as State<S, A>;
     }
 
     return State.modify<S>(([i, o]) => [i, [...o, c.line]]) as any as State<
@@ -71,12 +72,9 @@ describe('Free', () => {
       .flatMap(() => readLine)
       .flatMap(name => writeLine(`Hello ${name}!`));
 
-    const resultState = program.mapK(
-      // TODO: Fix?
-      State.Monad<S>() as any as Monad<$<StateF, [S]>>,
-    )(nt);
+    const resultState = program.mapK(State.Monad<S>())(nt);
 
-    const [s, a] = resultState.run(Eval.Monad)([['James'], []]).value;
+    const [s, a] = resultState.runState([['James'], []]);
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
     expect(a).toBeUndefined();
   });
