@@ -3,14 +3,19 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { compose, flow } from '@fp4ts/core';
 import { AndThen, List } from '@fp4ts/cats-core/lib/data';
-import { ContravariantSuite, MonadSuite } from '@fp4ts/cats-laws';
+import {
+  ArrowChoiceSuite,
+  ContravariantSuite,
+  MonadSuite,
+} from '@fp4ts/cats-laws';
 import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { Eq } from '@fp4ts/cats-kernel';
 
 describe('AndThen', () => {
   it(
@@ -57,10 +62,9 @@ describe('AndThen', () => {
     expect(result).toBe(count + 42);
   });
 
-  const monadTests = MonadSuite(AndThen.Monad<MiniInt>());
   checkAll(
     'Monad<AndThen<MiniInt, *>>',
-    monadTests.monad(
+    MonadSuite(AndThen.Monad<MiniInt>()).monad(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
@@ -74,19 +78,38 @@ describe('AndThen', () => {
     ),
   );
 
-  const contravariantTests = ContravariantSuite(
-    AndThen.Contravariant<MiniInt>(),
-  );
   checkAll(
     'Monad<Contravariant<*, MiniInt>>',
-    contravariantTests.contravariant(
+    ContravariantSuite(AndThen.Contravariant<MiniInt>()).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
+      ec.miniInt(),
+      ec.miniInt(),
+      <X>(X: Arbitrary<X>) => A.fp4tsAndThen<X, MiniInt>(A.fp4tsMiniInt()),
+      EcX => E.fn1Eq(EcX, MiniInt.Eq),
+    ),
+  );
+
+  checkAll(
+    'ArrowChoice<AndThen>',
+    ArrowChoiceSuite(AndThen.ArrowChoice).arrowChoice(
       A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      fc.boolean(),
+      fc.boolean(),
+      fc.integer(),
+      fc.integer(),
       MiniInt.Eq,
+      ec.miniInt(),
       MiniInt.Eq,
-      X => A.fp4tsAndThen(X) as any,
-      EqX => E.fn1Eq(ec.miniInt(), EqX) as any,
+      ec.miniInt(),
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => A.fp4tsAndThen<X, Y>(Y),
+      (X, Y) => E.fn1Eq(X, Y),
     ),
   );
 });

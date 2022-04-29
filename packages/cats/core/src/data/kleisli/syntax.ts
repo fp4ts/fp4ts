@@ -145,7 +145,7 @@ Kleisli.prototype.andThen = function (F) {
 Kleisli.prototype['>=>'] = Kleisli.prototype.andThen;
 
 Kleisli.prototype.compose = function (F) {
-  return that => compose_(F)(that, this);
+  return that => compose_(F)(this, that);
 };
 Kleisli.prototype['<=<'] = Kleisli.prototype.compose;
 

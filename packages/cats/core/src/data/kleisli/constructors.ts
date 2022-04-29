@@ -13,6 +13,9 @@ export const pure =
   <B>(x: B): Kleisli<F, unknown, B> =>
     new Kleisli(() => F.pure(x));
 
+export const of = <F, A, B>(f: (a: A) => Kind<F, [B]>): Kleisli<F, A, B> =>
+  new Kleisli(f);
+
 export const unit = <F>(F: Applicative<F>): Kleisli<F, unknown, void> =>
   pure(F)(undefined);
 

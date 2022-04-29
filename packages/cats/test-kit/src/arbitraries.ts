@@ -251,21 +251,21 @@ export const fp4tsKleisli = <F, A, B>(
 ): Arbitrary<Kleisli<F, A, B>> =>
   fc.func<[A], Kind<F, [B]>>(arbFB).map(Kleisli);
 
-export const fp4tsAndThen = <A>(
-  arbA: Arbitrary<A>,
-): Arbitrary<AndThen<A, A>> => {
+export const fp4tsAndThen = <A, B>(
+  arbB: Arbitrary<B>,
+): Arbitrary<AndThen<A, B>> => {
   const { go } = fc.letrec(tie => ({
-    base: fc.func<[A], A>(arbA).map(AndThen),
+    base: fc.func<[B], B>(arbB).map(AndThen),
     rec: fc
       .tuple(
-        tie('go') as Arbitrary<AndThen<A, A>>,
-        tie('go') as Arbitrary<AndThen<A, A>>,
+        tie('go') as Arbitrary<AndThen<B, B>>,
+        tie('go') as Arbitrary<AndThen<B, B>>,
       )
       .map(([f, g]) => f.andThen(g)),
     go: fc.oneof({ maxDepth: 20 }, tie('base'), tie('rec')),
   }));
 
-  return go as Arbitrary<AndThen<A, A>>;
+  return go as Arbitrary<AndThen<A, B>>;
 };
 
 export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<Endo<A>> =>

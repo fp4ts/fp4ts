@@ -45,13 +45,6 @@ export const andThen: <F>(
   F => fb => fa =>
     andThen_(F)(fa, fb);
 
-export const compose: <F>(
-  F: FlatMap<F>,
-) => <Z, A>(
-  fb: Kleisli<F, Z, A>,
-) => <B>(fa: Kleisli<F, A, B>) => Kleisli<F, Z, B> = F => fb => fa =>
-  compose_(F)(fb, fa);
-
 export const map: <F>(
   F: Functor<F>,
 ) => <B, C>(f: (b: B) => C) => <A>(fa: Kleisli<F, A, B>) => Kleisli<F, A, C> =
@@ -185,7 +178,7 @@ export const andThen_ =
 
 export const compose_ =
   <F>(F: FlatMap<F>) =>
-  <Z, A, B>(fb: Kleisli<F, Z, A>, fa: Kleisli<F, A, B>): Kleisli<F, Z, B> =>
+  <Z, A, B>(fa: Kleisli<F, A, B>, fb: Kleisli<F, Z, A>): Kleisli<F, Z, B> =>
     andThen_(F)(fb, fa);
 
 export const map_ =

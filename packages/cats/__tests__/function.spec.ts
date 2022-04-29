@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Function1 } from '@fp4ts/cats-core/lib/data';
 import { Eq } from '@fp4ts/cats-kernel';
-import { ArrowSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { ArrowChoiceSuite, MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -30,17 +30,18 @@ describe('Function1', () => {
   );
 
   checkAll(
-    'Arrow<Function1>',
-    ArrowSuite(Function1.ArrowChoice).arrow(
+    'ArrowChoice<Function1>',
+    ArrowChoiceSuite(Function1.ArrowChoice).arrowChoice(
       A.fp4tsMiniInt(),
-      fc.integer(),
+      A.fp4tsMiniInt(),
       fc.boolean(),
       fc.boolean(),
       fc.integer(),
       fc.integer(),
       MiniInt.Eq,
       ec.miniInt(),
-      Eq.primitive,
+      MiniInt.Eq,
+      ec.miniInt(),
       Eq.primitive,
       ec.boolean(),
       Eq.primitive,

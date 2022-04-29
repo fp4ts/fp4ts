@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, Fix, α, λ } from '@fp4ts/core';
+import { $, cached, Fix, Kind, α, λ } from '@fp4ts/core';
 import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
 import { MonoidK } from '../../monoid-k';
@@ -23,6 +23,7 @@ import type { KleisliF } from './kleisli';
 import {
   adapt_,
   ap_,
+  compose_,
   flatMap_,
   map2_,
   map_,
@@ -31,7 +32,9 @@ import {
   product_,
   tailRecM_,
 } from './operators';
-import { liftF, pure, suspend } from './constructors';
+import { liftF, of, pure, suspend } from './constructors';
+import { Arrow, ArrowChoice } from '../../arrow';
+import { Either, Left, Right } from '../either';
 
 export const kleisliDefer: <F, A>(
   F: Defer<F>,
@@ -160,4 +163,29 @@ export const kleisliMonadError: <F, A, E>(
   MonadError.of({
     ...kleisliMonad(F),
     ...kleisliApplicativeError(F),
+  });
+
+export const kleisliArrow = <F>(F: Monad<F>): Arrow<$<KleisliF, [F]>> =>
+  Arrow.of({
+    lift: <A, B>(f: (a: A) => B) => of((a: A) => F.pure(f(a))),
+    first:
+      <C>() =>
+      <A, B>(k: Kleisli<F, A, B>) =>
+        of(([a, c]: [A, C]) => F.map_(k.run(a), b => [b, c])),
+    compose_: compose_(F),
+  });
+
+export const kleisliArrowChoice = <F>(
+  F: Monad<F>,
+): ArrowChoice<$<KleisliF, [F]>> =>
+  ArrowChoice.of({
+    ...kleisliArrow(F),
+    choose: <A, B, C, D>(fac: Kleisli<F, A, C>, fbd: Kleisli<F, B, D>) =>
+      of(
+        (ab: Either<A, B>): Kind<F, [Either<C, D>]> =>
+          ab.fold(
+            a => F.map_(fac.run(a), c => Left(c)),
+            b => F.map_(fbd.run(b), d => Right(d)),
+          ),
+      ),
   });

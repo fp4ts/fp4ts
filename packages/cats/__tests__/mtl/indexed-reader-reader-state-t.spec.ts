@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, id, Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval, Monad } from '@fp4ts/cats-core';
+import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
 import {
   Chain,
   Identity,
@@ -14,14 +14,17 @@ import {
   EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
-import { IndexedReaderWriterStateT as RWST } from '@fp4ts/cats-mtl';
+import {
+  IndexedReaderWriterStateT,
+  IndexedReaderWriterStateT as RWST,
+} from '@fp4ts/cats-mtl';
 import {
   MonadReaderSuite,
   MonadStateSuite,
   MonadWriterSuite,
 } from '@fp4ts/cats-mtl-laws';
-import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { MonadErrorSuite, MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
+import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -208,6 +211,57 @@ describe('IndexedReaderWriterStateT', () => {
             fa
               .runAll(Either.Monad())(s, s)
               .map(([c, s, x]) => [c.folding(Monoid.addition), s, x]),
+        ),
+    ),
+  );
+
+  checkAll(
+    'Strong<IndexedStateT<Eval, number, *, *, boolean, number>>',
+    StrongSuite(
+      IndexedReaderWriterStateT.Strong<EvalF, number, boolean, number>(
+        Eval.Monad,
+      ),
+    ).strong(
+      A.fp4tsMiniInt(),
+      fc.boolean(),
+      fc.boolean(),
+      fc.boolean(),
+      fc.integer(),
+      fc.integer(),
+      ec.miniInt(),
+      Eq.primitive,
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      <X, Y>(
+        X: Arbitrary<X>,
+        Y: Arbitrary<Y>,
+      ): Arbitrary<RWST<EvalF, number, X, Y, boolean, number>> =>
+        A.fp4tsIndexedReaderWriterStateT(
+          A.fp4tsEval(
+            fc.func<[boolean, X], Eval<[Chain<number>, Y, number]>>(
+              A.fp4tsEval(
+                fc.tuple(A.fp4tsChain(fc.integer()), Y, fc.integer()),
+              ),
+            ),
+          ),
+        ),
+      <X, Y>(
+        X: ExhaustiveCheck<X>,
+        Y: Eq<Y>,
+      ): Eq<RWST<EvalF, number, X, Y, boolean, number>> =>
+        Eq.by(
+          eq.fn1Eq(
+            ec.boolean().product(X),
+            Eval.Eq(Eq.tuple(Eq.primitive, Y, Eq.primitive)),
+          ),
+          fa =>
+            ([r, s]) =>
+              fa
+                .runAll(Eval.Monad)(r, s)
+                .map(([c, s, x]) => [c.folding(Monoid.addition), s, x]),
         ),
     ),
   );
