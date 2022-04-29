@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { List, Monoid, None, Some } from '@fp4ts/cats';
+import { Reader, State } from '@fp4ts/cats-mtl';
 import { to, fromFoldable, focus } from '@fp4ts/optics-core';
 
 describe('Getter', () => {
@@ -37,11 +38,7 @@ describe('Getter', () => {
   });
 
   test('get', () => {
-    expect(
-      focus(bar)
-        .asGetting()
-        .view(new Foo(new Bar(42))),
-    ).toEqual(new Bar(42));
+    expect(focus(bar).get(new Foo(new Bar(42)))).toEqual(new Bar(42));
     expect(
       focus(bar)
         .andThen(i)
@@ -62,6 +59,35 @@ describe('Getter', () => {
   test('all', () => {
     expect(focus(i).all(x => x > 9)(new Bar(42))).toBe(true);
     expect(focus(i).all(x => x > 9)(new Bar(-1))).toBe(false);
+  });
+
+  test('view', () => {
+    expect(
+      focus(i)
+        .asGetting()
+        .view(Reader.MonadReader<Bar>())
+        .runReader(new Bar(42)),
+    ).toBe(42);
+    expect(
+      focus(bar)
+        .andThen(i)
+        .asGetting()
+        .view(Reader.MonadReader<Foo>())
+        .runReader(new Foo(new Bar(42))),
+    ).toBe(42);
+  });
+
+  test('use', () => {
+    expect(
+      focus(i).asGetting().use(State.MonadState<Bar>()).runStateA(new Bar(42)),
+    ).toBe(42);
+    expect(
+      focus(bar)
+        .andThen(i)
+        .asGetting()
+        .use(State.MonadState<Foo>())
+        .runStateA(new Foo(new Bar(42))),
+    ).toBe(42);
   });
 
   // test('choice', () => {

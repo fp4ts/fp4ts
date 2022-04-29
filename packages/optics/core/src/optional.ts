@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow } from '@fp4ts/core';
+import { flow, Kind } from '@fp4ts/core';
 import {
   Applicative,
   Either,
@@ -16,6 +16,7 @@ import {
   Tagged,
   TaggedF,
 } from '@fp4ts/cats';
+import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Affine, ProfunctorChoice } from '@fp4ts/optics-kernel';
 import { Optic, POptic } from './optics';
 import { Getter, to } from './getter';
@@ -25,6 +26,11 @@ export type POptional<S, T, A, B> = <F, P>(
   P: Affine<P>,
 ) => POptic<F, P, S, T, A, B>;
 export type Optional<S, A> = POptional<S, S, A, A>;
+
+export type AReview<T, B> = (
+  F: Applicative<IdentityF>,
+  P: ProfunctorChoice<TaggedF>,
+) => Optic<IdentityF, TaggedF, T, B>;
 
 export function Optional<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
@@ -74,12 +80,7 @@ export function getOption<S, T, A, B>(
   return flow(getOrModify(l), ea => ea.toOption);
 }
 
-export function re<T, B>(
-  l: (
-    F: Applicative<IdentityF>,
-    P: ProfunctorChoice<TaggedF>,
-  ) => Optic<IdentityF, TaggedF, T, B>,
-): Getter<B, T> {
+export function re<T, B>(l: AReview<T, B>): Getter<B, T> {
   return to(
     flow(
       Tagged,
@@ -87,4 +88,30 @@ export function re<T, B>(
       Tagged.unTag,
     ),
   );
+}
+
+export function review<R, B>(
+  R: MonadReader<R, B>,
+): <T>(l: AReview<T, B>) => Kind<R, [T]> {
+  return l =>
+    R.asks(
+      flow(
+        Tagged,
+        l(Identity.Applicative, ProfunctorChoice.Tagged),
+        Tagged.unTag,
+      ),
+    );
+}
+
+export function reuse<R, B>(
+  R: MonadState<R, B>,
+): <T>(l: AReview<T, B>) => Kind<R, [T]> {
+  return l =>
+    R.inspect(
+      flow(
+        Tagged,
+        l(Identity.Applicative, ProfunctorChoice.Tagged),
+        Tagged.unTag,
+      ),
+    );
 }

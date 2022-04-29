@@ -70,9 +70,9 @@ describe('Optional', () => {
   // );
 
   test(
-    'preview',
+    'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(headOptionalI).preview(xs).equals(Eq.primitive, xs.headOption),
+      focus(headOptionalI).headOption(xs).equals(Eq.primitive, xs.headOption),
     ),
   );
 

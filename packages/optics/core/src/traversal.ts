@@ -5,8 +5,10 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Applicative, Function1, Function1F, Traversable } from '@fp4ts/cats';
+import { State } from '@fp4ts/cats-mtl';
 import { Affine } from '@fp4ts/optics-kernel';
 import { POptic } from './optics';
+import { backwards } from './fold';
 
 export type PTraversal<S, T, A, B> = <F>(
   F: Applicative<F>,
@@ -32,4 +34,21 @@ export function sequence<F>(
   F: Applicative<F>,
 ): <S, T, B>(l: PTraversal<S, T, Kind<F, [B]>, B>) => (s: S) => Kind<F, [T]> {
   return l => l(F, Function1.ArrowChoice)(id);
+}
+
+export function mapAccumL<S, T, A, B>(
+  l: PTraversal<S, T, A, B>,
+): <Acc>(z: Acc, f: (acc: Acc, a: A) => [Acc, B]) => (s: S) => [Acc, T] {
+  return <Acc>(z: Acc, f: (acc: Acc, a: A) => [Acc, B]) =>
+    s =>
+      l(
+        State.Monad<Acc>(),
+        Function1.ArrowChoice,
+      )(a => State.state(s => f(s, a)))(s).runState(z);
+}
+
+export function mapAccumR<S, T, A, B>(
+  l: PTraversal<S, T, A, B>,
+): <Acc>(z: Acc, f: (acc: Acc, a: A) => [Acc, B]) => (s: S) => [Acc, T] {
+  return mapAccumL(backwards(l));
 }

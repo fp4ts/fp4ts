@@ -5,6 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq, List, Monoid, Option } from '@fp4ts/cats';
+import { Reader, State } from '@fp4ts/cats-mtl';
 import { Fold, focus, fromFoldable, filtered } from '@fp4ts/optics-core';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -153,6 +154,24 @@ describe('Fold', () => {
       fc.func<[number], boolean>(fc.boolean()),
       (xs, f) =>
         focus(eachli).filter(f).toList(xs).equals(Eq.primitive, xs.filter(f)),
+    ),
+  );
+
+  test(
+    'preview',
+    forAll(A.fp4tsList(fc.integer()), xs =>
+      expect(
+        focus(eachli).preview(Reader.MonadReader<List<number>>()).runReader(xs),
+      ).toEqual(xs.headOption),
+    ),
+  );
+
+  test(
+    'preuse',
+    forAll(A.fp4tsList(fc.integer()), xs =>
+      expect(
+        focus(eachli).preuse(State.MonadState<List<number>>()).runStateA(xs),
+      ).toEqual(xs.headOption),
     ),
   );
 

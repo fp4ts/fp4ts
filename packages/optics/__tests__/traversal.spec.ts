@@ -4,8 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
+import { tupled } from '@fp4ts/core';
 import { Eq, List, Monoid, Option } from '@fp4ts/cats';
-import { focus, fromTraversable, Lens, Traversal } from '@fp4ts/optics-core';
+import {
+  focus,
+  fromProps,
+  fromTraversable,
+  Traversal,
+} from '@fp4ts/optics-core';
 import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -22,10 +28,7 @@ describe('Traversal', () => {
     name: string,
   ): Location => ({ latitude, longitude, name });
 
-  const coordinates = Lens(
-    ({ latitude, longitude }: Location) => ({ latitude, longitude }),
-    (x: { latitude: number; longitude: number }) => s => ({ ...s, ...x }),
-  );
+  const coordinates = fromProps<Location>()('latitude', 'longitude');
 
   const eachL = <A>(): Traversal<List<A>, A> =>
     fromTraversable(List.Traversable)<A>();
@@ -64,7 +67,7 @@ describe('Traversal', () => {
   );
 
   test(
-    'getAll',
+    'toList',
     forAll(A.fp4tsList(fc.integer()), xs =>
       focus(eachLi).toList(xs).equals(Eq.primitive, xs),
     ),
@@ -169,6 +172,46 @@ describe('Traversal', () => {
       fc.func<[number], boolean>(fc.boolean()),
       (xs, f) =>
         focus(eachLi).filter(f).toList(xs).equals(Eq.primitive, xs.filter(f)),
+    ),
+  );
+
+  test(
+    'mapAccumL',
+    forAll(
+      A.fp4tsList(fc.integer()),
+      fc.func<[string, number], [string, number]>(
+        fc.tuple(fc.string(), fc.integer()),
+      ),
+      (xs, f) =>
+        expect(focus(eachLi).mapAccumL('', f)(xs)).toEqual(
+          xs.foldLeft(
+            ['', List.empty] as [string, List<number>],
+            ([y, ys], x) => {
+              const [s, n] = f(y, x);
+              return tupled(s, ys.append(n));
+            },
+          ),
+        ),
+    ),
+  );
+  test(
+    'mapAccumR',
+    forAll(
+      A.fp4tsList(fc.integer()),
+      fc.func<[string, number], [string, number]>(
+        fc.tuple(fc.string(), fc.integer()),
+      ),
+      (xs, f) =>
+        expect(focus(eachLi).mapAccumR('', f)(xs)).toEqual(
+          xs.foldRight(
+            ['', List.empty] as [string, List<number>],
+            (x, [y, ys]) => {
+              const [s, n] = f(y, x);
+              // we preserve the original order
+              return tupled(s, ys.prepend(n));
+            },
+          ),
+        ),
     ),
   );
 

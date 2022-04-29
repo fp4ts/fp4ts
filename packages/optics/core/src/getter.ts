@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, pipe } from '@fp4ts/core';
+import { $, Kind, pipe } from '@fp4ts/core';
 import {
   Const,
   ConstF,
@@ -14,6 +14,7 @@ import {
   Monoid,
   Profunctor,
 } from '@fp4ts/cats';
+import { MonadReader, MonadState } from '@fp4ts/cats/mtl';
 import { Affine } from '@fp4ts/optics-kernel';
 import { Optic } from './optics';
 import { Fold } from './fold';
@@ -36,12 +37,20 @@ export function asGetting(R?: Monoid<any>): <S, A>(l: any) => Getting<any, S, A>
 }
 /* eslint-enable prettier/prettier */
 
-export function view<S, A>(g: Getting<A, S, A>): (s: S) => A {
-  return g(Const);
+export function view<R, S>(
+  R: MonadReader<R, S>,
+): <A>(g: Getting<A, S, A>) => Kind<R, [A]> {
+  return g => R.asks(g(Const));
+}
+
+export function use<R, S>(
+  R: MonadState<R, S>,
+): <A>(g: Getting<A, S, A>) => Kind<R, [A]> {
+  return g => R.inspect(g(Const));
 }
 
 export function get<S, A>(g: Getter<S, A>): (s: S) => A {
-  return pipe(g, asGetting(), view);
+  return pipe(g, asGetting(), view(MonadReader.Function1<S>()));
 }
 
 export function to<S, A>(f: (s: S) => A): Getter<S, A> {

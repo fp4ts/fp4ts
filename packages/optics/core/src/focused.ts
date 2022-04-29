@@ -14,6 +14,7 @@ import {
   Semigroup,
   Traversable,
 } from '@fp4ts/cats';
+import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import * as I from './iso';
 import * as F from './fold';
 import * as ST from './setter';
@@ -71,6 +72,13 @@ export class Focused<O> {
     return F.toList(this.toOptic)(s);
   }
 
+  preview<R, S, A>(this: Focused<F.Fold<S, A>>, R: MonadReader<R, S>): Kind<R, [Option<A>]> {
+    return F.preview(R)(this.toOptic);
+  }
+  preuse<R, S, A>(this: Focused<F.Fold<S, A>>, R: MonadState<R, S>): Kind<R, [Option<A>]> {
+    return F.preuse(R)(this.toOptic);
+  }
+
   isEmpty<S, A>(this: Focused<F.Fold<S, A>>, s: S): boolean {
     return F.isEmpty(this.toOptic)(s);
   }
@@ -80,9 +88,6 @@ export class Focused<O> {
 
   headOption<S, A>(this: Focused<F.Fold<S, A>>, s: S): Option<A> {
     return F.headOption(this.toOptic)(s);
-  }
-  preview<S, A>(this: Focused<F.Fold<S, A>>, s: S): Option<A> {
-    return this.headOption(s);
   }
 
   lastOption<S, A>(this: Focused<F.Fold<S, A>>, s: S): Option<A> {
@@ -123,6 +128,12 @@ export class Focused<O> {
     return this.andThen(F.filtered(p));
   }
 
+  backwards<S, T, A, B>(this: Focused<T.PTraversal<S, T, A, B>>): Focused<T.PTraversal<S, T, A, B>>;
+  backwards<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.Fold<S, A>>;
+  backwards<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.Fold<S, A>> {
+    return new Focused(F.backwards(this.toOptic));
+  }
+
   // -- Setter
 
   modify<S, T, A, B>(this: Focused<ST.PSetter<S, T, A, B>>, f: (a: A) => B): (s: S) => T {
@@ -133,8 +144,8 @@ export class Focused<O> {
     return ST.replace(this.toOptic)(b);
   }
 
-  plus<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
-    return ST.plus(this.toOptic)(n);
+  add<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
+    return ST.add(this.toOptic)(n);
   }
   sub<S, T>(this: Focused<ST.PSetter<S, T, number, number>>, n: number): (s: S) => T {
     return ST.sub(this.toOptic)(n);
@@ -155,10 +166,46 @@ export class Focused<O> {
     return ST.concat(S)(this.toOptic);
   }
 
+  assign<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadState<R, S>): (b: B) => Kind<R, [void]> {
+    return ST.assign(R)(this.toOptic);
+  }
+  modifying<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadState<R, S>): (f: (a: A) => B) => Kind<R, [void]> {
+    return ST.modifying(R)(this.toOptic);
+  }
+
+  adding<R, S>(this: Focused<ST.Setter<S, number>>, R: MonadState<R, S>): (n: number) => Kind<R, [void]> {
+    return ST.adding(R)(this.toOptic);
+  }
+  subtracting<R, S>(this: Focused<ST.Setter<S, number>>, R: MonadState<R, S>): (n: number) => Kind<R, [void]> {
+    return ST.subtracting(R)(this.toOptic);
+  }
+  multiplying<R, S>(this: Focused<ST.Setter<S, number>>, R: MonadState<R, S>): (n: number) => Kind<R, [void]> {
+    return ST.multiplying(R)(this.toOptic);
+  }
+  dividing<R, S>(this: Focused<ST.Setter<S, number>>, R: MonadState<R, S>): (n: number) => Kind<R, [void]> {
+    return ST.dividing(R)(this.toOptic);
+  }
+  anding<R, S>(this: Focused<ST.Setter<S, boolean>>, R: MonadState<R, S>): (b: boolean) => Kind<R, [void]> {
+    return ST.anding(R)(this.toOptic);
+  }
+  oring<R, S>(this: Focused<ST.Setter<S, boolean>>, R: MonadState<R, S>): (b: boolean) => Kind<R, [void]> {
+    return ST.oring(R)(this.toOptic);
+  }
+  concatenating<R, S, A>(this: Focused<ST.Setter<S, A>>, R: MonadState<R, S>, S: Semigroup<A>): (a: A) => Kind<R, [void]> {
+    return ST.concatenating(R, S)(this.toOptic);
+  }
+
+  locally<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadReader<R, S>): (f: (a: A) => B) => <X>(rx: Kind<R, [X]>) => Kind<R, [X]> {
+    return ST.locally(R)(this.toOptic);
+  }
+
   // -- Getter
 
-  view<S, A>(this: Focused<G.Getting<A, S, A>>, s: S): A {
-    return G.view(this.toOptic)(s);
+  view<R, S, A>(this: Focused<G.Getting<A, S, A>>, R: MonadReader<R, S>): Kind<R, [A]> {
+    return G.view(R)(this.toOptic);
+  }
+  use<R, S, A>(this: Focused<G.Getting<A, S, A>>, R: MonadState<R, S>): Kind<R, [A]> {
+    return G.use(R)(this.toOptic);
   }
 
   get<S, A>(this: Focused<G.Getter<S, A>>, s: S): A {
@@ -187,6 +234,13 @@ export class Focused<O> {
     return T.sequence(F)(this.toOptic);
   }
 
+  mapAccumL<S, T, A, B, Acc>(this: Focused<T.PTraversal<S, T, A, B>>, z: Acc, f: (acc: Acc, a: A) => [Acc, B]): (s: S) => [Acc, T] {
+    return T.mapAccumL(this.toOptic)(z, f);
+  }
+  mapAccumR<S, T, A, B, Acc>(this: Focused<T.PTraversal<S, T, A, B>>, z: Acc, f: (acc: Acc, a: A) => [Acc, B]): (s: S) => [Acc, T] {
+    return T.mapAccumR(this.toOptic)(z, f);
+  }
+
   each<S, T, A, B>(this: Focused<T.PTraversal<S, T, A[], B[]>>): Focused<T.PTraversal<S, T, A, B>>;
   each<G, S, T, A, B>(this: Focused<T.PTraversal<S, T, Kind<G, [A]>, Kind<G, [B]>>>, G: Traversable<G>): Focused<T.PTraversal<S, T, A, B>>;
   each<S, A>(this: Focused<F.Fold<S, A[]>>): Focused<F.Fold<S, A>>;
@@ -209,6 +263,14 @@ export class Focused<O> {
     return new Focused(OP.re(this.toOptic));
   }
 
+  review<R, B, T>(this: Focused<OP.AReview<T, B>>, R: MonadReader<R, B>): Kind<R, [T]> {
+    return OP.review(R)(this.toOptic);
+  }
+
+  reuse<R, B, T>(this: Focused<OP.AReview<T, B>>, R: MonadState<R, B>): Kind<R, [T]> {
+    return OP.reuse(R)(this.toOptic);
+  }
+
   // -- Prism
 
   matching<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, s: S): Either<T, A> {
@@ -217,9 +279,6 @@ export class Focused<O> {
 
   reverseGet<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, b: B): T {
     return P.reverseGet(this.toOptic)(b);
-  }
-  review<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, b: B): T {
-    return this.reverseGet(b);
   }
 
   // -- Lens

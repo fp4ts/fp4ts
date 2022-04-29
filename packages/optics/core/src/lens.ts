@@ -75,3 +75,65 @@ export function fromProp<S>(): <K extends keyof S>(k: K) => Lens<S, S[K]> {
         ),
       );
 }
+
+export function fromProps<S>(): FromProps<S> {
+  return (...keys: any[]): Lens<S, any> =>
+    Lens(
+      s =>
+        Object.fromEntries(Object.entries(s).filter(([k]) => keys.includes(k))),
+      b => s => ({ ...s, ...b }),
+    );
+}
+
+interface FromProps<S> {
+  (): Lens<S, S>;
+  <K1 extends keyof S>(k1: K1): Lens<S, Pick<S, K1>>;
+  <K1 extends keyof S, K2 extends keyof S>(k1: K1, k2: K2): Lens<
+    S,
+    Pick<S, K1 | K2>
+  >;
+  <K1 extends keyof S, K2 extends keyof S, K3 extends keyof S>(
+    k1: K1,
+    k2: K2,
+    k3: K3,
+  ): Lens<S, Pick<S, K1 | K2 | K3>>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof S,
+    K3 extends keyof S,
+    K4 extends keyof S,
+  >(
+    k1: K1,
+    k2: K2,
+    k3: K3,
+    k4: K4,
+  ): Lens<S, Pick<S, K1 | K2 | K3 | K4>>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof S,
+    K3 extends keyof S,
+    K4 extends keyof S,
+    K5 extends keyof S,
+  >(
+    k1: K1,
+    k2: K2,
+    k3: K3,
+    k4: K4,
+    k5: K5,
+  ): Lens<S, Pick<S, K1 | K2 | K3 | K4 | K5>>;
+  <
+    K1 extends keyof S,
+    K2 extends keyof S,
+    K3 extends keyof S,
+    K4 extends keyof S,
+    K5 extends keyof S,
+    K6 extends keyof S,
+  >(
+    k1: K1,
+    k2: K2,
+    k3: K3,
+    k4: K4,
+    k5: K5,
+    k6: K6,
+  ): Lens<S, Pick<S, K1 | K2 | K3 | K4 | K5 | K6>>;
+}

@@ -13,6 +13,7 @@ import {
   Profunctor,
   Semigroup,
 } from '@fp4ts/cats';
+import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Affine, Settable } from '@fp4ts/optics-kernel';
 import { POptic, POptical } from './optics';
 
@@ -34,7 +35,7 @@ export function replace<S, T, A, B>(
   return flow(constant, modify(l));
 }
 
-export function plus<S, T>(
+export function add<S, T>(
   l: PSetter<S, T, number, number>,
 ): (n: number) => (s: S) => T {
   return n => modify(l)(x => x + n);
@@ -108,4 +109,61 @@ export function sets<F, P, Q>(
   pabqst: (pab: Kind<P, [A, B]>) => Kind<Q, [S, T]>,
 ) => POptical<F, P, Q, S, T, A, B> {
   return pabqst => pafb => F.taintedDot(Q)(pabqst(F.untaintedDot(P)(pafb)));
+}
+
+export function assign<G, S>(
+  G: MonadState<G, S>,
+): <A, B>(l: PSetter<S, S, A, B>) => (b: B) => Kind<G, [void]> {
+  return l => flow(replace(l), G.modify);
+}
+
+export function modifying<G, S>(
+  G: MonadState<G, S>,
+): <A, B>(l: PSetter<S, S, A, B>) => (f: (a: A) => B) => Kind<G, [void]> {
+  return l => flow(modify(l), G.modify);
+}
+
+export function adding<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, number>) => (n: number) => Kind<G, [void]> {
+  return l => flow(add(l), G.modify);
+}
+export function subtracting<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, number>) => (n: number) => Kind<G, [void]> {
+  return l => flow(sub(l), G.modify);
+}
+export function multiplying<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, number>) => (n: number) => Kind<G, [void]> {
+  return l => flow(mul(l), G.modify);
+}
+export function dividing<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, number>) => (n: number) => Kind<G, [void]> {
+  return l => flow(div(l), G.modify);
+}
+export function anding<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, boolean>) => (n: boolean) => Kind<G, [void]> {
+  return l => flow(and(l), G.modify);
+}
+export function oring<G, S>(
+  G: MonadState<G, S>,
+): (l: Setter<S, boolean>) => (n: boolean) => Kind<G, [void]> {
+  return l => flow(or(l), G.modify);
+}
+export function concatenating<G, S, A>(
+  G: MonadState<G, S>,
+  A: Semigroup<A>,
+): (l: Setter<S, A>) => (a: A) => Kind<G, [void]> {
+  return l => flow(concat(A)(l), G.modify);
+}
+
+export function locally<R, S>(
+  R: MonadReader<R, S>,
+): <A, B>(
+  l: PSetter<S, S, A, B>,
+) => (f: (a: A) => B) => <X>(gr: Kind<R, [X]>) => Kind<R, [X]> {
+  return l => flow(modify(l), R.local);
 }

@@ -49,12 +49,7 @@ describe('Lens', () => {
   });
 
   it('should compose with subclasses', () => {
-    expect(
-      p
-        .andThen(x)
-        .asGetting()
-        .view(Example('', Point(2, 3))),
-    ).toEqual(2);
+    expect(p.andThen(x).get(Example('', Point(2, 3)))).toEqual(2);
     expect(p.andThen(x).getOptional(Example('', Point(2, 3)))).toEqual(Some(2));
     expect(p.andThen(x).toList(Example('', Point(2, 3)))).toEqual(List(2));
     expect(

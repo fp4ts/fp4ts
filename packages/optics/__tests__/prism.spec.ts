@@ -5,6 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq, List, None, Some } from '@fp4ts/cats';
+import { Reader, State } from '@fp4ts/cats-mtl';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
 import { focus, Prism_ } from '@fp4ts/optics-core';
 import { derivePrisms } from '@fp4ts/optics-derivation';
@@ -157,6 +158,26 @@ describe('Prism', () => {
     expect(s.to(x => x.toUpperCase()).toList(I({ value: 42 }))).toEqual(
       List.empty,
     );
+  });
+
+  test('review', () => {
+    expect(i.review(Reader.MonadReader<number>()).runReader(42)).toEqual(
+      I({ value: 42 }),
+    );
+    expect(s.review(Reader.MonadReader<string>()).runReader('42')).toEqual(
+      S({ value: '42' }),
+    );
+  });
+
+  test('reuse', () => {
+    expect(i.reuse(State.MonadState<number>()).runState(42)).toEqual([
+      42,
+      I({ value: 42 }),
+    ]);
+    expect(s.reuse(State.MonadState<string>()).runState('42')).toEqual([
+      '42',
+      S({ value: '42' }),
+    ]);
   });
 
   describe('Laws', () => {

@@ -5,6 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq, List } from '@fp4ts/cats';
+import { Reader, State } from '@fp4ts/cats-mtl';
 import { focus, fromFunctor, Setter } from '@fp4ts/optics-core';
 import { SetterSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -64,7 +65,7 @@ describe('Setter', () => {
     'plus',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       focus(eachLi)
-        .plus(n)(xs)
+        .add(n)(xs)
         .equals(
           Eq.primitive,
           xs.map(x => x + n),
@@ -144,6 +145,109 @@ describe('Setter', () => {
             List.Eq(Eq.primitive),
             xxs.map(x => x['+++'](xs)),
           ),
+    ),
+  );
+
+  const i = focus<number>();
+  const b = focus<boolean>();
+  const SI = State.MonadState<number>();
+  const SB = State.MonadState<boolean>();
+
+  test(
+    'assign',
+    forAll(fc.integer(), fc.integer(), (x, y) =>
+      expect(i.assign(SI)(x).runState(y)).toEqual(
+        State.state(() => [x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'modifying',
+    forAll(fc.func<[number], number>(fc.integer()), fc.integer(), (f, y) =>
+      expect(i.modifying(SI)(f).runState(y)).toEqual(
+        State.state((s: number) => [f(s), undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'adding',
+    forAll(fc.integer(), fc.integer(), (x, y) =>
+      expect(i.adding(SI)(x).runState(y)).toEqual(
+        State.state((s: number) => [s + x, undefined]).runState(y),
+      ),
+    ),
+  );
+  test(
+    'subtracting',
+    forAll(fc.integer(), fc.integer(), (x, y) =>
+      expect(i.subtracting(SI)(x).runState(y)).toEqual(
+        State.state((s: number) => [s - x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'multiplying',
+    forAll(fc.integer(), fc.integer(), (x, y) =>
+      expect(i.multiplying(SI)(x).runState(y)).toEqual(
+        State.state((s: number) => [s * x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'dividing',
+    forAll(fc.integer(), fc.integer(), (x, y) =>
+      expect(i.dividing(SI)(x).runState(y)).toEqual(
+        State.state((s: number) => [s / x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'anding',
+    forAll(fc.boolean(), fc.boolean(), (x, y) =>
+      expect(b.anding(SB)(x).runState(y)).toEqual(
+        State.state((s: boolean) => [s && x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'oring',
+    forAll(fc.boolean(), fc.boolean(), (x, y) =>
+      expect(b.oring(SB)(x).runState(y)).toEqual(
+        State.state((s: boolean) => [s || x, undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'concatenating',
+    forAll(A.fp4tsList(fc.integer()), A.fp4tsList(fc.integer()), (x, y) =>
+      expect(
+        focus<List<number>>()
+          .concatenating(
+            State.MonadState(),
+            List.MonoidK.algebra(),
+          )(x)
+          .runState(y),
+      ).toEqual(
+        State.state((s: List<number>) => [s['+++'](x), undefined]).runState(y),
+      ),
+    ),
+  );
+
+  test(
+    'locally',
+    forAll(fc.integer(), fc.func<[number], number>(fc.integer()), (x, f) =>
+      expect(
+        focus<number>()
+          .locally(Reader.MonadReader<number>())(f)(Reader.ask())
+          .runReader(x),
+      ).toEqual(Reader.ask<number>().map(f).runReader(x)),
     ),
   );
 

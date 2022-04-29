@@ -3,15 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { applyTo, id, Kind, pipe } from '@fp4ts/core';
+import { applyTo, flow, id, Kind, pipe } from '@fp4ts/core';
 import {
   Applicative,
   Array,
+  Backwards,
   Const,
   Contravariant,
   Dual,
   Endo,
   Foldable,
+  Function1,
   Function1F,
   Left,
   List,
@@ -20,10 +22,12 @@ import {
   Right,
   Some,
 } from '@fp4ts/cats';
+import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Affine, ProfunctorChoice } from '@fp4ts/optics-kernel';
 import * as Monoids from './internal/monoids';
 import { Optic, POptic } from './optics';
 import { asGetting, Getting } from './getter';
+import { PTraversal } from './traversal';
 
 export type Fold<S, A> = <F>(
   F: Contravariant<F> & Applicative<F>,
@@ -87,6 +91,18 @@ export function fold<S, A>(l: Getting<A, S, A>): (s: S) => A {
 
 export function toList<S, A>(l: Fold<S, A>): (s: S) => List<A> {
   return foldRight(l)(List.empty as List<A>, List.cons);
+}
+
+export function preview<F, S>(
+  F: MonadReader<F, S>,
+): <A>(l: Fold<S, A>) => Kind<F, [Option<A>]> {
+  return flow(headOption, F.asks);
+}
+
+export function preuse<F, S>(
+  F: MonadState<F, S>,
+): <A>(l: Fold<S, A>) => Kind<F, [Option<A>]> {
+  return l => F.inspect(headOption(l));
 }
 
 export function isEmpty<S, A>(l: Fold<S, A>): (s: S) => boolean {
@@ -161,6 +177,26 @@ export function filtered<A>(
           x => (p(x) ? Right(x) : Left(x)),
           ea => ea.fold(F.pure, id),
         ),
+      );
+}
+
+export function backwards<S, T, A, B>(
+  l: PTraversal<S, T, A, B>,
+): PTraversal<S, T, A, B>;
+export function backwards<S, A>(l: Fold<S, A>): Fold<S, A>;
+export function backwards<S, A>(l: Fold<S, A>): Fold<S, A> {
+  return <F>(
+      F: Contravariant<F> & Applicative<F>,
+      P: Affine<Function1F>,
+    ): Optic<F, Function1F, S, A> =>
+    (f: (a: A) => Kind<F, [A]>) =>
+    s =>
+      pipe(
+        l(
+          { ...Backwards.Applicative(F), ...Backwards.Contravariant(F) },
+          P,
+        )(flow(f, Backwards))(s),
+        Backwards.getBackwards,
       );
 }
 
