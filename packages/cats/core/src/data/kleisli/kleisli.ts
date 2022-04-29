@@ -32,6 +32,7 @@ import {
   kleisliArrowChoice,
   kleisliContravariant,
   kleisliDefer,
+  kleisliDistributive,
   kleisliFlatMap,
   kleisliFunctor,
   kleisliFunctorFilter,
@@ -41,6 +42,7 @@ import {
   kleisliSemigroupK,
 } from './instances';
 import { Arrow, ArrowChoice } from '../../arrow';
+import { Distributive } from '../../distributive';
 
 export type Kleisli<F, A, B> = KleisliBase<F, A, B>;
 
@@ -72,6 +74,7 @@ export interface KleisliObj {
   Defer<F, A>(F: Defer<F>): Defer<$<KleisliF, [F, A]>>;
   SemigroupK<F, A>(F: SemigroupK<F>): SemigroupK<$<KleisliF, [F, A]>>;
   MonoidK<F, A>(F: MonoidK<F>): MonoidK<$<KleisliF, [F, A]>>;
+  Distributive<F, R>(F: Distributive<F>): Distributive<$<KleisliF, [F, R]>>;
   Contravariant<F, B>(): Contravariant<λ<KleisliF, [Fix<F>, α, Fix<B>]>>;
   Functor<F, A>(F: Functor<F>): Functor<$<KleisliF, [F, A]>>;
   FunctorFilter<F, A>(F: FunctorFilter<F>): FunctorFilter<$<KleisliF, [F, A]>>;
@@ -100,6 +103,7 @@ Kleisli.tailRecM = tailRecM;
 Kleisli.Defer = kleisliDefer;
 Kleisli.SemigroupK = kleisliSemigroupK;
 Kleisli.MonoidK = kleisliMonoidK;
+Kleisli.Distributive = kleisliDistributive;
 Kleisli.Functor = kleisliFunctor;
 Kleisli.FunctorFilter = kleisliFunctorFilter;
 Kleisli.Contravariant = kleisliContravariant;

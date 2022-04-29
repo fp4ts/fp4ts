@@ -4,18 +4,19 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
+import { Eq } from '@fp4ts/cats-kernel';
 import { compose, flow } from '@fp4ts/core';
 import { AndThen, List } from '@fp4ts/cats-core/lib/data';
 import {
   ArrowChoiceSuite,
   ContravariantSuite,
+  DistributiveSuite,
   MonadSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { Eq } from '@fp4ts/cats-kernel';
 
 describe('AndThen', () => {
   it(
@@ -63,6 +64,32 @@ describe('AndThen', () => {
   });
 
   checkAll(
+    'Monad<Contravariant<*, MiniInt>>',
+    ContravariantSuite(AndThen.Contravariant<MiniInt>()).contravariant(
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      ec.miniInt(),
+      ec.miniInt(),
+      <X>(X: Arbitrary<X>) => A.fp4tsAndThen<X, MiniInt>(A.fp4tsMiniInt()),
+      EcX => E.fn1Eq(EcX, MiniInt.Eq),
+    ),
+  );
+
+  checkAll(
+    'Distributive<AndThen<MiniInt, *>>',
+    DistributiveSuite(AndThen.Distributive<MiniInt>()).distributive(
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      MiniInt.Eq,
+      MiniInt.Eq,
+      MiniInt.Eq,
+      X => A.fp4tsAndThen(X),
+      EqX => E.fn1Eq(ec.miniInt(), EqX),
+    ),
+  );
+
+  checkAll(
     'Monad<AndThen<MiniInt, *>>',
     MonadSuite(AndThen.Monad<MiniInt>()).monad(
       A.fp4tsMiniInt(),
@@ -73,20 +100,8 @@ describe('AndThen', () => {
       MiniInt.Eq,
       MiniInt.Eq,
       MiniInt.Eq,
-      X => A.fp4tsAndThen(X) as any,
+      X => A.fp4tsAndThen(X),
       EqX => E.fn1Eq(ec.miniInt(), EqX),
-    ),
-  );
-
-  checkAll(
-    'Monad<Contravariant<*, MiniInt>>',
-    ContravariantSuite(AndThen.Contravariant<MiniInt>()).contravariant(
-      A.fp4tsMiniInt(),
-      A.fp4tsMiniInt(),
-      ec.miniInt(),
-      ec.miniInt(),
-      <X>(X: Arbitrary<X>) => A.fp4tsAndThen<X, MiniInt>(A.fp4tsMiniInt()),
-      EcX => E.fn1Eq(EcX, MiniInt.Eq),
     ),
   );
 

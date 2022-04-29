@@ -35,6 +35,7 @@ import {
 import { liftF, of, pure, suspend } from './constructors';
 import { Arrow, ArrowChoice } from '../../arrow';
 import { Either, Left, Right } from '../either';
+import { Distributive } from '../../distributive';
 
 export const kleisliDefer: <F, A>(
   F: Defer<F>,
@@ -79,6 +80,18 @@ export const kleisliFunctorFilter: <F, A>(
   FunctorFilter.of({
     ...kleisliFunctor(F),
     mapFilter_: (fa, f) => suspend(a => F.mapFilter_(fa.run(a), f)),
+  });
+
+export const kleisliDistributive = <F, R>(
+  F: Distributive<F>,
+): Distributive<$<KleisliF, [F, R]>> =>
+  Distributive.of({
+    ...kleisliFunctor(F),
+
+    distribute_:
+      <G>(G: Functor<G>) =>
+      <A, B>(ga: Kind<G, [A]>, f: (a: A) => Kleisli<F, R, B>) =>
+        of((r: R) => F.distribute_(G)(ga, (a: A) => f(a).run(r))),
   });
 
 export const kleisliApply: <F, A>(

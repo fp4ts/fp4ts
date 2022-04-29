@@ -10,6 +10,7 @@ export * from './applicative-suite';
 export * from './apply-suite';
 export * from './contravariant-suite';
 export * from './defer-suite';
+export * from './distributive-suite';
 export * from './flat-map-suite';
 export * from './foldable-suite';
 export * from './functor-filter-suite';

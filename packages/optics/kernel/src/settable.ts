@@ -7,6 +7,8 @@ import { id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
   Applicative,
   ApplicativeRequirements,
+  Distributive,
+  DistributiveRequirements,
   Identity,
   IdentityF,
   Profunctor,
@@ -14,7 +16,10 @@ import {
   TraversableRequirements,
 } from '@fp4ts/cats';
 
-export interface Settable<F> extends Applicative<F>, Traversable<F> {
+export interface Settable<F>
+  extends Applicative<F>,
+    Distributive<F>,
+    Traversable<F> {
   untainted<A>(fa: Kind<F, [A]>): A;
 
   untaintedDot<P>(
@@ -27,11 +32,13 @@ export interface Settable<F> extends Applicative<F>, Traversable<F> {
 
 export type SettableRequirements<F> = Pick<Settable<F>, 'untainted'> &
   ApplicativeRequirements<F> &
+  DistributiveRequirements<F> &
   TraversableRequirements<F>;
 export const Settable = Object.freeze({
   of: <F>(F: SettableRequirements<F>): Settable<F> => {
     const self: Settable<F> = instance<Settable<F>>({
       ...Applicative.of(F),
+      ...Distributive.of(F),
       ...Traversable.of(F),
 
       untaintedDot: P => pafb => P.rmap_(pafb, self.untainted),
@@ -53,6 +60,7 @@ const identitySettable: Lazy<Settable<IdentityF>> = lazyVal(
   (): Settable<IdentityF> =>
     Settable.of({
       ...Identity.Applicative,
+      ...Identity.Distributive,
       ...Identity.Traversable,
       untainted: id,
     }),

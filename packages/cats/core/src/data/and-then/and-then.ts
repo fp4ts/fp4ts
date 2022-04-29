@@ -12,8 +12,10 @@ import { identity, lift, pure } from './constructors';
 import {
   andThenArrowChoice,
   andThenContravariant,
+  andThenDistributive,
   andThenMonad,
 } from './instances';
+import { Distributive } from '../../distributive';
 
 export type AndThen<A, B> = AndThenBase<A, B>;
 
@@ -30,6 +32,7 @@ interface AndThenObj {
   // -- Instances
 
   Contravariant<B>(): Contravariant<λ<AndThenF, [α, Fix<B>]>>;
+  Distributive<A>(): Distributive<$<AndThenF, [A]>>;
   Monad<A>(): Monad<$<AndThenF, [A]>>;
   readonly ArrowChoice: ArrowChoice<AndThenF>;
 }
@@ -39,6 +42,7 @@ AndThen.lift = lift;
 AndThen.identity = identity;
 
 AndThen.Contravariant = andThenContravariant;
+AndThen.Distributive = andThenDistributive;
 AndThen.Monad = andThenMonad;
 Object.defineProperty(AndThen, 'ArrowChoice', {
   get(): ArrowChoice<AndThenF> {

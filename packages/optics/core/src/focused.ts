@@ -169,6 +169,9 @@ export class Focused<O> {
   assign<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadState<R, S>): (b: B) => Kind<R, [void]> {
     return ST.assign(R)(this.toOptic);
   }
+  assignF<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadState<R, S>): (rb: Kind<R, [B]>) => Kind<R, [void]> {
+    return ST.assignF(R)(this.toOptic);
+  }
   modifying<R, S, A, B>(this: Focused<ST.PSetter<S, S, A, B>>, R: MonadState<R, S>): (f: (a: A) => B) => Kind<R, [void]> {
     return ST.modifying(R)(this.toOptic);
   }

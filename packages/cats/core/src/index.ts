@@ -16,6 +16,7 @@ export * from './alternative';
 export * from './applicative-error';
 export * from './applicative-throw';
 export * from './apply';
+export * from './distributive';
 export * from './flat-map';
 export * from './invariant';
 export * from './contravariant';

@@ -5,6 +5,7 @@
 
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { EqK } from '../../eq-k';
+import { Distributive } from '../../distributive';
 import { Applicative } from '../../applicative';
 import { Apply } from '../../apply';
 import { FlatMap } from '../../flat-map';
@@ -23,6 +24,7 @@ import {
   identityApply,
   identityCoflatMap,
   identityComonad,
+  identityDistributive,
   identityEqK,
   identityFlatMap,
   identityFoldable,
@@ -48,6 +50,7 @@ interface IdentityObj {
 
   readonly EqK: EqK<IdentityF>;
   readonly Functor: Functor<IdentityF>;
+  readonly Distributive: Distributive<IdentityF>;
   readonly Apply: Apply<IdentityF>;
   readonly Applicative: Applicative<IdentityF>;
   readonly FlatMap: FlatMap<IdentityF>;
@@ -72,6 +75,11 @@ Object.defineProperty(Identity, 'EqK', {
 Object.defineProperty(Identity, 'Functor', {
   get(): Functor<IdentityF> {
     return identityFunctor();
+  },
+});
+Object.defineProperty(Identity, 'Distributive', {
+  get(): Distributive<IdentityF> {
+    return identityDistributive();
   },
 });
 Object.defineProperty(Identity, 'Apply', {

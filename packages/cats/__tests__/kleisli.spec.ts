@@ -26,6 +26,7 @@ import {
   AlternativeSuite,
   ArrowChoiceSuite,
   ContravariantSuite,
+  DistributiveSuite,
   FunctorFilterSuite,
   MonadErrorSuite,
 } from '@fp4ts/cats-laws';
@@ -309,6 +310,23 @@ describe('Kleisli', () => {
       <X>(_: Arbitrary<X>) =>
         A.fp4tsKleisli<IdentityF, X, number>(fc.integer()),
       X => eqKleisli(X, Eq.primitive),
+    ),
+  );
+
+  checkAll(
+    'Distributive<Kleisli<Identity, MiniInt, *>>',
+    DistributiveSuite(
+      Kleisli.Distributive<IdentityF, MiniInt>(Identity.Distributive),
+    ).distributive(
+      fc.string(),
+      fc.string(),
+      fc.string(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      <X>(X: Arbitrary<X>) => A.fp4tsKleisli<IdentityF, MiniInt, X>(X),
+      <X>(X: Eq<X>): Eq<Kleisli<IdentityF, MiniInt, X>> =>
+        eqKleisli(ec.miniInt(), X),
     ),
   );
 

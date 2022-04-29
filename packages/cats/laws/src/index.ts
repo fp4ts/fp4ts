@@ -12,6 +12,7 @@ export * from './applicative-error-laws';
 export * from './applicative-laws';
 export * from './apply-laws';
 export * from './defer-laws';
+export * from './distributive-laws';
 export * from './flat-map-laws';
 export * from './foldable-laws';
 export * from './functor-filter-laws';

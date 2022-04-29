@@ -9,7 +9,6 @@ import {
   Function1,
   Function1F,
   Functor,
-  IdentityF,
   Profunctor,
   Semigroup,
 } from '@fp4ts/cats';
@@ -17,10 +16,10 @@ import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Affine, Settable } from '@fp4ts/optics-kernel';
 import { POptic, POptical } from './optics';
 
-export type PSetter<S, T, A, B> = (
-  F: Settable<IdentityF>,
+export type PSetter<S, T, A, B> = <F>(
+  F: Settable<F>,
   P: Affine<Function1F>,
-) => POptic<IdentityF, Function1F, S, T, A, B>;
+) => POptic<F, Function1F, S, T, A, B>;
 export type Setter<S, A> = PSetter<S, S, A, A>;
 
 export function modify<S, T, A, B>(
@@ -115,6 +114,12 @@ export function assign<G, S>(
   G: MonadState<G, S>,
 ): <A, B>(l: PSetter<S, S, A, B>) => (b: B) => Kind<G, [void]> {
   return l => flow(replace(l), G.modify);
+}
+
+export function assignF<G, S>(
+  G: MonadState<G, S>,
+): <A, B>(l: PSetter<S, S, A, B>) => (gb: Kind<G, [B]>) => Kind<G, [void]> {
+  return l => G.flatMap(assign(G)(l));
 }
 
 export function modifying<G, S>(

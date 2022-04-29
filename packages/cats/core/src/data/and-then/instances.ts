@@ -3,19 +3,33 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Fix, Lazy, lazyVal, α, λ } from '@fp4ts/core';
+import { $, Fix, Kind, Lazy, lazyVal, α, λ } from '@fp4ts/core';
 import { Contravariant } from '../../contravariant';
 import { ArrowChoice } from '../../arrow';
 import { Monad } from '../../monad';
 import { Either, Left, Right } from '../either';
 
-import type { AndThen, AndThenF } from './and-then';
+import { AndThen, AndThenF } from './and-then';
 import { identity, lift, pure } from './constructors';
 import { compose_ } from './operators';
+import { Distributive } from '../../distributive';
+import { Functor } from '../../functor';
 
 export const andThenContravariant: <B>() => Contravariant<
   λ<AndThenF, [α, Fix<B>]>
 > = () => Contravariant.of({ contramap_: (fa, f) => compose_(fa, f) });
+
+export const andThenFunctor = <R>(): Functor<$<AndThenF, [R]>> =>
+  Functor.of({ map_: (fa, f) => fa.andThen(f) });
+
+export const andThenDistributive = <R>(): Distributive<$<AndThenF, [R]>> =>
+  Distributive.of({
+    ...andThenFunctor(),
+    distribute_:
+      <G>(G: Functor<G>) =>
+      <A, B>(ga: Kind<G, [A]>, f: (a: A) => AndThen<R, B>) =>
+        lift(r => G.map_(ga, (a: A) => f(a)(r))),
+  });
 
 export const andThenMonad: <A>() => Monad<$<AndThenF, [A]>> = <A>() =>
   Monad.of<$<AndThenF, [A]>>({

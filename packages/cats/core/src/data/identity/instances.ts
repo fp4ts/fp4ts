@@ -27,6 +27,7 @@ import {
 } from './operators';
 import { pure, unit } from './constructors';
 import { Identity } from './identity';
+import { Distributive } from '../../distributive';
 
 export const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() =>
   EqK.of({ liftEq: id }),
@@ -34,6 +35,13 @@ export const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() =>
 
 export const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
   Functor.of({ map_ }),
+);
+
+export const identityDistributive: Lazy<Distributive<IdentityF>> = lazyVal(() =>
+  Distributive.of<IdentityF>({
+    ...identityFunctor(),
+    distribute_: G => G.map_,
+  }),
 );
 
 export const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>

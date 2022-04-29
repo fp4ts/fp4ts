@@ -9,6 +9,7 @@ import {
   compose,
   Fix,
   id,
+  Kind,
   Lazy,
   lazyVal,
   TyK,
@@ -20,6 +21,7 @@ import { Applicative } from '../applicative';
 import { ArrowChoice } from '../arrow';
 import { Contravariant } from '../contravariant';
 import { Functor } from '../functor';
+import { Distributive } from '../distributive';
 import { Monad } from '../monad';
 import { Either, Left, Right } from './either';
 
@@ -27,6 +29,7 @@ export const Function1: Function1Obj = function () {};
 
 interface Function1Obj {
   Functor<A>(): Functor<$<Function1F, [A]>>;
+  Distributive<A>(): Distributive<$<Function1F, [A]>>;
   Contravariant<A>(): Contravariant<λ<Function1F, [α, Fix<A>]>>;
   Applicative<A>(): Applicative<$<Function1F, [A]>>;
   Monad<A>(): Monad<$<Function1F, [A]>>;
@@ -43,6 +46,16 @@ const function1Functor: <A>() => Functor<$<Function1F, [A]>> = lazyVal(<A>() =>
         f(fa(a)),
   }),
 ) as <A>() => Functor<$<Function1F, [A]>>;
+
+const function1Distributive = <R>(): Distributive<$<Function1F, [R]>> =>
+  Distributive.of({
+    ...function1Functor(),
+    distribute_:
+      <G>(G: Functor<G>) =>
+      <A, B>(ga: Kind<G, [A]>, f: (a: A) => (r: R) => B) =>
+      (r: R) =>
+        G.map_(ga, (a: A) => f(a)(r)),
+  });
 
 const function1Applicative: <A>() => Applicative<$<Function1F, [A]>> = lazyVal(<
   A,
@@ -114,6 +127,7 @@ const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
 );
 
 Function1.Functor = function1Functor;
+Function1.Distributive = function1Distributive;
 Function1.Contravariant = function1Contravariant;
 Function1.Applicative = function1Applicative;
 Function1.Monad = function1Monad;
