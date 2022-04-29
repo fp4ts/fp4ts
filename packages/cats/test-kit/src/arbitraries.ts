@@ -27,6 +27,7 @@ import {
   Set,
   Endo,
   Dual,
+  Backwards,
   NonEmptyList,
   Tagged,
   ValidationError,
@@ -333,6 +334,10 @@ export const fp4tsTagged =
 
 export const fp4tsDual = <A>(arbA: Arbitrary<A>): Arbitrary<Dual<A>> =>
   arbA.map(Dual);
+
+export const fp4tsBackwards = <F, A>(
+  arbFA: Arbitrary<Kind<F, [A]>>,
+): Arbitrary<Backwards<F, A>> => arbFA.map(Backwards);
 
 export const fp4tsValidation = <E, A>(
   arbVE: Arbitrary<ValidationError<E>>,

@@ -19,6 +19,7 @@ export * from './function';
 export * from './and-then';
 export * from './tagged';
 export * from './dual';
+export * from './backwards';
 
 export * from './nested';
 export * from './kleisli';

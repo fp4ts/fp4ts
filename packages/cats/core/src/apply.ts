@@ -93,8 +93,8 @@ export const Apply = Object.freeze({
 
       product: fb => fa => self.product_(fa, fb),
       product_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-        F.ap_(
-          F.map_(fa, a => (b: B) => [a, b] as [A, B]),
+        self.ap_(
+          self.map_(fa, a => (b: B) => [a, b] as [A, B]),
           fb,
         ),
 

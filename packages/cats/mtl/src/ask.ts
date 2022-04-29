@@ -7,7 +7,7 @@ import { Applicative, ApplicativeRequirements } from '@fp4ts/cats-core';
 import { instance, Kind, pipe } from '@fp4ts/core';
 
 export interface Ask<F, R> extends Applicative<F> {
-  ask<R2>(this: Ask<F, R2>): Kind<F, [R2]>;
+  ask(): Kind<F, [R]>;
   reader<A>(f: (r: R) => A): Kind<F, [A]>;
 }
 
