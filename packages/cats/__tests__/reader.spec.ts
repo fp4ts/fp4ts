@@ -5,8 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Reader } from '@fp4ts/cats-core/lib/data';
-import { MonadReader } from '@fp4ts/cats-mtl';
+import { Reader } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
@@ -101,7 +100,7 @@ describe('Reader', () => {
 
     checkAll(
       'Local<Reader<MiniInt, *>, MiniInt>',
-      MonadReaderSuite(MonadReader.Reader<MiniInt>()).local(
+      MonadReaderSuite(Reader.MonadReader<MiniInt>()).local(
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),

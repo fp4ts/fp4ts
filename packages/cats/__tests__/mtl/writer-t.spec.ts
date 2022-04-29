@@ -8,7 +8,6 @@ import { $ } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
 import { EqK, Eval, EvalF } from '@fp4ts/cats-core';
 import {
-  WriterT,
   Array,
   Either,
   EitherF,
@@ -16,7 +15,7 @@ import {
   Identity,
   IdentityF,
 } from '@fp4ts/cats-core/lib/data';
-import { MonadWriter } from '@fp4ts/cats-mtl';
+import { WriterT } from '@fp4ts/cats-mtl';
 import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -88,7 +87,7 @@ describe('WriterT', () => {
     checkAll(
       'Censor<WriterT<Identity, string, *>, string>',
       MonadWriterSuite(
-        MonadWriter.WriterT(Identity.Monad, Monoid.string),
+        WriterT.MonadWriter(Identity.Monad, Monoid.string),
       ).censor(
         fc.integer(),
         fc.string(),
@@ -101,7 +100,7 @@ describe('WriterT', () => {
     );
     checkAll(
       'Censor<WriterT<Eval, string, *>, string>',
-      MonadWriterSuite(MonadWriter.WriterT(Eval.Monad, Monoid.string)).censor(
+      MonadWriterSuite(WriterT.MonadWriter(Eval.Monad, Monoid.string)).censor(
         fc.integer(),
         fc.string(),
         Eq.primitive,
