@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Arrow } from '@fp4ts/cats-core';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { exec, ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ArrowLaws } from '../arrow-laws';
 import { StrongSuite } from './strong-suite';
@@ -28,48 +28,45 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
       arbB1: Arbitrary<B1>,
       arbB2: Arbitrary<B2>,
       EqA: Eq<A>,
+      EcA: ExhaustiveCheck<A>,
       EqB: Eq<B>,
       EqC: Eq<C>,
+      EcC: ExhaustiveCheck<C>,
       EqD: Eq<D>,
+      EcD: ExhaustiveCheck<D>,
       EqB2: Eq<B2>,
       mkArbF: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<F, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
+      mkEqF: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
     ) =>
       new RuleSet(
         'Arrow',
         [
-          [
-            'arrow identity',
-            forAll(
-              fc.constant(null),
-              laws.arrowIdentity,
-            )(mkEqF(EqA, EqA) as any),
-          ],
+          ['arrow identity', exec(laws.arrowIdentity<A>())(mkEqF(EcA, EqA))],
           [
             'arrow composition',
             forAll(
               fc.func<[A], B>(arbB),
               fc.func<[B], C>(arbC),
               laws.arrowComposition,
-            )(mkEqF(EqA, EqC)),
+            )(mkEqF(EcA, EqC)),
           ],
           [
             'arrow extension',
             forAll(
               fc.func<[A], B>(arbB),
-              laws.arrowExtension,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqC)) as any),
+              laws.arrowExtension<C>(),
+            )(mkEqF(EcA.product(EcC), Eq.tuple(EqB, EqC))),
           ],
           [
             'arrow functor',
             forAll(
               mkArbF(arbA, arbB),
               mkArbF(arbB, arbC),
-              laws.arrowFunctor,
-            )(mkEqF(Eq.tuple(EqA, EqD), Eq.tuple(EqB, EqC)) as any),
+              laws.arrowFunctor<D>(),
+            )(mkEqF(EcA.product(EcD), Eq.tuple(EqC, EqD))),
           ],
           [
             'arrow exchange',
@@ -77,25 +74,25 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkArbF(arbA, arbB),
               fc.func<[C], D>(arbD),
               laws.arrowExchange,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqD)) as any),
+            )(mkEqF(EcA.product(EcC), Eq.tuple(EqB, EqD))),
           ],
           [
             'arrow unit',
             forAll(
               mkArbF(arbA, arbB),
-              laws.arrowUnit,
-            )(mkEqF(Eq.tuple(EqA, EqC), EqB) as any),
+              laws.arrowUnit<C>(),
+            )(mkEqF(EcA.product(EcC), EqB)),
           ],
           [
             'arrow association',
             forAll(
               mkArbF(arbA, arbB),
-              laws.arrowAssociation,
+              laws.arrowAssociation<C, D>(),
             )(
               mkEqF(
-                Eq.tuple(EqA, Eq.tuple(EqC, EqD)),
+                EcA.product(EcC).product(EcD),
                 Eq.tuple(EqB, Eq.tuple(EqC, EqD)),
-              ) as any,
+              ),
             ),
           ],
           [
@@ -104,7 +101,7 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkArbF(arbA, arbB),
               mkArbF(arbC, arbD),
               laws.splitConsistentWithAndThen,
-            )(mkEqF(Eq.tuple(EqA, EqC), Eq.tuple(EqB, EqD))),
+            )(mkEqF(EcA.product(EcC), Eq.tuple(EqB, EqD))),
           ],
           [
             'arrow merge consistent with andThen',
@@ -112,23 +109,12 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               mkArbF(arbA, arbB),
               mkArbF(arbA, arbC),
               laws.mergeConsistentWithAndThen,
-            )(mkEqF(EqA, Eq.tuple(EqB, EqC))),
+            )(mkEqF(EcA, Eq.tuple(EqB, EqC))),
           ],
         ],
         {
           parents: [
-            self.category(
-              arbA,
-              arbB,
-              arbC,
-              arbD,
-              EqA,
-              EqB,
-              EqC,
-              EqD,
-              mkArbF,
-              mkEqF,
-            ),
+            self.category(arbA, arbB, arbC, arbD, EcA, EqB, EqD, mkArbF, mkEqF),
             self.strong(
               arbA,
               arbB,
@@ -136,10 +122,12 @@ export const ArrowSuite = <F>(F: Arrow<F>) => {
               arbD,
               arbB1,
               arbB2,
-              EqA,
+              EcA,
               EqB,
               EqC,
+              EcC,
               EqD,
+              EcD,
               EqB2,
               mkArbF,
               mkEqF,

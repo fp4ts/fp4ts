@@ -303,14 +303,11 @@ describe('Kleisli', () => {
     ).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      A.fp4tsMiniInt(),
-      MiniInt.Eq,
-      MiniInt.Eq,
+      ec.miniInt(),
+      ec.miniInt(),
       <X>(_: Arbitrary<X>) =>
         A.fp4tsKleisli<IdentityF, X, number>(fc.integer()),
-
-      // TODO: hacky? We are not really using the value
-      () => eqKleisli(ec.miniInt() as any, Eq.primitive),
+      X => eqKleisli(X, Eq.primitive),
     ),
   );
 

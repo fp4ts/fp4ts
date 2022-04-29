@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Profunctor } from '@fp4ts/cats-core';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ProfunctorLaws } from '../profunctor-laws';
 
@@ -19,23 +19,22 @@ export const ProfunctorSuite = <F>(F: Profunctor<F>) => {
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbA1: Arbitrary<A1>,
-      arbA2: Arbitrary<A2>,
       arbB1: Arbitrary<B1>,
       arbB2: Arbitrary<B2>,
-      EqA: Eq<A>,
+      EcA: ExhaustiveCheck<A>,
       EqB: Eq<B>,
-      EqA2: Eq<A2>,
+      EcA2: ExhaustiveCheck<A2>,
       EqB2: Eq<B2>,
       mkArbF: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<F, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
+      mkEqF: <X, Y>(EcX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
     ) =>
       new RuleSet('Profunctor', [
         [
           'profunctor identity',
-          forAll(mkArbF(arbA, arbB), laws.profunctorIdentity)(mkEqF(EqA, EqB)),
+          forAll(mkArbF(arbA, arbB), laws.profunctorIdentity)(mkEqF(EcA, EqB)),
         ],
         [
           'profunctor composition',
@@ -46,14 +45,14 @@ export const ProfunctorSuite = <F>(F: Profunctor<F>) => {
             fc.func<[B], B1>(arbB1),
             fc.func<[B1], B2>(arbB2),
             laws.profunctorComposition,
-          )(mkEqF(EqA2, EqB2)),
+          )(mkEqF(EcA2, EqB2)),
         ],
         [
           'profunctor Lmap identity',
           forAll(
             mkArbF(arbA, arbB),
             laws.profunctorLmapIdentity,
-          )(mkEqF(EqA, EqB)),
+          )(mkEqF(EcA, EqB)),
         ],
         [
           'profunctor Lmap composition',
@@ -64,14 +63,14 @@ export const ProfunctorSuite = <F>(F: Profunctor<F>) => {
             fc.func<[B], B1>(arbB1),
             fc.func<[B1], B2>(arbB2),
             laws.profunctorLmapComposition,
-          )(mkEqF(EqA2, EqB)),
+          )(mkEqF(EcA2, EqB)),
         ],
         [
           'profunctor Rmap identity',
           forAll(
             mkArbF(arbA, arbB),
             laws.profunctorRmapIdentity,
-          )(mkEqF(EqA, EqB)),
+          )(mkEqF(EcA, EqB)),
         ],
         [
           'profunctor Rmap composition',
@@ -80,7 +79,7 @@ export const ProfunctorSuite = <F>(F: Profunctor<F>) => {
             fc.func<[B], B1>(arbB1),
             fc.func<[B1], B2>(arbB2),
             laws.profunctorRmapComposition,
-          )(mkEqF(EqA, EqB2)),
+          )(mkEqF(EcA, EqB2)),
         ],
       ]),
   };

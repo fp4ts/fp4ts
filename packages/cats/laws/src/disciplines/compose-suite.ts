@@ -7,7 +7,7 @@ import { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Compose } from '@fp4ts/cats-core';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ComposeLaws } from '../compose-laws';
 
@@ -20,15 +20,13 @@ export const ComposeSuite = <F>(F: Compose<F>) => {
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       arbD: Arbitrary<D>,
-      EqA: Eq<A>,
-      EqB: Eq<B>,
-      EqC: Eq<C>,
+      EcA: ExhaustiveCheck<A>,
       EqD: Eq<D>,
       mkArbF: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<F, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
+      mkEqF: <X, Y>(EcX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
     ) =>
       new RuleSet('Compose', [
         [
@@ -38,7 +36,7 @@ export const ComposeSuite = <F>(F: Compose<F>) => {
             mkArbF(arbB, arbC),
             mkArbF(arbC, arbD),
             laws.composeAssociativity,
-          )(mkEqF(EqA, EqD)),
+          )(mkEqF(EcA, EqD)),
         ],
       ]),
   };

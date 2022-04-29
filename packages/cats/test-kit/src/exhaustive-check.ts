@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List } from '@fp4ts/cats-core/lib/data';
+import { List, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
 export class ExhaustiveCheck<A> {
@@ -19,6 +19,16 @@ export const miniInt = (): ExhaustiveCheck<MiniInt> =>
 
 export const boolean = (): ExhaustiveCheck<boolean> =>
   new ExhaustiveCheck(List(false, true));
+
+export const either = <A, B>(
+  eca: ExhaustiveCheck<A>,
+  ecb: ExhaustiveCheck<B>,
+): ExhaustiveCheck<Either<A, B>> =>
+  new ExhaustiveCheck(
+    eca.allValues
+      .map(a => Left<A, B>(a))
+      ['+++'](ecb.allValues.map(b => Right<B, A>(b))),
+  );
 
 export const instance = <A>(xs: List<A>): ExhaustiveCheck<A> =>
   new ExhaustiveCheck(xs);

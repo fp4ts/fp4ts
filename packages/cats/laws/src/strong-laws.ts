@@ -14,44 +14,44 @@ export const StrongLaws = <F>(F: Strong<F>) => ({
   /**
    * first' == dimap swap swap . second'
    */
-  firstIsSwappedSecond: <A, B, C>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[A, C], [B, C]]>> =>
-    // TODO: fix types
-    new IsEq(
-      F.first<C>()(fab),
-      pipe(F.second<C>()(fab), F.dimap(swapTuple, swapTuple)),
-    ),
+  firstIsSwappedSecond:
+    <C>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[A, C], [B, C]]>> =>
+      // TODO: fix types
+      new IsEq(
+        F.first<C>()(fab),
+        pipe(F.second<C>()(fab), F.dimap(swapTuple, swapTuple)),
+      ),
 
   /**
    * second' == dimap swap swap . first'
    */
-  secondIsSwappedFirst: <A, B, C>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[C, A], [C, B]]>> =>
-    new IsEq(
-      F.second<C>()(fab),
-      pipe(F.first<C>()(fab), F.dimap(swapTuple, swapTuple)),
-    ),
+  secondIsSwappedFirst:
+    <C>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[C, A], [C, B]]>> =>
+      new IsEq(
+        F.second<C>()(fab),
+        pipe(F.first<C>()(fab), F.dimap(swapTuple, swapTuple)),
+      ),
 
   /**
    * lmap fst == rmap fst . first'
    */
-  lmapEqualsFirstAndThenRmap: <A, B, C>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[A, C], B]>> =>
-    new IsEq(F.lmap_(fab, fst), pipe(F.first<C>()(fab), F.rmap(fst))),
+  lmapEqualsFirstAndThenRmap:
+    <C>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[A, C], B]>> =>
+      new IsEq(F.lmap_(fab, fst), pipe(F.first<C>()(fab), F.rmap(fst))),
 
   /**
    * lmap snd == rmap snd . second'
    */
-  lmapEqualsSecondAndThenRmap: <A, B, C>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[C, A], B]>> =>
-    new IsEq(
-      F.lmap_<A, B, [C, A]>(fab, snd),
-      pipe(F.second<C>()(fab), F.rmap(snd)),
-    ),
+  lmapEqualsSecondAndThenRmap:
+    <C>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[C, A], B]>> =>
+      new IsEq(
+        F.lmap_<A, B, [C, A]>(fab, snd),
+        pipe(F.second<C>()(fab), F.rmap(snd)),
+      ),
 
   /**
    * lmap (second f) . first == rmap (second f) . first
@@ -83,26 +83,26 @@ export const StrongLaws = <F>(F: Strong<F>) => ({
    *   assoc ((a,b),c) = (a,(b,c))
    *   unassoc (a,(b,c)) = ((a,b),c)
    */
-  firstFirstIsDimap: <A, B, C, D>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[[A, C], D], [[B, C], D]]>> =>
-    new IsEq(
-      pipe(fab, F.first<C>(), F.first<D>()),
-      pipe(fab, F.first<[C, D]>(), F.dimap(assoc, unassoc)),
-    ),
+  firstFirstIsDimap:
+    <C, D>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[[A, C], D], [[B, C], D]]>> =>
+      new IsEq(
+        pipe(fab, F.first<C>(), F.first<D>()),
+        pipe(fab, F.first<[C, D]>(), F.dimap(assoc, unassoc)),
+      ),
 
   /**
    * second' . second' == dimap unassoc assoc . second' where
    *   assoc ((a,b),c) = (a,(b,c))
    *   unassoc (a,(b,c)) = ((a,b),c)
    */
-  secondSecondIsDimap: <A, B, C, D>(
-    fab: Kind<F, [A, B]>,
-  ): IsEq<Kind<F, [[D, [C, A]], [D, [C, B]]]>> =>
-    new IsEq(
-      pipe(fab, F.second<C>(), F.second<D>()),
-      pipe(fab, F.second<[D, C]>(), F.dimap(unassoc, assoc)),
-    ),
+  secondSecondIsDimap:
+    <C, D>() =>
+    <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[D, [C, A]], [D, [C, B]]]>> =>
+      new IsEq(
+        pipe(fab, F.second<C>(), F.second<D>()),
+        pipe(fab, F.second<[D, C]>(), F.dimap(unassoc, assoc)),
+      ),
 });
 
 const swapTuple = <X, Y>([x, y]: [X, Y]): [Y, X] => [y, x];

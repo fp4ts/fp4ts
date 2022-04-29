@@ -8,7 +8,8 @@ import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Choice } from '@fp4ts/cats-core';
 import { Either } from '@fp4ts/cats-core/lib/data';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { ChoiceLaws } from '../choice-laws';
 import { CategorySuite } from './category-suite';
@@ -24,15 +25,15 @@ export const ChoiceSuite = <F>(F: Choice<F>) => {
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       arbD: Arbitrary<D>,
-      EqA: Eq<A>,
+      EcA: ExhaustiveCheck<A>,
       EqB: Eq<B>,
-      EqC: Eq<C>,
+      EcB: ExhaustiveCheck<B>,
       EqD: Eq<D>,
       mkArbF: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<F, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
+      mkEqF: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
     ) =>
       new RuleSet(
         'Choice',
@@ -44,7 +45,7 @@ export const ChoiceSuite = <F>(F: Choice<F>) => {
               mkArbF(arbB, arbC),
               mkArbF(arbC, arbD),
               laws.choiceCompositionDistributivity,
-            )(mkEqF(Either.Eq(EqA, EqB), EqD)),
+            )(mkEqF(ec.either(EcA, EcB), EqD)),
           ],
         ],
         {
@@ -53,9 +54,8 @@ export const ChoiceSuite = <F>(F: Choice<F>) => {
             arbB,
             arbC,
             arbD,
-            EqA,
+            EcA,
             EqB,
-            EqC,
             EqD,
             mkArbF,
             mkEqF,

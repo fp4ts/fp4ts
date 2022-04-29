@@ -7,7 +7,7 @@ import { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Category } from '@fp4ts/cats-core';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { CategoryLaws } from '../category-laws';
 import { ComposeSuite } from './compose-suite';
@@ -23,15 +23,14 @@ export const CategorySuite = <F>(F: Category<F>) => {
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
       arbD: Arbitrary<D>,
-      EqA: Eq<A>,
+      EcA: ExhaustiveCheck<A>,
       EqB: Eq<B>,
-      EqC: Eq<C>,
       EqD: Eq<D>,
       mkArbF: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<F, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
+      mkEqF: <X, Y>(EcX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<F, [X, Y]>>,
     ) =>
       new RuleSet(
         'Category',
@@ -41,29 +40,18 @@ export const CategorySuite = <F>(F: Category<F>) => {
             forAll(
               mkArbF(arbA, arbB),
               laws.categoryLeftIdentity,
-            )(mkEqF(EqA, EqB)),
+            )(mkEqF(EcA, EqB)),
           ],
           [
             'category right identity',
             forAll(
               mkArbF(arbA, arbB),
               laws.categoryRightIdentity,
-            )(mkEqF(EqA, EqB)),
+            )(mkEqF(EcA, EqB)),
           ],
         ],
         {
-          parent: self.compose(
-            arbA,
-            arbB,
-            arbC,
-            arbD,
-            EqA,
-            EqB,
-            EqC,
-            EqD,
-            mkArbF,
-            mkEqF,
-          ),
+          parent: self.compose(arbA, arbB, arbC, arbD, EcA, EqD, mkArbF, mkEqF),
         },
       ),
   };

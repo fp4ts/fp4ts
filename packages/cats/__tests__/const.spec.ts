@@ -9,6 +9,7 @@ import { Eval } from '@fp4ts/cats-core';
 import { Const } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import {
   TraversableSuite,
   ApplicativeSuite,
@@ -36,11 +37,10 @@ describe('Const Laws', () => {
   checkAll(
     'Contravariant<Const<number, *>>',
     contravariantTests.contravariant(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      ec.miniInt(),
+      ec.miniInt(),
       x => x.map(Const.pure(Monoid.addition)),
       () => Eq.primitive,
     ),

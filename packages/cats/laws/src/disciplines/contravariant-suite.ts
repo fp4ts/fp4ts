@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Contravariant } from '@fp4ts/cats-core';
-import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { ContravariantLaws } from '../contravariant-laws';
 import { InvariantSuite } from './invariant-suite';
@@ -22,18 +22,17 @@ export const ContravariantSuite = <F>(F: Contravariant<F>) => {
     contravariant: <A, B, C>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
-      arbC: Arbitrary<C>,
-      EqA: Eq<A>,
-      EqC: Eq<C>,
+      EcA: ExhaustiveCheck<A>,
+      EcC: ExhaustiveCheck<C>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
-      mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
+      mkEqF: <X>(E: ExhaustiveCheck<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
         'contravariant',
         [
           [
             'contravariant identity',
-            forAll(mkArbF(arbA), laws.contravariantIdentity)(mkEqF(EqA)),
+            forAll(mkArbF(arbA), laws.contravariantIdentity)(mkEqF(EcA)),
           ],
           [
             'contravariant composition',
@@ -42,10 +41,10 @@ export const ContravariantSuite = <F>(F: Contravariant<F>) => {
               fc.func<[B], A>(arbA),
               fc.func<[C], B>(arbB),
               laws.contravariantComposition,
-            )(mkEqF(EqC)),
+            )(mkEqF(EcC)),
           ],
         ],
-        { parent: self.invariant(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
+        // { parent: self.invariant(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       ),
   };
   return self;
