@@ -9,6 +9,7 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { MonadSuite, ProfunctorSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Tagged', () => {
   const monadTests = MonadSuite(Tagged.Monad());
@@ -33,15 +34,14 @@ describe('Tagged', () => {
   checkAll(
     'Profunctor<Tagged>',
     profunctorTests.profunctor(
+      A.fp4tsMiniInt(),
       fc.integer(),
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      fc.integer(),
-      fc.integer(),
+      ec.miniInt(),
       Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      ec.miniInt(),
       Eq.primitive,
       (X, Y) => A.fp4tsTagged()(Y),
       (X, Y) => Tagged.EqK().liftEq(Y),
