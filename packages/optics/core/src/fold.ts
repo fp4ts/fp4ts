@@ -13,7 +13,6 @@ import {
   Dual,
   Endo,
   Foldable,
-  Function1,
   Function1F,
   Left,
   List,

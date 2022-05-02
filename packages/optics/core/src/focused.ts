@@ -302,78 +302,20 @@ export class Focused<O> {
 
   andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<I.PIso<A, B, C, D>>): Focused<I.PIso<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: I.PIso<A, B, C, D>): Focused<I.PIso<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<L.PLens<A, B, C, D>>): Focused<L.PLens<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.PLens<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<P.PPrism<A, B, C, D>>): Focused<P.PPrism<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: P.PPrism<A, B, C, D>): Focused<P.PPrism<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<G.Getter<A, C>>): Focused<G.Getter<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: G.Getter<A, C>): Focused<G.Getter<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<L.PLens<A, B, C, D>>): Focused<L.PLens<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.PLens<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<G.Getter<A, C>>): Focused<G.Getter<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: G.Getter<A, C>): Focused<G.Getter<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<P.PPrism<A, B, C, D>>): Focused<P.PPrism<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: P.PPrism<A, B, C, D>): Focused<P.PPrism<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<G.Getter<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: G.Getter<A, C>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<G.Getter<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: G.Getter<A, C>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<G.Getter<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: G.Getter<A, C>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-
   andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: Focused<G.Getter<A, C>>): Focused<G.Getter<S, C>>;
   andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: G.Getter<A, C>): Focused<G.Getter<S, C>>;
-  andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, A, C>(this: Focused<F.Fold<S, A>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
   andThen<S, A, C>(this: Focused<F.Fold<S, A>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-
   andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>>): Focused<AnyOptical<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>>;
   andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>> | AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>> {
