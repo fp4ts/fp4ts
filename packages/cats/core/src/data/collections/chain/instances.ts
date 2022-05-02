@@ -5,7 +5,6 @@
 
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '../../../eval';
 import { Align } from '../../../align';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
@@ -26,8 +25,8 @@ import {
   filter_,
   flatMap_,
   foldLeft_,
+  foldMap_,
   map_,
-  popHead,
   traverse_,
 } from './operators';
 import { empty, pure, tailRecM_ } from './constructors';
@@ -77,22 +76,7 @@ export const chainTraversable: Lazy<Traversable<ChainF>> = lazyVal(() =>
   Traversable.of({
     ...chainFunctor(),
     foldLeft_: foldLeft_,
-    foldRight_: <A, B>(
-      xs: Chain<A>,
-      eb: Eval<B>,
-      f: (a: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (xs: Chain<A>): Eval<B> =>
-        popHead(xs).fold(
-          () => eb,
-          ([hd, tl]) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-      return loop(xs);
-    },
+    foldMap_: foldMap_,
     traverse_: traverse_,
   }),
 );

@@ -13,6 +13,8 @@ import {
   Identity,
   FunctionK,
   FoldableF,
+  Monad,
+  Monoid,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
 import { NullableK, ProductK, StructK, SumK } from './kinds';
@@ -82,6 +84,13 @@ export const SafeFoldable = Object.freeze({
       ...Foldable.of({
         foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
           self.safeFoldLeft_(fa, z, (b, a) => Eval.delay(() => f(b, a))).value,
+
+        foldMap_:
+          <M>(M: Monoid<M>) =>
+          <A>(fa: Kind<F, [A]>, f: (a: A) => M): M =>
+            self.foldRight_(fa, Eval.now(M.empty), (a, eb) =>
+              Eval.delay(() => M.combine_(f(a), () => eb.value)),
+            ).value,
         ...F,
       }),
       ...F,

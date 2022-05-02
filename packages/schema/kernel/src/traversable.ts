@@ -21,6 +21,7 @@ import {
   productSafeFoldable,
   SafeFoldable,
   safeFoldLeft,
+  // safeFoldLeft,
   structSafeFoldable,
   sumSafeFoldable,
 } from './foldable';

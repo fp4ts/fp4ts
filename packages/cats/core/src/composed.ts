@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from './eq-k';
 import { Apply } from './apply';
 import { Functor } from './functor';
@@ -101,6 +102,11 @@ export const ComposedFoldable = Object.freeze({
     G: G,
 
     ...Foldable.of<[F, G]>({
+      foldMap_:
+        <M>(M: Monoid<M>) =>
+        <A>(fga: Kind<F, [Kind<G, [A]>]>, f: (a: A) => M): M =>
+          F.foldMap_(M)(fga, G.foldMap(M)(f)),
+
       foldRight_: (fga, ez, f) =>
         F.foldRight_(fga, ez, (ga, eb) => G.foldRight_(ga, eb, f)),
       foldLeft_: (fga, z, f) =>

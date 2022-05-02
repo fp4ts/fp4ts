@@ -15,7 +15,7 @@ import {
   TyK,
   TyVar,
 } from '@fp4ts/core';
-import { Eq, Semigroup } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 
 import { Eval } from '../eval';
 import { Applicative } from '../applicative';
@@ -506,6 +506,10 @@ const validationApplicativeErrorConcat: <E>(
 
 const validationFoldable: <E>() => Foldable<$<ValidationF, [E]>> = lazyVal(() =>
   Foldable.of({
+    foldMap_:
+      <M>(M: Monoid<M>) =>
+      (fa, f) =>
+        fa.fold(() => M.empty, f),
     foldLeft_: (fa, z, f) =>
       fa.fold(
         () => z,

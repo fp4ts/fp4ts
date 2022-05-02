@@ -20,6 +20,8 @@ import {
   Left,
   Right,
   Iter,
+  Endo,
+  Dual,
 } from './data';
 import { ComposedFoldable } from './composed';
 
@@ -72,21 +74,32 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
   readonly toVector: <A>(fa: Kind<F, [A]>) => Vector<A>;
 }
 
-export type FoldableRequirements<F> = Pick<
-  Foldable<F>,
-  'foldLeft_' | 'foldRight_'
-> &
+export type FoldableRequirements<F> = Pick<Foldable<F>, 'foldMap_'> &
   Partial<Foldable<F>> &
   Partial<UnorderedFoldable<F>>;
 export const Foldable = Object.freeze({
   of: <F>(F: FoldableRequirements<F>): Foldable<F> => {
     const self: Foldable<F> = instance<Foldable<F>>({
-      foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
-      foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
-
       foldMap: M => f => fa => self.foldMap_(M)(fa, f),
-      foldMap_: M => (fa, f) =>
-        self.foldLeft_(fa, M.empty, (r, x) => M.combine_(r, () => f(x))),
+
+      foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
+      foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
+        Dual.getDual(
+          self.foldMap_(Dual.Monoid(Endo.MonoidK.algebra<B>()))(fa, (a: A) =>
+            Dual((b: B) => f(b, a)),
+          ),
+        )(z),
+
+      foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
+      foldRight_: <A, B>(
+        fa: Kind<F, [A]>,
+        ez: Eval<B>,
+        f: (a: A, eb: Eval<B>) => Eval<B>,
+      ): Eval<B> =>
+        self.foldMap_(Endo.MonoidK.algebra<Eval<B>>())(
+          fa,
+          a => eb => Eval.defer(() => f(a, eb)),
+        )(ez),
 
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {

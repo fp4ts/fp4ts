@@ -64,7 +64,12 @@ export const constApplicative: <A>(
   });
 
 export const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
-  Foldable.of({ foldLeft_: (_, z) => z, foldRight_: (_, ez) => ez }),
+  Foldable.of({
+    foldMap_:
+      <M>(M: Monoid<M>) =>
+      () =>
+        M.empty,
+  }),
 );
 
 export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = lazyVal(<

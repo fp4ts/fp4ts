@@ -4,16 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, id, TyK, $type, TyVar } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
 import { FlatMap } from './flat-map';
 import { Applicative } from './applicative';
-import { Foldable, FoldableRequirements } from './foldable';
-import { Functor, FunctorRequirements } from './functor';
+import { Foldable } from './foldable';
+import { Functor } from './functor';
 import {
   UnorderedTraversable,
   UnorderedTraversableRequirements,
 } from './unordered-traversable';
 import { ComposedTraversable } from './composed';
-import { Identity } from './data';
+import { Const, Identity } from './data';
 
 /**
  * @category Type Class
@@ -59,7 +60,6 @@ export interface Traversable<T>
 }
 
 export type TraversableRequirements<T> = Pick<Traversable<T>, 'traverse_'> &
-  FoldableRequirements<T> &
   Partial<Traversable<T>> &
   Partial<UnorderedTraversableRequirements<T>>;
 
@@ -80,7 +80,12 @@ export const Traversable = Object.freeze({
         unorderedTraverse_: T.unorderedTraverse_ ?? (G => self.traverse_(G)),
         unorderedFoldMap_: T.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
       }),
-      ...Foldable.of(T),
+      ...Foldable.of({
+        ...T,
+        foldMap_:
+          T.foldMap_ ??
+          (<M>(M: Monoid<M>) => self.traverse_(Const.Applicative<M>(M))),
+      }),
       ...Functor.of({
         map_:
           T.map_ ??

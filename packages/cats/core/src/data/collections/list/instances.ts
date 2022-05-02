@@ -6,7 +6,6 @@
 import { id, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
-import { Eval } from '../../../eval';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -139,24 +138,6 @@ export const listFoldable: Lazy<Foldable<ListF>> = lazyVal(() =>
     count_: count_,
     foldMap_: foldMap_,
     foldLeft_: foldLeft_,
-    foldRight_: <A, B>(
-      xs: List<A>,
-      eb: Eval<B>,
-      f: (a: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (xs: List<A>): Eval<B> =>
-        fold_(
-          xs,
-          () => eb,
-          (hd, tl) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-
-      return loop(xs);
-    },
     elem_: elemOption_,
     iterator: iterator,
     toList: id,

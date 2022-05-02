@@ -15,7 +15,6 @@ import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 import { MonoidK } from '../../../monoid-k';
-import { Eval } from '../../../eval';
 
 import { Vector } from './algebra';
 import {
@@ -28,6 +27,7 @@ import {
   equals_,
   flatMap_,
   foldLeft_,
+  foldMap_,
   isEmpty,
   nonEmpty,
   traverse_,
@@ -100,20 +100,7 @@ export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
     count_: count_,
     elem_: (xs, idx) => xs.elemOption(idx),
     foldLeft_: foldLeft_,
-    foldRight_: <A, B>(
-      xs: Vector<A>,
-      ez: Eval<B>,
-      f: (a: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (i: number): Eval<B> =>
-        i >= xs.size
-          ? ez
-          : f(
-              xs.elem(i),
-              Eval.defer(() => loop(i + 1)),
-            );
-      return loop(0);
-    },
+    foldMap_: foldMap_,
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: xs => xs.size,

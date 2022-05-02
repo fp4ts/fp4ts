@@ -7,7 +7,7 @@ import { Lazy, lazyVal } from '@fp4ts/core';
 import { AndThen } from '../and-then';
 import { MonoidK } from '../../monoid-k';
 
-import type { EndoF } from './endo';
+import type { Endo, EndoF } from './endo';
 
 export const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() =>
   MonoidK.of({
@@ -15,6 +15,7 @@ export const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() =>
       <A>() =>
       (x: A) =>
         x,
-    combineK_: (x, y) => AndThen(x).compose(y()),
+    combineK_: <A>(x: Endo<A>, y: Lazy<Endo<A>>) =>
+      AndThen(x).compose((x: A) => y()(x)),
   }),
 );
