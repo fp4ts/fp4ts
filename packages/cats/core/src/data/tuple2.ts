@@ -34,8 +34,8 @@ interface Tuple2Obj {
 
   Bifunctor: Bifunctor<Tuple2F>;
   left: {
-    Comonad<A>(): Comonad<λ<Tuple2F, [α, Fix<A>]>>;
-    Traversable<A>(): Traversable<λ<Tuple2F, [α, Fix<A>]>>;
+    Comonad<A>(): Comonad<Tuple2LF<A>>;
+    Traversable<A>(): Traversable<Tuple2LF<A>>;
   };
   right: {
     Comonad<A>(): Comonad<$<Tuple2F, [A]>>;
@@ -66,29 +66,28 @@ const tuple2RightTraversable: <A>() => Traversable<$<Tuple2F, [A]>> = lazyVal(<
   }),
 ) as <A>() => Traversable<$<Tuple2F, [A]>>;
 
-const tuple2LeftComonad: <A>() => Comonad<λ<Tuple2F, [α, Fix<A>]>> = lazyVal(<
-  A,
->() =>
+const tuple2LeftComonad: <A>() => Comonad<Tuple2LF<A>> = lazyVal(<A>() =>
   Comonad.of({
     ...Tuple2.Bifunctor.leftFunctor<A>(),
     extract: fst,
     coflatMap_: (fa, f) => [f(fa), fa[1]],
   }),
-) as <A>() => Comonad<λ<Tuple2F, [α, Fix<A>]>>;
+) as <A>() => Comonad<Tuple2LF<A>>;
 
-const tuple2LeftTraversable: <A>() => Traversable<λ<Tuple2F, [α, Fix<A>]>> =
-  lazyVal(<A>() =>
-    Traversable.of({
-      ...Tuple2.Bifunctor.leftFunctor<A>(),
-      traverse_:
-        <G>(G: Applicative<G>) =>
-        <AA, B>(
-          [aa, a]: [AA, A],
-          f: (aa: AA) => Kind<G, [B]>,
-        ): Kind<G, [[B, A]]> =>
-          G.map_(f(aa), b => [b, a]),
-    }),
-  ) as <A>() => Traversable<λ<Tuple2F, [α, Fix<A>]>>;
+const tuple2LeftTraversable: <A>() => Traversable<Tuple2LF<A>> = lazyVal(<
+  A,
+>() =>
+  Traversable.of({
+    ...Tuple2.Bifunctor.leftFunctor<A>(),
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <AA, B>(
+        [aa, a]: [AA, A],
+        f: (aa: AA) => Kind<G, [B]>,
+      ): Kind<G, [[B, A]]> =>
+        G.map_(f(aa), b => [b, a]),
+  }),
+) as <A>() => Traversable<Tuple2LF<A>>;
 
 const tuple2Bifunctor = lazyVal(() =>
   Bifunctor.of<Tuple2F>({
@@ -119,3 +118,6 @@ Tuple2.left = {
 export interface Tuple2F extends TyK<[unknown, unknown]> {
   [$type]: Tuple2<TyVar<this, 0>, TyVar<this, 1>>;
 }
+
+export type Tuple2RF<A> = λ<Tuple2F, [Fix<A>, α]>;
+export type Tuple2LF<B> = λ<Tuple2F, [α, Fix<B>]>;
