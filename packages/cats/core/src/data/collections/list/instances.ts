@@ -36,7 +36,6 @@ import {
   flatten,
   foldLeft_,
   foldMap_,
-  fold_,
   isEmpty,
   iterator,
   map_,

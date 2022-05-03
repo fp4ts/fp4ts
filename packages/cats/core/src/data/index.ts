@@ -20,6 +20,8 @@ export * from './and-then';
 export * from './tagged';
 export * from './dual';
 export * from './backwards';
+export * from './proxy';
+export * from './tuple2';
 
 export * from './nested';
 export * from './kleisli';
