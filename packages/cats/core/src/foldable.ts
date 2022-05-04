@@ -145,7 +145,7 @@ export const Foldable = Object.freeze({
           .toVector,
 
       ...UnorderedFoldable.of({
-        unorderedFoldMap_: F.unorderedFoldMap_ ?? (M => self.foldMap_(M)),
+        unorderedFoldMap_: F.unorderedFoldMap_ ?? F.foldMap_,
         ...F,
       }),
       ...F,

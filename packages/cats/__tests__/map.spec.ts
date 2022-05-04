@@ -15,7 +15,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   MonoidKSuite,
   FunctorFilterSuite,
-  TraversableSuite,
+  TraversableWithIndexSuite,
 } from '@fp4ts/cats-laws';
 import { isValid } from '@fp4ts/cats-core/lib/data/collections/map/operators';
 
@@ -917,10 +917,9 @@ describe('Map', () => {
     });
   });
 
-  const monoidKTests = MonoidKSuite(Map.MonoidK(Ord.primitive));
   checkAll(
-    'MonoidK<Map>',
-    monoidKTests.monoidK(
+    'MonoidK<Map<PrimitiveType, *>>',
+    MonoidKSuite(Map.MonoidK(Ord.primitive)).monoidK(
       fc.integer(),
       Eq.primitive,
       x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
@@ -928,10 +927,9 @@ describe('Map', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(Map.FunctorFilter<number>());
   checkAll(
-    'FunctorFilter<Map>',
-    functorFilterTests.functorFilter(
+    'FunctorFilter<Map<number, *>>',
+    FunctorFilterSuite(Map.FunctorFilter<number>()).functorFilter(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -943,16 +941,17 @@ describe('Map', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Map.Traversable<number>());
   checkAll(
-    'Traversable<Map>',
-    traversableTests.traversable<number, number, number, EvalF, EvalF>(
+    'TraversableWithIndex<Map<number, *>, number>',
+    TraversableWithIndexSuite(
+      Map.TraversableWithIndex<number>(),
+    ).traversableWithIndex<number, number, number, EvalF, EvalF>(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       Monoid.addition,
       Monoid.addition,
-      Map.Functor(),
+      Map.FunctorWithIndex(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,

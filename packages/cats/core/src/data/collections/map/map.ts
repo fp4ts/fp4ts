@@ -8,10 +8,10 @@ import { Eq, Ord } from '@fp4ts/cats-kernel';
 
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
-import { Foldable } from '../../../foldable';
-import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
-import { Traversable } from '../../../traversable';
+import { FoldableWithIndex } from '../../../foldable-with-index';
+import { FunctorWithIndex } from '../../../functor-with-index';
+import { TraversableWithIndex } from '../../../traversable-with-index';
 
 import { List } from '../list';
 
@@ -25,12 +25,12 @@ import {
 } from './constructors';
 import {
   mapEq,
-  mapFoldable,
-  mapFunctor,
+  mapFoldableWithIndex,
   mapFunctorFilter,
+  mapFunctorWithIndex,
   mapMonoidK,
   mapSemigroupK,
-  mapTraversable,
+  mapTraversableWithIndex,
 } from './instances';
 
 export type Map<K, V> = MapBase<K, V>;
@@ -54,10 +54,10 @@ export interface OrderedMapObj {
   Eq<K, V>(EK: Eq<K>, EV: Eq<V>): Eq<Map<K, V>>;
   SemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapF, [K]>>;
   MonoidK: <K>(O: Ord<K>) => MonoidK<$<MapF, [K]>>;
-  Functor: <K>() => Functor<$<MapF, [K]>>;
+  FunctorWithIndex: <K>() => FunctorWithIndex<$<MapF, [K]>, K>;
   FunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>>;
-  Foldable: <K>() => Foldable<$<MapF, [K]>>;
-  Traversable: <K>() => Traversable<$<MapF, [K]>>;
+  FoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K>;
+  TraversableWithIndex: <K>() => TraversableWithIndex<$<MapF, [K]>, K>;
 }
 
 Map.empty = empty;
@@ -69,10 +69,10 @@ Map.fromSortedArray = fromSortedArray;
 Map.Eq = mapEq;
 Map.SemigroupK = mapSemigroupK;
 Map.MonoidK = mapMonoidK;
-Map.Functor = mapFunctor;
+Map.FunctorWithIndex = mapFunctorWithIndex;
 Map.FunctorFilter = mapFunctorFilter;
-Map.Foldable = mapFoldable;
-Map.Traversable = mapTraversable;
+Map.FoldableWithIndex = mapFoldableWithIndex;
+Map.TraversableWithIndex = mapTraversableWithIndex;
 
 // HKT
 

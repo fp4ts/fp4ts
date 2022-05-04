@@ -3,16 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind, lazyVal } from '@fp4ts/core';
-import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
-import { Eval } from '../../../eval';
-import { Applicative } from '../../../applicative';
+import { $, lazyVal } from '@fp4ts/core';
+import { Eq, Ord } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
 import { Functor } from '../../../functor';
+import { FunctorWithIndex } from '../../../functor-with-index';
+import { FoldableWithIndex } from '../../../foldable-with-index';
+import { TraversableWithIndex } from '../../../traversable-with-index';
 import { FunctorFilter } from '../../../functor-filter';
-import { Foldable } from '../../../foldable';
-import { Traversable } from '../../../traversable';
 
 import { MapF } from './map';
 import {
@@ -26,7 +25,6 @@ import {
   isEmpty,
   map_,
   nonEmpty,
-  popMin,
   sequence,
   traverse_,
   union_,
@@ -50,6 +48,11 @@ export const mapFunctor: <K>() => Functor<$<MapF, [K]>> = lazyVal(() =>
   Functor.of({ map_: (fa, f) => map_(fa, x => f(x)) }),
 );
 
+export const mapFunctorWithIndex: <K>() => FunctorWithIndex<$<MapF, [K]>, K> =
+  lazyVal(<K>() =>
+    FunctorWithIndex.of<$<MapF, [K]>, K>({ mapWithIndex_: map_ }),
+  ) as <K>() => FunctorWithIndex<$<MapF, [K]>, K>;
+
 export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazyVal(
   () =>
     FunctorFilter.of({
@@ -58,47 +61,28 @@ export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazyVal(
     }),
 );
 
-export const mapFoldable: <K>() => Foldable<$<MapF, [K]>> = lazyVal(() =>
-  Foldable.of({
-    foldLeft_: (m, z, f) => foldLeft_(m, z, (z, x) => f(z, x)),
-    foldRight_: <K, V, B>(
-      m0: Map<K, V>,
-      z: Eval<B>,
-      f: (v: V, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (m: Map<K, V>): Eval<B> =>
-        popMin(m).fold(
-          () => z,
-          ([hd, tl]) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-      return loop(m0);
-    },
-    foldMap_:
-      <M>(M: Monoid<M>) =>
-      <K, V>(m: Map<K, V>, f: (x: V) => M) =>
-        foldMap_(M)(m, x => f(x)),
-    all_: (m, p) => all_(m, x => p(x)),
-    any_: (m, p) => any_(m, x => p(x)),
-    count_: (m, p) => count_(m, x => p(x)),
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: x => x.size,
-  }),
-);
+export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =
+  lazyVal(<K>() =>
+    FoldableWithIndex.of<$<MapF, [K]>, K>({
+      foldLeftWithIndex_: foldLeft_,
+      foldMapWithIndex_: foldMap_,
+      all_: (m, p) => all_(m, x => p(x)),
+      any_: (m, p) => any_(m, x => p(x)),
+      count_: (m, p) => count_(m, x => p(x)),
+      isEmpty: isEmpty,
+      nonEmpty: nonEmpty,
+      size: x => x.size,
+    }),
+  ) as <K>() => FoldableWithIndex<$<MapF, [K]>, K>;
 
-export const mapTraversable: <K>() => Traversable<$<MapF, [K]>> = lazyVal(() =>
-  Traversable.of({
-    ...mapFunctor(),
-    ...mapFoldable(),
-
-    traverse_:
-      <G>(G: Applicative<G>) =>
-      <K, V, B>(m: Map<K, V>, f: (x: V) => Kind<G, [B]>) =>
-        traverse_(G)(m, x => f(x)),
+export const mapTraversableWithIndex: <K>() => TraversableWithIndex<
+  $<MapF, [K]>,
+  K
+> = lazyVal(<K>() =>
+  TraversableWithIndex.of<$<MapF, [K]>, K>({
+    ...mapFunctorWithIndex<K>(),
+    ...mapFoldableWithIndex<K>(),
+    traverseWithIndex_: traverse_,
     sequence: sequence,
   }),
-);
+) as <K>() => TraversableWithIndex<$<MapF, [K]>, K>;

@@ -6,24 +6,26 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Applicative, Functor, Traversable } from '@fp4ts/cats-core';
+import { Applicative, Functor, TraversableWithIndex } from '@fp4ts/cats-core';
 import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
-import { TraversableLaws } from '../traversable-laws';
-import { FoldableSuite } from './foldable-suite';
-import { FunctorSuite } from './functor-suite';
-import { UnorderedTraversableSuite } from './unordered-traversable-suite';
+import { TraversableWithIndexLaws } from '../traversable-with-index-laws';
+import { FunctorWithIndexSuite } from './functor-with-index-suite';
+import { FoldableWithIndexSuite } from './foldable-with-index-suite';
+import { TraversableSuite } from './traversable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const TraversableSuite = <T>(T: Traversable<T>) => {
-  const laws = TraversableLaws(T);
+export const TraversableWithIndexSuite = <T, I>(
+  T: TraversableWithIndex<T, I>,
+) => {
+  const laws = TraversableWithIndexLaws(T);
   const self = {
-    ...FunctorSuite(T),
-    ...FoldableSuite(T),
-    ...UnorderedTraversableSuite(T),
+    ...FunctorWithIndexSuite(T),
+    ...FoldableWithIndexSuite(T),
+    ...TraversableSuite(T),
 
-    traversable: <A, B, C, F, G>(
+    traversableWithIndex: <A, B, C, F, G>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
@@ -43,50 +45,51 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
       mkEqG: <X>(E: Eq<X>) => Eq<Kind<G, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'traversable',
+        'TraversableWithIndex',
         [
           [
             'traversable identity',
             forAll(
               mkArbT(arbA),
-              fc.func<[A], B>(arbB),
-              laws.traversableIdentity,
+              fc.func<[A, I], B>(arbB),
+              laws.indexedTraversableIdentity,
             )(mkEqT(EqB)),
           ],
           [
             'traversable sequential coposition',
             forAll(
               mkArbT(arbA),
-              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
-              fc.func<[B], Kind<G, [C]>>(mkArbG(arbC)),
-              laws.traversableSequentialComposition(F, G),
+              fc.func<[A, I], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[B, I], Kind<G, [C]>>(mkArbG(arbC)),
+              laws.indexedTraversableSequentialComposition(F, G),
             )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
           ],
           [
             'traversable parallel composition',
             forAll(
               mkArbT(arbA),
-              fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
-              fc.func<[A], Kind<G, [B]>>(mkArbG(arbB)),
-              laws.traversableParallelComposition(F, G),
+              fc.func<[A, I], Kind<F, [B]>>(mkArbF(arbB)),
+              fc.func<[A, I], Kind<G, [B]>>(mkArbG(arbB)),
+              laws.indexedTraversableParallelComposition(F, G),
             )(Tuple2K.Eq(mkEqF(mkEqT(EqB)), mkEqG(mkEqT(EqB)))),
           ],
         ],
         {
           parents: [
-            self.functor(arbA, arbB, arbC, EqA, EqC, mkArbT, mkEqT),
-            self.foldable(arbA, arbB, MA, MB, EqA, EqB, mkArbT),
-            self.unorderedTraversable(
+            self.functorWithIndex(arbA, arbB, arbC, EqA, EqC, mkArbT, mkEqT),
+            self.foldableWithIndex(arbA, arbB, MA, MB, EqA, EqB, mkArbT),
+            self.traversable(
               arbA,
               arbB,
               arbC,
-              EqA,
-              EqB,
-              EqC,
               MA,
+              MB,
               T,
               F,
               G,
+              EqA,
+              EqB,
+              EqC,
               mkArbT,
               mkEqT,
               mkArbF,

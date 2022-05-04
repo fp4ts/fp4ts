@@ -25,6 +25,10 @@ export * from './unordered-foldable-suite';
 export * from './unordered-traversable-suite';
 export * from './bifunctor-suite';
 
+export * from './functor-with-index-suite';
+export * from './foldable-with-index-suite';
+export * from './traversable-with-index-suite';
+
 export * from './coflat-map-suite';
 export * from './comonad-suite';
 
