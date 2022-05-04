@@ -15,7 +15,7 @@ export interface NewtypeF<Ref extends string, F> extends TyK<[unknown]> {
   [$type]: Newtype<Ref, Kind<F, [TyVar<this, 0>]>>;
 }
 
-interface KindId extends TyK<[unknown]> {
+export interface KindId extends TyK<[unknown]> {
   [$type]: TyVar<this, 0>;
 }
 

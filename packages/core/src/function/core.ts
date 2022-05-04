@@ -55,3 +55,13 @@ export const uncurry: <A, B, C>(
 ) => (a: A, b: B) => C = f => (x, y) => f(x)(y);
 
 export const applyTo: <A>(a: A) => <B>(f: (a: A) => B) => B = a => f => f(a);
+
+export const tuple =
+  <A extends unknown[], R>(f: (...args: A) => R) =>
+  (args: A): R =>
+    f(...args);
+
+export const untuple =
+  <A extends unknown[], R>(f: (args: A) => R) =>
+  (...args: A): R =>
+    f(args);
