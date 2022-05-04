@@ -18,7 +18,7 @@ describe('Setter', () => {
 
   it('should compose', () => {
     expect(
-      focus(eachL<List<number>>()).andThen(eachLi).replace(3)(
+      focus(eachL<List<number>>()).compose(eachLi).replace(3)(
         List(List(1, 2, 3), List(3)),
       ),
     ).toEqual(List(List(3, 3, 3), List(3)));
@@ -248,6 +248,34 @@ describe('Setter', () => {
           .locally(Reader.MonadReader<number>())(f)(Reader.ask())
           .runReader(x),
       ).toEqual(Reader.ask<number>().map(f).runReader(x)),
+    ),
+  );
+
+  test(
+    'imodify',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        focus<string[]>()
+          .each()
+          .indexed()
+          .imodify((x, i) => (i % 2 === 0 ? 'empty' : x))(xs),
+      ).toEqual(xs.map((x, i) => (i % 2 === 0 ? 'empty' : x))),
+    ),
+  );
+
+  test(
+    'each vs eachWithIndex array equivalence',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        focus<string[]>()
+          .each()
+          .indexed()
+          .imodify((x, i) => (i % 2 === 0 ? 'empty' : x))(xs),
+      ).toEqual(
+        focus<string[]>()
+          .eachWithIndex()
+          .imodify((x, i) => (i % 2 === 0 ? 'empty' : x))(xs),
+      ),
     ),
   );
 

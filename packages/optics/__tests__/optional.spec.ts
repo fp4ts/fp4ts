@@ -23,13 +23,13 @@ describe('Optional', () => {
 
   const headOptionalI = headOptional<number>();
 
-  it('should compose', () => {
-    expect(
-      focus(headOptional<List<number>>())
-        .andThen(headOptionalI)
-        .getOptional(List(List(1, 2, 3), List(4))),
-    ).toEqual(Some(1));
-  });
+  // it('should compose', () => {
+  //   expect(
+  //     focus(headOptional<List<number>>())
+  //       .andThen(headOptionalI)
+  //       .getOptional(List(List(1, 2, 3), List(4))),
+  //   ).toEqual(Some(1));
+  // });
 
   test(
     'foldMap',
@@ -50,12 +50,12 @@ describe('Optional', () => {
     ),
   );
 
-  test(
-    'getOption',
-    forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(headOptionalI).getOptional(xs).equals(Eq.primitive, xs.headOption),
-    ),
-  );
+  // test(
+  //   'getOption',
+  //   forAll(A.fp4tsList(fc.integer()), xs =>
+  //     focus(headOptionalI).getOptional(xs).equals(Eq.primitive, xs.headOption),
+  //   ),
+  // );
 
   // test(
   //   'modifyOption',

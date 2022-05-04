@@ -12,6 +12,9 @@ export * from './prism';
 export * from './setter';
 export * from './traversal';
 
+export * from './indexable';
+export * from './indexed';
+
 export * from './optics';
 export * from './focused';
 export * from './compose';

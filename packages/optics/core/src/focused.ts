@@ -3,16 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Kind, compose as composeF } from '@fp4ts/core';
 import {
   Applicative,
   Array,
+  Contravariant,
   Either,
   List,
   Monoid,
   Option,
   Semigroup,
   Traversable,
+  TraversableWithIndex,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import * as I from './iso';
@@ -23,12 +25,16 @@ import * as L from './lens';
 import * as OP from './optional';
 import * as P from './prism';
 import * as T from './traversal';
-import { compose_ } from './compose';
-import { AnyOptical } from './optics';
+import * as Ix from './indexed';
+import { compose, icompose, icomposeL, icomposeR } from './compose';
+import { AnyIndexedOptical, AnyOptical } from './optics';
+import { Settable } from '@fp4ts/optics-kernel';
+import { Indexable } from './indexable';
 
 /* eslint-disable prettier/prettier */
 export function focus<A>(): Focused<I.Iso<A, A>>;
 export function focus<O extends AnyOptical<any, any, any, any>>(o: O): Focused<O>;
+export function focus<O extends AnyIndexedOptical<any, any, any, any, any>>(o: O): Focused<O>;
 export function focus(o: any = I.iso()): Focused<any> {
   return new Focused(o);
 }
@@ -44,13 +50,13 @@ export class Focused<O> {
   words<S>(this: Focused<T.Traversal<S, string>>): Focused<T.Traversal<S, string>>;
   words<S>(this: Focused<F.Fold<S, string>>): Focused<F.Fold<S, string>>;
   words<S>(this: Focused<F.Fold<S, string>>): Focused<F.Fold<S, string>> {
-    return this.andThen(F.words);
+    return this.compose(F.words);
   }
 
   lines<S>(this: Focused<T.Traversal<S, string>>): Focused<T.Traversal<S, string>>;
   lines<S>(this: Focused<F.Fold<S, string>>): Focused<F.Fold<S, string>>;
   lines<S>(this: Focused<F.Fold<S, string>>): Focused<F.Fold<S, string>> {
-    return this.andThen(F.lines);
+    return this.compose(F.lines);
   }
 
   foldMap<R, S, A>(this: Focused<G.Getting<R, S, A>>, f: (a: A) => R): (s: S) => R {
@@ -125,13 +131,43 @@ export class Focused<O> {
   filter<S, A, B extends A>(this: Focused<F.Fold<S, A>>, p: (a: A) => a is B): Focused<F.Fold<S, B>>;
   filter<S, A>(this: Focused<F.Fold<S, A>>, p: (a: A) => boolean): Focused<F.Fold<S, A>>;
   filter<S, A>(this: Focused<AnyOptical<S, S, A, A>>, p: (a: A) => boolean): Focused<AnyOptical<S, S, A, A>> {
-    return this.andThen(F.filtered(p));
+    return this.compose(F.filtered(p));
   }
 
+  backwards<I, S, T, A, B>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>): Focused<T.IndexedPTraversal<I, S, T, A, B>>;
   backwards<S, T, A, B>(this: Focused<T.PTraversal<S, T, A, B>>): Focused<T.PTraversal<S, T, A, B>>;
+  backwards<I, S, A>(this: Focused<F.IndexedFold<I, S, A>>): Focused<F.IndexedFold<I, S, A>>;
   backwards<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.Fold<S, A>>;
   backwards<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.Fold<S, A>> {
     return new Focused(F.backwards(this.toOptic));
+  }
+
+  ifoldRight<I, R, S, A>(this: Focused<F.IndexedFold<I, S, A>>, z: R, f: (a: A, r: R, i: I) => R):  (s: S) => R {
+    return F.ifoldRight(this.toOptic)(z, f);
+  }
+  ifoldLeft<I, R, S, A>(this: Focused<F.IndexedFold<I, S, A>>, z: R, f: (r: R, a: A, i: I) => R):  (s: S) => R {
+    return F.ifoldLeft(this.toOptic)(z, f);
+  }
+
+  iheadOption<I, S, A>(this: Focused<F.IndexedFold<I, S, A>>, s: S): Option<[A, I]> {
+    return F.iheadOption(this.toOptic)(s);
+  }
+
+  ifilter<I, S, A, B extends A>(this: Focused<T.IndexedTraversal<I, S, A>>, p: (a: A, i: I) => a is B): Focused<T.IndexedTraversal<I, S, B>>;
+  ifilter<I, S, A>(this: Focused<T.IndexedTraversal<I, S, A>>, p: (a: A, i: I) => boolean): Focused<T.IndexedTraversal<I, S, A>>;
+  ifilter<I, S, A, B extends A>(this: Focused<ST.IndexedSetter<I, S, A>>, p: (a: A, i: I) => a is B): Focused<ST.IndexedSetter<I, S, B>>;
+  ifilter<I, S, A>(this: Focused<ST.IndexedSetter<I, S, A>>, p: (a: A, i: I) => boolean): Focused<ST.IndexedSetter<I, S, A>>;
+  ifilter<I, S, A, B extends A>(this: Focused<F.IndexedFold<I, S, A>>, p: (a: A, i: I) => a is B): Focused<F.IndexedFold<I, S, B>>;
+  ifilter<I, S, A>(this: Focused<F.IndexedFold<I, S, A>>, p: (a: A, i: I) => boolean): Focused<F.IndexedFold<I, S, A>>;
+  ifilter<I, S, A>(this: Focused<AnyIndexedOptical<I, S, S, A, A>>, p: (a: A, i: I) => boolean): Focused<AnyIndexedOptical<I, S, S, A, A>> {
+    const composed: AnyIndexedOptical<I, S, S, A, A> =
+      <F>(FF: Contravariant<F> & Applicative<F> & Settable<F>) =>
+        composeF(
+          this.toOptic(FF, Indexable.Indexed(), Indexable.Function1()),
+          F.ifiltered(p)(FF, Indexable.Indexed()),
+        )
+
+    return new Focused(composed);
   }
 
   // -- Setter
@@ -202,6 +238,10 @@ export class Focused<O> {
     return ST.locally(R)(this.toOptic);
   }
 
+  imodify<I, S, T, A, B>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, f: (a: A, i: I) => B): (s: S) => T {
+    return ST.imodify(this.toOptic)(f);
+  }
+
   // -- Getter
 
   view<R, S, A>(this: Focused<G.Getting<A, S, A>>, R: MonadReader<R, S>): Kind<R, [A]> {
@@ -218,13 +258,36 @@ export class Focused<O> {
   to<S, A, C>(this: Focused<G.Getter<S, A>>, f: (a: A) => C): Focused<G.Getter<S, C>>;
   to<S, A, C>(this: Focused<F.Fold<S, A>>, f: (a: A) => C): Focused<F.Fold<S, C>>;
   to<S, A, C>(this: Focused<F.Fold<S, A>>, f: (a: A) => C): Focused<F.Fold<S, C>> {
-    return this.andThen(G.to(f));
+    return this.compose(G.to(f));
   }
 
   asGetting<S, A>(this: Focused<G.Getter<S, A>>): Focused<G.Getting<A, S, A>>;
   asGetting<R, S, A>(this: Focused<F.Fold<S, A>>, R: Monoid<R>): Focused<G.Getting<R, S, A>>;
   asGetting(this: Focused<any>, R?: Monoid<any>): Focused<G.Getting<any, any, any>> {
     return new Focused(G.asGetting(R!)(this.toOptic));
+  }
+
+  iview<I, R, S, A>(this: Focused<G.IndexedGetting<I, [A, I], S, A>>, R: MonadReader<R, S>): Kind<R, [[A, I]]> {
+    return G.iview(R)(this.toOptic);
+  }
+  iuse<I, R, S, A>(this: Focused<G.IndexedGetting<I, [A, I], S, A>>, R: MonadState<R, S>): Kind<R, [[A, I]]> {
+    return G.iuse(R)(this.toOptic);
+  }
+
+  iget<I, S, A>(this: Focused<G.IndexedGetter<I, S, A>>, s: S): [A, I] {
+    return G.iget(this.toOptic)(s);
+  }
+
+  ito<I, S, A, C>(this: Focused<G.Getter<S, A>>, f: (a: A) => [C, I]): Focused<G.IndexedGetter<I, S, C>>;
+  ito<I, S, A, C>(this: Focused<F.Fold<S, A>>, f: (a: A) => [C, I]): Focused<F.IndexedFold<I, S, C>>;
+  ito<I, S, A, C>(this: Focused<F.Fold<S, A>>, f: (a: A) => [C, I]): Focused<F.IndexedFold<I, S, C>> {
+    return this.icomposeR(G.ito(f));
+  }
+
+  asIndexedGetting<I, S, A>(this: Focused<G.IndexedGetter<I, S, A>>): Focused<G.IndexedGetting<I, [A, I], S, A>>;
+  asIndexedGetting<I, R, S, A>(this: Focused<F.IndexedFold<I, S, A>>, R: Monoid<R>): Focused<G.IndexedGetting<I, R, S, A>>;
+  asIndexedGetting(this: Focused<any>, R?: Monoid<any>): Focused<G.IndexedGetting<any, any, any, any>> {
+    return new Focused(G.asIndexedGetting(R!)(this.toOptic));
   }
 
   // -- Traversal
@@ -248,15 +311,23 @@ export class Focused<O> {
   each<G, S, T, A, B>(this: Focused<T.PTraversal<S, T, Kind<G, [A]>, Kind<G, [B]>>>, G: Traversable<G>): Focused<T.PTraversal<S, T, A, B>>;
   each<S, A>(this: Focused<F.Fold<S, A[]>>): Focused<F.Fold<S, A>>;
   each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G>): Focused<F.Fold<S, A>>;
-  each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G> = Array.Traversable() as any as Traversable<G>): Focused<F.Fold<S, A>> {
-    return this.andThen(T.fromTraversable(G)<A>());
+  each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G> = Array.TraversableWithIndex() as any as Traversable<G>): Focused<F.Fold<S, A>> {
+    return this.compose(T.fromTraversable(G)<A>());
+  }
+
+  eachWithIndex<S, T, A, B>(this: Focused<T.PTraversal<S, T, A[], B[]>>): Focused<T.IndexedPTraversal<number, S, T, A, B>>;
+  eachWithIndex<G, I, S, T, A, B>(this: Focused<T.IndexedPTraversal<I, S, T, Kind<G, [A]>, Kind<G, [B]>>>, G: TraversableWithIndex<G, I>): Focused<T.IndexedPTraversal<I, S, T, A, B>>;
+  eachWithIndex<S, A>(this: Focused<F.Fold<S, A[]>>): Focused<F.IndexedFold<number, S, A>>;
+  eachWithIndex<G, I, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: TraversableWithIndex<G, I>): Focused<F.IndexedFold<I, S, A>>;
+  eachWithIndex<G, I, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: TraversableWithIndex<G, any> = Array.TraversableWithIndex() as any as TraversableWithIndex<G, I>): Focused<F.IndexedFold<I, S, A>> {
+    return this.icomposeR(T.fromTraversableWithIndex(G)<A>());
   }
 
   // -- Optional
 
-  getOptional<S, T, A, B>(this: Focused<OP.POptional<S, T, A, B>>, s: S): Option<A> {
-    return OP.getOption(this.toOptic)(s);
-  }
+  // getOptional<S, T, A, B>(this: Focused<OP.POptional<S, T, A, B>>, s: S): Option<A> {
+  //   return OP.getOption(this.toOptic)(s);
+  // }
 
   getOrModify<S, T, A, B>(this: Focused<OP.POptional<S, T, A, B>>, s: S): Either<T, A> {
     return OP.getOrModify(this.toOptic)(s);
@@ -291,36 +362,107 @@ export class Focused<O> {
   prop<A, K extends keyof A, S, T>(this: Focused<OP.POptional<S, T, A, A>>, k: K): Focused<OP.POptional<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<T.PTraversal<S, T, A, A>>, k: K): Focused<T.PTraversal<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<ST.PSetter<S, T, A, A>>, k: K): Focused<ST.PSetter<S, T, A[K], A[K]>>;
-  prop<A, K extends keyof A, S, T>(this: Focused<ST.PSetter<S, T, A, A>>, k: K): Focused<ST.PSetter<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S>(this: Focused<G.Getter<S, A>>, k: K): Focused<G.Getter<S, A[K]>>;
   prop<A, K extends keyof A, S>(this: Focused<F.Fold<S, A>>, k: K): Focused<F.Fold<S, A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<AnyOptical<S, T, A, A>>, k: K): Focused<AnyOptical<S, T, A[K], A[K]>> {
-    return this.andThen(L.fromProp<A>()(k));
+    return this.compose(L.fromProp<A>()(k));
+  }
+
+  // -- Indexing
+
+  reindex<I, J, S, T, A, B>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, f: (i: I) => J): Focused<T.IndexedPTraversal<J, S, T, A, B>>;
+  reindex<I, J, S, T, A, B>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, f: (i: I) => J): Focused<ST.IndexedPSetter<J, S, T, A, B>>;
+  reindex<I, J, S, A>(this: Focused<G.IndexedGetter<I, S, A>>, f: (i: I) => J): Focused<G.IndexedGetter<J, S, A>>;
+  reindex<I, J, S, A>(this: Focused<F.IndexedFold<I, S, A>>, f: (i: I) => J): Focused<F.IndexedFold<J, S, A>>;
+  reindex<I, J, S, T, A, B>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, f: (i: I) => J): Focused<AnyIndexedOptical<J, S, T, A, B>> {
+    return new Focused(Ix.reindex(f)(this.toOptic));
+  }
+
+  indexed<S, T, A, B>(this: Focused<L.PLens<S, T, A, B>>): Focused<L.IndexedPLens<number, S, T, A, B>>;
+  indexed<S, T, A, B>(this: Focused<T.PTraversal<S, T, A, B>>): Focused<T.IndexedPTraversal<number, S, T, A, B>>;
+  indexed<S, A>(this: Focused<G.Getter<S, A>>): Focused<G.IndexedGetter<number, S, A>>;
+  indexed<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.IndexedFold<number, S, A>>;
+  indexed<S, A>(this: Focused<F.Fold<S, A>>): Focused<F.IndexedFold<number, S, A>> {
+    return new Focused(Ix.indexed(this.toOptic));
   }
 
   // -- Composition
 
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<I.PIso<A, B, C, D>>): Focused<I.PIso<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: I.PIso<A, B, C, D>): Focused<I.PIso<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<L.PLens<A, B, C, D>>): Focused<L.PLens<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.PLens<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<P.PPrism<A, B, C, D>>): Focused<P.PPrism<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: P.PPrism<A, B, C, D>): Focused<P.PPrism<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
-  andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: Focused<G.Getter<A, C>>): Focused<G.Getter<S, C>>;
-  andThen<S, A, C>(this: Focused<G.Getter<S, A>>, that: G.Getter<A, C>): Focused<G.Getter<S, C>>;
-  andThen<S, A, C>(this: Focused<F.Fold<S, A>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
-  andThen<S, A, C>(this: Focused<F.Fold<S, A>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
-  andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>>): Focused<AnyOptical<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>>;
-  andThen<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>> | AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>> {
+  compose<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: Focused<I.PIso<A, B, C, D>>): Focused<I.PIso<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<I.PIso<S, T, A, B>>, that: I.PIso<A, B, C, D>): Focused<I.PIso<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<L.PLens<A, B, C, D>>): Focused<L.PLens<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.PLens<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<P.PPrism<A, B, C, D>>): Focused<P.PPrism<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: P.PPrism<A, B, C, D>): Focused<P.PPrism<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.PSetter<S, T, C, D>>;
+  compose<S, A, C>(this: Focused<G.Getter<S, A>>, that: Focused<G.Getter<A, C>>): Focused<G.Getter<S, C>>;
+  compose<S, A, C>(this: Focused<G.Getter<S, A>>, that: G.Getter<A, C>): Focused<G.Getter<S, C>>;
+  compose<S, A, C>(this: Focused<F.Fold<S, A>>, that: Focused<F.Fold<A, C>>): Focused<F.Fold<S, C>>;
+  compose<S, A, C>(this: Focused<F.Fold<S, A>>, that: F.Fold<A, C>): Focused<F.Fold<S, C>>;
+  compose<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>>): Focused<AnyOptical<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>>;
+  compose<S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>> | AnyOptical<A, B, C, D>): Focused<AnyOptical<S, T, C, D>> {
     return that instanceof Focused
-      ? new Focused(compose_(this.toOptic, that.toOptic))
-      : new Focused(compose_(this.toOptic, that));
+      ? new Focused(compose(this.toOptic, that.toOptic))
+      : new Focused(compose(this.toOptic, that));
+  }
+
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<L.IndexedPLens<I, S, T, A, B>>, that: Focused<L.PLens<A, B, C, D>>): Focused<L.IndexedPLens<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<L.IndexedPLens<I, S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.IndexedPLens<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.IndexedPTraversal<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.IndexedPTraversal<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.IndexedPSetter<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, that: ST.PSetter<A, B, C, D>): Focused<ST.IndexedPSetter<I, S, T, C, D>>;
+  icomposeL<I, S, A, C>(this: Focused<G.IndexedGetter<I, S, A>>, that: Focused<G.Getter<A, C>>): Focused<G.IndexedGetter<I, S, C>>;
+  icomposeL<I, S, A, C>(this: Focused<G.IndexedGetter<I, S, A>>, that: G.Getter<A, C>): Focused<G.IndexedGetter<I, S, C>>;
+  icomposeL<I, S, A, C>(this: Focused<F.IndexedFold<I, S, A>>, that: Focused<F.Fold<A, C>>): Focused<F.IndexedFold<I, S, C>>;
+  icomposeL<I, S, A, C>(this: Focused<F.IndexedFold<I, S, A>>, that: F.Fold<A, C>): Focused<F.IndexedFold<I, S, C>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>>): Focused<AnyIndexedOptical<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, that: AnyOptical<A, B, C, D>): Focused<AnyIndexedOptical<I, S, T, C, D>>;
+  icomposeL<I, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, that: Focused<AnyOptical<A, B, C, D>> | AnyOptical<A, B, C, D>): Focused<AnyIndexedOptical<I, S, T, C, D>> {
+    return that instanceof Focused
+      ? new Focused(icomposeL(this.toOptic, that.toOptic))
+      : new Focused(icomposeL(this.toOptic, that));
+  }
+
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: Focused<L.IndexedPLens<I, A, B, C, D>>): Focused<L.IndexedPLens<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: L.IndexedPLens<I, A, B, C, D>): Focused<L.IndexedPLens<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<T.IndexedPTraversal<I, A, B, C, D>>): Focused<T.IndexedPTraversal<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: T.IndexedPTraversal<I, A, B, C, D>): Focused<T.IndexedPTraversal<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: Focused<ST.IndexedPSetter<I, A, B, C, D>>): Focused<ST.IndexedPSetter<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: ST.IndexedPSetter<I, A, B, C, D>): Focused<ST.IndexedPSetter<I, S, T, C, D>>;
+  icomposeR<I, S, A, C>(this: Focused<G.Getter<S, A>>, that: Focused<G.IndexedGetter<I, A, C>>): Focused<G.IndexedGetter<I, S, C>>;
+  icomposeR<I, S, A, C>(this: Focused<G.Getter<S, A>>, that: G.IndexedGetter<I, A, C>): Focused<G.IndexedGetter<I, S, C>>;
+  icomposeR<I, S, A, C>(this: Focused<F.Fold<S, A>>, that: Focused<F.IndexedFold<I, A, C>>): Focused<F.IndexedFold<I, S, C>>;
+  icomposeR<I, S, A, C>(this: Focused<F.Fold<S, A>>, that: F.IndexedFold<I, A, C>): Focused<F.IndexedFold<I, S, C>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyIndexedOptical<I, A, B, C, D>>): Focused<AnyIndexedOptical<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: AnyIndexedOptical<I, A, B, C, D>): Focused<AnyIndexedOptical<I, S, T, C, D>>;
+  icomposeR<I, S, T, A, B, C, D>(this: Focused<AnyOptical<S, T, A, B>>, that: Focused<AnyIndexedOptical<I, A, B, C, D>> | AnyIndexedOptical<I, A, B, C, D>): Focused<AnyIndexedOptical<I, S, T, C, D>> {
+    return that instanceof Focused
+      ? new Focused(icomposeR(this.toOptic, that.toOptic))
+      : new Focused(icomposeR(this.toOptic, that));
+  }
+
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<L.IndexedPLens<I, S, T, A, B>>, that: Focused<L.IndexedPLens<J, A, B, C, D>>): Focused<L.IndexedPLens<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<L.IndexedPLens<I, S, T, A, B>>, that: L.IndexedPLens<J, A, B, C, D>): Focused<L.IndexedPLens<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, that: Focused<T.IndexedPTraversal<J, A, B, C, D>>): Focused<T.IndexedPTraversal<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, that: T.IndexedPTraversal<J, A, B, C, D>): Focused<T.IndexedPTraversal<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, that: Focused<ST.IndexedPSetter<J, A, B, C, D>>): Focused<ST.IndexedPSetter<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, that: ST.IndexedPSetter<J, A, B, C, D>): Focused<ST.IndexedPSetter<[I, J], S, T, C, D>>;
+  icompose<I, J, S, A, C>(this: Focused<G.IndexedGetter<I, S, A>>, that: Focused<G.IndexedGetter<J, A, C>>): Focused<G.IndexedGetter<[I, J], S, C>>;
+  icompose<I, J, S, A, C>(this: Focused<G.IndexedGetter<I, S, A>>, that: G.IndexedGetter<J, A, C>): Focused<G.IndexedGetter<[I, J], S, C>>;
+  icompose<I, J, S, A, C>(this: Focused<F.IndexedFold<I, S, A>>, that: Focused<F.IndexedFold<J, A, C>>): Focused<F.IndexedFold<[I, J], S, C>>;
+  icompose<I, J, S, A, C>(this: Focused<F.IndexedFold<I, S, A>>, that: F.IndexedFold<J, A, C>): Focused<F.IndexedFold<[I, J], S, C>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, that: Focused<AnyIndexedOptical<J, A, B, C, D>>): Focused<AnyIndexedOptical<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<[I, J], S, T, A, B>>, that: AnyIndexedOptical<J, A, B, C, D>): Focused<AnyIndexedOptical<[I, J], S, T, C, D>>;
+  icompose<I, J, S, T, A, B, C, D>(this: Focused<AnyIndexedOptical<I, S, T, A, B>>, that: Focused<AnyIndexedOptical<J, A, B, C, D>> | AnyIndexedOptical<J, A, B, C, D>): Focused<AnyIndexedOptical<[I, J], S, T, C, D>> {
+    return that instanceof Focused
+      ? new Focused(icompose(this.toOptic, that.toOptic))
+      : new Focused(icompose(this.toOptic, that));
   }
 }

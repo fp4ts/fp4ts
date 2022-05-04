@@ -34,14 +34,14 @@ export const OptionalSuite = <S, A>(optional: Optional<S, A>) => {
             'optional replace getOption',
             forAll(arbS, arbA, laws.replaceGetOption)(Option.Eq(EqA)),
           ],
-          [
-            'optional consistent getOption modify id',
-            forAll(
-              arbS,
-              arbA,
-              laws.consistentGetOptionModifyId,
-            )(Option.Eq(EqA)),
-          ],
+          // [
+          //   'optional consistent getOption modify id',
+          //   forAll(
+          //     arbS,
+          //     arbA,
+          //     laws.consistentGetOptionModifyId,
+          //   )(Option.Eq(EqA)),
+          // ],
         ],
         { parent: self.traversal(arbS, arbA, EqS, EqA) },
       ),

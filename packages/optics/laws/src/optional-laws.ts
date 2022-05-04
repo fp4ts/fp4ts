@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Const, Function1, Option, Some } from '@fp4ts/cats';
+import { Const, Option, Some } from '@fp4ts/cats';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { Optional, getOrModify, replace, getOption } from '@fp4ts/optics-core';
@@ -29,12 +29,13 @@ export const OptionalLaws = <S, A>(optional: Optional<S, A>) => ({
       getOption(optional)(s).map(() => a),
     ),
 
-  consistentGetOptionModifyId: (s: S): IsEq<Option<A>> =>
-    new IsEq(
-      getOption(optional)(s),
-      optional(
-        Const.Applicative(firstOption<A>()),
-        Function1.ArrowChoice,
-      )(a => Some(a))(s),
-    ),
+  // consistentGetOptionModifyId: (s: S): IsEq<Option<A>> =>
+  //   new IsEq(
+  //     getOption(optional)(s),
+  //     optional(
+  //       Const.Applicative(firstOption<A>()),
+  //       Indexable.Function1(),
+  //       Indexable.Function1(),
+  //     )(a => Some(a))(s),
+  //   ),
 });

@@ -15,7 +15,7 @@ export const LensSuite = <S, A>(lens: Lens<S, A>) => {
   const laws = LensLaws(lens);
 
   const self = {
-    ...OptionalSuite(lens),
+    // ...OptionalSuite(lens),
 
     lens: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
@@ -32,7 +32,7 @@ export const LensSuite = <S, A>(lens: Lens<S, A>) => {
             forAll(arbS, arbA, laws.consistentGetModifyId)(EqA),
           ],
         ],
-        { parent: self.optional(arbS, arbA, EqS, EqA) },
+        // { parent: self.optional(arbS, arbA, EqS, EqA) },
       ),
   };
 

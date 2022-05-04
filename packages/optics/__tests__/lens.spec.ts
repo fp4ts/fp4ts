@@ -37,28 +37,28 @@ describe('Lens', () => {
   const y = focus(deriveLenses(_Point).y);
 
   it('should compose', () => {
-    expect(p.andThen(x).get(Example('', Point(2, 3)))).toBe(2);
-    expect(p.andThen(y).get(Example('', Point(2, 3)))).toBe(3);
+    expect(p.compose(x).get(Example('', Point(2, 3)))).toBe(2);
+    expect(p.compose(y).get(Example('', Point(2, 3)))).toBe(3);
 
-    expect(p.andThen(x).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(x).replace(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(42, 3)),
     );
-    expect(p.andThen(y).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(y).replace(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(2, 42)),
     );
   });
 
   it('should compose with subclasses', () => {
-    expect(p.andThen(x).get(Example('', Point(2, 3)))).toEqual(2);
-    expect(p.andThen(x).getOptional(Example('', Point(2, 3)))).toEqual(Some(2));
-    expect(p.andThen(x).toList(Example('', Point(2, 3)))).toEqual(List(2));
+    expect(p.compose(x).get(Example('', Point(2, 3)))).toEqual(2);
+    // expect(p.compose(x).getOptional(Example('', Point(2, 3)))).toEqual(Some(2));
+    expect(p.compose(x).toList(Example('', Point(2, 3)))).toEqual(List(2));
     expect(
       p
-        .andThen(x)
+        .compose(x)
         .asGetting(Monoid.addition)
         .foldMap(x => x)(Example('', Point(2, 3))),
     ).toEqual(2);
-    expect(p.andThen(x).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(x).replace(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(42, 3)),
     );
   });
@@ -97,12 +97,12 @@ describe('Lens', () => {
     expect(y.to(x => `${x}`).get(Point(2, 3))).toBe('3');
   });
 
-  test('filter', () => {
-    expect(x.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(
-      Some(2),
-    );
-    expect(y.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(None);
-  });
+  // test('filter', () => {
+  //   expect(x.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(
+  //     Some(2),
+  //   );
+  //   expect(y.filter(x => x % 2 === 0).getOptional(Point(2, 3))).toEqual(None);
+  // });
 
   // test('at', () => {
   //   const map = Map([1, 'one']);
@@ -132,22 +132,22 @@ describe('Lens', () => {
     );
     checkAll(
       'Lens<Example, Point> . Lens<Point, number>',
-      LensSuite(p.andThen(x).toOptic).lens(
+      LensSuite(p.compose(x).toOptic).lens(
         arbExample,
         fc.integer(),
         eqExample,
         Eq.primitive,
       ),
     );
-    checkAll(
-      'lens.asOptional',
-      OptionalSuite(s.toOptic).optional(
-        arbExample,
-        fc.string(),
-        eqExample,
-        Eq.primitive,
-      ),
-    );
+    // checkAll(
+    //   'lens.asOptional',
+    //   OptionalSuite(s.toOptic).optional(
+    //     arbExample,
+    //     fc.string(),
+    //     eqExample,
+    //     Eq.primitive,
+    //   ),
+    // );
     checkAll(
       'lens.asTraversal',
       TraversalSuite(s.toOptic).traversal(

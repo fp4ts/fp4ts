@@ -6,26 +6,34 @@
 import { constant, flow, Kind } from '@fp4ts/core';
 import {
   Contravariant,
-  Function1,
   Function1F,
   Functor,
   Profunctor,
   Semigroup,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
-import { Affine, Settable } from '@fp4ts/optics-kernel';
-import { POptic, POptical } from './optics';
+import { Settable } from '@fp4ts/optics-kernel';
+import { Indexable } from './indexable';
+import { PLensLike, POptical, POver } from './optics';
 
 export type PSetter<S, T, A, B> = <F>(
   F: Settable<F>,
-  P: Affine<Function1F>,
-) => POptic<F, Function1F, S, T, A, B>;
+  P: Indexable<Function1F, unknown>,
+  Q: Indexable<Function1F, unknown>,
+) => PLensLike<F, S, T, A, B>;
 export type Setter<S, A> = PSetter<S, S, A, A>;
+
+export type IndexedPSetter<I, S, T, A, B> = <F, P>(
+  F: Settable<F>,
+  P: Indexable<P, I>,
+  Q: Indexable<Function1F, unknown>,
+) => POver<F, P, S, T, A, B>;
+export type IndexedSetter<I, S, A> = IndexedPSetter<I, S, S, A, A>;
 
 export function modify<S, T, A, B>(
   l: PSetter<S, T, A, B>,
 ): (f: (a: A) => B) => (s: S) => T {
-  return l(Settable.Identity, Function1.ArrowChoice);
+  return l(Settable.Identity, Indexable.Function1(), Indexable.Function1());
 }
 
 export function replace<S, T, A, B>(
@@ -171,4 +179,12 @@ export function locally<R, S>(
   l: PSetter<S, S, A, B>,
 ) => (f: (a: A) => B) => <X>(gr: Kind<R, [X]>) => Kind<R, [X]> {
   return l => flow(modify(l), R.local);
+}
+
+// -- Indexed Methods
+
+export function imodify<I, S, T, A, B>(
+  l: IndexedPSetter<I, S, T, A, B>,
+): (f: (a: A, i: I) => B) => (s: S) => T {
+  return l(Settable.Identity, Indexable.Indexed(), Indexable.Function1());
 }

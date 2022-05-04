@@ -5,12 +5,14 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { tupled } from '@fp4ts/core';
-import { Eq, List, Monoid, Option } from '@fp4ts/cats';
+import { Eq, List, Map, Monoid, Option } from '@fp4ts/cats';
 import {
   focus,
   fromProps,
   fromTraversable,
+  fromTraversableWithIndex,
   Traversal,
+  words,
 } from '@fp4ts/optics-core';
 import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -47,7 +49,7 @@ describe('Traversal', () => {
   it('should compose', () => {
     expect(
       focus(eachL<Location>())
-        .andThen(coordinates)
+        .compose(coordinates)
         .modify(({ longitude, latitude }) => ({
           latitude: latitude + 1,
           longitude: longitude + 1,
@@ -212,6 +214,44 @@ describe('Traversal', () => {
             },
           ),
         ),
+    ),
+  );
+
+  test('indexing', () => {
+    const SN = Map.TraversableWithIndex<number>();
+
+    const r = focus(fromTraversableWithIndex(SN)<string>())
+      .compose(words)
+      .headOption(Map([42, 'test test']));
+
+    const s = focus(fromTraversableWithIndex(SN)<string>())
+      .icomposeL(words)
+      .iheadOption(Map([42, 'test test']));
+
+    console.log(r);
+    console.log(s);
+  });
+
+  test('nested indexing', () => {
+    const SN = Map.TraversableWithIndex<number>();
+    const SM = Map.TraversableWithIndex<string>();
+    const s = focus(fromTraversableWithIndex(SN)<Map<string, string>>())
+      .icompose(fromTraversableWithIndex(SM)<string>())
+      .icomposeL(words)
+      .iheadOption(Map([42, Map(['testing', 'test test'])]));
+
+    console.log(s);
+  });
+
+  test(
+    'eachIndexed',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        focus<string[]>()
+          .eachWithIndex()
+          .ifilter((a, i) => i % 2 === 0)
+          .replace('empty')(xs),
+      ).toEqual(xs.map((a, i) => (i % 2 === 0 ? 'empty' : a))),
     ),
   );
 

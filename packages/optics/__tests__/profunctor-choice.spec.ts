@@ -4,12 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
+import { Eq, Tagged } from '@fp4ts/cats';
 import { ProfunctorChoice } from '@fp4ts/optics-kernel';
 import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import { ProfunctorChoiceSuite } from '@fp4ts/optics-laws';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { Eq, Tagged } from '@fp4ts/cats';
 
 describe('ProfunctorChoice', () => {
   checkAll(
@@ -27,7 +27,7 @@ describe('ProfunctorChoice', () => {
       ec.boolean(),
       Eq.primitive,
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => A.fp4tsTagged<X>()<Y>(Y),
-      <X, Y>(_: ExhaustiveCheck<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
     ),
   );
 });

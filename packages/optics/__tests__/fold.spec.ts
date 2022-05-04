@@ -4,9 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List, Monoid, Option } from '@fp4ts/cats';
+import { Array, Eq, List, Monoid, Option } from '@fp4ts/cats';
 import { Reader, State } from '@fp4ts/cats-mtl';
-import { Fold, focus, fromFoldable, filtered } from '@fp4ts/optics-core';
+import {
+  Fold,
+  focus,
+  fromFoldable,
+  filtered,
+  fromTraversable,
+  fromTraversableWithIndex,
+  fromFoldableWithIndex,
+} from '@fp4ts/optics-core';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -19,7 +27,7 @@ describe('Fold', () => {
   it('should compose', () => {
     expect(
       focus(nestedListFold<number>())
-        .andThen(eachli)
+        .compose(eachli)
         .toList(List(List(1, 2, 3), List(4, 5, 6))),
     ).toEqual(List(1, 2, 3, 4, 5, 6));
   });
@@ -172,6 +180,128 @@ describe('Fold', () => {
       expect(
         focus(eachli).preuse(State.MonadState<List<number>>()).runStateA(xs),
       ).toEqual(xs.headOption),
+    ),
+  );
+
+  describe('backwards', () => {
+    test(
+      'fold',
+      forAll(fc.array(fc.integer()), xs =>
+        expect(
+          focus(fromFoldable(Array.FoldableWithIndex())<number>())
+            .backwards()
+            .toList(xs),
+        ).toEqual(List.fromArray(xs.reverse())),
+      ),
+    );
+
+    test(
+      'traversal',
+      forAll(fc.array(fc.integer()), xs =>
+        expect(
+          focus(fromTraversable(Array.TraversableWithIndex())<number>())
+            .backwards()
+            .toList(xs),
+        ).toEqual(List.fromArray(xs.reverse())),
+      ),
+    );
+
+    test(
+      'indexed fold',
+      forAll(fc.array(fc.integer()), xs =>
+        expect(
+          focus(fromFoldableWithIndex(Array.FoldableWithIndex())<number>())
+            .backwards()
+            .toList(xs),
+        ).toEqual(List.fromArray(xs.reverse())),
+      ),
+    );
+
+    test(
+      'indexed traversal',
+      forAll(fc.array(fc.integer()), xs =>
+        expect(
+          focus(
+            fromTraversableWithIndex(Array.TraversableWithIndex())<number>(),
+          )
+            .backwards()
+            .toList(xs),
+        ).toEqual(List.fromArray(xs.reverse())),
+      ),
+    );
+  });
+
+  test(
+    'ifoldRight',
+    forAll(
+      fc.array(fc.integer()),
+      fc.func<[number, string, number], string>(fc.string()),
+      (xs, f) =>
+        expect(
+          focus(
+            fromFoldableWithIndex(Array.FoldableWithIndex())<number>(),
+          ).ifoldRight(
+            '',
+            f,
+          )(xs),
+        ).toEqual(xs.reduceRight((r, x, i) => f(x, r, i), '')),
+    ),
+  );
+
+  test(
+    'ifoldLeft',
+    forAll(
+      fc.array(fc.integer()),
+      fc.func<[string, number, number], string>(fc.string()),
+      (xs, f) =>
+        expect(
+          focus(
+            fromFoldableWithIndex(Array.FoldableWithIndex())<number>(),
+          ).ifoldLeft(
+            '',
+            f,
+          )(xs),
+        ).toEqual(xs.reduce((r, x, i) => f(r, x, i), '')),
+    ),
+  );
+
+  test(
+    'ifilter',
+    forAll(
+      fc.array(fc.string()),
+      fc.func<[number], boolean>(fc.boolean()),
+      (xs, p) =>
+        expect(
+          focus(fromFoldableWithIndex(Array.FoldableWithIndex())<string>())
+            .ifilter((x, i) => p(i))
+            .toList(xs),
+        ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),
+    ),
+  );
+
+  test(
+    'eachIndexed',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        focus<string[]>()
+          .eachWithIndex()
+          .ifilter((a, i) => i % 2 === 0)
+          .toList(xs),
+      ).toEqual(List.fromArray(xs.filter((a, i) => i % 2 === 0))),
+    ),
+  );
+
+  test(
+    'indexing',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        focus<string[]>()
+          .each()
+          .filter(x => x.length > 2)
+          .indexed()
+          .ifilter((a, i) => i > 1)
+          .toList(xs),
+      ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
     ),
   );
 

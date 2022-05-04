@@ -3,34 +3,72 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { pipe } from '@fp4ts/core';
-import { Fold } from './fold';
-import { Getter } from './getter';
+import { compose as composeF } from '@fp4ts/core';
+import { Indexable } from './indexable';
+import { Fold, IndexedFold } from './fold';
+import { Getter, IndexedGetter } from './getter';
 import { PIso } from './iso';
-import { AnyOptical } from './optics';
-import { PLens } from './lens';
+import { AnyIndexedOptical, AnyOptical } from './optics';
+import { IndexedPLens, PLens } from './lens';
 import { POptional } from './optional';
 import { PPrism } from './prism';
-import { PSetter } from './setter';
-import { PTraversal } from './traversal';
+import { IndexedPSetter, PSetter } from './setter';
+import { IndexedPTraversal, PTraversal } from './traversal';
+
+const Q = () => Indexable.Function1();
+const P = <I>() => Indexable.Indexed<I>();
 
 /* eslint-disable prettier/prettier */
-export function compose_<S, T, A, B, C, D>(l: PIso<S, T, A, B>, r: PIso<A, B, C, D>): PIso<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: PLens<S, T, A, B>, r: PLens<A, B, C, D>): PLens<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: PPrism<S, T, A, B>, r: PPrism<A, B, C, D>): PPrism<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: POptional<S, T, A, B>, r: POptional<A, B, C, D>): POptional<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: PTraversal<S, T, A, B>, r: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: PSetter<S, T, A, B>, r: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
-export function compose_<S, A, C>(l: Getter<S, A>, r: Getter<A, C>): Getter<S, C>;
-export function compose_<S, A, C>(l: Fold<S, A>, r: Fold<A, C>): Fold<S, C>;
-export function compose_<S, T, A, B, C, D>(l: AnyOptical<S, T, A, B>, r: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D>;
-export function compose_<S, T, A, B, C, D>(l: AnyOptical<S, T, A, B>, r: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D> {
-  return (F: any, P: any, Q: any = P) => (pcfd: any) =>
-    pipe(
-      pcfd,
-      r(F, P, Q),
-      l(F, Q, Q),
+export function compose<S, T, A, B, C, D>(f: PIso<S, T, A, B>, g: PIso<A, B, C, D>): PIso<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: PLens<S, T, A, B>, g: PLens<A, B, C, D>): PLens<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: PPrism<S, T, A, B>, g: PPrism<A, B, C, D>): PPrism<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: POptional<S, T, A, B>, g: POptional<A, B, C, D>): POptional<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: PTraversal<S, T, A, B>, g: PTraversal<A, B, C, D>): PTraversal<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: PSetter<S, T, A, B>, g: PSetter<A, B, C, D>): PSetter<S, T, C, D>;
+export function compose<S, A, C>(f: Getter<S, A>, g: Getter<A, C>): Getter<S, C>;
+export function compose<S, A, C>(f: Fold<S, A>, g: Fold<A, C>): Fold<S, C>;
+export function compose<S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D>;
+export function compose<S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D> {
+  return (F) =>
+    composeF(
+      f(F, Q(), Q()),
+      g(F, Q(), Q()),
+    );
+}
+
+export function icomposeL<I, S, T, A, B, C, D>(f: IndexedPLens<I, S, T, A, B>, g: PLens<A, B, C, D>): IndexedPLens<I, S, T, C, D>;
+export function icomposeL<I, S, T, A, B, C, D>(f: IndexedPTraversal<I, S, T, A, B>, g: PLens<A, B, C, D>): IndexedPTraversal<I, S, T, C, D>;
+export function icomposeL<I, S, T, A, B, C, D>(f: IndexedPSetter<I, S, T, A, B>, g: PLens<A, B, C, D>): IndexedPSetter<I, S, T, C, D>;
+export function icomposeL<I, S, A, C>(f: IndexedGetter<I, S, A>, g: Getter<A, C>): IndexedGetter<I, S, C>;
+export function icomposeL<I, S, A, C>(f: IndexedFold<I, S, A>, g: Fold<A, C>): IndexedFold<I, S, C>;
+export function icomposeL<I, S, T, A, B, C, D>(f: AnyIndexedOptical<I, S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyIndexedOptical<I, S, T, C, D>;
+export function icomposeL<I, S, T, A, B, C, D>(f: AnyIndexedOptical<I, S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyIndexedOptical<I, S, T, C, D> {
+  return (F) => 
+    h => f(F, P(), Q())((a, i) => g(F, Q(), Q())(c => h(c, i))(a));
+}
+
+export function icomposeR<I, S, T, A, B, C, D>(f: PLens<S, T, A, B>, g: IndexedPLens<I, A, B, C, D>): IndexedPLens<I, S, T, C, D>;
+export function icomposeR<I, S, T, A, B, C, D>(f: PTraversal<S, T, A, B>, g: IndexedPLens<I, A, B, C, D>): IndexedPTraversal<I, S, T, C, D>;
+export function icomposeR<I, S, T, A, B, C, D>(f: PSetter<S, T, A, B>, g: IndexedPLens<I, A, B, C, D>): IndexedPSetter<I, S, T, C, D>;
+export function icomposeR<I, S, A, C>(f: Getter<S, A>, g: IndexedGetter<I, A, C>): IndexedGetter<I, S, C>;
+export function icomposeR<I, S, A, C>(f: Fold<S, A>, g: IndexedFold<I, A, C>): IndexedFold<I, S, C>;
+export function icomposeR<I, S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyIndexedOptical<I, A, B, C, D>): AnyIndexedOptical<I, S, T, C, D>;
+export function icomposeR<I, S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyIndexedOptical<I, A, B, C, D>): AnyIndexedOptical<I, S, T, C, D> {
+  return (F) =>
+    composeF(
+      f(F, Q(), Q()),
+      g(F, P(), Q()),
     );
 }
 
 
+export function icompose<I, J, S, T, A, B, C, D>(f: IndexedPLens<I, S, T, A, B>, g: IndexedPLens<J, A, B, C, D>): IndexedPLens<[I, J], S, T, C, D>;
+export function icompose<I, J, S, T, A, B, C, D>(f: IndexedPTraversal<I, S, T, A, B>, g: IndexedPLens<J, A, B, C, D>): IndexedPTraversal<[I, J], S, T, C, D>;
+export function icompose<I, J, S, T, A, B, C, D>(f: IndexedPSetter<I, S, T, A, B>, g: IndexedPLens<J, A, B, C, D>): IndexedPSetter<[I, J], S, T, C, D>;
+export function icompose<I, J, S, A, C>(f: IndexedGetter<I, S, A>, g: IndexedGetter<J, A, C>): IndexedGetter<[I, J], S, C>;
+export function icompose<I, J, S, A, C>(f: IndexedFold<I, S, A>, g: IndexedFold<J, A, C>): IndexedFold<[I, J], S, C>;
+export function icompose<I, J, S, T, A, B, C, D>(f: AnyIndexedOptical<I, S, T, A, B>, g: AnyIndexedOptical<J, A, B, C, D>): AnyIndexedOptical<[I, J], S, T, C, D>;
+export function icompose<I, J, S, T, A, B, C, D>(f: AnyIndexedOptical<I, S, T, A, B>, g: AnyIndexedOptical<J, A, B, C, D>): AnyIndexedOptical<[I, J], S, T, C, D> {
+  return F => 
+    h => f(F, P(), Q())((a, i) => g(F, P(), Q())((c, j) => h(c, [i, j]))(a));
+}

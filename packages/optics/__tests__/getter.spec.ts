@@ -26,12 +26,12 @@ describe('Getter', () => {
   it('should compose', () => {
     expect(
       focus(bar)
-        .andThen(i)
+        .compose(i)
         .get(new Foo(new Bar(42))),
     ).toBe(42);
     expect(
       focus(is)
-        .andThen(bazFold)
+        .compose(bazFold)
         .asGetting(Monoid.string)
         .foldMap(x => `${x}`)(new Baz(List(1, 2, 3, 4, 5))),
     ).toEqual('12345');
@@ -41,7 +41,7 @@ describe('Getter', () => {
     expect(focus(bar).get(new Foo(new Bar(42)))).toEqual(new Bar(42));
     expect(
       focus(bar)
-        .andThen(i)
+        .compose(i)
         .get(new Foo(new Bar(42))),
     ).toEqual(42);
   });
@@ -70,7 +70,7 @@ describe('Getter', () => {
     ).toBe(42);
     expect(
       focus(bar)
-        .andThen(i)
+        .compose(i)
         .asGetting()
         .view(Reader.MonadReader<Foo>())
         .runReader(new Foo(new Bar(42))),
@@ -83,7 +83,7 @@ describe('Getter', () => {
     ).toBe(42);
     expect(
       focus(bar)
-        .andThen(i)
+        .compose(i)
         .asGetting()
         .use(State.MonadState<Foo>())
         .runStateA(new Foo(new Bar(42))),
@@ -91,7 +91,7 @@ describe('Getter', () => {
   });
 
   // test('choice', () => {
-  //   const x = i.choice(bar.andThen(i));
+  //   const x = i.choice(bar.compose(i));
 
   //   expect(x.get(Left(new Bar(42)))).toBe(42);
   //   expect(x.get(Right(new Foo(new Bar(43))))).toBe(43);

@@ -226,9 +226,16 @@ export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    G.map_(
-      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
-      c => c.toArray,
+    xs.reduce(
+      (gxs, x, i) =>
+        G.map2_(
+          gxs,
+          f(x, i),
+        )((xs, x) => {
+          xs.push(x);
+          return xs;
+        }),
+      G.pure([] as B[]),
     );
 
 export const flatTraverse_ = <G, A, B>(
