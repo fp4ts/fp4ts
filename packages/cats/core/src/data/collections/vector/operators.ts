@@ -393,7 +393,7 @@ export const traverse_ =
   <F>(F: Applicative<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [Vector<B>]> =>
     F.map_(
-      Chain.traverseViaChain(F, vectorFoldable())(xs, f),
+      Chain.traverseViaChain(F, vectorFoldable())(xs, x => f(x)),
       ys => ys.toVector,
     );
 

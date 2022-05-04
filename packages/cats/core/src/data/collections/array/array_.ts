@@ -28,13 +28,13 @@ import {
   arrayEq,
   arrayEqK,
   arrayFlatMap,
-  arrayFoldable,
-  arrayFunctor,
+  arrayFoldableWithIndex,
+  arrayFunctorWithIndex,
   arrayFunctorFilter,
   arrayMonad,
   arrayMonoidK,
   arraySemigroupK,
-  arrayTraversable,
+  arrayTraversableWithIndex,
 } from './instances';
 import { ArrayF } from './array';
 
@@ -45,15 +45,15 @@ export const Array = {
   Eq: arrayEq,
   SemigroupK: arraySemigroupK,
   MonoidK: arrayMonoidK,
-  Functor: arrayFunctor,
+  FunctorWithIndex: arrayFunctorWithIndex,
   FunctorFilter: arrayFunctorFilter,
   Applicative: arrayApplicative,
   Alternative: arrayAlternative,
   FlatMap: arrayFlatMap,
   CoflatMap: arrayCoflatMap,
   Monad: arrayMonad,
-  Foldable: arrayFoldable,
-  Traversable: arrayTraversable,
+  FoldableWithIndex: arrayFoldableWithIndex,
+  TraversableWithIndex: arrayTraversableWithIndex,
 };
 interface Array {
   // -- Instances

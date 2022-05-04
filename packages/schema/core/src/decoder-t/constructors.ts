@@ -290,4 +290,4 @@ export const defer = <F, I, A>(
 const zipWithIndex = <A>(xs: A[]): [A, number][] =>
   xs.map((x, idx) => [x, idx]);
 
-const { traverse } = CatsArray.Traversable();
+const { traverse } = CatsArray.TraversableWithIndex();

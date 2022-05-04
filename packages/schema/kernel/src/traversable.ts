@@ -47,7 +47,7 @@ export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
       null: Const.Traversable<null>(),
       par: Identity.Traversable,
 
-      array: f => self.compose_(Array.Traversable(), f),
+      array: f => self.compose_(Array.TraversableWithIndex(), f),
       nullable: <F>(F: Traversable<F>) =>
         SafeTraversable.of<[NullableK, F]>({
           ...SafeFunctor.of<[NullableK, F]>({

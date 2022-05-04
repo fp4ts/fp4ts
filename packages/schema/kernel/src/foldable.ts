@@ -28,7 +28,7 @@ export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
     null: Const.Foldable<null>(),
     par: Identity.Foldable,
 
-    array: f => self.compose_(Array.Foldable(), f),
+    array: f => self.compose_(Array.FoldableWithIndex(), f),
     nullable: <F>(F: Foldable<F>) =>
       SafeFoldable.of<[NullableK, F]>({
         safeFoldLeft_: (fa, z, f) =>

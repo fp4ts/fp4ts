@@ -10,6 +10,7 @@ import { CoflatMap } from './coflat-map';
 import { ComposedApplicative } from './composed';
 import { Array } from './data';
 import { Foldable } from './foldable';
+import { FoldableWithIndex } from './foldable-with-index';
 
 /**
  * @category Type Class
@@ -28,6 +29,18 @@ export interface Applicative<F> extends Apply<F> {
   traverseA_<T>(
     T: Foldable<T>,
   ): <A, B>(ta: Kind<T, [A]>, f: (a: A) => Kind<F, [B]>) => Kind<F, [void]>;
+
+  traverseWithIndexA<T, I>(
+    T: FoldableWithIndex<T, I>,
+  ): <A, B>(
+    f: (a: A, i: I) => Kind<F, [B]>,
+  ) => (ta: Kind<T, [A]>) => Kind<F, [void]>;
+  traverseWithIndexA_<T, I>(
+    T: FoldableWithIndex<T, I>,
+  ): <A, B>(
+    ta: Kind<T, [A]>,
+    f: (a: A, i: I) => Kind<F, [B]>,
+  ) => Kind<F, [void]>;
 }
 
 export type ApplicativeRequirements<F> = Pick<Applicative<F>, 'pure' | 'ap_'> &
@@ -38,12 +51,20 @@ export const Applicative = Object.freeze({
       unit: F.pure(undefined as void),
 
       tupled: ((...xs) =>
-        Array.Traversable().sequence(self)(xs)) as Applicative<F>['tupled'],
+        Array.TraversableWithIndex().sequence(self)(
+          xs,
+        )) as Applicative<F>['tupled'],
 
       traverseA: T => f => ta => self.traverseA_(T)(ta, f),
       traverseA_: T => (ta, f) =>
         T.foldLeft_(ta, self.pure(undefined), (ac, x) =>
           self.productL_(ac, f(x)),
+        ),
+
+      traverseWithIndexA: T => f => ta => self.traverseWithIndexA_(T)(ta, f),
+      traverseWithIndexA_: T => (ta, f) =>
+        T.foldLeftWithIndex_(ta, self.pure(undefined), (ac, x, i) =>
+          self.productL_(ac, f(x, i)),
         ),
 
       ...Apply.of<F>({ ...Applicative.functor<F>(F), ...F }),

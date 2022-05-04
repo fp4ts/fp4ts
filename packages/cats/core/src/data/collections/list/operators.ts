@@ -886,7 +886,9 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
     G.map_(
-      Chain.traverseViaChain(G, Array.Foldable())(toArray(xs), f),
+      Chain.traverseViaChain(G, Array.FoldableWithIndex())(toArray(xs), x =>
+        f(x),
+      ),
       ys => ys.toList,
     );
 

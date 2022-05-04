@@ -12,7 +12,7 @@ import { Option, Some, None } from '../../option';
 import { Either } from '../../either';
 import { Chain } from '../chain';
 import { List } from '../list';
-import { arrayFoldable } from './instances';
+import { arrayFoldableWithIndex } from './instances';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -133,8 +133,10 @@ export const elem_ = <A>(xs: A[], idx: number): Option<A> =>
 export const filter_ = <A>(xs: A[], p: (a: A) => boolean): A[] =>
   xs.filter(x => p(x));
 
-export const map_: <A, B>(xs: A[], f: (a: A) => B) => B[] = (xs, f) =>
-  xs.map(x => f(x));
+export const map_: <A, B>(xs: A[], f: (a: A, i: number) => B) => B[] = (
+  xs,
+  f,
+) => xs.map((x, i) => f(x, i));
 
 export const tap_: <A>(xs: A[], f: (a: A) => unknown) => A[] = (xs, f) =>
   xs.map(x => {
@@ -185,14 +187,23 @@ export const tailRecM_ = <S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] => {
   return results;
 };
 
-export const foldMap_ = <M, A>(xs: A[], f: (a: A) => M, M: Monoid<M>): M =>
-  foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
+export const foldMap_ = <M, A>(
+  xs: A[],
+  f: (a: A, i: number) => M,
+  M: Monoid<M>,
+): M => foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
 
-export const foldLeft_ = <A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B =>
-  xs.reduce((y, x) => f(y, x), z);
+export const foldLeft_ = <A, B>(
+  xs: A[],
+  z: B,
+  f: (b: B, a: A, i: number) => B,
+): B => xs.reduce((y, x, i) => f(y, x, i), z);
 
-export const foldRight_ = <A, B>(xs: A[], z: B, f: (a: A, b: B) => B): B =>
-  xs.reduceRight((b, a) => f(a, b), z);
+export const foldRight_ = <A, B>(
+  xs: A[],
+  z: B,
+  f: (a: A, b: B, i: number) => B,
+): B => xs.reduceRight((b, a, i: number) => f(a, b, i), z);
 
 export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
   const results: Ior<A, B>[] = [];
@@ -214,8 +225,11 @@ export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: A[], f: (a: A) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    G.map_(Chain.traverseViaChain(G, arrayFoldable())(xs, f), c => c.toArray);
+  <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
+    G.map_(
+      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
+      c => c.toArray,
+    );
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

@@ -289,7 +289,10 @@ export const toVector = <A>(xs: Chain<A>): Vector<A> =>
 
 export const traverseViaChain =
   <G, F>(G: Applicative<G>, F: Foldable<F>) =>
-  <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> => {
+  <A, B>(
+    xs: Kind<F, [A]>,
+    f: (a: A, i: number) => Kind<G, [B]>,
+  ): Kind<G, [Chain<B>]> => {
     if (F.isEmpty(xs)) return G.pure(empty);
 
     // Max width of the tree -- max depth log_128(c.size)
@@ -298,11 +301,13 @@ export const traverseViaChain =
     const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
-        let first = Eval.delay(() => G.map_(f(F.elem_(xs, end - 1).get), List));
+        let first = Eval.delay(() =>
+          G.map_(f(F.elem_(xs, end - 1).get, end - 1), List),
+        );
         for (let idx = end - 2; start <= idx; idx--) {
           const a = F.elem_(xs, idx).get;
           const right = first;
-          first = Eval.defer(() => G.map2Eval_(f(a), right)(List.cons));
+          first = Eval.defer(() => G.map2Eval_(f(a, idx), right)(List.cons));
         }
         return first.map(gls => G.map_(gls, fromList));
       } else {
@@ -484,7 +489,7 @@ export const foldMap_ =
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Chain<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> =>
-    traverseViaChain(G, CatsArray.Foldable())(toArray(xs), f);
+    traverseViaChain(G, CatsArray.FoldableWithIndex())(toArray(xs), x => f(x));
 
 export const equals_ =
   <A>(E: Eq<A>) =>

@@ -26,7 +26,7 @@ export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
     null: Const.Functor<null>(),
     par: Identity.Functor,
 
-    array: f => self.compose_(Array.Functor(), f),
+    array: f => self.compose_(Array.FunctorFilter(), f),
     nullable: <F>(F: Functor<F>) =>
       SafeFunctor.of<[NullableK, F]>({
         safeMap_: (fa, f) =>

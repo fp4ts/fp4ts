@@ -14,6 +14,7 @@ import {
   FunctorFilterSuite,
   MonadSuite,
   TraversableSuite,
+  TraversableWithIndexSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -98,16 +99,17 @@ describe('Array laws', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Array.Traversable());
   checkAll(
-    'Traversable<Array>',
-    traversableTests.traversable<number, number, number, EvalF, EvalF>(
+    'TraversableWithIndex<Array, number>',
+    TraversableWithIndexSuite(
+      Array.TraversableWithIndex(),
+    ).traversableWithIndex(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       Monoid.addition,
       Monoid.addition,
-      Array.Functor(),
+      Array.FunctorWithIndex(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.primitive,

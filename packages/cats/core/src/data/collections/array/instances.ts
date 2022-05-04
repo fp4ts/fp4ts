@@ -5,7 +5,6 @@
 
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval } from '../../../eval';
 import { EqK } from '../../../eq-k';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
@@ -16,8 +15,6 @@ import { Alternative } from '../../../alternative';
 import { FlatMap } from '../../../flat-map';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
-import { Foldable } from '../../../foldable';
-import { Traversable } from '../../../traversable';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 
@@ -44,6 +41,9 @@ import {
   traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
+import { FunctorWithIndex } from '../../../functor-with-index';
+import { FoldableWithIndex } from '../../../foldable-with-index';
+import { TraversableWithIndex } from '../../../traversable-with-index';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
@@ -64,9 +64,10 @@ export const arrayAlign: () => Align<ArrayF> = lazyVal(() =>
   Align.of({ functor: arrayFunctor(), align_: align_ }),
 );
 
-export const arrayFunctor: () => Functor<ArrayF> = lazyVal(() =>
-  Functor.of({ map_ }),
-);
+export const arrayFunctorWithIndex: () => FunctorWithIndex<ArrayF, number> =
+  lazyVal(() => FunctorWithIndex.of({ mapWithIndex_: map_ }));
+
+export const arrayFunctor: () => Functor<ArrayF> = arrayFunctorWithIndex;
 
 export const arrayFunctorFilter: () => FunctorFilter<ArrayF> = lazyVal(() =>
   FunctorFilter.of({
@@ -78,7 +79,7 @@ export const arrayFunctorFilter: () => FunctorFilter<ArrayF> = lazyVal(() =>
 export const arrayApply: () => Apply<ArrayF> = lazyVal(() =>
   Apply.of<ArrayF>({
     ...arrayFunctor(),
-    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, f)),
+    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, x => f(x))),
   }),
 );
 
@@ -105,42 +106,32 @@ export const arrayMonad: () => Monad<ArrayF> = lazyVal(() =>
   }),
 );
 
-export const arrayFoldable: () => Foldable<ArrayF> = lazyVal(() =>
-  Foldable.of({
-    all_: all_,
-    any_: any_,
-    count_: count_,
-    elem_: elem_,
-    foldMap_:
-      <M>(M: Monoid<M>) =>
-      <A>(xs: A[], f: (a: A) => M) =>
-        foldMap_(xs, f, M),
-    foldLeft_: foldLeft_,
-    foldRight_: <A, B>(
-      xs: A[],
-      eb: Eval<B>,
-      f: (a: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (i: number): Eval<B> =>
-        i >= xs.length
-          ? eb
-          : f(
-              xs[i],
-              Eval.defer(() => loop(i + 1)),
-            );
-      return loop(0);
-    },
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: size,
-  }),
-);
+export const arrayFoldableWithIndex: () => FoldableWithIndex<ArrayF, number> =
+  lazyVal(() =>
+    FoldableWithIndex.of({
+      all_: all_,
+      any_: any_,
+      count_: count_,
+      elem_: elem_,
+      foldMapWithIndex_:
+        <M>(M: Monoid<M>) =>
+        <A>(xs: A[], f: (a: A, i: number) => M) =>
+          foldMap_(xs, f, M),
+      foldLeftWithIndex_: foldLeft_,
+      isEmpty: isEmpty,
+      nonEmpty: nonEmpty,
+      size: size,
+    }),
+  );
 
-export const arrayTraversable: () => Traversable<ArrayF> = lazyVal(() =>
-  Traversable.of({
-    ...arrayFunctor(),
-    ...arrayFoldable(),
-    traverse_: traverse_,
+export const arrayTraversableWithIndex: () => TraversableWithIndex<
+  ArrayF,
+  number
+> = lazyVal(() =>
+  TraversableWithIndex.of({
+    ...arrayFunctorWithIndex(),
+    ...arrayFoldableWithIndex(),
+    traverseWithIndex_: traverse_,
     sequence: sequence,
   }),
 );

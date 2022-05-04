@@ -463,6 +463,7 @@ export const scanRight1_ = <A>(q: Queue<A>, f: (a: A, b: A) => A): Queue<A> =>
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Queue<B>]> =>
-    G.map_(Chain.traverseViaChain(G, queueFoldable())(q, f), ys =>
-      fromIterator(ys.iterator),
+    G.map_(
+      Chain.traverseViaChain(G, queueFoldable())(q, x => f(x)),
+      ys => fromIterator(ys.iterator),
     );

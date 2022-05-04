@@ -21,7 +21,7 @@ export const empty: Chain<never> = Empty;
 export const of = <A>(...xs: A[]): Chain<A> => fromArray(xs);
 
 export const fromArray: <A>(xs: A[]) => Chain<A> = xs =>
-  fromFoldable(Array.Foldable())(xs);
+  fromFoldable(Array.FoldableWithIndex())(xs);
 
 export const fromList: <A>(xs: List<A>) => Chain<A> = xs =>
   fromFoldable(List.Foldable)(xs);

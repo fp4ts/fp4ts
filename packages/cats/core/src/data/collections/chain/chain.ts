@@ -66,7 +66,10 @@ interface ChainObj {
   traverseViaChain<G, F>(
     G: Applicative<G>,
     F: Foldable<F>,
-  ): <A, B>(xs: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) => Kind<G, [Chain<B>]>;
+  ): <A, B>(
+    xs: Kind<F, [A]>,
+    f: (a: A, i: number) => Kind<G, [B]>,
+  ) => Kind<G, [Chain<B>]>;
   tailRecM<S>(s: S): <A>(f: (s: S) => Chain<Either<S, A>>) => Chain<A>;
 
   // -- Instances
