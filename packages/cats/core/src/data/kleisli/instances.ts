@@ -17,6 +17,8 @@ import { ApplicativeError } from '../../applicative-error';
 import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
+import { Distributive } from '../../distributive';
+import { Arrow, ArrowApply, ArrowChoice } from '../../arrow';
 
 import { Kleisli } from './algebra';
 import type { KleisliF } from './kleisli';
@@ -33,9 +35,7 @@ import {
   tailRecM_,
 } from './operators';
 import { liftF, of, pure, suspend } from './constructors';
-import { Arrow, ArrowChoice } from '../../arrow';
 import { Either, Left, Right } from '../either';
-import { Distributive } from '../../distributive';
 
 export const kleisliDefer: <F, A>(
   F: Defer<F>,
@@ -186,6 +186,14 @@ export const kleisliArrow = <F>(F: Monad<F>): Arrow<$<KleisliF, [F]>> =>
       <A, B>(k: Kleisli<F, A, B>) =>
         of(([a, c]: [A, C]) => F.map_(k.run(a), b => [b, c])),
     compose_: compose_(F),
+  });
+
+export const kleisliArrowApply = <F>(
+  F: Monad<F>,
+): ArrowApply<$<KleisliF, [F]>> =>
+  ArrowApply.of<$<KleisliF, [F]>>({
+    ...kleisliArrow(F),
+    app: <A, B>() => of(([fab, a]: [Kleisli<F, A, B>, A]) => fab.run(a)),
   });
 
 export const kleisliArrowChoice = <F>(

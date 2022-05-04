@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './arrow';
+export * from './arrow-apply';
 export * from './arrow-choice';
 export * from './category';
 export * from './choice';

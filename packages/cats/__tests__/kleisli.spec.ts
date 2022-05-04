@@ -24,6 +24,7 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import {
   AlternativeSuite,
+  ArrowApplySuite,
   ArrowChoiceSuite,
   ContravariantSuite,
   DistributiveSuite,
@@ -407,6 +408,35 @@ describe('Kleisli', () => {
         A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
       <X>(E: Eq<X>) =>
         eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
+    ),
+  );
+
+  checkAll(
+    'ArrowApply<Kleisli<Eval, *, *>>',
+    ArrowApplySuite(Kleisli.ArrowApply(Eval.Monad)).arrowApply(
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      fc.boolean(),
+      fc.boolean(),
+      fc.integer(),
+      fc.integer(),
+      MiniInt.Eq,
+      ec.miniInt(),
+      MiniInt.Eq,
+      ec.miniInt(),
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      ec.boolean(),
+      Eq.primitive,
+      <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
+        A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
+        eqKleisli<EvalF, X, Y>(X, Eval.Eq(Y)),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: ExhaustiveCheck<Y>) =>
+        ec.instance<Kleisli<EvalF, X, Y>>(
+          Y.allValues.map(y => Kleisli((x: X) => Eval.now(y))),
+        ),
     ),
   );
 

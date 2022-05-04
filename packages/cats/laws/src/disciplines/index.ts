@@ -34,4 +34,5 @@ export * from './compose-suite';
 export * from './category-suite';
 export * from './choice-suite';
 export * from './arrow-suite';
+export * from './arrow-apply-suite';
 export * from './arrow-choice-suite';

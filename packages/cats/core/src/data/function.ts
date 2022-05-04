@@ -18,7 +18,7 @@ import {
   λ,
 } from '@fp4ts/core';
 import { Applicative } from '../applicative';
-import { ArrowChoice } from '../arrow';
+import { Arrow, ArrowApply, ArrowChoice } from '../arrow';
 import { Contravariant } from '../contravariant';
 import { Functor } from '../functor';
 import { Distributive } from '../distributive';
@@ -33,6 +33,7 @@ interface Function1Obj {
   Contravariant<A>(): Contravariant<λ<Function1F, [α, Fix<A>]>>;
   Applicative<A>(): Applicative<$<Function1F, [A]>>;
   Monad<A>(): Monad<$<Function1F, [A]>>;
+  ArrowApply: ArrowApply<Function1F>;
   ArrowChoice: ArrowChoice<Function1F>;
 }
 
@@ -103,16 +104,9 @@ const function1Contravariant: <A>() => Contravariant<
   }),
 ) as <A>() => Contravariant<λ<Function1F, [α, Fix<A>]>>;
 
-const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
-  ArrowChoice.of({
+const function1Arrow: Lazy<Arrow<Function1F>> = lazyVal(() =>
+  Arrow.of({
     compose_: compose,
-    choose:
-      <A, B, C, D>(f: (a: A) => C, g: (b: B) => D) =>
-      (ea: Either<A, B>): Either<C, D> =>
-        ea.fold(
-          a => Left(f(a)),
-          b => Right(g(b)),
-        ),
     id:
       <A>() =>
       (x: A) =>
@@ -126,11 +120,35 @@ const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
   }),
 );
 
+const function1ArrowApply: Lazy<ArrowApply<Function1F>> = lazyVal(() =>
+  ArrowApply.of({
+    ...function1Arrow(),
+    app:
+      <A, B>() =>
+      ([fab, a]: [(a: A) => B, A]) =>
+        fab(a),
+  }),
+);
+
+const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
+  ArrowChoice.of({
+    ...function1Arrow(),
+    choose:
+      <A, B, C, D>(f: (a: A) => C, g: (b: B) => D) =>
+      (ea: Either<A, B>): Either<C, D> =>
+        ea.fold(
+          a => Left(f(a)),
+          b => Right(g(b)),
+        ),
+  }),
+);
+
 Function1.Functor = function1Functor;
 Function1.Distributive = function1Distributive;
 Function1.Contravariant = function1Contravariant;
 Function1.Applicative = function1Applicative;
 Function1.Monad = function1Monad;
+Function1.ArrowApply = function1ArrowApply();
 Function1.ArrowChoice = function1ArrowChoice();
 
 // -- HKT

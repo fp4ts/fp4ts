@@ -17,6 +17,8 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 import { Contravariant } from '../../contravariant';
+import { Arrow, ArrowApply, ArrowChoice } from '../../arrow';
+import { Distributive } from '../../distributive';
 
 import { Either } from '../either';
 
@@ -29,6 +31,7 @@ import {
   kleisliApplicativeError,
   kleisliApply,
   kleisliArrow,
+  kleisliArrowApply,
   kleisliArrowChoice,
   kleisliContravariant,
   kleisliDefer,
@@ -41,8 +44,6 @@ import {
   kleisliMonoidK,
   kleisliSemigroupK,
 } from './instances';
-import { Arrow, ArrowChoice } from '../../arrow';
-import { Distributive } from '../../distributive';
 
 export type Kleisli<F, A, B> = KleisliBase<F, A, B>;
 
@@ -89,6 +90,7 @@ export interface KleisliObj {
   MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
 
   Arrow<F>(F: Monad<F>): Arrow<$<KleisliF, [F]>>;
+  ArrowApply<F>(F: Monad<F>): ArrowApply<$<KleisliF, [F]>>;
   ArrowChoice<F>(F: Monad<F>): ArrowChoice<$<KleisliF, [F]>>;
 }
 
@@ -116,6 +118,7 @@ Kleisli.Monad = kleisliMonad;
 Kleisli.MonadError = kleisliMonadError;
 
 Kleisli.Arrow = kleisliArrow;
+Kleisli.ArrowApply = kleisliArrowApply;
 Kleisli.ArrowChoice = kleisliArrowChoice;
 
 // -- HKT
