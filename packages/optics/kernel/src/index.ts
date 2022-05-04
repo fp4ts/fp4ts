@@ -9,3 +9,9 @@
 export * from './affine';
 export * from './profunctor-choice';
 export * from './settable';
+
+export * from './closed';
+export * from './cojoined';
+export * from './costrong';
+export * from './representable';
+export * from './sieve';
