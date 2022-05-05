@@ -14,6 +14,6 @@ export * from './setter-laws';
 export * from './traversal-laws';
 
 export * from './affine-laws';
-export * from './profunctor-choice-laws';
+export * from './choice-laws';
 
 export * from './discipline';

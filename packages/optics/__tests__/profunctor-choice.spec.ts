@@ -5,16 +5,16 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, Tagged } from '@fp4ts/cats';
-import { ProfunctorChoice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/optics-kernel';
 import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
-import { ProfunctorChoiceSuite } from '@fp4ts/optics-laws';
+import { ChoiceSuite } from '@fp4ts/optics-laws';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
-describe('ProfunctorChoice', () => {
+describe('Choice', () => {
   checkAll(
-    'ProfunctorChoice<Tagged>',
-    ProfunctorChoiceSuite(ProfunctorChoice.Tagged).profunctorChoice(
+    'Choice<Tagged>',
+    ChoiceSuite(Choice.Tagged).choice(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       fc.boolean(),

@@ -24,7 +24,8 @@ import {
   Some,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
-import { ProfunctorChoice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/optics-kernel';
+
 import * as Monoids from './internal/monoids';
 import { Indexable } from './indexable';
 import { Indexed, IndexedF } from './indexed';
@@ -166,7 +167,7 @@ export function size<S, A>(l: Fold<S, A>): (s: S) => number {
 }
 
 type Filtered<A, B = A> = {
-  <F, P>(F: Applicative<F>, P: ProfunctorChoice<P>): POptic<F, P, A, A, B, B>;
+  <F, P>(F: Applicative<F>, P: Choice<P>): POptic<F, P, A, A, B, B>;
   _A?: B;
   _B?: B;
   _S?: A;
@@ -176,8 +177,8 @@ export function filtered<A, B extends A>(p: (a: A) => a is B): Filtered<A, B>;
 export function filtered<A>(p: (a: A) => boolean): Filtered<A>;
 export function filtered<A>(
   p: (a: A) => boolean,
-): <F, P>(F: Applicative<F>, P: ProfunctorChoice<P>) => Optic<F, P, A, A> {
-  return <F, P>(F: Applicative<F>, P: ProfunctorChoice<P>) =>
+): <F, P>(F: Applicative<F>, P: Choice<P>) => Optic<F, P, A, A> {
+  return <F, P>(F: Applicative<F>, P: Choice<P>) =>
     (pafa: Kind<P, [A, Kind<F, [A]>]>) =>
       pipe(
         pafa,

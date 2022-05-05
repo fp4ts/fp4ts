@@ -5,9 +5,9 @@
 
 import { StrongLaws } from '@fp4ts/cats-laws';
 import { Affine } from '@fp4ts/optics-kernel';
-import { ProfunctorChoiceLaws } from './profunctor-choice-laws';
+import { ChoiceLaws } from './choice-laws';
 
 export const AffineLaws = <P>(P: Affine<P>) => ({
-  ...ProfunctorChoiceLaws(P),
+  ...ChoiceLaws(P),
   ...StrongLaws(P),
 });

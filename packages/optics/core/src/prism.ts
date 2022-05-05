@@ -14,13 +14,13 @@ import {
   Right,
   Tagged,
 } from '@fp4ts/cats';
-import { ProfunctorChoice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/optics-kernel';
 import { Indexable } from './indexable';
 import { POptic } from './optics';
 
 export type PPrism<S, T, A, B> = <F, P>(
   F: Applicative<F>,
-  P: ProfunctorChoice<P>,
+  P: Choice<P>,
   Q: Indexable<Function1F, unknown>,
 ) => POptic<F, P, S, T, A, B>;
 export type Prism<S, A> = PPrism<S, S, A, A>;
@@ -29,10 +29,7 @@ export function Prism<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   reverseGet: (t: B) => T,
 ): PPrism<S, T, A, B> {
-  return <F, P>(
-    F: Applicative<F>,
-    P: ProfunctorChoice<P>,
-  ): POptic<F, P, S, T, A, B> =>
+  return <F, P>(F: Applicative<F>, P: Choice<P>): POptic<F, P, S, T, A, B> =>
     flow(
       P.right<T>(),
       P.dimap(getOrModify, ea => ea.fold(F.pure, F.map(reverseGet))),
@@ -56,7 +53,7 @@ export function Prism_<S, A>(
 export function reverseGet<S, T, A, B>(l: PPrism<S, T, A, B>): (b: B) => T {
   return flow(
     Tagged,
-    l(Identity.Applicative, ProfunctorChoice.Tagged, Indexable.Function1()),
+    l(Identity.Applicative, Choice.Tagged, Indexable.Function1()),
     Tagged.unTag,
   );
 }

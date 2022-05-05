@@ -4,6 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Strong } from '@fp4ts/cats';
-import { ProfunctorChoice } from './profunctor-choice';
+import { Choice } from './choice';
 
-export type Affine<P> = Strong<P> & ProfunctorChoice<P>;
+export type Affine<P> = Strong<P> & Choice<P>;

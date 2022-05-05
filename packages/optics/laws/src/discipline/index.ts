@@ -11,4 +11,4 @@ export * from './setter-suite';
 export * from './traversal-suite';
 
 export * from './affine-suite';
-export * from './profunctor-choice-suite';
+export * from './choice-suite';

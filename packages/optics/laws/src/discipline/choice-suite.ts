@@ -7,17 +7,17 @@ import { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Either, Eq } from '@fp4ts/cats';
 import { ProfunctorSuite } from '@fp4ts/cats-laws';
-import { ProfunctorChoice } from '@fp4ts/optics-kernel';
-import { ProfunctorChoiceLaws } from '../profunctor-choice-laws';
+import { Choice } from '@fp4ts/optics-kernel';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { ChoiceLaws } from '../choice-laws';
 
-export function ProfunctorChoiceSuite<P>(P: ProfunctorChoice<P>) {
-  const laws = ProfunctorChoiceLaws(P);
+export function ChoiceSuite<P>(P: Choice<P>) {
+  const laws = ChoiceLaws(P);
 
   const self = {
     ...ProfunctorSuite(P),
-    profunctorChoice: <A, B, C, D, B1, B2>(
+    choice: <A, B, C, D, B1, B2>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
@@ -36,7 +36,7 @@ export function ProfunctorChoiceSuite<P>(P: ProfunctorChoice<P>) {
       mkEqF: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<P, [X, Y]>>,
     ) =>
       new RuleSet(
-        'ProfunctorChoice',
+        'Choice',
         [
           [
             'left consistent with right',

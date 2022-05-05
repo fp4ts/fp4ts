@@ -7,7 +7,7 @@
  * @module optics/kernel
  */
 export * from './affine';
-export * from './profunctor-choice';
+export * from './choice';
 export * from './settable';
 
 export * from './closed';

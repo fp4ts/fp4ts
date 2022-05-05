@@ -18,7 +18,8 @@ import {
   TaggedF,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
-import { Affine, ProfunctorChoice } from '@fp4ts/optics-kernel';
+import { Affine, Choice } from '@fp4ts/optics-kernel';
+
 import { Indexable } from './indexable';
 import { Optic, POptic } from './optics';
 import { Getter, to } from './getter';
@@ -32,7 +33,7 @@ export type Optional<S, A> = POptional<S, S, A, A>;
 
 export type AReview<T, B> = (
   F: Applicative<IdentityF>,
-  P: ProfunctorChoice<TaggedF>,
+  P: Choice<TaggedF>,
   Q: Indexable<Function1F, unknown>,
 ) => Optic<IdentityF, TaggedF, T, B>;
 
@@ -92,7 +93,7 @@ export function re<T, B>(l: AReview<T, B>): Getter<B, T> {
   return to(
     flow(
       Tagged,
-      l(Identity.Applicative, ProfunctorChoice.Tagged, Indexable.Function1()),
+      l(Identity.Applicative, Choice.Tagged, Indexable.Function1()),
       Tagged.unTag,
     ),
   );
@@ -105,7 +106,7 @@ export function review<R, B>(
     R.asks(
       flow(
         Tagged,
-        l(Identity.Applicative, ProfunctorChoice.Tagged, Indexable.Function1()),
+        l(Identity.Applicative, Choice.Tagged, Indexable.Function1()),
         Tagged.unTag,
       ),
     );
@@ -118,7 +119,7 @@ export function reuse<R, B>(
     R.inspect(
       flow(
         Tagged,
-        l(Identity.Applicative, ProfunctorChoice.Tagged, Indexable.Function1()),
+        l(Identity.Applicative, Choice.Tagged, Indexable.Function1()),
         Tagged.unTag,
       ),
     );

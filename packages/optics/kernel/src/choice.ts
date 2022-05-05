@@ -15,7 +15,7 @@ import {
   TaggedF,
 } from '@fp4ts/cats';
 
-export interface ProfunctorChoice<P> extends Profunctor<P> {
+export interface Choice<P> extends Profunctor<P> {
   left<C>(): <A, B>(
     pab: Kind<P, [A, B]>,
   ) => Kind<P, [Either<A, C>, Either<B, C>]>;
@@ -24,15 +24,12 @@ export interface ProfunctorChoice<P> extends Profunctor<P> {
   ) => Kind<P, [Either<C, A>, Either<C, B>]>;
 }
 
-export type ProfunctorChoiceRequirements<P> = Pick<
-  ProfunctorChoice<P>,
-  'left'
-> &
+export type ChoiceRequirements<P> = Pick<Choice<P>, 'left'> &
   ProfunctorRequirements<P> &
-  Partial<ProfunctorChoice<P>>;
-export const ProfunctorChoice = Object.freeze({
-  of: <P>(P: ProfunctorChoiceRequirements<P>): ProfunctorChoice<P> => {
-    const self: ProfunctorChoice<P> = instance<ProfunctorChoice<P>>({
+  Partial<Choice<P>>;
+export const Choice = Object.freeze({
+  of: <P>(P: ChoiceRequirements<P>): Choice<P> => {
+    const self: Choice<P> = instance<Choice<P>>({
       ...Profunctor.of(P),
 
       right:
@@ -52,19 +49,19 @@ export const ProfunctorChoice = Object.freeze({
     return self;
   },
 
-  get Function1(): ProfunctorChoice<Function1F> {
+  get Function1(): Choice<Function1F> {
     return Function1.ArrowChoice;
   },
 
-  get Tagged(): ProfunctorChoice<TaggedF> {
-    return taggedProfunctorChoice();
+  get Tagged(): Choice<TaggedF> {
+    return taggedChoice();
   },
 });
 
 // -- Instances
 
-const taggedProfunctorChoice: Lazy<ProfunctorChoice<TaggedF>> = lazyVal(() =>
-  ProfunctorChoice.of({
+const taggedChoice: Lazy<Choice<TaggedF>> = lazyVal(() =>
+  Choice.of({
     ...Tagged.Profunctor,
     left:
       <C>() =>

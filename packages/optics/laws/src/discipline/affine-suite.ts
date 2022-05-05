@@ -9,11 +9,11 @@ import { Eq } from '@fp4ts/cats';
 import { StrongSuite } from '@fp4ts/cats-laws';
 import { Affine } from '@fp4ts/optics-kernel';
 import { ExhaustiveCheck, RuleSet } from '@fp4ts/cats-test-kit';
-import { ProfunctorChoiceSuite } from './profunctor-choice-suite';
+import { ChoiceSuite } from './choice-suite';
 
 export function AffineSuite<P>(P: Affine<P>) {
   const self = {
-    ...ProfunctorChoiceSuite(P),
+    ...ChoiceSuite(P),
     ...StrongSuite(P),
 
     affine: <A, B, C, D, B1, B2>(
@@ -38,7 +38,7 @@ export function AffineSuite<P>(P: Affine<P>) {
     ) =>
       new RuleSet('Affine', [], {
         parents: [
-          self.profunctorChoice(
+          self.choice(
             arbA,
             arbB,
             arbC,

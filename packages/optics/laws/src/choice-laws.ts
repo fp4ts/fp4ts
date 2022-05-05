@@ -6,10 +6,10 @@
 import { Kind, pipe } from '@fp4ts/core';
 import { Either, Left, Right } from '@fp4ts/cats';
 import { ProfunctorLaws } from '@fp4ts/cats-laws';
-import { ProfunctorChoice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/optics-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-export const ProfunctorChoiceLaws = <P>(P: ProfunctorChoice<P>) => ({
+export const ChoiceLaws = <P>(P: Choice<P>) => ({
   ...ProfunctorLaws(P),
 
   leftConsistentWithRight:
