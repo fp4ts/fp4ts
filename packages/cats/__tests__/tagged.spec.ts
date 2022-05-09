@@ -6,16 +6,15 @@
 import fc from 'fast-check';
 import { Tagged } from '@fp4ts/cats-core/lib/data';
 import { Eq } from '@fp4ts/cats-kernel';
-import { MonadSuite, ProfunctorSuite } from '@fp4ts/cats-laws';
+import { BifunctorSuite, MonadSuite, ProfunctorSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Tagged', () => {
-  const monadTests = MonadSuite(Tagged.Monad());
   checkAll(
     'Monad<Tagged<unknown, *>>',
-    monadTests.monad(
+    MonadSuite(Tagged.Monad()).monad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -29,11 +28,25 @@ describe('Tagged', () => {
     ),
   );
 
-  const profunctorTests = ProfunctorSuite(Tagged.Profunctor);
+  checkAll(
+    'Bifunctor<Tagged>',
+    BifunctorSuite(Tagged.Bifunctor).bifunctor(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      Eq.primitive,
+      (X, Y) => A.fp4tsTagged()(Y),
+      (X, Y) => Tagged.EqK().liftEq(Y),
+    ),
+  );
 
   checkAll(
     'Profunctor<Tagged>',
-    profunctorTests.profunctor(
+    ProfunctorSuite(Tagged.Profunctor).profunctor(
       A.fp4tsMiniInt(),
       fc.integer(),
       fc.integer(),

@@ -4,16 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow } from '@fp4ts/core';
-import {
-  Applicative,
-  Either,
-  Function1F,
-  Identity,
-  Left,
-  Option,
-  Right,
-  Tagged,
-} from '@fp4ts/cats';
+import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
 import { Choice } from '@fp4ts/optics-kernel';
 import { Indexable } from './indexable';
 import { POptic } from './optics';
@@ -21,7 +12,6 @@ import { POptic } from './optics';
 export type PPrism<S, T, A, B> = <F, P>(
   F: Applicative<F>,
   P: Choice<P>,
-  Q: Indexable<Function1F, unknown>,
 ) => POptic<F, P, S, T, A, B>;
 export type Prism<S, A> = PPrism<S, S, A, A>;
 
@@ -50,10 +40,11 @@ export function Prism_<S, A>(
   );
 }
 
-export function reverseGet<S, T, A, B>(l: PPrism<S, T, A, B>): (b: B) => T {
+export function getOrModify<S, T, A, B>(
+  l: PPrism<S, T, A, B>,
+): (s: S) => Either<T, A> {
   return flow(
-    Tagged,
-    l(Identity.Applicative, Choice.Tagged, Indexable.Function1()),
-    Tagged.unTag,
+    l(Either.Applicative<A>(), Indexable.Function1())(Left),
+    at => at.swapped,
   );
 }

@@ -18,14 +18,12 @@ import { PLensLike, POver } from './optics';
 export type PTraversal<S, T, A, B> = <F>(
   F: Applicative<F>,
   P: Indexable<Function1F, unknown>,
-  Q: Indexable<Function1F, unknown>,
 ) => PLensLike<F, S, T, A, B>;
 export type Traversal<S, A> = PTraversal<S, S, A, A>;
 
 export type IndexedPTraversal<I, S, T, A, B> = <F, P>(
   F: Applicative<F>,
   P: Indexable<P, I>,
-  Q: Indexable<Function1F, unknown>,
 ) => POver<F, P, S, T, A, B>;
 export type IndexedTraversal<I, S, A> = IndexedPTraversal<I, S, S, A, A>;
 
@@ -40,13 +38,13 @@ export function traverse<F>(
 ): <S, T, A, B>(
   l: PTraversal<S, T, A, B>,
 ) => (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]> {
-  return l => l(F, Indexable.Function1(), Indexable.Function1());
+  return l => l(F, Indexable.Function1());
 }
 
 export function sequence<F>(
   F: Applicative<F>,
 ): <S, T, B>(l: PTraversal<S, T, Kind<F, [B]>, B>) => (s: S) => Kind<F, [T]> {
-  return l => l(F, Indexable.Function1(), Indexable.Function1())(id);
+  return l => l(F, Indexable.Function1())(id);
 }
 
 export function mapAccumL<S, T, A, B>(
@@ -56,7 +54,6 @@ export function mapAccumL<S, T, A, B>(
     s =>
       l(
         State.Monad<Acc>(),
-        Indexable.Function1(),
         Indexable.Function1(),
       )(a => State.state(s => f(s, a)))(s).runState(z);
 }

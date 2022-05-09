@@ -20,20 +20,12 @@ export const LensLaws = <S, A>(lens: Lens<S, A>) => ({
   consistentModifyModifyId: (s: S, a: A): IsEq<S> =>
     new IsEq(
       modify(lens)(() => a)(s),
-      lens(
-        Identity.Functor,
-        Indexable.Function1(),
-        Indexable.Function1(),
-      )(() => a)(s),
+      lens(Identity.Functor, Indexable.Function1())(() => a)(s),
     ),
 
   consistentGetModifyId: (s: S): IsEq<A> =>
     new IsEq(
       pipe(lens, get)(s),
-      lens(
-        Const.Functor<A>(),
-        Indexable.Function1(),
-        Indexable.Function1(),
-      )(a => a)(s),
+      lens(Const.Functor<A>(), Indexable.Function1())(a => a)(s),
     ),
 });

@@ -6,6 +6,7 @@
 import { Eq } from '@fp4ts/cats-kernel';
 import { $, $type, id, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Profunctor } from '../arrow';
+import { Bifunctor } from '../bifunctor';
 import { EqK } from '../eq-k';
 import { Monad } from '../monad';
 import { Either } from './either';
@@ -55,6 +56,7 @@ interface TaggedObj {
 
   EqK<S>(): EqK<$<TaggedF, [S]>>;
   Monad<S>(): Monad<$<TaggedF, [S]>>;
+  Bifunctor: Bifunctor<TaggedF>;
   Profunctor: Profunctor<TaggedF>;
 }
 
@@ -84,12 +86,20 @@ const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
   }),
 ) as <S>() => Monad<$<TaggedF, [S]>>;
 
+const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazyVal(() =>
+  Bifunctor.of({
+    bimap_: <A, B, C, D>(tab: Tagged<A, B>, f: (a: A) => C, g: (b: B) => D) =>
+      tab.map(g).retag<C>(),
+  }),
+);
+
 const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazyVal(() =>
   Profunctor.of({ dimap_: (fab, f, g) => fab.dimap(f, g) }),
 );
 
 Tagged.EqK = taggedEqK;
 Tagged.Monad = taggedMonad;
+Tagged.Bifunctor = taggedBifunctor();
 Tagged.Profunctor = taggedProfunctor();
 
 // -- HKT

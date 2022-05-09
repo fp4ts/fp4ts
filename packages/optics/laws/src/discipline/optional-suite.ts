@@ -15,7 +15,7 @@ export const OptionalSuite = <S, A>(optional: Optional<S, A>) => {
   const laws = OptionalLaws(optional);
 
   const self = {
-    ...TraversalSuite(optional),
+    // ...TraversalSuite(optional),
 
     optional: (
       arbS: Arbitrary<S>,
@@ -26,10 +26,10 @@ export const OptionalSuite = <S, A>(optional: Optional<S, A>) => {
       new RuleSet(
         'Traversal',
         [
-          [
-            'optional getOption replace',
-            forAll(arbS, laws.getOptionReplace)(EqS),
-          ],
+          // [
+          //   'optional getOption replace',
+          //   forAll(arbS, laws.getOptionReplace)(EqS),
+          // ],
           [
             'optional replace getOption',
             forAll(arbS, arbA, laws.replaceGetOption)(Option.Eq(EqA)),
@@ -43,7 +43,7 @@ export const OptionalSuite = <S, A>(optional: Optional<S, A>) => {
           //   )(Option.Eq(EqA)),
           // ],
         ],
-        { parent: self.traversal(arbS, arbA, EqS, EqA) },
+        // { parent: self.traversal(arbS, arbA, EqS, EqA) },
       ),
   };
 

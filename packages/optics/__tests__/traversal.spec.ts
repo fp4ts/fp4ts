@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { tupled } from '@fp4ts/core';
-import { Eq, List, Map, Monoid, Option } from '@fp4ts/cats';
+import { Eq, List, Map, Monoid, Option, Some } from '@fp4ts/cats';
 import {
   focus,
   fromProps,
@@ -220,27 +220,29 @@ describe('Traversal', () => {
   test('indexing', () => {
     const SN = Map.TraversableWithIndex<number>();
 
-    const r = focus(fromTraversableWithIndex(SN)<string>())
-      .compose(words)
-      .headOption(Map([42, 'test test']));
+    expect(
+      focus(fromTraversableWithIndex(SN)<string>())
+        .compose(words)
+        .headOption(Map([42, 'test test'])),
+    ).toEqual(Some('test'));
 
-    const s = focus(fromTraversableWithIndex(SN)<string>())
-      .icomposeL(words)
-      .iheadOption(Map([42, 'test test']));
-
-    console.log(r);
-    console.log(s);
+    expect(
+      focus(fromTraversableWithIndex(SN)<string>())
+        .icomposeL(words)
+        .iheadOption(Map([42, 'test test'])),
+    ).toEqual(Some(['test', 42]));
   });
 
   test('nested indexing', () => {
     const SN = Map.TraversableWithIndex<number>();
     const SM = Map.TraversableWithIndex<string>();
-    const s = focus(fromTraversableWithIndex(SN)<Map<string, string>>())
-      .icompose(fromTraversableWithIndex(SM)<string>())
-      .icomposeL(words)
-      .iheadOption(Map([42, Map(['testing', 'test test'])]));
 
-    console.log(s);
+    expect(
+      focus(fromTraversableWithIndex(SN)<Map<string, string>>())
+        .icompose(fromTraversableWithIndex(SM)<string>())
+        .icomposeL(words)
+        .iheadOption(Map([42, Map(['testing', 'test test'])])),
+    ).toEqual(Some(['test', [42, 'testing']]));
   });
 
   test(

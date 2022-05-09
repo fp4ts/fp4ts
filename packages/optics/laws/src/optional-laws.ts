@@ -12,16 +12,16 @@ import { firstOption } from '@fp4ts/optics-core/lib/internal/monoids';
 import { TraversalLaws } from './traversal-laws';
 
 export const OptionalLaws = <S, A>(optional: Optional<S, A>) => ({
-  ...TraversalLaws(optional),
+  // ...TraversalLaws(optional),
 
-  getOptionReplace: (s: S): IsEq<S> =>
-    new IsEq(
-      getOrModify(optional)(s).fold(
-        s => s,
-        x => replace(optional)(x)(s),
-      ),
-      s,
-    ),
+  // getOptionReplace: (s: S): IsEq<S> =>
+  //   new IsEq(
+  //     getOrModify(optional)(s).fold(
+  //       s => s,
+  //       x => replace(optional)(x)(s),
+  //     ),
+  //     s,
+  //   ),
 
   replaceGetOption: (s: S, a: A): IsEq<Option<A>> =>
     new IsEq(

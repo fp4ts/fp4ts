@@ -5,7 +5,7 @@
 
 import { Either, Left, Option, Right } from '@fp4ts/cats';
 import { Prism } from './prism';
-import { getOrModify } from './optional';
+import { getOrModify } from './prism';
 
 export function match<T>(t: T): Matcher<T, never> {
   return new Matcher(Left(t));

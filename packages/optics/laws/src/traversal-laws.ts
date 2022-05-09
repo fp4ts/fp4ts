@@ -30,10 +30,6 @@ export const TraversalLaws = <S, A>(traversal: Traversal<S, A>) => ({
   consistentModifyModifyId: (s: S, a: A): IsEq<S> =>
     new IsEq(
       modify(traversal)(() => a)(s),
-      traversal(
-        Identity.Applicative,
-        Indexable.Function1(),
-        Indexable.Function1(),
-      )(() => a)(s),
+      traversal(Identity.Applicative, Indexable.Function1())(() => a)(s),
     ),
 });

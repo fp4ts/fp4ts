@@ -11,6 +11,7 @@ export * from './optional';
 export * from './prism';
 export * from './setter';
 export * from './traversal';
+export * from './review';
 
 export * from './indexable';
 export * from './indexed';

@@ -21,8 +21,8 @@ import * as I from './iso';
 import * as F from './fold';
 import * as ST from './setter';
 import * as G from './getter';
+import * as RW from './review';
 import * as L from './lens';
-import * as OP from './optional';
 import * as P from './prism';
 import * as T from './traversal';
 import * as Ix from './indexed';
@@ -122,8 +122,8 @@ export class Focused<O> {
 
   filter<S, A, B extends A>(this: Focused<P.Prism<S, A>>, p: (a: A) => a is B): Focused<P.Prism<S, B>>;
   filter<S, A>(this: Focused<P.Prism<S, A>>, p: (a: A) => boolean): Focused<P.Prism<S, A>>;
-  filter<S, A, B extends A>(this: Focused<OP.Optional<S, A>>, p: (a: A) => a is B): Focused<OP.Optional<S, B>>;
-  filter<S, A>(this: Focused<OP.Optional<S, A>>, p: (a: A) => boolean): Focused<OP.Optional<S, A>>;
+  filter<S, A, B extends A>(this: Focused<RW.Review<S, A>>, p: (a: A) => a is B): Focused<RW.Review<S, B>>;
+  filter<S, A>(this: Focused<RW.Review<S, A>>, p: (a: A) => boolean): Focused<RW.Review<S, A>>;
   filter<S, A, B extends A>(this: Focused<T.Traversal<S, A>>, p: (a: A) => a is B): Focused<T.Traversal<S, B>>;
   filter<S, A>(this: Focused<T.Traversal<S, A>>, p: (a: A) => boolean): Focused<T.Traversal<S, A>>;
   filter<S, A, B extends A>(this: Focused<ST.Setter<S, A>>, p: (a: A) => a is B): Focused<ST.Setter<S, B>>;
@@ -163,7 +163,7 @@ export class Focused<O> {
     const composed: AnyIndexedOptical<I, S, S, A, A> =
       <F>(FF: Contravariant<F> & Applicative<F> & Settable<F>) =>
         composeF(
-          this.toOptic(FF, Indexable.Indexed(), Indexable.Function1()),
+          this.toOptic(FF, Indexable.Indexed(), Indexable.Function1() as any),
           F.ifiltered(p)(FF, Indexable.Indexed()),
         )
 
@@ -323,43 +323,43 @@ export class Focused<O> {
     return this.icomposeR(T.fromTraversableWithIndex(G)<A>());
   }
 
-  // -- Optional
+  // -- Review
 
-  // getOptional<S, T, A, B>(this: Focused<OP.POptional<S, T, A, B>>, s: S): Option<A> {
-  //   return OP.getOption(this.toOptic)(s);
-  // }
-
-  getOrModify<S, T, A, B>(this: Focused<OP.POptional<S, T, A, B>>, s: S): Either<T, A> {
-    return OP.getOrModify(this.toOptic)(s);
+  reverseGet<T, B>(this: Focused<RW.Review<T, B>>, b: B): T {
+    return RW.reverseGet(this.toOptic)(b);
   }
 
-  re<T, B>(this: Focused<P.Prism<T, B>>): Focused<G.Getter<B, T>> {
-    return new Focused(OP.re(this.toOptic));
+  un<S, A>(this: Focused<G.Getter<S, A>>): Focused<RW.Review<A, S>> {
+    return new Focused(RW.un(this.toOptic));
   }
 
-  review<R, B, T>(this: Focused<OP.AReview<T, B>>, R: MonadReader<R, B>): Kind<R, [T]> {
-    return OP.review(R)(this.toOptic);
+  re<T, B>(this: Focused<RW.Review<T, B>>): Focused<G.Getter<B, T>> {
+    return new Focused(RW.re(this.toOptic));
   }
 
-  reuse<R, B, T>(this: Focused<OP.AReview<T, B>>, R: MonadState<R, B>): Kind<R, [T]> {
-    return OP.reuse(R)(this.toOptic);
+  review<R, B, T>(this: Focused<RW.Review<T, B>>, R: MonadReader<R, B>): Kind<R, [T]> {
+    return RW.review(R)(this.toOptic);
+  }
+
+  reuse<R, B, T>(this: Focused<RW.Review<T, B>>, R: MonadState<R, B>): Kind<R, [T]> {
+    return RW.reuse(R)(this.toOptic);
   }
 
   // -- Prism
 
-  matching<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, s: S): Either<T, A> {
-    return this.getOrModify(s);
+  getOrModify<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, s: S): Either<T, A> {
+    return P.getOrModify(this.toOptic)(s);
   }
 
-  reverseGet<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, b: B): T {
-    return P.reverseGet(this.toOptic)(b);
+  matching<S, T, A, B>(this: Focused<P.PPrism<S, T, A, B>>, s: S): Either<T, A> {
+    return this.getOrModify(s);
   }
 
   // -- Lens
 
   prop<A, K extends keyof A, S, T>(this: Focused<L.PLens<S, T, A, A>>, k: K): Focused<L.PLens<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<P.PPrism<S, T, A, A>>, k: K): Focused<T.PTraversal<S, T, A[K], A[K]>>;
-  prop<A, K extends keyof A, S, T>(this: Focused<OP.POptional<S, T, A, A>>, k: K): Focused<OP.POptional<S, T, A[K], A[K]>>;
+  prop<A, K extends keyof A, S, T>(this: Focused<RW.Review<T, A>>, k: K): Focused<RW.Review<T, A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<T.PTraversal<S, T, A, A>>, k: K): Focused<T.PTraversal<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S, T>(this: Focused<ST.PSetter<S, T, A, A>>, k: K): Focused<ST.PSetter<S, T, A[K], A[K]>>;
   prop<A, K extends keyof A, S>(this: Focused<G.Getter<S, A>>, k: K): Focused<G.Getter<S, A[K]>>;
@@ -370,6 +370,7 @@ export class Focused<O> {
 
   // -- Indexing
 
+  reindex<I, J, S, T, A, B>(this: Focused<L.IndexedPLens<I, S, T, A, B>>, f: (i: I) => J): Focused<L.IndexedPLens<J, S, T, A, B>>;
   reindex<I, J, S, T, A, B>(this: Focused<T.IndexedPTraversal<I, S, T, A, B>>, f: (i: I) => J): Focused<T.IndexedPTraversal<J, S, T, A, B>>;
   reindex<I, J, S, T, A, B>(this: Focused<ST.IndexedPSetter<I, S, T, A, B>>, f: (i: I) => J): Focused<ST.IndexedPSetter<J, S, T, A, B>>;
   reindex<I, J, S, A>(this: Focused<G.IndexedGetter<I, S, A>>, f: (i: I) => J): Focused<G.IndexedGetter<J, S, A>>;
@@ -394,8 +395,8 @@ export class Focused<O> {
   compose<S, T, A, B, C, D>(this: Focused<L.PLens<S, T, A, B>>, that: L.PLens<A, B, C, D>): Focused<L.PLens<S, T, C, D>>;
   compose<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: Focused<P.PPrism<A, B, C, D>>): Focused<P.PPrism<S, T, C, D>>;
   compose<S, T, A, B, C, D>(this: Focused<P.PPrism<S, T, A, B>>, that: P.PPrism<A, B, C, D>): Focused<P.PPrism<S, T, C, D>>;
-  compose<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: Focused<OP.POptional<A, B, C, D>>): Focused<OP.POptional<S, T, C, D>>;
-  compose<S, T, A, B, C, D>(this: Focused<OP.POptional<S, T, A, B>>, that: OP.POptional<A, B, C, D>): Focused<OP.POptional<S, T, C, D>>;
+  compose<S, A, C>(this: Focused<RW.Review<S, A>>, that: Focused<RW.Review<A, C>>): Focused<RW.Review<S, C>>;
+  compose<S, A, C>(this: Focused<RW.Review<S, A>>, that: RW.Review<A, C>): Focused<RW.Review<S, C>>;
   compose<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: Focused<T.PTraversal<A, B, C, D>>): Focused<T.PTraversal<S, T, C, D>>;
   compose<S, T, A, B, C, D>(this: Focused<T.PTraversal<S, T, A, B>>, that: T.PTraversal<A, B, C, D>): Focused<T.PTraversal<S, T, C, D>>;
   compose<S, T, A, B, C, D>(this: Focused<ST.PSetter<S, T, A, B>>, that: Focused<ST.PSetter<A, B, C, D>>): Focused<ST.PSetter<S, T, C, D>>;

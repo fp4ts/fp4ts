@@ -11,14 +11,12 @@ import { Indexable } from './indexable';
 export type PLens<S, T, A, B> = <F>(
   F: Functor<F>,
   P: Indexable<Function1F, unknown>,
-  Q: Indexable<Function1F, unknown>,
 ) => PLensLike<F, S, T, A, B>;
 export type Lens<S, A> = PLens<S, S, A, A>;
 
 export type IndexedPLens<I, S, T, A, B> = <F, P>(
   F: Functor<F>,
   P: Indexable<P, I>,
-  Q: Indexable<Function1F, unknown>,
 ) => POver<F, P, S, T, A, B>;
 export type IndexedLens<I, S, A> = IndexedPLens<I, S, S, A, A>;
 

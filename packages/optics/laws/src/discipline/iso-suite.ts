@@ -28,10 +28,10 @@ export const IsoSuite = <S, A>(iso: Iso<S, A>) => {
             'iso round trip other way',
             forAll(arbA, laws.roundTripOtherWay)(EqA),
           ],
-          [
-            'iso consistent modify modify id',
-            forAll(arbS, arbA, laws.consistentModifyModifyId)(EqS),
-          ],
+          // [
+          //   'iso consistent modify modify id',
+          //   forAll(arbS, arbA, laws.consistentModifyModifyId)(EqS),
+          // ],
         ],
         {
           parents: [

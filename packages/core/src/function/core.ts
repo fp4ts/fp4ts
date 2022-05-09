@@ -65,3 +65,7 @@ export const untuple =
   <A extends unknown[], R>(f: (args: A) => R) =>
   (...args: A): R =>
     f(args);
+
+export function absurd<A>(x: never): A {
+  throw new Error('Absurd function called');
+}

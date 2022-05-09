@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind } from '@fp4ts/core';
-import { Applicative, Contravariant, Function1F } from '@fp4ts/cats';
+import { Applicative, Bifunctor, Contravariant, Function1F } from '@fp4ts/cats';
 import { Settable } from '@fp4ts/optics-kernel';
 import { Indexable } from './indexable';
 import { IndexedF } from './indexed';
@@ -30,8 +30,8 @@ export type LensLike<F, S, A> = PLensLike<F, S, S, A, A>;
 export type AnyOptical<S, T, A, B> = {
   <F>(
     F: Contravariant<F> & Applicative<F> & Settable<F>,
-    P: Indexable<Function1F, unknown>,
-    Q: Indexable<Function1F, unknown>,
+    P: Indexable<Function1F, unknown> & Bifunctor<Function1F>,
+    Q: Indexable<Function1F, unknown> & Bifunctor<Function1F>,
   ): PLensLike<F, S, T, A, B>;
 };
 
@@ -39,6 +39,6 @@ export type AnyIndexedOptical<I, S, T, A, B> = {
   <F>(
     F: Contravariant<F> & Applicative<F> & Settable<F>,
     P: Indexable<$<IndexedF, [I]>, I>,
-    Q: Indexable<Function1F, unknown>,
+    Q: Indexable<Function1F, unknown> & Bifunctor<Function1F>,
   ): POver<F, $<IndexedF, [I]>, S, T, A, B>;
 };
