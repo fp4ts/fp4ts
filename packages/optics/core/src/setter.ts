@@ -13,7 +13,7 @@ import {
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Settable } from '@fp4ts/optics-kernel';
-import { Indexable } from './indexable';
+import { Indexable } from './ix';
 import { PLensLike, POptical, POver } from './optics';
 
 export type PSetter<S, T, A, B> = <F>(

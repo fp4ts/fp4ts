@@ -7,12 +7,7 @@ import fc from 'fast-check';
 import { Eq, List, Monoid, None, Some } from '@fp4ts/cats';
 import { focus, fromProp } from '@fp4ts/optics-core';
 import { deriveLenses } from '@fp4ts/optics-derivation';
-import {
-  LensSuite,
-  OptionalSuite,
-  SetterSuite,
-  TraversalSuite,
-} from '@fp4ts/optics-laws';
+import { LensSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { Schema, Schemable, TypeOf } from '@fp4ts/schema';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -139,15 +134,6 @@ describe('Lens', () => {
         Eq.primitive,
       ),
     );
-    // checkAll(
-    //   'lens.asOptional',
-    //   OptionalSuite(s.toOptic).optional(
-    //     arbExample,
-    //     fc.string(),
-    //     eqExample,
-    //     Eq.primitive,
-    //   ),
-    // );
     checkAll(
       'lens.asTraversal',
       TraversalSuite(s.toOptic).traversal(

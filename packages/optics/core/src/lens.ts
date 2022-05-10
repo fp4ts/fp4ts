@@ -6,7 +6,7 @@
 import { flow, Kind, pipe, tupled } from '@fp4ts/core';
 import { Function1F, Functor, Strong } from '@fp4ts/cats';
 import { Optic, PLensLike, POptic, POver } from './optics';
-import { Indexable } from './indexable';
+import { Indexable } from './ix';
 
 export type PLens<S, T, A, B> = <F>(
   F: Functor<F>,

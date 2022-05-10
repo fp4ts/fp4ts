@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, compose as composeF } from '@fp4ts/core';
-import { Indexable } from './indexable';
+import { Indexable, IndexedF } from './ix';
 import { Fold, IndexedFold } from './fold';
 import { Getter, IndexedGetter } from './getter';
 import { PIso } from './iso';
@@ -14,7 +14,6 @@ import { PPrism } from './prism';
 import { IndexedPSetter, PSetter } from './setter';
 import { IndexedPTraversal, PTraversal } from './traversal';
 import { Review } from './review';
-import { IndexedF } from './indexed';
 
 /* eslint-disable prettier/prettier */
 export function compose<S, T, A, B, C, D>(f: PIso<S, T, A, B>, g: PIso<A, B, C, D>): PIso<S, T, C, D>;

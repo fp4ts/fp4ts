@@ -14,9 +14,8 @@ import {
   Monoid,
   Profunctor,
 } from '@fp4ts/cats';
-import { MonadReader, MonadState } from '@fp4ts/cats/mtl';
-import { Indexable } from './indexable';
-import { IndexedF } from './indexed';
+import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
+import { Indexable, IndexedF } from './ix';
 import { LensLike, Optic, Over } from './optics';
 import { Fold, IndexedFold } from './fold';
 

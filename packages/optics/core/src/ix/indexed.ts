@@ -38,12 +38,12 @@ import {
   Representable,
 } from '@fp4ts/optics-kernel';
 
-import { IndexedPLens, PLens } from './lens';
-import { IndexedPTraversal, PTraversal } from './traversal';
-import { IndexedPSetter } from './setter';
-import { IndexedGetter, Getter } from './getter';
-import { IndexedFold, Fold } from './fold';
-import { AnyIndexedOptical, AnyOptical } from './optics';
+import { IndexedPLens, PLens } from '../lens';
+import { IndexedPTraversal, PTraversal } from '../traversal';
+import { IndexedPSetter } from '../setter';
+import { IndexedGetter, Getter } from '../getter';
+import { IndexedFold, Fold } from '../fold';
+import { AnyIndexedOptical } from '../optics';
 import { Indexable } from './indexable';
 import { Indexing } from './indexing';
 

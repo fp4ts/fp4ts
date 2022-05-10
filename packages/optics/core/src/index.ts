@@ -12,8 +12,7 @@ export * from './setter';
 export * from './traversal';
 export * from './review';
 
-export * from './indexable';
-export * from './indexed';
+export * from './ix';
 
 export * from './optics';
 export * from './focused';

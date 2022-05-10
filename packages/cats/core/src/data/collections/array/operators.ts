@@ -227,14 +227,7 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
     xs.reduce(
-      (gxs, x, i) =>
-        G.map2_(
-          gxs,
-          f(x, i),
-        )((xs, x) => {
-          xs.push(x);
-          return xs;
-        }),
+      (gxs, x, i) => G.map2_(gxs, f(x, i))((xs, x) => [...xs, x]),
       G.pure([] as B[]),
     );
 

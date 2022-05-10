@@ -138,10 +138,9 @@ describe('Validation', () => {
       (hd, tl) =>
         new IsEq(
           hd.mapN(...tl)((...xs) => xs),
-          Array.Traversable().sequence(Validation.Applicative<string>())([
-            hd,
-            ...tl,
-          ]),
+          Array.TraversableWithIndex().sequence(
+            Validation.Applicative<string>(),
+          )([hd, ...tl]),
         ),
     )(
       Validation.EqK(

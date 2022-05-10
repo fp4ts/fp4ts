@@ -27,8 +27,7 @@ import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Choice } from '@fp4ts/optics-kernel';
 
 import * as Monoids from './internal/monoids';
-import { Indexable } from './indexable';
-import { Indexed, IndexedF } from './indexed';
+import { Indexable, Indexed, IndexedF } from './ix';
 import { LensLike, Optic, Optical, Over, POptic, POptical } from './optics';
 import { asGetting, asIndexedGetting, Getting, IndexedGetting } from './getter';
 import { IndexedPTraversal, PTraversal } from './traversal';

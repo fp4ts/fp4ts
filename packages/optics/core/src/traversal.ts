@@ -11,7 +11,7 @@ import {
   TraversableWithIndex,
 } from '@fp4ts/cats';
 import { State } from '@fp4ts/cats-mtl';
-import { Indexable } from './indexable';
+import { Indexable } from './ix';
 import { backwards } from './fold';
 import { PLensLike, POver } from './optics';
 

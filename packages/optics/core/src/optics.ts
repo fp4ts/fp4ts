@@ -6,8 +6,7 @@
 import { $, Kind } from '@fp4ts/core';
 import { Applicative, Bifunctor, Contravariant, Function1F } from '@fp4ts/cats';
 import { Settable } from '@fp4ts/optics-kernel';
-import { Indexable } from './indexable';
-import { IndexedF } from './indexed';
+import { Indexable, IndexedF } from './ix';
 
 export type POptical<F, P, Q, S, T, A, B> = {
   (pafb: Kind<P, [A, Kind<F, [B]>]>): Kind<Q, [S, Kind<F, [T]>]>;

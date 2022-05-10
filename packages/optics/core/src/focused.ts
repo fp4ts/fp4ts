@@ -25,11 +25,10 @@ import * as RW from './review';
 import * as L from './lens';
 import * as P from './prism';
 import * as T from './traversal';
-import * as Ix from './indexed';
+import * as Ix from './ix';
 import { compose, icompose, icomposeL, icomposeR } from './compose';
 import { AnyIndexedOptical, AnyOptical } from './optics';
 import { Settable } from '@fp4ts/optics-kernel';
-import { Indexable } from './indexable';
 
 /* eslint-disable prettier/prettier */
 export function focus<A>(): Focused<I.Iso<A, A>>;
@@ -163,8 +162,8 @@ export class Focused<O> {
     const composed: AnyIndexedOptical<I, S, S, A, A> =
       <F>(FF: Contravariant<F> & Applicative<F> & Settable<F>) =>
         composeF(
-          this.toOptic(FF, Indexable.Indexed(), Indexable.Function1() as any),
-          F.ifiltered(p)(FF, Indexable.Indexed()),
+          this.toOptic(FF, Ix.Indexable.Indexed(), Ix.Indexable.Function1() as any),
+          F.ifiltered(p)(FF, Ix.Indexable.Indexed()),
         )
 
     return new Focused(composed);

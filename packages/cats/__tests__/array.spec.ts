@@ -6,14 +6,13 @@
 import fc from 'fast-check';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
   CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
-  TraversableSuite,
   TraversableWithIndexSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';

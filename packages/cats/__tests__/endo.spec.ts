@@ -26,10 +26,9 @@ describe('Endo', () => {
     const increment = (x: number): number => x + 1;
     const xs: Endo<number>[] = [...new Array(50_000)].map(() => increment);
 
-    const sumAll = CArray.Foldable().foldMap_(Endo.MonoidK.algebra<number>())(
-      xs,
-      id,
-    );
+    const sumAll = CArray.FoldableWithIndex().foldMap_(
+      Endo.MonoidK.algebra<number>(),
+    )(xs, id);
     sumAll(1);
   });
 

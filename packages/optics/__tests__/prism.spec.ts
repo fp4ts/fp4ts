@@ -9,12 +9,7 @@ import { Reader, State } from '@fp4ts/cats-mtl';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
 import { focus, Prism_ } from '@fp4ts/optics-core';
 import { derivePrisms } from '@fp4ts/optics-derivation';
-import {
-  PrismSuite,
-  OptionalSuite,
-  TraversalSuite,
-  SetterSuite,
-} from '@fp4ts/optics-laws';
+import { PrismSuite, TraversalSuite, SetterSuite } from '@fp4ts/optics-laws';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
 import { checkAll } from '@fp4ts/cats-test-kit';
 
@@ -193,15 +188,6 @@ describe('Prism', () => {
       PrismSuite(s.toOptic).prism(iorsArb, fc.string(), iorsEq, Eq.primitive),
     );
 
-    checkAll(
-      'prism.asOptional',
-      OptionalSuite(s.toOptic).optional(
-        iorsArb,
-        fc.string(),
-        iorsEq,
-        Eq.primitive,
-      ),
-    );
     checkAll(
       'prism.asTraversal',
       TraversalSuite(s.toOptic).traversal(

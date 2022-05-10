@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow } from '@fp4ts/core';
-import { Applicative, Either, Functor, Left, Option, Right } from '@fp4ts/cats';
+import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
 import { Choice } from '@fp4ts/optics-kernel';
-import { Indexable } from './indexable';
+import { Indexable } from './ix';
 import { POptic } from './optics';
 
 export type PPrism<S, T, A, B> = <F, P>(
