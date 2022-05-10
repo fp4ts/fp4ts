@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow } from '@fp4ts/core';
-import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
+import { Applicative, Either, Functor, Left, Option, Right } from '@fp4ts/cats';
 import { Choice } from '@fp4ts/optics-kernel';
 import { Indexable } from './indexable';
 import { POptic } from './optics';
@@ -46,5 +46,14 @@ export function getOrModify<S, T, A, B>(
   return flow(
     l(Either.Applicative<A>(), Indexable.Function1())(Left),
     at => at.swapped,
+  );
+}
+
+export function getOption<S, T, A, B>(
+  l: PPrism<S, T, A, B>,
+): (s: S) => Option<A> {
+  return flow(
+    l(Either.Applicative<A>(), Indexable.Function1())(Left),
+    at => at.swapped.toOption,
   );
 }

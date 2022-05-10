@@ -8,7 +8,6 @@
  */
 export * from './iso-laws';
 export * from './lens-laws';
-export * from './optional-laws';
 export * from './prism-laws';
 export * from './setter-laws';
 export * from './traversal-laws';

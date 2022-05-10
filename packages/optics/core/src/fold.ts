@@ -388,7 +388,6 @@ export function ifiltered<I, A>(
 ): <F, P>(
   F: Applicative<F>,
   P: Indexable<P, I>,
-  Q: Indexable<$<IndexedF, [I]>, I>,
 ) => Optical<F, P, $<IndexedF, [I]>, A, A> {
   return <F, P>(F: Applicative<F>, P: Indexable<P, I>) =>
     (pafb: Kind<P, [A, Kind<F, [A]>]>): Indexed<I, A, Kind<F, [A]>> =>

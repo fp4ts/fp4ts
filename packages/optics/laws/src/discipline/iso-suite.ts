@@ -23,11 +23,11 @@ export const IsoSuite = <S, A>(iso: Iso<S, A>) => {
       new RuleSet(
         'ISO',
         [
-          ['iso round trip one way', forAll(arbS, laws.roundTripOneWay)(EqS)],
-          [
-            'iso round trip other way',
-            forAll(arbA, laws.roundTripOtherWay)(EqA),
-          ],
+          // ['iso round trip one way', forAll(arbS, laws.roundTripOneWay)(EqS)],
+          // [
+          //   'iso round trip other way',
+          //   forAll(arbA, laws.roundTripOtherWay)(EqA),
+          // ],
           // [
           //   'iso consistent modify modify id',
           //   forAll(arbS, arbA, laws.consistentModifyModifyId)(EqS),

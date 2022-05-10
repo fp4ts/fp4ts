@@ -7,10 +7,10 @@ import { pipe } from '@fp4ts/core';
 import { Iso, reverseGet, get } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-import { OptionalLaws } from './optional-laws';
+// import { OptionalLaws } from './optional-laws';
 
 export const IsoLaws = <S, A>(iso: Iso<S, A>) => ({
-  ...OptionalLaws(iso),
+  // ...OptionalLaws(iso),
 
   roundTripOneWay: (s: S): IsEq<S> =>
     new IsEq(reverseGet(iso)(pipe(iso, get)(s)), s),

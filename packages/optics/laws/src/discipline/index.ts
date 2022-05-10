@@ -5,7 +5,6 @@
 
 export * from './iso-suite';
 export * from './lens-suite';
-export * from './optional-suite';
 export * from './prism-suite';
 export * from './setter-suite';
 export * from './traversal-suite';

@@ -7,7 +7,6 @@ export * from './fold';
 export * from './getter';
 export * from './iso';
 export * from './lens';
-export * from './optional';
 export * from './prism';
 export * from './setter';
 export * from './traversal';

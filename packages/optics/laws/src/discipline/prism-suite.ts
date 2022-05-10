@@ -9,28 +9,28 @@ import { Prism } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { PrismLaws } from '../prism-laws';
-import { OptionalSuite } from './optional-suite';
+// import { OptionalSuite } from './optional-suite';
 
 export const PrismSuite = <S, A>(prism: Prism<S, A>) => {
   const laws = PrismLaws(prism);
 
   const self = {
-    ...OptionalSuite(prism),
+    // ...OptionalSuite(prism),
 
     prism: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
         'Prism',
         [
-          [
-            'prism partial round trip one way',
-            forAll(arbS, laws.partialRoundTripOneWay)(EqS),
-          ],
-          [
-            'prism round trip other way',
-            forAll(arbA, laws.roundTripOtherWay)(Option.Eq(EqA)),
-          ],
+          // [
+          //   'prism partial round trip one way',
+          //   forAll(arbS, laws.partialRoundTripOneWay)(EqS),
+          // ],
+          // [
+          //   'prism round trip other way',
+          //   forAll(arbA, laws.roundTripOtherWay)(Option.Eq(EqA)),
+          // ],
         ],
-        { parent: self.optional(arbS, arbA, EqS, EqA) },
+        // { parent: self.optional(arbS, arbA, EqS, EqA) },
       ),
   };
 
