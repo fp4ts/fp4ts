@@ -31,8 +31,12 @@ describe('Functor derivation', () => {
     const sxs = Snoc.fromList(List.range(0, 50_000));
     const expected = List.range(1, 50_001);
 
-    expect(IList.toList(IListF.map_(ixs, x => x + 1))).toEqual(expected);
-    expect(Snoc.toList(SnocF.map_(sxs, x => x + 1))).toEqual(expected);
+    expect(IList.toList(IListF.map_(ixs, x => x + 1)).toArray).toEqual(
+      expected.toArray,
+    );
+    expect(Snoc.toList(SnocF.map_(sxs, x => x + 1)).toArray).toEqual(
+      expected.toArray,
+    );
   });
 
   checkAll(

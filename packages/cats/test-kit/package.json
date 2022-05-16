@@ -14,7 +14,7 @@
     "@fp4ts/cats-mtl": "*",
     "@fp4ts/core": "*",
     "fast-check": "^2.25.0",
-    "jest": "^27.5.1",
+    "jest": "^28.1.0",
     "typescript": "4.6.3"
   }
 }

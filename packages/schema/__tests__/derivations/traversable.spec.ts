@@ -32,23 +32,25 @@ describe('Traversable derivation', () => {
   const sxs = Snoc.fromList(List.range(0, n));
 
   test('map to be stack safe', () => {
-    const expected = List.range(1, 50_001);
+    const expected = List.range(1, 50_001).toArray;
 
-    expect(IList.toList(IListF.map_(ixs, x => x + 1))).toEqual(expected);
-    expect(Snoc.toList(SnocF.map_(sxs, x => x + 1))).toEqual(expected);
+    expect(IList.toList(IListF.map_(ixs, x => x + 1)).toArray).toEqual(
+      expected,
+    );
+    expect(Snoc.toList(SnocF.map_(sxs, x => x + 1)).toArray).toEqual(expected);
   });
 
   test('traverse to be stack safe', () => {
-    const expected = Some(List.range(1, 50_001));
+    const expected = Some(List.range(1, 50_001).toArray);
 
     expect(
       IListF.traverse_(Option.Applicative)(ixs, x => Some(x + 1)).map(
-        IList.toList,
+        xs => IList.toList(xs).toArray,
       ),
     ).toEqual(expected);
     expect(
       SnocF.traverse_(Option.Applicative)(sxs, x => Some(x + 1)).map(
-        Snoc.toList,
+        xs => Snoc.toList(xs).toArray,
       ),
     ).toEqual(expected);
   });
