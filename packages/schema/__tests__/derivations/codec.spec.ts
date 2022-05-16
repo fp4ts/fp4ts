@@ -25,11 +25,11 @@ describe('Codec derivation', () => {
     const ic = IList.schemaK.toSchema(Schema.number).interpret(Codec.Schemable);
     const sc = Snoc.schemaK.toSchema(Schema.number).interpret(Codec.Schemable);
 
-    expect(IList.toList(ic.decode(ic.encode(ixs)).get)).toEqual(
-      List.range(0, 50_000),
+    expect(IList.toList(ic.decode(ic.encode(ixs)).get).toArray).toEqual(
+      List.range(0, 50_000).toArray,
     );
-    expect(Snoc.toList(sc.decode(sc.encode(sxs)).get)).toEqual(
-      List.range(0, 50_000),
+    expect(Snoc.toList(sc.decode(sc.encode(sxs)).get).toArray).toEqual(
+      List.range(0, 50_000).toArray,
     );
   });
 
@@ -49,11 +49,11 @@ describe('Codec derivation', () => {
       .toSchema(Schema.number)
       .interpret(Decoder.Schemable);
 
-    expect(IList.toList(id.decode(ie.encode(ixs)).get)).toEqual(
-      List.range(0, 50_000),
+    expect(IList.toList(id.decode(ie.encode(ixs)).get).toArray).toEqual(
+      List.range(0, 50_000).toArray,
     );
-    expect(Snoc.toList(sd.decode(se.encode(sxs)).get)).toEqual(
-      List.range(0, 50_000),
+    expect(Snoc.toList(sd.decode(se.encode(sxs)).get).toArray).toEqual(
+      List.range(0, 50_000).toArray,
     );
   });
 
