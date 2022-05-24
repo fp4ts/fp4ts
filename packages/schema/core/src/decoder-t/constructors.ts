@@ -185,12 +185,12 @@ export const struct =
             if (idx >= keys.length) return DecodeResultT.success(F)(acc as A);
             if (!(k in xs))
               return DecodeResultT.failure(F)(
-                new DecodeFailure(`missing property '${k}'`),
+                new DecodeFailure(`missing property '${k as string}'`),
               );
 
             return ds[k]
               .decodeT(xs[k as any])
-              .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
+              .leftMap(F)(f => f.mapCause(f => `${f} at key '${k as string}'`))
               .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
           };
           return loop({}, 0);
@@ -215,7 +215,10 @@ export const partial =
             traverse(EitherT.Monad<F, DecodeFailure>(F))(k => {
               if (!(k in xs)) return DecodeResultT.success(F)(None);
 
-              return mapFailure_(F)(ds[k], f => `'${f}' at key '${k}'`)
+              return mapFailure_(F)(
+                ds[k],
+                f => `'${f}' at key '${k as string}'`,
+              )
                 .decodeT(xs[k as string])
                 .map(F)(r => Some(tupled(r, k)));
             }),

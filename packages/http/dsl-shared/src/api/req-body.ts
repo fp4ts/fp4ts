@@ -15,7 +15,7 @@ export class ReqBodyElement<
   CT extends ContentTypeWithMime<any>,
   A extends TypeRef<any, any>,
 > extends BaseElement<ReqBodyTag> {
-  [ElementTag]: ReqBodyTag;
+  [ElementTag]: ReqBodyTag = ReqBodyTag;
 
   public constructor(public readonly ct: CT, public readonly body: A) {
     super();

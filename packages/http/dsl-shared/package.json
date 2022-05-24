@@ -16,6 +16,6 @@
     "@fp4ts/schema-json": "*"
   },
   "devDependencies": {
-    "typescript": "4.6.4"
+    "typescript": "4.7.2"
   }
 }

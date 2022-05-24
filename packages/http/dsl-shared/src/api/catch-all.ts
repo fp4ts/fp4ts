@@ -14,7 +14,7 @@ export class CaptureAllElement<
   S extends string,
   T extends TypeRef<any, any>,
 > extends BaseElement<CaptureAllElementTag> {
-  [ElementTag]: CaptureAllElementTag;
+  [ElementTag]: CaptureAllElementTag = CaptureAllElementTag;
 
   public constructor(public readonly name: S, public readonly type: T) {
     super();

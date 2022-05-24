@@ -20,4 +20,4 @@ export const GlobalExecutionContext: ExecutionContext = Object.freeze({
   currentTimeMicros: (): number => process.hrtime()[0],
   currentTimeMillis: (): number => Date.now(),
   reportFailure: (e: Error): void => console.error(e),
-});
+} as ExecutionContext);

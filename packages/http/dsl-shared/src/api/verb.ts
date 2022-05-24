@@ -18,7 +18,7 @@ export class VerbElement<
   A extends TypeRef<any, any>,
 > implements ApiElement<VerbTag>
 {
-  public readonly [ElementTag]: VerbTag;
+  public readonly [ElementTag]: VerbTag = VerbTag;
 
   public constructor(
     public readonly method: M,
@@ -37,7 +37,7 @@ export class HeadersVerbElement<
   H extends HeadersElement<any, any>,
 > implements ApiElement<HeadersVerbTag>
 {
-  public readonly [ElementTag]: HeadersVerbTag;
+  public readonly [ElementTag]: HeadersVerbTag = HeadersVerbTag;
 
   public constructor(
     public readonly method: M,

@@ -9,7 +9,7 @@ export const RawElementTag = '@fp4ts/http/dsl-shared/raw';
 export type RawElementTag = typeof RawElementTag;
 
 export class RawElement implements ApiElement<RawElementTag> {
-  [ElementTag]: RawElementTag;
+  [ElementTag]: RawElementTag = RawElementTag;
 }
 
 export const Raw: RawElement = new RawElement();

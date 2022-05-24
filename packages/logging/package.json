@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "@fp4ts/effect-test-kit": "*",
-    "typescript": "4.6.4"
+    "typescript": "4.7.2"
   }
 }

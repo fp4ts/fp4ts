@@ -26,11 +26,11 @@
     "@types/jest": "^27.5.1",
     "@types/node": "^16.11.10",
     "@types/supertest": "^2.0.11",
-    "@typescript-eslint/eslint-plugin": "^5.25.0",
-    "@typescript-eslint/parser": "^5.25.0",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
     "autocannon": "^7.6.0",
     "benny": "^3.7.1",
-    "eslint": "^8.15.0",
+    "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "fast-check": "^2.25.0",
@@ -39,7 +39,7 @@
     "supertest": "^6.2.3",
     "typedoc": "^0.22.15",
     "typedoc-plugin-missing-exports": "^0.22.6",
-    "typescript": "^4.6.4"
+    "typescript": "^4.7.2"
   },
   "scripts": {
     "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=25%",

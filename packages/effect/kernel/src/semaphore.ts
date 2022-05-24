@@ -29,15 +29,15 @@ export class Semaphore<F, E = Error> {
   private readonly __void!: void;
 
   private constructor(
-    private readonly F: Concurrent<F, E>,
+    private readonly _F: Concurrent<F, E>,
     private readonly state: Ref<F, State<F>>,
   ) {}
 
   public readonly acquire = (): Kind<F, [void]> =>
-    this.F.uncancelable(poll =>
+    this._F.uncancelable(poll =>
       pipe(
-        this.F.deferred<void>(),
-        this.F.flatMap(wait => {
+        this._F.deferred<void>(),
+        this._F.flatMap(wait => {
           const cancel = this.state.update(state =>
             state.copy({ queue: state.queue.filter(x => x !== wait) }),
           );
@@ -46,38 +46,38 @@ export class Semaphore<F, E = Error> {
             state.permits === 0
               ? [
                   state.copy({ queue: [...state.queue, wait] }),
-                  pipe(poll(wait.get()), this.F.onCancel(cancel)),
+                  pipe(poll(wait.get()), this._F.onCancel(cancel)),
                 ]
-              : [state.copy({ permits: state.permits - 1 }), this.F.unit],
+              : [state.copy({ permits: state.permits - 1 }), this._F.unit],
           );
         }),
-        this.F.flatten,
+        this._F.flatten,
       ),
     );
 
   public readonly release = (): Kind<F, [void]> =>
-    this.F.uncancelable(() =>
+    this._F.uncancelable(() =>
       pipe(
         this.state.modify(state => {
           if (state.queue.length) {
             const [head, ...tail] = state.queue;
             return [state.copy({ queue: tail }), head.complete(undefined)];
           } else {
-            return [state.copy({ permits: state.permits + 1 }), this.F.unit];
+            return [state.copy({ permits: state.permits + 1 }), this._F.unit];
           }
         }),
-        this.F.flatten,
+        this._F.flatten,
       ),
     );
 
   public readonly withPermit = <A>(fa: Kind<F, [A]>): Kind<F, [A]> =>
-    this.F.uncancelable(poll =>
+    this._F.uncancelable(poll =>
       pipe(
         poll(this.acquire()),
-        this.F.flatMap(() =>
+        this._F.flatMap(() =>
           pipe(
             poll(fa),
-            this.F.finalize(() => this.release()),
+            this._F.finalize(() => this.release()),
           ),
         ),
       ),
