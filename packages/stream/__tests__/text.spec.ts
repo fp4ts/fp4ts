@@ -18,7 +18,7 @@ describe('Text Streams', () => {
       fc.assert(
         fc.property(
           fc.string(),
-          fc.integer(1, 9),
+          fc.integer({ min: 1, max: 9 }),
           (string, chunkSize) =>
             Stream.pure(string)
               .through(text.utf8.encode())
@@ -32,7 +32,7 @@ describe('Text Streams', () => {
       fc.assert(
         fc.property(
           fc.unicode(),
-          fc.integer(1, 9),
+          fc.integer({ min: 1, max: 9 }),
           (string, chunkSize) =>
             Stream.pure(string)
               .through(text.utf8.encode())
@@ -46,7 +46,7 @@ describe('Text Streams', () => {
       fc.assert(
         fc.property(
           fc.fullUnicode(),
-          fc.integer(1, 9),
+          fc.integer({ min: 1, max: 9 }),
           (string, chunkSize) =>
             Stream.pure(string)
               .through(text.utf8.encode())

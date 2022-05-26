@@ -26,7 +26,7 @@ export const fp4tsFree = <F, A>(
     constraints.maxDepth <= Number.MAX_SAFE_INTEGER
       ? constraints.maxDepth
       : Math.min(2 * minDepth + 10, 0x7fffffff);
-  const maxDepthA = fc.integer(minDepth, maxDepth);
+  const maxDepthA = fc.integer({ min: minDepth, max: maxDepth });
 
   const genFree = fc.memo((maxDepth: number): Arbitrary<Free<F, A>> => {
     const base = fc.oneof(
@@ -34,7 +34,7 @@ export const fp4tsFree = <F, A>(
       arbA.map(x => Free.pure<F, A>(x)),
     );
 
-    const nextDepth = fc.integer(1, Math.max(1, maxDepth - 1));
+    const nextDepth = fc.integer({ min: 1, max: Math.max(1, maxDepth - 1) });
 
     const flatMapped = fc
       .tuple(nextDepth, nextDepth)

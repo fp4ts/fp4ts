@@ -39,7 +39,7 @@ export const fp4tsResource =
     const arbEval: Arbitrary<Resource<F, A>> = mkArbF(arbA).map(Resource.evalF);
     const genPure: Arbitrary<Resource<F, A>> = arbA.map(x => Resource.pure(x));
 
-    return fc.frequency(
+    return fc.oneof(
       { weight: 5, arbitrary: arbAllocate },
       { weight: 1, arbitrary: arbFlatMap },
       { weight: 1, arbitrary: arbEval },

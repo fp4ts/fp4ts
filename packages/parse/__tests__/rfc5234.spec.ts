@@ -26,7 +26,7 @@ describe('RFC 5234', () => {
     f: (c: Char) => A,
   ) {
     const validArb = fc.oneof(...valid.toArray.map(fc.constant));
-    const invalidArb = fc.frequency(
+    const invalidArb = fc.oneof(
       ...[
         [3, Set(...charRange(0x00, 0x7f))['\\'](valid)] as const,
         [1, Set(...charRange(0x80, 0xff))['\\'](valid)] as const,

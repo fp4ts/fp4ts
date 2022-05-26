@@ -13,7 +13,7 @@ export * from '@fp4ts/effect-test-kit/lib/arbitraries';
 export const fp4tsPureStreamGenerator = <A>(
   arbA: Arbitrary<A>,
 ): Arbitrary<Stream<PureF, A>> =>
-  fc.frequency(
+  fc.oneof(
     { weight: 1, arbitrary: fc.constant(Stream.empty()) },
     {
       weight: 20,
@@ -45,7 +45,7 @@ export const fp4tsEffectStreamGenerator = <F, A>(
   arbFA: Arbitrary<Kind<F, [A]>>,
   arbFvoid: Arbitrary<Kind<F, [void]>>,
 ): Arbitrary<Stream<F, A>> =>
-  fc.frequency(
+  fc.oneof(
     { maxDepth: 5 },
     { weight: 1, arbitrary: fc.constant(Stream.empty<F>()) },
     {
@@ -74,7 +74,7 @@ export const fp4tsStreamChunkGenerator = <O>(
 ): Arbitrary<Chunk<O>> => {
   const maxDepth = 5;
 
-  const base = fc.frequency(
+  const base = fc.oneof(
     { weight: 1, arbitrary: fc.constant(Chunk.empty) },
     { weight: 5, arbitrary: arbO.map(Chunk.singleton) },
     {

@@ -125,7 +125,7 @@ export const fp4tsVector = <A>(
     constraints.maxLength <= Number.MAX_SAFE_INTEGER
       ? constraints.maxLength
       : Math.min(2 * minLength + 10, 0x7fffffff);
-  const size = fc.integer(minLength, maxLength);
+  const size = fc.integer({ min: minLength, max: maxLength });
 
   const genSized = fc.memo((size: number) => {
     const fromArray = fc
@@ -150,7 +150,7 @@ export const fp4tsVector = <A>(
       }
     }
 
-    return fc.frequency(
+    return fc.oneof(
       { arbitrary: recursive, weight: 3 },
       { arbitrary: fromArray, weight: 1 },
     );
@@ -162,7 +162,7 @@ export const fp4tsVector = <A>(
 export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
   const maxDepth = 5;
 
-  const base = fc.frequency(
+  const base = fc.oneof(
     { weight: 1, arbitrary: fc.constant(Chain.empty) },
     { weight: 5, arbitrary: arbA.map(Chain.singleton) },
     {
