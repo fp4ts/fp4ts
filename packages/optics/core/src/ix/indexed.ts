@@ -205,7 +205,7 @@ const indexedArrow: <I>() => Arrow<$<IndexedF, [I]>> = lazyVal(
 const indexedArrowApply: <I>() => ArrowApply<$<IndexedF, [I]>> = lazyVal(
   <I>(): ArrowApply<$<IndexedF, [I]>> =>
     ArrowApply.of({
-      ...indexedArrowApply<I>(),
+      ...indexedArrow<I>(),
 
       app:
         <A, B>() =>
