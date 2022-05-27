@@ -25,7 +25,7 @@ import { Distributive } from '../distributive';
 import { Monad } from '../monad';
 import { Either, Left, Right } from './either';
 
-export const Function1: Function1Obj = function () {};
+export const Function1: Function1Obj = function () {} as any;
 
 interface Function1Obj {
   Functor<A>(): Functor<$<Function1F, [A]>>;
@@ -148,8 +148,16 @@ Function1.Distributive = function1Distributive;
 Function1.Contravariant = function1Contravariant;
 Function1.Applicative = function1Applicative;
 Function1.Monad = function1Monad;
-Function1.ArrowApply = function1ArrowApply();
-Function1.ArrowChoice = function1ArrowChoice();
+Object.defineProperty(Function1, 'ArrowApply', {
+  get() {
+    return function1ArrowApply();
+  },
+});
+Object.defineProperty(Function1, 'ArrowChoice', {
+  get() {
+    return function1ArrowChoice();
+  },
+});
 
 // -- HKT
 

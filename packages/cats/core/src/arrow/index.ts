@@ -6,6 +6,7 @@
 export * from './arrow';
 export * from './arrow-apply';
 export * from './arrow-choice';
+export * from './arrow-monad';
 export * from './category';
 export * from './choice';
 export * from './compose';

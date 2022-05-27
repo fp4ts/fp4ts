@@ -101,7 +101,7 @@ export const Monad = Object.freeze({
   },
 });
 
-class GenKind<FA, A> {
+export class GenKind<FA, A> {
   public constructor(public readonly effect: FA) {}
 
   public *[Symbol.iterator](): Generator<GenKind<FA, A>, A, any> {

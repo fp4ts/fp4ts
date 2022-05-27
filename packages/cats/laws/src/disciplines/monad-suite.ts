@@ -13,7 +13,6 @@ import { MonadLaws } from '../monad-laws';
 import { ApplicativeSuite } from './applicative-suite';
 import { FlatMapSuite } from './flat-map-suite';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const MonadSuite = <F>(F: Monad<F>) => {
   const {
     monadLeftIdentity,
@@ -115,7 +114,7 @@ export const MonadSuite = <F>(F: Monad<F>) => {
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'monad',
+        'Monad',
         [
           [
             'monad left identity',

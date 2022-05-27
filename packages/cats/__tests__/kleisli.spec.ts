@@ -22,6 +22,8 @@ import {
   EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
+import { MonadReader } from '@fp4ts/cats-mtl';
+import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import {
   AlternativeSuite,
   ArrowApplySuite,
@@ -39,8 +41,6 @@ import {
 } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
-import { MonadReader } from '@fp4ts/cats-mtl';
 
 describe('Kleisli', () => {
   const KleisliId = <A, B>(f: (a: A) => Identity<B>) =>

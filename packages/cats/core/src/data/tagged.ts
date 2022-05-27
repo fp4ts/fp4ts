@@ -15,7 +15,7 @@ export type Tagged<S, B> = _Tagged<S, B>;
 
 export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
   return new _Tagged(b);
-};
+} as any;
 
 Tagged.pure = Tagged;
 Tagged.unTag = tsb => tsb.unTag;
@@ -99,8 +99,16 @@ const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazyVal(() =>
 
 Tagged.EqK = taggedEqK;
 Tagged.Monad = taggedMonad;
-Tagged.Bifunctor = taggedBifunctor();
-Tagged.Profunctor = taggedProfunctor();
+Object.defineProperty(Tagged, 'Bifunctor', {
+  get() {
+    return taggedBifunctor();
+  },
+});
+Object.defineProperty(Tagged, 'Profunctor', {
+  get() {
+    return taggedProfunctor();
+  },
+});
 
 // -- HKT
 
