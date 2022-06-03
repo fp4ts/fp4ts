@@ -9,6 +9,7 @@ import { Eq } from '@fp4ts/cats-kernel';
 import {
   ArrowApplySuite,
   ArrowChoiceSuite,
+  DeferSuite,
   DistributiveSuite,
   MonadSuite,
 } from '@fp4ts/cats-laws';
@@ -18,6 +19,16 @@ import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function1', () => {
+  checkAll(
+    'Defer<Function1<MiniInt, *>>',
+    DeferSuite(Function1.Defer<MiniInt>()).defer(
+      fc.string(),
+      Eq.primitive,
+      <X>(arbX: Arbitrary<X>) => fc.func<[MiniInt], X>(arbX),
+      <X>(EqX: Eq<X>) => eq.fn1Eq(ec.miniInt(), EqX),
+    ),
+  );
+
   checkAll(
     'Distributive<Function1<number, *>>',
     DistributiveSuite(Function1.Distributive<MiniInt>()).distributive(

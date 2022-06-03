@@ -24,10 +24,12 @@ import { Functor } from '../functor';
 import { Distributive } from '../distributive';
 import { Monad } from '../monad';
 import { Either, Left, Right } from './either';
+import { Defer } from '../defer';
 
 export const Function1: Function1Obj = function () {} as any;
 
 interface Function1Obj {
+  Defer<A>(): Defer<$<Function1F, [A]>>;
   Functor<A>(): Functor<$<Function1F, [A]>>;
   Distributive<A>(): Distributive<$<Function1F, [A]>>;
   Contravariant<A>(): Contravariant<λ<Function1F, [α, Fix<A>]>>;
@@ -38,6 +40,15 @@ interface Function1Obj {
 }
 
 // -- Instances
+
+const function1Defer: <A>() => Defer<$<Function1F, [A]>> = lazyVal(<A>() =>
+  Defer.of<$<Function1F, [A]>>({
+    defer:
+      <B>(lfa: () => (a: A) => B) =>
+      (a: A) =>
+        lfa()(a),
+  }),
+) as <A>() => Defer<$<Function1F, [A]>>;
 
 const function1Functor: <A>() => Functor<$<Function1F, [A]>> = lazyVal(<A>() =>
   Functor.of<$<Function1F, [A]>>({
@@ -143,6 +154,7 @@ const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
   }),
 );
 
+Function1.Defer = function1Defer;
 Function1.Functor = function1Functor;
 Function1.Distributive = function1Distributive;
 Function1.Contravariant = function1Contravariant;
