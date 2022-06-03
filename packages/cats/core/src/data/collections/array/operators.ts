@@ -13,6 +13,7 @@ import { Either } from '../../either';
 import { Chain } from '../chain';
 import { List } from '../list';
 import { arrayFoldableWithIndex } from './instances';
+import { Eval } from '../../../eval';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -99,17 +100,6 @@ export const sequence: <G>(
   G: Applicative<G>,
 ) => <A>(gs: Kind<G, [A]>[]) => Kind<G, [A[]]> = G => gs =>
   traverse_(G)(gs, id);
-
-export const flatTraverse: <G>(
-  G: Applicative<G>,
-) => <A, B>(f: (a: A) => Kind<G, [B[]]>) => (xs: A[]) => Kind<G, [B[]]> =
-  G => f => xs =>
-    flatTraverse_(G, xs, f);
-
-export const flatSequence: <G>(
-  G: Applicative<G>,
-) => <A>(xgs: Kind<G, [A[]]>[]) => Kind<G, [A[]]> = G => xgs =>
-  flatTraverse_(G, xgs, id);
 
 // Point-ful operators
 
@@ -226,20 +216,10 @@ export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    xs.reduce(
-      (gxs, x, i) => G.map2_(gxs, f(x, i))((xs, x) => [...xs, x]),
-      G.pure([] as B[]),
+    G.map_(
+      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
+      xs => xs.toArray,
     );
-
-export const flatTraverse_ = <G, A, B>(
-  G: Applicative<G>,
-  xs: A[],
-  f: (a: A) => Kind<G, [B[]]>,
-): Kind<G, [B[]]> =>
-  xs.reduce(
-    (gbs: Kind<G, [B[]]>, x) => G.map2_(gbs, f(x))((bs, b) => [...bs, ...b]),
-    G.pure([] as B[]),
-  );
 
 export const equals_ =
   <AA>(E: Eq<AA>) =>
