@@ -9,6 +9,6 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "devDependencies": {
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   }
 }

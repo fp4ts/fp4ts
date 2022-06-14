@@ -20,6 +20,6 @@
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/optics-laws": "*",
     "fast-check": "^3.0.0",
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   }
 }

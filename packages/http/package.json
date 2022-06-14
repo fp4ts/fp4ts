@@ -18,6 +18,6 @@
     "@fp4ts/http-test-kit-node": "*",
     "@fp4ts/schema": "*",
     "fast-check": "^3.0.0",
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   }
 }
