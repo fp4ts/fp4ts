@@ -49,5 +49,6 @@
     "clean": "rm -rf dist docs tsconfig.tsbuildinfo",
     "docs": "typedoc",
     "lint": "eslint ./packages"
-  }
+  },
+  "packageManager": "yarn@3.2.1"
 }
