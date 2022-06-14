@@ -10,7 +10,7 @@ import { UniqueToken, ExitCase } from '@fp4ts/effect';
 import { Chunk } from '../chunk/algebra';
 import { Scope } from '../internal';
 
-export abstract class Pull<F, O, R> {
+export abstract class Pull<out F, out O, out R> {
   readonly __void!: void;
   readonly _F!: () => F;
   readonly _O!: () => O;

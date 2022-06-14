@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export abstract class Option<A> {
+export abstract class Option<out A> {
   readonly __void!: void;
   readonly _A!: () => A;
 

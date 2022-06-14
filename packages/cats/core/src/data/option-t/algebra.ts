@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 
 import { Option } from '../option';
 
-export class OptionT<F, A> {
+export class OptionT<in out F, out A> {
   private readonly __void!: void;
 
   public constructor(public readonly value: Kind<F, [Option<A>]>) {}

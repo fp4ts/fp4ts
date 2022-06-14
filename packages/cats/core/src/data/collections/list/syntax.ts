@@ -82,7 +82,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface List<A> {
+  interface List<out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

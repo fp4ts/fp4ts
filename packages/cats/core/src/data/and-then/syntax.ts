@@ -7,7 +7,7 @@ import { AndThen } from './algebra';
 import { andThen_, compose_ } from './operators';
 
 declare module './algebra' {
-  interface AndThen<A, B> {
+  interface AndThen<in A, out B> {
     andThen<C>(g: (b: B) => C): AndThen<A, C>;
     compose<AA>(g: (aa: AA) => A): AndThen<AA, B>;
   }

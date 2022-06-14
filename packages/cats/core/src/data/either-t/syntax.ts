@@ -32,7 +32,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface EitherT<F, A, B> {
+  interface EitherT<in out F, out A, out B> {
     isLeft(F: Functor<F>): Kind<F, [boolean]>;
     isRight(F: Functor<F>): Kind<F, [boolean]>;
 

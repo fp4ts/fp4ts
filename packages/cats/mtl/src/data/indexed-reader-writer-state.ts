@@ -62,7 +62,7 @@ export const IndexedReaderWriterState: ReaderWriterStateObj = function <
 export { IndexedReaderWriterState as RWS };
 export { IndexedReaderWriterStateF as RWSF };
 
-abstract class _RWS<W, S1, S2, R, E, A> {
+abstract class _RWS<out W, in S1, out S2, in R, out E, out A> {
   // -- Reader Methods
 
   public provide(r: R): IndexedReaderWriterState<W, S1, S2, unknown, E, A> {

@@ -7,7 +7,7 @@ import { runLoop_ } from './runLoop';
 
 const AndThenTag = Symbol('@fp4ts/cats/core/and-then');
 
-export abstract class AndThen<A, B> {
+export abstract class AndThen<in A, out B> {
   private readonly __void!: void;
 }
 export interface AndThen<A, B> {

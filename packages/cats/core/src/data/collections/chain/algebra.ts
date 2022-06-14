@@ -7,7 +7,7 @@ import { ok as assert } from 'assert';
 import { Kind } from '@fp4ts/core';
 import { Foldable } from '../../../foldable';
 
-export abstract class Chain<A> {
+export abstract class Chain<out A> {
   readonly __void!: void;
 }
 

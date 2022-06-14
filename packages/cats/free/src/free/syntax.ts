@@ -9,7 +9,7 @@ import { Free } from './algebra';
 import { flatMap_, map_, mapK_ } from './operators';
 
 declare module './algebra' {
-  interface Free<F, A> {
+  interface Free<in out F, out A> {
     map<B>(f: (a: A) => B): Free<F, B>;
 
     flatMap<B>(this: Free<F, A>, f: (a: A) => Free<F, B>): Free<F, B>;

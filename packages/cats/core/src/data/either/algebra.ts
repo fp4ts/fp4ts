@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export abstract class Either<E, A> {
+export abstract class Either<out E, out A> {
   private readonly __void!: void;
   private readonly _E!: () => E;
   private readonly _A!: () => A;

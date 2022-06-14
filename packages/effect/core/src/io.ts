@@ -153,7 +153,7 @@ interface IOObj {
   readonly Async: Async<IOF>;
 }
 
-abstract class _IO<A> {
+abstract class _IO<out A> {
   private readonly __void!: void;
   private readonly _A!: () => A;
 

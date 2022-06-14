@@ -41,7 +41,7 @@ import {
 import { iterator, reverseIterator } from './operators';
 import { VectorBuilder } from './vector-builder';
 
-export abstract class Vector<A> {
+export abstract class Vector<out A> {
   private readonly __void!: void;
   private readonly _A!: () => A;
 

@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 
-export class Kleisli<F, A, B> {
+export class Kleisli<in out F, in A, out B> {
   private readonly __void!: void;
 
   public constructor(public readonly run: (a: A) => Kind<F, [B]>) {}

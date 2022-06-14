@@ -32,7 +32,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Ior<A, B> {
+  interface Ior<out A, out B> {
     readonly isLeft: boolean;
     readonly isRight: boolean;
     readonly isBoth: boolean;

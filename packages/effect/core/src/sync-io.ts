@@ -42,7 +42,7 @@ interface SyncIOObj {
   readonly Sync: Sync<SyncIOF>;
 }
 
-abstract class _SyncIO<A> {
+abstract class _SyncIO<out A> {
   private readonly __void!: void;
   private readonly _A!: () => A;
 

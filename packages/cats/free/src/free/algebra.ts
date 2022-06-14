@@ -5,8 +5,10 @@
 
 import { Kind } from '@fp4ts/core';
 
-export abstract class Free<F, A> {
+export abstract class Free<in out F, out A> {
   private readonly __void!: void;
+  private readonly _F!: (f: F) => F;
+  private readonly _A!: () => A;
 }
 
 export class Pure<F, A> extends Free<F, A> {

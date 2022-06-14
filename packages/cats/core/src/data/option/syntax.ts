@@ -28,7 +28,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Option<A> {
+  interface Option<out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

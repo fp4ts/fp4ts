@@ -62,7 +62,7 @@ import {
 import { Set } from './algebra';
 
 declare module './algebra' {
-  interface Set<A> {
+  interface Set<out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

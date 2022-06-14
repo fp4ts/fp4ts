@@ -5,7 +5,7 @@
 
 import { Pull } from '../pull';
 
-export class Stream<F, A> {
+export class Stream<out F, out A> {
   private readonly __void!: void;
 
   private readonly _F!: () => F;

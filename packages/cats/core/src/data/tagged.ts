@@ -20,7 +20,7 @@ export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
 Tagged.pure = Tagged;
 Tagged.unTag = tsb => tsb.unTag;
 
-class _Tagged<S, B> {
+class _Tagged<in S, out B> {
   private readonly _S!: (s: S) => void;
 
   public constructor(public readonly unTag: B) {}

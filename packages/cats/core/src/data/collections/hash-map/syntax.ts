@@ -58,7 +58,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface HashMap<K, V> {
+  interface HashMap<out K, out V> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
     readonly keys: List<K>;

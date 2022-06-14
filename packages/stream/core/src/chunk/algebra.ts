@@ -21,7 +21,7 @@ import {
 
 const te = new TextEncoder();
 
-export abstract class Chunk<O> {
+export abstract class Chunk<out O> {
   private readonly __void!: void;
   private readonly _O!: () => O;
 

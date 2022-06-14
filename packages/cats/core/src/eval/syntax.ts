@@ -7,7 +7,7 @@ import { Eval } from './algebra';
 import { flatMap_, flatten, map_ } from './operators';
 
 declare module './algebra' {
-  interface Eval<A> {
+  interface Eval<out A> {
     map<B>(f: (a: A) => B): Eval<B>;
     flatMap<B>(f: (a: A) => Eval<B>): Eval<B>;
 

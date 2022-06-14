@@ -43,7 +43,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Resource<F, A> {
+  interface Resource<F, out A> {
     use(
       F: MonadCancel<F, Error>,
     ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;

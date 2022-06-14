@@ -6,7 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { Either } from '../either';
 
-export class EitherT<F, A, B> {
+export class EitherT<in out F, out A, out B> {
   private readonly __void!: void;
 
   public constructor(public readonly value: Kind<F, [Either<A, B>]>) {}

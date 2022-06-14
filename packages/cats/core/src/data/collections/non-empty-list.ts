@@ -69,7 +69,7 @@ NonEmptyList.fromIterator = <A>(it: Iterator<A>): Option<NonEmptyList<A>> => {
     : Some(new _NonEmptyList(next.value, List.fromIterator(it)));
 };
 
-class _NonEmptyList<A> {
+class _NonEmptyList<out A> {
   public constructor(public readonly head: A, public readonly tail: List<A>) {}
 
   public get init(): List<A> {

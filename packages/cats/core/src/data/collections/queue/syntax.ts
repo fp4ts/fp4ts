@@ -77,7 +77,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Queue<A> {
+  interface Queue<out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

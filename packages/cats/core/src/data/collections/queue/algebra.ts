@@ -5,7 +5,7 @@
 
 import { List } from '../list';
 
-export class Queue<A> {
+export class Queue<out A> {
   private readonly __void!: void;
   public constructor(
     public readonly _in: List<A>,

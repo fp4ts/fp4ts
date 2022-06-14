@@ -25,7 +25,7 @@ export const WriterT: WriterTObj = function (flv) {
   return new _WriterT(flv);
 };
 
-class _WriterT<F, L, V> {
+class _WriterT<F, out L, out V> {
   public constructor(public readonly value: Kind<F, [[Chain<L>, V]]>) {}
 
   // -- Writer Methods

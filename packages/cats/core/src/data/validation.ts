@@ -33,7 +33,7 @@ import { Bifunctor } from '../bifunctor';
 
 export type Validation<E, A> = _Validation<E, A>;
 
-abstract class _Validation<E, A> {
+abstract class _Validation<out E, out A> {
   private readonly _E!: () => E;
   private readonly _A!: () => A;
 

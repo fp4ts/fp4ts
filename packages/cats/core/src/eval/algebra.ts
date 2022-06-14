@@ -7,7 +7,7 @@ import { id, Lazy, lazyVal } from '@fp4ts/core';
 import { None, Option, Some } from '../data';
 import { evaluate } from './evaluation';
 
-export abstract class Eval<A> {
+export abstract class Eval<out A> {
   private readonly __void!: void;
 
   public abstract readonly value: A;

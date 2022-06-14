@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export abstract class Map<K, V> {
+export abstract class Map<out K, out V> {
   readonly __void!: void;
 
   readonly _K!: () => K;

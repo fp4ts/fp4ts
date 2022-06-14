@@ -7,11 +7,11 @@ import { Byte } from '@fp4ts/core';
 import { List, Vector } from '@fp4ts/cats';
 import { Chunk } from '../chunk';
 
-export interface Collector<A, Out> {
+export interface Collector<in A, Out> {
   newBuilder(): Builder<A, Out>;
 }
 
-export abstract class Builder<A, X> {
+export abstract class Builder<in A, out X> {
   public abstract append(a: Chunk<A>): this;
   public abstract readonly result: X;
 

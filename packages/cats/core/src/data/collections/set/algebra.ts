@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export abstract class Set<A> {
+export abstract class Set<out A> {
   public readonly __void!: void;
+  public readonly _A!: () => A;
 
   public abstract readonly size: number;
 }

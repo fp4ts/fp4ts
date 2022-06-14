@@ -63,7 +63,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Map<K, V> {
+  interface Map<out K, out V> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

@@ -26,7 +26,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Either<E, A> {
+  interface Either<out E, out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 
@@ -60,7 +60,9 @@ declare module './algebra' {
       f: (a: A) => Either<E2, unknown>,
     ): Either<E2, A>;
 
-    readonly flatten: A extends Either<E, infer B> ? Either<E, B> : never;
+    readonly flatten: A extends Either<infer E2, infer B>
+      ? Either<E | E2, B>
+      : never;
 
     readonly swapped: Either<A, E>;
     readonly toOption: Option<A>;

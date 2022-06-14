@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { Poll } from '../poll';
 import { ExitCase } from './exit-case';
 
-export abstract class Resource<F, A> {
+export abstract class Resource<F, out A> {
   private readonly _F!: F;
   private readonly _A!: () => A;
 }

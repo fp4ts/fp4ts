@@ -51,7 +51,7 @@ import {
 } from './stream-projection';
 
 declare module './algebra' {
-  interface Pull<F, O, R> {
+  interface Pull<out F, out O, out R> {
     stream<F2, O2>(this: Pull<F2, O2, void>): Stream<F2, O2>;
     streamNoScope<F2, O2>(this: Pull<F2, O2, void>): Stream<F2, O2>;
 

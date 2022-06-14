@@ -31,7 +31,7 @@ export const IndexedReaderWriterStateT: IndexedReaderWriterStateTObj =
 export { IndexedReaderWriterStateT as RWST };
 export { IndexedReaderWriterStateTF as RWSTF };
 
-class _IndexedReaderWriterStateT<F, W, S1, S2, R, A> {
+class _IndexedReaderWriterStateT<in out F, out W, in S1, out S2, in R, out A> {
   public constructor(
     public readonly runAllF: Kind<
       F,

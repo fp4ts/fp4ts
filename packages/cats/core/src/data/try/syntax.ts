@@ -25,7 +25,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Try<A> {
+  interface Try<out A> {
     readonly isSuccess: boolean;
     readonly isFailure: boolean;
 

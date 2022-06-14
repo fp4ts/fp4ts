@@ -28,7 +28,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface OptionT<F, A> {
+  interface OptionT<in out F, out A> {
     isEmpty(F: Functor<F>): Kind<F, [boolean]>;
     nonEmpty(F: Functor<F>): Kind<F, [boolean]>;
 

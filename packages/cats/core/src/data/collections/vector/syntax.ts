@@ -65,7 +65,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Vector<A> {
+  interface Vector<out A> {
     readonly isEmpty: boolean;
     readonly nonEmpty: boolean;
 

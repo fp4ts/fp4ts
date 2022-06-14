@@ -32,7 +32,7 @@ import {
 } from './operators';
 
 declare module './algebra' {
-  interface Kleisli<F, A, B> {
+  interface Kleisli<in out F, in A, out B> {
     dimap<AA extends A, BB>(
       this: Kleisli<F, A, BB>,
       F: Functor<F>,

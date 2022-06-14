@@ -5,7 +5,7 @@
 
 import { ok as assert } from 'assert';
 
-export abstract class HashMap<K, V> {
+export abstract class HashMap<out K, out V> {
   readonly __void!: void;
 
   readonly _K!: () => K;

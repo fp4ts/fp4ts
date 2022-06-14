@@ -131,7 +131,7 @@ import { PureF } from '../pure';
 import { CompileOps } from './compile-ops';
 
 declare module './algebra' {
-  interface Stream<F, A> {
+  interface Stream<out F, out A> {
     readonly head: Stream<F, A>;
     readonly headOption: Stream<F, Option<A>>;
     readonly tail: Stream<F, A>;
@@ -196,7 +196,9 @@ declare module './algebra' {
     ): <B>(f: (a: A) => Kind<F2, [B]>) => Stream<F2, B>;
 
     flatMap<F2, B>(f: (a: A) => Stream<F2, B>): Stream<F2, B>;
-    readonly flatten: A extends Stream<F, infer B> ? Stream<F, B> : never;
+    readonly flatten: A extends Stream<infer F2, infer B>
+      ? Stream<F | F2, B>
+      : never;
 
     through<F2, B>(
       this: Stream<F2, A>,
