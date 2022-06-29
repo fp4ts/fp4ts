@@ -134,9 +134,9 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         case 2:
           try {
             this.pushTracingEvent(cur.event);
-            _cur = IO.pure(cur.thunk());
+            _cur = this.succeeded(cur.thunk());
           } catch (e) {
-            _cur = IO.throwError(e as Error);
+            _cur = this.failed(e as Error);
           }
           continue;
 
@@ -146,23 +146,23 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             this.pushTracingEvent(cur.event);
             _cur = cur.thunk();
           } catch (e) {
-            _cur = IO.throwError(e as Error);
+            _cur = this.failed(e as Error);
           }
           continue;
 
         // Realtime
         case 4:
-          _cur = IO.pure(this.currentEC.currentTimeMicros());
+          _cur = this.succeeded(this.currentEC.currentTimeMicros());
           continue;
 
         // Monotonic
         case 5:
-          _cur = IO.pure(this.currentEC.currentTimeMillis());
+          _cur = this.succeeded(this.currentEC.currentTimeMillis());
           continue;
 
         // ReadEC
         case 6:
-          _cur = IO.pure(this.currentEC);
+          _cur = this.succeeded(this.currentEC);
           continue;
 
         // Map
@@ -199,7 +199,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         case 11: {
           const fiber = new IOFiber(cur.ioa, this.currentEC, this.runtime);
           this.schedule(fiber, this.currentEC);
-          _cur = IO.pure(fiber);
+          _cur = this.succeeded(fiber);
           continue;
         }
 
@@ -335,7 +335,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
               this.schedule(fiberA, this.currentEC);
               this.schedule(fiberB, this.currentEC);
 
-              const cancel = Monad.Do(IO.Monad)(function* (_) {
+              const cancel = IO.Monad.do(function* (_) {
                 const cancelA = yield* _(fiberA.cancel.fork);
                 const cancelB = yield* _(fiberB.cancel.fork);
                 yield* _(cancelA.join);
@@ -478,17 +478,17 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   // -- Continuations
 
   private succeeded(r: unknown): IO<unknown> {
-    return this.continue({ tag: 'success', value: r });
+    return this.continue('success', r);
   }
 
   private failed(e: Error): IO<unknown> {
-    return this.continue({ tag: 'failure', error: e });
+    return this.continue('failure', e);
   }
 
-  private continue(cr: ContResult): IO<unknown> {
+  private continue(tag: 'success' | 'failure', value: unknown): IO<unknown> {
     loop: while (true) {
-      if (cr.tag === 'success') {
-        let r = cr.value;
+      if (tag === 'success') {
+        let r = value;
 
         while (true) {
           const nextCont = this.conts.pop();
@@ -500,12 +500,20 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 r = f(r);
                 continue;
               } catch (e) {
-                cr = { tag: 'failure', error: e as Error };
+                tag = 'failure';
+                value = e;
                 continue loop;
               }
 
             case 1:
-              return this.flatMapK(r);
+              try {
+                const f = this.stack.pop()! as (u: unknown) => IO<unknown>;
+                return f(r);
+              } catch (e) {
+                tag = 'failure';
+                value = e;
+                continue loop;
+              }
 
             case 2:
               this.stack.pop(); // Skip over error handlers
@@ -535,7 +543,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           }
         }
       } else {
-        let e = cr.error;
+        let e = value as Error;
         Tracing.augmentError(e, this.trace.toArray);
 
         while (true) {
@@ -558,7 +566,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
               }
 
             case 3:
-              cr = { tag: 'success', value: Left(e) };
+              tag = 'success';
+              value = Left(e);
               continue loop;
 
             case 4:
@@ -601,15 +610,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       this.complete(IOOutcome.failure(e));
     }
     return IOEndFiber as any;
-  }
-
-  private flatMapK(r: unknown): IO<unknown> {
-    const f = this.stack.pop()! as (u: unknown) => IO<unknown>;
-    try {
-      return f(r);
-    } catch (e) {
-      return this.failed(e as Error);
-    }
   }
 
   private onCancelK(): void {

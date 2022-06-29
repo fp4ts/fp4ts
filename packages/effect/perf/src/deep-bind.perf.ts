@@ -34,7 +34,7 @@ function makeTests(size: number) {
 }
 
 suite(
-  'Shallow Bind',
+  'Deep Bind',
   ...[10_000].flatMap(makeTests),
   cycle(),
   configure({ cases: { minSamples: 20, maxTime: 1 } }),
