@@ -22,3 +22,5 @@ export type Continuation =
   | typeof UnmaskK
   | typeof RunOnK
   | typeof CancelationLoopK;
+
+export const MaxStackSize = 512;

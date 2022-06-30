@@ -25,6 +25,7 @@ import {
   FlatMapK,
   HandleErrorWithK,
   MapK,
+  MaxStackSize,
   OnCancelK,
   RunOnK,
   UncancelableK,
@@ -636,23 +637,36 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   }
 
   private continue(tag: 'success' | 'failure', value: unknown): IO<unknown> {
+    let depth = 0;
     loop: while (true) {
       if (tag === 'success') {
         let r = value;
 
         while (true) {
+          depth++;
           const nextCont = this.conts.pop();
           if (nextCont === undefined) return this.terminateSuccessK(r);
           switch (nextCont) {
             case 0:
-              try {
-                const f = this.stack.pop()!;
-                r = f(r);
-                continue;
-              } catch (e) {
-                tag = 'failure';
-                value = e;
-                continue loop;
+              if (depth <= MaxStackSize) {
+                try {
+                  const f = this.stack.pop()!;
+                  r = f(r);
+                  depth++;
+                  continue;
+                } catch (e) {
+                  tag = 'failure';
+                  value = e;
+                  depth++;
+                  continue loop;
+                }
+              } else {
+                try {
+                  const f = this.stack.pop()!;
+                  return IO.pure(f(r));
+                } catch (e) {
+                  return IO.throwError(e);
+                }
               }
 
             case 1:
@@ -662,6 +676,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
               } catch (e) {
                 tag = 'failure';
                 value = e;
+                depth++;
                 continue loop;
               }
 
@@ -671,18 +686,22 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             case 3:
               r = Right(r);
+              depth++;
               continue;
 
             case 4:
               this.onCancelK();
+              depth++;
               continue;
 
             case 5:
               this.uncancelableK();
+              depth++;
               continue;
 
             case 6:
               this.unmaskK();
+              depth++;
               continue;
 
             case 7:
@@ -712,24 +731,29 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
               } catch (e2) {
                 e = e2 as Error;
                 Tracing.augmentError(e, this.trace.toArray);
+                depth++;
                 continue;
               }
 
             case 3:
               tag = 'success';
               value = Left(e);
+              depth++;
               continue loop;
 
             case 4:
               this.onCancelK();
+              depth++;
               continue;
 
             case 5:
               this.uncancelableK();
+              depth++;
               continue;
 
             case 6:
               this.unmaskK();
+              depth++;
               continue;
 
             case 7:
