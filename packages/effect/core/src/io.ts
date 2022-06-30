@@ -378,8 +378,26 @@ class Delay<A> extends _IO<A> {
   }
 }
 
+const CurrentTimeMicros: IO<number> & { tag: 3 } =
+  new (class CurrentTimeMicros extends _IO<number> {
+    public readonly tag = 3;
+  })();
+type CurrentTimeMicros = typeof CurrentTimeMicros;
+
+const CurrentTimeMillis: IO<number> & { tag: 4 } =
+  new (class CurrentTimeMillis extends _IO<number> {
+    public readonly tag = 4;
+  })();
+type CurrentTimeMillis = typeof CurrentTimeMillis;
+
+const ReadEC: IO<ExecutionContext> & { tag: 5 } =
+  new (class ReadEC extends _IO<ExecutionContext> {
+    public readonly tag = 5;
+  })();
+type ReadEC = typeof ReadEC;
+
 class _Defer<A> extends _IO<A> {
-  public readonly tag = 3;
+  public readonly tag = 6;
   public constructor(
     public readonly thunk: () => _IO<A>,
     public readonly event?: TracingEvent,
@@ -387,24 +405,6 @@ class _Defer<A> extends _IO<A> {
     super();
   }
 }
-
-const CurrentTimeMicros: IO<number> & { tag: 4 } =
-  new (class CurrentTimeMicros extends _IO<number> {
-    public readonly tag = 4;
-  })();
-type CurrentTimeMicros = typeof CurrentTimeMicros;
-
-const CurrentTimeMillis: IO<number> & { tag: 5 } =
-  new (class CurrentTimeMillis extends _IO<number> {
-    public readonly tag = 5;
-  })();
-type CurrentTimeMillis = typeof CurrentTimeMillis;
-
-const ReadEC: IO<ExecutionContext> & { tag: 6 } =
-  new (class ReadEC extends _IO<ExecutionContext> {
-    public readonly tag = 6;
-  })();
-type ReadEC = typeof ReadEC;
 
 class Map<E, A> extends _IO<A> {
   public readonly tag = 7;

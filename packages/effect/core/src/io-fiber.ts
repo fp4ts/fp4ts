@@ -140,8 +140,23 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           }
           continue;
 
-        // Defer
+        // Realtime
         case 3:
+          _cur = this.succeeded(this.currentEC.currentTimeMicros());
+          continue;
+
+        // Monotonic
+        case 4:
+          _cur = this.succeeded(this.currentEC.currentTimeMillis());
+          continue;
+
+        // ReadEC
+        case 5:
+          _cur = this.succeeded(this.currentEC);
+          continue;
+
+        // Defer
+        case 6:
           try {
             this.pushTracingEvent(cur.event);
             _cur = cur.thunk();
@@ -150,28 +165,64 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           }
           continue;
 
-        // Realtime
-        case 4:
-          _cur = this.succeeded(this.currentEC.currentTimeMicros());
-          continue;
-
-        // Monotonic
-        case 5:
-          _cur = this.succeeded(this.currentEC.currentTimeMillis());
-          continue;
-
-        // ReadEC
-        case 6:
-          _cur = this.succeeded(this.currentEC);
-          continue;
-
         // Map
-        case 7:
-          this.stack.push(cur.f);
-          this.conts.push(MapK);
+        case 7: {
           this.pushTracingEvent(cur.event);
-          _cur = cur.ioe;
-          continue;
+
+          const ioe = cur.ioe as IOView<unknown>;
+          const f = cur.f;
+
+          const next = (u: unknown): IO<unknown> => {
+            try {
+              return this.succeeded(f(u));
+            } catch (e) {
+              return this.failed(e as Error);
+            }
+          };
+
+          switch (ioe.tag) {
+            // Pure
+            case 0:
+              _cur = next(ioe.value);
+              continue;
+
+            // Fail
+            case 1:
+              _cur = this.failed(ioe.error);
+              continue;
+
+            // Delay
+            case 2:
+              try {
+                _cur = this.succeeded(f(ioe.thunk()));
+                continue;
+              } catch (e) {
+                _cur = this.failed(e as Error);
+                continue;
+              }
+
+            // Realtime
+            case 3:
+              _cur = next(this.currentEC.currentTimeMicros());
+              continue;
+
+            // Monotonic
+            case 4:
+              _cur = next(this.currentEC.currentTimeMillis());
+              continue;
+
+            // ReadEC
+            case 5:
+              _cur = next(this.currentEC);
+              continue;
+
+            default:
+              this.stack.push(cur.f);
+              this.conts.push(MapK);
+              _cur = ioe;
+              continue;
+          }
+        }
 
         // FlatMap
         case 8:
