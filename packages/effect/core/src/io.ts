@@ -426,20 +426,21 @@ class FlatMap<E, A> extends _IO<A> {
     super();
   }
 }
-class HandleErrorWith<A> extends _IO<A> {
+
+class Attempt<A> extends _IO<Either<Error, A>> {
   public readonly tag = 9;
+  public constructor(public readonly ioa: _IO<A>) {
+    super();
+  }
+}
+
+class HandleErrorWith<A> extends _IO<A> {
+  public readonly tag = 10;
   public constructor(
     public readonly ioa: _IO<A>,
     public readonly f: (e: Error) => _IO<A>,
     public readonly event?: TracingEvent,
   ) {
-    super();
-  }
-}
-
-class Attempt<A> extends _IO<Either<Error, A>> {
-  public readonly tag = 10;
-  public constructor(public readonly ioa: _IO<A>) {
     super();
   }
 }

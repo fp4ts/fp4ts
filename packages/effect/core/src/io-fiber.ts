@@ -193,6 +193,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Delay
             case 2:
+              this.pushTracingEvent(ioe.event);
               try {
                 _cur = this.succeeded(f(ioe.thunk()));
                 continue;
@@ -252,6 +253,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Delay
             case 2:
+              this.pushTracingEvent(ioe.event);
               try {
                 _cur = f(ioe.thunk());
                 continue;
@@ -283,17 +285,63 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           }
         }
 
+        // Attempt
+        case 9: {
+          const ioa = cur.ioa as IOView<unknown>;
+
+          switch (ioa.tag) {
+            // Pure
+            case 0:
+              _cur = this.succeeded(Right(ioa.value));
+              continue;
+
+            // Fail
+            case 1: {
+              const e = ioa.error;
+              Tracing.augmentError(e, this.trace.toArray);
+              _cur = this.succeeded(Left(e));
+              continue;
+            }
+
+            // Delay
+            case 2:
+              this.pushTracingEvent(ioa.event);
+              try {
+                _cur = this.succeeded(Right(ioa.thunk()));
+                continue;
+              } catch (e) {
+                Tracing.augmentError(e as Error, this.trace.toArray);
+                _cur = this.succeeded(Left(e));
+                continue;
+              }
+
+            // Realtime
+            case 3:
+              _cur = this.succeeded(Right(this.currentEC.currentTimeMicros()));
+              continue;
+
+            // Monotonic
+            case 4:
+              _cur = this.succeeded(Right(this.currentEC.currentTimeMillis()));
+              continue;
+
+            // ReadEC
+            case 5:
+              _cur = this.succeeded(Right(this.currentEC));
+              continue;
+
+            default:
+              this.conts.push(AttemptK);
+              _cur = ioa;
+              continue;
+          }
+        }
+
         // HandleErrorWith
-        case 9:
+        case 10:
           this.stack.push(cur.f as (u: unknown) => unknown);
           this.conts.push(HandleErrorWithK);
           this.pushTracingEvent(cur.event);
-          _cur = cur.ioa;
-          continue;
-
-        // Attempt
-        case 10:
-          this.conts.push(AttemptK);
           _cur = cur.ioa;
           continue;
 
