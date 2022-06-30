@@ -90,91 +90,105 @@ abstract class _SyncIO<out A> {
     const conts: Continuation[] = [];
 
     runLoop: while (true) {
-      let result:
-        | { tag: 'success'; value: unknown }
-        | { tag: 'failure'; error: Error };
+      let tag: 'success' | 'failure';
+      let result: unknown;
 
       while (true) {
         const cur = view(_cur);
         switch (cur.tag) {
-          case 0: // 'pure'
-            result = { tag: 'success', value: cur.value };
+          // Pure
+          case 0:
+            tag = 'success';
+            result = cur.value;
             break;
 
-          case 1: // 'fail'
-            result = { tag: 'failure', error: cur.error };
+          // Fail
+          case 1:
+            tag = 'failure';
+            result = cur.error;
             break;
 
-          case 2: // 'delay'
+          // Delay
+          case 2:
             try {
-              result = { tag: 'success', value: cur.thunk() };
-            } catch (error) {
-              result = { tag: 'failure', error: error as Error };
+              tag = 'success';
+              result = cur.thunk();
+              break;
+            } catch (e) {
+              tag = 'failure';
+              result = e;
+              break;
             }
-            break;
 
-          case 3: /* 'defer' */ {
+          // Defer
+          case 3:
             try {
               _cur = cur.thunk();
-            } catch (error) {
-              _cur = new Fail(error as Error);
+              continue;
+            } catch (e) {
+              tag = 'failure';
+              result = e;
+              break;
             }
-            continue;
-          }
 
-          case 4: // 'map'
+          // Map
+          case 4:
             stack.push(cur.fun);
             conts.push(Continuation.MapK);
             _cur = cur.self;
             continue;
 
-          case 5: // 'flatMap'
+          // FlatMap
+          case 5:
             stack.push(cur.fun);
             conts.push(Continuation.FlatMapK);
             _cur = cur.self;
             continue;
 
-          case 6: // 'handleErrorWith'
+          // HandleErrorWith
+          case 6:
             stack.push(cur.fun);
             conts.push(Continuation.HandleErrorWithK);
             _cur = cur.self;
             continue;
 
-          case 7: // 'attempt'
+          // Attempt
+          case 7:
             conts.push(Continuation.AttemptK);
             _cur = cur.self;
             continue;
         }
 
         resultLoop: while (true) {
-          if (result.tag === 'success') {
-            let v: unknown = result.value;
+          if (tag === 'success') {
+            let v: unknown = result;
 
             while (true) {
-              const c = conts.pop();
-              if (c == null) return v as A;
+              if (conts.length <= 0) return v as A;
+              const c = conts.pop()!;
+
               switch (c) {
-                case 0: {
-                  const f = stack.pop()! as (u: unknown) => unknown;
+                case 0:
                   try {
+                    const f = stack.pop()! as (u: unknown) => unknown;
                     v = f(v);
                     continue;
-                  } catch (error) {
-                    result = { tag: 'failure', error: error as Error };
+                  } catch (e) {
+                    tag = 'failure';
+                    result = e;
                     continue resultLoop;
                   }
-                }
 
-                case 1: {
-                  const f = stack.pop()! as (u: unknown) => SyncIO<unknown>;
+                case 1:
                   try {
+                    const f = stack.pop()! as (u: unknown) => SyncIO<unknown>;
                     _cur = f(v);
                     continue runLoop;
-                  } catch (error) {
-                    result = { tag: 'failure', error: error as Error };
+                  } catch (e) {
+                    tag = 'failure';
+                    result = e;
                     continue resultLoop;
                   }
-                }
 
                 case 2:
                   stack.pop(); // skip over error handlers
@@ -186,30 +200,30 @@ abstract class _SyncIO<out A> {
               }
             }
           } else {
-            let e = result.error;
+            let e = result as Error;
 
             while (true) {
-              const c = conts.pop();
-              if (c == null) throw e;
+              if (conts.length <= 0) throw e;
+              const c = conts.pop()!;
               switch (c) {
                 case 0:
                 case 1:
                   stack.pop(); // skip over success transformations
                   continue;
 
-                case 2: {
-                  const handler = stack.pop()! as (e: Error) => SyncIO<unknown>;
+                case 2:
                   try {
-                    _cur = handler(e);
+                    const h = stack.pop()! as (e: Error) => SyncIO<unknown>;
+                    _cur = h(e);
                     continue runLoop;
                   } catch (error) {
                     e = error as Error;
                     continue;
                   }
-                }
 
                 case 3:
-                  result = { tag: 'success', value: Left(result.error) };
+                  tag = 'success';
+                  result = Left(e);
                   continue resultLoop;
               }
             }
