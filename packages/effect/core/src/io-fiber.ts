@@ -675,7 +675,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                   const f = this.stack.pop()!;
                   return IO.pure(f(r));
                 } catch (e) {
-                  return IO.throwError(e);
+                  return IO.throwError(e as Error);
                 }
               }
 
