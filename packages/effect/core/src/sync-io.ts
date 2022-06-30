@@ -132,29 +132,134 @@ abstract class _SyncIO<out A> {
             }
 
           // Map
-          case 4:
-            stack.push(cur.fun);
-            conts.push(Continuation.MapK);
-            _cur = cur.self;
-            continue;
+          case 4: {
+            const ioe = cur.self as View<unknown>;
+            const f = cur.fun;
+
+            switch (ioe.tag) {
+              // Pure
+              case 0:
+                try {
+                  tag = 'success';
+                  result = f(ioe.value);
+                  break;
+                } catch (e) {
+                  tag = 'failure';
+                  result = e;
+                  break;
+                }
+
+              // Fail
+              case 1:
+                tag = 'failure';
+                result = ioe.error;
+                break;
+
+              // Delay
+              case 2:
+                try {
+                  tag = 'success';
+                  result = f(ioe.thunk());
+                  break;
+                } catch (e) {
+                  tag = 'failure';
+                  result = e;
+                  break;
+                }
+
+              default:
+                stack.push(f);
+                conts.push(Continuation.MapK);
+                _cur = ioe;
+                continue;
+            }
+            break;
+          }
 
           // FlatMap
-          case 5:
-            stack.push(cur.fun);
-            conts.push(Continuation.FlatMapK);
-            _cur = cur.self;
-            continue;
+          case 5: {
+            const ioe = cur.self as View<unknown>;
+            const f = cur.fun as (u: unknown) => SyncIO<unknown>;
 
-          // HandleErrorWith
-          case 6:
-            stack.push(cur.fun);
-            conts.push(Continuation.HandleErrorWithK);
-            _cur = cur.self;
-            continue;
+            switch (ioe.tag) {
+              // Pure
+              case 0:
+                try {
+                  _cur = f(ioe.value);
+                  continue;
+                } catch (e) {
+                  tag = 'failure';
+                  result = e;
+                  break;
+                }
+
+              // Fail
+              case 1:
+                tag = 'failure';
+                result = ioe.error;
+                break;
+
+              // Delay
+              case 2:
+                try {
+                  _cur = f(ioe.thunk());
+                  continue;
+                } catch (e) {
+                  tag = 'failure';
+                  result = e;
+                  break;
+                }
+
+              default:
+                stack.push(f);
+                conts.push(Continuation.FlatMapK);
+                _cur = ioe;
+                continue;
+            }
+            break;
+          }
 
           // Attempt
+          case 6: {
+            const ioa = cur.self as View<unknown>;
+
+            switch (ioa.tag) {
+              // Pure
+              case 0:
+                tag = 'success';
+                result = Right(ioa.value);
+                break;
+
+              // Fail
+              case 1:
+                tag = 'success';
+                result = Left(ioa.error);
+                break;
+
+              // Delay
+              case 2:
+                try {
+                  tag = 'success';
+                  result = Right(ioa.thunk());
+                  break;
+                } catch (e) {
+                  tag = 'failure';
+                  result = Left(e);
+                  break;
+                }
+
+              default:
+                conts.push(Continuation.AttemptK);
+                _cur = cur.self;
+                continue;
+            }
+            break;
+          }
+
+          // HandleErrorWith
           case 7:
-            conts.push(Continuation.AttemptK);
+            stack.push(cur.fun);
+            conts.push(Continuation.HandleErrorWithK);
             _cur = cur.self;
             continue;
         }
@@ -325,19 +430,19 @@ class _FlatMap<E, A> extends _SyncIO<A> {
   }
 }
 
-class HandleErrorWith<A> extends _SyncIO<A> {
+class Attempt<A> extends _SyncIO<Either<Error, A>> {
   public readonly tag = 6;
-  public constructor(
-    public readonly self: SyncIO<A>,
-    public readonly fun: (e: Error) => SyncIO<A>,
-  ) {
+  public constructor(public readonly self: SyncIO<A>) {
     super();
   }
 }
 
-class Attempt<A> extends _SyncIO<Either<Error, A>> {
+class HandleErrorWith<A> extends _SyncIO<A> {
   public readonly tag = 7;
-  public constructor(public readonly self: SyncIO<A>) {
+  public constructor(
+    public readonly self: SyncIO<A>,
+    public readonly fun: (e: Error) => SyncIO<A>,
+  ) {
     super();
   }
 }
