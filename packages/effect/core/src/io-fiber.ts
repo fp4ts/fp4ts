@@ -217,7 +217,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
               continue;
 
             default:
-              this.stack.push(cur.f);
+              this.stack.push(f);
               this.conts.push(MapK);
               _cur = ioe;
               continue;
@@ -225,12 +225,63 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         }
 
         // FlatMap
-        case 8:
-          this.stack.push(cur.f);
-          this.conts.push(FlatMapK);
+        case 8: {
           this.pushTracingEvent(cur.event);
-          _cur = cur.ioe;
-          continue;
+
+          const ioe = cur.ioe as IOView<unknown>;
+          const f = cur.f;
+
+          const next = (u: unknown): IO<unknown> => {
+            try {
+              return f(u);
+            } catch (e) {
+              return this.failed(e as Error);
+            }
+          };
+
+          switch (ioe.tag) {
+            // Pure
+            case 0:
+              _cur = next(ioe.value);
+              continue;
+
+            // Fail
+            case 1:
+              _cur = this.failed(ioe.error);
+              continue;
+
+            // Delay
+            case 2:
+              try {
+                _cur = f(ioe.thunk());
+                continue;
+              } catch (e) {
+                _cur = this.failed(e as Error);
+                continue;
+              }
+
+            // Realtime
+            case 3:
+              _cur = next(this.currentEC.currentTimeMicros());
+              continue;
+
+            // Monotonic
+            case 4:
+              _cur = next(this.currentEC.currentTimeMillis());
+              continue;
+
+            // ReadEC
+            case 5:
+              _cur = next(this.currentEC);
+              continue;
+
+            default:
+              this.stack.push(f);
+              this.conts.push(FlatMapK);
+              _cur = ioe;
+              continue;
+          }
+        }
 
         // HandleErrorWith
         case 9:
