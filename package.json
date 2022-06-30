@@ -39,10 +39,10 @@
     "supertest": "^6.2.3",
     "typedoc": "^0.22.15",
     "typedoc-plugin-missing-exports": "^0.22.6",
-    "typescript": "^4.7.3"
+    "typescript": "^4.7.4"
   },
   "scripts": {
-    "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=25%",
+    "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=50%",
     "benchmark": "yarn compile && ./scripts/benchmark.sh",
     "compile": "yarn tsc --build tsconfig.build.json",
     "compile:watch": "yarn tsc --build tsconfig.build.json --watch",
