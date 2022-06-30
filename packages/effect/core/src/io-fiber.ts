@@ -174,6 +174,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           const f = cur.f;
 
           const next = (u: unknown): IO<unknown> => {
+            nextAutoSuspend--;
             try {
               return this.succeeded(f(u));
             } catch (e) {
@@ -194,6 +195,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Delay
             case 2:
+              nextAutoSuspend--;
               this.pushTracingEvent(ioe.event);
               try {
                 _cur = this.succeeded(f(ioe.thunk()));
@@ -234,6 +236,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           const f = cur.f;
 
           const next = (u: unknown): IO<unknown> => {
+            nextAutoSuspend--;
             try {
               return f(u);
             } catch (e) {
@@ -254,6 +257,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Delay
             case 2:
+              nextAutoSuspend--;
               this.pushTracingEvent(ioe.event);
               try {
                 _cur = f(ioe.thunk());
@@ -293,11 +297,13 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           switch (ioa.tag) {
             // Pure
             case 0:
+              nextAutoSuspend--;
               _cur = this.succeeded(Right(ioa.value));
               continue;
 
             // Fail
             case 1: {
+              nextAutoSuspend--;
               const e = ioa.error;
               Tracing.augmentError(e, this.trace.toArray);
               _cur = this.succeeded(Left(e));
@@ -306,6 +312,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Delay
             case 2:
+              nextAutoSuspend--;
               this.pushTracingEvent(ioa.event);
               try {
                 _cur = this.succeeded(Right(ioa.thunk()));
@@ -318,16 +325,19 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             // Realtime
             case 3:
+              nextAutoSuspend--;
               _cur = this.succeeded(Right(this.currentEC.currentTimeMicros()));
               continue;
 
             // Monotonic
             case 4:
+              nextAutoSuspend--;
               _cur = this.succeeded(Right(this.currentEC.currentTimeMillis()));
               continue;
 
             // ReadEC
             case 5:
+              nextAutoSuspend--;
               _cur = this.succeeded(Right(this.currentEC));
               continue;
 
