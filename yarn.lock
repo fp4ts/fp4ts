@@ -1938,6 +1938,71 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@shopping-cart/client@workspace:packages/examples/shopping-cart/client":
+  version: 0.0.0-use.local
+  resolution: "@shopping-cart/client@workspace:packages/examples/shopping-cart/client"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect": "*"
+    "@fp4ts/http": "*"
+    "@fp4ts/http-dsl": "*"
+    "@fp4ts/http-dsl-server": "*"
+    "@fp4ts/http-node-server": "*"
+    "@fp4ts/http-server": "*"
+    "@fp4ts/http-test-kit-node": "*"
+    "@fp4ts/logging": "*"
+    "@fp4ts/schema": "*"
+    "@fp4ts/schema-json": "*"
+    "@fp4ts/stream": "*"
+    "@shopping-cart/common": "*"
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@shopping-cart/common@*, @shopping-cart/common@workspace:packages/examples/shopping-cart/common":
+  version: 0.0.0-use.local
+  resolution: "@shopping-cart/common@workspace:packages/examples/shopping-cart/common"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect": "*"
+    "@fp4ts/http": "*"
+    "@fp4ts/http-dsl": "*"
+    "@fp4ts/http-dsl-server": "*"
+    "@fp4ts/http-node-server": "*"
+    "@fp4ts/http-server": "*"
+    "@fp4ts/http-test-kit-node": "*"
+    "@fp4ts/logging": "*"
+    "@fp4ts/schema": "*"
+    "@fp4ts/schema-json": "*"
+    "@fp4ts/stream": "*"
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@shopping-cart/server@workspace:packages/examples/shopping-cart/server":
+  version: 0.0.0-use.local
+  resolution: "@shopping-cart/server@workspace:packages/examples/shopping-cart/server"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect": "*"
+    "@fp4ts/http": "*"
+    "@fp4ts/http-dsl": "*"
+    "@fp4ts/http-dsl-server": "*"
+    "@fp4ts/http-node-server": "*"
+    "@fp4ts/http-server": "*"
+    "@fp4ts/http-test-kit-node": "*"
+    "@fp4ts/logging": "*"
+    "@fp4ts/schema": "*"
+    "@fp4ts/schema-json": "*"
+    "@fp4ts/stream": "*"
+    "@shopping-cart/common": "*"
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
 "@sinclair/typebox@npm:^0.23.3":
   version: 0.23.5
   resolution: "@sinclair/typebox@npm:0.23.5"

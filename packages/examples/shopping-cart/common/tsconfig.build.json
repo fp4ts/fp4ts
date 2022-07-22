@@ -1,0 +1,17 @@
+{
+  "extends": "../../../../tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib",
+  },
+  "include": ["./src/**/*"],
+  "references": [
+    { "path": "../../../core/tsconfig.build.json" },
+    { "path": "../../../cats/tsconfig.build.json" },
+    { "path": "../../../effect/tsconfig.build.json" },
+    { "path": "../../../http/tsconfig.build.json" },
+    { "path": "../../../logging/tsconfig.build.json" },
+    { "path": "../../../schema/tsconfig.build.json" },
+    { "path": "../../../stream/tsconfig.build.json" },
+  ]
+}
