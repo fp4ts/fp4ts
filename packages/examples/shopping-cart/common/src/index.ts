@@ -4,6 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module @shopping-cart/common
+ * @module shopping-cart/common
  */
+export * from './email';
+export * from './uuid';
+
 export * from './add';
