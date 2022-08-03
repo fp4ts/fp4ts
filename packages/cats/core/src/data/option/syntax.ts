@@ -25,6 +25,8 @@ import {
   toRight_,
   traverse_,
   filter_,
+  getOrNull,
+  getOrUndefined,
 } from './operators';
 
 declare module './algebra' {
@@ -47,6 +49,8 @@ declare module './algebra' {
     '<|>'<A2>(this: Option<A2>, that: () => Option<A2>): Option<A2>;
 
     getOrElse<A2>(this: Option<A2>, defaultValue: () => A2): A2;
+    getOrNull(): A | null;
+    getOrUndefined(): A | undefined;
 
     flatMap<B>(f: (a: A) => Option<B>): Option<B>;
     flatTap(f: (a: A) => Option<unknown>): Option<A>;
@@ -115,6 +119,13 @@ Option.prototype.getOrElse = function <A>(
   defaultValue: () => A,
 ): A {
   return getOrElse_(this, defaultValue);
+};
+
+Option.prototype.getOrNull = function () {
+  return getOrNull(this);
+};
+Option.prototype.getOrUndefined = function () {
+  return getOrUndefined(this);
 };
 
 Option.prototype.flatMap = function <A, B>(

@@ -49,6 +49,12 @@ export const getOrElse: <A2>(
 ) => <A extends A2>(x: Option<A>) => A2 = defaultValue => x =>
   getOrElse_(x, defaultValue);
 
+export const getOrNull: <A>(x: Option<A>) => A | null = x =>
+  getOrElse_(x, () => null);
+
+export const getOrUndefined: <A>(x: Option<A>) => A | undefined = x =>
+  getOrElse_(x, () => undefined);
+
 export const flatMap: <A, B>(
   f: (a: A) => Option<B>,
 ) => (o: Option<A>) => Option<B> = f => o => flatMap_(o, f);

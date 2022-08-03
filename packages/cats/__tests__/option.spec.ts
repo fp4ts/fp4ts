@@ -93,6 +93,26 @@ describe('Option', () => {
     });
   });
 
+  describe('getOrNull', () => {
+    it('should return value when is Some', () => {
+      expect(Some(42).getOrNull()).toBe(42);
+    });
+
+    it('should return null when is None', () => {
+      expect(None.getOrNull()).toBe(null);
+    });
+  });
+
+  describe('getOrUndefined', () => {
+    it('should return value when is Some', () => {
+      expect(Some(42).getOrUndefined()).toBe(42);
+    });
+
+    it('should return null when is None', () => {
+      expect(None.getOrUndefined()).toBe(undefined);
+    });
+  });
+
   describe('flatMap', () => {
     it('should map the wrapped value', () => {
       expect(Some(42).flatMap(x => Some(x * 2))).toEqual(Some(84));
