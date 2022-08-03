@@ -18,7 +18,8 @@
     "./packages/schema/*",
     "./packages/stream",
     "./packages/stream/*",
-    "./packages/examples/*"
+    "./packages/examples/*",
+    "./packages/examples/shopping-cart/*"
   ],
   "license": "MIT",
   "devDependencies": {

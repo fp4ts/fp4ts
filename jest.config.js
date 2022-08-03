@@ -29,6 +29,7 @@ module.exports = {
     '<rootDir>/stream/core/src',
     '<rootDir>/examples/fp-to-the-max',
     '<rootDir>/examples/todo-api',
+    '<rootDir>/examples/shopping-cart',
   ],
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/../jest-setup.js'],
