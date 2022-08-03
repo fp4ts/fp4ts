@@ -25,6 +25,7 @@ module.exports = {
     '<rootDir>/parse/__tests__',
     '<rootDir>/schema/__tests__',
     '<rootDir>/schema/core/src',
+    '<rootDir>/sql/__tests__',
     '<rootDir>/stream/__tests__',
     '<rootDir>/stream/core/src',
     '<rootDir>/examples/fp-to-the-max',

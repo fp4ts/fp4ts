@@ -16,6 +16,8 @@
     "./packages/parse/*",
     "./packages/schema",
     "./packages/schema/*",
+    "./packages/sql",
+    "./packages/sql/*",
     "./packages/stream",
     "./packages/stream/*",
     "./packages/examples/*"

@@ -9,6 +9,7 @@
     { "path": "./optics/tsconfig.build.json" },
     { "path": "./parse/tsconfig.build.json" },
     { "path": "./schema/tsconfig.build.json" },
+    { "path": "./sql/tsconfig.build.json" },
     { "path": "./stream/tsconfig.build.json" },
     { "path": "./examples/tsconfig.build.json" },
   ]
