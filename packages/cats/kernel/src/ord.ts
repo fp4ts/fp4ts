@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { PrimitiveType } from '@fp4ts/core';
+import { $type, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from './eq';
 
 export enum Compare {
@@ -70,3 +70,9 @@ export const Ord = Object.freeze({
     gte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs >= rhs,
   },
 });
+
+// -- HKT
+
+export interface OrdF extends TyK<[unknown]> {
+  [$type]: Ord<TyVar<this, 0>>;
+}

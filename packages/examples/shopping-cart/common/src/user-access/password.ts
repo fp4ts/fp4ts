@@ -16,6 +16,7 @@ export const Password = function (text: string): Option<Password> {
 };
 
 Password.toString = Password_.unapply;
+Password.unsafeFromString = (p: string) => Password(p).get;
 Password.schema = Schema.string.imap(Password_, Password_.unapply);
 Password.codec = JsonCodec.fromCodec(
   Codec(

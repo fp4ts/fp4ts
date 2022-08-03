@@ -12,7 +12,7 @@ const HashedPassword_ = newtype<string>()(
 
 export type HashedPassword = TypeOf<typeof HashedPassword_>;
 export const HashedPassword = function (text: string): HashedPassword {
-  return HashedPassword(text);
+  return HashedPassword_(text);
 };
 
 HashedPassword.toString = HashedPassword_.unapply;

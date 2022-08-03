@@ -23,10 +23,12 @@
     "@fp4ts/schema": "*",
     "@fp4ts/schema-json": "*",
     "@fp4ts/stream": "*",
-    "@shopping-cart/common": "*"
+    "@shopping-cart/common": "*",
+    "bcrypt": "^5.0.1"
   },
   "devDependencies": {
     "@fp4ts/http-test-kit-node": "*",
+    "@types/bcrypt": "^5.0.0",
     "typescript": "4.7.4"
   }
 }
