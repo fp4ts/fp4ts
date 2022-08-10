@@ -3,8 +3,4 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-/**
- * @module sql/core
- */
-export * from './fragment';
-export * from './query';
+export const DefaultChunkSize = 512;

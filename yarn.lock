@@ -627,7 +627,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-free@workspace:packages/cats/free":
+"@fp4ts/cats-free@*, @fp4ts/cats-free@workspace:packages/cats/free":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-free@workspace:packages/cats/free"
   dependencies:
@@ -1354,6 +1354,19 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
+    "@fp4ts/sql-free": "*"
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/sql-free@*, @fp4ts/sql-free@workspace:packages/sql/free":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/sql-free@workspace:packages/sql/free"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/cats-free": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect": "*"
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -1366,6 +1379,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
     "@fp4ts/sql-core": "*"
+    "@fp4ts/sql-free": "*"
     "@fp4ts/stream": "*"
     "@types/pg": ^8.6.5
     "@types/pg-cursor": ^2.7.0

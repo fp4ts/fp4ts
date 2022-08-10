@@ -1,5 +1,5 @@
 {
-  "name": "@fp4ts/sql-core",
+  "name": "@fp4ts/sql-free",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
+    "@fp4ts/cats-free": "*",
     "@fp4ts/core": "*",
-    "@fp4ts/sql-free": "*"
+    "@fp4ts/effect": "*"
   },
   "devDependencies": {
     "typescript": "4.7.4"

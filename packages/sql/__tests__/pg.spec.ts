@@ -4,8 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
-import { IO, IOF } from '@fp4ts/effect';
+import { IO, IOF, Resource } from '@fp4ts/effect';
 import { Client, ClientBase, Pool } from '@fp4ts/sql-pg';
+import { sql } from '@fp4ts/sql-core';
+import { Client as PgClient } from 'pg';
+import { TransactorAux, Strategy } from '@fp4ts/sql-free';
+import { PgConnectionOpVisitor } from '@fp4ts/sql-pg/lib/transactor';
+import { PgConnection } from '@fp4ts/sql-pg/lib/transactor';
 
 const CONNECTION_CONFIG = {
   host: 'localhost',
@@ -15,7 +20,7 @@ const CONNECTION_CONFIG = {
 };
 
 // Enable this test IFF you've got a DB running matching the setup above
-describe.skip('pg', () => {
+describe('pg', () => {
   const prepareDb = (client: ClientBase<IOF>): IO<void> =>
     IO.Monad.do(function* (_) {
       yield* _(client.query('DROP TABLE IF EXISTS "person"'));
@@ -101,5 +106,66 @@ describe.skip('pg', () => {
         ),
       ),
     );
+  });
+
+  describe('core sql pg', () => {
+    const connect = Resource.make(IO.Functor)(
+      IO.deferPromise(() => {
+        const client = new PgClient(CONNECTION_CONFIG);
+        return client.connect().then(() => client);
+      }),
+      client => IO.deferPromise(() => client.end()),
+    )
+      .evalTap(client =>
+        IO.deferPromise(async () => {
+          await client.query('DROP TABLE IF EXISTS "person"');
+          await client.query(
+            'CREATE TABLE "person" (first_name TEXT, last_name TEXT)',
+          );
+
+          for (let i = 0; i < 5; i++) {
+            await client.query(
+              'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
+              [`test${i}`, `test${i}`],
+            );
+          }
+        }),
+      )
+      .map(client => new PgConnection(client));
+
+    it.M('should perform a simple query', () => {
+      const vis = new PgConnectionOpVisitor(IO.Async);
+      const trx = new TransactorAux(
+        IO.Async,
+        null,
+        Strategy.default,
+        vis.liftK(),
+        () => connect,
+      );
+
+      return sql`SELECT * FROM "person"`
+        .query<{ first_name: string; last_name: string }>()
+        .toList()
+        .transact(trx)
+        .tap(console.log);
+    });
+
+    it.M('should perform a streaming query', () => {
+      const vis = new PgConnectionOpVisitor(IO.Async);
+      const trx = new TransactorAux(
+        IO.Async,
+        null,
+        Strategy.default,
+        vis.liftK(),
+        () => connect,
+      );
+
+      return sql`SELECT * FROM "person"`
+        .query<{ first_name: string; last_name: string }>()
+        .streamWithChunkSize(1)
+        .throughF(trx.transStream())
+        .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
+        .compileConcurrent().drain;
+    });
   });
 });

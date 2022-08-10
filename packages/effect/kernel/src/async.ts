@@ -103,13 +103,11 @@ export const Async = Object.freeze({
 
       fromPromise: <A>(fp: Kind<F, [Promise<A>]>): Kind<F, [A]> =>
         self.flatMap_(fp, p =>
-          self.async_(resume =>
-            self.delay(() => {
-              const onSuccess: (x: A) => void = flow(Right, resume);
-              const onFailure: (e: Error) => void = flow(Left, resume);
-              p.then(onSuccess, onFailure);
-            }),
-          ),
+          self.async_(resume => {
+            const onSuccess: (x: A) => void = flow(Right, resume);
+            const onFailure: (e: Error) => void = flow(Left, resume);
+            p.then(onSuccess, onFailure);
+          }),
         ),
 
       ...Sync.of(F),

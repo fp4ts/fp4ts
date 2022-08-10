@@ -284,6 +284,10 @@ export const through2: <F, A, B, C>(
   f: (s1: Stream<F, A>, s2: Stream<F, B>) => Stream<F, C>,
 ) => (s1: Stream<F, A>) => Stream<F, C> = (s2, f) => s1 => through2_(s1, s2, f);
 
+export const throughF: <F, G, A>(
+  f: (s: Stream<F, A>) => Stream<G, A>,
+) => (s: Stream<F, A>) => Stream<G, A> = f => s => throughF_(s, f);
+
 export const fold: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -1001,6 +1005,11 @@ export const through2_ = <F, A, B, C>(
   s2: Stream<F, B>,
   f: (s1: Stream<F, A>, s2: Stream<F, B>) => Stream<F, C>,
 ): Stream<F, C> => f(s1, s2);
+
+export const throughF_ = <F, G, A>(
+  s: Stream<F, A>,
+  f: (s: Stream<F, A>) => Stream<G, A>,
+): Stream<G, A> => f(s);
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
