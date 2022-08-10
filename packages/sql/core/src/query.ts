@@ -3,14 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Chain, List, Option } from '@fp4ts/cats';
+import { List, Option } from '@fp4ts/cats';
 import { Chunk, Stream } from '@fp4ts/stream';
 import {
   ConnectionIO,
   ConnectionIOF,
+  Fragment,
   PreparedStatement,
   StreamedResultSet,
-} from '@fp4ts/sql-free';
+} from './free';
 import { DefaultChunkSize } from './consts';
 
 export class Read<A> {
@@ -27,24 +28,23 @@ export class Query<A> {
   private readonly _A!: () => A;
 
   public constructor(
-    public readonly sql: string,
-    public readonly params: Chain<unknown>,
+    public readonly fragment: Fragment,
     public readonly read: Read<A>,
   ) {}
 
   public map<B>(f: (a: A) => B): Query<B> {
-    return new Query(this.sql, this.params, this.read.map(f));
+    return new Query(this.fragment, this.read.map(f));
   }
 
   public toList(): ConnectionIO<List<A>> {
-    ConnectionIO.prepareStatement(this.sql, this.params)
+    ConnectionIO.prepareStatement(this.fragment)
       .bracket(
         ps => ps.query().flatMap(rs => rs.getRows<A>()),
         ps => ps.close(),
       )
       .map(List.fromArray);
 
-    return ConnectionIO.prepareStatement(this.sql, this.params)
+    return ConnectionIO.prepareStatement(this.fragment)
       .flatMap(ps => ps.query())
       .flatMap(rs => rs.getRows<A>())
       .map(List.fromArray);
@@ -56,7 +56,7 @@ export class Query<A> {
 
   public streamWithChunkSize(chunkSize: number): Stream<ConnectionIOF, A> {
     return Stream.bracket<ConnectionIOF, PreparedStatement>(
-      ConnectionIO.prepareStatement(this.sql, this.params),
+      ConnectionIO.prepareStatement(this.fragment),
       ps => ps.close(),
     )
       .flatMap(ps =>

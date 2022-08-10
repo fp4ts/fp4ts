@@ -8,3 +8,11 @@
  */
 export * from './fragment';
 export * from './query';
+export * from './transactor';
+export {
+  ConnectionIO,
+  ConnectionIOF,
+  PreparedStatement,
+  ResultSet,
+  StreamedResultSet,
+} from './free';

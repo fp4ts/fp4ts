@@ -27,17 +27,17 @@ import {
   Fiber,
   Outcome,
 } from '@fp4ts/effect';
+import { Transactor } from '../transactor';
 import { PreparedStatement } from './prepared-statement';
-import { Transactor } from './transactor';
+import { Fragment } from './fragment';
 
 export class ConnectionIO<in out A> {
   // -- Connection interface
 
   public static prepareStatement(
-    sql: string,
-    params: Chain<unknown>,
+    fragment: Fragment,
   ): ConnectionIO<PreparedStatement> {
-    return ConnectionIO.lift(new PrepareStatement(sql, params));
+    return ConnectionIO.lift(new PrepareStatement(fragment));
   }
 
   public static beginTransaction(): ConnectionIO<void> {
@@ -291,10 +291,7 @@ export abstract class ConnectionOpVisitor<F> {
 }
 
 export class PrepareStatement extends ConnectionOp<PreparedStatement> {
-  public constructor(
-    public readonly sql: string,
-    public readonly params: Chain<unknown>,
-  ) {
+  public constructor(public readonly fragment: Fragment) {
     super();
   }
 

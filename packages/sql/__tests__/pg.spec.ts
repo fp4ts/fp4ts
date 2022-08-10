@@ -6,9 +6,8 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { IO, IOF, Resource } from '@fp4ts/effect';
 import { Client, ClientBase, Pool } from '@fp4ts/sql-pg';
-import { sql } from '@fp4ts/sql-core';
+import { sql, TransactorAux, Strategy } from '@fp4ts/sql-core';
 import { Client as PgClient } from 'pg';
-import { TransactorAux, Strategy } from '@fp4ts/sql-free';
 import { PgConnectionOpVisitor } from '@fp4ts/sql-pg/lib/transactor';
 import { PgConnection } from '@fp4ts/sql-pg/lib/transactor';
 
@@ -160,7 +159,7 @@ describe('pg', () => {
         () => connect,
       );
 
-      return sql`SELECT * FROM "person"`
+      return sql`SELECT * FROM "person" WHERE first_name = ${'test0'} OR last_name = ${'test1'}`
         .query<{ first_name: string; last_name: string }>()
         .streamWithChunkSize(1)
         .throughF(trx.transStream())

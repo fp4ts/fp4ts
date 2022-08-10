@@ -29,10 +29,6 @@ import {
   PreparedStatement,
   ResultSet,
   StreamedResultSet,
-  Transactor,
-  TransactorAux,
-} from '@fp4ts/sql-free';
-import {
   ConnectionOpVisitor,
   PrepareStatement,
   BeginTransaction,
@@ -61,18 +57,19 @@ import {
   JoinFiber,
   FiberResult,
   CancelFiber,
-  ConnectionOp,
-} from '@fp4ts/sql-free/lib/connection-io';
+  FragmentVisitor,
+  Fragment,
+  EmptyFragment,
+  QueryFragment,
+  ParamFragment,
+  ConcatFragment,
+} from '@fp4ts/sql-core/lib/free';
 import { Chunk } from '@fp4ts/stream';
 
 import {
   Client as PgClient,
   ClientBase as PgClientBase,
-  QueryArrayConfig,
-  QueryArrayResult,
-  QueryConfig,
   QueryResult,
-  QueryResultRow,
 } from 'pg';
 import PgCursor from 'pg-cursor';
 
@@ -112,8 +109,7 @@ class PgStreamedResultSet extends StreamedResultSet {
 
 class PgPreparedStatement extends PreparedStatement {
   public constructor(
-    public readonly sql: string,
-    public readonly params: Chain<unknown>,
+    public readonly fragment: PgFragment,
     private readonly underlying: PgClientBase,
   ) {
     super();
@@ -122,14 +118,16 @@ class PgPreparedStatement extends PreparedStatement {
   public query(): ConnectionIO<ResultSet> {
     return ConnectionIO.fromPromise(
       ConnectionIO.delay(() =>
-        this.underlying.query(this.sql, this.params.toArray),
+        this.underlying.query(this.fragment.sql, this.fragment.params.toArray),
       ),
     ).map(result => new PgResultSet(result) as ResultSet);
   }
 
   public queryStream(): ConnectionIO<StreamedResultSet> {
     return ConnectionIO.delay(() =>
-      this.underlying.query(new PgCursor(this.sql, this.params.toArray)),
+      this.underlying.query(
+        new PgCursor(this.fragment.sql, this.fragment.params.toArray),
+      ),
     ).map(cursor => new PgStreamedResultSet(cursor) as StreamedResultSet);
   }
 
@@ -139,6 +137,47 @@ class PgPreparedStatement extends PreparedStatement {
 
   public close(): ConnectionIO<void> {
     return ConnectionIO.unit;
+  }
+}
+
+class PgFragment {
+  public static readonly empty: PgFragment = new PgFragment('', Chain.empty);
+  public static query(q: string): PgFragment {
+    return new PgFragment(q, Chain.empty);
+  }
+  public static param(p: unknown): PgFragment {
+    return new PgFragment('', Chain(p));
+  }
+
+  public constructor(
+    public readonly sql: string,
+    public readonly params: Chain<unknown>,
+  ) {}
+
+  public concat(that: PgFragment): PgFragment {
+    return new PgFragment(this.sql + that.sql, this.params['+++'](that.params));
+  }
+  public '+++'(that: PgFragment): PgFragment {
+    return this.concat(that);
+  }
+}
+
+class PgFragmentVisitor extends FragmentVisitor<PgFragment> {
+  private paramCount: number = 0;
+
+  public visitEmpty(f: EmptyFragment): PgFragment {
+    return PgFragment.empty;
+  }
+  public visitQuery(f: QueryFragment): PgFragment {
+    return PgFragment.query(f.value);
+  }
+  public visitParam(f: ParamFragment): PgFragment {
+    return PgFragment.query(`$${++this.paramCount}`)['+++'](
+      PgFragment.param(f.value),
+    );
+  }
+  public visitConcat(f: ConcatFragment): PgFragment {
+    return f.lhs.visit(this)['+++'](f.rhs.visit(this));
   }
 }
 
@@ -167,7 +206,12 @@ export class PgConnectionOpVisitor<F> extends ConnectionOpVisitor<
     fa: PrepareStatement,
   ): Kleisli<F, PgConnection, PreparedStatement> {
     return Kleisli(conn =>
-      this.F.pure(new PgPreparedStatement(fa.sql, fa.params, conn.client)),
+      this.F.pure(
+        new PgPreparedStatement(
+          fa.fragment.visit(new PgFragmentVisitor()),
+          conn.client,
+        ),
+      ),
     );
   }
   public visitBeginTransaction(

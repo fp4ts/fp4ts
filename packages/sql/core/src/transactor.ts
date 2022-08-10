@@ -7,7 +7,7 @@ import { $, Kind } from '@fp4ts/core';
 import { FunctionK, Kleisli, KleisliF } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
-import { ConnectionIO, ConnectionIOF, ConnectionOpF } from './connection-io';
+import { ConnectionIO, ConnectionIOF, ConnectionOpF } from './free';
 
 export class Strategy {
   public static get default(): Strategy {
@@ -15,7 +15,7 @@ export class Strategy {
       ConnectionIO.beginTransaction(),
       ConnectionIO.commit(),
       ConnectionIO.rollback(),
-      ConnectionIO.close(),
+      ConnectionIO.unit,
     );
   }
   public static get unit(): Strategy {
