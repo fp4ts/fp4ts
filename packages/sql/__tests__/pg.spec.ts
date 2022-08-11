@@ -4,21 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
-import { IO, IOF, Resource } from '@fp4ts/effect';
-import { Client, ClientBase, Pool } from '@fp4ts/sql-pg';
-import {
-  sql,
-  TransactorAux,
-  Strategy,
-  ConnectionIO,
-  Update,
-  Write,
-  Fragment,
-} from '@fp4ts/sql-core';
-import { Client as PgClient } from 'pg';
-import { PgConnectionOpVisitor } from '@fp4ts/sql-pg/lib/transactor';
-import { PgConnection } from '@fp4ts/sql-pg/lib/transactor';
 import { id } from '@fp4ts/core';
+import { IO } from '@fp4ts/effect';
+import { sql, ConnectionIO, Update, Write, Fragment } from '@fp4ts/sql-core';
+import { PgTransactor } from '@fp4ts/sql-pg';
 import { Array, Ord } from '@fp4ts/cats';
 
 const CONNECTION_CONFIG = {
@@ -30,220 +19,88 @@ const CONNECTION_CONFIG = {
 
 // Enable this test IFF you've got a DB running matching the setup above
 describe('pg', () => {
-  const prepareDb = (client: ClientBase<IOF>): IO<void> =>
-    IO.Monad.do(function* (_) {
-      yield* _(client.query('DROP TABLE IF EXISTS "person"'));
+  const trx = PgTransactor.make(IO.Async, CONNECTION_CONFIG);
+  const prepare = (): ConnectionIO<void> =>
+    ConnectionIO.Monad.do(function* (_) {
+      yield* _(sql`DROP TABLE IF EXISTS "person"`.update().run());
       yield* _(
-        client.query('CREATE TABLE "person" (first_name TEXT, last_name TEXT)'),
-      );
-
-      for (let i = 0; i < 5; i++) {
-        yield* _(
-          client.query(
-            'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
-            [`test${i}`, `test${i}`],
-          ),
-        );
-      }
-    });
-
-  const expectedResults = [
-    { first_name: 'test0', last_name: 'test0' },
-    { first_name: 'test1', last_name: 'test1' },
-    { first_name: 'test2', last_name: 'test2' },
-    { first_name: 'test3', last_name: 'test3' },
-    { first_name: 'test4', last_name: 'test4' },
-  ];
-
-  describe('client', () => {
-    const withDbClient = (
-      run: (client: ClientBase<IOF>) => IO<void>,
-    ): IO<void> =>
-      Client.make(IO.Async, CONNECTION_CONFIG).use(IO.Async)(client =>
-        prepareDb(client)['>>>'](run(client)),
-      );
-
-    it.M('should query the DB contents', () =>
-      withDbClient(client =>
-        client
-          .query('SELECT * FROM "person"')
-          .map(({ rows }) => expect(rows).toEqual(expectedResults)),
-      ),
-    );
-
-    it.M('should stream the DB contents', () =>
-      withDbClient(client =>
-        client
-          .stream('SELECT * FROM "person"')
-          .compileConcurrent()
-          .toArray.map(rows => expect(rows).toEqual(expectedResults)),
-      ),
-    );
-  });
-
-  describe('pool', () => {
-    const withDbPool = (run: (client: Pool<IOF>) => IO<void>): IO<void> =>
-      Pool.make(IO.Async, CONNECTION_CONFIG)
-        .evalTap(pool => pool.connect().use(IO.Async)(prepareDb))
-        .use(IO.Async)(run);
-
-    it.M('should query the DB contents', () =>
-      withDbPool(pool =>
-        pool
-          .query('SELECT * FROM "person"')
-          .map(({ rows }) => expect(rows).toEqual(expectedResults)),
-      ),
-    );
-
-    it.M('should query the DB contents', () =>
-      withDbPool(pool =>
-        pool.connect().use(IO.Async)(client =>
-          client
-            .query('SELECT * FROM "person"')
-            .map(({ rows }) => expect(rows).toEqual(expectedResults)),
-        ),
-      ),
-    );
-
-    it.M('should stream the DB contents', () =>
-      withDbPool(pool =>
-        pool.connect().use(IO.Async)(client =>
-          client
-            .stream('SELECT * FROM "person"')
-            .compileConcurrent()
-            .toArray.map(rows => expect(rows).toEqual(expectedResults)),
-        ),
-      ),
-    );
-  });
-
-  describe('core sql pg', () => {
-    const connect = Resource.make(IO.Functor)(
-      IO.deferPromise(() => {
-        const client = new PgClient(CONNECTION_CONFIG);
-        return client.connect().then(() => client);
-      }),
-      client => IO.deferPromise(() => client.end()),
-    ).map(client => new PgConnection(client));
-
-    const prepare = (): ConnectionIO<void> =>
-      ConnectionIO.Monad.do(function* (_) {
-        yield* _(sql`DROP TABLE IF EXISTS "person"`.update().run());
-        yield* _(
-          sql`
+        sql`
           CREATE TABLE "person" (
             id SERIAL PRIMARY KEY,
             first_name TEXT NOT NULL,
             last_name TEXT NOT NULL
           )`
-            .update()
-            .run(),
-        );
-
-        yield* _(
-          new Update(
-            new Write(id<[string, string]>),
-            Fragment.query(
-              'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
-            ),
-          ).updateMany(Array.FoldableWithIndex())([
-            ['test0', 'test0'],
-            ['test1', 'test1'],
-            ['test2', 'test2'],
-            ['test3', 'test3'],
-            ['test4', 'test4'],
-          ]),
-        );
-      });
-
-    it.M('should perform a simple query', () => {
-      const vis = new PgConnectionOpVisitor(IO.Async);
-      const trx = new TransactorAux(
-        IO.Async,
-        null,
-        Strategy.default,
-        vis.liftK(),
-        () => connect,
+          .update()
+          .run(),
       );
 
-      return IO.Monad.do(function* (_) {
-        yield* _(prepare().transact(trx));
-        yield* _(
-          sql`SELECT * FROM "person"`
-            .query<[string, string]>()
-            .toList()
-            .transact(trx)
-            .tap(console.log),
-        );
-      });
-    });
-
-    it.M('should perform a simple query', () => {
-      const vis = new PgConnectionOpVisitor(IO.Async);
-      const trx = new TransactorAux(
-        IO.Async,
-        null,
-        Strategy.default,
-        vis.liftK(),
-        () => connect,
+      yield* _(
+        new Update(
+          new Write(id<[string, string]>),
+          Fragment.query(
+            'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
+          ),
+        ).updateMany(Array.FoldableWithIndex())([
+          ['test0', 'test0'],
+          ['test1', 'test1'],
+          ['test2', 'test2'],
+          ['test3', 'test3'],
+          ['test4', 'test4'],
+        ]),
       );
-
-      return IO.Monad.do(function* (_) {
-        yield* _(prepare().transact(trx));
-        yield* _(
-          sql`SELECT * FROM "person"`
-            .query<[string, string]>()
-            .toMap(Ord.primitive)
-            .transact(trx)
-            .tap(console.log),
-        );
-      });
     });
 
-    it.M('should perform a streaming query', () => {
-      const vis = new PgConnectionOpVisitor(IO.Async);
-      const trx = new TransactorAux(
-        IO.Async,
-        null,
-        Strategy.default,
-        vis.liftK(),
-        () => connect,
+  it.M('should perform a simple query', () =>
+    IO.Monad.do(function* (_) {
+      yield* _(prepare().transact(trx));
+      yield* _(
+        sql`SELECT * FROM "person"`
+          .query<[string, string]>()
+          .toList()
+          .transact(trx)
+          .tap(console.log),
       );
+    }),
+  );
 
-      return IO.Monad.do(function* (_) {
-        yield* _(prepare().transact(trx));
-        yield* _(
-          sql`SELECT * FROM "person"`
-            .query<[string, string]>()
-            .streamWithChunkSize(1)
-            .throughF(trx.transStream())
-            .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
-            .compileConcurrent().drain,
-        );
-      });
-    });
-
-    it.M('should 1 perform a streaming query', () => {
-      const vis = new PgConnectionOpVisitor(IO.Async);
-      const trx = new TransactorAux(
-        IO.Async,
-        null,
-        Strategy.default,
-        vis.liftK(),
-        () => connect,
+  it.M('should perform a simple query', () =>
+    IO.Monad.do(function* (_) {
+      yield* _(prepare().transact(trx));
+      yield* _(
+        sql`SELECT * FROM "person"`
+          .query<[string, string]>()
+          .toMap(Ord.primitive)
+          .transact(trx)
+          .tap(console.log),
       );
+    }),
+  );
 
-      return IO.Monad.do(function* (_) {
-        yield* _(prepare().transact(trx));
-        yield* _(
-          sql`SELECT * FROM "person"`
-            .query<[string, string]>()
-            .streamWithChunkSize(1)
-            .compileConcurrent(ConnectionIO.Async)
-            .toList.transact(trx)
-            .map(console.log),
-        );
-      });
-    });
-  });
+  it.M('should perform a streaming query', () =>
+    IO.Monad.do(function* (_) {
+      yield* _(prepare().transact(trx));
+      yield* _(
+        sql`SELECT * FROM "person"`
+          .query<[string, string]>()
+          .streamWithChunkSize(1)
+          .throughF(trx.transStream())
+          .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
+          .compileConcurrent().drain,
+      );
+    }),
+  );
+
+  it.M('should 1 perform a streaming query', () =>
+    IO.Monad.do(function* (_) {
+      yield* _(prepare().transact(trx));
+      yield* _(
+        sql`SELECT * FROM "person"`
+          .query<[string, string]>()
+          .streamWithChunkSize(1)
+          .compileConcurrent(ConnectionIO.Async)
+          .toList.transact(trx)
+          .map(console.log),
+      );
+    }),
+  );
 });

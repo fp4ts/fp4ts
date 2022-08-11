@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Array, Foldable, Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
+import { Array, Foldable, Option } from '@fp4ts/cats';
 import { Chunk, Stream } from '@fp4ts/stream';
 import { DefaultChunkSize } from './consts';
 import {

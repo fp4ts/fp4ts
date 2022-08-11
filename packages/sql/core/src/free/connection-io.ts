@@ -5,7 +5,6 @@
 
 import { $type, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import {
-  Chain,
   Either,
   FunctionK,
   Left,
@@ -606,13 +605,6 @@ export interface ConnectionIOF extends TyK<[unknown]> {
   [$type]: ConnectionIO<TyVar<this, 0>>;
 }
 
-export interface ConnectionOpF extends TyK<[unknown]> {
-  [$type]: ConnectionOp<TyVar<this, 0>>;
-}
-
-export interface ConnectionIOF extends TyK<[unknown]> {
-  [$type]: ConnectionIO<TyVar<this, 0>>;
-}
 export interface ConnectionOpF extends TyK<[unknown]> {
   [$type]: ConnectionOp<TyVar<this, 0>>;
 }

@@ -17,6 +17,7 @@ export {
   ConnectionIOF,
   PreparedStatement,
   ResultSet,
+  Row,
   StreamedResultSet,
   Fragment,
 } from './free';

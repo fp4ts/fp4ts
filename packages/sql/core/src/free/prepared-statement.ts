@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Write } from '../write';
 import { ResultSet, StreamedResultSet } from './result-set';
 import { ConnectionIO } from './connection-io';
-import { Write } from '../write';
 
 export abstract class PreparedStatement {
   private readonly __void!: void;
