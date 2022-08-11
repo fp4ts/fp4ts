@@ -8,6 +8,7 @@
  */
 export * from './fragment';
 export * from './query';
+export * from './update';
 export * from './transactor';
 export {
   ConnectionIO,

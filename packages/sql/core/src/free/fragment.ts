@@ -5,6 +5,7 @@
 
 import { id } from '@fp4ts/core';
 import { Query, Read } from '../query';
+import { Update, Update0 } from '../update';
 
 export abstract class Fragment {
   public static get empty(): Fragment {
@@ -37,6 +38,10 @@ export abstract class Fragment {
     return typeof f === 'function'
       ? new Query(this, new Read(f))
       : new Query(this, f);
+  }
+
+  public update(): Update0 {
+    return new Update0(this);
   }
 
   public abstract visit<R>(v: FragmentVisitor<R>): R;

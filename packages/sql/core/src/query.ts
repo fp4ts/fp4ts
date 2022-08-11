@@ -10,17 +10,16 @@ import {
   ConnectionIOF,
   Fragment,
   PreparedStatement,
+  Row,
   StreamedResultSet,
 } from './free';
 import { DefaultChunkSize } from './consts';
 
-export class Read<A> {
-  public constructor(
-    public readonly fromRecord: (r: Record<string, any>) => A,
-  ) {}
+export class Read<out A> {
+  public constructor(public readonly fromRow: (r: unknown[]) => A) {}
 
   public map<B>(f: (a: A) => B): Read<B> {
-    return new Read(a => f(this.fromRecord(a)));
+    return new Read(a => f(this.fromRow(a)));
   }
 }
 
@@ -37,16 +36,12 @@ export class Query<A> {
   }
 
   public toList(): ConnectionIO<List<A>> {
-    ConnectionIO.prepareStatement(this.fragment)
+    return ConnectionIO.prepareStatement(this.fragment)
       .bracket(
-        ps => ps.query().flatMap(rs => rs.getRows<A>()),
+        ps => ps.query().flatMap(rs => rs.getRows()),
         ps => ps.close(),
       )
-      .map(List.fromArray);
-
-    return ConnectionIO.prepareStatement(this.fragment)
-      .flatMap(ps => ps.query())
-      .flatMap(rs => rs.getRows<A>())
+      .map(rows => rows.map(this.read.fromRow))
       .map(List.fromArray);
   }
 
@@ -64,11 +59,14 @@ export class Query<A> {
           rs.close(),
         ),
       )
-      .flatMap(
-        rs =>
-          Stream.repeatEval<ConnectionIOF, Option<Chunk<A>>>(
-            rs.getNextChunk<A>(chunkSize),
-          ).unNoneTerminate().unchunks,
+      .flatMap(rs =>
+        Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
+          rs
+            .getNextChunk(chunkSize)
+            .map(c => Option(c).filter(() => c.nonEmpty)),
+        )
+          .unNoneTerminate()
+          .unchunks.map(this.read.fromRow),
       );
   }
 }

@@ -5,12 +5,15 @@
 
 import { ResultSet, StreamedResultSet } from './result-set';
 import { ConnectionIO } from './connection-io';
+import { Write } from '../update';
 
 export abstract class PreparedStatement {
   private readonly __void!: void;
 
   public abstract query(): ConnectionIO<ResultSet>;
   public abstract queryStream(): ConnectionIO<StreamedResultSet>;
-  public abstract update(): ConnectionIO<number>;
+  public abstract set<A>(
+    W: Write<A>,
+  ): (a: A) => ConnectionIO<PreparedStatement>;
   public abstract close(): ConnectionIO<void>;
 }

@@ -31,7 +31,7 @@ import { Transactor } from '../transactor';
 import { PreparedStatement } from './prepared-statement';
 import { Fragment } from './fragment';
 
-export class ConnectionIO<in out A> {
+export class ConnectionIO<out A> {
   // -- Connection interface
 
   public static prepareStatement(
@@ -170,6 +170,12 @@ export class ConnectionIO<in out A> {
 
   public map<B>(f: (a: A) => B): ConnectionIO<B> {
     return new ConnectionIO(this.underlying.map(f));
+  }
+
+  public map2<B>(
+    that: ConnectionIO<B>,
+  ): <C>(f: (a: A, b: B) => C) => ConnectionIO<C> {
+    return ConnectionIO.Monad.map2_(this, that);
   }
 
   public flatMap<B>(f: (a: A) => ConnectionIO<B>): ConnectionIO<B> {
@@ -334,14 +340,14 @@ export const Monotonic = new (class Monotonic extends ConnectionOp<number> {
     return v.visitMonotonic(this);
   }
 })();
-export type Monotonic = typeof Monotonic;
+export type Monotonic = ConnectionOp<number>;
 
 export const RealTime = new (class RealTime extends ConnectionOp<number> {
   public visit<F>(v: ConnectionOpVisitor<F>): Kind<F, [number]> {
     return v.visitRealTime(this);
   }
 })();
-export type RealTime = typeof RealTime;
+export type RealTime = ConnectionOp<number>;
 
 export class Delay<A> extends ConnectionOp<A> {
   public constructor(public readonly thunk: () => A) {

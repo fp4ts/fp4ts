@@ -3,22 +3,21 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Option } from '@fp4ts/cats';
 import { Chunk } from '@fp4ts/stream';
 import { ConnectionIO } from './connection-io';
+
+export type Row = unknown[];
 
 export abstract class ResultSet {
   private readonly __void!: void;
 
-  public abstract getRows<A>(): ConnectionIO<A[]>;
+  public abstract getRows(): ConnectionIO<Row[]>;
+  public abstract getRowCount(): ConnectionIO<number>;
 }
 
 export abstract class StreamedResultSet {
   private readonly __void!: void;
 
-  public abstract getNextChunk<A>(
-    chunkSize: number,
-  ): ConnectionIO<Option<Chunk<A>>>;
-
+  public abstract getNextChunk(chunkSize: number): ConnectionIO<Chunk<Row>>;
   public abstract close(): ConnectionIO<void>;
 }

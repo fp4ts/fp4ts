@@ -6,10 +6,20 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { IO, IOF, Resource } from '@fp4ts/effect';
 import { Client, ClientBase, Pool } from '@fp4ts/sql-pg';
-import { sql, TransactorAux, Strategy } from '@fp4ts/sql-core';
+import {
+  sql,
+  TransactorAux,
+  Strategy,
+  ConnectionIO,
+  Update,
+  Write,
+  Fragment,
+} from '@fp4ts/sql-core';
 import { Client as PgClient } from 'pg';
 import { PgConnectionOpVisitor } from '@fp4ts/sql-pg/lib/transactor';
 import { PgConnection } from '@fp4ts/sql-pg/lib/transactor';
+import { id } from '@fp4ts/core';
+import { Array } from '@fp4ts/cats';
 
 const CONNECTION_CONFIG = {
   host: 'localhost',
@@ -114,23 +124,37 @@ describe('pg', () => {
         return client.connect().then(() => client);
       }),
       client => IO.deferPromise(() => client.end()),
-    )
-      .evalTap(client =>
-        IO.deferPromise(async () => {
-          await client.query('DROP TABLE IF EXISTS "person"');
-          await client.query(
-            'CREATE TABLE "person" (first_name TEXT, last_name TEXT)',
-          );
+    ).map(client => new PgConnection(client));
 
-          for (let i = 0; i < 5; i++) {
-            await client.query(
+    const prepare = (): ConnectionIO<void> =>
+      ConnectionIO.Monad.do(function* (_) {
+        yield* _(sql`DROP TABLE IF EXISTS "person"`.update().run());
+        yield* _(
+          sql`
+          CREATE TABLE "person" (
+            id SERIAL PRIMARY KEY,
+            first_name TEXT NOT NULL,
+            last_name TEXT NOT NULL
+          )`
+            .update()
+            .run(),
+        );
+
+        yield* _(
+          new Update(
+            new Write(id<[string, string]>),
+            Fragment.query(
               'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
-              [`test${i}`, `test${i}`],
-            );
-          }
-        }),
-      )
-      .map(client => new PgConnection(client));
+            ),
+          ).updateMany(Array.FoldableWithIndex())([
+            ['test0', 'test0'],
+            ['test1', 'test1'],
+            ['test2', 'test2'],
+            ['test3', 'test3'],
+            ['test4', 'test4'],
+          ]),
+        );
+      });
 
     it.M('should perform a simple query', () => {
       const vis = new PgConnectionOpVisitor(IO.Async);
@@ -142,11 +166,16 @@ describe('pg', () => {
         () => connect,
       );
 
-      return sql`SELECT * FROM "person"`
-        .query<{ first_name: string; last_name: string }>()
-        .toList()
-        .transact(trx)
-        .tap(console.log);
+      return IO.Monad.do(function* (_) {
+        yield* _(prepare().transact(trx));
+        yield* _(
+          sql`SELECT * FROM "person"`
+            .query<[string, string]>()
+            .toList()
+            .transact(trx)
+            .tap(console.log),
+        );
+      });
     });
 
     it.M('should perform a streaming query', () => {
@@ -159,12 +188,17 @@ describe('pg', () => {
         () => connect,
       );
 
-      return sql`SELECT * FROM "person" WHERE first_name = ${'test0'} OR last_name = ${'test1'}`
-        .query<{ first_name: string; last_name: string }>()
-        .streamWithChunkSize(1)
-        .throughF(trx.transStream())
-        .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
-        .compileConcurrent().drain;
+      return IO.Monad.do(function* (_) {
+        yield* _(prepare().transact(trx));
+        yield* _(
+          sql`SELECT * FROM "person"`
+            .query<[string, string]>()
+            .streamWithChunkSize(1)
+            .throughF(trx.transStream())
+            .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
+            .compileConcurrent().drain,
+        );
+      });
     });
   });
 });

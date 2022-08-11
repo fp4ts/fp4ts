@@ -7,3 +7,4 @@ export * from './connection-io';
 export * from './prepared-statement';
 export * from './result-set';
 export * from './fragment';
+export * from './kleisli-interpreter';
