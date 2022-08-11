@@ -11,7 +11,6 @@ import {
   Fragment,
   PreparedStatement,
   ResultSet,
-  Row,
   StreamedResultSet,
 } from './free';
 import { DefaultChunkSize } from './consts';
@@ -83,7 +82,7 @@ export class Query<in A, out B> {
       );
 
     const pullStream = (rs: StreamedResultSet) =>
-      Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
+      Stream.repeatEval<ConnectionIOF, Option<Chunk<unknown>>>(
         rs.getNextChunk(chunkSize).map(c => Option(c).filter(() => c.nonEmpty)),
       ).unNoneTerminate().unchunks;
 

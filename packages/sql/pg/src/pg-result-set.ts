@@ -13,7 +13,7 @@ export class PgResultSet extends ResultSet {
     super();
   }
 
-  public getRows<A>(): ConnectionIO<A[]> {
+  public getRows(): ConnectionIO<unknown[]> {
     return ConnectionIO.pure(this.result.rows);
   }
 
@@ -27,7 +27,7 @@ export class PgStreamedResultSet extends StreamedResultSet {
     super();
   }
 
-  public getNextChunk<A>(chunkSize: number): ConnectionIO<Chunk<A>> {
+  public getNextChunk(chunkSize: number): ConnectionIO<Chunk<unknown>> {
     return ConnectionIO.fromPromise(
       ConnectionIO.delay(() => this.cursor.read(chunkSize)),
     ).map(Chunk.fromArray);

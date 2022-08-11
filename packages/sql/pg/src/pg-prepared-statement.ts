@@ -40,11 +40,7 @@ export class PgPreparedStatement extends PreparedStatement {
   public query(): ConnectionIO<ResultSet> {
     return ConnectionIO.fromPromise(
       ConnectionIO.delay(() =>
-        this.underlying.query({
-          text: this.fragment.sql,
-          values: this.fragment.params.toArray,
-          rowMode: 'array',
-        }),
+        this.underlying.query(this.fragment.sql, this.fragment.params.toArray),
       ),
     ).map(result => new PgResultSet(result));
   }
@@ -52,9 +48,7 @@ export class PgPreparedStatement extends PreparedStatement {
   public queryStream(): ConnectionIO<StreamedResultSet> {
     return ConnectionIO.delay(() =>
       this.underlying.query(
-        new PgCursor(this.fragment.sql, this.fragment.params.toArray, {
-          rowMode: 'array',
-        }),
+        new PgCursor(this.fragment.sql, this.fragment.params.toArray),
       ),
     ).map(cursor => new PgStreamedResultSet(cursor));
   }

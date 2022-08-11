@@ -12,7 +12,6 @@ import {
   ConnectionIOF,
   Fragment,
   PreparedStatement,
-  Row,
   StreamedResultSet,
 } from './free';
 import { Read } from './read';
@@ -89,7 +88,7 @@ export class Update<in A> {
       );
 
     const pullStream = (chunkSize: number) => (rs: StreamedResultSet) =>
-      Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
+      Stream.repeatEval<ConnectionIOF, Option<Chunk<unknown>>>(
         rs.getNextChunk(chunkSize).map(c => Option(c).filter(() => c.nonEmpty)),
       ).unNoneTerminate().unchunks;
 

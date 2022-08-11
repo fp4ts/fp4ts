@@ -6,18 +6,16 @@
 import { Chunk } from '@fp4ts/stream';
 import { ConnectionIO } from './connection-io';
 
-export type Row = unknown[];
-
 export abstract class ResultSet {
   private readonly __void!: void;
 
-  public abstract getRows(): ConnectionIO<Row[]>;
+  public abstract getRows(): ConnectionIO<unknown[]>;
   public abstract getRowCount(): ConnectionIO<number>;
 }
 
 export abstract class StreamedResultSet {
   private readonly __void!: void;
 
-  public abstract getNextChunk(chunkSize: number): ConnectionIO<Chunk<Row>>;
+  public abstract getNextChunk(chunkSize: number): ConnectionIO<Chunk<unknown>>;
   public abstract close(): ConnectionIO<void>;
 }
