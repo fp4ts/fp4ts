@@ -5,7 +5,7 @@
 
 import { pipe } from '@fp4ts/core';
 import { Chain, Kleisli } from '@fp4ts/cats';
-import { Read, Write } from '@fp4ts/sql-core';
+import { Write } from '@fp4ts/sql-core';
 import {
   PreparedStatement,
   ResultSet,

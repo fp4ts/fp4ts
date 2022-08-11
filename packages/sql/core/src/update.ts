@@ -3,25 +3,35 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Foldable } from '@fp4ts/cats';
+import { Array, Foldable, Option } from '@fp4ts/cats';
 import { Kind } from '@fp4ts/core';
-import { ConnectionIO, Fragment, PreparedStatement } from './free';
-
-export class Write<in A> {
-  public static readonly unit: Write<void> = new Write(() => []);
-
-  public constructor(public readonly toRow: (a: A) => unknown[]) {}
-
-  public contramap<A0>(f: (a0: A0) => A): Write<A0> {
-    return new Write(a0 => this.toRow(f(a0)));
-  }
-}
+import { Chunk, Stream } from '@fp4ts/stream';
+import { DefaultChunkSize } from './consts';
+import {
+  ConnectionIO,
+  ConnectionIOF,
+  Fragment,
+  PreparedStatement,
+  Row,
+  StreamedResultSet,
+} from './free';
+import { Read } from './read';
+import { Write } from './write';
 
 export class Update<in A> {
   public constructor(
-    public readonly W: Write<A>,
-    public readonly fragment: Fragment,
+    private readonly W: Write<A>,
+    private readonly fragment: Fragment,
   ) {}
+
+  public toUpdate0(a: A): Update0 {
+    return {
+      run: () => this.run(a),
+      updateReturning: R => this.updateReturning(R)(a),
+      updateReturningWithChunkSize: R => chunkSize =>
+        this.updateReturningWithChunkSize(R)(a, chunkSize),
+    };
+  }
 
   public run(a: A): ConnectionIO<number> {
     return this.prepareStatement(ps =>
@@ -47,6 +57,61 @@ export class Update<in A> {
       );
   }
 
+  public updateReturning<R>(R: Read<R>): (a: A) => Stream<ConnectionIOF, R> {
+    return a => this.updateReturningWithChunkSize(R)(a, DefaultChunkSize);
+  }
+
+  public updateManyReturning<F, R>(
+    F: Foldable<F>,
+    R: Read<R>,
+  ): (fa: Kind<F, [A]>) => Stream<ConnectionIOF, R> {
+    return fa =>
+      this.updateManyReturningWithChunkSize(F, R)(fa, DefaultChunkSize);
+  }
+
+  public updateReturningWithChunkSize<R>(
+    R: Read<R>,
+  ): (a: A, chunkSize: number) => Stream<ConnectionIOF, R> {
+    return (a, chunkSize) =>
+      this.updateManyReturningWithChunkSize(Array.FoldableWithIndex(), R)(
+        [a],
+        chunkSize,
+      );
+  }
+
+  public updateManyReturningWithChunkSize<F, R>(
+    F: Foldable<F>,
+    R: Read<R>,
+  ): (fa: Kind<F, [A]>, chunkSize: number) => Stream<ConnectionIOF, R> {
+    const acquireStream = (ps: PreparedStatement) =>
+      Stream.bracket<ConnectionIOF, StreamedResultSet>(ps.queryStream(), rs =>
+        rs.close(),
+      );
+
+    const pullStream = (chunkSize: number) => (rs: StreamedResultSet) =>
+      Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
+        rs.getNextChunk(chunkSize).map(c => Option(c).filter(() => c.nonEmpty)),
+      ).unNoneTerminate().unchunks;
+
+    return (fa, chunkSize) =>
+      Stream.bracket<ConnectionIOF, PreparedStatement>(
+        ConnectionIO.prepareStatement(this.fragment),
+        ps => ps.close(),
+      )
+        .flatMap(ps =>
+          Stream.fromList<ConnectionIOF, A>(F.toList(fa)).evalMap(
+            ps.set(this.W),
+          ),
+        )
+        .flatMap(acquireStream)
+        .flatMap(pullStream(chunkSize))
+        .map(R.fromRow);
+  }
+
+  public contramap<A0>(f: (a0: A0) => A): Update<A0> {
+    return new Update(this.W.contramap(f), this.fragment);
+  }
+
   private prepareStatement<R>(
     f: (ps: PreparedStatement) => ConnectionIO<R>,
   ): ConnectionIO<R> {
@@ -57,8 +122,15 @@ export class Update<in A> {
   }
 }
 
-export class Update0 extends Update<void> {
-  public constructor(fragment: Fragment) {
-    super(Write.unit, fragment);
-  }
+export function Update0(fragment: Fragment): Update0 {
+  return new Update(Write.unit, fragment).toUpdate0();
+}
+export interface Update0 {
+  run(): ConnectionIO<number>;
+
+  updateReturning<R>(R: Read<R>): Stream<ConnectionIOF, R>;
+
+  updateReturningWithChunkSize<R>(
+    R: Read<R>,
+  ): (chunkSize: number) => Stream<ConnectionIOF, R>;
 }

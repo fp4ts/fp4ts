@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id } from '@fp4ts/core';
-import { Query, Read } from '../query';
-import { Update, Update0 } from '../update';
+import { Read } from '../read';
+import { Query0 } from '../query';
+import { Update0 } from '../update';
 
 export abstract class Fragment {
   public static get empty(): Fragment {
@@ -31,17 +32,17 @@ export abstract class Fragment {
     return `[Fragment: ${'this.sql'}]`;
   }
 
-  public query<A>(): Query<A>;
-  public query<A>(f: (r: Record<string, any>) => A): Query<A>;
-  public query<A>(f: Read<A>): Query<A>;
-  public query(f: any = id): Query<any> {
+  public query<A>(): Query0<A>;
+  public query<A>(f: (r: Record<string, any>) => A): Query0<A>;
+  public query<A>(f: Read<A>): Query0<A>;
+  public query(f: any = id): Query0<any> {
     return typeof f === 'function'
-      ? new Query(this, new Read(f))
-      : new Query(this, f);
+      ? Query0(new Read(f), this)
+      : Query0(f, this);
   }
 
   public update(): Update0 {
-    return new Update0(this);
+    return Update0(this);
   }
 
   public abstract visit<R>(v: FragmentVisitor<R>): R;

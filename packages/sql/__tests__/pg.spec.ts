@@ -19,7 +19,7 @@ import { Client as PgClient } from 'pg';
 import { PgConnectionOpVisitor } from '@fp4ts/sql-pg/lib/transactor';
 import { PgConnection } from '@fp4ts/sql-pg/lib/transactor';
 import { id } from '@fp4ts/core';
-import { Array } from '@fp4ts/cats';
+import { Array, Ord } from '@fp4ts/cats';
 
 const CONNECTION_CONFIG = {
   host: 'localhost',
@@ -178,6 +178,28 @@ describe('pg', () => {
       });
     });
 
+    it.M('should perform a simple query', () => {
+      const vis = new PgConnectionOpVisitor(IO.Async);
+      const trx = new TransactorAux(
+        IO.Async,
+        null,
+        Strategy.default,
+        vis.liftK(),
+        () => connect,
+      );
+
+      return IO.Monad.do(function* (_) {
+        yield* _(prepare().transact(trx));
+        yield* _(
+          sql`SELECT * FROM "person"`
+            .query<[string, string]>()
+            .toMap(Ord.primitive)
+            .transact(trx)
+            .tap(console.log),
+        );
+      });
+    });
+
     it.M('should perform a streaming query', () => {
       const vis = new PgConnectionOpVisitor(IO.Async);
       const trx = new TransactorAux(
@@ -197,6 +219,29 @@ describe('pg', () => {
             .throughF(trx.transStream())
             .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
             .compileConcurrent().drain,
+        );
+      });
+    });
+
+    it.M('should 1 perform a streaming query', () => {
+      const vis = new PgConnectionOpVisitor(IO.Async);
+      const trx = new TransactorAux(
+        IO.Async,
+        null,
+        Strategy.default,
+        vis.liftK(),
+        () => connect,
+      );
+
+      return IO.Monad.do(function* (_) {
+        yield* _(prepare().transact(trx));
+        yield* _(
+          sql`SELECT * FROM "person"`
+            .query<[string, string]>()
+            .streamWithChunkSize(1)
+            .compileConcurrent(ConnectionIO.Async)
+            .toList.transact(trx)
+            .map(console.log),
         );
       });
     });

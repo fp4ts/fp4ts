@@ -34,7 +34,7 @@ export class Strategy {
     public readonly always: ConnectionIO<void>,
   ) {}
 
-  public resource(): Resource<ConnectionIOF, void> {
+  public get resource(): Resource<ConnectionIOF, void> {
     const F = ConnectionIO.Async;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
@@ -81,8 +81,7 @@ export class TransactorAux<F, K, C> {
 
   public trans<A>(fa: ConnectionIO<A>): Kind<F, [A]> {
     return this.connect(this.kernel).use(this.F)(conn =>
-      this.strategy
-        .resource()
+      this.strategy.resource
         .use(ConnectionIO.Async)(() => fa)
         .foldMap(this.KF)(this.interpret)
         .run(conn),
@@ -99,7 +98,7 @@ export class TransactorAux<F, K, C> {
   public transStream() {
     return <A>(sa: Stream<ConnectionIOF, A>): Stream<F, A> =>
       Stream.resource(this.F)(this.connect(this.kernel)).flatMap(conn =>
-        Stream.resource(ConnectionIO.Async)(this.strategy.resource())
+        Stream.resource(ConnectionIO.Async)(this.strategy.resource)
           .flatMap(() => sa)
           .mapK(this.run(conn)),
       ).scope;

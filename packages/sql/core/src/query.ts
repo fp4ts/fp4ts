@@ -3,70 +3,128 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Option } from '@fp4ts/cats';
+import { List, Map, Option, Ord } from '@fp4ts/cats';
 import { Chunk, Stream } from '@fp4ts/stream';
 import {
   ConnectionIO,
   ConnectionIOF,
   Fragment,
   PreparedStatement,
+  ResultSet,
   Row,
   StreamedResultSet,
 } from './free';
 import { DefaultChunkSize } from './consts';
+import { Read } from './read';
+import { Write } from './write';
 
-export class Read<out A> {
-  public constructor(public readonly fromRow: (r: unknown[]) => A) {}
-
-  public map<B>(f: (a: A) => B): Read<B> {
-    return new Read(a => f(this.fromRow(a)));
-  }
-}
-
-export class Query<A> {
-  private readonly _A!: () => A;
-
+export class Query<in A, out B> {
   public constructor(
-    public readonly fragment: Fragment,
-    public readonly read: Read<A>,
+    private readonly W: Write<A>,
+    private readonly R: Read<B>,
+    private readonly fragment: Fragment,
   ) {}
 
-  public map<B>(f: (a: A) => B): Query<B> {
-    return new Query(this.fragment, this.read.map(f));
+  public toQuery0(a: A): Query0<B> {
+    return {
+      map: f => this.map(f).toQuery0(a),
+      toList: () => this.toList(a),
+      toOption: () => this.toOption(a),
+      toMap: O => (this as any).toMap(O)(a),
+      stream: () => this.stream(a),
+      streamWithChunkSize: chunkSize => this.streamWithChunkSize(a, chunkSize),
+    };
   }
 
-  public toList(): ConnectionIO<List<A>> {
-    return ConnectionIO.prepareStatement(this.fragment)
-      .bracket(
-        ps => ps.query().flatMap(rs => rs.getRows()),
-        ps => ps.close(),
-      )
-      .map(rows => rows.map(this.read.fromRow))
+  public map<C>(f: (a: B) => C): Query<A, C> {
+    return new Query(this.W, this.R.map(f), this.fragment);
+  }
+
+  public contramap<A0>(f: (a0: A0) => A): Query<A0, B> {
+    return new Query(this.W.contramap(f), this.R, this.fragment);
+  }
+
+  public toList(a: A): ConnectionIO<List<B>> {
+    return this.prepareStatement(this.executeQuery(a, rs => rs.getRows()))
+      .map(rows => rows.map(this.R.fromRow))
       .map(List.fromArray);
   }
 
-  public stream(): Stream<ConnectionIOF, A> {
-    return this.streamWithChunkSize(DefaultChunkSize);
+  public toOption(a: A): ConnectionIO<Option<B>> {
+    return this.prepareStatement(this.executeQuery(a, rs => rs.getRows())).map(
+      rows => Option(rows[0]).map(this.R.fromRow),
+    );
   }
 
-  public streamWithChunkSize(chunkSize: number): Stream<ConnectionIOF, A> {
+  public toMap<K, V>(
+    this: Query<A, [K, V]>,
+    O: Ord<K>,
+  ): (a: A) => ConnectionIO<Map<K, V>> {
+    return a =>
+      this.prepareStatement(this.executeQuery(a, rs => rs.getRows()))
+        .map(rows => rows.map(this.R.fromRow))
+        .map(Map.fromArray(O));
+  }
+
+  public stream(a: A): Stream<ConnectionIOF, B> {
+    return this.streamWithChunkSize(a, DefaultChunkSize);
+  }
+
+  public streamWithChunkSize(
+    a: A,
+    chunkSize: number,
+  ): Stream<ConnectionIOF, B> {
+    const acquireStream = (ps: PreparedStatement) =>
+      Stream.bracket<ConnectionIOF, StreamedResultSet>(
+        ps
+          .set(this.W)(a)
+          .flatMap(ps => ps.queryStream()),
+        rs => rs.close(),
+      );
+
+    const pullStream = (rs: StreamedResultSet) =>
+      Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
+        rs.getNextChunk(chunkSize).map(c => Option(c).filter(() => c.nonEmpty)),
+      ).unNoneTerminate().unchunks;
+
     return Stream.bracket<ConnectionIOF, PreparedStatement>(
       ConnectionIO.prepareStatement(this.fragment),
       ps => ps.close(),
     )
-      .flatMap(ps =>
-        Stream.bracket<ConnectionIOF, StreamedResultSet>(ps.queryStream(), rs =>
-          rs.close(),
-        ),
-      )
-      .flatMap(rs =>
-        Stream.repeatEval<ConnectionIOF, Option<Chunk<Row>>>(
-          rs
-            .getNextChunk(chunkSize)
-            .map(c => Option(c).filter(() => c.nonEmpty)),
-        )
-          .unNoneTerminate()
-          .unchunks.map(this.read.fromRow),
-      );
+      .flatMap(acquireStream)
+      .flatMap(pullStream)
+      .map(this.R.fromRow);
   }
+
+  private executeQuery<R>(
+    a: A,
+    f: (rs: ResultSet) => ConnectionIO<R>,
+  ): (ps: PreparedStatement) => ConnectionIO<R> {
+    return ps =>
+      ps
+        .set(this.W)(a)
+        .flatMap(ps => ps.query())
+        .flatMap(f);
+  }
+
+  private prepareStatement<R>(
+    f: (ps: PreparedStatement) => ConnectionIO<R>,
+  ): ConnectionIO<R> {
+    return ConnectionIO.prepareStatement(this.fragment).bracket(f, ps =>
+      ps.close(),
+    );
+  }
+}
+
+export function Query0<B>(R: Read<B>, fragment: Fragment): Query0<B> {
+  return new Query(Write.unit, R, fragment).toQuery0();
+}
+
+export interface Query0<B> {
+  map<C>(f: (a: B) => C): Query0<C>;
+  toList(): ConnectionIO<List<B>>;
+  toOption(): ConnectionIO<Option<B>>;
+  toMap<K, V>(this: Query0<[K, V]>, K: Ord<K>): ConnectionIO<Map<K, V>>;
+  stream(): Stream<ConnectionIOF, B>;
+  streamWithChunkSize(chunkSize: number): Stream<ConnectionIOF, B>;
 }

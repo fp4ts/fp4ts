@@ -10,10 +10,13 @@ export * from './fragment';
 export * from './query';
 export * from './update';
 export * from './transactor';
+export * from './read';
+export * from './write';
 export {
   ConnectionIO,
   ConnectionIOF,
   PreparedStatement,
   ResultSet,
   StreamedResultSet,
+  Fragment,
 } from './free';

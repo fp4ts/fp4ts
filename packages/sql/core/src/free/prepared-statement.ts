@@ -5,7 +5,7 @@
 
 import { ResultSet, StreamedResultSet } from './result-set';
 import { ConnectionIO } from './connection-io';
-import { Write } from '../update';
+import { Write } from '../write';
 
 export abstract class PreparedStatement {
   private readonly __void!: void;
