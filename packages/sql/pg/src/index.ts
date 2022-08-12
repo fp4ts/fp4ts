@@ -7,8 +7,4 @@
  * @module sql/pg
  */
 export * from './pg-connection';
-export * from './pg-fragment';
-export * from './pg-interpreter';
-export * from './pg-prepared-statement';
-export * from './pg-result-set';
 export * from './pg-transactor';

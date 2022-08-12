@@ -7,8 +7,4 @@
  * @module sql/sqlite
  */
 export * from './sqlite-connection';
-export * from './sqlite-fragment-visitor';
-export * from './sqlite-interpreter';
-export * from './sqlite-prepared-statement';
-export * from './sqlite-result-set';
 export * from './sqlite-transactor';
