@@ -41,8 +41,6 @@ export class SqliteFragment {
 }
 
 export class SqliteFragmentVisitor extends FragmentVisitor<SqliteFragment> {
-  private paramCount: number = 0;
-
   public visitEmpty(f: EmptyFragment): SqliteFragment {
     return SqliteFragment.empty;
   }

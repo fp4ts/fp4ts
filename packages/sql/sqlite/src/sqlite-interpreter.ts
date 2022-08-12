@@ -13,10 +13,10 @@ import {
   PrepareStatement,
   Rollback,
 } from '@fp4ts/sql-core/lib/free';
+import { Statement } from 'sqlite3';
 import { SqlitePreparedStatement } from './sqlite-prepared-statement';
 import { SqliteConnection } from './sqlite-connection';
 import { SqliteFragmentVisitor } from './sqlite-fragment-visitor';
-import { Statement } from 'sqlite3';
 
 export class SqliteInterpreter<F> extends KleisliInterpreter<
   F,

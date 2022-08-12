@@ -10,6 +10,21 @@ import { Database } from 'sqlite3';
 import { SqliteConnection } from './sqlite-connection';
 import { SqliteInterpreter } from './sqlite-interpreter';
 
+const connect =
+  <F>(F: Async<F>) =>
+  (filename: string): Resource<F, SqliteConnection> =>
+    Resource.make(F)(
+      F.async_<SqliteConnection>(cb => {
+        const db: any = new Database(filename, err =>
+          cb(err ? Left(err) : Right(new SqliteConnection(db))),
+        );
+      }),
+      conn =>
+        F.async_(cb =>
+          conn.db.close(err => cb(err ? Left(err) : Either.rightUnit)),
+        ),
+    );
+
 export const SqliteTransactor = Object.freeze({
   make: <F>(F: Async<F>, filename: string): SqliteTransactor<F> =>
     new TransactorAux(
@@ -17,17 +32,18 @@ export const SqliteTransactor = Object.freeze({
       filename,
       Strategy.default,
       new SqliteInterpreter(F).liftK(),
-      filename =>
-        Resource.make(F)(
-          F.async_<SqliteConnection>(cb => {
-            const db: Database = new Database(filename, err =>
-              cb(err ? Left(err) : Right(new SqliteConnection(db))),
-            );
-          }),
-          con =>
-            F.async_(cb =>
-              con.db.close(err => cb(err ? Left(err) : Either.rightUnit)),
-            ),
+      connect(F),
+    ),
+
+  memory: <F>(F: Async<F>): Resource<F, SqliteTransactor<F>> =>
+    connect(F)(':memory:').map(
+      conn =>
+        new TransactorAux(
+          F,
+          '',
+          Strategy.default,
+          new SqliteInterpreter(F).liftK(),
+          () => Resource.pure(conn),
         ),
     ),
 });
