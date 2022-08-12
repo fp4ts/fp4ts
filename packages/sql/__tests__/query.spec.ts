@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
-import { id } from '@fp4ts/core';
 import { List, Map, None, Ord, Some } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
 import { Fragment, Query, Read, Write } from '@fp4ts/sql-core';
@@ -13,12 +12,12 @@ import { SqliteTransactor } from '@fp4ts/sql-sqlite';
 describe('Query', () => {
   const q = new Query(
     new Write<string>(x => [x]),
-    new Read<{ foo: number }>(id as any),
+    Read.id<{ foo: number }>(),
     Fragment.query("select 42 as foo where ? = 'foo'"),
   );
   const qPair = new Query(
     new Write<string>(x => [x]),
-    new Read<{ id: string; foo: number }>(id as any),
+    Read.id<{ id: string; foo: number }>(),
     Fragment.query("select 'xxx' as id, 42 as foo where ? = 'foo'"),
   );
   const trx = SqliteTransactor.make(IO.Async, ':memory:');
@@ -120,12 +119,12 @@ describe('Query', () => {
 describe('Query0', () => {
   const q = new Query(
     new Write<string>(x => [x]),
-    new Read<{ foo: number }>(id as any),
+    Read.id<{ foo: number }>(),
     Fragment.query("select 42 as foo where ? = 'foo'"),
   );
   const qPair = new Query(
     new Write<string>(x => [x]),
-    new Read<{ id: string; foo: number }>(id as any),
+    Read.id<{ id: string; foo: number }>(),
     Fragment.query("select 'xxx' as id, 42 as foo where ? = 'foo'"),
   );
   const trx = SqliteTransactor.make(IO.Async, ':memory:');

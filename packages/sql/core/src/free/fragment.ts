@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id } from '@fp4ts/core';
+import { Chain } from '@fp4ts/cats';
 import { Read } from '../read';
 import { Query0 } from '../query';
 import { Update0 } from '../update';
@@ -20,6 +21,14 @@ export abstract class Fragment {
     return new ParamFragment(p);
   }
 
+  public get sql(): string {
+    return this.visit(new SqlFragmentVisitor());
+  }
+
+  public get params(): Chain<unknown> {
+    return this.visit(new ParamFragmentVisitor());
+  }
+
   public concat(that: Fragment): Fragment {
     return new ConcatFragment(this, that);
   }
@@ -28,8 +37,13 @@ export abstract class Fragment {
     return this.concat(that);
   }
 
+  public stripMargin(char: string = '|'): Fragment {
+    return this._stripMargin(char);
+  }
+  protected abstract _stripMargin(char: string): Fragment;
+
   public toString(): string {
-    return `[Fragment: ${'this.sql'}]`;
+    return `[Fragment: ${this.sql}]`;
   }
 
   public query<A>(): Query0<A>;
@@ -58,16 +72,59 @@ export abstract class FragmentVisitor<R> {
   public abstract visitConcat(f: ConcatFragment): R;
 }
 
+class SqlFragmentVisitor extends FragmentVisitor<string> {
+  public visitEmpty(f: EmptyFragment): string {
+    return '';
+  }
+  public visitQuery(f: QueryFragment): string {
+    return f.value;
+  }
+  public visitParam(f: ParamFragment): string {
+    return '?';
+  }
+  public visitConcat(f: ConcatFragment): string {
+    return f.lhs.visit(this) + f.rhs.visit(this);
+  }
+}
+
+class ParamFragmentVisitor extends FragmentVisitor<Chain<unknown>> {
+  public visitEmpty(f: EmptyFragment): Chain<unknown> {
+    return Chain.empty;
+  }
+  public visitQuery(f: QueryFragment): Chain<unknown> {
+    return Chain.empty;
+  }
+  public visitParam(f: ParamFragment): Chain<unknown> {
+    return Chain(f.value);
+  }
+  public visitConcat(f: ConcatFragment): Chain<unknown> {
+    return f.lhs.visit(this)['+++'](f.rhs.visit(this));
+  }
+}
+
 export const EmptyFragment = new (class EmptyFragment extends Fragment {
+  protected _stripMargin(char: string): Fragment {
+    return this;
+  }
   public visit<R>(v: FragmentVisitor<R>): R {
     return v.visitEmpty(this);
   }
-})();
+})() as Fragment;
 export type EmptyFragment = Fragment;
+
+// https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
+function escapeStringRegexp(string: string): string {
+  return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
+}
 
 export class QueryFragment extends Fragment {
   public constructor(public readonly value: string) {
     super();
+  }
+
+  protected _stripMargin(char: string): Fragment {
+    const regexp = new RegExp(`\n\\s*${escapeStringRegexp(char)}`, 'g');
+    return new QueryFragment(this.value.replace(regexp, '\n'));
   }
 
   public visit<R>(v: FragmentVisitor<R>): R {
@@ -78,6 +135,10 @@ export class QueryFragment extends Fragment {
 export class ParamFragment extends Fragment {
   public constructor(public readonly value: unknown) {
     super();
+  }
+
+  protected _stripMargin(char: string): Fragment {
+    return this;
   }
 
   public visit<R>(v: FragmentVisitor<R>): R {
@@ -91,6 +152,13 @@ export class ConcatFragment extends Fragment {
     public readonly rhs: Fragment,
   ) {
     super();
+  }
+
+  protected _stripMargin(char: string): Fragment {
+    return new ConcatFragment(
+      this.lhs.stripMargin(char),
+      this.rhs.stripMargin(char),
+    );
   }
 
   public visit<R>(v: FragmentVisitor<R>): R {

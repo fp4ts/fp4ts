@@ -46,7 +46,7 @@ export class Update<in A> {
   ): (fa: Kind<F, [A]>) => ConnectionIO<number> {
     return fa =>
       this.prepareStatement(ps =>
-        F.toList(fa).foldRight(ConnectionIO.pure(0), (a, fi) =>
+        F.foldLeft_(fa, ConnectionIO.pure(0), (fi, a) =>
           ps
             .set(this.W)(a)
             .flatMap(ps => ps.query())
@@ -56,20 +56,22 @@ export class Update<in A> {
       );
   }
 
-  public updateReturning<R>(R: Read<R>): (a: A) => Stream<ConnectionIOF, R> {
+  public updateReturning<R>(
+    R: Read<R> = Read.id(),
+  ): (a: A) => Stream<ConnectionIOF, R> {
     return a => this.updateReturningWithChunkSize(R)(a, DefaultChunkSize);
   }
 
   public updateManyReturning<F, R>(
     F: Foldable<F>,
-    R: Read<R>,
+    R: Read<R> = Read.id(),
   ): (fa: Kind<F, [A]>) => Stream<ConnectionIOF, R> {
     return fa =>
       this.updateManyReturningWithChunkSize(F, R)(fa, DefaultChunkSize);
   }
 
   public updateReturningWithChunkSize<R>(
-    R: Read<R>,
+    R: Read<R> = Read.id(),
   ): (a: A, chunkSize: number) => Stream<ConnectionIOF, R> {
     return (a, chunkSize) =>
       this.updateManyReturningWithChunkSize(Array.FoldableWithIndex(), R)(
@@ -80,7 +82,7 @@ export class Update<in A> {
 
   public updateManyReturningWithChunkSize<F, R>(
     F: Foldable<F>,
-    R: Read<R>,
+    R: Read<R> = Read.id(),
   ): (fa: Kind<F, [A]>, chunkSize: number) => Stream<ConnectionIOF, R> {
     const acquireStream = (ps: PreparedStatement) =>
       Stream.bracket<ConnectionIOF, StreamedResultSet>(ps.queryStream(), rs =>
@@ -127,9 +129,9 @@ export function Update0(fragment: Fragment): Update0 {
 export interface Update0 {
   run(): ConnectionIO<number>;
 
-  updateReturning<R>(R: Read<R>): Stream<ConnectionIOF, R>;
+  updateReturning<R>(R?: Read<R>): Stream<ConnectionIOF, R>;
 
   updateReturningWithChunkSize<R>(
-    R: Read<R>,
+    R?: Read<R>,
   ): (chunkSize: number) => Stream<ConnectionIOF, R>;
 }

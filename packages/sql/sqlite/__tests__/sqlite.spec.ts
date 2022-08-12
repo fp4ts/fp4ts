@@ -7,6 +7,7 @@ import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { id } from '@fp4ts/core';
 import { Array, Ord } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
+import { Stream } from '@fp4ts/stream';
 import {
   sql,
   ConnectionIO,
@@ -15,7 +16,6 @@ import {
   Fragment,
   ConnectionIOF,
 } from '@fp4ts/sql-core';
-import { Stream } from '@fp4ts/stream';
 import { SqliteTransactor } from '../src';
 
 describe('sqlite', () => {
@@ -37,7 +37,7 @@ describe('sqlite', () => {
         new Update(
           new Write(id<[string, string]>),
           Fragment.query(
-            'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
+            'INSERT INTO person(first_name, last_name) VALUES (?, ?)',
           ),
         ).updateMany(Array.FoldableWithIndex())([
           ['test0', 'test0'],
@@ -53,7 +53,7 @@ describe('sqlite', () => {
 
   it.M('should perform a simple query', () =>
     prepare()
-      .flatMap(() => sql`SELECT * FROM "person"`.query<Person>().toList())
+      .flatMap(() => sql`SELECT * FROM person`.query<Person>().toList())
       .transact(trx)
       .tap(console.log),
   );
@@ -61,7 +61,7 @@ describe('sqlite', () => {
   it.M('should perform a simple query', () =>
     prepare()
       .flatMap(() =>
-        sql`SELECT * FROM "person"`
+        sql`SELECT * FROM person`
           .query<Person>()
           .map(
             ({ first_name, last_name }) =>
@@ -78,7 +78,7 @@ describe('sqlite', () => {
     () =>
       Stream.evalF<ConnectionIOF, void>(prepare())
         .flatMap(() =>
-          sql`SELECT * FROM "person"`.query<Person>().streamWithChunkSize(1),
+          sql`SELECT * FROM person`.query<Person>().streamWithChunkSize(1),
         )
         .throughF(trx.transStream())
         .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
@@ -88,7 +88,7 @@ describe('sqlite', () => {
   it.M('should 1 perform a streaming query', () =>
     Stream.evalF<ConnectionIOF, void>(prepare())
       .flatMap(() =>
-        sql`SELECT * FROM "person"`.query<Person>().streamWithChunkSize(1),
+        sql`SELECT * FROM person`.query<Person>().streamWithChunkSize(1),
       )
       .compileConcurrent(ConnectionIO.Async)
       .toList.transact(trx)

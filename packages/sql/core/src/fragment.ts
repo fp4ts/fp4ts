@@ -17,13 +17,21 @@ export function fr0(strings: TemplateStringsArray, ...xs: unknown[]): Fragment {
   let j = 0;
   while (i < strings.length && j < xs.length) {
     acc = acc['+++'](Fragment.query(strings[i++]));
-    acc = acc['+++'](Fragment.param(xs[j++]));
+    if (xs[j] instanceof Fragment) {
+      acc = acc['+++'](xs[j++] as Fragment);
+    } else {
+      acc = acc['+++'](Fragment.param(xs[j++]));
+    }
   }
   while (i < strings.length) {
     acc = acc['+++'](Fragment.query(strings[i++]));
   }
   while (j < xs.length) {
-    acc = acc['+++'](Fragment.param(xs[j++]));
+    if (xs[j] instanceof Fragment) {
+      acc = acc['+++'](xs[j++] as Fragment);
+    } else {
+      acc = acc['+++'](Fragment.param(xs[j++]));
+    }
   }
   return acc;
 }

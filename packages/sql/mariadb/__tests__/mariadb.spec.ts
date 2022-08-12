@@ -5,27 +5,27 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { id } from '@fp4ts/core';
-import { Array, Ord } from '@fp4ts/cats';
+import { Array } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
 import { sql, ConnectionIO, Update, Write, Fragment } from '@fp4ts/sql-core';
-import { PgTransactor } from '../src';
+import { MariaTransactor } from '../src';
 
 // Enable this test IFF you've got a DB running matching the setup above
-describe.skip('pg', () => {
+describe.skip('maria-db', () => {
   const CONNECTION_CONFIG = {
     host: 'localhost',
     database: 'fp4ts',
     user: 'root',
     password: 'root',
   };
-  const trx = PgTransactor.make(IO.Async, CONNECTION_CONFIG);
+  const trx = MariaTransactor.make(IO.Async, CONNECTION_CONFIG);
   const prepare = (): ConnectionIO<void> =>
     ConnectionIO.Monad.do(function* (_) {
-      yield* _(sql`DROP TABLE IF EXISTS "person"`.update().run());
+      yield* _(sql`DROP TABLE IF EXISTS person`.update().run());
       yield* _(
         sql`
-          CREATE TABLE "person" (
-            id SERIAL PRIMARY KEY,
+          CREATE TABLE person (
+            id SERIAL,
             first_name TEXT NOT NULL,
             last_name TEXT NOT NULL
           )`
@@ -37,7 +37,7 @@ describe.skip('pg', () => {
         new Update(
           new Write(id<[string, string]>),
           Fragment.query(
-            'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
+            'INSERT INTO person(first_name, last_name) VALUES (?, ?)',
           ),
         ).updateMany(Array.FoldableWithIndex())([
           ['test0', 'test0'],
@@ -55,41 +55,25 @@ describe.skip('pg', () => {
     IO.Monad.do(function* (_) {
       yield* _(prepare().transact(trx));
       yield* _(
-        sql`SELECT * FROM "person"`
+        sql`SELECT * FROM person`
           .query<Person>()
           .toList()
           .transact(trx)
-          .tap(console.log),
-      );
-    }),
-  );
-
-  it.M('should perform a simple query', () =>
-    IO.Monad.do(function* (_) {
-      yield* _(prepare().transact(trx));
-      yield* _(
-        sql`SELECT * FROM "person"`
-          .query<Person>()
-          .map(
-            ({ first_name, last_name }) =>
-              [first_name, last_name] as [string, string],
-          )
-          .toMap(Ord.primitive)
-          .transact(trx)
-          .tap(console.log),
+          .tap(xs => console.log(xs.toArray)),
       );
     }),
   );
 
   it.M('should perform a streaming query', () =>
     IO.Monad.do(function* (_) {
+      let x = 0;
       yield* _(prepare().transact(trx));
       yield* _(
-        sql`SELECT * FROM "person"`
+        sql`SELECT * FROM person`
           .query<Person>()
           .streamWithChunkSize(1)
           .throughF(trx.transStream())
-          .evalTap(IO.Async)(xs => IO.delay(() => console.log(xs)))
+          .evalTap(IO.Async)(xs => IO.delay(() => console.log(x++, xs)))
           .compileConcurrent().drain,
       );
     }),
@@ -99,9 +83,9 @@ describe.skip('pg', () => {
     IO.Monad.do(function* (_) {
       yield* _(prepare().transact(trx));
       yield* _(
-        sql`SELECT * FROM "person"`
+        sql`SELECT * FROM person`
           .query<Person>()
-          .streamWithChunkSize(1)
+          .streamWithChunkSize(512)
           .compileConcurrent(ConnectionIO.Async)
           .toList.transact(trx)
           .map(console.log),

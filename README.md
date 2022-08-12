@@ -48,12 +48,15 @@ ecosystem for the simplicity of the implementation, support for polymorphic inpu
 and contrary to the decision made in cats-pase, unification of parsers guaranteed
 to consume input and ones that do not.
 
-- `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
-for purely functional, effect-ful, and polymorphic stream processing.
-
 - `@fp4ts/schema` The library for describing types of Kind-0 and Kind-1, with
 derivation capabilities for common typeclasses such as `Eq`, `Functor`, `Foldable`, and more.
 Inspired by [io-ts](https://github.com/gcanti/io-ts), [shapeless](https://github.com/milessabin/shapeless), and [kittens](https://github.com/typelevel/kittens).
+
+- `@fp4ts/sql` Partial port of the [doobie](https://github.com/tpolecat/doobie) library
+providing functional interface for SQL databases. The library includes drivers for Postgres ([`@fp4ts/sql-pg`](./packages/sql/pg)), MariaDB ([`@fp4ts/sql-mariadb`](./packages/sql/mariadb)), and Sqlite ([`@fp4ts/sql-sqlite`](./packages/sql/sqlite)).
+
+- `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
+for purely functional, effect-ful, and polymorphic stream processing.
 
 
 ## Examples

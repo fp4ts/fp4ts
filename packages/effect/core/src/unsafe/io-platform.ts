@@ -9,7 +9,7 @@ export const PlatformConfig = Object.freeze({
     10,
   ),
   TRACE_MODE:
-    process.env.FP4TS_TRACE_MODE ??
+    process.env.FP4TS_TRACING_MODE ??
     (process.env.NODE_ENV === 'production' ? 'off' : 'full'),
   TRACE_BUFFER_SIZE: parseInt(process.env.FP4TS_TRACE_BUFFER_SIZE ?? '16', 10),
 });

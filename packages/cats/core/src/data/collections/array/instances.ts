@@ -44,6 +44,7 @@ import { empty, pure } from './constructors';
 import { FunctorWithIndex } from '../../../functor-with-index';
 import { FoldableWithIndex } from '../../../foldable-with-index';
 import { TraversableWithIndex } from '../../../traversable-with-index';
+import { List } from '../list';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
@@ -117,7 +118,9 @@ export const arrayFoldableWithIndex: () => FoldableWithIndex<ArrayF, number> =
         <M>(M: Monoid<M>) =>
         <A>(xs: A[], f: (a: A, i: number) => M) =>
           foldMap_(xs, f, M),
+      foldLeft_: (fa, b, f) => foldLeft_(fa, b, (b, a) => f(b, a)),
       foldLeftWithIndex_: foldLeft_,
+      toList: xs => List.fromArray(xs),
       isEmpty: isEmpty,
       nonEmpty: nonEmpty,
       size: size,

@@ -16,7 +16,6 @@ import {
 import { Statement } from 'sqlite3';
 import { SqlitePreparedStatement } from './sqlite-prepared-statement';
 import { SqliteConnection } from './sqlite-connection';
-import { SqliteFragmentVisitor } from './sqlite-fragment-visitor';
 
 export class SqliteInterpreter<F> extends KleisliInterpreter<
   F,
@@ -35,12 +34,11 @@ export class SqliteInterpreter<F> extends KleisliInterpreter<
   ): Kleisli<F, SqliteConnection, PreparedStatement> {
     return Kleisli(conn =>
       this.F.async_(cb => {
-        const fragment = fa.fragment.visit(new SqliteFragmentVisitor());
-        const stmt: Statement = conn.db.prepare(fragment.sql, err =>
+        const stmt: Statement = conn.db.prepare(fa.fragment.sql, err =>
           cb(
             err
               ? Left(err)
-              : Right(new SqlitePreparedStatement(stmt, fragment.params)),
+              : Right(new SqlitePreparedStatement(stmt, fa.fragment.params)),
           ),
         );
       }),

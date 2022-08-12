@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import {
   Either,
   FunctionK,
@@ -61,7 +61,7 @@ export class ConnectionIO<out A> {
 
   public foldMap<F>(
     F: Monad<F>,
-  ): (nt: FunctionK<ConnectionOpF, F>) => Kind<F, [A]> {
+  ): (nt: <A>(op: ConnectionOp<A>) => Kind<F, [A]>) => Kind<F, [A]> {
     return this.underlying.mapK(F);
   }
 
@@ -105,6 +105,9 @@ export class ConnectionIO<out A> {
 
   public static delay<A>(thunk: () => A): ConnectionIO<A> {
     return ConnectionIO.lift(new Delay(thunk));
+  }
+  public static defer<A>(thunk: () => ConnectionIO<A>): ConnectionIO<A> {
+    return ConnectionIO.delay(thunk).flatMap(id);
   }
 
   public static uncancelable<A>(

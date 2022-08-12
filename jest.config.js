@@ -26,6 +26,7 @@ module.exports = {
     '<rootDir>/schema/__tests__',
     '<rootDir>/schema/core/src',
     '<rootDir>/sql/__tests__',
+    '<rootDir>/sql/mariadb/__tests__',
     '<rootDir>/sql/pg/__tests__',
     '<rootDir>/sql/sqlite/__tests__',
     '<rootDir>/stream/__tests__',

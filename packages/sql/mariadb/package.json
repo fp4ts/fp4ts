@@ -1,0 +1,22 @@
+{
+  "name": "@fp4ts/sql-mariadb",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/effect": "*",
+    "@fp4ts/sql-core": "*",
+    "@fp4ts/stream": "*",
+    "mariadb": "^3.0.1"
+  },
+  "devDependencies": {
+    "typescript": "4.7.4"
+  }
+}
