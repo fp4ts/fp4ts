@@ -4,14 +4,16 @@
 // LICENSE file in the root directory of this source tree.
 
 import test from 'supertest';
-import { IO, IOF, Resource } from '@fp4ts/effect';
-import { HttpApp } from '@fp4ts/http';
+import { IO } from '@fp4ts/effect';
 import { NodeServer } from '@fp4ts/http-node-server';
 import { withServerResource } from '@fp4ts/http-test-kit-node';
 import { makeApp } from '../server';
+import { SqliteTransactor } from '@fp4ts/sql-sqlite';
 
 describe('Todo api', () => {
-  const serverResource = Resource.evalF<IOF, HttpApp<IOF>>(makeApp(IO.Async));
+  const serverResource = SqliteTransactor.memory(IO.Async).evalMap(trx =>
+    makeApp(IO.Async, trx),
+  );
 
   describe('/version', () => {
     it('should return 200 Ok', async () =>

@@ -1398,7 +1398,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/sql-sqlite@workspace:packages/sql/sqlite":
+"@fp4ts/sql-sqlite@*, @fp4ts/sql-sqlite@workspace:packages/sql/sqlite":
   version: 0.0.0-use.local
   resolution: "@fp4ts/sql-sqlite@workspace:packages/sql/sqlite"
   dependencies:
@@ -1413,7 +1413,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/sql@workspace:packages/sql":
+"@fp4ts/sql@*, @fp4ts/sql@workspace:packages/sql":
   version: 0.0.0-use.local
   resolution: "@fp4ts/sql@workspace:packages/sql"
   dependencies:
@@ -1499,6 +1499,8 @@ __metadata:
     "@fp4ts/logging": "*"
     "@fp4ts/schema": "*"
     "@fp4ts/schema-json": "*"
+    "@fp4ts/sql": "*"
+    "@fp4ts/sql-sqlite": "*"
     "@fp4ts/stream": "*"
     typescript: 4.7.4
   languageName: unknown
