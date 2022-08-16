@@ -27,6 +27,7 @@ export class Query<in A, out B> {
   public toQuery0(a: A): Query0<B> {
     return {
       map: f => this.map(f).toQuery0(a),
+      toArray: () => this.toArray(a),
       toList: () => this.toList(a),
       toOption: () => this.toOption(a),
       toMap: O => (this as any).toMap(O)(a),
@@ -43,10 +44,14 @@ export class Query<in A, out B> {
     return new Query(this.W.contramap(f), this.R, this.fragment);
   }
 
+  public toArray(a: A): ConnectionIO<B[]> {
+    return this.prepareStatement(this.executeQuery(a, rs => rs.getRows())).map(
+      rows => rows.map(this.R.fromRow),
+    );
+  }
+
   public toList(a: A): ConnectionIO<List<B>> {
-    return this.prepareStatement(this.executeQuery(a, rs => rs.getRows()))
-      .map(rows => rows.map(this.R.fromRow))
-      .map(List.fromArray);
+    return this.toArray(a).map(List.fromArray);
   }
 
   public toOption(a: A): ConnectionIO<Option<B>> {
@@ -121,6 +126,7 @@ export function Query0<B>(R: Read<B>, fragment: Fragment): Query0<B> {
 
 export interface Query0<B> {
   map<C>(f: (a: B) => C): Query0<C>;
+  toArray(): ConnectionIO<B[]>;
   toList(): ConnectionIO<List<B>>;
   toOption(): ConnectionIO<Option<B>>;
   toMap<K, V>(this: Query0<[K, V]>, K: Ord<K>): ConnectionIO<Map<K, V>>;
