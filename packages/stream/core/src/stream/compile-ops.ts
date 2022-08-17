@@ -25,6 +25,21 @@ export class CompileOps<F, G, A> {
     return this.foldChunks(undefined, () => {});
   }
 
+  public get head(): Kind<G, [A]> {
+    return pipe(
+      this.headOption,
+      this.compiler.target.map(headOpt =>
+        headOpt.fold(() => throwError(new Error('Empty.head')), id),
+      ),
+    );
+  }
+
+  public get headOption(): Kind<G, [Option<A>]> {
+    return this.foldChunks(None as Option<A>, (prev, next) =>
+      prev['<|>'](() => next.headOption),
+    );
+  }
+
   public get last(): Kind<G, [A]> {
     return pipe(
       this.lastOption,
@@ -36,7 +51,7 @@ export class CompileOps<F, G, A> {
 
   public get lastOption(): Kind<G, [Option<A>]> {
     return this.foldChunks(None as Option<A>, (prev, next) =>
-      prev['<|>'](() => next.lastOption),
+      next.lastOption['<|>'](() => prev),
     );
   }
 

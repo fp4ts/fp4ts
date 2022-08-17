@@ -12,6 +12,7 @@
     { "path": "../../http/tsconfig.spec.json" },
     { "path": "../../logging/tsconfig.spec.json" },
     { "path": "../../schema/tsconfig.spec.json" },
+    { "path": "../../sql/tsconfig.spec.json" },
     { "path": "../../stream/tsconfig.spec.json" },
   ]
 }

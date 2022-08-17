@@ -9,6 +9,8 @@ import { Outcome, ExecutionContext } from '@fp4ts/effect-kernel';
 
 import { Ticker } from './ticker';
 
+export * from '@fp4ts/cats-test-kit/lib/eq';
+
 export const eqSyncIO = <A>(E: Eq<A>): Eq<SyncIO<A>> =>
   Eq.by(Try.Eq(Eq.Error.strict, E), x => Try(() => x.unsafeRunSync()));
 

@@ -1,0 +1,14 @@
+{
+  "extends": "../../../tsconfig.spec.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib",
+  },
+  "include": ["./src/**/*", "./__tests__/**/*"],
+  "references": [
+    { "path": "../../core/tsconfig.spec.json" },
+    { "path": "../../cats/tsconfig.spec.json" },
+    { "path": "../../effect/tsconfig.spec.json" },
+    { "path": "../../stream/tsconfig.spec.json" },
+  ]
+}

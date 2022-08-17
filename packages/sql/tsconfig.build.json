@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./lib",
+  },
+  "include": ["./index.ts"],
+  "references": [
+    { "path": "./core/tsconfig.build.json" },
+    { "path": "./mariadb/tsconfig.build.json" },
+    { "path": "./pg/tsconfig.build.json" },
+    { "path": "./sqlite/tsconfig.build.json" },
+  ]
+}

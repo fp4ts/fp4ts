@@ -105,6 +105,9 @@ export abstract class Chunk<out O> {
   public abstract readonly size: number;
   public abstract readonly iterator: Iterator<O>;
 
+  public get headOption(): Option<O> {
+    return this.isEmpty ? None : Some(this.elem(0));
+  }
   public get lastOption(): Option<O> {
     return this.isEmpty ? None : Some(this.elem(this.size - 1));
   }

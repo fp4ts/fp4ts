@@ -11,6 +11,7 @@ import { NodeServerBuilder } from '@fp4ts/http-node-server';
 import { HttpLogger } from '@fp4ts/http-server';
 
 import { makeApp } from './server';
+import { SqliteTransactor } from '@fp4ts/sql-sqlite';
 
 const logger = HttpLogger(IO.Async)<IOF, IOF>(
   pipe(
@@ -25,7 +26,7 @@ const middleware = logger;
 
 function main(): void {
   pipe(
-    makeApp(IO.Async).flatMap(
+    makeApp(IO.Async, SqliteTransactor.make(IO.Async, 'todo.db')).flatMap(
       app =>
         NodeServerBuilder.make(IO.Async)
           .bindLocal(3000)
