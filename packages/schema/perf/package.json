@@ -1,8 +1,5 @@
 {
-  "name": "@fp4ts/schema-perf",
-  "version": "1.0.0",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",

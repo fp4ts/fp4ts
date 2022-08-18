@@ -1,8 +1,5 @@
 {
-  "name": "@fp4ts/effect-perf",
-  "version": "1.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf dist && rm -f *.tsbuildinfo && rm -rf node_modules",
