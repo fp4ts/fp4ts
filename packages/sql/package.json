@@ -9,14 +9,9 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@fp4ts/cats": "*",
-    "@fp4ts/core": "*",
-    "@fp4ts/effect": "*",
-    "@fp4ts/sql-core": "*",
-    "@fp4ts/stream": "*"
+    "@fp4ts/sql-core": "*"
   },
   "devDependencies": {
-    "@fp4ts/effect-test-kit": "*",
     "typescript": "4.7.4"
   }
 }

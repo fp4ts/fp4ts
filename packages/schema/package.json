@@ -9,18 +9,11 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@fp4ts/cats": "*",
-    "@fp4ts/core": "*",
     "@fp4ts/schema-core": "*",
     "@fp4ts/schema-derivation": "*",
     "@fp4ts/schema-kernel": "*"
   },
   "devDependencies": {
-    "@fp4ts/cats-laws": "*",
-    "@fp4ts/cats-test-kit": "*",
-    "@fp4ts/schema-laws": "*",
-    "@fp4ts/schema-test-kit": "*",
-    "fast-check": "^3.1.1",
     "typescript": "4.7.4"
   }
 }
