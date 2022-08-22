@@ -12,21 +12,21 @@ export abstract class Free<in out F, out A> {
 }
 
 export class Pure<F, A> extends Free<F, A> {
-  public readonly tag = 'pure';
+  public readonly tag = 0;
   public constructor(public readonly value: A) {
     super();
   }
 }
 
 export class Suspend<F, A> extends Free<F, A> {
-  public readonly tag = 'suspend';
+  public readonly tag = 1;
   public constructor(public readonly fa: Kind<F, [A]>) {
     super();
   }
 }
 
 export class FlatMap<F, A, B> extends Free<F, B> {
-  public readonly tag = 'flatMap';
+  public readonly tag = 2;
   public constructor(
     public readonly self: Free<F, A>,
     public readonly f: (a: A) => Free<F, B>,
@@ -36,5 +36,3 @@ export class FlatMap<F, A, B> extends Free<F, B> {
 }
 
 export type View<F, A> = Pure<F, A> | Suspend<F, A> | FlatMap<F, unknown, A>;
-
-export const view = <F, A>(_: Free<F, A>): View<F, A> => _ as any;

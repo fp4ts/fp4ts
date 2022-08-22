@@ -5,9 +5,9 @@
 
 import { Kind } from '@fp4ts/core';
 import { FunctionK, Monad } from '@fp4ts/cats-core';
-import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Left, Right } from '@fp4ts/cats-core/lib/data';
 
-import { FlatMap, Free, view } from './algebra';
+import { FlatMap, Free, View } from './algebra';
 import { pure } from './constructors';
 
 export const map =
@@ -19,11 +19,6 @@ export const flatMap =
   <F, A, B>(f: (a: A) => Free<F, B>) =>
   (self: Free<F, A>): Free<F, B> =>
     flatMap_(self, f);
-
-export const tailRecM: <A, B>(
-  a: A,
-) => <F, B>(f: (a: A) => Free<F, Either<A, B>>) => Free<F, B> = a => f =>
-  tailRecM_(a, f);
 
 export const foldMap =
   <G>(G: Monad<G>) =>
@@ -41,31 +36,46 @@ export const flatMap_ = <F, A, B>(
   f: (a: A) => Free<F, B>,
 ): Free<F, B> => new FlatMap(self, f);
 
-export const tailRecM_ = <F, A, B>(
-  a: A,
-  f: (a: A) => Free<F, Either<A, B>>,
-): Free<F, B> =>
-  flatMap_(f(a), ea =>
-    ea.fold(
-      a => tailRecM_(a, f),
-      x => pure(x),
-    ),
-  );
-
 export const foldMap_ =
   <G>(G: Monad<G>) =>
   <F, A>(fr: Free<F, A>, nt: FunctionK<F, G>): Kind<G, [A]> =>
     G.tailRecM(fr)(_free => {
-      const free = view(_free);
+      const free = _step(_free) as View<F, A>;
 
       switch (free.tag) {
-        case 'pure':
+        case 0:
           return G.pure(Right(free.value));
 
-        case 'suspend':
+        case 1:
           return G.map_(nt(free.fa), a => Right(a));
 
-        case 'flatMap':
+        case 2:
           return G.map_(foldMap_(G)(free.self, nt), cc => Left(free.f(cc)));
       }
     });
+
+const _step = <F, A>(fr: Free<F, A>): Free<F, A> => {
+  let _cur = fr;
+  while (true) {
+    const cur = _cur as View<F, A>;
+    switch (cur.tag) {
+      case 0:
+      case 1:
+        return cur;
+
+      case 2: {
+        const self = cur.self as View<F, A>;
+        switch (self.tag) {
+          case 0:
+            _cur = cur.f(self.value);
+            continue;
+          case 1:
+            return cur;
+          case 2:
+            _cur = flatMap_(self.self, cc => flatMap_(self.f(cc), cur.f));
+            continue;
+        }
+      }
+    }
+  }
+};

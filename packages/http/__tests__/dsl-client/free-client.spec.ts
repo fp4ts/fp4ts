@@ -72,7 +72,7 @@ describe('FreeClient', () => {
   it.M('should get root', () =>
     withServer(server)(server =>
       getRoot(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(person => expect(person).toEqual(carol)),
     ),
   );
@@ -80,7 +80,7 @@ describe('FreeClient', () => {
   it.M('should get simple endpoint', () =>
     withServer(server)(server =>
       getGet(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(person => expect(person).toEqual(alice)),
     ),
   );
@@ -88,7 +88,7 @@ describe('FreeClient', () => {
   it.M('should perform delete with empty content', () =>
     withServer(server)(server =>
       deleteEmpty(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toBeUndefined()),
     ),
   );
@@ -96,7 +96,7 @@ describe('FreeClient', () => {
   it.M('should capture the parameter', () =>
     withServer(server)(server =>
       getCapture('Paula')(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toEqual(Person({ name: 'Paula', age: 0 }))),
     ),
   );
@@ -104,7 +104,7 @@ describe('FreeClient', () => {
   it.M('should capture no parameters', () =>
     withServer(server)(server =>
       getCaptureAll(List.empty)(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toEqual([])),
     ),
   );
@@ -112,7 +112,7 @@ describe('FreeClient', () => {
   it.M('should capture a single parameter', () =>
     withServer(server)(server =>
       getCaptureAll(List('Paula'))(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toEqual([Person({ name: 'Paula', age: 0 })])),
     ),
   );
@@ -122,7 +122,7 @@ describe('FreeClient', () => {
       getCaptureAll(List('Paula', 'Kim', 'Jessica'))(
         new Request({ uri: server.baseUri }),
       )
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res =>
           expect(res).toEqual([
             Person({ name: 'Paula', age: 0 }),
@@ -139,7 +139,7 @@ describe('FreeClient', () => {
       const clara = Person({ name: 'Clara', age: 34 });
 
       return postBody(clara)(new Request({ uri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toEqual(clara));
     }),
   );
@@ -147,7 +147,7 @@ describe('FreeClient', () => {
   it.M('should pass query parameter', () =>
     withServer(server)(server =>
       getParam(Some('alice'))(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res => expect(res).toEqual(alice)),
     ),
   );
@@ -155,7 +155,7 @@ describe('FreeClient', () => {
   it.M('should attach receive attached headers', () =>
     withServer(server)(server =>
       getHeaders(new Request({ uri: server.baseUri }))
-        .mapK(IO.Monad)(interpret)
+        .foldMap(IO.Monad)(interpret)
         .map(res =>
           expect(res).toEqual(new ResponseHeaders([42, 'eg2'], true)),
         ),

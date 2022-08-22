@@ -4,17 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, lazyVal } from '@fp4ts/core';
-import { Monad } from '@fp4ts/cats-core';
+import { Monad, StackSafeMonad } from '@fp4ts/cats-core';
 
 import { FreeF } from './free';
-import { flatMap_, map_, tailRecM_ } from './operators';
+import { flatMap_, map_ } from './operators';
 import { pure } from './constructors';
 
 export const freeMonad: <F>() => Monad<$<FreeF, [F]>> = lazyVal(() =>
-  Monad.of({
-    pure: pure,
-    map_: map_,
-    flatMap_: flatMap_,
-    tailRecM_: tailRecM_,
-  }),
+  StackSafeMonad.of({ pure, map_, flatMap_ }),
 );

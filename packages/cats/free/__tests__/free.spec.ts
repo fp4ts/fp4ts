@@ -78,6 +78,17 @@ describe('Free', () => {
     expect(a).toBeUndefined();
   });
 
+  it('should be stack safe (left heavy)', () => {
+    const size = 50_000;
+
+    let fa: Free<IdentityF, number> = Free.pure(0);
+    for (let i = 0; i < 50_000; i++) {
+      fa = fa.flatMap(n => Free.pure(n + 1));
+    }
+
+    expect(fa.foldMap(Identity.Monad)(id)).toEqual(size);
+  });
+
   const identityMonadTests = MonadSuite(Free.Monad<IdentityF>());
   checkAll(
     'Monad<$<Free, [IdentityK]>>',
