@@ -9,6 +9,7 @@ module.exports = {
   },
   testRegex: '.spec.ts$',
   roots: [
+    '<rootDir>/../scripts/__tests__',
     '<rootDir>/cats/__tests__',
     '<rootDir>/cats/core/src',
     '<rootDir>/cats/free/__tests__',
