@@ -710,6 +710,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/cats-perf@workspace:packages/cats/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-perf@workspace:packages/cats/perf"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/core": "*"
+    benny: ^3.7.1
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/cats-test-kit@*, @fp4ts/cats-test-kit@workspace:packages/cats/test-kit":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-test-kit@workspace:packages/cats/test-kit"
@@ -776,6 +788,18 @@ __metadata:
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-test-kit": "*"
     fast-check: ^3.1.1
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/effect-perf@workspace:packages/effect/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/effect-perf@workspace:packages/effect/perf"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect-core": "*"
+    benny: ^3.7.1
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -1116,6 +1140,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/optics-perf@workspace:packages/optics/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/optics-perf@workspace:packages/optics/perf"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/optics-core": "*"
+    "@fp4ts/optics-kernel": "*"
+    benny: ^3.7.1
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/optics@*, @fp4ts/optics@workspace:packages/optics":
   version: 0.0.0-use.local
   resolution: "@fp4ts/optics@workspace:packages/optics"
@@ -1144,6 +1181,21 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/parse-perf@workspace:packages/parse/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/parse-perf@workspace:packages/parse/perf"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/parse-core": "*"
+    "@fp4ts/parse-text": "*"
+    benny: ^3.7.1
+    fp-ts: 2.11.8
+    parser-ts: 0.6.16
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -1228,6 +1280,19 @@ __metadata:
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
     fast-check: ^3.1.1
+    typescript: 4.7.4
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/schema-perf@workspace:packages/schema/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/schema-perf@workspace:packages/schema/perf"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/schema-core": "*"
+    "@fp4ts/schema-kernel": "*"
+    benny: ^3.7.1
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -5831,71 +5896,6 @@ __metadata:
   checksum: 5b1e2daa247062061325b8fdbfd1fb56dde0a448fb1455453276ea18c60685bdad23a445dc148cf87bc216be1573357509b7d4060494a6fd768c7efad833ee45
   languageName: node
   linkType: hard
-
-"perf-0ef486@workspace:packages/cats/perf":
-  version: 0.0.0-use.local
-  resolution: "perf-0ef486@workspace:packages/cats/perf"
-  dependencies:
-    "@fp4ts/cats-core": "*"
-    "@fp4ts/cats-kernel": "*"
-    "@fp4ts/core": "*"
-    benny: ^3.7.1
-    typescript: 4.7.4
-  languageName: unknown
-  linkType: soft
-
-"perf-2b17b5@workspace:packages/optics/perf":
-  version: 0.0.0-use.local
-  resolution: "perf-2b17b5@workspace:packages/optics/perf"
-  dependencies:
-    "@fp4ts/cats": "*"
-    "@fp4ts/core": "*"
-    "@fp4ts/optics-core": "*"
-    "@fp4ts/optics-kernel": "*"
-    benny: ^3.7.1
-    typescript: 4.7.4
-  languageName: unknown
-  linkType: soft
-
-"perf-3acd70@workspace:packages/schema/perf":
-  version: 0.0.0-use.local
-  resolution: "perf-3acd70@workspace:packages/schema/perf"
-  dependencies:
-    "@fp4ts/cats": "*"
-    "@fp4ts/core": "*"
-    "@fp4ts/schema-core": "*"
-    "@fp4ts/schema-kernel": "*"
-    benny: ^3.7.1
-    typescript: 4.7.4
-  languageName: unknown
-  linkType: soft
-
-"perf-9e5987@workspace:packages/effect/perf":
-  version: 0.0.0-use.local
-  resolution: "perf-9e5987@workspace:packages/effect/perf"
-  dependencies:
-    "@fp4ts/cats": "*"
-    "@fp4ts/core": "*"
-    "@fp4ts/effect-core": "*"
-    benny: ^3.7.1
-    typescript: 4.7.4
-  languageName: unknown
-  linkType: soft
-
-"perf-b69a7f@workspace:packages/parse/perf":
-  version: 0.0.0-use.local
-  resolution: "perf-b69a7f@workspace:packages/parse/perf"
-  dependencies:
-    "@fp4ts/cats": "*"
-    "@fp4ts/core": "*"
-    "@fp4ts/parse-core": "*"
-    "@fp4ts/parse-text": "*"
-    benny: ^3.7.1
-    fp-ts: 2.11.8
-    parser-ts: 0.6.16
-    typescript: 4.7.4
-  languageName: unknown
-  linkType: soft
 
 "pg-connection-string@npm:^2.5.0":
   version: 2.5.0

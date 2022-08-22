@@ -1,4 +1,5 @@
 {
+  "name": "@fp4ts/effect-perf",
   "private": true,
   "license": "MIT",
   "scripts": {

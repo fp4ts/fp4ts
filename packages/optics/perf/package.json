@@ -1,4 +1,5 @@
 {
+  "name": "@fp4ts/optics-perf",
   "private": true,
   "license": "MIT",
   "scripts": {
