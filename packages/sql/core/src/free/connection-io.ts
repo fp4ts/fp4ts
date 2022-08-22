@@ -62,7 +62,7 @@ export class ConnectionIO<out A> {
   public foldMap<F>(
     F: Monad<F>,
   ): (nt: <A>(op: ConnectionOp<A>) => Kind<F, [A]>) => Kind<F, [A]> {
-    return this.underlying.mapK(F);
+    return this.underlying.foldMap(F);
   }
 
   // -- Common operations

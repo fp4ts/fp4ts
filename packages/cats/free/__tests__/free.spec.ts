@@ -71,7 +71,7 @@ describe('Free', () => {
       .flatMap(() => readLine)
       .flatMap(name => writeLine(`Hello ${name}!`));
 
-    const resultState = program.mapK(State.Monad<S>())(nt);
+    const resultState = program.foldMap(State.Monad<S>())(nt);
 
     const [s, a] = resultState.runState([['James'], []]);
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
@@ -93,7 +93,7 @@ describe('Free', () => {
       x => fp4tsFree(x, x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<IdentityF, X>, Identity<X>>(E, f =>
-          f.mapK(Identity.Monad)(id),
+          f.foldMap(Identity.Monad)(id),
         ),
     ),
   );
@@ -113,7 +113,7 @@ describe('Free', () => {
       x => fp4tsFree(A.fp4tsOption(x), x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<OptionF, X>, Option<X>>(Option.Eq(E), f =>
-          f.mapK(Option.Monad)(id),
+          f.foldMap(Option.Monad)(id),
         ),
     ),
   );

@@ -25,11 +25,11 @@ export const tailRecM: <A, B>(
 ) => <F, B>(f: (a: A) => Free<F, Either<A, B>>) => Free<F, B> = a => f =>
   tailRecM_(a, f);
 
-export const mapK =
+export const foldMap =
   <G>(G: Monad<G>) =>
   <F>(nt: FunctionK<F, G>) =>
   <A>(free: Free<F, A>): Kind<G, [A]> =>
-    mapK_(G)(free, nt);
+    foldMap_(G)(free, nt);
 
 // Point-ful operators
 
@@ -52,7 +52,7 @@ export const tailRecM_ = <F, A, B>(
     ),
   );
 
-export const mapK_ =
+export const foldMap_ =
   <G>(G: Monad<G>) =>
   <F, A>(fr: Free<F, A>, nt: FunctionK<F, G>): Kind<G, [A]> =>
     G.tailRecM(fr)(_free => {
@@ -66,6 +66,6 @@ export const mapK_ =
           return G.map_(nt(free.fa), a => Right(a));
 
         case 'flatMap':
-          return G.map_(mapK_(G)(free.self, nt), cc => Left(free.f(cc)));
+          return G.map_(foldMap_(G)(free.self, nt), cc => Left(free.f(cc)));
       }
     });

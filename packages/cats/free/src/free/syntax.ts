@@ -6,7 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { FunctionK, Monad } from '@fp4ts/cats-core';
 import { Free } from './algebra';
-import { flatMap_, map_, mapK_ } from './operators';
+import { flatMap_, map_, foldMap_ } from './operators';
 
 declare module './algebra' {
   interface Free<in out F, out A> {
@@ -14,7 +14,7 @@ declare module './algebra' {
 
     flatMap<B>(this: Free<F, A>, f: (a: A) => Free<F, B>): Free<F, B>;
 
-    mapK<G>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]>;
+    foldMap<G>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]>;
   }
 }
 
@@ -26,6 +26,6 @@ Free.prototype.flatMap = function (f) {
   return flatMap_(this, f);
 };
 
-Free.prototype.mapK = function (G) {
-  return nt => mapK_(G)(this, nt);
+Free.prototype.foldMap = function (G) {
+  return nt => foldMap_(G)(this, nt);
 };
