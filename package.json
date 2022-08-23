@@ -39,16 +39,16 @@
     "jest": "^28.1.3",
     "prettier": "^2.7.1",
     "supertest": "^6.2.3",
+    "ts-node": "^10.9.1",
     "typedoc": "^0.22.15",
     "typedoc-plugin-missing-exports": "^0.22.6",
     "typescript": "^4.7.4"
   },
   "scripts": {
     "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=50%",
-    "benchmark": "yarn compile && ./scripts/benchmark.sh",
     "compile": "yarn tsc --build tsconfig.build.json",
     "compile:watch": "yarn tsc --build tsconfig.build.json --watch",
-    "clean": "rm -rf dist docs tsconfig.tsbuildinfo",
+    "clean": "yarn workspaces foreach -p run clean && rm -rf node_modules/@fp4ts",
     "docs": "typedoc",
     "lint": "eslint ./packages"
   },
