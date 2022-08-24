@@ -40,9 +40,9 @@ export const makeApp = <F>(
     return toHttpApp(F)(api, {
       ...builtins,
       'application/json': {
-        'todo-api/create-todo': JsonCodec.fromSchema(CreateTodo),
-        'todo-api/todo': JsonCodec.fromSchema(Todo),
-        'todo-api/todo-array': JsonCodec.fromSchema(Todo.array),
+        'todo-api/create-todo': JsonCodec.fromSchema(CreateTodo.schema),
+        'todo-api/todo': JsonCodec.fromSchema(Todo.schema),
+        'todo-api/todo-array': JsonCodec.fromSchema(Todo.schema.array),
       },
     })(S => [
       version(F),

@@ -9,7 +9,7 @@ import { MessageFailure } from '@fp4ts/http-core';
 import { AddHeader } from './add-header';
 
 export class ServerM<F> {
-  public constructor(public readonly F: Monad<F>) {}
+  public constructor(private readonly _F: Monad<F>) {}
 
   public readonly addHeader =
     <H>(h: H) =>
@@ -25,7 +25,7 @@ export class ServerM<F> {
   public readonly addHeaderF_ = <H, A>(
     h: H,
     fa: Kind<F, [A]>,
-  ): Kind<F, [AddHeader<H, A>]> => this.F.map_(fa, this.addHeader(h));
+  ): Kind<F, [AddHeader<H, A>]> => this._F.map_(fa, this.addHeader(h));
 
   public readonly addHeaderH =
     <H>(h: H) =>
@@ -37,21 +37,21 @@ export class ServerM<F> {
     h: H,
     fa: EitherT<F, MessageFailure, A>,
   ): EitherT<F, MessageFailure, AddHeader<H, A>> =>
-    fa.map(this.F)(this.addHeader(h));
+    fa.map(this._F)(this.addHeader(h));
 
   public readonly return = <A>(a: A): EitherT<F, MessageFailure, A> =>
-    EitherT.right(this.F)(a);
+    EitherT.right(this._F)(a);
 
   public readonly liftF = <A>(
     fa: Kind<F, [A]>,
-  ): EitherT<F, MessageFailure, A> => EitherT.rightT(this.F)(fa);
+  ): EitherT<F, MessageFailure, A> => EitherT.rightT(this._F)(fa);
 
   public readonly unit: EitherT<F, MessageFailure, void> = EitherT.rightUnit(
-    this.F,
+    this._F,
   );
   public readonly NoContent: EitherT<F, MessageFailure, void> = this.unit;
 
   public readonly throwError = <A = never>(
     failure: MessageFailure,
-  ): EitherT<F, MessageFailure, A> => EitherT.left(this.F)(failure);
+  ): EitherT<F, MessageFailure, A> => EitherT.left(this._F)(failure);
 }
