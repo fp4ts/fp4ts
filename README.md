@@ -2,6 +2,8 @@
 
 [![Node.js CI](https://github.com/mattapet/fp4ts/actions/workflows/build.yml/badge.svg)](https://github.com/fp4ts/fp4ts/actions/workflows/build.yml)
 
+[![Publish](https://github.com/fp4ts/fp4ts/actions/workflows/publish.yml/badge.svg)](https://github.com/fp4ts/fp4ts/actions/workflows/publish.yml)
+
 [![codecov](https://codecov.io/gh/fp4ts/fp4ts/branch/master/graph/badge.svg?token=wXOEoz3yOm)](https://codecov.io/gh/fp4ts/fp4ts)
 
 Welcome to fp4ts! Fp4ts is a zero-dependency, purely functional library that

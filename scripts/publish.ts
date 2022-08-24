@@ -142,10 +142,7 @@ unsafeRunMain(
         .flatMap(opt =>
           opt.fold(
             () => IO.throwError(new Error('ERROR')),
-            xs =>
-              xs.take(1).traverse(IO.Applicative)(
-                releaseWorkspace(cwd, version),
-              ),
+            xs => xs.traverse(IO.Applicative)(releaseWorkspace(cwd, version)),
           ),
         ),
     ),
