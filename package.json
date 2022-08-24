@@ -48,6 +48,7 @@
     "test": "FP4TS_TRACING_MODE=off jest --maxWorkers=50%",
     "compile": "yarn tsc --build tsconfig.build.json",
     "compile:watch": "yarn tsc --build tsconfig.build.json --watch",
+    "publish": "ts-node ./scripts/publish.ts",
     "clean": "yarn workspaces foreach -p run clean && rm -rf node_modules/@fp4ts",
     "docs": "typedoc",
     "lint": "eslint ./packages"

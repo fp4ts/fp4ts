@@ -14,6 +14,10 @@ import { Stream, text } from '@fp4ts/stream';
 import { toposort } from './toposort';
 
 const cwd = IO.delay(() => process.cwd());
+const arg = (idx: number): IO<string> =>
+  IO.delay(() => Option(process.argv[idx]))
+    .map(opt => opt.toRight(() => new Error(`Missing argument ${idx}`)))
+    .flatMap(IO.fromEither);
 
 const readFile = (path: string): IO<string> =>
   IO.deferPromise(() => fs.promises.readFile(path)).map(buf => buf.toString());
@@ -83,7 +87,8 @@ const releaseWorkspace =
   (cwd: string, version: string) =>
   (w: PublicWorkspace): IO<void> =>
     IO.Monad.do(function* (_) {
-      console.log('PREPARING WORKSPACE', w.name);
+      const refName = `${w.name}@${version}`;
+      console.log('PREPARING WORKSPACE', refName);
 
       const dependencies = Object.fromEntries(
         Object.entries(w.pkgJson.dependencies ?? {}).map(([k, v]) =>
@@ -117,7 +122,7 @@ const releaseWorkspace =
         ),
       );
 
-      console.log('UPLOADING...');
+      console.log('UPLOADING...', refName);
 
       yield* _(
         exec(`npm publish --access public --tag ${version}`, {
@@ -125,19 +130,23 @@ const releaseWorkspace =
         }),
       );
 
-      console.log('DONE', w.name);
+      console.log('DONE', refName);
     });
 
 unsafeRunMain(
-  cwd.flatMap(cwd =>
-    readWorkspaces(cwd)
-      .map(sortWorkspaces)
-      .flatMap(opt =>
-        opt.fold(
-          () => IO.throwError(new Error('ERROR')),
-          xs =>
-            xs.take(1).traverse(IO.Applicative)(releaseWorkspace(cwd, 'next')),
+  arg(2)
+    .product(cwd)
+    .flatMap(([version, cwd]) =>
+      readWorkspaces(cwd)
+        .map(sortWorkspaces)
+        .flatMap(opt =>
+          opt.fold(
+            () => IO.throwError(new Error('ERROR')),
+            xs =>
+              xs.take(1).traverse(IO.Applicative)(
+                releaseWorkspace(cwd, version),
+              ),
+          ),
         ),
-      ),
-  ),
+    ),
 );
