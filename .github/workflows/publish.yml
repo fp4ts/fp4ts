@@ -1,8 +1,6 @@
 name: Publish
 on:
-  push:
-    tags:
-      - 0.0.*
+  push: [tags]
 
 jobs:
   release:
