@@ -21,8 +21,8 @@ jobs:
         scope: '@fp4ts'
     - name: Install and Build
       run: |
-      yarn install --immutable
-      yarn compile
+        yarn install --immutable
+        yarn compile
     - name: Publish Packages
       run: yarn publish "$GITHUB_REF_NAME"
       env:
