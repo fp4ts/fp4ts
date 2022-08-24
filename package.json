@@ -49,6 +49,8 @@
     "compile": "yarn tsc --build tsconfig.build.json",
     "compile:watch": "yarn tsc --build tsconfig.build.json --watch",
     "clean": "rm -rf dist docs tsconfig.tsbuildinfo",
+    "publish": "ts-node ./scripts/publish.ts",
+    "release": "./scripts/release.sh",
     "docs": "typedoc",
     "lint": "eslint ./packages"
   },
