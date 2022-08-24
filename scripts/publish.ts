@@ -125,7 +125,7 @@ const releaseWorkspace =
       console.log('UPLOADING...', refName);
 
       yield* _(
-        exec(`npm publish --access public --tag ${version}`, {
+        exec(`npm publish --access public`, {
           cwd: path.join(cwd, w.location),
         }),
       );
