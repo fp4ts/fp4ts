@@ -22,5 +22,4 @@ if [[ "$(git update-index --refresh)" ]]; then
   exit 1
 fi
 
-git tag "$1"
-git push --tags
+git tag "$1" && git push --tags

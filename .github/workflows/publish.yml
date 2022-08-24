@@ -5,7 +5,7 @@ on:
       - 0.0.**
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
 
     permissions:
@@ -20,6 +20,8 @@ jobs:
         registry-url: 'https://npm.pkg.github.com'
         scope: '@fp4ts'
     - name: Install and Build
+      env:
+        NODE_OPTIONS: '--max_old_space_size=16384'
       run: |
         yarn install --immutable
         yarn compile
