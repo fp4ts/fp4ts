@@ -1,8 +1,8 @@
 name: Publish
 on:
-  create:
-    tag:
-      - *
+  push:
+    tags:
+      - 0.0.**
 
 jobs:
   release:
