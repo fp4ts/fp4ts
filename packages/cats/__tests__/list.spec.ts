@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Identity,
@@ -18,7 +18,7 @@ import {
   Vector,
   List,
 } from '@fp4ts/cats-core/lib/data';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
@@ -1173,6 +1173,39 @@ describe('List', () => {
         }),
       ).toBe('[(1, 1), (2, 2), (3, 3)]');
     });
+  });
+
+  describe('sort', () => {
+    it('should sort an empty list', () => {
+      expect(List.empty.sort(Ord.primitive as any)).toEqual(List.empty);
+    });
+
+    it('should sort a singleton list', () => {
+      expect(List(1).sort(Ord.primitive)).toEqual(List(1));
+    });
+
+    it('should sort an ordered list', () => {
+      expect(List(1, 2, 3).sort(Ord.primitive)).toEqual(List(1, 2, 3));
+    });
+
+    it('should sort an reversed list', () => {
+      expect(List(3, 2, 1).sort(Ord.primitive)).toEqual(List(1, 2, 3));
+    });
+
+    it('should sort something', () => {
+      expect(List(0, 0, -1, 0, -1).sort(Ord.primitive)).toEqual(
+        List(-1, -1, 0, 0, 0),
+      );
+    });
+
+    it(
+      'should be isomorphic to Array.sort',
+      forAll(fc.array(fc.integer()), xs => {
+        expect(List.fromArray(xs).sort(Ord.primitive).toArray).toEqual(
+          [...xs].sort((a, b) => a - b),
+        );
+      }),
+    );
   });
 
   describe('Laws', () => {

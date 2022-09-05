@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
-import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Compare, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -21,6 +21,7 @@ import { NonEmptyList } from '../non-empty-list';
 import { Cons, List } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
+import { AndThen } from '../../and-then';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -908,6 +909,90 @@ export const flatTraverse_ = <G, A, B>(
   ): Eval<Kind<G, [List<B>]>> => G.map2Eval_(f(x), eys)(concat_);
 
   return foldRightEval_(xs, Eval.now(G.pure(empty as List<B>)), concatF).value;
+};
+
+// -- Ref: https://hackage.haskell.org/package/base-4.17.0.0/docs/src/Data.OldList.html#sortBy
+export const sort_ = <A>(xs: List<A>, O: Ord<A>): List<A> => {
+  const sequences = (xs: List<A>): List<List<A>> => {
+    const xss = new ListBuffer<List<A>>();
+    while (xs !== nil && (xs as Cons<A>)._tail !== nil) {
+      const x1 = (xs as Cons<A>)._head;
+      const x2 = ((xs as Cons<A>)._tail as Cons<A>)._head;
+      const ys = ((xs as Cons<A>)._tail as Cons<A>)._tail;
+
+      if (O.compare(x1, x2) === Compare.GT) {
+        let a = x2;
+        let as = cons(x1, nil);
+        let bs = ys;
+
+        while (
+          bs !== nil &&
+          O.compare(a, (bs as Cons<A>)._head) === Compare.GT
+        ) {
+          as = cons(a, as);
+          a = (bs as Cons<A>)._head;
+          bs = (bs as Cons<A>)._tail;
+        }
+        xss.addOne(cons(a, as));
+        xs = bs;
+      } else {
+        let a = x2;
+        const as = new ListBuffer<A>().addOne(x1);
+        let bs = ys;
+
+        while (
+          bs !== nil &&
+          O.compare(a, (bs as Cons<A>)._head) !== Compare.GT
+        ) {
+          as.addOne(a);
+          a = (bs as Cons<A>)._head;
+          bs = (bs as Cons<A>)._tail;
+        }
+        xs = bs;
+        xss.addOne(as.addOne(a).toList);
+      }
+    }
+    return xss.addOne(xs).toList;
+  };
+
+  const mergeAll = (xss: List<List<A>>): List<A> => {
+    while ((xss as Cons<A>)._tail !== nil) {
+      const yss = new ListBuffer<List<A>>();
+      while (xss !== nil && (xss as Cons<A>)._tail !== nil) {
+        const x1 = (xss as Cons<List<A>>)._head;
+        const x2 = ((xss as Cons<List<A>>)._tail as Cons<List<A>>)._head;
+        const ys = ((xss as Cons<List<A>>)._tail as Cons<List<A>>)._tail;
+
+        let as = x1;
+        let bs = x2;
+        const x = new ListBuffer<A>();
+        while (as !== nil && bs !== nil) {
+          const a = (as as Cons<A>)._head;
+          const b = (bs as Cons<A>)._head;
+          if (O.compare(a, b) === Compare.GT) {
+            x.addOne(b);
+            bs = (bs as Cons<A>)._tail;
+          } else {
+            x.addOne(a);
+            as = (as as Cons<A>)._tail;
+          }
+        }
+        if (as === nil) {
+          x.addAll(bs);
+        }
+        if (bs === nil) {
+          x.addAll(as);
+        }
+        xss = ys;
+        yss.addOne(x.toList);
+      }
+      xss = yss.addAll(xss).toList;
+    }
+
+    return (xss as Cons<List<A>>)._head;
+  };
+
+  return mergeAll(sequences(xs));
 };
 
 export const show_ = <A>(S: Show<A>, xs: List<A>): string => {

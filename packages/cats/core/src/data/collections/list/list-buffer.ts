@@ -62,13 +62,14 @@ export class ListBuffer<A> {
   public addAll(xs: List<A>): this {
     return this.addAllIterable(xs.iterator);
   }
+
   public addAllIterable(it: Iterator<A>): this {
     const fst = it.next();
     if (!fst.done) {
       const fresh = ListBuffer.fromIterator(it);
       this.ensureUnAliased();
-      if (this.isEmpty) this.first = fresh.first;
-      else this.last!._tail = fresh.first;
+      if (this.isEmpty) this.first = new Cons(fst.value, fresh.first);
+      else this.last!._tail = new Cons(fst.value, fresh.first);
       this.last = fresh.last;
       this.len += fresh.len;
     }

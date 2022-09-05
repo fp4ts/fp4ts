@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
@@ -79,6 +79,7 @@ import {
   popLast,
   coflatMap_,
   toNel,
+  sort_,
 } from './operators';
 
 declare module './algebra' {
@@ -206,6 +207,7 @@ declare module './algebra' {
     ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
 
     show<B>(this: List<B>, S?: Show<B>): string;
+    sort<B>(this: List<B>, O: Ord<B>): List<B>;
   }
 }
 
@@ -599,4 +601,8 @@ List.prototype.show = function <A>(
   S: Show<A> = Show.fromToString(),
 ): string {
   return show_(S, this);
+};
+
+List.prototype.sort = function (O) {
+  return sort_(this, O);
 };
