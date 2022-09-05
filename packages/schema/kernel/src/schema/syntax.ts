@@ -5,7 +5,8 @@
 
 import { Schema } from './algebra';
 import { array } from './constructors';
-import { imap_, nullable } from './operators';
+import { as_, imap_, nullable } from './operators';
+import { SchemaRef } from './schema-ref';
 
 declare module './algebra' {
   interface Schema<A> {
@@ -13,6 +14,7 @@ declare module './algebra' {
     readonly nullable: Schema<A | null>;
 
     imap<B>(f: (a: A) => B, g: (b: B) => A): Schema<B>;
+    as<Ref extends string>(Ref: Ref): SchemaRef<Ref, A>;
 
     // intersection<B>(that: Schema<B>): Schema<A & B>;
     // '<&>'<B>(that: Schema<B>): Schema<A & B>;
@@ -37,4 +39,8 @@ Object.defineProperty(Schema.prototype, 'nullable', {
 
 Schema.prototype.imap = function (f, g) {
   return imap_(this, f, g);
+};
+
+Schema.prototype.as = function (Ref) {
+  return as_(this, Ref);
 };
