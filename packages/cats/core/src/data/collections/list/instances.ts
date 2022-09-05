@@ -18,10 +18,11 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
+import { Eval } from '../../../eval';
 
 import { List, ListF } from './list';
 
-import { empty, pure } from './constructors';
+import { empty, nil, pure } from './constructors';
 import {
   align_,
   all_,
@@ -89,6 +90,12 @@ export const listApply: Lazy<Apply<ListF>> = lazyVal(() =>
   Apply.of({
     ...listFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    map2Eval_:
+      <A, B>(fa: List<A>, fb: Eval<List<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa === nil
+          ? Eval.now(nil)
+          : fb.map(fb => flatMap_(fa, a => map_(fb, b => f(a, b)))),
   }),
 );
 

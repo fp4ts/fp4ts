@@ -16,7 +16,7 @@ import { Foldable } from '../../../foldable';
 import { Traversable } from '../../../traversable';
 import { MonoidK } from '../../../monoid-k';
 
-import { Vector } from './algebra';
+import { Vector, Vector0 } from './algebra';
 import {
   align_,
   all_,
@@ -36,6 +36,7 @@ import {
 
 import type { VectorF } from './vector';
 import { pure, tailRecM_ } from './constructors';
+import { Eval } from '../../../eval';
 
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
@@ -88,8 +89,15 @@ export const vectorMonad: Lazy<Monad<VectorF>> = lazyVal(() =>
   Monad.of({
     ...vectorFunctor(),
     pure: pure,
+    map_: (fa, f) => fa.map(f),
     flatMap_: flatMap_,
     tailRecM_: tailRecM_,
+    map2Eval_:
+      <A, B>(fa: Vector<A>, efb: Eval<Vector<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa === Vector0
+          ? Eval.now(Vector0)
+          : efb.map(fb => flatMap_(fa, a => fb.map(b => f(a, b)))),
   }),
 );
 

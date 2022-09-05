@@ -13,6 +13,7 @@ import { Alternative } from '../../../alternative';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Traversable } from '../../../traversable';
+import { Eval } from '../../../eval';
 
 import type { ChainF } from './chain';
 import { Chain } from './algebra';
@@ -69,6 +70,12 @@ export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
     flatMap_: flatMap_,
     tailRecM_: tailRecM_,
     map_: map_,
+    map2Eval_:
+      <A, B>(fa: Chain<A>, efb: Eval<Chain<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa === empty
+          ? Eval.now(empty)
+          : efb.map(fb => flatMap_(fa, a => map_(fb, b => f(a, b)))),
   }),
 );
 

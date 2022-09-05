@@ -17,6 +17,10 @@ import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
+import { FunctorWithIndex } from '../../../functor-with-index';
+import { FoldableWithIndex } from '../../../foldable-with-index';
+import { TraversableWithIndex } from '../../../traversable-with-index';
+import { Eval } from '../../../eval';
 
 import { ArrayF } from './array';
 import {
@@ -42,9 +46,6 @@ import {
   traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
-import { FunctorWithIndex } from '../../../functor-with-index';
-import { FoldableWithIndex } from '../../../foldable-with-index';
-import { TraversableWithIndex } from '../../../traversable-with-index';
 import { List } from '../list';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
@@ -82,6 +83,12 @@ export const arrayApply: () => Apply<ArrayF> = lazyVal(() =>
   Apply.of<ArrayF>({
     ...arrayFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, x => f(x))),
+    map2Eval_:
+      <A, B>(fa: A[], fb: Eval<B[]>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.length === 0
+          ? Eval.now([])
+          : fb.map(fb => fa.flatMap(a => fb.map(b => f(a, b)))),
   }),
 );
 

@@ -90,7 +90,17 @@ export const queueAlternative: Lazy<Alternative<QueueF>> = lazyVal(() =>
 );
 
 export const queueMonad: Lazy<Monad<QueueF>> = lazyVal(() =>
-  Monad.of({ pure, flatMap_, tailRecM_ }),
+  Monad.of({
+    pure,
+    flatMap_,
+    tailRecM_,
+    map2Eval_:
+      <A, B>(fa: Queue<A>, efb: Eval<Queue<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        isEmpty(fa)
+          ? Eval.now(empty)
+          : efb.map(fb => flatMap_(fa, a => map_(fb, b => f(a, b)))),
+  }),
 );
 
 export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
@@ -118,7 +128,7 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
             ),
         );
 
-      return loop(xs);
+      return Eval.defer(() => loop(xs));
     },
     elem_: elemOption_,
     iterator,
