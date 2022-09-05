@@ -16,7 +16,8 @@
     "@fp4ts/http-node-shared": "*",
     "@fp4ts/http-server": "*",
     "@fp4ts/schema": "*",
-    "@fp4ts/stream": "*"
+    "@fp4ts/stream": "*",
+    "@fp4ts/stream-io": "*"
   },
   "devDependencies": {
     "typescript": "4.7.4"

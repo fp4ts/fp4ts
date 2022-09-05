@@ -993,6 +993,7 @@ __metadata:
     "@fp4ts/http-server": "*"
     "@fp4ts/schema": "*"
     "@fp4ts/stream": "*"
+    "@fp4ts/stream-io": "*"
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -1409,7 +1410,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/stream-io@workspace:packages/stream/io":
+"@fp4ts/stream-io@*, @fp4ts/stream-io@workspace:packages/stream/io":
   version: 0.0.0-use.local
   resolution: "@fp4ts/stream-io@workspace:packages/stream/io"
   dependencies:
