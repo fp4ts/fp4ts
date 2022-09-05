@@ -91,7 +91,7 @@ describe('Free', () => {
 
   const identityMonadTests = MonadSuite(Free.Monad<IdentityF>());
   checkAll(
-    'Monad<$<Free, [IdentityK]>>',
+    'Monad<Free<Identity, *>>',
     identityMonadTests.monad(
       fc.integer(),
       fc.integer(),
@@ -111,7 +111,7 @@ describe('Free', () => {
 
   const monadTests = MonadSuite(Free.Monad<OptionF>());
   checkAll(
-    'Monad<$<Free, [OptionK]>>',
+    'Monad<Free<Option, *>>',
     monadTests.monad(
       fc.integer(),
       fc.integer(),
@@ -124,7 +124,7 @@ describe('Free', () => {
       x => fp4tsFree(A.fp4tsOption(x), x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<OptionF, X>, Option<X>>(Option.Eq(E), f =>
-          f.foldMap(Option.Monad)(id),
+          f.runTailRec(Option.Monad),
         ),
     ),
   );
