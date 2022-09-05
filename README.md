@@ -25,22 +25,59 @@ providing basic data types, collections and fundamental abstraction (e.g.,
 Functor, Monad) used for functional programming. It also provides a set of laws,
 to verify correctness of those implementations.
 
+  - `@fp4ts/cats-kernel` Small set of basic types and type classes (_included_)
+  - `@fp4ts/cats-core` Majority of the type classes and basic data types (_included_) 
+  - `@fp4ts/cats-laws` Laws for testing type class instances/implementations
+  - `@fp4ts/cats-test-kit` Jest integration for testing type class instances and collection of builtin arbitraries for provided data types
+  - `@fp4ts/free` Free structures
+  - `@fp4ts/cats-mtl` Transformer type classes and data types
+
+
 - `@fp4ts/effect` Port of the [Cats Effect](https://github.com/typelevel/cats-effect)
 library providing data types, fundamental abstraction (e.g., MonadCancel, Async)
 used for effectful and async functional programming. It also provides a set of
 laws, to verify correctness of those implementations.
 
+  - `@fp4ts/effect-kernel` Set of type classes for describing effectful computations/data types (_included_)
+  - `@fp4ts/effect-core` Implementations of the `IO` and `SyncIO` data types (_included_)
+  - `@fp4ts/effect-std` Implementations of the standard effectful data types such as `Queue` or `Semaphore` (_included_)
+  - `@fp4ts/effect-laws` Laws for testing type class instances/implementations
+  - `@fp4ts/effect-test-kit` Jest integration for testing type class instances and collection of builtin arbitraries for provided data types
+
+
 - `@fp4ts/http` Port of the [http4s](https://github.com/http4s/http4s) library,
 providing minimal functional interface for building HTTP services. In addition
 to the http4s, this port also includes [Servant](https://haskell-servant.github.io/)-like [dsl](./packages/http/dsl) for API declaration.
+
+  - `@fp4ts/http-core` Implementation of the basic data types for building HTTP services, such as `Request<F>`, `Response<F>`, and more (_included_)
+  - `@fp4ts/http-client` Definition of the `Client<F>` type and its default implementation
+  - `@fp4ts/http-server` Definition of the `Server<F>` type and a set of middlewares
+  - `@fp4ts/dsl` Servant-like library for defining APIs
+  - `@fp4ts/dsl-client` Derivation of the clients for APIs defined using `@fp4ts/dsl`
+  - `@fp4ts/dsl-server` Derivation of the servers for APIs defined using `@fp4ts/dsl`
+  - `@fp4ts/node-client` Node.js bindings for the HTTP clients
+  - `@fp4ts/node-server` Node.js bindings for the HTTP servers
+  - `@fp4ts/test-kit` Library for testing HTTP services and clients
+  - `@fp4ts/test-kit-node` Node bindings for testing HTTP services and clients
+
 
 - `@fp4ts/logging` Logging library inspired by [log4cats](https://github.com/typelevel/log4cats),
 [purescript-logging](https://github.com/rightfold/purescript-logging),
 and [zio-logging](https://github.com/zio/zio-logging). The library provides
 brackets using `Writer`, `WriterT` and `Console` type classes.
 
+  - `@fp4ts/logging-kernel` Set of type classes and default implementation for logging (_included_)
+  - `@fp4ts/logging-core` Implementation for standard loggers (_included_)
+
+
 - `@fp4ts/optics` Port of the [Monocle](https://github.com/optics-dev/Monocle) library,
 a Scala optics library for easy data access and transformation built on the profunctor optics.
+
+  - `@fp4ts/optics-kernel` Set of mainly profunctor type classes (_included_)
+  - `@fp4ts/optics-core` Implementation of the common optics and indexed optics (_included_)
+  - `@fp4ts/optics-derivation` Binding for deriving common optics from `@fp4ts/schema` definitions (_included_)
+  - `@fp4ts/optics-laws` Set of laws to verify properties of the optics
+
 
 - `@fp4ts/parse` Adaptation of the [Parsec](https://hackage.haskell.org/package/parsec-3.1.15.0/docs/Text-Parsec.html) library,
 a parser combinator library with polymorphic input and evaluation effect type.
@@ -50,16 +87,65 @@ ecosystem for the simplicity of the implementation, support for polymorphic inpu
 and contrary to the decision made in cats-pase, unification of parsers guaranteed
 to consume input and ones that do not.
 
+  - `@fp4ts/prase-kernel` Type classes for defining tokens and streams of values (_included_)
+  - `@fp4ts/parse-core` Implementation of the parse and its default combinators (_included_)
+  - `@fp4ts/parse-text` Implementation of the text-parses and helpers for their usage (_included_)
+
+
 - `@fp4ts/schema` The library for describing types of Kind-0 and Kind-1, with
 derivation capabilities for common typeclasses such as `Eq`, `Functor`, `Foldable`, and more.
 Inspired by [io-ts](https://github.com/gcanti/io-ts), [shapeless](https://github.com/milessabin/shapeless), and [kittens](https://github.com/typelevel/kittens).
 
+ - `@fp4ts/schema-kernel` Type classes for describing types for derivations of Kind-0 and Kind-1 types (_included_)
+ - `@fp4ts/schema-core` Derivable data types for validation, encoding and decoding of types (_included_)
+ - `@fp4ts/schema-derivation` Derivation of data type constructors (_included_)
+ - `@fp4ts/json` JSON-specific encoders and decoders
+ - `@fp4ts/laws` Set of laws for codable data types
+ - `@fp4ts/test-kit` Set of arbitraries for testing schemable types
+
+
 - `@fp4ts/sql` Partial port of the [doobie](https://github.com/tpolecat/doobie) library
-providing functional interface for SQL databases. The library includes drivers for Postgres ([`@fp4ts/sql-pg`](./packages/sql/pg)), MariaDB ([`@fp4ts/sql-mariadb`](./packages/sql/mariadb)), and Sqlite ([`@fp4ts/sql-sqlite`](./packages/sql/sqlite)).
+providing functional interface for SQL databases.
+
+  - `@fp4ts/sql-core` Core data types for describing communication with RDMS (_included_)
+  - `@fp4ts/sql-mariadb` Driver for MariaDB
+  - `@fp4ts/sql-pg` Driver for Postgres
+  - `@fp4ts/sql-sqlite` Driver for SQLite
+
 
 - `@fp4ts/stream` Port of the [FS2](https://github.com/typelevel/fs2) library
 for purely functional, effect-ful, and polymorphic stream processing.
 
+  - `@fp4ts/stream-core` Definition of basic `Stream`, `Pull` and `Chunk` types, and related type classes for compiling the effectful streams (_included_)
+  - `@fp4ts/stream-io` Node.js interop providing bindings for `Readable`, `Writable` and console IO
+
+Each of the listed packages is released separately. However, packages which are
+marked as _included_ can be consumed by installing the root module. For example,
+for consuming anything from `@fp4ts/cats-kernel` or `@fp4ts/cats-core` one can
+just install `@fp4ts/cats` and:
+
+```typescript
+import { List, Map, Ord } from '@fp4ts/cats';
+
+const xs = List<[string, number]>(['a', 42], ['b', 43]);
+const ms = Map.fromList(Ord.primitive)(xs);
+
+...
+```
+
+### Installation
+
+The packages are currently published to GitHub npm registry _only_. Therefore,
+for installation of the packages a scoped npm login is required:
+
+```bash
+npm login --scope=@fp4ts --registry=https://npm.pkg.github.com
+```
+
+### Versioning
+
+As the project is under development and not intended to be used in production,
+_all_ of the packages are versioned as `0.0.x` without _any_ API stability guarantees.
 
 ## Examples
 
