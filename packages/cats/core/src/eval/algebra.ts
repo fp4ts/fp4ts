@@ -82,7 +82,10 @@ export class FlatMap<E, A> extends Eval<A> {
     super();
   }
 
-  public readonly memoize: Eval<A> = new Memoize(this);
+  public get memoize(): Eval<A> {
+    return (this._memoize ??= new Memoize(this));
+  }
+  private _memoize?: Eval<A>;
   public get value(): A {
     return evaluate(this);
   }

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Some } from '../data';
-import { Eval, Memoize, Now, view } from './algebra';
+import { Eval, Memoize, Now, View } from './algebra';
 
 export const evaluate = <A>(e: Eval<A>): A => {
   type Frame = (u: unknown) => Eval<unknown>;
@@ -19,16 +19,15 @@ export const evaluate = <A>(e: Eval<A>): A => {
     };
 
   while (true) {
-    const cur = view(_cur);
-    if (!cur) throw new Error();
+    const cur = _cur as View<unknown>;
 
     switch (cur.tag) {
       case 0: // 'now'
       case 1: // 'later'
       case 2: /* 'always' */ {
         const a = cur.value;
+        if (stack.length <= 0) return a as A;
         const next = stack.pop()!;
-        if (!next) return a as A;
         _cur = next(a);
         continue;
       }
@@ -37,10 +36,23 @@ export const evaluate = <A>(e: Eval<A>): A => {
         _cur = cur.thunk();
         continue;
 
-      case 4: // 'flatMap'
-        stack.push(cur.run);
-        _cur = cur.self;
-        continue;
+      case 4: /* 'flatMap' */ {
+        const self = cur.self as View<unknown>;
+        const f = cur.run;
+
+        switch (self.tag) {
+          case 0: // 'now'
+          case 1: // 'later'
+          case 2: // 'always'
+            _cur = f(self.value);
+            continue;
+
+          default:
+            stack.push(f);
+            _cur = self;
+            continue;
+        }
+      }
 
       case 5: /* 'memoize' */ {
         const m = cur;
