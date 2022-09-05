@@ -265,7 +265,7 @@ export const flatTapF_ =
     flatMapF_(F)(fa, x => F.map_(f(x), () => x));
 
 export const tailRecM_ =
-  <F>(F: Monad<F>) =>
+  <F>(F: FlatMap<F>) =>
   <A, B, C>(b: B, f: (b: B) => Kleisli<F, A, Either<B, C>>): Kleisli<F, A, C> =>
     new Kleisli(a => F.tailRecM(b)(x => f(x).run(a)));
 

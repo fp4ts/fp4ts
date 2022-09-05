@@ -146,7 +146,7 @@ export const kleisliApplicativeError: <F, A, E>(
   });
 
 export const kleisliFlatMap: <F, A>(
-  F: Monad<F>,
+  F: FlatMap<F>,
 ) => FlatMap<$<KleisliF, [F, A]>> = F =>
   FlatMap.of({
     ...kleisliApply(F),

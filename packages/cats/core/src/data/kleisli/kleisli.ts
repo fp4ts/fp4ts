@@ -86,7 +86,7 @@ export interface KleisliObj {
   ApplicativeError<F, A, E>(
     F: ApplicativeError<F, E>,
   ): ApplicativeError<$<KleisliF, [F, A]>, E>;
-  FlatMap<F, A>(F: Monad<F>): FlatMap<$<KleisliF, [F, A]>>;
+  FlatMap<F, A>(F: FlatMap<F>): FlatMap<$<KleisliF, [F, A]>>;
   Monad<F, A>(F: Monad<F>): Monad<$<KleisliF, [F, A]>>;
   MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
 
