@@ -643,7 +643,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-free@workspace:packages/cats/free":
+"@fp4ts/cats-free@*, @fp4ts/cats-free@workspace:packages/cats/free":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-free@workspace:packages/cats/free"
   dependencies:
@@ -977,6 +977,7 @@ __metadata:
     "@fp4ts/http-core": "*"
     "@fp4ts/http-node-shared": "*"
     "@fp4ts/stream": "*"
+    "@fp4ts/stream-io": "*"
     typescript: 4.7.4
   languageName: unknown
   linkType: soft
@@ -1337,6 +1338,7 @@ __metadata:
   resolution: "@fp4ts/sql-core@workspace:packages/sql/core"
   dependencies:
     "@fp4ts/cats": "*"
+    "@fp4ts/cats-free": "*"
     "@fp4ts/core": "*"
     typescript: 4.7.4
   languageName: unknown

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
+    "@fp4ts/cats-free": "*",
     "@fp4ts/core": "*"
   },
   "devDependencies": {
