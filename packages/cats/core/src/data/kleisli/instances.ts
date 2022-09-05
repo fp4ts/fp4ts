@@ -18,7 +18,7 @@ import { FlatMap } from '../../flat-map';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
 import { Distributive } from '../../distributive';
-import { Arrow, ArrowApply, ArrowChoice } from '../../arrow';
+import { Arrow, ArrowApply, ArrowChoice, Compose } from '../../arrow';
 
 import { Kleisli } from './algebra';
 import type { KleisliF } from './kleisli';
@@ -177,6 +177,9 @@ export const kleisliMonadError: <F, A, E>(
     ...kleisliMonad(F),
     ...kleisliApplicativeError(F),
   });
+
+export const kleisliCompose = <F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>> =>
+  Compose.of({ compose_: compose_(F) });
 
 export const kleisliArrow = <F>(F: Monad<F>): Arrow<$<KleisliF, [F]>> =>
   Arrow.of({
