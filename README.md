@@ -171,4 +171,4 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 ```
 
-The full license with all references to ported projects can be found in [LICENCE](/LICENSE) file.
+The full license with all references to ported projects can be found in [LICENSE](/LICENSE) file.
