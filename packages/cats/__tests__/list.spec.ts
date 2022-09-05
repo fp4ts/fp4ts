@@ -1159,11 +1159,11 @@ describe('List', () => {
 
   describe('show', () => {
     it('should show empty list', () => {
-      expect(List.empty.show()).toBe('[]');
+      expect(List.empty.show()).toBe('List()');
     });
 
     it('should show list of primitive values', () => {
-      expect(List(1, 2, 3).show()).toBe('[1, 2, 3]');
+      expect(List(1, 2, 3).show()).toBe('List(1, 2, 3)');
     });
 
     it('should show list of complex', () => {
@@ -1171,7 +1171,7 @@ describe('List', () => {
         List<[number, number]>([1, 1], [2, 2], [3, 3]).show({
           show: ([x, y]) => `(${x}, ${y})`,
         }),
-      ).toBe('[(1, 1), (2, 2), (3, 3)]');
+      ).toBe('List((1, 1), (2, 2), (3, 3))');
     });
   });
 

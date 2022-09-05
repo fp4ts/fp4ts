@@ -997,5 +997,5 @@ export const sort_ = <A>(xs: List<A>, O: Ord<A>): List<A> => {
 
 export const show_ = <A>(S: Show<A>, xs: List<A>): string => {
   const values = toArray(xs).map(S.show).join(', ');
-  return `[${values}]`;
+  return `List(${values})`;
 };

@@ -17,13 +17,19 @@ export class Cons<A> extends List<A> {
   }
 
   public override toString(): string {
-    return `${this._head} :: ${this._tail}`;
+    let cur = this._tail as List<A>;
+    let acc = 'List(' + String(this.head);
+    while (cur !== Nil) {
+      acc += ', ' + (cur as Cons<A>)._head;
+      cur = (cur as Cons<A>)._tail;
+    }
+    return acc + ')';
   }
 }
 
 export const Nil = new (class Nil extends List<never> {
   public override toString(): string {
-    return 'Nil';
+    return 'List()';
   }
 })();
 export type Nil = typeof Nil;
