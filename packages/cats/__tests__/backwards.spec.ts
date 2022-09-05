@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id, pipe } from '@fp4ts/core';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Backwards, Identity } from '@fp4ts/cats-core/lib/data';
 import { MonadSuite } from '@fp4ts/cats-laws';
@@ -19,17 +19,16 @@ describe('Backwards', () => {
 
     pipe(
       F.product_(
-        Backwards<EvalF, string>(Eval.delay(() => (acc += ' my first action'))),
-        Backwards<EvalF, string>(Eval.delay(() => (acc += 'my second action'))),
+        Eval.delay(() => (acc += ' my first action')),
+        Eval.delay(() => (acc += 'my second action')),
       ),
-      x => Backwards.getBackwards<EvalF, any>(x),
     ).value;
 
     expect(acc).toBe('my second action my first action');
   });
 
   checkAll(
-    'Backwards<Identity, *>',
+    'Backwards.Monad<Identity>',
     MonadSuite(Backwards.Monad(Identity.Monad)).monad(
       fc.integer(),
       fc.integer(),
@@ -39,13 +38,13 @@ describe('Backwards', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      id as any,
-      id as any,
+      id,
+      id,
     ),
   );
 
   checkAll(
-    'Backwards<Eval, *>',
+    'Backwards.Monad<Eval>',
     MonadSuite(Backwards.Monad(Eval.Monad)).monad(
       fc.integer(),
       fc.integer(),
@@ -55,8 +54,8 @@ describe('Backwards', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.fp4tsEval as any,
-      Eval.Eq as any,
+      A.fp4tsEval,
+      Eval.Eq,
     ),
   );
 });

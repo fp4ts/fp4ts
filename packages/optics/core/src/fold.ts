@@ -90,9 +90,8 @@ export function foldLeft<S, A>(
         l,
         asGetting(Dual.Monoid(Endo.MonoidK.algebra<R>())),
         foldMap,
-        applyTo((a: A) => Dual((r: R) => f(r, a))),
+        applyTo((a: A) => (r: R) => f(r, a)),
         applyTo(s),
-        Dual.getDual,
       )(z);
 }
 
@@ -201,19 +200,10 @@ export function backwards<I, S, A>(
 export function backwards<S, A>(l: Fold<S, A>): Fold<S, A>;
 export function backwards<S, A>(l: Fold<S, A>): Fold<S, A> {
   return <F>(
-      F: Contravariant<F> & Applicative<F>,
-      P: Indexable<Function1F, unknown>,
-    ): LensLike<F, S, A> =>
-    (f: (a: A) => Kind<F, [A]>) =>
-    s =>
-      pipe(
-        l(
-          { ...Backwards.Applicative(F), ...Backwards.Contravariant(F) },
-          P,
-          Indexable.Function1(),
-        )(flow(f, Backwards))(s),
-        Backwards.getBackwards,
-      );
+    F: Contravariant<F> & Applicative<F>,
+    P: Indexable<Function1F, unknown>,
+  ): LensLike<F, S, A> =>
+    l({ ...F, ...Backwards.Applicative(F) }, P, Indexable.Function1());
 }
 
 export function words<F>(
@@ -289,9 +279,8 @@ export function ifoldLeft<I, S, A>(
         l,
         asIndexedGetting(Dual.Monoid(Endo.MonoidK.algebra<R>())),
         ifoldMap,
-        applyTo((a: A, i: I) => Dual((r: R) => f(r, a, i))),
+        applyTo((a: A, i: I) => (r: R) => f(r, a, i)),
         applyTo(s),
-        Dual.getDual,
       )(z);
 }
 
