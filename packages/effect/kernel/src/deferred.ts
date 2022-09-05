@@ -27,7 +27,7 @@ export abstract class Deferred<F, A>
   public static of =
     <F>(F: Async<F>) =>
     <A>(a?: A): Kind<F, [Deferred<F, A>]> => {
-      const state: State<A> = a ? new SetState(a) : new UnsetState([]);
+      const state: State<A> = a ? new SetState<A>(a) : new UnsetState([]);
       return pipe(
         Ref.of(F)(state),
         F.map(state => new AsyncDeferred<F, A>(F, state)),

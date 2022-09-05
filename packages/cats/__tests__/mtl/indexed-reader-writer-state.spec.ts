@@ -41,11 +41,13 @@ describe('RWS', () => {
   describe('Laws', () => {
     checkAll(
       'SemigroupK<RWS<void, void, void, unknown, Error, *>>',
-      SemigroupKSuite(RWS.SemigroupK<void, void, unknown, Error>()).semigroupK(
+      SemigroupKSuite(
+        RWS.SemigroupK<void, unknown, unknown, Error>(),
+      ).semigroupK(
         fc.integer(),
         Eq.primitive,
         X => A.fp4tsRWS(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<RWS<void, void, void, unknown, Error, X>> =>
+        <X>(X: Eq<X>): Eq<RWS<void, unknown, unknown, unknown, Error, X>> =>
           Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
@@ -64,7 +66,7 @@ describe('RWS', () => {
         Eq.primitive,
         Eq.Error.allEqual,
         X => A.fp4tsRWS(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<RWS<void, void, void, unknown, Error, X>> =>
+        <X>(X: Eq<X>): Eq<RWS<void, unknown, void, unknown, Error, X>> =>
           Eq.by(Either.Eq(Eq.Error.strict, X), p => p.runEA()),
       ),
     );
@@ -90,14 +92,14 @@ describe('RWS', () => {
     checkAll(
       'Censor<RWS<string, void, void, unknown, Error, *>, string>',
       MonadWriterSuite(
-        RWS.MonadWriter<string, void, void, Error>(Monoid.string),
+        RWS.MonadWriter<string, unknown, unknown, Error>(Monoid.string),
       ).censor(
         fc.integer(),
         fc.string(),
         Eq.primitive,
         Eq.primitive,
         X => A.fp4tsRWS(A.fp4tsError(), X),
-        <X>(X: Eq<X>): Eq<RWS<string, void, void, unknown, Error, X>> =>
+        <X>(X: Eq<X>): Eq<RWS<string, unknown, unknown, unknown, Error, X>> =>
           Eq.by(
             Eq.tuple(
               Eq.fromUniversalEquals<string>(),

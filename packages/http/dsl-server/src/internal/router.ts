@@ -217,17 +217,17 @@ type RouterStructure =
 
 const RouterStructureS: Schema<RouterStructure> = Schema.sum('tag')({
   static: Schema.struct({
-    tag: Schema.literal('static'),
+    tag: Schema.literal('static' as const),
     table: Schema.record(Schema.defer(() => RouterStructureS)),
     matches: Schema.number,
   }),
   capture: Schema.struct({
-    tag: Schema.literal('capture'),
+    tag: Schema.literal('capture' as const),
     next: Schema.defer(() => RouterStructureS),
   }),
-  raw: Schema.struct({ tag: Schema.literal('raw') }),
+  raw: Schema.struct({ tag: Schema.literal('raw' as const) }),
   choice: Schema.struct({
-    tag: Schema.literal('choice'),
+    tag: Schema.literal('choice' as const),
     lhs: Schema.defer(() => RouterStructureS),
     rhs: Schema.defer(() => RouterStructureS),
   }),

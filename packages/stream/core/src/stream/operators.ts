@@ -416,7 +416,7 @@ export const zipWithNext = <F, A>(
   return s.pull.uncons1
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
+        () => Pull.done<F>(),
         ([hd, tl]) => go(tl, hd),
       ),
     )
@@ -668,7 +668,7 @@ export const dropWhile_ = <F, A>(
 ): Stream<F, A> =>
   s.pull
     .dropWhile(pred, dropFailure)
-    .flatMap(opt => opt.fold(() => Pull.done(), id))
+    .flatMap(opt => opt.fold(() => Pull.done<F>(), id))
     .stream();
 
 export const concat_ = <F, A>(
@@ -741,7 +741,7 @@ export const chunkMin_ = <F, A>(
   return s.pull.uncons
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
+        () => Pull.done<F>(),
         ([hd, tl]) =>
           hd.size >= n
             ? Pull.output1<F, Chunk<A>>(hd)['>>>'](() => go(tl, Chunk.empty))
@@ -828,7 +828,7 @@ export const sliding_ = <F, A>(
     step < size
       ? s.pull.unconsN(size, true).flatMap(opt =>
           opt.fold(
-            () => Pull.done(),
+            () => Pull.done<F>(),
             ([hd, tl]) =>
               Pull.output1<F, Chunk<A>>(hd)['>>>'](() =>
                 stepSmallerThanSize(tl, hd.drop(step), Chunk.emptyChain),
@@ -884,7 +884,7 @@ export const filterWithPrevious_ = <F, A>(
   return s.pull.uncons1
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
+        () => Pull.done<F>(),
         ([hd, tl]) => Pull.output1<F, A>(hd)['>>>'](() => go(tl, hd)),
       ),
     )
@@ -905,8 +905,8 @@ export const collectFirst_ = <F, A, B>(
     .find(x => x.nonEmpty)
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
-        ([hd]) => Pull.output1(hd.get),
+        () => Pull.done<F>(),
+        ([hd]) => Pull.output1<F, B>(hd.get),
       ),
     )
     .stream();
@@ -1040,7 +1040,7 @@ export const scan1_ = <F, A>(
   s.pull.uncons
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
+        () => Pull.done<F>(),
         ([hd, tl]) => {
           const [pfx, sfx] = hd.splitAt(1);
           const z = pfx['!!'](0);
@@ -1111,7 +1111,7 @@ export const intersperse_ = <F, A>(
   return s.pull.uncons
     .flatMap(opt =>
       opt.fold(
-        () => Pull.done(),
+        () => Pull.done<F>(),
         ([hd, tl]) =>
           Pull.output<F, A>(doChunk(hd, true))['>>>'](() => loop(tl)),
       ),

@@ -103,16 +103,17 @@ describe('Queue', () => {
   describe('UnboundedQueue', () => {
     describe('Unbounded', () => {
       unboundedQueueTests(
-        QueueLike.of<IOF, number>({
-          construct: () => Queue.unbounded(IO.Concurrent),
+        QueueLike.of({
+          construct: () => Queue.unbounded<IOF, number>(IO.Concurrent),
         }),
       );
     });
 
     describe('Unbounded mapK', () => {
       unboundedQueueTests(
-        QueueLike.of<IOF, number>({
-          construct: () => Queue.unbounded(IO.Concurrent).map(x => x.mapK(id)),
+        QueueLike.of({
+          construct: () =>
+            Queue.unbounded<IOF, number>(IO.Concurrent).map(x => x.mapK(id)),
         }),
       );
     });
@@ -136,7 +137,8 @@ describe('Queue', () => {
     describe('Dropping mapK', () => {
       droppingQueueTests(
         QueueLike.of({
-          construct: n => Queue.dropping(IO.Concurrent)(n).map(q => q.mapK(id)),
+          construct: n =>
+            Queue.dropping(IO.Concurrent)<number>(n).map(q => q.mapK(id)),
         }),
       );
     });
@@ -164,7 +166,7 @@ describe('Queue', () => {
       circularBufferQueueTests(
         QueueLike.of({
           construct: n =>
-            Queue.circularBuffer(IO.Concurrent)(n).map(q => q.mapK(id)),
+            Queue.circularBuffer(IO.Concurrent)<number>(n).map(q => q.mapK(id)),
         }),
       );
     });

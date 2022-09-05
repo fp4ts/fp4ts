@@ -40,7 +40,7 @@ describe('Tagged', () => {
       Eq.primitive,
       Eq.primitive,
       (X, Y) => A.fp4tsTagged()(Y),
-      (X, Y) => Tagged.EqK().liftEq(Y),
+      <X, Y>(X: Eq<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
     ),
   );
 
@@ -57,7 +57,7 @@ describe('Tagged', () => {
       ec.miniInt(),
       Eq.primitive,
       (X, Y) => A.fp4tsTagged()(Y),
-      (X, Y) => Tagged.EqK().liftEq(Y),
+      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
     ),
   );
 });

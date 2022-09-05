@@ -132,9 +132,9 @@ describe('Stream Bracket', () => {
     fc.assert(
       fc.asyncProperty(
         A.fp4tsPureStreamGenerator(fc.integer()),
-        fc.integer(-10, 10),
-        fc.integer(-10, 10),
-        fc.integer(-10, 10),
+        fc.integer({ min: -10, max: 10 }),
+        fc.integer({ min: -10, max: 10 }),
+        fc.integer({ min: -10, max: 10 }),
         (s, i, j, k) =>
           Counter.of(IO.Sync)
             .flatMap(counter => {

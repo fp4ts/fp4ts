@@ -95,7 +95,11 @@ export function fromProps<S>(): FromProps<S> {
   return (...keys: any[]): Lens<S, any> =>
     Lens(
       s =>
-        Object.fromEntries(Object.entries(s).filter(([k]) => keys.includes(k))),
+        Object.fromEntries(
+          Object.entries(s as any as Record<string, any>).filter(([k]) =>
+            keys.includes(k),
+          ),
+        ),
       b => s => ({ ...s, ...b }),
     );
 }
