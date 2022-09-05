@@ -12,7 +12,6 @@ export abstract class List<out A> {
 // Definitions
 
 export class Cons<A> extends List<A> {
-  public readonly tag = 'cons';
   public constructor(public readonly _head: A, public _tail: List<A>) {
     super();
   }
@@ -23,13 +22,8 @@ export class Cons<A> extends List<A> {
 }
 
 export const Nil = new (class Nil extends List<never> {
-  public readonly tag = 'nil';
   public override toString(): string {
     return 'Nil';
   }
 })();
 export type Nil = typeof Nil;
-
-export type View<A> = Cons<A> | Nil;
-
-export const view = <A>(_: List<A>): View<A> => _ as any;

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -18,7 +18,7 @@ import { Vector } from '../vector';
 import { Iter } from '../iterator';
 import { NonEmptyList } from '../non-empty-list';
 
-import { Cons, List, View } from './algebra';
+import { Cons, List } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
 
@@ -54,18 +54,14 @@ export const lastOption = <A>(xs: List<A>): Option<A> => {
 };
 
 export const uncons = <A>(xs: List<A>): Option<[A, List<A>]> =>
-  fold_(
-    xs,
-    () => None,
-    (h, t) => Some([h, t]),
-  );
+  xs === nil ? None : Some([(xs as Cons<A>)._head, (xs as Cons<A>)._tail]);
 
 export const popLast = <A>(xs: List<A>): Option<[A, List<A>]> => {
   let lst: A | undefined;
   let h: List<A> | undefined;
   let t: Cons<A> | undefined;
 
-  while (nonEmpty(xs)) {
+  while (xs !== nil) {
     const ys = xs as Cons<A>;
     lst = ys._head;
     if (!h) {
@@ -81,14 +77,9 @@ export const popLast = <A>(xs: List<A>): Option<[A, List<A>]> => {
   return h ? Some([lst!, h]) : None;
 };
 
-export const isEmpty = <A>(xs: List<A>): boolean =>
-  fold_(
-    xs,
-    () => true,
-    () => false,
-  );
+export const isEmpty = <A>(xs: List<A>): boolean => xs === nil;
 
-export const nonEmpty = <A>(xs: List<A>): boolean => !isEmpty(xs);
+export const nonEmpty = <A>(xs: List<A>): boolean => xs !== nil;
 
 export const size = <A>(xs: List<A>): number => foldLeft_(xs, 0, n => n + 1);
 
@@ -585,10 +576,8 @@ export const fold_ = <A, B1, B2 = B1>(
   xs: List<A>,
   onNil: () => B1,
   onCons: (head: A, tail: List<A>) => B2,
-): B1 | B2 => {
-  const l = xs as View<A>;
-  return l.tag === 'cons' ? onCons(l._head, l._tail) : onNil();
-};
+): B1 | B2 =>
+  xs === nil ? onNil() : onCons((xs as Cons<A>)._head, (xs as Cons<A>)._tail);
 
 export const tailRecM_ = <A, B>(
   a: A,
