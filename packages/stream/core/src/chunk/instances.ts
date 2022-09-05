@@ -15,7 +15,7 @@ import {
   Applicative,
 } from '@fp4ts/cats';
 
-import { Chunk as ChunkBase } from './algebra';
+import { Chunk as ChunkBase, EmptyChunk } from './algebra';
 import type { ChunkF, Chunk } from './chunk';
 
 export const chunkMonoidK: Lazy<MonoidK<ChunkF>> = lazyVal(() =>
@@ -44,9 +44,16 @@ export const chunkAlternative: Lazy<Alternative<ChunkF>> = lazyVal(() =>
 export const chunkMonad: Lazy<Monad<ChunkF>> = lazyVal(() =>
   Monad.of({
     pure: ChunkBase.singleton,
+    map_: (fa, f) => fa.map(f),
     flatMap_: (xs, f) => xs.flatMap(f),
     flatten: xs => xs.flatMap(id),
     tailRecM_: ChunkBase.tailRecM_,
+    map2Eval_:
+      <A, B>(fa: Chunk<A>, efb: Eval<Chunk<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.isEmpty
+          ? Eval.now(EmptyChunk)
+          : efb.map(fb => fa.flatMap(a => fb.map(b => f(a, b)))),
   }),
 );
 
@@ -66,7 +73,7 @@ export const chunkTraversable: Lazy<Traversable<ChunkF>> = lazyVal(() =>
               Eval.defer(() => go(i + 1)),
             )
           : b;
-      return go(0);
+      return Eval.defer(() => go(0));
     },
     traverse_:
       <G>(G: Applicative<G>) =>
