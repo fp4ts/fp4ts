@@ -4,66 +4,64 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Dual } from '@fp4ts/cats-core/lib/data';
+import { Dual, List, Option, Some } from '@fp4ts/cats-core/lib/data';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { MonadSuite, MonoidSuite, TraversableSuite } from '@fp4ts/cats-laws';
+import { MonoidKSuite, MonoidSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { Eval } from '@fp4ts/cats-core';
 
 describe('Dual', () => {
-  checkAll(
-    'Monoid<Dual<number>>',
-    MonoidSuite(Dual.Monoid(Monoid.addition)).monoid(
-      A.fp4tsDual(fc.integer()),
-      Dual.EqK.liftEq(Eq.primitive),
-    ),
-  );
+  it('should concat string in reversed order', () => {
+    expect(Dual.Monoid(Monoid.string).combine_('a', () => 'b')).toBe('ba');
+  });
 
-  checkAll(
-    'Monoid<Dual<string>>',
-    MonoidSuite(Dual.Monoid(Monoid.string)).monoid(
-      A.fp4tsDual(fc.string()),
-      Dual.EqK.liftEq(Eq.primitive),
-    ),
-  );
+  it('should concat lists in reversed order', () => {
+    expect(
+      Dual.MonoidK(List.MonoidK).combineK_(List('a'), () => List('b')),
+    ).toEqual(List('b', 'a'));
+  });
 
-  checkAll(
-    'Monoid<Dual>',
-    MonadSuite(Dual.Monad).monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsDual,
-      Dual.EqK.liftEq,
-    ),
-  );
+  it('should concat options in reversed order', () => {
+    expect(
+      Dual.MonoidK(Option.MonoidK).combineK_(Some('a'), () => Some('b')),
+    ).toEqual(Some('b'));
+  });
 
-  checkAll(
-    'Monoid<Dual>',
-    TraversableSuite(Dual.Traversable).traversable(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
-      Dual.Monad,
-      Eval.Applicative,
-      Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsDual,
-      Dual.EqK.liftEq,
-      A.fp4tsEval,
-      Eval.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-    ),
-  );
+  describe('Laws', () => {
+    checkAll(
+      'Dual.Monoid<number>',
+      MonoidSuite(Dual.Monoid(Monoid.addition)).monoid(
+        A.fp4tsDual(fc.integer()),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'Dual.Monoid<string>',
+      MonoidSuite(Dual.Monoid(Monoid.string)).monoid(
+        A.fp4tsDual(fc.string()),
+        Eq.primitive,
+      ),
+    );
+
+    checkAll(
+      'Dual.MonoidK<List<number>>',
+      MonoidKSuite(Dual.MonoidK(List.MonoidK)).monoidK(
+        fc.integer(),
+        Eq.primitive,
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
+
+    checkAll(
+      'Dual.MonoidK<Option<string>>',
+      MonoidKSuite(Dual.MonoidK(Option.MonoidK)).monoidK(
+        fc.integer(),
+        Eq.primitive,
+        A.fp4tsOption,
+        Option.Eq,
+      ),
+    );
+  });
 });

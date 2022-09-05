@@ -59,11 +59,9 @@ export const FoldableWithIndex = Object.freeze({
         z: B,
         f: (b: B, a: A, i: I) => B,
       ): B =>
-        Dual.getDual(
-          self.foldMapWithIndex_(Dual.Monoid(Endo.MonoidK.algebra<B>()))(
-            fa,
-            (a: A, i: I) => Dual((b: B) => f(b, a, i)),
-          ),
+        self.foldMapWithIndex_(Dual.Monoid(Endo.MonoidK.algebra<B>()))(
+          fa,
+          (a: A, i: I) => (b: B) => f(b, a, i),
         )(z),
 
       foldRightWithIndex: (ez, f) => fa => self.foldRightWithIndex_(fa, ez, f),

@@ -3,86 +3,47 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Kind,
-  KindOf,
-  Lazy,
-  lazyVal,
-  newtypeK,
-  newtypeKDerive,
-} from '@fp4ts/core';
+import { $type, TyK, TyVar } from '@fp4ts/core';
 import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
-import { Monad, MonadF } from '../monad';
-import { Traversable, TraversableF } from '../traversable';
-import { Identity, IdentityF } from './identity';
-import { EqK, EqKF } from '../eq-k';
+import { SemigroupK } from '../semigroup-k';
+import { MonoidK } from '../monoid-k';
 
-const Dual_ = newtypeK<IdentityF>()('@fp4ts/cats/core/data/dual');
-
-export type Dual<A> = Kind<DualF, [A]>;
-export const Dual: DualObj = function <A>(a: A) {
-  return Dual_(a);
-} as any;
+export type Dual<A> = A;
+export const Dual: DualObj = function () {};
 
 interface DualObj {
-  <A>(a: A): Dual<A>;
-  getDual<A>(fa: Dual<A>): A;
-
   // -- Instances
 
-  Semigroup<A>(S: Semigroup<A>): Semigroup<Dual<A>>;
-  Monoid<A>(S: Monoid<A>): Monoid<Dual<A>>;
+  Semigroup<A>(S: Semigroup<A>): Semigroup<A>;
+  Monoid<A>(S: Monoid<A>): Monoid<A>;
 
-  EqK: EqK<DualF>;
-  Monad: Monad<DualF>;
-  Traversable: Traversable<DualF>;
+  SemigroupK<F>(F: SemigroupK<F>): SemigroupK<F>;
+  MonoidK<F>(F: MonoidK<F>): MonoidK<F>;
 }
 
-Dual.getDual = Dual_.unapply;
-
-// -- Instances
-
-const dualSemigroup = <A>(S: Semigroup<A>): Semigroup<Dual<A>> =>
+const dualSemigroup = <A>(S: Semigroup<A>): Semigroup<A> =>
   Semigroup.of({
-    combine_: (a, b) =>
-      Dual(S.combine_(Dual.getDual(b()), () => Dual.getDual(a))),
+    combine_: (a, b) => S.combine_(b(), () => a),
   });
 
-const dualMonoid = <A>(M: Monoid<A>): Monoid<Dual<A>> =>
-  Monoid.of({ ...dualSemigroup(M), empty: Dual(M.empty) });
+const dualMonoid = <A>(M: Monoid<A>): Monoid<A> =>
+  Monoid.of({ ...dualSemigroup(M), empty: M.empty });
 
-const dualEqK: Lazy<EqK<DualF>> = lazyVal(() =>
-  newtypeKDerive<EqKF>()(Dual_, Identity.EqK),
-);
-const dualMonad: Lazy<Monad<DualF>> = lazyVal(() =>
-  newtypeKDerive<MonadF>()(Dual_, Identity.Monad),
-);
-const dualTraversable: Lazy<Traversable<DualF>> = lazyVal(() =>
-  newtypeKDerive<TraversableF>()(Dual_, Identity.Traversable),
-);
+const dualSemigroupK = <F>(F: SemigroupK<F>): SemigroupK<F> =>
+  SemigroupK.of({ combineK_: (fa, fb) => F.combineK_(fb(), () => fa) });
+
+const dualMonoidK = <F>(F: MonoidK<F>): MonoidK<F> =>
+  MonoidK.of({ combineK_: dualSemigroupK(F).combineK_, emptyK: F.emptyK });
 
 Dual.Semigroup = dualSemigroup;
 Dual.Monoid = dualMonoid;
-Object.defineProperty(Dual, 'EqK', {
-  get() {
-    return dualEqK();
-  },
-});
-Object.defineProperty(Dual, 'Monad', {
-  get() {
-    return dualMonad();
-  },
-});
-Object.defineProperty(Dual, 'Traversable', {
-  get() {
-    return dualTraversable();
-  },
-});
-
-// -- HKT
+Dual.SemigroupK = dualSemigroupK;
+Dual.MonoidK = dualMonoidK;
 
 /**
  * @category Type Constructor
  * @category Data
  */
-export type DualF = KindOf<typeof Dual_>;
+export interface DualF extends TyK<[unknown]> {
+  [$type]: TyVar<this, 0>;
+}
