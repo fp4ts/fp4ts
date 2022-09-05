@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eq } from '@fp4ts/cats-kernel';
 import {
   $type,
   Kind,
@@ -18,6 +19,8 @@ import { Align } from '../align';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { Contravariant } from '../contravariant';
+import { EqK } from '../eq-k';
+import { Eval } from '../eval';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { StackSafeMonad } from '../stack-safe-monad';
@@ -29,12 +32,14 @@ type _ProxyF = KindOf<typeof _Proxy>;
 
 export type Proxy<A> = Kind<_ProxyF, [A]>;
 export const Proxy: ProxyObj = function () {
-  return _Proxy(() => throwError(Error('Proxy does not have any values')));
+  return _Proxy(() => throwError(new Error('Proxy does not have any values')));
 } as any;
 
 interface ProxyObj {
   <A>(): Proxy<A>;
 
+  Eq<A>(): Eq<Proxy<A>>;
+  EqK: EqK<ProxyF>;
   Functor: Functor<ProxyF>;
   Contravariant: Contravariant<ProxyF>;
   Applicative: Applicative<ProxyF>;
@@ -45,6 +50,10 @@ interface ProxyObj {
 
 // -- Instances
 
+const proxyEq: <A>() => Eq<Proxy<A>> = lazyVal(() =>
+  Eq.of({ equals: () => true }),
+);
+const proxyEqK: Lazy<EqK<ProxyF>> = lazyVal(() => EqK.of({ liftEq: proxyEq }));
 const proxyFunctor: Lazy<Functor<ProxyF>> = lazyVal(() =>
   Functor.of({ map_: <A, B>() => Proxy<B>() }),
 );
@@ -56,6 +65,10 @@ const proxyApplicative: Lazy<Applicative<ProxyF>> = lazyVal(() =>
     ...proxyFunctor(),
     pure: <A>() => Proxy<A>(),
     ap_: <A, B>() => Proxy<B>(),
+    map2Eval_:
+      () =>
+      <C>() =>
+        Eval.now(Proxy<C>()),
   }),
 );
 const proxyAlign: Lazy<Align<ProxyF>> = lazyVal(() =>
@@ -78,6 +91,12 @@ const proxyMonad: Lazy<Monad<ProxyF>> = lazyVal(() =>
   }),
 );
 
+Proxy.Eq = proxyEq;
+Object.defineProperty(Proxy, 'EqK', {
+  get() {
+    return proxyEqK();
+  },
+});
 Object.defineProperty(Proxy, 'Functor', {
   get() {
     return proxyFunctor();
