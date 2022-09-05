@@ -6,6 +6,6 @@
 import { toStringMethod } from 'fast-check';
 import { Eval } from '@fp4ts/cats-core/lib/eval/algebra';
 
-Eval.prototype[toStringMethod] = function (this: Eval<unknown>) {
+(Eval.prototype as any)[toStringMethod] = function (this: Eval<unknown>) {
   return `Eval(${this.value})`;
 };
