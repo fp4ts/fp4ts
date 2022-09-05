@@ -3,12 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Ord, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Set, List, Some, None } from '@fp4ts/cats-core/lib/data';
 import { isValid } from '@fp4ts/cats-core/lib/data/collections/set/operators';
-import { FoldableSuite } from '@fp4ts/cats-laws';
+import { FoldableSuite, MonoidSuite } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -824,12 +824,75 @@ describe('set', () => {
     });
   });
 
+  describe('Tree validity', () => {
+    type Action<A> =
+      | { type: 'insert'; x: A }
+      | { type: 'remove'; x: A }
+      | { type: 'intersect'; that: Set<A> }
+      | { type: 'union'; that: Set<A> }
+      | { type: 'difference'; that: Set<A> };
+
+    const actionArbitrary = <A>(
+      arbA: Arbitrary<A>,
+      O: Ord<A>,
+    ): Arbitrary<Action<A>> =>
+      fc.oneof(
+        { depthSize: 'small' },
+        arbA.map(x => ({ type: 'insert' as const, x })),
+        arbA.map(x => ({ type: 'remove' as const, x })),
+        A.fp4tsSet(arbA, O).map(that => ({
+          type: 'intersect' as const,
+          that,
+        })),
+        A.fp4tsSet(arbA, O).map(that => ({ type: 'union' as const, that })),
+        A.fp4tsSet(arbA, O).map(that => ({
+          type: 'difference' as const,
+          that,
+        })),
+      );
+
+    const executeAction =
+      <A>(O: Ord<A>) =>
+      (s: Set<A>, a: Action<A>): Set<A> => {
+        switch (a.type) {
+          case 'insert':
+            return s.insert(O, a.x);
+          case 'remove':
+            return s.remove(O, a.x);
+          case 'intersect':
+            return s.intersect(O, a.that);
+          case 'union':
+            return s.union(O, a.that);
+          case 'difference':
+            return s.difference(O, a.that);
+        }
+      };
+
+    it(
+      'should remain valid after running a sequence of actions',
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        fc.array(actionArbitrary(fc.integer(), Ord.primitive)),
+        (s, as) =>
+          expect(
+            isValid(Ord.primitive, as.reduce(executeAction(Ord.primitive), s)),
+          ).toBe(true),
+      ),
+    );
+  });
+
   describe('Laws', () => {
-    const foldableSuite = FoldableSuite(Set.Foldable);
+    checkAll(
+      'Monoid<Set<number>>',
+      MonoidSuite(Set.Monoid(Ord.primitive as Ord<number>)).monoid(
+        A.fp4tsSet(fc.integer(), Ord.primitive),
+        Set.Eq(Eq.primitive),
+      ),
+    );
 
     checkAll(
-      'Foldable<SetK>',
-      foldableSuite.foldable(
+      'Foldable<Set>',
+      FoldableSuite(Set.Foldable).foldable(
         fc.integer(),
         fc.integer(),
         Monoid.addition,

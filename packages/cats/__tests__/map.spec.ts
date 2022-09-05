@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
@@ -917,52 +917,120 @@ describe('Map', () => {
     });
   });
 
-  checkAll(
-    'MonoidK<Map<PrimitiveType, *>>',
-    MonoidKSuite(Map.MonoidK(Ord.primitive)).monoidK(
-      fc.integer(),
-      Eq.primitive,
-      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-      E => Map.Eq(Eq.primitive, E),
-    ),
-  );
+  describe('Tree validity', () => {
+    type Action<K, V> =
+      | { type: 'insert'; k: K; v: V }
+      | { type: 'remove'; k: K }
+      | { type: 'intersect'; that: Map<K, V> }
+      | { type: 'union'; that: Map<K, V> }
+      | { type: 'difference'; that: Map<K, V> };
 
-  checkAll(
-    'FunctorFilter<Map<number, *>>',
-    FunctorFilterSuite(Map.FunctorFilter<number>()).functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-      E => Map.Eq(Eq.primitive, E),
-    ),
-  );
+    const actionArbitrary = <K, V>(
+      arbK: Arbitrary<K>,
+      arbV: Arbitrary<V>,
+      O: Ord<K>,
+    ): Arbitrary<Action<K, V>> =>
+      fc.oneof(
+        { depthSize: 'small' },
+        fc
+          .tuple(arbK, arbV)
+          .map(([k, v]) => ({ type: 'insert' as const, k, v })),
+        arbK.map(k => ({ type: 'remove' as const, k })),
+        A.fp4tsMap(arbK, arbV, O).map(that => ({
+          type: 'intersect' as const,
+          that,
+        })),
+        A.fp4tsMap(arbK, arbV, O).map(that => ({
+          type: 'union' as const,
+          that,
+        })),
+        A.fp4tsMap(arbK, arbV, O).map(that => ({
+          type: 'difference' as const,
+          that,
+        })),
+      );
 
-  checkAll(
-    'TraversableWithIndex<Map<number, *>, number>',
-    TraversableWithIndexSuite(
-      Map.TraversableWithIndex<number>(),
-    ).traversableWithIndex<number, number, number, EvalF, EvalF>(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
-      Map.FunctorWithIndex(),
-      Eval.Applicative,
-      Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-      E => Map.Eq(Eq.primitive, E),
-      A.fp4tsEval,
-      Eval.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-    ),
-  );
+    const executeAction =
+      <K>(O: Ord<K>) =>
+      <V>(s: Map<K, V>, a: Action<K, V>): Map<K, V> => {
+        switch (a.type) {
+          case 'insert':
+            return s.insert(O, a.k, a.v);
+          case 'remove':
+            return s.remove(O, a.k);
+          case 'intersect':
+            return s.intersect(O, a.that);
+          case 'union':
+            return s.union(O, a.that);
+          case 'difference':
+            return s.difference(O, a.that);
+        }
+      };
+
+    it(
+      'should remain valid after running a sequence of actions',
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.integer(), Ord.primitive),
+        fc.array(actionArbitrary(fc.integer(), fc.integer(), Ord.primitive)),
+        (s, as) =>
+          expect(
+            isValid(
+              Ord.primitive,
+              as.reduce(executeAction(Ord.primitive)<number>, s),
+            ),
+          ).toBe(true),
+      ),
+    );
+  });
+
+  describe('Laws', () => {
+    checkAll(
+      'MonoidK<Map<PrimitiveType, *>>',
+      MonoidKSuite(Map.MonoidK(Ord.primitive)).monoidK(
+        fc.integer(),
+        Eq.primitive,
+        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
+        E => Map.Eq(Eq.primitive, E),
+      ),
+    );
+
+    checkAll(
+      'FunctorFilter<Map<number, *>>',
+      FunctorFilterSuite(Map.FunctorFilter<number>()).functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
+        E => Map.Eq(Eq.primitive, E),
+      ),
+    );
+
+    checkAll(
+      'TraversableWithIndex<Map<number, *>, number>',
+      TraversableWithIndexSuite(
+        Map.TraversableWithIndex<number>(),
+      ).traversableWithIndex<number, number, number, EvalF, EvalF>(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        Map.FunctorWithIndex(),
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
+        E => Map.Eq(Eq.primitive, E),
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+      ),
+    );
+  });
 });
