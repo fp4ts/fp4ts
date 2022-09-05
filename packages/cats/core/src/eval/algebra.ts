@@ -13,6 +13,10 @@ export abstract class Eval<out A> {
   public abstract readonly value: A;
 
   public abstract readonly memoize: Eval<A>;
+
+  public toString(): string {
+    return 'Eval(..)';
+  }
 }
 
 export class Now<A> extends Eval<A> {

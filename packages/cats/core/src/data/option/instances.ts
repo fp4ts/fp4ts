@@ -61,14 +61,13 @@ export const optionFunctorFilter: Lazy<FunctorFilter<OptionF>> = lazyVal(() =>
 export const optionApply: Lazy<Apply<OptionF>> = lazyVal(() =>
   Apply.of({
     ...optionFunctor(),
-    ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    ap_: (ff, fa) => (ff === none ? none : map_(fa, ff.get)),
     map2Eval_:
       <A, B>(fa: Option<A>, efb: Eval<Option<B>>) =>
       <C>(f: (a: A, b: B) => C) =>
-        fa.fold(
-          () => Eval.now(none),
-          a => efb.map(fb => fb.map(b => f(a, b))),
-        ),
+        fa === none
+          ? Eval.now(none)
+          : efb.map(fb => map_(fb, b => f(fa.get, b))),
   }),
 );
 

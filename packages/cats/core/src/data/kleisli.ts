@@ -10,6 +10,7 @@ import {
   cached,
   compose,
   Fix,
+  id,
   Kind,
   Lazy,
   lazyVal,
@@ -249,6 +250,10 @@ const kleisliArrow: <F>(F: Monad<F>) => Arrow<$<KleisliF, [F]>> = cached(
         <A, B>(k: Kleisli<F, A, B>) =>
         ([a, c]: [A, C]) =>
           F.map_(k(a), b => [b, c]),
+      id:
+        <A>() =>
+        (a: A) =>
+          F.pure(a),
       compose_: kleisliCompose(F).compose_,
       andThen_: kleisliCompose(F).andThen_,
     }),

@@ -7,6 +7,7 @@
  * @module cats/test-kit
  */
 
+import './fast-check-extension';
 export * from './rules';
 export * from './exec';
 export * from './for-all';
