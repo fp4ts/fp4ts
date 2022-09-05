@@ -99,9 +99,9 @@ Inspired by [io-ts](https://github.com/gcanti/io-ts), [shapeless](https://github
   - `@fp4ts/schema-kernel` Type classes for describing types for derivations of Kind-0 and Kind-1 types (_included_)
   - `@fp4ts/schema-core` Derivable data types for validation, encoding and decoding of types (_included_)
   - `@fp4ts/schema-derivation` Derivation of data type constructors (_included_)
-  - `@fp4ts/json` JSON-specific encoders and decoders
-  - `@fp4ts/laws` Set of laws for codable data types
-  - `@fp4ts/test-kit` Set of arbitraries for testing schemable types
+  - `@fp4ts/schema-json` JSON-specific encoders and decoders
+  - `@fp4ts/schema-laws` Set of laws for codable data types
+  - `@fp4ts/schema-test-kit` Set of arbitraries for testing schemable types
 
 
 - `@fp4ts/sql` Partial port of the [doobie](https://github.com/tpolecat/doobie) library
