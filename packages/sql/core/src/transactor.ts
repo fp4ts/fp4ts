@@ -70,12 +70,12 @@ export class TransactorAux<F, K, C> {
 
   private run(conn: C): FunctionK<ConnectionIOF, F> {
     return <A>(fa: ConnectionIO<A>): Kind<F, [A]> =>
-      fa.foldMap(this.KF)(this.interpret).run(conn);
+      fa.foldMap(this.KF)(this.interpret)(conn);
   }
 
   public rawTrans<A>(fa: ConnectionIO<A>): Kind<F, [A]> {
     return this.connect(this.kernel).use(this.F)(conn =>
-      fa.foldMap(Kleisli.Monad<F, C>(this.F))(this.interpret).run(conn),
+      fa.foldMap(Kleisli.Monad<F, C>(this.F))(this.interpret)(conn),
     );
   }
 
@@ -83,8 +83,7 @@ export class TransactorAux<F, K, C> {
     return this.connect(this.kernel).use(this.F)(conn =>
       this.strategy.resource
         .use(ConnectionIO.Async)(() => fa)
-        .foldMap(this.KF)(this.interpret)
-        .run(conn),
+        .foldMap(this.KF)(this.interpret)(conn),
     );
   }
 

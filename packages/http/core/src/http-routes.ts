@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind } from '@fp4ts/core';
-import { Kleisli, Monad, OptionT, OptionTF } from '@fp4ts/cats';
+import { $ } from '@fp4ts/core';
+import { AndThen, Kleisli, Monad, OptionT, OptionTF } from '@fp4ts/cats';
 import { Http } from './http';
 import {
   Status,
@@ -16,13 +16,15 @@ import {
 
 export type HttpRoutes<F> = Http<$<OptionTF, [F]>, F>;
 export const HttpRoutes: HttpRoutesObj = function (run) {
-  return Http(run);
+  return run;
 };
 
 HttpRoutes.orNotFound =
   <F>(F: Monad<F>) =>
   (routes: HttpRoutes<F>): Http<F, F> =>
-    routes.mapK(opt => opt.getOrElse(F)(() => Status.NotFound<F>()) as any);
+    AndThen(routes).andThen(
+      opt => opt.getOrElse(F)(() => Status.NotFound<F>()) as any,
+    );
 
 export type ContextRoutes<F, A> = Kleisli<
   $<OptionTF, [F]>,
@@ -31,7 +33,7 @@ export type ContextRoutes<F, A> = Kleisli<
 >;
 export const ContextRoutes = <F, A>(
   run: (req: ContextRequest<F, A>) => OptionT<F, Response<F>>,
-): ContextRoutes<F, A> => Kleisli(run);
+): ContextRoutes<F, A> => run;
 export type AuthedRoutes<F, A> = Kleisli<
   $<OptionTF, [F]>,
   AuthedRequest<F, A>,

@@ -22,9 +22,9 @@ export const challenged =
     challenge: Kleisli<F, Request<F>, Either<Challenge, AuthedRequest<F, A>>>,
   ) =>
   (routes: AuthedRoutes<F, A>): HttpRoutes<F> =>
-    Kleisli(req =>
+    HttpRoutes(req =>
       OptionT<F, Response<F>>(
-        F.flatMap_(challenge.run(req), ea =>
+        F.flatMap_(challenge(req), ea =>
           ea.fold(
             challenge =>
               F.pure(
@@ -34,7 +34,7 @@ export const challenged =
                   ),
                 ),
               ),
-            authedRequest => routes.run(authedRequest).value,
+            authedRequest => routes(authedRequest).value,
           ),
         ),
       ),

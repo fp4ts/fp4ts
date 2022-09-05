@@ -16,6 +16,7 @@ import { Monad } from '../monad';
 import { Eval, EvalF } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
+import { StackSafeMonad } from '../stack-safe-monad';
 
 export const evalDefer: Lazy<Defer<EvalF>> = lazyVal(() => Defer.of({ defer }));
 
@@ -51,8 +52,9 @@ export const evalCoflatMap: Lazy<CoflatMap<EvalF>> = lazyVal(() =>
 );
 
 export const evalMonad: Lazy<Monad<EvalF>> = lazyVal(() =>
-  Monad.of({
+  StackSafeMonad.of({
     ...evalApplicative(),
+    ...evalDefer(),
     ...evalFlatMap(),
   }),
 );

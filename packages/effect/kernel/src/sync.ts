@@ -43,7 +43,10 @@ export const Sync = Object.freeze({
 
       ...Kleisli.Defer(F),
 
-      delay: <A>(thunk: () => A) => Kleisli.liftF(F.delay(thunk)),
+      delay:
+        <A>(thunk: () => A) =>
+        () =>
+          F.delay(thunk),
     }),
 
   syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTF, [F]>> =>

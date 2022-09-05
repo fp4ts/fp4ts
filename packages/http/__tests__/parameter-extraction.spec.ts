@@ -66,8 +66,7 @@ describe('parameter extraction', () => {
     `(
       'should capture parameter $param from url $url/$param',
       async ({ url, param }) => {
-        const response = await app
-          .run(new Request({ uri: uri`${url}/${param}` }))
+        const response = await app(new Request({ uri: uri`${url}/${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -84,8 +83,7 @@ describe('parameter extraction', () => {
     `(
       'should fail to capture parameter $param from url $url/$param',
       async ({ url, param }) => {
-        const response = await app
-          .run(new Request({ uri: uri`${url}/${param}` }))
+        const response = await app(new Request({ uri: uri`${url}/${param}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -106,8 +104,9 @@ describe('parameter extraction', () => {
     `(
       'should capture query $param from url $url?$name=$param',
       async ({ url, param, name }) => {
-        const response = await app
-          .run(new Request({ uri: uri`${url}?${name}=${param}` }))
+        const response = await app(
+          new Request({ uri: uri`${url}?${name}=${param}` }),
+        )
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -123,8 +122,7 @@ describe('parameter extraction', () => {
     `(
       'should return none when the param not present in $url',
       async ({ url }) => {
-        const response = await app
-          .run(new Request({ uri: uri`${url}` }))
+        const response = await app(new Request({ uri: uri`${url}` }))
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 
@@ -141,8 +139,9 @@ describe('parameter extraction', () => {
     `(
       'should fail to capture query parameter $param from url $url?$name=$param',
       async ({ url, param, name }) => {
-        const response = await app
-          .run(new Request({ uri: uri`${url}?${name}=${param}` }))
+        const response = await app(
+          new Request({ uri: uri`${url}?${name}=${param}` }),
+        )
           .flatMap(response => jsonDecoder.decode(response).value)
           .unsafeRunToPromise();
 

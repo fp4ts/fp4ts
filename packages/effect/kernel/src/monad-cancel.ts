@@ -138,9 +138,9 @@ export const MonadCancel = Object.freeze({
     MonadCancel.of({
       ...Kleisli.MonadError(F),
 
-      onCancel_: (fa, fin) => Kleisli(r => F.onCancel_(fa.run(r), fin.run(r))),
+      onCancel_: (fa, fin) => Kleisli(r => F.onCancel_(fa(r), fin(r))),
 
-      canceled: Kleisli.liftF(F.canceled),
+      canceled: () => F.canceled,
 
       uncancelable: <A>(
         body: (poll: Poll<$<KleisliF, [F, R]>>) => Kleisli<F, R, A>,
@@ -149,9 +149,9 @@ export const MonadCancel = Object.freeze({
           F.uncancelable(nat => {
             const natT: Poll<$<KleisliF, [F, R]>> = <X>(
               frx: Kleisli<F, R, X>,
-            ): Kleisli<F, R, X> => Kleisli(r => nat(frx.run(r)));
+            ): Kleisli<F, R, X> => Kleisli(r => nat(frx(r)));
 
-            return body(natT).run(r);
+            return body(natT)(r);
           }),
         ),
     }),

@@ -14,13 +14,15 @@ export const DelayedCheck = Object.freeze({
   pure:
     <F>(F: Applicative<F>) =>
     <A>(a: A): DelayedCheck<F, A> =>
-      Kleisli.pure(F)(a) as any as DelayedCheck<F, A>,
+      (() => F.pure(a)) as any as DelayedCheck<F, A>,
 
-  liftRouteResult: <F, A>(ra: RouteResultT<F, A>): DelayedCheck<F, A> =>
-    Kleisli(() => ra),
+  liftRouteResult:
+    <F, A>(ra: RouteResultT<F, A>): DelayedCheck<F, A> =>
+    () =>
+      ra,
 
   withRequest:
     <F>(F: Monad<F>) =>
     <A>(f: (req: Request<F>) => RouteResultT<F, A>): DelayedCheck<F, A> =>
-      Kleisli(f),
+      f,
 });

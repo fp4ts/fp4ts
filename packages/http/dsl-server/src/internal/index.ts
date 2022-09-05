@@ -106,7 +106,7 @@ export const toHttpRoutes =
       ),
       undefined as void,
     );
-    return Kleisli(req => r.run(req).respond(F));
+    return req => r(req).respond(F);
   };
 
 const merge = (xs: any, ys: any): any => {
@@ -336,7 +336,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     const validate = codings[BasicAuthValidatorTag][auth.realm];
     const authCheck = DelayedCheck.withRequest(F)(req =>
       pipe(
-        challenge(F)(auth.realm, validate).run(req),
+        challenge(F)(auth.realm, validate)(req),
         F.map(opt =>
           opt.fold(
             challenge => RouteResult.fatalFail(new BasicAuthFailure(challenge)),
@@ -384,8 +384,9 @@ export function route<F>(F: Concurrent<F, Error>) {
     return route(
       api,
       ctx,
-      d.addBodyCheck(EF)(ctCheck, s =>
-        Kleisli(() =>
+      d.addBodyCheck(EF)(
+        ctCheck,
+        s => () =>
           RouteResultT.fromEitherFatal(F)(
             // Fatal fail ^ as we cannot consume body more than once
             pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
@@ -396,7 +397,6 @@ export function route<F>(F: Concurrent<F, Error>) {
               ),
             ),
           ),
-        ),
       ),
       codings as any,
     );
@@ -507,8 +507,8 @@ export function route<F>(F: Concurrent<F, Error>) {
     d: Delayed<F, env, Server<F, VerbNoContentElement<any>>>,
     codings: DeriveCoding<F, VerbNoContentElement<any>>,
   ): Router<env, RoutingApplication<F>> {
-    return leafRouter(env =>
-      Kleisli(req =>
+    return leafRouter(
+      env => req =>
         d
           .addMethodCheck(EF)(methodCheck(verb.method))
           .runDelayed(EF)(env, req)
@@ -516,7 +516,6 @@ export function route<F>(F: Concurrent<F, Error>) {
           .map(F)(() =>
           new Response<F>(Status.NoContent).withHttpVersion(req.httpVersion),
         ),
-      ),
     );
   }
 
@@ -525,12 +524,11 @@ export function route<F>(F: Concurrent<F, Error>) {
     ctx: Context<context>,
     d: Delayed<F, env, Server<F, RawElement>>,
   ): Router<env, RoutingApplication<F>> {
-    return new RawRouter(env =>
-      Kleisli(req =>
+    return new RawRouter(
+      env => req =>
         d.runDelayed(EF)(env, req).flatMap(F)(raw =>
-          RouteResultT.liftF(F)(raw.run(req)),
+          RouteResultT.liftF(F)(raw(req)),
         ),
-      ),
     );
   }
 
@@ -592,8 +590,8 @@ export function route<F>(F: Concurrent<F, Error>) {
       return tupled(new Headers(acc), a);
     };
 
-    return leafRouter(env =>
-      Kleisli(req =>
+    return leafRouter(
+      env => req =>
         d
           .addAcceptCheck(EF)(acceptCheck)
           .addMethodCheck(EF)(methodCheck(method))
@@ -609,7 +607,6 @@ export function route<F>(F: Concurrent<F, Error>) {
             ? res.withBodyStream(EntityBody.empty())
             : res;
         }),
-      ),
     );
   }
 

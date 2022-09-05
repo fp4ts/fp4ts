@@ -23,36 +23,29 @@ export class MariaInterpreter<F> extends KleisliInterpreter<
   public visitPrepareStatement(
     fa: PrepareStatement,
   ): Kleisli<F, MariaConnection, PreparedStatement> {
-    return Kleisli(conn => {
-      return this.F.pure(
+    return conn =>
+      this.F.pure(
         new MariaPreparedStatement(conn, fa.fragment.sql, fa.fragment.params),
       );
-    });
   }
 
   public visitBeginTransaction(
     fa: BeginTransaction,
   ): Kleisli<F, MariaConnection, void> {
-    return Kleisli(conn =>
-      this.F.fromPromise(this.F.delay(() => conn.client.beginTransaction())),
-    );
+    return conn =>
+      this.F.fromPromise(this.F.delay(() => conn.client.beginTransaction()));
   }
 
   public visitCommit(fa: Commit): Kleisli<F, MariaConnection, void> {
-    return Kleisli(conn =>
-      this.F.fromPromise(this.F.delay(() => conn.client.commit())),
-    );
+    return conn => this.F.fromPromise(this.F.delay(() => conn.client.commit()));
   }
 
   public visitRollback(fa: Rollback): Kleisli<F, MariaConnection, void> {
-    return Kleisli(conn =>
-      this.F.fromPromise(this.F.delay(() => conn.client.rollback())),
-    );
+    return conn =>
+      this.F.fromPromise(this.F.delay(() => conn.client.rollback()));
   }
 
   public visitClose(fa: Close): Kleisli<F, MariaConnection, void> {
-    return Kleisli(conn =>
-      conn.close().foldMap(this.KF)(this.liftK()).run(conn),
-    );
+    return conn => conn.close().foldMap(this.KF)(this.liftK())(conn);
   }
 }

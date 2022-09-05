@@ -15,7 +15,7 @@ export class Delayed<F, env, c> {
   public static empty<F>(
     F: Monad<F>,
   ): <A, env>(empty: RouteResult<A>) => Delayed<F, env, A> {
-    const r = Kleisli.pure(RouteResultT.Monad(F))(undefined as void);
+    const r = () => RouteResultT.Monad(F).unit;
     return fea =>
       new Delayed(transform =>
         transform({
@@ -93,13 +93,17 @@ export class Delayed<F, env, c> {
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
     const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
+    const product: <A, B>(
+      lhs: DelayedCheck<F, A>,
+      rhs: DelayedCheck<F, B>,
+    ) => DelayedCheck<F, [A, B]> = KF.product_;
     return that =>
       new Delayed(transform =>
         this.fold(props =>
           transform({
             ...props,
-            params: KF.product_(props.params, that),
-            server: (c, [p, pNew], h, a, b, req) =>
+            params: product(props.params, that),
+            server: (c, [p, pNew]: [paramsOf<typeof props>, A], h, a, b, req) =>
               F.map_(props.server(c, p, h, a, b, req), applyTo(pNew)),
           }),
         ),
@@ -117,8 +121,14 @@ export class Delayed<F, env, c> {
           transform({
             ...props,
             headers: KF.product_(props.headers, that),
-            server: (c, p, [h, hNew], a, b, req) =>
-              F.map_(props.server(c, p, h, a, b, req), applyTo(hNew)),
+            server: (
+              c,
+              p,
+              [h, hNew]: [headersOf<typeof props>, A],
+              a,
+              b,
+              req,
+            ) => F.map_(props.server(c, p, h, a, b, req), applyTo(hNew)),
           }),
         ),
       );
@@ -147,7 +157,7 @@ export class Delayed<F, env, c> {
           transform({
             ...props,
             auth: KF.product_(props.auth, newAuth),
-            server: (c, p, h, [y, v], b, req) =>
+            server: (c, p, h, [y, v]: [authOf<typeof props>, A], b, req) =>
               F.map_(props.server(c, p, h, y, b, req), applyTo(v)),
           }),
         ),
@@ -229,10 +239,24 @@ export class Delayed<F, env, c> {
           return yield* _(
             DelayedCheck.liftRouteResult(props.server(c, p, h, a, b, req)),
           );
-        }).run(req),
+        })(req),
       );
   }
 }
+
+type authOf<X> = X extends DelayedProps<
+  any,
+  any,
+  any,
+  infer auth,
+  any,
+  any,
+  any,
+  any,
+  any
+>
+  ? auth
+  : never;
 
 type capturesOf<X> = X extends DelayedProps<
   any,
@@ -260,6 +284,34 @@ type contentTypeOf<X> = X extends DelayedProps<
   any
 >
   ? contentType
+  : never;
+
+type paramsOf<X> = X extends DelayedProps<
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  infer params,
+  any,
+  any
+>
+  ? params
+  : never;
+
+type headersOf<X> = X extends DelayedProps<
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  infer headers,
+  any
+>
+  ? headers
   : never;
 
 interface DelayedProps<

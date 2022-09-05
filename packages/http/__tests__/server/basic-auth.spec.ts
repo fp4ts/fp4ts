@@ -68,8 +68,7 @@ describe('Basic Auth', () => {
       basicMiddleware(nukeService(() => (isNuked = true))),
     );
 
-    return authenticatedService
-      .run(req)
+    return authenticatedService(req)
       .tap(() => expect(isNuked).toBe(false))
       .map(res =>
         expect(res.status.code === Status.Unauthorized.code).toBe(true),
@@ -82,8 +81,7 @@ describe('Basic Auth', () => {
       basicMiddleware(service),
     );
 
-    return authenticatedService
-      .run(req)
+    return authenticatedService(req)
       .tap(res =>
         expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
           Some(new WWWAuthenticate(new Challenge('Basic', realm))),
@@ -105,8 +103,7 @@ describe('Basic Auth', () => {
       basicMiddleware(service),
     );
 
-    return authenticatedService
-      .run(req)
+    return authenticatedService(req)
       .tap(res =>
         expect(res.headers.get(WWWAuthenticate.Select)).toEqual(
           Some(new WWWAuthenticate(new Challenge('Basic', realm))),
@@ -128,8 +125,7 @@ describe('Basic Auth', () => {
       basicMiddleware(service),
     );
 
-    return authenticatedService
-      .run(req)
+    return authenticatedService(req)
       .tap(res => expect(res.status.code).toBe(Status.Ok.code))
       .flatMap(res => res.bodyText.compileConcurrent().string)
       .map(body => expect(body).toBe(username));

@@ -3,20 +3,35 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Base } from '@fp4ts/core';
+import { Defer } from './defer';
 import { Monad } from './monad';
+
+export function isStackSafeMonad<F>(F: Base<F>): F is StackSafeMonad<F> {
+  return (F as any).defer != null && (F as any).flatMap != null;
+}
+
+export interface StackSafeMonad<F> extends Monad<F>, Defer<F> {}
 
 export type StackSafeMonadRequirements<F> = Pick<
   Monad<F>,
   'flatMap_' | 'pure'
 > &
+  Partial<Defer<F>> &
   Partial<Monad<F>>;
 export const StackSafeMonad = Object.freeze({
-  of: <F>(F: StackSafeMonadRequirements<F>): Monad<F> => {
-    const self: Monad<F> = Monad.of({
-      tailRecM_: (a, f) =>
-        self.flatMap_(f(a), ea => ea.fold(a => self.tailRecM_(a, f), F.pure)),
-      ...F,
-    });
+  of: <F>(F: StackSafeMonadRequirements<F>): StackSafeMonad<F> => {
+    const self: StackSafeMonad<F> = {
+      ...Defer.of({
+        defer: thunk => self.flatMap_(self.unit, () => thunk()),
+        ...F,
+      }),
+      ...Monad.of({
+        tailRecM_: (a, f) =>
+          self.flatMap_(f(a), ea => ea.fold(a => self.tailRecM_(a, f), F.pure)),
+        ...F,
+      }),
+    };
     return self;
   },
 });

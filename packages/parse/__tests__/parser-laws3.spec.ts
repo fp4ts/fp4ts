@@ -69,12 +69,10 @@ describe('Parser Laws', () => {
         fc.string(),
         (a, f, g, h, s) => {
           type F = $<ParserTF, [StringSource, IdentityF]>;
-          const kf = Kleisli<F, number, string>(f);
-          const kg = Kleisli<F, string, string>(g);
-          const kh = Kleisli<F, string, string>(h);
+          const C = Kleisli.Compose(F);
 
-          const l = kf['>=>'](F)(kg)['>=>'](F)(kh).run(a).parse(s);
-          const r = kf['>=>'](F)(kg['>=>'](F)(kh)).run(a).parse(s);
+          const l = C.andThen_(C.andThen_(f, g), h)(a).parse(s);
+          const r = C.andThen_(f, C.andThen_(g, h))(a).parse(s);
 
           return eq(l, r);
         },
@@ -119,11 +117,13 @@ describe('Parser Laws', () => {
         fc.func<[number], Parser<StringSource, string>>(fp4tsStringParser0()),
         fc.string(),
         (a, f, s) => {
+          const C = Kleisli.Compose(F);
           type F = $<ParserTF, [StringSource, IdentityF]>;
-          const kf = Kleisli<F, number, string>(f);
-          const kp = Kleisli<F, number, number>(F.pure);
 
-          return eq(kp['>=>'](F)(kf).run(a).parse(s), f(a).parse(s));
+          return eq(
+            C.andThen_(F.pure as Kleisli<F, number, number>, f)(a).parse(s),
+            f(a).parse(s),
+          );
         },
       ),
     );
@@ -135,11 +135,10 @@ describe('Parser Laws', () => {
         fc.func<[number], Parser<StringSource, string>>(fp4tsStringParser0()),
         fc.string(),
         (a, f, s) => {
+          const C = Kleisli.Compose(F);
           type F = $<ParserTF, [StringSource, IdentityF]>;
-          const kf = Kleisli<F, number, string>(f);
-          const kp = Kleisli<F, string, string>(F.pure);
 
-          return eq(kf['>=>'](F)(kp).run(a).parse(s), f(a).parse(s));
+          return eq(C.andThen_(f, F.pure)(a).parse(s), f(a).parse(s));
         },
       ),
     );

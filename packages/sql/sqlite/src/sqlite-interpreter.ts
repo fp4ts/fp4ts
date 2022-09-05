@@ -22,17 +22,16 @@ export class SqliteInterpreter<F> extends KleisliInterpreter<
   SqliteConnection
 > {
   private rawQuery(sql: string): Kleisli<F, SqliteConnection, void> {
-    return Kleisli(conn =>
+    return conn =>
       this.F.async_(cb =>
         conn.db.run(sql, err => cb(err ? Left(err) : Either.rightUnit)),
-      ),
-    );
+      );
   }
 
   public visitPrepareStatement(
     fa: PrepareStatement,
   ): Kleisli<F, SqliteConnection, PreparedStatement> {
-    return Kleisli(conn =>
+    return conn =>
       this.F.async_(cb => {
         const stmt: Statement = conn.db.prepare(fa.fragment.sql, err =>
           cb(
@@ -41,8 +40,7 @@ export class SqliteInterpreter<F> extends KleisliInterpreter<
               : Right(new SqlitePreparedStatement(stmt, fa.fragment.params)),
           ),
         );
-      }),
-    );
+      });
   }
 
   public visitBeginTransaction(
@@ -60,8 +58,6 @@ export class SqliteInterpreter<F> extends KleisliInterpreter<
   }
 
   public visitClose(fa: Close): Kleisli<F, SqliteConnection, void> {
-    return Kleisli(conn =>
-      conn.close().foldMap(this.KF)(this.liftK()).run(conn),
-    );
+    return conn => conn.close().foldMap(this.KF)(this.liftK())(conn);
   }
 }

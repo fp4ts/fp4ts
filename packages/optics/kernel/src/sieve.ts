@@ -44,7 +44,7 @@ export const Sieve = Object.freeze({
 
   Kleisli: <F>(F: Monad<F>): Sieve<$<KleisliF, [F]>, F> =>
     Sieve.of(
-      { sieve: <A, B>(pab: Kleisli<F, A, B>) => pab.run, ...Kleisli.Arrow(F) },
+      { sieve: <A, B>(pab: Kleisli<F, A, B>) => pab, ...Kleisli.Arrow(F) },
       F,
     ),
 });

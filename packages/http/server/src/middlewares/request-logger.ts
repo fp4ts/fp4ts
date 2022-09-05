@@ -19,7 +19,7 @@ export function RequestLogger<G>(G: MonadCancelThrow<G>): RequestLogger<G> {
     return http =>
       Http(req =>
         pipe(
-          http.run(req),
+          http(req),
           G.finalize(() => nt(rql.info(req))),
         ),
       );

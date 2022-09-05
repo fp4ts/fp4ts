@@ -296,11 +296,9 @@ describe('Stream Parallel Join', () => {
         .map(f)
         .parJoinUnbounded(F)
         .compileConcurrent(F)
-        .toList.map(IO.Functor)(xs => new Set([...xs]))
-        .flatMapF(IO.Monad)(xs =>
-          IO(() => expect(xs).toEqual(new Set(['1', '2', '3']))),
-        )
-        .run(undefined)
+        .toList(undefined)
+        .map(xs => new Set([...xs]))
+        .flatMap(xs => IO(() => expect(xs).toEqual(new Set(['1', '2', '3']))))
         .unsafeRunToPromise();
     });
   });

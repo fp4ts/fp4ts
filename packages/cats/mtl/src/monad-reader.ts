@@ -6,6 +6,7 @@
 import { $, compose, id, instance, Kind } from '@fp4ts/core';
 import { Monad, MonadRequirements } from '@fp4ts/cats-core';
 import {
+  AndThen,
   EitherT,
   EitherTF,
   Function1,
@@ -46,8 +47,8 @@ export const MonadReader = Object.freeze({
   Kleisli: <F, R>(F: Monad<F>): MonadReader<$<KleisliF, [F, R]>, R> =>
     MonadReader.of<$<KleisliF, [F, R]>, R>({
       ...Kleisli.Monad(F),
-      ask: (() => Kleisli.ask(F)) as MonadReader<$<KleisliF, [F, R]>, R>['ask'],
-      local_: (fa, f) => fa.adapt(f),
+      ask: () => (r: R) => F.pure(r),
+      local_: (fa, f) => AndThen(f).andThen(fa),
     }),
 
   EitherT: <F, E, R>(

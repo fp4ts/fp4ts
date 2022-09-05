@@ -122,12 +122,12 @@ export const Async = Object.freeze({
       ...Sync.syncForKleisli(F),
       ...Temporal.temporalForKleisli(F),
 
-      readExecutionContext: Kleisli.liftF(F.readExecutionContext),
+      readExecutionContext: () => F.readExecutionContext,
 
       executeOn_: <A>(
         fa: Kleisli<F, R, A>,
         ec: ExecutionContext,
-      ): Kleisli<F, R, A> => Kleisli((r: R) => F.executeOn_(fa.run(r), ec)),
+      ): Kleisli<F, R, A> => Kleisli((r: R) => F.executeOn_(fa(r), ec)),
 
       cont: <K, R2>(
         body: Cont<$<KleisliF, [F, R]>, K, R2>,
@@ -141,13 +141,13 @@ export const Async = Object.freeze({
               nat: FunctionK<F, G>,
             ): Kind<G, [R2]> => {
               const natT = <A>(fa: Kleisli<F, R, A>): Kleisli<G, R, A> =>
-                Kleisli((r: R) => nat(fa.run(r)));
+                Kleisli((r: R) => nat(fa(r)));
 
               return body(MonadCancel.forKleisli<G, R, Error>(G))(
                 k,
-                Kleisli.liftF(get),
+                () => get,
                 natT,
-              ).run(r);
+              )(r);
             };
 
           return F.cont(cont);

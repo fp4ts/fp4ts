@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
+import { $, constant, id, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Traversable,
   Either,
@@ -144,13 +144,15 @@ export const Concurrent = Object.freeze({
     Concurrent.of<$<KleisliF, [F, R]>, E>({
       ...Spawn.forKleisli<F, E, R>(F),
 
-      ref: <A>(a: A) =>
-        Kleisli.liftF(F.map_(F.ref<A>(a), ref => ref.mapK(Kleisli.liftF))),
+      ref:
+        <A>(a: A) =>
+        () =>
+          F.map_(F.ref<A>(a), ref => ref.mapK(constant)),
 
-      deferred: (() =>
-        Kleisli.liftF(
-          F.map_(F.deferred(), deferred => deferred.mapK(Kleisli.liftF)),
-        )) as Concurrent<$<KleisliF, [F, R]>, E>['deferred'],
+      deferred:
+        <A>() =>
+        () =>
+          F.map_(F.deferred<A>(), deferred => deferred.mapK(constant)),
     }),
 
   forOptionT: <F, E>(F: Concurrent<F, E>): Concurrent<$<OptionTF, [F]>, E> =>

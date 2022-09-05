@@ -40,8 +40,8 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<KleisliF, [F, R]>, W>({
       monoid: F.monoid,
       ...Kleisli.Monad<F, R>(F),
-      censor_: (fa, f) => Kleisli(r => F.censor_(fa.run(r), f)),
-      listen: fa => Kleisli(r => F.listen(fa.run(r))),
+      censor_: (fa, f) => Kleisli(r => F.censor_(fa(r), f)),
+      listen: fa => Kleisli(r => F.listen(fa(r))),
       tell: w => Kleisli(() => F.tell(w)),
     }),
 

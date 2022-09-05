@@ -70,32 +70,30 @@ export abstract class KleisliInterpreter<F, C> extends ConnectionOpVisitor<
   }
   public visitPoll<A>(fa: Poll1<A>): Kleisli<F, C, A> {
     return Kleisli(conn =>
-      fa.poll(fa.self.foldMap(this.KF)(this.liftK()).run(conn)),
+      fa.poll(fa.self.foldMap(this.KF)(this.liftK())(conn)),
     );
   }
   public visitUncancelable<A>(fa: Uncancelable<A>): Kleisli<F, C, A> {
     return Kleisli(conn =>
       this.F.uncancelable(poll =>
-        fa
-          .self(ConnectionIO.capturePoll(poll))
-          .foldMap(this.KF)(this.liftK())
-          .run(conn),
+        fa.self(ConnectionIO.capturePoll(poll)).foldMap(this.KF)(this.liftK())(
+          conn,
+        ),
       ),
     );
   }
   public visitOnCancel<A>(fa: OnCancel<A>): Kleisli<F, C, A> {
     return Kleisli(conn =>
       this.F.onCancel_(
-        fa.self.foldMap(this.KF)(this.liftK()).run(conn),
-        fa.fin.foldMap(this.KF)(this.liftK()).run(conn),
+        fa.self.foldMap(this.KF)(this.liftK())(conn),
+        fa.fin.foldMap(this.KF)(this.liftK())(conn),
       ),
     );
   }
   public visitHandleErrorWith<A>(fa: HandleErrorWith<A>): Kleisli<F, C, A> {
     return Kleisli(conn =>
-      this.F.handleErrorWith_(
-        fa.self.foldMap(this.KF)(this.liftK()).run(conn),
-        e => fa.handle(e).foldMap(this.KF)(this.liftK()).run(conn),
+      this.F.handleErrorWith_(fa.self.foldMap(this.KF)(this.liftK())(conn), e =>
+        fa.handle(e).foldMap(this.KF)(this.liftK())(conn),
       ),
     );
   }
@@ -109,10 +107,7 @@ export abstract class KleisliInterpreter<F, C> extends ConnectionOpVisitor<
   }
   public visitExecuteOn<A>(fa: ExecuteOn<A>): Kleisli<F, C, A> {
     return Kleisli(conn =>
-      this.F.executeOn_(
-        fa.self.foldMap(this.KF)(this.liftK()).run(conn),
-        fa.ec,
-      ),
+      this.F.executeOn_(fa.self.foldMap(this.KF)(this.liftK())(conn), fa.ec),
     );
   }
   public visitCont<K, R>(fa: ConnectionCont<K, R>): Kleisli<F, C, R> {
@@ -128,7 +123,7 @@ export abstract class KleisliInterpreter<F, C> extends ConnectionOpVisitor<
               k,
               get,
               <A>(fa: ConnectionIO<A>): Kind<G, [A]> =>
-                nt(fa.foldMap(this.KF)(this.liftK()).run(conn)),
+                nt(fa.foldMap(this.KF)(this.liftK())(conn)),
             ),
       ),
     );
@@ -166,7 +161,7 @@ export abstract class KleisliInterpreter<F, C> extends ConnectionOpVisitor<
   ): Kleisli<F, C, Fiber<ConnectionIOF, Error, A>> {
     return Kleisli(conn =>
       pipe(
-        this.F.fork(fa.self.foldMap(this.KF)(this.liftK()).run(conn)),
+        this.F.fork(fa.self.foldMap(this.KF)(this.liftK())(conn)),
         this.F.map(fib => new ConnectionIOFiber(fib)),
       ),
     );

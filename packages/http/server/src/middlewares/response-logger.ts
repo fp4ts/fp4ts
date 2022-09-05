@@ -19,7 +19,7 @@ export function ResponseLogger<G>(G: MonadCancelThrow<G>): ResponseLogger<G> {
     return http =>
       Kleisli(req =>
         pipe(
-          http.run(req),
+          http(req),
           G.finalize(oc =>
             oc.fold(
               () => nt(logger.info('service canceled response for request')),

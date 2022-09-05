@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, pipe, tupled, $ } from '@fp4ts/core';
+import { Kind, pipe, tupled, $, constant } from '@fp4ts/core';
 import {
   Applicative,
   Parallel,
@@ -401,28 +401,28 @@ export const Spawn = Object.freeze({
   forKleisli: <F, E, R>(F: Spawn<F, E>): Spawn<$<KleisliF, [F, R]>, E> => {
     const liftOutcome = <A>(
       oc: Outcome<F, E, A>,
-    ): Outcome<$<KleisliF, [F, R]>, E, A> => oc.mapK(Kleisli.liftF);
+    ): Outcome<$<KleisliF, [F, R]>, E, A> => oc.mapK(constant);
 
     const liftFiber = <A>(
       fiber: Fiber<F, E, A>,
     ): Fiber<$<KleisliF, [F, R]>, E, A> =>
       new (class extends Fiber<$<KleisliF, [F, R]>, E, A> {
-        readonly join: Kleisli<F, R, Outcome<$<KleisliF, [F, R]>, E, A>> =
-          Kleisli.liftF(F.map_(fiber.join, liftOutcome));
+        readonly join: Kleisli<F, R, Outcome<$<KleisliF, [F, R]>, E, A>> = () =>
+          F.map_(fiber.join, liftOutcome);
 
-        readonly cancel: Kleisli<F, R, void> = Kleisli.liftF(fiber.cancel);
+        readonly cancel: Kleisli<F, R, void> = () => fiber.cancel;
       })();
 
     return Spawn.of<$<KleisliF, [F, R]>, E>({
       ...MonadCancel.forKleisli(F),
 
-      unique: Kleisli.liftF(F.unique),
+      unique: () => F.unique,
 
-      fork: fa => Kleisli(r => F.map_(F.fork(fa.run(r)), liftFiber)),
+      fork: fa => Kleisli(r => F.map_(F.fork(fa(r)), liftFiber)),
 
-      suspend: Kleisli.liftF(F.suspend),
+      suspend: () => F.suspend,
 
-      never: Kleisli.liftF(F.never),
+      never: () => F.never,
 
       racePair_: <A, B>(
         fa: Kleisli<F, R, A>,
@@ -442,7 +442,7 @@ export const Spawn = Object.freeze({
           F.uncancelable(poll =>
             poll(
               pipe(
-                F.racePair_(fa.run(r), fb.run(r)),
+                F.racePair_(fa(r), fb(r)),
                 F.map(rea =>
                   rea.fold(
                     ([oc, f]) => Left(tupled(liftOutcome(oc), liftFiber(f))),

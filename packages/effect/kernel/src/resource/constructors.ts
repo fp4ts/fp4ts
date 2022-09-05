@@ -205,9 +205,9 @@ export const cont =
                   G.finalize_(
                     body<D>(MonadCancel.forKleisli(G))(
                       resume,
-                      Kleisli.liftF<G, K>(get),
+                      () => get,
                       lift2,
-                    ).run(r),
+                    )(r),
                     oc =>
                       oc.fold(
                         () =>

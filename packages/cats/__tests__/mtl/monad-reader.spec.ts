@@ -57,7 +57,7 @@ describe('MonadReader', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<IdentityF, MiniInt, X>> =>
           A.fp4tsKleisli(arbX),
         <X>(EqX: Eq<X>): Eq<Kleisli<IdentityF, MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), EqX), k => a => k.run(a)),
+          Eq.by(eq.fn1Eq(ec.miniInt(), EqX), k => a => k(a)),
       ),
     );
 
@@ -75,7 +75,7 @@ describe('MonadReader', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<OptionF, MiniInt, X>> =>
           A.fp4tsKleisli(A.fp4tsOption(arbX)),
         <X>(EqX: Eq<X>): Eq<Kleisli<OptionF, MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), Option.Eq(EqX)), k => a => k.run(a)),
+          Eq.by(eq.fn1Eq(ec.miniInt(), Option.Eq(EqX)), k => a => k(a)),
       ),
     );
 
@@ -97,7 +97,7 @@ describe('MonadReader', () => {
         <X>(EqX: Eq<X>): Eq<Kleisli<$<EitherF, [string]>, MiniInt, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, EqX)),
-            k => a => k.run(a),
+            k => a => k(a),
           ),
       ),
     );

@@ -418,14 +418,11 @@ describe('Raw', () => {
     rawApi,
     {},
   )(() => [
-    Kleisli(req =>
-      IO.pure(Status.Ok(req.method.methodName)(EntityEncoder.text())),
-    ),
-    Kleisli(req =>
+    req => IO.pure(Status.Ok(req.method.methodName)(EntityEncoder.text())),
+    req =>
       IO.pure(
         Status.Ok(req.uri.path.components.join('/'))(EntityEncoder.text()),
       ),
-    ),
   ]);
 
   it.M('should pass request with any method to the router', () =>

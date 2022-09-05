@@ -21,26 +21,24 @@ import { PgFragmentVisitor } from './pg-fragment';
 
 export class PgInterpreter<F> extends KleisliInterpreter<F, PgConnection> {
   private rawQuery(sql: string): Kleisli<F, PgConnection, void> {
-    return Kleisli(conn =>
+    return conn =>
       pipe(
         this.F.delay(() => conn.client.query(sql)),
         this.F.fromPromise,
         this.F.void,
-      ),
-    );
+      );
   }
 
   public visitPrepareStatement(
     fa: PrepareStatement,
   ): Kleisli<F, PgConnection, PreparedStatement> {
-    return Kleisli(conn =>
+    return conn =>
       this.F.pure(
         new PgPreparedStatement(
           fa.fragment.visit(new PgFragmentVisitor()),
           conn.client,
         ),
-      ),
-    );
+      );
   }
 
   public visitBeginTransaction(
@@ -58,8 +56,6 @@ export class PgInterpreter<F> extends KleisliInterpreter<F, PgConnection> {
   }
 
   public visitClose(fa: Close): Kleisli<F, PgConnection, void> {
-    return Kleisli(conn =>
-      conn.close().foldMap(this.KF)(this.liftK()).run(conn),
-    );
+    return conn => conn.close().foldMap(this.KF)(this.liftK())(conn);
   }
 }

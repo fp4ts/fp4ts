@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, flow, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { $, compose, flow, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
   Distributive,
   Function1,
@@ -47,7 +47,7 @@ export const Closed = Object.freeze({
         <X>() =>
         <A, B>(pab: Kleisli<F, A, B>): Kleisli<F, (x: X) => A, (x: X) => B> =>
           Kleisli(xa =>
-            F.consequence(Function1.Functor<X>())(x => pab.run(xa(x))),
+            F.consequence(Function1.Functor<X>())(compose(pab, xa)),
           ),
       ...Kleisli.Arrow(F),
     }),

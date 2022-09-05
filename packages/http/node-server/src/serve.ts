@@ -65,7 +65,7 @@ const mkConnectionHandler =
         headers,
         body,
       });
-      const response = yield* _(app.run(request));
+      const response = yield* _(app(request));
 
       yield* _(
         F.delay(() => {

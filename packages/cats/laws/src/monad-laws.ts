@@ -26,14 +26,18 @@ export const MonadLaws = <F>(F: Monad<F>): MonadLaws<F> => ({
   kleisliLeftIdentity: <A, B>(
     a: A,
     f: (a: A) => Kind<F, [B]>,
-  ): IsEq<Kind<F, [B]>> =>
-    new IsEq(Kleisli<F, A, A>(F.pure)['>=>'](F)(Kleisli(f)).run(a), f(a)),
+  ): IsEq<Kind<F, [B]>> => {
+    const KF = Kleisli.Compose(F);
+    return new IsEq(KF.andThen_<A, A, B>(F.pure, f)(a), f(a));
+  },
 
   kleisliRightIdentity: <A, B>(
     a: A,
     f: (a: A) => Kind<F, [B]>,
-  ): IsEq<Kind<F, [B]>> =>
-    new IsEq(Kleisli(f)['>=>'](F)(Kleisli(F.pure)).run(a), f(a)),
+  ): IsEq<Kind<F, [B]>> => {
+    const KF = Kleisli.Compose(F);
+    return new IsEq(KF.andThen_(f, F.pure)(a), f(a));
+  },
 
   mapFlatMapCoherence: <A, B>(
     fa: Kind<F, [A]>,

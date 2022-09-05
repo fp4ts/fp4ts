@@ -83,7 +83,7 @@ export const Temporal = Object.freeze({
       ...Concurrent.forKleisli(F),
       ...Clock.forKleisli(F),
 
-      sleep: ms => Kleisli.liftF(F.sleep(ms)),
+      sleep: ms => () => F.sleep(ms),
     }),
 
   temporalForOptionT: <F, E>(

@@ -720,6 +720,7 @@ const ioApplicative: Lazy<Applicative<IOF>> = lazyVal(() =>
 
 const ioMonad: Lazy<Monad<IOF>> = lazyVal(() =>
   StackSafeMonad.of({
+    ...ioDefer(),
     ...ioApplicative(),
     flatMap_: (fa, f) => fa.flatMap(f),
   }),

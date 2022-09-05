@@ -75,10 +75,10 @@ export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
     g: (a: B) => Kind<F, [C]>,
     h: (a: C) => Kind<F, [D]>,
   ): IsEq<Kind<F, [D]>> => {
-    const [kf, kg, kh] = [Kleisli(f), Kleisli(g), Kleisli(h)];
+    const KF = Kleisli.Compose(F);
 
-    const l = kf['>=>'](F)(kg)['>=>'](F)(kh).run(a);
-    const r = kf['>=>'](F)(kg['>=>'](F)(kh)).run(a);
+    const l = KF.andThen_(KF.andThen_(f, g), h)(a);
+    const r = KF.andThen_(f, KF.andThen_(g, h))(a);
 
     return new IsEq(l, r);
   },

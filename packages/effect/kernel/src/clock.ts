@@ -49,9 +49,9 @@ export const Clock = Object.freeze({
     Clock.of({
       applicative: Kleisli.Applicative(F),
 
-      monotonic: Kleisli.liftF(F.monotonic),
+      monotonic: () => F.monotonic,
 
-      realTime: Kleisli.liftF(F.realTime),
+      realTime: () => F.realTime,
     }),
 
   forOptionT: <F>(F: Clock<F> & Monad<F>): Clock<$<OptionTF, [F]>> =>

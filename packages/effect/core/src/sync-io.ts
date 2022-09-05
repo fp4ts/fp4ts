@@ -499,6 +499,7 @@ const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazyVal(() =>
 const syncIoMonad: Lazy<Monad<SyncIOF>> = lazyVal(() =>
   StackSafeMonad.of({
     ...syncIoApplicative(),
+    ...syncIoDefer(),
     flatMap_: (fa, f) => fa.flatMap(f),
   }),
 );

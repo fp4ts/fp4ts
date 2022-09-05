@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { pipe, tupled } from '@fp4ts/core';
-import { Kleisli, Monad } from '@fp4ts/cats';
+import { Monad } from '@fp4ts/cats';
 import { Schema, Schemable } from '@fp4ts/schema';
 import { NotFoundFailure, Path, Request, Response } from '@fp4ts/http-core';
 import { RouteResultT } from './route-result';
@@ -150,13 +150,11 @@ export const runRouterEnv =
           }
 
           case 'raw':
-            return (
-              router
-                .app(env)
-                // pass remainder of the path to the raw router
-                // Note: We always artificially prepend absolute path in case
-                //       an empty segment is encountered
-                .run(req.withUri(req.uri.withPath(new Path(['', ...rem]))))
+            return router.app(env)(
+              // pass remainder of the path to the raw router
+              // Note: We always artificially prepend absolute path in case
+              //       an empty segment is encountered
+              req.withUri(req.uri.withPath(new Path(['', ...rem]))),
             );
 
           case 'choice':
@@ -176,19 +174,19 @@ export const runRouterEnv =
           return RouteResultT.fail(F)(new NotFoundFailure());
 
         case 1:
-          return ls[0](env).run(req);
+          return ls[0](env)(req);
 
         case 2:
-          return ls[0](env).run(req).orElse(F)(() => ls[1](env).run(req));
+          return ls[0](env)(req).orElse(F)(() => ls[1](env)(req));
 
         default: {
           const [hd, ...rest] = ls;
-          return hd(env).run(req).orElse(F)(() => runChoices(req, env, rest));
+          return hd(env)(req).orElse(F)(() => runChoices(req, env, rest));
         }
       }
     };
 
-    return Kleisli(req => {
+    return req => {
       const path = req.uri.path;
       // ensure to trip the leading '' introduced by /
       const pathComponents = req.uri.path.isAbsolute
@@ -200,7 +198,7 @@ export const runRouterEnv =
           ? pathComponents.slice(0, pathComponents.length - 1)
           : pathComponents;
       return loop(req, router, routablePathComponents)(env);
-    });
+    };
   };
 
 export const sameStructure = <env, a, b>(

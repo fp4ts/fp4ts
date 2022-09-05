@@ -113,7 +113,7 @@ Client.fromHttpApp = function <F>(F: Async<F>) {
 
             const req0 = req.withBodyStream(go(req.body.pull).stream());
 
-            return Resource.evalF(app.run(req0))
+            return Resource.evalF(app(req0))
               .onFinalize(F)(() => disposed.set(true))
               .map(res => res.withBodyStream(go(res.body.pull).stream()));
           }),

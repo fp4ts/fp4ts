@@ -300,7 +300,7 @@ export const use_ =
 export const useKleisli_ =
   <F>(F: MonadCancel<F, Error>) =>
   <A, B>(r: Resource<F, A>, k: Kleisli<F, A, B>): Kind<F, [B]> =>
-    use_(F)(r, k.run);
+    use_(F)(r, k);
 
 export const surround_ =
   <F>(F: MonadCancel<F, Error>) =>
