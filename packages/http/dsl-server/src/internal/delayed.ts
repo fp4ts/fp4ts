@@ -72,6 +72,7 @@ export class Delayed<F, env, c> {
   ): <captured>(
     f: (c: captured) => DelayedCheck<F, A>,
   ) => Delayed<F, [captured, env], B> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return <captured>(
       f: (c: captured) => DelayedCheck<F, A>,
     ): Delayed<F, [captured, env], B> =>
@@ -79,7 +80,7 @@ export class Delayed<F, env, c> {
         this.fold(props =>
           transform({
             ...props,
-            captures: ([txt, env]) => props.captures(env).product(F)(f(txt)),
+            captures: ([txt, env]) => KF.product_(props.captures(env), f(txt)),
             server: ([x, v]: [capturesOf<typeof props>, A], p, h, a, b, req) =>
               F.map_(props.server(x, p, h, a, b, req), applyTo(v)),
           }),
@@ -91,12 +92,13 @@ export class Delayed<F, env, c> {
     this: Delayed<F, env, (a: A) => B>,
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return that =>
       new Delayed(transform =>
         this.fold(props =>
           transform({
             ...props,
-            params: props.params.product(F)(that),
+            params: KF.product_(props.params, that),
             server: (c, [p, pNew], h, a, b, req) =>
               F.map_(props.server(c, p, h, a, b, req), applyTo(pNew)),
           }),
@@ -108,12 +110,13 @@ export class Delayed<F, env, c> {
     this: Delayed<F, env, (a: A) => B>,
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return that =>
       new Delayed(transform =>
         this.fold(props =>
           transform({
             ...props,
-            headers: props.headers.product(F)(that),
+            headers: KF.product_(props.headers, that),
             server: (c, p, [h, hNew], a, b, req) =>
               F.map_(props.server(c, p, h, a, b, req), applyTo(hNew)),
           }),
@@ -124,10 +127,11 @@ export class Delayed<F, env, c> {
   public addMethodCheck(
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return that =>
       new Delayed(transform =>
         this.fold(props =>
-          transform({ ...props, method: props.method.productL(F)(that) }),
+          transform({ ...props, method: KF.productL_(props.method, that) }),
         ),
       );
   }
@@ -136,12 +140,13 @@ export class Delayed<F, env, c> {
     this: Delayed<F, env, (a: A) => B>,
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, A>) => Delayed<F, env, B> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return (newAuth: DelayedCheck<F, A>) =>
       new Delayed(transform =>
         this.fold(props =>
           transform({
             ...props,
-            auth: props.auth.product(F)(newAuth),
+            auth: KF.product_(props.auth, newAuth),
             server: (c, p, h, [y, v], b, req) =>
               F.map_(props.server(c, p, h, y, b, req), applyTo(v)),
           }),
@@ -156,6 +161,7 @@ export class Delayed<F, env, c> {
     that: DelayedCheck<F, C>,
     f: (c: C) => DelayedCheck<F, A>,
   ) => Delayed<F, env, B> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return <C>(
       newContent: DelayedCheck<F, C>,
       newBody: (c: C) => DelayedCheck<F, A>,
@@ -164,9 +170,9 @@ export class Delayed<F, env, c> {
         this.fold(props =>
           transform({
             ...props,
-            content: props.content.product(F)(newContent),
+            content: KF.product_(props.content, newContent),
             body: ([content, c]: [contentTypeOf<typeof props>, C]) =>
-              props.body(content).product(F)(newBody(c)),
+              KF.product_(props.body(content), newBody(c)),
             server: (c, p, h, a, [z, v], req) =>
               F.map_(props.server(c, p, h, a, z, req), applyTo(v)),
           }),
@@ -177,12 +183,13 @@ export class Delayed<F, env, c> {
   public addAcceptCheck(
     F: FlatMap<$<RouteResultTF, [F]>>,
   ): (that: DelayedCheck<F, void>) => Delayed<F, env, c> {
+    const KF = Kleisli.FlatMap<$<RouteResultTF, [F]>, Request<F>>(F);
     return that =>
       new Delayed(transform =>
         this.fold(props =>
           transform({
             ...props,
-            accept: props.accept.productL(F)(that),
+            accept: KF.productL_(props.accept, that),
           }),
         ),
       );
