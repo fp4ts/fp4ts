@@ -6,14 +6,12 @@
 import { Kind, id } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
+import { Eval } from '../../../eval';
 
 import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';
 import { Either } from '../../either';
-import { Chain } from '../chain';
 import { List } from '../list';
-import { arrayFoldableWithIndex } from './instances';
-import { Eval } from '../../../eval';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -195,6 +193,23 @@ export const foldRight_ = <A, B>(
   f: (a: A, b: B, i: number) => B,
 ): B => xs.reduceRight((b, a, i: number) => f(a, b, i), z);
 
+export const foldRightEval_ = <A, B>(
+  xs: A[],
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>, idx: number) => Eval<B>,
+): Eval<B> => {
+  const sz = xs.length;
+  const go = (idx: number): Eval<B> =>
+    idx >= sz
+      ? ez
+      : f(
+          xs[idx],
+          Eval.defer(() => go(idx + 1)),
+          idx,
+        );
+  return Eval.defer(() => go(0));
+};
+
 export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
   const results: Ior<A, B>[] = [];
   let i = 0;
@@ -217,8 +232,12 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
     G.map_(
-      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
-      xs => xs.toArray,
+      foldRightEval_(
+        xs,
+        Eval.now(G.pure(List.empty as List<B>)),
+        (x, eys, idx) => G.map2Eval_(f(x, idx), eys)((y, ys) => ys.cons(y)),
+      ).value,
+      ys => ys.toArray,
     );
 
 export const equals_ =

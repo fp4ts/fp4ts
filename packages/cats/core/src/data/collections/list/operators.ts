@@ -8,14 +8,13 @@ import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
+import { Eval } from '../../../eval';
 
 import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
 
-import { Array } from '../array';
 import { Vector } from '../vector';
-import { Chain } from '../chain';
 import { Iter } from '../iterator';
 import { NonEmptyList } from '../non-empty-list';
 
@@ -646,6 +645,21 @@ export const foldRight_ = <A, B>(
   return z;
 };
 
+export const foldRightEval_ = <A, B>(
+  xs: List<A>,
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> => {
+  const go = (xs: List<A>): Eval<B> =>
+    xs.isEmpty
+      ? ez
+      : f(
+          xs.head,
+          Eval.defer(() => go(xs.tail)),
+        );
+  return Eval.defer(() => go(xs));
+};
+
 export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
   xs = reverse(xs);
   let z: A = head(xs);
@@ -884,23 +898,27 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
-    G.map_(
-      Chain.traverseViaChain(G, Array.FoldableWithIndex())(toArray(xs), x =>
-        f(x),
-      ),
-      ys => ys.toList,
-    );
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> => {
+    const consF = (
+      x: A,
+      eys: Eval<Kind<G, [List<B>]>>,
+    ): Eval<Kind<G, [List<B>]>> =>
+      G.map2Eval_(f(x), eys)((y, ys) => ys.cons(y));
+
+    return foldRightEval_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
+  };
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
   xs: List<A>,
   f: (a: A) => Kind<G, [List<B>]>,
 ): Kind<G, [List<B>]> => {
-  const concatF = (x: A, ys: Kind<G, [List<B>]>): Kind<G, [List<B>]> =>
-    G.map2_(f(x), ys)(concat_);
+  const concatF = (
+    x: A,
+    eys: Eval<Kind<G, [List<B>]>>,
+  ): Eval<Kind<G, [List<B>]>> => G.map2Eval_(f(x), eys)(concat_);
 
-  return foldRight_(xs, G.pure(empty as List<B>), concatF);
+  return foldRightEval_(xs, Eval.now(G.pure(empty as List<B>)), concatF).value;
 };
 
 export const show_ = <A>(S: Show<A>, xs: List<A>): string => {
