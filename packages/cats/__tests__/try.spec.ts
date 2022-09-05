@@ -23,6 +23,7 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { Eval } from '@fp4ts/cats-core';
 
 describe('Try', () => {
   describe('type', () => {
@@ -244,60 +245,71 @@ describe('Try', () => {
     });
   });
 
-  const semigroupKTests = SemigroupKSuite(Try.SemigroupK);
-  checkAll(
-    'SemigroupK<Try>',
-    semigroupKTests.semigroupK(fc.integer(), Eq.primitive, A.fp4tsTry, E =>
-      Try.Eq(Eq.Error.allEqual, E),
-    ),
-  );
+  it('should short-circuit on Error', () => {
+    expect(
+      Try.Applicative.map2Eval_(
+        Failure(new Error('err 1')),
+        Eval.delay(() => throwError(new Error('err 2'))),
+      )(() => 42).value,
+    ).toEqual(Failure(new Error('err 1')));
+  });
 
-  const functorFilterTests = FunctorFilterSuite(Try.FunctorFilter);
-  checkAll(
-    'FunctorFilter<Try>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsTry,
-      E => Try.Eq(Eq.Error.allEqual, E),
-    ),
-  );
+  describe('Laws', () => {
+    const semigroupKTests = SemigroupKSuite(Try.SemigroupK);
+    checkAll(
+      'SemigroupK<Try>',
+      semigroupKTests.semigroupK(fc.integer(), Eq.primitive, A.fp4tsTry, E =>
+        Try.Eq(Eq.Error.allEqual, E),
+      ),
+    );
 
-  const coflatMapTests = CoflatMapSuite(Try.CoflatMap);
-  checkAll(
-    'CoflatMap<Try>',
-    coflatMapTests.coflatMap(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsTry,
-      E => Try.Eq(Eq.Error.strict, E),
-    ),
-  );
+    const functorFilterTests = FunctorFilterSuite(Try.FunctorFilter);
+    checkAll(
+      'FunctorFilter<Try>',
+      functorFilterTests.functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsTry,
+        E => Try.Eq(Eq.Error.allEqual, E),
+      ),
+    );
 
-  const monadErrorTests = MonadErrorSuite(Try.MonadError);
-  checkAll(
-    'MonadError<Try>',
-    monadErrorTests.monadError(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      A.fp4tsError(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.Error.strict,
-      A.fp4tsTry,
-      E => Try.Eq(Eq.Error.strict, E),
-    ),
-  );
+    const coflatMapTests = CoflatMapSuite(Try.CoflatMap);
+    checkAll(
+      'CoflatMap<Try>',
+      coflatMapTests.coflatMap(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsTry,
+        E => Try.Eq(Eq.Error.strict, E),
+      ),
+    );
+
+    const monadErrorTests = MonadErrorSuite(Try.MonadError);
+    checkAll(
+      'MonadError<Try>',
+      monadErrorTests.monadError(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        A.fp4tsError(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.Error.strict,
+        A.fp4tsTry,
+        E => Try.Eq(Eq.Error.strict, E),
+      ),
+    );
+  });
 });

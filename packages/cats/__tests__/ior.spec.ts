@@ -4,11 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Semigroup } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Option, Either, Left, Right, Ior } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { Eval } from '@fp4ts/cats-core';
+import { throwError } from '@fp4ts/core';
 
 describe('Ior', () => {
   test(
@@ -120,39 +122,50 @@ describe('Ior', () => {
     )(Option.Eq(Eq.primitive)),
   );
 
-  const bifunctorTests = BifunctorSuite(Ior.Bifunctor);
-  checkAll(
-    'Bifunctor<Iok>',
-    bifunctorTests.bifunctor(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsIor,
-      Ior.Eq,
-    ),
-  );
+  it('should short-circuit on Error', () => {
+    expect(
+      Ior.Monad<string>(Monoid.string).map2Eval_(
+        Ior.Left('42'),
+        Eval.delay(() => throwError(new Error('err 2'))),
+      )(() => 42).value,
+    ).toEqual(Ior.Left('42'));
+  });
 
-  const monadTests = MonadErrorSuite(Ior.MonadError(Semigroup.string));
-  checkAll(
-    'MonadError<$<IorK, [string]>, string>',
-    monadTests.monadError(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.string(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      arbX => A.fp4tsIor(fc.string(), arbX),
-      EqX => Ior.Eq(Eq.primitive, EqX),
-    ),
-  );
+  describe('Laws', () => {
+    const bifunctorTests = BifunctorSuite(Ior.Bifunctor);
+    checkAll(
+      'Bifunctor<Iok>',
+      bifunctorTests.bifunctor(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsIor,
+        Ior.Eq,
+      ),
+    );
+
+    const monadTests = MonadErrorSuite(Ior.MonadError(Semigroup.string));
+    checkAll(
+      'MonadError<IorK<string, *>, string>',
+      monadTests.monadError(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        arbX => A.fp4tsIor(fc.string(), arbX),
+        EqX => Ior.Eq(Eq.primitive, EqX),
+      ),
+    );
+  });
 });

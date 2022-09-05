@@ -62,6 +62,13 @@ export const optionApply: Lazy<Apply<OptionF>> = lazyVal(() =>
   Apply.of({
     ...optionFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    map2Eval_:
+      <A, B>(fa: Option<A>, efb: Eval<Option<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.fold(
+          () => Eval.now(none),
+          a => efb.map(fb => fb.map(b => f(a, b))),
+        ),
   }),
 );
 

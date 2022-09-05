@@ -27,6 +27,7 @@ import {
   leftMap_,
 } from './operators';
 import { left, pure, right, rightUnit } from './constructors';
+import { Eval } from '../../eval';
 
 export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
   EE,
@@ -45,12 +46,19 @@ export const eitherBifunctor: Lazy<Bifunctor<EitherF>> = lazyVal(() =>
   Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ }),
 );
 
-export const eitherApply: <E>() => Apply<$<EitherF, [E]>> = lazyVal(() =>
-  Apply.of({
+export const eitherApply: <E>() => Apply<$<EitherF, [E]>> = lazyVal(<E>() =>
+  Apply.of<$<EitherF, [E]>>({
     ...eitherFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    map2Eval_:
+      <A, B>(fa: Either<E, A>, efb: Eval<Either<E, B>>) =>
+      <C>(f: (a: A, b: B) => C): Eval<Either<E, C>> =>
+        fa.fold(
+          e => Eval.now(left(e)),
+          a => efb.map(fb => fb.map(b => f(a, b))),
+        ),
   }),
-);
+) as <E>() => Apply<$<EitherF, [E]>>;
 
 export const eitherApplicative: <E>() => Applicative<$<EitherF, [E]>> = lazyVal(
   () =>

@@ -21,18 +21,33 @@ import {
 import { Ior } from './algebra';
 import { IorF } from './ior';
 import { left, right } from './constructors';
+import { Eval } from '../../eval';
 
 export const iorEq: <A, B>(EqA: Eq<A>, EqB: Eq<B>) => Eq<Ior<A, B>> = (
   EqA,
   EqB,
 ) => Eq.of({ equals: equals_(EqA, EqB) });
 
-export const iorMonad: <A>(S: Semigroup<A>) => Monad<$<IorF, [A]>> = S =>
-  Monad.of({ pure: right, flatMap_: flatMap_(S), tailRecM_: tailRecM_(S) });
+export const iorMonad: <S>(S: Semigroup<S>) => Monad<$<IorF, [S]>> = <S>(
+  S: Semigroup<S>,
+) =>
+  Monad.of<$<IorF, [S]>>({
+    pure: right,
+    flatMap_: flatMap_(S),
+    tailRecM_: tailRecM_(S),
+    map2Eval_:
+      <A, B>(fa: Ior<S, A>, efb: Eval<Ior<S, B>>) =>
+      <C>(f: (a: A, b: B) => C): Eval<Ior<S, C>> =>
+        fa.fold(
+          s => Eval.now(left(s)),
+          a => efb.map(fb => fb.map(b => f(a, b))),
+          () => efb.map(fb => flatMap_(S)(fa, a => map_(fb, b => f(a, b)))),
+        ),
+  });
 
-export const iorMonadError: <A>(
-  S: Semigroup<A>,
-) => MonadError<$<IorF, [A]>, A> = <A>(S: Semigroup<A>) =>
+export const iorMonadError: <S>(
+  S: Semigroup<S>,
+) => MonadError<$<IorF, [S]>, S> = <A>(S: Semigroup<A>) =>
   MonadError.of({
     throwError: (e: A) => left(e),
     handleErrorWith_: (fa, h) => fold_(fa, h, constant(fa), constant(fa)),

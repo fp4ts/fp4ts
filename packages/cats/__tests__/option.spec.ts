@@ -17,6 +17,7 @@ import {
   CoflatMapSuite,
   FunctorFilterSuite,
 } from '@fp4ts/cats-laws';
+import { throwError } from '@fp4ts/core';
 
 describe('Option', () => {
   describe('type', () => {
@@ -163,6 +164,15 @@ describe('Option', () => {
         ),
       ).toEqual(Some(size));
     });
+  });
+
+  it('should short-circuit on None', () => {
+    expect(
+      Option.Apply.map2Eval_(
+        None,
+        Eval.delay(() => throwError(new Error())),
+      )(() => 42).value,
+    ).toEqual(None);
   });
 
   describe('Laws', () => {

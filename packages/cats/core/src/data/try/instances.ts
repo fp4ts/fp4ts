@@ -30,6 +30,7 @@ import {
   tailRecM_,
 } from './operators';
 import { failure, success } from './constructors';
+import { Eval } from '../../eval';
 
 export const tryEq: <A>(EE: Eq<Error>, EA: Eq<A>) => Eq<Try<A>> = (EE, EA) =>
   Eq.of({
@@ -59,6 +60,13 @@ export const tryApply: Lazy<Apply<TryF>> = lazyVal(() =>
   Apply.of({
     ...tryFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
+    map2Eval_:
+      <A, B>(fa: Try<A>, efb: Eval<Try<B>>) =>
+      <C>(f: (a: A, b: B) => C): Eval<Try<C>> =>
+        fa.fold(
+          e => Eval.now(failure(e)),
+          a => efb.map(fb => fb.map(b => f(a, b))),
+        ),
   }),
 );
 

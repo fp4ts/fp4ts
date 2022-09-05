@@ -14,6 +14,7 @@ import {
   MonadErrorSuite,
   BifunctorSuite,
 } from '@fp4ts/cats-laws';
+import { Eval } from '@fp4ts/cats-core';
 
 describe('Either', () => {
   describe('type', () => {
@@ -142,50 +143,61 @@ describe('Either', () => {
     });
   });
 
-  const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
-  checkAll(
-    'SemigroupK<$<EitherK, [string]>>',
-    semigroupKTests.semigroupK(
-      A.fp4tsPrimitive(),
-      Eq.primitive,
-      x => A.fp4tsEither(fc.string(), x),
-      E => Either.Eq(Eq.primitive, E),
-    ),
-  );
+  it('should short-circuit on Left', () => {
+    expect(
+      Either.Apply<string>().map2Eval_(
+        Left('left'),
+        Eval.delay(() => throwError(new Error())),
+      )(() => 42).value,
+    ).toEqual(Left('left'));
+  });
 
-  const bifunctorTests = BifunctorSuite(Either.Bifunctor);
-  checkAll(
-    'Bifunctor<Either>',
-    bifunctorTests.bifunctor(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      A.fp4tsEither,
-      Either.Eq,
-    ),
-  );
+  describe('Laws', () => {
+    const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
+    checkAll(
+      'SemigroupK<$<EitherK, [string]>>',
+      semigroupKTests.semigroupK(
+        A.fp4tsPrimitive(),
+        Eq.primitive,
+        x => A.fp4tsEither(fc.string(), x),
+        E => Either.Eq(Eq.primitive, E),
+      ),
+    );
 
-  const tests = MonadErrorSuite(Either.MonadError<string>());
-  checkAll(
-    'Monad<$<EitherK, [string]>>',
-    tests.monadError(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.string(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      x => A.fp4tsEither(fc.string(), x),
-      E => Either.Eq(Eq.primitive, E),
-    ),
-  );
+    const bifunctorTests = BifunctorSuite(Either.Bifunctor);
+    checkAll(
+      'Bifunctor<Either>',
+      bifunctorTests.bifunctor(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsEither,
+        Either.Eq,
+      ),
+    );
+
+    const tests = MonadErrorSuite(Either.MonadError<string>());
+    checkAll(
+      'Monad<Either<string, *>>',
+      tests.monadError(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.string(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        x => A.fp4tsEither(fc.string(), x),
+        E => Either.Eq(Eq.primitive, E),
+      ),
+    );
+  });
 });
