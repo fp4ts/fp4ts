@@ -14,6 +14,11 @@ export interface Functor<F> extends Invariant<F> {
   readonly map: <A, B>(f: (a: A) => B) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
   readonly map_: <A, B>(fa: Kind<F, [A]>, f: (a: A) => B) => Kind<F, [B]>;
 
+  readonly tupleLeft: <B>(b: B) => <A>(fa: Kind<F, [A]>) => Kind<F, [[B, A]]>;
+  readonly tupleLeft_: <A, B>(fa: Kind<F, [A]>, b: B) => Kind<F, [[B, A]]>;
+  readonly tupleRight: <B>(b: B) => <A>(fa: Kind<F, [A]>) => Kind<F, [[A, B]]>;
+  readonly tupleRight_: <A, B>(fa: Kind<F, [A]>, b: B) => Kind<F, [[A, B]]>;
+
   readonly tap: <A>(f: (a: A) => unknown) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
   readonly tap_: <A>(fa: Kind<F, [A]>, f: (a: A) => unknown) => Kind<F, [A]>;
 
@@ -23,9 +28,15 @@ export interface Functor<F> extends Invariant<F> {
 export type FunctorRequirements<F> = Pick<Functor<F>, 'map_'> &
   Partial<Functor<F>>;
 export const Functor = Object.freeze({
-  of: <F>(F: FunctorRequirements<F>): Functor<F> =>
-    instance<Functor<F>>({
+  of: <F>(F: FunctorRequirements<F>): Functor<F> => {
+    const self: Functor<F> = instance<Functor<F>>({
       map: f => fa => F.map_(fa, f),
+
+      tupleLeft: b => fa => self.tupleLeft_(fa, b),
+      tupleLeft_: (fa, b) => self.map_(fa, a => [b, a]),
+
+      tupleRight: b => fa => self.tupleRight_(fa, b),
+      tupleRight_: (fa, b) => self.map_(fa, a => [a, b]),
 
       imap: f => fa => F.map_(fa, f),
       imap_: (fa, f) => F.map_(fa, f),
@@ -36,7 +47,9 @@ export const Functor = Object.freeze({
       void: fa => F.map_(fa, () => undefined),
 
       ...F,
-    }),
+    });
+    return self;
+  },
 
   compose: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> =>
     ComposedFunctor.of(F, G),
