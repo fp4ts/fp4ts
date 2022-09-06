@@ -4,12 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './indexed-reader-writer-state';
-export * from './indexed-reader-writer-state-t';
 export * from './indexed-state';
-export * from './indexed-state-t';
 export * from './reader';
 export * from './reader-t';
 export * from './state';
-export * from './state-t';
 export * from './writer';
 export * from './writer-t';
+
+export * from './ix-rws-t';
+export * from './ix-state-t';

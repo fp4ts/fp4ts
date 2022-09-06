@@ -26,20 +26,6 @@ export const Monoid = Object.freeze({
     return Monoid.of({ ...Semigroup.string, empty: '' });
   },
 
-  // firstOption<A>(): Monoid<Option<A>> {
-  //   return Monoid.of<Option<A>>({
-  //     combine_: (x, y) => x['<|>'](y),
-  //     empty: None,
-  //   });
-  // },
-
-  // lastOption<A>(): Monoid<Option<A>> {
-  //   return Monoid.of<Option<A>>({
-  //     combine_: (x, y) => y()['<|>'](() => x),
-  //     empty: None,
-  //   });
-  // },
-
   get disjunction(): Monoid<boolean> {
     return { ...Semigroup.disjunction, empty: false };
   },

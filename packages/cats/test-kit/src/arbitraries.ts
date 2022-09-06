@@ -39,8 +39,8 @@ import {
   WriterT,
   Writer,
   RWS,
-  IndexedReaderWriterStateT,
-  IndexedStateT,
+  IxStateT,
+  IxRWST,
 } from '@fp4ts/cats-mtl';
 import { MiniInt } from './mini-int';
 
@@ -270,22 +270,17 @@ export const fp4tsAndThen = <A, B>(
 export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<Endo<A>> =>
   fc.func<[A], A>(arbA);
 
-export const fp4tsIndexedReaderWriterStateT = <F, W, SA, SB, R, A>(
-  arbFSAFSBA: Arbitrary<
-    Kind<F, [(r: R, sa: SA) => Kind<F, [[Chain<W>, SB, A]]>]>
-  >,
-): Arbitrary<IndexedReaderWriterStateT<F, W, SA, SB, R, A>> =>
-  arbFSAFSBA.map(IndexedReaderWriterStateT);
+export const fp4tsIxRWST = <R, W, S1, S2, F, A>(
+  A: Arbitrary<(r: R, sa: S1) => Kind<F, [[A, S2, W]]>>,
+): Arbitrary<IxRWST<R, W, S1, S2, F, A>> => A;
 
-export const fp4tsIndexedStateT = <F, SA, SB, A>(
-  F: Applicative<F>,
-  arbSFSA: Arbitrary<(s: SA) => Kind<F, [[SB, A]]>>,
-): Arbitrary<IndexedStateT<F, SA, SB, A>> => arbSFSA.map(IndexedStateT(F));
+export const fp4tsIxStateT = <F, S1, S2, A>(
+  A: Arbitrary<(s: S1) => Kind<F, [[A, S2]]>>,
+): Arbitrary<IxStateT<S1, S2, F, A>> => A;
 
 export const fp4tsStateT = <F, S, A>(
-  F: Applicative<F>,
-  arbSFSA: Arbitrary<(s: S) => Kind<F, [[S, A]]>>,
-): Arbitrary<StateT<F, S, A>> => arbSFSA.map(StateT(F));
+  A: Arbitrary<(s: S) => Kind<F, [[A, S]]>>,
+): Arbitrary<StateT<S, F, A>> => A;
 
 export const fp4tsState = <S, A>(
   arbS: Arbitrary<S>,
