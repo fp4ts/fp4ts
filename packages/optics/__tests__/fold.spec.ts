@@ -169,7 +169,7 @@ describe('Fold', () => {
     'preview',
     forAll(A.fp4tsList(fc.integer()), xs =>
       expect(
-        focus(eachli).preview(Reader.MonadReader<List<number>>()).runReader(xs),
+        focus(eachli).preview(Reader.MonadReader<List<number>>()).runA(xs),
       ).toEqual(xs.headOption),
     ),
   );
@@ -178,7 +178,7 @@ describe('Fold', () => {
     'preuse',
     forAll(A.fp4tsList(fc.integer()), xs =>
       expect(
-        focus(eachli).preuse(State.MonadState<List<number>>()).runStateA(xs),
+        focus(eachli).preuse(State.MonadState<List<number>>()).runA(null, xs),
       ).toEqual(xs.headOption),
     ),
   );

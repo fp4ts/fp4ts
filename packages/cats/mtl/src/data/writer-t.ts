@@ -300,7 +300,7 @@ const writerTMonadWriter = <F, L>(
     ...WriterT.Monad(F),
 
     censor_: (fa, f) => fa.censor(F)(lc => Chain(f(lc.folding(L)))),
-    listen: fa => fa.listen(F, L),
+    listen: (fa: any) => fa.listen(F, L) as any,
     tell: WriterT.tell(F),
   });
 

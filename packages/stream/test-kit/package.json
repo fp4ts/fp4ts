@@ -17,7 +17,7 @@
     "@fp4ts/stream-core": "*",
     "@types/jest": "^28.1.8",
     "fast-check": "^3.1.1",
-    "jest": "^29.0.1"
+    "jest": "^29.0.2"
   },
   "devDependencies": {
     "typescript": "4.8.2"

@@ -7,7 +7,7 @@ import { instance, Kind } from '@fp4ts/core';
 import { Tell, TellRequirements } from './tell';
 
 export interface Listen<F, W> extends Tell<F, W> {
-  listen<A>(fa: Kind<F, [A]>): Kind<F, [[W, A]]>;
+  listen<A>(fa: Kind<F, [A]>): Kind<F, [[A, W]]>;
 }
 
 export type ListenRequirements<F, W> = Pick<Listen<F, W>, 'listen'> &

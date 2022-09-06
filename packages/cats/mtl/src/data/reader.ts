@@ -5,23 +5,14 @@
 
 import { $ } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats-core';
-import {
-  IndexedReaderWriterState,
-  IndexedReaderWriterStateF,
-} from './indexed-reader-writer-state';
+import { Chain } from '@fp4ts/cats-core/lib/data';
+import { IxRWSF, RWS } from './ix-rws';
 import { MonadReader } from '../monad-reader';
 
-export type Reader<R, A> = IndexedReaderWriterState<
-  unknown,
-  unknown,
-  unknown,
-  R,
-  never,
-  A
->;
+export type Reader<R, A> = RWS<R, Chain<never>, void, A>;
 
 export const Reader: ReaderObj = function <A, R = unknown>(a: A): Reader<R, A> {
-  return IndexedReaderWriterState.pure(a);
+  return Reader.pure(a);
 };
 
 interface ReaderObj {
@@ -37,18 +28,15 @@ interface ReaderObj {
   MonadReader<R>(): MonadReader<ReaderF<R>, R>;
 }
 
-Reader.pure = IndexedReaderWriterState.pure;
-Reader.ask = IndexedReaderWriterState.ask;
+Reader.pure = RWS.pure;
+Reader.ask = RWS.ask;
 Reader.lift = <R, A>(f: (r: R) => A): Reader<R, A> => Reader.ask<R>().map(f);
 
 // -- Instances
 
-Reader.Monad = IndexedReaderWriterState.Monad;
-Reader.MonadReader = IndexedReaderWriterState.MonadReader;
+Reader.Monad = RWS.Monad;
+Reader.MonadReader = RWS.MonadReader;
 
 // -- HKT
 
-export type ReaderF<R> = $<
-  IndexedReaderWriterStateF,
-  [unknown, unknown, unknown, R, never]
->;
+export type ReaderF<R> = $<IxRWSF, [R, Chain<never>, void, void]>;

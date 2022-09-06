@@ -29,42 +29,52 @@ describe('LogFormat', () => {
     const f = logFormat``;
     const L = mkLogger(f);
 
-    expect(L.info('test').written(M).runA()).toEqual(List(''));
+    expect(L.info('test').written().runA(null, undefined, M)).toEqual(List(''));
   });
 
   it('should accept and format with a level', () => {
     const f = logFormat`${level}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written(M).runA()).toEqual(List('INFO'));
+    expect(L.info('test').written().runA(null, undefined, M)).toEqual(
+      List('INFO'),
+    );
   });
 
   it('should accept and format with a bracketed level', () => {
     const f = logFormat`${bracketed(level)}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written(M).runA()).toEqual(List('[INFO]'));
+    expect(L.info('test').written().runA(null, undefined, M)).toEqual(
+      List('[INFO]'),
+    );
   });
 
   it('should accept and format with a labeled level', () => {
     const f = logFormat`${label('Level', level)}`;
     const L = mkLogger(f);
 
-    expect(L.info('test').written(M).runA()).toEqual(List('Level: INFO'));
+    expect(L.info('test').written().runA(null, undefined, M)).toEqual(
+      List('Level: INFO'),
+    );
   });
 
   it('should accept and format with a message', () => {
     const f = logFormat`${message(Show.fromToString<number[]>())}`;
     const L = mkLogger(f);
 
-    expect(L.info([1, 2, 3]).written(M).runA()).toEqual(List('1,2,3'));
+    expect(L.info([1, 2, 3]).written().runA(null, undefined, M)).toEqual(
+      List('1,2,3'),
+    );
   });
 
   it('should accept and format with a quoted message', () => {
     const f = logFormat`${quoted(message(Show.fromToString<number[]>()))}`;
     const L = mkLogger(f);
 
-    expect(L.info([1, 2, 3]).written(M).runA()).toEqual(List('"1,2,3"'));
+    expect(L.info([1, 2, 3]).written().runA(null, undefined, M)).toEqual(
+      List('"1,2,3"'),
+    );
   });
 
   it('should extract the key from the context', () => {
@@ -72,7 +82,10 @@ describe('LogFormat', () => {
     const L = mkLogger(f);
 
     expect(
-      L.addContext({ myKey: 'ctx' }).info([1, 2, 3]).written(M).runA(),
+      L.addContext({ myKey: 'ctx' })
+        .info([1, 2, 3])
+        .written()
+        .runA(null, undefined, M),
     ).toEqual(List('ctx'));
   });
 
@@ -81,7 +94,10 @@ describe('LogFormat', () => {
     const L = mkLogger(f);
 
     expect(
-      L.addContext({ myKey: 'ctx' }).info([1, 2, 3]).written(M).runA(),
+      L.addContext({ myKey: 'ctx' })
+        .info([1, 2, 3])
+        .written()
+        .runA(null, undefined, M),
     ).toEqual(List('ctx'));
   });
 
@@ -93,8 +109,8 @@ describe('LogFormat', () => {
     expect(
       L.contramapMessage(msg => msg.copy({ timestamp: Some(T) }))
         .info('my message')
-        .written(M)
-        .runA(),
+        .written()
+        .runA(null, undefined, M),
     ).toEqual(List('2020-01-01T00:00:00.000Z INFO - my message'));
   });
 });

@@ -4,53 +4,41 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { Monad } from '@fp4ts/cats-core';
-import {
-  IndexedReaderWriterState,
-  IndexedReaderWriterStateF,
-} from './indexed-reader-writer-state';
+import { StackSafeMonad } from '@fp4ts/cats-core';
+import { Chain } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
+import { IxRWS, IxRWSF, RWS } from './ix-rws';
 
-export type State<S, A> = IndexedReaderWriterState<
-  never,
-  S,
-  S,
-  unknown,
-  never,
-  A
->;
+export type State<S, A> = IxRWS<unknown, Chain<never>, S, S, A>;
 
-export const State: StateObj = function (f) {
-  return IndexedReaderWriterState.state(f);
+export const State: StateObj = function (runState) {
+  return State.state(runState);
 };
 
 interface StateObj {
-  <S, A>(f: (s: S) => [S, A]): State<S, A>;
-  pure<A, S>(a: A): State<S, A>;
-  state<S, A>(f: (s: S) => [S, A]): State<S, A>;
+  <S, A>(runIxState: (s1: S) => [A, S]): State<S, A>;
+  pure<S, A>(a: A): State<S, A>;
+  state<S, A>(f: (s1: S) => [A, S]): State<S, A>;
 
   get<S>(): State<S, S>;
-  replace<S>(s: S): State<S, void>;
-  modify<S>(f: (s: S) => S): State<S, void>;
+  set<S>(s: S): State<S, void>;
+  modify<S>(f: (s1: S) => S): State<S, void>;
 
   // -- Instances
 
-  Monad<S>(): Monad<StateF<S>>;
+  Monad<S>(): StackSafeMonad<StateF<S>>;
   MonadState<S>(): MonadState<StateF<S>, S>;
 }
 
-State.pure = IndexedReaderWriterState.pure;
-State.state = State;
-State.get = () => State(s => [s, s]);
-State.modify = f => State(s => [f(s), undefined]);
-State.replace = s => State.modify(() => s);
+State.pure = RWS.pure;
+State.state = RWS.state<Chain<never>>();
+State.get = RWS.get;
+State.set = RWS.set;
+State.modify = RWS.modify<Chain<never>>();
 
-State.Monad = IndexedReaderWriterState.Monad;
-State.MonadState = IndexedReaderWriterState.MonadState;
+State.Monad = RWS.Monad;
+State.MonadState = RWS.MonadState;
 
 // -- HKT
 
-export type StateF<S> = $<
-  IndexedReaderWriterStateF,
-  [never, S, S, unknown, never]
->;
+export type StateF<S> = $<IxRWSF, [unknown, Chain<never>, S, S]>;

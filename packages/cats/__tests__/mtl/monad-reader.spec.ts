@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, snd } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import {
   Either,
   EitherF,
@@ -17,7 +17,7 @@ import {
   OptionF,
   OptionT,
 } from '@fp4ts/cats-core/lib/data';
-import { RWS, RWSF, MonadReader } from '@fp4ts/cats-mtl';
+import { RWS, IxRWSF, MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -103,41 +103,44 @@ describe('MonadReader', () => {
     );
   });
 
+  type RWSF_ = $<IxRWSF, [boolean, string, MiniInt, MiniInt]>;
   describe('EitherT', () => {
     checkAll(
-      'Local<EitherT<RWS<void, void, void, MiniInt, string, *>, Error, *>',
+      'Local<EitherT<RWS<boolean, string, MiniInt>, Error, *>',
       MonadReaderSuite(
-        MonadReader.EitherT<
-          $<RWSF, [void, void, void, MiniInt, string]>,
-          Error,
-          MiniInt
-        >(RWS.MonadReader()),
+        MonadReader.EitherT<RWSF_, Error, boolean>(RWS.MonadReader()),
       ).local(
         fc.integer(),
         fc.integer(),
-        A.fp4tsMiniInt(),
+        fc.boolean(),
         Eq.primitive,
         Eq.primitive,
-        MiniInt.Eq,
-        <X>(
-          arbX: Arbitrary<X>,
-        ): Arbitrary<
-          EitherT<$<RWSF, [void, void, void, MiniInt, string]>, Error, X>
-        > =>
+        Eq.primitive,
+        <X>(X: Arbitrary<X>): Arbitrary<EitherT<RWSF_, Error, X>> =>
           A.fp4tsEitherT(
-            A.fp4tsRWS(fc.string(), A.fp4tsEither(A.fp4tsError(), arbX)),
+            A.fp4tsRWS(
+              fc.func(
+                fc.tuple(
+                  A.fp4tsEither(A.fp4tsError(), X),
+                  A.fp4tsMiniInt(),
+                  fc.string(),
+                ),
+              ),
+            ),
           ),
-        <X>(
-          EqX: Eq<X>,
-        ): Eq<
-          EitherT<$<RWSF, [void, void, void, MiniInt, string]>, Error, X>
-        > =>
+        <X>(EqX: Eq<X>): Eq<EitherT<RWSF_, Error, X>> =>
           Eq.by(
             eq.fn1Eq(
-              ec.miniInt(),
-              Either.Eq(Eq.primitive, Either.Eq(Eq.Error.strict, EqX)),
+              ec.boolean().product(ec.miniInt()),
+              Eq.tuple(
+                Either.Eq(Eq.Error.allEqual, EqX),
+                MiniInt.Eq,
+                Eq.fromUniversalEquals<string>(),
+              ),
             ),
-            k => a => k.value.runAll(a)[1].map(snd),
+            fa =>
+              ([r, s1]) =>
+                fa.value.runAll(r, s1, Monoid.string),
           ),
       ),
     );
@@ -145,30 +148,37 @@ describe('MonadReader', () => {
 
   describe('OptionT', () => {
     checkAll(
-      'Local<OptionT<RWS<void, void, void, MiniInt, string, *>, Error, *>',
+      'Local<OptionT<RWS<boolean, string, MiniInt, *>, *>',
       MonadReaderSuite(
-        MonadReader.OptionT<
-          $<RWSF, [void, void, void, MiniInt, string]>,
-          MiniInt
-        >(RWS.MonadReader()),
+        MonadReader.OptionT<RWSF_, boolean>(RWS.MonadReader()),
       ).local(
         fc.integer(),
         fc.integer(),
-        A.fp4tsMiniInt(),
+        fc.boolean(),
         Eq.primitive,
         Eq.primitive,
-        MiniInt.Eq,
-        <X>(
-          arbX: Arbitrary<X>,
-        ): Arbitrary<
-          OptionT<$<RWSF, [void, void, void, MiniInt, string]>, X>
-        > => A.fp4tsOptionT(A.fp4tsRWS(fc.string(), A.fp4tsOption(arbX))),
-        <X>(
-          EqX: Eq<X>,
-        ): Eq<OptionT<$<RWSF, [void, void, void, MiniInt, string]>, X>> =>
+        Eq.primitive,
+        <X>(X: Arbitrary<X>): Arbitrary<OptionT<RWSF_, X>> =>
+          A.fp4tsOptionT(
+            A.fp4tsRWS(
+              fc.func(
+                fc.tuple(A.fp4tsOption(X), A.fp4tsMiniInt(), fc.string()),
+              ),
+            ),
+          ),
+        <X>(EqX: Eq<X>): Eq<OptionT<RWSF_, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, Option.Eq(EqX))),
-            k => a => k.value.runAll(a)[1].map(snd),
+            eq.fn1Eq(
+              ec.boolean().product(ec.miniInt()),
+              Eq.tuple(
+                Option.Eq(EqX),
+                MiniInt.Eq,
+                Eq.fromUniversalEquals<string>(),
+              ),
+            ),
+            fa =>
+              ([r, s1]) =>
+                fa.value.runAll(r, s1, Monoid.string),
           ),
       ),
     );

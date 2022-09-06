@@ -15,31 +15,33 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 describe('Writer', () => {
   describe('cumulating results', () => {
     it('should be empty when lifting the pure value', () => {
-      expect(Writer.pure(42).runWriter(Monoid.string)).toEqual(['', 42]);
+      expect(
+        Writer.pure<number, string>(42).runAW(null, undefined, Monoid.string),
+      ).toEqual([42, '']);
     });
 
     it('should concatenate two string', () => {
       expect(
-        Writer.pure(42)
+        Writer.pure<number, string>(42)
           .log('tell')
           .log(' ')
           .log('me')
           .log(' ')
           .log('more')
-          .runWriter(Monoid.string)[0],
+          .runW(null, undefined, Monoid.string),
       ).toBe('tell me more');
     });
 
     it('should reset cumulated result', () => {
       expect(
-        Writer.pure(42)
+        Writer.pure<number, string>(42)
           .log('tell')
           .log(' ')
           .log('me')
           .log(' ')
           .log('more')
-          .reset()
-          .runWriter(Monoid.string)[0],
+          .reset(Monoid.string)
+          .runW(null, undefined, Monoid.string),
       ).toBe('');
     });
 
@@ -47,9 +49,9 @@ describe('Writer', () => {
       const lhs = Writer(['left side', 42]);
       const rhs = Writer([' right side', 42]);
 
-      expect(lhs.product(rhs).runWriter(Monoid.string)).toEqual([
-        'left side right side',
+      expect(lhs.product(rhs).runAW(null, undefined, Monoid.string)).toEqual([
         [42, 42],
+        'left side right side',
       ]);
     });
 
@@ -57,8 +59,8 @@ describe('Writer', () => {
       expect(
         Writer([[1, 2, 3], 42])
           .flatMap(x => Writer([[4, 5, 6], x + 1]))
-          .runWriter(Array.MonoidK().algebra()),
-      ).toEqual([[1, 2, 3, 4, 5, 6], 43]);
+          .runAW(null, undefined, Array.MonoidK().algebra()),
+      ).toEqual([43, [1, 2, 3, 4, 5, 6]]);
     });
   });
 
@@ -93,15 +95,15 @@ describe('Writer', () => {
         Eq.primitive,
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
-          Eq.by(Eq.tuple2(Eq.fromUniversalEquals<string>(), E), w =>
-            w.runWriter(Monoid.string),
+          Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals<string>()), w =>
+            w.runAW(null, undefined, Monoid.string),
           ),
       ),
     );
 
     checkAll(
       'Comonad<Writer<string, *>>',
-      ComonadSuite(Writer.Comonad<string>()).comonad(
+      ComonadSuite(Writer.Comonad<string>(Monoid.string)).comonad(
         fc.string(),
         fc.integer(),
         fc.string(),
@@ -110,8 +112,8 @@ describe('Writer', () => {
         Eq.primitive,
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
-          Eq.by(Eq.tuple2(Eq.fromUniversalEquals<string>(), E), w =>
-            w.runWriter(Monoid.string),
+          Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals<string>()), w =>
+            w.runAW(null, undefined, Monoid.string),
           ),
       ),
     );
@@ -129,8 +131,8 @@ describe('Writer', () => {
         Eq.primitive,
         arbX => A.fp4tsWriter(fc.tuple(fc.array(fc.string()), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string[], X>> =>
-          Eq.by(Eq.tuple2(Array.Eq(Eq.fromUniversalEquals<string>()), E), w =>
-            w.runWriter(Array.MonoidK().algebra<string>()),
+          Eq.by(Eq.tuple2(E, Array.Eq(Eq.fromUniversalEquals<string>())), w =>
+            w.runAW(null, undefined, Array.MonoidK().algebra<string>()),
           ),
       ),
     );
@@ -144,7 +146,9 @@ describe('Writer', () => {
         Eq.primitive,
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
-          Eq.by(Eq.tuple2(Eq.primitive, E), w => w.runWriter(Monoid.string)),
+          Eq.by(Eq.tuple2(E, Eq.primitive), w =>
+            w.runAW(null, undefined, Monoid.string),
+          ),
       ),
     );
   });

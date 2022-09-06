@@ -51,11 +51,18 @@ export function mapAccumL<S, T, A, B>(
   l: PTraversal<S, T, A, B>,
 ): <Acc>(z: Acc, f: (acc: Acc, a: A) => [Acc, B]) => (s: S) => [Acc, T] {
   return <Acc>(z: Acc, f: (acc: Acc, a: A) => [Acc, B]) =>
-    s =>
-      l(
+    s => {
+      const [b, acc] = l(
         State.Monad<Acc>(),
         Indexable.Function1(),
-      )(a => State.state(s => f(s, a)))(s).runState(z);
+      )(a =>
+        State.state(s => {
+          const [acc, b] = f(s, a);
+          return [b, acc];
+        }),
+      )(s).runAS(undefined, z);
+      return [acc, b];
+    };
 }
 
 export function mapAccumR<S, T, A, B>(

@@ -33,7 +33,7 @@ export function ListenSuite<F, W>(F: Listen<F, W>) {
             forAll(
               arbW,
               laws.listenRespectsTell,
-            )(mkEqF(Eq.tuple(eqW, Eq.fromUniversalEquals<void>()))),
+            )(mkEqF(Eq.tuple(Eq.fromUniversalEquals<void>(), eqW))),
           ],
           [
             'listen adds no effects',

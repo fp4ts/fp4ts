@@ -63,30 +63,27 @@ describe('Getter', () => {
 
   test('view', () => {
     expect(
-      focus(i)
-        .asGetting()
-        .view(Reader.MonadReader<Bar>())
-        .runReader(new Bar(42)),
+      focus(i).asGetting().view(Reader.MonadReader<Bar>()).runA(new Bar(42)),
     ).toBe(42);
     expect(
       focus(bar)
         .compose(i)
         .asGetting()
         .view(Reader.MonadReader<Foo>())
-        .runReader(new Foo(new Bar(42))),
+        .runA(new Foo(new Bar(42))),
     ).toBe(42);
   });
 
   test('use', () => {
     expect(
-      focus(i).asGetting().use(State.MonadState<Bar>()).runStateA(new Bar(42)),
+      focus(i).asGetting().use(State.MonadState<Bar>()).runA(null, new Bar(42)),
     ).toBe(42);
     expect(
       focus(bar)
         .compose(i)
         .asGetting()
         .use(State.MonadState<Foo>())
-        .runStateA(new Foo(new Bar(42))),
+        .runA(null, new Foo(new Bar(42))),
     ).toBe(42);
   });
 

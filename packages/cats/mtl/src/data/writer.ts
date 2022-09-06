@@ -3,58 +3,43 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, lazyVal } from '@fp4ts/core';
-import { Monad, Comonad } from '@fp4ts/cats-core';
-
-import {
-  IndexedReaderWriterState,
-  IndexedReaderWriterStateF,
-} from './indexed-reader-writer-state';
+import { $ } from '@fp4ts/core';
+import { Comonad, StackSafeMonad } from '@fp4ts/cats-core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { MonadWriter } from '../monad-writer';
+import { IxRWSF, RWS } from './ix-rws';
 
-export type Writer<L, V> = IndexedReaderWriterState<
-  L,
-  unknown,
-  unknown,
-  unknown,
-  never,
-  V
->;
+export type Writer<W, A> = RWS<unknown, W, void, A>;
 
-export const Writer: WriterObj = function ([l, v]) {
-  return IndexedReaderWriterState.tell(l).map(() => v);
+export const Writer: WriterObj = function <W, A>([w, a]: [W, A]) {
+  return RWS.tell<W, void>(w).map(() => a);
 };
 
 interface WriterObj {
-  <L, V>(lv: [L, V]): Writer<L, V>;
-  pure<V, L = never>(v: V): Writer<L, V>;
-  tell<L>(l: L): Writer<L, void>;
+  <W, A>(wa: [W, A]): Writer<W, A>;
+  pure<A, W = never>(a: A): Writer<W, A>;
+  tell<W>(w: W): Writer<W, void>;
 
   // -- Instances
 
-  Monad<L>(): Monad<WriterF<L>>;
-  Comonad<L>(): Comonad<WriterF<L>>;
-  MonadWriter<L>(L: Monoid<L>): MonadWriter<WriterF<L>, L>;
+  Monad<W>(): StackSafeMonad<WriterF<W>>;
+  Comonad<W>(W: Monoid<W>): Comonad<WriterF<W>>;
+  MonadWriter<W>(L: Monoid<W>): MonadWriter<WriterF<W>, W>;
 }
 
-Writer.pure = IndexedReaderWriterState.pure;
-Writer.tell = IndexedReaderWriterState.tell;
-Writer.Monad = IndexedReaderWriterState.Monad;
+Writer.pure = RWS.pure;
+Writer.tell = RWS.tell;
+Writer.Monad = RWS.Monad;
 
-Writer.Comonad = lazyVal(<L>() =>
-  Comonad.of<WriterF<L>>({
-    ...Writer.Monad<L>(),
-    extract: fa => fa.runWriter()[1],
+Writer.Comonad = <W>(W: Monoid<W>) =>
+  Comonad.of<WriterF<W>>({
+    ...Writer.Monad<W>(),
+    extract: fa => fa.runA(undefined, undefined, W),
     coflatMap_: (fa, f) => fa.map(() => f(fa)),
-  }),
-) as <L>() => Comonad<WriterF<L>>;
+  });
 
-Writer.MonadWriter = IndexedReaderWriterState.MonadWriter;
+Writer.MonadWriter = RWS.MonadWriter;
 
 // -- HKT
 
-export type WriterF<L> = $<
-  IndexedReaderWriterStateF,
-  [L, unknown, unknown, unknown, never]
->;
+export type WriterF<W> = $<IxRWSF, [unknown, W, void, void]>;

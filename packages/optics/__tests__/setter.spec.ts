@@ -156,8 +156,8 @@ describe('Setter', () => {
   test(
     'assign',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.assign(SI)(x).runState(y)).toEqual(
-        State.state(() => [x, undefined]).runState(y),
+      expect(i.assign(SI)(x).runA(null, y)).toEqual(
+        State.state(() => [undefined, x]).runA(null, y),
       ),
     ),
   );
@@ -165,8 +165,8 @@ describe('Setter', () => {
   test(
     'modifying',
     forAll(fc.func<[number], number>(fc.integer()), fc.integer(), (f, y) =>
-      expect(i.modifying(SI)(f).runState(y)).toEqual(
-        State.state((s: number) => [f(s), undefined]).runState(y),
+      expect(i.modifying(SI)(f).runA(null, y)).toEqual(
+        State.state((s: number) => [undefined, f(s)]).runA(null, y),
       ),
     ),
   );
@@ -174,16 +174,16 @@ describe('Setter', () => {
   test(
     'adding',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.adding(SI)(x).runState(y)).toEqual(
-        State.state((s: number) => [s + x, undefined]).runState(y),
+      expect(i.adding(SI)(x).runA(null, y)).toEqual(
+        State.state((s: number) => [undefined, s + x]).runA(null, y),
       ),
     ),
   );
   test(
     'subtracting',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.subtracting(SI)(x).runState(y)).toEqual(
-        State.state((s: number) => [s - x, undefined]).runState(y),
+      expect(i.subtracting(SI)(x).runA(null, y)).toEqual(
+        State.state((s: number) => [undefined, s - x]).runA(null, y),
       ),
     ),
   );
@@ -191,8 +191,8 @@ describe('Setter', () => {
   test(
     'multiplying',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.multiplying(SI)(x).runState(y)).toEqual(
-        State.state((s: number) => [s * x, undefined]).runState(y),
+      expect(i.multiplying(SI)(x).runA(null, y)).toEqual(
+        State.state((s: number) => [undefined, s * x]).runA(null, y),
       ),
     ),
   );
@@ -200,8 +200,8 @@ describe('Setter', () => {
   test(
     'dividing',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.dividing(SI)(x).runState(y)).toEqual(
-        State.state((s: number) => [s / x, undefined]).runState(y),
+      expect(i.dividing(SI)(x).runA(null, y)).toEqual(
+        State.state((s: number) => [undefined, s / x]).runA(null, y),
       ),
     ),
   );
@@ -209,8 +209,8 @@ describe('Setter', () => {
   test(
     'anding',
     forAll(fc.boolean(), fc.boolean(), (x, y) =>
-      expect(b.anding(SB)(x).runState(y)).toEqual(
-        State.state((s: boolean) => [s && x, undefined]).runState(y),
+      expect(b.anding(SB)(x).runA(null, y)).toEqual(
+        State.state((s: boolean) => [undefined, s && x]).runA(null, y),
       ),
     ),
   );
@@ -218,8 +218,8 @@ describe('Setter', () => {
   test(
     'oring',
     forAll(fc.boolean(), fc.boolean(), (x, y) =>
-      expect(b.oring(SB)(x).runState(y)).toEqual(
-        State.state((s: boolean) => [s || x, undefined]).runState(y),
+      expect(b.oring(SB)(x).runA(null, y)).toEqual(
+        State.state((s: boolean) => [undefined, s || x]).runA(null, y),
       ),
     ),
   );
@@ -233,9 +233,12 @@ describe('Setter', () => {
             State.MonadState(),
             List.MonoidK.algebra(),
           )(x)
-          .runState(y),
+          .runA(null, y),
       ).toEqual(
-        State.state((s: List<number>) => [s['+++'](x), undefined]).runState(y),
+        State.state((s: List<number>) => [undefined, s['+++'](x)]).runA(
+          null,
+          y,
+        ),
       ),
     ),
   );
@@ -246,8 +249,8 @@ describe('Setter', () => {
       expect(
         focus<number>()
           .locally(Reader.MonadReader<number>())(f)(Reader.ask())
-          .runReader(x),
-      ).toEqual(Reader.ask<number>().map(f).runReader(x)),
+          .runA(x),
+      ).toEqual(Reader.ask<number>().map(f).runA(x)),
     ),
   );
 

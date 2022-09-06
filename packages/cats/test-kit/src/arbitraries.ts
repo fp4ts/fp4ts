@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
-import { Applicative, Eval } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import {
   Chain,
   Either,
@@ -41,6 +41,7 @@ import {
   RWS,
   IxStateT,
   IxRWST,
+  IxRWS,
 } from '@fp4ts/cats-mtl';
 import { MiniInt } from './mini-int';
 
@@ -237,9 +238,9 @@ export const fp4tsWriterT = <F, L, V>(
   arbFLV: Arbitrary<Kind<F, [[Chain<L>, V]]>>,
 ): Arbitrary<WriterT<F, L, V>> => arbFLV.map(WriterT);
 
-export const fp4tsWriter = <L, V>(
-  arbFLV: Arbitrary<[L, V]>,
-): Arbitrary<Writer<L, V>> => arbFLV.map(Writer);
+export const fp4tsWriter = <W, A>(
+  arbFLV: Arbitrary<[W, A]>,
+): Arbitrary<Writer<W, A>> => arbFLV.map(Writer);
 
 export const fp4tsReader = <R, A>(
   arbA: Arbitrary<A>,
@@ -286,40 +287,15 @@ export const fp4tsState = <S, A>(
   arbS: Arbitrary<S>,
   arbA: Arbitrary<A>,
 ): Arbitrary<State<S, A>> =>
-  fc.func<[S], [S, A]>(fc.tuple(arbS, arbA)).map(State);
+  fc.func<[S], [A, S]>(fc.tuple(arbA, arbS)).map(State);
 
-export const fp4tsRWS = <E, A>(
-  arbE: Arbitrary<E>,
-  arbA: Arbitrary<A>,
-): Arbitrary<RWS<never, unknown, never, unknown, E, A>> => {
-  type T = RWS<never, unknown, never, unknown, E, A>;
-  const { go } = fc.letrec(tie => ({
-    base: fc.oneof(arbA.map(RWS.pure), arbE.map(RWS.throwError)),
-    rec: fc.oneof(
-      fc
-        .tuple(tie('go') as Arbitrary<T>, fc.func<[A], A>(arbA))
-        .map(([fa, f]) => fa.map(f)),
-      fc
-        .tuple(tie('go') as Arbitrary<T>, fc.func<[E], A>(arbA))
-        .map(([fa, f]) => fa.handleError(f)),
-      fc
-        .tuple(
-          tie('go') as Arbitrary<T>,
-          fc.func<[A], T>(tie('go') as Arbitrary<T>),
-        )
-        .map(([fa, f]) => fa.flatMap(f)),
-      fc
-        .tuple(
-          tie('go') as Arbitrary<T>,
-          fc.func<[E], T>(tie('go') as Arbitrary<T>),
-        )
-        .map(([fa, f]) => fa.handleErrorWith(f)),
-    ),
-    go: fc.oneof({ maxDepth: 5 }, tie('base'), tie('rec')),
-  }));
+export const fp4tsIxRWS = <R, W, S1, S2, A>(
+  A: Arbitrary<(r: R, s: S1) => [A, S2, W]>,
+): Arbitrary<IxRWS<R, W, S1, S2, A>> => A.map(IxRWS);
 
-  return go as Arbitrary<T>;
-};
+export const fp4tsRWS = <R, W, S, A>(
+  A: Arbitrary<(r: R, s: S) => [A, S, W]>,
+): Arbitrary<RWS<R, W, S, A>> => A.map(RWS);
 
 export const fp4tsTagged =
   <S>() =>

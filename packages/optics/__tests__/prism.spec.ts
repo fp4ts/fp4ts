@@ -16,11 +16,11 @@ import { checkAll } from '@fp4ts/cats-test-kit';
 describe('Prism', () => {
   const _IOrS = Schema.sum('tag')({
     i: Schema.struct({
-      tag: Schema.literal('i'),
+      tag: Schema.literal('i' as const),
       value: Schema.number,
     }),
     s: Schema.struct({
-      tag: Schema.literal('s'),
+      tag: Schema.literal('s' as const),
       value: Schema.string,
     }),
   });
@@ -156,22 +156,22 @@ describe('Prism', () => {
   });
 
   test('review', () => {
-    expect(i.review(Reader.MonadReader<number>()).runReader(42)).toEqual(
+    expect(i.review(Reader.MonadReader<number>()).runA(42)).toEqual(
       I({ value: 42 }),
     );
-    expect(s.review(Reader.MonadReader<string>()).runReader('42')).toEqual(
+    expect(s.review(Reader.MonadReader<string>()).runA('42')).toEqual(
       S({ value: '42' }),
     );
   });
 
   test('reuse', () => {
-    expect(i.reuse(State.MonadState<number>()).runState(42)).toEqual([
-      42,
+    expect(i.reuse(State.MonadState<number>()).runAS(null, 42)).toEqual([
       I({ value: 42 }),
+      42,
     ]);
-    expect(s.reuse(State.MonadState<string>()).runState('42')).toEqual([
-      '42',
+    expect(s.reuse(State.MonadState<string>()).runAS(null, '42')).toEqual([
       S({ value: '42' }),
+      '42',
     ]);
   });
 

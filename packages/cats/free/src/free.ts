@@ -12,7 +12,7 @@ export const Free: FreeObj = function <F, A>(a: A): Free<F, A> {
   return new Pure(a);
 };
 
-abstract class _Free<in out F, out A> {
+abstract class _Free<F, out A> {
   private readonly __void!: void;
   private readonly _F!: (f: F) => F;
   private readonly _A!: () => A;

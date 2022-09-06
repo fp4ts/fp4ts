@@ -385,7 +385,7 @@ RWST.MonadWriter = <R, W, S, F>(
     censor_: (fa, f) =>
       suspend(F, (r, s1) => F.map_(fa(r, s1), ([a, s2, w]) => [a, s2, f(w)])),
     listen: fa =>
-      suspend(F, (r, s1) => F.map_(fa(r, s1), ([a, s2, w]) => [[w, a], s2, w])),
+      suspend(F, (r, s1) => F.map_(fa(r, s1), ([a, s2, w]) => [[a, w], s2, w])),
     tell: w => (r, s) => F.pure([undefined, s, w]),
   });
 

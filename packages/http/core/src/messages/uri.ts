@@ -115,13 +115,13 @@ export class Uri {
   }
 
   public render(): Writer<string, void> {
-    const w = Writer.pure(undefined);
+    const w = Writer.pure<void, string>(undefined);
     const scheme = this.scheme.fold(
       () => w,
       s => Writer([`${s}://`, undefined as void]),
     );
 
-    return Writer.pure(undefined)
+    return Writer.pure<void, string>(undefined)
       .productR(scheme)
       .productR(this.authority.map(a => a.render()).getOrElse(() => w))
       .productR(
@@ -134,7 +134,7 @@ export class Uri {
   }
 
   public toString(): string {
-    return this.render().runWriter()[0].folding(Monoid.string);
+    return this.render().runW(null, undefined, Monoid.string);
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
@@ -249,7 +249,7 @@ export class Path {
   }
 
   public toString(): string {
-    return this.render().runWriter(Monoid.string)[0];
+    return this.render().runW(null, undefined, Monoid.string);
   }
 
   public startsWith(that: Path): boolean {
@@ -312,7 +312,7 @@ export class Query {
   }
 
   public toString(): string {
-    return this.render().runWriter(Monoid.string)[0];
+    return this.render().runW(null, undefined, Monoid.string);
   }
 
   public render(): Writer<string, void> {

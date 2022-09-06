@@ -32,7 +32,7 @@ describe('Reader', () => {
         Reader.pure(undefined)
           .ask<{ a: number }>()
           .map(({ a }) => a)
-          .runReader({ a: 42 }),
+          .runA({ a: 42 }),
       ).toEqual(42);
     });
 
@@ -41,7 +41,8 @@ describe('Reader', () => {
         Reader.ask<{ a: number }>()
           .ask<{ b: string }>()
           .ask<{ c: null }>()
-          .void.runReader({ a: 42, b: '42', c: null }),
+          .map(() => {})
+          .runA({ a: 42, b: '42', c: null }),
       ).toEqual(undefined);
     });
   });
@@ -52,7 +53,7 @@ describe('Reader', () => {
         Reader.ask<number>()
           .map(x => x * 2)
           .provide(42)
-          .runReader(undefined),
+          .runA(undefined),
       ).toBe(84);
     });
 
@@ -64,9 +65,9 @@ describe('Reader', () => {
         .map(x => `${x} ${x}`)
         .provide('test');
 
-      expect(
-        fa.flatMap(a => fb.map(b => `${a} ${b}`)).runReader(undefined),
-      ).toEqual('84 test test');
+      expect(fa.flatMap(a => fb.map(b => `${a} ${b}`)).runA(undefined)).toEqual(
+        '84 test test',
+      );
     });
   });
 
@@ -74,8 +75,8 @@ describe('Reader', () => {
     it('should widen the environment', () => {
       expect(
         Reader.ask<{ a: number }>()
-          ['>>>'](Reader.ask<{ b: number }>().map(({ b }) => b))
-          .runReader({ a: 42, b: 84 }),
+          .productR(Reader.ask<{ b: number }>().map(({ b }) => b))
+          .runA({ a: 42, b: 84 }),
       ).toBe(84);
     });
   });
@@ -94,7 +95,7 @@ describe('Reader', () => {
         Eq.primitive,
         X => A.fp4tsReader(X),
         <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runA(r)),
       ),
     );
 
@@ -109,7 +110,7 @@ describe('Reader', () => {
         MiniInt.Eq,
         X => A.fp4tsReader(X),
         <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runA(r)),
       ),
     );
   });

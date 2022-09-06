@@ -49,8 +49,8 @@ describe('Free', () => {
   ): State<S, A> => {
     if (c.tag === 'readLine') {
       return State.state(([[h, ...t], o]: S) => [
-        [t, o] as S,
         h,
+        [t, o] as S,
       ]) as any as State<S, A>;
     }
 
@@ -73,7 +73,7 @@ describe('Free', () => {
 
     const resultState = program.foldMap(State.Monad<S>())(nt);
 
-    const [s, a] = resultState.runState([['James'], []]);
+    const [a, s] = resultState.runAS(null, [['James'], []]);
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
     expect(a).toBeUndefined();
   });
