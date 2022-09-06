@@ -676,6 +676,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/cats-indexed@workspace:packages/cats/indexed":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-indexed@workspace:packages/cats/indexed"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/core": "*"
+    typescript: 4.8.2
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/cats-kernel-laws@*, @fp4ts/cats-kernel-laws@workspace:packages/cats/kernel-laws":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-kernel-laws@workspace:packages/cats/kernel-laws"
@@ -5187,7 +5198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.0.2":
+"jest@npm:^29.0.1, jest@npm:^29.0.2":
   version: 29.0.2
   resolution: "jest@npm:29.0.2"
   dependencies:
@@ -6582,7 +6593,7 @@ __metadata:
     eslint-config-prettier: ^8.5.0
     eslint-plugin-prettier: ^4.2.1
     fast-check: ^3.1.1
-    jest: ^29.0.2
+    jest: ^29.0.1
     prettier: ^2.7.1
     supertest: ^6.2.3
     ts-node: ^10.9.1
