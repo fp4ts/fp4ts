@@ -276,6 +276,7 @@ class _IxRWS<in R, in out W, in S1, out S2, out A> {
     W: Monoid<W2>,
   ): [A, S2, W2] {
     type AnyRWS = IxRWS<unknown, unknown, unknown, unknown, unknown>;
+    type AnyView = View<unknown, unknown, unknown, unknown, unknown>;
     type Frame = (a: unknown) => unknown;
 
     let _cur: AnyRWS = this as AnyRWS;
@@ -289,7 +290,7 @@ class _IxRWS<in R, in out W, in S1, out S2, out A> {
     const conts: Cont[] = [];
 
     runLoop: while (true) {
-      const cur = _cur as View<unknown, unknown, unknown, unknown, unknown>;
+      const cur = _cur as AnyView;
       let result: unknown;
 
       switch (cur.tag) {
@@ -301,47 +302,102 @@ class _IxRWS<in R, in out W, in S1, out S2, out A> {
           result = env;
           break;
 
-        case 2: // Local
-          conts.push(Cont.LocalK);
-          envStack.push(env);
-          env = cur.f(env);
-          _cur = cur.self;
-          continue;
-
-        case 3: // Listen
-          conts.push(Cont.ListenK);
-          _cur = cur.self;
-          continue;
-
-        case 4: // Tell
+        case 2: // Tell
           log = M.combine_(log, () => cur.w);
           result = undefined;
           break;
 
-        case 5: // Censor
-          stack.push(cur.f);
-          conts.push(Cont.CensorK);
-          MStack.push(M);
-          M = cur.W;
-          _cur = cur.self;
-          continue;
-
-        case 6: /* State */ {
+        case 3: /* State */ {
           const as2 = cur.run(state);
           result = as2[0];
           state = as2[1];
           break;
         }
 
-        case 7: // Map
-          stack.push(cur.f);
-          conts.push(Cont.MapK);
+        case 4: /* Map */ {
+          const self = cur.self as AnyView;
+          const f = cur.f;
+
+          switch (self.tag) {
+            case 0: // Pure
+              result = f(self.value);
+              break;
+
+            case 1: // Ask
+              result = f(env);
+              break;
+
+            case 2: // Tell
+              log = M.combine_(log, () => self.w);
+              result = f(undefined);
+              break;
+
+            case 3: /* State */ {
+              const as2 = self.run(state);
+              result = f(as2[0]);
+              state = as2[1];
+              break;
+            }
+
+            default:
+              stack.push(f);
+              conts.push(Cont.MapK);
+              _cur = cur.self;
+              continue;
+          }
+          break;
+        }
+
+        case 5: /* FlatMap */ {
+          const self = cur.self as AnyView;
+          const f = cur.f;
+
+          switch (self.tag) {
+            case 0: // Pure
+              _cur = f(self.value);
+              continue;
+
+            case 1: // Ask
+              _cur = f(env);
+              continue;
+
+            case 2: // Tell
+              log = M.combine_(log, () => self.w);
+              _cur = f(undefined);
+              continue;
+
+            case 3: /* State */ {
+              const as2 = self.run(state);
+              _cur = f(as2[0]);
+              state = as2[1];
+              continue;
+            }
+
+            default:
+              stack.push(f);
+              conts.push(Cont.FlatMapK);
+              _cur = self;
+              continue;
+          }
+        }
+
+        case 6: // Local
+          conts.push(Cont.LocalK);
+          envStack.push(env);
+          env = cur.f(env);
           _cur = cur.self;
           continue;
 
-        case 8: // FlatMap
+        case 7: // Listen
+          conts.push(Cont.ListenK);
+          _cur = cur.self;
+          continue;
+
+        case 8: // Censor
           stack.push(cur.f);
-          conts.push(Cont.FlatMapK);
+          conts.push(Cont.CensorK);
+          MStack.push(M);
+          M = cur.W;
           _cur = cur.self;
           continue;
       }
@@ -351,28 +407,28 @@ class _IxRWS<in R, in out W, in S1, out S2, out A> {
         const c = conts.pop()!;
 
         switch (c) {
-          case 0: // LocalK
-            env = envStack.pop();
-            continue;
-
-          case 1: // ListenK
-            result = [result, log];
-            continue;
-
-          case 2: // CensorK
-            M = MStack.pop()!;
-            log = stack.pop()!(log);
-            continue;
-
-          case 3: // MapK
+          case 0: // MapK
             result = stack.pop()!(result);
             continue;
 
-          case 4: /* FlatMapK */ {
+          case 1: /* FlatMapK */ {
             const next = stack.pop()! as (u: unknown) => AnyRWS;
             _cur = next(result);
             continue runLoop;
           }
+
+          case 2: // LocalK
+            env = envStack.pop();
+            continue;
+
+          case 3: // ListenK
+            result = [result, log];
+            continue;
+
+          case 4: // CensorK
+            M = MStack.pop()!;
+            log = stack.pop()!(log);
+            continue;
         }
       }
     }
@@ -471,48 +527,22 @@ class Ask<R, W> extends _IxRWS<R, W, unknown, never, R> {
   }
 }
 
-class Local<R0, R, W, S1, S2, A> extends _IxRWS<R0, W, S1, S2, A> {
-  public readonly tag = 2;
-  public constructor(
-    public readonly self: IxRWS<R, W, S1, S2, A>,
-    public readonly f: (r0: R0) => R,
-  ) {
-    super();
-  }
-}
-
-class Listen<R, W, S1, S2, A> extends _IxRWS<R, W, S1, S2, [A, W]> {
-  public readonly tag = 3;
-  public constructor(public readonly self: IxRWS<R, W, S1, S2, A>) {
-    super();
-  }
-}
 class Tell<W> extends _IxRWS<unknown, W, unknown, never, void> {
-  public readonly tag = 4;
+  public readonly tag = 2;
   public constructor(public readonly w: W) {
-    super();
-  }
-}
-class Censor<R, W, W2, S1, S2, A> extends _IxRWS<R, W2, S1, S2, A> {
-  public readonly tag = 5;
-  public constructor(
-    public readonly self: IxRWS<R, W, S1, S2, A>,
-    public readonly f: (w: W) => W2,
-    public readonly W: Semigroup<W>,
-  ) {
     super();
   }
 }
 
 class State<W, S1, S2, A> extends _IxRWS<unknown, W, S1, S2, A> {
-  public readonly tag = 6;
+  public readonly tag = 3;
   public constructor(public readonly run: (s1: S1) => [A, S2]) {
     super();
   }
 }
 
 class Map<R, W, S1, S2, A, B> extends _IxRWS<R, W, S1, S2, B> {
-  public readonly tag = 7;
+  public readonly tag = 4;
   public constructor(
     public readonly self: IxRWS<R, W, S1, S2, A>,
     public readonly f: (a: A) => B,
@@ -528,7 +558,7 @@ class FlatMap<R1, R2, W, S1, S2, S3, A, B> extends _IxRWS<
   S3,
   B
 > {
-  public readonly tag = 8;
+  public readonly tag = 5;
   public constructor(
     public readonly self: IxRWS<R1, W, S1, S2, A>,
     public readonly f: (a: A) => IxRWS<R2, W, S2, S3, B>,
@@ -537,12 +567,40 @@ class FlatMap<R1, R2, W, S1, S2, S3, A, B> extends _IxRWS<
   }
 }
 
+class Local<R0, R, W, S1, S2, A> extends _IxRWS<R0, W, S1, S2, A> {
+  public readonly tag = 6;
+  public constructor(
+    public readonly self: IxRWS<R, W, S1, S2, A>,
+    public readonly f: (r0: R0) => R,
+  ) {
+    super();
+  }
+}
+
+class Listen<R, W, S1, S2, A> extends _IxRWS<R, W, S1, S2, [A, W]> {
+  public readonly tag = 7;
+  public constructor(public readonly self: IxRWS<R, W, S1, S2, A>) {
+    super();
+  }
+}
+
+class Censor<R, W, W2, S1, S2, A> extends _IxRWS<R, W2, S1, S2, A> {
+  public readonly tag = 8;
+  public constructor(
+    public readonly self: IxRWS<R, W, S1, S2, A>,
+    public readonly f: (w: W) => W2,
+    public readonly W: Semigroup<W>,
+  ) {
+    super();
+  }
+}
+
 enum Cont {
-  LocalK = 0,
-  ListenK = 1,
-  CensorK = 2,
-  MapK = 3,
-  FlatMapK = 4,
+  MapK = 0,
+  FlatMapK = 1,
+  LocalK = 2,
+  ListenK = 3,
+  CensorK = 4,
 }
 
 type View<R, W, S1, S2, A> =
