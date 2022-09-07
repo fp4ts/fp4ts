@@ -12,7 +12,6 @@ import {
   IdentityF,
   List,
   None,
-  NonEmptyList as Nel,
   Option,
   OptionF,
   Some,

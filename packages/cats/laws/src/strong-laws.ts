@@ -17,7 +17,6 @@ export const StrongLaws = <F>(F: Strong<F>) => ({
   firstIsSwappedSecond:
     <C>() =>
     <A, B>(fab: Kind<F, [A, B]>): IsEq<Kind<F, [[A, C], [B, C]]>> =>
-      // TODO: fix types
       new IsEq(
         F.first<C>()(fab),
         pipe(F.second<C>()(fab), F.dimap(swapTuple, swapTuple)),
@@ -72,7 +71,6 @@ export const StrongLaws = <F>(F: Strong<F>) => ({
     fab: Kind<F, [A, B]>,
     f: (c: C) => D,
   ): IsEq<Kind<F, [[C, A], [D, B]]>> =>
-    // TODO: fix types
     new IsEq(
       pipe(F.second<C>()(fab), F.rmap(mapFirst(f))),
       pipe(F.second<D>()(fab), F.lmap(mapFirst(f))),

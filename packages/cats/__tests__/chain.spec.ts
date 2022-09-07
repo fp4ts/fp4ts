@@ -58,10 +58,9 @@ describe('Chain', () => {
   });
 
   describe('Laws', () => {
-    const alignTests = AlignSuite(Chain.Align);
     checkAll(
-      'Align<ChainK>',
-      alignTests.align(
+      'Align<Chain>',
+      AlignSuite(Chain.Align).align(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -75,10 +74,9 @@ describe('Chain', () => {
       ),
     );
 
-    const functorFilterTests = FunctorFilterSuite(Chain.FunctorFilter);
     checkAll(
-      'FunctorFiler<ChainK>',
-      functorFilterTests.functorFilter(
+      'FunctorFiler<Chain>',
+      FunctorFilterSuite(Chain.FunctorFilter).functorFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -90,10 +88,9 @@ describe('Chain', () => {
       ),
     );
 
-    const alternativeTests = AlternativeSuite(Chain.Alternative);
     checkAll(
-      'Alternative<ChainK>',
-      alternativeTests.alternative(
+      'Alternative<Chain>',
+      AlternativeSuite(Chain.Alternative).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -105,31 +102,9 @@ describe('Chain', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(Chain.CoflatMap);
     checkAll(
-      'CoflatMap<ChainK>',
-      coflatMapTests.coflatMap(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        A.fp4tsChain,
-        Chain.Eq,
-        fc
-          .func<[number[]], number>(fc.integer())
-          .map(f => (c: Chain<number>) => f(c.toArray)),
-        fc
-          .func<[number[]], number>(fc.integer())
-          .map(f => (c: Chain<number>) => f(c.toArray)),
-      ),
-    );
-
-    const monadTests = MonadSuite(Chain.Monad);
-    checkAll(
-      'Monad<ChainK>',
-      monadTests.monad(
+      'CoflatMap<Chain>',
+      CoflatMapSuite(Chain.CoflatMap).coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -143,10 +118,25 @@ describe('Chain', () => {
       ),
     );
 
-    const traversableTests = TraversableSuite(Chain.Traversable);
     checkAll(
-      'Traversable<ChainK>',
-      traversableTests.traversable(
+      'Monad<Chain>',
+      MonadSuite(Chain.Monad).monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        Eq.primitive,
+        A.fp4tsChain,
+        Chain.Eq,
+      ),
+    );
+
+    checkAll(
+      'Traversable<Chain>',
+      TraversableSuite(Chain.Traversable).traversable(
         fc.integer(),
         fc.integer(),
         fc.integer(),

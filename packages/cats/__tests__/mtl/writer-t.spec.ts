@@ -143,6 +143,8 @@ describe('WriterT', () => {
           fc.integer(),
           fc.integer(),
           fc.integer(),
+          fc.integer(),
+          Eq.primitive,
           Eq.primitive,
           Eq.primitive,
           Eq.primitive,

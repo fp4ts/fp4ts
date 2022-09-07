@@ -105,6 +105,8 @@ describe('Writer', () => {
         fc.string(),
         fc.integer(),
         fc.string(),
+        fc.string(),
+        Eq.primitive,
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,
@@ -112,6 +114,21 @@ describe('Writer', () => {
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
           Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals<string>()), w =>
             w.runWriter(Monoid.string),
+          ),
+        fc
+          .func<[[string, string]], number>(fc.integer())
+          .map(
+            f => (w: Writer<string, string>) => f(w.runWriter(Monoid.string)),
+          ),
+        fc
+          .func<[[number, string]], string>(fc.string())
+          .map(
+            f => (w: Writer<string, number>) => f(w.runWriter(Monoid.string)),
+          ),
+        fc
+          .func<[[string, string]], string>(fc.string())
+          .map(
+            f => (w: Writer<string, string>) => f(w.runWriter(Monoid.string)),
           ),
       ),
     );

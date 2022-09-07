@@ -255,7 +255,7 @@ describe('Vector', () => {
     it('should return element at the given index', () => {
       const size = 20_000;
       const xs = Vector.fromArray([...new Array(size).keys()]);
-      const ys = [];
+      const ys = [] as number[];
       for (let i = 0; i < size; i++) {
         ys[i] = xs.elem(i);
       }
@@ -998,6 +998,8 @@ describe('Vector', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
+        fc.integer(),
+        Eq.primitive,
         Eq.primitive,
         Eq.primitive,
         Eq.primitive,

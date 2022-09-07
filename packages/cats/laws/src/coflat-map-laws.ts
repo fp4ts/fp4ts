@@ -7,6 +7,7 @@ import { Kind, pipe } from '@fp4ts/core';
 import { CoflatMap } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FunctorLaws } from './functor-laws';
+import { Cokleisli } from '@fp4ts/cats-core/lib/data';
 
 export const CoflatMapLaws = <F>(F: CoflatMap<F>) => ({
   ...FunctorLaws(F),
@@ -33,5 +34,17 @@ export const CoflatMapLaws = <F>(F: CoflatMap<F>) => ({
   ): IsEq<Kind<F, [B]>> =>
     new IsEq(F.coflatMap_(fa, f), pipe(fa, F.coflatten, F.map(f))),
 
-  // TODO: Add Cokleisli
+  cokleisliAssociativity: <A, B, C, D>(
+    fa: Kind<F, [A]>,
+    f: (fa: Kind<F, [A]>) => B,
+    g: (fb: Kind<F, [B]>) => C,
+    h: (fc: Kind<F, [C]>) => D,
+  ): IsEq<D> => {
+    const C = Cokleisli.Compose(F);
+
+    const l = C.andThen_(C.andThen_(f, g), h)(fa);
+    const r = C.andThen_(f, C.andThen_(g, h))(fa);
+
+    return new IsEq(l, r);
+  },
 });

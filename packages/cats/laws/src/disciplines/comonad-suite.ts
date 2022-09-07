@@ -17,18 +17,24 @@ export const ComonadSuite = <F>(F: Comonad<F>) => {
   const self = {
     ...CoflatMapSuite(F),
 
-    comonad: <A, B, C>(
+    comonad: <A, B, C, D>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
+      arbD: Arbitrary<D>,
       EqA: Eq<A>,
       EqB: Eq<B>,
       EqC: Eq<C>,
+      EqD: Eq<D>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
+      // in case internal representation can differ for the same values
+      arbFAtoB?: Arbitrary<(fa: Kind<F, [A]>) => B>,
+      arbFBtoC?: Arbitrary<(fb: Kind<F, [B]>) => C>,
+      arbFCtoD?: Arbitrary<(fb: Kind<F, [C]>) => D>,
     ): RuleSet =>
       new RuleSet(
-        'comonad',
+        'Comonad',
         [
           [
             'comonad extract coflatten identity',
@@ -46,8 +52,24 @@ export const ComonadSuite = <F>(F: Comonad<F>) => {
             'comonad right identity',
             forAll(
               mkArbF(arbA),
-              fc.func<[Kind<F, [A]>], B>(arbB),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
               laws.comonadRightIdentity,
+            )(EqB),
+          ],
+          [
+            'cokleisli left identity',
+            forAll(
+              mkArbF(arbA),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
+              laws.cokleisliLeftIdentity,
+            )(EqB),
+          ],
+          [
+            'cokleisli right identity',
+            forAll(
+              mkArbF(arbA),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
+              laws.cokleisliRightIdentity,
             )(EqB),
           ],
         ],
@@ -56,11 +78,16 @@ export const ComonadSuite = <F>(F: Comonad<F>) => {
             arbA,
             arbB,
             arbC,
+            arbD,
             EqA,
             EqB,
             EqC,
+            EqD,
             mkArbF,
             mkEqF,
+            arbFAtoB,
+            arbFBtoC,
+            arbFCtoD,
           ),
         },
       ),

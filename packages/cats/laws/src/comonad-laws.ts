@@ -7,6 +7,7 @@ import { Kind, pipe } from '@fp4ts/core';
 import { Comonad } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { CoflatMapLaws } from './coflat-map-laws';
+import { Cokleisli } from '@fp4ts/cats-core/lib/data';
 
 export const ComonadLaws = <F>(F: Comonad<F>) => ({
   ...CoflatMapLaws(F),
@@ -25,5 +26,25 @@ export const ComonadLaws = <F>(F: Comonad<F>) => ({
     f: (fa: Kind<F, [A]>) => B,
   ): IsEq<B> => new IsEq(pipe(fa, F.coflatMap(f), F.extract), f(fa)),
 
-  // TODO: add Cokleisli
+  cokleisliLeftIdentity: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (fa: Kind<F, [A]>) => B,
+  ): IsEq<B> => {
+    const C = Cokleisli.Compose(F);
+    return new IsEq(
+      C.andThen_(Cokleisli<F, A, A>(F.extract), Cokleisli(f))(fa),
+      f(fa),
+    );
+  },
+
+  cokleisliRightIdentity: <A, B>(
+    fa: Kind<F, [A]>,
+    f: (fa: Kind<F, [A]>) => B,
+  ): IsEq<B> => {
+    const C = Cokleisli.Compose(F);
+    return new IsEq(
+      C.andThen_(Cokleisli(f), Cokleisli<F, B, B>(F.extract))(fa),
+      f(fa),
+    );
+  },
 });

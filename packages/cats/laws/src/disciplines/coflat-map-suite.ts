@@ -17,21 +17,24 @@ export const CoflatMapSuite = <F>(F: CoflatMap<F>) => {
   const self = {
     ...FunctorSuite(F),
 
-    coflatMap: <A, B, C>(
+    coflatMap: <A, B, C, D>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
+      arbD: Arbitrary<D>,
       EqA: Eq<A>,
       EqB: Eq<B>,
       EqC: Eq<C>,
+      EqD: Eq<D>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
       // in case internal representation can differ for the same values
       arbFAtoB?: Arbitrary<(fa: Kind<F, [A]>) => B>,
       arbFBtoC?: Arbitrary<(fb: Kind<F, [B]>) => C>,
+      arbFCtoD?: Arbitrary<(fb: Kind<F, [C]>) => D>,
     ): RuleSet =>
       new RuleSet(
-        'coflatMap',
+        'CoflatMap',
         [
           [
             'coflatMap associativity',
@@ -56,6 +59,16 @@ export const CoflatMapSuite = <F>(F: CoflatMap<F>) => {
               arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
               laws.coflattenCoherence,
             )(mkEqF(EqB)),
+          ],
+          [
+            'cokleisli associativity',
+            forAll(
+              mkArbF(arbA),
+              arbFAtoB ?? fc.func<[Kind<F, [A]>], B>(arbB),
+              arbFBtoC ?? fc.func<[Kind<F, [B]>], C>(arbC),
+              arbFCtoD ?? fc.func<[Kind<F, [C]>], D>(arbD),
+              laws.cokleisliAssociativity,
+            )(EqD),
           ],
         ],
         { parent: self.functor(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
