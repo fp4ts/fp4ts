@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazyVal } from '@fp4ts/core';
 import { None, Option, Some } from '../data';
 import { evaluate } from './evaluation';
 
@@ -80,8 +80,27 @@ export class Defer<A> extends Eval<A> {
   }
 }
 
-export class FlatMap<E, A> extends Eval<A> {
+export class Map<E, A> extends Eval<A> {
   public readonly tag = 4;
+  public constructor(
+    public readonly self: Eval<E>,
+    public readonly run: (e: E) => A,
+  ) {
+    super();
+  }
+
+  private _memoize?: Eval<A>;
+  public get memoize(): Eval<A> {
+    return (this._memoize ??= new Memoize(this));
+  }
+
+  public get value(): A {
+    return evaluate(this);
+  }
+}
+
+export class FlatMap<E, A> extends Eval<A> {
+  public readonly tag = 5;
   public constructor(
     public readonly self: Eval<E>,
     public readonly run: (e: E) => Eval<A>,
@@ -100,7 +119,7 @@ export class FlatMap<E, A> extends Eval<A> {
 }
 
 export class Memoize<A> extends Eval<A> {
-  public readonly tag = 5;
+  public readonly tag = 6;
   public result: Option<A> = None;
   public constructor(public readonly self: Eval<A>) {
     super();
@@ -108,11 +127,11 @@ export class Memoize<A> extends Eval<A> {
 
   public readonly memoize = this;
   public get value(): A {
-    return this.result.fold(() => {
+    return this.result.getOrElse(() => {
       const a = evaluate(this);
       this.result = Some(a);
       return a;
-    }, id);
+    });
   }
 }
 
@@ -121,7 +140,14 @@ export type View<A> =
   | Later<A>
   | Always<A>
   | Defer<A>
+  | Map<any, A>
   | FlatMap<any, A>
   | Memoize<A>;
+
+export enum Cont {
+  MapK = 0,
+  FlatMapK = 1,
+  MemoizeK = 2,
+}
 
 export const view = <A>(_: Eval<A>): View<A> => _ as any;

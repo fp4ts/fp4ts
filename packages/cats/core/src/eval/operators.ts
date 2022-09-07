@@ -5,7 +5,7 @@
 
 import { id } from '@fp4ts/core';
 import { Either } from '../data';
-import { Eval, FlatMap, Now } from './algebra';
+import { Eval, FlatMap, Map, Now } from './algebra';
 import { pure } from './constructors';
 
 export const memoize: <A>(fa: Eval<A>) => Eval<A> = fa => fa.memoize;
@@ -30,7 +30,7 @@ export const tailRecM: <S>(
 // -- Point-ful operators
 
 export const map_ = <A, B>(fa: Eval<A>, f: (a: A) => B): Eval<B> =>
-  flatMap_(fa, x => new Now(f(x)));
+  new Map(fa, f);
 
 export const flatMap_ = <A, B>(fa: Eval<A>, f: (a: A) => Eval<B>): Eval<B> =>
   new FlatMap(fa, f);

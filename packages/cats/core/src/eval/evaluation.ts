@@ -4,32 +4,49 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Some } from '../data';
-import { Eval, Memoize, Now, View } from './algebra';
+import { Cont, Eval, Memoize, View } from './algebra';
 
 export const evaluate = <A>(e: Eval<A>): A => {
-  type Frame = (u: unknown) => Eval<unknown>;
-  const stack: Frame[] = [];
+  const stack: unknown[] = [];
+  const conts: Cont[] = [];
   let _cur: Eval<unknown> = e;
 
-  while (true) {
+  runLoop: while (true) {
     const cur = _cur as View<unknown>;
+    let result: unknown;
 
     switch (cur.tag) {
       case 0: // Now
       case 1: // Later
-      case 2: /* Always */ {
-        const a = cur.value;
-        if (stack.length <= 0) return a as A;
-        const next = stack.pop()!;
-        _cur = next(a);
-        continue;
-      }
+      case 2: // Always
+        result = cur.value;
+        break;
 
       case 3: // Defer
         _cur = cur.thunk();
         continue;
 
-      case 4: /* FlatMap */ {
+      case 4: /* MapK */ {
+        const self = cur.self as View<unknown>;
+        const f = cur.run;
+
+        switch (self.tag) {
+          case 0: // Now
+          case 1: // Later
+          case 2: // Always
+            result = f(self.value);
+            break;
+
+          default:
+            conts.push(Cont.MapK);
+            stack.push(f);
+            _cur = self;
+            continue;
+        }
+        break;
+      }
+
+      case 5: /* FlatMap */ {
         const self = cur.self as View<unknown>;
         const f = cur.run;
 
@@ -41,27 +58,40 @@ export const evaluate = <A>(e: Eval<A>): A => {
             continue;
 
           default:
+            conts.push(Cont.FlatMapK);
             stack.push(f);
             _cur = self;
             continue;
         }
       }
 
-      case 5: // Memoize
-        if (cur.result.isEmpty) {
-          stack.push(addToMemo(cur));
-          _cur = cur.self;
-        } else {
-          _cur = new Now(cur.result.get);
-        }
+      case 6: // Memoize
+        conts.push(Cont.MemoizeK);
+        stack.push(cur as any);
+        _cur = cur.self;
         continue;
+    }
+
+    while (true) {
+      if (conts.length <= 0) return result as A;
+      const c = conts.pop()!;
+      switch (c) {
+        case 0: /* MapK */ {
+          const next = stack.pop()! as (u: unknown) => unknown;
+          result = next(result);
+          continue;
+        }
+        case 1: /* FlatMapK */ {
+          const next = stack.pop()! as (u: unknown) => Eval<unknown>;
+          _cur = next(result);
+          continue runLoop;
+        }
+        case 2: /* MemoizeK */ {
+          const cur = stack.pop()! as any as Memoize<unknown>;
+          cur.result = Some(result);
+          continue;
+        }
+      }
     }
   }
 };
-
-const addToMemo =
-  <A1>(m: Memoize<A1>) =>
-  (x: A1): Eval<A1> => {
-    m.result = Some(x);
-    return new Now(x);
-  };
