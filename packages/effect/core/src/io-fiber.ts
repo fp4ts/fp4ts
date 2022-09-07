@@ -368,8 +368,12 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
         case 13:
           this.canceled = true;
-          _cur = IO.pure(undefined);
-          continue;
+          if (this.isUnmasked()) {
+            return this.cancelAsync();
+          } else {
+            _cur = this.succeeded(undefined);
+            continue;
+          }
 
         case 14: {
           const body = cur.body;
