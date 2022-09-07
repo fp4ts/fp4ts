@@ -10,8 +10,6 @@ import {
   EitherTF,
   Kleisli,
   KleisliF,
-  Left,
-  None,
   OptionT,
   OptionTF,
   Right,
@@ -51,24 +49,9 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<EitherTF, [F, E]>, W>({
       monoid: F.monoid,
       ...EitherT.Monad<F, E>(F),
-      censor_: (fa, f) =>
-        EitherT(
-          F.flatMap_(fa.value, ea =>
-            ea.fold(
-              e => F.pure(Left(e)),
-              a => F.map_(F.censor_(F.pure(a), f), Right),
-            ),
-          ),
-        ),
+      censor_: (fa, f) => EitherT(F.censor_(fa.value, f)),
       listen: fa =>
-        EitherT(
-          F.flatMap_(fa.value, ea =>
-            ea.fold(
-              e => F.pure(Left(e)),
-              a => F.map_(F.listen(F.pure(a)), Right),
-            ),
-          ),
-        ),
+        EitherT(F.map_(F.listen(fa.value), ([ea, w]) => ea.map(a => [a, w]))),
       tell: w => EitherT(F.map_(F.tell(w), Right)),
     }),
 
@@ -76,24 +59,9 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<OptionTF, [F]>, W>({
       monoid: F.monoid,
       ...OptionT.Monad<F>(F),
-      censor_: (fa, f) =>
-        OptionT(
-          F.flatMap_(fa.value, opt =>
-            opt.fold(
-              () => F.pure(None),
-              a => F.map_(F.censor_(F.pure(a), f), Some),
-            ),
-          ),
-        ),
+      censor_: (fa, f) => OptionT(F.censor_(fa.value, f)),
       listen: fa =>
-        OptionT(
-          F.flatMap_(fa.value, opt =>
-            opt.fold(
-              () => F.pure(None),
-              a => F.map_(F.listen(F.pure(a)), Some),
-            ),
-          ),
-        ),
+        OptionT(F.map_(F.listen(fa.value), ([opt, w]) => opt.map(a => [a, w]))),
       tell: w => OptionT(F.map_(F.tell(w), Some)),
     }),
 });

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, snd } from '@fp4ts/core';
+import { $ } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import {
   Either,
