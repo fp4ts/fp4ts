@@ -676,17 +676,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-indexed@workspace:packages/cats/indexed":
-  version: 0.0.0-use.local
-  resolution: "@fp4ts/cats-indexed@workspace:packages/cats/indexed"
-  dependencies:
-    "@fp4ts/cats-core": "*"
-    "@fp4ts/cats-kernel": "*"
-    "@fp4ts/core": "*"
-    typescript: 4.8.2
-  languageName: unknown
-  linkType: soft
-
 "@fp4ts/cats-kernel-laws@*, @fp4ts/cats-kernel-laws@workspace:packages/cats/kernel-laws":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-kernel-laws@workspace:packages/cats/kernel-laws"
