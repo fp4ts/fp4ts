@@ -9,6 +9,7 @@ import { Eq } from '@fp4ts/cats-kernel';
 import {
   ArrowApplySuite,
   ArrowChoiceSuite,
+  DeferSuite,
   DistributiveSuite,
   MonadSuite,
 } from '@fp4ts/cats-laws';
@@ -18,6 +19,25 @@ import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function1', () => {
+  describe('fix point', () => {
+    it('should calculate factorial', () => {
+      const fact = Function1.Defer<number>().fix<number>(
+        rec => n => n <= 1 ? 1 : n * rec(n - 1),
+      );
+      expect(fact(5)).toBe(120);
+    });
+  });
+
+  checkAll(
+    'Defer<Function1<MiniInt, *>',
+    DeferSuite(Function1.Defer<MiniInt>()).defer(
+      fc.integer(),
+      Eq.primitive,
+      fc.func,
+      EqX => eq.fn1Eq(ec.miniInt(), EqX),
+    ),
+  );
+
   checkAll(
     'Distributive<Function1<number, *>>',
     DistributiveSuite(Function1.Distributive<MiniInt>()).distributive(
