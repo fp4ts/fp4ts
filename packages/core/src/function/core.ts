@@ -14,6 +14,7 @@ export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
     if (!initialized) {
       initialized = true;
       value = init();
+      (init as any) = null;
     }
     return value!;
   };
