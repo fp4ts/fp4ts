@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow, id } from '@fp4ts/core';
-import { Either, Left, Monad, Right, Some } from '@fp4ts/cats';
+import { Either, Left, Right, Some } from '@fp4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
 
 import {
@@ -37,10 +37,6 @@ import { TracingEvent, RingBuffer, Tracing } from './tracing';
 
 type Frame = (r: unknown) => unknown;
 type Stack = Frame[];
-
-type ContResult =
-  | { tag: 'success'; value: unknown }
-  | { tag: 'failure'; error: Error };
 
 export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private outcome?: IOOutcome<A>;
@@ -654,9 +650,10 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
         while (true) {
           depth++;
-          const nextCont = this.conts.pop();
-          if (nextCont === undefined) return this.terminateSuccessK(r);
+          if (this.conts.length <= 0) return this.terminateSuccessK(r);
+          const nextCont = this.conts.pop()!;
           switch (nextCont) {
+            // MapK
             case 0:
               if (depth <= MaxStackSize) {
                 try {
@@ -679,6 +676,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 }
               }
 
+            // FlatMapK
             case 1:
               try {
                 const f = this.stack.pop()! as (u: unknown) => IO<unknown>;
@@ -690,27 +688,32 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 continue loop;
               }
 
+            // HandleErrorWithK
             case 2:
               this.stack.pop(); // Skip over error handlers
               continue;
 
+            // AttemptK
             case 3:
               r = Right(r);
               depth++;
               continue;
 
+            // CancelK
             case 4:
-              this.onCancelK();
+              this.finalizers.pop();
               depth++;
               continue;
 
+            // UncancelableK
             case 5:
-              this.uncancelableK();
+              this.masks -= 1;
               depth++;
               continue;
 
+            // UnmaskK
             case 6:
-              this.unmaskK();
+              this.masks += 1;
               depth++;
               continue;
 
@@ -726,14 +729,15 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         Tracing.augmentError(e, this.trace.toArray);
 
         while (true) {
-          const nextCont = this.conts.pop();
-          if (nextCont === undefined) return this.terminateFailureK(e);
+          if (this.conts.length <= 0) return this.terminateFailureK(e);
+          const nextCont = this.conts.pop()!;
           switch (nextCont) {
-            case 0:
-            case 1:
+            case 0: // MapK
+            case 1: // FlatMapK
               this.stack.pop(); // skip over success transformers
               continue;
 
+            // HandleErrorWithK
             case 2:
               try {
                 const f = this.stack.pop()! as (e: Error) => IO<unknown>;
@@ -745,24 +749,28 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 continue;
               }
 
+            // AttemptK
             case 3:
               tag = 'success';
               value = Left(e);
               depth++;
               continue loop;
 
+            // OnCancelK
             case 4:
-              this.onCancelK();
+              this.finalizers.pop();
               depth++;
               continue;
 
+            // UncancelableK
             case 5:
-              this.uncancelableK();
+              this.masks -= 1;
               depth++;
               continue;
 
+            // UnmaskK
             case 6:
-              this.unmaskK();
+              this.masks += 1;
               depth++;
               continue;
 
@@ -794,18 +802,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       this.complete(IOOutcome.failure(e));
     }
     return IOEndFiber as any;
-  }
-
-  private onCancelK(): void {
-    this.finalizers.pop();
-  }
-
-  private uncancelableK(): void {
-    this.masks -= 1;
-  }
-
-  private unmaskK(): void {
-    this.masks += 1;
   }
 
   private executeOnSuccessK(r: unknown): IO<unknown> {
