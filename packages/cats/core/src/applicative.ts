@@ -11,6 +11,7 @@ import { ComposedApplicative } from './composed';
 import { Array } from './data';
 import { Foldable } from './foldable';
 import { FoldableWithIndex } from './foldable-with-index';
+import { Eval } from './eval';
 
 /**
  * @category Type Class
@@ -23,22 +24,22 @@ export interface Applicative<F> extends Apply<F> {
     ...fsa: { [k in keyof A]: Kind<F, [A[k]]> }
   ) => Kind<F, [A]>;
 
-  traverseA<T>(
-    T: Foldable<T>,
-  ): <A, B>(f: (a: A) => Kind<F, [B]>) => (ta: Kind<T, [A]>) => Kind<F, [void]>;
-  traverseA_<T>(
-    T: Foldable<T>,
-  ): <A, B>(ta: Kind<T, [A]>, f: (a: A) => Kind<F, [B]>) => Kind<F, [void]>;
+  traverseA<G>(
+    G: Foldable<G>,
+  ): <A, B>(f: (a: A) => Kind<F, [B]>) => (ta: Kind<G, [A]>) => Kind<F, [void]>;
+  traverseA_<G>(
+    G: Foldable<G>,
+  ): <A, B>(ta: Kind<G, [A]>, f: (a: A) => Kind<F, [B]>) => Kind<F, [void]>;
 
-  traverseWithIndexA<T, I>(
-    T: FoldableWithIndex<T, I>,
+  traverseWithIndexA<G, I>(
+    G: FoldableWithIndex<G, I>,
   ): <A, B>(
     f: (a: A, i: I) => Kind<F, [B]>,
-  ) => (ta: Kind<T, [A]>) => Kind<F, [void]>;
-  traverseWithIndexA_<T, I>(
-    T: FoldableWithIndex<T, I>,
+  ) => (ta: Kind<G, [A]>) => Kind<F, [void]>;
+  traverseWithIndexA_<G, I>(
+    G: FoldableWithIndex<G, I>,
   ): <A, B>(
-    ta: Kind<T, [A]>,
+    ta: Kind<G, [A]>,
     f: (a: A, i: I) => Kind<F, [B]>,
   ) => Kind<F, [void]>;
 }
@@ -55,17 +56,19 @@ export const Applicative = Object.freeze({
           xs,
         )) as Applicative<F>['tupled'],
 
-      traverseA: T => f => ta => self.traverseA_(T)(ta, f),
-      traverseA_: T => (ta, f) =>
-        T.foldLeft_(ta, self.pure(undefined), (ac, x) =>
-          self.productL_(ac, f(x)),
-        ),
+      traverseA: G => f => ta => self.traverseA_(G)(ta, f),
+      traverseA_: G => (ta, f) =>
+        G.foldRight_(ta, Eval.now(self.pure<void>(undefined)), (x, ac) =>
+          self.map2Eval_(f(x), ac)(() => {}),
+        ).value,
 
-      traverseWithIndexA: T => f => ta => self.traverseWithIndexA_(T)(ta, f),
-      traverseWithIndexA_: T => (ta, f) =>
-        T.foldLeftWithIndex_(ta, self.pure(undefined), (ac, x, i) =>
-          self.productL_(ac, f(x, i)),
-        ),
+      traverseWithIndexA: G => f => ta => self.traverseWithIndexA_(G)(ta, f),
+      traverseWithIndexA_: G => (ta, f) =>
+        G.foldRightWithIndex_(
+          ta,
+          Eval.now(self.pure<void>(undefined)),
+          (x, ac, i) => self.map2Eval_(f(x, i), ac)(() => {}),
+        ).value,
 
       ...Apply.of<F>({ ...Applicative.functor<F>(F), ...F }),
       ...F,
