@@ -11,20 +11,13 @@ export const evaluate = <A>(e: Eval<A>): A => {
   const stack: Frame[] = [];
   let _cur: Eval<unknown> = e;
 
-  const addToMemo =
-    <A1>(m: Memoize<A1>) =>
-    (x: A1): Eval<A1> => {
-      m.result = Some(x);
-      return new Now(x);
-    };
-
   while (true) {
     const cur = _cur as View<unknown>;
 
     switch (cur.tag) {
-      case 0: // 'now'
-      case 1: // 'later'
-      case 2: /* 'always' */ {
+      case 0: // Now
+      case 1: // Later
+      case 2: /* Always */ {
         const a = cur.value;
         if (stack.length <= 0) return a as A;
         const next = stack.pop()!;
@@ -32,18 +25,18 @@ export const evaluate = <A>(e: Eval<A>): A => {
         continue;
       }
 
-      case 3: // 'defer'
+      case 3: // Defer
         _cur = cur.thunk();
         continue;
 
-      case 4: /* 'flatMap' */ {
+      case 4: /* FlatMap */ {
         const self = cur.self as View<unknown>;
         const f = cur.run;
 
         switch (self.tag) {
-          case 0: // 'now'
-          case 1: // 'later'
-          case 2: // 'always'
+          case 0: // Now
+          case 1: // Later
+          case 2: // Always
             _cur = f(self.value);
             continue;
 
@@ -54,19 +47,21 @@ export const evaluate = <A>(e: Eval<A>): A => {
         }
       }
 
-      case 5: /* 'memoize' */ {
-        const m = cur;
-        m.result.fold(
-          () => {
-            _cur = m.self;
-            stack.push(addToMemo(m));
-          },
-          x => {
-            _cur = new Now(x);
-          },
-        );
+      case 5: // Memoize
+        if (cur.result.isEmpty) {
+          stack.push(addToMemo(cur));
+          _cur = cur.self;
+        } else {
+          _cur = new Now(cur.result.get);
+        }
         continue;
-      }
     }
   }
 };
+
+const addToMemo =
+  <A1>(m: Memoize<A1>) =>
+  (x: A1): Eval<A1> => {
+    m.result = Some(x);
+    return new Now(x);
+  };

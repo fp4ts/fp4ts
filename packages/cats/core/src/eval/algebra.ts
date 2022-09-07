@@ -25,26 +25,27 @@ export class Now<A> extends Eval<A> {
     super();
   }
 
-  public readonly memoize = this;
+  public get memoize(): Eval<A> {
+    return this;
+  }
 }
 
 export class Later<A> extends Eval<A> {
   public readonly tag = 1;
-  public constructor(private thunk: () => A) {
+  public constructor(thunk: () => A) {
     super();
+    this._value = lazyVal(thunk);
   }
 
-  private readonly _value: Lazy<A> = lazyVal(() => {
-    const result = this.thunk();
-    this.thunk = null as any;
-    return result;
-  });
+  private readonly _value: Lazy<A>;
 
   public get value(): A {
     return this._value();
   }
 
-  public readonly memoize = this;
+  public get memoize(): Eval<A> {
+    return this;
+  }
 }
 
 export class Always<A> extends Eval<A> {
@@ -57,7 +58,10 @@ export class Always<A> extends Eval<A> {
     return this.thunk();
   }
 
-  public readonly memoize = new Later(this.thunk);
+  private _memoize?: Eval<A>;
+  public get memoize(): Eval<A> {
+    return (this._memoize ??= new Later(this.thunk));
+  }
 }
 
 export class Defer<A> extends Eval<A> {
@@ -66,7 +70,10 @@ export class Defer<A> extends Eval<A> {
     super();
   }
 
-  public readonly memoize: Eval<A> = new Memoize(this);
+  public _memoize?: Eval<A>;
+  public get memoize(): Eval<A> {
+    return (this._memoize ??= new Memoize(this));
+  }
 
   public get value(): A {
     return evaluate(this);
@@ -82,10 +89,11 @@ export class FlatMap<E, A> extends Eval<A> {
     super();
   }
 
+  private _memoize?: Eval<A>;
   public get memoize(): Eval<A> {
     return (this._memoize ??= new Memoize(this));
   }
-  private _memoize?: Eval<A>;
+
   public get value(): A {
     return evaluate(this);
   }
