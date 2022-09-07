@@ -5,11 +5,10 @@
 
 import { $ } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats-core';
-import { Chain } from '@fp4ts/cats-core/lib/data';
 import { IxRWSF, RWS } from './ix-rws';
 import { MonadReader } from '../monad-reader';
 
-export type Reader<R, A> = RWS<R, Chain<never>, void, A>;
+export type Reader<R, A> = RWS<R, never, void, A>;
 
 export const Reader: ReaderObj = function <A, R = unknown>(a: A): Reader<R, A> {
   return Reader.pure(a);
@@ -39,4 +38,4 @@ Reader.MonadReader = RWS.MonadReader;
 
 // -- HKT
 
-export type ReaderF<R> = $<IxRWSF, [R, Chain<never>, void, void]>;
+export type ReaderF<R> = $<IxRWSF, [R, never, void, void]>;

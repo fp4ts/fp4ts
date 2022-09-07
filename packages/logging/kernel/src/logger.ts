@@ -23,16 +23,14 @@ export function WriterLogger<G, A>(
   G: Alternative<G>,
 ): Logger<WriterF<Kind<G, [LogMessage<A>]>>, A> {
   const GW = Writer.Monad<Kind<G, [LogMessage<A>]>>();
-  return new Logger(GW, (msg: LogMessage<A>) =>
-    Writer.tell(G.pure(msg)),
-  ) as any;
+  return new Logger(GW, (msg: LogMessage<A>) => Writer.tell(G.pure(msg)));
 }
 
 export function WriterTLogger<F, G, A>(
   F: Applicative<F>,
   G: Alternative<G>,
 ): Logger<$<WriterTF, [F, Kind<G, [LogMessage<A>]>]>, A> {
-  const GW = WriterT.Applicative<F, Kind<G, [LogMessage<A>]>>(F);
+  const GW = WriterT.Applicative<F, Kind<G, [LogMessage<A>]>>(F, G.algebra());
   return new Logger(GW, msg => WriterT.tell(F)(G.pure(msg)));
 }
 

@@ -115,13 +115,13 @@ export class Uri {
   }
 
   public render(): Writer<string, void> {
-    const w = Writer.pure<void, string>(undefined);
+    const w = Writer.pure(undefined);
     const scheme = this.scheme.fold(
       () => w,
       s => Writer([`${s}://`, undefined as void]),
     );
 
-    return Writer.pure<void, string>(undefined)
+    return Writer.pure(undefined)
       .productR(scheme)
       .productR(this.authority.map(a => a.render()).getOrElse(() => w))
       .productR(

@@ -15,14 +15,15 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 describe('Writer', () => {
   describe('cumulating results', () => {
     it('should be empty when lifting the pure value', () => {
-      expect(
-        Writer.pure<number, string>(42).runAW(null, undefined, Monoid.string),
-      ).toEqual([42, '']);
+      expect(Writer.pure(42).runAW(null, undefined, Monoid.string)).toEqual([
+        42,
+        '',
+      ]);
     });
 
     it('should concatenate two string', () => {
       expect(
-        Writer.pure<number, string>(42)
+        Writer.pure(42)
           .log('tell')
           .log(' ')
           .log('me')
@@ -34,7 +35,7 @@ describe('Writer', () => {
 
     it('should reset cumulated result', () => {
       expect(
-        Writer.pure<number, string>(42)
+        Writer.pure(42)
           .log('tell')
           .log(' ')
           .log('me')

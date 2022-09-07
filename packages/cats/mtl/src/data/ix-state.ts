@@ -5,10 +5,9 @@
 
 import { $, Fix, α, β, λ } from '@fp4ts/core';
 import { Profunctor, Strong } from '@fp4ts/cats-core';
-import { Chain } from '@fp4ts/cats-core/lib/data';
 import { IxRWS, IxRWSF } from './ix-rws';
 
-export type IxState<S1, S2, A> = IxRWS<unknown, Chain<never>, S1, S2, A>;
+export type IxState<S1, S2, A> = IxRWS<unknown, never, S1, S2, A>;
 
 export const IxState: IxStateObj = function (runIxState) {
   return IxState.state(runIxState);
@@ -30,19 +29,16 @@ interface IxStateObj {
 }
 
 IxState.pure = IxRWS.pure;
-IxState.state = IxRWS.state<Chain<never>>();
+IxState.state = IxRWS.state;
 IxState.get = IxRWS.get;
 IxState.set = IxRWS.set;
-IxState.modify = IxRWS.modify<Chain<never>>();
+IxState.modify = IxRWS.modify;
 
 IxState.Profunctor = IxRWS.Profunctor;
 IxState.Strong = IxRWS.Strong;
 
 // -- HKT
 
-export type IxStateF<S1, S2> = $<IxRWSF, [unknown, Chain<never>, S1, S2]>;
+export type IxStateF<S1, S2> = $<IxRWSF, [unknown, never, S1, S2]>;
 
-export type IxStateFA<A> = λ<
-  IxRWSF,
-  [Fix<unknown>, Fix<Chain<never>>, α, β, Fix<A>]
->;
+export type IxStateFA<A> = λ<IxRWSF, [Fix<unknown>, Fix<never>, α, β, Fix<A>]>;

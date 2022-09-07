@@ -5,11 +5,10 @@
 
 import { $ } from '@fp4ts/core';
 import { StackSafeMonad } from '@fp4ts/cats-core';
-import { Chain } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
 import { IxRWS, IxRWSF, RWS } from './ix-rws';
 
-export type State<S, A> = IxRWS<unknown, Chain<never>, S, S, A>;
+export type State<S, A> = IxRWS<unknown, never, S, S, A>;
 
 export const State: StateObj = function (runState) {
   return State.state(runState);
@@ -31,14 +30,14 @@ interface StateObj {
 }
 
 State.pure = RWS.pure;
-State.state = RWS.state<Chain<never>>();
+State.state = RWS.state;
 State.get = RWS.get;
 State.set = RWS.set;
-State.modify = RWS.modify<Chain<never>>();
+State.modify = RWS.modify;
 
 State.Monad = RWS.Monad;
 State.MonadState = RWS.MonadState;
 
 // -- HKT
 
-export type StateF<S> = $<IxRWSF, [unknown, Chain<never>, S, S]>;
+export type StateF<S> = $<IxRWSF, [unknown, never, S, S]>;
