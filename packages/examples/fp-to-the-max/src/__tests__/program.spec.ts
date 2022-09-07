@@ -10,8 +10,7 @@ import { run } from '../program';
 
 describe('number guess game', () => {
   it('should guess the number on third try', () => {
-    const r = run(StateProgram).runS(
-      undefined,
+    const r = run(StateProgram).runState(
       new TestData(['50', '60', '80', 'n'], [], [80]),
     );
 
@@ -33,8 +32,7 @@ describe('number guess game', () => {
   });
 
   it('should restart the game when user presses Y', () => {
-    const r = run(StateProgram).runS(
-      undefined,
+    const r = run(StateProgram).runState(
       new TestData(['50', 'Y', '50', '75', 'n'], [], [50, 75]),
     );
 

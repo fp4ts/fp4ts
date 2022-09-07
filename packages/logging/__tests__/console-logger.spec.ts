@@ -26,7 +26,7 @@ describe('ConsoleLogger', () => {
   );
 
   it('should format the message', () => {
-    expect(L.info('msg').runS(null, ConsoleStateState.empty).output).toEqual([
+    expect(L.info('msg').runStateS(ConsoleStateState.empty).output).toEqual([
       '2020-01-01T00:00:00.000Z INFO - msg',
     ]);
   });
@@ -37,7 +37,7 @@ describe('ConsoleLogger', () => {
         L.info('msg1'),
         F.productL(L.warn('msg2')),
         F.productL(L.error(new Error('test error'), 'msg3')),
-      ).runS(null, ConsoleStateState.empty).output,
+      ).runStateS(ConsoleStateState.empty).output,
     ).toEqual([
       '2020-01-01T00:00:00.000Z INFO - msg1',
       '2020-01-01T00:00:00.000Z WARN - msg2',
@@ -52,7 +52,7 @@ describe('ConsoleLogger', () => {
         LL.info('msg1'),
         F.productL(LL.warn('msg2')),
         F.productL(LL.error(new Error('test error'), 'msg3')),
-      ).runS(null, ConsoleStateState.empty).output,
+      ).runStateS(ConsoleStateState.empty).output,
     ).toEqual(['2020-01-01T00:00:00.000Z ERROR - msg3']);
   });
 });

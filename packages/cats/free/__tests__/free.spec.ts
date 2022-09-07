@@ -73,7 +73,7 @@ describe('Free', () => {
 
     const resultState = program.foldMap(State.Monad<S>())(nt);
 
-    const [a, s] = resultState.runAS(null, [['James'], []]);
+    const [a, s] = resultState.runState([['James'], []]);
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
     expect(a).toBeUndefined();
   });

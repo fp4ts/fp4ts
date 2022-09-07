@@ -9,10 +9,10 @@ import { Monoid } from '@fp4ts/cats-kernel';
 import { MonadWriter } from '../monad-writer';
 import { IxRWSF, RWS } from './ix-rws';
 
-export type Writer<W, A> = RWS<unknown, W, void, A>;
+export type Writer<W, A> = RWS<unknown, W, unknown, A>;
 
 export const Writer: WriterObj = function <W, A>([w, a]: [W, A]) {
-  return RWS.tell<W, void>(w).map(() => a);
+  return RWS.tell(w).map(() => a);
 };
 
 interface WriterObj {
@@ -42,4 +42,4 @@ Writer.MonadWriter = RWS.MonadWriter;
 
 // -- HKT
 
-export type WriterF<W> = $<IxRWSF, [unknown, W, void, void]>;
+export type WriterF<W> = $<IxRWSF, [unknown, W, unknown, unknown]>;

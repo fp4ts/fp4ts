@@ -249,8 +249,9 @@ describe('Setter', () => {
       expect(
         focus<number>()
           .locally(Reader.MonadReader<number>())(f)(Reader.ask())
-          .runA(x),
-      ).toEqual(Reader.ask<number>().map(f).runA(x)),
+          .provide(x)
+          .run(),
+      ).toEqual(Reader.ask<number>().map(f).runReader(x)),
     ),
   );
 

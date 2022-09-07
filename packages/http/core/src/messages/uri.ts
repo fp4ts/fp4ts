@@ -134,7 +134,7 @@ export class Uri {
   }
 
   public toString(): string {
-    return this.render().runW(null, undefined, Monoid.string);
+    return this.render().runWriterW(Monoid.string);
   }
 
   public static fromString(s: string): Either<ParsingFailure, Uri> {
@@ -249,7 +249,7 @@ export class Path {
   }
 
   public toString(): string {
-    return this.render().runW(null, undefined, Monoid.string);
+    return this.render().runWriterW(Monoid.string);
   }
 
   public startsWith(that: Path): boolean {
@@ -312,7 +312,7 @@ export class Query {
   }
 
   public toString(): string {
-    return this.render().runW(null, undefined, Monoid.string);
+    return this.render().runWriterW(Monoid.string);
   }
 
   public render(): Writer<string, void> {

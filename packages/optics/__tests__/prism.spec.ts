@@ -156,10 +156,10 @@ describe('Prism', () => {
   });
 
   test('review', () => {
-    expect(i.review(Reader.MonadReader<number>()).runA(42)).toEqual(
+    expect(i.review(Reader.MonadReader<number>()).runReader(42)).toEqual(
       I({ value: 42 }),
     );
-    expect(s.review(Reader.MonadReader<string>()).runA('42')).toEqual(
+    expect(s.review(Reader.MonadReader<string>()).runReader('42')).toEqual(
       S({ value: '42' }),
     );
   });

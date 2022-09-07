@@ -63,14 +63,17 @@ describe('Getter', () => {
 
   test('view', () => {
     expect(
-      focus(i).asGetting().view(Reader.MonadReader<Bar>()).runA(new Bar(42)),
+      focus(i)
+        .asGetting()
+        .view(Reader.MonadReader<Bar>())
+        .runReader(new Bar(42)),
     ).toBe(42);
     expect(
       focus(bar)
         .compose(i)
         .asGetting()
         .view(Reader.MonadReader<Foo>())
-        .runA(new Foo(new Bar(42))),
+        .runReader(new Foo(new Bar(42))),
     ).toBe(42);
   });
 

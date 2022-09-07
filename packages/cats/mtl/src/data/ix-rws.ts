@@ -176,6 +176,67 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
 
   // -- Run
 
+  public run(this: IxRWS<unknown, Chain<never>, unknown, unknown, A>): A {
+    return this.runA(null, null);
+  }
+
+  public runState(
+    this: IxRWS<unknown, Chain<never>, S1, S2, A>,
+    s1: S1,
+  ): [A, S2] {
+    return this.runAS(null, s1);
+  }
+  public runStateA(this: IxRWS<unknown, Chain<never>, S1, S2, A>, s1: S1): A {
+    return this.runAS(null, s1)[0];
+  }
+  public runStateS(this: IxRWS<unknown, Chain<never>, S1, S2, A>, s1: S1): S2 {
+    return this.runAS(null, s1)[1];
+  }
+
+  public runReader(this: IxRWS<R, Chain<never>, unknown, unknown, A>, r: R): A {
+    return this.runA(r, null);
+  }
+
+  public runWriter<W>(
+    this: IxRWS<unknown, W, unknown, unknown, A>,
+    W: Monoid<W>,
+  ): [A, W];
+  public runWriter<W>(
+    this: IxRWS<unknown, Chain<W>, unknown, unknown, A>,
+  ): [A, W];
+  public runWriter(
+    this: IxRWS<unknown, any, unknown, unknown, A>,
+    W: Monoid<any> = Chain.MonoidK.algebra(),
+  ): [A, any] {
+    return this.runAW(null, null, W);
+  }
+
+  public runWriterA<W>(
+    this: IxRWS<unknown, W, unknown, unknown, A>,
+    W: Monoid<W>,
+  ): A;
+  public runWriterA<W>(this: IxRWS<unknown, Chain<W>, unknown, unknown, A>): A;
+  public runWriterA(
+    this: IxRWS<unknown, any, unknown, unknown, A>,
+    W: Monoid<any> = Chain.MonoidK.algebra(),
+  ): A {
+    return this.runA(null, null, W);
+  }
+
+  public runWriterW<W>(
+    this: IxRWS<unknown, W, unknown, unknown, A>,
+    W: Monoid<W>,
+  ): W;
+  public runWriterW<W>(
+    this: IxRWS<unknown, Chain<W>, unknown, unknown, A>,
+  ): Chain<W>;
+  public runWriterW(
+    this: IxRWS<unknown, any, unknown, unknown, A>,
+    W: Monoid<any> = Chain.MonoidK.algebra(),
+  ): any {
+    return this.runW(null, null, W);
+  }
+
   public runA<W2>(
     this: IxRWS<R, W2, S1, S2, A>,
     r: R,
@@ -297,7 +358,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
           break;
 
         case 3: /* State */ {
-          const as2 = cur.run(state);
+          const as2 = cur._run(state);
           result = as2[0];
           state = as2[1];
           break;
@@ -322,7 +383,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
               break;
 
             case 3: /* State */ {
-              const as2 = self.run(state);
+              const as2 = self._run(state);
               result = f(as2[0]);
               state = as2[1];
               break;
@@ -356,7 +417,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
               continue;
 
             case 3: /* State */ {
-              const as2 = self.run(state);
+              const as2 = self._run(state);
               _cur = f(as2[0]);
               state = as2[1];
               continue;
@@ -522,7 +583,7 @@ class Tell<W> extends _IxRWS<unknown, W, unknown, never, void> {
 
 class State<S1, S2, A> extends _IxRWS<unknown, never, S1, S2, A> {
   public readonly tag = 3;
-  public constructor(public readonly run: (s1: S1) => [A, S2]) {
+  public constructor(public readonly _run: (s1: S1) => [A, S2]) {
     super();
   }
 }

@@ -18,7 +18,6 @@ describe('State', () => {
   describe('types', () => {
     it('should be covariant in second type parameter', () => {
       const s1: State<number, 1> = State.pure(1 as const);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const s: State<number, number> = s1;
     });
   });
@@ -34,18 +33,20 @@ describe('State', () => {
       getOrElse.flatMap(() => toString.flatMap(() => IxState.get<string>())),
     );
 
-    expect(composite.runAS(null, List(1, 2, 3))).toEqual(['1', '1']);
-    expect(composite.runAS(null, List.empty)).toEqual(['0', '0']);
+    expect(composite.runState(List(1, 2, 3))).toEqual(['1', '1']);
+    expect(composite.runState(List.empty)).toEqual(['0', '0']);
   });
 
   describe('traverse', () => {
     it('should be stack safe', () => {
+      const size = 50_000;
       const add1 = State((n: number) => [n, n + 1]);
 
-      const ns = List.range(0, 50_000);
+      const ns = List.range(0, size);
       const x = ns.traverse(State.Monad<number>())(() => add1);
 
-      expect(x.runS(null, 0)).toBe(50_000);
+      expect(x.runStateS(0)).toBe(size);
+      expect(x.map(xs => xs.size).runStateA(0)).toBe(size);
     });
   });
 
@@ -56,7 +57,7 @@ describe('State', () => {
         const state: State<string, number> = State.pure(n);
         const ixState: State<string, number> = IxState.pure(n);
 
-        expect(state.runAS(null, s)).toEqual(ixState.runAS(null, s));
+        expect(state.runState(s)).toEqual(ixState.runState(s));
       }),
     );
 
@@ -66,7 +67,7 @@ describe('State', () => {
         const state: State<string, string> = State.get();
         const ixState: State<string, string> = IxState.get<string>();
 
-        expect(state.runAS(null, s)).toEqual(ixState.runAS(null, s));
+        expect(state.runState(s)).toEqual(ixState.runState(s));
       }),
     );
 
@@ -81,7 +82,7 @@ describe('State', () => {
           const state: State<string, number> = State.state(f);
           const ixState: State<string, number> = IxState.state(f);
 
-          expect(state.runAS(null, s)).toEqual(ixState.runAS(null, s));
+          expect(state.runState(s)).toEqual(ixState.runState(s));
         },
       ),
     );
@@ -92,7 +93,7 @@ describe('State', () => {
         const state: State<string, void> = State.modify(f);
         const ixState: State<string, void> = IxState.modify(f);
 
-        expect(state.runAS(null, s)).toEqual(ixState.runAS(null, s));
+        expect(state.runState(s)).toEqual(ixState.runState(s));
       }),
     );
 
@@ -102,7 +103,7 @@ describe('State', () => {
         const state: State<string, void> = State.set(s1);
         const ixState: State<string, void> = IxState.set(s1);
 
-        expect(state.runAS(null, s0)).toEqual(ixState.runAS(null, s0));
+        expect(state.runState(s0)).toEqual(ixState.runState(s0));
       }),
     );
   });
@@ -115,7 +116,7 @@ describe('State', () => {
       return result;
     });
 
-    expect(r.runAS(null, 42)).toEqual([44, 44]);
+    expect(r.runState(42)).toEqual([44, 44]);
   });
 
   describe('state management', () => {
@@ -123,7 +124,7 @@ describe('State', () => {
       expect(
         State.get<number>()
           .map(x => x + 1)
-          .runAS(null, 42),
+          .runState(42),
       ).toEqual([43, 42]);
     });
 
@@ -131,12 +132,12 @@ describe('State', () => {
       expect(
         State.pure<number, number>(42)
           .flatMap(x => State.set(x))
-          .runAS(null, -1),
+          .runState(-1),
       ).toEqual([undefined, 42]);
     });
 
     it('should update the state', () => {
-      expect(State.modify<number>(x => x + 1).runAS(null, 42)).toEqual([
+      expect(State.modify<number>(x => x + 1).runState(42)).toEqual([
         undefined,
         43,
       ]);
@@ -146,7 +147,7 @@ describe('State', () => {
       expect(
         State.modify<number>(x => x + 1)
           .get()
-          .runAS(null, 42),
+          .runState(42),
       ).toEqual([43, 43]);
     });
 
@@ -154,7 +155,7 @@ describe('State', () => {
       expect(
         State.modify<number>(x => x + 1)
           .map(() => 'test')
-          .runAS(null, 42),
+          .runState(42),
       ).toEqual(['test', 43]);
     });
 
@@ -167,7 +168,7 @@ describe('State', () => {
               .flatMap(loop)
           : State.pure(undefined);
 
-      expect(loop(0).runAS(null, 0)).toEqual([undefined, size]);
+      expect(loop(0).runState(0)).toEqual([undefined, size]);
     });
   });
 
@@ -187,7 +188,7 @@ describe('State', () => {
         <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
-            fa => s => fa.runAS(null, s),
+            fa => s => fa.runState(s),
           ),
       ),
     );
@@ -201,7 +202,7 @@ describe('State', () => {
         <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
-            fa => s => fa.runAS(null, s),
+            fa => s => fa.runState(s),
           ),
       ),
     );
