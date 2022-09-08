@@ -7,3 +7,4 @@ export * from './common';
 export * from './deriving';
 export * from './newtype';
 export * from './type-ref';
+export * from './coerce';

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Kind, TyK, TyVar } from '../hkt';
+import { $type, $variables, Kind, TyK, TyVar } from '../hkt';
 import { TypeRef } from './type-ref';
 
 export interface Newtype<Ref extends string, A> {
@@ -11,8 +11,14 @@ export interface Newtype<Ref extends string, A> {
   readonly _A: A;
 }
 
-export interface NewtypeF<Ref extends string, F> extends TyK<[unknown]> {
-  [$type]: Newtype<Ref, Kind<F, [TyVar<this, 0>]>>;
+// prettier-ignore
+type NewKind<Ref extends string, F, A extends unknown[]> =
+  Newtype<Ref, Kind<F, A>> & { tag: A };
+
+export interface NewtypeF<Ref extends string, F> extends TyK {
+  [$type]: this[$variables] extends infer A extends unknown[]
+    ? NewKind<Ref, F, A>
+    : never;
 }
 
 export interface KindId extends TyK<[unknown]> {
@@ -28,9 +34,9 @@ export interface Constructor<Ref extends string, A>
 
 export interface ConstructorK<Ref extends string, F = KindId> {
   Ref: Ref;
-  <A>(fa: Kind<F, [A]>): Newtype<Ref, Kind<F, [A]>>;
-  unapply<A>(nt: Newtype<Ref, Kind<F, [A]>>): Kind<F, [A]>;
-  fix<A>(): Constructor<Ref, Kind<F, [A]>>;
+  <A extends unknown[]>(fa: Kind<F, A>): NewKind<Ref, F, A>;
+  unapply<A extends unknown[]>(nt: NewKind<Ref, F, A>): Kind<F, A>;
+  fix<A extends unknown[]>(): Constructor<Ref, Kind<F, A>>;
 }
 
 export function newtype<A>(): <Ref extends string>(
@@ -50,14 +56,15 @@ export function newtypeK<F = KindId>(): <Ref extends string>(
   Ref: Ref,
 ) => ConstructorK<Ref, F> {
   return function <Ref extends string>(Ref: Ref): ConstructorK<Ref, F> {
-    const cotr: ConstructorK<Ref, F> = function <A>(
-      _: Kind<F, [A]>,
-    ): Newtype<Ref, Kind<F, [A]>> {
+    const cotr: ConstructorK<Ref, F> = function <A extends unknown[]>(
+      _: Kind<F, A>,
+    ): NewKind<Ref, F, A> {
       return _ as any;
     };
     cotr.Ref = Ref;
-    cotr.unapply = <A>(_: Newtype<Ref, Kind<F, [A]>>): Kind<F, [A]> => _ as any;
-    cotr.fix = <A>() => newtype<A>()(Ref);
+    cotr.unapply = <A extends unknown[]>(_: NewKind<Ref, F, A>): Kind<F, A> =>
+      _ as any;
+    cotr.fix = <A extends unknown[]>() => newtype<Kind<F, A>>()(Ref);
     return cotr;
   };
 }
