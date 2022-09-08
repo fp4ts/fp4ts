@@ -4,37 +4,53 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eq } from '@fp4ts/cats-kernel';
-import {
-  $,
-  $type,
-  coerce_,
-  Kind,
-  KindOf,
-  Lazy,
-  lazyVal,
-  newtypeK,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
+import { $, $type, id, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Profunctor } from '../arrow';
 import { Bifunctor } from '../bifunctor';
 import { EqK } from '../eq-k';
 import { Monad } from '../monad';
 import { Either } from './either';
 
-const TaggedF = newtypeK<KindSnd>()('@fp4ts/cats/core/data/Tagged');
-
-export type Tagged<S, B> = Kind<TaggedF, [S, B]>;
+export type Tagged<S, B> = _Tagged<S, B>;
 
 export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
-  return TaggedF(b);
+  return new _Tagged(b);
 } as any;
 
-Tagged.unTag = coerce_;
+Tagged.pure = Tagged;
+Tagged.unTag = tsb => tsb.unTag;
+
+class _Tagged<in S, out B> {
+  private readonly _S!: (s: S) => void;
+
+  public constructor(public readonly unTag: B) {}
+
+  public retag<R>(): Tagged<R, B> {
+    return this as any as Tagged<R, B>;
+  }
+
+  public dimap<R, C>(f: (r: R) => S, g: (b: B) => C): Tagged<R, C> {
+    return new _Tagged(g(this.unTag));
+  }
+
+  public map<C>(g: (b: B) => C): Tagged<S, C> {
+    return this.dimap(id, g);
+  }
+
+  public flatMap<R extends S, C>(g: (b: B) => Tagged<R, C>): Tagged<R, C> {
+    return this.map(g).unTag;
+  }
+
+  // public andThen<C, D>(that: Tagged<C, D>): Tagged<S, D> {
+  //   return that.retag();
+  // }
+}
 
 interface TaggedObj {
   <S, B>(b: B): Tagged<S, B>;
-  unTag<S, B>(t: Tagged<S, B>): B;
+
+  pure<S, B>(b: B): Tagged<S, B>;
+  unTag<S, B>(tsb: Tagged<S, B>): B;
 
   // -- Instances
 
@@ -48,22 +64,22 @@ interface TaggedObj {
 
 const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazyVal(<S>() =>
   EqK.of<$<TaggedF, [S]>>({
-    liftEq: <A>(E: Eq<A>) => Eq.by(E, (ta: Tagged<S, A>) => Tagged.unTag(ta)),
+    liftEq: <A>(E: Eq<A>) => Eq.by(E, (ta: Tagged<S, A>) => ta.unTag),
   }),
 ) as <S>() => EqK<$<TaggedF, [S]>>;
 
 const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
   Monad.of<$<TaggedF, [S]>>({
     pure: Tagged,
-    flatMap_: (fa, f) => f(coerce_(fa)),
-    map_: (fa, f) => Tagged(f(Tagged.unTag(fa))),
+    flatMap_: (fa, f) => fa.flatMap(f),
+    map_: (fa, f) => fa.map(f),
     tailRecM_: <R, A>(
       r: R,
       f: (r: R) => Tagged<S, Either<R, A>>,
     ): Tagged<S, A> => {
-      let res: Either<R, A> = coerce_(f(r));
+      let res: Either<R, A> = f(r).unTag;
       while (res.isLeft) {
-        res = coerce_(f(res.getLeft));
+        res = f(res.getLeft).unTag;
       }
       return Tagged(res.get);
     },
@@ -73,15 +89,12 @@ const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
 const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazyVal(() =>
   Bifunctor.of({
     bimap_: <A, B, C, D>(tab: Tagged<A, B>, f: (a: A) => C, g: (b: B) => D) =>
-      Tagged<C, D>(g(coerce_(tab))),
+      tab.map(g).retag<C>(),
   }),
 );
 
 const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazyVal(() =>
-  Profunctor.of({
-    dimap_: <A, B, C, D>(fab: Tagged<A, B>, f: (c: C) => A, g: (b: B) => D) =>
-      Tagged<C, D>(g(coerce_(fab))),
-  }),
+  Profunctor.of({ dimap_: (fab, f, g) => fab.dimap(f, g) }),
 );
 
 Tagged.EqK = taggedEqK;
@@ -99,12 +112,10 @@ Object.defineProperty(Tagged, 'Profunctor', {
 
 // -- HKT
 
-export interface KindSnd extends TyK<[unknown, unknown]> {
-  [$type]: TyVar<this, 1>;
-}
-
 /**
  * @category Type Constructor
  * @category Data
  */
-export type TaggedF = KindOf<typeof TaggedF>;
+export interface TaggedF extends TyK<[unknown, unknown]> {
+  [$type]: Tagged<TyVar<this, 0>, TyVar<this, 1>>;
+}

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Kind, PrimitiveType } from '@fp4ts/core';
+import { coerce, Kind, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import {
@@ -300,7 +300,7 @@ export const fp4tsRWS = <R, W, S, A>(
 export const fp4tsTagged =
   <S>() =>
   <A>(arbA: Arbitrary<A>): Arbitrary<Tagged<S, A>> =>
-    arbA.map(Tagged);
+    arbA.map(coerce<Tagged<S, A>>());
 
 export const fp4tsDual = <A>(arbA: Arbitrary<A>): Arbitrary<Dual<A>> => arbA;
 
