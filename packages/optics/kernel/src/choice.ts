@@ -3,15 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  coerce,
-  coerce_,
-  instance,
-  Kind,
-  Lazy,
-  lazyVal,
-  pipe,
-} from '@fp4ts/core';
+import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Either,
   Function1,
@@ -74,6 +66,6 @@ const taggedChoice: Lazy<Choice<TaggedF>> = lazyVal(() =>
     left:
       <C>() =>
       <A, B>(tab: Tagged<A, B>): Tagged<Either<A, C>, Either<B, C>> =>
-        coerce_(Left(coerce<B>()(tab))),
+        Tagged(Left(Tagged.unTag(tab))),
   }),
 );

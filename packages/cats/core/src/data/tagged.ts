@@ -7,7 +7,6 @@ import { Eq } from '@fp4ts/cats-kernel';
 import {
   $,
   $type,
-  coerce_,
   Kind,
   KindOf,
   Lazy,
@@ -30,7 +29,7 @@ export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
   return TaggedF(b);
 } as any;
 
-Tagged.unTag = coerce_;
+Tagged.unTag = TaggedF.unapply;
 
 interface TaggedObj {
   <S, B>(b: B): Tagged<S, B>;
@@ -55,15 +54,15 @@ const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazyVal(<S>() =>
 const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
   Monad.of<$<TaggedF, [S]>>({
     pure: Tagged,
-    flatMap_: (fa, f) => f(coerce_(fa)),
+    flatMap_: (fa, f) => f(Tagged.unTag(fa)),
     map_: (fa, f) => Tagged(f(Tagged.unTag(fa))),
     tailRecM_: <R, A>(
       r: R,
       f: (r: R) => Tagged<S, Either<R, A>>,
     ): Tagged<S, A> => {
-      let res: Either<R, A> = coerce_(f(r));
+      let res: Either<R, A> = Tagged.unTag(f(r));
       while (res.isLeft) {
-        res = coerce_(f(res.getLeft));
+        res = Tagged.unTag(f(res.getLeft));
       }
       return Tagged(res.get);
     },
@@ -73,14 +72,14 @@ const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
 const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazyVal(() =>
   Bifunctor.of({
     bimap_: <A, B, C, D>(tab: Tagged<A, B>, f: (a: A) => C, g: (b: B) => D) =>
-      Tagged<C, D>(g(coerce_(tab))),
+      Tagged<C, D>(g(Tagged.unTag(tab))),
   }),
 );
 
 const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazyVal(() =>
   Profunctor.of({
     dimap_: <A, B, C, D>(fab: Tagged<A, B>, f: (c: C) => A, g: (b: B) => D) =>
-      Tagged<C, D>(g(coerce_(fab))),
+      Tagged<C, D>(g(Tagged.unTag(fab))),
   }),
 );
 
