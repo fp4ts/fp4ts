@@ -27,10 +27,11 @@ export const SemigroupK = Object.freeze({
   of: <F>(F: SemigroupKRequirements<F>): SemigroupK<F> =>
     instance<SemigroupK<F>>({
       combineK: y => x => F.combineK_(x, y),
-      algebra: () => ({
-        combine: F.combineK ?? (y => x => F.combineK_(x, y)),
-        combine_: F.combineK_,
-      }),
+      algebra: () =>
+        Semigroup.of({
+          combine: F.combineK ?? (y => x => F.combineK_(x, y)),
+          combine_: F.combineK_,
+        }),
       ...F,
     }),
 });

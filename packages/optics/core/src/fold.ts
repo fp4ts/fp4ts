@@ -10,7 +10,6 @@ import {
   Backwards,
   Const,
   Contravariant,
-  Dual,
   Endo,
   Foldable,
   FoldableWithIndex,
@@ -88,7 +87,7 @@ export function foldLeft<S, A>(
     s =>
       pipe(
         l,
-        asGetting(Dual.Monoid(Endo.MonoidK.algebra<R>())),
+        asGetting(Endo.MonoidK.algebra<R>().dual()),
         foldMap,
         applyTo((a: A) => (r: R) => f(r, a)),
         applyTo(s),
@@ -277,7 +276,7 @@ export function ifoldLeft<I, S, A>(
     s =>
       pipe(
         l,
-        asIndexedGetting(Dual.Monoid(Endo.MonoidK.algebra<R>())),
+        asIndexedGetting(Endo.MonoidK.algebra<R>().dual()),
         ifoldMap,
         applyTo((a: A, i: I) => (r: R) => f(r, a, i)),
         applyTo(s),

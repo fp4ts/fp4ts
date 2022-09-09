@@ -70,10 +70,10 @@ export const evalSemigroup = <A>(A: Semigroup<A>): EvalSemigroup<A> =>
     combine_: (fx, fy) => map_(fx, x => A.combine_(x, () => fy().value)),
   });
 
-interface EvalMonoid<A> extends Monoid<Eval<A>>, EvalSemigroup<A> {}
+// interface EvalMonoid<A> extends Monoid<Eval<A>>, EvalSemigroup<A> {}
 
-export const evalMonoid = <A>(M: Monoid<A>): EvalMonoid<A> =>
+export const evalMonoid = <A>(M: Monoid<A>): Monoid<Eval<A>> =>
   Monoid.of({
     empty: Eval.later(() => M.empty),
-    ...evalSemigroup(M),
+    combine_: evalSemigroup(M).combine_,
   });

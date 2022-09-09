@@ -21,7 +21,6 @@ import {
   Right,
   Iter,
   Endo,
-  Dual,
 } from './data';
 import { ComposedFoldable } from './composed';
 
@@ -84,7 +83,7 @@ export const Foldable = Object.freeze({
 
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
-        self.foldMap_(Dual.Monoid(Endo.MonoidK.algebra<B>()))(
+        self.foldMap_(Endo.MonoidK.algebra<B>().dual())(
           fa,
           (a: A) => (b: B) => f(b, a),
         )(z),

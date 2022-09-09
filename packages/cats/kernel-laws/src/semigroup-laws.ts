@@ -6,7 +6,7 @@
 import { Semigroup } from '@fp4ts/cats-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-export const SemigroupLaws = <A>(S: Semigroup<A>): SemigroupLaws<A> => ({
+export const SemigroupLaws = <A>(S: Semigroup<A>) => ({
   semigroupAssociativity: (x: A, y: A, z: A): IsEq<A> =>
     new IsEq(
       S.combine_(
@@ -15,8 +15,12 @@ export const SemigroupLaws = <A>(S: Semigroup<A>): SemigroupLaws<A> => ({
       ),
       S.combine_(x, () => S.combine_(y, () => z)),
     ),
-});
 
-export interface SemigroupLaws<A> {
-  semigroupAssociativity(x: A, y: A, z: A): IsEq<A>;
-}
+  semigroupDualDualIsIdentity: (x: A, y: A): IsEq<A> =>
+    new IsEq(
+      S.dual()
+        .dual()
+        .combine_(x, () => y),
+      S.combine_(x, () => y),
+    ),
+});

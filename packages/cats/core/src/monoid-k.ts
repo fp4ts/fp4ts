@@ -23,9 +23,10 @@ export const MonoidK = Object.freeze({
     ...SemigroupK.of(F),
     ...F,
 
-    algebra: () => ({
-      ...SemigroupK.of(F).algebra(),
-      empty: F.emptyK(),
-    }),
+    algebra: <A>() =>
+      Monoid.of<Kind<F, [A]>>({
+        combine_: SemigroupK.of(F).algebra<A>().combine_,
+        empty: F.emptyK<A>(),
+      }),
   }),
 });

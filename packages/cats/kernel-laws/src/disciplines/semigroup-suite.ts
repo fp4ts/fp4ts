@@ -18,6 +18,10 @@ export const SemigroupSuite = <A>(S: Semigroup<A>) => {
           'semigroup associativity',
           forAll(arbA, arbA, arbA, laws.semigroupAssociativity)(EqA),
         ],
+        [
+          'semigroup dual dual is identity',
+          forAll(arbA, arbA, laws.semigroupDualDualIsIdentity)(EqA),
+        ],
       ]),
   };
 };

@@ -7,7 +7,7 @@ import { Monoid } from '@fp4ts/cats-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { SemigroupLaws } from './semigroup-laws';
 
-export const MonoidLaws = <M>(M: Monoid<M>): MonoidLaws<M> => ({
+export const MonoidLaws = <M>(M: Monoid<M>) => ({
   ...SemigroupLaws(M),
 
   monoidRightIdentity: (x: M): IsEq<M> =>
@@ -22,9 +22,3 @@ export const MonoidLaws = <M>(M: Monoid<M>): MonoidLaws<M> => ({
       x,
     ),
 });
-
-export interface MonoidLaws<A> extends SemigroupLaws<A> {
-  monoidRightIdentity(x: A): IsEq<A>;
-
-  monoidLeftIdentity(x: A): IsEq<A>;
-}
