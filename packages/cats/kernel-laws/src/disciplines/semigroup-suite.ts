@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Arbitrary } from 'fast-check';
 import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
-import { Arbitrary } from 'fast-check';
 import { SemigroupLaws } from '../semigroup-laws';
 
 export const SemigroupSuite = <A>(S: Semigroup<A>) => {
@@ -13,10 +13,14 @@ export const SemigroupSuite = <A>(S: Semigroup<A>) => {
 
   return {
     semigroup: (arbA: Arbitrary<A>, EqA: Eq<A>): RuleSet =>
-      new RuleSet('semigroup', [
+      new RuleSet('Semigroup', [
         [
           'semigroup associativity',
           forAll(arbA, arbA, arbA, laws.semigroupAssociativity)(EqA),
+        ],
+        [
+          'semigroup dual reverses',
+          forAll(arbA, arbA, laws.semigroupDualReverses)(EqA),
         ],
         [
           'semigroup dual dual is identity',

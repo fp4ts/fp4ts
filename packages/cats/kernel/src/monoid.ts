@@ -56,8 +56,4 @@ export const Monoid = Object.freeze({
   get product(): Monoid<number> {
     return Monoid.of({ combine_: Semigroup.product.combine_, empty: 1 });
   },
-
-  first<A>(empty: A): Monoid<A> {
-    return Monoid.of({ combine_: Semigroup.first<A>().combine_, empty });
-  },
 });

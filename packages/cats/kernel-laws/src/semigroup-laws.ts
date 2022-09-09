@@ -16,6 +16,12 @@ export const SemigroupLaws = <A>(S: Semigroup<A>) => ({
       S.combine_(x, () => S.combine_(y, () => z)),
     ),
 
+  semigroupDualReverses: (x: A, y: A): IsEq<A> =>
+    new IsEq(
+      S.dual().combine_(x, () => y),
+      S.combine_(y, () => x),
+    ),
+
   semigroupDualDualIsIdentity: (x: A, y: A): IsEq<A> =>
     new IsEq(
       S.dual()

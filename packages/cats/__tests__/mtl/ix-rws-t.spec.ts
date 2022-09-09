@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, id, Kind } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
 import { IxRWST, RWST } from '@fp4ts/cats-mtl';
@@ -118,7 +118,7 @@ describe('IxRWST', () => {
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
       const S = RWST.MonadState<unknown, void, number, EvalF>(
-        Monoid.first(undefined as void),
+        CommutativeMonoid.void,
         Eval.Monad,
       );
       const size = 50_000;

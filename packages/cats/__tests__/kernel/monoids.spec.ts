@@ -4,11 +4,34 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { MonoidSuite } from '@fp4ts/cats-laws';
+import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoidSuite, MonoidSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 
 describe('Monoids', () => {
+  describe('String', () => {
+    test('empty to be an empty string', () => {
+      expect(Monoid.string.empty).toBe('');
+    });
+
+    test.each`
+      lhs       | rhs       | result
+      ${'a'}    | ${'b'}    | ${'ab'}
+      ${'cd'}   | ${'ab'}   | ${'cdab'}
+      ${'abcd'} | ${'e'}    | ${'abcde'}
+      ${'e'}    | ${'abcd'} | ${'eabcd'}
+    `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
+      expect(Monoid.string.combine_(lhs, () => rhs)).toBe(result);
+    });
+
+    checkAll(
+      'Monoid<string>',
+      MonoidSuite(Monoid.string).monoid(fc.string(), Eq.primitive),
+    );
+  });
+});
+
+describe('CommutativeMonoids', () => {
   describe('conjunction', () => {
     test('empty to be true', () => {
       expect(Monoid.conjunction.empty).toBe(true);
@@ -21,12 +44,17 @@ describe('Monoids', () => {
       ${false} | ${true}  | ${false}
       ${false} | ${false} | ${false}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.conjunction.combine_(lhs, () => rhs)).toBe(result);
+      expect(CommutativeMonoid.conjunction.combine_(lhs, () => rhs)).toBe(
+        result,
+      );
     });
 
     checkAll(
-      'Monoid<ConjunctionMonoid>',
-      MonoidSuite(Monoid.conjunction).monoid(fc.boolean(), Eq.primitive),
+      'CommutativeMonoid<boolean>',
+      CommutativeMonoidSuite(CommutativeMonoid.conjunction).commutativeMonoid(
+        fc.boolean(),
+        Eq.primitive,
+      ),
     );
   });
 
@@ -42,18 +70,23 @@ describe('Monoids', () => {
       ${false} | ${true}  | ${true}
       ${false} | ${false} | ${false}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.disjunction.combine_(lhs, () => rhs)).toBe(result);
+      expect(CommutativeMonoid.disjunction.combine_(lhs, () => rhs)).toBe(
+        result,
+      );
     });
 
     checkAll(
-      'Monoid<DisjunctionMonoid>',
-      MonoidSuite(Monoid.disjunction).monoid(fc.boolean(), Eq.primitive),
+      'CommutativeMonoid<boolean>',
+      CommutativeMonoidSuite(CommutativeMonoid.disjunction).commutativeMonoid(
+        fc.boolean(),
+        Eq.primitive,
+      ),
     );
   });
 
   describe('Addition', () => {
     test('empty to be zero', () => {
-      expect(Monoid.addition.empty).toBe(0);
+      expect(CommutativeMonoid.addition.empty).toBe(0);
     });
 
     test.each`
@@ -63,12 +96,15 @@ describe('Monoids', () => {
       ${-15} | ${10} | ${-5}
       ${-10} | ${15} | ${5}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.addition.combine_(lhs, () => rhs)).toBe(result);
+      expect(CommutativeMonoid.addition.combine_(lhs, () => rhs)).toBe(result);
     });
 
     checkAll(
-      'Monoid<AdditionMonoid> for integers',
-      MonoidSuite(Monoid.addition).monoid(fc.integer(), Eq.primitive),
+      'CommutativeMonoid<number>',
+      CommutativeMonoidSuite(CommutativeMonoid.addition).commutativeMonoid(
+        fc.integer(),
+        Eq.primitive,
+      ),
     );
   });
 
@@ -88,8 +124,8 @@ describe('Monoids', () => {
     });
 
     checkAll(
-      'Monoid<ProductMonoid> for integers',
-      MonoidSuite(Monoid.product).monoid(
+      'CommutativeMonoid<number>',
+      CommutativeMonoidSuite(CommutativeMonoid.product).commutativeMonoid(
         // to keep the values within the integer range
         fc.integer({ min: -10_000, max: 10_000 }),
         Eq.primitive,
@@ -97,24 +133,11 @@ describe('Monoids', () => {
     );
   });
 
-  describe('String', () => {
-    test('empty to be an empty string', () => {
-      expect(Monoid.string.empty).toBe('');
-    });
-
-    test.each`
-      lhs       | rhs       | result
-      ${'a'}    | ${'b'}    | ${'ab'}
-      ${'cd'}   | ${'ab'}   | ${'cdab'}
-      ${'abcd'} | ${'e'}    | ${'abcde'}
-      ${'e'}    | ${'abcd'} | ${'eabcd'}
-    `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.string.combine_(lhs, () => rhs)).toBe(result);
-    });
-
-    checkAll(
-      'Monoid<StringMonoid>',
-      MonoidSuite(Monoid.string).monoid(fc.string(), Eq.primitive),
-    );
-  });
+  checkAll(
+    'CommutativeMonoid<void>',
+    CommutativeMonoidSuite(CommutativeMonoid.void).commutativeMonoid(
+      fc.constant(undefined as void),
+      Eq.fromUniversalEquals<void>(),
+    ),
+  );
 });

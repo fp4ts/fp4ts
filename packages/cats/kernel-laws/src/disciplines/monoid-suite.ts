@@ -16,7 +16,7 @@ export const MonoidSuite = <A>(M: Monoid<A>) => {
 
     monoid: (arbA: Arbitrary<A>, EqA: Eq<A>) =>
       new RuleSet(
-        'monoid',
+        'Monoid',
         [
           [
             'monoid right identity',

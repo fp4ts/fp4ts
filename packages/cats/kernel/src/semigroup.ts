@@ -52,8 +52,4 @@ export const Semigroup = Object.freeze({
   get product(): Semigroup<number> {
     return Semigroup.of({ combine_: (x, y) => x * y() });
   },
-
-  first<A>(): Semigroup<A> {
-    return Semigroup.of({ combine_: (x, y) => x });
-  },
 });

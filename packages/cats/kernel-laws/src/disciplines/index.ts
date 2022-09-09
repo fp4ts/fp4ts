@@ -6,3 +6,6 @@
 export * from './eq-suite';
 export * from './monoid-suite';
 export * from './semigroup-suite';
+
+export * from './commutative-monoid-suite';
+export * from './commutative-semigroup-suite';
