@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eq } from '@fp4ts/cats-kernel';
 import {
   $,
   $type,
@@ -12,14 +11,15 @@ import {
   Lazy,
   lazyVal,
   newtypeK,
+  newtypeKDerive,
   TyK,
   TyVar,
 } from '@fp4ts/core';
 import { Profunctor } from '../arrow';
 import { Bifunctor } from '../bifunctor';
-import { EqK } from '../eq-k';
-import { Monad } from '../monad';
-import { Either } from './either';
+import { EqK, EqKF } from '../eq-k';
+import { Monad, MonadF } from '../monad';
+import { Identity } from './identity';
 
 const TaggedF = newtypeK<KindSnd>()('@fp4ts/cats/core/data/Tagged');
 
@@ -46,27 +46,11 @@ interface TaggedObj {
 // -- Instances
 
 const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazyVal(<S>() =>
-  EqK.of<$<TaggedF, [S]>>({
-    liftEq: <A>(E: Eq<A>) => Eq.by(E, (ta: Tagged<S, A>) => Tagged.unTag(ta)),
-  }),
+  newtypeKDerive<EqKF, $<TaggedF, [S]>>()(Identity.EqK),
 ) as <S>() => EqK<$<TaggedF, [S]>>;
 
 const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
-  Monad.of<$<TaggedF, [S]>>({
-    pure: Tagged,
-    flatMap_: (fa, f) => f(Tagged.unTag(fa)),
-    map_: (fa, f) => Tagged(f(Tagged.unTag(fa))),
-    tailRecM_: <R, A>(
-      r: R,
-      f: (r: R) => Tagged<S, Either<R, A>>,
-    ): Tagged<S, A> => {
-      let res: Either<R, A> = Tagged.unTag(f(r));
-      while (res.isLeft) {
-        res = Tagged.unTag(f(res.getLeft));
-      }
-      return Tagged(res.get);
-    },
-  }),
+  newtypeKDerive<MonadF, $<TaggedF, [S]>>()(Identity.Monad),
 ) as <S>() => Monad<$<TaggedF, [S]>>;
 
 const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazyVal(() =>

@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '../hkt';
-import { Constructor, ConstructorK, Newtype, NewtypeF } from './newtype';
+import { Constructor, Newtype } from './newtype';
+import { TypeOf } from './type-ref';
 
 export const newtypeDerive =
   <TCF>() =>
@@ -14,10 +15,15 @@ export const newtypeDerive =
   ): Kind<TCF, [Newtype<Ref, A>]> =>
     TC as any;
 
+// prettier-ignore
+type IsEqviv<F, G> =
+  [TypeOf<Kind<F, unknown[]>>, Kind<G, unknown[]>] extends [infer F, infer G]
+    ? [F, G] extends [G, F]
+      ? []
+      : [never]
+    : [never];
+
 export const newtypeKDerive =
-  <TCKF>() =>
-  <Ref extends string, F>(
-    ctor: ConstructorK<Ref, F>,
-    TC: Kind<TCKF, [F]>,
-  ): Kind<TCKF, [NewtypeF<Ref, F>]> =>
+  <TCKF, NF>() =>
+  <F>(TC: Kind<TCKF, [F]>, ...ev: IsEqviv<NF, F>): Kind<TCKF, [NF]> =>
     TC as any;
