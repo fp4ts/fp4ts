@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { $, coerce, id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
   Function1,
   Function1F,
@@ -91,7 +91,7 @@ const taggedCosieve: Lazy<Cosieve<TaggedF, ProxyF>> = lazyVal(() =>
       cosieve:
         <A, B>(pab: Tagged<A, B>) =>
         (p: Proxy<A>) =>
-          Tagged.unTag(pab),
+          coerce(pab),
       ...Tagged.Profunctor,
     },
     Proxy.Functor,

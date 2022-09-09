@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Char, coerce, Lazy, lazyVal, newtype, TypeOf } from '@fp4ts/core';
 import { IdentityF } from '@fp4ts/cats';
-import { Char, Lazy, lazyVal, newtype, TypeOf } from '@fp4ts/core';
 import { parser, Parser, StringSource, text, Rfc5234 } from '@fp4ts/parse';
 import { ParseResult, Rfc7230 } from './parsing';
 
@@ -19,7 +19,7 @@ export const QValue = Object.freeze({
 
   toString: (q: QValue): string =>
     // toFixed used to ensure correct rounding
-    `;q=${(0.001 * QValueCotr.unapply(q)).toFixed(3)}`,
+    `;q=${(0.001 * coerce(q)).toFixed(3)}`,
 
   fromThousands: (x: number): ParseResult<QValue> =>
     mkQValue(x, `${0.001 * x}`),

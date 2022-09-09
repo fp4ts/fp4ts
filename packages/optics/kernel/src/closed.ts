@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, compose, flow, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import {
+  $,
+  coerce,
+  compose,
+  flow,
+  instance,
+  Kind,
+  Lazy,
+  lazyVal,
+} from '@fp4ts/core';
 import {
   Distributive,
   Function1,
@@ -69,7 +78,7 @@ const closedTagged: Lazy<Closed<TaggedF>> = lazyVal(() =>
     closed:
       <X>() =>
       <A, B>(pab: Tagged<A, B>): Tagged<(x: X) => A, (x: X) => B> =>
-        Tagged(() => Tagged.unTag(pab)),
+        Tagged(() => coerce(pab)),
 
     ...Tagged.Profunctor,
   }),
