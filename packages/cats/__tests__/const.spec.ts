@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { Monoid, CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import { Const } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -68,8 +68,8 @@ describe('Const Laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Const.Functor(),
       Eval.Applicative,
       Eval.Applicative,

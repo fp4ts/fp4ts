@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Eval, List, Monoid, Option, Some } from '@fp4ts/cats';
+import { Eq, Eval, List, CommutativeMonoid, Option, Some } from '@fp4ts/cats';
 import { TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { SchemableK } from '@fp4ts/schema-kernel';
@@ -79,8 +79,8 @@ describe('Traversable derivation', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       IListF,
       Option.Applicative,
       Option.Applicative,
@@ -102,8 +102,8 @@ describe('Traversable derivation', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       SnocF,
       Option.Applicative,
       Option.Applicative,
@@ -125,8 +125,8 @@ describe('Traversable derivation', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       TreeF,
       Option.Applicative,
       Option.Applicative,
@@ -148,8 +148,8 @@ describe('Traversable derivation', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       GenericAdtF,
       Option.Applicative,
       Option.Applicative,
@@ -171,8 +171,8 @@ describe('Traversable derivation', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       AndStringF,
       Option.Applicative,
       Option.Applicative,

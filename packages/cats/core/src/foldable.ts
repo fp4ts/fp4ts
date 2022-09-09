@@ -74,8 +74,7 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
 }
 
 export type FoldableRequirements<F> = Pick<Foldable<F>, 'foldMap_'> &
-  Partial<Foldable<F>> &
-  Partial<UnorderedFoldable<F>>;
+  Partial<Foldable<F>>;
 export const Foldable = Object.freeze({
   of: <F>(F: FoldableRequirements<F>): Foldable<F> => {
     const self: Foldable<F> = instance<Foldable<F>>({

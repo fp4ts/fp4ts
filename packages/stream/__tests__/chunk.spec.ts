@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Monoid, Eval, Eq, List, Vector } from '@fp4ts/cats';
+import { CommutativeMonoid, Eval, Eq, List, Vector } from '@fp4ts/cats';
 import { Chunk } from '@fp4ts/stream-core';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -209,8 +209,8 @@ describe('chunk', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Chunk.Functor,
       Eval.Applicative,
       Eval.Applicative,

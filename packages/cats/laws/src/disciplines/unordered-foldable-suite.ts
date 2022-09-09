@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { UnorderedFoldable } from '@fp4ts/cats-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
@@ -18,7 +18,7 @@ export const UnorderedFoldableSuite = <F>(F: UnorderedFoldable<F>) => {
     unorderedFoldable: <A>(
       arbA: Arbitrary<A>,
       EqA: Eq<A>,
-      M: Monoid<A>,
+      M: CommutativeMonoid<A>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet('unordered foldable', [

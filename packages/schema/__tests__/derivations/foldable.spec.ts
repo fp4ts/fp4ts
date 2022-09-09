@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Eval, List, Monoid } from '@fp4ts/cats';
+import { Eq, Eval, List, CommutativeMonoid, Monoid } from '@fp4ts/cats';
 import { FoldableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { SchemableK } from '@fp4ts/schema-kernel';
@@ -42,7 +42,7 @@ describe('Foldable derivation', () => {
     FoldableSuite(IListF).foldable(
       fc.integer(),
       fc.string(),
-      Monoid.addition,
+      CommutativeMonoid.addition,
       Monoid.string,
       Eq.primitive,
       Eq.primitive,
@@ -55,7 +55,7 @@ describe('Foldable derivation', () => {
     FoldableSuite(SnocF).foldable(
       fc.integer(),
       fc.string(),
-      Monoid.addition,
+      CommutativeMonoid.addition,
       Monoid.string,
       Eq.primitive,
       Eq.primitive,
@@ -68,7 +68,7 @@ describe('Foldable derivation', () => {
     FoldableSuite(TreeF).foldable(
       fc.integer(),
       fc.string(),
-      Monoid.addition,
+      CommutativeMonoid.addition,
       Monoid.string,
       Eq.primitive,
       Eq.primitive,
@@ -81,7 +81,7 @@ describe('Foldable derivation', () => {
     FoldableSuite(GenericAdtF).foldable(
       fc.integer(),
       fc.string(),
-      Monoid.addition,
+      CommutativeMonoid.addition,
       Monoid.string,
       Eq.primitive,
       Eq.primitive,
@@ -94,7 +94,7 @@ describe('Foldable derivation', () => {
     FoldableSuite(AndStringF).foldable(
       fc.integer(),
       fc.string(),
-      Monoid.addition,
+      CommutativeMonoid.addition,
       Monoid.string,
       Eq.primitive,
       Eq.primitive,

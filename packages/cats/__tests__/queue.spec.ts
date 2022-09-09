@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { tupled } from '@fp4ts/core';
-import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -453,8 +453,8 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Queue.Functor,
       Eval.Applicative,
       Eval.Applicative,

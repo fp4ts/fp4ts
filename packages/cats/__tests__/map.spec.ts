@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
@@ -1016,8 +1016,8 @@ describe('Map', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Map.FunctorWithIndex(),
         Eval.Applicative,
         Eval.Applicative,

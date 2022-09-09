@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
 import { Eval } from '@fp4ts/cats-core';
 import {
@@ -108,8 +108,8 @@ describe('Array laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Array.FunctorWithIndex(),
       Eval.Applicative,
       Eval.Applicative,

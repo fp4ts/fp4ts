@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Ord, Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Ord, Eq, Monoid, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { Set, List, Some, None } from '@fp4ts/cats-core/lib/data';
 import { isValid } from '@fp4ts/cats-core/lib/data/collections/set/operators';
 import { FoldableSuite, MonoidSuite } from '@fp4ts/cats-laws';
@@ -895,8 +895,8 @@ describe('set', () => {
       FoldableSuite(Set.Foldable).foldable(
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Eq.primitive,
         Eq.primitive,
         x => A.fp4tsSet(x, Ord.primitive as Ord<any>),

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { IxRWS, RWS } from '@fp4ts/cats-mtl';
 import { MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
 import {
@@ -164,7 +164,7 @@ describe('RWS', () => {
           ),
           fa =>
             ([r, s]) =>
-              fa.runAll(r, s, Monoid.addition),
+              fa.runAll(r, s, CommutativeMonoid.addition),
         ),
     ),
   );

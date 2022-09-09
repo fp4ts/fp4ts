@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Some,
@@ -1032,8 +1032,8 @@ describe('Vector', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Vector.Functor,
         Eval.Applicative,
         Eval.Applicative,

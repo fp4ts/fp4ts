@@ -13,7 +13,6 @@ import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import { TraversableLaws } from '../traversable-laws';
 import { FoldableSuite } from './foldable-suite';
 import { FunctorSuite } from './functor-suite';
-import { UnorderedTraversableSuite } from './unordered-traversable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const TraversableSuite = <T>(T: Traversable<T>) => {
@@ -21,7 +20,6 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
   const self = {
     ...FunctorSuite(T),
     ...FoldableSuite(T),
-    ...UnorderedTraversableSuite(T),
 
     traversable: <A, B, C, F, G>(
       arbA: Arbitrary<A>,
@@ -76,24 +74,6 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
           parents: [
             self.functor(arbA, arbB, arbC, EqA, EqC, mkArbT, mkEqT),
             self.foldable(arbA, arbB, MA, MB, EqA, EqB, mkArbT),
-            self.unorderedTraversable(
-              arbA,
-              arbB,
-              arbC,
-              EqA,
-              EqB,
-              EqC,
-              MA,
-              T,
-              F,
-              G,
-              mkArbT,
-              mkEqT,
-              mkArbF,
-              mkEqF,
-              mkArbG,
-              mkEqG,
-            ),
           ],
         },
       ),

@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
 import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
@@ -26,7 +26,7 @@ export const UnorderedTraversableSuite = <T>(T: UnorderedTraversable<T>) => {
       EqA: Eq<A>,
       EqB: Eq<B>,
       EqC: Eq<C>,
-      M: Monoid<A>,
+      M: CommutativeMonoid<A>,
       T: Functor<T>,
       F: Applicative<F>,
       G: Applicative<G>,

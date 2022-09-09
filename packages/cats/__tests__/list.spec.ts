@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Identity,
@@ -1297,8 +1297,8 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         List.Functor,
         Eval.Applicative,
         Eval.Applicative,

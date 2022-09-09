@@ -59,10 +59,7 @@ export const TraversableLaws = <T>(T: Traversable<T>): TraversableLaws<T> => ({
     },
 });
 
-export interface TraversableLaws<T>
-  extends FunctorLaws<T>,
-    FoldableLaws<T>,
-    UnorderedTraversableLaws<T> {
+export interface TraversableLaws<T> extends FunctorLaws<T>, FoldableLaws<T> {
   traversableIdentity: <A, B>(
     fa: Kind<T, [A]>,
     f: (a: A) => B,

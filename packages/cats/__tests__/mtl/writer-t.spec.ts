@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
-import { Monoid, Eq } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Monoid, Eq } from '@fp4ts/cats-kernel';
 import { EqK, Eval, Monad } from '@fp4ts/cats-core';
 import {
   Array,
@@ -240,8 +240,8 @@ describe('WriterT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         WriterT.Functor(Option.Functor),
         Option.Applicative,
         Eval.Applicative,

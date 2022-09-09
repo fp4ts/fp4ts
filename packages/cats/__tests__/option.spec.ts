@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import { Right, Left, Option, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -247,8 +247,8 @@ describe('Option', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Option.Functor,
         Eval.Applicative,
         Eval.Applicative,

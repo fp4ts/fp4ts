@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import { Chain, Option } from '@fp4ts/cats-core/lib/data';
 import {
@@ -140,8 +140,8 @@ describe('Chain', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Chain.Monad,
         Eval.Applicative,
         Eval.Applicative,

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { UnorderedFoldable } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -13,7 +13,7 @@ export const UnorderedFoldableLaws = <F>(
 ): UnorderedFoldableLaws<F> => ({
   unorderedFoldConsistentWithUnorderedFoldMap: <A>(
     fa: Kind<F, [A]>,
-    M: Monoid<A>,
+    M: CommutativeMonoid<A>,
   ): IsEq<A> =>
     new IsEq(F.unorderedFoldMap_(M)(fa, id), F.unorderedFold(M)(fa)),
 
@@ -55,7 +55,7 @@ export const UnorderedFoldableLaws = <F>(
 export interface UnorderedFoldableLaws<F> {
   unorderedFoldConsistentWithUnorderedFoldMap: <A>(
     fa: Kind<F, [A]>,
-    M: Monoid<A>,
+    M: CommutativeMonoid<A>,
   ) => IsEq<A>;
 
   allConsistentWithAny: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;

@@ -17,13 +17,9 @@ import {
   Left,
   Right,
 } from '@fp4ts/cats-core/lib/data';
-
-import { UnorderedFoldableLaws } from './unordered-foldable-laws';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
-  ...UnorderedFoldableLaws(F),
-
   foldRightLazy: <A>(fa: Kind<F, [A]>): boolean => {
     let i = 0;
     F.foldRight_(fa, Eval.now('empty'), () => {
@@ -63,6 +59,40 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
     f: (b: B, a: A) => B,
   ): IsEq<B> =>
     new IsEq(F.foldM_(Identity.Monad)(fa, b, f), F.foldLeft_(fa, b, f)),
+
+  allConsistentWithAny: <A>(
+    fa: Kind<F, [A]>,
+    p: (a: A) => boolean,
+  ): boolean => {
+    if (!F.all_(fa, p)) return true;
+
+    const negationExists = F.any_(fa, x => !p(x));
+    return !negationExists && (F.isEmpty(fa) || F.any_(fa, p));
+  },
+
+  anyLazy: <A>(fa: Kind<F, [A]>): boolean => {
+    let i = 0;
+    F.any_(fa, () => {
+      i += 1;
+      return true;
+    });
+    return F.isEmpty(fa) ? i === 0 : i === 1;
+  },
+
+  allLazy: <A>(fa: Kind<F, [A]>): boolean => {
+    let i = 0;
+    F.all_(fa, () => {
+      i += 1;
+      return false;
+    });
+    return F.isEmpty(fa) ? i === 0 : i === 1;
+  },
+
+  allEmpty: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean): boolean =>
+    !F.isEmpty(fa) || F.all_(fa, p),
+
+  nonEmptyRef: <A>(fa: Kind<F, [A]>): IsEq<boolean> =>
+    new IsEq(F.nonEmpty(fa), !F.isEmpty(fa)),
 
   elemRef: <A>(fa: Kind<F, [A]>, idx: number): IsEq<Option<A>> => {
     const ref = <A>(fa: Kind<F, [A]>, idx: number) => {
@@ -106,7 +136,7 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
     new IsEq(List.fromIterator(F.iterator(fa)), F.toList(fa)),
 });
 
-export interface FoldableLaws<F> extends UnorderedFoldableLaws<F> {
+export interface FoldableLaws<F> {
   foldRightLazy: <A>(fa: Kind<F, [A]>) => boolean;
 
   leftFoldConsistentWithFoldMap: <B>(
@@ -122,6 +152,16 @@ export interface FoldableLaws<F> extends UnorderedFoldableLaws<F> {
     b: B,
     f: (b: B, a: A) => B,
   ) => IsEq<B>;
+
+  allConsistentWithAny: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+
+  anyLazy: <A>(fa: Kind<F, [A]>) => boolean;
+
+  allLazy: <A>(fa: Kind<F, [A]>) => boolean;
+
+  allEmpty: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+
+  nonEmptyRef: <A>(fa: Kind<F, [A]>) => IsEq<boolean>;
 
   elemRef: <A>(fa: Kind<F, [A]>, idx: number) => IsEq<Option<A>>;
 

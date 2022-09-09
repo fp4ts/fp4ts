@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { Tagged } from '@fp4ts/cats-core/lib/data';
 import { Eq } from '@fp4ts/cats-kernel';
 import { BifunctorSuite, MonadSuite, ProfunctorSuite } from '@fp4ts/cats-laws';
@@ -23,7 +23,7 @@ describe('Tagged', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      A.fp4tsTagged(),
+      X => X.map(Tagged),
       Tagged.EqK().liftEq,
     ),
   );
@@ -39,7 +39,7 @@ describe('Tagged', () => {
       Eq.primitive,
       Eq.primitive,
       Eq.primitive,
-      (X, Y) => A.fp4tsTagged()(Y),
+      <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => Y.map(Tagged<X, Y>),
       <X, Y>(X: Eq<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
     ),
   );
@@ -56,7 +56,7 @@ describe('Tagged', () => {
       Eq.primitive,
       ec.miniInt(),
       Eq.primitive,
-      (X, Y) => A.fp4tsTagged()(Y),
+      <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => Y.map(Tagged<X, Y>),
       <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => Tagged.EqK<X>().liftEq(Y),
     ),
   );

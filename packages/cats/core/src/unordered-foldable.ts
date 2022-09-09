@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, id, instance, Kind } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
+import { Base, id, instance, Kind, lazyVal } from '@fp4ts/core';
+import { CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { Eval } from './eval';
 
 /**
@@ -12,13 +12,15 @@ import { Eval } from './eval';
  */
 export interface UnorderedFoldable<F> extends Base<F> {
   readonly unorderedFoldMap: <M>(
-    M: Monoid<M>,
+    M: CommutativeMonoid<M>,
   ) => <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
   readonly unorderedFoldMap_: <M>(
-    M: Monoid<M>,
+    M: CommutativeMonoid<M>,
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
 
-  readonly unorderedFold: <A>(M: Monoid<A>) => (fa: Kind<F, [A]>) => A;
+  readonly unorderedFold: <A>(
+    M: CommutativeMonoid<A>,
+  ) => (fa: Kind<F, [A]>) => A;
 
   readonly isEmpty: <A>(fa: Kind<F, [A]>) => boolean;
   readonly nonEmpty: <A>(fa: Kind<F, [A]>) => boolean;
@@ -51,24 +53,38 @@ export const UnorderedFoldable = Object.freeze({
 
       all: f => fa => self.all_(fa, f),
       all_: (fa, p) =>
-        self.unorderedFoldMap_(Eval.Monoid(Monoid.conjunction))(fa, x =>
-          Eval.later(() => p(x)),
-        ).value,
+        self.unorderedFoldMap_(andEvalMonoid())(fa, x => Eval.later(() => p(x)))
+          .value,
 
       any: f => fa => self.any_(fa, f),
       any_: (fa, p) =>
-        self.unorderedFoldMap_(Eval.Monoid(Monoid.disjunction))(fa, x =>
-          Eval.later(() => p(x)),
-        ).value,
+        self.unorderedFoldMap_(orEvalMonoid())(fa, x => Eval.later(() => p(x)))
+          .value,
 
       count: p => fa => self.count_(fa, p),
       count_: (fa, p) =>
-        self.unorderedFoldMap_(Monoid.addition)(fa, x => (p(x) ? 1 : 0)),
+        self.unorderedFoldMap_(CommutativeMonoid.addition)(fa, x =>
+          p(x) ? 1 : 0,
+        ),
 
-      size: fa => self.unorderedFoldMap_(Monoid.addition)(fa, () => 1),
+      size: fa =>
+        self.unorderedFoldMap_(CommutativeMonoid.addition)(fa, () => 1),
 
       ...F,
     });
     return self;
   },
 });
+
+const orEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
+  CommutativeMonoid.of({
+    empty: Eval.now(false),
+    combine_: (x, y) => x.flatMap(x => (!x ? y() : Eval.now(true))),
+  }),
+);
+const andEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
+  CommutativeMonoid.of({
+    empty: Eval.now(true),
+    combine_: (x, y) => x.flatMap(x => (x ? y() : Eval.now(false))),
+  }),
+);

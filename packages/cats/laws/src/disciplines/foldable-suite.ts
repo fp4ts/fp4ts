@@ -11,15 +11,12 @@ import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { FoldableLaws } from '../foldable-laws';
-import { UnorderedFoldableSuite } from './unordered-foldable-suite';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FoldableSuite = <F>(F: Foldable<F>) => {
   const laws = FoldableLaws(F);
 
   const self = {
-    ...UnorderedFoldableSuite(F),
-
     foldable: <A, B>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
@@ -29,61 +26,79 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
       EqB: Eq<B>,
       mkArbF: <X>(arbX: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
     ): RuleSet =>
-      new RuleSet(
-        'foldable',
+      new RuleSet('foldable', [
         [
-          [
-            'foldable foldRight is lazy',
-            forAll(mkArbF(arbA), laws.foldRightLazy),
-          ],
-          [
-            'foldable foldLeft consistent with foldMap',
-            forAll(
-              mkArbF(arbA),
-              fc.func<[A], B>(arbB),
-              laws.leftFoldConsistentWithFoldMap(MB),
-            )(EqB),
-          ],
-          [
-            'foldable foldRight consistent with foldMap',
-            forAll(
-              mkArbF(arbA),
-              fc.func<[A], B>(arbB),
-              laws.rightFoldConsistentWithFoldMap(MB),
-            )(EqB),
-          ],
-          [
-            'foldable foldM identity',
-            forAll(
-              mkArbF(arbA),
-              arbB,
-              fc.func<[B, A], B>(arbB),
-              laws.foldMIdentity,
-            )(EqB),
-          ],
-          [
-            'foldable elem reference',
-            forAll(
-              mkArbF(arbA),
-              fc.integer({ min: -2, max: 20 }),
-              laws.elemRef,
-            )(Option.Eq(EqA)),
-          ],
-          [
-            'foldable toList reference',
-            forAll(mkArbF(arbA), laws.toListRef)(List.Eq(EqA)),
-          ],
-          [
-            'foldable toVector reference',
-            forAll(mkArbF(arbA), laws.toVectorRef)(Vector.Eq(EqA)),
-          ],
-          [
-            'foldable list from iterator is toList',
-            forAll(mkArbF(arbA), laws.listFromIteratorIsToList)(List.Eq(EqA)),
-          ],
+          'foldable foldRight is lazy',
+          forAll(mkArbF(arbA), laws.foldRightLazy),
         ],
-        { parent: self.unorderedFoldable(arbA, EqA, MA, mkArbF) },
-      ),
+        [
+          'foldable foldLeft consistent with foldMap',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], B>(arbB),
+            laws.leftFoldConsistentWithFoldMap(MB),
+          )(EqB),
+        ],
+        [
+          'foldable foldRight consistent with foldMap',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], B>(arbB),
+            laws.rightFoldConsistentWithFoldMap(MB),
+          )(EqB),
+        ],
+        [
+          'foldable foldM identity',
+          forAll(
+            mkArbF(arbA),
+            arbB,
+            fc.func<[B, A], B>(arbB),
+            laws.foldMIdentity,
+          )(EqB),
+        ],
+        [
+          'foldable all consistent with any',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], boolean>(fc.boolean()),
+            laws.allConsistentWithAny,
+          ),
+        ],
+        ['foldable any is lazy', forAll(mkArbF(arbA), laws.anyLazy)],
+        ['foldable all is lazy', forAll(mkArbF(arbA), laws.allLazy)],
+        [
+          'foldable all empty',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], boolean>(fc.boolean()),
+            laws.allEmpty,
+          ),
+        ],
+        [
+          'foldable nonEmpty reference',
+          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.primitive),
+        ],
+        [
+          'foldable elem reference',
+          forAll(
+            mkArbF(arbA),
+            fc.integer({ min: -2, max: 20 }),
+            laws.elemRef,
+          )(Option.Eq(EqA)),
+        ],
+        [
+          'foldable toList reference',
+          forAll(mkArbF(arbA), laws.toListRef)(List.Eq(EqA)),
+        ],
+        [
+          'foldable toVector reference',
+          forAll(mkArbF(arbA), laws.toVectorRef)(Vector.Eq(EqA)),
+        ],
+        [
+          'foldable list from iterator is toList',
+          forAll(mkArbF(arbA), laws.listFromIteratorIsToList)(List.Eq(EqA)),
+        ],
+      ]),
   };
   return self;
 };

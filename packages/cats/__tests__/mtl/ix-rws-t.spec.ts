@@ -147,14 +147,24 @@ describe('IxRWST', () => {
 
   runTests(
     ['Eval', Eval.Monad],
-    ['number', Monoid.addition, fc.integer(), Eq.fromUniversalEquals<number>()],
+    [
+      'number',
+      CommutativeMonoid.addition,
+      fc.integer(),
+      Eq.fromUniversalEquals<number>(),
+    ],
     A.fp4tsEval,
     Eval.Eq,
   );
 
   runTests(
     ['Option', Option.Monad],
-    ['number', Monoid.addition, fc.integer(), Eq.fromUniversalEquals<number>()],
+    [
+      'number',
+      CommutativeMonoid.addition,
+      fc.integer(),
+      Eq.fromUniversalEquals<number>(),
+    ],
     A.fp4tsOption,
     Option.Eq,
   );
@@ -163,7 +173,7 @@ describe('IxRWST', () => {
     'MonadError<RWST<MiniInt, number, MiniInt, MiniInt, Either<string, *>, *>>',
     MonadErrorSuite(
       RWST.MonadError<MiniInt, number, MiniInt, $<EitherF, [string]>, string>(
-        Monoid.addition,
+        CommutativeMonoid.addition,
         Either.MonadError<string>(),
       ),
     ).monadError(

@@ -16,7 +16,7 @@ import {
   OptionTF,
   Some,
 } from '@fp4ts/cats-core/lib/data';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { ComonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -165,8 +165,8 @@ describe('Cofree', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Cofree.Functor(Option.Functor),
         Option.Applicative,
         Option.Applicative,

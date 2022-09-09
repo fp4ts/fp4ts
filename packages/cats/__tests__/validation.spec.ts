@@ -14,7 +14,7 @@ import {
   Validation,
   ValidationError,
 } from '@fp4ts/cats-core/lib/data';
-import { Eq, Semigroup, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Semigroup, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
   ApplicativeErrorSuite,
   BifunctorSuite,
@@ -229,8 +229,8 @@ describe('Validation', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
         Validation.Functor<string>(),
         Eval.Applicative,
         Option.Applicative,

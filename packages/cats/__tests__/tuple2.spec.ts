@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { Eval } from '@fp4ts/cats-core';
 import { Tuple2 } from '@fp4ts/cats-core/lib/data';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
   BifunctorSuite,
   ComonadSuite,
@@ -54,8 +54,8 @@ describe('Tuple2', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Tuple2.Bifunctor.rightFunctor<number>(),
       Eval.Applicative,
       Eval.Applicative,
@@ -93,8 +93,8 @@ describe('Tuple2', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Monoid.addition,
-      Monoid.addition,
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
       Tuple2.Bifunctor.leftFunctor<number>(),
       Eval.Applicative,
       Eval.Applicative,
