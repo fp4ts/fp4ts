@@ -20,6 +20,7 @@ import { arrIterator, ioob, reverseArrIterator } from './helpers';
 import { VectorBuilder } from './vector-builder';
 import { pure } from './constructors';
 import { vectorFoldable } from './instances';
+import { Eval } from '../../../eval';
 
 export const isEmpty = <A>(xs: Vector<A>): boolean => xs === Vector0;
 export const nonEmpty = <A>(xs: Vector<A>): boolean => xs !== Vector0;
@@ -274,14 +275,48 @@ export const foldLeft1_ = <A>(xs: Vector<A>, f: (b: A, a: A) => A): A =>
 
 export const foldRight_ = <A, B>(
   xs: Vector<A>,
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> => {
+  const size = xs.size;
+  const go = (idx: number): Eval<B> =>
+    idx >= size
+      ? ez
+      : f(
+          elem_(xs, idx),
+          Eval.defer(() => go(idx + 1)),
+        );
+  return Eval.defer(() => go(0));
+};
+
+export const foldRight1_ = <A>(
+  xs: Vector<A>,
+  f: (a: A, eb: Eval<A>) => Eval<A>,
+): Eval<A> => {
+  const size = xs.size;
+  const last = size - 1;
+  const go = (idx: number): Eval<A> =>
+    idx >= size
+      ? Eval.later(() => throwError(new Error('Vector0.foldRight1')))
+      : idx === last
+      ? Eval.later(() => elem_(xs, last))
+      : f(
+          elem_(xs, idx),
+          Eval.defer(() => go(idx + 1)),
+        );
+  return Eval.defer(() => go(0));
+};
+
+export const foldRightStrict_ = <A, B>(
+  xs: Vector<A>,
   z: B,
   f: (a: A, b: B) => B,
 ): B => Iter.fold_(reverseIterator(xs), z, flip(f));
 
-export const foldRight1_ = <A>(xs: Vector<A>, f: (a: A, b: A) => A): A =>
+export const foldRight1Strict_ = <A>(xs: Vector<A>, f: (a: A, b: A) => A): A =>
   popLast(xs)
-    .map(([l, ini]) => foldRight_(ini, l, f))
-    .getOrElse(() => throwError(new Error('Vector0.foldRight1')));
+    .map(([l, ini]) => foldRightStrict_(ini, l, f))
+    .getOrElse(() => throwError(new Error('Vector0.foldRight1_')));
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>

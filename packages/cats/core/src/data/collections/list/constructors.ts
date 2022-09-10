@@ -31,7 +31,7 @@ export const fromArray = <A>(xs: A[]): List<A> => {
 };
 
 export const fromVector = <A>(xs: Vector<A>): List<A> =>
-  xs.foldRight(empty as List<A>, cons);
+  xs.foldRight_(empty as List<A>, cons);
 
 export const range = (from: number, to: number): List<number> => {
   let result: List<number> = empty;

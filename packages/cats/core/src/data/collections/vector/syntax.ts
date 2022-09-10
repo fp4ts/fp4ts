@@ -29,7 +29,9 @@ import {
   flatMap_,
   foldLeft1_,
   foldLeft_,
+  foldRight1Strict_,
   foldRight1_,
+  foldRightStrict_,
   foldRight_,
   forEach_,
   head,
@@ -63,6 +65,7 @@ import {
   zipWith_,
   zip_,
 } from './operators';
+import { Eval } from '../../../eval';
 
 declare module './algebra' {
   interface Vector<out A> {
@@ -121,8 +124,11 @@ declare module './algebra' {
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: Vector<B>, f: (b: B, a: B) => B): B;
 
-    foldRight<B>(z: B, f: (a: A, b: B) => B): B;
-    foldRight1<B>(this: Vector<B>, f: (a: B, b: B) => B): B;
+    foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B>;
+    foldRight1<B>(this: Vector<B>, f: (a: B, eb: Eval<B>) => Eval<B>): Eval<B>;
+
+    foldRight_<B>(z: B, f: (a: A, b: B) => B): B;
+    foldRight1_<B>(this: Vector<B>, f: (a: B, b: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
@@ -323,6 +329,13 @@ Vector.prototype.foldRight = function (z, f) {
 };
 Vector.prototype.foldRight1 = function (f) {
   return foldRight1_(this, f);
+};
+
+Vector.prototype.foldRight_ = function (z, f) {
+  return foldRightStrict_(this, z, f);
+};
+Vector.prototype.foldRight1_ = function (f) {
+  return foldRight1Strict_(this, f);
 };
 
 Vector.prototype.align = function (that) {

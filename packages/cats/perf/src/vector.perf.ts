@@ -71,8 +71,8 @@ function makeSuite(size: number) {
     add(`foldLeft sum (${size})`, () => {
       values.foldLeft(0, (x, y) => x + y);
     }),
-    add(`foldRight sum (${size})`, () => {
-      values.foldRight(0, (x, y) => x + y);
+    add(`foldRight_ sum (${size})`, () => {
+      values.foldRight_(0, (x, y) => x + y);
     }),
 
     add(`take (${size})`, () => {

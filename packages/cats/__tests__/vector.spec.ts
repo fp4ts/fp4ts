@@ -824,25 +824,55 @@ describe('Vector', () => {
   });
 
   describe('foldRight', () => {
-    const add = (x: number, y: number): number => x + y;
+    const add = (x: number, y: Eval<number>): Eval<number> => y.map(y => x + y);
 
     it('should return initial value on empty vector', () => {
-      expect(Vector.empty.foldRight(0, add)).toBe(0);
+      expect(Vector.empty.foldRight(Eval.now(0), add).value).toBe(0);
     });
 
     it('should sum all values of the vector', () => {
-      expect(Vector(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
+      expect(Vector(1, 2, 3, 4, 5).foldRight(Eval.now(0), add).value).toBe(15);
     });
 
     it('should be right associative', () => {
-      expect(Vector(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`)).toBe(
+      expect(
+        Vector(1, 2, 3).foldRight(Eval.now('()'), (r, a) =>
+          a.map(a => `(${r} ${a})`),
+        ).value,
+      ).toBe('(1 (2 (3 ())))');
+    });
+
+    it('should be stack safe', () => {
+      const xs = Vector.fromArray([...new Array(10_000).keys()]);
+      expect(xs.foldRight(Eval.now(0), add).value).toEqual(
+        [...new Array(10_000).keys()].reduce(
+          (y, x) => y.map(y => x + y),
+          Eval.now(0),
+        ).value,
+      );
+    });
+  });
+
+  describe('foldRight_', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should return initial value on empty vector', () => {
+      expect(Vector.empty.foldRight_(0, add)).toBe(0);
+    });
+
+    it('should sum all values of the vector', () => {
+      expect(Vector(1, 2, 3, 4, 5).foldRight_(0, add)).toBe(15);
+    });
+
+    it('should be right associative', () => {
+      expect(Vector(1, 2, 3).foldRight_('()', (r, a) => `(${r} ${a})`)).toBe(
         '(1 (2 (3 ())))',
       );
     });
 
     it('should be stack safe', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldRight(0, add)).toEqual(
+      expect(xs.foldRight_(0, add)).toEqual(
         [...new Array(10_000).keys()].reduce(add, 0),
       );
     });
