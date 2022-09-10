@@ -313,11 +313,20 @@ class _NonEmptyList<out A> {
   public foldLeft1<B>(this: NonEmptyList<B>, f: (x: B, y: B) => B): B {
     return this.toList.foldLeft1(f);
   }
-  public foldRight<B>(z: B, f: (a: A, b: B) => B): B {
-    return f(this.head, this.tail.foldRight(z, f));
+  public foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B> {
+    return Eval.defer(() => f(this.head, this.tail.foldRight(ez, f)));
   }
-  public foldRight1<B>(this: NonEmptyList<B>, f: (x: B, y: B) => B): B {
+  public foldRight1<B>(
+    this: NonEmptyList<B>,
+    f: (x: B, ey: Eval<B>) => Eval<B>,
+  ): Eval<B> {
     return this.toList.foldRight1(f);
+  }
+  public foldRight_<B>(z: B, f: (a: A, b: B) => B): B {
+    return f(this.head, this.tail.foldRight_(z, f));
+  }
+  public foldRight1_<B>(this: NonEmptyList<B>, f: (x: B, y: B) => B): B {
+    return this.toList.foldRight1_(f);
   }
 
   public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {

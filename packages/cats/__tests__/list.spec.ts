@@ -741,44 +741,95 @@ describe('List', () => {
   });
 
   describe('foldRight', () => {
-    const add = (x: number, y: number): number => x + y;
+    const add = (x: number, y: Eval<number>): Eval<number> => y.map(y => x + y);
 
     it('should return initial value on empty list', () => {
-      expect(List.empty.foldRight(0, add)).toBe(0);
+      expect(List.empty.foldRight(Eval.now(0), add).value).toBe(0);
     });
 
     it('should sum all values of the list', () => {
-      expect(List(1, 2, 3, 4, 5).foldRight(0, add)).toBe(15);
+      expect(List(1, 2, 3, 4, 5).foldRight(Eval.now(0), add).value).toBe(15);
     });
 
     it('should be right associative', () => {
-      expect(List(1, 2, 3).foldRight('()', (r, a) => `(${r} ${a})`)).toBe(
+      expect(
+        List(1, 2, 3).foldRight(Eval.now('()'), (r, a) =>
+          a.map(a => `(${r} ${a})`),
+        ).value,
+      ).toBe('(1 (2 (3 ())))');
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.foldRight(Eval.now(0), add).value).toEqual(
+        [...new Array(10_000).keys()].reduce(
+          (x, y) => x.map(x => y + x),
+          Eval.now(0),
+        ).value,
+      );
+    });
+  });
+
+  describe('foldRight1', () => {
+    const add = (x: number, ey: Eval<number>): Eval<number> =>
+      ey.map(y => x + y);
+
+    it('should throw on empty list', () => {
+      expect(() => List.empty.foldRight1(add).value).toThrow();
+    });
+
+    it('should sum all values of the list', () => {
+      expect(List(1, 2, 3, 4, 5).foldRight1(add).value).toBe(15);
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(xs.foldRight1(add).value).toEqual(
+        [...new Array(10_000).keys()].reduce((x, y) => add(y, x), Eval.now(0))
+          .value,
+      );
+    });
+  });
+
+  describe('foldRight_', () => {
+    const add = (x: number, y: number): number => x + y;
+
+    it('should return initial value on empty list', () => {
+      expect(List.empty.foldRight_(0, add)).toBe(0);
+    });
+
+    it('should sum all values of the list', () => {
+      expect(List(1, 2, 3, 4, 5).foldRight_(0, add)).toBe(15);
+    });
+
+    it('should be right associative', () => {
+      expect(List(1, 2, 3).foldRight_('()', (r, a) => `(${r} ${a})`)).toBe(
         '(1 (2 (3 ())))',
       );
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldRight(0, add)).toEqual(
+      expect(xs.foldRight_(0, add)).toEqual(
         [...new Array(10_000).keys()].reduce(add, 0),
       );
     });
   });
 
-  describe('foldRight1', () => {
+  describe('foldRight1_', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should throw on empty list', () => {
-      expect(() => List.empty.foldRight1(add)).toThrow();
+      expect(() => List.empty.foldRight1_(add)).toThrow();
     });
 
     it('should sum all values of the list', () => {
-      expect(List(1, 2, 3, 4, 5).foldRight1(add)).toBe(15);
+      expect(List(1, 2, 3, 4, 5).foldRight1_(add)).toBe(15);
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldRight1(add)).toEqual(
+      expect(xs.foldRight1_(add)).toEqual(
         [...new Array(10_000).keys()].reduce(add, 0),
       );
     });

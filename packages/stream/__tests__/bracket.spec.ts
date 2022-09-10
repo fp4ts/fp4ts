@@ -113,7 +113,7 @@ describe('Stream Bracket', () => {
                   ).drain
                 : Stream.throwError(new TestError());
 
-              const nested = s0.foldRight(interMost, (i, inner) =>
+              const nested = s0.foldRight_(interMost, (i, inner) =>
                 Stream.bracket<IOF, void>(
                   counter.increment,
                   () => counter.decrement,

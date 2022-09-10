@@ -6,6 +6,7 @@
 import { suite, add, cycle, configure } from 'benny';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Left, List, None, Right, Some } from '@fp4ts/cats-core/lib/data';
+import { Eval } from '@fp4ts/cats-core';
 
 function makeSuite(size: number) {
   const xs = [...new Array(size).keys()].map((_, i) => i);
@@ -77,7 +78,10 @@ function makeSuite(size: number) {
       values.foldLeft(0, (x, y) => x + y);
     }),
     add(`foldRight sum (${size})`, () => {
-      values.foldRight(0, (x, y) => x + y);
+      values.foldRight(Eval.now(0), (x, y) => y.map(y => x + y));
+    }),
+    add(`foldRight_ sum (${size})`, () => {
+      values.foldRight_(0, (x, y) => x + y);
     }),
 
     add(`take (${size})`, () => {

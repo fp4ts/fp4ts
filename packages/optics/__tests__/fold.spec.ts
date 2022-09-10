@@ -48,7 +48,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number, string], string>(fc.string()),
-      (xs, f) => focus(eachli).foldRight('', f)(xs) === xs.foldRight('', f),
+      (xs, f) => focus(eachli).foldRight('', f)(xs) === xs.foldRight_('', f),
     ),
   );
 

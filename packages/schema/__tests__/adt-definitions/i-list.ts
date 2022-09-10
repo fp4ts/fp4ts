@@ -18,7 +18,7 @@ export abstract class IList<A> {
   ): B | C;
 
   public static fromList<A>(xs: List<A>): IList<A> {
-    return xs.foldRight(INil as IList<A>, (x, xs) => new ICons(x, xs));
+    return xs.foldRight_(INil as IList<A>, (x, xs) => new ICons(x, xs));
   }
 
   public static toList<A>(xs: IList<A>): List<A> {

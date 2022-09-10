@@ -21,7 +21,6 @@ import { NonEmptyList } from '../non-empty-list';
 import { Cons, List } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
-import { AndThen } from '../../and-then';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -223,11 +222,6 @@ export const foldLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
 ) => (xs: List<A>) => B = (z, f) => xs => foldLeft_(xs, z, f);
-
-export const foldRight: <A, B>(
-  z: B,
-  f: (a: A, b: B) => B,
-) => (xs: List<A>) => B = (z, f) => xs => foldRight_(xs, z, f);
 
 export const foldMap: <M>(
   M: Monoid<M>,
@@ -624,19 +618,6 @@ export const foldLeft1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A =>
 
 export const foldRight_ = <A, B>(
   xs: List<A>,
-  z: B,
-  f: (a: A, b: B) => B,
-): B => {
-  xs = reverse(xs);
-  while (xs !== nil) {
-    z = f((xs as Cons<A>)._head, z);
-    xs = (xs as Cons<A>)._tail;
-  }
-  return z;
-};
-
-export const foldRightEval_ = <A, B>(
-  xs: List<A>,
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>) => Eval<B>,
 ): Eval<B> => {
@@ -650,7 +631,37 @@ export const foldRightEval_ = <A, B>(
   return Eval.defer(() => go(xs));
 };
 
-export const foldRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
+export const foldRight1_ = <A>(
+  xs: List<A>,
+  f: (a: A, eb: Eval<A>) => Eval<A>,
+): Eval<A> => {
+  const go = (xs: List<A>): Eval<A> =>
+    xs === nil
+      ? throwError(new Error('Nil.foldr1'))
+      : (xs as Cons<A>)._tail === nil
+      ? Eval.now((xs as Cons<A>)._head)
+      : f(
+          (xs as Cons<A>)._head,
+          Eval.defer(() => go((xs as Cons<A>)._tail)),
+        );
+
+  return Eval.defer(() => go(xs));
+};
+
+export const foldRightStrict_ = <A, B>(
+  xs: List<A>,
+  z: B,
+  f: (a: A, b: B) => B,
+): B => {
+  xs = reverse(xs);
+  while (xs !== nil) {
+    z = f((xs as Cons<A>)._head, z);
+    xs = (xs as Cons<A>)._tail;
+  }
+  return z;
+};
+
+export const foldRight1Strict_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
   xs = reverse(xs);
   let z: A = head(xs);
   xs = tail(xs);
@@ -895,7 +906,7 @@ export const traverse_ =
     ): Eval<Kind<G, [List<B>]>> =>
       G.map2Eval_(f(x), eys)((y, ys) => ys.cons(y));
 
-    return foldRightEval_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
+    return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
   };
 
 export const flatTraverse_ = <G, A, B>(
@@ -908,7 +919,7 @@ export const flatTraverse_ = <G, A, B>(
     eys: Eval<Kind<G, [List<B>]>>,
   ): Eval<Kind<G, [List<B>]>> => G.map2Eval_(f(x), eys)(concat_);
 
-  return foldRightEval_(xs, Eval.now(G.pure(empty as List<B>)), concatF).value;
+  return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), concatF).value;
 };
 
 // -- Ref: https://hackage.haskell.org/package/base-4.17.0.0/docs/src/Data.OldList.html#sortBy

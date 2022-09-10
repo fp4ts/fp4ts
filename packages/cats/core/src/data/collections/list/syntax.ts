@@ -80,7 +80,10 @@ import {
   coflatMap_,
   toNel,
   sort_,
+  foldRight1Strict_,
+  foldRightStrict_,
 } from './operators';
+import { Eval } from '../../../eval';
 
 declare module './algebra' {
   interface List<out A> {
@@ -187,8 +190,10 @@ declare module './algebra' {
 
     foldLeft<B>(z: B, f: (b: B, a: A) => B): B;
     foldLeft1<B>(this: List<B>, f: (x: B, a: B) => B): B;
-    foldRight<B>(z: B, f: (a: A, b: B) => B): B;
-    foldRight1<B>(this: List<B>, f: (x: B, a: B) => B): B;
+    foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B>;
+    foldRight1<B>(this: List<B>, f: (x: B, ea: Eval<B>) => Eval<B>): Eval<B>;
+    foldRight_<B>(z: B, f: (a: A, b: B) => B): B;
+    foldRight1_<B>(this: List<B>, f: (x: B, a: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
@@ -473,19 +478,27 @@ List.prototype.foldLeft1 = function <A>(
   return foldLeft1_(this, f);
 };
 
-List.prototype.foldRight = function <A, B>(
+List.prototype.foldRight = function (z, f) {
+  return foldRight_(this, z, f);
+};
+
+List.prototype.foldRight1 = function (f) {
+  return foldRight1_(this, f);
+};
+
+List.prototype.foldRight_ = function <A, B>(
   this: List<A>,
   z: B,
   f: (a: A, b: B) => B,
 ): B {
-  return foldRight_(this, z, f);
+  return foldRightStrict_(this, z, f);
 };
 
-List.prototype.foldRight1 = function <A>(
+List.prototype.foldRight1_ = function <A>(
   this: List<A>,
   f: (x: A, y: A) => A,
 ): A {
-  return foldRight1_(this, f);
+  return foldRight1Strict_(this, f);
 };
 
 List.prototype.foldMap = function <A, M>(

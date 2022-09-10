@@ -276,9 +276,10 @@ describe('NonEmptyList', () => {
     'foldRight to be evq toList.foldRight',
     forAll(
       A.fp4tsNel(fc.integer()),
-      fc.string(),
-      fc.func<[number, string], string>(fc.string()),
-      (xs, z, f) => xs.foldRight(z, f) === xs.toList.foldRight(z, f),
+      A.fp4tsEval(fc.string()),
+      fc.func<[number, Eval<string>], Eval<string>>(A.fp4tsEval(fc.string())),
+      (xs, z, f) =>
+        xs.foldRight(z, f).value === xs.toList.foldRight(z, f).value,
     ),
   );
 
@@ -286,8 +287,27 @@ describe('NonEmptyList', () => {
     'foldRight1 to be evq toList.foldRight1',
     forAll(
       A.fp4tsNel(fc.integer()),
+      fc.func<[number, Eval<number>], Eval<number>>(A.fp4tsEval(fc.integer())),
+      (xs, f) => xs.foldRight1(f).value === xs.toList.foldRight1(f).value,
+    ),
+  );
+
+  test(
+    'foldRight_ to be evq toList.foldRight_',
+    forAll(
+      A.fp4tsNel(fc.integer()),
+      fc.string(),
+      fc.func<[number, string], string>(fc.string()),
+      (xs, z, f) => xs.foldRight_(z, f) === xs.toList.foldRight_(z, f),
+    ),
+  );
+
+  test(
+    'foldRight1_ to be evq toList.foldRight1_',
+    forAll(
+      A.fp4tsNel(fc.integer()),
       fc.func<[number, number], number>(fc.integer()),
-      (xs, f) => xs.foldRight1(f) === xs.toList.foldRight1(f),
+      (xs, f) => xs.foldRight1_(f) === xs.toList.foldRight1_(f),
     ),
   );
 

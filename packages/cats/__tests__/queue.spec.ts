@@ -304,7 +304,7 @@ describe('Queue', () => {
       A.fp4tsQueue(fc.integer()),
       fc.string(),
       fc.func<[number, string], string>(fc.string()),
-      (q, z, f) => q.foldRight(z, f) === q.toList.foldRight(z, f),
+      (q, z, f) => q.foldRight(z, f) === q.toList.foldRight_(z, f),
     ),
   );
 

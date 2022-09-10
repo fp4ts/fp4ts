@@ -205,7 +205,7 @@ describe('Traversal', () => {
       ),
       (xs, f) =>
         expect(focus(eachLi).mapAccumR('', f)(xs)).toEqual(
-          xs.foldRight(
+          xs.foldRight_(
             ['', List.empty] as [string, List<number>],
             (x, [y, ys]) => {
               const [s, n] = f(y, x);
