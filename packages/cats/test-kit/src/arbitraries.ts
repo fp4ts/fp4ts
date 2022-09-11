@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Kind, PrimitiveType } from '@fp4ts/core';
+import { Kind, Lazy, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
 import {
@@ -30,6 +30,7 @@ import {
   Tagged,
   ValidationError,
   Validation,
+  LazyList,
 } from '@fp4ts/cats-core/lib/data';
 import {
   Reader,
@@ -103,6 +104,12 @@ export const fp4tsList = <A>(
   arbA: Arbitrary<A>,
   constraints: ListConstraints = {},
 ): Arbitrary<List<A>> => fc.array(arbA, constraints).map(List.fromArray);
+
+export const fp4tsLazyList = <A>(
+  arbA: Arbitrary<A>,
+  constraints: ListConstraints = {},
+): Arbitrary<LazyList<A>> =>
+  fc.array(arbA, constraints).map(LazyList.fromArray);
 
 export const fp4tsNel = <A>(arbA: Arbitrary<A>): Arbitrary<NonEmptyList<A>> =>
   fc.tuple(arbA, fp4tsList(arbA)).map(([hd, tl]) => NonEmptyList(hd, tl));

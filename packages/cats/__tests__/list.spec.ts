@@ -32,7 +32,6 @@ import {
 describe('List', () => {
   describe('type', () => {
     it('should be covariant', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const xs: List<number> = List.empty;
     });
 
@@ -50,13 +49,13 @@ describe('List', () => {
       expect(xs.toArray).toEqual([]);
     });
 
-    it('should an empty list', () => {
+    it('should create an empty list', () => {
       const xs = List.empty;
       expect(xs.isEmpty).toBe(true);
       expect(xs.toArray).toEqual([]);
     });
 
-    it('should an empty list', () => {
+    it('should create an empty list', () => {
       const xs = List(1, 2, 3);
       expect(xs.isEmpty).toBe(false);
       expect(xs.toArray).toEqual([1, 2, 3]);
@@ -124,8 +123,8 @@ describe('List', () => {
     });
 
     it('should be stack safe', () => {
-      expect([...List.fromArray([...new Array(10_000).keys()])]).toEqual([
-        ...new Array(10_000).keys(),
+      expect([...List.fromArray([...new Array(50_000).keys()])]).toEqual([
+        ...new Array(50_000).keys(),
       ]);
     });
   });

@@ -153,7 +153,8 @@ declare module './algebra' {
     slice(from: number, until: number): List<A>;
     splitAt(idx: number): [List<A>, List<A>];
 
-    filter: (p: (a: A) => boolean) => List<A>;
+    filter<B extends A>(p: (a: A) => a is B): List<B>;
+    filter(p: (a: A) => boolean): List<A>;
     collect: <B>(f: (a: A) => Option<B>) => List<B>;
     collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
     map: <B>(f: (a: A) => B) => List<B>;

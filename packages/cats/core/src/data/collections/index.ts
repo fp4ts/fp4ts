@@ -13,3 +13,5 @@ export * from './queue';
 export * from './set';
 export * from './iterator';
 export * from './non-empty-list';
+
+export { LazyList, LazyListF } from './lazy-list';

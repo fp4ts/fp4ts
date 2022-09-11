@@ -6,10 +6,19 @@
 import { toStringMethod, stringify } from 'fast-check';
 import { Eval } from '@fp4ts/cats-core/lib/eval/algebra';
 import { Chain } from '@fp4ts/cats-core/lib/data/collections/chain/algebra';
+import {
+  LazyList,
+  _LazyList,
+} from '@fp4ts/cats-core/lib/data/collections/lazy-list';
 
 (Eval.prototype as any)[toStringMethod] = function (this: Eval<unknown>) {
   return `Eval(${this.value})`;
 };
 (Chain.prototype as any)[toStringMethod] = function (this: Chain<unknown>) {
   return `Chain(${stringify(this.toArray)})`;
+};
+(_LazyList.prototype as any)[toStringMethod] = function (
+  this: LazyList<unknown>,
+) {
+  return `LazyList(${stringify(this.toArray)})`;
 };
