@@ -15,7 +15,7 @@ describe('Eval', () => {
   describe('memoization', () => {
     it('should not call memoized value more than once', () => {
       const fn = jest.fn();
-      const e = Eval.later(fn).memoize;
+      const e = Eval.always(fn).memoize;
 
       e.value;
       e.value;
@@ -25,8 +25,8 @@ describe('Eval', () => {
 
     it('should memoize flat-mapped value', () => {
       const fn = jest.fn();
-      const e1 = Eval.later(fn).memoize;
-      const e = Eval.unit.flatMap(() => e1);
+      const e1 = Eval.always(fn);
+      const e = Eval.unit.flatMap(() => e1).memoize.map(() => {});
 
       e.value;
       e.value;

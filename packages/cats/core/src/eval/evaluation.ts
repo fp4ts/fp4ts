@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Some } from '../data';
-import { Cont, Eval, Memoize, View } from './algebra';
+import { Cont, Eval, Memoize, Now, View } from './algebra';
 
 export const evaluate = <A>(e: Eval<A>): A => {
   const stack: unknown[] = [];
@@ -66,6 +66,10 @@ export const evaluate = <A>(e: Eval<A>): A => {
       }
 
       case 6: // Memoize
+        if (cur.result.nonEmpty) {
+          result = cur.result.get;
+          break;
+        }
         conts.push(Cont.MemoizeK);
         stack.push(cur as any);
         _cur = cur.self;
