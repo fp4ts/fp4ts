@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Some } from '../data';
-import { Cont, Eval, Memoize, Now, View } from './algebra';
+import { Cont, DeferredValue, Eval, View } from './algebra';
 
 export const evaluate = <A>(e: Eval<A>): A => {
   const stack: unknown[] = [];
@@ -66,13 +65,14 @@ export const evaluate = <A>(e: Eval<A>): A => {
       }
 
       case 6: // Memoize
-        if (cur.result.nonEmpty) {
-          result = cur.result.get;
+        if (cur.result.resolved) {
+          result = cur.result.value!;
           break;
         }
         conts.push(Cont.MemoizeK);
-        stack.push(cur as any);
+        stack.push(cur.result);
         _cur = cur.self;
+        (cur.self as any) = null; // deference to allow pickup by GC once evaluated
         continue;
     }
 
@@ -91,8 +91,9 @@ export const evaluate = <A>(e: Eval<A>): A => {
           continue runLoop;
         }
         case 2: /* MemoizeK */ {
-          const cur = stack.pop()! as any as Memoize<unknown>;
-          cur.result = Some(result);
+          const deferred = stack.pop()! as any as DeferredValue<unknown>;
+          deferred.resolved = true;
+          deferred.value = result;
           continue;
         }
       }

@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Lazy, lazyVal } from '@fp4ts/core';
-import { None, Option, Some } from '../data';
 import { evaluate } from './evaluation';
 
 export abstract class Eval<out A> {
@@ -58,9 +57,8 @@ export class Always<A> extends Eval<A> {
     return this.thunk();
   }
 
-  private _memoize?: Eval<A>;
   public get memoize(): Eval<A> {
-    return (this._memoize ??= new Later(this.thunk));
+    return new Later(this.thunk);
   }
 }
 
@@ -70,9 +68,8 @@ export class Defer<A> extends Eval<A> {
     super();
   }
 
-  public _memoize?: Eval<A>;
   public get memoize(): Eval<A> {
-    return (this._memoize ??= new Memoize(this));
+    return new Memoize(this);
   }
 
   public get value(): A {
@@ -89,9 +86,8 @@ export class Map<E, A> extends Eval<A> {
     super();
   }
 
-  private _memoize?: Eval<A>;
   public get memoize(): Eval<A> {
-    return (this._memoize ??= new Memoize(this));
+    return new Memoize(this);
   }
 
   public get value(): A {
@@ -108,9 +104,8 @@ export class FlatMap<E, A> extends Eval<A> {
     super();
   }
 
-  private _memoize?: Eval<A>;
   public get memoize(): Eval<A> {
-    return (this._memoize ??= new Memoize(this));
+    return new Memoize(this);
   }
 
   public get value(): A {
@@ -120,19 +115,23 @@ export class FlatMap<E, A> extends Eval<A> {
 
 export class Memoize<A> extends Eval<A> {
   public readonly tag = 6;
-  public result: Option<A> = None;
+  public readonly result: DeferredValue<A> = {
+    resolved: false,
+    value: undefined,
+  };
   public constructor(public readonly self: Eval<A>) {
     super();
   }
 
   public readonly memoize = this;
   public get value(): A {
-    return this.result.getOrElse(() => {
-      const a = evaluate(this);
-      this.result = Some(a);
-      return a;
-    });
+    return this.result.resolved ? this.result.value! : evaluate(this);
   }
+}
+
+export interface DeferredValue<A> {
+  resolved: boolean;
+  value?: A;
 }
 
 export type View<A> =
