@@ -194,11 +194,19 @@ class _NonEmptyList<out A> {
   public take(n: number): List<A> {
     return this.toList.take(n);
   }
+  public takeWhile<B extends A>(p: (a: A) => a is B): List<B>;
+  public takeWhile(p: (a: A) => boolean): List<A>;
+  public takeWhile(p: (a: A) => boolean): List<A> {
+    return this.toList.takeWhile(p);
+  }
   public takeRight(n: number): List<A> {
     return this.toList.takeRight(n);
   }
   public drop(n: number): List<A> {
     return this.toList.drop(n);
+  }
+  public dropWhile(p: (a: A) => boolean): List<A> {
+    return this.toList.dropWhile(p);
   }
   public dropRight(n: number): List<A> {
     return this.toList.dropRight(n);

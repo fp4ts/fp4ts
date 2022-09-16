@@ -409,6 +409,37 @@ describe('List', () => {
     });
   });
 
+  describe('takeWhile', () => {
+    it('should return empty list on empty list', () => {
+      expect(List.empty.takeWhile(() => true)).toEqual(List.empty);
+    });
+
+    it('should take all elements of the list', () => {
+      expect(List(1, 2, 3).takeWhile(() => true)).toEqual(List(1, 2, 3));
+    });
+
+    it('should take first two elements of the list', () => {
+      let cnt = 0;
+      expect(List(1, 2, 3).takeWhile(() => cnt++ < 2)).toEqual(List(1, 2));
+    });
+
+    it(
+      'should return prefix which holds the predicate',
+      forAll(fc.array(fc.boolean()), xs => {
+        const firstFalse = xs.findIndex(x => !x);
+        expect(List.fromArray(xs).takeWhile(id).toArray).toEqual(
+          firstFalse >= 0 ? xs.slice(0, firstFalse) : xs,
+        );
+      }),
+    );
+
+    it('should be stack safe', () => {
+      expect(List.range(0, 50_000).takeWhile(() => true).toArray).toEqual([
+        ...new Array(50_000).keys(),
+      ]);
+    });
+  });
+
   describe('takeRight', () => {
     it('should return an empty list when list is list is empty', () => {
       expect(List.empty.takeRight(1)).toEqual(List.empty);
@@ -460,6 +491,35 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs.drop(10_000).toArray).toEqual([]);
+    });
+  });
+
+  describe('dropWhile', () => {
+    it('should return empty list on empty list', () => {
+      expect(List.empty.dropWhile(() => true)).toEqual(List.empty);
+    });
+
+    it('should drop all elements of the list', () => {
+      expect(List(1, 2, 3).dropWhile(() => true)).toEqual(List.empty);
+    });
+
+    it('should drop first two elements of the list', () => {
+      let cnt = 0;
+      expect(List(1, 2, 3).dropWhile(() => cnt++ < 2)).toEqual(List(3));
+    });
+
+    it(
+      'should drop prefix which holds the predicate',
+      forAll(fc.array(fc.boolean()), xs => {
+        const firstFalse = xs.findIndex(x => !x);
+        expect(List.fromArray(xs).dropWhile(id).toArray).toEqual(
+          firstFalse >= 0 ? xs.slice(firstFalse) : [],
+        );
+      }),
+    );
+
+    it('should be stack safe', () => {
+      expect(List.range(0, 50_000).dropWhile(() => true).toArray).toEqual([,]);
     });
   });
 

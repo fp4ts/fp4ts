@@ -82,6 +82,8 @@ import {
   sort_,
   foldRight1Strict_,
   foldRightStrict_,
+  takeWhile_,
+  dropWhile_,
 } from './operators';
 import { Eval } from '../../../eval';
 
@@ -140,9 +142,12 @@ declare module './algebra' {
     count(p: (a: A) => boolean): number;
 
     take(n: number): List<A>;
+    takeWhile<B extends A>(f: (a: A) => a is B): List<B>;
+    takeWhile(f: (a: A) => boolean): List<A>;
     takeRight(n: number): List<A>;
 
     drop(n: number): List<A>;
+    dropWhile(f: (a: A) => boolean): List<A>;
     dropRight(n: number): List<A>;
 
     slice(from: number, until: number): List<A>;
@@ -403,6 +408,12 @@ List.prototype.count = function <A>(
 List.prototype.take = function <A>(this: List<A>, n: number): List<A> {
   return take_(this, n);
 };
+List.prototype.takeWhile = function <A>(
+  this: List<A>,
+  p: (a: A) => boolean,
+): List<A> {
+  return takeWhile_(this, p);
+};
 
 List.prototype.takeRight = function <A>(this: List<A>, n: number): List<A> {
   return takeRight_(this, n);
@@ -410,6 +421,9 @@ List.prototype.takeRight = function <A>(this: List<A>, n: number): List<A> {
 
 List.prototype.drop = function <A>(this: List<A>, n: number): List<A> {
   return drop_(this, n);
+};
+List.prototype.dropWhile = function (f) {
+  return dropWhile_(this, f);
 };
 
 List.prototype.dropRight = function <A>(this: List<A>, n: number): List<A> {

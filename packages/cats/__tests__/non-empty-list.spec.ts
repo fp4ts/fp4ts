@@ -147,6 +147,16 @@ describe('NonEmptyList', () => {
   );
 
   test(
+    'takeWhile to be evq to toList.takeWhile',
+    forAll(
+      A.fp4tsNel(fc.integer()),
+      fc.func<[number], boolean>(fc.boolean()),
+      (xs, p) =>
+        expect(xs.takeWhile(p).toArray).toEqual(xs.toList.takeWhile(p).toArray),
+    ),
+  );
+
+  test(
     'takeRight to be evq toList.takeRight',
     forAll(
       A.fp4tsNel(fc.integer()),
@@ -162,6 +172,16 @@ describe('NonEmptyList', () => {
       fc.integer(),
       (nel, n) => new IsEq(nel.drop(n), nel.toList.drop(n)),
     )(List.Eq(Eq.primitive)),
+  );
+
+  test(
+    'dropWhile to be evq to toList.dropWhile',
+    forAll(
+      A.fp4tsNel(fc.integer()),
+      fc.func<[number], boolean>(fc.boolean()),
+      (xs, p) =>
+        expect(xs.dropWhile(p).toArray).toEqual(xs.toList.dropWhile(p).toArray),
+    ),
   );
 
   test(

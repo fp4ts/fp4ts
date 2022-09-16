@@ -442,6 +442,21 @@ export const take_ = <A>(xs: List<A>, n: number): List<A> => {
   return result;
 };
 
+export const takeWhile_ = <A>(xs: List<A>, f: (a: A) => boolean): List<A> => {
+  if (xs === nil || !f((xs as Cons<A>)._head)) return nil;
+
+  const result = new Cons((xs as Cons<A>)._head, nil);
+  let cur = result;
+  xs = (xs as Cons<A>)._tail;
+  while (xs !== nil && f((xs as Cons<A>)._head)) {
+    const tmp = new Cons((xs as Cons<A>)._head, nil);
+    cur._tail = tmp;
+    cur = tmp;
+    xs = (xs as Cons<A>)._tail;
+  }
+  return result;
+};
+
 export const takeRight_ = <A>(xs: List<A>, n: number): List<A> => {
   let lag = xs;
   let lead = drop_(xs, n);
@@ -454,6 +469,13 @@ export const takeRight_ = <A>(xs: List<A>, n: number): List<A> => {
 
 export const drop_ = <A>(xs: List<A>, n: number): List<A> => {
   while (xs !== nil && n-- > 0) {
+    xs = (xs as Cons<A>)._tail;
+  }
+  return xs;
+};
+
+export const dropWhile_ = <A>(xs: List<A>, f: (a: A) => boolean): List<A> => {
+  while (xs !== nil && f((xs as Cons<A>)._head)) {
     xs = (xs as Cons<A>)._tail;
   }
   return xs;
