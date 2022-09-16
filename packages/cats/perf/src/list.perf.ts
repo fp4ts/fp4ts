@@ -78,7 +78,7 @@ function makeSuite(size: number) {
       values.foldLeft(0, (x, y) => x + y);
     }),
     add(`foldRight sum (${size})`, () => {
-      values.foldRight(Eval.now(0), (x, y) => y.map(y => x + y));
+      values.foldRight(Eval.zero, (x, y) => y.map(y => x + y));
     }),
     add(`foldRight_ sum (${size})`, () => {
       values.foldRight_(0, (x, y) => x + y);

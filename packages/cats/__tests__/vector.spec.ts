@@ -827,11 +827,11 @@ describe('Vector', () => {
     const add = (x: number, y: Eval<number>): Eval<number> => y.map(y => x + y);
 
     it('should return initial value on empty vector', () => {
-      expect(Vector.empty.foldRight(Eval.now(0), add).value).toBe(0);
+      expect(Vector.empty.foldRight(Eval.zero, add).value).toBe(0);
     });
 
     it('should sum all values of the vector', () => {
-      expect(Vector(1, 2, 3, 4, 5).foldRight(Eval.now(0), add).value).toBe(15);
+      expect(Vector(1, 2, 3, 4, 5).foldRight(Eval.zero, add).value).toBe(15);
     });
 
     it('should be right associative', () => {
@@ -844,10 +844,10 @@ describe('Vector', () => {
 
     it('should be stack safe', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldRight(Eval.now(0), add).value).toEqual(
+      expect(xs.foldRight(Eval.zero, add).value).toEqual(
         [...new Array(10_000).keys()].reduce(
           (y, x) => y.map(y => x + y),
-          Eval.now(0),
+          Eval.zero,
         ).value,
       );
     });

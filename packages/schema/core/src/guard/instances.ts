@@ -62,7 +62,7 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       ): Guard<unknown, B> =>
         new SafeGuard(x =>
           Try(() => g(x as any)).fold(
-            () => Eval.now(false),
+            () => Eval.false,
             y => safeTest(ga, y),
           ),
         ),

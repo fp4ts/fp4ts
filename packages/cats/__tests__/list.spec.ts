@@ -744,11 +744,11 @@ describe('List', () => {
     const add = (x: number, y: Eval<number>): Eval<number> => y.map(y => x + y);
 
     it('should return initial value on empty list', () => {
-      expect(List.empty.foldRight(Eval.now(0), add).value).toBe(0);
+      expect(List.empty.foldRight(Eval.zero, add).value).toBe(0);
     });
 
     it('should sum all values of the list', () => {
-      expect(List(1, 2, 3, 4, 5).foldRight(Eval.now(0), add).value).toBe(15);
+      expect(List(1, 2, 3, 4, 5).foldRight(Eval.zero, add).value).toBe(15);
     });
 
     it('should be right associative', () => {
@@ -761,10 +761,10 @@ describe('List', () => {
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldRight(Eval.now(0), add).value).toEqual(
+      expect(xs.foldRight(Eval.zero, add).value).toEqual(
         [...new Array(10_000).keys()].reduce(
           (x, y) => x.map(x => y + x),
-          Eval.now(0),
+          Eval.zero,
         ).value,
       );
     });
@@ -785,7 +785,7 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs.foldRight1(add).value).toEqual(
-        [...new Array(10_000).keys()].reduce((x, y) => add(y, x), Eval.now(0))
+        [...new Array(10_000).keys()].reduce((x, y) => add(y, x), Eval.zero)
           .value,
       );
     });

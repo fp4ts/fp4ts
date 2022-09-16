@@ -46,7 +46,7 @@ describe('Eval', () => {
     });
 
     test('flatMap self recursion', () => {
-      let e = Eval.now(0);
+      let e = Eval.zero;
       for (let i = 0; i < size; i++) {
         e = e.flatMap(x => Eval.now(x + 1));
       }
@@ -55,7 +55,7 @@ describe('Eval', () => {
     });
 
     test('defer', () => {
-      let e = Eval.now(1);
+      let e = Eval.one;
       for (let i = 0; i < size; i++) {
         const temp = e;
         e = Eval.defer(() => temp.map(() => i + 1));
@@ -65,7 +65,7 @@ describe('Eval', () => {
     });
 
     test('memoize', () => {
-      let e = Eval.now(1);
+      let e = Eval.one;
       for (let i = 0; i < size; i++) {
         e = new Memoize(e);
       }

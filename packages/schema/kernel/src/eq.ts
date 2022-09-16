@@ -25,9 +25,9 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
     nullable: <A>(E: Eq<A>) =>
       SafeEq.of<A | null>({
         safeEquals: (l, r) => {
-          if (l === r) return Eval.now(true);
-          if (l === null) return Eval.now(false);
-          if (r === null) return Eval.now(false);
+          if (l === r) return Eval.true;
+          if (l === null) return Eval.false;
+          if (r === null) return Eval.false;
           return Eval.defer(() => safeEquals(E, l, r));
         },
       }),
@@ -36,18 +36,18 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
       SafeEq.of({
         safeEquals: (x, y) => {
           for (const k in x) {
-            if (!(k in y)) return Eval.now(false);
+            if (!(k in y)) return Eval.false;
           }
           for (const k in y) {
-            if (!(k in x)) return Eval.now(false);
+            if (!(k in x)) return Eval.false;
           }
           const keys = Object.keys(x);
           const loop = (idx: number): Eval<boolean> =>
             idx >= keys.length
-              ? Eval.now(true)
+              ? Eval.true
               : Eval.defer(() =>
                   safeEquals(E, x[keys[idx]], y[keys[idx]]).flatMap(eq =>
-                    eq ? loop(idx + 1) : Eval.now(false),
+                    eq ? loop(idx + 1) : Eval.false,
                   ),
                 );
 
@@ -68,10 +68,10 @@ export const productSafeEq = <A extends unknown[]>(
     safeEquals: (x, y) => {
       const loop = (idx: number): Eval<boolean> =>
         idx >= fs.length
-          ? Eval.now(true)
+          ? Eval.true
           : Eval.defer(() =>
               safeEquals(fs[idx], x[idx], y[idx]).flatMap(eq =>
-                eq ? loop(idx + 1) : Eval.now(false),
+                eq ? loop(idx + 1) : Eval.false,
               ),
             );
 
@@ -87,10 +87,10 @@ export const structSafeEq = <A extends {}>(fs: {
     safeEquals: (x, y) => {
       const loop = (idx: number): Eval<boolean> =>
         idx >= keys.length
-          ? Eval.now(true)
+          ? Eval.true
           : Eval.defer(() =>
               safeEquals(fs[keys[idx]], x[keys[idx]], y[keys[idx]]).flatMap(
-                eq => (eq ? loop(idx + 1) : Eval.now(false)),
+                eq => (eq ? loop(idx + 1) : Eval.false),
               ),
             );
 
@@ -108,7 +108,7 @@ export const sumSafeEq =
       safeEquals: (l, r) => {
         const tl = l[tag as any as keyof typeof l];
         const rt = r[tag as any as keyof typeof r];
-        if (tl !== rt) return Eval.now(false);
+        if (tl !== rt) return Eval.false;
         const E = es[tl as any as keyof A];
         return safeEquals(E, l as any, r as any);
       },

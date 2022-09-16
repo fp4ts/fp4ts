@@ -102,9 +102,9 @@ class NullableSafeEqK<F> extends SafeEqK<[NullableK, F]> {
   protected liftSafeEq0<A>(E: Eq<A>): SafeEq<Kind<F, [A]> | null> {
     return SafeEq.of<Kind<F, [A]> | null>({
       safeEquals: (l, r) => {
-        if (l === r) return Eval.now(true);
-        if (l === null) return Eval.now(false);
-        if (r === null) return Eval.now(false);
+        if (l === r) return Eval.true;
+        if (l === null) return Eval.false;
+        if (r === null) return Eval.false;
         return Eval.defer(() => safeEquals(liftSafeEq(this.f, E), l, r));
       },
     });

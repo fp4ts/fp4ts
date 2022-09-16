@@ -78,13 +78,13 @@ export const UnorderedFoldable = Object.freeze({
 
 const orEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
   CommutativeMonoid.of({
-    empty: Eval.now(false),
-    combine_: (x, y) => x.flatMap(x => (!x ? y() : Eval.now(true))),
+    empty: Eval.false,
+    combine_: (x, y) => x.flatMap(x => (!x ? y() : Eval.true)),
   }),
 );
 const andEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
   CommutativeMonoid.of({
-    empty: Eval.now(true),
-    combine_: (x, y) => x.flatMap(x => (x ? y() : Eval.now(false))),
+    empty: Eval.true,
+    combine_: (x, y) => x.flatMap(x => (x ? y() : Eval.false)),
   }),
 );

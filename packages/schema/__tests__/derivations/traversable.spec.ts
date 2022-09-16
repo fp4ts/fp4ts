@@ -66,10 +66,10 @@ describe('Traversable derivation', () => {
     const expected = (n * (n - 1)) / 2;
 
     expect(
-      IListF.foldRight_(ixs, Eval.now(0), (a, eb) => eb.map(b => a + b)).value,
+      IListF.foldRight_(ixs, Eval.zero, (a, eb) => eb.map(b => a + b)).value,
     ).toBe(expected);
     expect(
-      SnocF.foldRight_(sxs, Eval.now(0), (a, eb) => eb.map(b => a + b)).value,
+      SnocF.foldRight_(sxs, Eval.zero, (a, eb) => eb.map(b => a + b)).value,
     ).toBe(expected);
   });
 

@@ -44,6 +44,12 @@ interface EvalObj {
   delay<A>(thunk: () => A): Eval<A>;
   defer<A>(thunk: () => Eval<A>): Eval<A>;
 
+  void: Eval<void>;
+  false: Eval<boolean>;
+  true: Eval<boolean>;
+  zero: Eval<number>;
+  one: Eval<number>;
+
   // -- Instances
 
   readonly Defer: Defer<EvalF>;
@@ -66,6 +72,12 @@ Eval.always = always;
 Eval.later = later;
 Eval.delay = delay;
 Eval.defer = defer;
+
+Eval.void = new Now(undefined);
+Eval.false = new Now(false);
+Eval.true = new Now(true);
+Eval.zero = new Now(0);
+Eval.one = new Now(1);
 
 Object.defineProperty(Eval, 'Defer', {
   get() {
