@@ -155,7 +155,7 @@ export const makeParser = <S, A>(
     S: Stream<S, IdentityF>,
   ) => (s: State<S>) => Consumed<ParseResult<S, A>>,
 ): ParserT<S, IdentityF, A> =>
-  new ParserPrim(S => s => (cok, cerr, eok, eerr) => {
+  new ParserPrim<S, IdentityF, A>(S => s => (cok, cerr, eok, eerr) => {
     const cons = runParser(S)(s);
     return cons.tag === 'consumed'
       ? cons.value.fold(cok, cerr)
