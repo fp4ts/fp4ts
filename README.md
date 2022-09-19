@@ -2,7 +2,7 @@
 
 [![Node.js CI](https://github.com/mattapet/fp4ts/actions/workflows/build.yml/badge.svg)](https://github.com/fp4ts/fp4ts/actions/workflows/build.yml)
 
-[![Publish](https://github.com/fp4ts/fp4ts/actions/workflows/publish.yml/badge.svg?branch=master)](https://github.com/fp4ts/fp4ts/actions/workflows/publish.yml)
+[![Publish Nightly](https://github.com/fp4ts/fp4ts/actions/workflows/publish-nightly.yml/badge.svg?branch=master)](https://github.com/fp4ts/fp4ts/actions/workflows/publish-nightly.yml)
 
 [![codecov](https://codecov.io/gh/fp4ts/fp4ts/branch/master/graph/badge.svg?token=wXOEoz3yOm)](https://codecov.io/gh/fp4ts/fp4ts)
 
@@ -131,15 +131,6 @@ const xs = List<[string, number]>(['a', 42], ['b', 43]);
 const ms = Map.fromList(Ord.primitive)(xs);
 
 ...
-```
-
-### Installation
-
-The packages are currently published to GitHub npm registry _only_. Therefore,
-for installation of the packages a scoped npm login is required:
-
-```bash
-npm login --scope=@fp4ts --registry=https://npm.pkg.github.com
 ```
 
 ### Versioning
