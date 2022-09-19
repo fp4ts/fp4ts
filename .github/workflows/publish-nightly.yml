@@ -1,8 +1,7 @@
-name: Publish NPM
+name: Publish Nightly
 on:
-  push:
-    tags:
-      - 0.0.**
+  schedule:
+    - cron: '0 7 * * *'
 
 jobs:
   publish:
@@ -22,6 +21,6 @@ jobs:
         yarn install --immutable
         yarn compile
     - name: Publish Packages
-      run: yarn publish "$GITHUB_REF_NAME" "latest"
+      run: yarn publish "0.0.1-dev.$(date '+%Y%m%d%H%M')" "next"
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

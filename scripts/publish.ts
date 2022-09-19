@@ -84,7 +84,7 @@ const sortWorkspaces = (
   toposort((x, y) => y.workspaceDependencies.includes(x.location), ws);
 
 const releaseWorkspace =
-  (cwd: string, version: string) =>
+  (cwd: string, version: string, tag: string) =>
   (w: PublicWorkspace): IO<void> =>
     IO.Monad.do(function* (_) {
       const refName = `${w.name}@${version}`;
@@ -122,10 +122,10 @@ const releaseWorkspace =
         ),
       );
 
-      console.log('UPLOADING...', refName);
+      console.log('UPLOADING...', refName, tag);
 
       yield* _(
-        exec(`npm publish --access public`, {
+        exec(`npm publish --access public --tag ${tag}`, {
           cwd: path.join(cwd, w.location),
         }),
       );
@@ -135,14 +135,16 @@ const releaseWorkspace =
 
 unsafeRunMain(
   arg(2)
+    .product(arg(3))
     .product(cwd)
-    .flatMap(([version, cwd]) =>
+    .flatMap(([[version, tag], cwd]) =>
       readWorkspaces(cwd)
         .map(sortWorkspaces)
         .flatMap(opt =>
           opt.fold(
             () => IO.throwError(new Error('ERROR')),
-            xs => xs.traverse(IO.Applicative)(releaseWorkspace(cwd, version)),
+            xs =>
+              xs.traverse(IO.Applicative)(releaseWorkspace(cwd, version, tag)),
           ),
         ),
     ),
