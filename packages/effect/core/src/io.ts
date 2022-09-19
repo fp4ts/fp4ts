@@ -20,7 +20,17 @@ import {
   StackSafeMonad,
   Traversable,
 } from '@fp4ts/cats';
-import { $type, flow, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import {
+  $type,
+  flow,
+  HKT,
+  id,
+  Kind,
+  Lazy,
+  lazyVal,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import {
   Async,
   CancellationError,
@@ -883,6 +893,8 @@ Object.defineProperty(IO, 'Async', {
 });
 
 // -- HKT
+
+interface _IO<A> extends HKT<IOF, [A]> {}
 
 export interface IOF extends TyK<[unknown]> {
   [$type]: IO<TyVar<this, 0>>;

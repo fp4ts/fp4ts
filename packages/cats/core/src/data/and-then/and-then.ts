@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Fix, TyK, TyVar, α, λ } from '@fp4ts/core';
+import { $, $type, Fix, HKT, TyK, TyVar, α, λ } from '@fp4ts/core';
 import { Contravariant } from '../../contravariant';
 import { ArrowChoice } from '../../arrow';
 import { Monad } from '../../monad';
@@ -52,6 +52,10 @@ Object.defineProperty(AndThen, 'ArrowChoice', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface AndThenF extends TyK<[unknown, unknown]> {
   [$type]: AndThen<TyVar<this, 0>, TyVar<this, 1>>;
 }

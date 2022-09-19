@@ -36,11 +36,11 @@ export class Concat<A> extends Chain<A> {
 export class Wrap<F, A> extends Chain<A> {
   public readonly tag = 'wrap';
   public constructor(
-    public readonly F: Foldable<F>,
+    public readonly instance: Foldable<F>,
     public readonly values: Kind<F, [A]>,
   ) {
     super();
-    assert(F.size(values) > 0, 'Wrap cannot wrap an empty vector');
+    assert(instance.size(values) > 0, 'Wrap cannot wrap an empty vector');
   }
 }
 

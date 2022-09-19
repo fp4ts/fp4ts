@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { EqK } from '../../eq-k';
 import { SemigroupK } from '../../semigroup-k';
@@ -164,6 +164,10 @@ Object.defineProperty(Option, 'Traversable', {
 Option.Eq = optionEq;
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Option<A> extends HKT<OptionF, [A]> {}
+}
 
 /**
  * @category Type Constructor

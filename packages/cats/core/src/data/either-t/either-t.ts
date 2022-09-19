@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Functor } from '../../functor';
 import { Bifunctor } from '../../bifunctor';
@@ -112,6 +112,14 @@ EitherT.MonadError = eitherTMonadError;
 
 // -- HKT
 
+declare module './algebra' {
+  export interface EitherT<F, A, B> extends HKT<EitherTF, [F, A, B]> {}
+}
+
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface EitherTF extends TyK<[unknown, unknown, unknown]> {
   [$type]: EitherT<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
 }

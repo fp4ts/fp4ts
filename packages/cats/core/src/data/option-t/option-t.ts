@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Defer } from '../../defer';
 import { SemigroupK } from '../../semigroup-k';
@@ -103,6 +103,10 @@ OptionT.Monad = optionTMonad;
 OptionT.MonadError = optionTMonadError;
 
 // -- HKT
+
+declare module './algebra' {
+  export interface OptionT<F, A> extends HKT<OptionTF, [F, A]> {}
+}
 
 /**
  * @category Type Constructor

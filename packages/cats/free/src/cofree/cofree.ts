@@ -11,7 +11,7 @@ import {
   Functor,
   Traversable,
 } from '@fp4ts/cats-core';
-import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 
 import { Cofree as CofreeBase } from './algebra';
 import { ana, anaEval, unfold, unfoldEval } from './constructors';
@@ -76,6 +76,10 @@ Cofree.Foldable = cofreeFoldable;
 Cofree.Traversable = cofreeTraversable;
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Cofree<S, A> extends HKT<CofreeF, [S, A]> {}
+}
 
 export interface CofreeF extends TyK<[unknown, unknown]> {
   [$type]: Cofree<TyVar<this, 0>, TyVar<this, 1>>;

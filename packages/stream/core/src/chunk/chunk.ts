@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Byte, Char, TyK, TyVar } from '@fp4ts/core';
+import { $type, Byte, Char, HKT, TyK, TyVar } from '@fp4ts/core';
 import {
   Alternative,
   Either,
@@ -100,6 +100,10 @@ Object.defineProperty(Chunk, 'Traversable', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Chunk<O> extends HKT<ChunkF, [O]> {}
+}
 
 export interface ChunkF extends TyK<[unknown]> {
   [$type]: Chunk<TyVar<this, 0>>;

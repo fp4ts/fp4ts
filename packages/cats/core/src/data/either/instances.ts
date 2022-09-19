@@ -34,13 +34,15 @@ export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
   EA,
 ) => Eq.of({ equals: equals_(EE, EA) });
 
-export const eitherSemigroupK: <E>() => SemigroupK<$<EitherF, [E]>> = lazyVal(
-  () => SemigroupK.of({ combineK_: orElse_ }),
-);
+export const eitherSemigroupK: <E>() => SemigroupK<$<EitherF, [E]>> = lazyVal(<
+  E,
+>() => SemigroupK.of<$<EitherF, [E]>>({ combineK_: orElse_ })) as <
+  E,
+>() => SemigroupK<$<EitherF, [E]>>;
 
-export const eitherFunctor: <E>() => Functor<$<EitherF, [E]>> = lazyVal(() =>
-  Functor.of({ map_ }),
-);
+export const eitherFunctor: <E>() => Functor<$<EitherF, [E]>> = lazyVal(<E>() =>
+  Functor.of<$<EitherF, [E]>>({ map_ }),
+) as <E>() => Functor<$<EitherF, [E]>>;
 
 export const eitherBifunctor: Lazy<Bifunctor<EitherF>> = lazyVal(() =>
   Bifunctor.of({ bimap_: bimap_, map_: map_, leftMap_: leftMap_ }),

@@ -38,10 +38,7 @@ describe('Effect-ful stream', () => {
       const count = SyncIO.delay(() => counter++);
 
       expect(
-        Stream.repeatEval<SyncIOF, number>(count)
-          .take(5)
-          .compileSync()
-          .toList.unsafeRunSync(),
+        Stream.repeatEval(count).take(5).compileSync().toList.unsafeRunSync(),
       ).toEqual(List(0, 1, 2, 3, 4));
     });
   });
@@ -72,13 +69,13 @@ describe('Effect-ful stream', () => {
     it.ticked('should take three attempts', ticker => {
       let i = 0;
       expect(
-        Stream.evalF<IOF, number>(
+        Stream.evalF(
           IO(() => {
             if (i++ % 2 === 0) throwError(new Error('test error'));
             return i;
           }),
         )
-          .attempts(IO.Temporal)(Stream<IOF, number>(1).repeat)
+          .attempts(IO.Temporal)(Stream(1).repeat)
           .take(3)
           .compileConcurrent().toList,
       ).toCompleteWith(
@@ -129,7 +126,7 @@ describe('Effect-ful stream', () => {
     test(
       'evalCollect is evalMap and collect identity',
       forAll(
-        A.fp4tsEffectStreamGenerator<SyncIOF, number>(
+        A.fp4tsEffectStreamGenerator(
           fc.integer(),
           A.fp4tsSyncIO(fc.integer()),
           A.fp4tsSyncIO(fc.constant(undefined as void)),
@@ -181,7 +178,7 @@ describe('Effect-ful stream', () => {
 
     it('should wrap capture erroneous chunk', () => {
       expect(
-        Stream.throwError<SyncIOF>(new Error('test error'))
+        Stream.throwError(new Error('test error'))
           .attempt.compileSync()
           .last.unsafeRunSync(),
       ).toEqual(Left(new Error('test error')));
@@ -289,7 +286,7 @@ describe('Effect-ful stream', () => {
 
     it('should return the result of the handler when an error is ocurred', () => {
       expect(
-        Stream.evalF<SyncIOF>(SyncIO.throwError(new Error('test error')))
+        Stream.evalF(SyncIO.throwError(new Error('test error')))
           .handleErrorWith(() => Stream(42))
           .compileSync()
           .last.unsafeRunSync(),
@@ -300,7 +297,7 @@ describe('Effect-ful stream', () => {
       'should return the result of the handler when an error is ocurred',
       ticker => {
         expect(
-          Stream.evalF<IOF>(IO.throwError(new Error('test error')))
+          Stream.evalF(IO.throwError(new Error('test error')))
             .handleErrorWith(() => Stream(42))
             .compileConcurrent().last,
         ).toCompleteWith(42, ticker);
@@ -310,7 +307,7 @@ describe('Effect-ful stream', () => {
     it('should capture error thrown upstream', () => {
       let error: Error;
 
-      Stream.evalF<SyncIOF>(SyncIO.throwError(new Error('test error')))
+      Stream.evalF(SyncIO.throwError(new Error('test error')))
         .handleErrorWith(e => {
           error = e;
           return Stream.empty();
@@ -477,7 +474,7 @@ describe('Effect-ful stream', () => {
 
   it.ticked('should interrupt a never executing evaluated event', ticker => {
     let canceled: boolean = false;
-    const s = Stream.evalF<IOF>(
+    const s = Stream.evalF(
       IO.never.onCancel(IO(() => (canceled = true)).void),
     ).interruptWhen(IO.sleep(1_000).attempt);
 

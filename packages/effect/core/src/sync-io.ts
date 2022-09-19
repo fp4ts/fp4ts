@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { $type, HKT, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
@@ -15,7 +16,6 @@ import {
   Right,
   StackSafeMonad,
 } from '@fp4ts/cats';
-import { $type, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Clock, MonadCancel, Sync } from '@fp4ts/effect-kernel';
 
 export type SyncIO<A> = _SyncIO<A>;
@@ -529,6 +529,8 @@ const syncIoSync: Lazy<Sync<SyncIOF>> = lazyVal(() =>
 );
 
 // -- HKT
+
+interface _SyncIO<A> extends HKT<SyncIOF, [A]> {}
 
 export interface SyncIOF extends TyK<[unknown]> {
   [$type]: SyncIO<TyVar<this, 0>>;

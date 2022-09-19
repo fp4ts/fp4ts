@@ -7,6 +7,7 @@ import {
   $,
   $type,
   cached,
+  HKT,
   id,
   Kind,
   Lazy,
@@ -551,6 +552,8 @@ Validation.Foldable = validationFoldable;
 Validation.Traversable = validationTraversable;
 
 // -- HKT
+
+interface _Validation<E, A> extends HKT<ValidationF, [E, A]> {}
 
 /**
  * @category Type Constructor

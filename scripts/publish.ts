@@ -9,7 +9,7 @@ import cp from 'child_process';
 
 import { tupled } from '@fp4ts/core';
 import { List, None, Option, Some, Try } from '@fp4ts/cats';
-import { IO, IOF, unsafeRunMain } from '@fp4ts/effect';
+import { IO, unsafeRunMain } from '@fp4ts/effect';
 import { Stream, text } from '@fp4ts/stream';
 import { toposort } from './toposort';
 
@@ -66,7 +66,7 @@ const loadPackageJson = (cwd: string, workspace: Workspace): IO<PackageJson> =>
     .flatMap(buf => IO.fromEither(Try(() => JSON.parse(buf)).toEither));
 
 const readWorkspaces = (cwd: string): IO<List<PublicWorkspace>> =>
-  Stream.evalF<IOF, string>(exec('yarn workspaces list --json -v'))
+  Stream.evalF(exec('yarn workspaces list --json -v'))
     .through(text.lines())
     .filter(line => line.length !== 0)
     .collect(line => Try(() => JSON.parse(line) as Workspace).toOption)

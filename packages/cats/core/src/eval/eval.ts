@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Semigroup, Monoid } from '@fp4ts/cats-kernel';
 import { Defer } from '../defer';
 import { Functor } from '../functor';
@@ -120,6 +120,10 @@ Eval.Semigroup = evalSemigroup;
 Eval.Monoid = evalMonoid;
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Eval<A> extends HKT<EvalF, [A]> {}
+}
 
 /**
  * @category Type Constructor

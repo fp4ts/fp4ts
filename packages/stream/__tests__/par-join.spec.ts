@@ -32,8 +32,7 @@ describe('Stream Parallel Join', () => {
       fc.asyncProperty(A.fp4tsPureStreamGenerator(fc.integer()), s => {
         const expected = s.toList;
         return s
-          .covary<IOF>()
-          .map(x => Stream.pure(x).covary<IOF>())
+          .map(x => Stream.pure(x))
           .parJoin(IO.Concurrent)(1)
           .compileConcurrent()
           .toList.map(xs => xs.equals(Eq.primitive, expected))
@@ -51,8 +50,7 @@ describe('Stream Parallel Join', () => {
           const n = (n0 % 20) + 1;
           const expected = new Set([...s.toList]);
           return s
-            .covary<IOF>()
-            .map(x => Stream.pure(x).covary<IOF>())
+            .map(x => Stream.pure(x))
             .parJoin(IO.Concurrent)(n)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]))
@@ -71,7 +69,6 @@ describe('Stream Parallel Join', () => {
           const n = (n0 % 20) + 1;
           const expected = new Set([...ss.flatten.toList]);
           return ss
-            .map(s => s.covary<IOF>())
             .parJoin(IO.Concurrent)(n)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]))
@@ -87,7 +84,7 @@ describe('Stream Parallel Join', () => {
         A.fp4tsPureStreamGenerator(fc.integer()),
         A.fp4tsPureStreamGenerator(fc.integer()),
         (s1, s2) => {
-          const parJoined = Stream(s1.covary<IOF>(), s2)
+          const parJoined = Stream(s1, s2)
             .parJoin(IO.Concurrent)(2)
             .compileConcurrent()
             .toList.map(xs => new Set([...xs]));
@@ -107,13 +104,10 @@ describe('Stream Parallel Join', () => {
     ));
 
   it('should release resources acquired by the outer stream after the ones acquired by the inner streams are released', () => {
-    const bracketed = Stream.bracket<IOF, Ref<IOF, boolean>>(
-      IO.ref(true),
-      ref => ref.set(false),
-    );
+    const bracketed = Stream.bracket(IO.ref(true), ref => ref.set(false));
 
     const s = bracketed.map(b =>
-      Stream.evalF<IOF, boolean>(b.get())
+      Stream.evalF(b.get())
         .flatMap(b => (b ? Stream({}) : Stream.throwError(new Error())))
         .repeat.take(10_000),
     );
@@ -138,7 +132,7 @@ describe('Stream Parallel Join', () => {
             const runEvidenceRef = yield* _(IO.ref<List<number>>(List.empty));
             const halt = yield* _(IO.deferred<void>());
 
-            const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
+            const bracketed = Stream.bracket(IO.unit, () =>
               finalizerRef.update(xs => xs.append('Outer')),
             );
 
@@ -156,12 +150,12 @@ describe('Stream Parallel Join', () => {
 
             const prg0 = bracketed.flatMap(() =>
               Stream<IOF, Stream<IOF, number>>(
-                Stream.bracket<IOF, void>(registerRun(0), () =>
-                  finalizer(0),
-                ).flatMap(() => s),
-                Stream.bracket<IOF, void>(registerRun(1), () =>
-                  finalizer(1),
-                ).flatMap(() => Stream.execF<IOF, void>(halt.complete())),
+                Stream.bracket(registerRun(0), () => finalizer(0)).flatMap(
+                  () => s,
+                ),
+                Stream.bracket(registerRun(1), () => finalizer(1)).flatMap(() =>
+                  Stream.execF(halt.complete()),
+                ),
               ),
             );
 

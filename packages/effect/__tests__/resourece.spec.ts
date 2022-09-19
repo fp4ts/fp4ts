@@ -138,11 +138,7 @@ describe('Resource', () => {
   test.ticked('eval', ticker =>
     forAll(
       A.fp4tsIO(fc.integer()),
-      fa =>
-        new IsEq(
-          Resource.evalF<IOF, number>(fa).use(IO.MonadCancel)(IO.pure),
-          fa,
-        ),
+      fa => new IsEq(Resource.evalF(fa).use(IO.MonadCancel)(IO.pure), fa),
     )(E.eqIO(Eq.primitive, ticker))(),
   );
 
@@ -151,9 +147,7 @@ describe('Resource', () => {
       fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
-          Resource.evalF<IOF, number>(IO.pure(0))
-            .evalMap(f)
-            .use(IO.MonadCancel)(IO.pure),
+          Resource.evalF(IO.pure(0)).evalMap(f).use(IO.MonadCancel)(IO.pure),
           f(0),
         ),
     )(E.eqIO(Eq.primitive, ticker))(),
@@ -164,9 +158,7 @@ describe('Resource', () => {
       fc.func<[number], IO<number>>(A.fp4tsIO(fc.integer())),
       f =>
         new IsEq(
-          Resource.evalF<IOF, number>(IO.pure(0))
-            .evalTap(f)
-            .use(IO.MonadCancel)(IO.pure),
+          Resource.evalF(IO.pure(0)).evalTap(f).use(IO.MonadCancel)(IO.pure),
           f(0).map(() => 0),
         ),
     )(E.eqIO(Eq.primitive, ticker))(),
@@ -198,7 +190,7 @@ describe('Resource', () => {
         const release = Resource.make(IO.Functor)(IO.unit, () =>
           released.set(true),
         );
-        const resource = Resource.evalF<IOF, void>(IO.unit);
+        const resource = Resource.evalF(IO.unit);
 
         const ioa = release['>>>'](resource).allocated(IO.MonadCancel);
 
@@ -221,8 +213,8 @@ describe('Resource', () => {
   describe('stack safety', () => {
     test.ticked('use over binds - 1', ticker => {
       const ioa = List.range(0, 10_000)
-        .foldLeft(Resource.evalF<IOF, void>(IO.unit), r =>
-          r.flatMap(() => Resource.evalF<IOF, void>(IO.unit)),
+        .foldLeft(Resource.evalF(IO.unit), r =>
+          r.flatMap(() => Resource.evalF(IO.unit)),
         )
         .use_(IO.MonadCancel);
 
@@ -234,7 +226,7 @@ describe('Resource', () => {
       const p = (i: number): Resource<IOF, number> =>
         Resource.pure<IOF, Either<number, number>>(
           i < n ? Left(i + 1) : Right(i),
-        ).flatMap(r => r.fold(p, x => Resource.pure<IOF, number>(x)));
+        ).flatMap(r => r.fold(p, x => Resource.pure(x)));
 
       expect(p(0).use(IO.MonadCancel)(IO.pure)).toCompleteWith(n, ticker);
     });
@@ -317,9 +309,7 @@ describe('Resource', () => {
               ['>>>'](wait(1))
               ['>>>'](IO(() => (leftReleased = true)).void),
         ).flatMap(() =>
-          Resource.evalF<IOF, never>(
-            wait(1)['>>>'](IO.throwError(new Error())),
-          ),
+          Resource.evalF(wait(1)['>>>'](IO.throwError(new Error()))),
         );
         const rhs = Resource.make(IO.Functor)(
           wait(1)['>>>'](IO(() => (rightAllocated = true))).void,
@@ -327,7 +317,7 @@ describe('Resource', () => {
             IO(() => (rightReleasing = true))
               ['>>>'](wait(1))
               ['>>>'](IO(() => (rightReleased = true)).void),
-        ).flatMap(() => Resource.evalF<IOF, void>(wait(2)));
+        ).flatMap(() => Resource.evalF(wait(2)));
 
         lhs
           .both(IO.Concurrent)(rhs)

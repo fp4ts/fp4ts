@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
@@ -165,6 +165,10 @@ Object.defineProperty(Queue, 'Traversable', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Queue<A> extends HKT<QueueF, [A]> {}
+}
 
 /**
  * @category Type Constructor

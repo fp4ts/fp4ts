@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, TyK, PrimitiveType, $type, TyVar } from '@fp4ts/core';
+import { $, TyK, PrimitiveType, $type, TyVar, HKT } from '@fp4ts/core';
 import { Eq, Ord } from '@fp4ts/cats-kernel';
 
 import { SemigroupK } from '../../../semigroup-k';
@@ -75,6 +75,10 @@ Map.FoldableWithIndex = mapFoldableWithIndex;
 Map.TraversableWithIndex = mapTraversableWithIndex;
 
 // HKT
+
+declare module './algebra' {
+  export interface Map<K, V> extends HKT<MapF, [K, V]> {}
+}
 
 /**
  * @category Type Constructor

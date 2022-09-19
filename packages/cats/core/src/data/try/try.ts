@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Functor } from '../../functor';
@@ -125,6 +125,10 @@ Object.defineProperty(Try, 'MonadError', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Try<A> extends HKT<TryF, [A]> {}
+}
 
 /**
  * @category Type Constructor

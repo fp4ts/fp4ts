@@ -185,8 +185,14 @@ declare module './algebra' {
     map<B>(f: (a: A) => B): Stream<F, B>;
     mapNoScope<B>(f: (a: A) => B): Stream<F, B>;
     mapAccumulate<S>(s: S): <B>(f: (s: S, a: A) => [S, B]) => Stream<F, [S, B]>;
-    evalMap<B>(f: (a: A) => Kind<F, [B]>): Stream<F, B>;
-    evalCollect<B>(f: (a: A) => Kind<F, [Option<B>]>): Stream<F, B>;
+    evalMap<F2, B>(
+      this: Stream<F2, A>,
+      f: (a: A) => Kind<F2, [B]>,
+    ): Stream<F2, B>;
+    evalCollect<F2, B>(
+      this: Stream<F2, A>,
+      f: (a: A) => Kind<F2, [Option<B>]>,
+    ): Stream<F2, B>;
     evalTap<F2>(
       this: Stream<F2, A>,
       F2: Functor<F2>,
@@ -203,7 +209,7 @@ declare module './algebra' {
 
     through<F2, B>(
       this: Stream<F2, A>,
-      f: (s: Stream<F, A>) => Stream<F2, B>,
+      f: (s: Stream<F2, A>) => Stream<F2, B>,
     ): Stream<F2, B>;
     through2<F2, B, C>(
       this: Stream<F2, A>,
@@ -221,7 +227,11 @@ declare module './algebra' {
     scan<B>(z: B, f: (b: B, a: A) => B): Stream<F, A>;
     scan1<B>(this: Stream<F, B>, f: (x: B, y: B) => B): Stream<F, B>;
 
-    evalScan<B>(z: B, f: (b: B, a: A) => Kind<F, [B]>): Stream<F, B>;
+    evalScan<F2, B>(
+      this: Stream<F2, A>,
+      z: B,
+      f: (b: B, a: A) => Kind<F2, [B]>,
+    ): Stream<F2, B>;
 
     scanChunks<S, B>(
       s: S,

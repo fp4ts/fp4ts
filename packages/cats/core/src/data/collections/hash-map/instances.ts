@@ -41,15 +41,19 @@ export const hashMapSemigroupK: <K>(
 ) => SemigroupK<$<HashMapF, [K]>> = E =>
   SemigroupK.of({ combineK_: (x, y) => union_(E, x, y()) });
 
-export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapF, [K]>> = E =>
-  MonoidK.of({
+export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapF, [K]>> = <K>(
+  E: Eq<K>,
+) =>
+  MonoidK.of<$<HashMapF, [K]>>({
     emptyK: () => empty,
     combineK_: (x, y) => union_(E, x, y()),
   });
 
-export const hashMapFunctor: <K>() => Functor<$<HashMapF, [K]>> = lazyVal(() =>
-  Functor.of({ map_: (m, f) => map_(m, v => f(v)) }),
-);
+export const hashMapFunctor: <K>() => Functor<$<HashMapF, [K]>> = lazyVal(<
+  K,
+>() =>
+  Functor.of<$<HashMapF, [K]>>({ map_: (m, f) => map_(m, v => f(v)) }),
+) as <K>() => Functor<$<HashMapF, [K]>>;
 
 export const hashMapFunctorFilter: <K>() => FunctorFilter<$<HashMapF, [K]>> =
   lazyVal(() =>
@@ -61,8 +65,8 @@ export const hashMapFunctorFilter: <K>() => FunctorFilter<$<HashMapF, [K]>> =
 
 export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
   $<HashMapF, [K]>
-> = lazyVal(() =>
-  UnorderedFoldable.of({
+> = lazyVal(<K>() =>
+  UnorderedFoldable.of<$<HashMapF, [K]>>({
     unorderedFoldMap_:
       <M>(M: Monoid<M>) =>
       <K, V>(m: HashMap<K, V>, f: (v: V) => M) =>
@@ -74,7 +78,7 @@ export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
     nonEmpty: nonEmpty,
     size: size,
   }),
-);
+) as <K>() => UnorderedFoldable<$<HashMapF, [K]>>;
 
 export const hashMapUnorderedTraversable: <K>() => UnorderedTraversable<
   $<HashMapF, [K]>

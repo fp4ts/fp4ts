@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Functor,
   ApplicativeError,
@@ -159,6 +159,10 @@ Resource.Sync = resourceSync;
 Resource.Async = resourceAsync;
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Resource<F, A> extends HKT<ResourceF, [F, A]> {}
+}
 
 export interface ResourceF extends TyK<[unknown, unknown]> {
   [$type]: Resource<TyVar<this, 0>, TyVar<this, 1>>;

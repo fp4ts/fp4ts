@@ -128,7 +128,7 @@ describe('Queue', () => {
   describe('DroppingQueue', () => {
     describe('Dropping', () => {
       droppingQueueTests(
-        QueueLike.of({
+        QueueLike.of<IOF, number>({
           construct: Queue.dropping(IO.Concurrent),
         }),
       );
@@ -156,7 +156,7 @@ describe('Queue', () => {
   describe('CircularBufferQueue', () => {
     describe('CircularBuffer', () => {
       circularBufferQueueTests(
-        QueueLike.of({
+        QueueLike.of<IOF, number>({
           construct: Queue.circularBuffer(IO.Concurrent),
         }),
       );

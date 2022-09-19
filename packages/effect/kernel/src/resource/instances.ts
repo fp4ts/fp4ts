@@ -45,9 +45,13 @@ import { ResourceF } from './resource';
 export const resourceApplicative: <F>() => Applicative<$<ResourceF, [F]>> =
   lazyVal(() => Monad.deriveApplicative(resourceMonad()));
 
-export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazyVal(() =>
-  Monad.of({ pure: pure, flatMap_: flatMap_, tailRecM_: tailRecM_ }),
-);
+export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazyVal(<F>() =>
+  Monad.of<$<ResourceF, [F]>>({
+    pure: pure,
+    flatMap_: flatMap_,
+    tailRecM_: tailRecM_,
+  }),
+) as <F>() => Monad<$<ResourceF, [F]>>;
 
 export const resourceMonadCancel: <F>(
   F: MonadCancel<F, Error>,

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Applicative } from '../../applicative';
@@ -85,7 +85,11 @@ Either.Monad = eitherMonad;
 Either.MonadError = eitherMonadError;
 Either.Eq = eitherEq;
 
-// HKT
+// -- HKT
+
+declare module './algebra' {
+  export interface Either<E, A> extends HKT<EitherF, [E, A]> {}
+}
 
 /**
  * @category Type Constructor

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { Alternative } from '../../../alternative';
@@ -125,6 +125,10 @@ Object.defineProperty(Vector, 'Traversable', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Vector<A> extends HKT<VectorF, [A]> {}
+}
 
 /**
  * @category Type Constructor

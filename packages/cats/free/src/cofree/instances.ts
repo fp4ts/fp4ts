@@ -23,9 +23,11 @@ import {
   traverse_,
 } from './operators';
 
-export const cofreeFunctor: <S>(
+export const cofreeFunctor: <S>(S: Functor<S>) => Functor<$<CofreeF, [S]>> = <
+  S,
+>(
   S: Functor<S>,
-) => Functor<$<CofreeF, [S]>> = S => Functor.of({ map_: map_(S) });
+) => Functor.of<$<CofreeF, [S]>>({ map_: map_(S) });
 
 export const cofreeCoflatMap: <S>(
   S: Functor<S>,

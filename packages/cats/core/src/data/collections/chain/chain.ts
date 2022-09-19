@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, $type, TyK, TyVar } from '@fp4ts/core';
+import { Kind, $type, TyK, TyVar, HKT } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 import { Align } from '../../../align';
@@ -137,6 +137,10 @@ Object.defineProperty(Chain, 'Traversable', {
 });
 
 // HKT
+
+declare module './algebra' {
+  export interface Chain<A> extends HKT<ChainF, [A]> {}
+}
 
 /**
  * @category Type Constructor

@@ -5,6 +5,7 @@
 
 import {
   $type,
+  HKT,
   id,
   Kind,
   Lazy,
@@ -523,6 +524,8 @@ const nelTraversable: Lazy<Traversable<NonEmptyListF>> = lazyVal(() =>
 );
 
 // -- HKT
+
+interface _NonEmptyList<A> extends HKT<NonEmptyListF, [A]> {}
 
 /**
  * @category Type Constructor

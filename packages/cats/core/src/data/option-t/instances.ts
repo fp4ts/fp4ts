@@ -33,25 +33,24 @@ export const optionTDefer: <F>(F: Defer<F>) => Defer<$<OptionTF, [F]>> = F =>
 
 export const optionTSemigroupK: <F>(
   F: Monad<F>,
-) => SemigroupK<$<OptionTF, [F]>> = F =>
-  SemigroupK.of({
-    combineK_: orElse_(F),
-  });
+) => SemigroupK<$<OptionTF, [F]>> = <F>(F: Monad<F>) =>
+  SemigroupK.of<$<OptionTF, [F]>>({ combineK_: orElse_(F) });
 
-export const optionTMonoidK: <F>(
+export const optionTMonoidK: <F>(F: Monad<F>) => MonoidK<$<OptionTF, [F]>> = <
+  F,
+>(
   F: Monad<F>,
-) => MonoidK<$<OptionTF, [F]>> = F =>
-  MonoidK.of({
+) =>
+  MonoidK.of<$<OptionTF, [F]>>({
     combineK_: orElse_(F),
     emptyK: () => none(F),
   });
 
-export const optionTFunctor: <F>(
+export const optionTFunctor: <F>(F: Functor<F>) => Functor<$<OptionTF, [F]>> = <
+  F,
+>(
   F: Functor<F>,
-) => Functor<$<OptionTF, [F]>> = F =>
-  Functor.of({
-    map_: map_(F),
-  });
+) => Functor.of<$<OptionTF, [F]>>({ map_: map_(F) });
 
 export const optionTApply: <F>(F: Monad<F>) => Apply<$<OptionTF, [F]>> = F =>
   Monad.deriveApply(optionTMonad(F));
@@ -73,8 +72,10 @@ export const optionTFlatMap: <F>(
   F: Monad<F>,
 ) => FlatMap<$<OptionTF, [F]>> = F => Monad.deriveFlatMap(optionTMonad(F));
 
-export const optionTMonad: <F>(F: Monad<F>) => Monad<$<OptionTF, [F]>> = F =>
-  Monad.of({
+export const optionTMonad: <F>(F: Monad<F>) => Monad<$<OptionTF, [F]>> = <F>(
+  F: Monad<F>,
+) =>
+  Monad.of<$<OptionTF, [F]>>({
     flatMap_: flatMap_(F),
     pure: pure(F),
     tailRecM_: tailRecM_(F),

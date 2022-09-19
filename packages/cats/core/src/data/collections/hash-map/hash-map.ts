@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, TyK, PrimitiveType, $type, TyVar } from '@fp4ts/core';
+import { $, TyK, PrimitiveType, $type, TyVar, HKT } from '@fp4ts/core';
 import { Eq, Hashable, anyHashable } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -72,6 +72,10 @@ HashMap.UnorderedFoldable = hashMapUnorderedFoldable;
 HashMap.UnorderedTraversable = hashMapUnorderedTraversable;
 
 // HKT
+
+declare module './algebra' {
+  export interface HashMap<K, V> extends HKT<HashMapF, [K, V]> {}
+}
 
 /**
  * @category Type Constructor

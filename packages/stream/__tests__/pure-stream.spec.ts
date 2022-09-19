@@ -5,6 +5,7 @@
 
 import fc from 'fast-check';
 import { List, Some, Vector, None, Eq, LazyList } from '@fp4ts/cats';
+import { SyncIOF } from '@fp4ts/effect';
 import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 import {
   AlignSuite,
@@ -17,8 +18,12 @@ import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 
 describe('Pure Stream', () => {
   describe('type', () => {
-    it('should be covariant', () => {
-      const s: Stream<any, number> = Stream.empty();
+    it('should be covariant in value type', () => {
+      const s: Stream<PureF, number> = Stream.empty<PureF>();
+    });
+
+    it('should be covariant in effect type', () => {
+      const s: Stream<SyncIOF, never> = Stream.empty<PureF>();
     });
   });
 

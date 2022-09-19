@@ -161,12 +161,16 @@ export const Concurrent = Object.freeze({
 
       ref: <A>(a: A) =>
         OptionT.liftF(F)(
-          F.map_(F.ref<A>(a), ref => ref.mapK(OptionT.liftF(F))),
+          F.map_(F.ref<A>(a), ref =>
+            ref.mapK<$<OptionTF, [F]>>(OptionT.liftF(F)),
+          ),
         ),
 
       deferred: <A>() =>
         OptionT.liftF(F)(
-          F.map_(F.deferred<A>(), deferred => deferred.mapK(OptionT.liftF(F))),
+          F.map_(F.deferred<A>(), deferred =>
+            deferred.mapK<$<OptionTF, [F]>>(OptionT.liftF(F)),
+          ),
         ),
     }),
 });

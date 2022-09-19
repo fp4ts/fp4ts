@@ -5,7 +5,7 @@
 
 import {
   $type,
-  id,
+  HKT,
   Kind,
   lazyVal,
   PrimitiveType,
@@ -1014,9 +1014,11 @@ Object.defineProperty(LazyList, 'Traversable', {
 
 // -- HKT
 
+export interface _LazyList<A> extends HKT<LazyListF, [A]> {}
+
 /**
  * @category Type Constructor
- * @category Data
+ * @category Collection
  */
 export interface LazyListF extends TyK<[unknown]> {
   [$type]: LazyList<TyVar<this, 0>>;

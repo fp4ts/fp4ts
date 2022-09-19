@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit';
 import { List, Monad } from '@fp4ts/cats';
-import { IO, IOF } from '@fp4ts/effect-core';
+import { IO } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
 import { Dispatcher } from '@fp4ts/effect-std';
 
@@ -13,9 +13,7 @@ describe('Dispatcher', () => {
   it.real('should run a sync action', () => {
     const ioa = IO.pure(42).map(x => x + 2);
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IOF, number>(
-        IO.fromPromise(IO(() => runner.unsafeToPromise(ioa))),
-      ),
+      Resource.evalF(IO.fromPromise(IO(() => runner.unsafeToPromise(ioa)))),
     );
 
     return rec.use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)));
@@ -26,9 +24,7 @@ describe('Dispatcher', () => {
       ['<<<'](IO.suspend)
       .map(x => x + 2);
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IOF, number>(
-        IO.fromPromise(IO(() => runner.unsafeToPromise(ioa))),
-      ),
+      Resource.evalF(IO.fromPromise(IO(() => runner.unsafeToPromise(ioa)))),
     );
 
     return rec.use(IO.MonadCancel)(x => IO(() => expect(x).toBe(44)));
@@ -38,7 +34,7 @@ describe('Dispatcher', () => {
     let counter = 0;
     const increment = IO(() => (counter += 1)).void;
     const rec = Dispatcher(IO.Async).flatMap(runner =>
-      Resource.evalF<IOF, void>(
+      Resource.evalF(
         IO.fromPromise(
           IO(() =>
             runner.unsafeToPromise(
@@ -92,7 +88,7 @@ describe('Dispatcher', () => {
           )[1],
       );
 
-      return Resource.evalF<IOF, void>(
+      return Resource.evalF(
         run.flatMap(ct => IO.sleep(500)['>>>'](IO.fromPromise(IO(() => ct())))),
       );
     });

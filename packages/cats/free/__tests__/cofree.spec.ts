@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $ } from '@fp4ts/core';
-import { Eval, EvalF, FunctionK } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/cats-core';
 import {
   Identity,
   List,
@@ -13,7 +12,6 @@ import {
   Option,
   OptionF,
   OptionT,
-  OptionTF,
   Some,
 } from '@fp4ts/cats-core/lib/data';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
@@ -104,7 +102,6 @@ describe('Cofree', () => {
 
     it('should allow evaluation in provided effect', () => {
       type EvalOption<A> = OptionT<EvalF, A>;
-      type EvalOptionTF = $<OptionTF, [EvalF]>;
 
       const folder = (
         i: number,
@@ -115,9 +112,7 @@ describe('Cofree', () => {
           : OptionT.some(Eval.Applicative)(
               lb.getOrElse(() => List.empty).cons(i),
             );
-      const inclusion: FunctionK<EvalF, EvalOptionTF> = OptionT.liftF(
-        Eval.Applicative,
-      );
+      const inclusion = OptionT.liftF(Eval.Applicative);
 
       const unfolded: Cofree<OptionF, number> = Cofree.unfold(Option.Functor)(
         0,

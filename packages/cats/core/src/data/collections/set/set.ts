@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Ord, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 
@@ -55,6 +55,10 @@ Object.defineProperty(Set, 'Foldable', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Set<A> extends HKT<SetF, [A]> {}
+}
 
 /**
  * @category Type Constructor

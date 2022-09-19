@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import {
   Either,
   FunctionK,
@@ -604,9 +604,13 @@ const connectionIOAsync: Lazy<Async<ConnectionIOF>> = lazyVal(() =>
 
 // -- HKT
 
+export interface ConnectionIO<A> extends HKT<ConnectionIOF, [A]> {}
+
 export interface ConnectionIOF extends TyK<[unknown]> {
   [$type]: ConnectionIO<TyVar<this, 0>>;
 }
+
+export interface ConnectionOp<A> extends HKT<ConnectionOpF, [A]> {}
 
 export interface ConnectionOpF extends TyK<[unknown]> {
   [$type]: ConnectionOp<TyVar<this, 0>>;

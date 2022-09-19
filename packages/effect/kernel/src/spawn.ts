@@ -463,7 +463,7 @@ export const Spawn = Object.freeze({
       oc.fold(
         () => Outcome.canceled(),
         e => Outcome.failure(e),
-        fa => Outcome.success(OptionT(fa)),
+        fa => Outcome.success<$<OptionTF, [F]>, A>(OptionT(fa)),
       );
 
     const liftFiber = <A>(

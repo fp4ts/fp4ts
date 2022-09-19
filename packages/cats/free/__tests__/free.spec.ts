@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $type, id, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, id, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from '@fp4ts/cats-core';
 import {
@@ -22,22 +22,23 @@ import { Free } from '@fp4ts/cats-free';
 
 import { fp4tsFree } from './free-arbitraries';
 
-class TestConsoleBase<A> {
+class TestConsole<A> implements HKT<TestConsoleF, [A]> {
   public readonly __void!: void;
+  public readonly F!: TestConsoleF;
+  public readonly Vars!: [A];
 }
 
-const ReadLine = new (class ReadLine extends TestConsoleBase<string> {
+const ReadLine = new (class ReadLine extends TestConsole<string> {
   public readonly tag = 'readLine';
 })();
 type ReadLine = typeof ReadLine;
-class WriteLine extends TestConsoleBase<string> {
+class WriteLine extends TestConsole<void> {
   public readonly tag = 'writeLine';
   public constructor(public readonly line: string) {
     super();
   }
 }
 
-type TestConsole<A> = ReadLine | WriteLine;
 interface TestConsoleF extends TyK<[unknown]> {
   [$type]: TestConsole<TyVar<this, 0>>;
 }
@@ -45,8 +46,9 @@ interface TestConsoleF extends TyK<[unknown]> {
 describe('Free', () => {
   type S = [string[], string[]];
   const nt: FunctionK<TestConsoleF, StateF<S>> = <A>(
-    c: TestConsole<A>,
+    _c: TestConsole<A>,
   ): State<S, A> => {
+    const c = _c as any as WriteLine | ReadLine;
     if (c.tag === 'readLine') {
       return State.state(([[h, ...t], o]: S) => [
         h,
@@ -65,7 +67,7 @@ describe('Free', () => {
   const readLine = lift(ReadLine);
 
   it('should translate to state', () => {
-    const program: Free<TestConsoleF, void> = Free.suspend<TestConsoleF, void>(
+    const program: Free<TestConsoleF, void> = Free.suspend(
       new WriteLine('What is your name?'),
     )
       .flatMap(() => readLine)

@@ -12,7 +12,7 @@ import { Scope } from '../internal';
 
 export abstract class Pull<out F, out O, out R> {
   readonly __void!: void;
-  readonly _F!: () => F;
+  readonly _F!: <X>() => Kind<F, [X]>;
   readonly _O!: () => O;
   readonly _R!: () => R;
 }

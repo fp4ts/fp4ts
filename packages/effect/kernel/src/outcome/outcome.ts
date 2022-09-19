@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { TyK, Kind, $type, TyVar } from '@fp4ts/core';
+import { TyK, Kind, $type, TyVar, HKT } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats';
 import { Outcome as OutcomeBase } from './algebra';
 import { canceled, failure, success } from './constructors';
@@ -35,6 +35,10 @@ Outcome.canceled = canceled;
 Outcome.Eq = outcomeEq;
 
 // -- HKT
+
+declare module './algebra' {
+  interface Outcome<F, E, A> extends HKT<OutcomeF, [F, E, A]> {}
+}
 
 export interface OutcomeF extends TyK<[unknown, unknown, unknown]> {
   [$type]: Outcome<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;

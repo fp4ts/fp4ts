@@ -24,17 +24,22 @@ export const eitherTEq: <F, AA, B>(
 
 export const eitherTSemigroupK: <F, AA>(
   F: Monad<F>,
-) => SemigroupK<$<EitherTF, [F, AA]>> = F =>
-  SemigroupK.of({ combineK_: orElse_(F) });
+) => SemigroupK<$<EitherTF, [F, AA]>> = <F, AA>(F: Monad<F>) =>
+  SemigroupK.of<$<EitherTF, [F, AA]>>({ combineK_: orElse_(F) });
 
 export const eitherTFunctor: <F, AA>(
   F: Functor<F>,
-) => Functor<$<EitherTF, [F, AA]>> = F => Functor.of({ map_: map_(F) });
+) => Functor<$<EitherTF, [F, AA]>> = <F, AA>(F: Functor<F>) =>
+  Functor.of<$<EitherTF, [F, AA]>>({ map_: map_(F) });
 
 export const eitherTBifunctor: <F>(
   F: Functor<F>,
-) => Bifunctor<$<EitherTF, [F]>> = F =>
-  Bifunctor.of({ bimap_: bimap_(F), map_: map_(F), leftMap_: leftMap_(F) });
+) => Bifunctor<$<EitherTF, [F]>> = <F>(F: Functor<F>) =>
+  Bifunctor.of<$<EitherTF, [F]>>({
+    bimap_: bimap_(F),
+    map_: map_(F),
+    leftMap_: leftMap_(F),
+  });
 
 export const eitherTMonad: <F, AA>(F: Monad<F>) => Monad<$<EitherTF, [F, AA]>> =
   (() => {

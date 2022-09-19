@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { FunctionK, Monad, StackSafeMonad } from '@fp4ts/cats-core';
 import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 
@@ -12,7 +12,7 @@ export const Free: FreeObj = function <F, A>(a: A): Free<F, A> {
   return new Pure(a);
 };
 
-abstract class _Free<F, out A> {
+abstract class _Free<in out F, out A> {
   private readonly __void!: void;
   private readonly _F!: (f: F) => F;
   private readonly _A!: () => A;
@@ -131,15 +131,17 @@ class FlatMap<F, A, B> extends _Free<F, B> {
 
 type View<F, A> = Pure<F, A> | Suspend<F, A> | FlatMap<F, unknown, A>;
 
-Free.Monad = lazyVal(() =>
-  StackSafeMonad.of({
+Free.Monad = lazyVal(<F>() =>
+  StackSafeMonad.of<$<FreeF, [F]>>({
     pure: Free.pure,
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
   }),
-);
+) as <F>() => Monad<$<FreeF, [F]>>;
 
 // HKT
+
+interface _Free<F, A> extends HKT<FreeF, [F, A]> {}
 
 export interface FreeF extends TyK<[unknown, unknown]> {
   [$type]: Free<TyVar<this, 0>, TyVar<this, 1>>;

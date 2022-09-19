@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { Option } from '../option';
 import { Either } from '../either';
@@ -56,6 +56,10 @@ Object.defineProperty(Ior, 'Bifunctor', {
 });
 
 // -- HKT
+
+declare module './algebra' {
+  export interface Ior<A, B> extends HKT<IorF, [A, B]> {}
+}
 
 /**
  * @category Type Constructor
