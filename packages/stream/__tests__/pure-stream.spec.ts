@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { List, Some, Vector, None, Eq } from '@fp4ts/cats';
+import { List, Some, Vector, None, Eq, LazyList } from '@fp4ts/cats';
 import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 import {
   AlignSuite,
@@ -53,6 +53,25 @@ describe('Pure Stream', () => {
       const s1 = Stream(1, 2, 3, 4, 5);
 
       expect(Stream.defer(() => s1).toList).toEqual(List(1, 2, 3, 4, 5));
+    });
+
+    it('should preserve laziness of LazyList', () => {
+      let cnt = 0;
+      const xs = LazyList(1, 2, 3).map(x => (cnt++, x));
+
+      Stream.fromLazyList(xs).take(0).compile().toList;
+
+      expect(cnt).toBe(0);
+    });
+
+    it('should preserve laziness of LazyList', () => {
+      let cnt = 0;
+      const xs = LazyList(1, 2, 3).map(x => (cnt++, x));
+
+      expect(Stream.fromLazyList(xs).take(2).compile().toList).toEqual(
+        List(1, 2),
+      );
+      expect(cnt).toBe(2);
     });
   });
 

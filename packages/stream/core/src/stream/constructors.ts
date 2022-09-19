@@ -5,7 +5,7 @@
 
 import { ok as assert } from 'assert';
 import { constant, fst, id, Kind, pipe } from '@fp4ts/core';
-import { Either, List, Option, Some, Vector } from '@fp4ts/cats';
+import { Either, LazyList, List, Option, Some, Vector } from '@fp4ts/cats';
 import {
   ExitCase,
   Poll,
@@ -154,7 +154,7 @@ export const unfold =
             defer(() => loop(next)),
           ),
       );
-    return loop(s);
+    return defer(() => loop(s));
   };
 
 export const unfoldChunk =
@@ -189,6 +189,9 @@ export const fromList = <F, A>(xs: List<A>): Stream<F, A> =>
 
 export const fromVector = <F, A>(xs: Vector<A>): Stream<F, A> =>
   fromArray(xs.toArray);
+
+export const fromLazyList = <F, A>(xs: LazyList<A>): Stream<F, A> =>
+  unfold(xs)(xs => xs.uncons);
 
 export const fromChunk = <F, A>(chunk: Chunk<A>): Stream<F, A> =>
   new Stream(Pull.output(chunk));

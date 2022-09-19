@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
-import { Either, List, Option, Vector } from '@fp4ts/cats';
+import { Either, LazyList, List, Option, Vector } from '@fp4ts/cats';
 import {
   Poll,
   ExitCase,
@@ -51,6 +51,7 @@ import {
   resourceWeak,
   fromQueueNoneTerminated,
   fromQueueNoneTerminatedChunk,
+  fromLazyList,
 } from './constructors';
 import { Spawn } from '@fp4ts/effect';
 import {
@@ -133,6 +134,7 @@ interface StreamObj {
   fromList<F = PureF, A = never>(xs: List<A>): Stream<F, A>;
   fromVector<F = PureF, A = never>(xs: Vector<A>): Stream<F, A>;
   fromChunk<F = PureF, A = never>(chunk: Chunk<A>): Stream<F, A>;
+  fromLazyList<F = PureF, A = never>(xs: LazyList<A>): Stream<F, A>;
 
   bracket<F, R>(
     resource: Kind<F, [R]>,
@@ -212,6 +214,7 @@ Stream.fromArray = fromArray;
 Stream.fromList = fromList;
 Stream.fromVector = fromVector;
 Stream.fromChunk = fromChunk;
+Stream.fromLazyList = fromLazyList;
 
 Stream.bracket = bracket;
 Stream.bracketWeak = bracketWeak;
