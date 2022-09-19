@@ -19,8 +19,8 @@ import {
   Either,
   Left,
   Right,
-  Iter,
   Endo,
+  LazyList,
 } from './data';
 import { ComposedFoldable } from './composed';
 
@@ -100,11 +100,11 @@ export const Foldable = Object.freeze({
 
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {
-        const src = Source.fromFoldable(self)(fa);
+        const src = LazyList.fromFoldable(self)(fa);
         return G.tailRecM(tupled(z, src))(([b, src]) =>
           src.uncons.fold(
             () => G.pure(Right(b)),
-            ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src.value))),
+            ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src))),
           ),
         );
       },
@@ -122,17 +122,8 @@ export const Foldable = Object.freeze({
           );
       },
 
-      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => {
-        let src = Eval.now(Source.fromFoldable(self)(fa));
-        return Iter.lift(() => {
-          const next = src.value.uncons;
-          if (next.isEmpty) return Iter.Result.done;
-
-          const [a, src_] = next.get;
-          src = src_;
-          return Iter.Result.pure(a);
-        });
-      },
+      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> =>
+        LazyList.fromFoldable(self)(fa).iterator,
 
       toList: <A>(fa: Kind<F, [A]>) =>
         self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
@@ -152,26 +143,6 @@ export const Foldable = Object.freeze({
 
   compose: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> =>
     ComposedFoldable.of(F, G),
-});
-
-interface Source<A> {
-  readonly uncons: Option<[A, Eval<Source<A>>]>;
-}
-const Source = Object.freeze({
-  get empty(): Source<never> {
-    return { uncons: None };
-  },
-
-  cons: <A>(a: A, src: Eval<Source<A>>): Source<A> => ({
-    uncons: Some([a, src]),
-  }),
-
-  fromFoldable:
-    <F>(F: Foldable<F>) =>
-    <A>(fa: Kind<F, [A]>): Source<A> =>
-      F.foldRight_(fa, Eval.now<Source<A>>(Source.empty), (a, evalSrc) =>
-        Eval.delay(() => Source.cons(a, evalSrc)),
-      ).value,
 });
 
 // -- HKT

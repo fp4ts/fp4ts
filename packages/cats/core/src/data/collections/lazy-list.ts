@@ -29,11 +29,11 @@ import { Align } from '../../align';
 import { Eval } from '../../eval';
 import { StackSafeMonad } from '../../stack-safe-monad';
 
+import { None, Option, Some } from '../option';
+import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
-import { Ior } from '../ior';
-import { None, Option, Some } from '../option';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -62,6 +62,7 @@ interface LazyListObj {
   fromList<A>(xs: List<A>): LazyList<A>;
   fromVector<A>(xs: Vector<A>): LazyList<A>;
   fromIterator<A>(xs: Iterator<A>): LazyList<A>;
+  fromFoldable<F>(F: Foldable<F>): <A>(fa: Kind<F, [A]>) => LazyList<A>;
 
   // -- Instances
 
@@ -517,6 +518,15 @@ LazyList.fromIterator = <A>(it: Iterator<A>): LazyList<A> => {
         );
   return new _LazyList(Eval.later(() => go(it.next())));
 };
+
+LazyList.fromFoldable =
+  <F>(F: Foldable<F>) =>
+  <A>(fa: Kind<F, [A]>): LazyList<A> =>
+    new _LazyList(
+      F.foldRight_(fa, Eval.now(Nil as Source<A>), (h, tl) =>
+        Eval.now(new Cons(h, tl)),
+      ),
+    );
 
 abstract class Source<out A> {
   abstract readonly head: A;
