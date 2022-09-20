@@ -30,4 +30,6 @@ export * from './identity-t';
 export * from './option-t';
 export * from './either-t';
 
+export { TransK } from './trans-k';
+
 export * from './collections';
