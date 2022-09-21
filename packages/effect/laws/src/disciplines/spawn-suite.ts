@@ -88,7 +88,10 @@ export const SpawnSuite = <F, E>(F: Spawn<F, E>) => {
           ],
           [
             'fiber error is outcome errored',
-            forAll(arbE, laws.fiberErrorIsOutcomeErrored)(mkEqF(EqOutcome)),
+            forAll(
+              arbE,
+              laws.fiberErrorIsOutcomeErrored,
+            )(mkEqF(EqOutcome as any as Eq<Outcome<F, E, never>>)),
           ],
           [
             'fiber cancelation is outcome canceled',

@@ -169,7 +169,7 @@ declare module './algebra' {
     sliding(size: number, step?: number): Stream<F, Chunk<A>>;
 
     changes(this: Stream<F, PrimitiveType>): Stream<F, A>;
-    changes(E: Eq<A>): Stream<F, A>;
+    changes<A>(this: Stream<F, A>, E: Eq<A>): Stream<F, A>;
 
     filter(pred: (a: A) => boolean): Stream<F, A>;
     filterNot(pred: (a: A) => boolean): Stream<F, A>;
@@ -503,7 +503,7 @@ Stream.prototype.sliding = function (size, step) {
   return sliding_(this, size, step);
 };
 
-Stream.prototype.changes = function (E = Eq.primitive) {
+Stream.prototype.changes = function (E = Eq.fromUniversalEquals()) {
   return changes(E as Eq<any>)(this);
 };
 

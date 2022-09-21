@@ -29,7 +29,7 @@ export const CodecSuite = <A>(C: Codec<unknown, any, A>) => {
           forAll(
             arbA,
             laws.codecEncodeToDecodeIdentity,
-          )(Either.Eq(Eq.never as Eq<unknown>, EqA)),
+          )(Either.Eq(Eq.never as any as Eq<any>, EqA)),
         ],
       ]),
   };

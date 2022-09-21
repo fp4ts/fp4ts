@@ -4,13 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, PrimitiveType } from '@fp4ts/core';
-import {
-  Monoid,
-  Eq,
-  primitiveEq,
-  Hashable,
-  anyHashable,
-} from '@fp4ts/cats-kernel';
+import { Monoid, Eq, Hashable, anyHashable } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
@@ -394,7 +388,7 @@ HashMap.prototype.intersectWith = function (this: any, ...args: any[]): any {
 HashMap.prototype.difference = function (this: any, ...args: any[]): any {
   return args.length === 2
     ? difference_(args[0], this, args[1])
-    : difference_(primitiveEq(), this, args[0]);
+    : difference_(Eq.fromUniversalEquals(), this, args[0]);
 };
 HashMap.prototype['\\'] = HashMap.prototype.difference;
 
@@ -404,7 +398,7 @@ HashMap.prototype.symmetricDifference = function (
 ): any {
   return args.length === 2
     ? symmetricDifference_(args[0], this, args[1])
-    : symmetricDifference_(primitiveEq(), this, args[0]);
+    : symmetricDifference_(Eq.fromUniversalEquals(), this, args[0]);
 };
 HashMap.prototype['\\//'] = HashMap.prototype.symmetricDifference;
 
@@ -439,12 +433,12 @@ HashMap.prototype.collect = function <K, V, B>(
 HashMap.prototype.flatMap = function (this: any, ...args: any[]): any {
   return typeof args === 'function'
     ? (f: any) => flatMap_(args[0], this, f)
-    : flatMap_(primitiveEq(), this, args[0]);
+    : flatMap_(Eq.fromUniversalEquals(), this, args[0]);
 };
 
 HashMap.prototype.flatten = function (this: any, ...args: any[]): any {
   return args.length === 1
-    ? flatten(primitiveEq())(this)
+    ? flatten(Eq.fromUniversalEquals())(this)
     : flatten(args[0])(this);
 };
 

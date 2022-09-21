@@ -61,7 +61,7 @@ describe('NonEmptyList', () => {
     forAll(
       A.fp4tsNel(fc.integer()),
       nel => new IsEq(nel.reverse.toList, nel.toList.reverse),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -70,7 +70,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, x) => new IsEq(nel.prepend(x).toList, nel.toList.prepend(x)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -79,7 +79,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, x) => new IsEq(nel.append(x).toList, nel.toList.append(x)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -88,7 +88,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       A.fp4tsList(fc.integer()),
       (nel, ys) => new IsEq(nel['+++'](ys).toList, nel.toList['+++'](ys)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -98,7 +98,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       (nel, ys) =>
         new IsEq(nel.concatNel(ys).toList, nel.toList['+++'](ys.toList)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -107,7 +107,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, idx) => new IsEq(nel.elemOption(idx), nel.toList.elemOption(idx)),
-    )(Option.Eq(Eq.primitive)),
+    )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -143,7 +143,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, n) => new IsEq(nel.take(n), nel.toList.take(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -162,7 +162,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, n) => new IsEq(nel.takeRight(n), nel.toList.takeRight(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -171,7 +171,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, n) => new IsEq(nel.drop(n), nel.toList.drop(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -190,7 +190,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.integer(),
       (nel, n) => new IsEq(nel.dropRight(n), nel.toList.dropRight(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -201,7 +201,7 @@ describe('NonEmptyList', () => {
       fc.integer(),
       (nel, from, to) =>
         new IsEq(nel.slice(from, to), nel.toList.slice(from, to)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -210,7 +210,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
       (nel, f) => new IsEq(nel.filter(f), nel.toList.filter(f)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -219,7 +219,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
       (nel, f) => new IsEq(nel.collect(f), nel.toList.collect(f)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -228,7 +228,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
       (nel, f) => new IsEq(nel.collectWhile(f), nel.toList.collectWhile(f)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -237,7 +237,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       fc.func<[number], string>(fc.string()),
       (nel, f) => new IsEq(nel.map(f).toList, nel.toList.map(f)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -250,7 +250,7 @@ describe('NonEmptyList', () => {
           nel.flatMap(f).toList,
           nel.toList.flatMap(x => f(x).toList),
         ),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -259,7 +259,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       A.fp4tsNel(fc.string()),
       (xs, ys) => new IsEq(xs.zip(ys).toList, xs.toList.zip(ys.toList)),
-    )(List.Eq(Eq.tuple2(Eq.primitive, Eq.primitive))),
+    )(List.Eq(Eq.tuple2(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
@@ -270,7 +270,12 @@ describe('NonEmptyList', () => {
         A.fp4tsEither(fc.integer(), fc.integer()),
       ),
       (xs, f) => new IsEq(xs.partition(f), xs.toList.partition(f)),
-    )(Eq.tuple2(List.Eq(Eq.primitive), List.Eq(Eq.primitive))),
+    )(
+      Eq.tuple2(
+        List.Eq(Eq.fromUniversalEquals()),
+        List.Eq(Eq.fromUniversalEquals()),
+      ),
+    ),
   );
 
   test(
@@ -337,8 +342,8 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       A.fp4tsNel(fc.integer()),
       (xs, ys) =>
-        xs.equals(Eq.primitive, ys) ===
-        xs.toList.equals(Eq.primitive, ys.toList),
+        xs.equals(Eq.fromUniversalEquals(), ys) ===
+        xs.toList.equals(Eq.fromUniversalEquals(), ys.toList),
     ),
   );
 
@@ -348,7 +353,7 @@ describe('NonEmptyList', () => {
       'SemigroupK<Nel>',
       semigroupKTests.semigroupK(
         fc.integer(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         A.fp4tsNel,
         Nel.EqK.liftEq,
       ),
@@ -362,10 +367,10 @@ describe('NonEmptyList', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsNel,
         Nel.EqK.liftEq,
       ),
@@ -379,10 +384,10 @@ describe('NonEmptyList', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsNel,
         Nel.EqK.liftEq,
       ),
@@ -396,10 +401,10 @@ describe('NonEmptyList', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsNel,
         Nel.EqK.liftEq,
       ),
@@ -417,9 +422,9 @@ describe('NonEmptyList', () => {
         Nel.Functor,
         Eval.Applicative,
         Option.Applicative,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsNel,
         Nel.EqK.liftEq,
         A.fp4tsEval,

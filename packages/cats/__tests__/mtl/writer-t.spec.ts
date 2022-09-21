@@ -98,7 +98,7 @@ describe('WriterT', () => {
         MonadWriterSuite(WriterT.MonadWriter(F, W)).censor(
           fc.integer(),
           arbW,
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           EqW,
           arbX => A.fp4tsWriterT(mkArbF(fc.tuple(arbX, arbW))),
           WriterT.EqK(EqKF, EqW).liftEq,
@@ -112,10 +112,10 @@ describe('WriterT', () => {
           fc.integer(),
           fc.string(),
           fc.integer(),
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
           arbX => A.fp4tsWriterT(mkArbF(fc.tuple(arbX, arbW))),
           WriterT.EqK(EqKF, EqW).liftEq,
         ),
@@ -128,10 +128,10 @@ describe('WriterT', () => {
           fc.integer(),
           fc.string(),
           fc.integer(),
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
           arbX => A.fp4tsWriterT(mkArbF(fc.tuple(arbX, arbW))),
           WriterT.EqK(EqKF, EqW).liftEq,
         ),
@@ -144,10 +144,10 @@ describe('WriterT', () => {
           fc.integer(),
           fc.integer(),
           fc.integer(),
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
           arbX => A.fp4tsWriterT(mkArbF(fc.tuple(arbX, arbW))),
           WriterT.EqK(EqKF, EqW).liftEq,
         ),
@@ -156,13 +156,13 @@ describe('WriterT', () => {
 
     runTests(
       ['Identity', Identity.Monad],
-      ['string', Monoid.string, fc.string(), Eq.primitive],
+      ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       id,
       Identity.EqK,
     );
     runTests(
       ['Option', Option.Monad],
-      ['string', Monoid.string, fc.string(), Eq.primitive],
+      ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsOption,
       Option.EqK,
     );
@@ -172,22 +172,22 @@ describe('WriterT', () => {
         'string[]',
         Array.MonoidK().algebra<string>(),
         fc.array(fc.string()),
-        Array.Eq(Eq.primitive),
+        Array.Eq(Eq.fromUniversalEquals()),
       ],
       A.fp4tsOption,
       Option.EqK,
     );
     runTests(
       ['Eval', Eval.Monad],
-      ['string', Monoid.string, fc.string(), Eq.primitive],
+      ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsEval,
       EqK.of({ liftEq: Eval.Eq }),
     );
     runTests(
       ['Eval<string, *>', Either.Monad<string>()],
-      ['string', Monoid.string, fc.string(), Eq.primitive],
+      ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       X => A.fp4tsEither(fc.string(), X),
-      EqK.of({ liftEq: X => Either.Eq(Eq.primitive, X) }),
+      EqK.of({ liftEq: X => Either.Eq(Eq.fromUniversalEquals(), X) }),
     );
 
     checkAll(
@@ -198,14 +198,14 @@ describe('WriterT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsWriterT<OptionF, string, X>(
             A.fp4tsOption(fc.tuple(arbX, fc.string())),
           ),
-        WriterT.EqK(Option.EqK, Eq.primitive).liftEq,
+        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals()).liftEq,
       ),
     );
 
@@ -219,16 +219,20 @@ describe('WriterT', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsWriterT<$<EitherF, [string]>, string, X>(
             A.fp4tsEither(fc.string(), fc.tuple(arbX, fc.string())),
           ),
-        X => Either.Eq(Eq.primitive, Eq.tuple(X, Eq.primitive)),
+        X =>
+          Either.Eq(
+            Eq.fromUniversalEquals(),
+            Eq.tuple(X, Eq.fromUniversalEquals()),
+          ),
       ),
     );
 
@@ -245,14 +249,14 @@ describe('WriterT', () => {
         WriterT.Functor(Option.Functor),
         Option.Applicative,
         Eval.Applicative,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsWriterT<OptionF, string, X>(
             A.fp4tsOption(fc.tuple(arbX, fc.string())),
           ),
-        WriterT.EqK(Option.EqK, Eq.primitive).liftEq,
+        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals()).liftEq,
         A.fp4tsOption,
         Option.Eq,
         A.fp4tsEval,

@@ -25,10 +25,10 @@ describe('RWS', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       <X>(X: Arbitrary<X>) =>
         A.fp4tsRWS(
           fc.func<[boolean, MiniInt], [X, MiniInt, string]>(
@@ -54,9 +54,9 @@ describe('RWS', () => {
       fc.integer(),
       fc.integer(),
       fc.boolean(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       <X>(X: Arbitrary<X>) =>
         A.fp4tsRWS(
           fc.func<[boolean, MiniInt], [X, MiniInt, string]>(
@@ -83,8 +83,8 @@ describe('RWS', () => {
     ).censor(
       fc.integer(),
       fc.string(),
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       <X>(X: Arbitrary<X>) =>
         A.fp4tsRWS(
           fc.func<[boolean, MiniInt], [X, MiniInt, string]>(
@@ -138,12 +138,12 @@ describe('RWS', () => {
       fc.integer(),
       fc.integer(),
       ec.miniInt(),
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,
         Y: Arbitrary<Y>,
@@ -160,7 +160,7 @@ describe('RWS', () => {
         Eq.by(
           eq.fn1Eq(
             ec.boolean().product(X),
-            Eq.tuple(Eq.primitive, Y, Eq.primitive),
+            Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
           ),
           fa =>
             ([r, s]) =>

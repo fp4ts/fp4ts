@@ -13,16 +13,16 @@ function makeSuite(size: number) {
 
   const numPs = nums.map(x => [x, x] as [number, number]);
   const permPs = nums.map(x => [x, x] as [number, number]);
-  const map = HashMap.fromArray(Hashable.any)(numPs);
-  const mapr = HashMap.fromArray(Hashable.any)(permPs);
+  const map = HashMap.fromArray(Hashable.any<number>())(numPs);
+  const mapr = HashMap.fromArray(Hashable.any<number>())(permPs);
 
   return [
     add(`fromArray (${size})`, () => {
-      HashMap.fromArray(Hashable.any)(numPs);
+      HashMap.fromArray(Hashable.any())(numPs);
     }),
 
     add(`fromArray random (${size})`, () => {
-      HashMap.fromArray(Hashable.any)(numPs);
+      HashMap.fromArray(Hashable.any())(numPs);
     }),
 
     add(`lookup identity (${size})`, () => {

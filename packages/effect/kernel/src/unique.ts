@@ -28,5 +28,8 @@ export class UniqueToken {
   }
 
   public static Eq: Eq<UniqueToken> = Eq.of({ equals: (x, y) => x.equals(y) });
-  public static Ord: Ord<UniqueToken> = Ord.by(Ord.primitive, u => u.address);
+  public static Ord: Ord<UniqueToken> = Ord.by(
+    Ord.fromUniversalCompare(),
+    u => u.address,
+  );
 }

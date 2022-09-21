@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, PrimitiveType } from '@fp4ts/core';
-import { Eq, primitiveEq } from './eq';
+import { Eq } from './eq';
 
 /**
  * @category Type Class
@@ -14,15 +13,15 @@ export interface Hashable<A> extends Eq<A> {
 }
 
 export const Hashable = Object.freeze({
-  get any(): Hashable<PrimitiveType> {
+  any<A>(): Hashable<A> {
     return anyHashable();
   },
 });
 
 // Instances
 
-export const anyHashable: Lazy<Hashable<PrimitiveType>> = () => ({
-  ...primitiveEq(),
+export const anyHashable: <A>() => Hashable<A> = <A>() => ({
+  ...Eq.fromUniversalEquals<A>(),
   hash,
 });
 

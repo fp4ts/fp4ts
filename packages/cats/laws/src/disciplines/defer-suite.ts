@@ -34,7 +34,7 @@ export const DeferSuite = <F>(F: Defer<F>) => {
           forAll(
             fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
             laws.deferDoesNotEvaluate,
-          )(Eq.primitive),
+          )(Eq.fromUniversalEquals()),
         ],
         [
           'defer is stack safe',

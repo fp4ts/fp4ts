@@ -28,7 +28,7 @@ describe('Map', () => {
     it('should disallow type expansion for unrelated types', () => {
       const m: Map<number, string> = Map([1, '2'], [2, '3']);
       // @ts-expect-error
-      m.lookup(Ord.primitive, 'some-string-key');
+      m.lookup(Ord.fromUniversalCompare(), 'some-string-key');
     });
   });
 
@@ -46,7 +46,7 @@ describe('Map', () => {
     it('should create an ordered map from an unordered array', () => {
       const xs = [5, 1, 7, 8, 10, -5].map(x => [x, x] as [number, number]);
       const m = Map(...xs);
-      expect(isValid(Ord.primitive, m)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), m)).toBe(true);
       expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
@@ -59,8 +59,8 @@ describe('Map', () => {
 
     it('should create an ordered map from an unordered List', () => {
       const xs = List(5, 1, 7, 8, 10, -5).map(x => [x, x] as [number, number]);
-      const m = Map.fromList(Ord.primitive)(xs);
-      expect(isValid(Ord.primitive, m)).toBe(true);
+      const m = Map.fromList(Ord.fromUniversalCompare())(xs);
+      expect(isValid(Ord.fromUniversalCompare(), m)).toBe(true);
       expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
@@ -74,7 +74,7 @@ describe('Map', () => {
     it('should create an ordered map from a sorted array', () => {
       const xs = [-5, 1, 5, 7, 8, 10].map(x => [x, x] as [number, number]);
       const m = Map.fromSortedArray(xs);
-      expect(isValid(Ord.primitive, m)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), m)).toBe(true);
       expect(m.toArray).toEqual([
         [-5, -5],
         [1, 1],
@@ -117,8 +117,9 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        isValid(Ord.primitive, xs.init),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs => isValid(Ord.fromUniversalCompare(), xs.init),
       ),
     );
   });
@@ -134,8 +135,9 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        isValid(Ord.primitive, xs.init),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs => isValid(Ord.fromUniversalCompare(), xs.init),
       ),
     );
   });
@@ -269,11 +271,13 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        xs.popMin.fold(
-          () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
-        ),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs =>
+          xs.popMin.fold(
+            () => true,
+            ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
+          ),
       ),
     );
   });
@@ -299,11 +303,13 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        xs.popMinWithKey.fold(
-          () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
-        ),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs =>
+          xs.popMinWithKey.fold(
+            () => true,
+            ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
+          ),
       ),
     );
   });
@@ -329,11 +335,13 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        xs.popMax.fold(
-          () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
-        ),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs =>
+          xs.popMax.fold(
+            () => true,
+            ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
+          ),
       ),
     );
   });
@@ -359,11 +367,13 @@ describe('Map', () => {
 
     it(
       'should remain valid',
-      forAll(A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive), xs =>
-        xs.popMaxWithKey.fold(
-          () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
-        ),
+      forAll(
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        xs =>
+          xs.popMaxWithKey.fold(
+            () => true,
+            ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
+          ),
       ),
     );
   });
@@ -372,8 +382,8 @@ describe('Map', () => {
     const m = Map([1, 2], [2, 3]);
 
     it('should be true when the key exists', () => {
-      expect(m.contains(Ord.primitive, 1)).toBe(true);
-      expect(m.contains(Ord.primitive, 2)).toBe(true);
+      expect(m.contains(Ord.fromUniversalCompare(), 1)).toBe(true);
+      expect(m.contains(Ord.fromUniversalCompare(), 2)).toBe(true);
     });
 
     it('should be false when the key does not exists', () => {
@@ -423,10 +433,10 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.integer(),
         fc.string(),
-        (xs, k, v) => isValid(Ord.primitive, xs.insert(k, v)),
+        (xs, k, v) => isValid(Ord.fromUniversalCompare(), xs.insert(k, v)),
       ),
     );
   });
@@ -453,10 +463,11 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.integer(),
         fc.string(),
-        (xs, k, v) => isValid(Ord.primitive, xs.insertWith(k, v, id)),
+        (xs, k, v) =>
+          isValid(Ord.fromUniversalCompare(), xs.insertWith(k, v, id)),
       ),
     );
   });
@@ -477,9 +488,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.integer(),
-        (xs, k) => isValid(Ord.primitive, xs.remove(k)),
+        (xs, k) => isValid(Ord.fromUniversalCompare(), xs.remove(k)),
       ),
     );
   });
@@ -502,7 +513,9 @@ describe('Map', () => {
 
   describe('union', () => {
     test('union of two empty maps to be empty', () => {
-      expect(Map.empty.union(Ord.primitive, Map.empty)).toEqual(Map.empty);
+      expect(Map.empty.union(Ord.fromUniversalCompare(), Map.empty)).toEqual(
+        Map.empty,
+      );
     });
 
     it('should return map on union with empty on lhs', () => {
@@ -559,9 +572,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.union(ys)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.union(ys)),
       ),
     );
   });
@@ -593,9 +606,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.unionWith(ys, id)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.unionWith(ys, id)),
       ),
     );
   });
@@ -637,9 +650,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.intersect(ys)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.intersect(ys)),
       ),
     );
   });
@@ -662,9 +675,10 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.intersectWith(ys, id)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) =>
+          isValid(Ord.fromUniversalCompare(), xs.intersectWith(ys, id)),
       ),
     );
   });
@@ -686,9 +700,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs['\\'](ys)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs['\\'](ys)),
       ),
     );
   });
@@ -696,7 +710,8 @@ describe('Map', () => {
   describe('symmetricDifference', () => {
     it('should return id when difference with empty map', () => {
       expect(
-        Map([1, 2], [2, 3])['\\//'](Ord.primitive, Map.empty).toArray,
+        Map([1, 2], [2, 3])['\\//'](Ord.fromUniversalCompare(), Map.empty)
+          .toArray,
       ).toEqual([
         [1, 2],
         [2, 3],
@@ -713,9 +728,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs['\\//'](ys)),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs['\\//'](ys)),
       ),
     );
   });
@@ -737,9 +752,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.func<[string, number], boolean>(fc.boolean()),
-        (xs, f) => isValid(Ord.primitive, xs.filter(f)),
+        (xs, f) => isValid(Ord.fromUniversalCompare(), xs.filter(f)),
       ),
     );
   });
@@ -756,9 +771,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.func<[string, number], number>(fc.integer()),
-        (xs, f) => isValid(Ord.primitive, xs.map(f)),
+        (xs, f) => isValid(Ord.fromUniversalCompare(), xs.map(f)),
       ),
     );
   });
@@ -782,9 +797,9 @@ describe('Map', () => {
     it(
       'should remain valid',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.string(), Ord.primitive),
+        A.fp4tsMap(fc.integer(), fc.string(), Ord.fromUniversalCompare()),
         fc.func<[string, number], Option<number>>(A.fp4tsOption(fc.integer())),
-        (xs, f) => isValid(Ord.primitive, xs.collect(f)),
+        (xs, f) => isValid(Ord.fromUniversalCompare(), xs.collect(f)),
       ),
     );
   });
@@ -970,13 +985,19 @@ describe('Map', () => {
     it(
       'should remain valid after running a sequence of actions',
       forAll(
-        A.fp4tsMap(fc.integer(), fc.integer(), Ord.primitive),
-        fc.array(actionArbitrary(fc.integer(), fc.integer(), Ord.primitive)),
+        A.fp4tsMap(fc.integer(), fc.integer(), Ord.fromUniversalCompare()),
+        fc.array(
+          actionArbitrary(
+            fc.integer(),
+            fc.integer(),
+            Ord.fromUniversalCompare(),
+          ),
+        ),
         (s, as) =>
           expect(
             isValid(
-              Ord.primitive,
-              as.reduce(executeAction(Ord.primitive)<number>, s),
+              Ord.fromUniversalCompare(),
+              as.reduce(executeAction(Ord.fromUniversalCompare())<number>, s),
             ),
           ).toBe(true),
       ),
@@ -986,11 +1007,11 @@ describe('Map', () => {
   describe('Laws', () => {
     checkAll(
       'MonoidK<Map<PrimitiveType, *>>',
-      MonoidKSuite(Map.MonoidK(Ord.primitive)).monoidK(
+      MonoidKSuite(Map.MonoidK(Ord.fromUniversalCompare())).monoidK(
         fc.integer(),
-        Eq.primitive,
-        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-        E => Map.Eq(Eq.primitive, E),
+        Eq.fromUniversalEquals(),
+        x => A.fp4tsMap(fc.integer(), x, Ord.fromUniversalCompare()),
+        E => Map.Eq(Eq.fromUniversalEquals(), E),
       ),
     );
 
@@ -1000,11 +1021,11 @@ describe('Map', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-        E => Map.Eq(Eq.primitive, E),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        x => A.fp4tsMap(fc.integer(), x, Ord.fromUniversalCompare()),
+        E => Map.Eq(Eq.fromUniversalEquals(), E),
       ),
     );
 
@@ -1021,11 +1042,11 @@ describe('Map', () => {
         Map.FunctorWithIndex(),
         Eval.Applicative,
         Eval.Applicative,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        x => A.fp4tsMap(fc.integer(), x, Ord.primitive),
-        E => Map.Eq(Eq.primitive, E),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        x => A.fp4tsMap(fc.integer(), x, Ord.fromUniversalCompare()),
+        E => Map.Eq(Eq.fromUniversalEquals(), E),
         A.fp4tsEval,
         Eval.Eq,
         A.fp4tsEval,

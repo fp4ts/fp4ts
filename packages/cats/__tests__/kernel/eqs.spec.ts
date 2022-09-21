@@ -13,7 +13,7 @@ describe('Eqs', () => {
   describe('primitive type', () => {
     checkAll(
       'Eq<PrimitiveType>',
-      EqSuite(Eq.primitive).eq(
+      EqSuite(Eq.fromUniversalEquals()).eq(
         fc.oneof(fc.integer(), fc.string(), fc.bigInt()),
       ),
     );

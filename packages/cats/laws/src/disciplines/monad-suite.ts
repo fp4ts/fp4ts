@@ -79,7 +79,7 @@ export const MonadSuite = <F>(F: Monad<F>) => {
           ],
           [
             'monad tailRecM stack safety',
-            exec(tailRecMStackSafety)(mkEqF(Eq.primitive)),
+            exec(tailRecMStackSafety)(mkEqF(Eq.fromUniversalEquals())),
           ],
         ],
         {

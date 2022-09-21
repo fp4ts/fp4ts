@@ -36,7 +36,7 @@ describe('Ior', () => {
         .map<Either<number, string>>(Left)
         ['<|>'](() => i.onlyRight.map(Right))
         ['<=>'](i.onlyLeftOrRight),
-    )(Option.Eq(Either.Eq(Eq.primitive, Eq.primitive))),
+    )(Option.Eq(Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
@@ -45,14 +45,19 @@ describe('Ior', () => {
       i.onlyBoth['<=>'](
         i.left.flatMap(l => i.right.map(r => [l, r] as [number, string])),
       ),
-    )(Option.Eq(Eq.tuple2(Eq.primitive, Eq.primitive))),
+    )(Option.Eq(Eq.tuple2(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
     'pad consistent with left and right tuple',
     forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
       i.pad['<=>']([i.left, i.right] as [Option<number>, Option<string>]),
-    )(Eq.tuple2(Option.Eq(Eq.primitive), Option.Eq(Eq.primitive))),
+    )(
+      Eq.tuple2(
+        Option.Eq(Eq.fromUniversalEquals()),
+        Option.Eq(Eq.fromUniversalEquals()),
+      ),
+    ),
   );
 
   test(
@@ -69,7 +74,7 @@ describe('Ior', () => {
           .left['<=>'](
             i.left.map(x => x + j.left.getOrElse(() => 0)).orElse(() => j.left),
           ),
-    )(Option.Eq(Eq.primitive)),
+    )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -112,14 +117,14 @@ describe('Ior', () => {
               .map(x => x + j.right.getOrElse(() => ''))
               .orElse(() => j.right),
           ),
-    )(Option.Eq(Eq.primitive)),
+    )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'toEither consistent with right',
     forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
       i.toEither.toOption['<=>'](i.right),
-    )(Option.Eq(Eq.primitive)),
+    )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   it('should short-circuit on Error', () => {
@@ -140,10 +145,10 @@ describe('Ior', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsIor,
         Ior.Eq,
       ),
@@ -158,13 +163,13 @@ describe('Ior', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsIor(fc.string(), arbX),
-        EqX => Ior.Eq(Eq.primitive, EqX),
+        EqX => Ior.Eq(Eq.fromUniversalEquals(), EqX),
       ),
     );
   });

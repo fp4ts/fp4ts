@@ -21,7 +21,7 @@ export const ClockSuite = <F>(F: Clock<F>) => {
           () => {
             const result = laws.monotonicity();
             const True = F.applicative.pure(true);
-            const E = mkEqF(Eq.primitive);
+            const E = mkEqF(Eq.fromUniversalEquals());
             return expect(E.equals(result, True)).toBe(true);
           },
         ],

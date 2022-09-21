@@ -65,7 +65,7 @@ describe('SyncIO', () => {
       'attempt is redeem with Left for recover and Right for map',
       forAll(A.fp4tsSyncIO(fc.integer()), io =>
         io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
-      )(E.eqSyncIO(Either.Eq(Eq.Error.strict, Eq.primitive))),
+      )(E.eqSyncIO(Either.Eq(Eq.Error.strict, Eq.fromUniversalEquals()))),
     );
 
     test(
@@ -78,7 +78,7 @@ describe('SyncIO', () => {
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqSyncIO(Eq.primitive)),
+      )(E.eqSyncIO(Eq.fromUniversalEquals())),
     );
 
     test(
@@ -92,7 +92,7 @@ describe('SyncIO', () => {
             .redeem(recover, bind)
             .flatMap(id)
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqSyncIO(Eq.primitive)),
+      )(E.eqSyncIO(Eq.fromUniversalEquals())),
     );
 
     test(
@@ -101,7 +101,7 @@ describe('SyncIO', () => {
         A.fp4tsSyncIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
         (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
-      )(E.eqSyncIO(Eq.primitive)),
+      )(E.eqSyncIO(Eq.fromUniversalEquals())),
     );
 
     test(
@@ -113,7 +113,7 @@ describe('SyncIO', () => {
           io
             .redeemWith(recover, SyncIO.pure)
             ['<=>'](io.handleErrorWith(recover)),
-      )(E.eqSyncIO(Eq.primitive)),
+      )(E.eqSyncIO(Eq.fromUniversalEquals())),
     );
 
     it('should recover from error', () => {
@@ -161,10 +161,10 @@ describe('SyncIO', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsSyncIO,
       E.eqSyncIO,
     ),

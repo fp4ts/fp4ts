@@ -32,8 +32,8 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(arbX: Arbitrary<X>): Arbitrary<(m: MiniInt) => X> =>
           fc.func<[MiniInt], X>(arbX),
@@ -51,8 +51,8 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<IdentityF, MiniInt, X>> =>
           A.fp4tsKleisli(arbX),
@@ -69,8 +69,8 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<OptionF, MiniInt, X>> =>
           A.fp4tsKleisli(A.fp4tsOption(arbX)),
@@ -87,8 +87,8 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(
           arbX: Arbitrary<X>,
@@ -96,7 +96,7 @@ describe('MonadReader', () => {
           A.fp4tsKleisli(A.fp4tsEither(fc.string(), arbX)),
         <X>(EqX: Eq<X>): Eq<Kleisli<$<EitherF, [string]>, MiniInt, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.primitive, EqX)),
+            eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.fromUniversalEquals(), EqX)),
             k => a => k(a),
           ),
       ),
@@ -113,9 +113,9 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         fc.boolean(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>): Arbitrary<EitherT<RWSF_, Error, X>> =>
           A.fp4tsEitherT(
             A.fp4tsRWS(
@@ -155,9 +155,9 @@ describe('MonadReader', () => {
         fc.integer(),
         fc.integer(),
         fc.boolean(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>): Arbitrary<OptionT<RWSF_, X>> =>
           A.fp4tsOptionT(
             A.fp4tsRWS(

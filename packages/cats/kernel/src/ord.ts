@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { PrimitiveType } from '@fp4ts/core';
+import { instance } from '@fp4ts/core';
 import { Eq } from './eq';
 
 export enum Compare {
@@ -60,13 +60,14 @@ export const Ord = Object.freeze({
       },
     }),
 
-  primitive: {
-    ...Eq.primitive,
-    compare: (lhs: PrimitiveType, rhs: PrimitiveType) =>
-      lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
-    lt: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs < rhs,
-    lte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs <= rhs,
-    gt: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs > rhs,
-    gte: (lhs: PrimitiveType, rhs: PrimitiveType) => lhs >= rhs,
-  },
+  fromUniversalCompare: <A>(): Ord<A> =>
+    instance({
+      ...Eq.fromUniversalEquals(),
+      compare: (lhs: A, rhs: A) =>
+        lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
+      lt: (lhs: A, rhs: A) => lhs < rhs,
+      lte: (lhs: A, rhs: A) => lhs <= rhs,
+      gt: (lhs: A, rhs: A) => lhs > rhs,
+      gte: (lhs: A, rhs: A) => lhs >= rhs,
+    }),
 });

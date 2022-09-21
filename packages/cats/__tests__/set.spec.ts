@@ -39,25 +39,25 @@ describe('set', () => {
 
     it('should create an ordered set from an unordered array', () => {
       const s = Set.fromArray([3, 4, 8, 4, 1, 99]);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 3, 4, 8, 99]);
     });
 
     it('should create an ordered set from an ordered array', () => {
       const s = Set.fromArray([1, 2, 3, 4, 5]);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3, 4, 5]);
     });
 
     it('should create an ordered set from an unordered List', () => {
       const s = Set.fromList(List(3, 4, 8, 4, 1, 99));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toList).toEqual(List(1, 3, 4, 8, 99));
     });
 
     it('should create an ordered set from an ordered List', () => {
       const s = Set.fromList(List(1, 2, 3, 4, 5));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toList).toEqual(List(1, 2, 3, 4, 5));
     });
   });
@@ -105,8 +105,8 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
-        isValid(Ord.primitive, xs.tail),
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), xs =>
+        isValid(Ord.fromUniversalCompare(), xs.tail),
       ),
     );
   });
@@ -154,8 +154,8 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
-        isValid(Ord.primitive, xs.init),
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), xs =>
+        isValid(Ord.fromUniversalCompare(), xs.init),
       ),
     );
   });
@@ -190,10 +190,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), xs =>
         xs.popMin.fold(
           () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
+          ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
         ),
       ),
     );
@@ -215,10 +215,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), xs =>
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), xs =>
         xs.popMax.fold(
           () => true,
-          ([, xs]) => isValid(Ord.primitive, xs),
+          ([, xs]) => isValid(Ord.fromUniversalCompare(), xs),
         ),
       ),
     );
@@ -272,14 +272,16 @@ describe('set', () => {
 
     it('should insert a value to an existing set', () => {
       const s = Set(1, 2, 4, 5).insert(3);
-      expect(isValid(Ord.primitive, s));
+      expect(isValid(Ord.fromUniversalCompare(), s));
       expect(s.toArray).toEqual([1, 2, 3, 4, 5]);
     });
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (xs, ys) =>
-        isValid(Ord.primitive, xs.insert(ys)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.insert(ys)),
       ),
     );
   });
@@ -295,14 +297,16 @@ describe('set', () => {
 
     it('should remove a value from a set', () => {
       const s = Set(1, 2, 3, 4, 5).remove(3);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 4, 5]);
     });
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (xs, ys) =>
-        isValid(Ord.primitive, xs.remove(ys)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.remove(ys)),
       ),
     );
   });
@@ -314,33 +318,36 @@ describe('set', () => {
 
     it('should create a union with lhs empty', () => {
       const s = Set(1, 2, 3).union(Set.empty);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3]);
     });
 
     it('should create a union with rhs empty', () => {
       const s = Set.empty.union(Set(4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([4, 5, 6]);
     });
 
     it('should create a union of two disjoint sets', () => {
       const s = Set(1, 2, 3).union(Set(4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     it('should create a union of two sets sharing elements', () => {
       const s = Set(1, 2, 3, 4, 5).union(Set(2, 3, 4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     test(
       'merge on self is identity',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), s => {
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), s => {
         const r = s.union(s);
-        return isValid(Ord.primitive, r) && s.equals(Eq.primitive)(r);
+        return (
+          isValid(Ord.fromUniversalCompare(), r) &&
+          s.equals(Eq.fromUniversalEquals())(r)
+        );
       }),
     );
 
@@ -350,16 +357,16 @@ describe('set', () => {
       const s2 = Set.fromArray(xs);
 
       const s = s1.union(s2);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual(xs);
     });
 
     it(
       'should remain valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.union(ys)),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.union(ys)),
       ),
     );
   });
@@ -383,21 +390,24 @@ describe('set', () => {
 
     it('should return intersection of two sets', () => {
       const s = Set(1, 2, 3, 4, 5).intersect(Set(2, 3, 4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([2, 3, 4, 5]);
     });
 
     test(
       'intersection on self is identity',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), s => {
+      forAll(A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()), s => {
         const r = s.intersect(s);
-        return isValid(Ord.primitive, r) && s.equals(Eq.primitive)(r);
+        return (
+          isValid(Ord.fromUniversalCompare(), r) &&
+          s.equals(Eq.fromUniversalEquals())(r)
+        );
       }),
     );
 
     it('should result in identity when two same sets are intersected', () => {
       const s = Set(1, 2, 3, 4, 5).intersect(Set(1, 2, 3, 4, 5));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3, 4, 5]);
     });
 
@@ -407,16 +417,16 @@ describe('set', () => {
       const s2 = Set.fromArray(xs);
 
       const s = s1.intersect(s2);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual(xs);
     });
 
     it(
       'should remain valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs.intersect(ys)),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs.intersect(ys)),
       ),
     );
   });
@@ -432,13 +442,13 @@ describe('set', () => {
 
     it('should not remove any elements when sets are disjoint', () => {
       const s = Set(1, 2, 3)['\\'](Set(4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3]);
     });
 
     it('should remove common elements of the set', () => {
       const s = Set(1, 2, 3, 4)['\\'](Set(3, 4, 5, 6));
-      expect(isValid(Ord.primitive, s));
+      expect(isValid(Ord.fromUniversalCompare(), s));
       expect(s.toArray).toEqual([1, 2]);
     });
 
@@ -449,9 +459,9 @@ describe('set', () => {
     it(
       'should remain valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs['\\'](ys)),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs['\\'](ys)),
       ),
     );
   });
@@ -469,13 +479,13 @@ describe('set', () => {
 
     it('should return disjoint union of sets', () => {
       const s = Set(1, 2, 3)['\\//'](Set(4, 5, 6));
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     it('should return disjoint union of sets', () => {
       const s = Set(1, 2, 3, 4)['\\//'](Set(3, 4, 5, 6));
-      expect(isValid(Ord.primitive, s));
+      expect(isValid(Ord.fromUniversalCompare(), s));
       expect(s.toArray).toEqual([1, 2, 5, 6]);
     });
 
@@ -486,9 +496,9 @@ describe('set', () => {
     it(
       'should remain valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        (xs, ys) => isValid(Ord.primitive, xs['\\//'](ys)),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        (xs, ys) => isValid(Ord.fromUniversalCompare(), xs['\\//'](ys)),
       ),
     );
   });
@@ -516,8 +526,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
-        isValid(Ord.primitive, s.take(n)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (s, n) => isValid(Ord.fromUniversalCompare(), s.take(n)),
       ),
     );
   });
@@ -545,8 +557,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
-        isValid(Ord.primitive, s.takeRight(n)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (s, n) => isValid(Ord.fromUniversalCompare(), s.takeRight(n)),
       ),
     );
   });
@@ -574,8 +588,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
-        isValid(Ord.primitive, s.drop(n)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (s, n) => isValid(Ord.fromUniversalCompare(), s.drop(n)),
       ),
     );
   });
@@ -603,8 +619,10 @@ describe('set', () => {
 
     it(
       'should remain valid tree',
-      forAll(A.fp4tsSet(fc.integer(), Ord.primitive), fc.integer(), (s, n) =>
-        isValid(Ord.primitive, s.dropRight(n)),
+      forAll(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.integer(),
+        (s, n) => isValid(Ord.fromUniversalCompare(), s.dropRight(n)),
       ),
     );
   });
@@ -620,22 +638,22 @@ describe('set', () => {
 
     it('should keep all elements', () => {
       const s = Set(1, 2, 3, 4, 5, 6).filter(() => true);
-      expect(isValid(Ord.primitive, s));
+      expect(isValid(Ord.fromUniversalCompare(), s));
       expect(s.toArray).toEqual([1, 2, 3, 4, 5, 6]);
     });
 
     it('should filter out even elements', () => {
       const s = Set(1, 2, 3, 4, 5, 6).filter(x => x % 2 !== 0);
-      expect(isValid(Ord.primitive, s));
+      expect(isValid(Ord.fromUniversalCompare(), s));
       expect(s.toArray).toEqual([1, 3, 5]);
     });
 
     it(
       'should remain valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
         fc.func<[number], boolean>(fc.boolean()),
-        (s, p) => isValid(Ord.primitive, s.filter(p)),
+        (s, p) => isValid(Ord.fromUniversalCompare(), s.filter(p)),
       ),
     );
   });
@@ -647,16 +665,16 @@ describe('set', () => {
 
     it('should double all of the values', () => {
       const s = Set(1, 2, 3, 4, 5, 6).map(x => x * 2);
-      expect(isValid(Ord.primitive, s)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), s)).toBe(true);
       expect(s.toArray).toEqual([2, 4, 6, 8, 10, 12]);
     });
 
     it(
       'should remain a valid tree',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
         fc.func<[number], string>(fc.string()),
-        (s, f) => isValid(Ord.primitive, s.map(f)),
+        (s, f) => isValid(Ord.fromUniversalCompare(), s.map(f)),
       ),
     );
   });
@@ -682,24 +700,24 @@ describe('set', () => {
 
     it('should return only left set', () => {
       const [l, r] = Set(1, 2, 3).partition(() => false);
-      expect(isValid(Ord.primitive, l)).toBe(true);
-      expect(isValid(Ord.primitive, r)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), l)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), r)).toBe(true);
       expect(l.toArray).toEqual([1, 2, 3]);
       expect(r.toArray).toEqual([]);
     });
 
     it('should return only right set', () => {
       const [l, r] = Set(1, 2, 3).partition(() => true);
-      expect(isValid(Ord.primitive, l)).toBe(true);
-      expect(isValid(Ord.primitive, r)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), l)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), r)).toBe(true);
       expect(l.toArray).toEqual([]);
       expect(r.toArray).toEqual([1, 2, 3]);
     });
 
     it('should partition even and odd elements', () => {
       const [l, r] = Set(1, 2, 3, 4, 5, 6).partition(x => x % 2 === 0);
-      expect(isValid(Ord.primitive, l)).toBe(true);
-      expect(isValid(Ord.primitive, r)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), l)).toBe(true);
+      expect(isValid(Ord.fromUniversalCompare(), r)).toBe(true);
       expect(l.toArray).toEqual([1, 3, 5]);
       expect(r.toArray).toEqual([2, 4, 6]);
     });
@@ -871,11 +889,14 @@ describe('set', () => {
     it(
       'should remain valid after running a sequence of actions',
       forAll(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        fc.array(actionArbitrary(fc.integer(), Ord.primitive)),
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        fc.array(actionArbitrary(fc.integer(), Ord.fromUniversalCompare())),
         (s, as) =>
           expect(
-            isValid(Ord.primitive, as.reduce(executeAction(Ord.primitive), s)),
+            isValid(
+              Ord.fromUniversalCompare(),
+              as.reduce(executeAction(Ord.fromUniversalCompare()), s),
+            ),
           ).toBe(true),
       ),
     );
@@ -884,9 +905,9 @@ describe('set', () => {
   describe('Laws', () => {
     checkAll(
       'Monoid<Set<number>>',
-      MonoidSuite(Set.Monoid(Ord.primitive as Ord<number>)).monoid(
-        A.fp4tsSet(fc.integer(), Ord.primitive),
-        Set.Eq(Eq.primitive),
+      MonoidSuite(Set.Monoid(Ord.fromUniversalCompare() as Ord<number>)).monoid(
+        A.fp4tsSet(fc.integer(), Ord.fromUniversalCompare()),
+        Set.Eq(Eq.fromUniversalEquals()),
       ),
     );
 
@@ -897,9 +918,9 @@ describe('set', () => {
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        Eq.primitive,
-        Eq.primitive,
-        x => A.fp4tsSet(x, Ord.primitive as Ord<any>),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        x => A.fp4tsSet(x, Ord.fromUniversalCompare() as Ord<any>),
       ),
     );
   });

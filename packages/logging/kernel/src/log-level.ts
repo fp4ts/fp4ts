@@ -46,7 +46,7 @@ export const LogLevel: LogLevelObj = Object.freeze({
     }
   },
 
-  Ord: Ord.by<number, LogLevel>(Ord.primitive, (lvl: LogLevel) => {
+  Ord: Ord.by<number, LogLevel>(Ord.fromUniversalCompare(), (lvl: LogLevel) => {
     switch (lvl) {
       case LogLevel.Error:
         return 5;

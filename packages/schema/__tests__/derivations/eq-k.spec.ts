@@ -18,8 +18,8 @@ describe('EqK derivation', () => {
   const AndStringEqK = AndString.schemaK.interpret(SchemableK.EqK);
 
   const EqStringNumber = Eq.tuple2(
-    Eq.primitive as Eq<string>,
-    Eq.primitive as Eq<number>,
+    Eq.fromUniversalEquals() as Eq<string>,
+    Eq.fromUniversalEquals() as Eq<number>,
   );
   const arbStringNumber = fc.tuple(fc.string(), fc.integer());
 
@@ -27,13 +27,17 @@ describe('EqK derivation', () => {
     const ixs = IList.fromList(List.range(0, 50_000));
     const sxs = Snoc.fromList(List.range(0, 50_000));
 
-    expect(IListEqK.liftEq(Eq.primitive).equals(ixs, ixs)).toBe(true);
-    expect(SnocEqK.liftEq(Eq.primitive).equals(sxs, sxs)).toBe(true);
+    expect(IListEqK.liftEq(Eq.fromUniversalEquals()).equals(ixs, ixs)).toBe(
+      true,
+    );
+    expect(SnocEqK.liftEq(Eq.fromUniversalEquals()).equals(sxs, sxs)).toBe(
+      true,
+    );
   });
 
   checkAll(
     'Eq<IList<number>>',
-    EqSuite(IListEqK.liftEq(Eq.primitive as Eq<number>)).eq(
+    EqSuite(IListEqK.liftEq(Eq.fromUniversalEquals() as Eq<number>)).eq(
       IList.arb(fc.integer()),
     ),
   );
@@ -44,7 +48,7 @@ describe('EqK derivation', () => {
 
   checkAll(
     'Eq<Snoc<number>>',
-    EqSuite(SnocEqK.liftEq(Eq.primitive as Eq<number>)).eq(
+    EqSuite(SnocEqK.liftEq(Eq.fromUniversalEquals() as Eq<number>)).eq(
       Snoc.arb(fc.integer()),
     ),
   );
@@ -55,7 +59,7 @@ describe('EqK derivation', () => {
 
   checkAll(
     'Eq<Tree<number>>',
-    EqSuite(TreeEqK.liftEq(Eq.primitive as Eq<number>)).eq(
+    EqSuite(TreeEqK.liftEq(Eq.fromUniversalEquals() as Eq<number>)).eq(
       Tree.arb(fc.integer()),
     ),
   );
@@ -66,7 +70,7 @@ describe('EqK derivation', () => {
 
   checkAll(
     'Eq<GenericAdt<number>>',
-    EqSuite(GenericAdtEqK.liftEq(Eq.primitive as Eq<number>)).eq(
+    EqSuite(GenericAdtEqK.liftEq(Eq.fromUniversalEquals() as Eq<number>)).eq(
       GenericAdt.arb(fc.integer()),
     ),
   );
@@ -79,7 +83,7 @@ describe('EqK derivation', () => {
 
   checkAll(
     'Eq<AndString<number>>',
-    EqSuite(AndStringEqK.liftEq(Eq.primitive as Eq<number>)).eq(
+    EqSuite(AndStringEqK.liftEq(Eq.fromUniversalEquals() as Eq<number>)).eq(
       AndString.arb(fc.integer()),
     ),
   );

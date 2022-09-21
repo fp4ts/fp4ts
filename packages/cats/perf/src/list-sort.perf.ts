@@ -20,19 +20,19 @@ function makeSuite(size: number) {
       sortedL.reverse;
     }),
     add(`List random (${size})`, () => {
-      randomL.sort(Ord.primitive);
+      randomL.sort(Ord.fromUniversalCompare());
     }),
     add(`Array random (${size})`, () => {
       [...random].sort((a, b) => a - b);
     }),
     add(`List sorted (${size})`, () => {
-      sortedL.sort(Ord.primitive);
+      sortedL.sort(Ord.fromUniversalCompare());
     }),
     add(`Array sorted (${size})`, () => {
       [...sorted].sort((a, b) => a - b);
     }),
     add(`List reversed (${size})`, () => {
-      reversedL.sort(Ord.primitive);
+      reversedL.sort(Ord.fromUniversalCompare());
     }),
     add(`Array reversed (${size})`, () => {
       [...reversed].sort((a, b) => a - b);

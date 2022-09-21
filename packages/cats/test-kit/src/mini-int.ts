@@ -66,9 +66,12 @@ export class MiniInt {
     empty: this.one,
     combine_: (x, y) => x.mul(y()),
   });
-  public static readonly Eq: Eq<MiniInt> = Eq.by(Eq.primitive, x => x.toInt);
+  public static readonly Eq: Eq<MiniInt> = Eq.by(
+    Eq.fromUniversalEquals(),
+    x => x.toInt,
+  );
   public static readonly Ord: Ord<MiniInt> = Ord.by(
-    Ord.primitive,
+    Ord.fromUniversalCompare(),
     x => x.toInt,
   );
 

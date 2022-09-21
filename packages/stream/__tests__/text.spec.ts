@@ -198,11 +198,11 @@ describe('Text Streams', () => {
           const x = lines
             .intersperse('\n')
             .through(text.lines())
-            .toList.equals(Eq.primitive, lines.toList);
+            .toList.equals(Eq.fromUniversalEquals(), lines.toList);
           const y = lines
             .intersperse('\r\n')
             .through(text.lines())
-            .toList.equals(Eq.primitive, lines.toList);
+            .toList.equals(Eq.fromUniversalEquals(), lines.toList);
           return x && y;
         }),
       ));
@@ -215,7 +215,7 @@ describe('Text Streams', () => {
             const s = lines.intersperse('\r\n').compile().string;
             return Stream.pure(s)
               .through(text.lines())
-              .toList.equals(Eq.primitive, lines.toList);
+              .toList.equals(Eq.fromUniversalEquals(), lines.toList);
           } else {
             return true;
           }

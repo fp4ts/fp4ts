@@ -26,7 +26,7 @@ describe('Monoids', () => {
 
     checkAll(
       'Monoid<string>',
-      MonoidSuite(Monoid.string).monoid(fc.string(), Eq.primitive),
+      MonoidSuite(Monoid.string).monoid(fc.string(), Eq.fromUniversalEquals()),
     );
   });
 });
@@ -53,7 +53,7 @@ describe('CommutativeMonoids', () => {
       'CommutativeMonoid<boolean>',
       CommutativeMonoidSuite(CommutativeMonoid.conjunction).commutativeMonoid(
         fc.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
   });
@@ -79,7 +79,7 @@ describe('CommutativeMonoids', () => {
       'CommutativeMonoid<boolean>',
       CommutativeMonoidSuite(CommutativeMonoid.disjunction).commutativeMonoid(
         fc.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
   });
@@ -103,7 +103,7 @@ describe('CommutativeMonoids', () => {
       'CommutativeMonoid<number>',
       CommutativeMonoidSuite(CommutativeMonoid.addition).commutativeMonoid(
         fc.integer(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
   });
@@ -128,7 +128,7 @@ describe('CommutativeMonoids', () => {
       CommutativeMonoidSuite(CommutativeMonoid.product).commutativeMonoid(
         // to keep the values within the integer range
         fc.integer({ min: -10_000, max: 10_000 }),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
   });

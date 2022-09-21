@@ -31,11 +31,11 @@ describe('EitherT', () => {
       'SemigroupK<EitherT<IdentityK, string, *>>',
       semigroupKTests.semigroupK(
         fc.integer(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsEither(fc.string(), arbX)),
         <X>(EqX: Eq<X>): Eq<EitherT<IdentityF, string, X>> =>
-          EitherT.Eq(Either.Eq(Eq.primitive, EqX)),
+          EitherT.Eq(Either.Eq(Eq.fromUniversalEquals(), EqX)),
       ),
     );
 
@@ -47,10 +47,10 @@ describe('EitherT', () => {
         fc.string(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X, Y>(
           arbX: Arbitrary<X>,
           arbY: Arbitrary<Y>,
@@ -71,10 +71,10 @@ describe('EitherT', () => {
         fc.string(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X, Y>(
           arbX: Arbitrary<X>,
           arbY: Arbitrary<Y>,
@@ -95,14 +95,14 @@ describe('EitherT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<OptionF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsOption(A.fp4tsEither(fc.string(), arbX))),
         <X>(EqX: Eq<X>): Eq<EitherT<OptionF, string, X>> =>
-          EitherT.Eq(Option.Eq(Either.Eq(Eq.primitive, EqX))),
+          EitherT.Eq(Option.Eq(Either.Eq(Eq.fromUniversalEquals(), EqX))),
       ),
     );
 
@@ -117,15 +117,15 @@ describe('EitherT', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<IdentityF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsEither(fc.string(), arbX)),
         <X>(EqX: Eq<X>): Eq<EitherT<IdentityF, string, X>> =>
-          EitherT.Eq(Either.Eq(Eq.primitive, EqX)),
+          EitherT.Eq(Either.Eq(Eq.fromUniversalEquals(), EqX)),
       ),
     );
   });

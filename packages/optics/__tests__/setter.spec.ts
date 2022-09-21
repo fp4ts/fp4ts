@@ -30,7 +30,7 @@ describe('Setter', () => {
       focus(eachLi)
         .replace(0)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(() => 0),
         ),
     ),
@@ -42,7 +42,7 @@ describe('Setter', () => {
       focus(eachLi)
         .modify(x => x + 1)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x + 1),
         ),
     ),
@@ -55,7 +55,7 @@ describe('Setter', () => {
         .filter(x => x % 2 === 0)
         .replace(0)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => (x % 2 === 0 ? 0 : x)),
         ),
     ),
@@ -67,7 +67,7 @@ describe('Setter', () => {
       focus(eachLi)
         .add(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x + n),
         ),
     ),
@@ -79,7 +79,7 @@ describe('Setter', () => {
       focus(eachLi)
         .sub(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x - n),
         ),
     ),
@@ -91,7 +91,7 @@ describe('Setter', () => {
       focus(eachLi)
         .mul(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x * n),
         ),
     ),
@@ -103,7 +103,7 @@ describe('Setter', () => {
       focus(eachLi)
         .div(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x / n),
         ),
     ),
@@ -115,7 +115,7 @@ describe('Setter', () => {
       focus(eachL<boolean>())
         .and(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x && n),
         ),
     ),
@@ -127,7 +127,7 @@ describe('Setter', () => {
       focus(eachL<boolean>())
         .or(n)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(x => x || n),
         ),
     ),
@@ -142,7 +142,7 @@ describe('Setter', () => {
         focus(eachL<List<number>>())
           .concat(List.SemigroupK.algebra())(xs)(xxs)
           .equals(
-            List.Eq(Eq.primitive),
+            List.Eq(Eq.fromUniversalEquals()),
             xxs.map(x => x['+++'](xs)),
           ),
     ),
@@ -286,7 +286,7 @@ describe('Setter', () => {
   // test('at', () => {
   //   const map = Map([1, 'one']);
   //   const mapSetter = Iso.id<Map<number, string>>();
-  //   const at = At.Map<number, string>(Ord.primitive);
+  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
 
   //   expect(mapSetter.at(1, at).replace(Some('two'))(map)).toEqual(
   //     Map([1, 'two']),
@@ -304,8 +304,8 @@ describe('Setter', () => {
       setterTests.setter(
         A.fp4tsList(fc.integer()),
         fc.integer(),
-        List.Eq(Eq.primitive),
-        Eq.primitive,
+        List.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
       ),
     );
   });

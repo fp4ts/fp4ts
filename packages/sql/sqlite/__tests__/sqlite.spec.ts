@@ -67,7 +67,7 @@ describe('sqlite', () => {
             ({ first_name, last_name }) =>
               [first_name, last_name] as [string, string],
           )
-          .toMap(Ord.primitive),
+          .toMap(Ord.fromUniversalCompare()),
       )
       .transact(trx)
       .tap(console.log),

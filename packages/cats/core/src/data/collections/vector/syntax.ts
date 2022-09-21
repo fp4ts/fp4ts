@@ -275,7 +275,7 @@ Vector.prototype['!?'] = function (idx) {
 };
 Vector.prototype.lookup = function (...args: any[]) {
   return args.length === 1
-    ? lookup_(Eq.primitive, this, args[0])
+    ? lookup_(Eq.fromUniversalEquals(), this, args[0])
     : lookup_(args[0], this, args[1]);
 };
 Vector.prototype['+++'] = Vector.prototype.concat;

@@ -223,10 +223,10 @@ describe('Stream merge', () => {
               eas =>
                 eas
                   .collect(ea => ea.fold(Some, () => None))
-                  .equals(Eq.primitive, s1List) ||
+                  .equals(Eq.fromUniversalEquals(), s1List) ||
                 eas
                   .collect(ea => ea.fold(() => None, Some))
-                  .equals(Eq.primitive, s2List),
+                  .equals(Eq.fromUniversalEquals(), s2List),
             )
             .unsafeRunToPromise();
         },
@@ -247,7 +247,7 @@ describe('Stream merge', () => {
             .toList.map(eas =>
               eas
                 .collect(ea => ea.fold(Some, () => None))
-                .equals(Eq.primitive, s1.toList),
+                .equals(Eq.fromUniversalEquals(), s1.toList),
             )
             .unsafeRunToPromise(),
       ),
@@ -267,7 +267,7 @@ describe('Stream merge', () => {
             .toList.map(eas =>
               eas
                 .collect(ea => ea.fold(() => None, Some))
-                .equals(Eq.primitive, s2.toList),
+                .equals(Eq.fromUniversalEquals(), s2.toList),
             )
             .unsafeRunToPromise(),
       ),
@@ -287,7 +287,9 @@ describe('Stream merge', () => {
               )
               .take(2)
               .compileConcurrent()
-              .toList.map(xs => xs.equals(Eq.primitive, List(v, v + 1))),
+              .toList.map(xs =>
+                xs.equals(Eq.fromUniversalEquals(), List(v, v + 1)),
+              ),
           )
           .unsafeRunToPromise(),
       ),

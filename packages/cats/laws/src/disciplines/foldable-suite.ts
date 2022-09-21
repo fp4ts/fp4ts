@@ -76,7 +76,7 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
         ],
         [
           'foldable nonEmpty reference',
-          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.primitive),
+          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.fromUniversalEquals()),
         ],
         [
           'foldable elem reference',

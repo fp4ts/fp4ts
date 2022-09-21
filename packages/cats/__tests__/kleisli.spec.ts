@@ -85,7 +85,7 @@ describe('Kleisli', () => {
         ec.miniInt(),
         <X>(_: Arbitrary<X>) =>
           A.fp4tsKleisli<IdentityF, X, number>(fc.integer()),
-        X => eqKleisli(X, Eq.primitive),
+        X => eqKleisli(X, Eq.fromUniversalEquals()),
       ),
     );
 
@@ -97,9 +97,9 @@ describe('Kleisli', () => {
         fc.string(),
         fc.string(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>) => A.fp4tsKleisli<IdentityF, MiniInt, X>(X),
         <X>(X: Eq<X>): Eq<Kleisli<IdentityF, MiniInt, X>> =>
           eqKleisli(ec.miniInt(), X),
@@ -114,9 +114,9 @@ describe('Kleisli', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
         <X>(E: Eq<X>) =>
@@ -132,9 +132,9 @@ describe('Kleisli', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<ListF, MiniInt, X>(A.fp4tsList(x)),
         <X>(E: Eq<X>) => eqKleisli<ListF, MiniInt, X>(ec.miniInt(), List.Eq(E)),
@@ -154,11 +154,11 @@ describe('Kleisli', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<EitherStringF, MiniInt, X>(
             A.fp4tsEither(fc.string(), x),
@@ -166,7 +166,7 @@ describe('Kleisli', () => {
         <X>(E: Eq<X>) =>
           eqKleisli<EitherStringF, MiniInt, X>(
             ec.miniInt(),
-            Either.Eq(Eq.primitive, E),
+            Either.Eq(Eq.fromUniversalEquals(), E),
           ),
       ),
     );
@@ -179,8 +179,8 @@ describe('Kleisli', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
@@ -202,11 +202,11 @@ describe('Kleisli', () => {
         ec.miniInt(),
         MiniInt.Eq,
         ec.miniInt(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         ec.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         ec.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
           A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
         <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
@@ -231,11 +231,11 @@ describe('Kleisli', () => {
         ec.miniInt(),
         MiniInt.Eq,
         ec.miniInt(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         ec.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         ec.boolean(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
           A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
         <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>

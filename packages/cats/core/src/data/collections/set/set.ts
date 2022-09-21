@@ -18,7 +18,7 @@ export type Set<A> = SetBase<A>;
 export const Set: SetObj = function <A extends PrimitiveType>(
   ...xs: A[]
 ): Set<A> {
-  return fromArray(Ord.primitive, xs);
+  return fromArray(Ord.fromUniversalCompare(), xs);
 } as any;
 
 interface SetObj {
@@ -37,10 +37,14 @@ interface SetObj {
 }
 
 Set.fromArray = function (O: any, xs?: any) {
-  return xs !== undefined ? fromArray(O, xs) : fromArray(Ord.primitive, O);
+  return xs !== undefined
+    ? fromArray(O, xs)
+    : fromArray(Ord.fromUniversalCompare(), O);
 };
 Set.fromList = function (O: any, xs?: any) {
-  return xs !== undefined ? fromList(O, xs) : fromList(Ord.primitive, O);
+  return xs !== undefined
+    ? fromList(O, xs)
+    : fromList(Ord.fromUniversalCompare(), O);
 };
 
 Set.empty = empty;

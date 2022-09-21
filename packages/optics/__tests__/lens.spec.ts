@@ -102,7 +102,7 @@ describe('Lens', () => {
   // test('at', () => {
   //   const map = Map([1, 'one']);
   //   const mapLens = Iso.id<Map<number, string>>().asLens();
-  //   const at = At.Map<number, string>(Ord.primitive);
+  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
 
   //   expect(mapLens.at(1, at).get(map)).toEqual(Some('one'));
   //   expect(mapLens.at(0, at).get(map)).toEqual(None);
@@ -122,7 +122,7 @@ describe('Lens', () => {
         arbExample,
         fc.string(),
         eqExample,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
     checkAll(
@@ -131,7 +131,7 @@ describe('Lens', () => {
         arbExample,
         fc.integer(),
         eqExample,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
     checkAll(
@@ -140,7 +140,7 @@ describe('Lens', () => {
         arbExample,
         fc.string(),
         eqExample,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
     checkAll(
@@ -149,7 +149,7 @@ describe('Lens', () => {
         arbExample,
         fc.string(),
         eqExample,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
   });

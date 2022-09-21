@@ -155,9 +155,7 @@ class SumSafeEqK<T extends string, F extends {}> extends SafeEqK<SumK<F>> {
     for (const k in this.fs) {
       fs[k] = liftSafeEq(this.fs[k], E) as any;
     }
-    return sumSafeEq(this.tag)<Kind<StructK<F>, [A]>>(
-      fs as { [k in keyof F]: SafeEq<Kind<F[k], [A]>> },
-    );
+    return sumSafeEq(this.tag)<Kind<StructK<F>, [A]>>(fs as any);
   }
 }
 

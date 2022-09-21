@@ -35,7 +35,7 @@ describe('Stream Parallel Join', () => {
           .map(x => Stream.pure(x))
           .parJoin(IO.Concurrent)(1)
           .compileConcurrent()
-          .toList.map(xs => xs.equals(Eq.primitive, expected))
+          .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
           .unsafeRunToPromise();
       }),
     );

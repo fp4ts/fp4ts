@@ -116,7 +116,7 @@ describe('Getter', () => {
   // test('at', () => {
   //   const map = Map([1, 'one']);
   //   const mapFold = Iso.id<Map<number, string>>().asGetter();
-  //   const at = At.Map<number, string>(Ord.primitive);
+  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
 
   //   expect(mapFold.at(1, at).get(map)).toEqual(Some('one'));
   //   expect(mapFold.at(0, at).get(map)).toEqual(None);

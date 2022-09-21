@@ -32,11 +32,11 @@ describe.ticked('ConnectionIO', ticker => {
       fc.integer(),
       fc.integer(),
       ticker.ctx,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.by(eq.eqIOOutcome(eq.eqIO(Eq.primitive, ticker)), ioa =>
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.by(eq.eqIOOutcome(eq.eqIO(Eq.fromUniversalEquals(), ticker)), ioa =>
         ioa.fold(IOOutcome.canceled, IOOutcome.failure, x =>
           IOOutcome.success(x.transact(trx)),
         ),

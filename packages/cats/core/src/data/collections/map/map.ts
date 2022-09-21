@@ -38,7 +38,7 @@ export type Map<K, V> = MapBase<K, V>;
 export const Map: OrderedMapObj = function <K extends PrimitiveType, V>(
   ...pairs: [K, V][]
 ): Map<K, V> {
-  return fromArray<K>(Ord.primitive)(pairs);
+  return fromArray<K>(Ord.fromUniversalCompare())(pairs);
 } as any;
 
 export interface OrderedMapObj {

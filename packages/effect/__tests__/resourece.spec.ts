@@ -43,7 +43,7 @@ describe('Resource', () => {
           ticker,
         );
         return new IsEq(released, as.map(fst));
-      })(List.Eq(Eq.primitive))();
+      })(List.Eq(Eq.fromUniversalEquals()))();
     });
   });
 
@@ -139,7 +139,7 @@ describe('Resource', () => {
     forAll(
       A.fp4tsIO(fc.integer()),
       fa => new IsEq(Resource.evalF(fa).use(IO.MonadCancel)(IO.pure), fa),
-    )(E.eqIO(Eq.primitive, ticker))(),
+    )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
   );
 
   test.ticked('evalMap', ticker =>
@@ -150,7 +150,7 @@ describe('Resource', () => {
           Resource.evalF(IO.pure(0)).evalMap(f).use(IO.MonadCancel)(IO.pure),
           f(0),
         ),
-    )(E.eqIO(Eq.primitive, ticker))(),
+    )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
   );
 
   test.ticked('evalTap', ticker =>
@@ -161,7 +161,7 @@ describe('Resource', () => {
           Resource.evalF(IO.pure(0)).evalTap(f).use(IO.MonadCancel)(IO.pure),
           f(0).map(() => 0),
         ),
-    )(E.eqIO(Eq.primitive, ticker))(),
+    )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
   );
 
   describe('allocated', () => {
@@ -455,14 +455,14 @@ describe('Resource', () => {
         fc.integer(),
         fc.integer(),
         ticker.ctx,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         Eq.by(
           Outcome.Eq<IOF, Error, number>(
             Eq.Error.strict,
-            E.eqIO(Eq.primitive, ticker),
+            E.eqIO(Eq.fromUniversalEquals(), ticker),
           ),
           (r: Outcome<$<ResourceF, [IOF]>, Error, number>) => {
             const nt: FunctionK<$<ResourceF, [IOF]>, IOF> = x =>

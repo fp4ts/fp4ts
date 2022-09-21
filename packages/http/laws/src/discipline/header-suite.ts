@@ -33,7 +33,10 @@ export const HeaderSuite = <A, T extends HeaderType, F>(
         ],
         [
           'a.toString() <-> "H.headerName: H.value(a)"',
-          forAll(arbA, laws.headerToStringIsNameColonValue)(Eq.primitive),
+          forAll(
+            arbA,
+            laws.headerToStringIsNameColonValue,
+          )(Eq.fromUniversalEquals()),
         ],
         [
           'S.from(S.toRaw(fa)) <-> Some(fa)',

@@ -15,7 +15,10 @@ export function EqSuite<A>(E: Eq<A>) {
     eq: (arbA: Arbitrary<A>): RuleSet =>
       new RuleSet('Eq', [
         ['eq reflexivity', forAll(arbA, laws.reflexivityEq)(E)],
-        ['eq symmetric', forAll(arbA, arbA, laws.symmetricEq)(Eq.primitive)],
+        [
+          'eq symmetric',
+          forAll(arbA, arbA, laws.symmetricEq)(Eq.fromUniversalEquals()),
+        ],
         [
           'eq anti symmetric',
           forAll(
@@ -23,11 +26,16 @@ export function EqSuite<A>(E: Eq<A>) {
             arbA,
             fc.func<[A], A>(arbA),
             laws.antiSymmetricEq,
-          )(Eq.primitive),
+          )(Eq.fromUniversalEquals()),
         ],
         [
           'eq transitivity',
-          forAll(arbA, arbA, arbA, laws.transitivityEq)(Eq.primitive),
+          forAll(
+            arbA,
+            arbA,
+            arbA,
+            laws.transitivityEq,
+          )(Eq.fromUniversalEquals()),
         ],
       ]),
   };

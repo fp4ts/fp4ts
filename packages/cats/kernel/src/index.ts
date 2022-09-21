@@ -15,3 +15,5 @@ export * from './semigroup';
 
 export * from './commutative-monoid';
 export * from './commutative-semigroup';
+
+export { Syntax } from './syntax';

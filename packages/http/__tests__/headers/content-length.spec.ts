@@ -21,7 +21,7 @@ checkAll(
       .integer()
       .filter(l => l >= 0)
       .map(l => new ContentLength(l)),
-    Eq.by(Eq.primitive, ({ length }) => length),
-    Eq.by(Eq.primitive, ({ length }) => length),
+    Eq.by(Eq.fromUniversalEquals(), ({ length }) => length),
+    Eq.by(Eq.fromUniversalEquals(), ({ length }) => length),
   ),
 );

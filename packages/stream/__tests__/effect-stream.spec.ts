@@ -138,8 +138,9 @@ describe('Effect-ful stream', () => {
             s.evalMap(x => SyncIO(() => f(x))).collect(id).attempt,
           ),
       )(
-        Eq.by(List.Eq(Either.Eq(Eq.Error.strict, Eq.primitive)), s =>
-          s.compileSync().toList.unsafeRunSync(),
+        Eq.by(
+          List.Eq(Either.Eq(Eq.Error.strict, Eq.fromUniversalEquals())),
+          s => s.compileSync().toList.unsafeRunSync(),
         ),
       ),
     );
@@ -542,7 +543,7 @@ describe('Effect-ful stream', () => {
       'MonoidK<$<StreamK, [IoK]>>',
       monoidKTests.monoidK(
         fc.integer(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         arbX =>
           A.fp4tsEffectStreamGenerator(
             arbX,
@@ -561,10 +562,10 @@ describe('Effect-ful stream', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX =>
           A.fp4tsEffectStreamGenerator(
             arbX,
@@ -582,9 +583,9 @@ describe('Effect-ful stream', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX =>
           A.fp4tsEffectStreamGenerator(
             arbX,
@@ -604,10 +605,10 @@ describe('Effect-ful stream', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsError(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         Eq.Error.strict,
         arbX =>
           A.fp4tsEffectStreamGenerator(

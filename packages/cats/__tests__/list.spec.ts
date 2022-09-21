@@ -190,7 +190,7 @@ describe('List', () => {
   });
 
   describe('equality', () => {
-    const E = Eq.primitive;
+    const E = Eq.fromUniversalEquals();
     test('two empty lists to be the same', () => {
       expect(List.empty.equals(E, List.empty)).toBe(true);
     });
@@ -1287,23 +1287,29 @@ describe('List', () => {
 
   describe('sort', () => {
     it('should sort an empty list', () => {
-      expect(List.empty.sort(Ord.primitive as any)).toEqual(List.empty);
+      expect(List.empty.sort(Ord.fromUniversalCompare() as any)).toEqual(
+        List.empty,
+      );
     });
 
     it('should sort a singleton list', () => {
-      expect(List(1).sort(Ord.primitive)).toEqual(List(1));
+      expect(List(1).sort(Ord.fromUniversalCompare())).toEqual(List(1));
     });
 
     it('should sort an ordered list', () => {
-      expect(List(1, 2, 3).sort(Ord.primitive)).toEqual(List(1, 2, 3));
+      expect(List(1, 2, 3).sort(Ord.fromUniversalCompare())).toEqual(
+        List(1, 2, 3),
+      );
     });
 
     it('should sort an reversed list', () => {
-      expect(List(3, 2, 1).sort(Ord.primitive)).toEqual(List(1, 2, 3));
+      expect(List(3, 2, 1).sort(Ord.fromUniversalCompare())).toEqual(
+        List(1, 2, 3),
+      );
     });
 
     it('should sort something', () => {
-      expect(List(0, 0, -1, 0, -1).sort(Ord.primitive)).toEqual(
+      expect(List(0, 0, -1, 0, -1).sort(Ord.fromUniversalCompare())).toEqual(
         List(-1, -1, 0, 0, 0),
       );
     });
@@ -1311,9 +1317,9 @@ describe('List', () => {
     it(
       'should be isomorphic to Array.sort',
       forAll(fc.array(fc.integer()), xs => {
-        expect(List.fromArray(xs).sort(Ord.primitive).toArray).toEqual(
-          [...xs].sort((a, b) => a - b),
-        );
+        expect(
+          List.fromArray(xs).sort(Ord.fromUniversalCompare()).toArray,
+        ).toEqual([...xs].sort((a, b) => a - b));
       }),
     );
   });
@@ -1327,10 +1333,10 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
       ),
@@ -1343,9 +1349,9 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
       ),
@@ -1358,9 +1364,9 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
       ),
@@ -1374,10 +1380,10 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
       ),
@@ -1391,10 +1397,10 @@ describe('List', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
       ),
@@ -1412,9 +1418,9 @@ describe('List', () => {
         List.Functor,
         Eval.Applicative,
         Eval.Applicative,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
         A.fp4tsEval,

@@ -71,21 +71,25 @@ describe('Traversal', () => {
   test(
     'toList',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).toList(xs).equals(Eq.primitive, xs),
+      focus(eachLi).toList(xs).equals(Eq.fromUniversalEquals(), xs),
     ),
   );
 
   test(
     'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).headOption(xs).equals(Eq.primitive, xs.headOption),
+      focus(eachLi)
+        .headOption(xs)
+        .equals(Eq.fromUniversalEquals(), xs.headOption),
     ),
   );
 
   test(
     'lastOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).lastOption(xs).equals(Eq.primitive, xs.lastOption),
+      focus(eachLi)
+        .lastOption(xs)
+        .equals(Eq.fromUniversalEquals(), xs.lastOption),
     ),
   );
 
@@ -115,7 +119,7 @@ describe('Traversal', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
       focus(eachLi)
         .find(x => x > y)(xs)
-        .equals(Eq.primitive, Option(xs.toArray.find(x => x > y))),
+        .equals(Eq.fromUniversalEquals(), Option(xs.toArray.find(x => x > y))),
     ),
   );
 
@@ -142,7 +146,11 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (xs, f) => focus(eachLi).to(f).toList(xs).equals(Eq.primitive, xs.map(f)),
+      (xs, f) =>
+        focus(eachLi)
+          .to(f)
+          .toList(xs)
+          .equals(Eq.fromUniversalEquals(), xs.map(f)),
     ),
   );
 
@@ -152,7 +160,7 @@ describe('Traversal', () => {
       focus(eachLi)
         .replace(0)(xs)
         .equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           xs.map(() => 0),
         ),
     ),
@@ -163,7 +171,8 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], number>(fc.integer()),
-      (xs, f) => focus(eachLi).modify(f)(xs).equals(Eq.primitive, xs.map(f)),
+      (xs, f) =>
+        focus(eachLi).modify(f)(xs).equals(Eq.fromUniversalEquals(), xs.map(f)),
     ),
   );
 
@@ -173,7 +182,10 @@ describe('Traversal', () => {
       A.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
       (xs, f) =>
-        focus(eachLi).filter(f).toList(xs).equals(Eq.primitive, xs.filter(f)),
+        focus(eachLi)
+          .filter(f)
+          .toList(xs)
+          .equals(Eq.fromUniversalEquals(), xs.filter(f)),
     ),
   );
 
@@ -260,7 +272,7 @@ describe('Traversal', () => {
   // test('at', () => {
   //   const map = Map([1, 'one']);
   //   const mapTraversal = Iso.id<Map<number, string>>().asTraversal();
-  //   const at = At.Map<number, string>(Ord.primitive);
+  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
 
   //   expect(mapTraversal.at(1, at).getAll(map)).toEqual(List(Some('one')));
   //   expect(mapTraversal.at(0, at).getAll(map)).toEqual(List(None));
@@ -279,8 +291,8 @@ describe('Traversal', () => {
       TraversalSuite(eachLi).traversal(
         A.fp4tsList(fc.integer()),
         fc.integer(),
-        List.Eq(Eq.primitive),
-        Eq.primitive,
+        List.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
       ),
     );
 
@@ -289,8 +301,8 @@ describe('Traversal', () => {
       SetterSuite(eachLi).setter(
         A.fp4tsList(fc.integer()),
         fc.integer(),
-        List.Eq(Eq.primitive),
-        Eq.primitive,
+        List.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
       ),
     );
 
@@ -300,7 +312,10 @@ describe('Traversal', () => {
         locationArb,
         fc.record({ latitude: fc.integer(), longitude: fc.integer() }),
         locationEq,
-        Eq.struct({ latitude: Eq.primitive, longitude: Eq.primitive }),
+        Eq.struct({
+          latitude: Eq.fromUniversalEquals(),
+          longitude: Eq.fromUniversalEquals(),
+        }),
       ),
     );
 
@@ -310,7 +325,10 @@ describe('Traversal', () => {
         locationArb,
         fc.record({ latitude: fc.integer(), longitude: fc.integer() }),
         locationEq,
-        Eq.struct({ latitude: Eq.primitive, longitude: Eq.primitive }),
+        Eq.struct({
+          latitude: Eq.fromUniversalEquals(),
+          longitude: Eq.fromUniversalEquals(),
+        }),
       ),
     );
   });

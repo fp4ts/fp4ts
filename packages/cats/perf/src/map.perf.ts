@@ -13,16 +13,16 @@ function makeSuite(size: number) {
 
   const numPs = nums.map(x => [x, x] as [number, number]);
   const permPs = nums.map(x => [x, x] as [number, number]);
-  const map = Map.fromArray(Ord.primitive)(numPs);
-  const mapr = Map.fromArray(Ord.primitive)(permPs);
+  const map = Map.fromArray(Ord.fromUniversalCompare<number>())(numPs);
+  const mapr = Map.fromArray(Ord.fromUniversalCompare<number>())(permPs);
 
   return [
     add(`fromArray (${size})`, () => {
-      Map.fromArray(Ord.primitive)(numPs);
+      Map.fromArray(Ord.fromUniversalCompare())(numPs);
     }),
 
     add(`fromArray random (${size})`, () => {
-      Map.fromArray(Ord.primitive)(numPs);
+      Map.fromArray(Ord.fromUniversalCompare())(numPs);
     }),
 
     add(`lookup identity (${size})`, () => {

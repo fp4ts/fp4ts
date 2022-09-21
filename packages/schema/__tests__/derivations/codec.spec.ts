@@ -17,7 +17,7 @@ describe('Codec derivation', () => {
   const TreeEqK = Tree.schemaK.interpret(SchemableK.EqK);
   const GenericAdtEqK = GenericAdt.schemaK.interpret(SchemableK.EqK);
   const AndStringEqK = AndString.schemaK.interpret(SchemableK.EqK);
-  const NumStrEq = Eq.tuple(Eq.primitive, Eq.primitive);
+  const NumStrEq = Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals());
 
   test('encode-decode to be stack safe', () => {
     const ixs = IList.fromList(List.range(0, 50_000));
@@ -88,7 +88,7 @@ describe('Codec derivation', () => {
   testCodec(
     'IList<number>',
     IList.schemaK.toSchema(Schema.number),
-    IListEqK.liftEq(Eq.primitive),
+    IListEqK.liftEq(Eq.fromUniversalEquals()),
     IList.arb(fc.integer()),
   );
   testCodec(
@@ -101,7 +101,7 @@ describe('Codec derivation', () => {
   testCodec(
     'Snoc<number>',
     Snoc.schemaK.toSchema(Schema.number),
-    SnocEqK.liftEq(Eq.primitive),
+    SnocEqK.liftEq(Eq.fromUniversalEquals()),
     Snoc.arb(fc.integer()),
   );
   testCodec(
@@ -114,7 +114,7 @@ describe('Codec derivation', () => {
   testCodec(
     'Tree<number>',
     Tree.schemaK.toSchema(Schema.number),
-    TreeEqK.liftEq(Eq.primitive),
+    TreeEqK.liftEq(Eq.fromUniversalEquals()),
     Tree.arb(fc.integer()),
   );
   testCodec(
@@ -127,7 +127,7 @@ describe('Codec derivation', () => {
   testCodec(
     'GenericAdt<number>',
     GenericAdt.schemaK.toSchema(Schema.number),
-    GenericAdtEqK.liftEq(Eq.primitive),
+    GenericAdtEqK.liftEq(Eq.fromUniversalEquals()),
     GenericAdt.arb(fc.integer()),
   );
   testCodec(
@@ -140,7 +140,7 @@ describe('Codec derivation', () => {
   testCodec(
     'AndString<number>',
     AndString.schemaK.toSchema(Schema.number),
-    AndStringEqK.liftEq(Eq.primitive),
+    AndStringEqK.liftEq(Eq.fromUniversalEquals()),
     AndString.arb(fc.integer()),
   );
   testCodec(

@@ -155,5 +155,5 @@ Option.prototype.traverse = function (F) {
 Option.prototype.equals = function (...args: any[]): any {
   return args.length === 2
     ? equals_(args[0])(this, args[1])
-    : equals_(Eq.primitive)(this, args[0]);
+    : equals_(Eq.fromUniversalEquals())(this, args[0]);
 };

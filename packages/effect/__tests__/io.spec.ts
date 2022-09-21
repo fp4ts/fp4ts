@@ -70,7 +70,7 @@ describe('IO', () => {
           io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
         )(
           E.eqIO(
-            Either.Eq(Eq.Error.strict, Eq.primitive as Eq<number>),
+            Either.Eq(Eq.Error.strict, Eq.fromUniversalEquals() as Eq<number>),
             ticker,
           ),
         )(),
@@ -85,7 +85,7 @@ describe('IO', () => {
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqIO(Eq.primitive, ticker))(),
+      )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
     test.ticked('attempt is flattened redeemWith', ticker =>
@@ -97,7 +97,7 @@ describe('IO', () => {
           io.attempt
             .flatMap(ea => ea.fold(recover, bind))
             ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqIO(Eq.primitive, ticker))(),
+      )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
     test.ticked('redeem subsumes handleError', ticker =>
@@ -105,7 +105,7 @@ describe('IO', () => {
         A.fp4tsIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
         (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
-      )(E.eqIO(Eq.primitive, ticker))(),
+      )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
     test.ticked('redeemWith subsumes handleErrorWith', ticker =>
@@ -114,7 +114,7 @@ describe('IO', () => {
         fc.func<[Error], IO<number>>(A.fp4tsIO(fc.integer())),
         (io, recover) =>
           io.redeemWith(recover, IO.pure)['<=>'](io.handleErrorWith(recover)),
-      )(E.eqIO(Eq.primitive, ticker))(),
+      )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
     it.ticked('should capture suspended error', ticker => {
@@ -1100,11 +1100,11 @@ describe('IO', () => {
         fc.string(),
         fc.string(),
         ticker.ctx,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        E.eqIOOutcome(Eq.primitive),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        E.eqIOOutcome(Eq.fromUniversalEquals()),
         A.fp4tsIO,
         EqX => E.eqIO(EqX, ticker),
       ),

@@ -418,7 +418,7 @@ export class _LazyList<out A> {
 
   public distinct<A>(this: LazyList<A>, E: Eq<A>): LazyList<A>;
   public distinct<A extends PrimitiveType>(this: LazyList<A>): LazyList<A>;
-  public distinct(E: Eq<any> = Eq.primitive): LazyList<any> {
+  public distinct(E: Eq<any> = Eq.fromUniversalEquals()): LazyList<any> {
     return this.distinctBy(E.equals);
   }
 

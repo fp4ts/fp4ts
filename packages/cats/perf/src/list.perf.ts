@@ -23,7 +23,7 @@ function makeSuite(size: number) {
     }),
 
     add(`equals (${size})`, () => {
-      values.equals(Eq.primitive, values);
+      values.equals(Eq.fromUniversalEquals(), values);
     }),
 
     add(`elem mid (${size})`, () => {

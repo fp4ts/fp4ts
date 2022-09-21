@@ -3,23 +3,23 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-/* eslint-disable @typescript-eslint/ban-types */
-import { $type, Lazy, PrimitiveType, TyK, TyVar } from '@fp4ts/core';
+import { $type, Base, instance, TyK, TyVar } from '@fp4ts/core';
 
 /**
  * @category Type Class
  */
-export interface Eq<A> {
+export interface Eq<A> extends Base<A> {
   readonly equals: (lhs: A, rhs: A) => boolean;
   readonly notEquals: (lhs: A, rhs: A) => boolean;
 }
 
 export type EqRequirements<A> = Pick<Eq<A>, 'equals'> & Partial<Eq<A>>;
 export const Eq = Object.freeze({
-  of: <A>(E: EqRequirements<A>): Eq<A> => ({
-    notEquals: (a, b) => !E.equals(a, b),
-    ...E,
-  }),
+  of: <A>(E: EqRequirements<A>): Eq<A> =>
+    instance({
+      notEquals: (a, b) => !E.equals(a, b),
+      ...E,
+    }),
 
   by: <A, B>(E: Eq<B>, f: (a: A) => B): Eq<A> =>
     Eq.of<A>({
@@ -27,11 +27,10 @@ export const Eq = Object.freeze({
     }),
 
   fromUniversalEquals: <A>(): Eq<A> =>
-    Eq.of({ equals: (lhs, rhs) => lhs === rhs }),
-
-  get primitive(): Eq<PrimitiveType> {
-    return primitiveEq();
-  },
+    Eq.of({
+      equals: (lhs, rhs) => lhs === rhs,
+      notEquals: (lhs, rhs) => lhs !== rhs,
+    }),
 
   get void(): Eq<void> {
     return Eq.of({ equals: () => true });
@@ -82,6 +81,7 @@ export const Eq = Object.freeze({
       },
     });
   },
+  // eslint-disable-next-line @typescript-eslint/ban-types
   struct<A extends {}>(es: { [k in keyof A]: Eq<A[k]> }): Eq<A> {
     return Eq.of({
       equals: (xs, ys) =>
@@ -90,13 +90,6 @@ export const Eq = Object.freeze({
         ),
     });
   },
-});
-
-// Instances
-
-export const primitiveEq: Lazy<Eq<PrimitiveType>> = () => ({
-  equals: (lhs, rhs) => lhs === rhs,
-  notEquals: (lhs, rhs) => lhs !== rhs,
 });
 
 // -- HKT

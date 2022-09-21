@@ -107,7 +107,7 @@ const arbMediaRangeExtension = fc.tuple(arbToken, fc.oneof(arbQDText, arbText));
 
 const arbMediaRangeExtensions: Arbitrary<Map<string, string>> = fc
   .array(arbMediaRangeExtension)
-  .map(xs => Map.fromArray(Ord.primitive as Ord<string>)(xs));
+  .map(xs => Map.fromArray(Ord.fromUniversalCompare() as Ord<string>)(xs));
 
 export const fp4tsMediaType = (): Arbitrary<MediaType> =>
   fc.constantFrom(...MediaType.all.toArray.map(snd));
@@ -176,7 +176,7 @@ const arbChallengeParam: Arbitrary<[string, string]> = fc
   .filter(x => x[0] !== 'realm');
 const arbChallengeParams: Arbitrary<Map<string, string>> = fc
   .array(arbChallengeParam)
-  .map(xs => Map.fromArray(Ord.primitive as Ord<string>)(xs));
+  .map(xs => Map.fromArray(Ord.fromUniversalCompare() as Ord<string>)(xs));
 
 export const fp4tsChallenge = (): Arbitrary<Challenge> =>
   fc

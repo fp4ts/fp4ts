@@ -16,7 +16,10 @@ export const UniqueSuite = <F>(F: Unique<F> & Applicative<F>) => {
   return {
     unique: (mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>): RuleSet =>
       new RuleSet('unique', [
-        ['unique uniqueness', exec(laws.uniqueness)(mkEqF(Eq.primitive))],
+        [
+          'unique uniqueness',
+          exec(laws.uniqueness)(mkEqF(Eq.fromUniversalEquals())),
+        ],
       ]),
   };
 };

@@ -376,7 +376,7 @@ export const Canceled = new (class Canceled extends ConnectionOp<void> {
     return v.visitCanceled(this);
   }
 })();
-export type Canceled = typeof Canceled;
+export type Canceled = ConnectionOp<void>;
 
 export class Uncancelable<A> extends ConnectionOp<A> {
   public constructor(

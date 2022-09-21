@@ -71,10 +71,10 @@ describe('Writer', () => {
     //     fc.integer(),
     //     fc.string(),
     //     fc.integer(),
-    //     Eq.primitive,
-    //     Eq.primitive,
-    //     Eq.primitive,
-    //     Eq.primitive,
+    //     Eq.fromUniversalEquals(),
+    //     Eq.fromUniversalEquals(),
+    //     Eq.fromUniversalEquals(),
+    //     Eq.fromUniversalEquals(),
     //     (arbX, arbY) => A.fp4tsWriter(fc.tuple(arbX, arbY)),
     //     (EX, EY) => Writer.Eq(Eq.tuple2(EX, EY)),
     //   ),
@@ -87,10 +87,10 @@ describe('Writer', () => {
         fc.integer(),
         fc.string(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
           Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals<string>()), w =>
@@ -106,10 +106,10 @@ describe('Writer', () => {
         fc.integer(),
         fc.string(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
           Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals<string>()), w =>
@@ -140,10 +140,10 @@ describe('Writer', () => {
         fc.integer(),
         fc.string(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsWriter(fc.tuple(fc.array(fc.string()), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string[], X>> =>
           Eq.by(Eq.tuple2(E, Array.Eq(Eq.fromUniversalEquals<string>())), w =>
@@ -157,11 +157,13 @@ describe('Writer', () => {
       MonadWriterSuite(Writer.MonadWriter<string>(Monoid.string)).censor(
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsWriter(fc.tuple(fc.string(), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string, X>> =>
-          Eq.by(Eq.tuple2(E, Eq.primitive), w => w.runWriter(Monoid.string)),
+          Eq.by(Eq.tuple2(E, Eq.fromUniversalEquals()), w =>
+            w.runWriter(Monoid.string),
+          ),
       ),
     );
   });

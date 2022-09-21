@@ -99,10 +99,10 @@ describe('Free', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       x => fp4tsFree(x, x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<IdentityF, X>, Identity<X>>(E, f =>
@@ -119,10 +119,10 @@ describe('Free', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       x => fp4tsFree(A.fp4tsOption(x), x),
       <X>(E: Eq<X>) =>
         Eq.by<Free<OptionF, X>, Option<X>>(Option.Eq(E), f =>

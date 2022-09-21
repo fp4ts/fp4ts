@@ -42,7 +42,7 @@ describe('Query', () => {
     it.M('should return a non-empty Map', () =>
       qPair
         .map(xs => [xs.id, xs.foo] as [string, number])
-        .toMap(Ord.primitive)('foo')
+        .toMap(Ord.fromUniversalCompare())('foo')
         .transact(trx)
         .map(xs => expect(xs).toEqual(Map(['xxx', 42]))),
     );
@@ -50,7 +50,7 @@ describe('Query', () => {
     it.M('should return an empty Map', () =>
       qPair
         .map(xs => [xs.id, xs.foo] as [string, number])
-        .toMap(Ord.primitive)('baz')
+        .toMap(Ord.fromUniversalCompare())('baz')
         .transact(trx)
         .map(xs => expect(xs).toEqual(Map.empty)),
     );
@@ -152,7 +152,7 @@ describe('Query0', () => {
       qPair
         .map(xs => [xs.id, xs.foo] as [string, number])
         .toQuery0('foo')
-        .toMap(Ord.primitive)
+        .toMap(Ord.fromUniversalCompare())
         .transact(trx)
         .map(xs => expect(xs).toEqual(Map(['xxx', 42]))),
     );
@@ -161,7 +161,7 @@ describe('Query0', () => {
       qPair
         .map(xs => [xs.id, xs.foo] as [string, number])
         .toQuery0('baz')
-        .toMap(Ord.primitive)
+        .toMap(Ord.fromUniversalCompare())
         .transact(trx)
         .map(xs => expect(xs).toEqual(Map.empty)),
     );

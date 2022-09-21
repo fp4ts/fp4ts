@@ -181,11 +181,21 @@ describe('Prism', () => {
 
     checkAll(
       'Prism<I>',
-      PrismSuite(i.toOptic).prism(iorsArb, fc.integer(), iorsEq, Eq.primitive),
+      PrismSuite(i.toOptic).prism(
+        iorsArb,
+        fc.integer(),
+        iorsEq,
+        Eq.fromUniversalEquals(),
+      ),
     );
     checkAll(
       'Prism<S>',
-      PrismSuite(s.toOptic).prism(iorsArb, fc.string(), iorsEq, Eq.primitive),
+      PrismSuite(s.toOptic).prism(
+        iorsArb,
+        fc.string(),
+        iorsEq,
+        Eq.fromUniversalEquals(),
+      ),
     );
 
     checkAll(
@@ -194,12 +204,17 @@ describe('Prism', () => {
         iorsArb,
         fc.string(),
         iorsEq,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
       ),
     );
     checkAll(
       'prism.asSetter',
-      SetterSuite(s.toOptic).setter(iorsArb, fc.string(), iorsEq, Eq.primitive),
+      SetterSuite(s.toOptic).setter(
+        iorsArb,
+        fc.string(),
+        iorsEq,
+        Eq.fromUniversalEquals(),
+      ),
     );
   });
 });

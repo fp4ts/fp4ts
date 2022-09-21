@@ -69,7 +69,7 @@ describe('Validation', () => {
       A.fp4tsOption(fc.integer()),
       fc.string(),
       (o, s) => new IsEq(Validation.fromOption(o, () => s).toOption, o),
-    )(Option.Eq(Eq.primitive)),
+    )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -77,7 +77,7 @@ describe('Validation', () => {
     forAll(
       A.fp4tsEither(fc.string(), fc.integer()),
       ea => new IsEq(Validation.fromEither(ea).toEither(Semigroup.string), ea),
-    )(Either.Eq(Eq.primitive, Eq.primitive)),
+    )(Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals())),
   );
 
   test(
@@ -125,7 +125,7 @@ describe('Validation', () => {
             )
             .map(f),
         ),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -144,8 +144,11 @@ describe('Validation', () => {
         ),
     )(
       Validation.EqK(
-        ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)<string>(id),
-      ).liftEq(Array.Eq(Eq.primitive)),
+        ValidationError.Eq.Concat(
+          Semigroup.string,
+          Eq.fromUniversalEquals(),
+        )<string>(id),
+      ).liftEq(Array.Eq(Eq.fromUniversalEquals())),
     ),
   );
 
@@ -155,10 +158,13 @@ describe('Validation', () => {
       'SemigroupK<Validation<E, *>>',
       semigroupKTests.semigroupK(
         fc.integer(),
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsValidation(A.fp4tsValidationError(fc.string()), arbX),
         Validation.EqK<string>(
-          ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)(id),
+          ValidationError.Eq.Concat(
+            Semigroup.string,
+            Eq.fromUniversalEquals(),
+          )(id),
         ).liftEq,
       ),
     );
@@ -171,10 +177,10 @@ describe('Validation', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         (arbX, arbY) => A.fp4tsValidation(A.fp4tsValidationError(arbX), arbY),
         <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) =>
           Validation.EqK<X>(Eq.by(List.Eq(EqX), e => e.toList)).liftEq(EqY),
@@ -191,13 +197,19 @@ describe('Validation', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsValidationError(fc.string()),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)(id),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        ValidationError.Eq.Concat(
+          Semigroup.string,
+          Eq.fromUniversalEquals(),
+        )(id),
         arbX => A.fp4tsValidation(A.fp4tsValidationError(fc.string()), arbX),
         Validation.EqK<string>(
-          ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)(id),
+          ValidationError.Eq.Concat(
+            Semigroup.string,
+            Eq.fromUniversalEquals(),
+          )(id),
         ).liftEq,
       ),
     );
@@ -211,13 +223,16 @@ describe('Validation', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsValidation(A.fp4tsValidationError(fc.string()), arbX),
         Validation.EqK<string>(
-          ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)(id),
+          ValidationError.Eq.Concat(
+            Semigroup.string,
+            Eq.fromUniversalEquals(),
+          )(id),
         ).liftEq,
       ),
     );
@@ -234,12 +249,15 @@ describe('Validation', () => {
         Validation.Functor<string>(),
         Eval.Applicative,
         Option.Applicative,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         arbX => A.fp4tsValidation(A.fp4tsValidationError(fc.string()), arbX),
         Validation.EqK<string>(
-          ValidationError.Eq.Concat(Semigroup.string, Eq.primitive)(id),
+          ValidationError.Eq.Concat(
+            Semigroup.string,
+            Eq.fromUniversalEquals(),
+          )(id),
         ).liftEq,
         A.fp4tsEval,
         Eval.Eq,

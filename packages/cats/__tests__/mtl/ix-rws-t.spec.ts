@@ -53,7 +53,7 @@ describe('IxRWST', () => {
       MonadWriterSuite(RWST.MonadWriter<unknown, W, unknown, F>(WM, F)).censor(
         fc.integer(),
         arbW,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         eqW,
         <X>(X: Arbitrary<X>): Arbitrary<RWST<unknown, W, unknown, F, X>> =>
           A.fp4tsIxRWST(
@@ -72,8 +72,8 @@ describe('IxRWST', () => {
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         MiniInt.Eq,
         <X>(X: Arbitrary<X>): Arbitrary<RWST<MiniInt, W, unknown, F, X>> =>
           A.fp4tsIxRWST(
@@ -96,10 +96,10 @@ describe('IxRWST', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>): Arbitrary<RWST<MiniInt, W, MiniInt, F, X>> =>
           A.fp4tsIxRWST(
             fc.func<[MiniInt, MiniInt], Kind<F, [[X, MiniInt, W]]>>(
@@ -182,11 +182,11 @@ describe('IxRWST', () => {
       fc.integer(),
       fc.integer(),
       fc.string(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       <X>(
         X: Arbitrary<X>,
       ): Arbitrary<RWST<MiniInt, number, MiniInt, $<EitherF, [string]>, X>> =>
@@ -202,7 +202,10 @@ describe('IxRWST', () => {
         Eq.by(
           eq.fn1Eq(
             ec.miniInt(),
-            Either.Eq(Eq.primitive, Eq.tuple(X, MiniInt.Eq, Eq.primitive)),
+            Either.Eq(
+              Eq.fromUniversalEquals(),
+              Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
+            ),
           ),
           fa => s => fa(s, s),
         ),
@@ -221,12 +224,12 @@ describe('IxRWST', () => {
       fc.integer(),
       fc.integer(),
       ec.miniInt(),
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,
         Y: Arbitrary<Y>,
@@ -241,7 +244,9 @@ describe('IxRWST', () => {
         Eq.by(
           eq.fn1Eq(
             ec.boolean().product(X),
-            Eval.Eq(Eq.tuple(Eq.primitive, Y, Eq.primitive)),
+            Eval.Eq(
+              Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
+            ),
           ),
           fa =>
             ([r, s]) =>

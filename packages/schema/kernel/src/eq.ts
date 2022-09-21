@@ -10,10 +10,10 @@ import { Schemable } from './schemable';
 
 export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
   Schemable.of({
-    boolean: Eq.primitive,
+    boolean: Eq.fromUniversalEquals(),
     null: Eq.fromUniversalEquals(),
-    number: Eq.primitive,
-    string: Eq.primitive,
+    number: Eq.fromUniversalEquals(),
+    string: Eq.fromUniversalEquals(),
     literal: () => Eq.fromUniversalEquals(),
     array: <A>(E: Eq<A>) =>
       SafeEq.of<A[]>({

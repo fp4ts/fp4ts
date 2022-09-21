@@ -201,9 +201,9 @@ describe('OptionT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsOptionT<IdentityF, X>(A.fp4tsOption(arbX)),
         <X>(eqX: Eq<X>) => OptionT.Eq<IdentityF, X>(Option.Eq(eqX)),
@@ -220,17 +220,17 @@ describe('OptionT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsOptionT<$<EitherF, [string]>, X>(
             A.fp4tsEither(fc.string(), A.fp4tsOption(arbX)),
           ),
         <X>(eqX: Eq<X>) =>
           OptionT.Eq<$<EitherF, [string]>, X>(
-            Either.Eq(Eq.primitive, Option.Eq(eqX)),
+            Either.Eq(Eq.fromUniversalEquals(), Option.Eq(eqX)),
           ),
       ),
     );
@@ -246,18 +246,18 @@ describe('OptionT', () => {
         fc.integer(),
         fc.integer(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(arbX: Arbitrary<X>) =>
           A.fp4tsOptionT<$<EitherF, [string]>, X>(
             A.fp4tsEither(fc.string(), A.fp4tsOption(arbX)),
           ),
         <X>(eqX: Eq<X>) =>
           OptionT.Eq<$<EitherF, [string]>, X>(
-            Either.Eq(Eq.primitive, Option.Eq(eqX)),
+            Either.Eq(Eq.fromUniversalEquals(), Option.Eq(eqX)),
           ),
       ),
     );

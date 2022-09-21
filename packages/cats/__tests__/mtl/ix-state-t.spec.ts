@@ -45,10 +45,10 @@ describe('IxStateT', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>): Arbitrary<StateT<MiniInt, F, X>> =>
           A.fp4tsIxStateT(
             fc.func<[MiniInt], Kind<F, [[X, MiniInt]]>>(
@@ -93,11 +93,11 @@ describe('IxStateT', () => {
       fc.integer(),
       fc.integer(),
       fc.string(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       <X>(
         X: Arbitrary<X>,
       ): Arbitrary<StateT<MiniInt, $<EitherF, [string]>, X>> =>
@@ -107,7 +107,7 @@ describe('IxStateT', () => {
       <X>(X: Eq<X>): Eq<StateT<MiniInt, $<EitherF, [string]>, X>> =>
         eq.fn1Eq(
           ec.miniInt(),
-          Either.Eq(Eq.primitive, Eq.tuple(X, MiniInt.Eq)),
+          Either.Eq(Eq.fromUniversalEquals(), Eq.tuple(X, MiniInt.Eq)),
         ),
     ),
   );
@@ -122,12 +122,12 @@ describe('IxStateT', () => {
       fc.integer(),
       fc.integer(),
       ec.miniInt(),
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       ec.boolean(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,
         Y: Arbitrary<Y>,
@@ -137,7 +137,7 @@ describe('IxStateT', () => {
         X: ExhaustiveCheck<X>,
         Y: Eq<Y>,
       ): Eq<IxStateT<X, Y, EvalF, number>> =>
-        eq.fn1Eq(X, Eval.Eq(Eq.tuple(Eq.primitive, Y))),
+        eq.fn1Eq(X, Eval.Eq(Eq.tuple(Eq.fromUniversalEquals(), Y))),
     ),
   );
 });

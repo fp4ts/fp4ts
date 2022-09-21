@@ -96,7 +96,7 @@ describe('Queue', () => {
   test(
     'tail',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.tail.toList.equals(Eq.primitive, q.toList.tail),
+      q.tail.toList.equals(Eq.fromUniversalEquals(), q.toList.tail),
     ),
   );
 
@@ -108,7 +108,8 @@ describe('Queue', () => {
         .equals(
           Eq.of({
             equals: (lhs, rhs) =>
-              lhs[0] === rhs[0] && lhs[1].equals(Eq.primitive, rhs[1]),
+              lhs[0] === rhs[0] &&
+              lhs[1].equals(Eq.fromUniversalEquals(), rhs[1]),
           }),
           q.toList.uncons,
         ),
@@ -118,28 +119,28 @@ describe('Queue', () => {
   test(
     'init',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.init.toList.equals(Eq.primitive, q.toList.init),
+      q.init.toList.equals(Eq.fromUniversalEquals(), q.toList.init),
     ),
   );
 
   test(
     'reverse',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.reverse.toList.equals(Eq.primitive, q.toList.reverse),
+      q.reverse.toList.equals(Eq.fromUniversalEquals(), q.toList.reverse),
     ),
   );
 
   test(
     'prepend',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, x) =>
-      q.prepend(x).toList.equals(Eq.primitive, q.toList.prepend(x)),
+      q.prepend(x).toList.equals(Eq.fromUniversalEquals(), q.toList.prepend(x)),
     ),
   );
 
   test(
     'enqueue',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, x) =>
-      q.enqueue(x).toList.equals(Eq.primitive, q.toList.append(x)),
+      q.enqueue(x).toList.equals(Eq.fromUniversalEquals(), q.toList.append(x)),
     ),
   );
 
@@ -147,7 +148,7 @@ describe('Queue', () => {
     'concat',
     forAll(A.fp4tsQueue(fc.integer()), A.fp4tsQueue(fc.integer()), (lhs, rhs) =>
       lhs['+++'](rhs).toList.equals(
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
         lhs.toList['+++'](rhs.toList),
       ),
     ),
@@ -202,26 +203,30 @@ describe('Queue', () => {
   test(
     'take',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.take(n).toList.equals(Eq.primitive, q.toList.take(n)),
+      q.take(n).toList.equals(Eq.fromUniversalEquals(), q.toList.take(n)),
     ),
   );
   test(
     'takeRight',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.takeRight(n).toList.equals(Eq.primitive, q.toList.takeRight(n)),
+      q
+        .takeRight(n)
+        .toList.equals(Eq.fromUniversalEquals(), q.toList.takeRight(n)),
     ),
   );
 
   test(
     'drop',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.drop(n).toList.equals(Eq.primitive, q.toList.drop(n)),
+      q.drop(n).toList.equals(Eq.fromUniversalEquals(), q.toList.drop(n)),
     ),
   );
   test(
     'dropRight',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.dropRight(n).toList.equals(Eq.primitive, q.toList.dropRight(n)),
+      q
+        .dropRight(n)
+        .toList.equals(Eq.fromUniversalEquals(), q.toList.dropRight(n)),
     ),
   );
 
@@ -234,7 +239,7 @@ describe('Queue', () => {
       (q, from, until) =>
         q
           .slice(from, until)
-          .toList.equals(Eq.primitive, q.toList.slice(from, until)),
+          .toList.equals(Eq.fromUniversalEquals(), q.toList.slice(from, until)),
     ),
   );
 
@@ -243,7 +248,8 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
-      (q, p) => q.filter(p).toList.equals(Eq.primitive, q.toList.filter(p)),
+      (q, p) =>
+        q.filter(p).toList.equals(Eq.fromUniversalEquals(), q.toList.filter(p)),
     ),
   );
 
@@ -252,7 +258,10 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
-      (q, p) => q.collect(p).toList.equals(Eq.primitive, q.toList.collect(p)),
+      (q, p) =>
+        q
+          .collect(p)
+          .toList.equals(Eq.fromUniversalEquals(), q.toList.collect(p)),
     ),
   );
 
@@ -262,7 +271,9 @@ describe('Queue', () => {
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
       (q, p) =>
-        q.collectWhile(p).toList.equals(Eq.primitive, q.toList.collectWhile(p)),
+        q
+          .collectWhile(p)
+          .toList.equals(Eq.fromUniversalEquals(), q.toList.collectWhile(p)),
     ),
   );
 
@@ -271,7 +282,8 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (q, f) => q.map(f).toList.equals(Eq.primitive, q.toList.map(f)),
+      (q, f) =>
+        q.map(f).toList.equals(Eq.fromUniversalEquals(), q.toList.map(f)),
     ),
   );
 
@@ -282,7 +294,7 @@ describe('Queue', () => {
       fc.func<[number], Queue<string>>(A.fp4tsQueue(fc.string())),
       (q, f) =>
         q.flatMap(f).toList.equals(
-          Eq.primitive,
+          Eq.fromUniversalEquals(),
           q.toList.flatMap(x => f(x).toList),
         ),
     ),
@@ -317,7 +329,10 @@ describe('Queue', () => {
       (lhs, rhs, f) =>
         lhs
           .zipWith(rhs, f)
-          .toList.equals(Eq.primitive, lhs.toList.zipWith(rhs.toList, f)),
+          .toList.equals(
+            Eq.fromUniversalEquals(),
+            lhs.toList.zipWith(rhs.toList, f),
+          ),
     ),
   );
 
@@ -332,8 +347,8 @@ describe('Queue', () => {
         const [lhsQ, rhsQ] = q.partition(f);
         const [lhs, rhs] = q.toList.partition(f);
         return (
-          lhsQ.toList.equals(Eq.primitive, lhs) &&
-          rhsQ.toList.equals(Eq.primitive, rhs)
+          lhsQ.toList.equals(Eq.fromUniversalEquals(), lhs) &&
+          rhsQ.toList.equals(Eq.fromUniversalEquals(), rhs)
         );
       },
     ),
@@ -347,7 +362,10 @@ describe('Queue', () => {
       fc.func<[string, number], string>(fc.string()),
       (q, z, f) => {
         const q2 = q.scanLeft(z, f);
-        return q2.toList.equals(Eq.primitive, q.toList.scanLeft(z, f));
+        return q2.toList.equals(
+          Eq.fromUniversalEquals(),
+          q.toList.scanLeft(z, f),
+        );
       },
     ),
   );
@@ -360,7 +378,10 @@ describe('Queue', () => {
       fc.func<[number, string], string>(fc.string()),
       (q, z, f) => {
         const q2 = q.scanRight(z, f);
-        return q2.toList.equals(Eq.primitive, q.toList.scanRight(z, f));
+        return q2.toList.equals(
+          Eq.fromUniversalEquals(),
+          q.toList.scanRight(z, f),
+        );
       },
     ),
   );
@@ -373,10 +394,10 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
     ),
@@ -389,9 +410,9 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
     ),
@@ -404,9 +425,9 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
     ),
@@ -420,10 +441,10 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
     ),
@@ -437,10 +458,10 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
     ),
@@ -458,9 +479,9 @@ describe('Queue', () => {
       Queue.Functor,
       Eval.Applicative,
       Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsQueue,
       <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
       A.fp4tsEval,

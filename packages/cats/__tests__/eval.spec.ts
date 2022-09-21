@@ -77,7 +77,12 @@ describe('Eval', () => {
   const deferTests = DeferSuite(Eval.Defer);
   checkAll(
     'Defer<Eval>',
-    deferTests.defer(fc.integer(), Eq.primitive, A.fp4tsEval, Eval.Eq),
+    deferTests.defer(
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      A.fp4tsEval,
+      Eval.Eq,
+    ),
   );
 
   const coflatMapTests = CoflatMapSuite(Eval.CoflatMap);
@@ -88,10 +93,10 @@ describe('Eval', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsEval,
       Eval.Eq,
     ),
@@ -105,10 +110,10 @@ describe('Eval', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsEval,
       Eval.Eq,
     ),

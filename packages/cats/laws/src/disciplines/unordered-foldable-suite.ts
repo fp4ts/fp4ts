@@ -48,7 +48,7 @@ export const UnorderedFoldableSuite = <F>(F: UnorderedFoldable<F>) => {
         ],
         [
           'unorderedFoldable nonEmpty reference',
-          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.primitive),
+          forAll(mkArbF(arbA), laws.nonEmptyRef)(Eq.fromUniversalEquals()),
         ],
       ]),
   };

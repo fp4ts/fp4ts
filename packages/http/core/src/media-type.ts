@@ -10,8 +10,8 @@ import { Parser, StringSource, text } from '@fp4ts/parse';
 import { ParseResult, Rfc7230 } from './parsing';
 
 const OrdString2: Ord<[string, string]> = Ord.tuple2(
-  Ord.primitive,
-  Ord.primitive,
+  Ord.fromUniversalCompare(),
+  Ord.fromUniversalCompare(),
 );
 
 export class MediaRange {
@@ -62,7 +62,9 @@ export class MediaRange {
       .map(([mr, xs]) =>
         xs.isEmpty
           ? mr
-          : mr.withExtensions(Map.fromList<string>(Ord.primitive)(xs)),
+          : mr.withExtensions(
+              Map.fromList<string>(Ord.fromUniversalCompare())(xs),
+            ),
       );
   }
 }
@@ -121,7 +123,9 @@ export class MediaType extends MediaRange {
       .map(([mt, xs]) =>
         xs.isEmpty
           ? mt
-          : mt.withExtensions(Map.fromList<string>(Ord.primitive)(xs)),
+          : mt.withExtensions(
+              Map.fromList<string>(Ord.fromUniversalCompare())(xs),
+            ),
       );
   }
 }
@@ -134,7 +138,7 @@ const getMediaRange = (mainType: string, subType: string): MediaRange => {
         .lookup(mainType.toLowerCase())
         .getOrElse(() => new MediaRange(mainType.toLowerCase()))
     : MediaType.all
-        .lookup(OrdString2, [mainType, subType])
+        .lookup(OrdString2, tupled(mainType, subType))
         .getOrElse(
           () => new MediaType(mainType.toLowerCase(), subType.toLowerCase()),
         );
@@ -142,7 +146,7 @@ const getMediaRange = (mainType: string, subType: string): MediaRange => {
 
 const getMediaType = (mainType: string, subType: string): MediaType => {
   return MediaType.all
-    .lookup(OrdString2, [mainType, subType])
+    .lookup(OrdString2, tupled(mainType, subType))
     .getOrElse(
       () => new MediaType(mainType.toLowerCase(), subType.toLowerCase()),
     );

@@ -26,14 +26,13 @@ describe('Map', () => {
 
   describe('type', () => {
     it('should be covariant', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const m: HashMap<number, number> = HashMap.empty.insert(H, 1, 1);
+      const m: HashMap<number, number> = HashMap.empty.insert(1, 1);
     });
 
     it('should disallow type expansion for unrelated types', () => {
       const m: HashMap<number, string> = HashMap(...pairs);
       // @ts-expect-error
-      m.lookup(H, 'some-string-key');
+      m.lookup('some-string-key');
     });
   });
 
@@ -43,13 +42,13 @@ describe('Map', () => {
     });
 
     it('should create map from a list of pairs', () => {
-      expect(HashMap.fromList(H)(List(...pairs)).toArray).toEqual(
+      expect(HashMap.fromList(H())(List(...pairs)).toArray).toEqual(
         expect.arrayContaining(pairs),
       );
     });
 
     it('should create map from an array of pairs', () => {
-      expect(HashMap.fromArray(H)(pairs).toArray).toEqual(
+      expect(HashMap.fromArray(H())(pairs).toArray).toEqual(
         expect.arrayContaining(pairs),
       );
     });
@@ -149,8 +148,8 @@ describe('Map', () => {
     const m = HashMap(...pairs);
 
     it('should be true when the key exists', () => {
-      expect(m.hasKey(H, 1)).toBe(true);
-      expect(m.hasKey(H, 2)).toBe(true);
+      expect(m.hasKey(H(), 1)).toBe(true);
+      expect(m.hasKey(H(), 2)).toBe(true);
     });
 
     it('should be false when the key does not exists', () => {
@@ -163,8 +162,8 @@ describe('Map', () => {
     const m = HashMap(...pairs);
 
     it('should return the value when the key exists', () => {
-      expect(m.lookup(H, 1)).toEqual(Some('test'));
-      expect(m.lookup(H, 2)).toEqual(Some('another test'));
+      expect(m.lookup(H(), 1)).toEqual(Some('test'));
+      expect(m.lookup(H(), 2)).toEqual(Some('another test'));
     });
 
     it('should return None when the key does not exists', () => {
@@ -175,7 +174,7 @@ describe('Map', () => {
 
   describe('insert', () => {
     it('should insert a pair to an empty map', () => {
-      expect(HashMap.empty.insert(H, 'key', 'value').toArray).toEqual([
+      expect(HashMap.empty.insert('key', 'value').toArray).toEqual([
         ['key', 'value'],
       ]);
     });
@@ -200,7 +199,7 @@ describe('Map', () => {
     const cb = () => 'updated';
 
     it('should insert a pair to an empty map', () => {
-      expect(HashMap.empty.insertWith(H, 'key', 'value', cb).toArray).toEqual([
+      expect(HashMap.empty.insertWith('key', 'value', cb).toArray).toEqual([
         ['key', 'value'],
       ]);
     });
@@ -238,7 +237,7 @@ describe('Map', () => {
 
   describe('remove', () => {
     it('should return original map when key does not exist', () => {
-      expect(HashMap([1, 2], [3, 4]).remove(H, -1)).toEqual(
+      expect(HashMap([1, 2], [3, 4]).remove(-1)).toEqual(
         HashMap([1, 2], [3, 4]),
       );
     });
@@ -254,7 +253,7 @@ describe('Map', () => {
 
   describe('update', () => {
     it('should return original map when key does not exist', () => {
-      expect(HashMap([1, 2], [3, 4]).update(H, -1, () => -1)).toEqual(
+      expect(HashMap([1, 2], [3, 4]).update(-1, () => -1)).toEqual(
         HashMap([1, 2], [3, 4]),
       );
     });
@@ -268,7 +267,7 @@ describe('Map', () => {
 
   describe('union', () => {
     test('union of two empty maps to be empty', () => {
-      expect(HashMap.empty.union(H, HashMap.empty)).toEqual(HashMap.empty);
+      expect(HashMap.empty.union(HashMap.empty)).toEqual(HashMap.empty);
     });
 
     it('should return map on union with empty on lhs', () => {
@@ -439,7 +438,7 @@ describe('Map', () => {
 
   describe('symmetricDifference', () => {
     it('should return id when difference with empty map', () => {
-      expect(HashMap([1, 2], [2, 3])['\\//'](H, HashMap.empty)).toEqual(
+      expect(HashMap([1, 2], [2, 3])['\\//'](HashMap.empty)).toEqual(
         HashMap([1, 2], [2, 3]),
       );
     });
@@ -655,14 +654,14 @@ describe('Map', () => {
     });
   });
 
-  const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.any));
+  const monoidKTests = MonoidKSuite(HashMap.MonoidK(Hashable.any()));
   checkAll(
     'MonoidK<$<HashMapK, [number]>>',
     monoidKTests.monoidK(
       fc.integer(),
-      Eq.primitive,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
-      E => HashMap.Eq(Eq.primitive, E),
+      Eq.fromUniversalEquals(),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any()),
+      E => HashMap.Eq(Eq.fromUniversalEquals(), E),
     ),
   );
 
@@ -675,11 +674,11 @@ describe('Map', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
-      E => HashMap.Eq(Eq.primitive, E),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any()),
+      E => HashMap.Eq(Eq.fromUniversalEquals(), E),
     ),
   );
 
@@ -698,15 +697,15 @@ describe('Map', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       CommutativeMonoid.addition,
       HashMap.Functor(),
       Eval.Applicative,
       Eval.Applicative,
-      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any),
-      E => HashMap.Eq(Eq.primitive, E),
+      x => A.fp4tsHashMap(fc.integer(), x, Hashable.any()),
+      E => HashMap.Eq(Eq.fromUniversalEquals(), E),
       A.fp4tsEval,
       Eval.Eq,
       A.fp4tsEval,

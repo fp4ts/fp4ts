@@ -332,7 +332,7 @@ export abstract class Chunk<out O> {
   public startsWith<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
   public startsWith(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
     if (this.size < that.size) return false;
-    return this.take(that.size).equals(that, E ?? Eq.primitive);
+    return this.take(that.size).equals(that, E ?? Eq.fromUniversalEquals());
   }
 
   public equals<O2 extends PrimitiveType>(
@@ -341,7 +341,7 @@ export abstract class Chunk<out O> {
   ): boolean;
   public equals<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
   public equals(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
-    E = E ?? Eq.primitive;
+    E = E ?? Eq.fromUniversalEquals();
     if (this === that) return true;
     if (this.size !== that.size) return false;
     const thisIter = this.iterator;
@@ -361,7 +361,7 @@ export abstract class Chunk<out O> {
   ): boolean;
   public notEquals<O2>(this: Chunk<O2>, that: Chunk<O2>, E: Eq<O2>): boolean;
   public notEquals(this: Chunk<any>, that: Chunk<any>, E?: Eq<any>): boolean {
-    return !this.equals(that, E ?? Eq.primitive);
+    return !this.equals(that, E ?? Eq.fromUniversalEquals());
   }
 
   public get toArray(): O[] {

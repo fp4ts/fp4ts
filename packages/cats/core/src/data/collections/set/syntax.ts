@@ -270,7 +270,7 @@ Object.defineProperty(Set.prototype, 'toVector', {
 
 Set.prototype.contains = function (...args: any[]) {
   return args.length === 1
-    ? contains_(Ord.primitive, this, args[0])
+    ? contains_(Ord.fromUniversalCompare(), this, args[0])
     : contains_(args[0], this, args[1]);
 };
 
@@ -316,46 +316,46 @@ Set.prototype.slice = function (from, until) {
 
 Set.prototype.insert = function (...args: any[]) {
   return args.length === 1
-    ? insert_(Ord.primitive, this, args[0])
+    ? insert_(Ord.fromUniversalCompare(), this, args[0])
     : insert_(args[0], this, args[1]);
 };
 
 Set.prototype.remove = function (...args: any[]) {
   return args.length === 1
-    ? remove_(Ord.primitive, this, args[0])
+    ? remove_(Ord.fromUniversalCompare(), this, args[0])
     : remove_(args[0], this, args[1]);
 };
 
 Set.prototype.union = function (...args: any[]) {
   return args.length === 1
-    ? union_(Ord.primitive, this, args[0])
+    ? union_(Ord.fromUniversalCompare(), this, args[0])
     : union_(args[0], this, args[1]);
 };
 Set.prototype['+++'] = Set.prototype.union;
 
 Set.prototype.intersect = function (...args: any[]) {
   return args.length === 1
-    ? intersection_(Ord.primitive, this, args[0])
+    ? intersection_(Ord.fromUniversalCompare(), this, args[0])
     : intersection_(args[0], this, args[1]);
 };
 
 Set.prototype.difference = function (...args: any[]) {
   return args.length === 1
-    ? difference_(Ord.primitive, this, args[0])
+    ? difference_(Ord.fromUniversalCompare(), this, args[0])
     : difference_(args[0], this, args[1]);
 };
 Set.prototype['\\'] = Set.prototype.difference;
 
 Set.prototype.symmetricDifference = function (...args: any[]) {
   return args.length === 1
-    ? symmetricDifference_(Ord.primitive, this, args[0])
+    ? symmetricDifference_(Ord.fromUniversalCompare(), this, args[0])
     : symmetricDifference_(args[0], this, args[1]);
 };
 Set.prototype['\\//'] = Set.prototype.symmetricDifference;
 
 Set.prototype.split = function (...args: any[]) {
   return args.length === 1
-    ? split_(Ord.primitive, this, args[0])
+    ? split_(Ord.fromUniversalCompare(), this, args[0])
     : split_(args[0], this, args[1]);
 };
 
@@ -365,7 +365,7 @@ Set.prototype.filter = function (p) {
 
 Set.prototype.map = function (...args: any[]) {
   return args.length === 1
-    ? map_(Ord.primitive, this, args[0])
+    ? map_(Ord.fromUniversalCompare(), this, args[0])
     : map_(args[0], this, args[1]);
 };
 

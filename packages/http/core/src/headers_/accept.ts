@@ -107,7 +107,9 @@ const parser: Lazy<Parser<StringSource, Accept>> = lazyVal(() => {
         tupled(QValue.one, List.empty),
       );
       return new MediaRangeAndQValue(
-        mr.withExtensions(Map.fromList<string>(Ord.primitive)(exts)),
+        mr.withExtensions(
+          Map.fromList<string>(Ord.fromUniversalCompare())(exts),
+        ),
         qvalue,
       );
     });

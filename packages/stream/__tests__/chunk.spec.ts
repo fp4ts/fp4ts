@@ -37,7 +37,8 @@ describe('chunk', () => {
     forAll(
       A.fp4tsStreamChunkGenerator(fc.integer()),
       A.fp4tsStreamChunkGenerator(fc.integer()),
-      (c1, c2) => c1.equals(c2) === c1.toList.equals(Eq.primitive, c2.toList),
+      (c1, c2) =>
+        c1.equals(c2) === c1.toList.equals(Eq.fromUniversalEquals(), c2.toList),
     ),
   );
 
@@ -45,28 +46,28 @@ describe('chunk', () => {
     'take',
     forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.take(n).toList['<=>'](c.toList.take(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'takeRight',
     forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.takeRight(n).toList['<=>'](c.toList.takeRight(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'drop',
     forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.drop(n).toList['<=>'](c.toList.drop(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'dropRight',
     forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
       c.dropRight(n).toList['<=>'](c.toList.dropRight(n)),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -79,7 +80,7 @@ describe('chunk', () => {
           c1['+++'](Chunk.empty)['+++'](c2)['+++'](Chunk.empty).toList,
           c1.toList.concat(c2.toList),
         ),
-    )(List.Eq(Eq.primitive)),
+    )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -92,7 +93,7 @@ describe('chunk', () => {
       return c
         .scanLeft(init, step)
         .toVector['<=>'](c.toVector.scanLeft(init, step));
-    })(Vector.Eq(Vector.Eq(Eq.primitive))),
+    })(Vector.Eq(Vector.Eq(Eq.fromUniversalEquals()))),
   );
 
   test(
@@ -108,7 +109,12 @@ describe('chunk', () => {
         vectorScan.tail,
         vectorScan.last,
       ] as [Vector<Vector<number>>, Vector<number>]);
-    })(Eq.tuple2(Vector.Eq(Vector.Eq(Eq.primitive)), Vector.Eq(Eq.primitive))),
+    })(
+      Eq.tuple2(
+        Vector.Eq(Vector.Eq(Eq.fromUniversalEquals())),
+        Vector.Eq(Eq.fromUniversalEquals()),
+      ),
+    ),
   );
 
   describe('scanLeftCarry', () => {
@@ -164,7 +170,7 @@ describe('chunk', () => {
     'MonoidK<Chunk>',
     monoidKTests.monoidK(
       fc.integer(),
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
       A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
@@ -177,9 +183,9 @@ describe('chunk', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
@@ -193,10 +199,10 @@ describe('chunk', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
     ),
@@ -214,9 +220,9 @@ describe('chunk', () => {
       Chunk.Functor,
       Eval.Applicative,
       Eval.Applicative,
-      Eq.primitive,
-      Eq.primitive,
-      Eq.primitive,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
       A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
       A.fp4tsEval,

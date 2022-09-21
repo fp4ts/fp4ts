@@ -43,7 +43,7 @@ export const challenge: Parser<StringSource, Challenge> = scheme['<*'](
     authParam
       .backtrack()
       .sepBy(text.char(',' as Char).surroundedBy(Rfc7230.ows))
-      .map(xs => Map.fromList(Ord.primitive as Ord<string>)(xs)),
+      .map(xs => Map.fromList(Ord.fromUniversalCompare() as Ord<string>)(xs)),
   )
   .map(
     ([scheme, params]) =>

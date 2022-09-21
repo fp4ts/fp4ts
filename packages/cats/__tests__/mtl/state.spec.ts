@@ -180,10 +180,10 @@ describe('State', () => {
         fc.string(),
         fc.string(),
         fc.string(),
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
-        Eq.primitive,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         X => A.fp4tsState(A.fp4tsMiniInt(), X),
         <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
           Eq.by(
