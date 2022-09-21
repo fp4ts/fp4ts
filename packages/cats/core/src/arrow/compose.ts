@@ -3,14 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind, α, λ } from '@fp4ts/core';
+import { Base, instance, Kind, α, λ } from '@fp4ts/core';
 import { Semigroup } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../semigroup-k';
 
 /**
  * @category Type Class
  */
-export interface Compose<F> {
+export interface Compose<F> extends Base<F> {
   readonly compose: <A, B>(
     g: Kind<F, [A, B]>,
   ) => <C>(f: Kind<F, [B, C]>) => Kind<F, [A, C]>;

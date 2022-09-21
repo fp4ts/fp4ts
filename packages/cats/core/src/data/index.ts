@@ -30,6 +30,7 @@ export * from './identity-t';
 export * from './option-t';
 export * from './either-t';
 
-export { TransK } from './trans-k';
+export { SyntaxK } from './syntax-k';
+export { Syntax2K } from './syntax-2k';
 
 export * from './collections';

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind, lazyVal, pipe, tupled } from '@fp4ts/core';
+import { $, Kind, pipe, tupled } from '@fp4ts/core';
 import { GenKind, Monad } from '../monad';
 import { Arrow, ArrowRequirements } from './arrow';
 import { ArrowMonad, ArrowMonadF } from './arrow-monad';
