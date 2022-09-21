@@ -108,8 +108,8 @@ describe('Cofree', () => {
         lb: Option<List<number>>,
       ): EvalOption<List<number>> =>
         i > 100
-          ? OptionT.none(Eval.Applicative)
-          : OptionT.some(Eval.Applicative)(
+          ? OptionT.None(Eval.Applicative)
+          : OptionT.Some(Eval.Applicative)(
               lb.getOrElse(() => List.empty).cons(i),
             );
       const inclusion = OptionT.liftF(Eval.Applicative);
@@ -121,12 +121,14 @@ describe('Cofree', () => {
       const cataHundred = unfolded.cataM(
         Option.Traversable,
         OptionT.Monad(Eval.Monad),
-      )(folder, inclusion).value.value;
+      )(folder, inclusion).value;
       const cataHundredOne = Cofree<OptionF, number>(
         101,
         Eval.now(Some(unfolded)),
-      ).cataM(Option.Traversable, OptionT.Monad(Eval.Monad))(folder, inclusion)
-        .value.value;
+      ).cataM(Option.Traversable, OptionT.Monad(Eval.Monad))(
+        folder,
+        inclusion,
+      ).value;
 
       expect(cataHundred).toEqual(Some(List.range(0, 101)));
       expect(cataHundredOne).toEqual(None);

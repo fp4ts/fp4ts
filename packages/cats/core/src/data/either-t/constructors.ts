@@ -56,10 +56,10 @@ export const fromOptionT =
   <F>(F: Functor<F>) =>
   <A, B>(fa: OptionT<F, B>, ifNone: () => A): EitherT<F, A, B> =>
     new EitherT(
-      fa.fold(F)<Either<A, B>>(
+      OptionT.fold(F)(
         () => Left(ifNone()),
-        b => Right(b),
-      ),
+        (b: B) => Right(b),
+      )(fa),
     );
 
 export const tailRecM: <F>(

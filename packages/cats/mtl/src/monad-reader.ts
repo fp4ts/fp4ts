@@ -70,6 +70,6 @@ export const MonadReader = Object.freeze({
         $<OptionTF, [F]>,
         R
       >['ask'],
-      local_: (fa, f) => OptionT(F.local_(fa.value, f)),
+      local_: (fa, f) => F.local_(fa, f),
     }),
 });

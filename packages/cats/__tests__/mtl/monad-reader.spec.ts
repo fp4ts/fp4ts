@@ -90,10 +90,10 @@ describe('MonadReader', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         MiniInt.Eq,
-        <X>(
-          arbX: Arbitrary<X>,
-        ): Arbitrary<Kleisli<$<EitherF, [string]>, MiniInt, X>> =>
-          A.fp4tsKleisli(A.fp4tsEither(fc.string(), arbX)),
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsKleisli<$<EitherF, [string]>, MiniInt, X>(
+            A.fp4tsEither(fc.string(), arbX),
+          ),
         <X>(EqX: Eq<X>): Eq<Kleisli<$<EitherF, [string]>, MiniInt, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.fromUniversalEquals(), EqX)),
@@ -159,12 +159,8 @@ describe('MonadReader', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>): Arbitrary<OptionT<RWSF_, X>> =>
-          A.fp4tsOptionT(
-            A.fp4tsRWS(
-              fc.func(
-                fc.tuple(A.fp4tsOption(X), A.fp4tsMiniInt(), fc.string()),
-              ),
-            ),
+          A.fp4tsRWS(
+            fc.func(fc.tuple(A.fp4tsOption(X), A.fp4tsMiniInt(), fc.string())),
           ),
         <X>(EqX: Eq<X>): Eq<OptionT<RWSF_, X>> =>
           Eq.by(
@@ -178,7 +174,7 @@ describe('MonadReader', () => {
             ),
             fa =>
               ([r, s1]) =>
-                fa.value.runAll(r, s1, Monoid.string),
+                fa.runAll(r, s1, Monoid.string),
           ),
       ),
     );

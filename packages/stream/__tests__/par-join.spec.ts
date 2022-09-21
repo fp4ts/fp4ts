@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $ } from '@fp4ts/core';
+import { $, pipe } from '@fp4ts/core';
 import {
   Eq,
   List,
@@ -14,6 +14,7 @@ import {
   OptionTF,
   KleisliF,
   Monad,
+  OptionT,
 } from '@fp4ts/cats';
 import { IO, IOF, Ref, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
@@ -269,16 +270,14 @@ describe('Stream Parallel Join', () => {
       const f = (n: number): Stream<$<OptionTF, [IOF]>, string> =>
         Stream(n).map(x => `${x}`);
 
-      return Stream(1, 2, 3)
-        .map(f)
-        .parJoinUnbounded(F)
-        .compileConcurrent(F)
-        .toList.map(IO.Functor)(xs => new Set([...xs]))
-        .flatMapF(IO.Monad)(xs =>
+      return pipe(
+        Stream(1, 2, 3).map(f).parJoinUnbounded(F).compileConcurrent(F).toList,
+        F.map(xs => new Set([...xs])),
+        F.flatMap(xs =>
           IO(() => Some(expect(xs).toEqual(new Set(['1', '2', '3'])))),
-        )
-        .getOrElseF(IO.Monad)(() => IO(() => fail()))
-        .unsafeRunToPromise();
+        ),
+        OptionT.getOrElseF(IO.Monad)(() => IO(() => fail() as void)),
+      ).unsafeRunToPromise();
     });
 
     it('should not block while evaluating stream of streams in $<KleisliK, [IoK, unknown]> in parallel', () => {

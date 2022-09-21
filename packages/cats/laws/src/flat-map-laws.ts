@@ -12,6 +12,7 @@ import {
   Option,
   Right,
   Some,
+  Syntax2K,
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -75,10 +76,10 @@ export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
     g: (a: B) => Kind<F, [C]>,
     h: (a: C) => Kind<F, [D]>,
   ): IsEq<Kind<F, [D]>> => {
-    const KF = Kleisli.Compose(F);
+    const KFS = Syntax2K(Kleisli.Compose(F));
 
-    const l = KF.andThen_(KF.andThen_(f, g), h)(a);
-    const r = KF.andThen_(f, KF.andThen_(g, h))(a);
+    const l = KFS(f)['>>>'](KFS(g)['>>>'](h)).value(a);
+    const r = KFS(f)['>>>'](g)['>>>'](h).value(a);
 
     return new IsEq(l, r);
   },

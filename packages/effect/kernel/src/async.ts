@@ -155,14 +155,14 @@ export const Async = Object.freeze({
     }),
 
   asyncForOptionT: <F>(F: Async<F>): Async<$<OptionTF, [F]>> =>
-    Async.of({
+    Async.of<$<OptionTF, [F]>>({
       ...Sync.syncForOptionT(F),
       ...Temporal.temporalForOptionT(F),
 
       readExecutionContext: OptionT.liftF(F)(F.readExecutionContext),
 
       executeOn_: <A>(fa: OptionT<F, A>, ec: ExecutionContext): OptionT<F, A> =>
-        OptionT(F.executeOn_(fa.value, ec)),
+        OptionT(F.executeOn_(fa, ec)),
 
       cont: <K, R>(body: Cont<$<OptionTF, [F]>, K, R>): OptionT<F, R> => {
         const cont: Cont<F, K, Option<R>> =
@@ -174,13 +174,13 @@ export const Async = Object.freeze({
           ): Kind<G, [Option<R>]> => {
             const natT: FunctionK<$<OptionTF, [F]>, $<OptionTF, [G]>> = <A>(
               fa: OptionT<F, A>,
-            ): OptionT<G, A> => OptionT(nat(fa.value));
+            ): OptionT<G, A> => nat(fa);
 
             return body(MonadCancel.forOptionT<G, Error>(G))(
               k,
               OptionT.liftF(G)(get),
               natT,
-            ).value;
+            );
           };
 
         return OptionT(F.cont(cont));

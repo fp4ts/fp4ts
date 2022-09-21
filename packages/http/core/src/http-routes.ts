@@ -22,9 +22,7 @@ export const HttpRoutes: HttpRoutesObj = function (run) {
 HttpRoutes.orNotFound =
   <F>(F: Monad<F>) =>
   (routes: HttpRoutes<F>): Http<F, F> =>
-    AndThen(routes).andThen(
-      opt => opt.getOrElse(F)(() => Status.NotFound<F>()) as any,
-    );
+    AndThen(routes).andThen(OptionT.getOrElse(F)(() => Status.NotFound<F>()));
 
 export type ContextRoutes<F, A> = Kleisli<
   $<OptionTF, [F]>,

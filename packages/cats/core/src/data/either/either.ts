@@ -23,6 +23,7 @@ import {
   eitherApply,
   eitherBifunctor,
   eitherEq,
+  eitherEqK,
   eitherFlatMap,
   eitherFunctor,
   eitherMonad,
@@ -30,6 +31,7 @@ import {
   eitherSemigroupK,
 } from './instances';
 import { tailRecM } from './operators';
+import { EqK } from '../../eq-k';
 
 export type Either<E, A> = EitherBase<E, A>;
 
@@ -61,6 +63,7 @@ export interface EitherObj {
   FlatMap<E>(): FlatMap<$<EitherF, [E]>>;
   Monad<E>(): Monad<$<EitherF, [E]>>;
   MonadError<E>(): MonadError<$<EitherF, [E]>, E>;
+  EqK<E>(EE: Eq<E>): EqK<$<EitherF, [E]>>;
   Eq<E, A>(EE: Eq<E>, EA: Eq<A>): Eq<Either<E, A>>;
 }
 
@@ -84,6 +87,7 @@ Either.FlatMap = eitherFlatMap;
 Either.Monad = eitherMonad;
 Either.MonadError = eitherMonadError;
 Either.Eq = eitherEq;
+Either.EqK = eitherEqK;
 
 // -- HKT
 

@@ -11,7 +11,6 @@ import {
   Left,
   Right,
   KleisliF,
-  Kleisli,
   OptionTF,
   OptionT,
 } from '@fp4ts/cats';

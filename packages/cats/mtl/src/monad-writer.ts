@@ -59,9 +59,8 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<OptionTF, [F]>, W>({
       monoid: F.monoid,
       ...OptionT.Monad<F>(F),
-      censor_: (fa, f) => OptionT(F.censor_(fa.value, f)),
-      listen: fa =>
-        OptionT(F.map_(F.listen(fa.value), ([opt, w]) => opt.map(a => [a, w]))),
-      tell: w => OptionT(F.map_(F.tell(w), Some)),
+      censor_: (fa, f) => F.censor_(fa, f),
+      listen: fa => F.map_(F.listen(fa), ([opt, w]) => opt.map(a => [a, w])),
+      tell: w => F.map_(F.tell(w), Some),
     }),
 });

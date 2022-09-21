@@ -481,7 +481,7 @@ export const Spawn = Object.freeze({
 
       unique: OptionT.liftF(F)(F.unique),
 
-      fork: fa => OptionT.liftF(F)(F.map_(F.fork(fa.value), liftFiber)),
+      fork: fa => OptionT.liftF(F)(F.map_(F.fork(fa), liftFiber)),
 
       suspend: OptionT.liftF(F)(F.suspend),
 
@@ -501,7 +501,7 @@ export const Spawn = Object.freeze({
           F.uncancelable(poll =>
             poll(
               pipe(
-                F.racePair_(fa.value, fb.value),
+                F.racePair_(fa, fb),
                 F.map(rea =>
                   rea.fold(
                     ([oc, f]) => Left(tupled(liftOutcome(oc), liftFiber(f))),

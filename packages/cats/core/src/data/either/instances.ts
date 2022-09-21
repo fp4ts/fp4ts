@@ -28,6 +28,11 @@ import {
 } from './operators';
 import { left, pure, right, rightUnit } from './constructors';
 import { Eval } from '../../eval';
+import { EqK } from '../../eq-k';
+
+export const eitherEqK: <E>(EE: Eq<E>) => EqK<$<EitherF, [E]>> = <E>(
+  EE: Eq<E>,
+) => EqK.of<$<EitherF, [E]>>({ liftEq: <A>(E: Eq<A>) => eitherEq(EE, E) });
 
 export const eitherEq: <E, A>(EE: Eq<E>, EA: Eq<A>) => Eq<Either<E, A>> = (
   EE,

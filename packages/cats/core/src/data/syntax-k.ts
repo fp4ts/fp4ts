@@ -53,8 +53,8 @@ export class _SyntaxK<TC extends Base<any>, A> {
 
   // -- Invariant
 
-  public imap<B, TC extends Invariant<any>>(
-    this: SyntaxK<TC, A>,
+  public imap<B>(
+    this: SyntaxK<TC & Invariant<TC['_F']>, A>,
     f: (a: A) => B,
     g: (b: B) => A,
   ): SyntaxK<TC, B> {
@@ -63,36 +63,34 @@ export class _SyntaxK<TC extends Base<any>, A> {
 
   // -- Functor
 
-  public map<B, TC extends Functor<any>>(
-    this: SyntaxK<TC, A>,
+  public map<B>(
+    this: SyntaxK<TC & Functor<TC['_F']>, A>,
     f: (a: A) => B,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.map_(this.value, f));
   }
 
-  public tupleLeft<B, TC extends Functor<any>>(
-    this: SyntaxK<TC, A>,
+  public tupleLeft<B>(
+    this: SyntaxK<TC & Functor<TC['_F']>, A>,
     b: B,
   ): SyntaxK<TC, [B, A]> {
     return new _SyntaxK(this.TC, this.TC.tupleLeft_(this.value, b));
   }
-  public tupleRight<B, TC extends Functor<any>>(
-    this: SyntaxK<TC, A>,
+  public tupleRight<B>(
+    this: SyntaxK<TC & Functor<TC['_F']>, A>,
     b: B,
   ): SyntaxK<TC, [A, B]> {
     return new _SyntaxK(this.TC, this.TC.tupleRight_(this.value, b));
   }
 
-  public void<TC extends Functor<any>>(
-    this: SyntaxK<TC, A>,
-  ): SyntaxK<TC, void> {
+  public void(this: SyntaxK<TC & Functor<TC['_F']>, A>): SyntaxK<TC, void> {
     return new _SyntaxK(this.TC, this.TC.void(this.value));
   }
 
   // -- Contravariant
 
-  public contramap<B, TC extends Contravariant<any>>(
-    this: SyntaxK<TC, A>,
+  public contramap<B>(
+    this: SyntaxK<TC & Contravariant<TC['_F']>, A>,
     f: (b: B) => A,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.contramap_(this.value, f));
@@ -100,37 +98,37 @@ export class _SyntaxK<TC extends Base<any>, A> {
 
   // -- FunctorFilter
 
-  public mapFilter<B, TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public mapFilter<B>(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => Option<B>,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.mapFilter_(this.value, f));
   }
 
-  public collect<B, TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public collect<B>(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => Option<B>,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.collect_(this.value, f));
   }
 
-  public filter<B extends A, TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public filter<B extends A>(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => a is B,
   ): SyntaxK<TC, B>;
-  public filter<TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public filter(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => boolean,
   ): SyntaxK<TC, A>;
-  public filter<TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public filter(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => boolean,
   ): SyntaxK<TC, A> {
     return new _SyntaxK(this.TC, this.TC.filter_(this.value, f));
   }
 
-  public filterNot<TC extends FunctorFilter<any>>(
-    this: SyntaxK<TC, A>,
+  public filterNot(
+    this: SyntaxK<TC & FunctorFilter<TC['_F']>, A>,
     f: (a: A) => boolean,
   ): SyntaxK<TC, A> {
     return new _SyntaxK(this.TC, this.TC.filterNot_(this.value, f));
@@ -138,42 +136,42 @@ export class _SyntaxK<TC extends Base<any>, A> {
 
   // -- Apply
 
-  public apF<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, (a: A) => B>,
+  public apF<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, (a: A) => B>,
     ff: Kind<TC['_F'], [A]>,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.ap_(this.value, ff));
   }
-  public ap<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, (a: A) => B>,
+  public ap<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, (a: A) => B>,
     ff: SyntaxK<TC, A>,
   ): SyntaxK<TC, B> {
     return this.apF(ff.value);
   }
-  public '<*>'<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, (a: A) => B>,
-    ff: SyntaxK<TC, A> | Kind<TC['_F'], [A]>,
+  public '<*>'<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, (a: A) => B>,
+    ff: SyntaxK<TC & Apply<TC['_F']>, A> | Kind<TC['_F'], [A]>,
   ): SyntaxK<TC, B> {
     return ff instanceof _SyntaxK ? this.ap(ff) : this.apF(ff);
   }
 
-  public map2F<A, B, C, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
+  public map2F<A, B, C>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
     that: Kind<TC['_F'], [B]>,
     f: (a: A, b: B) => C,
   ): SyntaxK<TC, C> {
     return new _SyntaxK(this.TC, this.TC.map2_<A, B>(this.value, that)(f));
   }
-  public map2<A, B, C, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B>,
+  public map2<A, B, C>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B>,
     f: (a: A, b: B) => C,
   ): SyntaxK<TC, C> {
     return this.map2F(that.value, f);
   }
 
-  public map2EvalF<A, B, C, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
+  public map2EvalF<A, B, C>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
     that: Eval<Kind<TC['_F'], [B]>>,
     f: (a: A, b: B) => C,
   ): Eval<SyntaxK<TC, C>> {
@@ -182,9 +180,9 @@ export class _SyntaxK<TC extends Base<any>, A> {
       that,
     )(f).map(fc => new _SyntaxK(this.TC, fc));
   }
-  public map2Eval<A, B, C, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: Eval<SyntaxK<TC, B>>,
+  public map2Eval<A, B, C>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: Eval<SyntaxK<TC & Apply<TC['_F']>, B>>,
     f: (a: A, b: B) => C,
   ): Eval<SyntaxK<TC, C>> {
     return this.map2EvalF(
@@ -193,55 +191,55 @@ export class _SyntaxK<TC extends Base<any>, A> {
     );
   }
 
-  public productF<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
+  public productF<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
     that: Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, [A, B]> {
     return new _SyntaxK(this.TC, this.TC.product_(this.value, that));
   }
-  public product<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B>,
+  public product<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B>,
   ): SyntaxK<TC, [A, B]> {
     return this.productF(that.value);
   }
 
-  public productLF<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
+  public productLF<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
     that: Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, A> {
     return new _SyntaxK(this.TC, this.TC.productL_(this.value, that));
   }
-  public productL<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B>,
+  public productL<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B>,
   ): SyntaxK<TC, A> {
     return this.productLF(that.value);
   }
-  public '<*'<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B> | Kind<TC['_F'], [B]>,
+  public '<*'<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B> | Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, A> {
     return that instanceof _SyntaxK
       ? this.productL(that)
       : this.productLF(that);
   }
 
-  public productRF<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
+  public productRF<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
     that: Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.productR_(this.value, that));
   }
-  public productR<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B>,
+  public productR<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B>,
   ): SyntaxK<TC, B> {
     return this.productRF(that.value);
   }
-  public '*>'<A, B, TC extends Apply<any>>(
-    this: SyntaxK<TC, A>,
-    that: SyntaxK<TC, B> | Kind<TC['_F'], [B]>,
+  public '*>'<A, B>(
+    this: SyntaxK<TC & Apply<TC['_F']>, A>,
+    that: SyntaxK<TC & Apply<TC['_F']>, B> | Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, B> {
     return that instanceof _SyntaxK
       ? this.productR(that)
@@ -250,21 +248,21 @@ export class _SyntaxK<TC extends Base<any>, A> {
 
   // -- FlatMap
 
-  public flatMapF<B, TC extends FlatMap<any>>(
-    this: SyntaxK<TC, A>,
+  public flatMapF<B>(
+    this: SyntaxK<TC & FlatMap<TC['_F']>, A>,
     f: (a: A) => Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, B> {
     return new _SyntaxK(this.TC, this.TC.flatMap_(this.value, f));
   }
-  public flatMap<B, TC extends FlatMap<TC['_F']>>(
-    this: SyntaxK<TC, A>,
-    f: (a: A) => SyntaxK<TC, B>,
+  public flatMap<B>(
+    this: SyntaxK<TC & FlatMap<TC['_F']>, A>,
+    f: (a: A) => SyntaxK<TC & FlatMap<TC['_F']>, B>,
   ): SyntaxK<TC, B> {
     return this.flatMapF(a => f(a).value);
   }
-  public '>>='<B, TC extends FlatMap<TC['_F']>>(
-    this: SyntaxK<TC, A>,
-    f: (a: A) => SyntaxK<TC, B> | Kind<TC['_F'], [B]>,
+  public '>>='<B>(
+    this: SyntaxK<TC & FlatMap<TC['_F']>, A>,
+    f: (a: A) => SyntaxK<TC & FlatMap<TC['_F']>, B> | Kind<TC['_F'], [B]>,
   ): SyntaxK<TC, B> {
     return this.flatMapF(a => {
       const x = f(a);
@@ -372,9 +370,12 @@ export class _SyntaxK<TC extends Base<any>, A> {
   }
   public orElse<TC extends Alternative<any>>(
     this: SyntaxK<TC, A>,
-    that: Lazy<Kind<TC['_F'], [A]>>,
+    that: Lazy<SyntaxK<TC, A>>,
   ): SyntaxK<TC, A> {
-    return new _SyntaxK(this.TC, this.TC.orElse_(this.value, that));
+    return new _SyntaxK(
+      this.TC,
+      this.TC.orElse_(this.value, () => that().value),
+    );
   }
 
   // -- UnorderedFoldable

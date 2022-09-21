@@ -45,9 +45,9 @@ describe('MonadWriter', () => {
       <X>(
         X: Arbitrary<X>,
       ): Arbitrary<OptionT<$<WriterTF, [EvalF, string]>, X>> =>
-        A.fp4tsOptionT(A.fp4tsEval(fc.tuple(A.fp4tsOption(X), fc.string()))),
+        A.fp4tsEval(fc.tuple(A.fp4tsOption(X), fc.string())),
       <X>(X: Eq<X>): Eq<OptionT<$<WriterTF, [EvalF, string]>, X>> =>
-        OptionT.Eq(Eval.Eq(Eq.tuple(Option.Eq(X), Eq.fromUniversalEquals()))),
+        Eval.Eq(Eq.tuple(Option.Eq(X), Eq.fromUniversalEquals())),
     ),
   );
 

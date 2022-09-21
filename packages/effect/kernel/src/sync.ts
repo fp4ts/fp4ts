@@ -50,7 +50,7 @@ export const Sync = Object.freeze({
     }),
 
   syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTF, [F]>> =>
-    Sync.of({
+    Sync.of<$<OptionTF, [F]>>({
       ...MonadCancel.forOptionT(F),
 
       ...Clock.forOptionT(F),

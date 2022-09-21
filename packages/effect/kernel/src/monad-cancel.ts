@@ -157,12 +157,12 @@ export const MonadCancel = Object.freeze({
     }),
 
   forOptionT: <F, E>(F: MonadCancel<F, E>): MonadCancel<$<OptionTF, [F]>, E> =>
-    MonadCancel.of({
+    MonadCancel.of<$<OptionTF, [F]>, E>({
       ...OptionT.MonadError(F),
 
       canceled: OptionT.liftF(F)(F.canceled),
 
-      onCancel_: (fa, fin) => OptionT(F.onCancel_(fa.value, F.void(fin.value))),
+      onCancel_: (fa, fin) => F.onCancel_(fa, F.void(fin)),
 
       uncancelable: <A>(
         body: (poll: Poll<$<OptionTF, [F]>>) => OptionT<F, A>,
@@ -171,8 +171,8 @@ export const MonadCancel = Object.freeze({
           F.uncancelable(nat => {
             const natT: Poll<$<OptionTF, [F]>> = <A>(
               optfa: OptionT<F, A>,
-            ): OptionT<F, A> => OptionT(nat(optfa.value));
-            return body(natT).value;
+            ): OptionT<F, A> => nat(optfa);
+            return body(natT);
           }),
         ),
     }),

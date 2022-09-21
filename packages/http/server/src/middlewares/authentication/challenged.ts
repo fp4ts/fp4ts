@@ -34,7 +34,7 @@ export const challenged =
                   ),
                 ),
               ),
-            authedRequest => routes(authedRequest).value,
+            authedRequest => routes(authedRequest),
           ),
         ),
       ),
