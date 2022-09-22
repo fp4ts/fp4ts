@@ -3,15 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eq } from '@fp4ts/cats-kernel';
 import { $, $type, cached, Kind, Lazy, TyK, TyVar } from '@fp4ts/core';
+import { Eq } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
-import { ApplicativeError } from '../applicative-error';
-import { Apply } from '../apply';
 import { Defer } from '../defer';
 import { EqK } from '../eq-k';
-import { Eval } from '../eval';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { MonadError } from '../monad-error';
@@ -91,41 +88,11 @@ OptionT.Functor = cached(
     }),
 );
 
-OptionT.Apply = cached(
-  <F>(F: Monad<F>): Apply<$<OptionTF, [F]>> =>
-    Apply.of<$<OptionTF, [F]>>({
-      ...OptionT.Functor(F),
-      ap_: (ff, fa) =>
-        F.flatMap_(ff, f =>
-          f.fold(
-            () => F.pure(None),
-            f => F.map_(fa, a => a.map(f)),
-          ),
-        ),
-    }),
-);
-
-OptionT.Applicative = cached(
-  <F>(F: Monad<F>): Applicative<$<OptionTF, [F]>> =>
-    Applicative.of<$<OptionTF, [F]>>({
-      ...OptionT.Apply(F),
-      pure: <A>(a: A) => F.pure(Some(a)),
-    }),
-);
-
-OptionT.ApplicativeError = cached(
-  <F, E>(F: MonadError<F, E>): ApplicativeError<$<OptionTF, [F]>, E> =>
-    ApplicativeError.of<$<OptionTF, [F]>, E>({
-      ...OptionT.Applicative(F),
-      throwError: F.throwError,
-      handleErrorWith_: F.handleErrorWith_,
-    }),
-);
-
 OptionT.Monad = cached(
   <F>(F: Monad<F>): Monad<$<OptionTF, [F]>> =>
     Monad.of<$<OptionTF, [F]>>({
-      ...OptionT.Applicative(F),
+      ...OptionT.Functor(F),
+      pure: a => F.pure(Some(a)),
       flatMap_: (fa, f) =>
         F.flatMap_(fa, opt => opt.fold(() => F.pure(None), f)),
       tailRecM_: <A, B>(
@@ -147,14 +114,15 @@ OptionT.MonadError = cached(
   <F, E>(F: MonadError<F, E>): MonadError<$<OptionTF, [F]>, E> =>
     MonadError.of<$<OptionTF, [F]>, E>({
       ...OptionT.Monad(F),
-      ...OptionT.ApplicativeError(F),
+      throwError: F.throwError,
+      handleErrorWith_: F.handleErrorWith_,
     }),
 );
 
 OptionT.Alternative = cached(
   <F>(F: Monad<F>): Alternative<$<OptionTF, [F]>> =>
     Alternative.of<$<OptionTF, [F]>>({
-      ...OptionT.Applicative(F),
+      ...OptionT.Monad(F),
       emptyK: () => F.pure(None),
       combineK_: (fa, fb) =>
         F.flatMap_(fa, opt => (opt.isEmpty ? fb() : F.pure(opt))),
