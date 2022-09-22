@@ -9,24 +9,27 @@ import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 import { Clock, ClockRequirements } from './clock';
 import { UniqueToken, Unique } from './unique';
 
-export interface Sync<F>
+export interface Sync<F, E = Error>
   extends Clock<F>,
-    MonadCancel<F, Error>,
+    MonadCancel<F, E>,
     Defer<F>,
     Unique<F> {
   readonly delay: <A>(a: () => A) => Kind<F, [A]>;
 }
 
-export type SyncRequirements<F> = Pick<Omit<Sync<F>, 'unique'>, 'delay'> &
-  MonadCancelRequirements<F, Error> &
+export type SyncRequirements<F, E = Error> = Pick<
+  Omit<Sync<F, E>, 'unique'>,
+  'delay'
+> &
+  MonadCancelRequirements<F, E> &
   ClockRequirements<F> &
-  Partial<Sync<F>>;
+  Partial<Sync<F, E>>;
 export const Sync = Object.freeze({
-  of: <F>(F: SyncRequirements<F>): Sync<F> => {
-    const self: Sync<F> = {
+  of: <F, E = Error>(F: SyncRequirements<F, E>): Sync<F, E> => {
+    const self: Sync<F, E> = {
       unique: F.delay(() => new UniqueToken()),
       ...Clock.of(F),
-      ...MonadCancel.of(F),
+      ...MonadCancel.of<F, E>(F),
       ...Defer.of({
         defer: F.defer ?? (thunk => self.flatMap_(self.delay(thunk), id)),
       }),
@@ -35,9 +38,9 @@ export const Sync = Object.freeze({
     return self;
   },
 
-  syncForKleisli: <F, R>(F: Sync<F>): Sync<$<KleisliF, [F, R]>> =>
-    Sync.of({
-      ...MonadCancel.forKleisli(F),
+  syncForKleisli: <F, R, E>(F: Sync<F, E>): Sync<$<KleisliF, [F, R]>, E> =>
+    Sync.of<$<KleisliF, [F, R]>, E>({
+      ...MonadCancel.forKleisli<F, R, E>(F),
 
       ...Clock.forKleisli(F),
 
@@ -49,9 +52,9 @@ export const Sync = Object.freeze({
           F.delay(thunk),
     }),
 
-  syncForOptionT: <F>(F: Sync<F>): Sync<$<OptionTF, [F]>> =>
-    Sync.of<$<OptionTF, [F]>>({
-      ...MonadCancel.forOptionT(F),
+  syncForOptionT: <F, E>(F: Sync<F, E>): Sync<$<OptionTF, [F]>, E> =>
+    Sync.of<$<OptionTF, [F]>, E>({
+      ...MonadCancel.forOptionT<F, E>(F),
 
       ...Clock.forOptionT(F),
 

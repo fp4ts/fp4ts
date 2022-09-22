@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 
 export class CancellationError extends Error {}
 
-export abstract class Outcome<F, E, A> {
+export abstract class Outcome<F, out E, out A> {
   private readonly __void!: void;
 
   private readonly _F!: F;

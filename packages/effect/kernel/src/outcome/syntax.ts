@@ -9,7 +9,7 @@ import { Outcome } from './algebra';
 import { fold_, mapK_ } from './operators';
 
 declare module './algebra' {
-  interface Outcome<F, E, A> {
+  interface Outcome<F, out E, out A> {
     mapK<G>(nt: FunctionK<F, G>): Outcome<G, E, A>;
 
     fold<B1, B2 = B1, B3 = B2>(

@@ -114,9 +114,9 @@ export const MonadErrorGenerators = <F, E>(
   };
 };
 
-export const SyncGenerators = <F>(
-  F: Sync<F>,
-  arbE: Arbitrary<Error>,
+export const SyncGenerators = <F, E>(
+  F: Sync<F, E>,
+  arbE: Arbitrary<E>,
 ): KindGenerator<F> => {
   const monadErrorGens = MonadErrorGenerators(F, arbE);
 
@@ -266,9 +266,9 @@ export const TemporalGenerators = <F, E>(
   };
 };
 
-export const AsyncGenerators = <F>(
-  F: Async<F>,
-  arbE: Arbitrary<Error>,
+export const AsyncGenerators = <F, E>(
+  F: Async<F, E>,
+  arbE: Arbitrary<E>,
   arbEC: Arbitrary<ExecutionContext>,
 ): KindGenerator<F> => {
   const temporalGens = TemporalGenerators(F, arbE);

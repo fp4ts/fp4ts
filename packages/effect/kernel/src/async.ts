@@ -23,15 +23,13 @@ import { MonadCancel } from './monad-cancel';
 import { Sync, SyncRequirements } from './sync';
 import { Temporal, TemporalRequirements } from './temporal';
 
-export interface Async<F> extends Sync<F>, Temporal<F, Error> {
+export interface Async<F, E = Error> extends Sync<F, E>, Temporal<F, E> {
   readonly async: <A>(
-    k: (
-      cb: (ea: Either<Error, A>) => void,
-    ) => Kind<F, [Option<Kind<F, [void]>>]>,
+    k: (cb: (ea: Either<E, A>) => void) => Kind<F, [Option<Kind<F, [void]>>]>,
   ) => Kind<F, [A]>;
 
   readonly async_: <A>(
-    k: (cb: (ea: Either<Error, A>) => void) => void,
+    k: (cb: (ea: Either<E, A>) => void) => void,
   ) => Kind<F, [A]>;
 
   readonly never: Kind<F, [never]>;
@@ -48,28 +46,28 @@ export interface Async<F> extends Sync<F>, Temporal<F, Error> {
 
   readonly fromPromise: <A>(p: Kind<F, [Promise<A>]>) => Kind<F, [A]>;
 
-  readonly cont: <K, R>(body: Cont<F, K, R>) => Kind<F, [R]>;
+  readonly cont: <K, R>(body: Cont<F, K, R, E>) => Kind<F, [R]>;
 }
 
-export type AsyncRequirements<F> = Pick<
-  Async<F>,
+export type AsyncRequirements<F, E = Error> = Pick<
+  Async<F, E>,
   'readExecutionContext' | 'executeOn_' | 'cont'
 > &
-  SyncRequirements<F> &
-  TemporalRequirements<F, Error> &
-  Partial<Async<F>>;
+  SyncRequirements<F, E> &
+  TemporalRequirements<F, E> &
+  Partial<Async<F, E>>;
 export const Async = Object.freeze({
-  of: <F>(F: AsyncRequirements<F>): Async<F> => {
-    const self: Async<F> = {
+  of: <F, E = Error>(F: AsyncRequirements<F, E>): Async<F, E> => {
+    const self: Async<F, E> = {
       async: <A>(
         k: (
-          cb: (ea: Either<Error, A>) => void,
+          cb: (ea: Either<E, A>) => void,
         ) => Kind<F, [Option<Kind<F, [void]>>]>,
       ): Kind<F, [A]> => {
-        const body: Cont<F, A, A> =
-          <G>(G: MonadCancel<G, Error>) =>
+        const body: Cont<F, A, A, E> =
+          <G>(G: MonadCancel<G, E>) =>
           (
-            resume: (ea: Either<Error, A>) => void,
+            resume: (ea: Either<E, A>) => void,
             get: Kind<G, [A]>,
             lift: FunctionK<F, G>,
           ) =>
@@ -85,9 +83,7 @@ export const Async = Object.freeze({
         return self.cont(body);
       },
 
-      async_: <A>(
-        k: (cb: (ea: Either<Error, A>) => void) => void,
-      ): Kind<F, [A]> =>
+      async_: <A>(k: (cb: (ea: Either<E, A>) => void) => void): Kind<F, [A]> =>
         self.async<A>(cb =>
           self.map_(
             self.delay(() => k(cb)),
@@ -105,7 +101,7 @@ export const Async = Object.freeze({
         self.flatMap_(fp, p =>
           self.async_(resume => {
             const onSuccess: (x: A) => void = flow(Right, resume);
-            const onFailure: (e: Error) => void = flow(Left, resume);
+            const onFailure: (e: E) => void = flow(Left, resume);
             p.then(onSuccess, onFailure);
           }),
         ),
@@ -117,9 +113,9 @@ export const Async = Object.freeze({
     return self;
   },
 
-  asyncForKleisli: <F, R>(F: Async<F>): Async<$<KleisliF, [F, R]>> =>
-    Async.of({
-      ...Sync.syncForKleisli(F),
+  asyncForKleisli: <F, R, E>(F: Async<F, E>): Async<$<KleisliF, [F, R]>, E> =>
+    Async.of<$<KleisliF, [F, R]>, E>({
+      ...Sync.syncForKleisli<F, R, E>(F),
       ...Temporal.temporalForKleisli(F),
 
       readExecutionContext: () => F.readExecutionContext,
@@ -130,20 +126,20 @@ export const Async = Object.freeze({
       ): Kleisli<F, R, A> => Kleisli((r: R) => F.executeOn_(fa(r), ec)),
 
       cont: <K, R2>(
-        body: Cont<$<KleisliF, [F, R]>, K, R2>,
+        body: Cont<$<KleisliF, [F, R]>, K, R2, E>,
       ): Kleisli<F, R, R2> =>
         Kleisli((r: R) => {
-          const cont: Cont<F, K, R2> =
-            <G>(G: MonadCancel<G, Error>) =>
+          const cont: Cont<F, K, R2, E> =
+            <G>(G: MonadCancel<G, E>) =>
             (
-              k: (ea: Either<Error, K>) => void,
+              k: (ea: Either<E, K>) => void,
               get: Kind<G, [K]>,
               nat: FunctionK<F, G>,
             ): Kind<G, [R2]> => {
               const natT = <A>(fa: Kleisli<F, R, A>): Kleisli<G, R, A> =>
                 Kleisli((r: R) => nat(fa(r)));
 
-              return body(MonadCancel.forKleisli<G, R, Error>(G))(
+              return body(MonadCancel.forKleisli<G, R, E>(G))(
                 k,
                 () => get,
                 natT,
@@ -154,9 +150,9 @@ export const Async = Object.freeze({
         }),
     }),
 
-  asyncForOptionT: <F>(F: Async<F>): Async<$<OptionTF, [F]>> =>
-    Async.of<$<OptionTF, [F]>>({
-      ...Sync.syncForOptionT(F),
+  asyncForOptionT: <F, E>(F: Async<F, E>): Async<$<OptionTF, [F]>, E> =>
+    Async.of<$<OptionTF, [F]>, E>({
+      ...Sync.syncForOptionT<F, E>(F),
       ...Temporal.temporalForOptionT(F),
 
       readExecutionContext: OptionT.liftF(F)(F.readExecutionContext),
@@ -164,11 +160,11 @@ export const Async = Object.freeze({
       executeOn_: <A>(fa: OptionT<F, A>, ec: ExecutionContext): OptionT<F, A> =>
         OptionT(F.executeOn_(fa, ec)),
 
-      cont: <K, R>(body: Cont<$<OptionTF, [F]>, K, R>): OptionT<F, R> => {
-        const cont: Cont<F, K, Option<R>> =
-          <G>(G: MonadCancel<G, Error>) =>
+      cont: <K, R>(body: Cont<$<OptionTF, [F]>, K, R, E>): OptionT<F, R> => {
+        const cont: Cont<F, K, Option<R>, E> =
+          <G>(G: MonadCancel<G, E>) =>
           (
-            k: (ea: Either<Error, K>) => void,
+            k: (ea: Either<E, K>) => void,
             get: Kind<G, [K]>,
             nat: FunctionK<F, G>,
           ): Kind<G, [Option<R>]> => {
@@ -176,7 +172,7 @@ export const Async = Object.freeze({
               fa: OptionT<F, A>,
             ): OptionT<G, A> => nat(fa);
 
-            return body(MonadCancel.forOptionT<G, Error>(G))(
+            return body(MonadCancel.forOptionT<G, E>(G))(
               k,
               OptionT.liftF(G)(get),
               natT,
