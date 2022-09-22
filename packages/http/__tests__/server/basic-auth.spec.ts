@@ -46,7 +46,7 @@ describe('Basic Auth', () => {
             IO(launchNukes).map(() => Status.Gone<IOF>()),
           ),
         )
-        .getOrElse(() => OptionT.none(IO.Applicative)),
+        .getOrElse(() => OptionT.None(IO.Applicative)),
     );
 
   const service = AuthedRoutes<IOF, string>(req =>
@@ -56,7 +56,7 @@ describe('Basic Auth', () => {
           IO.pure(Status.Ok(req.context)(EntityEncoder.text<IOF>())),
         ),
       )
-      .getOrElse(() => OptionT.none(IO.Applicative)),
+      .getOrElse(() => OptionT.None(IO.Applicative)),
   );
 
   const basicMiddleware = BasicAuth(IO.Sync)(realm, validatePassword);

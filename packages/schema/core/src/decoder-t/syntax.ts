@@ -271,7 +271,7 @@ declare module './algebra' {
 
 Object.defineProperty(DecoderT.prototype, 'decode', {
   get<I, A>(this: Decoder<I, A>) {
-    return (i: I): Either<DecodeFailure, A> => this.decodeT(i).value.value;
+    return (i: I): Either<DecodeFailure, A> => this.decodeT(i).value;
   },
 });
 

@@ -17,6 +17,7 @@ import { Eval, EvalF } from './eval';
 import { defer, pure } from './constructors';
 import { flatMap_, map_, tailRecM_ } from './operators';
 import { StackSafeMonad } from '../stack-safe-monad';
+import { EqK } from '../eq-k';
 
 export const evalDefer: Lazy<Defer<EvalF>> = lazyVal(() => Defer.of({ defer }));
 
@@ -62,6 +63,7 @@ export const evalMonad: Lazy<Monad<EvalF>> = lazyVal(() =>
 interface EvalEq<A> extends Eq<Eval<A>> {}
 
 export const evalEq: <A>(E: Eq<A>) => EvalEq<A> = E => Eq.by(E, e => e.value);
+export const evalEqK = lazyVal(() => EqK.of<EvalF>({ liftEq: evalEq }));
 
 interface EvalSemigroup<A> extends Semigroup<Eval<A>> {}
 

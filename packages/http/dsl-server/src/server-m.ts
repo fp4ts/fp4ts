@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { EitherT, Monad } from '@fp4ts/cats';
+import { Either, EitherT, Monad } from '@fp4ts/cats';
 import { MessageFailure } from '@fp4ts/http-core';
 import { AddHeader } from './add-header';
 
@@ -37,21 +37,21 @@ export class ServerM<F> {
     h: H,
     fa: EitherT<F, MessageFailure, A>,
   ): EitherT<F, MessageFailure, AddHeader<H, A>> =>
-    fa.map(this._F)(this.addHeader(h));
+    this._F.map_(fa, ea => ea.map(this.addHeader(h)));
 
   public readonly return = <A>(a: A): EitherT<F, MessageFailure, A> =>
-    EitherT.right(this._F)(a);
+    EitherT.Right(this._F)(a);
 
   public readonly liftF = <A>(
     fa: Kind<F, [A]>,
-  ): EitherT<F, MessageFailure, A> => EitherT.rightT(this._F)(fa);
+  ): EitherT<F, MessageFailure, A> => EitherT.liftF(this._F)(fa);
 
-  public readonly unit: EitherT<F, MessageFailure, void> = EitherT.rightUnit(
-    this._F,
+  public readonly unit: EitherT<F, MessageFailure, void> = this._F.pure(
+    Either.rightUnit,
   );
   public readonly NoContent: EitherT<F, MessageFailure, void> = this.unit;
 
   public readonly throwError = <A = never>(
     failure: MessageFailure,
-  ): EitherT<F, MessageFailure, A> => EitherT.left(this._F)(failure);
+  ): EitherT<F, MessageFailure, A> => EitherT.Left(this._F)(failure);
 }

@@ -43,7 +43,11 @@ export const optional =
       Option.isOption(i)
         ? i.fold(
             () => DecodeResultT.success(F)(None),
-            x => d.decodeT(x).map(F)(Some),
+            x =>
+              pipe(
+                d.decodeT(x),
+                F.map(ea => ea.map(Some)),
+              ),
           )
         : DecodeResultT.failure(F)(new DecodeFailure('Expected Option')),
     );
@@ -87,7 +91,11 @@ export const orElse_ =
     da: DecoderT<F, I, A>,
     alt: () => DecoderT<F, I, A>,
   ): DecoderT<F, I, A> =>
-    new DecoderT(i => da.decodeT(i).orElse(F)(() => alt().decodeT(i)));
+    new DecoderT(i =>
+      EitherT.SemigroupK<F, DecodeFailure>(F).combineK_(da.decodeT(i), () =>
+        alt().decodeT(i),
+      ),
+    );
 
 export const filter_ =
   <F>(F: Monad<F>) =>
@@ -107,7 +115,7 @@ export const collect_ =
   ): DecoderT<F, I, B> =>
     new DecoderT(
       AndThen(d.decodeT).andThen(fb =>
-        fb.flatMap(F)(b =>
+        EitherT.Monad<F, DecodeFailure>(F).flatMap_(fb, b =>
           f(b).fold(
             () => DecodeResultT.failure(F)(new DecodeFailure(cause)),
             DecodeResultT.success(F),
@@ -123,7 +131,7 @@ export const dimap_ =
     f: (ii: II) => I,
     g: (a: A) => B,
   ): DecoderT<F, II, B> =>
-    new DecoderT(ii => d.decodeT(f(ii)).map(F)(g));
+    new DecoderT(ii => F.map_(d.decodeT(f(ii)), ea => ea.map(g)));
 
 export const adapt_ = <F, II, I, A>(
   d: DecoderT<F, I, A>,
@@ -136,9 +144,7 @@ export const adaptF_ =
     d: DecoderT<F, I, A>,
     f: (ii: II) => Kind<F, [I]>,
   ): DecoderT<F, II, A> =>
-    new DecoderT(ii =>
-      EitherT.liftF(F)<I, DecodeFailure>(f(ii)).flatMap(F)(d.decodeT),
-    );
+    new DecoderT(ii => F.flatMap_(f(ii), d.decodeT));
 
 export const bimap_ =
   <F>(F: Functor<F>) =>
@@ -147,7 +153,9 @@ export const bimap_ =
     f: (df: DecodeFailure) => DecodeFailure,
     g: (a: A) => B,
   ): DecoderT<F, I, B> =>
-    new DecoderT(AndThen(d.decodeT).andThen(ea => ea.bimap(F)(f, g)));
+    new DecoderT(
+      AndThen(d.decodeT).andThen(fea => F.map_(fea, ea => ea.bimap(f, g))),
+    );
 
 export const leftMap_ =
   <F>(F: Functor<F>) =>
@@ -168,7 +176,11 @@ export const flatMap_ =
     d: DecoderT<F, I, A>,
     f: (a: A) => DecoderT<F, I, B>,
   ): DecoderT<F, I, B> =>
-    new DecoderT(i => d.decodeT(i).flatMap(F)(x => f(x).decodeT(i)));
+    new DecoderT(i =>
+      EitherT.Monad<F, DecodeFailure>(F).flatMap_(d.decodeT(i), x =>
+        f(x).decodeT(i),
+      ),
+    );
 
 export const flatMapR_ =
   <F>(F: Monad<F>) =>
@@ -176,7 +188,11 @@ export const flatMapR_ =
     d: DecoderT<F, I, A>,
     f: (a: A) => DecodeResultT<F, B>,
   ): DecoderT<F, I, B> =>
-    new DecoderT(AndThen(d.decodeT).andThen(ea => ea.flatMap(F)(f)));
+    new DecoderT(
+      AndThen(d.decodeT).andThen(fea =>
+        EitherT.Monad<F, DecodeFailure>(F).flatMap_(fea, f),
+      ),
+    );
 
 export const handleError_ =
   <F>(F: Functor<F>) =>
@@ -207,7 +223,7 @@ export const transform_ =
   ): DecoderT<F, I, B> =>
     new DecoderT(
       AndThen(d.decodeT)
-        .andThen(r => F.map_(r.value, f))
+        .andThen(r => F.map_(r, f))
         .andThen(EitherT),
     );
 
@@ -217,11 +233,7 @@ export const transformWithR_ =
     d: DecoderT<F, I, A>,
     f: (ea: Either<DecodeFailure, A>) => DecodeResultT<F, B>,
   ): DecoderT<F, I, B> =>
-    new DecoderT(
-      AndThen(d.decodeT)
-        .andThen(r => F.flatMap_(r.value, ea => f(ea).value))
-        .andThen(EitherT),
-    );
+    new DecoderT(AndThen(d.decodeT).andThen(r => F.flatMap_(r, ea => f(ea))));
 
 export const transformWith_ =
   <F>(F: Monad<F>) =>
@@ -231,16 +243,19 @@ export const transformWith_ =
   ): DecoderT<F, I, B> =>
     new DecoderT(i =>
       pipe(
-        d.decodeT(i).value,
-        F.flatMap(ea => f(ea).decodeT(i).value),
-        EitherT,
+        d.decodeT(i),
+        F.flatMap(ea => f(ea).decodeT(i)),
       ),
     );
 
 export const andThen_ =
   <F>(F: Monad<F>) =>
   <I, A, B>(da: DecoderT<F, I, A>, db: DecoderT<F, A, B>): DecoderT<F, I, B> =>
-    new DecoderT(AndThen(da.decodeT).andThen(ea => ea.flatMap(F)(db.decodeT)));
+    new DecoderT(
+      AndThen(da.decodeT).andThen(fea =>
+        EitherT.Monad<F, DecodeFailure>(F).flatMap_(fea, db.decodeT),
+      ),
+    );
 
 export const compose_ =
   <F>(F: Monad<F>) =>

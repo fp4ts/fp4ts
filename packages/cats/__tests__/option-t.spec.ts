@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
 import fc, { Arbitrary } from 'fast-check';
+import { $ } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Applicative } from '@fp4ts/cats-core';
 import {
@@ -180,12 +180,9 @@ describe('OptionT', () => {
   });
 
   describe('laws', () => {
-    const alternativeTests = AlternativeSuite(
-      OptionT.Alternative(Identity.Monad),
-    );
     checkAll(
       'Alternative<OptionT<Identity, *>>',
-      alternativeTests.alternative(
+      AlternativeSuite(OptionT.Alternative(Identity.Monad)).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -198,12 +195,11 @@ describe('OptionT', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(
-      Applicative.coflatMap(OptionT.Applicative(Either.Monad<string>())),
-    );
     checkAll(
-      'CoflatMap<OptionT<EitherF<string, *>>>',
-      coflatMapTests.coflatMap(
+      'CoflatMap<OptionT<Either<string, *>>>',
+      CoflatMapSuite(
+        Applicative.coflatMap(OptionT.Monad(Either.Monad<string>())),
+      ).coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -221,12 +217,11 @@ describe('OptionT', () => {
       ),
     );
 
-    const monadErrorTests = MonadErrorSuite(
-      OptionT.MonadError(Either.MonadError<string>()),
-    );
     checkAll(
       'MonadError<OptionT<Either<string, *>, *>>',
-      monadErrorTests.monadError(
+      MonadErrorSuite(
+        OptionT.MonadError(Either.MonadError<string>()),
+      ).monadError(
         fc.integer(),
         fc.integer(),
         fc.integer(),

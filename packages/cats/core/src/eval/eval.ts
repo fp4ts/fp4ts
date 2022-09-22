@@ -21,12 +21,14 @@ import {
   evalCoflatMap,
   evalDefer,
   evalEq,
+  evalEqK,
   evalFlatMap,
   evalFunctor,
   evalMonad,
   evalMonoid,
   evalSemigroup,
 } from './instances';
+import { EqK } from '../eq-k';
 
 export type Eval<A> = EvalBase<A>;
 
@@ -52,6 +54,7 @@ interface EvalObj {
 
   // -- Instances
 
+  readonly EqK: EqK<EvalF>;
   readonly Defer: Defer<EvalF>;
   readonly Functor: Functor<EvalF>;
   readonly Apply: Apply<EvalF>;
@@ -79,6 +82,11 @@ Eval.true = new Now(true);
 Eval.zero = new Now(0);
 Eval.one = new Now(1);
 
+Object.defineProperty(Eval, 'EqK', {
+  get() {
+    return evalEqK();
+  },
+});
 Object.defineProperty(Eval, 'Defer', {
   get() {
     return evalDefer();

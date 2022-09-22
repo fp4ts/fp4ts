@@ -389,11 +389,20 @@ export function route<F>(F: Concurrent<F, Error>) {
         s => () =>
           RouteResultT.fromEitherFatal(F)(
             // Fatal fail ^ as we cannot consume body more than once
-            pipe(s.compileConcurrent(F).string, F.attempt, EitherT)
-              .leftMap(F)(e => new ParsingFailure(e.message) as MessageFailure)
-              .flatMap(F)(str =>
-              EitherT(
-                F.pure(decode(str).leftMap(e => new ParsingFailure(e.message))),
+            pipe(
+              s.compileConcurrent(F).string,
+              F.attempt,
+              F.map(ea =>
+                ea.leftMap(
+                  e => new ParsingFailure(e.message) as MessageFailure,
+                ),
+              ),
+              EitherT.Monad<F, MessageFailure>(F).flatMap(str =>
+                EitherT(
+                  F.pure(
+                    decode(str).leftMap(e => new ParsingFailure(e.message)),
+                  ),
+                ),
               ),
             ),
           ),

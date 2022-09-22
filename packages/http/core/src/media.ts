@@ -34,6 +34,6 @@ export abstract class Media<F> {
   public as(
     F: MonadError<F, Error>,
   ): <A>(decoder: EntityDecoder<F, A>) => Kind<F, [A]> {
-    return decoder => F.rethrow(this.attemptAs(decoder).value);
+    return decoder => F.rethrow(this.attemptAs(decoder));
   }
 }

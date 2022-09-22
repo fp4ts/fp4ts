@@ -46,7 +46,7 @@ describe('Simple HTTP api dsl client', () => {
   it.M('should respond with a unit response', () =>
     withServer(app)(server => {
       const baseUri = server.baseUri;
-      return version(new Request({ uri: baseUri })).value.flatMap(resp =>
+      return version(new Request({ uri: baseUri })).flatMap(resp =>
         IO(() => expect(resp).toEqual(Either.rightUnit)),
       );
     }),
@@ -55,7 +55,7 @@ describe('Simple HTTP api dsl client', () => {
   it.M("should respond with a 'pong'", () =>
     withServer(app)(server => {
       const baseUri = server.baseUri;
-      return ping(new Request({ uri: baseUri })).value.flatMap(resp =>
+      return ping(new Request({ uri: baseUri })).flatMap(resp =>
         IO(() => expect(resp).toEqual(Right('pong'))),
       );
     }),
@@ -66,7 +66,7 @@ describe('Simple HTTP api dsl client', () => {
       fc.asyncProperty(fc.string(), s =>
         withServer(app)(server => {
           const baseUri = server.baseUri;
-          return echo(s)(new Request({ uri: baseUri })).value.flatMap(resp =>
+          return echo(s)(new Request({ uri: baseUri })).flatMap(resp =>
             IO(() => expect(resp).toEqual(Right(s))),
           );
         }).unsafeRunToPromise(),

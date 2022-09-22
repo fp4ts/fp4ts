@@ -8,4 +8,4 @@ import { MessageFailure } from '@fp4ts/http';
 
 export const version = <F>(
   F: Applicative<F>,
-): EitherT<F, MessageFailure, string> => EitherT.right(F)('v1.0.0');
+): EitherT<F, MessageFailure, string> => EitherT.Right(F)('v1.0.0');

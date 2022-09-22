@@ -49,17 +49,16 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<EitherTF, [F, E]>, W>({
       monoid: F.monoid,
       ...EitherT.Monad<F, E>(F),
-      censor_: (fa, f) => EitherT(F.censor_(fa.value, f)),
-      listen: fa =>
-        EitherT(F.map_(F.listen(fa.value), ([ea, w]) => ea.map(a => [a, w]))),
-      tell: w => EitherT(F.map_(F.tell(w), Right)),
+      censor_: F.censor_,
+      listen: fa => F.map_(F.listen(fa), ([ea, w]) => ea.map(a => [a, w])),
+      tell: w => F.map_(F.tell(w), Right),
     }),
 
   OptionT: <F, W>(F: MonadWriter<F, W>): MonadWriter<$<OptionTF, [F]>, W> =>
     MonadWriter.of<$<OptionTF, [F]>, W>({
       monoid: F.monoid,
       ...OptionT.Monad<F>(F),
-      censor_: (fa, f) => F.censor_(fa, f),
+      censor_: F.censor_,
       listen: fa => F.map_(F.listen(fa), ([opt, w]) => opt.map(a => [a, w])),
       tell: w => F.map_(F.tell(w), Some),
     }),

@@ -4,12 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind, pipe, tupled } from '@fp4ts/core';
+import { $, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Applicative,
   Array as CatsArray,
   Either,
   EitherT,
+  EitherTF,
   Functor,
   Monad,
   None,
@@ -131,13 +132,17 @@ export const array =
       unknownArray(F),
       andThen(F)(
         new DecoderT(xs => {
+          const M = EitherT.Monad<F, DecodeFailure>(F);
           const loop = (acc: A[], idx: number): DecodeResultT<F, A[]> =>
             idx >= xs.length
               ? DecodeResultT.success(F)(acc)
-              : da
-                  .decodeT(xs[idx])
-                  .leftMap(F)(f => f.mapCause(f => `${f} at index '${idx}'`))
-                  .flatMap(F)(x => loop([...acc, x], idx + 1));
+              : pipe(
+                  da.decodeT(xs[idx]),
+                  F.map(ea =>
+                    ea.leftMap(f => f.mapCause(f => `${f} at index '${idx}'`)),
+                  ),
+                  M.flatMap(x => loop([...acc, x], idx + 1)),
+                );
           return loop([], 0);
         }),
       ),
@@ -150,6 +155,7 @@ export const record =
       unknownRecord(F),
       andThen(F)(
         new DecoderT(xs => {
+          const M = EitherT.Monad<F, DecodeFailure>(F);
           const keys = Object.keys(xs);
           const loop = (
             acc: Record<string, A>,
@@ -158,10 +164,13 @@ export const record =
             const k = keys[idx];
             return idx >= keys.length
               ? DecodeResultT.success(F)(acc)
-              : ds
-                  .decodeT(xs[k as any])
-                  .leftMap(F)(f => f.mapCause(f => `${f} at key '${k}'`))
-                  .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
+              : pipe(
+                  ds.decodeT(xs[k as any]),
+                  F.map(ea =>
+                    ea.leftMap(f => f.mapCause(f => `${f} at key '${k}'`)),
+                  ),
+                  M.flatMap(x => loop({ ...acc, [k]: x }, idx + 1)),
+                );
           };
           return loop({}, 0);
         }),
@@ -180,6 +189,7 @@ export const struct =
       unknownRecord(F),
       andThen(F)(
         new DecoderT(xs => {
+          const M = EitherT.Monad<F, DecodeFailure>(F);
           const loop = (acc: Partial<A>, idx: number): DecodeResultT<F, A> => {
             const k = keys[idx];
             if (idx >= keys.length) return DecodeResultT.success(F)(acc as A);
@@ -188,10 +198,15 @@ export const struct =
                 new DecodeFailure(`missing property '${k as string}'`),
               );
 
-            return ds[k]
-              .decodeT(xs[k as any])
-              .leftMap(F)(f => f.mapCause(f => `${f} at key '${k as string}'`))
-              .flatMap(F)(x => loop({ ...acc, [k]: x }, idx + 1));
+            return pipe(
+              ds[k].decodeT(xs[k as any]),
+              F.map(ea =>
+                ea.leftMap(f =>
+                  f.mapCause(f => `${f} at key '${k as string}'`),
+                ),
+              ),
+              M.flatMap(x => loop({ ...acc, [k]: x }, idx + 1)),
+            );
           };
           return loop({}, 0);
         }),
@@ -212,24 +227,30 @@ export const partial =
         new DecoderT(xs =>
           pipe(
             Object.keys(ds) as (keyof A)[],
-            traverse(EitherT.Monad<F, DecodeFailure>(F))(k => {
+            traverse<$<EitherTF, [F, DecodeFailure]>>(
+              EitherT.Monad<F, DecodeFailure>(F),
+            )(k => {
               if (!(k in xs)) return DecodeResultT.success(F)(None);
 
-              return mapFailure_(F)(
-                ds[k],
-                f => `'${f}' at key '${k as string}'`,
-              )
-                .decodeT(xs[k as string])
-                .map(F)(r => Some(tupled(r, k)));
+              return pipe(
+                mapFailure_(F)(
+                  ds[k],
+                  f => `'${f}' at key '${k as string}'`,
+                ).decodeT(xs[k as string]),
+                F.map(ea => ea.map(r => Some(tupled(r, k)))),
+              );
             }),
-          ).map(F)(rs =>
-            rs.reduce(
-              (acc, kxs) =>
-                kxs.fold(
-                  () => acc,
-                  ([x, k]) => ({ ...acc, [k]: x }),
+            F.map(ea =>
+              ea.map(rs =>
+                rs.reduce(
+                  (acc, kxs) =>
+                    kxs.fold(
+                      () => acc,
+                      ([x, k]) => ({ ...acc, [k]: x }),
+                    ),
+                  {} as Partial<A>,
                 ),
-              {} as Partial<A>,
+              ),
             ),
           ),
         ),
@@ -250,11 +271,13 @@ export const product =
               new DecodeFailure('Length mismatch'),
             );
 
+          const M = EitherT.Monad<F, DecodeFailure>(F);
           const loop = (acc: any[], idx: number): DecodeResultT<F, A> =>
             idx >= ds.length
               ? DecodeResultT.success(F)(acc as A)
-              : ds[idx].decodeT(xs[idx]).flatMap(F)(x =>
-                  loop([...acc, x], idx + 1),
+              : pipe(
+                  ds[idx].decodeT(xs[idx]),
+                  M.flatMap(x => loop([...acc, x], idx + 1)),
                 );
 
           return loop([], 0);

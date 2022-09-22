@@ -28,12 +28,12 @@ OptionT.Some =
   <A>(a: A): OptionT<F, A> =>
     F.pure(Some(a));
 
+OptionT.None = <F>(F: Applicative<F>): OptionT<F, never> => F.pure(None);
+
 OptionT.fromNullable =
   <F>(F: Applicative<F>) =>
   <A>(a: A | null | undefined): OptionT<F, A> =>
     F.pure(Option(a));
-
-OptionT.None = <F>(F: Applicative<F>): OptionT<F, never> => F.pure(None);
 
 OptionT.liftF =
   <F>(F: Functor<F>) =>

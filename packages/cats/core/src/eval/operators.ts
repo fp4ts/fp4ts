@@ -5,16 +5,8 @@
 
 import { id } from '@fp4ts/core';
 import { Either } from '../data';
-import { Eval, FlatMap, Map, Now } from './algebra';
+import { Eval, FlatMap, Map } from './algebra';
 import { pure } from './constructors';
-
-export const memoize: <A>(fa: Eval<A>) => Eval<A> = fa => fa.memoize;
-
-export const value: <A>(fa: Eval<A>) => A = fa => fa.value;
-
-export const map: <A, B>(f: (a: A) => B) => (fa: Eval<A>) => Eval<B> =
-  f => fa =>
-    map_(fa, f);
 
 export const flatMap: <A, B>(
   f: (a: A) => Eval<B>,

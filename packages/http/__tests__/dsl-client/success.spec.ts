@@ -50,7 +50,7 @@ describe('Success', () => {
   describe('Get', () => {
     it.M('should get root', () =>
       withServer(server)(server =>
-        getRoot(new Request({ uri: server.baseUri })).value.map(person =>
+        getRoot(new Request({ uri: server.baseUri })).map(person =>
           expect(person).toEqual(Right(carol)),
         ),
       ),
@@ -58,7 +58,7 @@ describe('Success', () => {
 
     it.M('should get simple endpoint', () =>
       withServer(server)(server =>
-        getGet(new Request({ uri: server.baseUri })).value.map(person =>
+        getGet(new Request({ uri: server.baseUri })).map(person =>
           expect(person).toEqual(Right(alice)),
         ),
       ),
@@ -66,7 +66,7 @@ describe('Success', () => {
 
     it.M('should get simple endpoint', () =>
       withServer(server)(server =>
-        getGet(new Request({ uri: server.baseUri })).value.map(person =>
+        getGet(new Request({ uri: server.baseUri })).map(person =>
           expect(person).toEqual(Right(alice)),
         ),
       ),
@@ -76,7 +76,7 @@ describe('Success', () => {
   describe('Delete', () => {
     it.M('should perform delete with empty content', () =>
       withServer(server)(server =>
-        deleteEmpty(new Request({ uri: server.baseUri })).value.map(res =>
+        deleteEmpty(new Request({ uri: server.baseUri })).map(res =>
           expect(res).toEqual(Either.rightUnit),
         ),
       ),
@@ -86,8 +86,8 @@ describe('Success', () => {
   describe('Capture', () => {
     it.M('should capture the parameter', () =>
       withServer(server)(server =>
-        getCapture('Paula')(new Request({ uri: server.baseUri })).value.map(
-          res => expect(res).toEqual(Right(Person({ name: 'Paula', age: 0 }))),
+        getCapture('Paula')(new Request({ uri: server.baseUri })).map(res =>
+          expect(res).toEqual(Right(Person({ name: 'Paula', age: 0 }))),
         ),
       ),
     );
@@ -96,18 +96,17 @@ describe('Success', () => {
   describe('Capture All', () => {
     it.M('should capture no parameters', () =>
       withServer(server)(server =>
-        getCaptureAll(List.empty)(
-          new Request({ uri: server.baseUri }),
-        ).value.map(res => expect(res).toEqual(Right([]))),
+        getCaptureAll(List.empty)(new Request({ uri: server.baseUri })).map(
+          res => expect(res).toEqual(Right([])),
+        ),
       ),
     );
 
     it.M('should capture a single parameter', () =>
       withServer(server)(server =>
-        getCaptureAll(List('Paula'))(
-          new Request({ uri: server.baseUri }),
-        ).value.map(res =>
-          expect(res).toEqual(Right([Person({ name: 'Paula', age: 0 })])),
+        getCaptureAll(List('Paula'))(new Request({ uri: server.baseUri })).map(
+          res =>
+            expect(res).toEqual(Right([Person({ name: 'Paula', age: 0 })])),
         ),
       ),
     );
@@ -116,7 +115,7 @@ describe('Success', () => {
       withServer(server)(server =>
         getCaptureAll(List('Paula', 'Kim', 'Jessica'))(
           new Request({ uri: server.baseUri }),
-        ).value.map(res =>
+        ).map(res =>
           expect(res).toEqual(
             Right([
               Person({ name: 'Paula', age: 0 }),
@@ -135,7 +134,7 @@ describe('Success', () => {
         const uri = server.baseUri;
         const clara = Person({ name: 'Clara', age: 34 });
 
-        return postBody(clara)(new Request({ uri })).value.map(res =>
+        return postBody(clara)(new Request({ uri })).map(res =>
           expect(res).toEqual(Right(clara)),
         );
       }),
@@ -145,8 +144,8 @@ describe('Success', () => {
   describe('Query Parameter', () => {
     it.M('should pass query parameter', () =>
       withServer(server)(server =>
-        getParam(Some('alice'))(new Request({ uri: server.baseUri })).value.map(
-          res => expect(res).toEqual(Right(alice)),
+        getParam(Some('alice'))(new Request({ uri: server.baseUri })).map(res =>
+          expect(res).toEqual(Right(alice)),
         ),
       ),
     );
@@ -155,7 +154,7 @@ describe('Success', () => {
       withServer(server)(server =>
         IO.Monad.do(function* (_) {
           const res = yield* _(
-            getParam(Some('Carol'))(new Request({ uri: server.baseUri })).value,
+            getParam(Some('Carol'))(new Request({ uri: server.baseUri })),
           );
 
           expect(res).toEqual(Left(expect.any(ResponseFailure)));
@@ -168,7 +167,7 @@ describe('Success', () => {
       withServer(server)(server =>
         IO.Monad.do(function* (_) {
           const res = yield* _(
-            getParam(None)(new Request({ uri: server.baseUri })).value,
+            getParam(None)(new Request({ uri: server.baseUri })),
           );
 
           expect(res).toEqual(Left(expect.any(ResponseFailure)));
@@ -184,10 +183,10 @@ describe('Success', () => {
         server,
         clientResource,
       )((server, client) =>
-        rawSuccess(req => EitherT.rightT(IO.Monad)(client.fetch(req, IO.pure)))(
+        rawSuccess(req => EitherT.liftF(IO.Monad)(client.fetch(req, IO.pure)))(
           new Request({ uri: server.baseUri }),
         )
-          .value.flatTap(res =>
+          .flatTap(res =>
             IO(() => expect(res.get.status === Status.Ok).toBe(true)),
           )
           .flatMap(res => res.get.bodyText.compileConcurrent().string)
@@ -200,10 +199,10 @@ describe('Success', () => {
         server,
         clientResource,
       )((server, client) =>
-        rawFailure(req => EitherT.rightT(IO.Monad)(client.fetch(req, IO.pure)))(
+        rawFailure(req => EitherT.liftF(IO.Monad)(client.fetch(req, IO.pure)))(
           new Request({ uri: server.baseUri }),
         )
-          .value.flatTap(res =>
+          .flatTap(res =>
             IO(() => expect(res.get.status === Status.BadRequest).toBe(true)),
           )
           .flatMap(res => res.get.bodyText.compileConcurrent().string)
@@ -217,13 +216,13 @@ describe('Success', () => {
         clientResource,
       )((server, client) =>
         rawSuccessPassHeaders(req =>
-          EitherT.rightT(IO.Monad)(
+          EitherT.liftF(IO.Monad)(
             client.fetch(
               req.putHeaders(new RawHeader('X-Added-Header', 'XXX')),
               IO.pure,
             ),
           ),
-        )(new Request({ uri: server.baseUri })).value.map(res =>
+        )(new Request({ uri: server.baseUri })).map(res =>
           expect(res.get.headers.getRaw('X-Added-Header')).toEqual(
             Some(NonEmptyList('XXX', List.empty)),
           ),
@@ -243,7 +242,7 @@ describe('Success', () => {
         withServer(server)(server =>
           postMultiple(str)(num)(flag)(body)(
             new Request({ uri: server.baseUri }),
-          ).value.map(res =>
+          ).map(res =>
             expect(res).toEqual(
               Right([str, num, flag.getOrElse(() => false), body]),
             ),
@@ -254,7 +253,7 @@ describe('Success', () => {
 
   it.M('should attach receive attached headers', () =>
     withServer(server)(server =>
-      getHeaders(new Request({ uri: server.baseUri })).value.map(res =>
+      getHeaders(new Request({ uri: server.baseUri })).map(res =>
         expect(res).toEqual(Right(new ResponseHeaders([42, 'eg2'], true))),
       ),
     ),

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 import { Kleisli } from '@fp4ts/cats';
 import { Async, Resource } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream';
@@ -38,7 +38,12 @@ export class DefaultClient<F> implements Client<F> {
         : req;
 
     return this.run(r).use(this.F)(response =>
-      this.F.rethrow(d.decode(response).leftWiden<Error>().value),
+      this.F.rethrow(
+        pipe(
+          d.decode(response),
+          this.F.map(ea => ea.leftMap(e => e as Error)),
+        ),
+      ),
     );
   }
 

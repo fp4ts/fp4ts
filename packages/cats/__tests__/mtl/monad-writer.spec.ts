@@ -7,10 +7,10 @@ import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval, EvalF } from '@fp4ts/cats-core';
-import { Either, EitherT, Option, OptionT } from '@fp4ts/cats-core/lib/data';
+import { EitherT, Option, OptionT } from '@fp4ts/cats-core/lib/data';
 import { MonadWriter, WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -19,7 +19,7 @@ describe('MonadWriter', () => {
   checkAll(
     'MonadWriter<Kleisli<WriterT<Eval, string, *>, string, *>, string>',
     MonadWriterSuite(
-      MonadWriter.Kleisli<$<WriterTF, [EvalF, string]>, unknown, string>(
+      MonadWriter.Kleisli<$<WriterTF, [EvalF, string]>, MiniInt, string>(
         WriterT.MonadWriter(Eval.Monad, Monoid.string),
       ),
     ).censor(
@@ -62,21 +62,14 @@ describe('MonadWriter', () => {
       fc.string(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
-      <X>(
-        X: Arbitrary<X>,
-      ): Arbitrary<EitherT<$<WriterTF, [EvalF, string]>, string, X>> =>
-        A.fp4tsEitherT(
+      <X>(X: Arbitrary<X>) =>
+        A.fp4tsEitherT<$<WriterTF, [EvalF, string]>, string, X>(
           A.fp4tsEval(fc.tuple(A.fp4tsEither(fc.string(), X), fc.string())),
         ),
-      <X>(X: Eq<X>): Eq<EitherT<$<WriterTF, [EvalF, string]>, string, X>> =>
-        EitherT.Eq(
-          Eval.Eq(
-            Eq.tuple(
-              Either.Eq(Eq.fromUniversalEquals(), X),
-              Eq.fromUniversalEquals(),
-            ),
-          ),
-        ),
+      EitherT.EqK(
+        WriterT.EqK(Eval.EqK, Eq.fromUniversalEquals<string>()),
+        Eq.fromUniversalEquals<string>(),
+      ).liftEq,
     ),
   );
 });

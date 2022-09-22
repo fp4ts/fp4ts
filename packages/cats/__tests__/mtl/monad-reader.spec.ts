@@ -116,8 +116,8 @@ describe('MonadReader', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        <X>(X: Arbitrary<X>): Arbitrary<EitherT<RWSF_, Error, X>> =>
-          A.fp4tsEitherT(
+        <X>(X: Arbitrary<X>) =>
+          A.fp4tsEitherT<RWSF_, Error, X>(
             A.fp4tsRWS(
               fc.func(
                 fc.tuple(
@@ -140,7 +140,7 @@ describe('MonadReader', () => {
             ),
             fa =>
               ([r, s1]) =>
-                fa.value.runAll(r, s1, Monoid.string),
+                fa.runAll(r, s1, Monoid.string),
           ),
       ),
     );

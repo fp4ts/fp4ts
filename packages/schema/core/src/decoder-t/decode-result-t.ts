@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Applicative, Either, EitherT, Functor } from '@fp4ts/cats';
+import { Applicative, Either, EitherT, Functor, Left } from '@fp4ts/cats';
 import { DecodeFailure } from '../decode-failure';
 
 export type DecodeResultT<F, A> = EitherT<F, DecodeFailure, A>;
@@ -12,10 +12,13 @@ export const DecodeResultT: DecodeResultTObj = function (fa) {
   return EitherT(fa);
 };
 
-DecodeResultT.success = EitherT.right;
-DecodeResultT.successT = EitherT.rightT;
-DecodeResultT.failure = EitherT.left;
-DecodeResultT.failureT = EitherT.leftT;
+DecodeResultT.success = EitherT.Right;
+DecodeResultT.successT = EitherT.liftF;
+DecodeResultT.failure = EitherT.Left;
+DecodeResultT.failureT =
+  <F>(F: Functor<F>) =>
+  <A>(fd: Kind<F, [DecodeFailure]>) =>
+    F.map_(fd, Left);
 
 interface DecodeResultTObj {
   <F, A>(fa: Kind<F, [Either<DecodeFailure, A>]>): DecodeResultT<F, A>;

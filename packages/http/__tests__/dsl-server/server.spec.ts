@@ -43,7 +43,7 @@ import {
 import { builtins, toHttpAppIO } from '@fp4ts/http-dsl-server';
 import { withServerP } from '@fp4ts/http-test-kit-node';
 import { Person, PersonCodable, PersonTypeTag } from './person';
-import { Kleisli, Monoid, None, Some } from '@fp4ts/cats';
+import { Monoid, None, Some } from '@fp4ts/cats';
 import { Animal, AnimalCodable, AnimalTypeTag } from './animal';
 
 const verbApi = <M extends Method>(method: M, status: Status) =>

@@ -67,7 +67,7 @@ describe('parameter extraction', () => {
       'should capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app(new Request({ uri: uri`${url}/${param}` }))
-          .flatMap(response => jsonDecoder.decode(response).value)
+          .flatMap(response => jsonDecoder.decode(response))
           .unsafeRunToPromise();
 
         expect(response).toEqual(Right(param));
@@ -84,7 +84,7 @@ describe('parameter extraction', () => {
       'should fail to capture parameter $param from url $url/$param',
       async ({ url, param }) => {
         const response = await app(new Request({ uri: uri`${url}/${param}` }))
-          .flatMap(response => jsonDecoder.decode(response).value)
+          .flatMap(response => jsonDecoder.decode(response))
           .unsafeRunToPromise();
 
         expect(response).toEqual(Left(expect.any(Error)));
@@ -107,7 +107,7 @@ describe('parameter extraction', () => {
         const response = await app(
           new Request({ uri: uri`${url}?${name}=${param}` }),
         )
-          .flatMap(response => jsonDecoder.decode(response).value)
+          .flatMap(response => jsonDecoder.decode(response))
           .unsafeRunToPromise();
 
         expect(response).toEqual(Right(param.toString()));
@@ -123,7 +123,7 @@ describe('parameter extraction', () => {
       'should return none when the param not present in $url',
       async ({ url }) => {
         const response = await app(new Request({ uri: uri`${url}` }))
-          .flatMap(response => jsonDecoder.decode(response).value)
+          .flatMap(response => jsonDecoder.decode(response))
           .unsafeRunToPromise();
 
         expect(response).toEqual(Right('null'));
@@ -142,7 +142,7 @@ describe('parameter extraction', () => {
         const response = await app(
           new Request({ uri: uri`${url}?${name}=${param}` }),
         )
-          .flatMap(response => jsonDecoder.decode(response).value)
+          .flatMap(response => jsonDecoder.decode(response))
           .unsafeRunToPromise();
 
         expect(response).toEqual(Left(expect.any(Error)));

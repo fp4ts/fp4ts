@@ -60,7 +60,7 @@ export const MonadReader = Object.freeze({
         $<EitherTF, [F, E]>,
         R
       >['ask'],
-      local_: (fa, f) => EitherT(F.local_(fa.value, f)),
+      local_: F.local_,
     }),
 
   OptionT: <F, R>(F: MonadReader<F, R>): MonadReader<$<OptionTF, [F]>, R> =>
@@ -70,6 +70,6 @@ export const MonadReader = Object.freeze({
         $<OptionTF, [F]>,
         R
       >['ask'],
-      local_: (fa, f) => F.local_(fa, f),
+      local_: F.local_,
     }),
 });

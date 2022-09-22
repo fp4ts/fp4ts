@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Kind, pipe } from '@fp4ts/core';
 import { FunctionK, Monad } from '@fp4ts/cats';
 
 import { EntityDecoder } from '../codec';
@@ -81,9 +81,15 @@ export class Request<F> extends Message<F, Request<F>> {
     decoder: EntityDecoder<F, A>,
   ): (f: (a: A) => Response<F>) => Kind<F, [Response<F>]> {
     return f =>
-      decoder.decode(this).fold(F)<Response<F>>(
-        e => new ParsingFailure(e.cause.getOrElse(() => '')).toHttpResponse(),
-        f,
+      pipe(
+        decoder.decode(this),
+        F.map(ea =>
+          ea.fold<Response<F>>(
+            e =>
+              new ParsingFailure(e.cause.getOrElse(() => '')).toHttpResponse(),
+            f,
+          ),
+        ),
       );
   }
 
@@ -92,13 +98,18 @@ export class Request<F> extends Message<F, Request<F>> {
     decoder: EntityDecoder<F, A>,
   ): (f: (a: A) => Kind<F, [Response<F>]>) => Kind<F, [Response<F>]> {
     return f =>
-      F.flatten(
-        decoder.decode(this).fold(F)<Kind<F, [Response<F>]>>(
-          e =>
-            F.pure(
-              new ParsingFailure(e.cause.getOrElse(() => '')).toHttpResponse(),
-            ),
-          f,
+      pipe(
+        decoder.decode(this),
+        F.flatMap(ea =>
+          ea.fold<Kind<F, [Response<F>]>>(
+            e =>
+              F.pure(
+                new ParsingFailure(
+                  e.cause.getOrElse(() => ''),
+                ).toHttpResponse(),
+              ),
+            f,
+          ),
         ),
       );
   }

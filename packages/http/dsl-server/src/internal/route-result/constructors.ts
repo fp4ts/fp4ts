@@ -41,13 +41,13 @@ export const fromEitherFatal = <A>(
 
 export const fromEitherT =
   <F>(F: Functor<F>) =>
-  <A>(ea: EitherT<F, MessageFailure, A>): RouteResultT<F, A> =>
-    new RouteResultT(ea.fold(F)(fail, succeed));
+  <A>(fea: EitherT<F, MessageFailure, A>): RouteResultT<F, A> =>
+    new RouteResultT(F.map_(fea, ea => ea.fold(fail, succeed)));
 
 export const fromEitherTFatal =
   <F>(F: Functor<F>) =>
-  <A>(ea: EitherT<F, MessageFailure, A>): RouteResultT<F, A> =>
-    new RouteResultT(ea.fold(F)(fatalFail, succeed));
+  <A>(fea: EitherT<F, MessageFailure, A>): RouteResultT<F, A> =>
+    new RouteResultT(F.map_(fea, ea => ea.fold(fatalFail, succeed)));
 
 export const liftF =
   <F>(F: Functor<F>) =>

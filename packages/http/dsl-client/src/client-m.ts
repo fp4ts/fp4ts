@@ -27,8 +27,8 @@ export const ClientM = Object.freeze({
           EitherT,
         ),
       compileBody: bodyText =>
-        EitherT.rightT(F)(bodyText.compileConcurrent(F).string),
-      throwClientError: err => EitherT.left(F)(err),
+        EitherT.liftF(F)(bodyText.compileConcurrent(F).string),
+      throwClientError: err => EitherT.Left(F)(err),
     });
   },
 

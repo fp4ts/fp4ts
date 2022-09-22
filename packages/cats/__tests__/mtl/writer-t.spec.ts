@@ -6,12 +6,13 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Monoid, Eq } from '@fp4ts/cats-kernel';
-import { EqK, Eval, Monad } from '@fp4ts/cats-core';
+import { EqK, Eval, EvalF, Monad } from '@fp4ts/cats-core';
 import {
   Array,
   Either,
   EitherF,
   Identity,
+  IdentityF,
   Option,
   OptionF,
 } from '@fp4ts/cats-core/lib/data';
@@ -154,19 +155,19 @@ describe('WriterT', () => {
       );
     }
 
-    runTests(
+    runTests<IdentityF, string>(
       ['Identity', Identity.Monad],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       id,
       Identity.EqK,
     );
-    runTests(
+    runTests<OptionF, string>(
       ['Option', Option.Monad],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsOption,
       Option.EqK,
     );
-    runTests(
+    runTests<OptionF, string[]>(
       ['Option', Option.Monad],
       [
         'string[]',
@@ -177,17 +178,17 @@ describe('WriterT', () => {
       A.fp4tsOption,
       Option.EqK,
     );
-    runTests(
+    runTests<EvalF, string>(
       ['Eval', Eval.Monad],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsEval,
       EqK.of({ liftEq: Eval.Eq }),
     );
-    runTests(
-      ['Eval<string, *>', Either.Monad<string>()],
+    runTests<$<EitherF, [string]>, string>(
+      ['Either<string, *>', Either.Monad<string>()],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       X => A.fp4tsEither(fc.string(), X),
-      EqK.of({ liftEq: X => Either.Eq(Eq.fromUniversalEquals(), X) }),
+      Either.EqK(Eq.fromUniversalEquals<string>()),
     );
 
     checkAll(

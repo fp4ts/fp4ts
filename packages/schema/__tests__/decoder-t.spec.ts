@@ -31,7 +31,7 @@ describe('DecoderT', () => {
     it('should transform to failure', () => {
       const r = DecoderT.string(IdM)
         .flatMapR(IdM)(() => DecodeResultT.failure(IdM)(new DecodeFailure()))
-        .decodeT('foo').value;
+        .decodeT('foo');
 
       expect(r).toEqual(Left(new DecodeFailure()));
     });
@@ -55,7 +55,7 @@ describe('DecoderT', () => {
     it('should ignore recovery when successful', () => {
       const r = DecoderT.string(IdM)
         .handleError(IdM)(() => throwError(new DecodeFailure('My failure')))
-        .decodeT('bar').value;
+        .decodeT('bar');
 
       expect(r).toEqual(Right('bar'));
     });
@@ -75,7 +75,7 @@ describe('DecoderT', () => {
         .handleErrorWithR(IdM)(() =>
           DecodeResultT.failure(IdM)(new DecodeFailure('My failure')),
         )
-        .decodeT(42).value;
+        .decodeT(42);
 
       expect(r).toEqual(Left(new DecodeFailure('My failure')));
     });
@@ -103,7 +103,7 @@ describe('DecoderT', () => {
     it('should recover from failure into failure', () => {
       const r = DecoderT.string(IdM)
         .handleErrorWith(IdM)(() => DecoderT.failWith(IdM)('My failure'))
-        .decodeT(42).value;
+        .decodeT(42);
 
       expect(r).toEqual(Left(new DecodeFailure('My failure')));
     });
@@ -140,7 +140,7 @@ describe('DecoderT', () => {
     it('should decode person with correct data', () => {
       fc.assert(
         fc.property(arbPerson as any, person =>
-          expect(personDecoder.decodeT(person).value).toEqual(Right(person)),
+          expect(personDecoder.decodeT(person)).toEqual(Right(person)),
         ),
         { numRuns: 20, unbiased: true },
       );

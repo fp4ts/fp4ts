@@ -31,7 +31,7 @@ describe('BasicAuth', () => {
     withServer(basicAuthServer)(server =>
       getBasic(new BasicCredentials('fp4ts', 'server'))(
         new Request({ uri: server.baseUri }),
-      ).value.flatMap(r => IO(() => expect(r).toEqual(Right(alice)))),
+      ).flatMap(r => IO(() => expect(r).toEqual(Right(alice)))),
     ),
   );
 
@@ -41,7 +41,7 @@ describe('BasicAuth', () => {
         const res = yield* _(
           getBasic(new BasicCredentials('fp4ts', 'wrong'))(
             new Request({ uri: server.baseUri }),
-          ).value,
+          ),
         );
 
         expect(res).toEqual(Left(expect.any(ResponseFailure)));

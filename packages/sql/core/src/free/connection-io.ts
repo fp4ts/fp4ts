@@ -444,7 +444,7 @@ export const ReadExecutionContext =
       return v.visitReadExecutionContext(this);
     }
   })();
-export type ReadExecutionContext = typeof ReadExecutionContext;
+export type ReadExecutionContext = ConnectionOp<ExecutionContext>;
 
 export class ExecuteOn<A> extends ConnectionOp<A> {
   public constructor(

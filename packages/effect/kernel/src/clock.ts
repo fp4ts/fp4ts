@@ -55,8 +55,8 @@ export const Clock = Object.freeze({
     }),
 
   forOptionT: <F>(F: Clock<F> & Monad<F>): Clock<$<OptionTF, [F]>> =>
-    Clock.of({
-      applicative: OptionT.Applicative(F),
+    Clock.of<$<OptionTF, [F]>>({
+      applicative: OptionT.Monad(F),
 
       monotonic: OptionT.liftF(F)(F.monotonic),
 
