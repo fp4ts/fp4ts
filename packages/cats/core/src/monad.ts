@@ -83,16 +83,14 @@ export const Monad = Object.freeze({
         F.flatMap(() => {
           const iterator = f(adapter);
           const state = iterator.next();
+          const cont = (val: any): Kind<F, [R]> => run(iterator.next(val));
 
           const run = (
             state: IteratorYieldResult<Eff> | IteratorReturnResult<R>,
           ): Kind<F, [R]> =>
             state.done
               ? F.pure(state.value)
-              : F.flatMap_((state.value as Eff).effect, val => {
-                  const next = iterator.next(val);
-                  return run(next);
-                });
+              : F.flatMap_((state.value as Eff).effect, cont);
 
           return run(state);
         }),
