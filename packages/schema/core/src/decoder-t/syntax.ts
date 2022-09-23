@@ -35,7 +35,7 @@ import {
   min_,
   nonEmpty,
   nullable,
-  optional,
+  // optional,
   orElse_,
   refine_,
   transformWithR_,
@@ -278,9 +278,9 @@ Object.defineProperty(DecoderT.prototype, 'decode', {
 DecoderT.prototype.nullable = function (this: any, F?: any) {
   return F ? nullable(F) : nullable(Eval.Applicative)(this);
 } as any;
-DecoderT.prototype.optional = function (this: any, F?: any) {
-  return F ? optional(F) : optional(Eval.Applicative)(this);
-} as any;
+// DecoderT.prototype.optional = function (this: any, F?: any) {
+//   return F ? optional(F) : optional(Eval.Applicative)(this);
+// } as any;
 
 DecoderT.prototype.orElse = function (this: any, F: any) {
   return isTypeClassInstance(F)

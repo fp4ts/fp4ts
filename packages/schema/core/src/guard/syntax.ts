@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Option } from '@fp4ts/cats';
+// import { Option } from '@fp4ts/cats';
 import { Guard } from './algebra';
 import {
   andThen_,
@@ -16,7 +16,7 @@ import {
   minLength_,
   min_,
   nonEmpty,
-  optional,
+  // optional,
   refine_,
   union_,
 } from './operators';
@@ -24,7 +24,7 @@ import {
 declare module './algebra' {
   interface Guard<I, A extends I> {
     readonly nullable: Guard<I | null, A | null>;
-    readonly optional: Guard<Option<I>, Option<A>>;
+    // readonly optional: Guard<Option<I>, Option<A>>;
     refine<B extends A>(refinement: (a: A) => a is B): Guard<I, B>;
 
     intersection<B extends I>(that: Guard<I, B>): Guard<I, A & B>;
@@ -55,11 +55,11 @@ declare module './algebra' {
   }
 }
 
-Object.defineProperty(Guard.prototype, 'optional', {
-  get() {
-    return optional(this);
-  },
-});
+// Object.defineProperty(Guard.prototype, 'optional', {
+//   get() {
+//     return optional(this);
+//   },
+// });
 Guard.prototype.refine = function (r) {
   return refine_(this, r);
 };

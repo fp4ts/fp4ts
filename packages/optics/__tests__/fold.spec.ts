@@ -71,18 +71,14 @@ describe('Fold', () => {
   test(
     'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli)
-        .headOption(xs)
-        .equals(Eq.fromUniversalEquals(), xs.headOption),
+      focus(eachli).headOption(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli)
-        .lastOption(xs)
-        .equals(Eq.fromUniversalEquals(), xs.lastOption),
+      focus(eachli).lastOption(xs).equals(xs.lastOption),
     ),
   );
 
@@ -112,7 +108,7 @@ describe('Fold', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
       focus(eachli)
         .find(x => x > y)(xs)
-        .equals(Eq.fromUniversalEquals(), Option(xs.toArray.find(x => x > y))),
+        .equals(Option(xs.toArray.find(x => x > y))),
     ),
   );
 

@@ -3,21 +3,21 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Option } from '@fp4ts/cats';
+// import { Option } from '@fp4ts/cats';
 import { Guard } from './algebra';
 
 export const nullable = <A>(g: Guard<unknown, A>): Guard<unknown, A | null> =>
   new Guard((x: unknown): x is A | null => x === null || g.test(x));
 
-export const optional = <A>(g: Guard<unknown, A>): Guard<unknown, Option<A>> =>
-  new Guard(
-    (fa: unknown): fa is Option<A> =>
-      Option.isOption(fa) &&
-      fa.fold(
-        () => true,
-        a => g.test(a),
-      ),
-  );
+// export const optional = <A>(g: Guard<unknown, A>): Guard<unknown, Option<A>> =>
+//   new Guard(
+//     (fa: unknown): fa is Option<A> =>
+//       Option.isOption(fa) &&
+//       fa.fold(
+//         () => true,
+//         a => g.test(a),
+//       ),
+//   );
 
 export const refine: <A, B extends A>(
   refinement: (a: A) => a is B,

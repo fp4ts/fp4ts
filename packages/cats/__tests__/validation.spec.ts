@@ -248,7 +248,7 @@ describe('Validation', () => {
         CommutativeMonoid.addition,
         Validation.Functor<string>(),
         Eval.Applicative,
-        Option.Applicative,
+        Option.Monad,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),

@@ -16,7 +16,7 @@ import {
   Monad,
   OptionT,
 } from '@fp4ts/cats';
-import { IO, IOF, Ref, Concurrent } from '@fp4ts/effect';
+import { IO, IOF, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 import { TestError } from './test-error';

@@ -897,7 +897,7 @@ describe('Map', () => {
   describe('traverse', () => {
     it('should produce some when map contains only even values', () => {
       expect(
-        Map([1, 2], [3, 4]).traverse(Option.Applicative)(v =>
+        Map([1, 2], [3, 4]).traverse(Option.Monad)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(Some(Map([1, 2], [3, 4])));
@@ -905,7 +905,7 @@ describe('Map', () => {
 
     it('should produce none when contains odd values', () => {
       expect(
-        Map([1, 2], [3, 5]).traverse(Option.Applicative)(v =>
+        Map([1, 2], [3, 5]).traverse(Option.Monad)(v =>
           v % 2 === 0 ? Some(v) : None,
         ),
       ).toEqual(None);

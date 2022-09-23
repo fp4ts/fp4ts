@@ -421,7 +421,7 @@ describe('NonEmptyList', () => {
         CommutativeMonoid.addition,
         Nel.Functor,
         Eval.Applicative,
-        Option.Applicative,
+        Option.Monad,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),

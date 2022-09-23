@@ -44,12 +44,12 @@ describe('Traversable derivation', () => {
     const expected = Some(List.range(1, 50_001).toArray);
 
     expect(
-      IListF.traverse_(Option.Applicative)(ixs, x => Some(x + 1)).map(
+      IListF.traverse_(Option.Monad)(ixs, x => Some(x + 1)).map(
         xs => IList.toList(xs).toArray,
       ),
     ).toEqual(expected);
     expect(
-      SnocF.traverse_(Option.Applicative)(sxs, x => Some(x + 1)).map(
+      SnocF.traverse_(Option.Monad)(sxs, x => Some(x + 1)).map(
         xs => Snoc.toList(xs).toArray,
       ),
     ).toEqual(expected);
@@ -82,8 +82,8 @@ describe('Traversable derivation', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       IListF,
-      Option.Applicative,
-      Option.Applicative,
+      Option.Monad,
+      Option.Monad,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
@@ -105,8 +105,8 @@ describe('Traversable derivation', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       SnocF,
-      Option.Applicative,
-      Option.Applicative,
+      Option.Monad,
+      Option.Monad,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
@@ -128,8 +128,8 @@ describe('Traversable derivation', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       TreeF,
-      Option.Applicative,
-      Option.Applicative,
+      Option.Monad,
+      Option.Monad,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
@@ -151,8 +151,8 @@ describe('Traversable derivation', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       GenericAdtF,
-      Option.Applicative,
-      Option.Applicative,
+      Option.Monad,
+      Option.Monad,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
@@ -174,8 +174,8 @@ describe('Traversable derivation', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       AndStringF,
-      Option.Applicative,
-      Option.Applicative,
+      Option.Monad,
+      Option.Monad,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),

@@ -1406,10 +1406,12 @@ export const parJoin_ =
         pipe(
           done.get(),
           F.flatMap(res =>
-            res.flatten.fold<Kind<F, [void]>>(
-              () => fiber.joinWithNever(F),
-              F.throwError,
-            ),
+            res
+              .flatten()
+              .fold<Kind<F, [void]>>(
+                () => fiber.joinWithNever(F),
+                F.throwError,
+              ),
           ),
         );
 

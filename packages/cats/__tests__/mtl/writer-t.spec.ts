@@ -248,7 +248,7 @@ describe('WriterT', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         WriterT.Functor(Option.Functor),
-        Option.Applicative,
+        Option.Monad,
         Eval.Applicative,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),

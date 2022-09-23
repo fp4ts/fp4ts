@@ -130,26 +130,26 @@ describe('Option', () => {
 
   describe('flatten', () => {
     it('should flatten the nested value', () => {
-      expect(Some(Some(42)).flatten).toEqual(Some(42));
+      expect(Some(Some(42)).flatten()).toEqual(Some(42));
     });
 
     it('should flatten to None', () => {
-      expect(Some(None).flatten).toEqual(None);
+      expect(Some(None).flatten()).toEqual(None);
     });
   });
 
   describe('tailRecM', () => {
     it('should return initial result when returned Some', () => {
-      expect(Option.tailRecM(42)(x => Some(Right(x)))).toEqual(Some(42));
+      expect(Option.tailRecM_(42, x => Some(Right(x)))).toEqual(Some(42));
     });
 
     it('should return left when computation returned None', () => {
-      expect(Option.tailRecM(42)(x => None)).toEqual(None);
+      expect(Option.tailRecM_(42, x => None)).toEqual(None);
     });
 
     it('should compute recursive sum', () => {
       expect(
-        Option.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+        Option.tailRecM_<[number, number], number>([0, 0], ([i, x]) =>
           i < 10 ? Some(Left([i + 1, x + i])) : Some(Right(x)),
         ),
       ).toEqual(Some(45));
@@ -159,7 +159,7 @@ describe('Option', () => {
       const size = 100_000;
 
       expect(
-        Option.tailRecM(0)(i =>
+        Option.tailRecM_(0, i =>
           i < size ? Some(Left(i + 1)) : Some(Right(i)),
         ),
       ).toEqual(Some(size));
@@ -168,7 +168,7 @@ describe('Option', () => {
 
   it('should short-circuit on None', () => {
     expect(
-      Option.Apply.map2Eval_(
+      Option.Monad.map2Eval_(
         None,
         Eval.delay(() => throwError(new Error())),
       )(() => 42).value,

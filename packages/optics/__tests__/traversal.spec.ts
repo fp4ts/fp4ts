@@ -78,18 +78,14 @@ describe('Traversal', () => {
   test(
     'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi)
-        .headOption(xs)
-        .equals(Eq.fromUniversalEquals(), xs.headOption),
+      focus(eachLi).headOption(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi)
-        .lastOption(xs)
-        .equals(Eq.fromUniversalEquals(), xs.lastOption),
+      focus(eachLi).lastOption(xs).equals(xs.lastOption),
     ),
   );
 
@@ -119,7 +115,7 @@ describe('Traversal', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
       focus(eachLi)
         .find(x => x > y)(xs)
-        .equals(Eq.fromUniversalEquals(), Option(xs.toArray.find(x => x > y))),
+        .equals(Option(xs.toArray.find(x => x > y))),
     ),
   );
 

@@ -106,12 +106,12 @@ describe('Queue', () => {
       q.dequeue
         .map(([h, tl]) => tupled(h, tl.toList))
         .equals(
+          q.toList.uncons,
           Eq.of({
             equals: (lhs, rhs) =>
               lhs[0] === rhs[0] &&
               lhs[1].equals(Eq.fromUniversalEquals(), rhs[1]),
           }),
-          q.toList.uncons,
         ),
     ),
   );
