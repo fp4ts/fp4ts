@@ -393,7 +393,7 @@ export class Vector4<A> extends Vector<A> {
         const i3 = (io >>> BITS2) & MASK;
         const i2 = (io >>> BITS) & MASK;
         const i1 = io & MASK;
-        return i3 < this.data4.length
+        return i4 < this.data4.length
           ? Some(this.data4[i4][i3][i2][i1] as A)
           : i3 < this.suffix3.length
           ? Some(this.suffix3[i3][i2][i1] as A)
