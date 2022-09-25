@@ -26,7 +26,7 @@ export function Supervisor<F>(
       pipe(
         state.get(),
         F.flatMap(fibers =>
-          F.parSequence(List.Traversable)(fibers.toList.map(snd)),
+          F.parSequence(List.TraversableFilter)(fibers.toList.map(snd)),
         ),
         F.void,
       ),

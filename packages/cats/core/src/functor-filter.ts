@@ -4,20 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, id } from '@fp4ts/core';
-import { Functor, FunctorRequirements } from './functor';
+import { Functor } from './functor';
 import { Option, Some, None } from './data/option';
 
 /**
  * @category Type Class
  */
 export interface FunctorFilter<F> extends Functor<F> {
-  readonly mapFilter: <A, B>(
-    f: (a: A) => Option<B>,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
-  readonly mapFilter_: <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Option<B>,
-  ) => Kind<F, [B]>;
+  mapFilter<A, B>(f: (a: A) => Option<B>): (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  mapFilter_<A, B>(fa: Kind<F, [A]>, f: (a: A) => Option<B>): Kind<F, [B]>;
 
   collect<A, B>(f: (a: A) => Option<B>): (fa: Kind<F, [A]>) => Kind<F, [B]>;
   collect_<A, B>(fa: Kind<F, [A]>, f: (a: A) => Option<B>): Kind<F, [B]>;
@@ -31,20 +26,14 @@ export interface FunctorFilter<F> extends Functor<F> {
   filter_<A, B extends A>(fa: Kind<F, [A]>, p: (a: A) => a is B): Kind<F, [B]>;
   filter_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): Kind<F, [A]>;
 
-  readonly filterNot: <A>(
-    p: (a: A) => boolean,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
-  readonly filterNot_: <A>(
-    fa: Kind<F, [A]>,
-    p: (a: A) => boolean,
-  ) => Kind<F, [A]>;
+  filterNot<A>(p: (a: A) => boolean): (fa: Kind<F, [A]>) => Kind<F, [A]>;
+  filterNot_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): Kind<F, [A]>;
 }
 
 export type FunctorFilterRequirements<F> = Pick<
   FunctorFilter<F>,
   'mapFilter_'
 > &
-  FunctorRequirements<F> &
   Partial<FunctorFilter<F>>;
 
 export const FunctorFilter = Object.freeze({
@@ -66,7 +55,9 @@ export const FunctorFilter = Object.freeze({
       filterNot: f => fa => self.filterNot_(fa, f),
       filterNot_: (fa, p) => self.filter_(fa, x => !p(x)),
 
-      ...Functor.of<F>(F),
+      ...Functor.of<F>({
+        map_: F.map_ ?? ((fa, f) => self.mapFilter_(fa, x => Some(f(x)))),
+      }),
       ...F,
     };
     return self;

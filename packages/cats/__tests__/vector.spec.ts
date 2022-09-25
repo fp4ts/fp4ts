@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import {
   Some,
   None,
@@ -22,10 +22,10 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
   MonadSuite,
-  TraversableSuite,
   FunctorFilterSuite,
   AlignSuite,
   CoflatMapSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Vector', () => {
@@ -974,10 +974,9 @@ describe('Vector', () => {
   });
 
   describe('Laws', () => {
-    const alignTests = AlignSuite(Vector.Align);
     checkAll(
       'Align<Vector>',
-      alignTests.align(
+      AlignSuite(Vector.Align).align(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -991,25 +990,9 @@ describe('Vector', () => {
       ),
     );
 
-    const functorFilterTests = FunctorFilterSuite(Vector.FunctorFilter);
-    checkAll(
-      'FunctorFilter<Vector>',
-      functorFilterTests.functorFilter(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsVector,
-        Vector.Eq,
-      ),
-    );
-
-    const alternativeTests = AlternativeSuite(Vector.Alternative);
     checkAll(
       'Alternative<Vector>',
-      alternativeTests.alternative(
+      AlternativeSuite(Vector.Alternative).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1021,10 +1004,9 @@ describe('Vector', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(Vector.CoflatMap);
     checkAll(
       'CoflatMap<Vector>',
-      coflatMapTests.coflatMap(
+      CoflatMapSuite(Vector.CoflatMap).coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1038,10 +1020,9 @@ describe('Vector', () => {
       ),
     );
 
-    const monadTests = MonadSuite(Vector.Monad);
     checkAll(
       'Monad<Vector>',
-      monadTests.monad(
+      MonadSuite(Vector.Monad).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1055,16 +1036,15 @@ describe('Vector', () => {
       ),
     );
 
-    const traversableTests = TraversableSuite(Vector.Traversable);
     checkAll(
-      'Traversable<Vector>',
-      traversableTests.traversable<number, number, number, EvalF, EvalF>(
+      'TraversableFilter<Vector>',
+      TraversableFilterSuite(Vector.TraversableFilter).traversableFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        Vector.Functor,
+        Vector.FunctorFilter,
         Eval.Applicative,
         Eval.Applicative,
         Eq.fromUniversalEquals(),

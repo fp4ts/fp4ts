@@ -12,7 +12,6 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Alternative } from '../../../alternative';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
-import { Traversable } from '../../../traversable';
 import { Eval } from '../../../eval';
 
 import type { ChainF } from './chain';
@@ -28,9 +27,11 @@ import {
   foldLeft_,
   foldMap_,
   map_,
+  traverseFilter_,
   traverse_,
 } from './operators';
 import { empty, pure, tailRecM_ } from './constructors';
+import { TraversableFilter } from '../../../traversable-filter';
 
 export const chainEq = <A>(E: Eq<A>): Eq<Chain<A>> =>
   Eq.of({ equals: equals_(E) });
@@ -79,11 +80,12 @@ export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
   }),
 );
 
-export const chainTraversable: Lazy<Traversable<ChainF>> = lazyVal(() =>
-  Traversable.of({
-    ...chainFunctor(),
+export const chainTraversable: Lazy<TraversableFilter<ChainF>> = lazyVal(() =>
+  TraversableFilter.of({
+    ...chainFunctorFilter(),
     foldLeft_: foldLeft_,
     foldMap_: foldMap_,
     traverse_: traverse_,
+    traverseFilter_: traverseFilter_,
   }),
 );

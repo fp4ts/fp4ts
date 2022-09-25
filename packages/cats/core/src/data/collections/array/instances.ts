@@ -43,10 +43,12 @@ import {
   sequence,
   size,
   tailRecM_,
+  traverseFilter_,
   traverse_,
 } from './operators';
 import { empty, pure } from './constructors';
 import { List } from '../list';
+import { TraversableFilter } from '../../../traversable-filter';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
@@ -146,4 +148,13 @@ export const arrayTraversableWithIndex: () => TraversableWithIndex<
     traverseWithIndex_: traverse_,
     sequence: sequence,
   }),
+);
+
+export const arrayTraversableFilter: () => TraversableFilter<ArrayF> = lazyVal(
+  () =>
+    TraversableFilter.of({
+      ...arrayTraversableWithIndex(),
+      ...arrayFunctorFilter(),
+      traverseFilter_,
+    }),
 );

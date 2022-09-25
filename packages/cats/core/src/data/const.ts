@@ -14,7 +14,8 @@ import { Functor } from '../functor';
 import { FunctorFilter } from '../functor-filter';
 import { MonoidK } from '../monoid-k';
 import { SemigroupK } from '../semigroup-k';
-import { Traversable } from '../traversable';
+import { TraversableFilter } from '../traversable-filter';
+import { Option } from './option';
 
 export type Const<A, B> = A;
 
@@ -38,36 +39,34 @@ interface ConstObj {
   Apply<A>(A: Monoid<A>): Apply<$<ConstF, [A]>>;
   Applicative<A>(A: Monoid<A>): Applicative<$<ConstF, [A]>>;
   Foldable<A>(): Foldable<$<ConstF, [A]>>;
-  Traversable<A>(): Traversable<$<ConstF, [A]>>;
+  TraversableFilter<A>(): TraversableFilter<$<ConstF, [A]>>;
 }
 
-export const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
+const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
   EqK.of({ liftEq: () => E });
 
-export const constSemigroupK: <A>(
-  A: Semigroup<A>,
-) => SemigroupK<$<ConstF, [A]>> = A =>
+const constSemigroupK: <A>(A: Semigroup<A>) => SemigroupK<$<ConstF, [A]>> = A =>
   SemigroupK.of({ combineK_: (x, y) => A.combine_(x, y) });
 
-export const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
+const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
   MonoidK.of({
     emptyK: () => A.empty,
     combineK_: (x, y) => A.combine_(x, y),
   });
 
-export const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazyVal(<A>() =>
+const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazyVal(<A>() =>
   Functor.of({ map_: (fa, f) => fa }),
 );
 
-export const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> =
-  lazyVal(() => Contravariant.of({ contramap_: (fa, f) => fa }));
+const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> = lazyVal(() =>
+  Contravariant.of({ contramap_: (fa, f) => fa }),
+);
 
-export const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> =
-  lazyVal(() =>
-    FunctorFilter.of({ ...constFunctor(), mapFilter_: (fa, f) => fa }),
-  );
+const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> = lazyVal(() =>
+  FunctorFilter.of({ ...constFunctor(), mapFilter_: (fa, f) => fa }),
+);
 
-export const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
+const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
   E: Monoid<E>,
 ) =>
   Apply.of({
@@ -80,34 +79,38 @@ export const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
     product_: (fa, fb) => E.combine_(fa, () => fb),
   });
 
-export const constApplicative: <A>(
+const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(
   A: Monoid<A>,
-) => Applicative<$<ConstF, [A]>> = <A>(A: Monoid<A>) =>
+) =>
   Applicative.of({
     ...constFunctor<A>(),
     ...constApply(A),
     pure: constant(A.empty),
   });
 
-export const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
+const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
   Foldable.of({
     foldMap_: <M>(M: Monoid<M>) => constant(M.empty),
   }),
 );
 
-export const constTraversable: <A>() => Traversable<$<ConstF, [A]>> = lazyVal(<
-  A,
->() =>
-  Traversable.of({
-    ...constFunctor<A>(),
-    ...constFoldable<A>(),
+const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> =
+  lazyVal(<A>() =>
+    TraversableFilter.of({
+      ...constFunctor<A>(),
+      ...constFoldable<A>(),
 
-    traverse_:
-      <G>(G: Applicative<G>) =>
-      <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [C]>) =>
-        G.pure(fa),
-  }),
-) as <A>() => Traversable<$<ConstF, [A]>>;
+      traverse_:
+        <G>(G: Applicative<G>) =>
+        <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [C]>) =>
+          G.pure(fa),
+
+      traverseFilter_:
+        <G>(G: Applicative<G>) =>
+        <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [Option<C>]>) =>
+          G.pure(fa),
+    }),
+  ) as <A>() => TraversableFilter<$<ConstF, [A]>>;
 
 Const.pure = M => constant(M.empty);
 Const.empty = M => M.empty;
@@ -121,7 +124,7 @@ Const.Contravariant = constContravariant;
 Const.Apply = constApply;
 Const.Applicative = constApplicative;
 Const.Foldable = constFoldable;
-Const.Traversable = constTraversable;
+Const.TraversableFilter = constTraversableFilter;
 
 // -- HKT
 

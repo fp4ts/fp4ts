@@ -59,7 +59,7 @@ describe('Dispatcher', () => {
         List.range(0, num).traverse(IO.Applicative)(() => IO.deferred<void>()),
       );
       const awaitAll = yield* _(
-        IO.pure(IO.parTraverse_(List.Traversable)(latches, l => l.get())),
+        IO.pure(IO.parTraverse_(List.TraversableFilter)(latches, l => l.get())),
       );
       // engineer a deadlock: all subjects must be run in parallel or this will hang
       const subjects = yield* _(
@@ -68,7 +68,7 @@ describe('Dispatcher', () => {
 
       const rec = Dispatcher(IO.Async).flatMap(runner =>
         Resource.evalF(
-          IO.parTraverse_(List.Traversable)(subjects, act =>
+          IO.parTraverse_(List.TraversableFilter)(subjects, act =>
             IO(() => runner.unsafeRunAndForget(act)),
           ),
         ),

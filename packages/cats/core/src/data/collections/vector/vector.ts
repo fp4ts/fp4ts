@@ -31,8 +31,9 @@ import {
   vectorFunctorFilter,
   vectorMonad,
   vectorMonoidK,
-  vectorTraversable,
+  vectorTraversableFilter,
 } from './instances';
+import { TraversableFilter } from '../../../traversable-filter';
 
 export type Vector<A> = VectorBase<A>;
 
@@ -59,7 +60,7 @@ interface VectorObj {
   readonly CoflatMap: CoflatMap<VectorF>;
   readonly Monad: Monad<VectorF>;
   readonly Foldable: Foldable<VectorF>;
-  readonly Traversable: Traversable<VectorF>;
+  readonly TraversableFilter: TraversableFilter<VectorF>;
 }
 
 Object.defineProperty(Vector, 'empty', {
@@ -118,9 +119,9 @@ Object.defineProperty(Vector, 'Foldable', {
     return vectorFoldable();
   },
 });
-Object.defineProperty(Vector, 'Traversable', {
+Object.defineProperty(Vector, 'TraversableFilter', {
   get() {
-    return vectorTraversable();
+    return vectorTraversableFilter();
   },
 });
 

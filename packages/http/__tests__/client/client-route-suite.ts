@@ -59,7 +59,7 @@ export function clientRouteSuite(
         const port = server.address.port;
 
         const url = uri`http://localhost:${port}/${SimplePath}`;
-        return IO.parTraverse_(List.Traversable)(List.range(0, 10), () =>
+        return IO.parTraverse_(List.TraversableFilter)(List.range(0, 10), () =>
           client.get(url).fetchAs(EntityDecoder.text(IO.Async)),
         ).flatMap(xs =>
           IO(() => expect(xs.all(x => x.length === 0)).toBe(true)),

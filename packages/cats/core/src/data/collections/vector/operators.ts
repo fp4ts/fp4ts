@@ -432,6 +432,17 @@ export const traverse_ =
       ys => ys.toVector,
     );
 
+export const traverseFilter_ =
+  <F>(F: Applicative<F>) =>
+  <A, B>(
+    xs: Vector<A>,
+    f: (a: A) => Kind<F, [Option<B>]>,
+  ): Kind<F, [Vector<B>]> =>
+    F.map_(
+      Chain.traverseFilterViaChain(F, vectorFoldable())(xs, x => f(x)),
+      ys => ys.toVector,
+    );
+
 export const equals_ =
   <A>(E: Eq<A>) =>
   (xs: Vector<A>, ys: Vector<A>): boolean => {

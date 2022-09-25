@@ -13,7 +13,6 @@ import { FunctorFilter } from '../../../functor-filter';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
-import { Traversable } from '../../../traversable';
 import { MonoidK } from '../../../monoid-k';
 
 import { Vector, Vector0 } from './algebra';
@@ -31,6 +30,7 @@ import {
   foldRight_,
   isEmpty,
   nonEmpty,
+  traverseFilter_,
   traverse_,
   zipAll_,
 } from './operators';
@@ -38,6 +38,7 @@ import {
 import type { VectorF } from './vector';
 import { pure, tailRecM_ } from './constructors';
 import { Eval } from '../../../eval';
+import { TraversableFilter } from '../../../traversable-filter';
 
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
@@ -117,10 +118,12 @@ export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
   }),
 );
 
-export const vectorTraversable: Lazy<Traversable<VectorF>> = lazyVal(() =>
-  Traversable.of({
-    ...vectorFoldable(),
-    ...vectorFunctor(),
-    traverse_: traverse_,
-  }),
-);
+export const vectorTraversableFilter: Lazy<TraversableFilter<VectorF>> =
+  lazyVal(() =>
+    TraversableFilter.of({
+      ...vectorFoldable(),
+      ...vectorFunctorFilter(),
+      traverse_: traverse_,
+      traverseFilter_: traverseFilter_,
+    }),
+  );

@@ -18,7 +18,6 @@ import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../applicative';
 import { Foldable } from '../../foldable';
 import { EqK } from '../../eq-k';
-import { Traversable } from '../../traversable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { MonoidK } from '../../monoid-k';
@@ -34,6 +33,7 @@ import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
+import { TraversableFilter } from '../../traversable-filter';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -77,7 +77,7 @@ interface LazyListObj {
   Applicative: Applicative<LazyListF>;
   Monad: StackSafeMonad<LazyListF>;
   Foldable: Foldable<LazyListF>;
-  Traversable: Traversable<LazyListF>;
+  TraversableFilter: TraversableFilter<LazyListF>;
 }
 
 export class _LazyList<out A> {
@@ -408,6 +408,23 @@ export class _LazyList<out A> {
         egbs: Eval<Kind<G, [LazyList<B>]>>,
       ): Eval<Kind<G, [LazyList<B>]>> =>
         G.map2Eval_(f(x), egbs)((y, ys) => ys.cons(y));
+
+      return this.foldRight(
+        Eval.now(G.pure(LazyList.empty as LazyList<B>)),
+        consF,
+      ).value;
+    };
+  }
+
+  public traverseFilter<G>(
+    G: Applicative<G>,
+  ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
+    return <B>(f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [LazyList<B>]> => {
+      const consF = (
+        x: A,
+        egbs: Eval<Kind<G, [LazyList<B>]>>,
+      ): Eval<Kind<G, [LazyList<B>]>> =>
+        G.map2Eval_(f(x), egbs)((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
 
       return this.foldRight(
         Eval.now(G.pure(LazyList.empty as LazyList<B>)),
@@ -934,10 +951,14 @@ const lazyListFoldable = lazyVal(() =>
   }),
 );
 
-const lazyListTraversable = lazyVal(() =>
-  Traversable.of<LazyListF>({
+const lazyListTraversableFilter = lazyVal(() =>
+  TraversableFilter.of<LazyListF>({
     ...lazyListFoldable(),
     ...lazyListFunctor(),
+    traverseFilter_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: LazyList<A>, f: (a: A) => Kind<G, [Option<B>]>) =>
+        fa.traverseFilter(G)(f),
     traverse_:
       <G>(G: Applicative<G>) =>
       <A, B>(fa: LazyList<A>, f: (a: A) => Kind<G, [B]>) =>
@@ -1006,9 +1027,9 @@ Object.defineProperty(LazyList, 'Foldable', {
     return lazyListFoldable();
   },
 });
-Object.defineProperty(LazyList, 'Traversable', {
+Object.defineProperty(LazyList, 'TraversableFilter', {
   get() {
-    return lazyListTraversable();
+    return lazyListTraversableFilter();
   },
 });
 

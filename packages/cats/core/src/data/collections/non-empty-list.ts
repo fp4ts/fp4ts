@@ -353,7 +353,7 @@ class _NonEmptyList<out A> {
     return f =>
       G.map2Eval_(
         f(this.head),
-        Eval.always(() => this.tail.traverse(G)(f)),
+        Eval.later(() => this.tail.traverse(G)(f)),
       )((hd, tl) => new _NonEmptyList(hd, tl)).value;
   }
 

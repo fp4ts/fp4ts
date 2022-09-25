@@ -972,13 +972,15 @@ describe('IO', () => {
 
   describe('parTraverse', () => {
     it.real('should traverse sync list (real)', () =>
-      IO.parTraverse_(List.Traversable)(List.range(0, 5), x => IO(() => x))
+      IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
+        IO(() => x),
+      )
         .map(xs => xs.toArray)
         .map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
     );
 
     it.real('should traverse async list (real)', () =>
-      IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
+      IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
         IO.suspend.map(() => x),
       )
         .map(xs => xs.toArray)
@@ -986,7 +988,7 @@ describe('IO', () => {
     );
 
     it.ticked('should traverse sync list', ticker => {
-      const io = IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
+      const io = IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
         IO(() => x),
       ).map(xs => xs.toArray);
 
@@ -996,7 +998,7 @@ describe('IO', () => {
 
   describe('parTraverseN', () => {
     it.ticked('should traverse async list', ticker => {
-      const io = IO.parTraverse_(List.Traversable)(List.range(0, 5), x =>
+      const io = IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
         IO.suspend.map(() => x),
       ).map(xs => xs.toArray);
 
@@ -1006,7 +1008,7 @@ describe('IO', () => {
     it.ticked('should propagate errors', ticker => {
       const io = pipe(
         List(1, 2, 3),
-        IO.parTraverseN(List.Traversable)(2, x =>
+        IO.parTraverseN(List.TraversableFilter)(2, x =>
           x === 2 ? throwError(new Error('test error')) : IO.unit,
         ),
       );
@@ -1017,7 +1019,7 @@ describe('IO', () => {
     it.ticked('should be cancelable', ticker => {
       const traverse = pipe(
         List(1, 2, 3),
-        IO.parTraverseN(List.Traversable)(2, () => IO.never),
+        IO.parTraverseN(List.TraversableFilter)(2, () => IO.never),
       );
 
       const io = Monad.Do(IO.Monad)(function* (_) {
@@ -1034,7 +1036,9 @@ describe('IO', () => {
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(List.Traversable)(2, fin => IO.never.onCancel(IO(fin))),
+        IO.parTraverseN(List.TraversableFilter)(2, fin =>
+          IO.never.onCancel(IO(fin)),
+        ),
       );
 
       const io = Monad.Do(IO.Monad)(function* (_) {
@@ -1061,7 +1065,7 @@ describe('IO', () => {
           IO(cont),
         );
 
-        const io = pipe(ts, IO.parTraverseN(List.Traversable)(2, id));
+        const io = pipe(ts, IO.parTraverseN(List.TraversableFilter)(2, id));
 
         expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();

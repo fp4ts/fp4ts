@@ -33,7 +33,7 @@ describe('Traversal', () => {
   const coordinates = fromProps<Location>()('latitude', 'longitude');
 
   const eachL = <A>(): Traversal<List<A>, A> =>
-    fromTraversable(List.Traversable)<A>();
+    fromTraversable(List.TraversableFilter)<A>();
   const eachLi = eachL<number>();
 
   const locationArb: Arbitrary<Location> = fc

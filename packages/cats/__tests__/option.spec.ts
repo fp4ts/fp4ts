@@ -13,9 +13,9 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   MonadSuite,
   AlternativeSuite,
-  TraversableSuite,
   CoflatMapSuite,
   FunctorFilterSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { throwError } from '@fp4ts/core';
 
@@ -177,20 +177,6 @@ describe('Option', () => {
 
   describe('Laws', () => {
     checkAll(
-      'FunctorFilter<Option>',
-      FunctorFilterSuite(Option.FunctorFilter).functorFilter(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsOption,
-        Option.Eq,
-      ),
-    );
-
-    checkAll(
       'Alternative<Option>',
       AlternativeSuite(Option.Alternative).alternative(
         fc.integer(),
@@ -237,14 +223,14 @@ describe('Option', () => {
     );
 
     checkAll(
-      'Traversable<Option>',
-      TraversableSuite(Option.Traversable).traversable(
+      'TraversableFilter<Option>',
+      TraversableFilterSuite(Option.TraversableFilter).traversableFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        Option.Functor,
+        Option.FunctorFilter,
         Eval.Applicative,
         Eval.Applicative,
         Eq.fromUniversalEquals(),

@@ -11,32 +11,15 @@ import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import {
-  TraversableSuite,
   ApplicativeSuite,
-  FunctorFilterSuite,
   ContravariantSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Const Laws', () => {
-  const functorFilterTests = FunctorFilterSuite(Const.FunctorFilter<number>());
-  checkAll(
-    'FunctorFilter<Const<number, *>>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      x => x.map(Const.pure(Monoid.addition)),
-      () => Eq.fromUniversalEquals(),
-    ),
-  );
-
-  const contravariantTests = ContravariantSuite(Const.Contravariant<number>());
   checkAll(
     'Contravariant<Const<number, *>>',
-    contravariantTests.contravariant(
+    ContravariantSuite(Const.Contravariant<number>()).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       ec.miniInt(),
@@ -46,10 +29,9 @@ describe('Const Laws', () => {
     ),
   );
 
-  const applicativeTests = ApplicativeSuite(Const.Applicative(Monoid.addition));
   checkAll(
-    'Monad<Const>',
-    applicativeTests.applicative(
+    'Applicative<Const>',
+    ApplicativeSuite(Const.Applicative(Monoid.addition)).applicative(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -61,10 +43,9 @@ describe('Const Laws', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Const.Traversable<number>());
   checkAll(
-    'Traversable<Const<number, *>>',
-    traversableTests.traversable(
+    'TraversableFilter<Const<number, *>>',
+    TraversableFilterSuite(Const.TraversableFilter<number>()).traversable(
       fc.integer(),
       fc.integer(),
       fc.integer(),

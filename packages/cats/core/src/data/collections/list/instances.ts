@@ -17,7 +17,6 @@ import { Functor } from '../../../functor';
 import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
 import { Foldable } from '../../../foldable';
-import { Traversable } from '../../../traversable';
 import { Eval } from '../../../eval';
 
 import { List, ListF } from './list';
@@ -46,9 +45,11 @@ import {
   size,
   tailRecM_,
   tap_,
+  traverseFilter_,
   traverse_,
   zipAll_,
 } from './operators';
+import { TraversableFilter } from '../../../traversable-filter';
 
 export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
   Eq.of({ equals: (xs, ys) => equals_(E, xs, ys) });
@@ -152,6 +153,13 @@ export const listFoldable: Lazy<Foldable<ListF>> = lazyVal(() =>
   }),
 );
 
-export const listTraversable: Lazy<Traversable<ListF>> = lazyVal(() =>
-  Traversable.of({ ...listFoldable(), ...listFunctor(), traverse_, sequence }),
+export const listTraversableFilter: Lazy<TraversableFilter<ListF>> = lazyVal(
+  () =>
+    TraversableFilter.of({
+      ...listFoldable(),
+      ...listFunctor(),
+      traverse_,
+      traverseFilter_,
+      sequence,
+    }),
 );

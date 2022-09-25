@@ -14,8 +14,8 @@ import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
-import { Traversable } from '../../../traversable';
 import { Either } from '../../either';
+import { Option } from '../../option';
 import { Vector } from '../vector';
 import { List } from '../list';
 
@@ -30,7 +30,7 @@ import {
   singleton,
   tailRecM,
 } from './constructors';
-import { traverseViaChain } from './operators';
+import { traverseFilterViaChain, traverseViaChain } from './operators';
 import {
   chainAlign,
   chainAlternative,
@@ -42,6 +42,7 @@ import {
   chainMonoidK,
   chainTraversable,
 } from './instances';
+import { TraversableFilter } from '../../../traversable-filter';
 
 /**
  * @category Collection
@@ -70,6 +71,13 @@ interface ChainObj {
     xs: Kind<F, [A]>,
     f: (a: A, i: number) => Kind<G, [B]>,
   ) => Kind<G, [Chain<B>]>;
+  traverseFilterViaChain<G, F>(
+    G: Applicative<G>,
+    F: Foldable<F>,
+  ): <A, B>(
+    xs: Kind<F, [A]>,
+    f: (a: A, i: number) => Kind<G, [Option<B>]>,
+  ) => Kind<G, [Chain<B>]>;
   tailRecM<S>(s: S): <A>(f: (s: S) => Chain<Either<S, A>>) => Chain<A>;
 
   // -- Instances
@@ -81,7 +89,7 @@ interface ChainObj {
   readonly Alternative: Alternative<ChainF>;
   readonly CoflatMap: CoflatMap<ChainF>;
   readonly Monad: Monad<ChainF>;
-  readonly Traversable: Traversable<ChainF>;
+  readonly TraversableFilter: TraversableFilter<ChainF>;
 }
 
 Chain.pure = pure;
@@ -92,6 +100,7 @@ Chain.fromArray = fromArray;
 Chain.fromList = fromList;
 Chain.fromVector = fromVector;
 Chain.traverseViaChain = traverseViaChain;
+Chain.traverseFilterViaChain = traverseFilterViaChain;
 Chain.tailRecM = tailRecM;
 
 Chain.Eq = chainEq;
@@ -130,7 +139,7 @@ Object.defineProperty(Chain, 'Monad', {
     return chainMonad();
   },
 });
-Object.defineProperty(Chain, 'Traversable', {
+Object.defineProperty(Chain, 'TraversableFilter', {
   get() {
     return chainTraversable();
   },

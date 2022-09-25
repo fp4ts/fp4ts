@@ -41,10 +41,10 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
       mkEqG: <X>(E: Eq<X>) => Eq<Kind<G, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'traversable',
+        'Traversable',
         [
           [
-            'traversable identity',
+            'traverse identity',
             forAll(
               mkArbT(arbA),
               fc.func<[A], B>(arbB),
@@ -52,7 +52,7 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
             )(mkEqT(EqB)),
           ],
           [
-            'traversable sequential coposition',
+            'traverse sequential composition',
             forAll(
               mkArbT(arbA),
               fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
@@ -61,7 +61,7 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
             )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
           ],
           [
-            'traversable parallel composition',
+            'traverse parallel composition',
             forAll(
               mkArbT(arbA),
               fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),

@@ -27,6 +27,7 @@ import {
   FunctorFilterSuite,
   AlignSuite,
   CoflatMapSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 
 describe('List', () => {
@@ -1325,10 +1326,9 @@ describe('List', () => {
   });
 
   describe('Laws', () => {
-    const alignTests = AlignSuite(List.Align);
     checkAll(
       'Align<List>',
-      alignTests.align(
+      AlignSuite(List.Align).align(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1342,25 +1342,9 @@ describe('List', () => {
       ),
     );
 
-    const functorFilterTests = FunctorFilterSuite(List.FunctorFilter);
-    checkAll(
-      'FunctorFilter<List>',
-      functorFilterTests.functorFilter(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsList,
-        List.Eq,
-      ),
-    );
-
-    const alternativeTests = AlternativeSuite(List.Alternative);
     checkAll(
       'Alternative<List>',
-      alternativeTests.alternative(
+      AlternativeSuite(List.Alternative).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1372,10 +1356,9 @@ describe('List', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(List.CoflatMap);
     checkAll(
       'CoflatMap<List>',
-      coflatMapTests.coflatMap(
+      CoflatMapSuite(List.CoflatMap).coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1389,10 +1372,9 @@ describe('List', () => {
       ),
     );
 
-    const monadTests = MonadSuite(List.Monad);
     checkAll(
       'Monad<List>',
-      monadTests.monad(
+      MonadSuite(List.Monad).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1406,16 +1388,15 @@ describe('List', () => {
       ),
     );
 
-    const traversableTests = TraversableSuite(List.Traversable);
     checkAll(
-      'traversable<List>',
-      traversableTests.traversable<number, number, number, EvalF, EvalF>(
+      'TraversableFilter<List>',
+      TraversableFilterSuite(List.TraversableFilter).traversableFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        List.Functor,
+        List.FunctorFilter,
         Eval.Applicative,
         Eval.Applicative,
         Eq.fromUniversalEquals(),

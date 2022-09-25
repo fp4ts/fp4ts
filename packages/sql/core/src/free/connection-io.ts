@@ -539,14 +539,14 @@ export const Never = new (class Never extends ConnectionOp<never> {
     return v.visitNever(this);
   }
 })();
-export type Never = typeof Never;
+export type Never = ConnectionOp<never>;
 
 export const Suspend = new (class Suspend extends ConnectionOp<void> {
   public visit<F>(v: ConnectionOpVisitor<F>): Kind<F, [void]> {
     return v.visitSuspend(this);
   }
 })();
-export type Suspend = typeof Suspend;
+export type Suspend = ConnectionOp<void>;
 
 // -- Instances
 

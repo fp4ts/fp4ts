@@ -326,7 +326,7 @@ export class Scope<F> {
       );
       const allScopes = children['::+'](self)['+++'](self.ancestors);
       const allResources = yield* _(
-        Chain.Traversable.flatTraverse_(Chain.Monad, F)(
+        Chain.TraversableFilter.flatTraverse_(Chain.Monad, F)(
           allScopes,
           scope => scope.resources,
         ),
@@ -362,7 +362,7 @@ export class Scope<F> {
     f: (a: A) => Kind<F, [Either<Error, void>]>,
   ): Kind<F, [Either<Error, void>]> =>
     this.target.F.map_(
-      Chain.Traversable.traverse_(this.target.F)(ca, f),
+      Chain.TraversableFilter.traverse_(this.target.F)(ca, f),
       results =>
         CompositeFailure.fromList(
           results.collect(ea =>

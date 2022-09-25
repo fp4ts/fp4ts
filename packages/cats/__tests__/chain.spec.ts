@@ -13,7 +13,7 @@ import {
   CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
-  TraversableSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -75,20 +75,6 @@ describe('Chain', () => {
     );
 
     checkAll(
-      'FunctorFiler<Chain>',
-      FunctorFilterSuite(Chain.FunctorFilter).functorFilter(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsChain,
-        Chain.Eq,
-      ),
-    );
-
-    checkAll(
       'Alternative<Chain>',
       AlternativeSuite(Chain.Alternative).alternative(
         fc.integer(),
@@ -135,14 +121,14 @@ describe('Chain', () => {
     );
 
     checkAll(
-      'Traversable<Chain>',
-      TraversableSuite(Chain.Traversable).traversable(
+      'TraversableFilter<Chain>',
+      TraversableFilterSuite(Chain.TraversableFilter).traversable(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        Chain.Monad,
+        Chain.FunctorFilter,
         Eval.Applicative,
         Eval.Applicative,
         Eq.fromUniversalEquals(),

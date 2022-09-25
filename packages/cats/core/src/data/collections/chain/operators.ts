@@ -333,6 +333,59 @@ export const traverseViaChain =
     return loop(0, F.size(xs)).value;
   };
 
+export const traverseFilterViaChain =
+  <G, F>(G: Applicative<G>, F: Foldable<F>) =>
+  <A, B>(
+    xs: Kind<F, [A]>,
+    f: (a: A, i: number) => Kind<G, [Option<B>]>,
+  ): Kind<G, [Chain<B>]> => {
+    if (F.isEmpty(xs)) return G.pure(empty);
+
+    // Max width of the tree -- max depth log_128(c.size)
+    const width = 128;
+
+    const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
+      if (end - start <= width) {
+        // We've entered leaves of the tree
+        let first = Eval.delay(() =>
+          G.map_(f(F.elem_(xs, end - 1).get, end - 1), opt =>
+            opt.nonEmpty ? List(opt.get) : List.empty,
+          ),
+        );
+        for (let idx = end - 2; start <= idx; idx--) {
+          const a = F.elem_(xs, idx).get;
+          const right = first;
+          const idx0 = idx;
+          first = Eval.defer(() =>
+            G.map2Eval_(
+              f(a, idx0),
+              right,
+            )((opt, tl) => (opt.nonEmpty ? tl.cons(opt.get) : tl)),
+          );
+        }
+        return first.map(gls => G.map_(gls, fromList));
+      } else {
+        const step = ((end - start) / width) | 0;
+
+        let fchain = Eval.defer(() => loop(start, start + step));
+
+        for (
+          let start0 = start + step, end0 = start0 + step;
+          start0 < end;
+          start0 += step, end0 += step
+        ) {
+          const start1 = start0;
+          const end1 = Math.min(end, end0);
+          const right = Eval.defer(() => loop(start1, end1));
+          fchain = fchain.flatMap(fv => G.map2Eval_(fv, right)(concat_));
+        }
+        return fchain;
+      }
+    };
+
+    return loop(0, F.size(xs)).value;
+  };
+
 // -- Point-ful operators
 
 export const prepend_ = <A>(xs: Chain<A>, x: A): Chain<A> =>
@@ -492,6 +545,16 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Chain<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> =>
     traverseViaChain(G, CatsArray.FoldableWithIndex())(toArray(xs), x => f(x));
+
+export const traverseFilter_ =
+  <G>(G: Applicative<G>) =>
+  <A, B>(
+    xs: Chain<A>,
+    f: (a: A) => Kind<G, [Option<B>]>,
+  ): Kind<G, [Chain<B>]> =>
+    traverseFilterViaChain(G, CatsArray.FoldableWithIndex())(toArray(xs), x =>
+      f(x),
+    );
 
 export const equals_ =
   <A>(E: Eq<A>) =>

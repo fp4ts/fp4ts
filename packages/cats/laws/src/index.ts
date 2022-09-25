@@ -23,6 +23,7 @@ export * from './monad-laws';
 export * from './monoid-k-laws';
 export * from './semigroup-k-laws';
 export * from './traversable-laws';
+export * from './traversable-filter-laws';
 export * from './unordered-foldable-laws';
 export * from './unordered-traversable-laws';
 export * from './bifunctor-laws';

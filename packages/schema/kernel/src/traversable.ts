@@ -40,11 +40,11 @@ import { NullableK, ProductK, StructK, SumK } from './kinds';
 export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
   () => {
     const self: SchemableK<TraversableF> = SchemableK.of({
-      boolean: Const.Traversable<boolean>(),
-      string: Const.Traversable<string>(),
-      number: Const.Traversable<number>(),
-      literal: () => Const.Traversable<any>(),
-      null: Const.Traversable<null>(),
+      boolean: Const.TraversableFilter<boolean>(),
+      string: Const.TraversableFilter<string>(),
+      number: Const.TraversableFilter<number>(),
+      literal: () => Const.TraversableFilter<any>(),
+      null: Const.TraversableFilter<null>(),
       par: Identity.Traversable,
 
       array: f => self.compose_(Array.TraversableWithIndex(), f),

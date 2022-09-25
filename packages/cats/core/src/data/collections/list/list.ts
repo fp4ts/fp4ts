@@ -17,7 +17,7 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Monad } from '../../../monad';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
-import { Traversable } from '../../../traversable';
+import { TraversableFilter } from '../../../traversable-filter';
 
 import { Either } from '../../either';
 import { Vector } from '../vector';
@@ -41,7 +41,7 @@ import {
   listFunctorFilter,
   listMonoidK,
   listSemigroupK,
-  listTraversable,
+  listTraversableFilter,
   listFlatMap,
   listMonad,
   listAlternative,
@@ -85,7 +85,7 @@ interface ListObj {
   readonly CoflatMap: CoflatMap<ListF>;
   readonly Monad: Monad<ListF>;
   readonly Foldable: Foldable<ListF>;
-  readonly Traversable: Traversable<ListF>;
+  readonly TraversableFilter: TraversableFilter<ListF>;
   Eq<A>(E: Eq<A>): Eq<List<A>>;
 }
 
@@ -159,9 +159,9 @@ Object.defineProperty(List, 'Foldable', {
     return listFoldable();
   },
 });
-Object.defineProperty(List, 'Traversable', {
-  get(): Traversable<ListF> {
-    return listTraversable();
+Object.defineProperty(List, 'TraversableFilter', {
+  get(): TraversableFilter<ListF> {
+    return listTraversableFilter();
   },
 });
 List.Eq = listEq;

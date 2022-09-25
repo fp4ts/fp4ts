@@ -12,7 +12,7 @@ function makeTests(size: number) {
   const performWork = IO.defer(() => IO.sleep((Math.random() * 5) | 0));
   return [
     add(`parTraverse (${size})`, async () => {
-      await IO.parTraverse_(List.Traversable)(
+      await IO.parTraverse_(List.TraversableFilter)(
         xs,
         () => performWork,
       ).unsafeRunToPromise();

@@ -79,8 +79,8 @@ describe('Cofree', () => {
         0,
       )(i => (i === 100 ? None : Some(i + 1)));
 
-      const cata = unfolded.cata(Option.Traversable)<List<number>>((i, lb) =>
-        Eval.now(lb.getOrElse(() => List.empty).cons(i)),
+      const cata = unfolded.cata(Option.TraversableFilter)<List<number>>(
+        (i, lb) => Eval.now(lb.getOrElse(() => List.empty).cons(i)),
       );
 
       expect(cata.value).toEqual(List.range(0, 101));
@@ -93,7 +93,7 @@ describe('Cofree', () => {
         0,
       )(i => (i === size ? None : Some(i + 1)));
 
-      const cata = unfolded.cata(Option.Traversable)<number>((i, lb) =>
+      const cata = unfolded.cata(Option.TraversableFilter)<number>((i, lb) =>
         Eval.now(lb.getOrElse(() => 0) + i),
       );
 
@@ -119,13 +119,13 @@ describe('Cofree', () => {
       )(i => (i === 100 ? None : Some(i + 1)));
 
       const cataHundred = unfolded.cataM(
-        Option.Traversable,
+        Option.TraversableFilter,
         OptionT.Monad(Eval.Monad),
       )(folder, inclusion).value;
       const cataHundredOne = Cofree<OptionF, number>(
         101,
         Eval.now(Some(unfolded)),
-      ).cataM(Option.Traversable, OptionT.Monad(Eval.Monad))(
+      ).cataM(Option.TraversableFilter, OptionT.Monad(Eval.Monad))(
         folder,
         inclusion,
       ).value;
@@ -154,7 +154,7 @@ describe('Cofree', () => {
     );
 
     const traversableTests = TraversableSuite(
-      Cofree.Traversable(Option.Traversable),
+      Cofree.Traversable(Option.TraversableFilter),
     );
     checkAll(
       'Traversable<Cofree<Option, *>>',

@@ -13,6 +13,7 @@ import {
   CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
+  TraversableFilterSuite,
   TraversableWithIndexSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -111,6 +112,29 @@ describe('Array laws', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Array.FunctorWithIndex(),
+      Eval.Applicative,
+      Eval.Applicative,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      fc.array,
+      Array.Eq,
+      A.fp4tsEval,
+      Eval.Eq,
+      A.fp4tsEval,
+      Eval.Eq,
+    ),
+  );
+
+  checkAll(
+    'TraversableFilter<Array, number>',
+    TraversableFilterSuite(Array.TraversableFilter()).traversableFilter(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      CommutativeMonoid.addition,
+      CommutativeMonoid.addition,
+      Array.FunctorFilter(),
       Eval.Applicative,
       Eval.Applicative,
       Eq.fromUniversalEquals(),

@@ -31,6 +31,7 @@ export * from './comonad';
 export * from './defer';
 export * from './foldable';
 export * from './traversable';
+export * from './traversable-filter';
 export * from './unordered-foldable';
 export * from './unordered-traversable';
 export * from './defer';

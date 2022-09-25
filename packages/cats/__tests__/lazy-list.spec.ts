@@ -18,9 +18,8 @@ import {
   AlignSuite,
   AlternativeSuite,
   DeferSuite,
-  FunctorFilterSuite,
   MonadSuite,
-  TraversableSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -1597,20 +1596,6 @@ describe('LazyList', () => {
     );
 
     checkAll(
-      'FunctorFilter<LazyList>',
-      FunctorFilterSuite(LazyList.FunctorFilter).functorFilter(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsLazyList,
-        LazyList.EqK.liftEq,
-      ),
-    );
-
-    checkAll(
       'Monad<LazyList>',
       MonadSuite(LazyList.Monad).monad(
         fc.integer(),
@@ -1627,14 +1612,14 @@ describe('LazyList', () => {
     );
 
     checkAll(
-      'Traversable<LazyList>',
-      TraversableSuite(LazyList.Traversable).traversable(
+      'TraversableFilter<LazyList>',
+      TraversableFilterSuite(LazyList.TraversableFilter).traversableFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        LazyList.Functor,
+        LazyList.FunctorFilter,
         Eval.Applicative,
         Eval.Applicative,
         Eq.fromUniversalEquals(),

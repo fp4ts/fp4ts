@@ -99,33 +99,31 @@ Object.defineProperty(Identity, 'Traversable', {
   },
 });
 
-export const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() =>
-  EqK.of({ liftEq: id }),
-);
+const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() => EqK.of({ liftEq: id }));
 
-export const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
+const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
   Functor.of({ map_: (fa, f) => f(fa) }),
 );
 
-export const identityDistributive: Lazy<Distributive<IdentityF>> = lazyVal(() =>
+const identityDistributive: Lazy<Distributive<IdentityF>> = lazyVal(() =>
   Distributive.of<IdentityF>({
     ...identityFunctor(),
     distribute_: G => G.map_,
   }),
 );
 
-export const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>
+const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>
   Apply.of({
     ...identityFunctor(),
     ap_: (ff, fa) => ff(fa),
   }),
 );
 
-export const identityApplicative: Lazy<Applicative<IdentityF>> = lazyVal(() =>
+const identityApplicative: Lazy<Applicative<IdentityF>> = lazyVal(() =>
   Applicative.of({ ...identityApply(), pure: id, unit: undefined }),
 );
 
-export const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
+const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
   FlatMap.of({
     ...identityApply(),
     flatMap_: (fa, f) => f(fa),
@@ -151,7 +149,7 @@ export const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
   }),
 );
 
-export const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
+const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
   CoflatMap.of({
     ...identityFunctor(),
     coflatMap_: (fa, f) => f(fa),
@@ -159,18 +157,18 @@ export const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
   }),
 );
 
-export const identityMonad: Lazy<Monad<IdentityF>> = lazyVal(() =>
+const identityMonad: Lazy<Monad<IdentityF>> = lazyVal(() =>
   Monad.of({
     ...identityApplicative(),
     ...identityFlatMap(),
   }),
 );
 
-export const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
+const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
   Comonad.of({ ...identityCoflatMap(), extract: id }),
 );
 
-export const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
+const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
   Foldable.of({
     foldMap_:
       <M>(M: Monoid<M>) =>
@@ -179,7 +177,7 @@ export const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
   }),
 );
 
-export const identityTraversable: Lazy<Traversable<IdentityF>> = lazyVal(() =>
+const identityTraversable: Lazy<Traversable<IdentityF>> = lazyVal(() =>
   Traversable.of({
     ...identityFoldable(),
     ...identityFunctor(),

@@ -931,6 +931,21 @@ export const traverse_ =
     return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
   };
 
+export const traverseFilter_ =
+  <G>(G: Applicative<G>) =>
+  <A, B>(
+    xs: List<A>,
+    f: (a: A) => Kind<G, [Option<B>]>,
+  ): Kind<G, [List<B>]> => {
+    const consF = (
+      x: A,
+      eys: Eval<Kind<G, [List<B>]>>,
+    ): Eval<Kind<G, [List<B>]>> =>
+      G.map2Eval_(f(x), eys)((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
+
+    return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
+  };
+
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
   xs: List<A>,

@@ -21,6 +21,7 @@ export * from './monad-suite';
 export * from './monoid-k-suite';
 export * from './semigroup-k-suite';
 export * from './traversable-suite';
+export * from './traversable-filter-suite';
 export * from './unordered-foldable-suite';
 export * from './unordered-traversable-suite';
 export * from './bifunctor-suite';

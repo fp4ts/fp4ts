@@ -14,7 +14,7 @@ import { Functor } from '../functor';
 import { FunctorFilter } from '../functor-filter';
 import { Monad } from '../monad';
 import { MonoidK } from '../monoid-k';
-import { Traversable } from '../traversable';
+import { TraversableFilter } from '../traversable-filter';
 import { Either, Left, Right } from './either';
 import { List } from './collections';
 
@@ -135,6 +135,12 @@ abstract class _Option<out A> {
       (this as Option<A>) === None ? G.pure(None) : G.map_(f(this.get), Some);
   }
 
+  public traverseFilter<G>(
+    G: Applicative<G>,
+  ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [Option<B>]> {
+    return f => ((this as Option<A>) === None ? G.pure(None) : f(this.get));
+  }
+
   public equals<A>(
     this: Option<A>,
     that: Option<A>,
@@ -201,7 +207,7 @@ interface OptionObj {
   CoflatMap: CoflatMap<OptionF>;
   Alternative: Alternative<OptionF>;
   Monad: Monad<OptionF>;
-  Traversable: Traversable<OptionF>;
+  TraversableFilter: TraversableFilter<OptionF>;
 }
 
 Option.Eq = <A>(E: Eq<A>): Eq<Option<A>> =>
@@ -252,19 +258,23 @@ const optionMonad = lazyVal(() =>
   }),
 );
 
-const optionTraversable = lazyVal(() =>
-  Traversable.of<OptionF>({
-    ...optionFunctor(),
+const optionTraversableFilter = lazyVal(() =>
+  TraversableFilter.of<OptionF>({
+    ...optionFunctorFilter(),
+    traverseFilter_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: Option<A>, f: (a: A) => Kind<G, [Option<B>]>) =>
+        fa.traverseFilter(G)(f),
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: Option<A>, f: (a: A) => Kind<G, [B]>) =>
+        fa.traverse(G)(f),
     foldMap_:
       <M>(M: Monoid<M>) =>
       <A>(fa: Option<A>, f: (a: A) => M) =>
         fa.foldMap(M)(f),
     foldLeft_: (fa, z, f) => fa.foldLeft(z, f),
     foldRight_: (fa, z, f) => fa.foldRight(z, f),
-    traverse_:
-      <G>(G: Applicative<G>) =>
-      <A, B>(fa: Option<A>, f: (a: A) => Kind<G, [B]>) =>
-        fa.traverse(G)(f),
     isEmpty: fa => fa.isEmpty,
     nonEmpty: fa => fa.nonEmpty,
     toList: fa => fa.toList,
@@ -301,9 +311,9 @@ Object.defineProperty(Option, 'Monad', {
     return optionMonad();
   },
 });
-Object.defineProperty(Option, 'Traversable', {
+Object.defineProperty(Option, 'TraversableFilter', {
   get() {
-    return optionTraversable();
+    return optionTraversableFilter();
   },
 });
 

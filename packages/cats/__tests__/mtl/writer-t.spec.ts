@@ -240,7 +240,7 @@ describe('WriterT', () => {
     checkAll(
       'Traversable<WriterT<Option, string, *>>',
       TraversableSuite(
-        WriterT.Traversable<OptionF, string>(Option.Traversable),
+        WriterT.Traversable<OptionF, string>(Option.TraversableFilter),
       ).traversable(
         fc.integer(),
         fc.integer(),
