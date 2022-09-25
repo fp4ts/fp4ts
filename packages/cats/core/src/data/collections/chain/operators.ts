@@ -307,7 +307,8 @@ export const traverseViaChain =
         for (let idx = end - 2; start <= idx; idx--) {
           const a = F.elem_(xs, idx).get;
           const right = first;
-          first = Eval.defer(() => G.map2Eval_(f(a, idx), right)(List.cons));
+          const idx0 = idx;
+          first = Eval.defer(() => G.map2Eval_(f(a, idx0), right)(List.cons));
         }
         return first.map(gls => G.map_(gls, fromList));
       } else {

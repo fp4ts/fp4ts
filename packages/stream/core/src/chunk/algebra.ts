@@ -293,11 +293,13 @@ export abstract class Chunk<out O> {
       const loop = (start: number, end: number): Eval<Kind<F, [Chunk<O2>]>> => {
         if (end - start <= width) {
           // We've entered leaves of the tree
-          let first = F.map_(f(this.elem(end - 1)), o2 => List(o2));
+          let first = Eval.delay(() => F.map_(f(this.elem(end - 1)), List));
           for (let idx = end - 2; start <= idx; idx--) {
-            first = F.map2_(f(this.elem(idx)), first)((h, t) => t.prepend(h));
+            const a = this.elem(idx);
+            const right = first;
+            first = Eval.defer(() => F.map2Eval_(f(a), right)(List.cons));
           }
-          return Eval.now(F.map_(first, Chunk.fromList));
+          return first.map(fls => F.map_(fls, Chunk.fromList));
         } else {
           const step = ((end - start) / width) | 0;
 
@@ -310,11 +312,9 @@ export abstract class Chunk<out O> {
           ) {
             const end1 = Math.min(end, end0);
             const start1 = start0;
+            const right = Eval.defer(() => loop(start1, end1));
             fchunk = fchunk.flatMap(fv =>
-              F.map2Eval_(
-                fv,
-                Eval.defer(() => loop(start1, end1)),
-              )((xs, ys) => xs.concat(ys)),
+              F.map2Eval_(fv, right)((xs, ys) => xs.concat(ys)),
             );
           }
           return fchunk;
