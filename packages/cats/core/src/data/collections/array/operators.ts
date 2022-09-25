@@ -12,6 +12,8 @@ import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';
 import { Either } from '../../either';
 import { List } from '../list';
+import { Chain } from '../chain';
+import { arrayFoldableWithIndex } from './instances';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -232,11 +234,7 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
     G.map_(
-      foldRightEval_(
-        xs,
-        Eval.now(G.pure(List.empty as List<B>)),
-        (x, eys, idx) => G.map2Eval_(f(x, idx), eys)((y, ys) => ys.cons(y)),
-      ).value,
+      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
       ys => ys.toArray,
     );
 
