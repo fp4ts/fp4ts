@@ -320,8 +320,9 @@ export const traverseViaChain =
           start0 < end;
           start0 += step, end0 += step
         ) {
+          const start1 = start0;
           const end1 = Math.min(end, end0);
-          const right = loop(start0, end1);
+          const right = Eval.defer(() => loop(start1, end1));
           fchain = fchain.flatMap(fv => G.map2Eval_(fv, right)(concat_));
         }
         return fchain;
