@@ -437,9 +437,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           DelayedCheck.withRequest(F)(() =>
             pipe(
               List.fromArray(txts)
-                .traverse(Either.Applicative<DecodeFailure>())(
-                  fromPathComponent,
-                )
+                .traverse(Either.Monad<DecodeFailure>())(fromPathComponent)
                 .leftMap(f => new ParsingFailure(f.toString())),
               RouteResult.fromEither,
               RouteResultT.lift(F),

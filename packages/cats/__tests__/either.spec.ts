@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id, throwError } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Either, Right, Left, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -13,6 +13,7 @@ import {
   SemigroupKSuite,
   MonadErrorSuite,
   BifunctorSuite,
+  TraversableSuite,
 } from '@fp4ts/cats-laws';
 import { Eval } from '@fp4ts/cats-core';
 
@@ -97,26 +98,26 @@ describe('Either', () => {
 
   describe('flatten', () => {
     it('should flatten the right values', () => {
-      expect(Right(Right(42)).flatten).toEqual(Right(42));
+      expect(Right(Right(42)).flatten()).toEqual(Right(42));
     });
 
     it('should flatten to left', () => {
-      expect(Right(Left(42)).flatten).toEqual(Left(42));
+      expect(Right(Left(42)).flatten()).toEqual(Left(42));
     });
   });
 
   describe('tailRecM', () => {
     it('should return initial result when returned right', () => {
-      expect(Either.tailRecM(42)(x => Right(Right(x)))).toEqual(Right(42));
+      expect(Either.tailRecM_(42, x => Right(Right(x)))).toEqual(Right(42));
     });
 
     it('should return left when computation returned left', () => {
-      expect(Either.tailRecM(42)(x => Left('Error'))).toEqual(Left('Error'));
+      expect(Either.tailRecM_(42, x => Left('Error'))).toEqual(Left('Error'));
     });
 
     it('should compute recursive sum', () => {
       expect(
-        Either.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+        Either.tailRecM_<[number, number], never, number>([0, 0], ([i, x]) =>
           i < 10 ? Right(Left([i + 1, x + i])) : Right(Right(x)),
         ),
       ).toEqual(Right(45));
@@ -126,7 +127,7 @@ describe('Either', () => {
       const size = 100_000;
 
       expect(
-        Either.tailRecM(0)(i =>
+        Either.tailRecM_(0, i =>
           i < size ? Right(Left(i + 1)) : Right(Right(i)),
         ),
       ).toEqual(Right(size));
@@ -145,7 +146,7 @@ describe('Either', () => {
 
   it('should short-circuit on Left', () => {
     expect(
-      Either.Apply<string>().map2Eval_(
+      Either.Monad<string>().map2Eval_(
         Left('left'),
         Eval.delay(() => throwError(new Error())),
       )(() => 42).value,
@@ -153,10 +154,9 @@ describe('Either', () => {
   });
 
   describe('Laws', () => {
-    const semigroupKTests = SemigroupKSuite(Either.SemigroupK<string>());
     checkAll(
-      'SemigroupK<$<EitherK, [string]>>',
-      semigroupKTests.semigroupK(
+      'SemigroupK<Either<string, *>>',
+      SemigroupKSuite(Either.SemigroupK<string>()).semigroupK(
         A.fp4tsPrimitive(),
         Eq.fromUniversalEquals(),
         x => A.fp4tsEither(fc.string(), x),
@@ -164,10 +164,9 @@ describe('Either', () => {
       ),
     );
 
-    const bifunctorTests = BifunctorSuite(Either.Bifunctor);
     checkAll(
       'Bifunctor<Either>',
-      bifunctorTests.bifunctor(
+      BifunctorSuite(Either.Bifunctor).bifunctor(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -181,10 +180,9 @@ describe('Either', () => {
       ),
     );
 
-    const tests = MonadErrorSuite(Either.MonadError<string>());
     checkAll(
-      'Monad<Either<string, *>>',
-      tests.monadError(
+      'MonadError<Either<string, *>>',
+      MonadErrorSuite(Either.MonadError<string>()).monadError(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -197,6 +195,29 @@ describe('Either', () => {
         Eq.fromUniversalEquals(),
         x => A.fp4tsEither(fc.string(), x),
         E => Either.Eq(Eq.fromUniversalEquals(), E),
+      ),
+    );
+
+    checkAll(
+      'Traversable<Either<string, *>>',
+      TraversableSuite(Either.Traversable<string>()).traversable(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
+        Either.Monad<string>(),
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        x => A.fp4tsEither(fc.string(), x),
+        E => Either.Eq(Eq.fromUniversalEquals(), E),
+        A.fp4tsEval,
+        Eval.EqK.liftEq,
+        A.fp4tsEval,
+        Eval.EqK.liftEq,
       ),
     );
   });

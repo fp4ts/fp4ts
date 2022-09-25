@@ -176,10 +176,9 @@ describe('Option', () => {
   });
 
   describe('Laws', () => {
-    const functorFilterTests = FunctorFilterSuite(Option.FunctorFilter);
     checkAll(
       'FunctorFilter<Option>',
-      functorFilterTests.functorFilter(
+      FunctorFilterSuite(Option.FunctorFilter).functorFilter(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -191,10 +190,9 @@ describe('Option', () => {
       ),
     );
 
-    const alternativeTests = AlternativeSuite(Option.Alternative);
     checkAll(
       'Alternative<Option>',
-      alternativeTests.alternative(
+      AlternativeSuite(Option.Alternative).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -206,10 +204,9 @@ describe('Option', () => {
       ),
     );
 
-    const coflatMapTests = CoflatMapSuite(Option.CoflatMap);
     checkAll(
       'CoflatMap<Option>',
-      coflatMapTests.coflatMap(
+      CoflatMapSuite(Option.CoflatMap).coflatMap(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -223,10 +220,9 @@ describe('Option', () => {
       ),
     );
 
-    const monadTests = MonadSuite(Option.Monad);
     checkAll(
       'Monad<Option>',
-      monadTests.monad(
+      MonadSuite(Option.Monad).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -240,10 +236,9 @@ describe('Option', () => {
       ),
     );
 
-    const traversableTests = TraversableSuite(Option.Traversable);
     checkAll(
       'Traversable<Option>',
-      traversableTests.traversable(
+      TraversableSuite(Option.Traversable).traversable(
         fc.integer(),
         fc.integer(),
         fc.integer(),

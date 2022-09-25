@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
@@ -265,6 +265,9 @@ const optionTraversable = lazyVal(() =>
       <G>(G: Applicative<G>) =>
       <A, B>(fa: Option<A>, f: (a: A) => Kind<G, [B]>) =>
         fa.traverse(G)(f),
+    isEmpty: fa => fa.isEmpty,
+    nonEmpty: fa => fa.nonEmpty,
+    toList: fa => fa.toList,
   }),
 );
 
@@ -305,6 +308,8 @@ Object.defineProperty(Option, 'Traversable', {
 });
 
 // -- HKT
+
+interface _Option<A> extends HKT<OptionF, [A]> {}
 
 /**
  * @category Type Constructor

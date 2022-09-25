@@ -44,7 +44,7 @@ export function getOrModify<S, T, A, B>(
   l: PPrism<S, T, A, B>,
 ): (s: S) => Either<T, A> {
   return flow(
-    l(Either.Applicative<A>(), Indexable.Function1())(Left),
+    l(Either.Monad<A>(), Indexable.Function1())(Left),
     at => at.swapped,
   );
 }
@@ -53,7 +53,7 @@ export function getOption<S, T, A, B>(
   l: PPrism<S, T, A, B>,
 ): (s: S) => Option<A> {
   return flow(
-    l(Either.Applicative<A>(), Indexable.Function1())(Left),
+    l(Either.Monad<A>(), Indexable.Function1())(Left),
     at => at.swapped.toOption,
   );
 }
