@@ -493,6 +493,10 @@ const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazyVal(() =>
     ...syncIoFunctor(),
     ...syncIoApply(),
     pure: SyncIO.pure,
+    map2_:
+      <A, B>(fa: SyncIO<A>, fb: SyncIO<B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.flatMap(a => fb.map(b => f(a, b))),
   }),
 );
 

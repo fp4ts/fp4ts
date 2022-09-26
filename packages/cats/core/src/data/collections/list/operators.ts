@@ -21,6 +21,7 @@ import { NonEmptyList } from '../non-empty-list';
 import { Cons, List } from './algebra';
 import { cons, empty, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
+import { Apply, TraverseStrategy } from '../../../apply';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -980,30 +981,33 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> => {
-    const consF = (
-      x: A,
-      eys: Eval<Kind<G, [List<B>]>>,
-    ): Eval<Kind<G, [List<B>]>> =>
-      G.map2Eval_(f(x), eys)((y, ys) => ys.cons(y));
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
+    Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
+      const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
+        xs === nil
+          ? Rhs.toRhs(() => G.pure(nil))
+          : Rhs.map2Rhs(
+              f((xs as Cons<A>)._head),
+              Rhs.defer(() => go((xs as Cons<A>)._tail)),
+            )(cons);
 
-    return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
-  };
+      return Rhs.toG(Rhs.defer(() => go(xs)));
+    });
 
 export const traverseFilter_ =
   <G>(G: Applicative<G>) =>
-  <A, B>(
-    xs: List<A>,
-    f: (a: A) => Kind<G, [Option<B>]>,
-  ): Kind<G, [List<B>]> => {
-    const consF = (
-      x: A,
-      eys: Eval<Kind<G, [List<B>]>>,
-    ): Eval<Kind<G, [List<B>]>> =>
-      G.map2Eval_(f(x), eys)((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
+  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [List<B>]> =>
+    Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
+      const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
+        xs === nil
+          ? Rhs.toRhs(() => G.pure(nil))
+          : Rhs.map2Rhs(
+              f((xs as Cons<A>)._head),
+              Rhs.defer(() => go((xs as Cons<A>)._tail)),
+            )((y, ys) => (ys.nonEmpty ? cons(y.get, ys) : ys));
 
-    return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), consF).value;
-  };
+      return Rhs.toG(Rhs.defer(() => go(xs)));
+    });
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,

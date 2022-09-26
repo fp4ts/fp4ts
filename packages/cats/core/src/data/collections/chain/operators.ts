@@ -7,9 +7,9 @@ import { Kind, fst, snd, throwError, pipe, id, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 import { Applicative } from '../../../applicative';
-import { Eval } from '../../../eval';
 import { Ior } from '../../ior';
 import { Option, None, Some } from '../../option';
+import { Apply, TraverseStrategy } from '../../../apply';
 
 import { Iter } from '../iterator';
 import { List } from '../list';
@@ -287,8 +287,21 @@ export const toList = <A>(xs: Chain<A>): List<A> =>
 export const toVector = <A>(xs: Chain<A>): Vector<A> =>
   Vector.fromIterator(iterator(xs));
 
-export const traverseViaChain =
-  <G, F>(G: Applicative<G>, F: Foldable<F>) =>
+export const traverseViaChain = <G, F>(
+  G: Applicative<G>,
+  F: Foldable<F>,
+): (<A, B>(
+  xs: Kind<F, [A]>,
+  f: (a: A, i: number) => Kind<G, [B]>,
+) => Kind<G, [Chain<B>]>) =>
+  Apply.TraverseStrategy(G)(Rhs => traverseViaChainImpl(G, F, Rhs));
+
+const traverseViaChainImpl =
+  <G, F, Rhs>(
+    G: Applicative<G>,
+    F: Foldable<F>,
+    Rhs: TraverseStrategy<G, Rhs>,
+  ) =>
   <A, B>(
     xs: Kind<F, [A]>,
     f: (a: A, i: number) => Kind<G, [B]>,
@@ -298,23 +311,26 @@ export const traverseViaChain =
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
 
-    const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
+    const loop = (
+      start: number,
+      end: number,
+    ): Kind<Rhs, [Kind<G, [Chain<B>]>]> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
-        let first = Eval.delay(() =>
+        let first = Rhs.toRhs(() =>
           G.map_(f(F.elem_(xs, end - 1).get, end - 1), List),
         );
         for (let idx = end - 2; start <= idx; idx--) {
           const a = F.elem_(xs, idx).get;
           const right = first;
           const idx0 = idx;
-          first = Eval.defer(() => G.map2Eval_(f(a, idx0), right)(List.cons));
+          first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(List.cons));
         }
-        return first.map(gls => G.map_(gls, fromList));
+        return Rhs.map(first, fromList);
       } else {
         const step = ((end - start) / width) | 0;
 
-        let fchain = Eval.defer(() => loop(start, start + step));
+        let fchain = Rhs.defer(() => loop(start, start + step));
 
         for (
           let start0 = start + step, end0 = start0 + step;
@@ -323,18 +339,31 @@ export const traverseViaChain =
         ) {
           const start1 = start0;
           const end1 = Math.min(end, end0);
-          const right = Eval.defer(() => loop(start1, end1));
-          fchain = fchain.flatMap(fv => G.map2Eval_(fv, right)(concat_));
+          const right = Rhs.defer(() => loop(start1, end1));
+          fchain = Rhs.map2(fchain, right)(concat_);
         }
         return fchain;
       }
     };
 
-    return loop(0, F.size(xs)).value;
+    return Rhs.toG(loop(0, F.size(xs)));
   };
 
-export const traverseFilterViaChain =
-  <G, F>(G: Applicative<G>, F: Foldable<F>) =>
+export const traverseFilterViaChain = <G, F>(
+  G: Applicative<G>,
+  F: Foldable<F>,
+): (<A, B>(
+  xs: Kind<F, [A]>,
+  f: (a: A, i: number) => Kind<G, [Option<B>]>,
+) => Kind<G, [Chain<B>]>) =>
+  Apply.TraverseStrategy(G)(Rhs => traverseFilterViaChainImpl(G, F, Rhs));
+
+const traverseFilterViaChainImpl =
+  <G, F, Rhs>(
+    G: Applicative<G>,
+    F: Foldable<F>,
+    Rhs: TraverseStrategy<G, Rhs>,
+  ) =>
   <A, B>(
     xs: Kind<F, [A]>,
     f: (a: A, i: number) => Kind<G, [Option<B>]>,
@@ -344,10 +373,13 @@ export const traverseFilterViaChain =
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
 
-    const loop = (start: number, end: number): Eval<Kind<G, [Chain<B>]>> => {
+    const loop = (
+      start: number,
+      end: number,
+    ): Kind<Rhs, [Kind<G, [Chain<B>]>]> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
-        let first = Eval.delay(() =>
+        let first = Rhs.toRhs(() =>
           G.map_(f(F.elem_(xs, end - 1).get, end - 1), opt =>
             opt.nonEmpty ? List(opt.get) : List.empty,
           ),
@@ -356,18 +388,18 @@ export const traverseFilterViaChain =
           const a = F.elem_(xs, idx).get;
           const right = first;
           const idx0 = idx;
-          first = Eval.defer(() =>
-            G.map2Eval_(
+          first = Rhs.defer(() =>
+            Rhs.map2Rhs(
               f(a, idx0),
               right,
             )((opt, tl) => (opt.nonEmpty ? tl.cons(opt.get) : tl)),
           );
         }
-        return first.map(gls => G.map_(gls, fromList));
+        return Rhs.map(first, fromList);
       } else {
         const step = ((end - start) / width) | 0;
 
-        let fchain = Eval.defer(() => loop(start, start + step));
+        let fchain = Rhs.defer(() => loop(start, start + step));
 
         for (
           let start0 = start + step, end0 = start0 + step;
@@ -376,14 +408,14 @@ export const traverseFilterViaChain =
         ) {
           const start1 = start0;
           const end1 = Math.min(end, end0);
-          const right = Eval.defer(() => loop(start1, end1));
-          fchain = fchain.flatMap(fv => G.map2Eval_(fv, right)(concat_));
+          const right = Rhs.defer(() => loop(start1, end1));
+          fchain = Rhs.map2(fchain, right)(concat_);
         }
         return fchain;
       }
     };
 
-    return loop(0, F.size(xs)).value;
+    return Rhs.toG(loop(0, F.size(xs)));
   };
 
 // -- Point-ful operators

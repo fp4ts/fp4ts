@@ -11,7 +11,6 @@ import { Apply } from '../apply';
 import { Applicative } from '../applicative';
 import { FlatMap } from '../flat-map';
 import { CoflatMap } from '../coflat-map';
-import { Monad } from '../monad';
 
 import { Eval as EvalBase, Now } from './algebra';
 import { always, defer, delay, later, now, pure, unit } from './constructors';
@@ -29,6 +28,7 @@ import {
   evalSemigroup,
 } from './instances';
 import { EqK } from '../eq-k';
+import { StackSafeMonad } from '../stack-safe-monad';
 
 export type Eval<A> = EvalBase<A>;
 
@@ -61,7 +61,7 @@ interface EvalObj {
   readonly Applicative: Applicative<EvalF>;
   readonly FlatMap: FlatMap<EvalF>;
   readonly CoflatMap: CoflatMap<EvalF>;
-  readonly Monad: Monad<EvalF>;
+  readonly Monad: StackSafeMonad<EvalF>;
 
   Eq<A>(E: Eq<A>): Eq<Eval<A>>;
   Semigroup<S>(S: Semigroup<S>): Semigroup<Eval<S>>;

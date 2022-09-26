@@ -159,7 +159,7 @@ export const listTraversableFilter: Lazy<TraversableFilter<ListF>> = lazyVal(
   () =>
     TraversableFilter.of({
       ...listFoldable(),
-      ...listFunctor(),
+      ...listFunctorFilter(),
       traverse_,
       traverseFilter_,
       sequence,

@@ -34,6 +34,7 @@ import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
+import { Apply, TraverseStrategy } from '../../apply';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -402,34 +403,46 @@ export class _LazyList<out A> {
   public traverse<G>(
     G: Applicative<G>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
-    return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
-      const consF = (
-        x: A,
-        egbs: Eval<Kind<G, [LazyList<B>]>>,
-      ): Eval<Kind<G, [LazyList<B>]>> =>
-        G.map2Eval_(f(x), egbs)((y, ys) => ys.cons(y));
+    return Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs));
+  }
 
-      return this.foldRight(
-        Eval.now(G.pure(LazyList.empty as LazyList<B>)),
-        consF,
-      ).value;
+  private traverseImpl<G, Rhs>(
+    G: Applicative<G>,
+    Rhs: TraverseStrategy<G, Rhs>,
+  ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
+    return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
+      const go = (xs: Source<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+        xs === Nil
+          ? Rhs.toRhs(() => G.pure(LazyList.empty))
+          : Rhs.map2Rhs(
+              f(xs.head),
+              Rhs.defer(() => go(xs.forceTail)),
+            )((y, ys) => ys.cons(y));
+
+      return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
     };
   }
 
   public traverseFilter<G>(
     G: Applicative<G>,
   ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
-    return <B>(f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [LazyList<B>]> => {
-      const consF = (
-        x: A,
-        egbs: Eval<Kind<G, [LazyList<B>]>>,
-      ): Eval<Kind<G, [LazyList<B>]>> =>
-        G.map2Eval_(f(x), egbs)((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
+    return Apply.TraverseStrategy(G)(Rhs => this.traverseFilterImpl(G, Rhs));
+  }
 
-      return this.foldRight(
-        Eval.now(G.pure(LazyList.empty as LazyList<B>)),
-        consF,
-      ).value;
+  private traverseFilterImpl<G, Rhs>(
+    G: Applicative<G>,
+    Rhs: TraverseStrategy<G, Rhs>,
+  ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
+    return <B>(f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [LazyList<B>]> => {
+      const go = (xs: Source<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+        xs === Nil
+          ? Rhs.toRhs(() => G.pure(LazyList.empty))
+          : Rhs.map2Rhs(
+              f(xs.head),
+              Rhs.defer(() => go(xs.forceTail)),
+            )((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
+
+      return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
     };
   }
 

@@ -27,6 +27,7 @@ import { Applicative } from '../../applicative';
 import { Eval } from '../../eval';
 import { Traversable } from '../../traversable';
 import { Align } from '../../align';
+import { EqK } from '../../eq-k';
 
 import { Option, Some, None } from '../option';
 import { Either } from '../either';
@@ -34,7 +35,6 @@ import { Ior } from '../ior';
 
 import { List, ListBuffer } from './list';
 import { Vector } from './vector';
-import { EqK } from '../../eq-k';
 
 export type NonEmptyList<A> = _NonEmptyList<A>;
 
@@ -353,7 +353,7 @@ class _NonEmptyList<out A> {
     return f =>
       G.map2Eval_(
         f(this.head),
-        Eval.later(() => this.tail.traverse(G)(f)),
+        Eval.always(() => this.tail.traverse(G)(f)),
       )((hd, tl) => new _NonEmptyList(hd, tl)).value;
   }
 

@@ -17,6 +17,8 @@ import {
   Eval,
   Eq,
   Iter,
+  TraverseStrategy,
+  Apply,
 } from '@fp4ts/cats';
 
 const te = new TextEncoder();
@@ -284,26 +286,36 @@ export abstract class Chunk<out O> {
   public traverse<F>(
     F: Applicative<F>,
   ): <O2>(f: (o: O) => Kind<F, [O2]>) => Kind<F, [Chunk<O2>]> {
+    return Apply.TraverseStrategy(F)(Rhs => this.traverseImpl(F, Rhs));
+  }
+
+  private traverseImpl<F, Rhs>(
+    F: Applicative<F>,
+    Rhs: TraverseStrategy<F, Rhs>,
+  ): <O2>(f: (o: O) => Kind<F, [O2]>) => Kind<F, [Chunk<O2>]> {
     return <O2>(f: (o: O) => Kind<F, [O2]>): Kind<F, [Chunk<O2>]> => {
       if (this.isEmpty) return F.pure(EmptyChunk);
 
       // Max width of the tree -- max depth log_128(c.size)
       const width = 128;
 
-      const loop = (start: number, end: number): Eval<Kind<F, [Chunk<O2>]>> => {
+      const loop = (
+        start: number,
+        end: number,
+      ): Kind<Rhs, [Kind<F, [Chunk<O2>]>]> => {
         if (end - start <= width) {
           // We've entered leaves of the tree
-          let first = Eval.delay(() => F.map_(f(this.elem(end - 1)), List));
+          let first = Rhs.toRhs(() => F.map_(f(this.elem(end - 1)), List));
           for (let idx = end - 2; start <= idx; idx--) {
             const a = this.elem(idx);
             const right = first;
-            first = Eval.defer(() => F.map2Eval_(f(a), right)(List.cons));
+            first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(List.cons));
           }
-          return first.map(fls => F.map_(fls, Chunk.fromList));
+          return Rhs.map(first, Chunk.fromList);
         } else {
           const step = ((end - start) / width) | 0;
 
-          let fchunk = Eval.defer(() => loop(start, start + step));
+          let fchunk = Rhs.defer(() => loop(start, start + step));
 
           for (
             let start0 = start + step, end0 = start0 + end;
@@ -312,16 +324,14 @@ export abstract class Chunk<out O> {
           ) {
             const end1 = Math.min(end, end0);
             const start1 = start0;
-            const right = Eval.defer(() => loop(start1, end1));
-            fchunk = fchunk.flatMap(fv =>
-              F.map2Eval_(fv, right)((xs, ys) => xs.concat(ys)),
-            );
+            const right = Rhs.defer(() => loop(start1, end1));
+            fchunk = Rhs.map2(fchunk, right)((xs, ys) => xs.concat(ys));
           }
           return fchunk;
         }
       };
 
-      return loop(0, this.size).value;
+      return Rhs.toG(loop(0, this.size));
     };
   }
 
