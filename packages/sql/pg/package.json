@@ -14,9 +14,9 @@
     "@fp4ts/effect": "*",
     "@fp4ts/sql-core": "*",
     "@fp4ts/stream": "*",
-    "pg": "^8.7.3",
-    "pg-cursor": "^2.7.3",
-    "pg-pool": "^3.5.1"
+    "pg": "^8.8.0",
+    "pg-cursor": "^2.7.4",
+    "pg-pool": "^3.5.2"
   },
   "devDependencies": {
     "@types/pg": "^8.6.5",
