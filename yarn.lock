@@ -671,7 +671,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -683,7 +683,7 @@ __metadata:
     "@fp4ts/cats-kernel": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -706,7 +706,7 @@ __metadata:
     "@fp4ts/cats-kernel-laws": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -721,7 +721,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -758,7 +758,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@types/jest": ^29.0.3
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     jest: ^29.0.3
     typescript: 4.8.3
   languageName: unknown
@@ -814,7 +814,7 @@ __metadata:
     "@fp4ts/effect-core": "*"
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-test-kit": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -853,7 +853,7 @@ __metadata:
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-std": "*"
     "@types/jest": ^29.0.3
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     jest: ^29.0.3
     typescript: 4.8.3
   languageName: unknown
@@ -907,7 +907,7 @@ __metadata:
     "@fp4ts/parse": "*"
     "@fp4ts/schema": "*"
     "@fp4ts/stream": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -1164,7 +1164,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -1295,7 +1295,7 @@ __metadata:
     "@fp4ts/cats-laws": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -1308,7 +1308,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -1335,7 +1335,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
@@ -1453,7 +1453,7 @@ __metadata:
     "@fp4ts/effect-test-kit": "*"
     "@fp4ts/stream-core": "*"
     "@types/jest": ^29.0.3
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     jest: ^29.0.3
     typescript: 4.8.3
   languageName: unknown
@@ -3877,12 +3877,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-check@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "fast-check@npm:3.1.1"
+"fast-check@npm:^3.1.4":
+  version: 3.1.4
+  resolution: "fast-check@npm:3.1.4"
   dependencies:
-    pure-rand: ^5.0.1
-  checksum: 6f0aa2c6b88e91cd90bcad3bf32b5e674ea25117ecff22e5c26ec886dae51e9219d7f5863f4a9379b3d43862fcd9725e53254be04dfe284654736f53137ce224
+    pure-rand: ^5.0.2
+  checksum: 145dbb2708bb1ac16b237fd147a9899e7da005b52d69af7947054ef673ee420ad493750dee8a4e25011f1365fe9ddb345fa689cc3f4b00c24dcf473dbc06aa36
   languageName: node
   linkType: hard
 
@@ -6237,10 +6237,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pure-rand@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "pure-rand@npm:5.0.1"
-  checksum: 2b05a6d80163308583a013fab8d7f7f2958a6f77895680c99d8c3ea1f3e49ac273716a59cb1777cfc370540df53e6dc017e46c70a869da81fe490b2e6703d77d
+"pure-rand@npm:^5.0.2":
+  version: 5.0.3
+  resolution: "pure-rand@npm:5.0.3"
+  checksum: a898ab8a40a8eebc641123dab19308044d8bd979efeaba1d8a45e9977593b25b00c3bd9681e2a558a7daec96c6fb8709995b8f10c55475e892b96f381bb6c6d2
   languageName: node
   linkType: hard
 
@@ -6413,7 +6413,7 @@ __metadata:
     eslint: ^8.24.0
     eslint-config-prettier: ^8.5.0
     eslint-plugin-prettier: ^4.2.1
-    fast-check: ^3.1.1
+    fast-check: ^3.1.4
     jest: ^29.0.3
     prettier: ^2.7.1
     supertest: ^6.2.3

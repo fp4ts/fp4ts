@@ -14,7 +14,7 @@
     "@fp4ts/cats-mtl": "*",
     "@fp4ts/core": "*",
     "@types/jest": "^29.0.3",
-    "fast-check": "^3.1.1",
+    "fast-check": "^3.1.4",
     "jest": "^29.0.3"
   },
   "devDependencies": {

@@ -16,7 +16,7 @@
     "@fp4ts/effect-core": "*",
     "@fp4ts/effect-kernel": "*",
     "@fp4ts/effect-test-kit": "*",
-    "fast-check": "^3.1.1"
+    "fast-check": "^3.1.4"
   },
   "devDependencies": {
     "typescript": "4.8.3"
