@@ -84,6 +84,8 @@ export const listFunctorFilter: Lazy<FunctorFilter<ListF>> = lazyVal(() =>
   FunctorFilter.of({
     ...listFunctor(),
     mapFilter_: collect_,
+    filter_: <A>(xs: List<A>, p: (a: A) => boolean) => xs.filter(p),
+    filterNot_: (xs, p) => xs.filterNot(p),
   }),
 );
 

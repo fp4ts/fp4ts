@@ -16,7 +16,7 @@ import { Foldable } from '../../../foldable';
 import { Monad } from '../../../monad';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
-import { Traversable } from '../../../traversable';
+import { TraversableFilter } from '../../../traversable-filter';
 import { Eval } from '../../../eval';
 
 import { empty, pure, tailRecM_ } from './constructors';
@@ -38,6 +38,7 @@ import {
   map_,
   nonEmpty,
   size,
+  traverseFilter_,
   traverse_,
   zipAll_,
 } from './operators';
@@ -135,6 +136,12 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
   }),
 );
 
-export const queueTraversable: Lazy<Traversable<QueueF>> = lazyVal(() =>
-  Traversable.of({ ...queueFoldable(), ...queueFunctor(), traverse_ }),
+export const queueTraversableFilter: Lazy<TraversableFilter<QueueF>> = lazyVal(
+  () =>
+    TraversableFilter.of({
+      ...queueFoldable(),
+      ...queueFunctorFilter(),
+      traverse_,
+      traverseFilter_,
+    }),
 );

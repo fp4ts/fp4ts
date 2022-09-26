@@ -84,6 +84,7 @@ import {
   foldRightStrict_,
   takeWhile_,
   dropWhile_,
+  filterNot_,
 } from './operators';
 import { Eval } from '../../../eval';
 
@@ -155,6 +156,7 @@ declare module './algebra' {
 
     filter<B extends A>(p: (a: A) => a is B): List<B>;
     filter(p: (a: A) => boolean): List<A>;
+    filterNot(p: (a: A) => boolean): List<A>;
     collect: <B>(f: (a: A) => Option<B>) => List<B>;
     collectWhile: <B>(f: (a: A) => Option<B>) => List<B>;
     map: <B>(f: (a: A) => B) => List<B>;
@@ -451,6 +453,12 @@ List.prototype.filter = function <A>(
   p: (a: A) => boolean,
 ): List<A> {
   return filter_(this, p);
+};
+List.prototype.filterNot = function <A>(
+  this: List<A>,
+  p: (a: A) => boolean,
+): List<A> {
+  return filterNot_(this, p);
 };
 
 List.prototype.map = function <A, B>(this: List<A>, f: (a: A) => B): List<B> {

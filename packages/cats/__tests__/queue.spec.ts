@@ -6,18 +6,17 @@
 import fc from 'fast-check';
 import { tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
-import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
   MonadSuite,
-  TraversableSuite,
-  FunctorFilterSuite,
   AlignSuite,
   CoflatMapSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Queue', () => {
   describe('type', () => {
@@ -386,108 +385,90 @@ describe('Queue', () => {
     ),
   );
 
-  const alignTests = AlignSuite(Queue.Align);
-  checkAll(
-    'Align<Queue>',
-    alignTests.align(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-    ),
-  );
+  describe('Laws', () => {
+    checkAll(
+      'Align<Queue>',
+      AlignSuite(Queue.Align).align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsQueue,
+        <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+      ),
+    );
 
-  const functorFilterTests = FunctorFilterSuite(Queue.FunctorFilter);
-  checkAll(
-    'FunctorFilter<Queue>',
-    functorFilterTests.functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-    ),
-  );
+    checkAll(
+      'Alternative<Queue>',
+      AlternativeSuite(Queue.Alternative).alternative(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsQueue,
+        <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+      ),
+    );
 
-  const alternativeTests = AlternativeSuite(Queue.Alternative);
-  checkAll(
-    'Alternative<Queue>',
-    alternativeTests.alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-    ),
-  );
+    checkAll(
+      'CoflatMap<Queue>',
+      CoflatMapSuite(Queue.CoflatMap).coflatMap(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsQueue,
+        <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+      ),
+    );
 
-  const coflatMapTests = CoflatMapSuite(Queue.CoflatMap);
-  checkAll(
-    'CoflatMap<Queue>',
-    coflatMapTests.coflatMap(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-    ),
-  );
+    checkAll(
+      'Monad<Queue>',
+      MonadSuite(Queue.Monad).monad(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsQueue,
+        <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+      ),
+    );
 
-  const monadTests = MonadSuite(Queue.Monad);
-  checkAll(
-    'Monad<Queue>',
-    monadTests.monad(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-    ),
-  );
-
-  const traversableTests = TraversableSuite(Queue.Traversable);
-  checkAll(
-    'Traversable<Queue>',
-    traversableTests.traversable<number, number, number, EvalF, EvalF>(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      CommutativeMonoid.addition,
-      CommutativeMonoid.addition,
-      Queue.Functor,
-      Eval.Applicative,
-      Eval.Applicative,
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsQueue,
-      <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
-      A.fp4tsEval,
-      Eval.Eq,
-      A.fp4tsEval,
-      Eval.Eq,
-    ),
-  );
+    checkAll(
+      'TraversableFilter<Queue>',
+      TraversableFilterSuite(Queue.TraversableFilter).traversableFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        CommutativeMonoid.addition,
+        CommutativeMonoid.addition,
+        Queue.FunctorFilter,
+        Eval.Applicative,
+        Eval.Applicative,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsQueue,
+        <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
+        A.fp4tsEval,
+        Eval.Eq,
+        A.fp4tsEval,
+        Eval.Eq,
+      ),
+    );
+  });
 });

@@ -512,23 +512,82 @@ export const splitAt_ = <A>(xs: List<A>, idx: number): [List<A>, List<A>] => {
   return [b.toList, xs];
 };
 
-export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> => {
-  let h: Cons<A> | undefined;
-  let t: Cons<A> | undefined;
-  while (xs !== nil) {
-    const x = (xs as Cons<A>)._head;
-    xs = (xs as Cons<A>)._tail;
+// -- Ref: https://github.com/scala/scala/blob/v2.13.9/src/library/scala/collection/immutable/List.scala#L502
+export const filter_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> =>
+  _filterNoneIn(xs, p, false);
 
-    if (!p(x)) continue;
-    const tmp = new Cons(x, nil);
-    if (!h) {
-      h = tmp;
-      t = h;
+export const filterNot_ = <A>(xs: List<A>, p: (a: A) => boolean): List<A> =>
+  _filterNoneIn(xs, p, true);
+
+const _filterNoneIn = <A>(
+  xs: List<A>,
+  p: (a: A) => boolean,
+  isFlipped: boolean,
+): List<A> => {
+  while (xs !== nil) {
+    if (p((xs as Cons<A>)._head) !== isFlipped) {
+      return _filterAllIn(xs, (xs as Cons<A>)._tail, p, isFlipped);
+    }
+    xs = (xs as Cons<A>)._tail;
+  }
+  return nil;
+};
+
+const _filterAllIn = <A>(
+  start: List<A>,
+  rem: List<A>,
+  p: (a: A) => boolean,
+  isFlipped: boolean,
+): List<A> => {
+  while (rem !== nil) {
+    if (p((rem as Cons<A>).head) === isFlipped) {
+      return _filterPartialFill(start, rem, p, isFlipped);
+    }
+    rem = (rem as Cons<A>)._tail;
+  }
+  return start;
+};
+
+const _filterPartialFill = <A>(
+  origStart: List<A>,
+  firstMiss: List<A>,
+  p: (a: A) => boolean,
+  isFlipped: boolean,
+): List<A> => {
+  const newHead = new Cons((origStart as Cons<A>)._head, nil);
+  let toProcess = (origStart as Cons<A>)._tail;
+  let currLast = newHead;
+
+  while (toProcess !== firstMiss) {
+    const tmp = new Cons((toProcess as Cons<A>)._head, nil);
+    currLast._tail = tmp;
+    currLast = tmp;
+    toProcess = (toProcess as Cons<A>)._tail;
+  }
+
+  let next = (firstMiss as Cons<A>)._tail;
+  let nextToCopy = next;
+  while (next !== nil) {
+    const x = (next as Cons<A>)._head;
+    if (p(x) !== isFlipped) {
+      next = (next as Cons<A>)._tail;
     } else {
-      t = t!._tail = tmp;
+      while (nextToCopy !== next) {
+        const tmp = new Cons((nextToCopy as Cons<A>)._head, nil);
+        currLast._tail = tmp;
+        currLast = tmp;
+        nextToCopy = (nextToCopy as Cons<A>)._tail;
+      }
+      nextToCopy = (next as Cons<A>)._tail;
+      next = (next as Cons<A>)._tail;
     }
   }
-  return h ? h : nil;
+
+  if (nextToCopy !== nil) {
+    currLast._tail = nextToCopy;
+  }
+
+  return newHead;
 };
 
 export const map_ = <A, B>(xs: List<A>, f: (a: A) => B): List<B> => {

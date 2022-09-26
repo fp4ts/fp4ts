@@ -10,13 +10,14 @@ import { MonoidK } from '../../../monoid-k';
 import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';
 import { Either } from '../../either';
-import { List } from '../list';
+import { List, ListBuffer } from '../list';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
 import { Iter } from '../iterator';
+import { Array as CArray } from '../array';
 
 import { Queue } from './algebra';
-import { empty, fromArray, fromIterator } from './constructors';
+import { empty, fromArray, fromIterator, fromList } from './constructors';
 import { queueFoldable } from './instances';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
@@ -354,12 +355,12 @@ export const coflatMap_ = <A, B>(
   q: Queue<A>,
   f: (as: Queue<A>) => B,
 ): Queue<B> => {
-  const buf: B[] = [];
+  const buf = new ListBuffer<B>();
   while (nonEmpty(q)) {
-    buf.push(f(q));
+    buf.addOne(f(q));
     q = tail(q);
   }
-  return fromArray(buf);
+  return new Queue(List.empty, buf.toList);
 };
 
 export const foldLeft_ = <A, B>(q: Queue<A>, z: B, f: (b: B, a: A) => B): B =>
@@ -464,6 +465,19 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Queue<B>]> =>
     G.map_(
-      Chain.traverseViaChain(G, queueFoldable())(q, x => f(x)),
-      ys => fromIterator(ys.iterator),
+      Chain.traverseViaChain(G, CArray.FoldableWithIndex())(toArray(q), x =>
+        f(x),
+      ),
+      ys => fromList(ys.toList),
+    );
+
+export const traverseFilter_ =
+  <G>(G: Applicative<G>) =>
+  <A, B>(q: Queue<A>, f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [Queue<B>]> =>
+    G.map_(
+      Chain.traverseFilterViaChain(G, CArray.FoldableWithIndex())(
+        toArray(q),
+        x => f(x),
+      ),
+      ys => fromList(ys.toList),
     );

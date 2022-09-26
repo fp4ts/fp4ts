@@ -16,7 +16,7 @@ import { Foldable } from '../../../foldable';
 import { Monad } from '../../../monad';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
-import { Traversable } from '../../../traversable';
+import { TraversableFilter } from '../../../traversable-filter';
 
 import { Either } from '../../either';
 import { List } from '../list';
@@ -47,7 +47,7 @@ import {
   queueMonad,
   queueMonoidK,
   queueSemigroupK,
-  queueTraversable,
+  queueTraversableFilter,
 } from './instances';
 
 export type Queue<A> = QueueBase<A>;
@@ -82,7 +82,7 @@ interface QueueObj {
   readonly Alternative: Alternative<QueueF>;
   readonly Monad: Monad<QueueF>;
   readonly Foldable: Foldable<QueueF>;
-  readonly Traversable: Traversable<QueueF>;
+  readonly TraversableFilter: TraversableFilter<QueueF>;
 }
 Queue.singleton = singleton;
 Queue.pure = pure;
@@ -158,9 +158,9 @@ Object.defineProperty(Queue, 'Foldable', {
     return queueFoldable();
   },
 });
-Object.defineProperty(Queue, 'Traversable', {
-  get(): Traversable<QueueF> {
-    return queueTraversable();
+Object.defineProperty(Queue, 'TraversableFilter', {
+  get(): TraversableFilter<QueueF> {
+    return queueTraversableFilter();
   },
 });
 

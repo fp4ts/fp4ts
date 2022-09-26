@@ -27,13 +27,13 @@ import { Alternative } from '../../alternative';
 import { Align } from '../../align';
 import { Eval } from '../../eval';
 import { StackSafeMonad } from '../../stack-safe-monad';
+import { TraversableFilter } from '../../traversable-filter';
 
 import { None, Option, Some } from '../option';
 import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
-import { TraversableFilter } from '../../traversable-filter';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.

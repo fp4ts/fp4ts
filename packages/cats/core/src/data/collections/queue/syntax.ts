@@ -67,6 +67,7 @@ import {
   toArray,
   toList,
   toVector,
+  traverseFilter_,
   traverse_,
   uncons,
   zipAllWith_,
@@ -192,6 +193,9 @@ declare module './algebra' {
     traverse<G>(
       G: Applicative<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Queue<B>]>;
+    traverseFilter<G>(
+      G: Applicative<G>,
+    ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [Queue<B>]>;
   }
 }
 
@@ -477,4 +481,7 @@ Queue.prototype.scanRight1 = function (f) {
 
 Queue.prototype.traverse = function (G) {
   return f => traverse_(G)(this, f);
+};
+Queue.prototype.traverseFilter = function (G) {
+  return f => traverseFilter_(G)(this, f);
 };
