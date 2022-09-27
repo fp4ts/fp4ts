@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen, Eval, Option } from '@fp4ts/cats';
+import { AndThen } from '@fp4ts/cats';
 import { Encoder, safeEncode, SafeEncoder } from './algebra';
 
 export const nullable = <O, A>(
@@ -13,8 +13,8 @@ export const nullable = <O, A>(
 
 export const optional = <O, A>(
   fa: Encoder<O, A>,
-): Encoder<Option<O>, Option<A>> =>
-  new SafeEncoder(fx => fx.traverse(Eval.Applicative)(x => safeEncode(fa, x)));
+): Encoder<O | undefined, A | undefined> =>
+  new Encoder(x => (x === undefined ? undefined : fa.encode(x)));
 
 export const map: <O1, O2>(
   f: (o: O1) => O2,

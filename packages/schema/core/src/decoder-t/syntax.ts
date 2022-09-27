@@ -35,7 +35,7 @@ import {
   min_,
   nonEmpty,
   nullable,
-  // optional,
+  optional,
   orElse_,
   refine_,
   transformWithR_,
@@ -52,8 +52,8 @@ declare module './algebra' {
 
     nullable(this: Decoder<I, A>): Decoder<I | null, A | null>;
     nullable(F: Applicative<F>): DecoderT<F, I | null, A | null>;
-    optional(this: Decoder<I, A>): Decoder<Option<I>, Option<A>>;
-    optional(F: Applicative<F>): DecoderT<F, Option<I>, Option<A>>;
+    optional(this: Decoder<I, A>): Decoder<I | undefined, A | undefined>;
+    optional(F: Applicative<F>): DecoderT<F, I | undefined, A | undefined>;
 
     orElse<II extends I, AA>(
       this: Decoder<II, A>,
@@ -278,9 +278,10 @@ Object.defineProperty(DecoderT.prototype, 'decode', {
 DecoderT.prototype.nullable = function (this: any, F?: any) {
   return F ? nullable(F) : nullable(Eval.Applicative)(this);
 } as any;
-// DecoderT.prototype.optional = function (this: any, F?: any) {
-//   return F ? optional(F) : optional(Eval.Applicative)(this);
-// } as any;
+
+DecoderT.prototype.optional = function (this: any, F?: any) {
+  return F ? optional(F) : optional(Eval.Applicative)(this);
+} as any;
 
 DecoderT.prototype.orElse = function (this: any, F: any) {
   return isTypeClassInstance(F)

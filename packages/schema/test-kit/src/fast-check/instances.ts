@@ -16,6 +16,7 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
     null: fc.constant(null),
     boolean: fc.boolean(),
     nullable: x => fc.oneof(x, fc.constant(null)),
+    optional: x => fc.oneof(x, fc.constant(undefined)),
     literal: (...xs) => fc.oneof(...xs.map(fc.constant)),
     defer: thunk => fc.constant(null).chain(thunk),
     struct: xs => fc.record(xs),

@@ -9,15 +9,10 @@ import { Guard } from './algebra';
 export const nullable = <A>(g: Guard<unknown, A>): Guard<unknown, A | null> =>
   new Guard((x: unknown): x is A | null => x === null || g.test(x));
 
-// export const optional = <A>(g: Guard<unknown, A>): Guard<unknown, Option<A>> =>
-//   new Guard(
-//     (fa: unknown): fa is Option<A> =>
-//       Option.isOption(fa) &&
-//       fa.fold(
-//         () => true,
-//         a => g.test(a),
-//       ),
-//   );
+export const optional = <A>(
+  g: Guard<unknown, A>,
+): Guard<unknown, A | undefined> =>
+  new Guard((x: unknown): x is A | undefined => x === undefined || g.test(x));
 
 export const refine: <A, B extends A>(
   refinement: (a: A) => a is B,

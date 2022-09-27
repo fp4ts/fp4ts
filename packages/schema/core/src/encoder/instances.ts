@@ -8,7 +8,14 @@ import { Category, Compose, Contravariant, Functor } from '@fp4ts/cats';
 import { Schemable } from '@fp4ts/schema-kernel';
 
 import { EncoderF } from './encoder';
-import { andThen_, compose_, contramap_, map_, nullable } from './operators';
+import {
+  andThen_,
+  compose_,
+  contramap_,
+  map_,
+  nullable,
+  optional,
+} from './operators';
 import {
   array,
   defer,
@@ -47,6 +54,7 @@ export const encoderSchemable: Lazy<Schemable<λ<EncoderF, [Fix<unknown>, α]>>>
       array: array,
       literal: literal,
       nullable: nullable,
+      optional: optional,
       product: product as Schemable<λ<EncoderF, [Fix<unknown>, α]>>['product'],
       sum: sum as Schemable<λ<EncoderF, [Fix<unknown>, α]>>['sum'],
       record: record,

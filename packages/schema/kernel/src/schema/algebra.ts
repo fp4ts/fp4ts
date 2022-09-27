@@ -110,6 +110,16 @@ export class NullableSchema<A> extends Schema<A | null> {
   }
 }
 
+export class NonRequiredSchema<A> extends Schema<A | undefined> {
+  public constructor(private readonly sa: Schema<A>) {
+    super();
+  }
+
+  protected interpret0<S>(S: Schemable<S>): Kind<S, [A | undefined]> {
+    return S.optional(this.sa.interpret(S));
+  }
+}
+
 export class ProductSchema<A extends unknown[]> extends Schema<A> {
   public constructor(private readonly xs: { [k in keyof A]: Schema<A[k]> }) {
     super();
