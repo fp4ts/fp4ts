@@ -32,6 +32,16 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
         },
       }),
 
+    optional: <A>(E: Eq<A>): Eq<A | undefined> =>
+      SafeEq.of<A | undefined>({
+        safeEquals: (l: A | undefined, r: A | undefined) => {
+          if (l === r) return Eval.true;
+          if (l === undefined) return Eval.false;
+          if (r === undefined) return Eval.false;
+          return Eval.defer(() => safeEquals(E, l, r));
+        },
+      }),
+
     record: <A>(E: Eq<A>): Eq<Record<string, A>> =>
       SafeEq.of({
         safeEquals: (x, y) => {

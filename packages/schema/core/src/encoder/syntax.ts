@@ -18,7 +18,7 @@ import {
 declare module './algebra' {
   interface Encoder<O, A> {
     readonly nullable: Encoder<O | null, A | null>;
-    readonly optional: Encoder<Option<O>, Option<A>>;
+    readonly optional: Encoder<O | undefined, A | undefined>;
 
     map<O2>(f: (o: O) => O2): Encoder<O2, A>;
     contramap<AA>(f: (aa: AA) => A): Encoder<O, AA>;
@@ -40,7 +40,7 @@ Object.defineProperty(Encoder.prototype, 'nullable', {
   },
 });
 Object.defineProperty(Encoder.prototype, 'optional', {
-  get<O, A>(this: Encoder<O, A>): Encoder<Option<O>, Option<A>> {
+  get<O, A>(this: Encoder<O, A>): Encoder<O | undefined, A | undefined> {
     return optional(this);
   },
 });

@@ -24,6 +24,8 @@ export interface Schemable<S> extends Base<S> {
 
   nullable<A>(sa: Kind<S, [A]>): Kind<S, [A | null]>;
 
+  optional<A>(sa: Kind<S, [A]>): Kind<S, [A | undefined]>;
+
   product<A extends unknown[]>(
     ...xs: { [k in keyof A]: Kind<S, [A[k]]> }
   ): Kind<S, [A]>;

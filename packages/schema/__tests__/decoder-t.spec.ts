@@ -121,6 +121,7 @@ describe('DecoderT', () => {
     const make_person = <S>(S: Constraining<S>) =>
       S.struct({
         first_name: S.nonEmpty(S.string),
+        middle_name: pipe(S.nonEmpty(S.string), S.optional),
         last_name: S.nonEmpty(S.string),
         address: pipe(
           S.struct({

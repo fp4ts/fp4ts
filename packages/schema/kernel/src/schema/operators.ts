@@ -4,11 +4,19 @@
 // LICENSE file in the root directory of this source tree.
 
 import { typeref } from '@fp4ts/core';
-import { ImapSchema, NullableSchema, Schema } from './algebra';
+import {
+  ImapSchema,
+  NullableSchema,
+  NonRequiredSchema,
+  Schema,
+} from './algebra';
 import { SchemaRef } from './schema-ref';
 
 export const nullable = <A>(sa: Schema<A>): Schema<A | null> =>
   new NullableSchema(sa);
+
+export const optional = <A>(sa: Schema<A>): Schema<A | undefined> =>
+  new NonRequiredSchema(sa);
 
 // -- Point-ful operators
 

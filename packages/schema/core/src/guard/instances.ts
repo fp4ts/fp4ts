@@ -30,6 +30,7 @@ import {
   min_,
   nonEmpty,
   nullable,
+  optional,
   refine_,
 } from './operators';
 
@@ -51,6 +52,7 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
       struct,
       defer,
       nullable,
+      optional,
       product: product as Schemable<$<GuardF, [unknown]>>['product'],
       record,
       sum,

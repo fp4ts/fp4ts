@@ -5,13 +5,14 @@
 
 import { Schema } from './algebra';
 import { array } from './constructors';
-import { as_, imap_, nullable } from './operators';
+import { as_, imap_, nullable, optional } from './operators';
 import { SchemaRef } from './schema-ref';
 
 declare module './algebra' {
   interface Schema<A> {
     readonly array: Schema<A[]>;
     readonly nullable: Schema<A | null>;
+    readonly optional: Schema<A | undefined>;
 
     imap<B>(f: (a: A) => B, g: (b: B) => A): Schema<B>;
     as<Ref extends string>(Ref: Ref): SchemaRef<Ref, A>;
@@ -29,6 +30,11 @@ Object.defineProperty(Schema.prototype, 'array', {
 Object.defineProperty(Schema.prototype, 'nullable', {
   get<A>(this: Schema<A>): Schema<A | null> {
     return nullable(this);
+  },
+});
+Object.defineProperty(Schema.prototype, 'optional', {
+  get<A>(this: Schema<A>): Schema<A | undefined> {
+    return optional(this);
   },
 });
 

@@ -3,19 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Option } from '@fp4ts/cats';
 import { Codec } from './algebra';
-
-export const optional = <O, A>(
-  c: Codec<unknown, O, A>,
-): Codec<unknown, Option<O>, Option<A>> => {
-  return new Codec(c.toEncoder.optional, c.toDecoder.optional() as any);
-};
 
 export const nullable = <O, A>(
   c: Codec<unknown, O, A>,
 ): Codec<unknown, O | null, A | null> => {
   return new Codec(c.toEncoder.nullable, c.toDecoder.nullable());
+};
+
+export const optional = <O, A>(
+  c: Codec<unknown, O, A>,
+): Codec<unknown, O | undefined, A | undefined> => {
+  return new Codec(c.toEncoder.optional, c.toDecoder.optional());
 };
 
 export const imap_ = <I, O, A, B>(
