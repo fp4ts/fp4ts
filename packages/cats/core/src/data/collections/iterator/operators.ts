@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval } from '../../../eval';
 import { Option } from '../../option';
 import { empty, lift } from './constructors';
 import * as IR from './iterator-result';
@@ -165,6 +166,21 @@ export const fold_ = <A, B>(it: Iterator<A>, z: B, f: (b: B, a: A) => B): B => {
     result = f(result, i.value);
   }
   return result;
+};
+
+export const foldRight_ = <A, B>(
+  it: Iterator<A>,
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> => {
+  const go = (next: IteratorResult<A>): Eval<B> =>
+    next.done
+      ? ez
+      : f(
+          next.value,
+          Eval.defer(() => go(it.next())),
+        );
+  return Eval.defer(() => go(it.next()));
 };
 
 export const forEach_ = <A>(it: Iterator<A>, f: (a: A) => void): void => {

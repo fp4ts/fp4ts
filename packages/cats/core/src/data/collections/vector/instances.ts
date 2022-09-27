@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { id, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { Alternative } from '../../../alternative';
@@ -26,10 +26,13 @@ import {
   equals_,
   flatMap_,
   foldLeft_,
+  foldMapK_,
   foldMap_,
   foldRight_,
   isEmpty,
+  iterator,
   nonEmpty,
+  toList,
   traverseFilter_,
   traverse_,
   zipAll_,
@@ -112,9 +115,13 @@ export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
     foldLeft_: foldLeft_,
     foldRight_: foldRight_,
     foldMap_: foldMap_,
+    foldMapK_: foldMapK_,
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: xs => xs.size,
+    toList: toList,
+    toVector: id,
+    iterator: iterator,
   }),
 );
 

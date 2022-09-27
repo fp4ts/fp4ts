@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Eval, Foldable } from '@fp4ts/cats-core';
+import { Eval, Foldable, MonoidK } from '@fp4ts/cats-core';
 import {
   List,
   Vector,
@@ -52,6 +52,11 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
         ).value,
       );
     },
+
+  foldMapKConsistentWithFoldMap:
+    <G>(G: MonoidK<G>) =>
+    <A, B>(fa: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>): IsEq<Kind<G, [B]>> =>
+      new IsEq(F.foldMap_(G.algebra<B>())(fa, f), F.foldMapK_(G)(fa, f)),
 
   foldMIdentity: <A, B>(
     fa: Kind<F, [A]>,
@@ -146,6 +151,13 @@ export interface FoldableLaws<F> {
   rightFoldConsistentWithFoldMap: <B>(
     B: Monoid<B>,
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => B) => IsEq<B>;
+
+  foldMapKConsistentWithFoldMap: <G>(
+    G: MonoidK<G>,
+  ) => <A, B>(
+    fa: Kind<F, [A]>,
+    f: (a: A) => Kind<G, [B]>,
+  ) => IsEq<Kind<G, [B]>>;
 
   foldMIdentity: <A, B>(
     fa: Kind<F, [A]>,

@@ -7,6 +7,7 @@ import { instance, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Eval } from './eval';
 import { Foldable } from './foldable';
+import { MonoidK } from './monoid-k';
 import { Endo } from './data';
 
 /**
@@ -19,6 +20,15 @@ export interface FoldableWithIndex<F, I> extends Foldable<F> {
   foldMapWithIndex_<M>(
     M: Monoid<M>,
   ): <A>(fa: Kind<F, [A]>, f: (a: A, i: I) => M) => M;
+
+  foldMapKWithIndex<G>(
+    G: MonoidK<G>,
+  ): <A, B>(
+    f: (a: A, i: I) => Kind<G, [B]>,
+  ) => (fa: Kind<F, [A]>) => Kind<G, [B]>;
+  foldMapKWithIndex_<G>(
+    G: MonoidK<G>,
+  ): <A, B>(fa: Kind<F, [A]>, f: (a: A, i: I) => Kind<G, [B]>) => Kind<G, [B]>;
 
   foldLeftWithIndex<A, B>(
     z: B,
@@ -74,6 +84,14 @@ export const FoldableWithIndex = Object.freeze({
           fa,
           (a: A, i: I) => (eb: Eval<B>) => f(a, eb, i),
         )(ez),
+
+      foldMapKWithIndex: G => f => fa => self.foldMapKWithIndex_(G)(fa, f),
+      foldMapKWithIndex_:
+        <G>(G: MonoidK<G>) =>
+        <A, B>(fa: Kind<F, [A]>, f: (a: A, i: I) => Kind<G, [B]>) =>
+          self.foldRightWithIndex_(fa, Eval.now(G.emptyK<B>()), (a, b, i) =>
+            G.combineKEval_(f(a, i), b),
+          ).value,
 
       ...Foldable.of({
         foldMap_:

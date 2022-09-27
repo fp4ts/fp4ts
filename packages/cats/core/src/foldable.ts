@@ -7,6 +7,7 @@ import { Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { Eval } from './eval';
+import { MonoidK } from './monoid-k';
 import { UnorderedFoldable } from './unordered-foldable';
 import {
   List,
@@ -28,49 +29,49 @@ import { ComposedFoldable } from './composed';
  * @category Type Class
  */
 export interface Foldable<F> extends UnorderedFoldable<F> {
-  readonly foldLeft: <A, B>(
-    b: B,
-    f: (b: B, a: A) => B,
-  ) => (fa: Kind<F, [A]>) => B;
-  readonly foldLeft_: <A, B>(fa: Kind<F, [A]>, b: B, f: (b: B, a: A) => B) => B;
+  foldLeft<A, B>(b: B, f: (b: B, a: A) => B): (fa: Kind<F, [A]>) => B;
+  foldLeft_<A, B>(fa: Kind<F, [A]>, b: B, f: (b: B, a: A) => B): B;
 
-  readonly foldRight: <A, B>(
+  foldRight<A, B>(
     b: Eval<B>,
     f: (a: A, b: Eval<B>) => Eval<B>,
-  ) => (fa: Kind<F, [A]>) => Eval<B>;
-  readonly foldRight_: <A, B>(
+  ): (fa: Kind<F, [A]>) => Eval<B>;
+  foldRight_<A, B>(
     fa: Kind<F, [A]>,
     b: Eval<B>,
     f: (a: A, b: Eval<B>) => Eval<B>,
-  ) => Eval<B>;
+  ): Eval<B>;
 
-  readonly foldMap: <M>(
-    M: Monoid<M>,
-  ) => <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
-  readonly foldMap_: <M>(
-    M: Monoid<M>,
-  ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
+  foldMap<M>(M: Monoid<M>): <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
+  foldMap_<M>(M: Monoid<M>): <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
 
-  readonly foldM: <G>(
+  foldMapK<G>(
+    G: MonoidK<G>,
+  ): <A, B>(f: (a: A) => Kind<G, [B]>) => (fa: Kind<F, [A]>) => Kind<G, [B]>;
+  foldMapK_<G>(
+    G: MonoidK<G>,
+  ): <A, B>(fa: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) => Kind<G, [B]>;
+
+  foldM<G>(
     G: Monad<G>,
-  ) => <A, B>(
+  ): <A, B>(
     z: B,
     f: (b: B, a: A) => Kind<G, [B]>,
   ) => (fa: Kind<F, [A]>) => Kind<G, [B]>;
-  readonly foldM_: <G>(
+  foldM_<G>(
     G: Monad<G>,
-  ) => <A, B>(
+  ): <A, B>(
     fa: Kind<F, [A]>,
     z: B,
     f: (b: B, a: A) => Kind<G, [B]>,
   ) => Kind<G, [B]>;
 
-  readonly elem: (idx: number) => <A>(fa: Kind<F, [A]>) => Option<A>;
-  readonly elem_: <A>(fa: Kind<F, [A]>, idx: number) => Option<A>;
+  elem(idx: number): <A>(fa: Kind<F, [A]>) => Option<A>;
+  elem_<A>(fa: Kind<F, [A]>, idx: number): Option<A>;
 
-  readonly iterator: <A>(fa: Kind<F, [A]>) => Iterator<A>;
-  readonly toList: <A>(fa: Kind<F, [A]>) => List<A>;
-  readonly toVector: <A>(fa: Kind<F, [A]>) => Vector<A>;
+  iterator<A>(fa: Kind<F, [A]>): Iterator<A>;
+  toList<A>(fa: Kind<F, [A]>): List<A>;
+  toVector<A>(fa: Kind<F, [A]>): Vector<A>;
 }
 
 export type FoldableRequirements<F> = Pick<Foldable<F>, 'foldMap_'> &
@@ -97,6 +98,14 @@ export const Foldable = Object.freeze({
           fa,
           a => eb => Eval.defer(() => f(a, eb)),
         )(ez),
+
+      foldMapK: G => f => fa => self.foldMapK_(G)(fa, f),
+      foldMapK_:
+        <G>(G: MonoidK<G>) =>
+        <A, B>(fa: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) =>
+          self.foldRight_(fa, Eval.now(G.emptyK<B>()), (a, b) =>
+            G.combineKEval_(f(a), b),
+          ).value,
 
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {

@@ -9,10 +9,10 @@ import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '@fp4ts/cats-core';
 import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { FoldableLaws } from '../foldable-laws';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FoldableSuite = <F>(F: Foldable<F>) => {
   const laws = FoldableLaws(F);
 
@@ -46,6 +46,22 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
             fc.func<[A], B>(arbB),
             laws.rightFoldConsistentWithFoldMap(MB),
           )(EqB),
+        ],
+        [
+          'foldable foldMapK consistent with foldMap (Option)',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], Option<B>>(A.fp4tsOption(arbB)),
+            laws.foldMapKConsistentWithFoldMap(Option.Alternative),
+          )(Option.Eq(EqB)),
+        ],
+        [
+          'foldable foldMapK consistent with foldMap (List)',
+          forAll(
+            mkArbF(arbA),
+            fc.func<[A], List<B>>(A.fp4tsList(arbB)),
+            laws.foldMapKConsistentWithFoldMap(List.Alternative),
+          )(List.Eq(EqB)),
         ],
         [
           'foldable foldM identity',

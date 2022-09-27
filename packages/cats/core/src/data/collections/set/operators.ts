@@ -14,6 +14,7 @@ import { Iter } from '../iterator';
 
 import { Bin, Empty, Node, Set } from './algebra';
 import { fromArray } from './constructors';
+import { Eval } from '../../../eval';
 
 export const isEmpty = <A>(sa: Set<A>): boolean => sa === Empty;
 export const nonEmpty = <A>(sa: Set<A>): boolean => sa !== Empty;
@@ -80,7 +81,7 @@ export const toArray = <A>(sa: Set<A>): A[] => {
 };
 
 export const toList = <A>(sa: Set<A>): List<A> =>
-  foldRight_(sa, List.empty as List<A>, (x, xs) => xs.prepend(x));
+  foldRightStrict_(sa, List.empty as List<A>, (x, xs) => xs.prepend(x));
 
 export const toVector = <A>(sa: Set<A>): Vector<A> =>
   foldLeft_(sa, Vector.empty as Vector<A>, (xs, x) => xs.append(x));
@@ -383,15 +384,36 @@ export const foldLeft1_ = <A>(sa: Set<A>, f: (b: A, x: A) => A): A =>
     ([hd, tl]) => foldLeft_(tl, hd, f),
   );
 
-export const foldRight_ = <A, B>(sa: Set<A>, z: B, f: (x: A, b: B) => B): B => {
+export const foldRight_ = <A, B>(
+  sa: Set<A>,
+  ez: Eval<B>,
+  f: (x: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> =>
+  Eval.defer(() => {
+    const sn = sa as Node<A>;
+    switch (sn.tag) {
+      case 'empty':
+        return ez;
+      case 'bin': {
+        const rr = foldRight_(sn.rhs, ez, f);
+        const xr = Eval.defer(() => f(sn.value, rr));
+        return foldRight_(sn.lhs, xr, f);
+      }
+    }
+  });
+export const foldRightStrict_ = <A, B>(
+  sa: Set<A>,
+  z: B,
+  f: (x: A, b: B) => B,
+): B => {
   const sn = sa as Node<A>;
   switch (sn.tag) {
     case 'empty':
       return z;
     case 'bin': {
-      const rr = foldRight_(sn.rhs, z, f);
+      const rr = foldRightStrict_(sn.rhs, z, f);
       const xr = f(sn.value, rr);
-      return foldRight_(sn.lhs, xr, f);
+      return foldRightStrict_(sn.lhs, xr, f);
     }
   }
 };
@@ -399,7 +421,7 @@ export const foldRight_ = <A, B>(sa: Set<A>, z: B, f: (x: A, b: B) => B): B => {
 export const foldRight1_ = <A>(sa: Set<A>, f: (x: A, b: A) => A): A =>
   popMax(sa).fold(
     () => throwError(new Error('Set.Empty.foldRight1')),
-    ([hd, tl]) => foldRight_(tl, hd, f),
+    ([hd, tl]) => foldRightStrict_(tl, hd, f),
   );
 
 export const foldMap_ =
@@ -410,7 +432,9 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(sa: Set<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldLeft_(sa, F.emptyK<B>(), (acc, x) => F.combineK_(acc, () => f(x)));
+    foldRight_(sa, Eval.now(F.emptyK<B>()), (a, efb) =>
+      F.combineKEval_(f(a), efb),
+    ).value;
 
 export const equals_ =
   <A>(E: Eq<A>) =>

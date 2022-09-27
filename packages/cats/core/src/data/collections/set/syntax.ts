@@ -28,7 +28,7 @@ import {
   foldMapK_,
   foldMap_,
   foldRight1_,
-  foldRight_,
+  foldRightStrict_,
   forEach_,
   head,
   headOption,
@@ -385,7 +385,7 @@ Set.prototype.foldLeft1 = function (f) {
 };
 
 Set.prototype.foldRight = function (z, f) {
-  return foldRight_(this, z, f);
+  return foldRightStrict_(this, z, f);
 };
 Set.prototype.foldRight1 = function (f) {
   return foldRight1_(this, f);

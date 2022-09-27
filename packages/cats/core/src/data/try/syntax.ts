@@ -17,12 +17,14 @@ import {
   isFailure,
   isSuccess,
   map_,
+  orElseEval_,
   orElse_,
   recoverWith_,
   recover_,
   toEither,
   toOption,
 } from './operators';
+import { Eval } from '../../eval';
 
 declare module './algebra' {
   interface Try<out A> {
@@ -41,6 +43,7 @@ declare module './algebra' {
 
     orElse<B>(this: Try<B>, that: () => Try<B>): Try<B>;
     '<|>'<B>(this: Try<B>, that: () => Try<B>): Try<B>;
+    orElseEval<B>(this: Try<B>, that: Eval<Try<B>>): Eval<Try<B>>;
 
     flatMap<B>(f: (a: A) => Try<B>): Try<B>;
 
@@ -99,6 +102,9 @@ Try.prototype.orElse = function (f) {
   return orElse_(this, f);
 };
 Try.prototype['<|>'] = Try.prototype.orElse;
+Try.prototype.orElseEval = function (that) {
+  return orElseEval_(this, that);
+};
 
 Try.prototype.flatMap = function (f) {
   return flatMap_(this, f);

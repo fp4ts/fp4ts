@@ -21,7 +21,9 @@ import {
   count_,
   equals_,
   foldLeft_,
+  foldMapK_,
   foldMap_,
+  foldRight_,
   isEmpty,
   map_,
   nonEmpty,
@@ -67,7 +69,9 @@ export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =
   lazyVal(<K>() =>
     FoldableWithIndex.of<$<MapF, [K]>, K>({
       foldLeftWithIndex_: foldLeft_,
+      foldRightWithIndex_: foldRight_,
       foldMapWithIndex_: foldMap_,
+      foldMapKWithIndex_: foldMapK_,
       all_: (m, p) => all_(m, x => p(x)),
       any_: (m, p) => any_(m, x => p(x)),
       count_: (m, p) => count_(m, x => p(x)),

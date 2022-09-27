@@ -98,6 +98,12 @@ abstract class _Either<out E, out A> {
   ): Either<E2, B> {
     return this.orElse(that);
   }
+  public orElseEval<E2, B>(
+    this: Either<E2, B>,
+    that: Eval<Either<E2, B>>,
+  ): Eval<Either<E2, B>> {
+    return this.isEmpty ? that : Eval.now(this);
+  }
 
   public getOrElse<A>(this: Either<E, A>, defaultValue: Lazy<A>): A {
     return this.isEmpty ? defaultValue() : this.get;
@@ -258,7 +264,10 @@ const eitherEqK = <E>(EE: Eq<E>): EqK<$<EitherF, [E]>> =>
 
 const eitherSemigroupK = lazyVal(
   <E>(): SemigroupK<$<EitherF, [E]>> =>
-    SemigroupK.of<$<EitherF, [E]>>({ combineK_: (fa, fb) => fa.orElse(fb) }),
+    SemigroupK.of<$<EitherF, [E]>>({
+      combineK_: (fa, fb) => fa.orElse(fb),
+      combineKEval_: (fa, efb) => fa.orElseEval(efb),
+    }),
 ) as <E>() => SemigroupK<$<EitherF, [E]>>;
 
 const eitherBifunctor = lazyVal(() =>

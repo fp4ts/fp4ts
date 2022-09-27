@@ -9,6 +9,7 @@ import { Either, Left, Right } from '../either';
 
 import { Try, view } from './algebra';
 import { failure, of, success } from './constructors';
+import { Eval } from '../../eval';
 
 export const isSuccess = <A>(t: Try<A>): boolean => !isFailure(t);
 
@@ -81,6 +82,8 @@ export const collect_ = <A, B>(t: Try<A>, f: (a: A) => Option<B>): Try<B> =>
 
 export const orElse_ = <A>(l: Try<A>, r: () => Try<A>): Try<A> =>
   fold_(l, () => flatten(of(r)), success);
+export const orElseEval_ = <A>(l: Try<A>, r: Eval<Try<A>>): Eval<Try<A>> =>
+  isFailure(l) ? r : Eval.now(l);
 
 export const flatMap_ = <A, B>(fa: Try<A>, f: (a: A) => Try<B>): Try<B> => {
   const t = view(fa);

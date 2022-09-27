@@ -28,11 +28,12 @@ import {
   collect_,
   concat_,
   count_,
-  dequeue,
   elemOption_,
   flatMap_,
   foldLeft_,
+  foldMapK_,
   foldMap_,
+  foldRightEval_,
   isEmpty,
   iterator,
   map_,
@@ -113,24 +114,9 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
     any_,
     count_,
     foldMap_,
+    foldMapK_,
     foldLeft_,
-    foldRight_: <A, B>(
-      xs: Queue<A>,
-      eb: Eval<B>,
-      f: (a: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (xs: Queue<A>): Eval<B> =>
-        dequeue(xs).fold(
-          () => eb,
-          ([hd, tl]) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-
-      return Eval.defer(() => loop(xs));
-    },
+    foldRight_: foldRightEval_,
     elem_: elemOption_,
     iterator,
   }),

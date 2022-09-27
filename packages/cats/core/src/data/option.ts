@@ -93,6 +93,12 @@ abstract class _Option<out A> {
   public '<|>'<A>(this: Option<A>, that: Lazy<Option<A>>): Option<A> {
     return this.orElse(that);
   }
+  public orElseEval<A>(
+    this: Option<A>,
+    that: Eval<Option<A>>,
+  ): Eval<Option<A>> {
+    return this === None ? that : Eval.now(this);
+  }
 
   public getOrElse<A>(this: Option<A>, defaultValue: Lazy<A>): A {
     return (this as Option<A>) === None ? defaultValue() : this.get;
@@ -234,6 +240,7 @@ const optionAlternative = lazyVal(() =>
   Alternative.of<OptionF>({
     ...optionMonad(),
     combineK_: (fa, lfb) => fa.orElse(lfb),
+    combineKEval_: (fa, efb) => fa.orElseEval(efb),
     emptyK: () => None,
   }),
 );

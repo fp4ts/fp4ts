@@ -25,6 +25,7 @@ import {
   isFailure,
   isSuccess,
   map_,
+  orElseEval_,
   orElse_,
   recoverWith_,
   tailRecM_,
@@ -45,7 +46,7 @@ export const tryEq: <A>(EE: Eq<Error>, EA: Eq<A>) => Eq<Try<A>> = (EE, EA) =>
   });
 
 export const trySemigroupK: Lazy<SemigroupK<TryF>> = lazyVal(() =>
-  SemigroupK.of({ combineK_: orElse_ }),
+  SemigroupK.of({ combineK_: orElse_, combineKEval_: orElseEval_ }),
 );
 
 export const tryFunctor: Lazy<Functor<TryF>> = lazyVal(() =>

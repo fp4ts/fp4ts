@@ -14,6 +14,7 @@ import { Either } from '../../either';
 import { List } from '../list';
 import { Chain } from '../chain';
 import { arrayFoldableWithIndex } from './instances';
+import { MonoidK } from '../../../monoid-k';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -182,6 +183,15 @@ export const foldMap_ = <M, A>(
   f: (a: A, i: number) => M,
   M: Monoid<M>,
 ): M => foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
+
+export const foldMapK_ = <F, A, B>(
+  xs: A[],
+  f: (a: A, i: number) => Kind<F, [B]>,
+  F: MonoidK<F>,
+): Kind<F, [B]> =>
+  foldRightEval_(xs, Eval.now(F.emptyK<B>()), (a, efb, i) =>
+    F.combineKEval_(f(a, i), efb),
+  ).value;
 
 export const foldLeft_ = <A, B>(
   xs: A[],

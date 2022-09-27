@@ -19,6 +19,7 @@ import { Array as CArray } from '../array';
 import { Queue } from './algebra';
 import { empty, fromArray, fromIterator, fromList } from './constructors';
 import { queueFoldable } from './instances';
+import { Eval } from '../../../eval';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
   _in.isEmpty && _out.isEmpty;
@@ -374,6 +375,12 @@ export const foldLeft1_ = <A>(q: Queue<A>, f: (b: A, a: A) => A): A =>
 export const foldRight_ = <A, B>(q: Queue<A>, z: B, f: (a: A, b: B) => B): B =>
   pipe(reverseIterator(q), Iter.fold(z, flip(f)));
 
+export const foldRightEval_ = <A, B>(
+  q: Queue<A>,
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> => Iter.foldRight_(iterator(q), ez, f);
+
 export const foldRight1_ = <A>(q: Queue<A>, f: (a: A, b: A) => A): A =>
   popLast(q)
     .map(([l, i]) => foldRight_(i, l, f))
@@ -387,7 +394,9 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldLeft_(q, F.emptyK(), (m, x) => F.combineK_(m, () => f(x)));
+    foldRightEval_(q, Eval.now(F.emptyK<B>()), (a, eb) =>
+      F.combineKEval_(f(a), eb),
+    ).value;
 
 export const align_ = <A, B>(lhs: Queue<A>, rhs: Queue<B>): Queue<Ior<A, B>> =>
   zipAllWith_(

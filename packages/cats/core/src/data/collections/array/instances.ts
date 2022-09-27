@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Kind, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from '../../../eq-k';
 import { MonoidK } from '../../../monoid-k';
@@ -20,6 +20,7 @@ import { FunctorFilter } from '../../../functor-filter';
 import { FunctorWithIndex } from '../../../functor-with-index';
 import { FoldableWithIndex } from '../../../foldable-with-index';
 import { TraversableWithIndex } from '../../../traversable-with-index';
+import { TraversableFilter } from '../../../traversable-filter';
 import { Eval } from '../../../eval';
 
 import { ArrayF } from './array';
@@ -35,6 +36,7 @@ import {
   equals_,
   flatMap_,
   foldLeft_,
+  foldMapK_,
   foldMap_,
   foldRightEval_,
   isEmpty,
@@ -48,7 +50,6 @@ import {
 } from './operators';
 import { empty, pure } from './constructors';
 import { List } from '../list';
-import { TraversableFilter } from '../../../traversable-filter';
 
 export const arrayEq = <A>(E: Eq<A>): Eq<A[]> => Eq.of({ equals: equals_(E) });
 
@@ -61,8 +62,10 @@ export const arraySemigroupK: () => SemigroupK<ArrayF> = lazyVal(() =>
 );
 
 export const arrayMonoidK: () => MonoidK<ArrayF> = lazyVal(() => {
-  const { algebra, ...rest } = arraySemigroupK();
-  return MonoidK.of({ ...rest, emptyK: () => empty });
+  return MonoidK.of({
+    combineK_: (x, y) => concat_(x, y()),
+    emptyK: () => empty,
+  });
 });
 
 export const arrayAlign: () => Align<ArrayF> = lazyVal(() =>
@@ -128,6 +131,11 @@ export const arrayFoldableWithIndex: () => FoldableWithIndex<ArrayF, number> =
         <M>(M: Monoid<M>) =>
         <A>(xs: A[], f: (a: A, i: number) => M) =>
           foldMap_(xs, f, M),
+      foldMapKWithIndex_:
+        <F>(F: MonoidK<F>) =>
+        <A, B>(xs: A[], f: (a: A, i: number) => Kind<F, [B]>) =>
+          foldMapK_(xs, f, F),
+      iterator: fa => fa[Symbol.iterator](),
       foldLeft_: (fa, b, f) => foldLeft_(fa, b, (b, a) => f(b, a)),
       foldLeftWithIndex_: foldLeft_,
       foldRightWithIndex_: foldRightEval_,

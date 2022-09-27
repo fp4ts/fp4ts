@@ -82,6 +82,7 @@ const proxyAlternative: Lazy<Alternative<ProxyF>> = lazyVal(() =>
     ...proxyApplicative(),
     emptyK: Proxy,
     combineK_: <A>() => Proxy<A>(),
+    combineKEval_: (lhs, erhs) => Eval.now(lhs),
   }),
 );
 const proxyMonad: Lazy<Monad<ProxyF>> = lazyVal(() =>

@@ -47,7 +47,9 @@ export const toArray = <K, V>(m: Map<K, V>): [K, V][] => {
 };
 
 export const toList = <K, V>(m: Map<K, V>): List<[K, V]> =>
-  foldRight_(m, List.empty as List<[K, V]>, (x, xs, k) => xs.prepend([k, x]));
+  foldRightStrict_(m, List.empty as List<[K, V]>, (x, xs, k) =>
+    xs.prepend([k, x]),
+  );
 
 export const min = <K, V>(m: Map<K, V>): Option<V> =>
   minWithKey(m).map(([, v]) => v);
@@ -550,32 +552,48 @@ export const foldLeft1_ = <K, V>(m: Map<K, V>, f: (r: V, v: V) => V): V =>
 
 export const foldRight_ = <K, V, B>(
   m: Map<K, V>,
+  ez: Eval<B>,
+  f: (v: V, eb: Eval<B>, k: K) => Eval<B>,
+): Eval<B> =>
+  Eval.defer(() => {
+    const n = toNode(m);
+    if (n.tag === 'empty') return ez;
+
+    const zr = foldRight_(n.rhs, ez, f);
+    const zm = Eval.defer(() => f(n.value, zr, n.key));
+    return foldRight_(n.lhs, zm, f);
+  });
+
+export const foldRightStrict_ = <K, V, B>(
+  m: Map<K, V>,
   z: B,
   f: (v: V, b: B, k: K) => B,
 ): B => {
   const n = toNode(m);
   if (n.tag === 'empty') return z;
 
-  const zr = foldRight_(n.rhs, z, f);
+  const zr = foldRightStrict_(n.rhs, z, f);
   const zm = f(n.value, zr, n.key);
-  return foldRight_(n.lhs, zm, f);
+  return foldRightStrict_(n.lhs, zm, f);
 };
 
 export const foldRight1_ = <K, V>(m: Map<K, V>, f: (v: V, r: V) => V): V =>
   popMax(m).fold(
     () => throwError(new Error('OrderedMap.empty.foldLeft1')),
-    ([v, mm]) => foldRight_(mm, v, f),
+    ([v, mm]) => foldRightStrict_(mm, v, f),
   );
 
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <K, V>(m: Map<K, V>, f: (v: V, k: K) => M): M =>
-    foldLeft_(map_(m, f), M.empty, (x, y) => M.combine_(x, () => y));
+    foldLeft_(m, M.empty, (x, y, k) => M.combine_(x, () => f(y, k)));
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldMap_(F.algebra<B>())(m, f);
+    foldRight_(m, Eval.now(F.emptyK<B>()), (v, eb, k) =>
+      F.combineKEval_(f(v, k), eb),
+    ).value;
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>
@@ -584,7 +602,7 @@ export const traverse_ =
     f: (v: V, k: K) => Kind<G, [B]>,
   ): Kind<G, [Map<K, B>]> => {
     const n = toNode(m);
-    if (n.tag === 'empty') return G.pure(Empty as Map<K, B>);
+    if (n.tag === 'empty') return G.pure(Empty);
 
     const lhsF = traverse_(G)(n.lhs, f);
     const bF = f(n.value, n.key);
@@ -594,7 +612,7 @@ export const traverse_ =
       lhsF,
       bF,
       rhsF,
-    )((lhs, b, rhs) => new Bin(n.key, b, lhs, rhs) as Map<K, B>);
+    )((lhs, b, rhs) => new Bin(n.key, b, lhs, rhs));
   };
 
 export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {

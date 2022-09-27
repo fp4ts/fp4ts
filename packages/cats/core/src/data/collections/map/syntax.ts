@@ -26,7 +26,7 @@ import {
   foldMapK_,
   foldMap_,
   foldRight1_,
-  foldRight_,
+  foldRightStrict_,
   forEach_,
   get_,
   head,
@@ -500,7 +500,7 @@ Map.prototype.foldRight = function <K, V, B>(
   z: B,
   f: (v: V, b: B, k: K) => B,
 ): B {
-  return foldRight_(this, z, f);
+  return foldRightStrict_(this, z, f);
 };
 
 Map.prototype.foldRight1 = function <K, V>(

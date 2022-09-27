@@ -95,6 +95,17 @@ const kleisliSemigroupK: <F, A>(
   SemigroupK.of<$<KleisliF, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: Lazy<Kleisli<F, A, B>>) =>
       suspend(F, (a: A) => F.combineK_<B>(x(a), () => y()(a))),
+    combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
+      Eval.now(
+        suspend(
+          F,
+          (a: A) =>
+            F.combineKEval_(
+              x(a),
+              ey.map(y => y(a)),
+            ).value,
+        ),
+      ),
   }),
 ) as <F, A>(F: SemigroupK<F>) => SemigroupK<$<KleisliF, [F, A]>>;
 

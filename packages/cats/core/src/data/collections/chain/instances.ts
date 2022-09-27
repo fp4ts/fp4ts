@@ -25,7 +25,9 @@ import {
   filter_,
   flatMap_,
   foldLeft_,
+  foldMapK_,
   foldMap_,
+  foldRightEval_,
   map_,
   traverseFilter_,
   traverse_,
@@ -83,9 +85,11 @@ export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
 export const chainTraversable: Lazy<TraversableFilter<ChainF>> = lazyVal(() =>
   TraversableFilter.of({
     ...chainFunctorFilter(),
-    foldLeft_: foldLeft_,
-    foldMap_: foldMap_,
-    traverse_: traverse_,
-    traverseFilter_: traverseFilter_,
+    foldLeft_,
+    foldRight_: foldRightEval_,
+    foldMap_,
+    foldMapK_,
+    traverse_,
+    traverseFilter_,
   }),
 );

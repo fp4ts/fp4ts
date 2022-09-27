@@ -8,9 +8,11 @@ import { Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { FoldableWithIndex } from '@fp4ts/cats-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
+import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { FoldableWithIndexLaws } from '../foldable-with-index-laws';
 import { FoldableSuite } from './foldable-suite';
+import { List, Option } from '@fp4ts/cats-core/lib/data';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FoldableWithIndexSuite = <F, I>(F: FoldableWithIndex<F, I>) => {
@@ -46,6 +48,22 @@ export const FoldableWithIndexSuite = <F, I>(F: FoldableWithIndex<F, I>) => {
               fc.func<[A, I], B>(arbB),
               laws.indexedRightFoldConsistentWithFoldMap(MB),
             )(EqB),
+          ],
+          [
+            'foldable foldMapK consistent with foldMap (Option)',
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A, I], Option<B>>(A.fp4tsOption(arbB)),
+              laws.indexedFoldMapKConsistentWithFoldMap(Option.Alternative),
+            )(Option.Eq(EqB)),
+          ],
+          [
+            'foldable foldMapK consistent with foldMap (List)',
+            forAll(
+              mkArbF(arbA),
+              fc.func<[A, I], List<B>>(A.fp4tsList(arbB)),
+              laws.indexedFoldMapKConsistentWithFoldMap(List.Alternative),
+            )(List.Eq(EqB)),
           ],
         ],
         { parent: self.foldable(arbA, arbB, MA, MB, EqA, EqB, mkArbF) },

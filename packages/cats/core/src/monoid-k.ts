@@ -11,22 +11,32 @@ import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
  * @category Type Class
  */
 export interface MonoidK<F> extends SemigroupK<F> {
-  readonly emptyK: <A>() => Kind<F, [A]>;
-
-  readonly algebra: <A>() => Monoid<Kind<F, [A]>>;
+  emptyK<A>(): Kind<F, [A]>;
+  algebra<A>(): Monoid<Kind<F, [A]>>;
+  dual(): MonoidK<F>;
 }
 export type MonoidKRequirements<F> = Pick<MonoidK<F>, 'emptyK'> &
   SemigroupKRequirements<F> &
   Partial<MonoidK<F>>;
 export const MonoidK = Object.freeze({
-  of: <F>(F: MonoidKRequirements<F>): MonoidK<F> => ({
-    ...SemigroupK.of(F),
-    ...F,
+  of: <F>(F: MonoidKRequirements<F>): MonoidK<F> => {
+    const self: MonoidK<F> = {
+      ...SemigroupK.of(F),
 
-    algebra: <A>() =>
-      Monoid.of<Kind<F, [A]>>({
-        combine_: SemigroupK.of(F).algebra<A>().combine_,
-        empty: F.emptyK<A>(),
-      }),
-  }),
+      dual: () =>
+        MonoidK.of({
+          combineK_: (x, y) => self.combineK_(y(), () => x),
+          emptyK: self.emptyK,
+          dual: () => self,
+        }),
+
+      algebra: <A>() =>
+        Monoid.of<Kind<F, [A]>>({
+          combine_: SemigroupK.of(F).algebra<A>().combine_,
+          empty: F.emptyK<A>(),
+        }),
+      ...F,
+    };
+    return self;
+  },
 });

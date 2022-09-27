@@ -6,7 +6,6 @@
 import { Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
-import { Eval } from '../../../eval';
 
 import { empty } from './constructors';
 import {
@@ -21,7 +20,10 @@ import {
   union_,
   size,
   foldLeft_,
-  popMin,
+  foldRight_,
+  toList,
+  toVector,
+  foldMapK_,
 } from './operators';
 
 import type { Set, SetF } from './set';
@@ -38,23 +40,9 @@ export const setMonoid: <A>(O: Ord<A>) => Monoid<Set<A>> = <A>(O: Ord<A>) =>
 export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
   Foldable.of({
     foldLeft_: foldLeft_,
-    foldRight_: <A, B>(
-      sa: Set<A>,
-      z: Eval<B>,
-      f: (x: A, eb: Eval<B>) => Eval<B>,
-    ): Eval<B> => {
-      const loop = (sa: Set<A>): Eval<B> =>
-        popMin(sa).fold(
-          () => z,
-          ([hd, tl]) =>
-            f(
-              hd,
-              Eval.defer(() => loop(tl)),
-            ),
-        );
-      return loop(sa);
-    },
+    foldRight_: foldRight_,
     foldMap_: foldMap_,
+    foldMapK_: foldMapK_,
     all_: all_,
     any_: any_,
     count_: count_,
@@ -62,5 +50,7 @@ export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: size,
+    toList: toList,
+    toVector: toVector,
   }),
 );

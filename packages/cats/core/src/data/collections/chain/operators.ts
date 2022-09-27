@@ -18,6 +18,8 @@ import { Array as CatsArray } from '../array';
 
 import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
 import { empty, fromArray, fromList, fromVector, pure } from './constructors';
+import { Eval } from '../../../eval';
+import { MonoidK } from '../../../monoid-k';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
 
@@ -568,10 +570,23 @@ export const foldRight_ = <A, B>(
   return acc;
 };
 
+export const foldRightEval_ = <A, B>(
+  c: Chain<A>,
+  ez: Eval<B>,
+  f: (a: A, eb: Eval<B>) => Eval<B>,
+): Eval<B> => Iter.foldRight_(iterator(c), ez, f);
+
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(c: Chain<A>, f: (a: A) => M): M =>
     foldLeft_(c, M.empty, (a, b) => M.combine_(a, () => f(b)));
+
+export const foldMapK_ =
+  <F>(F: MonoidK<F>) =>
+  <A, B>(c: Chain<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
+    foldRightEval_(c, Eval.now(F.emptyK<B>()), (a, eb) =>
+      F.combineKEval_(f(a), eb),
+    ).value;
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>

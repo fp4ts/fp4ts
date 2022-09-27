@@ -326,7 +326,9 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldMap_<Kind<F, [B]>>(F.algebra())(xs, f);
+    foldRight_(xs, Eval.now(F.emptyK<B>()), (x, eys) =>
+      F.combineKEval_(f(x), eys),
+    ).value;
 
 export const align_ = <A, B>(xs: Vector<A>, ys: Vector<B>): Vector<Ior<A, B>> =>
   zipAllWith_(

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Eval, FoldableWithIndex } from '@fp4ts/cats-core';
+import { Eval, FoldableWithIndex, MonoidK } from '@fp4ts/cats-core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FoldableLaws } from './foldable-laws';
@@ -37,4 +37,15 @@ export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
         ).value,
       );
     },
+
+  indexedFoldMapKConsistentWithFoldMap:
+    <G>(G: MonoidK<G>) =>
+    <A, B>(
+      fa: Kind<F, [A]>,
+      f: (a: A, i: I) => Kind<G, [B]>,
+    ): IsEq<Kind<G, [B]>> =>
+      new IsEq(
+        F.foldMapWithIndex_(G.algebra<B>())(fa, f),
+        F.foldMapKWithIndex_(G)(fa, f),
+      ),
 });

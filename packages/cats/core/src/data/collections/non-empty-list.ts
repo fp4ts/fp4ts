@@ -503,11 +503,20 @@ const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazyVal(() =>
       <A>(fa: NonEmptyList<A>, f: (a: A) => M) =>
         fa.foldMap(M)(f),
 
+    foldMapK_:
+      <F>(F: MonoidK<F>) =>
+      <A, B>(fa: NonEmptyList<A>, f: (a: A) => Kind<F, [B]>) =>
+        fa.foldMapK(F)(f),
+
     all_: (fa, f) => fa.all(f),
     any_: (fa, f) => fa.any(f),
     count_: (fa, f) => fa.count(f),
 
+    iterator: fa => fa.iterator,
+
     elem_: (fa, idx) => fa.elemOption(idx),
+    toList: fa => fa.toList,
+    toVector: fa => fa.toVector,
   }),
 );
 
