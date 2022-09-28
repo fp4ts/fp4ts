@@ -25,6 +25,8 @@ jobs:
       env:
         NODE_OPTIONS: '--max_old_space_size=16384'
     - run: yarn test --ci
+      env:
+        NODE_OPTIONS: '--max_old_space_size=16384'
 
   coverage:
     runs-on: ubuntu-latest
