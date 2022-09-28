@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IdentityF, List } from '@fp4ts/cats';
 import { Char, id } from '@fp4ts/core';
+import { IdentityF, List } from '@fp4ts/cats';
 import {
   Accumulator,
   Parser,

@@ -94,10 +94,12 @@ export class MediaRangeAndQValue {
 }
 
 const parser: Lazy<Parser<StringSource, Accept>> = lazyVal(() => {
-  const acceptParams = QValue.parser.product(mediaTypeExtensionParser.rep());
+  const acceptParams = QValue.parser.product(mediaTypeExtensionParser().rep());
 
   const qAndExtension = acceptParams.orElse(() =>
-    mediaTypeExtensionParser.rep1().map(ext => tupled(QValue.one, ext)),
+    mediaTypeExtensionParser()
+      .rep1()
+      .map(ext => tupled(QValue.one, ext)),
   );
 
   const fullRange: Parser<StringSource, MediaRangeAndQValue> = MediaRange.parser

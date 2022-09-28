@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Left, List, Map, NonEmptyList, Ord, Right } from '@fp4ts/cats';
 import { Char } from '@fp4ts/core';
+import { Either, Left, List, Map, NonEmptyList, Ord, Right } from '@fp4ts/cats';
 import {
   Accumulator,
   Parser,

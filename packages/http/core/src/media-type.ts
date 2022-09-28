@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Char, tupled } from '@fp4ts/core';
+import { Char, Lazy, lazyVal, tupled } from '@fp4ts/core';
 import { Map, Ord } from '@fp4ts/cats';
 import { Parser, StringSource, text } from '@fp4ts/parse';
 
@@ -55,7 +55,7 @@ export class MediaRange {
   }
 
   public static get fullParser(): Parser<StringSource, MediaRange> {
-    const extensions = mediaTypeExtensionParser.rep();
+    const extensions = mediaTypeExtensionParser().rep();
 
     return this.parser
       .product(extensions)
@@ -116,7 +116,7 @@ export class MediaType extends MediaRange {
 
   public static override get parser(): Parser<StringSource, MediaType> {
     const mt = mediaRangeParser(getMediaType);
-    const extensions = mediaTypeExtensionParser.rep();
+    const extensions = mediaTypeExtensionParser().rep();
 
     return mt
       .product(extensions)
@@ -170,7 +170,9 @@ const mediaRangeParser = <A>(
     .map(([s1, s2]) => builder(s1, s2));
 };
 
-export const mediaTypeExtensionParser: Parser<StringSource, [string, string]> =
+export const mediaTypeExtensionParser: Lazy<
+  Parser<StringSource, [string, string]>
+> = lazyVal(() =>
   text
     .char(';' as Char)
     ['*>'](Rfc7230.ows)
@@ -184,4 +186,5 @@ export const mediaTypeExtensionParser: Parser<StringSource, [string, string]> =
     .map(([str, ostr]) => [
       str,
       ostr.getOrElse(() => '').replace(/\\\\/gm, '\\'),
-    ]);
+    ]),
+);
