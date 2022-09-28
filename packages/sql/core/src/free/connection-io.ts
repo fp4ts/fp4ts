@@ -174,6 +174,10 @@ export class ConnectionIO<out A> {
     return new ConnectionIO(this.underlying.map(f));
   }
 
+  public get void(): ConnectionIO<void> {
+    return this.map(() => {});
+  }
+
   public map2<B>(
     that: ConnectionIO<B>,
   ): <C>(f: (a: A, b: B) => C) => ConnectionIO<C> {

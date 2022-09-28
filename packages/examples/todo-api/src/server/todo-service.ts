@@ -100,5 +100,5 @@ export class TodoService<F> {
       .update()
       .run()
       .map(() => {})
-      .transact(this.trx);
+      .void.transact(this.trx);
 }
