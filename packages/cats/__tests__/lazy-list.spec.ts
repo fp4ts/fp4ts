@@ -1076,6 +1076,32 @@ describe('LazyList', () => {
     });
   });
 
+  describe('map2', () => {
+    it('should short-circuit on lhs empty and rhs infinite', () => {
+      expect(LazyList.empty.map2(LazyList.range(0), () => {}).toArray).toEqual(
+        [],
+      );
+    });
+
+    it('should short-circuit on rhs empty and lhs infinite', () => {
+      expect(LazyList.range(0).map2(LazyList.empty, () => {}).toArray).toEqual(
+        [],
+      );
+    });
+
+    it('should be lazy', () => {
+      let cnt = 0;
+      LazyList(1, 2, 3)
+        .map(x => (cnt++, x))
+        .map2(
+          LazyList(3, 4, 5).map(x => (cnt++, x)),
+          () => {},
+        );
+
+      expect(cnt).toBe(0);
+    });
+  });
+
   describe('flatMap', () => {
     it(
       'should be List.flatMap',

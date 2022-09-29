@@ -294,7 +294,17 @@ export class _LazyList<out A> {
   }
 
   public map2<B, C>(that: LazyList<B>, f: (a: A, b: B) => C): LazyList<C> {
-    return this.flatMap(a => that.map(b => f(a, b)));
+    return new _LazyList(
+      this.source.flatMap(l =>
+        l === Nil
+          ? Eval.now(Nil)
+          : that.source.flatMap(r =>
+              r === Nil
+                ? Eval.now(Nil)
+                : l.flatMap(l => Eval.now(r.map(r => f(l, r)))),
+            ),
+      ),
+    );
   }
 
   public map2Eval<B, C>(
