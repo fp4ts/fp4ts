@@ -10,6 +10,8 @@ import { Applicative } from '../../../applicative';
 import { Ior } from '../../ior';
 import { Option, None, Some } from '../../option';
 import { Apply, TraverseStrategy } from '../../../apply';
+import { Eval } from '../../../eval';
+import { MonoidK } from '../../../monoid-k';
 
 import { Iter } from '../iterator';
 import { List } from '../list';
@@ -18,8 +20,6 @@ import { Array as CatsArray } from '../array';
 
 import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
 import { empty, fromArray, fromList, fromVector, pure } from './constructors';
-import { Eval } from '../../../eval';
-import { MonoidK } from '../../../monoid-k';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
 
@@ -473,14 +473,14 @@ export const collectWhile_ = <A, B>(
   xs: Chain<A>,
   f: (a: A) => Option<B>,
 ): Chain<B> => {
-  let results: Chain<B> = empty;
+  const results: B[] = [];
   _forEachUntil(xs, x => {
     const next = f(x);
     if (next.isEmpty) return false;
-    results = append_(results, next.get);
+    results.push(next.get);
     return true;
   });
-  return results;
+  return fromArray(results);
 };
 
 export const map_ = <A, B>(xs: Chain<A>, f: (a: A) => B): Chain<B> =>
@@ -644,7 +644,7 @@ const _forEachUntil = <A>(xs: Chain<A>, f: (a: A) => boolean): void => {
       case 'wrap': {
         const it = next.instance.iterator<A>(next.values);
         for (let nextRes = it.next(); !nextRes.done; nextRes = it.next()) {
-          if (f(nextRes.value)) {
+          if (!f(nextRes.value)) {
             return;
           }
         }

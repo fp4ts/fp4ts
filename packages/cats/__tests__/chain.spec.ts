@@ -6,12 +6,11 @@
 import fc from 'fast-check';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
-import { Chain, Option } from '@fp4ts/cats-core/lib/data';
+import { Chain, List, Option, Some } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
   AlternativeSuite,
   CoflatMapSuite,
-  FunctorFilterSuite,
   MonadSuite,
   TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
@@ -46,6 +45,16 @@ describe('Chain', () => {
       A.fp4tsVector(fc.integer()),
       xs => new IsEq(Chain.fromVector(xs).lastOption, xs.lastOption),
     )(Option.Eq(Eq.fromUniversalEquals())),
+  );
+
+  test(
+    'collectWhile',
+    forAll(
+      A.fp4tsChain(fc.integer()),
+      fc.func<[number], Option<number>>(A.fp4tsOption(fc.integer())),
+      (xs, f) =>
+        expect(xs.collectWhile(f).toList).toEqual(xs.toList.collectWhile(f)),
+    ),
   );
 
   test(
