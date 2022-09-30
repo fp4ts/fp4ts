@@ -220,7 +220,7 @@ declare module './algebra' {
     ) => <B>(f: (a: A) => Kind<G, [List<B>]>) => Kind<G, [List<B>]>;
 
     show<B>(this: List<B>, S?: Show<B>): string;
-    sort<B>(this: List<B>, O: Ord<B>): List<B>;
+    sort<B>(this: List<B>, O?: Ord<B>): List<B>;
   }
 }
 
@@ -639,6 +639,6 @@ List.prototype.show = function <A>(
   return show_(S, this);
 };
 
-List.prototype.sort = function (O) {
+List.prototype.sort = function (O = Ord.fromUniversalCompare()) {
   return sort_(this, O);
 };

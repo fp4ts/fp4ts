@@ -8,8 +8,8 @@ import { Eq } from './eq';
 
 export enum Compare {
   LT,
-  GT,
   EQ,
+  GT,
 }
 
 /**

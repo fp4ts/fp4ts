@@ -1517,6 +1517,46 @@ describe('LazyList', () => {
     });
   });
 
+  describe('sort', () => {
+    it(
+      'should be List.sort',
+      forAll(fc.array(fc.integer()), xs =>
+        expect(LazyList.fromArray(xs).sort().toArray).toEqual(
+          List.fromArray(xs).sort().toArray,
+        ),
+      ),
+    );
+
+    it('should be lazy', () => {
+      let cnt = 0;
+      LazyList(1, 2, 3)
+        .map(x => (cnt++, x))
+        .sort();
+
+      expect(cnt).toBe(0);
+    });
+
+    it('should memoize', () => {
+      let cnt = 0;
+
+      const xs = LazyList(1, 2, 3).map(x => (cnt++, x));
+      xs.sort().toArray;
+      xs.toArray;
+
+      expect(cnt).toBe(3);
+    });
+
+    it('should use memoized results', () => {
+      let cnt = 0;
+
+      const xs = LazyList(1, 2, 3).map(x => (cnt++, x));
+      xs.toArray;
+      xs.sort().toArray;
+
+      expect(cnt).toBe(3);
+    });
+  });
+
   describe('memoization', () => {
     it('memoizes isEmpty', () => {
       let cnt = 0;

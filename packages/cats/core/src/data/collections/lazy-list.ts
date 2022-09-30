@@ -14,7 +14,7 @@ import {
   TyK,
   TyVar,
 } from '@fp4ts/core';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../applicative';
 import { Foldable } from '../../foldable';
 import { EqK } from '../../eq-k';
@@ -28,13 +28,13 @@ import { Align } from '../../align';
 import { Eval } from '../../eval';
 import { StackSafeMonad } from '../../stack-safe-monad';
 import { TraversableFilter } from '../../traversable-filter';
+import { Apply, TraverseStrategy } from '../../apply';
 
 import { None, Option, Some } from '../option';
 import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
-import { Apply, TraverseStrategy } from '../../apply';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -467,6 +467,15 @@ export class _LazyList<out A> {
 
   public distinctBy(cmp: (x: A, y: A) => boolean): LazyList<A> {
     return new _LazyList(this.source.map(source => source.distinctBy(cmp)));
+  }
+
+  public sort<A>(
+    this: LazyList<A>,
+    O: Ord<A> = Ord.fromUniversalCompare(),
+  ): LazyList<A> {
+    return LazyList.defer(() =>
+      LazyList.fromArray(this.toArray.sort((a, b) => O.compare(a, b) - 1)),
+    );
   }
 
   public equals<A>(this: LazyList<A>, that: LazyList<A>, E: Eq<A>): boolean {
