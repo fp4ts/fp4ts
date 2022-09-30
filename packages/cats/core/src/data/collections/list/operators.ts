@@ -4,11 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
-import { Compare, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 import { Eval } from '../../../eval';
+import { Apply, TraverseStrategy } from '../../../apply';
 
 import { Ior } from '../../ior';
 import { Either } from '../../either';
@@ -21,7 +22,6 @@ import { NonEmptyList } from '../non-empty-list';
 import { Cons, List } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
-import { Apply, TraverseStrategy } from '../../../apply';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);

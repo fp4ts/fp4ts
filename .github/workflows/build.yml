@@ -54,6 +54,4 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage
         fail_ci_if_error: true
-        files: ./coverage/clover.xml
-        path_to_write_report: ./coverage/codecov_report.txt
         verbose: true
