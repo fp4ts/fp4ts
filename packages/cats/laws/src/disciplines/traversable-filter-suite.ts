@@ -46,7 +46,7 @@ export const TraversableFilterSuite = <T>(T: TraversableFilter<T>) => {
       mkEqG: <X>(E: Eq<X>) => Eq<Kind<G, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'Traversable',
+        'TraversableFilter',
         [
           [
             'traversableFilter identity',
