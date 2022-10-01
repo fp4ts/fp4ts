@@ -247,7 +247,7 @@ WriterT.Comonad = <F, W>(F: Comonad<F>): Comonad<$<WriterTF, [F, W]>> =>
 
 WriterT.Foldable = <F, W>(F: Foldable<F>): Foldable<$<WriterTF, [F, W]>> =>
   Foldable.of<$<WriterTF, [F, W]>>({
-    foldMap_: M => (fwa, f) => F.foldMap_(M)(fwa, ([a, w]) => f(a)),
+    foldRight_: (fwa, ez, f) => F.foldRight_(fwa, ez, ([a, w], eb) => f(a, eb)),
   });
 
 WriterT.Traversable = <F, W>(

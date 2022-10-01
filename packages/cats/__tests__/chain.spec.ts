@@ -62,12 +62,6 @@ describe('Chain', () => {
     forAll(A.fp4tsChain(fc.integer()), c => c.size === c.toList.size),
   );
 
-  it('should do something', () => {
-    console.log(
-      Chain(1, 2, 3).traverseFilter(Identity.Applicative)(Some).toArray,
-    );
-  });
-
   describe('Laws', () => {
     checkAll(
       'Align<Chain>',

@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $type, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from '../eq-k';
 import { Distributive } from '../distributive';
 import { Applicative } from '../applicative';
@@ -16,6 +15,7 @@ import { Monad } from '../monad';
 import { Comonad } from '../comonad';
 import { Foldable } from '../foldable';
 import { Traversable } from '../traversable';
+import { Eval } from '../eval';
 
 import { Either } from './either';
 
@@ -170,10 +170,7 @@ const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
 
 const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
   Foldable.of({
-    foldMap_:
-      <M>(M: Monoid<M>) =>
-      <A>(fa: A, f: (a: A) => M) =>
-        f(fa),
+    foldRight_: (fa, ez, f) => Eval.defer(() => f(fa, ez)),
   }),
 );
 

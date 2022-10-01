@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { Eval } from './eval';
 import { MonoidK } from './monoid-k';
@@ -74,19 +74,21 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
   toVector<A>(fa: Kind<F, [A]>): Vector<A>;
 }
 
-export type FoldableRequirements<F> = Pick<Foldable<F>, 'foldMap_'> &
+export type FoldableRequirements<F> = (
+  | Pick<Foldable<F>, 'foldMapK_'>
+  | Pick<Foldable<F>, 'foldRight_'>
+) &
   Partial<Foldable<F>>;
 export const Foldable = Object.freeze({
   of: <F>(F: FoldableRequirements<F>): Foldable<F> => {
     const self: Foldable<F> = instance<Foldable<F>>({
       foldMap: M => f => fa => self.foldMap_(M)(fa, f),
+      foldMap_: M => (fa, f) =>
+        self.foldLeft_(fa, M.empty, (b, a) => M.combine_(b, () => f(a))),
 
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
-        self.foldMap_(Endo.MonoidK.algebra<B>().dual())(
-          fa,
-          (a: A) => (b: B) => f(b, a),
-        )(z),
+        self.foldMapK_(Endo.MonoidK.dual())(fa, (a: A) => (b: B) => f(b, a))(z),
 
       foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
       foldRight_: <A, B>(
@@ -94,9 +96,9 @@ export const Foldable = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>) => Eval<B>,
       ): Eval<B> =>
-        self.foldMap_(Endo.MonoidK.algebra<Eval<B>>())(
+        self.foldMapK_(Endo.MonoidK)(
           fa,
-          a => eb => Eval.defer(() => f(a, eb)),
+          a => (eb: Eval<B>) => Eval.defer(() => f(a, eb)),
         )(ez),
 
       foldMapK: G => f => fa => self.foldMapK_(G)(fa, f),
@@ -142,7 +144,11 @@ export const Foldable = Object.freeze({
           .toVector,
 
       ...UnorderedFoldable.of({
-        unorderedFoldMap_: F.unorderedFoldMap_ ?? F.foldMap_,
+        unorderedFoldMap_:
+          F.unorderedFoldMap_ ??
+          (<M>(M: CommutativeMonoid<M>) =>
+            <A>(fa: Kind<F, [A]>, f: (a: A) => M): M =>
+              self.foldMap_(M)(fa, f)),
         ...F,
       }),
       ...F,

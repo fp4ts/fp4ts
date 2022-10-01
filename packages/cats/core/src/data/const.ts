@@ -90,7 +90,7 @@ const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(
 
 const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
   Foldable.of({
-    foldMap_: <M>(M: Monoid<M>) => constant(M.empty),
+    foldRight_: (fa, ez, f) => ez,
   }),
 );
 

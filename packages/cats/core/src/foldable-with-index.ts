@@ -51,10 +51,10 @@ export interface FoldableWithIndex<F, I> extends Foldable<F> {
   ): Eval<B>;
 }
 
-export type FoldableWithIndexRequirements<F, I> = Pick<
-  FoldableWithIndex<F, I>,
-  'foldMapWithIndex_'
-> &
+export type FoldableWithIndexRequirements<F, I> = (
+  | Pick<FoldableWithIndex<F, I>, 'foldMapKWithIndex_'>
+  | Pick<FoldableWithIndex<F, I>, 'foldRightWithIndex_'>
+) &
   Partial<FoldableWithIndex<F, I>>;
 export const FoldableWithIndex = Object.freeze({
   of: <F, I>(
@@ -62,6 +62,10 @@ export const FoldableWithIndex = Object.freeze({
   ): FoldableWithIndex<F, I> => {
     const self: FoldableWithIndex<F, I> = instance<FoldableWithIndex<F, I>>({
       foldMapWithIndex: M => f => fa => self.foldMapWithIndex_(M)(fa, f),
+      foldMapWithIndex_: M => (fa, f) =>
+        self.foldLeftWithIndex_(fa, M.empty, (b, a, i) =>
+          M.combine_(b, () => f(a, i)),
+        ),
 
       foldLeftWithIndex: (z, f) => fa => self.foldLeftWithIndex_(fa, z, f),
       foldLeftWithIndex_: <A, B>(
@@ -69,7 +73,7 @@ export const FoldableWithIndex = Object.freeze({
         z: B,
         f: (b: B, a: A, i: I) => B,
       ): B =>
-        self.foldMapWithIndex_(Endo.MonoidK.algebra<B>().dual())(
+        self.foldMapKWithIndex_(Endo.MonoidK.dual())(
           fa,
           (a: A, i: I) => (b: B) => f(b, a, i),
         )(z),
@@ -80,7 +84,7 @@ export const FoldableWithIndex = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>, i: I) => Eval<B>,
       ): Eval<B> =>
-        self.foldMapWithIndex_(Endo.MonoidK.algebra<Eval<B>>())(
+        self.foldMapKWithIndex_(Endo.MonoidK)(
           fa,
           (a: A, i: I) => (eb: Eval<B>) => f(a, eb, i),
         )(ez),
@@ -94,11 +98,18 @@ export const FoldableWithIndex = Object.freeze({
           ).value,
 
       ...Foldable.of({
-        foldMap_:
-          F.foldMap_ ??
-          (<M>(M: Monoid<M>) =>
-            <A>(fa: Kind<F, [A]>, f: (a: A) => M): M =>
-              self.foldMapWithIndex_(M)(fa, a => f(a))),
+        foldMapK_:
+          F.foldMapK_ ??
+          (<G>(G: MonoidK<G>) =>
+            <A, B>(fa: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [B]> =>
+              self.foldMapKWithIndex_(G)(fa, a => f(a))),
+        foldRight_:
+          F.foldRight_ ??
+          (<A, B>(
+            fa: Kind<F, [A]>,
+            ez: Eval<B>,
+            f: (a: A, eb: Eval<B>) => Eval<B>,
+          ): Eval<B> => self.foldRightWithIndex_(fa, ez, (a, eb) => f(a, eb))),
       }),
 
       ...F,

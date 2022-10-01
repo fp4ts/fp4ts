@@ -15,6 +15,7 @@ import {
 } from './unordered-traversable';
 import { ComposedTraversable } from './composed';
 import { Const, Identity } from './data';
+import { MonoidK } from './monoid-k';
 
 /**
  * @category Type Class
@@ -82,9 +83,11 @@ export const Traversable = Object.freeze({
       }),
       ...Foldable.of({
         ...T,
-        foldMap_:
-          T.foldMap_ ??
-          (<M>(M: Monoid<M>) => self.traverse_(Const.Applicative<M>(M))),
+        foldMapK_:
+          T.foldMapK_ ??
+          (<G>(M: MonoidK<G>) =>
+            <A, B>(fa: Kind<T, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [B]> =>
+              self.traverse_(Const.Applicative(M.algebra<B>()))(fa, f)),
       }),
       ...Functor.of({
         map_:

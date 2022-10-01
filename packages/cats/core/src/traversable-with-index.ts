@@ -4,12 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { instance, Kind } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from './applicative';
 import { Const, Identity } from './data';
 import { FoldableWithIndex } from './foldable-with-index';
 import { FunctorWithIndex } from './functor-with-index';
 import { Traversable } from './traversable';
+import { MonoidK } from './monoid-k';
 
 /**
  * @category Type Class
@@ -60,10 +60,17 @@ export const TraversableWithIndex = Object.freeze({
           F.mapWithIndex_ ?? F.traverseWithIndex_(Identity.Applicative),
       }),
       ...FoldableWithIndex.of({
-        foldMapWithIndex_:
-          F.foldMapWithIndex_ ??
-          (<M>(M: Monoid<M>) =>
-            self.traverseWithIndex_(Const.Applicative<M>(M))),
+        foldMapKWithIndex_:
+          F.foldMapKWithIndex_ ??
+          (<G>(M: MonoidK<G>) =>
+            <A, B>(
+              fa: Kind<F, [A]>,
+              f: (a: A, i: I) => Kind<G, [B]>,
+            ): Kind<G, [B]> =>
+              self.traverseWithIndex_(Const.Applicative(M.algebra<B>()))(
+                fa,
+                f,
+              )),
       }),
 
       ...F,
