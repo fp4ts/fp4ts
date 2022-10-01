@@ -252,7 +252,7 @@ export const traverseFilter_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: A[], f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [B[]]> =>
     G.map_(
-      Chain.traverseFilterViaChain(G, arrayFoldableWithIndex())(xs, f),
+      Chain.traverseFilterViaChain(G, arrayFoldableWithIndex())(xs, x => f(x)),
       ys => ys.toArray,
     );
 

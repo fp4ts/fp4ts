@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Eval } from '@fp4ts/cats-core';
-import { Chain, List, Option, Some } from '@fp4ts/cats-core/lib/data';
+import { Chain, Identity, List, Option, Some } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
   AlternativeSuite,
@@ -63,7 +63,9 @@ describe('Chain', () => {
   );
 
   it('should do something', () => {
-    expect(Chain(1, 2, 3)['+++'](Chain(4, 5)).toArray).toEqual([1, 2, 3, 4, 5]);
+    console.log(
+      Chain(1, 2, 3).traverseFilter(Identity.Applicative)(Some).toArray,
+    );
   });
 
   describe('Laws', () => {

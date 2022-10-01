@@ -1006,7 +1006,7 @@ export const traverseFilter_ =
           : Rhs.map2Rhs(
               f((xs as Cons<A>)._head),
               Rhs.defer(() => go((xs as Cons<A>)._tail)),
-            )((y, ys) => (ys.nonEmpty ? cons(y.get, ys) : ys));
+            )((y, ys) => (y.nonEmpty ? cons(y.get, ys) : ys));
 
       return Rhs.toG(Rhs.defer(() => go(xs)));
     });

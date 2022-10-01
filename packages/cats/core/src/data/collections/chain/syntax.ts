@@ -48,6 +48,7 @@ import {
   toArray,
   toList,
   toVector,
+  traverseFilter_,
   traverse_,
   uncons,
   zipWithIndex,
@@ -126,6 +127,9 @@ declare module './algebra' {
     traverse<G>(
       G: Applicative<G>,
     ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [Chain<B>]>;
+    traverseFilter<G>(
+      G: Applicative<G>,
+    ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [Chain<B>]>;
   }
 }
 
@@ -314,4 +318,7 @@ Chain.prototype.folding = function (M) {
 
 Chain.prototype.traverse = function (G) {
   return f => traverse_(G)(this, f);
+};
+Chain.prototype.traverseFilter = function (G) {
+  return f => traverseFilter_(G)(this, f);
 };

@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval } from '@fp4ts/cats-core';
 import {
   Identity,
   Either,
@@ -23,8 +23,6 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   AlternativeSuite,
   MonadSuite,
-  TraversableSuite,
-  FunctorFilterSuite,
   AlignSuite,
   CoflatMapSuite,
   TraversableFilterSuite,
