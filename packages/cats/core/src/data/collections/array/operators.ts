@@ -7,6 +7,7 @@ import { Kind, id } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 import { Eval } from '../../../eval';
+import { MonoidK } from '../../../monoid-k';
 
 import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';
@@ -14,7 +15,6 @@ import { Either } from '../../either';
 import { List } from '../list';
 import { Chain } from '../chain';
 import { arrayFoldableWithIndex } from './instances';
-import { MonoidK } from '../../../monoid-k';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
