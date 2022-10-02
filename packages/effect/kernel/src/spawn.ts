@@ -403,15 +403,22 @@ export const Spawn = Object.freeze({
       oc: Outcome<F, E, A>,
     ): Outcome<$<KleisliF, [F, R]>, E, A> => oc.mapK(constant);
 
+    class KleisliFiber<A> extends Fiber<$<KleisliF, [F, R]>, E, A> {
+      public constructor(private readonly fiber: Fiber<F, E, A>) {
+        super();
+      }
+      public get join(): Kleisli<F, R, Outcome<$<KleisliF, [F, R]>, E, A>> {
+        return () => F.map_(this.fiber.join, liftOutcome);
+      }
+
+      public get cancel(): Kleisli<F, R, void> {
+        return () => this.fiber.cancel;
+      }
+    }
+
     const liftFiber = <A>(
       fiber: Fiber<F, E, A>,
-    ): Fiber<$<KleisliF, [F, R]>, E, A> =>
-      new (class extends Fiber<$<KleisliF, [F, R]>, E, A> {
-        readonly join: Kleisli<F, R, Outcome<$<KleisliF, [F, R]>, E, A>> = () =>
-          F.map_(fiber.join, liftOutcome);
-
-        readonly cancel: Kleisli<F, R, void> = () => fiber.cancel;
-      })();
+    ): Fiber<$<KleisliF, [F, R]>, E, A> => new KleisliFiber(fiber);
 
     return Spawn.of<$<KleisliF, [F, R]>, E>({
       ...MonadCancel.forKleisli(F),
@@ -457,35 +464,44 @@ export const Spawn = Object.freeze({
   },
 
   forOptionT: <F, E>(F: Spawn<F, E>): Spawn<$<OptionTF, [F]>, E> => {
+    const liftF = OptionT.liftF(F);
     const liftOutcome = <A>(
       oc: Outcome<F, E, Option<A>>,
     ): Outcome<$<OptionTF, [F]>, E, A> =>
       oc.fold(
         () => Outcome.canceled(),
         e => Outcome.failure(e),
-        fa => Outcome.success<$<OptionTF, [F]>, A>(OptionT(fa)),
+        fa => Outcome.success<$<OptionTF, [F]>, A>(fa),
       );
+
+    class OptionTFiber<A> extends Fiber<$<OptionTF, [F]>, E, A> {
+      public constructor(private readonly fiber: Fiber<F, E, Option<A>>) {
+        super();
+      }
+
+      public get join(): OptionT<F, Outcome<$<OptionTF, [F]>, E, A>> {
+        return liftF(F.map_(this.fiber.join, liftOutcome));
+      }
+
+      public get cancel(): OptionT<F, void> {
+        return liftF(this.fiber.cancel);
+      }
+    }
 
     const liftFiber = <A>(
       fiber: Fiber<F, E, Option<A>>,
-    ): Fiber<$<OptionTF, [F]>, E, A> =>
-      new (class extends Fiber<$<OptionTF, [F]>, E, A> {
-        readonly join: OptionT<F, Outcome<$<OptionTF, [F]>, E, A>> =
-          OptionT.liftF(F)(F.map_(fiber.join, liftOutcome));
-
-        readonly cancel: OptionT<F, void> = OptionT.liftF(F)(fiber.cancel);
-      })();
+    ): Fiber<$<OptionTF, [F]>, E, A> => new OptionTFiber(fiber);
 
     return Spawn.of<$<OptionTF, [F]>, E>({
       ...MonadCancel.forOptionT(F),
 
-      unique: OptionT.liftF(F)(F.unique),
+      unique: liftF(F.unique),
 
-      fork: fa => OptionT.liftF(F)(F.map_(F.fork(fa), liftFiber)),
+      fork: fa => liftF(F.map_(F.fork(fa), liftFiber)),
 
-      suspend: OptionT.liftF(F)(F.suspend),
+      suspend: liftF(F.suspend),
 
-      never: OptionT.liftF(F)(F.never),
+      never: liftF(F.never),
 
       racePair_: <A, B>(
         fa: OptionT<F, A>,
@@ -497,7 +513,7 @@ export const Spawn = Object.freeze({
           [Fiber<$<OptionTF, [F]>, E, A>, Outcome<$<OptionTF, [F]>, E, B>]
         >
       > =>
-        OptionT.liftF(F)(
+        liftF(
           F.uncancelable(poll =>
             poll(
               pipe(
