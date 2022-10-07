@@ -106,7 +106,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       if ((_cur as any) === IOEndFiber) {
         return;
       } else if (this.shouldFinalize()) {
-        return this.cancelAsync();
+        _cur = this.prepareForCancelation();
+        continue;
       } else if (nextAutoSuspend-- <= 0) {
         // Possible race condition with resumeIO overwrite when auto suspend
         // and async callback completion?
@@ -369,11 +370,11 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         case 13:
           this.canceled = true;
           if (this.isUnmasked()) {
-            return this.cancelAsync();
+            _cur = this.prepareForCancelation();
           } else {
             _cur = this.succeeded(undefined);
-            continue;
           }
+          continue;
 
         case 14: {
           const body = cur.body;
@@ -393,7 +394,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 } else {
                   // Otherwise, we've been canceled and we should cancel
                   // ourselves asynchronously
-                  return this.cancelAsync();
+                  this.resumeIO = this.prepareForCancelation();
+                  return this.schedule(this, this.currentEC);
                 }
                 // We were canceled while suspended, so just drop the callback
                 // result
@@ -433,7 +435,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             state.wasFinalizing = this.finalizing;
 
             if (this.shouldFinalize()) {
-              this.cancelAsync();
+              _cur = this.prepareForCancelation();
+              continue;
             }
           } else {
             const loop = () => {
@@ -446,7 +449,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 this.resumeIO = next;
                 this.schedule(this, this.currentEC);
               } else if (this.outcome == null) {
-                this.cancelAsync();
+                this.resumeIO = this.prepareForCancelation();
+                this.schedule(this, this.currentEC);
               }
             };
             loop();
@@ -573,24 +577,29 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       this.canceled = true;
 
       return this.isUnmasked()
-        ? IO.async_(cb => this.cancelAsync(cb))
+        ? IO.async_(cb => this.runLoop(this.prepareForCancelation(cb)))
         : this.join.void;
     }),
   );
 
-  private cancelAsync(cb?: (ea: Either<Error, void>) => void): void {
-    this.finalizing = true;
-
+  private prepareForCancelation(
+    cb?: (ea: Either<Error, void>) => void,
+  ): IO<unknown> {
     if (this.finalizers.length) {
-      this.conts = [CancelationLoopK];
-      this.stack = cb ? [cb as (u: unknown) => unknown] : [];
+      if (!this.finalizing) {
+        this.finalizing = true;
 
-      // do not allow further cancelations
-      this.masks += 1;
-      this.runLoop(this.finalizers.pop()!);
+        this.conts = [CancelationLoopK];
+        this.stack = cb ? [cb as (u: unknown) => unknown] : [];
+
+        // do not allow further cancelations
+        this.masks += 1;
+      }
+      return this.finalizers.pop()!;
     } else {
       cb && cb(Either.rightUnit);
       this.complete(IOOutcome.canceled());
+      return IOEndFiber;
     }
   }
 
