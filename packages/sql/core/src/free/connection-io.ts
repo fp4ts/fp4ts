@@ -55,8 +55,17 @@ export class ConnectionIO<out A> {
     return ConnectionIO.lift(Close);
   }
 
+  /**
+   * Executes using Transactor's (`trx`) strategy
+   */
   public transact<F>(trx: Transactor<F>): Kind<F, [A]> {
     return trx.trans(this);
+  }
+  /**
+   * Translates into `Kind<F, [A]>` without using the Transactor's strategy
+   */
+  public translate<F>(trx: Transactor<F>): Kind<F, [A]> {
+    return trx.rawTrans(this);
   }
 
   public foldMap<F>(

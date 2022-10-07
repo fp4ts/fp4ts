@@ -51,6 +51,15 @@ export class Strategy {
       );
     });
   }
+
+  public copy({
+    before = this.before,
+    after = this.after,
+    onError = this.onError,
+    always = this.always,
+  }: Partial<StrategyProps> = {}): Strategy {
+    return new Strategy(before, after, onError, always);
+  }
 }
 
 type Interpreter<F, C> = FunctionK<ConnectionOpF, $<KleisliF, [F, C]>>;
@@ -63,6 +72,16 @@ export class TransactorAux<F, K, C> {
     public readonly interpret: Interpreter<F, C>,
     private readonly connect: (kernel: K) => Resource<F, C>,
   ) {}
+
+  public modifyStrategy(f: (s: Strategy) => Strategy): TransactorAux<F, K, C> {
+    return new TransactorAux(
+      this.F,
+      this.kernel,
+      f(this.strategy),
+      this.interpret,
+      this.connect,
+    );
+  }
 
   private get KF() {
     return Kleisli.Monad<F, C>(this.F);
@@ -102,6 +121,37 @@ export class TransactorAux<F, K, C> {
           .mapK(this.run(conn)),
       ).scope;
   }
+
+  /**
+   * Wraps the underlying effect `fa` in a transaction using this transactor.
+   *
+   * This is an escape hatch, when one needs to interleave `ConnectionIO` composition
+   * with an arbitrary effect type F.
+   *
+   * @note Since this method adds explicit transaction boundaries, the inner
+   * transactions of `ConnectionIO` should use `translate`.
+   */
+  public withTransaction<A>(fa: Kind<F, [A]>): Kind<F, [A]> {
+    return this.F.bracketOutcome_(
+      ConnectionIO.beginTransaction().translate(this),
+      () => fa,
+      (_, oc) =>
+        oc
+          .fold(
+            () => ConnectionIO.rollback(),
+            () => ConnectionIO.rollback(),
+            () => ConnectionIO.commit(),
+          )
+          .translate(this),
+    );
+  }
 }
 
 export type Transactor<F> = TransactorAux<F, any, any>;
+
+interface StrategyProps {
+  readonly before: ConnectionIO<void>;
+  readonly after: ConnectionIO<void>;
+  readonly onError: ConnectionIO<void>;
+  readonly always: ConnectionIO<void>;
+}
