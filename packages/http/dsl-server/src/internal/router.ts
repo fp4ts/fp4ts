@@ -116,50 +116,42 @@ export const runRouterEnv =
     router: Router<env, RoutingApplication<F>>,
     env: env,
   ): RoutingApplication<F> => {
-    const loop =
-      <env>(
-        req: Request<F>,
+    const route = (req: Request<F>, path: string[]) =>
+      function go<env>(
         router: Router<env, RoutingApplication<F>>,
-        rem: string[],
-      ) =>
-      (env: env): RouteResultT<F, Response<F>> => {
+        env: env,
+        idx: number,
+      ): RouteResultT<F, Response<F>> {
         switch (router.tag) {
-          case 'static': {
-            if (rem.length === 0) {
+          case 'static':
+            if (idx >= path.length) {
               return runChoices(req, env, router.matches);
             }
-
-            if (router.table[rem[0]]) {
-              return loop(req, router.table[rem[0]], rem.slice(1))(env);
+            if (router.table[path[idx]] != null) {
+              return go(router.table[path[idx]], env, idx + 1);
             }
-
             return RouteResultT.fail(F)(new NotFoundFailure());
-          }
 
-          case 'capture': {
-            if (rem.length === 0)
-              // nothing to capture
-              return RouteResultT.fail(F)(new NotFoundFailure());
+          case 'capture':
+            return idx >= path.length
+              ? // nothing to capture
+                RouteResultT.fail(F)(new NotFoundFailure())
+              : go(router.next, [path[idx], env], idx + 1);
 
-            const [pfx, ...sfx] = rem;
-            return loop(req, router.next, sfx)([pfx, env]);
-          }
-
-          case 'catch-all': {
-            return loop(req, router.next, [])([rem, env]);
-          }
+          case 'catch-all':
+            return go(router.next, [path.slice(idx), env], path.length);
 
           case 'raw':
             return router.app(env)(
               // pass remainder of the path to the raw router
               // Note: We always artificially prepend absolute path in case
               //       an empty segment is encountered
-              req.withUri(req.uri.withPath(new Path(['', ...rem]))),
+              req.withUri(req.uri.withPath(new Path(['', ...path.slice(idx)]))),
             );
 
           case 'choice':
-            return loop(req, router.lhs, rem)(env).orElse(F)(() =>
-              loop(req, router.rhs, rem)(env),
+            return go(router.lhs, env, idx).orElse(F)(() =>
+              go(router.rhs, env, idx),
             );
         }
       };
@@ -168,22 +160,23 @@ export const runRouterEnv =
       req: Request<F>,
       env: env,
       ls: ((env: env) => RoutingApplication<F>)[],
-    ): RouteResultT<F, Response<F>> => {
-      switch (ls.length) {
-        case 0:
-          return RouteResultT.fail(F)(new NotFoundFailure());
+    ) => {
+      function go(idx: number, rem: number): RouteResultT<F, Response<F>> {
+        switch (rem) {
+          case 0:
+            return RouteResultT.fail(F)(new NotFoundFailure());
 
-        case 1:
-          return ls[0](env)(req);
+          case 1:
+            return ls[idx](env)(req);
 
-        case 2:
-          return ls[0](env)(req).orElse(F)(() => ls[1](env)(req));
+          case 2:
+            return ls[idx](env)(req).orElse(F)(() => ls[idx + 1](env)(req));
 
-        default: {
-          const [hd, ...rest] = ls;
-          return hd(env)(req).orElse(F)(() => runChoices(req, env, rest));
+          default:
+            return ls[idx](env)(req).orElse(F)(() => go(idx + 1, rem - 1));
         }
       }
+      return go(0, ls.length);
     };
 
     return req => {
@@ -197,7 +190,7 @@ export const runRouterEnv =
         pathComponents[pathComponents.length - 1] === ''
           ? pathComponents.slice(0, pathComponents.length - 1)
           : pathComponents;
-      return loop(req, router, routablePathComponents)(env);
+      return route(req, routablePathComponents)(router, env, 0);
     };
   };
 
