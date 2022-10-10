@@ -5,23 +5,13 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { compose, id, pipe, tupled, TypeRef, TypeOf } from '@fp4ts/core';
-import {
-  Either,
-  EitherT,
-  Kleisli,
-  Left,
-  List,
-  None,
-  Right,
-  Some,
-} from '@fp4ts/cats';
+import { Either, Left, List, None, Right, Some } from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
   EntityEncoder,
   HttpApp,
   HttpRoutes,
-  MessageFailure,
   ParsingFailure,
   Response,
   Status,
@@ -218,8 +208,8 @@ export function route<F>(F: Concurrent<F, Error>) {
       route(
         api,
         ctx,
-        d.addCapture(EF)(txt =>
-          DelayedCheck.withRequest(F)(() =>
+        d.addCapture(EF)(
+          txt => () =>
             pipe(
               fromPathComponent(txt).leftMap(
                 f => new ParsingFailure(f.toString()),
@@ -227,7 +217,6 @@ export function route<F>(F: Concurrent<F, Error>) {
               RouteResult.fromEither,
               RouteResultT.lift(F),
             ),
-          ),
         ),
         codings,
       ),
@@ -245,22 +234,20 @@ export function route<F>(F: Concurrent<F, Error>) {
     return route(
       api,
       ctx,
-      d.addParamCheck(EF)(
-        DelayedCheck.withRequest(F)(req => {
-          const value = req.uri.query.lookup(a.property);
-          const result = value.isEmpty
-            ? Right(None)
-            : value.get.isEmpty
-            ? Left(new DecodeFailure('Missing query value'))
-            : fromQueryParameter(value.get.get).map(Some);
-          return pipe(
-            RouteResult.fromEither(
-              result.leftMap(f => new ParsingFailure(f.toString())),
-            ),
-            RouteResultT.lift(F),
-          );
-        }),
-      ),
+      d.addParamCheck(EF)(req => {
+        const value = req.uri.query.lookup(a.property);
+        const result = value.isEmpty
+          ? Right(None)
+          : value.get.isEmpty
+          ? Left(new DecodeFailure('Missing query value'))
+          : fromQueryParameter(value.get.get).map(Some);
+        return pipe(
+          RouteResult.fromEither(
+            result.leftMap(f => new ParsingFailure(f.toString())),
+          ),
+          RouteResultT.lift(F),
+        );
+      }),
       codings,
     );
   }
@@ -273,9 +260,9 @@ export function route<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, Sub<HeaderElement<SelectHeader<G, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
     const S = a.header;
-    const headerCheck = DelayedCheck.withRequest(F)(req =>
-      RouteResultT.succeed(F)(req.headers.get(S)),
-    );
+    const headerCheck = (req: Request<F>) =>
+      RouteResultT.succeed(F)(req.headers.get(S));
+
     return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
   }
 
@@ -297,7 +284,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, Sub<RawHeaderElement<H, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
     const { parseHeader } = codings[FromHttpApiDataTag][a.type.Ref];
-    const headerCheck = DelayedCheck.withRequest(F)(req =>
+    const headerCheck = (req: Request<F>) =>
       pipe(
         req.headers
           .getRaw(a.key)
@@ -310,8 +297,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           ),
         ),
         RouteResultT.lift(F),
-      ),
-    );
+      );
 
     return route(api, ctx, d.addHeaderCheck(EF)(headerCheck), codings);
   }
@@ -334,7 +320,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, Sub<BasicAuthElement<N, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
     const validate = codings[BasicAuthValidatorTag][auth.realm];
-    const authCheck = DelayedCheck.withRequest(F)(req =>
+    const authCheck = (req: Request<F>) =>
       pipe(
         challenge(F)(auth.realm, validate)(req),
         F.map(opt =>
@@ -344,8 +330,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           ),
         ),
         RouteResultT,
-      ),
-    );
+      );
 
     return route(api, ctx, d.addAuthCheck(EF)(authCheck), codings as any);
   }
@@ -369,7 +354,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     codings: DeriveCoding<F, Sub<ReqBodyElement<CT, TypeRef<any, A>>, api>>,
   ): Router<env, RoutingApplication<F>> {
     const { decode } = codings[body.ct.mime][body.body.Ref];
-    const ctCheck = DelayedCheck.withRequest(F)(req =>
+    const ctCheck = (req: Request<F>) =>
       req.contentType.fold(
         () => RouteResultT.succeed(F)(req.bodyText),
         ct =>
@@ -378,8 +363,7 @@ export function route<F>(F: Concurrent<F, Error>) {
             : RouteResultT.fail(F)(
                 new UnsupportedMediaTypeFailure(body.ct.self.mediaType),
               ),
-      ),
-    );
+      );
 
     return route(
       api,
@@ -392,16 +376,10 @@ export function route<F>(F: Concurrent<F, Error>) {
             pipe(
               s.compileConcurrent(F).string,
               F.attempt,
+              F.map(ea => ea.leftMap(e => new ParsingFailure(e.message))),
               F.map(ea =>
-                ea.leftMap(
-                  e => new ParsingFailure(e.message) as MessageFailure,
-                ),
-              ),
-              EitherT.Monad<F, MessageFailure>(F).flatMap(str =>
-                EitherT(
-                  F.pure(
-                    decode(str).leftMap(e => new ParsingFailure(e.message)),
-                  ),
+                ea.flatMap(str =>
+                  decode(str).leftMap(e => new ParsingFailure(e.message)),
                 ),
               ),
             ),
@@ -433,8 +411,8 @@ export function route<F>(F: Concurrent<F, Error>) {
       route(
         api,
         ctx,
-        d.addCapture(EF)(txts =>
-          DelayedCheck.withRequest(F)(() =>
+        d.addCapture(EF)(
+          txts => () =>
             pipe(
               List.fromArray(txts)
                 .traverse(Either.Monad<DecodeFailure>())(fromPathComponent)
@@ -442,7 +420,6 @@ export function route<F>(F: Concurrent<F, Error>) {
               RouteResult.fromEither,
               RouteResultT.lift(F),
             ),
-          ),
         ),
         codings,
       ),
@@ -559,7 +536,7 @@ export function route<F>(F: Concurrent<F, Error>) {
     },
   ): Router<env, RoutingApplication<F>> {
     const { encode } = codings[ct.mime][body.Ref];
-    const acceptCheck = DelayedCheck.withRequest(F)(req =>
+    const acceptCheck = (req: Request<F>) =>
       pipe(
         req.headers
           .get(Accept.Select)
@@ -570,8 +547,7 @@ export function route<F>(F: Concurrent<F, Error>) {
           )
           .fold(() => RouteResult.succeedUnit, id),
         RouteResultT.lift(F),
-      ),
-    );
+      );
 
     const getHeadersEncoder = (
       hs: (HeaderElement<any> | RawHeaderElement<any, TypeRef<any, any>>)[],
@@ -626,12 +602,12 @@ export function route<F>(F: Concurrent<F, Error>) {
   const methodAllowed = (m: Method, req: Request<F>): boolean =>
     allowedMethodMead(m, req) || requestMethod(m, req);
 
-  const methodCheck = (m: Method): DelayedCheck<F, void> =>
-    DelayedCheck.withRequest(F)(req =>
+  const methodCheck =
+    (m: Method): DelayedCheck<F, void> =>
+    req =>
       methodAllowed(m, req)
         ? RouteResultT.succeedUnit(F)
-        : RouteResultT.fail(F)(new MethodNotAllowedFailure(m)),
-    );
+        : RouteResultT.fail(F)(new MethodNotAllowedFailure(m));
 
   return route;
 }
