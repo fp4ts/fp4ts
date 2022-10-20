@@ -229,7 +229,7 @@ describe('IO', () => {
         return counter;
       });
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const a = yield* _(x);
         const b = yield* _(x);
         return tupled(a, b);
@@ -284,7 +284,7 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel already canceled fiber', ticker => {
-      const ioa = Monad.Do(IO.Monad)(function* (_) {
+      const ioa = IO.Monad.do(function* (_) {
         const f = yield* _(IO.canceled.fork);
         yield* _(IO(() => ticker.ctx.tickAll()));
         yield* _(f.cancel);
@@ -360,7 +360,7 @@ describe('IO', () => {
           }),
         );
 
-        const io = Monad.Do(IO.Monad)(function* (_) {
+        const io = IO.Monad.do(function* (_) {
           const f = yield* _(async.fork);
           yield* _(IO(() => ticker.ctx.tickAll()));
           yield* _(IO(() => cb(Right(42))));
@@ -456,7 +456,7 @@ describe('IO', () => {
     });
 
     it.ticked('should propagate cancelation', ticker => {
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const f = yield* _(IO.both(IO.never, IO.never).fork);
         yield* _(IO(() => ticker.ctx.tickAll()));
         yield* _(f.cancel);
@@ -468,7 +468,7 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel both fibers', ticker => {
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const l = yield* _(IO.ref(false));
         const r = yield* _(IO.ref(false));
         const fiber = yield* _(
@@ -565,7 +565,7 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel both fibers when canceled', ticker => {
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const l = yield* _(IO.ref(false));
         const r = yield* _(IO.ref(false));
         const fiber = yield* _(
@@ -609,7 +609,7 @@ describe('IO', () => {
 
       const target = IO.async(() => IO.pure(Some(IO(cleanup))));
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const f = yield* _(target.fork);
         yield* _(IO(() => ticker.ctx.tickAll()));
         return yield* _(f.cancel);
@@ -699,7 +699,7 @@ describe('IO', () => {
 
       const body = IO.async<never>(() => IO.pure(Some(pushResult(1))));
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const fiber = yield* _(
           body.onCancel(pushResult(2)).onCancel(pushResult(3)).fork,
         );
@@ -862,7 +862,7 @@ describe('IO', () => {
         ),
       );
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const fiber = yield* _(body.fork);
         yield* _(IO(() => ticker.ctx.tickAll())); // start async task
         return yield* _(fiber.cancel); // cancel after the async task is running;
@@ -901,7 +901,7 @@ describe('IO', () => {
     );
 
     it.ticked('should run finalizer on failed bracket use', ticker => {
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const ref = yield* _(IO.ref(false));
         yield* _(
           IO.bracketFull(
@@ -919,7 +919,7 @@ describe('IO', () => {
     it.ticked(
       'should cancel never completing use of acquired resource',
       ticker => {
-        const io = Monad.Do(IO.Monad)(function* (_) {
+        const io = IO.Monad.do(function* (_) {
           const def = yield* _(IO.deferred<void>());
           const bracket = IO.bracketFull(
             () => IO.unit,
@@ -1022,7 +1022,7 @@ describe('IO', () => {
         IO.parTraverseN(List.TraversableFilter)(2, () => IO.never),
       );
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const fiber = yield* _(traverse.fork);
         yield* _(IO(() => ticker.ctx.tickAll()));
         return yield* _(fiber.cancel);
@@ -1041,7 +1041,7 @@ describe('IO', () => {
         ),
       );
 
-      const io = Monad.Do(IO.Monad)(function* (_) {
+      const io = IO.Monad.do(function* (_) {
         const fiber = yield* _(traverse.fork);
         yield* _(IO(() => ticker.ctx.tickAll()));
         return yield* _(fiber.cancel);
@@ -1078,7 +1078,7 @@ describe('IO', () => {
       ticker => {
         const cont = jest.fn();
 
-        const io = Monad.Do(IO.Monad)(function* (_) {
+        const io = IO.Monad.do(function* (_) {
           const sem = yield* _(Semaphore.withPermits(IO.Async)(1));
           const f1 = yield* _(sem.withPermit(IO.never).fork);
           const f2 = yield* _(sem.withPermit(IO.never).fork);
@@ -1113,5 +1113,23 @@ describe('IO', () => {
         EqX => E.eqIO(EqX, ticker),
       ),
     );
+  });
+
+  describe('bugs', () => {
+    test.real('canceled fiber does not continue', () => {
+      let task: IO<number> = IO.never;
+      for (let i = 0; i < 3; i++) {
+        task = IO.race(
+          task,
+          IO(() => i),
+        ).map(ea =>
+          ea.fold(
+            x => x,
+            x => x,
+          ),
+        );
+      }
+      return task;
+    });
   });
 });

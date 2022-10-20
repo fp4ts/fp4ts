@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import assert from 'assert';
 import { flow, id } from '@fp4ts/core';
 import { Either, Left, Right, Some } from '@fp4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
@@ -391,7 +392,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                   const next = ea.fold(IO.throwError, IO.pure);
                   this.resumeIO = next;
                   return this.schedule(this, this.currentEC);
-                } else {
+                } else if (this.outcome == null) {
                   // Otherwise, we've been canceled and we should cancel
                   // ourselves asynchronously
                   this.resumeIO = this.prepareForCancelation();
