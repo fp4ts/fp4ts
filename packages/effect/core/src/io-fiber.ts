@@ -29,6 +29,7 @@ import {
   MaxStackSize,
   OnCancelK,
   RunOnK,
+  TerminateK,
   UncancelableK,
   UnmaskK,
 } from './internal/io-constants';
@@ -46,7 +47,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private masks: number = 0;
 
   private stack: Stack = [];
-  private conts: Continuation[] = [];
+  private conts: Continuation[] = [TerminateK];
   private cxts: ExecutionContext[] = [];
 
   private finalizers: IO<unknown>[] = [];
@@ -664,7 +665,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
         while (true) {
           depth++;
-          if (this.conts.length <= 0) return this.terminateSuccessK(r);
           const nextCont = this.conts.pop()!;
           switch (nextCont) {
             // MapK
@@ -736,6 +736,9 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             case 8:
               return this.cancelationLoopSuccessK();
+
+            case 9:
+              return this.terminateSuccessK(r);
           }
         }
       } else {
@@ -743,7 +746,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         Tracing.augmentError(e, this.trace.toArray);
 
         while (true) {
-          if (this.conts.length <= 0) return this.terminateFailureK(e);
           const nextCont = this.conts.pop()!;
           switch (nextCont) {
             case 0: // MapK
@@ -793,6 +795,9 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
             case 8:
               return this.cancelationLoopFailureK(e);
+
+            case 9:
+              return this.terminateFailureK(e);
           }
         }
       }
