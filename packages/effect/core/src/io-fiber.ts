@@ -45,6 +45,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private canceled: boolean = false;
   private finalizing: boolean = false;
   private masks: number = 0;
+  private suspended: boolean = false;
 
   private stack: Stack = [];
   private conts: Continuation[] = [TerminateK];
@@ -92,7 +93,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   public run(): void {
     const cur = this.resumeIO;
     this.resumeIO = null as any;
-    this.runLoop(cur);
+    this.runLoop(cur, this.autoSuspendThreshold);
   }
 
   public onComplete<B>(this: IOFiber<B>, cb: (oc: IOOutcome<A>) => void): void {
@@ -101,9 +102,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       : this.callbacks.push(cb as (oc: IOOutcome<unknown>) => void);
   }
 
-  private runLoop(_cur: IO<unknown>): void {
-    let nextAutoSuspend = this.autoSuspendThreshold;
-
+  private runLoop(_cur: IO<unknown>, nextAutoSuspend: number): void {
     while (true) {
       if ((_cur as any) === IOEndFiber) {
         return;
@@ -111,10 +110,9 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         _cur = this.prepareForCancelation();
         continue;
       } else if (nextAutoSuspend-- <= 0) {
-        // Possible race condition with resumeIO overwrite when auto suspend
-        // and async callback completion?
         this.resumeIO = _cur;
-        return this.schedule(this, this.currentEC);
+        this.schedule(this, this.currentEC);
+        return;
       }
 
       const cur = _cur as IOView<unknown>;
@@ -385,22 +383,33 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           const state = new ContState(this.finalizing);
 
           const cb = (ea: Either<Error, unknown>): void => {
-            const resume = () => {
-              // If we have not been canceled while suspended, or the task is
-              // uncancelable, continue with the execution
-              if (state.wasFinalizing === this.finalizing) {
-                if (!this.shouldFinalize()) {
-                  const next = ea.fold(IO.throwError, IO.pure);
-                  this.resumeIO = next;
-                  return this.schedule(this, this.currentEC);
-                } else if (this.outcome == null) {
-                  // Otherwise, we've been canceled and we should cancel
-                  // ourselves asynchronously
-                  this.resumeIO = this.prepareForCancelation();
-                  return this.schedule(this, this.currentEC);
+            const loop = () => {
+              if (this.resume()) {
+                // If we have not been canceled while suspended, or the task is
+                // uncancelable, continue with the execution
+                if (state.wasFinalizing === this.finalizing) {
+                  if (!this.shouldFinalize()) {
+                    const next = ea.fold(IO.throwError, IO.pure);
+                    this.resumeIO = next;
+                    return this.schedule(this, this.currentEC);
+                  } else {
+                    console.log('ASYNC CANCEL');
+                    // Otherwise, we've been canceled and we should cancel
+                    // ourselves asynchronously
+                    this.resumeIO = this.prepareForCancelation();
+                    return this.schedule(this, this.currentEC);
+                  }
+                  // We were canceled while suspended, so just drop the callback
+                  // result
+                } else {
+                  this.suspend();
                 }
-                // We were canceled while suspended, so just drop the callback
-                // result
+              } else if (
+                this.finalizing === state.wasFinalizing &&
+                !this.shouldFinalize() &&
+                this.outcome == null
+              ) {
+                this.currentEC.executeAsync(loop);
               }
             };
 
@@ -408,7 +417,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             state.result = ea;
             state.phase = ContStatePhase.Result;
             if (wasInPhase === ContStatePhase.Waiting) {
-              resume();
+              loop();
             }
           };
 
@@ -431,33 +440,24 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           this.finalizers.push(fin);
           this.conts.push(OnCancelK);
 
-          if (state.phase === ContStatePhase.Initial) {
-            state.phase = ContStatePhase.Waiting;
+          switch (state.phase) {
+            case ContStatePhase.Initial:
+              state.phase = ContStatePhase.Waiting;
+              state.wasFinalizing = this.finalizing;
+              this.suspend();
+              return;
 
-            state.wasFinalizing = this.finalizing;
+            case ContStatePhase.Waiting:
+              throw new Error('Illegal state');
 
-            if (this.shouldFinalize()) {
-              _cur = this.prepareForCancelation();
+            case ContStatePhase.Result: {
+              const result = state.result!;
+              _cur = result.isRight
+                ? this.succeeded(result.get)
+                : this.failed(result.getLeft);
               continue;
             }
-          } else {
-            const loop = () => {
-              if (state.phase !== ContStatePhase.Result)
-                return this.resume(loop);
-
-              if (!this.shouldFinalize()) {
-                const result = state.result!;
-                const next = result.fold(IO.throwError, IO.pure);
-                this.resumeIO = next;
-                this.schedule(this, this.currentEC);
-              } else if (this.outcome == null) {
-                this.resumeIO = this.prepareForCancelation();
-                this.schedule(this, this.currentEC);
-              }
-            };
-            loop();
           }
-          return;
         }
 
         case 16: {
@@ -519,10 +519,10 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
         case 19: {
           const ms = cur.ms;
-          const next = IO.async<void>(resume =>
+          const next = IO.async<void>(cb =>
             IO(() => {
               const cancel = this.currentEC.sleep(ms, () =>
-                resume(Either.rightUnit),
+                cb(Either.rightUnit),
               );
               return Some(IO(cancel));
             }),
@@ -547,7 +547,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           this.cxts.push(ec);
           this.conts.push(RunOnK);
           this.schedule(this, ec);
-
           return;
         }
 
@@ -574,15 +573,23 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     }),
   );
 
-  private _cancel: IO<void> = IO.uncancelable(() =>
-    IO.defer(() => {
-      this.canceled = true;
+  private _cancel: IO<void> = IO.uncancelable(() => {
+    this.canceled = true;
 
-      return this.isUnmasked()
-        ? IO.async_(cb => this.runLoop(this.prepareForCancelation(cb)))
-        : this.join.void;
-    }),
-  );
+    if (this.resume()) {
+      if (this.isUnmasked()) {
+        return IO.async_(cb => {
+          this.resumeIO = this.prepareForCancelation(cb);
+          this.schedule(this, this.currentEC);
+        });
+      } else {
+        this.suspend();
+        return this.join.void;
+      }
+    } else {
+      return this.join.void;
+    }
+  });
 
   private prepareForCancelation(
     cb?: (ea: Either<Error, void>) => void,
@@ -622,6 +629,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.callbacks = [];
     this.finalizers = [];
     this.masks = 0;
+    this.suspended = false;
     this.trace.invalidate();
     this.currentEC = undefined as any;
     this.resumeIO = IOEndFiber as any;
@@ -631,8 +639,16 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     ec.executeAsync(() => f.run());
   }
 
-  private resume(cont: () => void): void {
-    this.currentEC.executeAsync(cont);
+  private resume(): boolean {
+    if (this.suspended) {
+      this.suspended = false;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  private suspend(): void {
+    this.suspended = true;
   }
 
   private shouldFinalize(): boolean {

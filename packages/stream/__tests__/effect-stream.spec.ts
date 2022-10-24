@@ -473,14 +473,13 @@ describe('Effect-ful stream', () => {
     },
   );
 
-  it.ticked('should interrupt a never executing evaluated event', ticker => {
+  it('should interrupt a never executing evaluated event', async () => {
     let canceled: boolean = false;
     const s = Stream.evalF(
       IO.never.onCancel(IO(() => (canceled = true)).void),
-    ).interruptWhen(IO.sleep(1_000).attempt);
+    ).interruptWhen(IO.sleep(10).attempt);
 
-    const io = s.compileConcurrent().drain;
-    expect(io).toCompleteWith(undefined, ticker);
+    await s.compileConcurrent().drain.unsafeRunToPromise();
     expect(canceled).toBe(true);
   });
 
