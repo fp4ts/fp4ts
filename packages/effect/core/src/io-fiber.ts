@@ -37,8 +37,7 @@ import { IORuntime } from './unsafe/io-runtime';
 import { IOOutcome } from './io-outcome';
 import { TracingEvent, RingBuffer, Tracing } from './tracing';
 
-type Frame = (r: unknown) => unknown;
-type Stack = Frame[];
+type Stack = unknown[];
 
 export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private outcome?: IOOutcome<A>;
@@ -49,7 +48,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
   private stack: Stack = [];
   private conts: Continuation[] = [TerminateK];
-  private cxts: ExecutionContext[] = [];
 
   private finalizers: IO<unknown>[] = [];
   private callbacks: ((oc: IOOutcome<unknown>) => void)[] = [];
@@ -71,7 +69,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     super();
     this.resumeIO = startIO;
     this.currentEC = startEC;
-    this.cxts.push(startEC);
     this.runtime = runtime;
 
     this.autoSuspendThreshold = this.runtime.config.autoSuspendThreshold;
@@ -544,7 +541,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
           this.resumeIO = cur.ioa;
           this.currentEC = ec;
-          this.cxts.push(ec);
+          this.stack.push(ec);
           this.conts.push(RunOnK);
           this.schedule(this, ec);
           return;
@@ -623,7 +620,6 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       this.currentEC.reportFailure(e as Error);
     }
 
-    this.cxts = [];
     this.stack = [];
     this.conts = [];
     this.callbacks = [];
@@ -687,7 +683,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             case 0:
               if (depth <= MaxStackSize) {
                 try {
-                  const f = this.stack.pop()!;
+                  const f = this.stack.pop()! as (u: unknown) => unknown;
                   r = f(r);
                   depth++;
                   continue;
@@ -699,7 +695,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 }
               } else {
                 try {
-                  const f = this.stack.pop()!;
+                  const f = this.stack.pop()! as (u: unknown) => unknown;
                   return IO.pure(f(r));
                 } catch (e) {
                   return IO.throwError(e as Error);
@@ -840,7 +836,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   }
 
   private executeOnSuccessK(r: unknown): IO<unknown> {
-    const prevEC = this.cxts.pop()!;
+    const prevEC = this.stack.pop()! as ExecutionContext;
     this.currentEC = prevEC;
     this.resumeIO = IO.pure(r);
     this.schedule(this, prevEC);
@@ -848,7 +844,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   }
 
   private executeOnFailureK(e: Error): IO<unknown> {
-    const prevEC = this.cxts.pop()!;
+    const prevEC = this.stack.pop()! as ExecutionContext;
     this.currentEC = prevEC;
     this.resumeIO = IO.throwError(e);
     this.schedule(this, prevEC);
