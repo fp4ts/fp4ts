@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import assert from 'assert';
 import { flow, id } from '@fp4ts/core';
 import { Either, Left, Right, Some } from '@fp4ts/cats';
 import { ExecutionContext, Fiber, Poll } from '@fp4ts/effect-kernel';
@@ -20,15 +19,24 @@ import {
 } from './io';
 
 import {
+  AsyncContinueCanceledR,
+  AsyncContinueCanceledWithFinalizerR,
+  AsyncContinueFailedR,
+  AsyncContinueSuccessfulR,
   AttemptK,
+  AutoSuspendR,
   CancelationLoopK,
   Continuation,
+  DoneR,
+  ExecR,
   FlatMapK,
   HandleErrorWithK,
   MapK,
   MaxStackSize,
   OnCancelK,
+  ResumeTag,
   RunOnK,
+  SuspendR,
   TerminateK,
   UncancelableK,
   UnmaskK,
@@ -46,12 +54,13 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private masks: number = 0;
   private suspended: boolean = false;
 
-  private stack: Stack = [];
-  private conts: Continuation[] = [TerminateK];
-
+  private stack!: Stack;
+  private conts!: Continuation[];
   private finalizers: IO<unknown>[] = [];
+
   private callbacks: ((oc: IOOutcome<unknown>) => void)[] = [];
 
+  private resumeTag: ResumeTag = ExecR;
   private resumeIO: IO<unknown>;
   private currentEC: ExecutionContext;
 
@@ -88,9 +97,24 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   }
 
   public run(): void {
-    const cur = this.resumeIO;
-    this.resumeIO = null as any;
-    this.runLoop(cur, this.autoSuspendThreshold);
+    switch (this.resumeTag) {
+      case 0:
+        return this.execR();
+      case 1:
+        return this.asyncContinueSuccessfulR();
+      case 2:
+        return this.asyncContinueFailedR();
+      case 3:
+        return this.asyncContinueCanceledR();
+      case 4:
+        return this.asyncContinueCanceledWithFinalizerR();
+      case 5:
+        return this.suspendR();
+      case 6:
+        return this.autoSuspendR();
+      case 7:
+        return undefined;
+    }
   }
 
   public onComplete<B>(this: IOFiber<B>, cb: (oc: IOOutcome<A>) => void): void {
@@ -104,10 +128,11 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
       if ((_cur as any) === IOEndFiber) {
         return;
       } else if (this.shouldFinalize()) {
-        _cur = this.prepareForCancelation();
+        _cur = this.prepareForCancelation(undefined);
         continue;
       } else if (nextAutoSuspend-- <= 0) {
         this.resumeIO = _cur;
+        this.resumeTag = AutoSuspendR;
         this.schedule(this, this.currentEC);
         return;
       }
@@ -367,7 +392,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         case 13:
           this.canceled = true;
           if (this.isUnmasked()) {
-            _cur = this.prepareForCancelation();
+            _cur = this.prepareForCancelation(undefined);
           } else {
             _cur = this.succeeded(undefined);
           }
@@ -381,24 +406,29 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
           const cb = (ea: Either<Error, unknown>): void => {
             const loop = () => {
+              // Try to take the ownership of the runloop
               if (this.resume()) {
-                // If we have not been canceled while suspended, or the task is
-                // uncancelable, continue with the execution
+                // Are we still in the same finalization stage?
                 if (state.wasFinalizing === this.finalizing) {
+                  // Were we canceled while suspended?
                   if (!this.shouldFinalize()) {
-                    const next = ea.fold(IO.throwError, IO.pure);
-                    this.resumeIO = next;
-                    return this.schedule(this, this.currentEC);
+                    // We have not been canceled while suspended. Schedule
+                    // fiber to continue execution with the result.
+                    if (ea.isRight) {
+                      this.stack.push(ea.get);
+                      this.resumeTag = AsyncContinueSuccessfulR;
+                    } else {
+                      this.stack.push(ea.getLeft);
+                      this.resumeTag = AsyncContinueFailedR;
+                    }
                   } else {
-                    console.log('ASYNC CANCEL');
-                    // Otherwise, we've been canceled and we should cancel
-                    // ourselves asynchronously
-                    this.resumeIO = this.prepareForCancelation();
-                    return this.schedule(this, this.currentEC);
+                    // We were canceled while suspended
+                    this.resumeTag = AsyncContinueCanceledR;
                   }
-                  // We were canceled while suspended, so just drop the callback
-                  // result
+                  return this.schedule(this, this.currentEC);
                 } else {
+                  // We were canceled while suspended, then our finalizer
+                  // suspended We should not own the runloop
                   this.suspend();
                 }
               } else if (
@@ -406,8 +436,15 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 !this.shouldFinalize() &&
                 this.outcome == null
               ) {
+                // We're not canceled or completed, and we're in the same
+                // finalization stage, wait on suspended for `get` to release
+                // the runloop
                 this.currentEC.executeAsync(loop);
               }
+
+              // We're canceled, or completed, or in the process of finalizing
+              // we were not before. Just drop the callback and let `cancel` or
+              // `get` to pick up the runloop
             };
 
             const wasInPhase = state.phase;
@@ -438,15 +475,22 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           this.conts.push(OnCancelK);
 
           switch (state.phase) {
+            // We're in the initial stage, which means we've arrived here before
+            // the async callback. We capture the current finalization stage and
+            // wait for the callback to resume the execution while we suspend
             case ContStatePhase.Initial:
               state.phase = ContStatePhase.Waiting;
               state.wasFinalizing = this.finalizing;
               this.suspend();
               return;
 
+            // This is an impossible state. We set our state to `Waiting` only
+            // in case we've arrived here in which case we suspend
             case ContStatePhase.Waiting:
               throw new Error('Illegal state');
 
+            // The callback finished before we got here, so we just use the
+            // result and continue the execution without suspending
             case ContStatePhase.Result: {
               const result = state.result!;
               _cur = result.isRight
@@ -481,7 +525,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           continue;
 
         case 18: {
-          const { ioa, iob } = cur;
+          const ioa = cur.ioa;
+          const iob = cur.iob;
 
           const next = IO.async<
             Either<
@@ -531,8 +576,9 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
         case 20: {
           const ec = cur.ec;
+          const currentEC = this.currentEC;
 
-          if (ec === this.currentEC) {
+          if (ec === currentEC) {
             // If we're already on the target execution context,
             // skip the re-scheduling and just continue
             _cur = cur.ioa;
@@ -540,15 +586,17 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
           }
 
           this.resumeIO = cur.ioa;
+          this.resumeTag = AutoSuspendR;
           this.currentEC = ec;
-          this.stack.push(ec);
+          this.stack.push(currentEC);
           this.conts.push(RunOnK);
           this.schedule(this, ec);
           return;
         }
 
         case 21:
-          this.resumeIO = IO.pure(undefined);
+          // this.resumeIO = IO.pure(undefined);
+          this.resumeTag = SuspendR;
           this.schedule(this, this.currentEC);
           return;
 
@@ -573,25 +621,36 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
   private _cancel: IO<void> = IO.uncancelable(() => {
     this.canceled = true;
 
+    // Try to take the ownership of the runloop
     if (this.resume()) {
+      // Are we masked?
       if (this.isUnmasked()) {
+        // We've got ownership of the runloop and we are unmasked. We can run
+        // finalizers'
         return IO.async_(cb => {
-          this.resumeIO = this.prepareForCancelation(cb);
-          this.schedule(this, this.currentEC);
+          this.stack.push(cb);
+          this.resumeTag = AsyncContinueCanceledWithFinalizerR;
+          // this.schedule(this, this.currentEC);
+          this.run(); // Can we make the above work??
         });
       } else {
+        // We took ownership of the runloop, but we are masked. Suspend to let
+        // the current IO to finish and cancel itself
         this.suspend();
         return this.join.void;
       }
     } else {
+      // The runloop is owned by other invocation. Let it run the finalizers
+      // and just await the result
       return this.join.void;
     }
   });
 
   private prepareForCancelation(
-    cb?: (ea: Either<Error, void>) => void,
+    cb: ((ea: Either<Error, void>) => void) | undefined,
   ): IO<unknown> {
     if (this.finalizers.length) {
+      // Ensure we start the finalizing only once
       if (!this.finalizing) {
         this.finalizing = true;
 
@@ -628,7 +687,8 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     this.suspended = false;
     this.trace.invalidate();
     this.currentEC = undefined as any;
-    this.resumeIO = IOEndFiber as any;
+    this.resumeTag = DoneR;
+    this.resumeIO = null as any;
   }
 
   private schedule(f: IOFiber<any>, ec: ExecutionContext): void {
@@ -657,6 +717,53 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
   private pushTracingEvent(e?: TracingEvent): void {
     e && this.trace.push(e);
+  }
+
+  // -- Resumptions
+
+  private execR(): void {
+    if (this.canceled) {
+      this.complete(IOOutcome.canceled());
+    } else {
+      this.conts = [TerminateK];
+      this.stack = [];
+      this.finalizers = [];
+
+      const cur = this.resumeIO;
+      this.resumeIO = null as any;
+      this.runLoop(cur, this.autoSuspendThreshold);
+    }
+  }
+
+  private asyncContinueSuccessfulR() {
+    const a = this.stack.pop()!;
+    this.runLoop(this.succeeded(a), this.autoSuspendThreshold);
+  }
+
+  private asyncContinueFailedR() {
+    const e = this.stack.pop() as Error;
+    this.runLoop(this.failed(e), this.autoSuspendThreshold);
+  }
+
+  private asyncContinueCanceledR() {
+    const fin = this.prepareForCancelation(undefined);
+    this.runLoop(fin, this.autoSuspendThreshold);
+  }
+
+  private asyncContinueCanceledWithFinalizerR() {
+    const cb = this.stack.pop() as (ea: Either<Error, unknown>) => void;
+    const fin = this.prepareForCancelation(cb);
+    this.runLoop(fin, this.autoSuspendThreshold);
+  }
+
+  private suspendR() {
+    this.runLoop(this.succeeded(undefined), this.autoSuspendThreshold);
+  }
+
+  private autoSuspendR() {
+    const cur = this.resumeIO;
+    this.resumeIO = null as any;
+    this.runLoop(cur, this.autoSuspendThreshold);
   }
 
   // -- Continuations
@@ -822,7 +929,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     } else {
       this.complete(IOOutcome.success(IO.pure(r as A)));
     }
-    return IOEndFiber as any;
+    return IOEndFiber;
   }
 
   private terminateFailureK(e: Error): IO<unknown> {
@@ -832,23 +939,33 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
     } else {
       this.complete(IOOutcome.failure(e));
     }
-    return IOEndFiber as any;
+    return IOEndFiber;
   }
 
   private executeOnSuccessK(r: unknown): IO<unknown> {
     const prevEC = this.stack.pop()! as ExecutionContext;
     this.currentEC = prevEC;
-    this.resumeIO = IO.pure(r);
-    this.schedule(this, prevEC);
-    return IOEndFiber as any;
+    if (!this.shouldFinalize()) {
+      this.stack.push(r);
+      this.resumeTag = AsyncContinueSuccessfulR;
+      this.schedule(this, prevEC);
+      return IOEndFiber;
+    } else {
+      return this.prepareForCancelation(undefined);
+    }
   }
 
   private executeOnFailureK(e: Error): IO<unknown> {
     const prevEC = this.stack.pop()! as ExecutionContext;
     this.currentEC = prevEC;
-    this.resumeIO = IO.throwError(e);
-    this.schedule(this, prevEC);
-    return IOEndFiber as any;
+    if (!this.shouldFinalize()) {
+      this.stack.push(e);
+      this.resumeTag = AsyncContinueFailedR;
+      this.schedule(this, prevEC);
+      return IOEndFiber;
+    } else {
+      return this.prepareForCancelation(undefined);
+    }
   }
 
   private cancelationLoopSuccessK(): IO<unknown> {
@@ -865,7 +982,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
 
     this.complete(IOOutcome.canceled());
 
-    return IOEndFiber as any;
+    return IOEndFiber;
   }
 
   private cancelationLoopFailureK(e: Error): IO<unknown> {
