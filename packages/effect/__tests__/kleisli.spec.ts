@@ -16,7 +16,7 @@ import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 
 describe.ticked('Kleisli', ticker => {
   checkAll(
-    'Async<Kleisli<IO, MiniInt, *>>',
+    'Async<Kleisli<IO, boolean, *>>',
     AsyncSuite(Async.asyncForKleisli<IOF, boolean, Error>(IO.Async)).async(
       fc.integer(),
       fc.integer(),

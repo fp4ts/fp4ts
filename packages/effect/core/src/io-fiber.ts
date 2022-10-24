@@ -425,7 +425,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                     // We were canceled while suspended
                     this.resumeTag = AsyncContinueCanceledR;
                   }
-                  return this.schedule(this, this.currentEC);
+                  this.schedule(this, this.currentEC);
                 } else {
                   // We were canceled while suspended, then our finalizer
                   // suspended We should not own the runloop

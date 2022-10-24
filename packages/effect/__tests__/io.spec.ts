@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { id, pipe, throwError, tupled } from '@fp4ts/core';
-import { Either, Left, Right, Some, List, Eq, None, Monad } from '@fp4ts/cats';
+import { Either, Left, Right, Some, List, Eq, None } from '@fp4ts/cats';
 import { Semaphore } from '@fp4ts/effect-kernel';
 import { IO, IOOutcome } from '@fp4ts/effect-core';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';

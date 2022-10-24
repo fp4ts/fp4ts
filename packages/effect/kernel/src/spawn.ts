@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, pipe, tupled, $, constant } from '@fp4ts/core';
+import { Kind, pipe, tupled, $, constant, cached } from '@fp4ts/core';
 import {
   Applicative,
   Parallel,
@@ -295,13 +295,13 @@ export const Spawn = Object.freeze({
       parallel: FunctionK.id(),
     }),
 
-  parallelApplicative: <F, E>(F: Spawn<F, E>): Applicative<F> => {
+  parallelApplicative: cached(<F, E>(F: Spawn<F, E>): Applicative<F> => {
     const self: Applicative<F> = Applicative.of({
       pure: F.pure,
 
-      ap_: (ff, fa) => F.map2_(ff, fa)((f, a) => f(a)),
+      ap_: (ff, fa) => self.map2_(ff, fa)((f, a) => f(a)),
 
-      product_: (fa, fb) => F.map2_(fa, fb)(tupled),
+      product_: (fa, fb) => self.map2_(fa, fb)(tupled),
 
       map2_:
         <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
@@ -395,8 +395,8 @@ export const Spawn = Object.freeze({
             }),
           ),
     });
-    return self;
-  },
+    return { ...F, ...self };
+  }),
 
   forKleisli: <F, E, R>(F: Spawn<F, E>): Spawn<$<KleisliF, [F, R]>, E> => {
     const liftOutcome = <A>(
