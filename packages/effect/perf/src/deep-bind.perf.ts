@@ -27,8 +27,25 @@ function makeTests(size: number) {
         IO.pure(i).flatMap(j =>
           IO.suspend.flatMap(() => (j <= size ? loop(j + 1) : IO.pure(j))),
         );
-
       await loop(0).unsafeRunToPromise();
+    }),
+
+    add('Promise.resolve', async () => {
+      const loop = (i: number): Promise<number> =>
+        Promise.resolve(i).then(j =>
+          j <= size ? loop(j + 1) : Promise.resolve(j),
+        );
+
+      await loop(0);
+    }),
+
+    add('new Promise', async () => {
+      const loop = (i: number): Promise<number> =>
+        new Promise<number>(resolve => resolve(i)).then(j =>
+          j <= size ? loop(j + 1) : Promise.resolve(j),
+        );
+
+      await loop(0);
     }),
   ];
 }

@@ -31,12 +31,25 @@ function makeTests(size: number) {
 
       await loop(0).unsafeRunToPromise();
     }),
+
+    add(`Promise error thrown (${size})`, async () => {
+      const dummy = new Error('Sample error');
+      const loop = (i: number): Promise<number> =>
+        i < size
+          ? Promise.reject(dummy)
+              .then(x => Promise.resolve(x + 1))
+              .then(x => Promise.resolve(x + 1))
+              .catch(() => loop(i + 1))
+          : Promise.resolve(i);
+
+      await loop(0);
+    }),
   ];
 }
 
 suite(
   'Handle Error',
-  ...[1_000, 10_000].flatMap(makeTests),
+  ...[1_000].flatMap(makeTests),
   cycle(),
   configure({ cases: { minSamples: 20, maxTime: 1 } }),
 );
