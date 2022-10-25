@@ -5,6 +5,7 @@
 
 import { TracingEvent } from './tracing-event';
 import { StackFrame } from './stack-frame';
+import { RingBuffer } from './ring-buffer';
 
 type TracingMode = 'off' | 'full';
 const tracingMode: TracingMode =
@@ -24,8 +25,9 @@ export const Tracing = Object.freeze({
     }
   },
 
-  augmentError(e: Error, trace: TracingEvent[]): void {
-    const tracingEvents = [...trace, e]
+  augmentError(e: Error, trace: RingBuffer): void {
+    if (tracingMode !== 'full') return;
+    const tracingEvents = [...trace.toArray, e]
       .flatMap(e => e.stack?.split(/\r?\n/).slice(1) ?? [])
       .map(e => e.replace(/^\s+at /, ''))
       .filter(e => !excluded.some(p => p.test(e)))

@@ -324,7 +324,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             case 1: {
               nextAutoSuspend--;
               const e = ioa.error;
-              Tracing.augmentError(e, this.trace.toArray);
+              Tracing.augmentError(e, this.trace);
               _cur = this.succeeded(Left(e));
               continue;
             }
@@ -337,7 +337,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 _cur = this.succeeded(Right(ioa.thunk()));
                 continue;
               } catch (e) {
-                Tracing.augmentError(e as Error, this.trace.toArray);
+                Tracing.augmentError(e as Error, this.trace);
                 _cur = this.succeeded(Left(e));
                 continue;
               }
@@ -862,7 +862,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
         }
       } else {
         let e = value as Error;
-        Tracing.augmentError(e, this.trace.toArray);
+        Tracing.augmentError(e, this.trace);
 
         while (true) {
           const nextCont = this.conts.pop()!;
@@ -879,7 +879,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                 return f(e);
               } catch (e2) {
                 e = e2 as Error;
-                Tracing.augmentError(e, this.trace.toArray);
+                Tracing.augmentError(e, this.trace);
                 depth++;
                 continue;
               }
