@@ -22,6 +22,7 @@ import { NonEmptyList } from '../non-empty-list';
 import { Cons, List } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
+import { View } from '../view';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -83,6 +84,8 @@ export const isEmpty = <A>(xs: List<A>): boolean => xs === nil;
 export const nonEmpty = <A>(xs: List<A>): boolean => xs !== nil;
 
 export const size = <A>(xs: List<A>): number => foldLeft_(xs, 0, n => n + 1);
+
+export const view = <A>(xs: List<A>): View<A> => View.fromList(xs);
 
 export const toArray = <A>(xs: List<A>): A[] => {
   const results: A[] = [];

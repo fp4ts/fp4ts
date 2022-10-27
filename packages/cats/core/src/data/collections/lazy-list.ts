@@ -35,6 +35,7 @@ import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
+import { View } from './view';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -159,6 +160,10 @@ export class _LazyList<out A> {
         ? None
         : Some(tupled(source.head, new _LazyList(source.tail))),
     ).value;
+  }
+
+  public get view(): View<A> {
+    return View.fromLazyList(this);
   }
 
   public get toArray(): A[] {

@@ -7,6 +7,7 @@ import { flip, Kind, throwError, tupled } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
+import { Eval } from '../../../eval';
 
 import { Ior } from '../../ior';
 import { Option, Some, None } from '../../option';
@@ -15,12 +16,12 @@ import { Iter } from '../iterator';
 import { List } from '../list';
 import { Chain } from '../chain';
 
-import { Vector, Vector0, View } from './algebra';
+import { Vector, Vector0, View as VectorView } from './algebra';
 import { arrIterator, ioob, reverseArrIterator } from './helpers';
 import { VectorBuilder } from './vector-builder';
 import { pure } from './constructors';
 import { vectorFoldable } from './instances';
-import { Eval } from '../../../eval';
+import { View } from '../view';
 
 export const isEmpty = <A>(xs: Vector<A>): boolean => xs === Vector0;
 export const nonEmpty = <A>(xs: Vector<A>): boolean => xs !== Vector0;
@@ -40,8 +41,10 @@ export const popHead = <A>(xs: Vector<A>): Option<[A, Vector<A>]> =>
 export const popLast = <A>(xs: Vector<A>): Option<[A, Vector<A>]> =>
   lastOption(xs).map(l => [l, init(xs)]);
 
+export const view = <A>(xs: Vector<A>): View<A> => View.fromVector(xs);
+
 export function* iterator<A>(v: Vector<A>): Generator<A> {
-  const vv = v as View<A>;
+  const vv = v as VectorView<A>;
   switch (vv.tag) {
     case 0:
       return;
@@ -97,7 +100,7 @@ export function* iterator<A>(v: Vector<A>): Generator<A> {
 }
 
 export function* reverseIterator<A>(v: Vector<A>): Generator<A> {
-  const vv = v as View<A>;
+  const vv = v as VectorView<A>;
   switch (vv.tag) {
     case 0:
       return;

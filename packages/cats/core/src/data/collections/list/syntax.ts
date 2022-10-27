@@ -85,8 +85,10 @@ import {
   takeWhile_,
   dropWhile_,
   filterNot_,
+  view,
 } from './operators';
 import { Eval } from '../../../eval';
+import { View } from '../view';
 
 declare module './algebra' {
   interface List<out A> {
@@ -107,6 +109,7 @@ declare module './algebra' {
     readonly uncons: Option<[A, List<A>]>;
     readonly popLast: Option<[A, List<A>]>;
 
+    readonly view: View<A>;
     readonly toArray: A[];
     readonly toList: List<A>;
     readonly toVector: Vector<A>;
@@ -295,6 +298,11 @@ Object.defineProperty(List.prototype, 'size', {
   },
 });
 
+Object.defineProperty(List.prototype, 'view', {
+  get<A>(this: List<A>): View<A> {
+    return view(this);
+  },
+});
 Object.defineProperty(List.prototype, 'toArray', {
   get<A>(this: List<A>): A[] {
     return toArray(this);

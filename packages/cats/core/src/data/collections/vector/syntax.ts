@@ -59,6 +59,7 @@ import {
   toArray,
   toList,
   traverse_,
+  view,
   zipAllWith_,
   zipAll_,
   zipWithIndex,
@@ -89,6 +90,7 @@ declare module './algebra' {
 
     readonly reverse: Vector<A>;
 
+    readonly view: View<A>;
     readonly toArray: A[];
     readonly toList: List<A>;
 
@@ -238,6 +240,11 @@ Object.defineProperty(Vector.prototype, 'reverse', {
   },
 });
 
+Object.defineProperty(Vector.prototype, 'view', {
+  get<A>(this: Vector<A>) {
+    return view(this);
+  },
+});
 Object.defineProperty(Vector.prototype, 'toArray', {
   get<A>(this: Vector<A>) {
     return toArray(this);

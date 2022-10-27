@@ -31,6 +31,7 @@ import {
   ValidationError,
   Validation,
   LazyList,
+  View,
 } from '@fp4ts/cats-core/lib/data';
 import {
   Reader,
@@ -239,6 +240,16 @@ export const fp4tsHashMap = <K, V>(
         .map(HashMap.fromArray(H)),
     );
 };
+
+export const fp4tsView = <A>(arbA: Arbitrary<A>): Arbitrary<View<A>> =>
+  fc
+    .oneof(
+      fc.array(arbA),
+      fp4tsList(arbA),
+      fp4tsLazyList(arbA),
+      fp4tsVector(arbA),
+    )
+    .map(View.fromIterable);
 
 export const fp4tsWriterT = <F, W, A>(
   arbFLV: Arbitrary<Kind<F, [[A, W]]>>,

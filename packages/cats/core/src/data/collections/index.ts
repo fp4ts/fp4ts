@@ -14,4 +14,6 @@ export * from './set';
 export * from './iterator';
 export * from './non-empty-list';
 
+export * from './view';
+
 export { LazyList, LazyListF } from './lazy-list';
