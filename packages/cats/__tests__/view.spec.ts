@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { tupled } from '@fp4ts/core';
 import { Eval } from '@fp4ts/cats-core';
 import { List, Option, Some, View } from '@fp4ts/cats-core/lib/data';
@@ -22,33 +22,50 @@ describe('Views', () => {
     it(
       'fromList toList identity',
       forAll(A.fp4tsList(fc.integer()), xs =>
-        expect(View.fromList(xs).toList).toEqual(xs),
+        expect(xs.view.toList).toEqual(xs),
       ),
     );
 
     it(
       'fromLazyList toLazyList identity',
       forAll(A.fp4tsLazyList(fc.integer()), xs =>
-        expect(View.fromLazyList(xs).toLazyList.toArray).toEqual(xs.toArray),
+        expect(xs.view.toLazyList.toArray).toEqual(xs.toArray),
       ),
     );
 
     it(
       'fromVector toVector identity',
       forAll(A.fp4tsVector(fc.integer()), xs =>
-        expect(View.fromVector(xs).toVector.toArray).toEqual(xs.toArray),
+        expect(xs.view.toVector.toArray).toEqual(xs.toArray),
+      ),
+    );
+  });
+
+  describe('take', () => {
+    it(
+      'should be List.take',
+      forAll(A.fp4tsView(fc.integer()), fc.integer(), (xs, n) =>
+        expect(xs.take(n).toList).toEqual(xs.toList.take(n)),
+      ),
+    );
+  });
+
+  describe('drop', () => {
+    it(
+      'should be List.drop',
+      forAll(A.fp4tsView(fc.integer()), fc.integer(), (xs, n) =>
+        expect(xs.drop(n).toList).toEqual(xs.toList.drop(n)),
       ),
     );
   });
 
   describe('filter', () => {
     it(
-      'should be Array.filter',
+      'should be List.filter',
       forAll(
         A.fp4tsView(fc.integer()),
         fc.func<[number], boolean>(fc.boolean()),
-        (xs, p) =>
-          expect(xs.filter(p).toArray).toEqual(xs.toArray.filter(x => p(x))),
+        (xs, p) => expect(xs.filter(p).toList).toEqual(xs.toList.filter(p)),
       ),
     );
 
@@ -233,6 +250,295 @@ describe('Views', () => {
       fc.func<[string, number], string>(fc.string()),
       (xs, z, f) =>
         expect(xs.scanLeft(z, f).toList).toEqual(xs.toList.scanLeft(z, f)),
+    ),
+  );
+});
+
+abstract class Action<A, B> {
+  public abstract runOnView(xs: View<A>): View<B>;
+  public abstract runOnList(xs: List<A>): List<B>;
+}
+
+class PrependAction<A> extends Action<A, A> {
+  readonly name = 'Prepend';
+  public constructor(public readonly value: A) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.prepend(this.value);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.prepend(this.value);
+  }
+
+  static readonly Arb = fc.integer().map(x => new PrependAction(x));
+}
+class AppendAction<A> extends Action<A, A> {
+  readonly name = 'Append';
+  public constructor(public readonly value: A) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.append(this.value);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.append(this.value);
+  }
+
+  static readonly Arb = fc.integer().map(x => new AppendAction(x));
+}
+class TakeAction<A> extends Action<A, A> {
+  readonly name = 'Take';
+  public constructor(public readonly n: number) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.take(this.n);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.take(this.n);
+  }
+
+  static readonly Arb = fc.integer().map(x => new TakeAction(x));
+}
+class DropAction<A> extends Action<A, A> {
+  readonly name = 'Drop';
+  public constructor(public readonly n: number) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.drop(this.n);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.drop(this.n);
+  }
+
+  static readonly Arb = fc.integer().map(x => new DropAction(x));
+}
+class FilterAction<A> extends Action<A, A> {
+  readonly name = 'Filter';
+  public constructor(public readonly f: (a: A) => boolean) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.filter(this.f);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.filter(this.f);
+  }
+
+  static readonly Arb = fc.func(fc.boolean()).map(f => new FilterAction(f));
+}
+class FilterNotAction<A> extends Action<A, A> {
+  readonly name = 'FilterNot';
+  public constructor(public readonly f: (a: A) => boolean) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.filterNot(this.f);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.filterNot(this.f);
+  }
+
+  static readonly Arb = fc.func(fc.boolean()).map(f => new FilterNotAction(f));
+}
+class CollectAction<A, B> extends Action<A, B> {
+  readonly name = 'Collect';
+  public constructor(public readonly f: (a: A) => Option<B>) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return xs.collect(this.f);
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return xs.collect(this.f);
+  }
+
+  static readonly Arb = fc
+    .func(A.fp4tsOption(fc.integer()))
+    .map(f => new CollectAction(f));
+}
+class ConcatAction<A> extends Action<A, A> {
+  readonly name = 'Concat';
+  public constructor(public readonly that: View<A>) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<A> {
+    return xs.concat(this.that);
+  }
+  public runOnList(xs: List<A>): List<A> {
+    return xs.concat(this.that.toList);
+  }
+
+  static readonly Arb = A.fp4tsView(fc.integer()).map(
+    xs => new ConcatAction(xs),
+  );
+}
+class MapAction<A, B> extends Action<A, B> {
+  readonly name = 'Map';
+  public constructor(public readonly f: (a: A) => B) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return xs.map(this.f);
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return xs.map(this.f);
+  }
+
+  static readonly Arb = fc.func(fc.integer()).map(f => new MapAction(f));
+}
+class FlatMapAction<A, B> extends Action<A, B> {
+  readonly name = 'FlatMap';
+  public constructor(public readonly f: (a: A) => View<B>) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return xs.flatMap(this.f);
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return xs.flatMap(x => this.f(x).toList);
+  }
+
+  static readonly Arb = fc
+    .func(A.fp4tsView(fc.integer()))
+    .map(f => new FlatMapAction(f));
+}
+class ZipAction<A, B> extends Action<A, [A, B]> {
+  readonly name = 'Zip';
+  public constructor(public readonly that: View<B>) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<[A, B]> {
+    return xs.zip(this.that);
+  }
+  public runOnList(xs: List<A>): List<[A, B]> {
+    return xs.zip(this.that.toList);
+  }
+
+  static readonly Arb = A.fp4tsView(fc.integer()).map(xs => new ZipAction(xs));
+}
+class ZipWithAction<A, B, C> extends Action<A, C> {
+  readonly name = 'ZipWith';
+  public constructor(
+    public readonly that: View<B>,
+    public readonly f: (a: A, b: B) => C,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<C> {
+    return xs.zipWith(this.that, this.f);
+  }
+  public runOnList(xs: List<A>): List<C> {
+    return xs.zipWith(this.that.toList, this.f);
+  }
+
+  static readonly Arb = fc
+    .tuple(A.fp4tsView(fc.integer()), fc.func(fc.integer()))
+    .map(([xs, f]) => new ZipWithAction(xs, f));
+}
+class FoldLeftAction<A, B> extends Action<A, B> {
+  readonly name = 'FoldLeft';
+  public constructor(
+    public readonly z: B,
+    public readonly f: (b: B, a: A) => B,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return View(xs.foldLeft(this.z, this.f));
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return List(xs.foldLeft(this.z, this.f));
+  }
+
+  static readonly Arb = fc
+    .tuple(fc.integer(), fc.func(fc.integer()))
+    .map(([z, f]) => new FoldLeftAction(z, f));
+}
+class FoldRightAction<A, B> extends Action<A, B> {
+  readonly name = 'FoldRight';
+  public constructor(
+    public readonly ez: Eval<B>,
+    public readonly f: (a: A, eb: Eval<B>) => Eval<B>,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return View(xs.foldRight(this.ez, this.f).value);
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return List(xs.foldRight(this.ez, this.f).value);
+  }
+
+  static readonly Arb = fc
+    .tuple(A.fp4tsEval(fc.integer()), fc.func(A.fp4tsEval(fc.integer())))
+    .map(([z, f]) => new FoldRightAction(z, f));
+}
+class ScanLeftAction<A, B> extends Action<A, B> {
+  readonly name = 'ScanLeft';
+  public constructor(
+    public readonly z: B,
+    public readonly f: (b: B, a: A) => B,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<B> {
+    return xs.scanLeft(this.z, this.f);
+  }
+  public runOnList(xs: List<A>): List<B> {
+    return xs.scanLeft(this.z, this.f);
+  }
+
+  static readonly Arb = fc
+    .tuple(fc.integer(), fc.func(fc.integer()))
+    .map(([z, f]) => new ScanLeftAction(z, f));
+}
+
+describe('fusion', () => {
+  const actionArb: Arbitrary<Action<unknown, unknown>> = fc.oneof(
+    PrependAction.Arb,
+    AppendAction.Arb,
+    TakeAction.Arb,
+    DropAction.Arb,
+    FilterAction.Arb,
+    FilterNotAction.Arb,
+    CollectAction.Arb,
+    ConcatAction.Arb,
+    MapAction.Arb,
+    FlatMapAction.Arb,
+    ZipAction.Arb,
+    ZipWithAction.Arb,
+    FoldLeftAction.Arb,
+    FoldRightAction.Arb,
+    ScanLeftAction.Arb,
+  );
+  const actionsArb = fc.array(actionArb, { minLength: 100, maxLength: 10000 });
+
+  it(
+    'should be isomorphic to List operations',
+    forAll(actionsArb, A.fp4tsView(fc.integer()), (as, xs) =>
+      expect(
+        as.reduce<View<unknown>>((xs, a) => a.runOnView(xs), xs).toArray,
+      ).toEqual(
+        as.reduce<List<unknown>>((xs, a) => a.runOnList(xs), xs.toList).toArray,
+      ),
     ),
   );
 });

@@ -7,11 +7,13 @@ import { Kind, PrimitiveType } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
+import { Eval } from '../../../eval';
 
 import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option } from '../../option';
 import { List } from '../list';
+import { View as ViewType } from '../view';
 
 import { Vector } from './algebra';
 import {
@@ -66,7 +68,6 @@ import {
   zipWith_,
   zip_,
 } from './operators';
-import { Eval } from '../../../eval';
 
 declare module './algebra' {
   interface Vector<out A> {
@@ -90,7 +91,7 @@ declare module './algebra' {
 
     readonly reverse: Vector<A>;
 
-    readonly view: View<A>;
+    readonly view: ViewType<A>;
     readonly toArray: A[];
     readonly toList: List<A>;
 

@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { tupled } from '@fp4ts/core';
 import { Eval } from '../../../eval';
 import { Option } from '../../option';
 import { empty, lift } from './constructors';
@@ -86,6 +87,32 @@ export const count_ = <A>(it: Iterator<A>, p: (a: A) => boolean): number => {
     if (p(i.value)) acc++;
   }
   return acc;
+};
+
+export const take_ = <A>(it: Iterator<A>, n: number): Iterator<A> => {
+  if (n <= 0) return empty;
+  let done: boolean | undefined = false;
+  return lift(() => {
+    if (n <= 0 || done) return IR.done;
+    n--;
+    const next = it.next();
+    done = next.done;
+    return next;
+  });
+};
+
+export const drop_ = <A>(it: Iterator<A>, n: number): Iterator<A> => {
+  if (n <= 0) return it;
+  let done: boolean | undefined = false;
+  return lift(() => {
+    while (n-- > 0 && !done) {
+      done = it.next().done;
+    }
+    if (done) return IR.done;
+    const next = it.next();
+    done = next.done;
+    return next;
+  });
 };
 
 export const filter_ = <A>(
@@ -216,6 +243,13 @@ export const zipWith_ =
   <C>(f: (a: A, b: B) => C): Iterator<C> =>
     lift(() => IR.flatMap_(lhs.next(), l => IR.map_(rhs.next(), r => f(l, r))));
 
+export const zipAll_ = <A, B>(
+  lhs: Iterator<A>,
+  rhs: Iterator<B>,
+  defaultL: () => A,
+  defaultR: () => B,
+): Iterator<[A, B]> => zipAllWith_(lhs, rhs, defaultL, defaultR)(tupled);
+
 export const zipAllWith_ =
   <A, B>(
     lhs: Iterator<A>,
@@ -228,12 +262,8 @@ export const zipAllWith_ =
       const l = lhs.next();
       const r = rhs.next();
       if (l.done && r.done) return IR.done;
-      return IR.flatMap_(
-        IR.orElse_(l, () => IR.pure(defaultL())),
-        l =>
-          IR.map_(
-            IR.orElse_(r, () => IR.pure(defaultR())),
-            r => f(l, r),
-          ),
-      );
+
+      const ll = l.done ? defaultL() : l.value;
+      const rr = r.done ? defaultR() : r.value;
+      return IR.pure(f(ll, rr));
     });
