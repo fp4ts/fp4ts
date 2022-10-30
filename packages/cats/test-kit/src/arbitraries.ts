@@ -242,14 +242,12 @@ export const fp4tsHashMap = <K, V>(
 };
 
 export const fp4tsView = <A>(arbA: Arbitrary<A>): Arbitrary<View<A>> =>
-  fc
-    .oneof(
-      fc.array(arbA),
-      fp4tsList(arbA),
-      fp4tsLazyList(arbA),
-      fp4tsVector(arbA),
-    )
-    .map(View.fromIterable);
+  fc.oneof(
+    fc.array(arbA).map(View.fromArray),
+    fp4tsList(arbA).map(View.fromList),
+    fp4tsLazyList(arbA).map(View.fromLazyList),
+    fp4tsVector(arbA).map(View.fromVector),
+  );
 
 export const fp4tsWriterT = <F, W, A>(
   arbFLV: Arbitrary<Kind<F, [[A, W]]>>,

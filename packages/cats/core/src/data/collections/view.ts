@@ -238,23 +238,6 @@ const EmptyView = new (class EmptyView extends _View<never> {
   ): View<C> {
     return this;
   }
-  public override zipAll<B>(
-    this: View<never>,
-    that: View<B>,
-    defaultL: () => never,
-    defaultR: () => B,
-  ): View<[never, B]> {
-    return this;
-  }
-  public override zipAllWith<B, C>(
-    this: View<never>,
-    that: View<B>,
-    defaultL: () => never,
-    defaultR: () => B,
-    f: (a: never, b: B) => C,
-  ): View<C> {
-    return this;
-  }
 })();
 
 class SingletonView<A> extends _View<A> {
@@ -262,7 +245,9 @@ class SingletonView<A> extends _View<A> {
     super();
   }
 
-  public readonly iterator: Iterator<A> = Iter.pure(this.value);
+  public get iterator(): Iterator<A> {
+    return Iter.pure(this.value);
+  }
 }
 
 class IteratorView<A> extends _View<A> {

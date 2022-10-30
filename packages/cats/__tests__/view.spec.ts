@@ -450,6 +450,74 @@ class ZipWithAction<A, B, C> extends Action<A, C> {
     .tuple(A.fp4tsView(fc.integer()), fc.func(fc.integer()))
     .map(([xs, f]) => new ZipWithAction(xs, f));
 }
+class ZipAllAction<A, B> extends Action<A, [A, B]> {
+  readonly name = 'ZipAll';
+  public constructor(
+    public readonly that: View<B>,
+    public readonly defaultL: () => A,
+    public readonly defaultR: () => B,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<[A, B]> {
+    return xs.zipAll(this.that, this.defaultL, this.defaultR);
+  }
+  public runOnList(xs: List<A>): List<[A, B]> {
+    return xs.zipAll(this.that.toList, this.defaultL, this.defaultR);
+  }
+
+  static readonly Arb = fc
+    .tuple(A.fp4tsView(fc.integer()), fc.integer(), fc.integer())
+    .map(
+      ([xs, dl, dr]) =>
+        new ZipAllAction(
+          xs,
+          () => dl,
+          () => dr,
+        ),
+    );
+}
+class ZipAllWithAction<A, B, C> extends Action<A, C> {
+  readonly name = 'ZipAllWith';
+  public constructor(
+    public readonly that: View<B>,
+    public readonly defaultL: () => A,
+    public readonly defaultR: () => B,
+    public readonly f: (a: A, b: B) => C,
+  ) {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<C> {
+    return xs.zipAllWith(this.that, this.defaultL, this.defaultR, this.f);
+  }
+  public runOnList(xs: List<A>): List<C> {
+    return xs.zipAllWith(
+      this.that.toList,
+      this.defaultL,
+      this.defaultR,
+      this.f,
+    );
+  }
+
+  static readonly Arb = fc
+    .tuple(
+      A.fp4tsView(fc.integer()),
+      fc.integer(),
+      fc.integer(),
+      fc.func(fc.integer()),
+    )
+    .map(
+      ([xs, dl, dr, f]) =>
+        new ZipAllWithAction(
+          xs,
+          () => dl,
+          () => dr,
+          f,
+        ),
+    );
+}
 class FoldLeftAction<A, B> extends Action<A, B> {
   readonly name = 'FoldLeft';
   public constructor(
@@ -525,6 +593,8 @@ describe('fusion', () => {
     FlatMapAction.Arb,
     ZipAction.Arb,
     ZipWithAction.Arb,
+    ZipAllAction.Arb,
+    ZipAllWithAction.Arb,
     FoldLeftAction.Arb,
     FoldRightAction.Arb,
     ScanLeftAction.Arb,

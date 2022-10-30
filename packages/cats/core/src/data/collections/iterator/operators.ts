@@ -225,8 +225,7 @@ export const scan_ = <A, B>(
   return lift(() => {
     if (cur === undefined) return IR.pure((cur = z));
     const next = it.next();
-    if (!next.done) return IR.pure((cur = f(cur, next.value)));
-    return IR.done;
+    return !next.done ? IR.pure((cur = f(cur, next.value))) : IR.done;
   });
 };
 
@@ -240,8 +239,23 @@ export const zip_ = <A, B>(
 
 export const zipWith_ =
   <A, B>(lhs: Iterator<A>, rhs: Iterator<B>) =>
-  <C>(f: (a: A, b: B) => C): Iterator<C> =>
-    lift(() => IR.flatMap_(lhs.next(), l => IR.map_(rhs.next(), r => f(l, r))));
+  <C>(f: (a: A, b: B) => C): Iterator<C> => {
+    let done: boolean | undefined;
+    return lift(() => {
+      if (done) return IR.done;
+      const lr = lhs.next();
+      if (lr.done) {
+        done = lr.done;
+        return IR.done;
+      }
+      const rr = rhs.next();
+      if (rr.done) {
+        done = rr.done;
+        return IR.done;
+      }
+      return IR.pure(f(lr.value, rr.value));
+    });
+  };
 
 export const zipAll_ = <A, B>(
   lhs: Iterator<A>,
@@ -257,13 +271,19 @@ export const zipAllWith_ =
     defaultL: () => A,
     defaultR: () => B,
   ) =>
-  <C>(f: (a: A, b: B) => C): Iterator<C> =>
-    lift(() => {
+  <C>(f: (a: A, b: B) => C): Iterator<C> => {
+    let done: boolean | undefined;
+    return lift(() => {
+      if (done) return IR.done;
       const l = lhs.next();
       const r = rhs.next();
-      if (l.done && r.done) return IR.done;
+      if (l.done && r.done) {
+        done = true;
+        return IR.done;
+      }
 
       const ll = l.done ? defaultL() : l.value;
       const rr = r.done ? defaultR() : r.value;
       return IR.pure(f(ll, rr));
     });
+  };
