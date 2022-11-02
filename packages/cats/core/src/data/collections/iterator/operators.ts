@@ -119,11 +119,11 @@ export const filter_ = <A>(
   it: Iterator<A>,
   f: (a: A) => boolean,
 ): Iterator<A> => {
-  let done = false;
+  let done: boolean | undefined;
   return lift(() => {
     while (!done) {
       const next = it.next();
-      done = next.done ?? false;
+      done = next.done;
       if (!next.done && f(next.value)) return next;
     }
     return IR.done;
@@ -134,11 +134,11 @@ export const collect_ = <A, B>(
   it: Iterator<A>,
   f: (a: A) => Option<B>,
 ): Iterator<B> => {
-  let done = false;
+  let done: boolean | undefined;
   return lift(() => {
     while (!done) {
       const next = it.next();
-      done = next.done ?? false;
+      done = next.done;
       let nextVal: Option<B>;
       if (!next.done && (nextVal = f(next.value)).nonEmpty)
         return IR.pure(nextVal.get);
@@ -151,11 +151,11 @@ export const collectWhile_ = <A, B>(
   it: Iterator<A>,
   f: (a: A) => Option<B>,
 ): Iterator<B> => {
-  let done = false;
+  let done: boolean | undefined;
   return lift(() => {
     while (!done) {
       const next = it.next();
-      done = next.done ?? false;
+      done = next.done;
       let nextVal: Option<B>;
       if (!next.done && (nextVal = f(next.value)).nonEmpty)
         return IR.pure(nextVal.get);

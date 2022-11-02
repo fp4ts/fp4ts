@@ -449,28 +449,6 @@ class FlatMapView<E, A> extends _View<A> {
     const g = this.f;
     return Iter.flatMap_(this.self.iterator, x => g(x).iterator);
   }
-
-  public override filter<B extends A>(f: (a: A) => a is B): View<B>;
-  public override filter(f: (a: A) => boolean): View<A>;
-  public override filter(f: (a: A) => boolean): View<A> {
-    const g = this.f;
-    return new FlatMapView(this.self, x => g(x).filter(f));
-  }
-
-  public override collect<B>(f: (a: A) => Option<B>): View<B> {
-    const g = this.f;
-    return new FlatMapView(this.self, x => g(x).collect(f));
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    const g = this.f;
-    return new FlatMapView(this.self, x => g(x).map(f));
-  }
-
-  public override flatMap<B>(f: (a: A) => Iterable<B>): View<B> {
-    const g = this.f;
-    return new FlatMapView(this.self, x => g(x).flatMap(f));
-  }
 }
 
 class ZipView<D, E> extends _View<[D, E]> {
