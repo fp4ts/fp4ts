@@ -40,7 +40,7 @@ export const flatMap: <A, B>(
 export const fold: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
-) => (it: Iterator<A>) => B = (z, f) => it => fold_(it, z, f);
+) => (it: Iterator<A>) => B = (z, f) => it => foldLeft_(it, z, f);
 
 export const scan: <A, B>(
   z: B,
@@ -187,12 +187,15 @@ export const flatMap_ = <A, B>(
   });
 };
 
-export const fold_ = <A, B>(it: Iterator<A>, z: B, f: (b: B, a: A) => B): B => {
-  let result: B = z;
+export const foldLeft_ = <A, B>(
+  it: Iterator<A>,
+  z: B,
+  f: (b: B, a: A) => B,
+): B => {
   for (let i = it.next(); !i.done; i = it.next()) {
-    result = f(result, i.value);
+    z = f(z, i.value);
   }
-  return result;
+  return z;
 };
 
 export const foldRight_ = <A, B>(

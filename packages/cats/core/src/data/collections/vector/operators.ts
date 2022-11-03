@@ -269,7 +269,7 @@ export const forEach_ = <A>(xs: Vector<A>, f: (a: A) => void): void =>
   Iter.forEach_(iterator(xs), f);
 
 export const foldLeft_ = <A, B>(xs: Vector<A>, z: B, f: (b: B, a: A) => B): B =>
-  Iter.fold_(iterator(xs), z, f);
+  Iter.foldLeft_(iterator(xs), z, f);
 
 export const foldLeft1_ = <A>(xs: Vector<A>, f: (b: A, a: A) => A): A =>
   popHead(xs)
@@ -280,17 +280,7 @@ export const foldRight_ = <A, B>(
   xs: Vector<A>,
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>) => Eval<B>,
-): Eval<B> => {
-  const size = xs.size;
-  const go = (idx: number): Eval<B> =>
-    idx >= size
-      ? ez
-      : f(
-          elem_(xs, idx),
-          Eval.defer(() => go(idx + 1)),
-        );
-  return Eval.defer(() => go(0));
-};
+): Eval<B> => Iter.foldRight_(iterator(xs), ez, f);
 
 export const foldRight1_ = <A>(
   xs: Vector<A>,
@@ -314,7 +304,7 @@ export const foldRightStrict_ = <A, B>(
   xs: Vector<A>,
   z: B,
   f: (a: A, b: B) => B,
-): B => Iter.fold_(reverseIterator(xs), z, flip(f));
+): B => Iter.foldLeft_(reverseIterator(xs), z, flip(f));
 
 export const foldRight1Strict_ = <A>(xs: Vector<A>, f: (a: A, b: A) => A): A =>
   popLast(xs)

@@ -149,23 +149,11 @@ abstract class _View<out A> implements Iterable<A> {
   }
 
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {
-    const it = this.iterator;
-    for (let i = it.next(); !i.done; i = it.next()) {
-      z = f(z, i.value);
-    }
-    return z;
+    return Iter.foldLeft_(this.iterator, z, f);
   }
 
   public foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B> {
-    const it = this.iterator;
-    const go = (i: IteratorResult<A>): Eval<B> =>
-      i.done
-        ? ez
-        : f(
-            i.value,
-            Eval.defer(() => go(it.next())),
-          );
-    return Eval.defer(() => go(it.next()));
+    return Iter.foldRight_(this.iterator, ez, f);
   }
 
   public scanLeft<B>(z: B, f: (b: B, a: A) => B): View<B> {
