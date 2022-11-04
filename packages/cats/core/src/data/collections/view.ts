@@ -53,6 +53,7 @@ interface ViewObj {
   fromIterable<A>(it: Iterable<A>): View<A>;
   fromIteratorProvider<A>(it: () => Iterator<A>): View<A>;
 
+  range(from: number, to?: number): View<number>;
   unfoldRight<A, B>(z: B, f: (b: B) => Option<[A, B]>): View<A>;
 }
 
@@ -187,6 +188,8 @@ View.fromIterable = <A>(it: Iterable<A>): View<A> =>
 View.fromIteratorProvider = <A>(it: () => Iterator<A>): View<A> =>
   new IteratorView(it);
 
+View.range = (from, to) =>
+  View.fromIteratorProvider(() => Iter.range(from, to));
 View.unfoldRight = <A, B>(z: B, f: (b: B) => Option<[A, B]>): View<A> =>
   new UnfoldRight(z, f);
 
