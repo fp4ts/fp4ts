@@ -3,8 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose } from '@fp4ts/core';
+import { $type, compose, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
+import { Align } from '../../align';
 import { Eval } from '../../eval';
+import { Foldable } from '../../foldable';
+import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
+import { MonoidK } from '../../monoid-k';
+import { Ior } from '../ior';
 import { None, Option, Some } from '../option';
 import { Iter } from './iterator';
 import { LazyList } from './lazy-list';
@@ -42,7 +49,7 @@ import { Vector } from './vector';
 export type View<A> = _View<A>;
 export const View: ViewObj = function <A>(...xs: A[]): View<A> {
   return View.fromArray(xs);
-};
+} as any;
 
 interface ViewObj {
   <A>(...xs: A[]): View<A>;
@@ -53,8 +60,18 @@ interface ViewObj {
   fromIterable<A>(it: Iterable<A>): View<A>;
   fromIteratorProvider<A>(it: () => Iterator<A>): View<A>;
 
+  readonly empty: View<never>;
+  singleton<A>(a: A): View<A>;
   range(from: number, to?: number): View<number>;
   unfoldRight<A, B>(z: B, f: (b: B) => Option<[A, B]>): View<A>;
+
+  // -- Instances
+
+  readonly Functor: Functor<ViewF>;
+  readonly FunctorFilter: FunctorFilter<ViewF>;
+  readonly Align: Align<ViewF>;
+  readonly Foldable: Foldable<ViewF>;
+  readonly MonoidK: MonoidK<ViewF>;
 }
 
 abstract class _View<out A> implements Iterable<A> {
@@ -149,6 +166,19 @@ abstract class _View<out A> implements Iterable<A> {
     }
   }
 
+  public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {
+    return f => this.foldLeft(M.empty, (b, a) => M.combine_(b, () => f(a)));
+  }
+
+  public foldMapK<F>(
+    F: MonoidK<F>,
+  ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
+    return <B>(f: (a: A) => Kind<F, [B]>) =>
+      this.foldRight(Eval.now(F.emptyK<B>()), (a, eb) =>
+        F.combineKEval_(f(a), eb),
+      ).value;
+  }
+
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {
     return Iter.foldLeft_(this.iterator, z, f);
   }
@@ -188,6 +218,7 @@ View.fromIterable = <A>(it: Iterable<A>): View<A> =>
 View.fromIteratorProvider = <A>(it: () => Iterator<A>): View<A> =>
   new IteratorView(it);
 
+View.singleton = x => new SingletonView(x);
 View.range = (from, to) =>
   View.fromIteratorProvider(() => Iter.range(from, to));
 View.unfoldRight = <A, B>(z: B, f: (b: B) => Option<[A, B]>): View<A> =>
@@ -552,4 +583,100 @@ class ScanLeftView<E, A> extends _View<A> {
   public get iterator(): Iterator<A> {
     return Iter.scan_(this.self.iterator, this.z, this.f);
   }
+}
+
+Object.defineProperty(View, 'empty', {
+  get() {
+    return EmptyView;
+  },
+});
+
+// -- Instances
+
+const viewFunctor: Lazy<Functor<ViewF>> = lazyVal(() =>
+  Functor.of({ map_: (fa, f) => fa.map(f) }),
+);
+
+const viewFunctorFilter: Lazy<FunctorFilter<ViewF>> = lazyVal(() =>
+  FunctorFilter.of({
+    ...viewFunctor(),
+    mapFilter_: (fa, f) => fa.collect(f),
+    filter_: <A>(fa: View<A>, f: (a: A) => boolean) => fa.filter(f),
+    filterNot_: (fa, f) => fa.filterNot(f),
+  }),
+);
+
+const viewAlign: Lazy<Align<ViewF>> = lazyVal(() =>
+  Align.of({
+    functor: viewFunctor(),
+    align_: (fa, fb) =>
+      fa.map(Some).zipAllWith(
+        fb.map(Some),
+        () => None,
+        () => None,
+        (a, b) => Ior.fromOptions(a, b).get,
+      ),
+    zipAll: (fa, fb, a, b) =>
+      fa.zipAll(
+        fb,
+        () => a,
+        () => b,
+      ),
+  }),
+);
+
+const viewFoldable: Lazy<Foldable<ViewF>> = lazyVal(() =>
+  Foldable.of({
+    foldMapK_:
+      <F>(F: MonoidK<F>) =>
+      <A, B>(fa: View<A>, f: (a: A) => Kind<F, [B]>) =>
+        fa.foldMapK(F)(f),
+    foldMap_:
+      <M>(M: Monoid<M>) =>
+      <A>(fa: View<A>, f: (a: A) => M) =>
+        fa.foldMap(M)(f),
+    foldLeft_: (fa, z, f) => fa.foldLeft(z, f),
+    foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
+    iterator: fa => fa.iterator,
+    toList: fa => fa.toList,
+  }),
+);
+
+const viewMonoidK: Lazy<MonoidK<ViewF>> = lazyVal(() =>
+  MonoidK.of({
+    emptyK: () => View.empty,
+    combineK_: (fa, fb) => fa.concat(fb()),
+  }),
+);
+
+Object.defineProperty(View, 'Functor', {
+  get() {
+    return viewFunctor();
+  },
+});
+Object.defineProperty(View, 'FunctorFilter', {
+  get() {
+    return viewFunctorFilter();
+  },
+});
+Object.defineProperty(View, 'Align', {
+  get() {
+    return viewAlign();
+  },
+});
+Object.defineProperty(View, 'Foldable', {
+  get() {
+    return viewFoldable();
+  },
+});
+Object.defineProperty(View, 'MonoidK', {
+  get() {
+    return viewMonoidK();
+  },
+});
+
+// -- HKT
+
+export interface ViewF extends TyK<[unknown]> {
+  [$type]: View<TyVar<this, 0>>;
 }

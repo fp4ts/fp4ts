@@ -7,8 +7,16 @@ import fc, { Arbitrary } from 'fast-check';
 import { tupled } from '@fp4ts/core';
 import { Eval } from '@fp4ts/cats-core';
 import { List, Option, Some, View } from '@fp4ts/cats-core/lib/data';
-import { forAll } from '@fp4ts/cats-test-kit';
+import {
+  AlignSuite,
+  FoldableSuite,
+  FunctorFilterSuite,
+  FunctorSuite,
+  MonoidKSuite,
+} from '@fp4ts/cats-laws';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 
 describe('Views', () => {
   describe('construction', () => {
@@ -252,6 +260,61 @@ describe('Views', () => {
         expect(xs.scanLeft(z, f).toList).toEqual(xs.toList.scanLeft(z, f)),
     ),
   );
+
+  describe('Laws', () => {
+    checkAll(
+      'FunctorFilter<View>',
+      FunctorFilterSuite(View.FunctorFilter).functorFilter(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsView,
+        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
+      ),
+    );
+
+    checkAll(
+      'Align<View>',
+      AlignSuite(View.Align).align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsView,
+        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
+      ),
+    );
+
+    checkAll(
+      'Foldable<View>',
+      FoldableSuite(View.Foldable).foldable(
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsView,
+      ),
+    );
+
+    checkAll(
+      'MonoidK<View>',
+      MonoidKSuite(View.MonoidK).monoidK(
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsView,
+        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
+      ),
+    );
+  });
 });
 
 abstract class Action<A, B> {
