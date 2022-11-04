@@ -1221,6 +1221,150 @@ describe('List', () => {
     });
   });
 
+  describe('distinct', () => {
+    it('should return an empty List on empty', () => {
+      expect(List.empty.distinct()).toEqual(List.empty);
+    });
+
+    it('should return an unchanged list if all elements are different', () => {
+      expect(List(1, 2, 3).distinct()).toEqual(List(1, 2, 3));
+    });
+
+    it('should reduce list of all of the same values into a singleton list', () => {
+      expect(List(1, 1, 1, 1, 1, 1).distinct()).toEqual(List(1));
+    });
+
+    it('should remove two successive elements if they are the same', () => {
+      expect(List(1, 2, 2, 3).distinct()).toEqual(List(1, 2, 3));
+    });
+
+    it('should remove all duplicates from the list', () => {
+      expect(List(1, 2, 2, 1, 2, 3, 2, 3).distinct()).toEqual(List(1, 2, 3));
+    });
+
+    it(
+      'should be distinctBy(id)',
+      forAll(A.fp4tsList(fc.string()), xs =>
+        expect(xs.distinct()).toEqual(xs.distinctBy(id)),
+      ),
+    );
+  });
+
+  describe('distinctBy', () => {
+    it('should return an empty List on empty', () => {
+      expect(List.empty.distinctBy(xs => xs[0])).toEqual(List.empty);
+    });
+
+    it('should return an unchanged list if all elements are different', () => {
+      expect(List([1], [2], [3]).distinctBy(xs => xs[0])).toEqual(
+        List([1], [2], [3]),
+      );
+    });
+
+    it('should reduce list of all of the same values into a singleton list', () => {
+      expect(
+        List([1], [1], [1], [1], [1], [1]).distinctBy(xs => xs[0]),
+      ).toEqual(List([1]));
+    });
+
+    it('should remove two successive elements if they are the same', () => {
+      expect(List([1], [2], [2], [3]).distinctBy(xs => xs[0])).toEqual(
+        List([1], [2], [3]),
+      );
+    });
+
+    it('should remove all duplicates from the list', () => {
+      expect(
+        List([1], [2], [2], [1], [2], [3], [2], [3]).distinctBy(xs => xs[0]),
+      ).toEqual(List([1], [2], [3]));
+    });
+  });
+
+  describe('distinctOrd', () => {
+    it('should return an empty List on empty', () => {
+      expect(List.empty.distinctOrd(Ord.fromUniversalCompare())).toEqual(
+        List.empty,
+      );
+    });
+
+    it('should return an unchanged list if all elements are different', () => {
+      expect(List(1, 2, 3).distinctOrd(Ord.fromUniversalCompare())).toEqual(
+        List(1, 2, 3),
+      );
+    });
+
+    it('should reduce list of all of the same values into a singleton list', () => {
+      expect(
+        List(1, 1, 1, 1, 1, 1).distinctOrd(Ord.fromUniversalCompare()),
+      ).toEqual(List(1));
+    });
+
+    it('should remove two successive elements if they are the same', () => {
+      expect(List(1, 2, 2, 3).distinctOrd(Ord.fromUniversalCompare())).toEqual(
+        List(1, 2, 3),
+      );
+    });
+
+    it('should remove all duplicates from the list', () => {
+      expect(
+        List(1, 2, 2, 1, 2, 3, 2, 3).distinctOrd(Ord.fromUniversalCompare()),
+      ).toEqual(List(1, 2, 3));
+    });
+
+    it(
+      'should be distinctByOrd(id)',
+      forAll(A.fp4tsList(fc.string()), xs =>
+        expect(xs.distinctOrd(Ord.fromUniversalCompare())).toEqual(
+          xs.distinctByOrd(id, Ord.fromUniversalCompare()),
+        ),
+      ),
+    );
+  });
+
+  describe('distinctByOrd', () => {
+    it('should return an empty List on empty', () => {
+      expect(
+        List.empty.distinctByOrd(xs => xs[0], Ord.fromUniversalCompare()),
+      ).toEqual(List.empty);
+    });
+
+    it('should return an unchanged list if all elements are different', () => {
+      expect(
+        List([1], [2], [3]).distinctByOrd(
+          xs => xs[0],
+          Ord.fromUniversalCompare(),
+        ),
+      ).toEqual(List([1], [2], [3]));
+    });
+
+    it('should reduce list of all of the same values into a singleton list', () => {
+      expect(
+        List([1], [1], [1], [1], [1], [1]).distinctByOrd(
+          xs => xs[0],
+          Ord.fromUniversalCompare(),
+        ),
+      ).toEqual(List([1]));
+    });
+
+    it('should remove two successive elements if they are the same', () => {
+      expect(
+        List([1], [2], [2], [3]).distinctByOrd(
+          xs => xs[0],
+          Ord.fromUniversalCompare(),
+        ),
+      ).toEqual(List([1], [2], [3]));
+    });
+
+    it('should remove all duplicates from the list', () => {
+      expect(
+        List([1], [2], [2], [1], [2], [3], [2], [3]).distinctByOrd(
+          xs => xs[0],
+          Ord.fromUniversalCompare(),
+        ),
+      ).toEqual(List([1], [2], [3]));
+    });
+  });
+
   describe('traverse', () => {
     it('should return empty list when empty', () => {
       expect(List().traverse(Identity.Applicative)(id)).toEqual(List.empty);

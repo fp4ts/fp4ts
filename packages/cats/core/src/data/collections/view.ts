@@ -3,8 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, compose, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
-import { Monoid } from '@fp4ts/cats-kernel';
+import {
+  $type,
+  compose,
+  id,
+  Kind,
+  Lazy,
+  lazyVal,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
+import { Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Align } from '../../align';
 import { Eval } from '../../eval';
 import { Foldable } from '../../foldable';
@@ -101,6 +110,20 @@ abstract class _View<out A> implements Iterable<A> {
     return this.concat(new SingletonView(x));
   }
 
+  public all<B extends A>(p: (a: A) => a is B): this is View<B>;
+  public all(p: (a: A) => boolean): boolean;
+  public all(p: (a: A) => boolean): boolean {
+    return this.foldRight(Eval.true, (a, eb) => (p(a) ? eb : Eval.false)).value;
+  }
+
+  public any(p: (a: A) => boolean): boolean {
+    return this.foldRight(Eval.false, (a, eb) => (p(a) ? Eval.true : eb)).value;
+  }
+
+  public count(f: (a: A) => boolean): number {
+    return this.foldLeft(0, (x, a) => (f(a) ? x + 1 : x));
+  }
+
   public take(n: number): View<A> {
     return n <= 0 ? EmptyView : new TakeView(this, n);
   }
@@ -189,6 +212,20 @@ abstract class _View<out A> implements Iterable<A> {
 
   public scanLeft<B>(z: B, f: (b: B, a: A) => B): View<B> {
     return new ScanLeftView(this, z, f);
+  }
+
+  public distinct(): View<A> {
+    return new DistinctBy(this, id);
+  }
+  public distinctBy<B>(f: (a: A) => B): View<A> {
+    return new DistinctBy(this, f);
+  }
+
+  public distinctOrd<A>(this: View<A>, O: Ord<A>): View<A> {
+    return new DistinctByOrd(this, id, O);
+  }
+  public distinctByOrd<B>(f: (a: A) => B, O: Ord<B>): View<A> {
+    return new DistinctByOrd(this, f, O);
   }
 
   public toString(): string {
@@ -585,6 +622,33 @@ class ScanLeftView<E, A> extends _View<A> {
   }
 }
 
+class DistinctBy<A, B> extends _View<A> {
+  public constructor(
+    public readonly self: View<A>,
+    public readonly f: (a: A) => B,
+  ) {
+    super();
+  }
+
+  public get iterator(): Iterator<A> {
+    return Iter.distinctBy_(this.self.iterator, this.f);
+  }
+}
+
+class DistinctByOrd<A, B> extends _View<A> {
+  public constructor(
+    public readonly self: View<A>,
+    public readonly f: (a: A) => B,
+    public readonly O: Ord<B>,
+  ) {
+    super();
+  }
+
+  public get iterator(): Iterator<A> {
+    return Iter.distinctByOrd_(this.self.iterator, this.f, this.O);
+  }
+}
+
 Object.defineProperty(View, 'empty', {
   get() {
     return EmptyView;
@@ -639,6 +703,9 @@ const viewFoldable: Lazy<Foldable<ViewF>> = lazyVal(() =>
     foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
     iterator: fa => fa.iterator,
     toList: fa => fa.toList,
+    all_: (fa, f) => fa.all(f),
+    any_: (fa, f) => fa.any(f),
+    count_: (fa, f) => fa.count(f),
   }),
 );
 

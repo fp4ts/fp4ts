@@ -18,6 +18,7 @@ import { Option, None, Some } from '../../option';
 import { Vector } from '../vector';
 import { Iter } from '../iterator';
 import { NonEmptyList } from '../non-empty-list';
+import { Set as OrdSet } from '../set';
 
 import { Cons, List } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';
@@ -982,6 +983,36 @@ export const scanRight1_ = <A>(xs: List<A>, f: (x: A, y: A) => A): List<A> => {
     xs = (xs as Cons<A>)._tail;
   }
   return rs;
+};
+
+export const distinctBy_ = <A, B>(xs: List<A>, f: (a: A) => B): List<A> => {
+  const set = new Set<B>();
+  return filter_(xs, x => {
+    const y = f(x);
+    if (set.has(y)) {
+      return false;
+    } else {
+      set.add(y);
+      return true;
+    }
+  });
+};
+
+export const distinctByOrd_ = <A, B>(
+  xs: List<A>,
+  f: (a: A) => B,
+  O: Ord<B>,
+): List<A> => {
+  let set: OrdSet<B> = OrdSet.empty;
+  return filter_(xs, x => {
+    const y = f(x);
+    if (set.contains(O, y)) {
+      return false;
+    } else {
+      set = set.insert(O, y);
+      return true;
+    }
+  });
 };
 
 export const traverse_ =

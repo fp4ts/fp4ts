@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { id, Kind } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 import { Show } from '../../../show';
@@ -86,6 +86,8 @@ import {
   dropWhile_,
   filterNot_,
   view,
+  distinctBy_,
+  distinctByOrd_,
 } from './operators';
 import { Eval } from '../../../eval';
 import { View } from '../view';
@@ -213,6 +215,12 @@ declare module './algebra' {
     scanLeft1<B>(this: List<B>, f: (x: B, y: B) => B): List<B>;
     scanRight<B>(z: B, f: (a: A, b: B) => B): List<B>;
     scanRight1<B>(this: List<B>, f: (x: B, y: B) => B): List<B>;
+
+    distinct(): List<A>;
+    distinctBy<B>(f: (a: A) => B): List<A>;
+
+    distinctOrd<A>(this: List<A>, O: Ord<A>): List<A>;
+    distinctByOrd<B>(f: (a: A) => B, O: Ord<B>): List<A>;
 
     traverse<G>(
       G: Applicative<G>,
@@ -625,6 +633,19 @@ List.prototype.scanRight1 = function <A>(
   f: (x: A, y: A) => A,
 ): List<A> {
   return scanRight1_(this, f);
+};
+
+List.prototype.distinct = function () {
+  return distinctBy_(this, id);
+};
+List.prototype.distinctBy = function (f) {
+  return distinctBy_(this, f);
+};
+List.prototype.distinctOrd = function (O) {
+  return distinctByOrd_(this, id, O);
+};
+List.prototype.distinctByOrd = function (f, O) {
+  return distinctByOrd_(this, f, O);
 };
 
 List.prototype.traverse = function <G, A>(

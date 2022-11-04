@@ -3,10 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Ord } from '@fp4ts/cats-kernel';
 import { tupled } from '@fp4ts/core';
 import { Eval } from '../../../eval';
 import { Option } from '../../option';
 import { empty, lift } from './constructors';
+import { Set as OrdSet } from '../set';
 import * as IR from './iterator-result';
 
 export const toArray = <A>(iter: Iterator<A>): A[] => {
@@ -290,3 +292,52 @@ export const zipAllWith_ =
       return IR.pure(f(ll, rr));
     });
   };
+
+export const distinctBy_ = <A, B>(
+  it: Iterator<A>,
+  f: (a: A) => B,
+): Iterator<A> => {
+  let set: Set<B> = new Set();
+  let done: boolean | undefined;
+  return lift(() => {
+    if (done) return IR.done;
+    while (true) {
+      const next = it.next();
+      if (next.done) {
+        // drop set reference to no leak
+        set = null as any;
+        return IR.done;
+      }
+      const b = f(next.value);
+      if (!set.has(b)) {
+        set.add(b);
+        return IR.pure(next.value);
+      }
+    }
+  });
+};
+
+export const distinctByOrd_ = <A, B>(
+  it: Iterator<A>,
+  f: (a: A) => B,
+  O: Ord<B>,
+): Iterator<A> => {
+  let set: OrdSet<B> = OrdSet.empty;
+  let done: boolean | undefined;
+  return lift(() => {
+    if (done) return IR.done;
+    while (true) {
+      const next = it.next();
+      if (next.done) {
+        // drop set reference to no leak
+        set = null as any;
+        return IR.done;
+      }
+      const b = f(next.value);
+      if (!set.contains(O, b)) {
+        set = set.insert(O, b);
+        return IR.pure(next.value);
+      }
+    }
+  });
+};

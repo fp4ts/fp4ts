@@ -16,7 +16,7 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 
 describe('Views', () => {
   describe('construction', () => {
@@ -258,6 +258,38 @@ describe('Views', () => {
       fc.func<[string, number], string>(fc.string()),
       (xs, z, f) =>
         expect(xs.scanLeft(z, f).toList).toEqual(xs.toList.scanLeft(z, f)),
+    ),
+  );
+
+  test(
+    'distinct is List.distinct',
+    forAll(A.fp4tsView(fc.integer()), xs =>
+      expect(xs.distinct().toList).toEqual(xs.toList.distinct()),
+    ),
+  );
+
+  test(
+    'distinctBy is List.distinctBy',
+    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.distinctBy(f).toList).toEqual(xs.toList.distinctBy(f)),
+    ),
+  );
+
+  test(
+    'distinctOrd is List.distinctOrd',
+    forAll(A.fp4tsView(fc.integer()), xs =>
+      expect(xs.distinctOrd(Ord.fromUniversalCompare()).toList).toEqual(
+        xs.toList.distinctOrd(Ord.fromUniversalCompare()),
+      ),
+    ),
+  );
+
+  test(
+    'distinctByOrd is List.distinctByOrd',
+    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.distinctByOrd(f, Ord.fromUniversalCompare()).toList).toEqual(
+        xs.toList.distinctByOrd(f, Ord.fromUniversalCompare()),
+      ),
     ),
   );
 
