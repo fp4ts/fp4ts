@@ -33,7 +33,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
 
     steps:
     - uses: actions/checkout@v3
@@ -48,6 +48,8 @@ jobs:
         NODE_OPTIONS: '--max_old_space_size=16384'
     - name: Generate Coverage
       run: yarn test --coverage --testTimeout 20000
+      env:
+        NODE_OPTIONS: '--max_old_space_size=16384'
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
