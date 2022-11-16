@@ -12,7 +12,7 @@
     "@fp4ts/cats-kernel": "*",
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
-    "fast-check": "^3.1.4"
+    "fast-check": "^3.3.0"
   },
   "devDependencies": {
     "typescript": "4.9.3"

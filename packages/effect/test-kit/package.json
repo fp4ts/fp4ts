@@ -16,9 +16,9 @@
     "@fp4ts/effect-core": "*",
     "@fp4ts/effect-kernel": "*",
     "@fp4ts/effect-std": "*",
-    "@types/jest": "^29.0.3",
-    "fast-check": "^3.1.4",
-    "jest": "^29.0.3"
+    "@types/jest": "^29.2.3",
+    "fast-check": "^3.3.0",
+    "jest": "^29.3.1"
   },
   "devDependencies": {
     "typescript": "4.9.3"
