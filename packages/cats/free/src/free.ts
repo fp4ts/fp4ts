@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, HKT, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, id, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { FunctionK, Monad, StackSafeMonad } from '@fp4ts/cats-core';
-import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Left, Right } from '@fp4ts/cats-core/lib/data';
 
 export type Free<F, A> = _Free<F, A>;
 export const Free: FreeObj = function <F, A>(a: A): Free<F, A> {
@@ -41,30 +41,7 @@ abstract class _Free<in out F, out A> {
   }
 
   public runTailRec(F: Monad<F>): Kind<F, [A]> {
-    return F.tailRecM(this as Free<F, A>)(
-      (_rma: Free<F, A>): Kind<F, [Either<Free<F, A>, A>]> => {
-        const rma = _rma as View<F, A>;
-        switch (rma.tag) {
-          case 0:
-            return F.pure(Right(rma.value));
-          case 1:
-            return F.map_(rma.fa, Right);
-          case 2: {
-            const curr = rma.self as View<F, A>;
-            switch (curr.tag) {
-              case 0:
-                return F.pure(Left(rma.f(curr.value)));
-              case 1:
-                return F.map_(curr.fa, x => Left(rma.f(x)));
-              case 2:
-                return F.pure(
-                  Left(curr.self.flatMap(w => curr.f(w).flatMap(rma.f))),
-                );
-            }
-          }
-        }
-      },
-    );
+    return this.foldMap(F)(id);
   }
 
   private get step(): Free<F, A> {
