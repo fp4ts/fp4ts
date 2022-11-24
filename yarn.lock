@@ -882,7 +882,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/fused-core@workspace:packages/fused/core":
+"@fp4ts/fused-core@*, @fp4ts/fused-core@workspace:packages/fused/core":
   version: 0.0.0-use.local
   resolution: "@fp4ts/fused-core@workspace:packages/fused/core"
   dependencies:
@@ -899,6 +899,18 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
+    typescript: 4.9.3
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/fused-std@workspace:packages/fused/std":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/fused-std@workspace:packages/fused/std"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/fused-core": "*"
+    "@fp4ts/fused-kernel": "*"
     typescript: 4.9.3
   languageName: unknown
   linkType: soft
