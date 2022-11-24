@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /**
- * @module fused/core
+ * @module fused/std
  */
-export * from './reader';
-export * from './state';
+export * from './reader-c';
+export * from './state-c';
