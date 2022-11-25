@@ -8,3 +8,4 @@
  */
 export * from './reader';
 export * from './state';
+export * from './writer';
