@@ -413,7 +413,7 @@ const suspend = <R, W, S1, S2, F, A>(
  * @category Type Constructor
  * @category Data
  */
-interface IxRWSTF
+export interface IxRWSTF
   extends TyK<[unknown, unknown, unknown, unknown, unknown, unknown]> {
   [$type]: IxRWST<
     TyVar<this, 0>,

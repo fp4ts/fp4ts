@@ -17,7 +17,7 @@ export const ReaderC = Object.freeze({
 
   Algebra: <R, Sig, F>(
     F: Algebra<Sig, F>,
-  ): Algebra<{ reader: $<ReaderF, [R]> } & Sig, $<ReaderCF, [R, F]>> =>
+  ): Algebra<{ reader: $<ReaderF, [R]> } | Sig, $<ReaderCF, [R, F]>> =>
     Algebra.withCarrier<$<ReaderF, [R]>, ReaderCF1<R>, 'reader'>(
       new ReaderCarrier('reader'),
     )(F),

@@ -1,0 +1,21 @@
+{
+  "name": "@fp4ts/fused-mtl",
+  "version": "0.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/cats-mtl": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/fused-core": "*",
+    "@fp4ts/fused-kernel": "*"
+  },
+  "devDependencies": {
+    "typescript": "4.9.3"
+  }
+}
