@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { id, Kind, throwError } from '@fp4ts/core';
 import {
   Eval,
   EvalF,
@@ -22,10 +22,10 @@ import { Carrier } from './carrier';
  * Provides interpretation of an effect signature `Sig` within a given carrier
  * monad `F`.
  *
- * Signature type `Sig` is expected to be a intersection of tagged effect type
- * constructors `Record<N1, E2> & Record<N2, E2> & ... & Record<Nn, En>`.
+ * Signature type `Sig` is expected to be a union of tagged effect type
+ * constructors `Record<N1, E2> | Record<N2, E2> | ... | Record<Nn, En>`.
  */
-export interface Algebra<Sig, F> extends Monad<F> {
+export interface Algebra<in Sig, F> extends Monad<F> {
   /**
    * Request an effect of signature `Sig` to be interpreted into a carrier
    * monad `F`.
@@ -38,10 +38,10 @@ export interface Algebra<Sig, F> extends Monad<F> {
    * Interpret an effect of signature `Sig`, running any nested effects/actions
    * using provided `Handler` using initial context in `H`.
    */
-  eff<H, G, A>(
+  eff<H, G, A, k extends keyof Sig>(
     H: Functor<H>,
     hdl: Handler<H, G, F>,
-    eff: Eff<Sig, G, A>,
+    eff: { tag: k; eff: Kind<Sig[k], [G, A]> },
     ctx: Kind<H, [void]>,
   ): Kind<F, [Kind<H, [A]>]>;
 }
@@ -64,10 +64,16 @@ export const Algebra = Object.freeze({
   },
 
   get Id(): Algebra<Record<never, never>, IdentityF> {
-    return Algebra.of({ eff: (H, hdl, eff, hu) => eff, ...Identity.Monad });
+    return Algebra.of({
+      eff: (H, hdl, eff, hu) => throwError(new Error('no eff to pass in')),
+      ...Identity.Monad,
+    });
   },
   get Eval(): Algebra<Record<never, never>, EvalF> {
-    return Algebra.of({ eff: (H, hdl, eff, hu) => eff, ...Eval.Monad });
+    return Algebra.of({
+      eff: (H, hdl, eff, hu) => throwError(new Error('no eff to pass in')),
+      ...Eval.Monad,
+    });
   },
 
   /**
@@ -76,18 +82,18 @@ export const Algebra = Object.freeze({
    */
   withCarrier:
     <E, C, N extends string>(C: Carrier<E, C, N>) =>
-    <Sig, F>(F: Algebra<Sig, F>): Algebra<Record<N, E> & Sig, Kind<C, [F]>> =>
-      Algebra.of<Record<N, E> & Sig, Kind<C, [F]>>({
+    <Sig, F>(F: Algebra<Sig, F>): Algebra<Record<N, E> | Sig, Kind<C, [F]>> =>
+      Algebra.of<Record<N, E> | Sig, Kind<C, [F]>>({
         eff: (<H, G, A>(
           H: Functor<H>,
           hdl: Handler<H, G, Kind<C, [F]>>,
-          eff: Eff<Record<N, E> & Sig, G, A>,
+          eff: Eff<Record<N, E> | Sig, G, A>,
           hu: Kind<H, [void]>,
         ): Kind<Kind<C, [F]>, [Kind<H, [A]>]> =>
           eff.tag === C.tag
             ? C.eff(F, H, hdl, eff as Eff<Record<N, E>, G, A>, hu)
             : C.other(F, H, hdl, eff as Eff<Sig, G, A>, hu)) as any as Algebra<
-          Record<N, E> & Sig,
+          Record<N, E> | Sig,
           Kind<C, [F]>
         >['eff'],
 

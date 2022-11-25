@@ -903,6 +903,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/fused-mtl@workspace:packages/fused/mtl":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/fused-mtl@workspace:packages/fused/mtl"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/cats-mtl": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/fused-core": "*"
+    "@fp4ts/fused-kernel": "*"
+    typescript: 4.9.3
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/fused-std@workspace:packages/fused/std":
   version: 0.0.0-use.local
   resolution: "@fp4ts/fused-std@workspace:packages/fused/std"

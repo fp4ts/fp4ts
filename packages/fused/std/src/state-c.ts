@@ -17,7 +17,7 @@ export const StateC = Object.freeze({
 
   Algebra: <S, Sig, F>(
     F: Algebra<Sig, F>,
-  ): Algebra<{ state: $<StateF, [S]> } & Sig, $<StateCF, [S, F]>> =>
+  ): Algebra<{ state: $<StateF, [S]> } | Sig, $<StateCF, [S, F]>> =>
     Algebra.withCarrier<$<StateF, [S]>, StateCF1<S>, 'state'>(
       new StateCarrier('state'),
     )(F),
