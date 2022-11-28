@@ -83,7 +83,7 @@ describe('Reader Effect', () => {
       $<IxRWSF, [number, never, unknown, unknown]>,
       number
     >(
-      RWSAlgebra<number, never, unknown>(),
+      RWSAlgebra<number, unknown>(),
       (fa, r) => fa.runReader(r),
       fc.integer(),
       fc.integer(),

@@ -20,6 +20,8 @@ import { Writer, WriterF } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { WriterC, WriterCF } from '@fp4ts/fused-std';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { IxRWSF, RWS } from '@fp4ts/cats-mtl';
+import { RWSAlgebra } from '@fp4ts/fused-mtl';
 
 describe('Writer Effect', () => {
   function tests<W, F, CF, A>(
@@ -139,6 +141,26 @@ describe('Writer Effect', () => {
         X => A.fp4tsEval(fc.tuple(X, fc.string())),
         X => Eval.Eq(Eq.tuple(X, Eq.fromUniversalEquals())),
       ),
+    );
+  });
+
+  describe('RWS<unknown, string, unknown, *>', () => {
+    tests<
+      string,
+      IdentityF,
+      $<IxRWSF, [unknown, string, unknown, unknown]>,
+      number
+    >(
+      RWSAlgebra(Monoid.string),
+      Identity.Monad,
+      Monoid.string,
+      fa => fa.runWriter(Monoid.string),
+      fc.integer(),
+      fc.string(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      X => fc.func(fc.tuple(X, fc.anything(), fc.string())).map(RWS),
+      X => X,
     );
   });
 });
