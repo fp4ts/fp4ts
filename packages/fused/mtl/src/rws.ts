@@ -22,15 +22,17 @@ export const RWSAlgebra = <R, W, S>(): Algebra<
     ) => {
       switch (eff.tag) {
         case 'reader': {
-          const re = eff.eff;
-          return re.tag === 'ask'
-            ? RWS.ask()
-            : hdl(H.map_(hu, () => re.self)).local(re.f);
+          return eff.eff.foldMap<[$<IxRWSF, [R, W, S, S]>, H]>(
+            () => RWS.ask<R, S>().map(r => H.map_(hu, () => r)),
+            (ga, f) => hdl(H.map_(hu, () => ga)).local(f),
+          );
         }
 
         case 'state': {
-          const se = eff.eff;
-          return se.tag === 'get' ? RWS.get() : RWS.set(se.state);
+          return eff.eff.foldMap<[$<IxRWSF, [R, W, S, S]>, H]>(
+            () => RWS.get<S>().map(s => H.map_(hu, () => s)),
+            s => RWS.set(s).map(() => hu),
+          );
         }
 
         default:

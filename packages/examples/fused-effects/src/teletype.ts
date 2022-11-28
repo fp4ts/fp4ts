@@ -26,7 +26,10 @@ export abstract class Teletype<F, A> {
   private readonly _F!: <X>(_: Kind<F, [X]>) => Kind<F, [X]>;
   private readonly _A!: () => A;
 
-  public abstract fold<R>(onRead: () => R, onWrite: (s: string) => R): R;
+  public abstract foldMap<G>(
+    onRead: () => Kind<G, [string]>,
+    onWrite: (s: string) => Kind<G, [void]>,
+  ): Kind<G, [A]>;
 
   static Syntax<F>(F: Algebra<{ teletype: TeletypeF }, F>): TeletypeSyntax<F> {
     return {
@@ -37,7 +40,10 @@ export abstract class Teletype<F, A> {
 }
 
 export class ReadLn<F> extends Teletype<F, string> {
-  public fold<R>(onRead: () => R, onWrite: (s: string) => R): R {
+  public foldMap<G>(
+    onRead: () => Kind<G, [string]>,
+    onWrite: (s: string) => Kind<G, [void]>,
+  ): Kind<G, [string]> {
     return onRead();
   }
 }
@@ -47,7 +53,10 @@ export class PrintLn<F> extends Teletype<F, void> {
     super();
   }
 
-  public fold<R>(onRead: () => R, onWrite: (s: string) => R): R {
+  public foldMap<G>(
+    onRead: () => Kind<G, [string]>,
+    onWrite: (s: string) => Kind<G, [void]>,
+  ): Kind<G, [void]> {
     return onWrite(this.line);
   }
 }
@@ -72,10 +81,11 @@ export const TeletypeIOC = Object.freeze({
         { eff }: { tag: 'teletype'; eff: Teletype<G, A> },
         hu: Kind<H, [void]>,
       ): IO<Kind<H, [A]>> =>
-        eff.fold(
-          () => C.readLine.map(line => H.map_(hu, () => line as any as A)),
-          line => C.printLn(line).map(() => hu as any as Kind<H, [A]>),
+        eff.foldMap<[IOF, H]>(
+          () => C.readLine.map(line => H.map_(hu, () => line)),
+          line => C.printLn(line).map(() => hu),
         ),
+
       ...IO.Monad,
     });
   },

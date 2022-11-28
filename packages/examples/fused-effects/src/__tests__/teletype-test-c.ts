@@ -41,16 +41,16 @@ export const TeletypeTestC = Object.freeze({
         hu: Kind<H, [void]>,
       ): Kind<F, [Kind<H, [A]>]> =>
         eff.tag === 'teletype'
-          ? eff.eff.fold(
+          ? eff.eff.foldMap<[F, H]>(
               () =>
                 pipe(
                   S.state(([line, ...lines]) => [line, lines]),
-                  F.map(line => H.map_(hu, () => line as any as A)),
+                  F.map(line => H.map_(hu, () => line)),
                 ),
               line =>
                 pipe(
                   W.tell([line]),
-                  F.map(() => hu as any as Kind<H, [A]>),
+                  F.map(() => hu),
                 ),
             )
           : F.eff(H, hdl, eff as any, hu)) as Algebra<Sig, F>['eff'],
