@@ -893,6 +893,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/fused-effects@workspace:packages/examples/fused-effects":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/fused-effects@workspace:packages/examples/fused-effects"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/effect": "*"
+    "@fp4ts/fused": "*"
+    "@fp4ts/fused-std": "*"
+    "@fp4ts/http-test-kit-node": "*"
+    typescript: 4.9.3
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/fused-kernel@*, @fp4ts/fused-kernel@workspace:packages/fused/kernel":
   version: 0.0.0-use.local
   resolution: "@fp4ts/fused-kernel@workspace:packages/fused/kernel"
@@ -916,12 +930,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/fused-std@workspace:packages/fused/std":
+"@fp4ts/fused-std@*, @fp4ts/fused-std@workspace:packages/fused/std":
   version: 0.0.0-use.local
   resolution: "@fp4ts/fused-std@workspace:packages/fused/std"
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
+    "@fp4ts/fused-core": "*"
+    "@fp4ts/fused-kernel": "*"
+    typescript: 4.9.3
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/fused@*, @fp4ts/fused@workspace:packages/fused":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/fused@workspace:packages/fused"
+  dependencies:
     "@fp4ts/fused-core": "*"
     "@fp4ts/fused-kernel": "*"
     typescript: 4.9.3

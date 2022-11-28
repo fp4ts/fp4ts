@@ -1,0 +1,24 @@
+{
+  "name": "@fp4ts/fused-effects",
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/main.js",
+  "typings": "./dist/main.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf dist && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json",
+    "start": "node ./dist/main.js"
+  },
+  "dependencies": {
+    "@fp4ts/cats": "*",
+    "@fp4ts/core": "*",
+    "@fp4ts/effect": "*",
+    "@fp4ts/fused": "*",
+    "@fp4ts/fused-std": "*"
+  },
+  "devDependencies": {
+    "@fp4ts/http-test-kit-node": "*",
+    "typescript": "4.9.3"
+  }
+}

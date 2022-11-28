@@ -52,10 +52,10 @@ export type AlgebraRequirements<Sig, F> = Pick<Algebra<Sig, F>, 'eff'> &
 export const Algebra = Object.freeze({
   of: <Sig, F>(F: AlgebraRequirements<Sig, F>): Algebra<Sig, F> => {
     const self: Algebra<Sig, F> = {
-      send:
-        <N extends keyof Sig>(tag: N) =>
-        <A>(eff: Kind<Sig[N], [F, A]>) =>
-          F.eff(Identity.Functor, id, { tag, eff }, undefined),
+      send<N extends keyof Sig>(tag: N) {
+        return <A>(eff: Kind<Sig[N], [F, A]>) =>
+          this.eff(Identity.Functor, id, { tag, eff }, undefined);
+      },
 
       ...Monad.of(F),
       ...F,
