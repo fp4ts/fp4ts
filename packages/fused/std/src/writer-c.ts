@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, cached, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Functor, Left, Monad, Monoid, Right, Tuple2 } from '@fp4ts/cats';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
@@ -46,17 +46,13 @@ class WriterCarrier<W, N extends string> extends Carrier<
     { eff }: Eff<Record<N, $<WriterF, [W]>>, G, A>,
     hu: Kind<H, [void]>,
   ): WriterC<W, F, Kind<H, [A]>> {
-    return eff.fold(
-      w => F.pure(tupled(hu as any as Kind<H, [A]>, w)),
-      (ga_: any) => {
-        const ga = ga_ as Kind<G, [A]>;
-        return F.map_(hdl(H.map_(hu, _ => ga)), ([h, w]) =>
-          tupled(
-            H.map_(h, a => [a, w] as any as A),
-            w,
-          ),
-        );
-      },
+    return eff.foldMap<[$<WriterCF, [W, F]>, H]>(
+      w => F.pure([hu, w]),
+      ga =>
+        pipe(
+          hdl(H.map_(hu, () => ga)),
+          F.map(([h, w]) => [H.map_(h, a => [a, w]), w]),
+        ),
       (ga, f) => F.map_(hdl(H.map_(hu, _ => ga)), ([ha, w]) => [ha, f(w)]),
     );
   }

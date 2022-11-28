@@ -45,10 +45,16 @@ class StateCarrier<S, N extends string> extends Carrier<
     { eff }: Eff<Record<N, $<StateF, [S]>>, G, A>,
     hu: Kind<H, [void]>,
   ): StateC<S, F, Kind<H, [A]>> {
-    return s =>
-      eff.tag === 'get'
-        ? F.pure([H.map_(hu, () => s as any as A), s])
-        : F.pure([hu as any as Kind<H, [A]>, eff.state]);
+    return eff.foldMap<[$<StateCF, [S, F]>, H]>(
+      () => s =>
+        F.pure(
+          tupled(
+            H.map_(hu, () => s),
+            s,
+          ),
+        ),
+      s => _ => F.pure(tupled(hu, s)),
+    );
   }
 
   other<H, G, F, Sig, A>(

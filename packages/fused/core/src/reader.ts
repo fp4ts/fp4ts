@@ -11,7 +11,7 @@ import { Algebra } from '@fp4ts/fused-kernel';
  *
  * Adds access to additional, locally modifiable context.
  */
-export type Reader<R, F, A> = Ask<R, F> | Local<R, F, A>;
+export type Reader<R, F, A> = _Reader<R, F, A>;
 export const Reader = Object.freeze({
   Syntax: <R, F>(
     F: Algebra<{ reader: $<ReaderF, [R]> }, F>,
@@ -31,14 +31,26 @@ interface ReaderSyntax<R, F> {
   local_<A>(fa: Kind<F, [A]>, f: (r: R) => R): Kind<F, [A]>;
 }
 
-class _Reader<in R, F, out A> {
+abstract class _Reader<R, F, out A> {
   private readonly _R!: (r: R) => void;
   private readonly _F!: <X>(fx: Kind<F, [X]>) => Kind<F, [X]>;
   private readonly _A!: () => A;
+
+  public abstract foldMap<G>(
+    onAsk: () => Kind<G, [R]>,
+    onLocal: <A>(fa: Kind<F, [A]>, f: (r: R) => R) => Kind<G, [A]>,
+  ): Kind<G, [A]>;
 }
 
 export class Ask<R, F> extends _Reader<R, F, R> {
   readonly tag = 'ask';
+
+  public foldMap<G>(
+    onAsk: () => Kind<G, [R]>,
+    onLocal: <A>(fa: Kind<F, [A]>, f: (r: R) => R) => Kind<G, [A]>,
+  ): Kind<G, [R]> {
+    return onAsk();
+  }
 }
 export class Local<R, F, A> extends _Reader<R, F, A> {
   readonly tag = 'local';
@@ -47,6 +59,13 @@ export class Local<R, F, A> extends _Reader<R, F, A> {
     public readonly f: (r: R) => R,
   ) {
     super();
+  }
+
+  public foldMap<G>(
+    onAsk: () => Kind<G, [R]>,
+    onLocal: <A>(fa: Kind<F, [A]>, f: (r: R) => R) => Kind<G, [A]>,
+  ): Kind<G, [A]> {
+    return onLocal(this.self, this.f);
   }
 }
 

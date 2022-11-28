@@ -46,9 +46,10 @@ class ReaderCarrier<R, N extends string> extends Carrier<
     hu: Kind<H, [void]>,
   ): ReaderC<R, F, Kind<H, [A]>> {
     return r =>
-      eff.tag === 'ask'
-        ? F.pure(H.map_(hu, () => r as any as A))
-        : hdl(H.map_(hu, () => eff.self))(eff.f(r));
+      eff.foldMap<[F, H]>(
+        () => F.pure(H.map_(hu, () => r)),
+        (ga, f) => hdl(H.map_(hu, () => ga))(f(r)),
+      );
   }
 
   other<H, G, F, Sig, A>(

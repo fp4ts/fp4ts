@@ -38,11 +38,11 @@ abstract class _Writer<W, F, A> {
   private readonly _F!: <X>(fx: Kind<F, [X]>) => Kind<F, [X]>;
   private readonly _A!: () => A;
 
-  public abstract fold<R>(
-    onTell: (w: W) => R,
-    onListen: (fa: A extends [infer A, any] ? Kind<F, [A]> : never) => R,
-    onCensor: (fa: Kind<F, [A]>, f: (w: W) => W) => R,
-  ): R;
+  public abstract foldMap<G>(
+    onTell: (w: W) => Kind<G, [void]>,
+    onListen: <A>(fa: Kind<F, [A]>) => Kind<G, [[A, W]]>,
+    onCensor: (fa: Kind<F, [A]>, f: (w: W) => W) => Kind<G, [A]>,
+  ): Kind<G, [A]>;
 }
 
 export class Tell<W, F> extends _Writer<W, F, void> {
@@ -51,11 +51,11 @@ export class Tell<W, F> extends _Writer<W, F, void> {
     super();
   }
 
-  public fold<R>(
-    onTell: (w: W) => R,
-    onListen: (fa: never) => R,
-    onCensor: (fa: Kind<F, [void]>, f: (w: W) => W) => R,
-  ): R {
+  public foldMap<G>(
+    onTell: (w: W) => Kind<G, [void]>,
+    onListen: <A>(fa: Kind<F, [A]>) => Kind<G, [[A, W]]>,
+    onCensor: (fa: Kind<F, [void]>, f: (w: W) => W) => Kind<G, [void]>,
+  ): Kind<G, [void]> {
     return onTell(this.w);
   }
 }
@@ -66,11 +66,11 @@ export class Listen<W, F, A> extends _Writer<W, F, [A, W]> {
     super();
   }
 
-  public fold<R>(
-    onTell: (w: W) => R,
-    onListen: (fa: Kind<F, [A]>) => R,
-    onCensor: (fa: Kind<F, [[A, W]]>, f: (w: W) => W) => R,
-  ): R {
+  public foldMap<G>(
+    onTell: (w: W) => Kind<G, [void]>,
+    onListen: <A>(fa: Kind<F, [A]>) => Kind<G, [[A, W]]>,
+    onCensor: (fa: Kind<F, [[A, W]]>, f: (w: W) => W) => Kind<G, [[A, W]]>,
+  ): Kind<G, [[A, W]]> {
     return onListen(this.self);
   }
 }
@@ -84,11 +84,11 @@ export class Censor<W, F, A> extends _Writer<W, F, A> {
     super();
   }
 
-  public fold<R>(
-    onTell: (w: W) => R,
-    onListen: (fa: A extends [infer A, any] ? Kind<F, [A]> : never) => R,
-    onCensor: (fa: Kind<F, [A]>, f: (w: W) => W) => R,
-  ): R {
+  public foldMap<G>(
+    onTell: (w: W) => Kind<G, [void]>,
+    onListen: <A>(fa: Kind<F, [A]>) => Kind<G, [[A, W]]>,
+    onCensor: (fa: Kind<F, [A]>, f: (w: W) => W) => Kind<G, [A]>,
+  ): Kind<G, [A]> {
     return onCensor(this.self, this.f);
   }
 }

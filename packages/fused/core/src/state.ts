@@ -11,7 +11,7 @@ import { Algebra } from '@fp4ts/fused-kernel';
  *
  * Adds mutable state value to the given computation.
  */
-export type State<S, F, A> = Get<S, F> | Set<S, F>;
+export type State<S, F, A> = _State<S, F, A>;
 export const State = Object.freeze({
   Syntax: <S, F>(
     F: Algebra<{ state: $<StateF, [S]> }, F>,
@@ -39,19 +39,35 @@ interface StateSyntax<S, F> {
   modify(f: (s: S) => S): Kind<F, [void]>;
 }
 
-class _State<S, F, out A> {
+abstract class _State<S, F, out A> {
   private readonly _S!: (s: S) => S;
   private readonly _F!: <X>(fx: Kind<F, [X]>) => Kind<F, [X]>;
   private readonly _A!: () => A;
+
+  public abstract foldMap<G>(
+    onGet: () => Kind<G, [S]>,
+    onSet: (s: S) => Kind<G, [void]>,
+  ): Kind<G, [A]>;
 }
 
 export class Get<S, F> extends _State<S, F, S> {
-  readonly tag = 'get';
+  public foldMap<G>(
+    onGet: () => Kind<G, [S]>,
+    onSet: (s: S) => Kind<G, [void]>,
+  ): Kind<G, [S]> {
+    return onGet();
+  }
 }
 export class Set<S, F> extends _State<S, F, void> {
-  readonly tag = 'set';
   public constructor(public readonly state: S) {
     super();
+  }
+
+  public foldMap<G>(
+    onGet: () => Kind<G, [S]>,
+    onSet: (s: S) => Kind<G, [void]>,
+  ): Kind<G, [void]> {
+    return onSet(this.state);
   }
 }
 
