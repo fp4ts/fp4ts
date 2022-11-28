@@ -92,7 +92,7 @@ describe('State Effect', () => {
       $<IxRWSF, [unknown, never, number, number]>,
       number
     >(
-      RWSAlgebra<unknown, never, number>(),
+      RWSAlgebra<unknown, number>(),
       (fa, s) => fa.runState(s),
       fc.integer(),
       fc.integer(),
