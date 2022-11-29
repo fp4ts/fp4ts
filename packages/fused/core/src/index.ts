@@ -6,6 +6,7 @@
 /**
  * @module fused/core
  */
+export * from './error';
 export * from './reader';
 export * from './state';
 export * from './writer';

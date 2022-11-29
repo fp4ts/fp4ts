@@ -63,13 +63,13 @@ export const Algebra = Object.freeze({
     return self;
   },
 
-  get Id(): Algebra<Record<never, never>, IdentityF> {
+  get Id(): Algebra<never, IdentityF> {
     return Algebra.of({
       eff: (H, hdl, eff, hu) => throwError(new Error('no eff to pass in')),
       ...Identity.Monad,
     });
   },
-  get Eval(): Algebra<Record<never, never>, EvalF> {
+  get Eval(): Algebra<never, EvalF> {
     return Algebra.of({
       eff: (H, hdl, eff, hu) => throwError(new Error('no eff to pass in')),
       ...Eval.Monad,
