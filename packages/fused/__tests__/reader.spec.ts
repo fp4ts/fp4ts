@@ -5,13 +5,10 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, Kind } from '@fp4ts/core';
-import { Eq, Eval, EvalF, Identity, IdentityF } from '@fp4ts/cats';
+import { Eq, Eval, EvalF, IdentityF } from '@fp4ts/cats';
 import { IxRWSF, Reader as MtlReader } from '@fp4ts/cats-mtl';
-import { MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, forAll, IsEq, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 
 import { ReaderC, ReaderCF } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
@@ -52,8 +49,8 @@ describe('Reader Effect', () => {
     );
   }
 
-  describe('ReaderC<number, Identity, *>', () => {
-    tests<number, IdentityF, $<ReaderCF, [number, IdentityF]>, number>(
+  describe('ReaderC<MiniInt, Identity, *>', () => {
+    tests<number, IdentityF, $<ReaderCF, [IdentityF, number]>, number>(
       ReaderC.Algebra(Algebra.Id),
       (fa, s) => fa(s),
       fc.integer(),
@@ -65,7 +62,7 @@ describe('Reader Effect', () => {
   });
 
   describe('ReaderC<number, Eval, *>', () => {
-    tests<number, EvalF, $<ReaderCF, [number, EvalF]>, number>(
+    tests<number, EvalF, $<ReaderCF, [EvalF, number]>, number>(
       ReaderC.Algebra(Algebra.Eval),
       (fa, s) => fa(s),
       fc.integer(),
@@ -90,40 +87,6 @@ describe('Reader Effect', () => {
       Eq.fromUniversalEquals(),
       X => fc.func(X).map(MtlReader.lift),
       X => X,
-    );
-  });
-
-  describe('ReaderC', () => {
-    checkAll(
-      'Monad<ReaderC<MiniInt, Identity, *>>',
-      MonadSuite(ReaderC.Monad<MiniInt, IdentityF>(Identity.Monad)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => fc.func(X),
-        X => eq.fn1Eq(ec.miniInt(), X),
-      ),
-    );
-
-    checkAll(
-      'Monad<ReaderC<MiniInt, Eval, *>>',
-      MonadSuite(ReaderC.Monad<MiniInt, EvalF>(Eval.Monad)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => fc.func(A.fp4tsEval(X)),
-        X => eq.fn1Eq(ec.miniInt(), Eval.Eq(X)),
-      ),
     );
   });
 });

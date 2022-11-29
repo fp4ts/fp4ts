@@ -211,7 +211,7 @@ const suspend = <S1, S2, F, A>(
  * @category Type Constructor
  * @category Data
  */
-interface IxStateTF extends TyK<[unknown, unknown, unknown, unknown]> {
+export interface IxStateTF extends TyK<[unknown, unknown, unknown, unknown]> {
   [$type]: IxStateT<
     TyVar<this, 0>,
     TyVar<this, 1>,

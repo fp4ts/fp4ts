@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, compose, Kind, TyK, TyVar } from '@fp4ts/core';
+import { MonadState } from '@fp4ts/cats-mtl';
 import { Algebra } from '@fp4ts/fused-kernel';
 
 /**
@@ -30,6 +31,15 @@ export const State = Object.freeze({
     };
     return self;
   },
+
+  MonadState: <S, F>(
+    F: Algebra<{ state: $<StateF, [S]> }, F>,
+  ): MonadState<F, S> =>
+    MonadState.of({
+      ...F,
+      set: s => F.send('state')(new Set(s)),
+      get: F.send('state')(new Get()),
+    }),
 });
 
 interface StateSyntax<S, F> {

@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { MonadReader } from '@fp4ts/cats-mtl';
 import { Algebra } from '@fp4ts/fused-kernel';
 
 /**
@@ -23,6 +24,15 @@ export const Reader = Object.freeze({
     };
     return self;
   },
+
+  MonadReader: <R, F>(
+    F: Algebra<{ reader: $<ReaderF, [R]> }, F>,
+  ): MonadReader<F, R> =>
+    MonadReader.of({
+      ...F,
+      ask: () => F.send('reader')(new Ask()),
+      local_: (fa, f) => F.send('reader')(new Local(fa, f)),
+    }),
 });
 
 interface ReaderSyntax<R, F> {

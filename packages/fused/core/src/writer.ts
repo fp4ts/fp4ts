@@ -4,6 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats';
+import { MonadWriter } from '@fp4ts/cats-mtl';
 import { Algebra } from '@fp4ts/fused-kernel';
 
 /**
@@ -24,6 +26,18 @@ export const Writer = Object.freeze({
     };
     return self;
   },
+
+  MonadWriter: <W, F>(
+    F: Algebra<{ writer: $<WriterF, [W]> }, F>,
+    W: Monoid<W>,
+  ): MonadWriter<F, W> =>
+    MonadWriter.of({
+      ...F,
+      monoid: W,
+      tell: w => F.send('writer')(new Tell(w)),
+      listen: fa => F.send('writer')(new Listen(fa)),
+      censor_: (fa, f) => F.send('writer')(new Censor(fa, f)),
+    }),
 });
 
 interface WriterSyntax<W, F> {

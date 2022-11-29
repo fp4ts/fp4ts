@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "@fp4ts/fused-core": "*",
-    "@fp4ts/fused-kernel": "*"
+    "@fp4ts/fused-kernel": "*",
+    "@fp4ts/fused-std": "*"
   },
   "devDependencies": {
+    "@fp4ts/cats-laws": "*",
+    "@fp4ts/cats-mtl-laws": "*",
+    "@fp4ts/cats-test-kit": "*",
     "typescript": "4.9.3"
   }
 }

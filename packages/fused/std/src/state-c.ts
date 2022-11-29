@@ -4,20 +4,22 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
-import { Functor, Left, Monad, Right, Tuple2 } from '@fp4ts/cats';
+import { Functor, Monad, Tuple2 } from '@fp4ts/cats';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { StateF } from '@fp4ts/fused-core';
+import { IxStateTF, StateT } from '@fp4ts/cats-mtl';
 
 /**
  * A carrier for the `State` effect.
  */
-export type StateC<S, F, A> = (s: S) => Kind<F, [[A, S]]>;
+export type StateC<S, F, A> = StateT<S, F, A>;
 export const StateC = Object.freeze({
-  Monad: <S, F>(F: Monad<F>): Monad<$<StateCF, [S, F]>> => stateCMonad(F),
+  Monad: <S, F>(F: Monad<F>): Monad<$<StateCF, [S, S, F]>> =>
+    StateT.Monad<S, F>(F),
 
   Algebra: <S, Sig, F>(
     F: Algebra<Sig, F>,
-  ): Algebra<{ state: $<StateF, [S]> } | Sig, $<StateCF, [S, F]>> =>
+  ): Algebra<{ state: $<StateF, [S]> } | Sig, $<StateCF, [S, S, F]>> =>
     Algebra.withCarrier<$<StateF, [S]>, StateCF1<S>, 'state'>(
       new StateCarrier('state'),
     )(F),
@@ -34,18 +36,18 @@ class StateCarrier<S, N extends string> extends Carrier<
     super();
   }
 
-  monad<F>(F: Monad<F>): Monad<$<StateCF, [S, F]>> {
+  monad<F>(F: Monad<F>): Monad<$<StateCF, [S, S, F]>> {
     return StateC.Monad(F);
   }
 
   eff<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<StateCF, [S, F]>>,
+    hdl: Handler<H, G, $<StateCF, [S, S, F]>>,
     { eff }: Eff<Record<N, $<StateF, [S]>>, G, A>,
     hu: Kind<H, [void]>,
   ): StateC<S, F, Kind<H, [A]>> {
-    return eff.foldMap<[$<StateCF, [S, F]>, H]>(
+    return eff.foldMap<[$<StateCF, [S, S, F]>, H]>(
       () => s =>
         F.pure(
           tupled(
@@ -60,7 +62,7 @@ class StateCarrier<S, N extends string> extends Carrier<
   other<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<StateCF, [S, F]>>,
+    hdl: Handler<H, G, $<StateCF, [S, S, F]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
   ): StateC<S, F, Kind<H, [A]>> {
@@ -73,27 +75,9 @@ class StateCarrier<S, N extends string> extends Carrier<
   );
 }
 
-const stateCMonad = <S, F>(F: Monad<F>): Monad<$<StateCF, [S, F]>> =>
-  Monad.of<$<StateCF, [S, F]>>({
-    pure: a => s => F.pure([a, s]),
-    map_: (fa, f) => s => F.map_(fa(s), ([a, s]) => [f(a), s]),
-    flatMap_: (fa, f) => s => F.flatMap_(fa(s), ([a, s]) => f(a)(s)),
-    tailRecM_: (x, f) => s1 =>
-      F.tailRecM_(tupled(x, s1), ([x, s]) =>
-        F.map_(f(x)(s), ([ea, s]) =>
-          ea.fold(
-            a => Left(tupled(a, s)),
-            b => Right(tupled(b, s)),
-          ),
-        ),
-      ),
-  });
-
 // -- HKT
 
-export interface StateCF extends TyK<[unknown, unknown, unknown]> {
-  [$type]: StateC<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
-}
+export type StateCF = IxStateTF;
 export interface StateCF1<S> extends TyK<[unknown]> {
-  [$type]: $<StateCF, [S, TyVar<this, 0>]>;
+  [$type]: $<StateCF, [S, S, TyVar<this, 0>]>;
 }

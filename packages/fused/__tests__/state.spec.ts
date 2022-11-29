@@ -60,7 +60,7 @@ describe('State Effect', () => {
   }
 
   describe('StateC<number, Identity, *>', () => {
-    tests<number, IdentityF, $<StateCF, [number, IdentityF]>, number>(
+    tests<number, IdentityF, $<StateCF, [number, number, IdentityF]>, number>(
       StateC.Algebra(Algebra.Id),
       (fa, s) => fa(s),
       fc.integer(),
@@ -73,7 +73,7 @@ describe('State Effect', () => {
   });
 
   describe('StateC<number, Eval, *>', () => {
-    tests<number, EvalF, $<StateCF, [number, EvalF]>, number>(
+    tests<number, EvalF, $<StateCF, [number, number, EvalF]>, number>(
       StateC.Algebra(Algebra.Eval),
       (fa, s) => fa(s),
       fc.integer(),
@@ -100,40 +100,6 @@ describe('State Effect', () => {
       Eq.fromUniversalEquals(),
       X => fc.func(fc.tuple(X, fc.integer())).map(RWS.state),
       X => X,
-    );
-  });
-
-  describe('StateC', () => {
-    checkAll(
-      'Monad<StateC<MiniInt, Identity, *>>',
-      MonadSuite(StateC.Monad<MiniInt, IdentityF>(Identity.Monad)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => fc.func(fc.tuple(X, A.fp4tsMiniInt())),
-        X => eq.fn1Eq(ec.miniInt(), Eq.tuple(X, MiniInt.Eq)),
-      ),
-    );
-
-    checkAll(
-      'Monad<StateC<MiniInt, Eval, *>>',
-      MonadSuite(StateC.Monad<MiniInt, EvalF>(Eval.Monad)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt()))),
-        X => eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, MiniInt.Eq))),
-      ),
     );
   });
 });

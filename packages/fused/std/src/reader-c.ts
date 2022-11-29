@@ -4,20 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
-import { Functor, Monad } from '@fp4ts/cats';
+import { Functor, Kleisli, KleisliF, Monad } from '@fp4ts/cats';
 import { ReaderF } from '@fp4ts/fused-core';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 
 /**
  * A carrier for the `Reader` effect.
  */
-export type ReaderC<R, F, A> = (r: R) => Kind<F, [A]>;
+export type ReaderC<F, R, A> = Kleisli<F, R, A>;
 export const ReaderC = Object.freeze({
-  Monad: <R, F>(F: Monad<F>): Monad<$<ReaderCF, [R, F]>> => readerCMonad(F),
+  Monad: <F, R>(F: Monad<F>): Monad<$<ReaderCF, [F, R]>> => Kleisli.Monad(F),
 
   Algebra: <R, Sig, F>(
     F: Algebra<Sig, F>,
-  ): Algebra<{ reader: $<ReaderF, [R]> } | Sig, $<ReaderCF, [R, F]>> =>
+  ): Algebra<{ reader: $<ReaderF, [R]> } | Sig, $<ReaderCF, [F, R]>> =>
     Algebra.withCarrier<$<ReaderF, [R]>, ReaderCF1<R>, 'reader'>(
       new ReaderCarrier('reader'),
     )(F),
@@ -34,17 +34,17 @@ class ReaderCarrier<R, N extends string> extends Carrier<
     super();
   }
 
-  monad<F>(F: Monad<F>): Monad<$<ReaderCF, [R, F]>> {
-    return ReaderC.Monad<R, F>(F);
+  monad<F>(F: Monad<F>): Monad<$<ReaderCF, [F, R]>> {
+    return ReaderC.Monad<F, R>(F);
   }
 
   eff<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<ReaderCF, [R, F]>>,
+    hdl: Handler<H, G, $<ReaderCF, [F, R]>>,
     { eff }: Eff<Record<N, $<ReaderF, [R]>>, G, A>,
     hu: Kind<H, [void]>,
-  ): ReaderC<R, F, Kind<H, [A]>> {
+  ): ReaderC<F, R, Kind<H, [A]>> {
     return r =>
       eff.foldMap<[F, H]>(
         () => F.pure(H.map_(hu, () => r)),
@@ -55,27 +55,17 @@ class ReaderCarrier<R, N extends string> extends Carrier<
   other<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<ReaderCF, [R, F]>>,
+    hdl: Handler<H, G, $<ReaderCF, [F, R]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
-  ): ReaderC<R, F, Kind<H, [A]>> {
+  ): ReaderC<F, R, Kind<H, [A]>> {
     return r => F.eff(H, hx => hdl(hx)(r), eff, hu);
   }
 }
 
-const readerCMonad = <R, F>(F: Monad<F>): Monad<$<ReaderCF, [R, F]>> =>
-  Monad.of<$<ReaderCF, [R, F]>>({
-    pure: a => _ => F.pure(a),
-    map_: (fa, f) => r => F.map_(fa(r), f),
-    flatMap_: (fa, f) => r => F.flatMap_(fa(r), x => f(x)(r)),
-    tailRecM_: (a, f) => r => F.tailRecM_(a, x => f(x)(r)),
-  });
-
 // -- HKT
 
-export interface ReaderCF extends TyK<[unknown, unknown, unknown]> {
-  [$type]: ReaderC<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
-}
+export type ReaderCF = KleisliF;
 export interface ReaderCF1<R> extends TyK<[unknown]> {
-  [$type]: $<ReaderCF, [R, TyVar<this, 0>]>;
+  [$type]: $<ReaderCF, [TyVar<this, 0>, R]>;
 }

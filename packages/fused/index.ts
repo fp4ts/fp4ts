@@ -9,3 +9,4 @@
 
 export * from '@fp4ts/fused-core';
 export * from '@fp4ts/fused-kernel';
+export * from '@fp4ts/fused-std';

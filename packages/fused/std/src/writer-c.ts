@@ -4,21 +4,22 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, cached, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
-import { Functor, Left, Monad, Monoid, Right, Tuple2 } from '@fp4ts/cats';
+import { Functor, Monad, Monoid, Tuple2 } from '@fp4ts/cats';
+import { WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
 
 /**
  * A carrier for the `Writer` effect.
  */
-export type WriterC<W, F, A> = Kind<F, [[A, W]]>;
+export type WriterC<F, W, A> = WriterT<F, W, A>;
 export const WriterC = Object.freeze({
-  Monad: <W, F>(F: Monad<F>, W: Monoid<W>) => writerCMonad(F, W),
+  Monad: <F, W>(F: Monad<F>, W: Monoid<W>) => WriterT.Monad(F, W),
 
   Algebra: <W, Sig, F>(
     F: Algebra<Sig, F>,
     W: Monoid<W>,
-  ): Algebra<{ writer: $<WriterF, [W]> } | Sig, $<WriterCF, [W, F]>> =>
+  ): Algebra<{ writer: $<WriterF, [W]> } | Sig, $<WriterCF, [F, W]>> =>
     Algebra.withCarrier<$<WriterF, [W]>, WriterCF1<W>, 'writer'>(
       new WriterCarrier('writer', W),
     )(F),
@@ -35,18 +36,18 @@ class WriterCarrier<W, N extends string> extends Carrier<
     super();
   }
 
-  monad<F>(F: Monad<F>): Monad<$<WriterCF, [W, F]>> {
-    return WriterC.Monad(F, this.W);
+  monad<F>(F: Monad<F>): Monad<$<WriterCF, [F, W]>> {
+    return WriterT.Monad(F, this.W);
   }
 
   eff<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<WriterCF, [W, F]>>,
+    hdl: Handler<H, G, $<WriterCF, [F, W]>>,
     { eff }: Eff<Record<N, $<WriterF, [W]>>, G, A>,
     hu: Kind<H, [void]>,
-  ): WriterC<W, F, Kind<H, [A]>> {
-    return eff.foldMap<[$<WriterCF, [W, F]>, H]>(
+  ): WriterC<F, W, Kind<H, [A]>> {
+    return eff.foldMap<[$<WriterCF, [F, W]>, H]>(
       w => F.pure([hu, w]),
       ga =>
         pipe(
@@ -60,10 +61,10 @@ class WriterCarrier<W, N extends string> extends Carrier<
   other<H, G, F, Sig, A>(
     F: Algebra<Sig, F>,
     H: Functor<H>,
-    hdl: Handler<H, G, $<WriterCF, [W, F]>>,
+    hdl: Handler<H, G, $<WriterCF, [F, W]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
-  ): WriterC<W, F, Kind<H, [A]>> {
+  ): WriterC<F, W, Kind<H, [A]>> {
     return F.eff(
       this.buildCtxFunctor(H),
       ([hx, w1]) =>
@@ -83,38 +84,9 @@ class WriterCarrier<W, N extends string> extends Carrier<
   );
 }
 
-const writerCMonad = <W, F>(
-  F: Monad<F>,
-  W: Monoid<W>,
-): Monad<$<WriterCF, [W, F]>> =>
-  Monad.of<$<WriterCF, [W, F]>>({
-    pure: a => F.pure([a, W.empty]),
-    flatMap_: (fa, f) =>
-      F.flatMap_(fa, ([a, w1]) =>
-        F.map_(f(a), ([b, w2]) => [b, W.combine_(w1, () => w2)]),
-      ),
-    tailRecM_: (a, f) =>
-      F.tailRecM_(tupled(a, W.empty), ([a, w1]) =>
-        F.map_(f(a), ([ea, w2]) =>
-          ea.fold(
-            a =>
-              Left(
-                tupled(
-                  a,
-                  W.combine_(w1, () => w2),
-                ),
-              ),
-            b => Right([b, W.combine_(w1, () => w2)]),
-          ),
-        ),
-      ),
-  });
-
 // -- HKT
 
-export interface WriterCF extends TyK<[unknown, unknown, unknown]> {
-  [$type]: WriterC<TyVar<this, 0>, TyVar<this, 1>, TyVar<this, 2>>;
-}
+export type WriterCF = WriterTF;
 export interface WriterCF1<W> extends TyK<[unknown]> {
-  [$type]: $<WriterCF, [W, TyVar<this, 0>]>;
+  [$type]: $<WriterCF, [TyVar<this, 0>, W]>;
 }
