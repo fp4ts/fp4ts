@@ -6,6 +6,7 @@
 /**
  * @module fused/std
  */
+export * from './error-c';
 export * from './reader-c';
 export * from './state-c';
 export * from './writer-c';
