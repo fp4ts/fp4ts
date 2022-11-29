@@ -19,24 +19,17 @@ import { ErrorF } from '@fp4ts/fused-core';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 
 /**
- * A carrier for the `Error` effect.
+ * An EitherT carrier for the `Error` effect.
  */
-export type ErrorC<E, F, A> = EitherT<F, E, A>;
-export const ErrorC = Object.freeze({
-  MonadError: <E, F>(F: Monad<F>): Monad<$<ErrorCF, [F, E]>> =>
-    EitherT.MonadError(F),
+export function EitherTAlgebra<E, Sig, F>(
+  F: Algebra<Sig, F>,
+): Algebra<{ error: $<ErrorF, [E]> } | Sig, $<EitherTF, [F, E]>> {
+  return Algebra.withCarrier<$<ErrorF, [E]>, ErrorCF1<E>, 'error'>(
+    new EitherTCarrier('error'),
+  )(F);
+}
 
-  Algebra: <E, Sig, F>(
-    F: Algebra<Sig, F>,
-  ): Algebra<{ error: $<ErrorF, [E]> } | Sig, $<ErrorCF, [F, E]>> =>
-    Algebra.withCarrier<$<ErrorF, [E]>, ErrorCF1<E>, 'error'>(
-      new ErrorCarrier('error'),
-    )(F),
-});
-
-// -- Instances
-
-class ErrorCarrier<E, N extends string> extends Carrier<
+class EitherTCarrier<E, N extends string> extends Carrier<
   $<ErrorF, [E]>,
   ErrorCF1<E>,
   N
