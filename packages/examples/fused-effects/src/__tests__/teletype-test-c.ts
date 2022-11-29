@@ -10,11 +10,12 @@ import {
   Eff,
   Handler,
   State,
+  StateC,
   StateF,
   Writer,
+  WriterCF,
   WriterF,
 } from '@fp4ts/fused';
-import { StateC, WriterCF } from '@fp4ts/fused-std';
 import { TeletypeF } from '../teletype';
 
 export type TeletypeTestC<F, A> = StateC<

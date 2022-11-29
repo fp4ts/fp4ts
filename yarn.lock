@@ -711,7 +711,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-mtl-laws@workspace:packages/cats/mtl-laws":
+"@fp4ts/cats-mtl-laws@*, @fp4ts/cats-mtl-laws@workspace:packages/cats/mtl-laws":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-mtl-laws@workspace:packages/cats/mtl-laws"
   dependencies:
@@ -887,6 +887,7 @@ __metadata:
   resolution: "@fp4ts/fused-core@workspace:packages/fused/core"
   dependencies:
     "@fp4ts/cats": "*"
+    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/fused-kernel": "*"
     typescript: 4.9.3
@@ -946,8 +947,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fp4ts/fused@workspace:packages/fused"
   dependencies:
+    "@fp4ts/cats-laws": "*"
+    "@fp4ts/cats-mtl-laws": "*"
+    "@fp4ts/cats-test-kit": "*"
     "@fp4ts/fused-core": "*"
     "@fp4ts/fused-kernel": "*"
+    "@fp4ts/fused-std": "*"
     typescript: 4.9.3
   languageName: unknown
   linkType: soft

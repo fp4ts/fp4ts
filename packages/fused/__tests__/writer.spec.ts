@@ -14,8 +14,7 @@ import {
   IdentityF,
   Monoid,
 } from '@fp4ts/cats';
-import { MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
+import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Writer, WriterF } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { WriterC, WriterCF } from '@fp4ts/fused-std';
@@ -83,7 +82,7 @@ describe('Writer Effect', () => {
   }
 
   describe('WriterC<string, Identity, *>', () => {
-    tests<string, IdentityF, $<WriterCF, [string, IdentityF]>, number>(
+    tests<string, IdentityF, $<WriterCF, [IdentityF, string]>, number>(
       WriterC.Algebra(Algebra.Id, Monoid.string),
       Identity.Monad,
       Monoid.string,
@@ -95,26 +94,10 @@ describe('Writer Effect', () => {
       X => fc.tuple(X, fc.string()),
       id,
     );
-
-    checkAll(
-      'Monad<WriterC<string, Identity, *>>',
-      MonadSuite(WriterC.Monad(Identity.Monad, Monoid.string)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => fc.tuple(X, fc.string()),
-        X => Eq.tuple(X, Eq.fromUniversalEquals()),
-      ),
-    );
   });
 
   describe('WriterC<string, Eval, *>', () => {
-    tests<string, EvalF, $<WriterCF, [string, EvalF]>, number>(
+    tests<string, EvalF, $<WriterCF, [EvalF, string]>, number>(
       WriterC.Algebra(Algebra.Eval, Monoid.string),
       Eval.Monad,
       Monoid.string,
@@ -125,22 +108,6 @@ describe('Writer Effect', () => {
       Eq.fromUniversalEquals(),
       X => A.fp4tsEval(fc.tuple(X, fc.string())),
       Eval.Eq,
-    );
-
-    checkAll(
-      'Monad<WriterC<string, Eval, *>>',
-      MonadSuite(WriterC.Monad(Eval.Monad, Monoid.string)).monad(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        X => A.fp4tsEval(fc.tuple(X, fc.string())),
-        X => Eval.Eq(Eq.tuple(X, Eq.fromUniversalEquals())),
-      ),
     );
   });
 
