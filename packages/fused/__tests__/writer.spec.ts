@@ -14,13 +14,12 @@ import {
   IdentityF,
   Monoid,
 } from '@fp4ts/cats';
+import { IxRWSF, RWS, WriterTF } from '@fp4ts/cats-mtl';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Writer, WriterF } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
-import { WriterC, WriterCF } from '@fp4ts/fused-std';
+import { WriterC } from '@fp4ts/fused-std';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { IxRWSF, RWS } from '@fp4ts/cats-mtl';
-import { RWSAlgebra } from '@fp4ts/fused-mtl';
 
 describe('Writer Effect', () => {
   function tests<W, F, CF, A>(
@@ -81,9 +80,9 @@ describe('Writer Effect', () => {
     );
   }
 
-  describe('WriterC<string, Identity, *>', () => {
-    tests<string, IdentityF, $<WriterCF, [IdentityF, string]>, number>(
-      WriterC.Algebra(Algebra.Id, Monoid.string),
+  describe('WriterT<string, Identity, *>', () => {
+    tests<string, IdentityF, $<WriterTF, [IdentityF, string]>, number>(
+      WriterC.WriterT(Algebra.Id, Monoid.string),
       Identity.Monad,
       Monoid.string,
       id,
@@ -96,9 +95,9 @@ describe('Writer Effect', () => {
     );
   });
 
-  describe('WriterC<string, Eval, *>', () => {
-    tests<string, EvalF, $<WriterCF, [EvalF, string]>, number>(
-      WriterC.Algebra(Algebra.Eval, Monoid.string),
+  describe('WriterT<string, Eval, *>', () => {
+    tests<string, EvalF, $<WriterTF, [EvalF, string]>, number>(
+      WriterC.WriterT(Algebra.Eval, Monoid.string),
       Eval.Monad,
       Monoid.string,
       id,
@@ -118,7 +117,7 @@ describe('Writer Effect', () => {
       $<IxRWSF, [unknown, string, unknown, unknown]>,
       number
     >(
-      RWSAlgebra(Monoid.string),
+      WriterC.RWS(Monoid.string),
       Identity.Monad,
       Monoid.string,
       fa => fa.runWriter(Monoid.string),
