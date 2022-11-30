@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Kind, Lazy, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Eval, FlatMap } from '@fp4ts/cats-core';
 import {
   Chain,
   Either,
@@ -295,8 +295,15 @@ export const fp4tsIxStateT = <F, S1, S2, A>(
 ): Arbitrary<IxStateT<S1, S2, F, A>> => A;
 
 export const fp4tsStateT = <F, S, A>(
+  F: FlatMap<F>,
   A: Arbitrary<(s: S) => Kind<F, [[A, S]]>>,
-): Arbitrary<StateT<S, F, A>> => A;
+): Arbitrary<StateT<S, F, A>> =>
+  A.map(
+    runState =>
+      <R>(g: (a: A) => (s: S) => Kind<F, [R]>) =>
+      s =>
+        F.flatMap_(runState(s), ([a, s]) => g(a)(s)),
+  );
 
 export const fp4tsState = <S, A>(
   arbS: Arbitrary<S>,
