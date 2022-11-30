@@ -4,19 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind } from '@fp4ts/core';
+import { $, Kind, tupled } from '@fp4ts/core';
 import { Eq, Eval, EvalF, Identity, IdentityF } from '@fp4ts/cats';
-import { IxRWSF, RWS } from '@fp4ts/cats-mtl';
-import { MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, forAll, IsEq, MiniInt } from '@fp4ts/cats-test-kit';
+import { IxRWSF, IxStateTF, RWS, StateTF } from '@fp4ts/cats-mtl';
+import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
-import { StateC, StateCF } from '@fp4ts/fused-std';
+import { StateC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { State, StateF } from '@fp4ts/fused-core';
-import { RWSAlgebra } from '@fp4ts/fused-mtl';
 
 describe('State Effect', () => {
   function tests<S, F, CF, A>(
@@ -59,9 +55,9 @@ describe('State Effect', () => {
     );
   }
 
-  describe('StateC<number, Identity, *>', () => {
-    tests<number, IdentityF, $<StateCF, [number, number, IdentityF]>, number>(
-      StateC.Algebra(Algebra.Id),
+  describe('IxStateT<number, number, Identity, *>', () => {
+    tests<number, IdentityF, $<IxStateTF, [number, number, IdentityF]>, number>(
+      StateC.IxStateT(Algebra.Id),
       (fa, s) => fa(s),
       fc.integer(),
       fc.integer(),
@@ -72,15 +68,45 @@ describe('State Effect', () => {
     );
   });
 
-  describe('StateC<number, Eval, *>', () => {
-    tests<number, EvalF, $<StateCF, [number, number, EvalF]>, number>(
-      StateC.Algebra(Algebra.Eval),
+  describe('IxStateT<number, number, Eval, *>', () => {
+    tests<number, EvalF, $<IxStateTF, [number, number, EvalF]>, number>(
+      StateC.IxStateT(Algebra.Eval),
       (fa, s) => fa(s),
       fc.integer(),
       fc.integer(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       X => fc.func(A.fp4tsEval(fc.tuple(X, fc.integer()))),
+      Eval.Eq,
+    );
+  });
+
+  describe('StateT<number, Identity, *>', () => {
+    tests<number, IdentityF, $<StateTF, [number, IdentityF]>, number>(
+      StateC.StateT(Algebra.Id),
+      (fa, s) => fa(a => s => tupled(a, s))(s),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      X => A.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, fc.integer()))),
+      X => X,
+    );
+  });
+
+  describe('StateT<number, Eval, *>', () => {
+    tests<number, EvalF, $<StateTF, [number, EvalF]>, number>(
+      StateC.StateT(Algebra.Eval),
+      (fa, s) => fa(a => s => Eval.now(tupled(a, s)))(s),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      X =>
+        A.fp4tsStateT(
+          Eval.Monad,
+          fc.func(A.fp4tsEval(fc.tuple(X, fc.integer()))),
+        ),
       Eval.Eq,
     );
   });
@@ -92,7 +118,7 @@ describe('State Effect', () => {
       $<IxRWSF, [unknown, never, number, number]>,
       number
     >(
-      RWSAlgebra<unknown, number>(),
+      StateC.RWS<unknown, never, number>(),
       (fa, s) => fa.runState(s),
       fc.integer(),
       fc.integer(),

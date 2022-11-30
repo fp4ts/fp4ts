@@ -5,27 +5,20 @@
 
 import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Functor, Monad, Tuple2 } from '@fp4ts/cats';
-import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
+import { IxStateT, IxStateTF } from '@fp4ts/cats-mtl';
 import { StateF } from '@fp4ts/fused-core';
-import { IxStateTF, StateT } from '@fp4ts/cats-mtl';
+import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 
 /**
- * A carrier for the `State` effect.
+ * An `IxStateT` carrier for the `State` effect.
  */
-export type StateC<S, F, A> = StateT<S, F, A>;
-export const StateC = Object.freeze({
-  Monad: <S, F>(F: Monad<F>): Monad<$<StateCF, [S, S, F]>> =>
-    StateT.Monad<S, F>(F),
-
-  Algebra: <S, Sig, F>(
-    F: Algebra<Sig, F>,
-  ): Algebra<{ state: $<StateF, [S]> } | Sig, $<StateCF, [S, S, F]>> =>
-    Algebra.withCarrier<$<StateF, [S]>, StateCF1<S>, 'state'>(
-      new StateCarrier('state'),
-    )(F),
-});
-
-// -- Instances
+export function IxStateTAlgebra<S, Sig, F>(
+  F: Algebra<Sig, F>,
+): Algebra<{ state: $<StateF, [S]> } | Sig, $<StateCF, [S, S, F]>> {
+  return Algebra.withCarrier<$<StateF, [S]>, StateCF1<S>, 'state'>(
+    new StateCarrier('state'),
+  )(F);
+}
 
 class StateCarrier<S, N extends string> extends Carrier<
   $<StateF, [S]>,
@@ -37,7 +30,7 @@ class StateCarrier<S, N extends string> extends Carrier<
   }
 
   monad<F>(F: Monad<F>): Monad<$<StateCF, [S, S, F]>> {
-    return StateC.Monad(F);
+    return IxStateT.Monad(F);
   }
 
   eff<H, G, F, Sig, A>(
@@ -46,7 +39,7 @@ class StateCarrier<S, N extends string> extends Carrier<
     hdl: Handler<H, G, $<StateCF, [S, S, F]>>,
     { eff }: Eff<Record<N, $<StateF, [S]>>, G, A>,
     hu: Kind<H, [void]>,
-  ): StateC<S, F, Kind<H, [A]>> {
+  ): IxStateT<S, S, F, Kind<H, [A]>> {
     return eff.foldMap<[$<StateCF, [S, S, F]>, H]>(
       () => s =>
         F.pure(
@@ -65,7 +58,7 @@ class StateCarrier<S, N extends string> extends Carrier<
     hdl: Handler<H, G, $<StateCF, [S, S, F]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
-  ): StateC<S, F, Kind<H, [A]>> {
+  ): IxStateT<S, S, F, Kind<H, [A]>> {
     return s =>
       F.eff(this.buildCtxFunctor(H), ([hx, s]) => hdl(hx)(s), eff, [hu, s]);
   }

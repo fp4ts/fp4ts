@@ -72,6 +72,18 @@ describe('Reader Effect', () => {
     );
   });
 
+  describe('Function1<number, *>', () => {
+    tests<number, IdentityF, $<Function1F, [number]>, number>(
+      ReaderC.Function1<number>(),
+      (fa, r) => fa(r),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      X => fc.func(X),
+      X => X,
+    );
+  });
+
   describe('RWS<number, never, unknown, *>', () => {
     tests<
       number,
@@ -85,18 +97,6 @@ describe('Reader Effect', () => {
       fc.integer(),
       Eq.fromUniversalEquals(),
       X => fc.func(X).map(MtlReader.lift),
-      X => X,
-    );
-  });
-
-  describe('Function1<number, *>', () => {
-    tests<number, IdentityF, $<Function1F, [number]>, number>(
-      ReaderC.Function1<number>(),
-      (fa, r) => fa(r),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      X => fc.func(X),
       X => X,
     );
   });
