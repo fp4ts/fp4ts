@@ -51,19 +51,19 @@ WriterT.pure =
     g(a);
 
 WriterT.runA =
-  <F>(F: Applicative<F>) =>
-  <W, A>(fwa: WriterT<F, W, A>): ((w: W) => Kind<F, [A]>) =>
-    fwa(a => _ => F.pure(a));
+  <F, W>(F: Applicative<F>, W: Monoid<W>) =>
+  <A>(fwa: WriterT<F, W, A>): Kind<F, [A]> =>
+    fwa(a => _ => F.pure(a))(W.empty);
 
 WriterT.runW =
-  <F>(F: Applicative<F>) =>
-  <W, A>(fwa: WriterT<F, W, A>): ((w: W) => Kind<F, [W]>) =>
-    fwa(_ => w => F.pure(w));
+  <F, W>(F: Applicative<F>, W: Monoid<W>) =>
+  <A>(fwa: WriterT<F, W, A>): Kind<F, [W]> =>
+    fwa(_ => w => F.pure(w))(W.empty);
 
 WriterT.runAW =
-  <F>(F: Applicative<F>) =>
-  <W, A>(fwa: WriterT<F, W, A>): ((w: W) => Kind<F, [[A, W]]>) =>
-    fwa(a => w => F.pure([a, w]));
+  <F, W>(F: Applicative<F>, W: Monoid<W>) =>
+  <A>(fwa: WriterT<F, W, A>): Kind<F, [[A, W]]> =>
+    fwa(a => w => F.pure([a, w] as [A, W]))(W.empty);
 
 WriterT.map_ =
   <F, W, A, B>(fwa: WriterT<F, W, A>, f: (a: A) => B): WriterT<F, W, B> =>

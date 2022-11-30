@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, cached, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Functor, Monad, Monoid, Tuple2 } from '@fp4ts/cats';
 import {
   WriterTChurch as WriterT,
@@ -65,7 +65,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
       F.flatMap_(
         F.eff(
           this.buildCtxFunctor(H),
-          ([hx, w]) => WriterT.runAW(F)(hdl(hx))(w),
+          ([hx, w]) => hdl(hx)(x => w => F.pure(tupled(x, w)))(w),
           eff,
           [hu, w],
         ),

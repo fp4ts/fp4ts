@@ -5,7 +5,6 @@
 
 import { Function1Algebra } from './function1';
 import { KleisliAlgebra } from './kleisli';
-import { RWSAlgebra } from './rws';
 import { RWSTAlgebra } from './rws-t';
 
 /**
@@ -14,6 +13,5 @@ import { RWSTAlgebra } from './rws-t';
 export const ReaderC = Object.freeze({
   Kleisli: KleisliAlgebra,
   Function1: Function1Algebra,
-  RWS: RWSAlgebra,
   RWST: RWSTAlgebra,
 });

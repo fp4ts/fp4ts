@@ -10,7 +10,7 @@ import { IxRWSF, Reader as MtlReader } from '@fp4ts/cats-mtl';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 
-import { ReaderC } from '@fp4ts/fused-std';
+import { ReaderC, RWSC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { Reader, ReaderF } from '@fp4ts/fused-core';
 
@@ -91,7 +91,7 @@ describe('Reader Effect', () => {
       $<IxRWSF, [number, never, unknown, unknown]>,
       number
     >(
-      ReaderC.RWS<number, never, unknown>(),
+      RWSC.Algebra<number, unknown>(),
       (fa, r) => fa.runReader(r),
       fc.integer(),
       fc.integer(),

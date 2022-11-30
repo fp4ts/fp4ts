@@ -8,7 +8,6 @@
   "references": [
     { "path": "./core/tsconfig.build.json" },
     { "path": "./kernel/tsconfig.build.json" },
-    { "path": "./mtl/tsconfig.build.json" },
     { "path": "./std/tsconfig.build.json" },
   ]
 }

@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ChurchAlgebra } from './church';
-import { RWSAlgebra } from './rws';
 import { WriterTAlgebra } from './writer-t';
 
 /**
@@ -13,5 +12,4 @@ import { WriterTAlgebra } from './writer-t';
 export const WriterC = Object.freeze({
   WriterT: WriterTAlgebra,
   Church: ChurchAlgebra,
-  RWS: RWSAlgebra,
 });

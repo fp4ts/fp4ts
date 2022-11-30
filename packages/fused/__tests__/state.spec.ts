@@ -10,7 +10,7 @@ import { IxRWSF, IxStateTF, RWS, StateTF } from '@fp4ts/cats-mtl';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
-import { StateC } from '@fp4ts/fused-std';
+import { RWSC, StateC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { State, StateF } from '@fp4ts/fused-core';
 
@@ -118,7 +118,7 @@ describe('State Effect', () => {
       $<IxRWSF, [unknown, never, number, number]>,
       number
     >(
-      StateC.RWS<unknown, never, number>(),
+      RWSC.Algebra<unknown, number>(),
       (fa, s) => fa.runState(s),
       fc.integer(),
       fc.integer(),
