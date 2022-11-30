@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind } from '@fp4ts/core';
+import { $, id, Kind, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
-import { IxRWST } from '@fp4ts/cats-mtl';
+import { RWST } from '@fp4ts/cats-mtl';
 import {
   MonadReaderSuite,
   MonadStateSuite,
@@ -20,7 +20,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
-describe('IxRWST', () => {
+describe('RWST', () => {
   function runTests<F, W>(
     [effectName, F]: [string, Monad<F>],
     [W, WM, arbW, eqW]: [string, Monoid<W>, Arbitrary<W>, Eq<W>],
@@ -28,78 +28,75 @@ describe('IxRWST', () => {
     mkEqF: <X>(arbX: Eq<X>) => Eq<Kind<F, [X]>>,
   ) {
     checkAll(
-      `MonadState<IxRWST<unknown, ${W}, MiniInt, ${effectName}, *>, MiniInt>`,
-      MonadStateSuite(
-        IxRWST.MonadState<unknown, W, MiniInt, F>(WM, F),
-      ).monadState(
+      `MonadState<RWST<unknown, ${W}, MiniInt, ${effectName}, *>, MiniInt>`,
+      MonadStateSuite(RWST.MonadState<unknown, W, MiniInt, F>(F)).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IxRWST<unknown, W, MiniInt, MiniInt, F, X>> =>
-          A.fp4tsIxRWST(
-            fc.func<[unknown, MiniInt], Kind<F, [[X, MiniInt, W]]>>(
+        <X>(X: Arbitrary<X>): Arbitrary<RWST<unknown, W, MiniInt, F, X>> =>
+          A.fp4tsRWST(
+            F,
+            fc.func<[unknown, MiniInt, W], Kind<F, [[X, MiniInt, W]]>>(
               mkArbF(fc.tuple(X, A.fp4tsMiniInt(), arbW)),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxRWST<unknown, W, MiniInt, MiniInt, F, X>> =>
+        <X>(X: Eq<X>): Eq<RWST<unknown, W, MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
-            fa => x => IxRWST.runAS(F)(null, x)(fa),
+            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq, eqW))),
+            fa => x => RWST.runASW(F, WM)(fa)(null, x),
           ),
       ),
     );
 
     checkAll(
-      `Censor<IxRWST<unknown, ${W}, unknown, ${effectName}, *>, ${W}>`,
-      MonadWriterSuite(
-        IxRWST.MonadWriter<unknown, W, unknown, F>(WM, F),
-      ).censor(
+      `Censor<RWST<unknown, ${W}, unknown, ${effectName}, *>, ${W}>`,
+      MonadWriterSuite(RWST.MonadWriter<unknown, W, unknown, F>(F, WM)).censor(
         fc.integer(),
         arbW,
         Eq.fromUniversalEquals(),
         eqW,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IxRWST<unknown, W, unknown, unknown, F, X>> =>
-          A.fp4tsIxRWST(
+        <X>(X: Arbitrary<X>): Arbitrary<RWST<unknown, W, unknown, F, X>> =>
+          A.fp4tsRWST(
+            F,
             fc.func<[unknown, unknown], Kind<F, [[X, unknown, W]]>>(
               mkArbF(fc.tuple(X, A.fp4tsMiniInt(), arbW)),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxRWST<unknown, W, unknown, unknown, F, X>> =>
-          Eq.by(mkEqF(Eq.tuple(X, eqW)), fa => IxRWST.runAW(F)(null, null)(fa)),
+        <X>(X: Eq<X>): Eq<RWST<unknown, W, unknown, F, X>> =>
+          Eq.by(mkEqF(Eq.tuple(X, eqW)), fa =>
+            F.map_(RWST.runASW(F, WM)(fa)(null, null), ([x, _, w]) =>
+              tupled(x, w),
+            ),
+          ),
       ),
     );
 
     checkAll(
       `Local<RWST<MiniInt, ${W}, unknown, ${effectName}, *>, MiniInt>`,
-      MonadReaderSuite(IxRWST.MonadReader<MiniInt, W, unknown, F>(WM, F)).local(
+      MonadReaderSuite(RWST.MonadReader<MiniInt, W, unknown, F>(F)).local(
         fc.integer(),
         fc.integer(),
         A.fp4tsMiniInt(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         MiniInt.Eq,
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IxRWST<MiniInt, W, unknown, unknown, F, X>> =>
-          A.fp4tsIxRWST(
+        <X>(X: Arbitrary<X>): Arbitrary<RWST<MiniInt, W, unknown, F, X>> =>
+          A.fp4tsRWST(
+            F,
             fc.func<[MiniInt, unknown], Kind<F, [[X, unknown, W]]>>(
               mkArbF(fc.tuple(X, fc.constant(undefined), arbW)),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxRWST<MiniInt, W, unknown, unknown, F, X>> =>
+        <X>(X: Eq<X>): Eq<RWST<MiniInt, W, unknown, F, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), mkEqF(X)),
-            fa => r => IxRWST.runA(F)(r, null)(fa),
+            fa => r => F.map_(RWST.runASW(F, WM)(fa)(r, null), ([x]) => x),
           ),
       ),
     );
 
     checkAll(
       `Monad<RWST<MiniInt, ${W}, MiniInt, ${effectName}, *>>`,
-      MonadSuite(IxRWST.Monad<MiniInt, W, MiniInt, F>(WM, F)).monad(
+      MonadSuite(RWST.Monad<MiniInt, W, MiniInt, F>(F)).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -108,18 +105,17 @@ describe('IxRWST', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        <X>(
-          X: Arbitrary<X>,
-        ): Arbitrary<IxRWST<MiniInt, W, MiniInt, MiniInt, F, X>> =>
-          A.fp4tsIxRWST(
+        <X>(X: Arbitrary<X>): Arbitrary<RWST<MiniInt, W, MiniInt, F, X>> =>
+          A.fp4tsRWST(
+            F,
             fc.func<[MiniInt, MiniInt], Kind<F, [[X, MiniInt, W]]>>(
               mkArbF(fc.tuple(X, A.fp4tsMiniInt(), arbW)),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxRWST<MiniInt, W, MiniInt, MiniInt, F, X>> =>
+        <X>(X: Eq<X>): Eq<RWST<MiniInt, W, MiniInt, F, X>> =>
           Eq.by(
             eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq, eqW))),
-            fa => s => fa(s, s),
+            fa => s => RWST.runASW(F, WM)(fa)(s, s),
           ),
       ),
     );
@@ -127,17 +123,16 @@ describe('IxRWST', () => {
 
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
-      const S = IxRWST.MonadState<unknown, void, number, EvalF>(
-        CommutativeMonoid.void,
-        Eval.Monad,
-      );
+      const S = RWST.MonadState<unknown, void, number, EvalF>(Eval.Monad);
       const size = 50_000;
-      const go: IxRWST<unknown, void, number, number, EvalF, void> = S.flatMap_(
+      const go: RWST<unknown, void, number, EvalF, void> = S.flatMap_(
         S.get,
         n => (n >= size ? S.unit : S.flatMap_(S.set(n + 1), () => go)),
       );
 
-      expect(IxRWST.runS(Eval.Monad)(undefined, 0)(go).value).toBe(size);
+      expect(
+        RWST.runASW(Eval.Monad, CommutativeMonoid.void)(go)(undefined, 0).value,
+      ).toEqual([undefined, size, undefined]);
     });
   });
 
@@ -182,8 +177,7 @@ describe('IxRWST', () => {
   checkAll(
     'MonadError<RWST<MiniInt, number, MiniInt, MiniInt, Either<string, *>, *>>',
     MonadErrorSuite(
-      IxRWST.MonadError<MiniInt, number, MiniInt, $<EitherF, [string]>, string>(
-        CommutativeMonoid.addition,
+      RWST.MonadError<MiniInt, number, MiniInt, $<EitherF, [string]>, string>(
         Either.MonadError<string>(),
       ),
     ).monadError(
@@ -199,20 +193,19 @@ describe('IxRWST', () => {
       Eq.fromUniversalEquals(),
       <X>(
         X: Arbitrary<X>,
-      ): Arbitrary<
-        IxRWST<MiniInt, number, MiniInt, MiniInt, $<EitherF, [string]>, X>
-      > =>
-        fc.func<[MiniInt, MiniInt], Either<string, [X, MiniInt, number]>>(
-          A.fp4tsEither(
-            fc.string(),
-            fc.tuple(X, A.fp4tsMiniInt(), fc.integer()),
+      ): Arbitrary<RWST<MiniInt, number, MiniInt, $<EitherF, [string]>, X>> =>
+        A.fp4tsRWST(
+          Either.MonadError<string>(),
+          fc.func<[MiniInt, MiniInt], Either<string, [X, MiniInt, number]>>(
+            A.fp4tsEither(
+              fc.string(),
+              fc.tuple(X, A.fp4tsMiniInt(), fc.integer()),
+            ),
           ),
         ),
       <X>(
         X: Eq<X>,
-      ): Eq<
-        IxRWST<MiniInt, number, MiniInt, MiniInt, $<EitherF, [string]>, X>
-      > =>
+      ): Eq<RWST<MiniInt, number, MiniInt, $<EitherF, [string]>, X>> =>
         Eq.by(
           eq.fn1Eq(
             ec.miniInt(),
@@ -221,50 +214,8 @@ describe('IxRWST', () => {
               Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
             ),
           ),
-          fa => s => fa(s, s),
-        ),
-    ),
-  );
-
-  checkAll(
-    'Strong<IxRWST<boolean, number, *, *, Eval, number>>',
-    StrongSuite(
-      IxRWST.Strong<boolean, number, EvalF, number>(Eval.Monad),
-    ).strong(
-      A.fp4tsMiniInt(),
-      fc.boolean(),
-      fc.boolean(),
-      fc.boolean(),
-      fc.integer(),
-      fc.integer(),
-      ec.miniInt(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      <X, Y>(
-        X: Arbitrary<X>,
-        Y: Arbitrary<Y>,
-      ): Arbitrary<IxRWST<boolean, number, X, Y, EvalF, number>> =>
-        fc.func<[boolean, X], Eval<[number, Y, number]>>(
-          A.fp4tsEval(fc.tuple(fc.integer(), Y, fc.integer())),
-        ),
-      <X, Y>(
-        X: ExhaustiveCheck<X>,
-        Y: Eq<Y>,
-      ): Eq<IxRWST<boolean, number, X, Y, EvalF, number>> =>
-        Eq.by(
-          eq.fn1Eq(
-            ec.boolean().product(X),
-            Eval.Eq(
-              Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
-            ),
-          ),
-          fa =>
-            ([r, s]) =>
-              fa(r, s),
+          fa => s =>
+            RWST.runASW(Either.MonadError<string>(), Monoid.addition)(fa)(s, s),
         ),
     ),
   );

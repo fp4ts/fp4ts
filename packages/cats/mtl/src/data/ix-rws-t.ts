@@ -187,89 +187,7 @@ IxRWST.Strong = <R, W, F, A>(
         ),
   });
 
-export type RWST<R, W, S, F, A> = (r: R, s: S) => Kind<F, [[A, S, W]]>;
-
-export const RWST = function <R, W, S, F, A>(
-  runRWST: (r: R, s: S) => Kind<F, [[A, S, W]]>,
-): RWST<R, W, S, F, A> {
-  return runRWST;
-};
-
-RWST.mapK = IxRWST.mapK as <F, G>(
-  fk: FunctionK<F, G>,
-) => <R, W, S, A>(f: RWST<R, W, S, F, A>) => RWST<R, W, S, G, A>;
-
-RWST.local = IxRWST.local as <R0, R>(
-  f: (r0: R0) => R,
-) => <W, S, F, A>(fa: RWST<R, W, S, F, A>) => RWST<R0, W, S, F, A>;
-RWST.local_ = IxRWST.local_ as <R0, R, W, S, F, A>(
-  fa: RWST<R, W, S, F, A>,
-  f: (r0: R0) => R,
-) => RWST<R0, W, S, F, A>;
-
-RWST.censor = IxRWST.censor as <F>(
-  F: Functor<F>,
-) => <W, W2>(
-  f: (w: W) => W2,
-) => <R, S, A>(fa: RWST<R, W, S, F, A>) => RWST<R, W2, S, F, A>;
-RWST.censor_ = IxRWST.censor_ as <F>(
-  F: Functor<F>,
-) => <R, W, W2, S, A>(
-  fa: RWST<R, W, S, F, A>,
-  f: (w: W) => W2,
-) => RWST<R, W2, S, F, A>;
-
-RWST.state = IxRWST.state as <F, W>(
-  F: Applicative<F>,
-  W: Monoid<W>,
-) => <S, A, R = unknown>(f: (s1: S) => [A, S]) => RWST<R, W, S, F, A>;
-RWST.stateF = IxRWST.stateF as <F, W>(
-  F: Functor<F>,
-  W: Monoid<W>,
-) => <S, A, R = unknown>(
-  f: (s1: S) => Kind<F, [[A, S]]>,
-) => RWST<R, W, S, F, A>;
-
-RWST.runA = IxRWST.runA as <F>(
-  F: Functor<F>,
-) => <R, S>(
-  r: R,
-  s: S,
-) => <A>(fa: IxRWST<R, unknown, S, unknown, F, A>) => Kind<F, [A]>;
-
-RWST.runS = IxRWST.runS as <F>(
-  F: Functor<F>,
-) => <R, S>(
-  r: R,
-  s: S,
-) => (fa: RWST<R, unknown, S, F, unknown>) => Kind<F, [S]>;
-
-RWST.runW = IxRWST.runW as <F>(
-  F: Functor<F>,
-) => <R, S>(r: R, s: S) => <A>(fa: RWST<R, unknown, S, F, A>) => Kind<F, [S]>;
-
-RWST.runAS = IxRWST.runAS as <F>(
-  F: Functor<F>,
-) => <R, S>(
-  r: R,
-  s: S,
-) => <A>(fa: RWST<R, unknown, S, F, A>) => Kind<F, [[A, S]]>;
-
-RWST.runAW = IxRWST.runAW as <F>(
-  F: Functor<F>,
-) => <R, S>(
-  r: R,
-  s: S,
-) => <W, A>(fa: IxRWST<R, W, S, unknown, F, A>) => Kind<F, [[A, W]]>;
-
-RWST.runSW = IxRWST.runSW as <F>(
-  F: Functor<F>,
-) => <R, S>(
-  r: R,
-  s: S,
-) => <W>(fa: RWST<R, W, S, F, unknown>) => Kind<F, [[S, W]]>;
-
-RWST.Functor = <R, W, S, F>(
+IxRWST.Functor = <R, W, S, F>(
   F: Functor<F>,
 ): Functor<$<IxRWSTF, [R, W, S, S, F]>> =>
   Functor.of<$<IxRWSTF, [R, W, S, S, F]>>({
@@ -277,12 +195,12 @@ RWST.Functor = <R, W, S, F>(
       suspend(F, (r, s1) => F.map_(fa(r, s1), ([a, s2, w]) => [f(a), s2, w])),
   });
 
-RWST.Apply = <R, W, S, F>(
+IxRWST.Apply = <R, W, S, F>(
   W: Monoid<W>,
   F: FlatMap<F>,
 ): Apply<$<IxRWSTF, [R, W, S, S, F]>> =>
   Apply.of<$<IxRWSTF, [R, W, S, S, F]>>({
-    ...RWST.Functor(F),
+    ...IxRWST.Functor(F),
     ap_: (ff, fa) =>
       suspend(F, (r, s1) =>
         F.flatMap_(ff(r, s1), ([f, s2, w1]) =>
@@ -295,12 +213,12 @@ RWST.Apply = <R, W, S, F>(
       ),
   });
 
-RWST.FlatMap = <R, W, S, F>(
+IxRWST.FlatMap = <R, W, S, F>(
   W: Monoid<W>,
   F: FlatMap<F>,
 ): FlatMap<$<IxRWSTF, [R, W, S, S, F]>> =>
   FlatMap.of<$<IxRWSTF, [R, W, S, S, F]>>({
-    ...RWST.Apply(W, F),
+    ...IxRWST.Apply(W, F),
     flatMap_: (fa, f) =>
       suspend(F, (r, s) =>
         F.flatMap_(fa(r, s), ([a, s, w]) =>
@@ -332,31 +250,31 @@ RWST.FlatMap = <R, W, S, F>(
       ),
   });
 
-RWST.Alternative = <R, W, S, F>(
+IxRWST.Alternative = <R, W, S, F>(
   W: Monoid<W>,
   F: Monad<F>,
   G: Alternative<F>,
 ): Monad<$<IxRWSTF, [R, W, S, S, F]>> =>
   Monad.of<$<IxRWSTF, [R, W, S, S, F]>>({
     ...IxRWST.MonoidK(G),
-    ...RWST.Monad(W, F),
+    ...IxRWST.Monad(W, F),
   });
 
-RWST.Monad = <R, W, S, F>(
+IxRWST.Monad = <R, W, S, F>(
   W: Monoid<W>,
   F: Monad<F>,
 ): Monad<$<IxRWSTF, [R, W, S, S, F]>> =>
   Monad.of<$<IxRWSTF, [R, W, S, S, F]>>({
-    ...RWST.FlatMap(W, F),
+    ...IxRWST.FlatMap(W, F),
     pure: a => (r, s) => F.pure([a, s, W.empty]),
   });
 
-RWST.MonadError = <R, W, S, F, E>(
+IxRWST.MonadError = <R, W, S, F, E>(
   W: Monoid<W>,
   F: MonadError<F, E>,
 ): MonadError<$<IxRWSTF, [R, W, S, S, F]>, E> =>
   MonadError.of<$<IxRWSTF, [R, W, S, S, F]>, E>({
-    ...RWST.Monad(W, F),
+    ...IxRWST.Monad(W, F),
     throwError:
       <A>(e: E) =>
       () =>
@@ -365,22 +283,22 @@ RWST.MonadError = <R, W, S, F, E>(
       suspend(F, (r, s) => F.handleErrorWith_(fa(r, s), e => h(e)(r, s))),
   });
 
-RWST.MonadReader = <R, W, S, F>(
+IxRWST.MonadReader = <R, W, S, F>(
   W: Monoid<W>,
   F: Monad<F>,
 ): MonadReader<$<IxRWSTF, [R, W, S, S, F]>, R> =>
   MonadReader.of<$<IxRWSTF, [R, W, S, S, F]>, R>({
-    ...RWST.Monad(W, F),
+    ...IxRWST.Monad(W, F),
     ask: () => (r, s) => F.pure([r, s, W.empty]),
     local_: (fa, f) => suspend(F, (r0, s1) => fa(f(r0), s1)),
   });
 
-RWST.MonadWriter = <R, W, S, F>(
+IxRWST.MonadWriter = <R, W, S, F>(
   W: Monoid<W>,
   F: Monad<F>,
 ): MonadWriter<$<IxRWSTF, [R, W, S, S, F]>, W> =>
   MonadWriter.of<$<IxRWSTF, [R, W, S, S, F]>, W>({
-    ...RWST.Monad(W, F),
+    ...IxRWST.Monad(W, F),
     monoid: W,
     censor_: (fa, f) =>
       suspend(F, (r, s1) => F.map_(fa(r, s1), ([a, s2, w]) => [a, s2, f(w)])),
@@ -389,12 +307,12 @@ RWST.MonadWriter = <R, W, S, F>(
     tell: w => (r, s) => F.pure([undefined, s, w]),
   });
 
-RWST.MonadState = <R, W, S, F>(
+IxRWST.MonadState = <R, W, S, F>(
   W: Monoid<W>,
   F: Monad<F>,
 ): MonadState<$<IxRWSTF, [R, W, S, S, F]>, S> =>
   MonadState.of<$<IxRWSTF, [R, W, S, S, F]>, S>({
-    ...RWST.Monad(W, F),
+    ...IxRWST.Monad(W, F),
     get: (r, s) => F.pure([s, s, W.empty]),
     set: s => (r, s1) => F.pure([undefined, s, W.empty]),
     modify: f => (r, s) => F.pure([undefined, f(s), W.empty]),

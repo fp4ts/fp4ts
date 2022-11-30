@@ -10,6 +10,7 @@ export * from './reader';
 export * from './writer';
 
 export * from './ix-rws-t';
+export * from './rws-t';
 export * from './ix-state-t';
 export * from './state-t';
 export * from './reader-t';
