@@ -9,13 +9,13 @@ import { RWS, IxRWSF } from '@fp4ts/cats-mtl';
 import { ReaderF, StateF, WriterF } from '@fp4ts/fused-core';
 import { Algebra, Eff, Handler } from '@fp4ts/fused-kernel';
 
-export function RWSAlgebra<R, S>(): Algebra<
+function RWSAlgebra<R, S>(): Algebra<
   | { reader: $<ReaderF, [R]> }
   | { state: $<StateF, [S]> }
   | { writer: $<WriterF, [never]> },
   $<IxRWSF, [R, never, S, S]>
 >;
-export function RWSAlgebra<R, W, S>(
+function RWSAlgebra<R, W, S>(
   W: Monoid<W>,
 ): Algebra<
   | { reader: $<ReaderF, [R]> }
@@ -23,7 +23,7 @@ export function RWSAlgebra<R, W, S>(
   | { writer: $<WriterF, [W]> },
   $<IxRWSF, [R, W, S, S]>
 >;
-export function RWSAlgebra<R, W, S>(
+function RWSAlgebra<R, W, S>(
   W?: Monoid<W>,
 ): Algebra<
   | { reader: $<ReaderF, [R]> }
@@ -82,3 +82,7 @@ export function RWSAlgebra<R, W, S>(
     ...RWS.Monad<R, W, S>(),
   });
 }
+
+export const RWSC = Object.freeze({
+  Algebra: RWSAlgebra,
+});

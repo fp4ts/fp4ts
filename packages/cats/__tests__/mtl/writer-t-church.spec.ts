@@ -24,9 +24,10 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('WriterT', () => {
   describe('cumulating results', () => {
-    const W = WriterT.MonadWriter(Eval.Monad, Monoid.string);
+    const M = Monoid.string;
+    const W = WriterT.MonadWriter(Eval.Monad, M);
     it('should be empty when lifting the pure value', () => {
-      expect(WriterT.runAW(Eval.Applicative)(W.pure(42))('').value).toEqual([
+      expect(WriterT.runAW(Eval.Applicative, M)(W.pure(42)).value).toEqual([
         42,
         '',
       ]);
@@ -41,8 +42,8 @@ describe('WriterT', () => {
           W.productL(W.tell('me')),
           W.productL(W.tell(' ')),
           W.productL(W.tell('more')),
-          WriterT.runAW(Eval.Applicative),
-        )('').value,
+          WriterT.runAW(Eval.Applicative, M),
+        ).value,
       ).toEqual([42, 'tell me more']);
     });
 
@@ -56,8 +57,8 @@ describe('WriterT', () => {
           W.productL(W.tell(' ')),
           W.productL(W.tell('more')),
           W.clear,
-          WriterT.runAW(Eval.Applicative),
-        )('').value,
+          WriterT.runAW(Eval.Applicative, M),
+        ).value,
       ).toEqual([42, '']);
     });
   });
@@ -85,7 +86,7 @@ describe('WriterT', () => {
           <X>(EqX: Eq<X>) =>
             Eq.by<WriterT<F, W, X>, Kind<F, [[X, W]]>>(
               EqKF.liftEq(Eq.tuple(EqX, EqW)),
-              fwa => WriterT.runAW(F)(fwa)(W.empty),
+              WriterT.runAW(F, W),
             ),
         ),
       );
@@ -110,7 +111,7 @@ describe('WriterT', () => {
           <X>(EqX: Eq<X>) =>
             Eq.by<WriterT<F, W, X>, Kind<F, [[X, W]]>>(
               EqKF.liftEq(Eq.tuple(EqX, EqW)),
-              fwa => WriterT.runAW(F)(fwa)(W.empty),
+              WriterT.runAW(F, W),
             ),
         ),
       );
@@ -188,7 +189,7 @@ describe('WriterT', () => {
             Either.EqK(Eq.fromUniversalEquals<string>()).liftEq(
               Eq.tuple(EqX, Eq.fromUniversalEquals()),
             ),
-            fwa => WriterT.runAW(Either.Monad<string>())(fwa)(''),
+            WriterT.runAW(Either.Monad<string>(), Monoid.string),
           ),
       ),
     );

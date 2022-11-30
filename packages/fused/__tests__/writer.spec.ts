@@ -18,7 +18,7 @@ import { IxRWSF, RWS, WriterTF } from '@fp4ts/cats-mtl';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Writer, WriterF } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
-import { WriterC } from '@fp4ts/fused-std';
+import { RWSC, WriterC } from '@fp4ts/fused-std';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Writer Effect', () => {
@@ -117,7 +117,7 @@ describe('Writer Effect', () => {
       $<IxRWSF, [unknown, string, unknown, unknown]>,
       number
     >(
-      WriterC.RWS(Monoid.string),
+      RWSC.Algebra(Monoid.string),
       Identity.Monad,
       Monoid.string,
       fa => fa.runWriter(Monoid.string),

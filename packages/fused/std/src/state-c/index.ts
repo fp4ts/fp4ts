@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 
 import { IxStateTAlgebra } from './ix-state-t';
-import { RWSAlgebra } from './rws';
 import { StateTAlgebra } from './state-t';
 
 /**
@@ -13,5 +12,4 @@ import { StateTAlgebra } from './state-t';
 export const StateC = Object.freeze({
   IxStateT: IxStateTAlgebra,
   StateT: StateTAlgebra,
-  RWS: RWSAlgebra,
 });
