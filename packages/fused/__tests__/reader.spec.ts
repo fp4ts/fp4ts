@@ -5,15 +5,14 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, Kind } from '@fp4ts/core';
-import { Eq, Eval, EvalF, IdentityF } from '@fp4ts/cats';
+import { Eq, Eval, EvalF, Function1F, IdentityF, KleisliF } from '@fp4ts/cats';
 import { IxRWSF, Reader as MtlReader } from '@fp4ts/cats-mtl';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { forAll, IsEq } from '@fp4ts/cats-test-kit';
 
-import { ReaderC, ReaderCF } from '@fp4ts/fused-std';
+import { ReaderC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { Reader, ReaderF } from '@fp4ts/fused-core';
-import { RWSAlgebra } from '@fp4ts/fused-mtl';
 
 describe('Reader Effect', () => {
   function tests<R, F, CF, A>(
@@ -49,9 +48,9 @@ describe('Reader Effect', () => {
     );
   }
 
-  describe('ReaderC<MiniInt, Identity, *>', () => {
-    tests<number, IdentityF, $<ReaderCF, [IdentityF, number]>, number>(
-      ReaderC.Algebra(Algebra.Id),
+  describe('Kleisli<Identity, MiniInt, *>', () => {
+    tests<number, IdentityF, $<KleisliF, [IdentityF, number]>, number>(
+      ReaderC.Kleisli(Algebra.Id),
       (fa, s) => fa(s),
       fc.integer(),
       fc.integer(),
@@ -61,9 +60,9 @@ describe('Reader Effect', () => {
     );
   });
 
-  describe('ReaderC<number, Eval, *>', () => {
-    tests<number, EvalF, $<ReaderCF, [EvalF, number]>, number>(
-      ReaderC.Algebra(Algebra.Eval),
+  describe('Kleisli<Eval, number, *>', () => {
+    tests<number, EvalF, $<KleisliF, [EvalF, number]>, number>(
+      ReaderC.Kleisli(Algebra.Eval),
       (fa, s) => fa(s),
       fc.integer(),
       fc.integer(),
@@ -80,12 +79,24 @@ describe('Reader Effect', () => {
       $<IxRWSF, [number, never, unknown, unknown]>,
       number
     >(
-      RWSAlgebra<number, unknown>(),
+      ReaderC.RWS<number, never, unknown>(),
       (fa, r) => fa.runReader(r),
       fc.integer(),
       fc.integer(),
       Eq.fromUniversalEquals(),
       X => fc.func(X).map(MtlReader.lift),
+      X => X,
+    );
+  });
+
+  describe('Function1<number, *>', () => {
+    tests<number, IdentityF, $<Function1F, [number]>, number>(
+      ReaderC.Function1<number>(),
+      (fa, r) => fa(r),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      X => fc.func(X),
       X => X,
     );
   });

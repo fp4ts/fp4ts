@@ -9,21 +9,15 @@ import { ReaderF } from '@fp4ts/fused-core';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 
 /**
- * A carrier for the `Reader` effect.
+ * A Kleisli carrier for the `Reader` effect.
  */
-export type ReaderC<F, R, A> = Kleisli<F, R, A>;
-export const ReaderC = Object.freeze({
-  Monad: <F, R>(F: Monad<F>): Monad<$<ReaderCF, [F, R]>> => Kleisli.Monad(F),
-
-  Algebra: <R, Sig, F>(
-    F: Algebra<Sig, F>,
-  ): Algebra<{ reader: $<ReaderF, [R]> } | Sig, $<ReaderCF, [F, R]>> =>
-    Algebra.withCarrier<$<ReaderF, [R]>, ReaderCF1<R>, 'reader'>(
-      new ReaderCarrier('reader'),
-    )(F),
-});
-
-// -- Instances
+export function KleisliAlgebra<R, Sig, F>(
+  F: Algebra<Sig, F>,
+): Algebra<{ reader: $<ReaderF, [R]> } | Sig, $<ReaderCF, [F, R]>> {
+  return Algebra.withCarrier<$<ReaderF, [R]>, ReaderCF1<R>, 'reader'>(
+    new ReaderCarrier('reader'),
+  )(F);
+}
 
 class ReaderCarrier<R, N extends string> extends Carrier<
   $<ReaderF, [R]>,
@@ -35,7 +29,7 @@ class ReaderCarrier<R, N extends string> extends Carrier<
   }
 
   monad<F>(F: Monad<F>): Monad<$<ReaderCF, [F, R]>> {
-    return ReaderC.Monad<F, R>(F);
+    return Kleisli.Monad<F, R>(F);
   }
 
   eff<H, G, F, Sig, A>(
@@ -44,7 +38,7 @@ class ReaderCarrier<R, N extends string> extends Carrier<
     hdl: Handler<H, G, $<ReaderCF, [F, R]>>,
     { eff }: Eff<Record<N, $<ReaderF, [R]>>, G, A>,
     hu: Kind<H, [void]>,
-  ): ReaderC<F, R, Kind<H, [A]>> {
+  ): Kleisli<F, R, Kind<H, [A]>> {
     return r =>
       eff.foldMap<[F, H]>(
         () => F.pure(H.map_(hu, () => r)),
@@ -58,7 +52,7 @@ class ReaderCarrier<R, N extends string> extends Carrier<
     hdl: Handler<H, G, $<ReaderCF, [F, R]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
-  ): ReaderC<F, R, Kind<H, [A]>> {
+  ): Kleisli<F, R, Kind<H, [A]>> {
     return r => F.eff(H, hx => hdl(hx)(r), eff, hu);
   }
 }
