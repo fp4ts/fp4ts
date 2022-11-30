@@ -10,20 +10,16 @@ import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
 
 /**
- * A carrier for the `Writer` effect.
+ * A `WriterT` carrier for the `Writer` effect.
  */
-export type WriterC<F, W, A> = WriterT<F, W, A>;
-export const WriterC = Object.freeze({
-  Monad: <F, W>(F: Monad<F>, W: Monoid<W>) => WriterT.Monad(F, W),
-
-  Algebra: <W, Sig, F>(
-    F: Algebra<Sig, F>,
-    W: Monoid<W>,
-  ): Algebra<{ writer: $<WriterF, [W]> } | Sig, $<WriterCF, [F, W]>> =>
-    Algebra.withCarrier<$<WriterF, [W]>, WriterCF1<W>, 'writer'>(
-      new WriterCarrier('writer', W),
-    )(F),
-});
+export function WriterTAlgebra<W, Sig, F>(
+  F: Algebra<Sig, F>,
+  W: Monoid<W>,
+): Algebra<{ writer: $<WriterF, [W]> } | Sig, $<WriterCF, [F, W]>> {
+  return Algebra.withCarrier<$<WriterF, [W]>, WriterCF1<W>, 'writer'>(
+    new WriterCarrier('writer', W),
+  )(F);
+}
 
 // -- Instances
 
@@ -46,7 +42,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
     hdl: Handler<H, G, $<WriterCF, [F, W]>>,
     { eff }: Eff<Record<N, $<WriterF, [W]>>, G, A>,
     hu: Kind<H, [void]>,
-  ): WriterC<F, W, Kind<H, [A]>> {
+  ): WriterT<F, W, Kind<H, [A]>> {
     return eff.foldMap<[$<WriterCF, [F, W]>, H]>(
       w => F.pure([hu, w]),
       ga =>
@@ -64,7 +60,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
     hdl: Handler<H, G, $<WriterCF, [F, W]>>,
     eff: Eff<Sig, G, A>,
     hu: Kind<H, [void]>,
-  ): WriterC<F, W, Kind<H, [A]>> {
+  ): WriterT<F, W, Kind<H, [A]>> {
     return F.eff(
       this.buildCtxFunctor(H),
       ([hx, w1]) =>
