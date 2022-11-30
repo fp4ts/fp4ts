@@ -95,7 +95,7 @@ describe('WriterT', () => {
       EqKF: EqK<F>,
     ) {
       checkAll(
-        `MonadReader<WriterT<${nameF}, ${nameW}, *>, ${nameW}>`,
+        `MonadWriter<WriterT<${nameF}, ${nameW}, *>, ${nameW}>`,
         MonadWriterSuite(WriterT.MonadWriter(F, W)).censor(
           fc.integer(),
           arbW,
@@ -206,7 +206,7 @@ describe('WriterT', () => {
           A.fp4tsWriterT<OptionF, string, X>(
             A.fp4tsOption(fc.tuple(arbX, fc.string())),
           ),
-        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals()).liftEq,
+        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals<string>()).liftEq,
       ),
     );
 
@@ -257,7 +257,7 @@ describe('WriterT', () => {
           A.fp4tsWriterT<OptionF, string, X>(
             A.fp4tsOption(fc.tuple(arbX, fc.string())),
           ),
-        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals()).liftEq,
+        WriterT.EqK(Option.EqK, Eq.fromUniversalEquals<string>()).liftEq,
         A.fp4tsOption,
         Option.Eq,
         A.fp4tsEval,

@@ -93,8 +93,8 @@ StateT.flatMap_ =
 
 /**
  * Version of the `flatMap` that uses `Defer` type class instance to add stack
- * safety. On the contrary to the rest of the `StateT` functions, this one add
- * allocation of `F` for each invocation.
+ * safety. On the contrary to the rest of the `StateT` functions, this one does
+ * not add allocation of `F` for each operation.
  *
  * This function is used whenever a `Monad` instance is required for a stack safe
  * monad `F`.

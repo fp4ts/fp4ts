@@ -14,3 +14,7 @@ export * from './ix-state-t';
 export * from './state-t';
 export * from './reader-t';
 export * from './writer-t';
+export {
+  WriterT as WriterTChurch,
+  WriterTF as WriterTChurchF,
+} from './writer-t-church';
