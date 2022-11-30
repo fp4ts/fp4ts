@@ -43,6 +43,7 @@ import {
   IxStateT,
   IxRWST,
   IxRWS,
+  RWST,
 } from '@fp4ts/cats-mtl';
 import { MiniInt } from './mini-int';
 
@@ -293,6 +294,17 @@ export const fp4tsIxRWST = <R, W, S1, S2, F, A>(
 export const fp4tsIxStateT = <F, S1, S2, A>(
   A: Arbitrary<(s: S1) => Kind<F, [[A, S2]]>>,
 ): Arbitrary<IxStateT<S1, S2, F, A>> => A;
+
+export const fp4tsRWST = <R, W, S, F, A>(
+  F: FlatMap<F>,
+  A: Arbitrary<(r: R, s: S, w: W) => Kind<F, [[A, S, W]]>>,
+): Arbitrary<RWST<R, W, S, F, A>> =>
+  A.map(
+    runRWS =>
+      <R>(g: (a: A, s: S, w: W) => Kind<F, [R]>) =>
+      (r, s, w) =>
+        F.flatMap_(runRWS(r, s, w), ([a, s, w]) => g(a, s, w)),
+  );
 
 export const fp4tsStateT = <F, S, A>(
   F: FlatMap<F>,

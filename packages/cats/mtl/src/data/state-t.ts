@@ -11,6 +11,7 @@ import {
   isStackSafeMonad,
   Monad,
   MonadError,
+  StackSafeMonad,
 } from '@fp4ts/cats-core';
 import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
@@ -131,11 +132,10 @@ StateT.Functor = <F, S>(): Functor<$<StateTF, [S, F]>> =>
 
 StateT.Monad = <F, S>(F: Monad<F>): Monad<$<StateTF, [S, F]>> =>
   isStackSafeMonad(F)
-    ? Monad.of({
+    ? StackSafeMonad.of({
         ...StateT.Functor(),
         pure: StateT.pure,
         flatMap_: StateT.flatMapDefer_(F),
-        tailRecM_: StateT.tailRecM_(F),
       })
     : Monad.of({
         ...StateT.Functor(),

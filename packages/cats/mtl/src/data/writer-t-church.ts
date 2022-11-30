@@ -18,7 +18,7 @@ import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { MonadWriter } from '../monad-writer';
 
 /**
- * Church-encoded StateT monad.
+ * Church-encoded WriterT monad.
  *
  * This is a less safe, but more performant implementation of the Writer monad,
  * having roughly 10-30% better performance over the canonical implementation.
@@ -106,7 +106,7 @@ WriterT.tailRecM_ =
         ea => w =>
           ea.fold<Kind<F, [Either<[A, W], R>]>>(
             (a: A) => F.pure(Left(tupled(a, w))),
-            (b: B) => F.map_(g(b)(w), r => Right(r)),
+            (b: B) => F.map_(g(b)(w), Right),
           ),
       )(w),
     );
