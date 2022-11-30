@@ -8,10 +8,10 @@ import { $, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
-import { IxStateT, StateT } from '@fp4ts/cats-mtl';
+import { StateT } from '@fp4ts/cats-mtl';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
-import { MonadErrorSuite, MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
+import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -24,23 +24,27 @@ describe('IxStateT', () => {
   ) {
     checkAll(
       `MonadState<IxStateT<MiniInt, MiniInt, ${effectName}, *>, MiniInt>`,
-      MonadStateSuite(IxStateT.MonadState<MiniInt, F>(F)).monadState(
+      MonadStateSuite(StateT.MonadState<F, MiniInt>(F)).monadState(
         A.fp4tsMiniInt(),
         MiniInt.Eq,
-        <X>(X: Arbitrary<X>): Arbitrary<IxStateT<MiniInt, MiniInt, F, X>> =>
-          A.fp4tsIxStateT(
+        <X>(X: Arbitrary<X>): Arbitrary<StateT<MiniInt, F, X>> =>
+          A.fp4tsStateT(
+            F,
             fc.func<[MiniInt], Kind<F, [[X, MiniInt]]>>(
               mkArbF(fc.tuple(X, A.fp4tsMiniInt())),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, F, X>> =>
-          eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+        <X>(X: Eq<X>): Eq<StateT<MiniInt, F, X>> =>
+          Eq.by(
+            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+            StateT.runAS(F),
+          ),
       ),
     );
 
     checkAll(
       `Monad<IxStateT<MiniInt, ${effectName}, *>>`,
-      MonadSuite(IxStateT.Monad<MiniInt, F>(F)).monad(
+      MonadSuite(StateT.Monad<F, MiniInt>(F)).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -49,27 +53,31 @@ describe('IxStateT', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        <X>(X: Arbitrary<X>): Arbitrary<IxStateT<MiniInt, MiniInt, F, X>> =>
-          A.fp4tsIxStateT(
+        <X>(X: Arbitrary<X>): Arbitrary<StateT<MiniInt, F, X>> =>
+          A.fp4tsStateT(
+            F,
             fc.func<[MiniInt], Kind<F, [[X, MiniInt]]>>(
               mkArbF(fc.tuple(X, A.fp4tsMiniInt())),
             ),
           ),
-        <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, F, X>> =>
-          eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+        <X>(X: Eq<X>): Eq<StateT<MiniInt, F, X>> =>
+          Eq.by(
+            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+            StateT.runAS(F),
+          ),
       ),
     );
   }
 
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
-      const S = IxStateT.MonadState<number, EvalF>(Eval.Monad);
+      const S = StateT.MonadState<EvalF, number>(Eval.Monad);
       const size = 50_000;
-      const go: IxStateT<number, number, EvalF, void> = S.flatMap_(S.get, n =>
+      const go: StateT<number, EvalF, void> = S.flatMap_(S.get, n =>
         n >= size ? S.unit : S.flatMap_(S.set(n + 1), () => go),
       );
 
-      expect(IxStateT.runS(Eval.Monad)(0)(go).value).toBe(size);
+      expect(StateT.runS(Eval.Monad)(go)(0).value).toBe(size);
     });
   });
 
@@ -81,12 +89,11 @@ describe('IxStateT', () => {
 
   runTests(['Option', Option.Monad], A.fp4tsOption, Option.Eq);
 
+  const EitherSM = Either.MonadError<string>();
   checkAll(
     'MonadError<StateT<MiniInt, Either<string, *>, *>>',
     MonadErrorSuite(
-      IxStateT.MonadError<MiniInt, $<EitherF, [string]>, string>(
-        Either.MonadError<string>(),
-      ),
+      StateT.MonadError<$<EitherF, [string]>, MiniInt, string>(EitherSM),
     ).monadError(
       fc.integer(),
       fc.integer(),
@@ -100,44 +107,21 @@ describe('IxStateT', () => {
       Eq.fromUniversalEquals(),
       <X>(
         X: Arbitrary<X>,
-      ): Arbitrary<IxStateT<MiniInt, MiniInt, $<EitherF, [string]>, X>> =>
-        fc.func<[MiniInt], Either<string, [X, MiniInt]>>(
-          A.fp4tsEither(fc.string(), fc.tuple(X, A.fp4tsMiniInt())),
+      ): Arbitrary<StateT<MiniInt, $<EitherF, [string]>, X>> =>
+        A.fp4tsStateT(
+          EitherSM,
+          fc.func<[MiniInt], Either<string, [X, MiniInt]>>(
+            A.fp4tsEither(fc.string(), fc.tuple(X, A.fp4tsMiniInt())),
+          ),
         ),
-      <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, $<EitherF, [string]>, X>> =>
-        eq.fn1Eq(
-          ec.miniInt(),
-          Either.Eq(Eq.fromUniversalEquals(), Eq.tuple(X, MiniInt.Eq)),
+      <X>(X: Eq<X>): Eq<StateT<MiniInt, $<EitherF, [string]>, X>> =>
+        Eq.by(
+          eq.fn1Eq(
+            ec.miniInt(),
+            Either.Eq(Eq.fromUniversalEquals(), Eq.tuple(X, MiniInt.Eq)),
+          ),
+          StateT.runAS(EitherSM),
         ),
-    ),
-  );
-
-  checkAll(
-    'Strong<IxStateT<number, *, *, Eval, number>>',
-    StrongSuite(IxStateT.Strong<EvalF, number>(Eval.Monad)).strong(
-      A.fp4tsMiniInt(),
-      fc.boolean(),
-      fc.boolean(),
-      fc.boolean(),
-      fc.integer(),
-      fc.integer(),
-      ec.miniInt(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      <X, Y>(
-        X: Arbitrary<X>,
-        Y: Arbitrary<Y>,
-      ): Arbitrary<IxStateT<X, Y, EvalF, number>> =>
-        fc.func<[X], Eval<[number, Y]>>(A.fp4tsEval(fc.tuple(fc.integer(), Y))),
-      <X, Y>(
-        X: ExhaustiveCheck<X>,
-        Y: Eq<Y>,
-      ): Eq<IxStateT<X, Y, EvalF, number>> =>
-        eq.fn1Eq(X, Eval.Eq(Eq.tuple(Eq.fromUniversalEquals(), Y))),
     ),
   );
 });

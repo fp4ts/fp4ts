@@ -11,5 +11,6 @@ export * from './writer';
 
 export * from './ix-rws-t';
 export * from './ix-state-t';
+export * from './state-t';
 export * from './reader-t';
 export * from './writer-t';

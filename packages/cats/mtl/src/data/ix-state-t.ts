@@ -33,6 +33,9 @@ import {
 import { Left, Right, Tuple2 } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
 
+/**
+ * Indexed StateT monad using a canonical, strict function implementation.
+ */
 export type IxStateT<S1, S2, F, A> = (s1: S1) => Kind<F, [[A, S2]]>;
 export const IxStateT = function <S1, S2, F, A>(
   runIxStateT: (s1: S1) => Kind<F, [[A, S2]]>,
@@ -115,38 +118,15 @@ IxStateT.Strong = <F, A>(
         ),
   });
 
-export type StateT<S, F, A> = IxStateT<S, S, F, A>;
-export const StateT = function <S, F, A>(
-  runStateT: (s: S) => Kind<F, [[A, S]]>,
-): StateT<S, F, A> {
-  return runStateT;
-};
-
-StateT.mapK = IxStateT.mapK as <F, G>(
-  fk: FunctionK<F, G>,
-) => <S, A>(f: StateT<S, F, A>) => StateT<S, G, A>;
-
-StateT.state = IxStateT.state as <F, W>(
-  F: Applicative<F>,
-) => <S, A>(f: (s1: S) => [A, S]) => StateT<S, F, A>;
-
-StateT.runA = IxStateT.runA as <F>(
-  F: Functor<F>,
-) => <S1>(s1: S1) => <A>(fa: IxStateT<S1, unknown, F, A>) => Kind<F, [A]>;
-
-StateT.runS = IxStateT.runS as <F>(
-  F: Functor<F>,
-) => <S1>(s1: S1) => <S2>(fa: IxStateT<S1, S2, F, unknown>) => Kind<F, [S2]>;
-
-StateT.Functor = <F, S>(F: Functor<F>): Functor<$<IxStateTF, [S, S, F]>> =>
+IxStateT.Functor = <F, S>(F: Functor<F>): Functor<$<IxStateTF, [S, S, F]>> =>
   Functor.of({
     map_: (fa, f) =>
       suspend(F, s => F.map_(fa(s), Tuple2.Bifunctor.leftMap(f))),
   });
 
-StateT.Apply = <F, S>(F: FlatMap<F>): Apply<$<IxStateTF, [S, S, F]>> =>
+IxStateT.Apply = <F, S>(F: FlatMap<F>): Apply<$<IxStateTF, [S, S, F]>> =>
   Apply.of({
-    ...StateT.Functor(F),
+    ...IxStateT.Functor(F),
     ap_: (ff, fa) =>
       suspend(F, s1 =>
         F.flatMap_(ff(s1), ([f, s2]) =>
@@ -155,9 +135,9 @@ StateT.Apply = <F, S>(F: FlatMap<F>): Apply<$<IxStateTF, [S, S, F]>> =>
       ),
   });
 
-StateT.FlatMap = <F, S>(F: FlatMap<F>): FlatMap<$<IxStateTF, [S, S, F]>> =>
+IxStateT.FlatMap = <F, S>(F: FlatMap<F>): FlatMap<$<IxStateTF, [S, S, F]>> =>
   FlatMap.of<$<IxStateTF, [S, S, F]>>({
-    ...StateT.Apply(F),
+    ...IxStateT.Apply(F),
     flatMap_: (fa, f) =>
       suspend(F, s => F.flatMap_(fa(s), ([a, s]) => f(a)(s))),
     tailRecM_: (x, f) => s1 =>
@@ -171,17 +151,17 @@ StateT.FlatMap = <F, S>(F: FlatMap<F>): FlatMap<$<IxStateTF, [S, S, F]>> =>
       ),
   });
 
-StateT.Monad = <S, F>(F: Monad<F>): Monad<$<IxStateTF, [S, S, F]>> =>
+IxStateT.Monad = <S, F>(F: Monad<F>): Monad<$<IxStateTF, [S, S, F]>> =>
   Monad.of<$<IxStateTF, [S, S, F]>>({
-    ...StateT.FlatMap(F),
+    ...IxStateT.FlatMap(F),
     pure: a => s => F.pure([a, s]),
   });
 
-StateT.MonadError = <S, F, E>(
+IxStateT.MonadError = <S, F, E>(
   F: MonadError<F, E>,
 ): MonadError<$<IxStateTF, [S, S, F]>, E> =>
   MonadError.of<$<IxStateTF, [S, S, F]>, E>({
-    ...StateT.Monad(F),
+    ...IxStateT.Monad(F),
     throwError:
       <A>(e: E) =>
       () =>
@@ -190,11 +170,11 @@ StateT.MonadError = <S, F, E>(
       suspend(F, s => F.handleErrorWith_(fa(s), e => h(e)(s))),
   });
 
-StateT.MonadState = <S, F>(
+IxStateT.MonadState = <S, F>(
   F: Monad<F>,
 ): MonadState<$<IxStateTF, [S, S, F]>, S> =>
   MonadState.of<$<IxStateTF, [S, S, F]>, S>({
-    ...StateT.Monad(F),
+    ...IxStateT.Monad(F),
     get: s => F.pure([s, s]),
     set: s => s1 => F.pure([undefined, s]),
     modify: f => s => F.pure([undefined, f(s)]),
