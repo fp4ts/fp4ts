@@ -70,6 +70,20 @@ WriterT.map_ =
   g =>
     fwa(a => g(f(a)));
 
+WriterT.ap_ =
+  <F, W, A, B>(
+    ff: WriterT<F, W, (a: A) => B>,
+    fa: WriterT<F, W, A>,
+  ): WriterT<F, W, B> =>
+  g =>
+    ff(f => fa(a => g(f(a))));
+
+WriterT.map2_ =
+  <F, W, A, B>(fa: WriterT<F, W, A>, fb: WriterT<F, W, B>) =>
+  <C>(f: (a: A, b: B) => C): WriterT<F, W, C> =>
+  g =>
+    fa(a => fb(b => g(f(a, b))));
+
 WriterT.flatMap_ =
   <F, W, A, B>(
     fwa: WriterT<F, W, A>,
@@ -116,14 +130,22 @@ WriterT.tailRecM_ =
 WriterT.Functor = <F, W>(): Functor<$<WriterTF, [F, W]>> =>
   Functor.of({ map_: WriterT.map_ });
 
+WriterT.Applicative = <F, S>(): Applicative<$<WriterTF, [S, F]>> =>
+  Applicative.of({
+    ...WriterT.Functor(),
+    pure: WriterT.pure,
+    ap_: WriterT.ap_,
+    map2_: WriterT.map2_,
+  });
+
 WriterT.Monad = <F, W>(F: Monad<F>): Monad<$<WriterTF, [F, W]>> =>
   isStackSafeMonad(F)
     ? StackSafeMonad.of({
-        pure: WriterT.pure,
+        ...WriterT.Applicative(),
         flatMap_: WriterT.flatMapDefer_(F),
       })
     : Monad.of({
-        pure: WriterT.pure,
+        ...WriterT.Applicative(),
         flatMap_: WriterT.flatMap_,
         tailRecM_: WriterT.tailRecM_(F),
       });
