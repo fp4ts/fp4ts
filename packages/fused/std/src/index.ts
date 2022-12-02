@@ -12,3 +12,4 @@ export * from './state-c';
 export * from './writer-c';
 
 export * from './rws-c';
+export * from './rws-t-c';

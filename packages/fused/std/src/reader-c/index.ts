@@ -5,7 +5,6 @@
 
 import { Function1Algebra } from './function1';
 import { KleisliAlgebra } from './kleisli';
-import { RWSTAlgebra } from './rws-t';
 
 /**
  * Carriers for the `Reader` effect.
@@ -13,5 +12,4 @@ import { RWSTAlgebra } from './rws-t';
 export const ReaderC = Object.freeze({
   Kleisli: KleisliAlgebra,
   Function1: Function1Algebra,
-  RWST: RWSTAlgebra,
 });

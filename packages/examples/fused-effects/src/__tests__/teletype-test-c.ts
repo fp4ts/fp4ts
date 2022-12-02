@@ -5,23 +5,21 @@
 
 import { $, Kind, pipe } from '@fp4ts/core';
 import { Functor } from '@fp4ts/cats';
+import { StateTF, WriterTF } from '@fp4ts/cats-mtl';
 import {
   Algebra,
   Eff,
   Handler,
   State,
-  StateC,
   StateF,
   Writer,
-  WriterCF,
   WriterF,
 } from '@fp4ts/fused';
 import { TeletypeF } from '../teletype';
 
-export type TeletypeTestC<F, A> = StateC<
-  string[],
-  $<WriterCF, [string[], F]>,
-  A
+export type TeletypeTestC<F, A> = $<
+  StateTF,
+  [string[], $<WriterTF, [F, string[]]>, A]
 >;
 
 type Sig = { teletype: TeletypeF } | TeletypeTestIOC;
