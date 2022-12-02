@@ -4,128 +4,170 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind, tupled } from '@fp4ts/core';
-import { Eq, Eval, EvalF, Identity, IdentityF } from '@fp4ts/cats';
-import { IxRWSF, IxStateTF, RWS, StateTF } from '@fp4ts/cats-mtl';
-import { forAll, IsEq } from '@fp4ts/cats-test-kit';
+import { $, Kind } from '@fp4ts/core';
+import {
+  CommutativeMonoid,
+  Eq,
+  Eval,
+  EvalF,
+  Identity,
+  IdentityF,
+} from '@fp4ts/cats';
+import {
+  IxRWSF,
+  IxStateTF,
+  RWS,
+  RWST,
+  RWSTF,
+  StateT,
+  StateTF,
+} from '@fp4ts/cats-mtl';
+import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
+import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as eq from '@fp4ts/cats-test-kit/lib/eq';
+import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
-import { RWSC, StateC } from '@fp4ts/fused-std';
+import { RWSC, RWSTC, StateC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { State, StateF } from '@fp4ts/fused-core';
 
 describe('State Effect', () => {
-  function tests<S, F, CF, A>(
-    F: Algebra<{ state: $<StateF, [S]> }, CF>,
-    runState: <X>(fa: Kind<CF, [X]>, s: S) => Kind<F, [[X, S]]>,
-    arbS: Arbitrary<S>,
-    arbA: Arbitrary<A>,
-    EqS: Eq<S>,
-    EqA: Eq<A>,
-    mkArbCF: <X>(X: Arbitrary<X>) => Arbitrary<Kind<CF, [X]>>,
-    mkEqF: <X>(X: Eq<X>) => Eq<Kind<F, [X]>>,
+  function runTests<F, S>(
+    nameF: string,
+    F: Algebra<{ state: $<StateF, [S]> }, F>,
+    [arbS, EqS, nameS]: [Arbitrary<S>, Eq<S>, string],
+    mkArbF: <X>(A: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
+    mkEqF: <X>(A: Eq<X>) => Eq<Kind<F, [X]>>,
   ) {
-    const S = State.Syntax(F);
+    const M = State.MonadState(F);
+    describe(nameF, () => {
+      checkAll(
+        `MonadState<${nameF}, ${nameS}>`,
+        MonadStateSuite(M).monadState(arbS, EqS, mkArbF, mkEqF),
+      );
 
-    test(
-      'get returns the state variable',
-      forAll(
-        arbS,
-        fc.func<[S], Kind<CF, [A]>>(mkArbCF(arbA)),
-        (s, f) =>
-          new IsEq(runState(F.flatMap_(S.get, f), s), runState(f(s), s)),
-      )(mkEqF(Eq.tuple(EqA, EqS))),
-    );
-
-    test(
-      'set updates the state variable',
-      forAll(
-        arbS,
-        arbS,
-        mkArbCF(arbA),
-        (s1, s2, fa) =>
-          new IsEq(
-            runState(
-              F.flatMap_(S.set(s2), () => fa),
-              s1,
-            ),
-            runState(fa, s2),
-          ),
-      )(mkEqF(Eq.tuple(EqA, EqS))),
-    );
+      checkAll(
+        `Monad<${nameF}>`,
+        MonadStateSuite(M).monad(
+          fc.integer(),
+          fc.integer(),
+          fc.integer(),
+          fc.integer(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          mkArbF,
+          mkEqF,
+        ),
+      );
+    });
   }
 
-  describe('IxStateT<number, number, Identity, *>', () => {
-    tests<number, IdentityF, $<IxStateTF, [number, number, IdentityF]>, number>(
-      StateC.IxStateT(Algebra.Id),
-      (fa, s) => fa(s),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      X => fc.func(fc.tuple(X, fc.integer())),
-      X => X,
-    );
-  });
+  runTests<$<IxStateTF, [MiniInt, MiniInt, IdentityF]>, MiniInt>(
+    'IxStateT<MiniInt, MiniInt, Identity, *>',
+    StateC.IxStateT(Algebra.Id),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X => A.fp4tsIxStateT(fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
+    X => eq.fn1Eq(ec.miniInt(), Eq.tuple(X, MiniInt.Eq)),
+  );
 
-  describe('IxStateT<number, number, Eval, *>', () => {
-    tests<number, EvalF, $<IxStateTF, [number, number, EvalF]>, number>(
-      StateC.IxStateT(Algebra.Eval),
-      (fa, s) => fa(s),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      X => fc.func(A.fp4tsEval(fc.tuple(X, fc.integer()))),
-      Eval.Eq,
-    );
-  });
+  runTests<$<IxStateTF, [MiniInt, MiniInt, EvalF]>, MiniInt>(
+    'IxStateT<MiniInt, MiniInt, Eval, *>',
+    StateC.IxStateT(Algebra.Eval),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X => A.fp4tsIxStateT(fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt())))),
+    X => eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, MiniInt.Eq))),
+  );
 
-  describe('StateT<number, Identity, *>', () => {
-    tests<number, IdentityF, $<StateTF, [number, IdentityF]>, number>(
-      StateC.StateT(Algebra.Id),
-      (fa, s) => fa(a => s => tupled(a, s))(s),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      X => A.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, fc.integer()))),
-      X => X,
-    );
-  });
+  runTests<$<StateTF, [MiniInt, IdentityF]>, MiniInt>(
+    'StateT<MiniInt, MiniInt, Identity, *>',
+    StateC.StateT(Algebra.Id),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X => A.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
+    X =>
+      Eq.by(
+        eq.fn1Eq(ec.miniInt(), Eq.tuple(X, MiniInt.Eq)),
+        StateT.runAS(Identity.Monad),
+      ),
+  );
 
-  describe('StateT<number, Eval, *>', () => {
-    tests<number, EvalF, $<StateTF, [number, EvalF]>, number>(
-      StateC.StateT(Algebra.Eval),
-      (fa, s) => fa(a => s => Eval.now(tupled(a, s)))(s),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      X =>
-        A.fp4tsStateT(
-          Eval.Monad,
-          fc.func(A.fp4tsEval(fc.tuple(X, fc.integer()))),
+  runTests<$<StateTF, [MiniInt, EvalF]>, MiniInt>(
+    'StateT<MiniInt, MiniInt, Eval, *>',
+    StateC.StateT(Algebra.Eval),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X =>
+      A.fp4tsStateT(
+        Eval.Monad,
+        fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt()))),
+      ),
+    X =>
+      Eq.by(
+        eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, MiniInt.Eq))),
+        StateT.runAS(Eval.Monad),
+      ),
+  );
+
+  runTests<$<IxRWSF, [unknown, void, MiniInt, MiniInt]>, MiniInt>(
+    'RWS<unknown, void, MiniInt, *>',
+    RWSC.Algebra(CommutativeMonoid.void),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X =>
+      A.fp4tsRWS(
+        fc.func(fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void))),
+      ),
+    X =>
+      Eq.by(
+        eq.fn1Eq(
+          ec.miniInt(),
+          Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
         ),
-      Eval.Eq,
-    );
-  });
+        rws => s => rws.runAll(null, s, CommutativeMonoid.void),
+      ),
+  );
 
-  describe('RWS<unknown, never, number, *>', () => {
-    tests<
-      number,
-      IdentityF,
-      $<IxRWSF, [unknown, never, number, number]>,
-      number
-    >(
-      RWSC.Algebra<unknown, number>(),
-      (fa, s) => fa.runState(s),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      X => fc.func(fc.tuple(X, fc.integer())).map(RWS.state),
-      X => X,
-    );
-  });
+  runTests<$<RWSTF, [unknown, void, MiniInt, IdentityF]>, MiniInt>(
+    'RWST<unknown, void, MiniInt, Identity, *>',
+    RWSTC.Algebra(Algebra.Id, CommutativeMonoid.void),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X =>
+      A.fp4tsRWST(
+        Identity.Monad,
+        fc.func(fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void))),
+      ),
+    X =>
+      Eq.by(
+        eq.fn1Eq(
+          ec.miniInt(),
+          Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
+        ),
+        rwsfa => s =>
+          RWST.runASW(Identity.Monad, CommutativeMonoid.void)(rwsfa)(null, s),
+      ),
+  );
+
+  runTests<$<RWSTF, [unknown, void, MiniInt, EvalF]>, MiniInt>(
+    'RWST<unknown, void, MiniInt, Eval, *>',
+    RWSTC.Algebra(Algebra.Eval, CommutativeMonoid.void),
+    [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
+    X =>
+      A.fp4tsRWST(
+        Eval.Monad,
+        fc.func(
+          A.fp4tsEval(
+            fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void)),
+          ),
+        ),
+      ),
+    X =>
+      Eq.by(
+        eq.fn1Eq(
+          ec.miniInt(),
+          Eval.Eq(Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals())),
+        ),
+        rwsfa => s =>
+          RWST.runASW(Eval.Monad, CommutativeMonoid.void)(rwsfa)(null, s),
+      ),
+  );
 });
