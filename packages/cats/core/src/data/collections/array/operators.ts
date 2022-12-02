@@ -15,6 +15,7 @@ import { Either } from '../../either';
 import { List } from '../list';
 import { Chain } from '../chain';
 import { arrayFoldableWithIndex } from './instances';
+import { isIdentityTC } from '../../identity';
 
 export const head: <A>(xs: A[]) => A = xs => {
   const h = xs[0];
@@ -240,21 +241,25 @@ export const align_ = <A, B>(xs: A[], ys: B[]): Ior<A, B>[] => {
   return results;
 };
 
-export const traverse_ =
-  <G>(G: Applicative<G>) =>
-  <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    G.map_(
-      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
-      ys => ys.toArray,
-    );
+export const traverse_ = <G>(G: Applicative<G>) =>
+  isIdentityTC(G)
+    ? (map_ as any)
+    : <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
+        G.map_(
+          Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
+          ys => ys.toArray,
+        );
 
-export const traverseFilter_ =
-  <G>(G: Applicative<G>) =>
-  <A, B>(xs: A[], f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [B[]]> =>
-    G.map_(
-      Chain.traverseFilterViaChain(G, arrayFoldableWithIndex())(xs, x => f(x)),
-      ys => ys.toArray,
-    );
+export const traverseFilter_ = <G>(G: Applicative<G>) =>
+  isIdentityTC(G)
+    ? (collect_ as any)
+    : <A, B>(xs: A[], f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [B[]]> =>
+        G.map_(
+          Chain.traverseFilterViaChain(G, arrayFoldableWithIndex())(xs, x =>
+            f(x),
+          ),
+          ys => ys.toArray,
+        );
 
 export const equals_ =
   <AA>(E: Eq<AA>) =>

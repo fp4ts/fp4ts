@@ -33,6 +33,7 @@ import { Apply, TraverseStrategy } from '../../apply';
 import { None, Option, Some } from '../option';
 import { Ior } from '../ior';
 import { Iter } from './iterator';
+import { isIdentityTC } from '../identity';
 import { List, ListBuffer } from './list';
 import { Vector, VectorBuilder } from './vector';
 import { View } from './view';
@@ -421,7 +422,9 @@ export class _LazyList<out A> {
   public traverse<G>(
     G: Applicative<G>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
-    return Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs));
+    return isIdentityTC(G)
+      ? f => this.map(f) as any
+      : Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs));
   }
 
   private traverseImpl<G, Rhs>(
@@ -444,7 +447,9 @@ export class _LazyList<out A> {
   public traverseFilter<G>(
     G: Applicative<G>,
   ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
-    return Apply.TraverseStrategy(G)(Rhs => this.traverseFilterImpl(G, Rhs));
+    return isIdentityTC(G)
+      ? f => this.collect(f as any) as any
+      : Apply.TraverseStrategy(G)(Rhs => this.traverseFilterImpl(G, Rhs));
   }
 
   private traverseFilterImpl<G, Rhs>(

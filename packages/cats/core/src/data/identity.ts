@@ -41,6 +41,24 @@ interface IdentityObj {
   readonly Traversable: Traversable<IdentityF>;
 }
 
+const IdentitySymbol = Symbol('@fp4ts/cats/core/data/Identity');
+export function isIdentityTC(
+  TC: Traversable<any>,
+): TC is Traversable<IdentityF>;
+export function isIdentityTC(TC: Foldable<any>): TC is Foldable<IdentityF>;
+export function isIdentityTC(TC: Monad<any>): TC is Monad<IdentityF>;
+export function isIdentityTC(
+  TC: Applicative<any>,
+): TC is Applicative<IdentityF>;
+export function isIdentityTC(TC: FlatMap<any>): TC is FlatMap<IdentityF>;
+export function isIdentityTC(TC: Apply<any>): TC is Apply<IdentityF>;
+export function isIdentityTC(TC: Functor<any>): TC is Functor<IdentityF>;
+export function isIdentityTC(
+  TC: Functor<any> | Foldable<any>,
+): TC is Functor<IdentityF> | Foldable<IdentityF> {
+  return IdentitySymbol in TC;
+}
+
 // -- Instances
 
 Object.defineProperty(Identity, 'EqK', {
@@ -101,9 +119,10 @@ Object.defineProperty(Identity, 'Traversable', {
 
 const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() => EqK.of({ liftEq: id }));
 
-const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() =>
-  Functor.of({ map_: (fa, f) => f(fa) }),
-);
+const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() => ({
+  [IdentitySymbol]: true,
+  ...Functor.of({ map_: (fa, f) => f(fa) }),
+}));
 
 const identityDistributive: Lazy<Distributive<IdentityF>> = lazyVal(() =>
   Distributive.of<IdentityF>({
@@ -168,11 +187,12 @@ const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
   Comonad.of({ ...identityCoflatMap(), extract: id }),
 );
 
-const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() =>
-  Foldable.of({
+const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() => ({
+  [IdentitySymbol]: true,
+  ...Foldable.of({
     foldRight_: (fa, ez, f) => Eval.defer(() => f(fa, ez)),
   }),
-);
+}));
 
 const identityTraversable: Lazy<Traversable<IdentityF>> = lazyVal(() =>
   Traversable.of({

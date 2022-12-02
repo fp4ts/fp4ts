@@ -8,6 +8,7 @@ import { id, tupled } from '@fp4ts/core';
 import { Eval } from '@fp4ts/cats-core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import {
+  Identity,
   LazyList,
   List,
   Option,
@@ -1459,6 +1460,30 @@ describe('LazyList', () => {
         xs = xs.scanRight(Eval.now(0), (x, y) => y.map(y => x + y));
       }
       xs.toArray;
+    });
+  });
+
+  describe('traverse', () => {
+    it('should be lazy on Identity', () => {
+      let cnt = 0;
+      LazyList(1, 2, 3)
+        .map(x => (cnt++, x))
+        .traverse(Identity.Monad)(x => x + 1)
+        .take(1).toArray;
+
+      expect(cnt).toBe(1);
+    });
+  });
+
+  describe('traverseFilter', () => {
+    it('should be lazy on Identity', () => {
+      let cnt = 0;
+      LazyList(1, 2, 3)
+        .map(x => (cnt++, x))
+        .traverseFilter(Identity.Monad)(x => Some(x + 1))
+        .take(1).toArray;
+
+      expect(cnt).toBe(1);
     });
   });
 

@@ -24,6 +24,7 @@ import { Cons, List } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
 import { View } from '../view';
+import { isIdentityTC } from '../../identity';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -1015,35 +1016,40 @@ export const distinctByOrd_ = <A, B>(
   });
 };
 
-export const traverse_ =
-  <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
-    Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
-      const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
-        xs === nil
-          ? Rhs.toRhs(() => G.pure(nil))
-          : Rhs.map2Rhs(
-              f((xs as Cons<A>)._head),
-              Rhs.defer(() => go((xs as Cons<A>)._tail)),
-            )(cons);
+export const traverse_ = <G>(G: Applicative<G>) =>
+  isIdentityTC(G)
+    ? (map_ as any)
+    : <A, B>(xs: List<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [List<B>]> =>
+        Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
+          const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
+            xs === nil
+              ? Rhs.toRhs(() => G.pure(nil))
+              : Rhs.map2Rhs(
+                  f((xs as Cons<A>)._head),
+                  Rhs.defer(() => go((xs as Cons<A>)._tail)),
+                )(cons);
 
-      return Rhs.toG(Rhs.defer(() => go(xs)));
-    });
+          return Rhs.toG(Rhs.defer(() => go(xs)));
+        });
 
-export const traverseFilter_ =
-  <G>(G: Applicative<G>) =>
-  <A, B>(xs: List<A>, f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [List<B>]> =>
-    Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
-      const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
-        xs === nil
-          ? Rhs.toRhs(() => G.pure(nil))
-          : Rhs.map2Rhs(
-              f((xs as Cons<A>)._head),
-              Rhs.defer(() => go((xs as Cons<A>)._tail)),
-            )((y, ys) => (y.nonEmpty ? cons(y.get, ys) : ys));
+export const traverseFilter_ = <G>(G: Applicative<G>) =>
+  isIdentityTC(G)
+    ? (collect_ as any)
+    : <A, B>(
+        xs: List<A>,
+        f: (a: A) => Kind<G, [Option<B>]>,
+      ): Kind<G, [List<B>]> =>
+        Apply.TraverseStrategy(G)(<Rhs>(Rhs: TraverseStrategy<G, Rhs>) => {
+          const go = (xs: List<A>): Kind<Rhs, [Kind<G, [List<B>]>]> =>
+            xs === nil
+              ? Rhs.toRhs(() => G.pure(nil))
+              : Rhs.map2Rhs(
+                  f((xs as Cons<A>)._head),
+                  Rhs.defer(() => go((xs as Cons<A>)._tail)),
+                )((y, ys) => (y.nonEmpty ? cons(y.get, ys) : ys));
 
-      return Rhs.toG(Rhs.defer(() => go(xs)));
-    });
+          return Rhs.toG(Rhs.defer(() => go(xs)));
+        });
 
 export const flatTraverse_ = <G, A, B>(
   G: Applicative<G>,
