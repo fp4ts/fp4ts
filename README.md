@@ -44,6 +44,11 @@ laws, to verify correctness of those implementations.
   - `@fp4ts/effect-laws` Laws for testing type class instances/implementations
   - `@fp4ts/effect-test-kit` Jest integration for testing type class instances and collection of builtin arbitraries for provided data types
 
+- `@fp4ts/fused` Partial port of the [fused-effects](https://hackage.haskell.org/package/fused-effects) providing algebraic, higher-order, extensible effects with a standard library compatible with `@fp4ts/cats-mtl`.
+
+  - `@fp4ts/fused-kernel` Set of type classes and primitives for defining effect carriers as well as interpreters (_included_)
+  - `@fp4ts/fused-core` Definition of standard effect types (_included_)
+  - `@fp4ts/fused-std` Library of standard effect carriers using `@fp4ts/cats-mtl` (_included_)
 
 - `@fp4ts/http` Port of the [http4s](https://github.com/http4s/http4s) library,
 providing minimal functional interface for building HTTP services. In addition
