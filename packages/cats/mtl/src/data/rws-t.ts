@@ -166,10 +166,12 @@ RWST.Functor = <R, W, S, F>(): Functor<$<RWSTF, [R, W, S, F]>> =>
 RWST.Monad = <R, W, S, F>(F: Monad<F>): Monad<$<RWSTF, [R, W, S, F]>> =>
   isStackSafeMonad(F)
     ? StackSafeMonad.of({
+        ...RWST.Functor(),
         pure: RWST.pure,
         flatMap_: RWST.flatMapDefer_(F),
       })
     : Monad.of({
+        ...RWST.Functor(),
         pure: RWST.pure,
         flatMap_: RWST.flatMap_,
         tailRecM_: RWST.tailRecM_(F),

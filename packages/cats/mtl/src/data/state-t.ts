@@ -84,6 +84,20 @@ StateT.map_ =
   g =>
     sfa(a => g(f(a)));
 
+StateT.ap_ =
+  <F, S, A, B>(
+    ff: StateT<S, F, (a: A) => B>,
+    fa: StateT<S, F, A>,
+  ): StateT<S, F, B> =>
+  g =>
+    ff(f => fa(a => g(f(a))));
+
+StateT.map2_ =
+  <F, S, A, B>(fa: StateT<S, F, A>, fb: StateT<S, F, B>) =>
+  <C>(f: (a: A, b: B) => C): StateT<S, F, C> =>
+  g =>
+    fa(a => fb(b => g(f(a, b))));
+
 StateT.flatMap_ =
   <F, S, A, B>(
     sfa: StateT<S, F, A>,
@@ -130,16 +144,23 @@ StateT.tailRecM_ =
 StateT.Functor = <F, S>(): Functor<$<StateTF, [S, F]>> =>
   Functor.of({ map_: StateT.map_ });
 
+StateT.Applicative = <F, S>(): Applicative<$<StateTF, [S, F]>> =>
+  Applicative.of({
+    ...StateT.Functor(),
+    pure: StateT.pure,
+    ap_: StateT.ap_,
+    map2_: StateT.map2_,
+  });
+
 StateT.Monad = <F, S>(F: Monad<F>): Monad<$<StateTF, [S, F]>> =>
   isStackSafeMonad(F)
     ? StackSafeMonad.of({
-        ...StateT.Functor(),
-        pure: StateT.pure,
+        ...StateT.Applicative(),
         flatMap_: StateT.flatMapDefer_(F),
       })
     : Monad.of({
         ...StateT.Functor(),
-        pure: StateT.pure,
+        ...StateT.Applicative(),
         flatMap_: StateT.flatMap_,
         tailRecM_: StateT.tailRecM_(F),
       });
