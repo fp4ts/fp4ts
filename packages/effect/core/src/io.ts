@@ -50,6 +50,7 @@ import {
 } from '@fp4ts/effect-kernel';
 import { IOFiber } from './io-fiber';
 import { IOOutcome } from './io-outcome';
+import { LiftIO } from './lift-io';
 import { Tracing, TracingEvent } from './tracing';
 import { IORuntime } from './unsafe/io-runtime';
 
@@ -316,6 +317,10 @@ abstract class _IO<out A> {
 
   public onError(f: (e: Error) => IO<void>): IO<A> {
     return this.handleErrorWith(e => f(e).flatMap(() => IO.throwError(e)));
+  }
+
+  public to<F>(F: LiftIO<F>): Kind<F, [A]> {
+    return F.liftIO(this);
   }
 
   // -- Unsafe

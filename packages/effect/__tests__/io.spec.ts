@@ -6,10 +6,20 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { id, pipe, throwError, tupled } from '@fp4ts/core';
-import { Either, Left, Right, Some, List, Eq, None } from '@fp4ts/cats';
+import {
+  Either,
+  Left,
+  Right,
+  Some,
+  List,
+  Eq,
+  None,
+  Option,
+  Kleisli,
+} from '@fp4ts/cats';
 import { Semaphore } from '@fp4ts/effect-kernel';
-import { IO, IOOutcome } from '@fp4ts/effect-core';
-import { checkAll, forAll } from '@fp4ts/cats-test-kit';
+import { IO, IOF, IOOutcome, LiftIO } from '@fp4ts/effect-core';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 import { AsyncSuite } from '@fp4ts/effect-laws';
@@ -1091,6 +1101,45 @@ describe('IO', () => {
         expect(io).toCompleteWith(undefined, ticker);
         expect(cont).not.toHaveBeenCalled();
       },
+    );
+  });
+
+  describe('to', () => {
+    test.ticked('lift IO to IO is identity', ticker =>
+      forAll(
+        A.fp4tsIO(fc.integer()),
+        ioa => new IsEq(ioa, ioa.to(LiftIO.IO)),
+      )(E.eqIO(Eq.fromUniversalEquals<number>(), ticker))(),
+    );
+
+    test.ticked('lift IO to OptionT is .map(Some)', ticker =>
+      forAll(
+        A.fp4tsIO(fc.integer()),
+        ioa => new IsEq(ioa.map(Some), ioa.to(LiftIO.OptionT)),
+      )(E.eqIO(Option.Eq(Eq.fromUniversalEquals<number>()), ticker))(),
+    );
+
+    test.ticked('lift IO to EitherT is .map(Right)', ticker =>
+      forAll(
+        A.fp4tsIO(fc.integer()),
+        ioa => new IsEq(ioa.map(Right), ioa.to(LiftIO.EitherT())),
+      )(
+        E.eqIO(
+          Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+          ticker,
+        ),
+      )(),
+    );
+
+    test.ticked('lift IO to Kleisli is () => this', ticker =>
+      forAll(
+        A.fp4tsIO(fc.integer()),
+        ioa =>
+          new IsEq<Kleisli<IOF, unknown, number>>(
+            () => ioa,
+            ioa.to(LiftIO.Kleisli()),
+          ),
+      )(Eq.by(E.eqIO(Eq.fromUniversalEquals(), ticker), fa => fa(null)))(),
     );
   });
 
