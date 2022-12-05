@@ -48,6 +48,7 @@ import {
   lastOption,
   map_,
   nonEmpty,
+  partitionWith_,
   partition_,
   popHead,
   popLast,
@@ -183,7 +184,8 @@ declare module './algebra' {
 
     forEach(f: (a: A) => void): void;
 
-    partition<L, R>(f: (a: A) => Either<L, R>): [Queue<L>, Queue<R>];
+    partition(f: (a: A) => boolean): [Queue<A>, Queue<A>];
+    partitionWith<L, R>(f: (a: A) => Either<L, R>): [Queue<L>, Queue<R>];
 
     scanLeft<B>(z: B, f: (b: B, a: A) => B): Queue<B>;
     scanLeft1<B>(this: Queue<B>, f: (x: B, y: B) => B): Queue<B>;
@@ -461,6 +463,9 @@ Queue.prototype.forEach = function (f) {
 
 Queue.prototype.partition = function (f) {
   return partition_(this, f);
+};
+Queue.prototype.partitionWith = function (f) {
+  return partitionWith_(this, f);
 };
 
 Queue.prototype.scanLeft = function (z, f) {

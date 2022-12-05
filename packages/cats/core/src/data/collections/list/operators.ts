@@ -296,10 +296,6 @@ export const forEach: <A>(f: (a: A) => void) => (xs: List<A>) => void =
   f => xs =>
     forEach_(xs, f);
 
-export const partition: <A, L, R>(
-  f: (a: A) => Either<L, R>,
-) => (xs: List<A>) => [List<L>, List<R>] = f => xs => partition_(xs, f);
-
 export const scanLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -903,39 +899,40 @@ export const forEach_ = <A>(xs: List<A>, f: (a: A) => void): void => {
   }
 };
 
-export const partition_ = <A, L, R>(
+export const partition_ = <A>(
+  xs: List<A>,
+  p: (a: A) => boolean,
+): [List<A>, List<A>] => {
+  const ls = new ListBuffer<A>();
+  const rs = new ListBuffer<A>();
+  while (xs !== nil) {
+    const x = (xs as Cons<A>)._head;
+    if (p(x)) {
+      ls.addOne(x);
+    } else {
+      rs.addOne(x);
+    }
+    xs = (xs as Cons<A>)._tail;
+  }
+  return [ls.toList, rs.toList];
+};
+
+export const partitionWith_ = <A, L, R>(
   xs: List<A>,
   f: (a: A) => Either<L, R>,
 ): [List<L>, List<R>] => {
-  let hl: Cons<L> | undefined;
-  let tl: Cons<L> | undefined;
-  let hr: Cons<R> | undefined;
-  let tr: Cons<R> | undefined;
-
+  const ls = new ListBuffer<L>();
+  const rs = new ListBuffer<R>();
   while (xs !== nil) {
-    const r = f((xs as Cons<A>)._head);
-    if (r.isLeft) {
-      const nx = new Cons(r.getLeft, nil);
-      if (!hl) {
-        hl = nx;
-      } else {
-        tl!._tail = nx;
-      }
-      tl = nx;
+    const lr = f((xs as Cons<A>)._head);
+    if (lr.isLeft) {
+      ls.addOne(lr.getLeft);
     } else {
-      const nx = new Cons(r.get, nil);
-      if (!hr) {
-        hr = nx;
-      } else {
-        tr!._tail = nx;
-      }
-      tr = nx;
+      rs.addOne(lr.get);
     }
-
     xs = (xs as Cons<A>)._tail;
   }
-
-  return [hl ? hl : nil, hr ? hr : nil];
+  return [ls.toList, rs.toList];
 };
 
 export const scanLeft_ = <A, B>(

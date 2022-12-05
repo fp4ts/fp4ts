@@ -361,7 +361,25 @@ export const zipAllWith_ =
     return b.addIterator(iter).toVector;
   };
 
-export const partition_ = <A, L, R>(
+export const partition_ = <A>(
+  xs: Vector<A>,
+  p: (a: A) => boolean,
+): [Vector<A>, Vector<A>] => {
+  const l = new VectorBuilder<A>();
+  const r = new VectorBuilder<A>();
+
+  forEach_(xs, x => {
+    if (p(x)) {
+      l.addOne(x);
+    } else {
+      r.addOne(x);
+    }
+  });
+
+  return [l.toVector, r.toVector];
+};
+
+export const partitionWith_ = <A, L, R>(
   xs: Vector<A>,
   f: (a: A) => Either<L, R>,
 ): [Vector<L>, Vector<R>] => {

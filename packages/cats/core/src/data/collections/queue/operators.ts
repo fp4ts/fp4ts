@@ -233,10 +233,6 @@ export const forEach: <A>(f: (a: A) => void) => (q: Queue<A>) => void =
   f => q =>
     forEach_(q, f);
 
-export const partition: <A, L, R>(
-  f: (a: A) => Either<L, R>,
-) => (q: Queue<A>) => [Queue<L>, Queue<R>] = f => q => partition_(q, f);
-
 export const scanLeft: <A, B>(
   z: B,
   f: (b: B, a: A) => B,
@@ -435,12 +431,25 @@ export const forEach_ = <A>(q: Queue<A>, f: (a: A) => void): void => {
   }
 };
 
-export const partition_ = <A, L, R>(
+export const partition_ = <A>(
+  { _in, _out }: Queue<A>,
+  f: (a: A) => boolean,
+): [Queue<A>, Queue<A>] => {
+  const inPartition = _in.partition(f);
+  const outPartition = _out.partition(f);
+
+  return [
+    new Queue(inPartition[0], outPartition[0]),
+    new Queue(inPartition[1], outPartition[1]),
+  ];
+};
+
+export const partitionWith_ = <A, L, R>(
   { _in, _out }: Queue<A>,
   f: (a: A) => Either<L, R>,
 ): [Queue<L>, Queue<R>] => {
-  const inPartition = _in.partition(f);
-  const outPartition = _out.partition(f);
+  const inPartition = _in.partitionWith(f);
+  const outPartition = _out.partitionWith(f);
 
   return [
     new Queue(inPartition[0], outPartition[0]),

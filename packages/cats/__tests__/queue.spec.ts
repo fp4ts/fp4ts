@@ -337,14 +337,26 @@ describe('Queue', () => {
 
   test(
     'partition',
+    forAll(A.fp4tsQueue(fc.integer()), fc.func(fc.boolean()), (q, f) => {
+      const [lhsQ, rhsQ] = q.partition(f);
+      const [lhs, rhs] = q.toList.partition(f);
+      return (
+        lhsQ.toList.equals(Eq.fromUniversalEquals(), lhs) &&
+        rhsQ.toList.equals(Eq.fromUniversalEquals(), rhs)
+      );
+    }),
+  );
+
+  test(
+    'partitionWith',
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Either<string, string>>(
         A.fp4tsEither(fc.string(), fc.string()),
       ),
       (q, f) => {
-        const [lhsQ, rhsQ] = q.partition(f);
-        const [lhs, rhs] = q.toList.partition(f);
+        const [lhsQ, rhsQ] = q.partitionWith(f);
+        const [lhs, rhs] = q.toList.partitionWith(f);
         return (
           lhsQ.toList.equals(Eq.fromUniversalEquals(), lhs) &&
           rhsQ.toList.equals(Eq.fromUniversalEquals(), rhs)

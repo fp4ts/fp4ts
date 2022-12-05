@@ -96,14 +96,14 @@ function makeSuite(size: number) {
       values.splitAt(mid);
     }),
 
-    add(`partition all left (${size})`, () => {
-      values.partition(Left);
+    add(`partitionWith all left (${size})`, () => {
+      values.partitionWith(Left);
     }),
-    add(`partition all right (${size})`, () => {
-      values.partition(Right);
+    add(`partitionWith all right (${size})`, () => {
+      values.partitionWith(Right);
     }),
-    add(`partition half left half right (${size})`, () => {
-      values.partition(x => (x % 2 === 0 ? Right(x) : Left(x)));
+    add(`partitionWith half left half right (${size})`, () => {
+      values.partitionWith(x => (x % 2 === 0 ? Right(x) : Left(x)));
     }),
 
     add(`flatMap into singleton (${size})`, () => {

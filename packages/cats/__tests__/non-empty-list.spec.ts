@@ -266,10 +266,23 @@ describe('NonEmptyList', () => {
     'partition to be evq toList.partition',
     forAll(
       A.fp4tsNel(fc.integer()),
+      fc.func(fc.boolean()),
+      (xs, f) => new IsEq(xs.partition(f), xs.toList.partition(f)),
+    )(
+      Eq.tuple2(
+        List.Eq(Eq.fromUniversalEquals()),
+        List.Eq(Eq.fromUniversalEquals()),
+      ),
+    ),
+  );
+  test(
+    'partitionWith to be evq toList.partitionWith',
+    forAll(
+      A.fp4tsNel(fc.integer()),
       fc.func<[number], Either<number, number>>(
         A.fp4tsEither(fc.integer(), fc.integer()),
       ),
-      (xs, f) => new IsEq(xs.partition(f), xs.toList.partition(f)),
+      (xs, f) => new IsEq(xs.partitionWith(f), xs.toList.partitionWith(f)),
     )(
       Eq.tuple2(
         List.Eq(Eq.fromUniversalEquals()),

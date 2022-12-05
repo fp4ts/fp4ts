@@ -45,6 +45,7 @@ import {
   lastOption,
   lookup_,
   nonEmpty,
+  partitionWith_,
   partition_,
   popHead,
   popLast,
@@ -153,7 +154,8 @@ declare module './algebra' {
       defaultY: () => B,
     ): <C>(f: (a: AA, b: B) => C) => Vector<C>;
 
-    partition<L, R>(f: (a: A) => Either<L, R>): [Vector<L>, Vector<R>];
+    partition(f: (a: A) => boolean): [Vector<A>, Vector<A>];
+    partitionWith<L, R>(f: (a: A) => Either<L, R>): [Vector<L>, Vector<R>];
 
     scanLeft<B>(z: B, f: (b: B, a: A) => B): Vector<B>;
     scanLeft1<B>(this: Vector<B>, f: (b: B, a: B) => B): Vector<B>;
@@ -369,6 +371,9 @@ Vector.prototype.zipAllWith = function (that, defaultX, defaultY) {
 
 Vector.prototype.partition = function (f) {
   return partition_(this, f);
+};
+Vector.prototype.partitionWith = function (f) {
+  return partitionWith_(this, f);
 };
 
 Vector.prototype.scanLeft = function (z, f) {

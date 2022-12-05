@@ -1100,21 +1100,21 @@ describe('List', () => {
 
   describe('partition', () => {
     it('should partition empty list to tuple of empty lists', () => {
-      expect(List.empty.partition(() => Left(null))).toEqual([
+      expect(List.empty.partition(() => true)).toEqual([
         List.empty,
         List.empty,
       ]);
     });
 
     it('should return left partition', () => {
-      expect(List(1, 2, 3).partition(Left)).toEqual([
+      expect(List(1, 2, 3).partition(() => true)).toEqual([
         List(1, 2, 3),
         List.empty,
       ]);
     });
 
     it('should return right partition', () => {
-      expect(List(1, 2, 3).partition(Right)).toEqual([
+      expect(List(1, 2, 3).partition(() => false)).toEqual([
         List.empty,
         List(1, 2, 3),
       ]);
@@ -1122,7 +1122,36 @@ describe('List', () => {
 
     it('should make partition of odd and even numbers', () => {
       expect(
-        List(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(x =>
+        List(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(x => x % 2 !== 0),
+      ).toEqual([List(1, 3, 5, 7, 9), List(2, 4, 6, 8)]);
+    });
+  });
+
+  describe('partitionWith', () => {
+    it('should partitionWith empty list to tuple of empty lists', () => {
+      expect(List.empty.partitionWith(() => Left(null))).toEqual([
+        List.empty,
+        List.empty,
+      ]);
+    });
+
+    it('should return left partitionWith', () => {
+      expect(List(1, 2, 3).partitionWith(Left)).toEqual([
+        List(1, 2, 3),
+        List.empty,
+      ]);
+    });
+
+    it('should return right partitionWith', () => {
+      expect(List(1, 2, 3).partitionWith(Right)).toEqual([
+        List.empty,
+        List(1, 2, 3),
+      ]);
+    });
+
+    it('should make partitionWith of odd and even numbers', () => {
+      expect(
+        List(1, 2, 3, 4, 5, 6, 7, 8, 9).partitionWith(x =>
           x % 2 === 0 ? Right(x) : Left(x),
         ),
       ).toEqual([List(1, 3, 5, 7, 9), List(2, 4, 6, 8)]);

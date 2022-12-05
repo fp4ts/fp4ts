@@ -312,8 +312,11 @@ class _NonEmptyList<out A> {
     this.tail.forEach(f);
   }
 
-  public partition<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>] {
+  public partition(f: (a: A) => boolean): [List<A>, List<A>] {
     return this.toList.partition(f);
+  }
+  public partitionWith<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>] {
+    return this.toList.partitionWith(f);
   }
 
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {

@@ -122,13 +122,13 @@ function formatErrorMessages(
 
   if (msgs.isEmpty) return msgUnknown;
 
-  const [sysUnExpect, msgs1] = msgs.partition(msg =>
+  const [sysUnExpect, msgs1] = msgs.partitionWith(msg =>
     msg.tag === 'sys-unexpected' ? Left(msg) : Right(msg),
   );
-  const [unExpect, msgs2] = msgs1.partition(msg =>
+  const [unExpect, msgs2] = msgs1.partitionWith(msg =>
     msg.tag === 'unexpected' ? Left(msg) : Right(msg),
   );
-  const [expect, messages] = msgs2.partition(msg =>
+  const [expect, messages] = msgs2.partitionWith(msg =>
     msg.tag === 'expected' ? Left(msg) : Right(msg),
   );
 

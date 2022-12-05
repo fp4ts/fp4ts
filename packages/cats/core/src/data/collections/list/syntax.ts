@@ -88,6 +88,7 @@ import {
   view,
   distinctBy_,
   distinctByOrd_,
+  partitionWith_,
 } from './operators';
 import { Eval } from '../../../eval';
 import { View } from '../view';
@@ -194,7 +195,8 @@ declare module './algebra' {
 
     forEach(f: (a: A) => void): void;
 
-    partition<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>];
+    partition(f: (a: A) => boolean): [List<A>, List<A>];
+    partitionWith<L, R>(f: (a: A) => Either<L, R>): [List<L>, List<R>];
 
     fold: <B1, B2 = B1>(
       onNil: () => B1,
@@ -598,11 +600,12 @@ List.prototype.collectWhile = function <A, B>(
   return collectWhile_(this, f);
 };
 
-List.prototype.partition = function <A, L, R>(
-  this: List<A>,
-  f: (a: A) => Either<L, R>,
-): [List<L>, List<R>] {
+List.prototype.partition = function (f) {
   return partition_(this, f);
+};
+
+List.prototype.partitionWith = function (f) {
+  return partitionWith_(this, f);
 };
 
 List.prototype.scanLeft = function <A, B>(

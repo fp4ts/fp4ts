@@ -780,22 +780,49 @@ describe('Vector', () => {
 
   describe('partition', () => {
     it('should partition empty Vector to tuple of empty Vectors', () => {
-      const [l, r] = Vector.empty.partition(() => Left(null));
+      const [l, r] = Vector.empty.partition(() => true);
       expect([l.toArray, r.toArray]).toEqual([[], []]);
     });
 
     it('should return left partition', () => {
-      const [l, r] = Vector(1, 2, 3).partition(Left);
+      const [l, r] = Vector(1, 2, 3).partition(() => true);
       expect([l.toArray, r.toArray]).toEqual([[1, 2, 3], []]);
     });
 
     it('should return right partition', () => {
-      const [l, r] = Vector(1, 2, 3).partition(Right);
+      const [l, r] = Vector(1, 2, 3).partition(() => false);
       expect([l.toArray, r.toArray]).toEqual([[], [1, 2, 3]]);
     });
 
     it('should make partition of odd and even numbers', () => {
-      const [l, r] = Vector(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(x =>
+      const [l, r] = Vector(1, 2, 3, 4, 5, 6, 7, 8, 9).partition(
+        x => x % 2 !== 0,
+      );
+      expect([l.toArray, r.toArray]).toEqual([
+        [1, 3, 5, 7, 9],
+        [2, 4, 6, 8],
+      ]);
+    });
+  });
+
+  describe('partitionWith', () => {
+    it('should partitionWith empty Vector to tuple of empty Vectors', () => {
+      const [l, r] = Vector.empty.partitionWith(() => Left(null));
+      expect([l.toArray, r.toArray]).toEqual([[], []]);
+    });
+
+    it('should return left partitionWith', () => {
+      const [l, r] = Vector(1, 2, 3).partitionWith(Left);
+      expect([l.toArray, r.toArray]).toEqual([[1, 2, 3], []]);
+    });
+
+    it('should return right partitionWith', () => {
+      const [l, r] = Vector(1, 2, 3).partitionWith(Right);
+      expect([l.toArray, r.toArray]).toEqual([[], [1, 2, 3]]);
+    });
+
+    it('should make partitionWith of odd and even numbers', () => {
+      const [l, r] = Vector(1, 2, 3, 4, 5, 6, 7, 8, 9).partitionWith(x =>
         x % 2 === 0 ? Right(x) : Left(x),
       );
       expect([l.toArray, r.toArray]).toEqual([
