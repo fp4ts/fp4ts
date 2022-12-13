@@ -5,32 +5,25 @@
 
 import { Char } from '@fp4ts/core';
 import { Either, Left, List, Map, NonEmptyList, Ord, Right } from '@fp4ts/cats';
-import {
-  Accumulator,
-  Parser,
-  StringSource,
-  Rfc5234,
-  text,
-  Accumulator1,
-} from '@fp4ts/parse';
+import { Parser, StringSource, Rfc5234, text } from '@fp4ts/parse';
 import { Challenge } from '../challenge';
 import { AuthParams, Credentials, Token } from '../credentials';
 import * as Rfc7230 from './rfc7230';
 
 export const t68Chars: Parser<StringSource, Char> = text
   .oneOf('-._~+/')
-  .orElse(() => Rfc5234.digit())
-  .orElse(() => Rfc5234.alpha());
+  .orElse(Rfc5234.digit())
+  .orElse(Rfc5234.alpha());
 
 export const token68: Parser<StringSource, string> = t68Chars
-  .repAs1(Accumulator1.string())
-  .product(text.oneOf('=').repAs(Accumulator.string()))
+  .repAs1('', (x, y) => x + y)
+  .product(text.oneOf('=').repAs('', (x, y) => x + y))
   .map(([xs, ys]) => xs + ys);
 
 export const scheme: Parser<StringSource, string> = Rfc7230.token;
 
 export const authParamValue: Parser<StringSource, string> =
-  Rfc7230.token.orElse(() => Rfc7230.quotedString);
+  Rfc7230.token.orElse(Rfc7230.quotedString);
 
 export const authParam: Parser<StringSource, [string, string]> = Rfc7230.token
   .productL(text.char('=' as Char).surroundedBy(Rfc7230.bws))
@@ -65,7 +58,7 @@ export const credentials: Parser<StringSource, Credentials> = scheme['<*'](
   .product(
     Rfc7230.headerRep1(authParam.backtrack())
       .map<Either<string, List<[string, string]>>>(Right)
-      .orElse(() => token68.map(Left)),
+      .orElse(token68.map(Left)),
   )
   .map(([scheme, ea]) =>
     ea.fold(

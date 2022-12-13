@@ -12,7 +12,7 @@ describe('q-value', () => {
     'toString, parse identity',
     forAll(
       A.fp4tsQValue(),
-      q => QValue.parser.parse(QValue.toString(q)).get === q,
+      q => QValue.parser.parse(QValue.toString(q)).value.get === q,
     ),
   );
 });

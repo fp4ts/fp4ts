@@ -10,7 +10,7 @@ import { timed } from './common/timed';
 {
   const file = fs.readFileSync('./resources/bla25.json');
   const contents = file.toString();
-  timed('@fp4ts bla25', () => jsonP.parse(contents));
+  timed('@fp4ts bla25', () => jsonP.parse(contents).value);
   timed('native bla25', () => JSON.parse(contents));
 }
 
@@ -18,6 +18,6 @@ import { timed } from './common/timed';
   const file = fs.readFileSync('./resources/ugh10k.json');
   const contents = file.toString();
 
-  timed('@fp4ts ugh10k', () => jsonP.parse(contents));
-  timed('native ugh10k', () => jsonP.parse(contents));
+  timed('@fp4ts ugh10k', () => jsonP.parse(contents).value);
+  timed('native ugh10k', () => JSON.parse(contents));
 }

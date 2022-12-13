@@ -155,12 +155,15 @@ export class _LazyList<out A> {
     return new _LazyList(this.source.map(src => (src === Nil ? Nil : go(src))));
   }
 
+  public get size(): number {
+    return this.foldLeft(0, (x, _) => x + 1);
+  }
+
   public get uncons(): Option<[A, LazyList<A>]> {
-    return this.source.map(source =>
-      source === Nil
-        ? None
-        : Some(tupled(source.head, new _LazyList(source.tail))),
-    ).value;
+    const source = this.forceSource;
+    return source === Nil
+      ? None
+      : Some([source.head, new _LazyList(source.tail)]);
   }
 
   public get view(): View<A> {

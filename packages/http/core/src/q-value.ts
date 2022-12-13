@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, coerce, Lazy, lazyVal, newtype, TypeOf } from '@fp4ts/core';
-import { IdentityF } from '@fp4ts/cats';
+import { EvalF } from '@fp4ts/cats';
 import { parser, Parser, StringSource, text, Rfc5234 } from '@fp4ts/parse';
 import { ParseResult, Rfc7230 } from './parsing';
 
@@ -43,17 +43,15 @@ const mkQValue = (thousands: number, s: string): ParseResult<QValue> =>
     : ParseResult.success(QValueCotr(thousands));
 
 const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
-  const eof = Parser.eof<StringSource>();
+  const eof = Parser.eof<StringSource, EvalF>();
   const ch = text.char;
-  const decQValue = Rfc5234.digit<StringSource, IdentityF>()
-    .repAs1<string>((x, y) => x + y)
+  const decQValue = Rfc5234.digit<StringSource, EvalF>()
+    .repAs1<string>('', (x, y) => x + y)
     .collect(s => QValue.fromString(s).toOption);
 
   const qvalue = ch('0' as Char)
-    ['*>'](
-      eof.as(QValue.zero).orElse(() => text.char('.' as Char)['*>'](decQValue)),
-    )
-    .orElse(() =>
+    ['*>'](eof.as(QValue.zero).orElse(text.char('.' as Char)['*>'](decQValue)))
+    .orElse(
       ch('1' as Char)
         ['*>'](
           ch('.' as Char)
@@ -66,5 +64,5 @@ const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
   return parser`;${Rfc7230.ows}${text.oneOf('qQ')}=${qvalue}`
     .backtrack()
     .map(([, , q]) => q)
-    .orElse(() => Parser.succeed(QValue.one));
+    .orElse(Parser.succeed(QValue.one));
 });

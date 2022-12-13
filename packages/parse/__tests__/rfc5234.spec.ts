@@ -43,21 +43,21 @@ describe('RFC 5234', () => {
       it(
         'should parse a single valid character',
         forAll(validArb, c => {
-          expect(rule.complete().parse(c)).toEqual(Right(f(c)));
+          expect(rule.complete().parse(c).value).toEqual(Right(f(c)));
           return true;
         }),
       );
 
       it(
         'should reject a single invalid character',
-        forAll(invalidArb, c => rule.complete().parse(c).isLeft),
+        forAll(invalidArb, c => rule.complete().parse(c).value.isLeft),
       );
 
       it(
         'should reject all but single char',
         forAll(
           fc.stringOf(validArb).filter(s => s.length !== 1),
-          s => rule.complete().parse(s).isLeft,
+          s => rule.complete().parse(s).value.isLeft,
         ),
       );
     });
@@ -136,14 +136,16 @@ describe('RFC 5234', () => {
   );
 
   test('crlf should accept \\r\\n', () => {
-    expect(Rfc5234.crlf.complete().parse('\r\n')).toEqual(Right(undefined));
+    expect(Rfc5234.crlf.complete().parse('\r\n').value).toEqual(
+      Right(undefined),
+    );
   });
 
   test(
     'crlf should reject anything but \\r\\n',
     forAll(
       fc.string().filter(s => s !== '\r\n'),
-      s => Rfc5234.crlf.complete().parse(s).isLeft,
+      s => Rfc5234.crlf.complete().parse(s).value.isLeft,
     ),
   );
 
@@ -156,7 +158,7 @@ describe('RFC 5234', () => {
       wspArb.map(x => `\r\n${x}`),
     );
 
-    forAll(lwspArb, s => Rfc5234.lwsp.complete().parse(s).isRight)();
+    forAll(lwspArb, s => Rfc5234.lwsp.complete().parse(s).value.isRight)();
   });
 
   test('lwsp should reject \\r\\n unless followed by linear whitespace', () => {
@@ -168,6 +170,6 @@ describe('RFC 5234', () => {
       ),
     ).map(opt => `\r\n${opt.getOrElse(() => '')}`);
 
-    forAll(arb, s => Rfc5234.lwsp.complete().parse(s).isLeft)();
+    forAll(arb, s => Rfc5234.lwsp.complete().parse(s).value.isLeft)();
   });
 });

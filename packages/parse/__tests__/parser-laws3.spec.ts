@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { $, pipe } from '@fp4ts/core';
-import { IdentityF, Kleisli } from '@fp4ts/cats';
+import { EvalF, IdentityF, Kleisli } from '@fp4ts/cats';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Parser, ParserTF, StringSource } from '@fp4ts/parse-core';
 import { eq, fp4tsStringParser0, mkStringParserArb0 } from './arbitraries';
@@ -14,7 +14,7 @@ describe('Parser Laws', () => {
   fc.configureGlobal({ numRuns: 50 });
 
   describe('FlatMap', () => {
-    const F = Parser.Monad<StringSource>();
+    const F = Parser.Monad<StringSource, EvalF>();
 
     test(
       'flatMap associativity',
@@ -81,7 +81,7 @@ describe('Parser Laws', () => {
   });
 
   describe('Monad', () => {
-    const F = Parser.Monad<StringSource>();
+    const F = Parser.Monad<StringSource, EvalF>();
 
     test(
       'left identity',
@@ -93,7 +93,7 @@ describe('Parser Laws', () => {
         fc.string(),
         (a, f, s) =>
           eq(
-            Parser.succeed<StringSource, string>(a).flatMap(f).parse(s),
+            Parser.succeed<StringSource, EvalF, string>(a).flatMap(f).parse(s),
             f(a).parse(s),
           ) && eq(pipe(F.pure(a), F.flatMap(f)).parse(s), f(a).parse(s)),
       ),
@@ -118,7 +118,7 @@ describe('Parser Laws', () => {
         fc.string(),
         (a, f, s) => {
           const C = Kleisli.Compose(F);
-          type F = $<ParserTF, [StringSource, IdentityF]>;
+          type F = $<ParserTF, [StringSource, EvalF]>;
 
           return eq(
             C.andThen_(F.pure as Kleisli<F, number, number>, f)(a).parse(s),

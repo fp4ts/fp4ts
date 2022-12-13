@@ -6,33 +6,37 @@
 import * as C from 'parser-ts/lib/char';
 import * as P from 'parser-ts/lib/Parser';
 import * as S from 'parser-ts/Stream';
-import { pipe } from '@fp4ts/core';
+import { Char, pipe } from '@fp4ts/core';
+import { text } from '@fp4ts/parse-text';
 
-const chainl1 =
-  <A>(op: P.Parser<string, (x: A) => (y: A) => A>) =>
-  (p: P.Parser<string, A>): P.Parser<string, A> => {
-    const rest = P.many(P.ap(p)(op));
-    return pipe(
-      p,
-      P.bindTo('x'),
-      P.bind('rest', () => rest),
-      P.map(({ x, rest }) => rest.reduce((ac, f) => f(ac), x)),
-    );
-  };
+import { timed } from './common/timed';
 
-const number = pipe(
-  P.many1(C.digit),
-  P.map(xs => parseInt(xs.join(''))),
-);
-const expr = pipe(
-  number,
-  chainl1(P.map(() => (x: number) => (y: number) => x + y)(C.char('+'))),
-);
+{
+  const number = pipe(
+    P.many1(C.digit),
+    P.map(xs => parseInt(xs.join(''))),
+  );
+  const expr = pipe(
+    number,
+    P.chain(h =>
+      pipe(
+        P.many(P.apSecond(number)(C.char('+'))),
+        P.map(xs => xs.reduce((a, b) => a + b, h)),
+      ),
+    ),
+  );
 
-const input = '1' + '+1'.repeat(50_000);
+  const input = '1' + '+1'.repeat(50_000);
 
-const start = Date.now();
-console.log(expr(S.stream(input.split(''))));
-const end = Date.now();
+  timed('parse-ts', () => console.log(expr(S.stream(input.split('')))));
+}
 
-console.log(end - start);
+{
+  const number = text.digits1().map(Number);
+  const expr = number
+    .sepBy1(text.char('+' as Char))
+    .map(xs => xs.foldLeft(0, (a, b) => a + b));
+
+  const input = '1' + '+1'.repeat(50_000);
+  timed('@fp4ts', () => console.log(expr.parse(input).value));
+}

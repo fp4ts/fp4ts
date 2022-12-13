@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { compose, pipe } from '@fp4ts/core';
-import { Eval } from '@fp4ts/cats';
+import { Eval, EvalF } from '@fp4ts/cats';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Parser, StringSource } from '@fp4ts/parse-core';
 import { eq, fp4tsStringParser0, mkStringParserArb0 } from './arbitraries';
@@ -14,7 +14,7 @@ describe('Parser Laws', () => {
   fc.configureGlobal({ numRuns: 50 });
 
   describe('Apply', () => {
-    const F = Parser.Monad<StringSource>();
+    const F = Parser.Monad<StringSource, EvalF>();
 
     test(
       'apply composition',
@@ -99,7 +99,7 @@ describe('Parser Laws', () => {
   });
 
   describe('Applicative', () => {
-    const F = Parser.Monad<StringSource>();
+    const F = Parser.Monad<StringSource, EvalF>();
 
     test(
       'applicative identity',
@@ -108,7 +108,11 @@ describe('Parser Laws', () => {
         fc.string(),
         (fa, s) =>
           eq(
-            fa['<*>'](Parser.succeed((a: string) => a)).parse(s),
+            Parser.succeed<StringSource, EvalF, (s: string) => string>(
+              (a: string) => a,
+            )
+              ['<*>'](fa)
+              .parse(s),
             fa.parse(s),
           ) &&
           eq(
@@ -139,7 +143,7 @@ describe('Parser Laws', () => {
         mkStringParserArb0(fc.func<[number], string>(fc.string())),
         fc.string(),
         (a, ff, s) =>
-          eq(F.pure(a)['<*>'](ff).parse(s), F.ap_(ff, F.pure(a)).parse(s)) &&
+          eq(ff['<*>'](F.pure(a)).parse(s), F.ap_(ff, F.pure(a)).parse(s)) &&
           eq(
             F.ap_(ff, F.pure(a)).parse(s),
             pipe(
@@ -176,7 +180,11 @@ describe('Parser Laws', () => {
 
           return (
             eq(
-              fa['<*>'](fab['<*>'](fbc['<*>'](Parser.succeed(comp)))).parse(s),
+              Parser.succeed<StringSource, EvalF, typeof comp>(comp)
+                ['<*>'](fbc)
+                ['<*>'](fab)
+                ['<*>'](fa)
+                .parse(s),
               pipe(F.pure(comp), F.ap(fbc), F.ap(fab), F.ap(fa)).parse(s),
             ) &&
             eq(
@@ -195,8 +203,8 @@ describe('Parser Laws', () => {
         fc.string(),
         (a, s) =>
           eq(
-            Parser.unit<StringSource>().as(a).parse(s),
-            Parser.succeed<StringSource, number>(a).parse(s),
+            Parser.unit<StringSource, EvalF>().as(a).parse(s),
+            Parser.succeed<StringSource, EvalF, number>(a).parse(s),
           ) && eq(F.map_(F.unit, () => a).parse(s), F.pure(a).parse(s)),
       ),
     );

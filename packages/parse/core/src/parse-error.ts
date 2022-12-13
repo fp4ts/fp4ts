@@ -31,7 +31,7 @@ export class ParseError {
     return new ParseError(pos, this.msgs);
   }
 
-  public withMessage(msg: Message): ParseError {
+  public setMessage(msg: Message): ParseError {
     return new ParseError(this.pos, [
       msg,
       ...this.msgs.filter(m => m.tag !== msg.tag),
@@ -39,21 +39,17 @@ export class ParseError {
   }
 
   public addMessage(msg: Message): ParseError {
-    return new ParseError(this.pos, [...this.msgs, msg]);
-  }
-
-  public withMessages(msgs: Message[]): ParseError {
-    return new ParseError(this.pos, msgs);
+    return new ParseError(this.pos, [msg, ...this.msgs]);
   }
 
   public merge(that: ParseError): ParseError {
     if (that.isEmpty && this.nonEmpty) return this;
     if (this.isEmpty && that.nonEmpty) return that;
     switch (this.pos.compare(that.pos)) {
-      case Compare.EQ:
-        return new ParseError(this.pos, [...this.msgs, ...that.msgs]);
       case Compare.LT:
         return that;
+      case Compare.EQ:
+        return new ParseError(this.pos, [...this.msgs, ...that.msgs]);
       case Compare.GT:
         return this;
     }

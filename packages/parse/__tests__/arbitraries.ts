@@ -12,10 +12,10 @@ import { text } from '@fp4ts/parse-text';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 export const eq = (
-  l: Either<ParseError, any>,
-  r: Either<ParseError, any>,
+  l: Eval<Either<ParseError, any>>,
+  r: Eval<Either<ParseError, any>>,
 ): boolean => {
-  expect(l).toEqual(r);
+  expect(l.value).toEqual(r.value);
   return true;
 };
 
@@ -208,7 +208,7 @@ export const orElse = <S, F, A>(
     .tuple(arbP, arbP)
     .chain(([lhs, rhs]) =>
       fc.oneof(
-        fc.constant(lhs.orElse(() => rhs)),
+        fc.constant(lhs.orElse(rhs)),
         fc.constant(ParserT.MonoidK<S, F>().combineK_(lhs, () => rhs)),
       ),
     );

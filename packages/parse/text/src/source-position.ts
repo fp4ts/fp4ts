@@ -35,6 +35,8 @@ export function updatePositionByString(
   startPos: SourcePosition,
   string: string,
 ): SourcePosition {
+  if (string === '') return startPos;
+
   let line = startPos.line;
   let column = startPos.column;
   for (let i = 0, len = string.length; i < len; i++) {

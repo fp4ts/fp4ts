@@ -9,6 +9,8 @@ import { Compare, Ord } from '@fp4ts/cats';
 export class SourcePosition {
   private __void!: void;
 
+  public static readonly initial: SourcePosition = new SourcePosition(1, 1);
+
   public constructor(
     public readonly line: number,
     public readonly column: number,
@@ -42,7 +44,5 @@ export class SourcePosition {
 }
 
 const sourceLocationOrd: Lazy<Ord<SourcePosition>> = lazyVal(() =>
-  Ord.of({
-    compare: (x, y) => x.compare(y),
-  }),
+  Ord.of({ compare: (x, y) => x.compare(y) }),
 );

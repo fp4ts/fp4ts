@@ -161,12 +161,12 @@ const mediaRangeParser = <A>(
     .string('*/*')
     .as(['*', '*'] as [string, string])
     .backtrack()
-    .orElse(() =>
+    .orElse(
       Rfc7230.token['<*'](text.char('/' as Char)).product(
-        anyStr1.as('*').orElse(() => Rfc7230.token),
+        anyStr1.as('*').orElse(Rfc7230.token),
       ),
     )
-    .orElse(() => anyStr1.as(['*', '*']))
+    .orElse(anyStr1.as(['*', '*']))
     .map(([s1, s2]) => builder(s1, s2));
 };
 
@@ -180,7 +180,7 @@ export const mediaTypeExtensionParser: Lazy<
     .product(
       text
         .char('=' as Char)
-        ['*>'](Rfc7230.token.orElse(() => Rfc7230.quotedString))
+        ['*>'](Rfc7230.token.orElse(Rfc7230.quotedString))
         .optional(),
     )
     .map(([str, ostr]) => [

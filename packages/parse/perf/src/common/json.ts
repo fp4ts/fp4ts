@@ -3,46 +3,34 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { EvalF } from '@fp4ts/cats';
 import { Char } from '@fp4ts/core';
-import { Parser, StringSource } from '@fp4ts/parse-core';
+import { StringSource } from '@fp4ts/parse-core';
+import { ParserT } from '@fp4ts/parse-core/lib/parser-t';
 import { text } from '@fp4ts/parse-text';
 
-type Json =
-  | { tag: 'null' }
-  | { tag: 'boolean'; value: boolean }
-  | { tag: 'number'; value: number }
-  | { tag: 'string'; value: string }
-  | { tag: 'array'; value: Json[] }
-  | { tag: 'object'; value: Record<string, Json> };
+type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 
-const JNull: Json = { tag: 'null' };
-const JBool = (value: boolean): Json => ({ tag: 'boolean', value });
-const JNumber = (value: number): Json => ({ tag: 'number', value });
-const JString = (value: string): Json => ({ tag: 'string', value });
-const JArray = (value: Json[]): Json => ({ tag: 'array', value });
-const JObject = (value: Record<string, Json>): Json => ({
-  tag: 'object',
-  value,
-});
+export const jsonP: ParserT<StringSource, EvalF, Json> = ParserT.defer<
+  StringSource,
+  EvalF,
+  Json
+>(() =>
+  nullP
+    .orElse(boolP)
+    .orElse(numberP)
+    .orElse(stringP)
+    .orElse(arrayP)
+    .orElse(objectP),
+);
 
-export const jsonP: Parser<StringSource, Json> = Parser.defer(() => nullP)
-  ['<|>'](() => boolP)
-  ['<|>'](() => numberP)
-  ['<|>'](() => stringP)
-  ['<|>'](() => arrayP)
-  ['<|>'](() => objectP);
-
-const nullP = text.string('null').as(JNull);
+const nullP = text.string('null').map<Json>(() => null);
 const boolP = text
   .string('true')
-  ['<|>'](() => text.string('false'))
-  .map(Boolean)
-  .map(JBool);
+  .orElse(text.string('false'))
+  .map<Json>(Boolean);
 
-const numberP = text
-  .regex(/^-?\d+(\.(\d+)?)?(e[-+]?\d+)?/)
-  .map(Number)
-  .map(JNumber);
+const numberP = text.regex(/^-?\d+(\.(\d+)?)?(e[-+]?\d+)?/).map<Json>(Number);
 const rawStringP = text
   .regex(/^"(?:[^"\\]|\\.)*"/)
   .map(s => s.slice(1, s.length - 1))
@@ -52,27 +40,29 @@ const rawStringP = text
   .map(s => s.replace(/\\\\/g, '\\'));
 //                     ^ unescape \
 
-const stringP = rawStringP.map(JString);
+const stringP = rawStringP;
 
 const sep = text.char(',' as Char).surroundedBy(text.spaces());
 const arrayP = jsonP
   .sepBy(sep)
   .surroundedBy(text.spaces())
   .between(text.char('[' as Char), text.char(']' as Char))
-  .map(xs => JArray(xs.toArray));
+  .map(xs => xs.toArray);
 
-const kv: Parser<StringSource, [string, Json]> = rawStringP['<*'](
-  text.char(':' as Char).surroundedBy(text.spaces()),
-).product(jsonP);
-const objectP: Parser<StringSource, Json> = kv
+const kv: ParserT<StringSource, EvalF, [string, Json]> = rawStringP
+  .productL(text.char(':' as Char).surroundedBy(text.spaces()))
+  .product(jsonP);
+const objectP: ParserT<StringSource, EvalF, Json> = kv
   .sepBy(sep)
   .surroundedBy(text.spaces())
   .between(text.char('{' as Char), text.char('}' as Char))
   .map(xs =>
-    JObject(
-      xs.foldLeft({} as Record<string, Json>, (xs, [k, v]) => ({
-        ...xs,
-        [k]: v,
-      })),
-    ),
+    xs.foldLeft({} as Record<string, Json>, (xs, [k, v]) => ({
+      ...xs,
+      [k]: v,
+    })),
   );
+// const objectP: ParserT<StringSource, EvalF, Json> = kv
+//   .sepByAs(sep, {} as Record<string, Json>, ([k, v], xs) => ({ ...xs, [k]: v }))
+//   .surroundedBy(text.spaces())
+//   .between(text.char('{' as Char), text.char('}' as Char));

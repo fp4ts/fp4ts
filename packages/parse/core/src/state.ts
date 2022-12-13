@@ -3,7 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import './syntax';
-export * from './parser';
-export * from './parse-result';
-export * from './state';
+import { SourcePosition } from './source-position';
+
+export interface State<S> {
+  readonly input: S;
+  readonly position: SourcePosition;
+}

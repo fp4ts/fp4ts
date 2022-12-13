@@ -9,15 +9,16 @@ import { timed } from './common/timed';
 
 const number = text
   .digit()
-  .repAs1<string>((x, y) => x + y)
+  .repAs1<string>('', (x, y) => x + y)
   .map(parseInt);
 
 // prettier-ignore
 const addOp =   text.char('+' as Char).as((x: number, y: number) => x + y)
-  ['<|>'](() => text.char('-' as Char).as((x: number, y: number) => x - y));
+        ['<|>'](text.char('-' as Char).as((x: number, y: number) => x - y));
 
 const expr = number.chainLeft1(addOp).complete();
-const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
+const parse = (input: string) =>
+  expr.parse(input).value.leftMap(e => e.toString());
 
 {
   const input = '1' + '+1'.repeat(50_000);
@@ -41,7 +42,7 @@ const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s plain parse', () =>
-    console.log(text.string('aa').rep().complete().parse(input).isRight),
+    console.log(text.string('aa').rep().complete().parse(input).value.isRight),
   );
 }
 {
@@ -52,13 +53,13 @@ const parse = (input: string) => expr.parse(input).leftMap(e => e.toString());
         .char('a' as Char)
         .rep()
         .complete()
-        .parse(input).isRight,
+        .parse(input).value.isRight,
     ),
   );
 }
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s prim parse', () =>
-    console.log(text.stringF('aa').rep().complete().parse(input).isRight),
+    console.log(text.stringF('aa').rep().complete().parse(input).value.isRight),
   );
 }

@@ -15,3 +15,8 @@ declare module '@fp4ts/cats-core/lib/data/collections/list/algebra' {
     readonly [TokenTypeTag]: A;
   }
 }
+declare module '@fp4ts/cats-core/lib/data/collections/lazy-list' {
+  interface _LazyList<A> {
+    readonly [TokenTypeTag]: A;
+  }
+}

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, instance, Kind } from '@fp4ts/core';
-import { List, Monad, Option } from '@fp4ts/cats';
+import { LazyList, List, Monad, Option } from '@fp4ts/cats';
 import { Source } from './source';
 import { TokenType } from './token-type';
 
@@ -21,6 +21,9 @@ export const Stream = Object.freeze({
     }),
 
   forList: <F, A>(M: Monad<F>): Stream<List<A>, F> =>
+    Stream.of({ monad: M, uncons: xs => M.pure(xs.uncons) }),
+
+  forLazyList: <F, A>(M: Monad<F>): Stream<LazyList<A>, F> =>
     Stream.of({ monad: M, uncons: xs => M.pure(xs.uncons) }),
 
   forSource: <F, S extends Source<any, any>>(M: Monad<F>): Stream<S, F> =>

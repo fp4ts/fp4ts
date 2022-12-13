@@ -27,7 +27,7 @@ export class StringSource extends Source<Char, StringSource> {
   }
 
   public drop(n: number): StringSource {
-    return this.copy({ cursor: Math.min(this.cursor + n, this.size) });
+    return this.copy({ cursor: this.cursor + n });
   }
 
   public unconsN(n: number): Option<[string, StringSource]> {

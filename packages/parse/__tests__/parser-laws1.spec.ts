@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { compose, id } from '@fp4ts/core';
-import { None, Option, Some } from '@fp4ts/cats';
+import { EvalF, None, Option, Some } from '@fp4ts/cats';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Parser, StringSource } from '@fp4ts/parse-core';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -13,7 +13,7 @@ import { eq, fp4tsStringParser, mkStringParserArb0 } from './arbitraries';
 
 describe('Parser Laws', () => {
   describe('SemigroupK', () => {
-    const F = Parser.MonoidK<StringSource>();
+    const F = Parser.MonoidK<StringSource, EvalF>();
 
     test(
       'associativity',
@@ -23,12 +23,7 @@ describe('Parser Laws', () => {
         fp4tsStringParser(),
         fc.string(),
         (a, b, c, s) =>
-          eq(
-            a['<|>'](() => b)
-              ['<|>'](() => c)
-              .parse(s),
-            a.orElse(() => b.orElse(() => c)).parse(s),
-          ) &&
+          eq(a['<|>'](b)['<|>'](c).parse(s), a.orElse(b.orElse(c)).parse(s)) &&
           eq(
             F.combineK_(
               F.combineK_(a, () => b),
@@ -41,7 +36,7 @@ describe('Parser Laws', () => {
   });
 
   describe('MonoidK', () => {
-    const F = Parser.MonoidK<StringSource>();
+    const F = Parser.MonoidK<StringSource, EvalF>();
 
     test(
       'left identity',
@@ -49,7 +44,7 @@ describe('Parser Laws', () => {
         fp4tsStringParser(),
         fc.string(),
         (fa, s) =>
-          eq(fa.orElse(() => Parser.empty()).parse(s), fa.parse(s)) &&
+          eq(fa.orElse(Parser.empty()).parse(s), fa.parse(s)) &&
           eq(F.combineK_(fa, () => F.emptyK()).parse(s), fa.parse(s)),
       ),
     );
@@ -61,9 +56,7 @@ describe('Parser Laws', () => {
         fc.string(),
         (fa, s) =>
           eq(
-            Parser.empty<StringSource, never>()
-              .orElse(() => fa)
-              .parse(s),
+            Parser.empty<StringSource, EvalF, never>().orElse(fa).parse(s),
             fa.parse(s),
           ) && eq(F.combineK_(F.emptyK(), () => fa).parse(s), fa.parse(s)),
       ),
@@ -99,7 +92,7 @@ describe('Parser Laws', () => {
   });
 
   describe('FunctorFilter', () => {
-    const F = Parser.FunctorFilter<StringSource>();
+    const F = Parser.FunctorFilter<StringSource, EvalF>();
     test(
       'mapFilter composition',
       forAll(

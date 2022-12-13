@@ -12,7 +12,7 @@ import {
   Ord,
   Semigroup,
 } from '@fp4ts/cats';
-import { Parser, StringSource } from '@fp4ts/parse';
+import { Parser, ParserT, StringSource } from '@fp4ts/parse';
 
 import { QValue } from '../q-value';
 import {
@@ -96,10 +96,12 @@ export class MediaRangeAndQValue {
 const parser: Lazy<Parser<StringSource, Accept>> = lazyVal(() => {
   const acceptParams = QValue.parser.product(mediaTypeExtensionParser().rep());
 
-  const qAndExtension = acceptParams.orElse(() =>
-    mediaTypeExtensionParser()
-      .rep1()
-      .map(ext => tupled(QValue.one, ext)),
+  const qAndExtension = acceptParams.orElse(
+    ParserT.defer(() =>
+      mediaTypeExtensionParser()
+        .rep1()
+        .map(ext => tupled(QValue.one, ext)),
+    ),
   );
 
   const fullRange: Parser<StringSource, MediaRangeAndQValue> = MediaRange.parser

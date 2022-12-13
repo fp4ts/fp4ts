@@ -6,7 +6,7 @@
 import { Source } from '@fp4ts/parse-kernel';
 
 export class ArraySource<A> extends Source<A, ArraySource<A>> {
-  public static fromString<A>(source: A[]): ArraySource<A> {
+  public static fromArray<A>(source: A[]): ArraySource<A> {
     return new ArraySource(source, 1);
   }
 

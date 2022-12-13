@@ -21,5 +21,5 @@ export const ParseResult = Object.freeze({
       p
         .complete()
         .parse(src)
-        .leftMap(e => new ParsingFailure(errMsg, e.toString())),
+        .value.leftMap(e => new ParsingFailure(errMsg, e.toString())),
 });
