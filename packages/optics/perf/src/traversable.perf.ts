@@ -3,7 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { pipe } from '@fp4ts/core';
 import { focus } from '@fp4ts/optics-core';
+import * as A from 'fp-ts/Array';
+import * as L from 'monocle-ts/Lens';
+import * as T from 'monocle-ts/Traversal';
 import { add, configure, cycle, suite } from 'benny';
 
 function makeSuite(size: number) {
@@ -15,6 +19,15 @@ function makeSuite(size: number) {
         .each()
         .filter(x => x % 2 === 0)
         .modify(x => x + 1)(xs);
+    }),
+
+    add(`monocle-ts filter . modify (${size})`, () => {
+      pipe(
+        L.id<number[]>(),
+        L.composeTraversal(T.fromTraversable(A.Traversable)()),
+        T.filter(x => x % 2 == 0),
+        T.modify(x => x + 1),
+      )(xs);
     }),
 
     add(`plain filter . modify (${size})`, () => {
@@ -29,39 +42,19 @@ function makeSuite(size: number) {
         .modify(x => x + 1)(xs);
     }),
 
+    add(`monocle-ts filter . filter . modify (${size})`, () => {
+      pipe(
+        L.id<number[]>(),
+        L.composeTraversal(T.fromTraversable(A.Traversable)()),
+        T.filter(x => x % 2 == 0),
+        T.filter(x => x % 3 == 0),
+        T.modify(x => x + 1),
+      )(xs);
+    }),
+
     add(`plain filter . filter . modify (${size})`, () => {
       xs.filter(x => x % 2 !== 0)
         .filter(x => x % 3 !== 0)
-        .map(x => x + 1);
-    }),
-
-    add(`optics filter (x10) . modify (${size})`, () => {
-      focus<number[]>()
-        .each()
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .modify(x => x + 1)(xs);
-    }),
-
-    add(`plain filter (x10) . modify (${size})`, () => {
-      xs.filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
-        .filter(x => true)
         .map(x => x + 1);
     }),
   ];
@@ -69,7 +62,7 @@ function makeSuite(size: number) {
 
 suite(
   'Traversable',
-  ...[0, 1, 10, 100, 1_000, 10_000].flatMap(makeSuite),
+  ...[10, 100, 1_000].flatMap(makeSuite),
   cycle(),
   configure({ cases: { minSamples: 20, maxTime: 2 } }),
 );

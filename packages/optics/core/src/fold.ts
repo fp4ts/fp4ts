@@ -175,15 +175,11 @@ export function filtered<A>(p: (a: A) => boolean): Filtered<A>;
 export function filtered<A>(
   p: (a: A) => boolean,
 ): <F, P>(F: Applicative<F>, P: Choice<P>) => Optic<F, P, A, A> {
+  const g = (x: A) => (p(x) ? Right(x) : Left(x));
   return <F, P>(F: Applicative<F>, P: Choice<P>) =>
     (pafa: Kind<P, [A, Kind<F, [A]>]>) =>
-      pipe(
-        pafa,
-        P.right<A>(),
-        P.dimap(
-          x => (p(x) ? Right(x) : Left(x)),
-          ea => ea.fold(F.pure, id),
-        ),
+      P.dimap_(P.right<A>()(pafa), g, ea =>
+        ea.isLeft ? F.pure(ea.getLeft) : ea.get,
       );
 }
 

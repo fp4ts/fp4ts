@@ -1240,6 +1240,7 @@ __metadata:
     "@fp4ts/optics-core": "*"
     "@fp4ts/optics-kernel": "*"
     benny: ^3.7.1
+    monocle-ts: ^2.3.13
     typescript: 4.9.3
   languageName: unknown
   linkType: soft
@@ -5789,6 +5790,15 @@ __metadata:
   version: 2.29.4
   resolution: "moment@npm:2.29.4"
   checksum: 0ec3f9c2bcba38dc2451b1daed5daded747f17610b92427bebe1d08d48d8b7bdd8d9197500b072d14e326dd0ccf3e326b9e3d07c5895d3d49e39b6803b76e80e
+  languageName: node
+  linkType: hard
+
+"monocle-ts@npm:^2.3.13":
+  version: 2.3.13
+  resolution: "monocle-ts@npm:2.3.13"
+  peerDependencies:
+    fp-ts: ^2.5.0
+  checksum: dddfa5706fe1fdb068606f5ac5215a00e723d155407de491bb53591264e281ec0ea1735759db93686d9daf676b105660bf2c656ebcd51626a4bfbb8de9accb3c
   languageName: node
   linkType: hard
 

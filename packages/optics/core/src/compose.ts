@@ -27,10 +27,7 @@ export function compose<S, A, C>(f: Fold<S, A>, g: Fold<A, C>): Fold<S, C>;
 export function compose<S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D>;
 export function compose<S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyOptical<A, B, C, D>): AnyOptical<S, T, C, D> {
   return (F, P, Q) =>
-    composeF(
-      f(F, P, Q),
-      g(F, P, Q),
-    );
+    x => f(F, P, Q)(g(F, P, Q)(x));
 }
 
 export function icomposeL<I, S, T, A, B, C, D>(f: IndexedPLens<I, S, T, A, B>, g: PLens<A, B, C, D>): IndexedPLens<I, S, T, C, D>;
@@ -52,10 +49,7 @@ export function icomposeR<I, S, A, C>(f: Fold<S, A>, g: IndexedFold<I, A, C>): I
 export function icomposeR<I, S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyIndexedOptical<I, A, B, C, D>): AnyIndexedOptical<I, S, T, C, D>;
 export function icomposeR<I, S, T, A, B, C, D>(f: AnyOptical<S, T, A, B>, g: AnyIndexedOptical<I, A, B, C, D>): AnyIndexedOptical<I, S, T, C, D> {
   return (F, P, Q) =>
-    composeF(
-      f(F, Q, Q),
-      g(F, P, Q),
-    );
+    x => f(F, Q, Q)(g(F, P, Q)(x));;
 }
 
 
