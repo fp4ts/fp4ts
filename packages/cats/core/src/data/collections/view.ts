@@ -113,11 +113,11 @@ abstract class _View<out A> implements Iterable<A> {
   public all<B extends A>(p: (a: A) => a is B): this is View<B>;
   public all(p: (a: A) => boolean): boolean;
   public all(p: (a: A) => boolean): boolean {
-    return this.foldRight(Eval.true, (a, eb) => (p(a) ? eb : Eval.false)).value;
+    return this.foldMap(Monoid.conjunction)(p);
   }
 
   public any(p: (a: A) => boolean): boolean {
-    return this.foldRight(Eval.false, (a, eb) => (p(a) ? Eval.true : eb)).value;
+    return this.foldMap(Monoid.disjunction)(p);
   }
 
   public count(f: (a: A) => boolean): number {
@@ -198,10 +198,7 @@ abstract class _View<out A> implements Iterable<A> {
   public foldMapK<F>(
     F: MonoidK<F>,
   ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
-    return <B>(f: (a: A) => Kind<F, [B]>) =>
-      this.foldRight(Eval.now(F.emptyK<B>()), (a, eb) =>
-        F.combineKEval_(f(a), eb),
-      ).value;
+    return this.foldMap(F.algebra<any>());
   }
 
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {

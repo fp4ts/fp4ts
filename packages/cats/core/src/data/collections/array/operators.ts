@@ -191,10 +191,7 @@ export const foldMapK_ = <F, A, B>(
   xs: A[],
   f: (a: A, i: number) => Kind<F, [B]>,
   F: MonoidK<F>,
-): Kind<F, [B]> =>
-  foldRightEval_(xs, Eval.now(F.emptyK<B>()), (a, efb, i) =>
-    F.combineKEval_(f(a, i), efb),
-  ).value;
+): Kind<F, [B]> => foldMap_(xs, f, F.algebra<B>());
 
 export const foldLeft_ = <A, B>(
   xs: A[],

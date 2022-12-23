@@ -13,6 +13,7 @@ import { Apply, TraverseStrategy } from '../../../apply';
 import { Ior } from '../../ior';
 import { Either } from '../../either';
 import { Option, None, Some } from '../../option';
+import { isIdentityTC } from '../../identity';
 
 import { Vector } from '../vector';
 import { Iter } from '../iterator';
@@ -23,7 +24,6 @@ import { Cons, List } from './algebra';
 import { cons, empty, fromArray, nil, pure } from './constructors';
 import { ListBuffer } from './list-buffer';
 import { View } from '../view';
-import { isIdentityTC } from '../../identity';
 
 export const head = <A>(xs: List<A>): A =>
   headOption(xs).fold(() => throwError(new Error('Nil.head')), id);
@@ -763,9 +763,7 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(xs: List<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldRight_(xs, Eval.now(F.emptyK<B>()), (a, efb) =>
-      F.combineKEval_(f(a), efb),
-    ).value;
+    foldMap_(F.algebra<B>())(xs, f);
 
 export const align_ = <A, B>(xs: List<A>, ys: List<B>): List<Ior<A, B>> =>
   zipAllWith_(

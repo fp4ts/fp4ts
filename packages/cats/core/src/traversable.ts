@@ -83,11 +83,11 @@ export const Traversable = Object.freeze({
       }),
       ...Foldable.of({
         ...T,
-        foldMapK_:
-          T.foldMapK_ ??
-          (<G>(M: MonoidK<G>) =>
-            <A, B>(fa: Kind<T, [A]>, f: (a: A) => Kind<G, [B]>): Kind<G, [B]> =>
-              self.traverse_(Const.Applicative(M.algebra<B>()))(fa, f)),
+        foldMap_:
+          T.foldMap_ ??
+          (<M>(M: Monoid<M>) =>
+            <A>(fa: Kind<T, [A]>, f: (a: A) => M): M =>
+              self.traverse_(Const.Applicative(M))(fa, f)),
       }),
       ...Functor.of({
         map_:

@@ -392,15 +392,12 @@ export const foldRight1_ = <A>(q: Queue<A>, f: (a: A, b: A) => A): A =>
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(q: Queue<A>, f: (a: A) => M): M =>
-    foldRightEval_(q, Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb))
-      .value;
+    Iter.foldMap_(M, iterator(q), f);
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldRightEval_(q, Eval.now(F.emptyK<B>()), (a, eb) =>
-      F.combineKEval_(f(a), eb),
-    ).value;
+    Iter.foldMap_(F.algebra<B>(), iterator(q), f);
 
 export const align_ = <A, B>(lhs: Queue<A>, rhs: Queue<B>): Queue<Ior<A, B>> =>
   zipAllWith_(

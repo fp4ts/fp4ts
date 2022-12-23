@@ -593,9 +593,7 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(c: Chain<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldRightEval_(c, Eval.now(F.emptyK<B>()), (a, eb) =>
-      F.combineKEval_(f(a), eb),
-    ).value;
+    foldMap_(F.algebra<B>())(c, f);
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>

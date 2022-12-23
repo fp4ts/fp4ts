@@ -102,9 +102,7 @@ const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(
   });
 
 const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
-  Foldable.of({
-    foldRight_: (fa, ez, f) => ez,
-  }),
+  Foldable.of({ foldRight_: (fa, ez, f) => ez }),
 );
 
 const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> =

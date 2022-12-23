@@ -400,6 +400,7 @@ export const foldRight_ = <A, B>(
       }
     }
   });
+
 export const foldRightStrict_ = <A, B>(
   sa: Set<A>,
   z: B,
@@ -432,9 +433,7 @@ export const foldMap_ =
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(sa: Set<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldRight_(sa, Eval.now(F.emptyK<B>()), (a, efb) =>
-      F.combineKEval_(f(a), efb),
-    ).value;
+    foldMap_(F.algebra<B>())(sa, f);
 
 export const equals_ =
   <A>(E: Eq<A>) =>

@@ -313,15 +313,12 @@ export const foldRight1Strict_ = <A>(xs: Vector<A>, f: (a: A, b: A) => A): A =>
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(xs: Vector<A>, f: (a: A) => M): M =>
-    foldRight_(xs, Eval.now(M.empty), (x, eys) => M.combineEval_(f(x), eys))
-      .value;
+    Iter.foldMap_(M, iterator(xs), f);
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldRight_(xs, Eval.now(F.emptyK<B>()), (x, eys) =>
-      F.combineKEval_(f(x), eys),
-    ).value;
+    Iter.foldMap_(F.algebra<B>(), iterator(xs), f);
 
 export const align_ = <A, B>(xs: Vector<A>, ys: Vector<B>): Vector<Ior<A, B>> =>
   zipAllWith_(

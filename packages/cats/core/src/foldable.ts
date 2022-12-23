@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
+import {
+  Eval,
+  Kind,
+  instance,
+  tupled,
+  TyK,
+  $type,
+  TyVar,
+  id,
+} from '@fp4ts/core';
 import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { MonoidK } from './monoid-k';
@@ -74,7 +83,7 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
 }
 
 export type FoldableRequirements<F> = (
-  | Pick<Foldable<F>, 'foldMapK_'>
+  | Pick<Foldable<F>, 'foldMap_'>
   | Pick<Foldable<F>, 'foldRight_'>
 ) &
   Partial<Foldable<F>>;
@@ -89,7 +98,13 @@ export const Foldable = Object.freeze({
 
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
-        self.foldMapK_(Endo.MonoidK.dual())(fa, (a: A) => (b: B) => f(b, a))(z),
+        self
+          .foldRight_(
+            fa,
+            Eval.now((x: B) => Eval.now(x)),
+            (a, ek) => Eval.now((b: B) => ek.flatMap(k => k(f(b, a)))),
+          )
+          .value(z).value,
 
       foldRight: (z, f) => fa => self.foldRight_(fa, z, f),
       foldRight_: <A, B>(
@@ -97,9 +112,9 @@ export const Foldable = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>) => Eval<B>,
       ): Eval<B> =>
-        self.foldMapK_(Endo.MonoidK)(
+        self.foldMap_(Endo.EvalMonoidK.algebra<B>())(
           fa,
-          a => (eb: Eval<B>) => Eval.defer(() => f(a, eb)),
+          a => (eb: Eval<B>) => f(a, eb),
         )(ez),
 
       foldMapK: G => f => fa => self.foldMapK_(G)(fa, f),

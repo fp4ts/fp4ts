@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eval, tupled } from '@fp4ts/core';
-import { Ord } from '@fp4ts/cats-kernel';
+import { Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Option } from '../../option';
 import { empty, lift } from './constructors';
 import { Set as OrdSet } from '../set';
@@ -213,6 +213,13 @@ export const foldRight_ = <A, B>(
         );
   return Eval.defer(() => go(it.next()));
 };
+
+export const foldMap_ = <A, M>(
+  M: Monoid<M>,
+  it: Iterator<A>,
+  f: (a: A) => M,
+): M =>
+  foldRight_(it, Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb)).value;
 
 export const forEach_ = <A>(it: Iterator<A>, f: (a: A) => void): void => {
   for (let i = it.next(); !i.done; i = it.next()) {

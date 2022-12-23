@@ -394,10 +394,7 @@ export class _LazyList<out A> {
   public foldMapK<F>(
     F: MonoidK<F>,
   ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
-    return <B>(f: (a: A) => Kind<F, [B]>) =>
-      this.foldRight(Eval.now(F.emptyK<B>()), (a, efb) =>
-        F.combineKEval_(f(a), efb),
-      ).value;
+    return this.foldMap(F.algebra<any>());
   }
 
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {

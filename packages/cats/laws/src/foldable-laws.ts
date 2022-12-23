@@ -39,24 +39,13 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
 
   rightFoldConsistentWithFoldMap:
     <B>(B: Monoid<B>) =>
-    <A>(fa: Kind<F, [A]>, f: (a: A) => B): IsEq<B> => {
-      return new IsEq(
+    <A>(fa: Kind<F, [A]>, f: (a: A) => B): IsEq<B> =>
+      new IsEq(
         F.foldMap_(B)(fa, f),
-        F.foldLeft_(fa, B.empty, (b, a) => B.combine_(b, f(a))),
-      );
-      // throw new Error('TODO');
-      // const M = Eval.Monoid(B);
-
-      // return new IsEq(
-      //   F.foldMap_(B)(fa, f),
-      //   F.foldRight_(fa, M.empty, (a, b) =>
-      //     M.combine_(
-      //       Eval.later(() => f(a)),
-      //       () => b,
-      //     ),
-      //   ).value,
-      // );
-    },
+        F.foldRight_(fa, Eval.now(B.empty), (a, eb) =>
+          B.combineEval_(f(a), eb),
+        ).value,
+      ),
 
   foldMapKConsistentWithFoldMap:
     <G>(G: MonoidK<G>) =>
