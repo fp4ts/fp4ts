@@ -42,7 +42,7 @@ export const chainAlign: Lazy<Align<ChainF>> = lazyVal(() =>
 );
 
 export const chainMonoidK: Lazy<MonoidK<ChainF>> = lazyVal(() =>
-  MonoidK.of({ emptyK: () => empty, combineK_: (xs, ys) => concat_(xs, ys()) }),
+  MonoidK.of({ emptyK: () => empty, combineK_: (xs, ys) => concat_(xs, ys) }),
 );
 
 export const chainFunctor: Lazy<Functor<ChainF>> = lazyVal(() =>

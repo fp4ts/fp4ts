@@ -274,7 +274,7 @@ const eitherEqK = <E>(EE: Eq<E>): EqK<$<EitherF, [E]>> =>
 const eitherSemigroupK = lazyVal(
   <E>(): SemigroupK<$<EitherF, [E]>> =>
     SemigroupK.of<$<EitherF, [E]>>({
-      combineK_: (fa, fb) => fa.orElse(fb),
+      combineK_: (fa, fb) => fa.orElse(() => fb),
       combineKEval_: (fa, efb) => fa.orElseEval(efb),
     }),
 ) as <E>() => SemigroupK<$<EitherF, [E]>>;

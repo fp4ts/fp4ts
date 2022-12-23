@@ -71,7 +71,7 @@ export class Accept {
     new RecurringSelectHeaderMerge(
       Accept.Header,
       Semigroup.of({
-        combine_: (x, y) => new Accept(x.values.concatNel(y().values)),
+        combine_: (x, y) => new Accept(x.values.concatNel(y.values)),
       }),
     );
 }

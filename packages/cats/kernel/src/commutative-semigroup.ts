@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance } from '@fp4ts/core';
+import { Eval, instance } from '@fp4ts/core';
 import { Semigroup } from './semigroup';
 
 /**
@@ -31,18 +31,24 @@ export const CommutativeSemigroup = Object.freeze({
   },
 
   get disjunction(): CommutativeSemigroup<boolean> {
-    return CommutativeSemigroup.of({ combine_: (x, y) => x || y() });
+    return CommutativeSemigroup.of({
+      combine_: (x, y) => x || y,
+      combineEval_: (x, ey) => (x ? Eval.true : ey),
+    });
   },
 
   get conjunction(): CommutativeSemigroup<boolean> {
-    return CommutativeSemigroup.of({ combine_: (x, y) => x && y() });
+    return CommutativeSemigroup.of({
+      combine_: (x, y) => x && y,
+      combineEval_: (x, ey) => (x ? ey : Eval.false),
+    });
   },
 
   get addition(): CommutativeSemigroup<number> {
-    return CommutativeSemigroup.of({ combine_: (x, y) => x + y() });
+    return CommutativeSemigroup.of({ combine_: (x, y) => x + y });
   },
 
   get product(): CommutativeSemigroup<number> {
-    return CommutativeSemigroup.of({ combine_: (x, y) => x * y() });
+    return CommutativeSemigroup.of({ combine_: (x, y) => x * y });
   },
 });

@@ -47,7 +47,7 @@ export class WWWAuthenticate {
       WWWAuthenticate.Header,
       Semigroup.of({
         combine_: (xs, ys) =>
-          new WWWAuthenticate(xs.values.concatNel(ys().values)),
+          new WWWAuthenticate(xs.values.concatNel(ys.values)),
       }),
     );
 }

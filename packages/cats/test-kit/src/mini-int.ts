@@ -60,11 +60,11 @@ export class MiniInt {
 
   public static readonly AdditionMonoid: Monoid<MiniInt> = Monoid.of({
     empty: this.zero,
-    combine_: (x, y) => x.plus(y()),
+    combine_: (x, y) => x.plus(y),
   });
   public static readonly MultiplicationMonoid: Monoid<MiniInt> = Monoid.of({
     empty: this.one,
-    combine_: (x, y) => x.mul(y()),
+    combine_: (x, y) => x.mul(y),
   });
   public static readonly Eq: Eq<MiniInt> = Eq.by(
     Eq.fromUniversalEquals(),

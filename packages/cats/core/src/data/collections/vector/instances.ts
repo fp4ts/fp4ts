@@ -48,7 +48,9 @@ export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
 export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazyVal(() =>
   MonoidK.of({
     emptyK: () => Vector.empty,
-    combineK_: (x, y) => x.concat(y()),
+    combineK_: (x, y) => x.concat(y),
+    combineKEval_: (xs, eys) =>
+      xs === Vector0 ? eys : eys.map(ys => xs.concat(ys)),
   }),
 );
 

@@ -1014,7 +1014,7 @@ export const throughF_ = <F, G, A>(
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <F, A>(s: Stream<F, A>, f: (a: A) => M): Stream<F, M> =>
-    fold_(s, M.empty, (m, a) => M.combine_(m, () => f(a)));
+    fold_(s, M.empty, (m, a) => M.combine_(m, f(a)));
 
 export const foldMapK_ =
   <G>(G: MonoidK<G>) =>
@@ -1022,7 +1022,7 @@ export const foldMapK_ =
     s: Stream<F, A>,
     f: (a: A) => Kind<G, [B]>,
   ): Stream<F, Kind<G, [B]>> =>
-    fold_(s, G.emptyK(), (m, a) => G.combineK_(m, () => f(a)));
+    fold_(s, G.emptyK(), (m, a) => G.combineK_(m, f(a)));
 
 export const scan_ = <F, A, B>(
   s: Stream<F, A>,

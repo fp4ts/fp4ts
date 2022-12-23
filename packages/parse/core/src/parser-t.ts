@@ -716,7 +716,7 @@ const anyToken = <S, F>(
 // -- Instances
 
 ParserT.MonoidK = <S, F>(): MonoidK<$<ParserTF, [S, F]>> =>
-  MonoidK.of({ emptyK: ParserT.empty, combineK_: (fa, fb) => fa.orElse(fb()) });
+  MonoidK.of({ emptyK: ParserT.empty, combineK_: (fa, fb) => fa.orElse(fb) });
 
 ParserT.Functor = <S, F>(): Functor<$<ParserTF, [S, F]>> =>
   Functor.of({ map_: (fa, f) => fa.map(f) });

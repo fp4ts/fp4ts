@@ -190,7 +190,9 @@ abstract class _View<out A> implements Iterable<A> {
   }
 
   public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {
-    return f => this.foldLeft(M.empty, (b, a) => M.combine_(b, () => f(a)));
+    return f =>
+      this.foldRight(Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb))
+        .value;
   }
 
   public foldMapK<F>(
@@ -712,7 +714,7 @@ const viewFoldable: Lazy<Foldable<ViewF>> = lazyVal(() =>
 const viewMonoidK: Lazy<MonoidK<ViewF>> = lazyVal(() =>
   MonoidK.of({
     emptyK: () => View.empty,
-    combineK_: (fa, fb) => fa.concat(fb()),
+    combineK_: (fa, fb) => fa.concat(fb),
   }),
 );
 

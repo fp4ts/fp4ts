@@ -27,8 +27,8 @@ export const Monoid = Object.freeze({
         Monoid.of({
           dual: () => self,
           empty: self.empty,
-          combine: y => x => self.combine_(y(), () => x),
-          combine_: (x, y) => self.combine_(y(), () => x),
+          combine: y => x => self.combine_(y, x),
+          combine_: (x, y) => self.combine_(y, x),
         }),
     });
     return self;
@@ -41,12 +41,17 @@ export const Monoid = Object.freeze({
   get disjunction(): Monoid<boolean> {
     return Monoid.of({
       combine_: Semigroup.disjunction.combine_,
+      combineEval_: Semigroup.disjunction.combineEval_,
       empty: false,
     });
   },
 
   get conjunction(): Monoid<boolean> {
-    return Monoid.of({ combine_: Semigroup.conjunction.combine_, empty: true });
+    return Monoid.of({
+      combine_: Semigroup.conjunction.combine_,
+      combineEval_: Semigroup.conjunction.combineEval_,
+      empty: true,
+    });
   },
 
   get addition(): Monoid<number> {

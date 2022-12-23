@@ -81,11 +81,7 @@ RWST.tell =
   <R, S, F>(w2: W): RWST<R, W, S, F, void> =>
   g =>
   (_, s, w1) =>
-    g(
-      undefined,
-      s,
-      W.combine_(w1, () => w2),
-    );
+    g(undefined, s, W.combine_(w1, w2));
 
 RWST.listen =
   <R, W, S, F, A>(rwsfa: RWST<R, W, S, F, A>): RWST<R, W, S, F, [A, W]> =>

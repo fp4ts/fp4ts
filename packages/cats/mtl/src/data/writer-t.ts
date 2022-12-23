@@ -68,21 +68,18 @@ WriterT.Apply = <F, W>(
   Apply.of<$<WriterTF, [F, W]>>({
     ...WriterT.Functor(F),
     ap_: (ff, fa) =>
-      F.map2_(ff, fa)(([f, w1], [a, w2]) => [f(a), W.combine_(w1, () => w2)]),
+      F.map2_(ff, fa)(([f, w1], [a, w2]) => [f(a), W.combine_(w1, w2)]),
     map2_:
       <A, B>(fa: WriterT<F, W, A>, fb: WriterT<F, W, B>) =>
       <C>(f: (a: A, b: B) => C) =>
-        F.map2_(
-          fa,
-          fb,
-        )(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, () => w2)]),
+        F.map2_(fa, fb)(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
     map2Eval_:
       <A, B>(fa: WriterT<F, W, A>, efb: Eval<WriterT<F, W, B>>) =>
       <C>(f: (a: A, b: B) => C) =>
         F.map2Eval_(
           fa,
           efb,
-        )(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, () => w2)]),
+        )(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
   });
 
 WriterT.FlatMap1 = <F, W>(
@@ -93,26 +90,14 @@ WriterT.FlatMap1 = <F, W>(
     ...WriterT.Apply(F, W),
     flatMap_: (fa, f) =>
       F.flatMap_(fa, ([a, w1]) =>
-        F.map_(f(a), ([b, w2]) => [b, W.combine_(w1, () => w2)]),
+        F.map_(f(a), ([b, w2]) => [b, W.combine_(w1, w2)]),
       ),
     tailRecM_: (s, f) =>
       F.tailRecM_(tupled(s, W.empty), ([a, w1]) =>
         F.map_(f(a), ([ea, w2]) =>
           ea.fold(
-            a =>
-              Left(
-                tupled(
-                  a,
-                  W.combine_(w1, () => w2),
-                ),
-              ),
-            b =>
-              Right(
-                tupled(
-                  b,
-                  W.combine_(w1, () => w2),
-                ),
-              ),
+            a => Left(tupled(a, W.combine_(w1, w2))),
+            b => Right(tupled(b, W.combine_(w1, w2))),
           ),
         ),
       ),
@@ -126,7 +111,7 @@ WriterT.FlatMap2 = <F, W>(
     ...WriterT.Apply(F, W),
     flatMap_: (fa, f) =>
       F.flatMap_(fa, ([a, w1]) =>
-        F.map_(f(a), ([b, w2]) => [b, W.combine_(w1, () => w2)]),
+        F.map_(f(a), ([b, w2]) => [b, W.combine_(w1, w2)]),
       ),
     tailRecM_: (s, f) =>
       F.flatMap_(f(s), ([ea, w]) =>
@@ -135,20 +120,8 @@ WriterT.FlatMap2 = <F, W>(
             F.tailRecM_(tupled(s, w), ([a, w1]) =>
               F.map_(f(a), ([ea, w2]) =>
                 ea.fold(
-                  a =>
-                    Left(
-                      tupled(
-                        a,
-                        W.combine_(w1, () => w2),
-                      ),
-                    ),
-                  b =>
-                    Right(
-                      tupled(
-                        b,
-                        W.combine_(w1, () => w2),
-                      ),
-                    ),
+                  a => Left(tupled(a, W.combine_(w1, w2))),
+                  b => Right(tupled(b, W.combine_(w1, w2))),
                 ),
               ),
             ),

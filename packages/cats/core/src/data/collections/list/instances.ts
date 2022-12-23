@@ -56,11 +56,20 @@ export const listEq: <A>(E: Eq<A>) => Eq<List<A>> = E =>
   Eq.of({ equals: (xs, ys) => equals_(E, xs, ys) });
 
 export const listSemigroupK: Lazy<SemigroupK<ListF>> = lazyVal(() =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
+  SemigroupK.of({
+    combineK_: (x, y) => concat_(x, y),
+    combineKEval_: (xs, eys) =>
+      xs === nil ? eys : eys.map(ys => concat_(xs, ys)),
+  }),
 );
 
 export const listMonoidK: Lazy<MonoidK<ListF>> = lazyVal(() =>
-  MonoidK.of({ combineK_: (x, y) => concat_(x, y()), emptyK: () => empty }),
+  MonoidK.of({
+    combineK_: (x, y) => concat_(x, y),
+    combineKEval_: (xs, eys) =>
+      xs === nil ? eys : eys.map(ys => concat_(xs, ys)),
+    emptyK: () => empty,
+  }),
 );
 
 export const listAlign: Lazy<Align<ListF>> = lazyVal(() =>

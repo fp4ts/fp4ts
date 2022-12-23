@@ -27,7 +27,7 @@ export const routeResultAlternative: Lazy<Alternative<RouteResultF>> = lazyVal(
   () =>
     Alternative.of({
       ...routeResultMonad(),
-      combineK_: orElse_,
+      combineK_: (x, y) => orElse_(x, () => y),
       emptyK: <A>() => fail<A>(new NotFoundFailure()),
     }),
 );
@@ -76,13 +76,14 @@ export const routeResultTFunctor: <F>(
 
 export const routeResultTAlternative: <F>(
   F: Monad<F>,
-) => Alternative<$<RouteResultTF, [F]>> = cached(F =>
-  Alternative.of({
+) => Alternative<$<RouteResultTF, [F]>> = cached(F => {
+  const orElseT = orElseT_(F);
+  return Alternative.of({
     ...routeResultTMonad(F),
     emptyK: <A>() => new RouteResultT(F.pure(fail<A>(new NotFoundFailure()))),
-    combineK_: orElseT_(F),
-  }),
-);
+    combineK_: (x, y) => orElseT(x, () => y),
+  });
+});
 
 export const routeResultTMonad: <F>(
   F: Monad<F>,

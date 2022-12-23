@@ -39,14 +39,14 @@ export const hashMapEq: <K, V>(EK: Eq<K>, EV: Eq<V>) => Eq<HashMap<K, V>> = (
 export const hashMapSemigroupK: <K>(
   E: Eq<K>,
 ) => SemigroupK<$<HashMapF, [K]>> = E =>
-  SemigroupK.of({ combineK_: (x, y) => union_(E, x, y()) });
+  SemigroupK.of({ combineK_: (x, y) => union_(E, x, y) });
 
 export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapF, [K]>> = <K>(
   E: Eq<K>,
 ) =>
   MonoidK.of<$<HashMapF, [K]>>({
     emptyK: () => empty,
-    combineK_: (x, y) => union_(E, x, y()),
+    combineK_: (x, y) => union_(E, x, y),
   });
 
 export const hashMapFunctor: <K>() => Functor<$<HashMapF, [K]>> = lazyVal(<

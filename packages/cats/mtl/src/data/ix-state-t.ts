@@ -71,7 +71,7 @@ IxStateT.SemigroupK = <S1, S2, F>(
   F: SemigroupK<F>,
 ): SemigroupK<$<IxStateTF, [S1, S2, F]>> =>
   SemigroupK.of<$<IxStateTF, [S1, S2, F]>>({
-    combineK_: (x, y) => s1 => F.combineK_(x(s1), () => y()(s1)),
+    combineK_: (x, y) => s1 => F.combineK_(x(s1), y(s1)),
   });
 
 IxStateT.MonoidK = <S1, S2, F>(
@@ -83,9 +83,9 @@ IxStateT.MonoidK = <S1, S2, F>(
       () =>
         F.emptyK<A>(),
     combineK_:
-      <A>(x: IxStateT<S1, S2, F, A>, y: Lazy<IxStateT<S1, S2, F, A>>) =>
+      <A>(x: IxStateT<S1, S2, F, A>, y: IxStateT<S1, S2, F, A>) =>
       s1 =>
-        F.combineK_<[A, S2]>(x(s1), () => y()(s1)),
+        F.combineK_<[A, S2]>(x(s1), y(s1)),
   });
 
 IxStateT.Profunctor = <F, A>(

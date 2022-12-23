@@ -83,7 +83,8 @@ export const orElse_ =
     alt: () => DecoderT<F, I, A>,
   ): DecoderT<F, I, A> =>
     new DecoderT(i =>
-      EitherT.SemigroupK<F, DecodeFailure>(F).combineK_(da.decodeT(i), () =>
+      EitherT.SemigroupK<F, DecodeFailure>(F).combineK_(
+        da.decodeT(i),
         alt().decodeT(i),
       ),
     );

@@ -83,7 +83,9 @@ export const Foldable = Object.freeze({
     const self: Foldable<F> = instance<Foldable<F>>({
       foldMap: M => f => fa => self.foldMap_(M)(fa, f),
       foldMap_: M => (fa, f) =>
-        self.foldLeft_(fa, M.empty, (b, a) => M.combine_(b, () => f(a))),
+        self.foldRight_(fa, Eval.now(M.empty), (a, eb) =>
+          M.combineEval_(f(a), eb),
+        ).value,
 
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
@@ -104,9 +106,7 @@ export const Foldable = Object.freeze({
       foldMapK_:
         <G>(G: MonoidK<G>) =>
         <A, B>(fa: Kind<F, [A]>, f: (a: A) => Kind<G, [B]>) =>
-          self.foldRight_(fa, Eval.now(G.emptyK<B>()), (a, b) =>
-            G.combineKEval_(f(a), b),
-          ).value,
+          self.foldMap_(G.algebra<B>())(fa, f),
 
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {

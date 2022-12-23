@@ -757,7 +757,8 @@ export const foldRight1Strict_ = <A>(xs: List<A>, f: (x: A, y: A) => A): A => {
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(xs: List<A>, f: (a: A) => M): M =>
-    foldLeft_(xs, M.empty, (m, x) => M.combine_(m, () => f(x)));
+    foldRight_(xs, Eval.now(M.empty), (a, efb) => M.combineEval_(f(a), efb))
+      .value;
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>

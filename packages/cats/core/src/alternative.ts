@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Eval, Kind } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';
@@ -30,13 +30,32 @@ export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
 export const Alternative = Object.freeze({
   of: <F>(F: AlternativeRequirements<F>): Alternative<F> => {
     const self: Alternative<F> = {
-      many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> =>
-        self.combineK_(self.many1(fa), () => self.pure(List.empty as List<A>)),
+      many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> => {
+        const many: Eval<Kind<F, [List<A>]>> = Eval.defer(() => many1).map(
+          self.combineK(self.pure(List.empty as List<A>)),
+        );
+        const many1: Eval<Kind<F, [List<A>]>> = self.map2Eval_(
+          fa,
+          many,
+        )(List.cons);
 
-      many1: fa => self.map2_(fa, self.many(fa))((a, as) => as.prepend(a)),
+        return many.value;
+      },
+
+      many1: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> => {
+        const many: Eval<Kind<F, [List<A>]>> = Eval.defer(() => many1).map(
+          self.combineK(self.pure(List.empty as List<A>)),
+        );
+        const many1: Eval<Kind<F, [List<A>]>> = self.map2Eval_(
+          fa,
+          many,
+        )(List.cons);
+
+        return many1.value;
+      },
 
       orElse: fb => fa => self.orElse_(fa, fb),
-      orElse_: (fa, fb) => self.combineK_(fa, fb),
+      orElse_: (fa, fb) => self.combineKEval_(fa, Eval.later(fb)).value,
 
       ...MonoidK.of(F),
       ...Applicative.of(F),

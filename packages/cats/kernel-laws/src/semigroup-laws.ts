@@ -8,25 +8,11 @@ import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const SemigroupLaws = <A>(S: Semigroup<A>) => ({
   semigroupAssociativity: (x: A, y: A, z: A): IsEq<A> =>
-    new IsEq(
-      S.combine_(
-        S.combine_(x, () => y),
-        () => z,
-      ),
-      S.combine_(x, () => S.combine_(y, () => z)),
-    ),
+    new IsEq(S.combine_(S.combine_(x, y), z), S.combine_(x, S.combine_(y, z))),
 
   semigroupDualReverses: (x: A, y: A): IsEq<A> =>
-    new IsEq(
-      S.dual().combine_(x, () => y),
-      S.combine_(y, () => x),
-    ),
+    new IsEq(S.dual().combine_(x, y), S.combine_(y, x)),
 
   semigroupDualDualIsIdentity: (x: A, y: A): IsEq<A> =>
-    new IsEq(
-      S.dual()
-        .dual()
-        .combine_(x, () => y),
-      S.combine_(x, () => y),
-    ),
+    new IsEq(S.dual().dual().combine_(x, y), S.combine_(x, y)),
 });

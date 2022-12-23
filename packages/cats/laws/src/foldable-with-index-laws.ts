@@ -17,9 +17,7 @@ export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
     <A>(fa: Kind<F, [A]>, f: (a: A, i: I) => B): IsEq<B> =>
       new IsEq(
         F.foldMapWithIndex_(B)(fa, f),
-        F.foldLeftWithIndex_(fa, B.empty, (b, a, i) =>
-          B.combine_(b, () => f(a, i)),
-        ),
+        F.foldLeftWithIndex_(fa, B.empty, (b, a, i) => B.combine_(b, f(a, i))),
       ),
 
   indexedRightFoldConsistentWithFoldMap:
@@ -27,9 +25,7 @@ export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
     <A>(fa: Kind<F, [A]>, f: (a: A, i: I) => B): IsEq<B> => {
       return new IsEq(
         F.foldMapWithIndex_(B)(fa, f),
-        F.foldLeftWithIndex_(fa, B.empty, (b, a, i) =>
-          B.combine_(b, () => f(a, i)),
-        ),
+        F.foldLeftWithIndex_(fa, B.empty, (b, a, i) => B.combine_(b, f(a, i))),
       );
       // throw new Error('TODO');
       // const M = Eval.Monoid(B);

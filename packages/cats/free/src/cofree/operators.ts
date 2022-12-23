@@ -130,7 +130,8 @@ export const coflatMap_ =
 
 export const foldMap_ = <S, M>(S: Foldable<S>, M: Monoid<M>) => {
   const foldMap_ = <A>(csa: Cofree<S, A>, f: (a: A) => M): M =>
-    M.combine_(f(csa.head), () =>
+    M.combine_(
+      f(csa.head),
       S.foldMap_(M)(csa.tail.value, csa => foldMap_(csa, f)),
     );
   return foldMap_;

@@ -49,7 +49,11 @@ export const queueSemigroupK: Lazy<SemigroupK<QueueF>> = lazyVal(() =>
 );
 
 export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazyVal(() =>
-  MonoidK.of({ emptyK: () => empty, combineK_: (x, y) => concat_(x, y()) }),
+  MonoidK.of({
+    emptyK: () => empty,
+    combineK_: (x, y) => concat_(x, y),
+    combineKEval_: (x, ey) => (isEmpty(x) ? ey : ey.map(y => concat_(x, y))),
+  }),
 );
 
 export const queueAlign: Lazy<Align<QueueF>> = lazyVal(() =>

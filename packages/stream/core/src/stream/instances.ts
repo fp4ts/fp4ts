@@ -30,7 +30,7 @@ import {
 import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
 export const streamMonoidK: <F>() => MonoidK<$<StreamF, [F]>> = lazyVal(() =>
-  MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys()), emptyK: empty }),
+  MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys), emptyK: empty }),
 );
 
 export const streamDefer: <F>() => Defer<$<StreamF, [F]>> = lazyVal(() =>

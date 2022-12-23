@@ -19,14 +19,8 @@ export const MonoidKLaws = <F>(F: MonoidK<F>): MonoidKLaws<F> => ({
   ...SemigroupKLaws(F),
 
   monoidKLeftIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    new IsEq(
-      F.combineK_(fa, () => F.emptyK()),
-      fa,
-    ),
+    new IsEq(F.combineK_(fa, F.emptyK()), fa),
 
   monoidKRightIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    new IsEq(
-      fa,
-      F.combineK_(F.emptyK(), () => fa),
-    ),
+    new IsEq(fa, F.combineK_(F.emptyK(), fa)),
 });

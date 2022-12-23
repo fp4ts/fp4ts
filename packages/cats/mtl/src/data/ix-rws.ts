@@ -353,7 +353,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
           break;
 
         case 2: // Tell
-          log = M.combine_(log, () => cur.w);
+          log = M.combine_(log, cur.w);
           result = undefined;
           break;
 
@@ -378,7 +378,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
               break;
 
             case 2: // Tell
-              log = M.combine_(log, () => self.w);
+              log = M.combine_(log, self.w);
               result = f(undefined);
               break;
 
@@ -412,7 +412,7 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
               continue;
 
             case 2: // Tell
-              log = M.combine_(log, () => self.w);
+              log = M.combine_(log, self.w);
               _cur = f(undefined);
               continue;
 

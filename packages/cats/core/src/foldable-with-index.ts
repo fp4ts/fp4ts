@@ -62,9 +62,9 @@ export const FoldableWithIndex = Object.freeze({
     const self: FoldableWithIndex<F, I> = instance<FoldableWithIndex<F, I>>({
       foldMapWithIndex: M => f => fa => self.foldMapWithIndex_(M)(fa, f),
       foldMapWithIndex_: M => (fa, f) =>
-        self.foldLeftWithIndex_(fa, M.empty, (b, a, i) =>
-          M.combine_(b, () => f(a, i)),
-        ),
+        self.foldRightWithIndex_(fa, Eval.now(M.empty), (a, b, i) =>
+          M.combineEval_(f(a, i), b),
+        ).value,
 
       foldLeftWithIndex: (z, f) => fa => self.foldLeftWithIndex_(fa, z, f),
       foldLeftWithIndex_: <A, B>(

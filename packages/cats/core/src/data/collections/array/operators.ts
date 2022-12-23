@@ -182,7 +182,10 @@ export const foldMap_ = <M, A>(
   xs: A[],
   f: (a: A, i: number) => M,
   M: Monoid<M>,
-): M => foldLeft_(map_(xs, f), M.empty, (x, y) => M.combine_(x, () => y));
+): M =>
+  foldRightEval_(xs, Eval.now(M.empty), (a, efb, i) =>
+    M.combineEval_(f(a, i), efb),
+  ).value;
 
 export const foldMapK_ = <F, A, B>(
   xs: A[],

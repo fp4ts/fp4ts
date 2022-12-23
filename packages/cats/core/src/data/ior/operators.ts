@@ -91,7 +91,7 @@ export const combine: <AA, BB>(
 export const merge: <AA>(
   S: Semigroup<AA>,
 ) => <A extends AA>(ior: Ior<A, A>) => AA = S => ior =>
-  fold_(ior, id, id, (a1, a2) => S.combine_(a1, () => a2));
+  fold_(ior, id, id, (a1, a2) => S.combine_(a1, a2));
 
 export const mergeWith: <A>(f: (l: A, r: A) => A) => (ior: Ior<A, A>) => A =
   f => ior =>
@@ -138,9 +138,9 @@ export const flatMap_ =
       (a, b) =>
         fold_(
           f(b),
-          aa      => left(S.combine_(a, () => aa)),
+          aa      => left(S.combine_(a, aa)),
           c       => both(a, c),
-          (aa, c) => both(S.combine_(a, () => aa), c),
+          (aa, c) => both(S.combine_(a, aa), c),
         ),
     );
 
@@ -152,21 +152,21 @@ export const combine_ =
       ior1,
       a1 => fold_(
         ior2,
-        a2       => left(SA.combine_(a1, () => a2)),
+        a2       => left(SA.combine_(a1, a2)),
         b2       => both(a1, b2),
-        (a2, b2) => both(SA.combine_(a1, () => a2), b2),
+        (a2, b2) => both(SA.combine_(a1, a2), b2),
       ),
       b1 => fold_(
         ior2,
         a2       => both(a2, b1),
-        b2       => right(SB.combine_(b1, () => b2)),
-        (a2, b2) => both(a2, SB.combine_(b1, () => b2)),
+        b2       => right(SB.combine_(b1, b2)),
+        (a2, b2) => both(a2, SB.combine_(b1, b2)),
       ),
       (a1, b1) => fold_(
         ior2,
-        a2       => both(SA.combine_(a1, () => a2), b1),
-        b2       => both(a1, SB.combine_(b1, () => b2)),
-        (a2, b2) => both(SA.combine_(a1, () => a2), SB.combine_(b1, () => b2)),
+        a2       => both(SA.combine_(a1, a2), b1),
+        b2       => both(a1, SB.combine_(b1, b2)),
+        (a2, b2) => both(SA.combine_(a1, a2), SB.combine_(b1, b2)),
       ),
     );
 
@@ -193,9 +193,9 @@ export const tailRecM_ =
             s =>
               fold_(
                 f(s),
-                aa      => (cur = left(S.combine_(a, () => aa))),
+                aa      => (cur = left(S.combine_(a, aa))),
                 x       => (cur = both(a, x)),
-                (aa, x) => (cur = both(S.combine_(a, () => aa), x)),
+                (aa, x) => (cur = both(S.combine_(a, aa), x)),
               ),
             b => (result = both(a, b)),
           ),

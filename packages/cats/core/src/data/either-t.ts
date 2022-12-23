@@ -102,7 +102,7 @@ EitherT.SemigroupK = cached(
   <F, E>(F: Monad<F>): SemigroupK<$<EitherTF, [F, E]>> =>
     SemigroupK.of<$<EitherTF, [F, E]>>({
       combineK_: (fa, lfb) =>
-        F.flatMap_(fa, ea => ea.fold(() => lfb(), EitherT.Right(F))),
+        F.flatMap_(fa, ea => ea.fold(() => lfb, EitherT.Right(F))),
     }),
 );
 

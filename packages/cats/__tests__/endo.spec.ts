@@ -16,7 +16,7 @@ describe('Endo', () => {
   it('should apply composition of endo', () => {
     const computation = Endo.MonoidK.combineK_(
       (s: string) => `Hello, ${s}`,
-      () => (s: string) => `${s}!`,
+      (s: string) => `${s}!`,
     );
 
     expect(computation('fp4ts')).toEqual('Hello, fp4ts!');

@@ -64,12 +64,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
     return F.eff(
       this.buildCtxFunctor(H),
       ([hx, w1]) =>
-        F.map_(hdl(hx), ([ha, w2]) =>
-          tupled(
-            ha,
-            this.W.combine_(w1, () => w2),
-          ),
-        ),
+        F.map_(hdl(hx), ([ha, w2]) => tupled(ha, this.W.combine_(w1, w2))),
       eff,
       [hu, this.W.empty],
     );

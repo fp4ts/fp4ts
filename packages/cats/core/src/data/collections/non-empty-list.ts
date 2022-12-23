@@ -449,7 +449,7 @@ const nelEqK: Lazy<EqK<NonEmptyListF>> = lazyVal(() =>
 );
 
 const nelSemigroupK: Lazy<SemigroupK<NonEmptyListF>> = lazyVal(() =>
-  SemigroupK.of({ combineK_: (x, y) => x.concatNel(y()) }),
+  SemigroupK.of({ combineK_: (x, y) => x.concatNel(y) }),
 );
 
 const nelFunctor: Lazy<Functor<NonEmptyListF>> = lazyVal(() =>

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance } from '@fp4ts/core';
+import { Eval, instance } from '@fp4ts/core';
 import { CommutativeSemigroup } from './commutative-semigroup';
 import { Monoid } from './monoid';
 import { SemigroupRequirements } from './semigroup';
@@ -38,6 +38,7 @@ export const CommutativeMonoid = Object.freeze({
   get disjunction(): CommutativeMonoid<boolean> {
     return CommutativeMonoid.of({
       combine_: CommutativeSemigroup.disjunction.combine_,
+      combineEval_: CommutativeSemigroup.disjunction.combineEval_,
       empty: false,
     });
   },
@@ -45,6 +46,7 @@ export const CommutativeMonoid = Object.freeze({
   get conjunction(): CommutativeMonoid<boolean> {
     return CommutativeMonoid.of({
       combine_: CommutativeSemigroup.conjunction.combine_,
+      combineEval_: CommutativeSemigroup.conjunction.combineEval_,
       empty: true,
     });
   },
@@ -64,6 +66,10 @@ export const CommutativeMonoid = Object.freeze({
   },
 
   get void(): CommutativeMonoid<void> {
-    return CommutativeMonoid.of({ combine_: () => {}, empty: undefined });
+    return CommutativeMonoid.of({
+      combine_: () => {},
+      combineEval_: () => Eval.void,
+      empty: undefined,
+    });
   },
 });

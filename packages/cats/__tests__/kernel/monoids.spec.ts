@@ -21,7 +21,7 @@ describe('Monoids', () => {
       ${'abcd'} | ${'e'}    | ${'abcde'}
       ${'e'}    | ${'abcd'} | ${'eabcd'}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.string.combine_(lhs, () => rhs)).toBe(result);
+      expect(Monoid.string.combine_(lhs, rhs)).toBe(result);
     });
 
     checkAll(
@@ -44,9 +44,7 @@ describe('CommutativeMonoids', () => {
       ${false} | ${true}  | ${false}
       ${false} | ${false} | ${false}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(CommutativeMonoid.conjunction.combine_(lhs, () => rhs)).toBe(
-        result,
-      );
+      expect(CommutativeMonoid.conjunction.combine_(lhs, rhs)).toBe(result);
     });
 
     checkAll(
@@ -70,9 +68,7 @@ describe('CommutativeMonoids', () => {
       ${false} | ${true}  | ${true}
       ${false} | ${false} | ${false}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(CommutativeMonoid.disjunction.combine_(lhs, () => rhs)).toBe(
-        result,
-      );
+      expect(CommutativeMonoid.disjunction.combine_(lhs, rhs)).toBe(result);
     });
 
     checkAll(
@@ -96,7 +92,7 @@ describe('CommutativeMonoids', () => {
       ${-15} | ${10} | ${-5}
       ${-10} | ${15} | ${5}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(CommutativeMonoid.addition.combine_(lhs, () => rhs)).toBe(result);
+      expect(CommutativeMonoid.addition.combine_(lhs, rhs)).toBe(result);
     });
 
     checkAll(
@@ -120,7 +116,7 @@ describe('CommutativeMonoids', () => {
       ${-15} | ${10} | ${-150}
       ${-10} | ${15} | ${-150}
     `('combine $lhs and $rhs to be $result', ({ lhs, rhs, result }) => {
-      expect(Monoid.product.combine_(lhs, () => rhs)).toBe(result);
+      expect(Monoid.product.combine_(lhs, rhs)).toBe(result);
     });
 
     checkAll(

@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, constant, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  constant,
+  Eval,
+  Kind,
+  lazyVal,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Applicative } from '../applicative';
 import { Apply } from '../apply';
@@ -71,12 +80,16 @@ const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
 ) =>
   Apply.of({
     ...constFunctor<E>(),
-    ap_: (ff, fc) => E.combine_(ff, () => fc),
+    ap_: (ff, fc) => E.combine_(ff, fc),
     map2_:
       <A, B>(fa: Const<E, A>, fb: Const<E, B>) =>
       <C>(f: (a: A, b: B) => C) =>
-        E.combine_(fa, () => fb),
-    product_: (fa, fb) => E.combine_(fa, () => fb),
+        E.combine_(fa, fb),
+    map2Eval_:
+      <A, B>(fa: Const<E, A>, efb: Eval<Const<E, B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        E.combineEval_(fa, efb),
+    product_: (fa, fb) => E.combine_(fa, fb),
   });
 
 const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(

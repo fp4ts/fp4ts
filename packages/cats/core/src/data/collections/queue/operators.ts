@@ -392,7 +392,8 @@ export const foldRight1_ = <A>(q: Queue<A>, f: (a: A, b: A) => A): A =>
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(q: Queue<A>, f: (a: A) => M): M =>
-    foldLeft_(q, M.empty, (m, x) => M.combine_(m, () => f(x)));
+    foldRightEval_(q, Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb))
+      .value;
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>

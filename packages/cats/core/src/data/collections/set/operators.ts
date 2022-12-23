@@ -426,7 +426,8 @@ export const foldRight1_ = <A>(sa: Set<A>, f: (x: A, b: A) => A): A =>
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <A>(sa: Set<A>, f: (a: A) => M): M =>
-    foldLeft_(sa, M.empty, (acc, x) => M.combine_(acc, () => f(x)));
+    foldRight_(sa, Eval.now(M.empty), (a, efb) => M.combineEval_(f(a), efb))
+      .value;
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>

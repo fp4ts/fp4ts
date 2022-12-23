@@ -6,10 +6,14 @@
 import { Monoid, None, Option } from '@fp4ts/cats';
 
 export const firstOption = <A>(): Monoid<Option<A>> =>
-  Monoid.of<Option<A>>({ empty: None, combine_: (x, y) => x.orElse(y) });
+  Monoid.of<Option<A>>({
+    empty: None,
+    combine_: (x, y) => x.orElse(() => y),
+    combineEval_: (x, ey) => x.orElseEval(ey),
+  });
 
 export const lastOption = <A>(): Monoid<Option<A>> =>
   Monoid.of<Option<A>>({
     empty: None,
-    combine_: (x, y) => y().orElse(() => x),
+    combine_: (x, y) => y.orElse(() => x),
   });

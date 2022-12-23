@@ -240,6 +240,15 @@ export class _LazyList<out A> {
     return this.concat(that);
   }
 
+  public concatEval<B>(
+    this: LazyList<B>,
+    that: Eval<LazyList<B>>,
+  ): LazyList<B> {
+    return new _LazyList(
+      this.source.flatMap(src => src.concat(that.flatMap(xs => xs.source))),
+    );
+  }
+
   public all(p: (a: A) => boolean): boolean {
     return this.foldRight(Eval.now(true), (x, eb) =>
       !p(x) ? Eval.now(false) : eb,
@@ -378,7 +387,9 @@ export class _LazyList<out A> {
   }
 
   public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {
-    return f => this.foldLeft(M.empty, (m, a) => M.combine_(m, () => f(a)));
+    return f =>
+      this.foldRight(Eval.now(M.empty), (a, efb) => M.combineEval_(f(a), efb))
+        .value;
   }
   public foldMapK<F>(
     F: MonoidK<F>,
@@ -929,7 +940,8 @@ const lazyListAlign = lazyVal(() =>
 
 const lazyListSemigroupK = lazyVal(() =>
   SemigroupK.of<LazyListF>({
-    combineK_: (fa, fb) => fa.concat(LazyList.defer(fb)),
+    combineK_: (fa, fb) => fa.concat(fb),
+    combineKEval_: (fa, efb) => Eval.now(fa.concatEval(efb)),
   }),
 );
 const lazyListMonoidK = lazyVal(() =>

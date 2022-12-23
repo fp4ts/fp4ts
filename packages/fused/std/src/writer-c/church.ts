@@ -47,7 +47,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
     hu: Kind<H, [void]>,
   ): WriterT<F, W, Kind<H, [A]>> {
     return eff.foldMap<[$<WriterCF, [F, W]>, H]>(
-      w => g => w1 => g(hu)(this.W.combine_(w1, () => w)),
+      w => g => w1 => g(hu)(this.W.combine_(w1, w)),
       ga => g =>
         hdl(H.map_(hu, () => ga))(ha => w => g(H.map_(ha, a => [a, w]))(w)),
       (ga, f) => g => w => hdl(H.map_(hu, () => ga))(g)(f(w)),

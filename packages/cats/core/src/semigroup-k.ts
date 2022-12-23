@@ -10,8 +10,8 @@ import { Semigroup } from '@fp4ts/cats-kernel';
  * @category Type Class
  */
 export interface SemigroupK<F> extends Base<F> {
-  combineK<A>(y: Lazy<Kind<F, [A]>>): (x: Kind<F, [A]>) => Kind<F, [A]>;
-  combineK_<A>(x: Kind<F, [A]>, y: Lazy<Kind<F, [A]>>): Kind<F, [A]>;
+  combineK<A>(y: Kind<F, [A]>): (x: Kind<F, [A]>) => Kind<F, [A]>;
+  combineK_<A>(x: Kind<F, [A]>, y: Kind<F, [A]>): Kind<F, [A]>;
 
   combineKEval<A>(
     ey: Eval<Kind<F, [A]>>,
@@ -31,18 +31,19 @@ export const SemigroupK = Object.freeze({
       combineK: y => x => F.combineK_(x, y),
 
       combineKEval: ey => x => self.combineKEval_(x, ey),
-      combineKEval_: (x, ey) => ey.map(y => F.combineK_(x, () => y)),
+      combineKEval_: (x, ey) => ey.map(y => F.combineK_(x, y)),
 
-      algebra: () =>
-        Semigroup.of({
+      algebra: <A>() =>
+        Semigroup.of<Kind<F, [A]>>({
           combine: F.combineK ?? (y => x => F.combineK_(x, y)),
           combine_: F.combineK_,
+          combineEval_: F.combineKEval_,
         }),
 
       dual: () =>
         SemigroupK.of<F>({
-          combineK_: (x, y) => self.combineK_(y(), () => x),
           dual: () => self,
+          combineK_: (x, y) => self.combineK_(y, x),
         }),
       ...F,
     });

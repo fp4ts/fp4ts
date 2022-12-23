@@ -3,19 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  $type,
-  Fix,
-  Kind,
-  Lazy,
-  tupled,
-  TyK,
-  TyVar,
-  α,
-  β,
-  λ,
-} from '@fp4ts/core';
+import { $, $type, Fix, Kind, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import {
   Alternative,
   Applicative,
@@ -137,7 +125,7 @@ IxRWST.SemigroupK = <R, W, S1, S2, F>(
   F: SemigroupK<F>,
 ): SemigroupK<$<IxRWSTF, [R, W, S1, S2, F]>> =>
   SemigroupK.of<$<IxRWSTF, [R, W, S1, S2, F]>>({
-    combineK_: (x, y) => (r, s1) => F.combineK_(x(r, s1), () => y()(r, s1)),
+    combineK_: (x, y) => (r, s1) => F.combineK_(x(r, s1), y(r, s1)),
   });
 
 IxRWST.MonoidK = <R, W, S1, S2, F>(
@@ -149,9 +137,9 @@ IxRWST.MonoidK = <R, W, S1, S2, F>(
       () =>
         F.emptyK<A>(),
     combineK_:
-      <A>(x: IxRWST<R, W, S1, S2, F, A>, y: Lazy<IxRWST<R, W, S1, S2, F, A>>) =>
+      <A>(x: IxRWST<R, W, S1, S2, F, A>, y: IxRWST<R, W, S1, S2, F, A>) =>
       (r, s1) =>
-        F.combineK_<[A, S2, W]>(x(r, s1), () => y()(r, s1)),
+        F.combineK_<[A, S2, W]>(x(r, s1), y(r, s1)),
   });
 
 IxRWST.Profunctor = <R, W, F, A>(
@@ -204,11 +192,7 @@ IxRWST.Apply = <R, W, S, F>(
     ap_: (ff, fa) =>
       suspend(F, (r, s1) =>
         F.flatMap_(ff(r, s1), ([f, s2, w1]) =>
-          F.map_(fa(r, s2), ([a, s2, w2]) => [
-            f(a),
-            s2,
-            W.combine_(w1, () => w2),
-          ]),
+          F.map_(fa(r, s2), ([a, s2, w2]) => [f(a), s2, W.combine_(w1, w2)]),
         ),
       ),
   });
@@ -222,29 +206,15 @@ IxRWST.FlatMap = <R, W, S, F>(
     flatMap_: (fa, f) =>
       suspend(F, (r, s) =>
         F.flatMap_(fa(r, s), ([a, s, w]) =>
-          F.map_(f(a)(r, s), ([b, s, w2]) => [b, s, W.combine_(w, () => w2)]),
+          F.map_(f(a)(r, s), ([b, s, w2]) => [b, s, W.combine_(w, w2)]),
         ),
       ),
     tailRecM_: (x, f) => (r, s1) =>
       F.tailRecM_(tupled(x, s1, W.empty), ([x, sx, w]) =>
         F.map_(f(x)(r, sx), ([ea, sx, wx]) =>
           ea.fold(
-            x =>
-              Left(
-                tupled(
-                  x,
-                  sx,
-                  W.combine_(w, () => wx),
-                ),
-              ),
-            z =>
-              Right(
-                tupled(
-                  z,
-                  sx,
-                  W.combine_(w, () => wx),
-                ),
-              ),
+            x => Left(tupled(x, sx, W.combine_(w, wx))),
+            z => Right(tupled(z, sx, W.combine_(w, wx))),
           ),
         ),
       ),

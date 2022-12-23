@@ -154,7 +154,7 @@ export class Logger<F, A> {
   public static readonly MonoidK: <F>(
     F: Applicative<F>,
   ) => MonoidK<$<LoggerF, [F]>> = cached(F =>
-    MonoidK.of({ emptyK: Logger.empty(F), combineK_: (x, y) => x.concat(y()) }),
+    MonoidK.of({ emptyK: Logger.empty(F), combineK_: (x, y) => x.concat(y) }),
   );
 }
 

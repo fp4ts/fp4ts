@@ -14,11 +14,8 @@ export const SemigroupKLaws = <F>(F: SemigroupK<F>): SemigroupKLaws<F> => ({
     c: Kind<F, [A]>,
   ): IsEq<Kind<F, [A]>> =>
     new IsEq(
-      F.combineK_(
-        F.combineK_(a, () => b),
-        () => c,
-      ),
-      F.combineK_(a, () => F.combineK_(b, () => c)),
+      F.combineK_(F.combineK_(a, b), c),
+      F.combineK_(a, F.combineK_(b, c)),
     ),
 });
 export interface SemigroupKLaws<F> {

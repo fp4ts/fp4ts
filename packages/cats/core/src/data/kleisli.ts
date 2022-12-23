@@ -92,8 +92,8 @@ const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,
 ) => SemigroupK<$<KleisliF, [F, A]>> = cached(<F, A>(F: SemigroupK<F>) =>
   SemigroupK.of<$<KleisliF, [F, A]>>({
-    combineK_: <B>(x: Kleisli<F, A, B>, y: Lazy<Kleisli<F, A, B>>) =>
-      suspend(F, (a: A) => F.combineK_<B>(x(a), () => y()(a))),
+    combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
+      suspend(F, (a: A) => F.combineK_(x(a), y(a))),
     combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
       Eval.now(
         suspend(
@@ -111,8 +111,20 @@ const kleisliSemigroupK: <F, A>(
 const kleisliMonoidK: <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>> =
   cached(<F, A>(F: MonoidK<F>) =>
     MonoidK.of<$<KleisliF, [F, A]>>({
-      combineK_: <B>(x: Kleisli<F, A, B>, y: Lazy<Kleisli<F, A, B>>) =>
-        suspend(F, (a: A) => F.combineK_(x(a), () => y()(a))),
+      combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
+        suspend(F, (a: A) => F.combineK_(x(a), y(a))),
+
+      combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
+        Eval.now(
+          suspend(
+            F,
+            (a: A) =>
+              F.combineKEval_(
+                x(a),
+                ey.map(y => y(a)),
+              ).value,
+          ),
+        ),
 
       emptyK: () => F.emptyK,
     }),

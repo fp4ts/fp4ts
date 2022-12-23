@@ -24,11 +24,8 @@ export const AlternativeLaws = <F>(F: Alternative<F>): AlternativeLaws<F> => ({
     f: (a: A) => B,
   ): IsEq<Kind<F, [B]>> =>
     new IsEq(
-      pipe(
-        F.combineK_(fa, () => fa2),
-        F.map(f),
-      ),
-      F.combineK_(F.map_(fa, f), () => F.map_(fa2, f)),
+      pipe(F.combineK_(fa, fa2), F.map(f)),
+      F.combineK_(F.map_(fa, f), F.map_(fa2, f)),
     ),
 
   alternativeRightDistributivity: <A, B>(
@@ -37,11 +34,8 @@ export const AlternativeLaws = <F>(F: Alternative<F>): AlternativeLaws<F> => ({
     fg: Kind<F, [(a: A) => B]>,
   ): IsEq<Kind<F, [B]>> =>
     new IsEq(
-      pipe(
-        F.combineK_(ff, () => fg),
-        F.ap(fa),
-      ),
-      F.combineK_(F.ap_(ff, fa), () => F.ap_(fg, fa)),
+      pipe(F.combineK_(ff, fg), F.ap(fa)),
+      F.combineK_(F.ap_(ff, fa), F.ap_(fg, fa)),
     ),
 });
 

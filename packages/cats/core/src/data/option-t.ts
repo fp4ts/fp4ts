@@ -125,7 +125,7 @@ OptionT.Alternative = cached(
       ...OptionT.Monad(F),
       emptyK: () => F.pure(None),
       combineK_: (fa, fb) =>
-        F.flatMap_(fa, opt => (opt.isEmpty ? fb() : F.pure(opt))),
+        F.flatMap_(fa, opt => (opt.isEmpty ? fb : F.pure(opt))),
     }),
 );
 

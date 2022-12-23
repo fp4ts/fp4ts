@@ -38,14 +38,18 @@ export const mapEq: <K, V>(EK: Eq<K>, EV: Eq<V>) => Eq<Map<K, V>> = (EK, EV) =>
   Eq.of({ equals: (xs, ys) => equals_(EK, EV, xs, ys) });
 
 export const mapSemigroupK: <K>(O: Ord<K>) => SemigroupK<$<MapF, [K]>> = O =>
-  SemigroupK.of({ combineK_: (x, y) => union_(O, x, y()) });
+  SemigroupK.of({
+    combineK_: (x, y) => union_(O, x, y),
+    combineKEval_: (x, ey) => (x === empty ? ey : ey.map(y => union_(O, x, y))),
+  });
 
 export const mapMonoidK: <K>(O: Ord<K>) => MonoidK<$<MapF, [K]>> = <K>(
   O: Ord<K>,
 ) =>
   MonoidK.of<$<MapF, [K]>>({
     emptyK: () => empty,
-    combineK_: (x, y) => union_(O, x, y()),
+    combineK_: (x, y) => union_(O, x, y),
+    combineKEval_: (x, ey) => (x === empty ? ey : ey.map(y => union_(O, x, y))),
   });
 
 export const mapFunctor: <K>() => Functor<$<MapF, [K]>> = lazyVal(<K>() =>

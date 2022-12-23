@@ -25,9 +25,9 @@ export const MonoidK = Object.freeze({
 
       dual: () =>
         MonoidK.of({
-          combineK_: (x, y) => self.combineK_(y(), () => x),
-          emptyK: self.emptyK,
           dual: () => self,
+          combineK_: (x, y) => self.combineK_(y, x),
+          emptyK: self.emptyK,
         }),
 
       algebra: <A>() =>

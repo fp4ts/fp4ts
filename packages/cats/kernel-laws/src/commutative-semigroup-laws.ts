@@ -11,8 +11,5 @@ export const CommutativeSemigroupLaws = <A>(S: CommutativeSemigroup<A>) => ({
   ...SemigroupLaws(S),
 
   commutative: (x: A, y: A): IsEq<A> =>
-    new IsEq(
-      S.combine_(x, () => y),
-      S.combine_(y, () => x),
-    ),
+    new IsEq(S.combine_(x, y), S.combine_(y, x)),
 });

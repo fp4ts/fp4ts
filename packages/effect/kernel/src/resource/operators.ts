@@ -336,7 +336,7 @@ export const flatMap_ = <F, A, B>(
 export const combine_ =
   <A>(A: Monoid<A>) =>
   <F>(lhs: Resource<F, A>, rhs: Resource<F, A>): Resource<F, A> =>
-    flatMap_(lhs, x => map_(rhs, y => A.combine_(x, () => y)));
+    flatMap_(lhs, x => map_(rhs, y => A.combine_(x, y)));
 
 export const handleError_ =
   <F>(F: ApplicativeError<F, Error>) =>

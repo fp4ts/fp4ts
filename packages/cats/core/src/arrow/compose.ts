@@ -43,12 +43,12 @@ export const Compose = Object.freeze({
 
       algebraK: () =>
         SemigroupK.of<λ<F, [α, α]>>({
-          combineK_: (fx, fy) => self.compose_(fx, fy()),
+          combineK_: (fx, fy) => self.compose_(fx, fy),
         }),
 
       algebra: () =>
         Semigroup.of({
-          combine_: (fx, fy) => self.compose_(fx, fy()),
+          combine_: (fx, fy) => self.compose_(fx, fy),
         }),
 
       ...F,

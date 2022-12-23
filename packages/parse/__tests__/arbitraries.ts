@@ -209,7 +209,7 @@ export const orElse = <S, F, A>(
     .chain(([lhs, rhs]) =>
       fc.oneof(
         fc.constant(lhs.orElse(rhs)),
-        fc.constant(ParserT.MonoidK<S, F>().combineK_(lhs, () => rhs)),
+        fc.constant(ParserT.MonoidK<S, F>().combineK_(lhs, rhs)),
       ),
     );
 

@@ -57,12 +57,18 @@ export const arrayEqK: Lazy<EqK<ArrayF>> = lazyVal(() =>
 );
 
 export const arraySemigroupK: () => SemigroupK<ArrayF> = lazyVal(() =>
-  SemigroupK.of({ combineK_: (x, y) => concat_(x, y()) }),
+  SemigroupK.of({
+    combineK_: (x, y) => concat_(x, y),
+    combineKEval_: (xs, eys) =>
+      xs.length === 0 ? eys : eys.map(ys => concat_(xs, ys)),
+  }),
 );
 
 export const arrayMonoidK: () => MonoidK<ArrayF> = lazyVal(() => {
   return MonoidK.of({
-    combineK_: (x, y) => concat_(x, y()),
+    combineK_: (x, y) => concat_(x, y),
+    combineKEval_: (xs, eys) =>
+      xs.length === 0 ? eys : eys.map(ys => concat_(xs, ys)),
     emptyK: () => empty,
   });
 });

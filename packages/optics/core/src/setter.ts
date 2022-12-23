@@ -81,7 +81,7 @@ export function or<S, T>(
 export function concat<A>(
   S: Semigroup<A>,
 ): <S, T>(l: PSetter<S, T, A, A>) => (a: A) => (s: S) => T {
-  return l => a => modify(l)(S.combine(() => a));
+  return l => a => modify(l)(S.combine(a));
 }
 
 export function fromFunctor<F>(

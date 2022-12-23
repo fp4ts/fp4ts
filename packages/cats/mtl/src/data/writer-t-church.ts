@@ -33,7 +33,7 @@ WriterT.tell =
   <F>(w2: W): WriterT<F, W, void> =>
   g =>
   w1 =>
-    g(undefined)(W.combine_(w1, () => w2));
+    g(undefined)(W.combine_(w1, w2));
 
 WriterT.listen =
   <F, W, A>(fwa: WriterT<F, W, A>): WriterT<F, W, [A, W]> =>

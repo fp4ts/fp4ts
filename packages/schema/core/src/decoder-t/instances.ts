@@ -48,7 +48,7 @@ import { DecoderT } from './algebra';
 export const decoderTMonoidK: <F, I>(
   F: Monad<F>,
 ) => MonoidK<$<DecoderTF, [F, I]>> = F =>
-  MonoidK.of({ emptyK: empty(F), combineK_: orElse_(F) });
+  MonoidK.of({ emptyK: empty(F), combineK_: (x, y) => orElse_(F)(x, () => y) });
 
 export const decoderTFunctor: <F, I>(
   F: Functor<F>,

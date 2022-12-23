@@ -72,12 +72,7 @@ function RWSTAlgebra<R, W, S, Sig, F>(
         case 'writer': {
           const we = eff.eff as Writer<W, G, A>;
           return we.foldMap<[$<RWSTF, [R, W, S, F]>, H]>(
-            w2 => g => (r, s, w1) =>
-              g(
-                hu,
-                s,
-                W.combine_(w1, () => w2),
-              ),
+            w2 => g => (r, s, w1) => g(hu, s, W.combine_(w1, w2)),
             ga => g =>
               hdl(H.map_(hu, () => ga))((ha, s, w) =>
                 g(

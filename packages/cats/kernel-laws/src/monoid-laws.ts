@@ -10,15 +10,7 @@ import { SemigroupLaws } from './semigroup-laws';
 export const MonoidLaws = <M>(M: Monoid<M>) => ({
   ...SemigroupLaws(M),
 
-  monoidRightIdentity: (x: M): IsEq<M> =>
-    new IsEq(
-      M.combine_(x, () => M.empty),
-      x,
-    ),
+  monoidRightIdentity: (x: M): IsEq<M> => new IsEq(M.combine_(x, M.empty), x),
 
-  monoidLeftIdentity: (x: M): IsEq<M> =>
-    new IsEq(
-      M.combine_(M.empty, () => x),
-      x,
-    ),
+  monoidLeftIdentity: (x: M): IsEq<M> => new IsEq(M.combine_(M.empty, x), x),
 });

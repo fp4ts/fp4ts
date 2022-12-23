@@ -14,13 +14,13 @@ export const CensorLaws = <F, W>(F: Censor<F, W>) => ({
   tellRightProductHomomorphism: (l: W, r: W): IsEq<Kind<F, [void]>> =>
     new IsEq(
       F.productR_(F.tell(l), F.tell(r)),
-      F.tell(F.monoid.combine_(l, () => r)),
+      F.tell(F.monoid.combine_(l, r)),
     ),
 
   tellLeftProductHomomorphism: (l: W, r: W): IsEq<Kind<F, [void]>> =>
     new IsEq(
       F.productL_(F.tell(l), F.tell(r)),
-      F.tell(F.monoid.combine_(l, () => r)),
+      F.tell(F.monoid.combine_(l, r)),
     ),
 
   censorWithPureIsEmptyTell: <A>(a: A, f: (w: W) => W): IsEq<Kind<F, [A]>> =>

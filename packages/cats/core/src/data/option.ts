@@ -238,7 +238,7 @@ const optionFunctorFilter = lazyVal(() =>
 const optionAlternative = lazyVal(() =>
   Alternative.of<OptionF>({
     ...optionMonad(),
-    combineK_: (fa, lfb) => fa.orElse(lfb),
+    combineK_: (fa, lfb) => fa.orElse(() => lfb),
     combineKEval_: (fa, efb) => fa.orElseEval(efb),
     emptyK: () => None,
   }),

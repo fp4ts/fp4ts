@@ -24,8 +24,8 @@ interface EndoObj {
 const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() => {
   const self: MonoidK<EndoF> = MonoidK.of({
     emptyK: <A>() => id<A>,
-    combineK_: <A>(x: Endo<A>, y: Lazy<Endo<A>>) =>
-      AndThen(x).compose((x: A) => y()(x)),
+    // TODO fix
+    combineK_: <A>(x: Endo<A>, y: Endo<A>) => AndThen(y).andThen(x),
     algebra: lazyVal(<A>() => {
       const that: Monoid<Endo<A>> = Monoid.of<Endo<A>>({
         empty: id,
@@ -33,7 +33,7 @@ const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() => {
         dual: () =>
           Monoid.of<Endo<A>>({
             empty: id,
-            combine_: (x, y) => AndThen(x).andThen(y()),
+            combine_: (x, y) => AndThen(x).andThen(y),
             dual: () => that,
           }),
       });

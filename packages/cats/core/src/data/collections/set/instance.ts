@@ -34,7 +34,8 @@ export const setEq: <A>(E: Eq<A>) => Eq<Set<A>> = <A>(E: Eq<A>): Eq<Set<A>> =>
 export const setMonoid: <A>(O: Ord<A>) => Monoid<Set<A>> = <A>(O: Ord<A>) =>
   Monoid.of({
     empty: empty as Set<A>,
-    combine_: (x, y) => union_(O, x, y()),
+    combine_: (x, y) => union_(O, x, y),
+    combineEval_: (x, ey) => (x === empty ? ey : ey.map(y => union_(O, x, y))),
   });
 
 export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>

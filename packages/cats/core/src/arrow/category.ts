@@ -29,13 +29,13 @@ export const Category = Object.freeze({
       algebraK: () =>
         MonoidK.of<λ<F, [α, α]>>({
           emptyK: self.id,
-          combineK_: (x, y) => self.compose_(x, y()),
+          combineK_: (x, y) => self.compose_(x, y),
         }),
 
       algebra: <A>() =>
         Monoid.of<Kind<F, [A, A]>>({
           empty: self.id<A>(),
-          combine_: (x, y) => self.compose_(x, y()),
+          combine_: (x, y) => self.compose_(x, y),
         }),
 
       ...F,

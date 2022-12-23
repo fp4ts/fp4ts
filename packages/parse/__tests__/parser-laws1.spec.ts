@@ -25,11 +25,8 @@ describe('Parser Laws', () => {
         (a, b, c, s) =>
           eq(a['<|>'](b)['<|>'](c).parse(s), a.orElse(b.orElse(c)).parse(s)) &&
           eq(
-            F.combineK_(
-              F.combineK_(a, () => b),
-              () => c,
-            ).parse(s),
-            F.combineK_(a, () => F.combineK_(b, () => c)).parse(s),
+            F.combineK_(F.combineK_(a, b), c).parse(s),
+            F.combineK_(a, F.combineK_(b, c)).parse(s),
           ),
       ),
     );
@@ -45,7 +42,7 @@ describe('Parser Laws', () => {
         fc.string(),
         (fa, s) =>
           eq(fa.orElse(Parser.empty()).parse(s), fa.parse(s)) &&
-          eq(F.combineK_(fa, () => F.emptyK()).parse(s), fa.parse(s)),
+          eq(F.combineK_(fa, F.emptyK()).parse(s), fa.parse(s)),
       ),
     );
 
@@ -58,7 +55,7 @@ describe('Parser Laws', () => {
           eq(
             Parser.empty<StringSource, EvalF, never>().orElse(fa).parse(s),
             fa.parse(s),
-          ) && eq(F.combineK_(F.emptyK(), () => fa).parse(s), fa.parse(s)),
+          ) && eq(F.combineK_(F.emptyK(), fa).parse(s), fa.parse(s)),
       ),
     );
   });

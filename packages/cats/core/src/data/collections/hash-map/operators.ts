@@ -4,12 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { id, pipe, Kind, throwError } from '@fp4ts/core';
+import { id, pipe, Kind, throwError, Eval } from '@fp4ts/core';
 import { Monoid, Hashable, Eq } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 
+import { foldRightEval_ as foldRightArray_ } from '../array/operators';
 import { List } from '../list';
 import { Option, None, Some } from '../../option';
 
@@ -497,15 +498,39 @@ export const foldRight_ = <K, V, B>(
   }
 };
 
+export const foldRightEval_ = <K, V, B>(
+  m: HashMap<K, V>,
+  ez: Eval<B>,
+  f: (v: V, eb: Eval<B>, k: K) => Eval<B>,
+): Eval<B> => {
+  const n = toNode(m);
+  switch (n.tag) {
+    case 'empty':
+      return ez;
+
+    case 'inner':
+      return foldRightArray_(n.children, ez, (m2, ez2) =>
+        foldRightEval_(m2, ez2, f),
+      );
+
+    case 'leaf':
+      return foldRightArray_(n.buckets, ez, ([, k, v], eb) => f(v, eb, k));
+  }
+};
+
 export const foldMap_ =
   <M>(M: Monoid<M>) =>
   <K, V>(m: HashMap<K, V>, f: (v: V, k: K) => M): M =>
-    foldLeft_(m, M.empty, (r, v, k) => M.combine_(r, () => f(v, k)));
+    foldRightEval_(m, Eval.now(M.empty), (v, eb, k) =>
+      M.combineEval_(f(v, k), eb),
+    ).value;
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <K, V, B>(m: HashMap<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>
-    foldLeft_(m, F.emptyK(), (r, v, k) => F.combineK_(r, () => f(v, k)));
+    foldRightEval_(m, Eval.now(F.emptyK<B>()), (v, eb, k) =>
+      F.combineKEval_(f(v, k), eb),
+    ).value;
 
 export const traverse_ =
   <G>(G: Applicative<G>) =>

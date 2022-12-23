@@ -376,7 +376,7 @@ abstract class _ValidationError<E> {
           case 'lift':
             return f(self.error);
           case 'concat':
-            return S.combine_(go(self.lhs), () => go(self.rhs));
+            return S.combine_(go(self.lhs), go(self.rhs));
         }
       })(this as any as ValidationError<E>);
   }
@@ -450,17 +450,23 @@ const validationEqK: <E>(
       Eq.of<Validation<E, A>>({ equals: (xs, ys) => xs.equals(EE, EA)(ys) }),
   });
 
-const validationFunctor: <E>() => Functor<$<ValidationF, [E]>> = lazyVal(() =>
-  Functor.of({ map_: (fa, f) => fa.map(f) }),
-);
+const validationFunctor: <E>() => Functor<$<ValidationF, [E]>> = lazyVal(<
+  E,
+>() => Functor.of<$<ValidationF, [E]>>({ map_: (fa, f) => fa.map(f) })) as <
+  E,
+>() => Functor<$<ValidationF, [E]>>;
 
 const validationBifunctor: Lazy<Bifunctor<ValidationF>> = lazyVal(() =>
   Bifunctor.of<ValidationF>({ bimap_: (fa, f, g) => fa.bimap(f, g) }),
 );
 
-const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazyVal(
-  () => SemigroupK.of({ combineK_: (fa, fb) => fa['<|>'](fb) }),
-);
+const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazyVal(<
+  E,
+>() =>
+  SemigroupK.of<$<ValidationF, [E]>>({
+    combineK_: (fa, fb) => fa['<|>'](() => fb),
+  }),
+) as <E>() => SemigroupK<$<ValidationF, [E]>>;
 
 const validationApplicative: <E>() => Applicative<$<ValidationF, [E]>> = <
   E,
