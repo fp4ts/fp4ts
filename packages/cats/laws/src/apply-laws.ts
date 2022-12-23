@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, Kind, pipe } from '@fp4ts/core';
-import { Apply, Eval } from '@fp4ts/cats-core';
+import { compose, Eval, Kind, pipe } from '@fp4ts/core';
+import { Apply } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { FunctorLaws } from './functor-laws';

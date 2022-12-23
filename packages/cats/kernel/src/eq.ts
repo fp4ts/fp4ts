@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Base, instance, TyK, TyVar } from '@fp4ts/core';
+import { $type, Base, Eval, instance, TyK, TyVar } from '@fp4ts/core';
 
 /**
  * @category Type Class
@@ -39,6 +39,8 @@ export const Eq = Object.freeze({
   get never(): Eq<never> {
     return Eq.of({ equals: () => false });
   },
+
+  Eval: <A>(A: Eq<A>): Eq<Eval<A>> => Eq.by(A, e => e.value),
 
   Error: {
     get allEqual(): Eq<Error> {

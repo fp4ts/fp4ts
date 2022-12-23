@@ -6,7 +6,6 @@
 import fc from 'fast-check';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
-import { Eval } from '@fp4ts/cats-core';
 import {
   AlignSuite,
   AlternativeSuite,
@@ -18,6 +17,7 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { Monad } from '@fp4ts/cats-core';
 
 describe('Array laws', () => {
   const alignTests = AlignSuite(Array.Align());
@@ -112,17 +112,17 @@ describe('Array laws', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Array.FunctorWithIndex(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
       Array.Eq,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 
@@ -135,17 +135,17 @@ describe('Array laws', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Array.FunctorFilter(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
       Array.Eq,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

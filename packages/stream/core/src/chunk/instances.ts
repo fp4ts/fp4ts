@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Lazy, lazyVal, Kind } from '@fp4ts/core';
+import { id, Eval, Lazy, lazyVal, Kind } from '@fp4ts/core';
 import {
   Alternative,
   Functor,
@@ -11,7 +11,6 @@ import {
   Monad,
   MonoidK,
   Traversable,
-  Eval,
   Applicative,
 } from '@fp4ts/cats';
 

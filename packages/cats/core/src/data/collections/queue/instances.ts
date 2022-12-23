@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazyVal } from '@fp4ts/core';
 import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
@@ -17,7 +17,6 @@ import { Monad } from '../../../monad';
 import { MonoidK } from '../../../monoid-k';
 import { SemigroupK } from '../../../semigroup-k';
 import { TraversableFilter } from '../../../traversable-filter';
-import { Eval } from '../../../eval';
 
 import { empty, pure, tailRecM_ } from './constructors';
 import {

@@ -3,9 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval, tupled } from '@fp4ts/core';
 import { Ord } from '@fp4ts/cats-kernel';
-import { tupled } from '@fp4ts/core';
-import { Eval } from '../../../eval';
 import { Option } from '../../option';
 import { empty, lift } from './constructors';
 import { Set as OrdSet } from '../set';

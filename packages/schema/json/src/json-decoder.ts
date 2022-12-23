@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EitherT, Eval, Try } from '@fp4ts/cats';
+import { Eval } from '@fp4ts/core';
+import { EitherT, Try } from '@fp4ts/cats';
 import { DecodeFailure, Decoder } from '@fp4ts/schema-core';
 import { Schema } from '@fp4ts/schema-kernel';
 import { Json } from './json';

@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Char, id } from '@fp4ts/core';
-import { EvalF, IdentityF, List } from '@fp4ts/cats';
+import { Char, EvalF, id } from '@fp4ts/core';
+import { List } from '@fp4ts/cats';
 import { Parser, text, Rfc5234, StringSource, ParserT } from '@fp4ts/parse';
 
 /**

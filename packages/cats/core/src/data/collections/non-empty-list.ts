@@ -5,6 +5,7 @@
 
 import {
   $type,
+  Eval,
   HKT,
   id,
   Kind,
@@ -24,7 +25,6 @@ import { MonoidK } from '../../monoid-k';
 import { Monad } from '../../monad';
 import { Foldable } from '../../foldable';
 import { Applicative } from '../../applicative';
-import { Eval } from '../../eval';
 import { Traversable } from '../../traversable';
 import { Align } from '../../align';
 import { EqK } from '../../eq-k';

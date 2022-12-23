@@ -6,6 +6,7 @@
 import {
   $type,
   compose,
+  Eval,
   id,
   Kind,
   Lazy,
@@ -15,7 +16,6 @@ import {
 } from '@fp4ts/core';
 import { Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Align } from '../../align';
-import { Eval } from '../../eval';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';

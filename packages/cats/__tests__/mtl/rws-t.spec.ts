@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind, tupled } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
 import { RWST } from '@fp4ts/cats-mtl';
 import {
@@ -14,8 +14,8 @@ import {
   MonadStateSuite,
   MonadWriterSuite,
 } from '@fp4ts/cats-mtl-laws';
-import { MonadErrorSuite, MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
+import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -123,7 +123,7 @@ describe('RWST', () => {
 
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
-      const S = RWST.MonadState<unknown, void, number, EvalF>(Eval.Monad);
+      const S = RWST.MonadState<unknown, void, number, EvalF>(Monad.Eval);
       const size = 50_000;
       const go: RWST<unknown, void, number, EvalF, void> = S.flatMap_(
         S.get,
@@ -131,7 +131,7 @@ describe('RWST', () => {
       );
 
       expect(
-        RWST.runASW(Eval.Monad, CommutativeMonoid.void)(go)(undefined, 0).value,
+        RWST.runASW(Monad.Eval, CommutativeMonoid.void)(go)(undefined, 0).value,
       ).toEqual([undefined, size, undefined]);
     });
   });
@@ -144,14 +144,14 @@ describe('RWST', () => {
   );
 
   runTests(
-    ['Eval', Eval.Monad],
+    ['Eval', Monad.Eval],
     ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals<string>()],
     A.fp4tsEval,
-    Eval.Eq,
+    Eq.Eval,
   );
 
   runTests(
-    ['Eval', Eval.Monad],
+    ['Eval', Monad.Eval],
     [
       'number',
       CommutativeMonoid.addition,
@@ -159,7 +159,7 @@ describe('RWST', () => {
       Eq.fromUniversalEquals<number>(),
     ],
     A.fp4tsEval,
-    Eval.Eq,
+    Eq.Eval,
   );
 
   runTests(

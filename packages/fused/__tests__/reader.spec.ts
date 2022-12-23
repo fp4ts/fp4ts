@@ -4,16 +4,15 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind } from '@fp4ts/core';
+import { $, EvalF, Kind } from '@fp4ts/core';
 import {
   CommutativeMonoid,
   Eq,
-  Eval,
-  EvalF,
   Function1F,
   Identity,
   IdentityF,
   KleisliF,
+  Monad,
 } from '@fp4ts/cats';
 import { IxRWSF, RWST, RWSTF } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
@@ -89,7 +88,7 @@ describe('Reader Effect', () => {
     ReaderC.Kleisli(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsKleisli(A.fp4tsEval(X)),
-    X => eq.fn1Eq(ec.miniInt(), Eval.Eq(X)),
+    X => eq.fn1Eq(ec.miniInt(), Eq.Eval(X)),
   );
 
   runTests<$<IxRWSF, [MiniInt, void, void, void]>, MiniInt>(
@@ -167,7 +166,7 @@ describe('Reader Effect', () => {
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
       A.fp4tsRWST(
-        Eval.Monad,
+        Monad.Eval,
         fc.func(
           A.fp4tsEval(
             fc.tuple(
@@ -182,7 +181,7 @@ describe('Reader Effect', () => {
       Eq.by(
         eq.fn1Eq(
           ec.miniInt(),
-          Eval.Eq(
+          Eq.Eval(
             Eq.tuple(
               X,
               Eq.fromUniversalEquals<void>(),
@@ -191,7 +190,7 @@ describe('Reader Effect', () => {
           ),
         ),
         rwsfa => r =>
-          RWST.runASW(Eval.Monad, CommutativeMonoid.void)(rwsfa)(r, undefined),
+          RWST.runASW(Monad.Eval, CommutativeMonoid.void)(rwsfa)(r, undefined),
       ),
   );
 });

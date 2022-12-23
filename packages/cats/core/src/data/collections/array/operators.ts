@@ -3,10 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id } from '@fp4ts/core';
+import { Eval, Kind, id } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
-import { Eval } from '../../../eval';
 import { MonoidK } from '../../../monoid-k';
 
 import { Ior } from '../../ior';

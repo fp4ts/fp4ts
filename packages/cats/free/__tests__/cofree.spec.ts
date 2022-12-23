@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval, EvalF } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
   List,
@@ -108,11 +109,9 @@ describe('Cofree', () => {
         lb: Option<List<number>>,
       ): EvalOption<List<number>> =>
         i > 100
-          ? OptionT.None(Eval.Applicative)
-          : OptionT.Some(Eval.Applicative)(
-              lb.getOrElse(() => List.empty).cons(i),
-            );
-      const inclusion = OptionT.liftF(Eval.Applicative);
+          ? OptionT.None(Monad.Eval)
+          : OptionT.Some(Monad.Eval)(lb.getOrElse(() => List.empty).cons(i));
+      const inclusion = OptionT.liftF(Monad.Eval);
 
       const unfolded: Cofree<OptionF, number> = Cofree.unfold(Option.Functor)(
         0,
@@ -120,12 +119,12 @@ describe('Cofree', () => {
 
       const cataHundred = unfolded.cataM(
         Option.TraversableFilter,
-        OptionT.Monad(Eval.Monad),
+        OptionT.Monad(Monad.Eval),
       )(folder, inclusion).value;
       const cataHundredOne = Cofree<OptionF, number>(
         101,
         Eval.now(Some(unfolded)),
-      ).cataM(Option.TraversableFilter, OptionT.Monad(Eval.Monad))(
+      ).cataM(Option.TraversableFilter, OptionT.Monad(Monad.Eval))(
         folder,
         inclusion,
       ).value;

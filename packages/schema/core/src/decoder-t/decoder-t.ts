@@ -4,19 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { $, $type, Eval, EvalF, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Category,
   Either,
   EitherT,
-  Eval,
-  EvalF,
   Functor,
   Monad,
   MonoidK,
   Profunctor,
 } from '@fp4ts/cats';
-import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Constraining,
   Refining,
@@ -266,38 +264,38 @@ interface DecoderObj {
   Constraining: Constraining<$<DecoderF, [unknown]>>;
 }
 
-Decoder.succeed = succeed(Eval.Monad);
-Decoder.fail = fail(Eval.Monad);
-Decoder.failWith = failWith(Eval.Monad);
-Decoder.identity = identity(Eval.Monad);
-Decoder.empty = empty(Eval.Monad);
-Decoder.tailRecM = tailRecM(Eval.Monad);
-Decoder.tailRecM_ = tailRecM_(Eval.Monad);
-Decoder.fromRefinement = fromRefinement(Eval.Monad);
-Decoder.fromGuard = fromGuard(Eval.Monad);
-Decoder.literal = literal(Eval.Monad);
-Decoder.boolean = boolean(Eval.Monad);
-Decoder.number = number(Eval.Monad);
-Decoder.string = string(Eval.Monad);
-Decoder.null = nullDecoderT(Eval.Monad);
-Decoder.unknownArray = unknownArray(Eval.Monad);
-Decoder.unknownRecord = unknownRecord(Eval.Monad);
-Decoder.array = array(Eval.Monad);
-Decoder.record = record(Eval.Monad);
-Decoder.struct = struct(Eval.Monad);
-Decoder.partial = partial(Eval.Monad);
-Decoder.product = product(Eval.Monad) as DecoderObj['product'];
-Decoder.sum = sum(Eval.Monad);
+Decoder.succeed = succeed(Monad.Eval);
+Decoder.fail = fail(Monad.Eval);
+Decoder.failWith = failWith(Monad.Eval);
+Decoder.identity = identity(Monad.Eval);
+Decoder.empty = empty(Monad.Eval);
+Decoder.tailRecM = tailRecM(Monad.Eval);
+Decoder.tailRecM_ = tailRecM_(Monad.Eval);
+Decoder.fromRefinement = fromRefinement(Monad.Eval);
+Decoder.fromGuard = fromGuard(Monad.Eval);
+Decoder.literal = literal(Monad.Eval);
+Decoder.boolean = boolean(Monad.Eval);
+Decoder.number = number(Monad.Eval);
+Decoder.string = string(Monad.Eval);
+Decoder.null = nullDecoderT(Monad.Eval);
+Decoder.unknownArray = unknownArray(Monad.Eval);
+Decoder.unknownRecord = unknownRecord(Monad.Eval);
+Decoder.array = array(Monad.Eval);
+Decoder.record = record(Monad.Eval);
+Decoder.struct = struct(Monad.Eval);
+Decoder.partial = partial(Monad.Eval);
+Decoder.product = product(Monad.Eval) as DecoderObj['product'];
+Decoder.sum = sum(Monad.Eval);
 Decoder.defer = defer;
 
-Decoder.MonoidK = <I>() => decoderTMonoidK<EvalF, I>(Eval.Monad) as any;
-Decoder.Functor = <I>() => decoderTFunctor<EvalF, I>(Eval.Monad) as any;
-Decoder.Profunctor = decoderTProfunctor(Eval.Functor) as any;
-Decoder.Category = decoderTCategory(Eval.Monad) as any;
-Decoder.Monad = <I>() => decoderTMonad<EvalF, I>(Eval.Monad) as any;
-Decoder.Refining = decoderTRefining(Eval.Monad) as any;
-Decoder.Schemable = decoderTSchemable(Eval.Monad) as any;
-Decoder.Constraining = decoderTConstraining(Eval.Monad) as any;
+Decoder.MonoidK = <I>() => decoderTMonoidK<EvalF, I>(Monad.Eval) as any;
+Decoder.Functor = <I>() => decoderTFunctor<EvalF, I>(Monad.Eval) as any;
+Decoder.Profunctor = decoderTProfunctor(Monad.Eval) as any;
+Decoder.Category = decoderTCategory(Monad.Eval) as any;
+Decoder.Monad = <I>() => decoderTMonad<EvalF, I>(Monad.Eval) as any;
+Decoder.Refining = decoderTRefining(Monad.Eval) as any;
+Decoder.Schemable = decoderTSchemable(Monad.Eval) as any;
+Decoder.Constraining = decoderTConstraining(Monad.Eval) as any;
 
 // -- HKT
 

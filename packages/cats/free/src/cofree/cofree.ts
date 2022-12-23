@@ -3,15 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { $, $type, Eval, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   CoflatMap,
   Comonad,
-  Eval,
   Foldable,
   Functor,
   Traversable,
 } from '@fp4ts/cats-core';
-import { $, $type, HKT, Kind, TyK, TyVar } from '@fp4ts/core';
 
 import { Cofree as CofreeBase } from './algebra';
 import { ana, anaEval, unfold, unfoldEval } from './constructors';

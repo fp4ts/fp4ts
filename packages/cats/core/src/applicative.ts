@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Eval, Kind } from '@fp4ts/core';
 import { Functor } from './functor';
 import { Apply } from './apply';
 import { CoflatMap } from './coflat-map';
@@ -11,7 +11,6 @@ import { ComposedApplicative } from './composed';
 import { Array } from './data';
 import { Foldable } from './foldable';
 import { FoldableWithIndex } from './foldable-with-index';
-import { Eval } from './eval';
 
 /**
  * @category Type Class

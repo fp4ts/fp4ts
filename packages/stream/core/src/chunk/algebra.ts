@@ -14,7 +14,6 @@ import {
   List,
   Vector,
   Applicative,
-  Eval,
   Eq,
   Iter,
   TraverseStrategy,

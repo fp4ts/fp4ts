@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { EqK } from '../eq-k';
 import { Distributive } from '../distributive';
 import { Applicative } from '../applicative';
@@ -15,7 +15,6 @@ import { Monad } from '../monad';
 import { Comonad } from '../comonad';
 import { Foldable } from '../foldable';
 import { Traversable } from '../traversable';
-import { Eval } from '../eval';
 
 import { Either } from './either';
 

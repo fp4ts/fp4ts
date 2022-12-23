@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Tuple2 } from '@fp4ts/cats-core/lib/data';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
@@ -57,17 +57,17 @@ describe('Tuple2', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Tuple2.Bifunctor.rightFunctor<number>(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       x => fc.tuple(fc.integer(), x),
       x => Eq.tuple(Eq.fromUniversalEquals(), x),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 
@@ -96,17 +96,17 @@ describe('Tuple2', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Tuple2.Bifunctor.leftFunctor<number>(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       x => fc.tuple(x, fc.integer()),
       x => Eq.tuple(x, Eq.fromUniversalEquals()),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

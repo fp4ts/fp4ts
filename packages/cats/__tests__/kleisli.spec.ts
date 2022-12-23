@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -40,8 +40,8 @@ import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
   const KIA = Kleisli.Compose<IdentityF>(Identity.Monad);
-  const KEA = Kleisli.Compose<EvalF>(Eval.Monad);
-  const KEM = <R>() => Kleisli.Monad<EvalF, R>(Eval.Monad);
+  const KEA = Kleisli.Compose<EvalF>(Monad.Eval);
+  const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);
 
   it('should be stack safe on flatMap with StackSafeMonad', () => {
     const size = 50_000;
@@ -191,7 +191,7 @@ describe('Kleisli', () => {
 
     checkAll(
       'ArrowApply<Kleisli<Eval, *, *>>',
-      ArrowApplySuite(Kleisli.ArrowApply(Eval.Monad)).arrowApply(
+      ArrowApplySuite(Kleisli.ArrowApply(Monad.Eval)).arrowApply(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
         fc.boolean(),
@@ -210,7 +210,7 @@ describe('Kleisli', () => {
         <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
           A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
         <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
-          eqKleisli<EvalF, X, Y>(X, Eval.Eq(Y)),
+          eqKleisli<EvalF, X, Y>(X, Eq.Eval(Y)),
         <X, Y>(X: ExhaustiveCheck<X>, Y: ExhaustiveCheck<Y>) =>
           ec.instance<Kleisli<EvalF, X, Y>>(
             Y.allValues.map(y => Kleisli((x: X) => Eval.now(y))),
@@ -220,7 +220,7 @@ describe('Kleisli', () => {
 
     checkAll(
       'ArrowChoice<Kleisli<Eval, *, *>>',
-      ArrowChoiceSuite(Kleisli.ArrowChoice(Eval.Monad)).arrowChoice(
+      ArrowChoiceSuite(Kleisli.ArrowChoice(Monad.Eval)).arrowChoice(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
         fc.boolean(),
@@ -239,7 +239,7 @@ describe('Kleisli', () => {
         <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
           A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
         <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
-          eqKleisli<EvalF, X, Y>(X, Eval.Eq(Y)),
+          eqKleisli<EvalF, X, Y>(X, Eq.Eval(Y)),
       ),
     );
   });

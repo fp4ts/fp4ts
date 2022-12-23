@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { Eval, id, Kind } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 import { Show } from '../../../show';
@@ -90,7 +90,6 @@ import {
   distinctByOrd_,
   partitionWith_,
 } from './operators';
-import { Eval } from '../../../eval';
 import { View } from '../view';
 
 declare module './algebra' {

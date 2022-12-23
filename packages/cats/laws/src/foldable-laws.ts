@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Eval, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Eval, Foldable, MonoidK } from '@fp4ts/cats-core';
+import { Foldable, MonoidK } from '@fp4ts/cats-core';
 import {
   List,
   Vector,
@@ -40,17 +40,22 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   rightFoldConsistentWithFoldMap:
     <B>(B: Monoid<B>) =>
     <A>(fa: Kind<F, [A]>, f: (a: A) => B): IsEq<B> => {
-      const M = Eval.Monoid(B);
-
       return new IsEq(
         F.foldMap_(B)(fa, f),
-        F.foldRight_(fa, M.empty, (a, b) =>
-          M.combine_(
-            Eval.later(() => f(a)),
-            () => b,
-          ),
-        ).value,
+        F.foldLeft_(fa, B.empty, (b, a) => B.combine_(b, () => f(a))),
       );
+      // throw new Error('TODO');
+      // const M = Eval.Monoid(B);
+
+      // return new IsEq(
+      //   F.foldMap_(B)(fa, f),
+      //   F.foldRight_(fa, M.empty, (a, b) =>
+      //     M.combine_(
+      //       Eval.later(() => f(a)),
+      //       () => b,
+      //     ),
+      //   ).value,
+      // );
     },
 
   foldMapKConsistentWithFoldMap:

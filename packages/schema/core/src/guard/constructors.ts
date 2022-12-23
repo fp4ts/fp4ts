@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { Eval } from '@fp4ts/cats';
+import { Eval } from '@fp4ts/core';
 import { Literal } from '@fp4ts/schema-kernel/src/literal';
 import { Guard, SafeGuard, safeTest } from './algebra';
 

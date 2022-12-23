@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from '../../../eq-k';
 import { MonoidK } from '../../../monoid-k';
@@ -21,7 +21,6 @@ import { FunctorWithIndex } from '../../../functor-with-index';
 import { FoldableWithIndex } from '../../../foldable-with-index';
 import { TraversableWithIndex } from '../../../traversable-with-index';
 import { TraversableFilter } from '../../../traversable-filter';
-import { Eval } from '../../../eval';
 
 import { ArrayF } from './array';
 import {

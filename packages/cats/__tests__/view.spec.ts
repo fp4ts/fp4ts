@@ -4,19 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { tupled } from '@fp4ts/core';
-import { Eval } from '@fp4ts/cats-core';
+import { Eval, tupled } from '@fp4ts/core';
+import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { List, Option, Some, View } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
   FoldableSuite,
   FunctorFilterSuite,
-  FunctorSuite,
   MonoidKSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 
 describe('Views', () => {
   describe('construction', () => {

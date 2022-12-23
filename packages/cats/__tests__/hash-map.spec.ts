@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { EvalF } from '@fp4ts/core';
 import { Eq, Hashable, CommutativeMonoid } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { List, Option, Some, None, HashMap } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -702,14 +703,14 @@ describe('Map', () => {
       Eq.fromUniversalEquals(),
       CommutativeMonoid.addition,
       HashMap.Functor(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       x => A.fp4tsHashMap(fc.integer(), x, Hashable.any()),
       E => HashMap.Eq(Eq.fromUniversalEquals(), E),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

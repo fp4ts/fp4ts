@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, Eval, List, CommutativeMonoid, Option, Some } from '@fp4ts/cats';
+import { Eval } from '@fp4ts/core';
+import { Eq, List, CommutativeMonoid, Option, Some } from '@fp4ts/cats';
 import { TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { SchemableK } from '@fp4ts/schema-kernel';

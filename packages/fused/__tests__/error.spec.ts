@@ -4,16 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $ } from '@fp4ts/core';
-import {
-  Either,
-  EitherF,
-  EitherTF,
-  Eq,
-  Eval,
-  EvalF,
-  IdentityF,
-} from '@fp4ts/cats';
+import { $, EvalF } from '@fp4ts/core';
+import { Either, EitherF, EitherTF, Eq, IdentityF } from '@fp4ts/cats';
 import { Error } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { ErrorC } from '@fp4ts/fused-std';
@@ -82,7 +74,7 @@ describe('ErrorC', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       X => A.fp4tsEval(A.fp4tsEither(fc.string(), X)),
-      X => Eval.Eq(Either.Eq(Eq.fromUniversalEquals(), X)),
+      X => Eq.Eval(Either.Eq(Eq.fromUniversalEquals(), X)),
     ),
   );
 });

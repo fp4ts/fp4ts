@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base } from '@fp4ts/core';
+import { Base, Eval, EvalF, lazyVal } from '@fp4ts/core';
 import { Defer } from './defer';
 import { Monad } from './monad';
 
@@ -34,4 +34,17 @@ export const StackSafeMonad = Object.freeze({
     };
     return self;
   },
+
+  get Eval(): StackSafeMonad<EvalF> {
+    return evalMonad();
+  },
 });
+
+const evalMonad: () => StackSafeMonad<EvalF> = lazyVal(() =>
+  StackSafeMonad.of({
+    pure: Eval.pure,
+    map_: (fa, f) => fa.map(f),
+    flatMap_: (fa, f) => fa.flatMap(f),
+    flatten: fa => fa.flatten(),
+  }),
+);

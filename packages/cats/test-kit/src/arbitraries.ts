@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Kind, PrimitiveType } from '@fp4ts/core';
+import { Eval, Kind, PrimitiveType } from '@fp4ts/core';
 import { Hashable, Ord } from '@fp4ts/cats-kernel';
-import { Eval, FlatMap } from '@fp4ts/cats-core';
+import { FlatMap } from '@fp4ts/cats-core';
 import {
   Chain,
   Either,

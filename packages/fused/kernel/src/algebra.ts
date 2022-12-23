@@ -3,10 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind, throwError } from '@fp4ts/core';
+import { EvalF, id, Kind, throwError } from '@fp4ts/core';
 import {
-  Eval,
-  EvalF,
   Functor,
   Identity,
   IdentityF,
@@ -72,7 +70,7 @@ export const Algebra = Object.freeze({
   get Eval(): Algebra<never, EvalF> {
     return Algebra.of({
       eff: (H, hdl, eff, hu) => throwError(new Error('no eff to pass in')),
-      ...Eval.Monad,
+      ...Monad.Eval,
     });
   },
 

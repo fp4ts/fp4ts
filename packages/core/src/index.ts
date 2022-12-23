@@ -6,6 +6,7 @@
 /**
  * @module core
  */
+export * from './eval';
 export * from './function';
 export * from './hkt';
 export * from './newtype';

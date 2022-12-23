@@ -3,16 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Char } from '@fp4ts/core';
 import {
-  Eval,
   Identity,
   IdentityF,
   LazyList,
   List,
+  Monad,
   Right,
   Some,
 } from '@fp4ts/cats';
-import { Char } from '@fp4ts/core';
 import {
   ArraySource,
   Parser,
@@ -88,7 +88,7 @@ describe('List source', () => {
     expect(
       expr
         .complete()
-        .parseStream(Stream.forList(Eval.Monad), List.fromArray(e.split('')))
+        .parseStream(Stream.forList(Monad.Eval), List.fromArray(e.split('')))
         .value,
     ).toEqual(Right(result));
   });
@@ -111,7 +111,7 @@ describe('LazyList source', () => {
       expr
         .complete()
         .parseStream(
-          Stream.forLazyList(Eval.Monad),
+          Stream.forLazyList(Monad.Eval),
           LazyList.fromArray(e.split('')),
         ).value,
     ).toEqual(Right(result));

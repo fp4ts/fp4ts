@@ -3,8 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { cached, id, Kind } from '@fp4ts/core';
-import { Eval, EvalF } from './eval';
+import { cached, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
 import { isStackSafeMonad } from './stack-safe-monad';

@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { add, configure, cycle, suite } from 'benny';
-import { id, Kind, tupled } from '@fp4ts/core';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval, EvalF, id, Kind, tupled } from '@fp4ts/core';
+import { Monoid } from '@fp4ts/cats-kernel';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, IdentityF } from '@fp4ts/cats-core/lib/data';
 import { MonadWriter, WriterT, WriterTChurch } from '@fp4ts/cats-mtl';
-import { Monoid } from '@fp4ts/cats-kernel';
 
 function makeTests<F>(
   name: string,
@@ -64,12 +64,12 @@ suite(
   ),
   ...makeSuite(
     'WriterT<number, number, Eval, *>',
-    WriterT.MonadWriter<EvalF, number>(Eval.Monad, Monoid.addition),
+    WriterT.MonadWriter<EvalF, number>(Monad.Eval, Monoid.addition),
     sfa => sfa.value,
   ),
   ...makeSuite(
     'WriterTChurch<number, Eval, *>',
-    WriterTChurch.MonadWriter<EvalF, number>(Eval.Monad, Monoid.addition),
+    WriterTChurch.MonadWriter<EvalF, number>(Monad.Eval, Monoid.addition),
     sfa => sfa(a => b => Eval.now(tupled(a, b)))(0).value,
   ),
   cycle(),

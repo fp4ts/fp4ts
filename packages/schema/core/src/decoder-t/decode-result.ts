@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, Eval, EvalF } from '@fp4ts/cats';
+import { EvalF } from '@fp4ts/core';
+import { Either, Monad } from '@fp4ts/cats';
 import { DecodeFailure } from '../decode-failure';
 import { DecodeResultT } from './decode-result-t';
 
@@ -12,8 +13,8 @@ export const DecodeResult: DecodeResultTObj = function (fa) {
   return fa;
 };
 
-DecodeResult.success = DecodeResultT.success(Eval.Applicative);
-DecodeResult.failure = DecodeResultT.failure(Eval.Applicative);
+DecodeResult.success = DecodeResultT.success(Monad.Eval);
+DecodeResult.failure = DecodeResultT.failure(Monad.Eval);
 
 interface DecodeResultTObj {
   <A>(fa: Either<DecodeFailure, A>): DecodeResult<A>;

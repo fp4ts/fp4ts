@@ -3,13 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, constant, id, throwError } from '@fp4ts/core';
+import { compose, constant, Eval, id, throwError } from '@fp4ts/core';
 import { Option, None, Some } from '../option';
 import { Either, Left, Right } from '../either';
 
 import { Try, view } from './algebra';
 import { failure, of, success } from './constructors';
-import { Eval } from '../../eval';
 
 export const isSuccess = <A>(t: Try<A>): boolean => !isFailure(t);
 

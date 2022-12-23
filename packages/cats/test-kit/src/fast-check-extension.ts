@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { toStringMethod, stringify } from 'fast-check';
-import { Eval } from '@fp4ts/cats-core/lib/eval/algebra';
+import { Eval } from '@fp4ts/core';
 import { Chain } from '@fp4ts/cats-core/lib/data/collections/chain/algebra';
 import {
   LazyList,

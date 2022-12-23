@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { CommutativeMonoid, Eval, Eq, List, Vector } from '@fp4ts/cats';
+import { CommutativeMonoid, Eq, List, Monad, Vector } from '@fp4ts/cats';
 import { Chunk } from '@fp4ts/stream-core';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -218,17 +218,17 @@ describe('chunk', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Chunk.Functor,
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       A.fp4tsStreamChunkGenerator,
       <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

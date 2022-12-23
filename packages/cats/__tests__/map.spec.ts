@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { id } from '@fp4ts/core';
+import { Eval, EvalF, id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
 import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -1040,17 +1040,17 @@ describe('Map', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Map.FunctorWithIndex(),
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         x => A.fp4tsMap(fc.integer(), x, Ord.fromUniversalCompare()),
         E => Map.Eq(Eq.fromUniversalEquals(), E),
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

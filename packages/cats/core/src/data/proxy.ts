@@ -6,6 +6,7 @@
 import { Eq } from '@fp4ts/cats-kernel';
 import {
   $type,
+  Eval,
   Kind,
   KindOf,
   Lazy,
@@ -20,7 +21,6 @@ import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { Contravariant } from '../contravariant';
 import { EqK } from '../eq-k';
-import { Eval } from '../eval';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { StackSafeMonad } from '../stack-safe-monad';

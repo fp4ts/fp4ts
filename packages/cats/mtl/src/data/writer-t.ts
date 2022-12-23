@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, fst, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, Eval, fst, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import {
   Applicative,
@@ -14,7 +14,6 @@ import {
   FlatMap,
   Monad,
   MonadError,
-  Eval,
   SemigroupK,
   MonoidK,
   Alternative,

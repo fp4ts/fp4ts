@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind, pipe } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind, pipe } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { EqK, Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { EqK, Monad } from '@fp4ts/cats-core';
 import {
   Array,
   Either,
@@ -25,12 +25,9 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 describe('WriterT', () => {
   describe('cumulating results', () => {
     const M = Monoid.string;
-    const W = WriterT.MonadWriter(Eval.Monad, M);
+    const W = WriterT.MonadWriter(Monad.Eval, M);
     it('should be empty when lifting the pure value', () => {
-      expect(WriterT.runAW(Eval.Applicative, M)(W.pure(42)).value).toEqual([
-        42,
-        '',
-      ]);
+      expect(WriterT.runAW(Monad.Eval, M)(W.pure(42)).value).toEqual([42, '']);
     });
 
     it('should concatenate two string', () => {
@@ -42,7 +39,7 @@ describe('WriterT', () => {
           W.productL(W.tell('me')),
           W.productL(W.tell(' ')),
           W.productL(W.tell('more')),
-          WriterT.runAW(Eval.Applicative, M),
+          WriterT.runAW(Monad.Eval, M),
         ).value,
       ).toEqual([42, 'tell me more']);
     });
@@ -57,7 +54,7 @@ describe('WriterT', () => {
           W.productL(W.tell(' ')),
           W.productL(W.tell('more')),
           W.clear,
-          WriterT.runAW(Eval.Applicative, M),
+          WriterT.runAW(Monad.Eval, M),
         ).value,
       ).toEqual([42, '']);
     });
@@ -141,10 +138,10 @@ describe('WriterT', () => {
       Option.EqK,
     );
     runTests<EvalF, string>(
-      ['Eval', Eval.Monad],
+      ['Eval', Monad.Eval],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsEval,
-      EqK.of({ liftEq: Eval.Eq }),
+      EqK.of({ liftEq: Eq.Eval }),
     );
     runTests<$<EitherF, [string]>, string>(
       ['Either<string, *>', Either.Monad<string>()],

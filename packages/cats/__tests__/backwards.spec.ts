@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { id, pipe } from '@fp4ts/core';
-import { Eval } from '@fp4ts/cats-core';
+import { Eval, id, pipe } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { Monad } from '@fp4ts/cats-core';
 import { Backwards, Identity } from '@fp4ts/cats-core/lib/data';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -14,7 +14,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Backwards', () => {
   it('should execute the effects in reversed order', () => {
-    const F = Backwards.Applicative(Eval.Applicative);
+    const F = Backwards.Applicative(Monad.Eval);
     let acc = '';
 
     pipe(
@@ -45,7 +45,7 @@ describe('Backwards', () => {
 
   checkAll(
     'Backwards.Monad<Eval>',
-    MonadSuite(Backwards.Monad(Eval.Monad)).monad(
+    MonadSuite(Backwards.Monad(Monad.Eval)).monad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -55,7 +55,7 @@ describe('Backwards', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

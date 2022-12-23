@@ -4,13 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Eval, throwError } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Option, Either, Left, Right, Ior } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { BifunctorSuite, MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { Eval } from '@fp4ts/cats-core';
-import { throwError } from '@fp4ts/core';
+import { BifunctorSuite, MonadErrorSuite } from '@fp4ts/cats-laws';
 
 describe('Ior', () => {
   test(

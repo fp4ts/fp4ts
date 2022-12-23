@@ -3,9 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind } from '@fp4ts/core';
+import { Eval, instance, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Eval } from './eval';
 import { Foldable } from './foldable';
 import { MonoidK } from './monoid-k';
 import { Endo } from './data';

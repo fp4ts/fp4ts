@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $ } from '@fp4ts/core';
+import { $, EvalF } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { EqK, Monad } from '@fp4ts/cats-core';
 import { EitherT, Option, OptionT } from '@fp4ts/cats-core/lib/data';
 import { MonadWriter, WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
@@ -20,7 +20,7 @@ describe('MonadWriter', () => {
     'MonadWriter<Kleisli<WriterT<Eval, string, *>, string, *>, string>',
     MonadWriterSuite(
       MonadWriter.Kleisli<$<WriterTF, [EvalF, string]>, MiniInt, string>(
-        WriterT.MonadWriter(Eval.Monad, Monoid.string),
+        WriterT.MonadWriter(Monad.Eval, Monoid.string),
       ),
     ).censor(
       fc.integer(),
@@ -29,14 +29,14 @@ describe('MonadWriter', () => {
       Eq.fromUniversalEquals(),
       X => fc.func(A.fp4tsEval(fc.tuple(X, fc.string()))),
       X =>
-        eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, Eq.fromUniversalEquals()))),
+        eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, Eq.fromUniversalEquals()))),
     ),
   );
 
   checkAll(
     'MonadWriter<OptionT<WriterT<Eval, string, *>, *>, string>',
     MonadWriterSuite(
-      MonadWriter.OptionT(WriterT.MonadWriter(Eval.Monad, Monoid.string)),
+      MonadWriter.OptionT(WriterT.MonadWriter(Monad.Eval, Monoid.string)),
     ).censor(
       fc.integer(),
       fc.string(),
@@ -47,7 +47,7 @@ describe('MonadWriter', () => {
       ): Arbitrary<OptionT<$<WriterTF, [EvalF, string]>, X>> =>
         A.fp4tsEval(fc.tuple(A.fp4tsOption(X), fc.string())),
       <X>(X: Eq<X>): Eq<OptionT<$<WriterTF, [EvalF, string]>, X>> =>
-        Eval.Eq(Eq.tuple(Option.Eq(X), Eq.fromUniversalEquals())),
+        Eq.Eval(Eq.tuple(Option.Eq(X), Eq.fromUniversalEquals())),
     ),
   );
 
@@ -55,7 +55,7 @@ describe('MonadWriter', () => {
     'MonadWriter<EitherT<WriterT<Eval, string, *>, string, *>, string>',
     MonadWriterSuite(
       MonadWriter.EitherT<$<WriterTF, [EvalF, string]>, string, string>(
-        WriterT.MonadWriter(Eval.Monad, Monoid.string),
+        WriterT.MonadWriter(Monad.Eval, Monoid.string),
       ),
     ).censor(
       fc.integer(),
@@ -67,7 +67,7 @@ describe('MonadWriter', () => {
           A.fp4tsEval(fc.tuple(A.fp4tsEither(fc.string(), X), fc.string())),
         ),
       EitherT.EqK(
-        WriterT.EqK(Eval.EqK, Eq.fromUniversalEquals<string>()),
+        WriterT.EqK(EqK.Eval, Eq.fromUniversalEquals<string>()),
         Eq.fromUniversalEquals<string>(),
       ).liftEq,
     ),

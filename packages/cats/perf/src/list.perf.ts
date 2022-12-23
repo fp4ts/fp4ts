@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { suite, add, cycle, configure } from 'benny';
+import { Eval } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Left, List, None, Right, Some } from '@fp4ts/cats-core/lib/data';
-import { Eval } from '@fp4ts/cats-core';
 
 function makeSuite(size: number) {
   const xs = [...new Array(size).keys()].map((_, i) => i);

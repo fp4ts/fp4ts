@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Eval } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
 import { Chain, Identity, List, Option, Some } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
@@ -16,6 +16,7 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { Monad } from '@fp4ts/cats-core';
 
 describe('Chain', () => {
   describe('types', () => {
@@ -134,17 +135,17 @@ describe('Chain', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Chain.FunctorFilter,
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsChain,
         Chain.Eq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

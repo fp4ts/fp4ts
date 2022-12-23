@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { id } from '@fp4ts/core';
+import { Eval, id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
   Either,
@@ -1568,17 +1568,17 @@ describe('List', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         List.FunctorFilter,
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsList,
         List.Eq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

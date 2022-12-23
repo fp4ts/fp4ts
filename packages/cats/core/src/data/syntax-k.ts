@@ -3,14 +3,13 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Kind, Lazy } from '@fp4ts/core';
+import { Eval, Base, Kind, Lazy } from '@fp4ts/core';
 import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { ApplicativeError } from '../applicative-error';
 import { Apply } from '../apply';
 import { Contravariant } from '../contravariant';
-import { Eval } from '../eval';
 import { FlatMap } from '../flat-map';
 import { Foldable } from '../foldable';
 import { Functor } from '../functor';

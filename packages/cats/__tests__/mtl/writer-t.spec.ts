@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind, pipe, tupled } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind, pipe, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Monoid, Eq } from '@fp4ts/cats-kernel';
-import { EqK, Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { EqK, Monad } from '@fp4ts/cats-core';
 import {
   Array,
   Either,
@@ -31,7 +31,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('WriterT', () => {
   describe('cumulating results', () => {
-    const W = WriterT.MonadWriter(Eval.Monad, Monoid.string);
+    const W = WriterT.MonadWriter(Monad.Eval, Monoid.string);
     it('should be empty when lifting the pure value', () => {
       expect(W.pure(42).value).toEqual([42, '']);
     });
@@ -75,7 +75,7 @@ describe('WriterT', () => {
 
     it('should combine result of the flatMap', () => {
       const W = WriterT.MonadWriter(
-        Eval.Monad,
+        Monad.Eval,
         Array.MonoidK().algebra<number>(),
       );
       expect(
@@ -179,10 +179,10 @@ describe('WriterT', () => {
       Option.EqK,
     );
     runTests<EvalF, string>(
-      ['Eval', Eval.Monad],
+      ['Eval', Monad.Eval],
       ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals()],
       A.fp4tsEval,
-      EqK.of({ liftEq: Eval.Eq }),
+      EqK.of({ liftEq: Eq.Eval }),
     );
     runTests<$<EitherF, [string]>, string>(
       ['Either<string, *>', Either.Monad<string>()],
@@ -249,7 +249,7 @@ describe('WriterT', () => {
         CommutativeMonoid.addition,
         WriterT.Functor(Option.Functor),
         Option.Monad,
-        Eval.Applicative,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
@@ -261,7 +261,7 @@ describe('WriterT', () => {
         A.fp4tsOption,
         Option.Eq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

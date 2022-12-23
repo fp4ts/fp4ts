@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { add, configure, cycle, suite } from 'benny';
-import { Kind, pipe, tupled } from '@fp4ts/core';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval, EvalF, Kind, pipe, tupled } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, IdentityF } from '@fp4ts/cats-core/lib/data';
 import { IxStateT, MonadState, StateT } from '@fp4ts/cats-mtl';
 
@@ -64,12 +64,12 @@ suite(
   ),
   ...makeSuite(
     'IxStateT<number, number, Eval, *>',
-    IxStateT.MonadState<number, EvalF>(Eval.Monad),
+    IxStateT.MonadState<number, EvalF>(Monad.Eval),
     sfa => sfa(0).value,
   ),
   ...makeSuite(
     'StateT<number, Eval, *>',
-    StateT.MonadState<EvalF, number>(Eval.Monad),
+    StateT.MonadState<EvalF, number>(Monad.Eval),
     sfa => sfa(a => b => Eval.now(tupled(a, b)))(0).value,
   ),
   cycle(),

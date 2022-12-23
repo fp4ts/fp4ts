@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind } from '@fp4ts/core';
-import { Eval, EvalF, Eq, IdentityF, Monoid, Identity } from '@fp4ts/cats';
+import { $, EvalF, Kind } from '@fp4ts/core';
+import { Eq, IdentityF, Monoid, Identity, Monad } from '@fp4ts/cats';
 import { IxRWSF, RWST, RWSTF, WriterTF } from '@fp4ts/cats-mtl';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -67,7 +67,7 @@ describe('Writer Effect', () => {
     WriterC.WriterT(Algebra.Eval, Monoid.string),
     [fc.string(), Eq.fromUniversalEquals(), Monoid.string, 'string'],
     X => A.fp4tsEval(fc.tuple(X, fc.string())),
-    X => Eval.Eq(Eq.tuple(X, Eq.fromUniversalEquals())),
+    X => Eq.Eval(Eq.tuple(X, Eq.fromUniversalEquals())),
   );
 
   runTests<$<IxRWSF, [unknown, string, void, void]>, string>(
@@ -107,17 +107,17 @@ describe('Writer Effect', () => {
     [fc.string(), Eq.fromUniversalEquals(), Monoid.string, 'string'],
     X =>
       A.fp4tsRWST(
-        Eval.Monad,
+        Monad.Eval,
         fc.func(
           A.fp4tsEval(fc.tuple(X, fc.constant(undefined as void), fc.string())),
         ),
       ),
     X =>
       Eq.by(
-        Eval.Eq(
+        Eq.Eval(
           Eq.tuple(X, Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
         ),
-        rwsfa => RWST.runASW(Eval.Monad, Monoid.string)(rwsfa)(null, undefined),
+        rwsfa => RWST.runASW(Monad.Eval, Monoid.string)(rwsfa)(null, undefined),
       ),
   );
 });

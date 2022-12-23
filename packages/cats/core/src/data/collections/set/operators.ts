@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, fst, snd, throwError, constant } from '@fp4ts/core';
+import { Eval, Kind, fst, snd, throwError, constant } from '@fp4ts/core';
 import { Eq, Monoid, Ord, Compare } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Option, Some, None } from '../../option';
@@ -14,7 +14,6 @@ import { Iter } from '../iterator';
 
 import { Bin, Empty, Node, Set } from './algebra';
 import { fromArray } from './constructors';
-import { Eval } from '../../../eval';
 
 export const isEmpty = <A>(sa: Set<A>): boolean => sa === Empty;
 export const nonEmpty = <A>(sa: Set<A>): boolean => sa !== Empty;

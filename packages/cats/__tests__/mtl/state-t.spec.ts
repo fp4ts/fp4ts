@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
 import { StateT } from '@fp4ts/cats-mtl';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
@@ -71,21 +71,21 @@ describe('IxStateT', () => {
 
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
-      const S = StateT.MonadState<EvalF, number>(Eval.Monad);
+      const S = StateT.MonadState<EvalF, number>(Monad.Eval);
       const size = 50_000;
       const go: StateT<number, EvalF, void> = S.flatMap_(S.get, n =>
         n >= size ? S.unit : S.flatMap_(S.set(n + 1), () => go),
       );
 
-      expect(StateT.runS(Eval.Monad)(go)(0).value).toBe(size);
+      expect(StateT.runS(Monad.Eval)(go)(0).value).toBe(size);
     });
   });
 
   runTests(['Identity', Identity.Monad], id, id);
 
-  runTests(['Eval', Eval.Monad], A.fp4tsEval, Eval.Eq);
+  runTests(['Eval', Monad.Eval], A.fp4tsEval, Eq.Eval);
 
-  runTests(['Eval', Eval.Monad], A.fp4tsEval, Eval.Eq);
+  runTests(['Eval', Monad.Eval], A.fp4tsEval, Eq.Eval);
 
   runTests(['Option', Option.Monad], A.fp4tsOption, Option.Eq);
 

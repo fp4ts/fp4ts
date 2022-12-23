@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, id, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { Alternative } from '../../../alternative';
@@ -40,7 +40,6 @@ import {
 
 import type { VectorF } from './vector';
 import { pure, tailRecM_ } from './constructors';
-import { Eval } from '../../../eval';
 import { TraversableFilter } from '../../../traversable-filter';
 
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>

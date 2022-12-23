@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
 import { IxRWST } from '@fp4ts/cats-mtl';
 import {
@@ -129,7 +129,7 @@ describe('IxRWST', () => {
     it('right-associative flatMap with Eval', () => {
       const S = IxRWST.MonadState<unknown, void, number, EvalF>(
         CommutativeMonoid.void,
-        Eval.Monad,
+        Monad.Eval,
       );
       const size = 50_000;
       const go: IxRWST<unknown, void, number, number, EvalF, void> = S.flatMap_(
@@ -137,7 +137,7 @@ describe('IxRWST', () => {
         n => (n >= size ? S.unit : S.flatMap_(S.set(n + 1), () => go)),
       );
 
-      expect(IxRWST.runS(Eval.Monad)(undefined, 0)(go).value).toBe(size);
+      expect(IxRWST.runS(Monad.Eval)(undefined, 0)(go).value).toBe(size);
     });
   });
 
@@ -149,14 +149,14 @@ describe('IxRWST', () => {
   );
 
   runTests(
-    ['Eval', Eval.Monad],
+    ['Eval', Monad.Eval],
     ['string', Monoid.string, fc.string(), Eq.fromUniversalEquals<string>()],
     A.fp4tsEval,
-    Eval.Eq,
+    Eq.Eval,
   );
 
   runTests(
-    ['Eval', Eval.Monad],
+    ['Eval', Monad.Eval],
     [
       'number',
       CommutativeMonoid.addition,
@@ -164,7 +164,7 @@ describe('IxRWST', () => {
       Eq.fromUniversalEquals<number>(),
     ],
     A.fp4tsEval,
-    Eval.Eq,
+    Eq.Eval,
   );
 
   runTests(
@@ -229,7 +229,7 @@ describe('IxRWST', () => {
   checkAll(
     'Strong<IxRWST<boolean, number, *, *, Eval, number>>',
     StrongSuite(
-      IxRWST.Strong<boolean, number, EvalF, number>(Eval.Monad),
+      IxRWST.Strong<boolean, number, EvalF, number>(Monad.Eval),
     ).strong(
       A.fp4tsMiniInt(),
       fc.boolean(),
@@ -258,7 +258,7 @@ describe('IxRWST', () => {
         Eq.by(
           eq.fn1Eq(
             ec.boolean().product(X),
-            Eval.Eq(
+            Eq.Eval(
               Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
             ),
           ),

@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import {
   Array,
   Either,
@@ -247,7 +247,7 @@ describe('Validation', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Validation.Functor<string>(),
-        Eval.Applicative,
+        Monad.Eval,
         Option.Monad,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
@@ -260,7 +260,7 @@ describe('Validation', () => {
           )(id),
         ).liftEq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsOption,
         Option.Eq,
       ),

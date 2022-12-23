@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, constant, Lazy, lazyVal } from '@fp4ts/core';
+import { $, constant, Eval, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { Monad } from '../../monad';
 import { MonadError } from '../../monad-error';
@@ -21,7 +21,6 @@ import {
 import { Ior } from './algebra';
 import { IorF } from './ior';
 import { left, right } from './constructors';
-import { Eval } from '../../eval';
 
 export const iorEq: <A, B>(EqA: Eq<A>, EqB: Eq<B>) => Eq<Ior<A, B>> = (
   EqA,

@@ -42,5 +42,4 @@ export * from './functor-with-index';
 export * from './foldable-with-index';
 export * from './traversable-with-index';
 
-export * from './eval';
 export * from './show';

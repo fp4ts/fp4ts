@@ -9,8 +9,8 @@ import {
   Base,
   cached,
   compose,
+  Eval,
   Fix,
-  id,
   Kind,
   Lazy,
   lazyVal,
@@ -34,7 +34,6 @@ import { MonadError } from '../monad-error';
 import { Contravariant } from '../contravariant';
 import { Arrow, ArrowApply, ArrowChoice, Compose } from '../arrow';
 import { Distributive } from '../distributive';
-import { Eval } from '../eval';
 import { isStackSafeMonad } from '../stack-safe-monad';
 
 import { AndThen } from './and-then';

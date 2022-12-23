@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { tupled } from '@fp4ts/core';
+import { Eval, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import {
@@ -469,17 +469,17 @@ describe('Queue', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Queue.FunctorFilter,
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsQueue,
         <X>(X: Eq<X>): Eq<Queue<X>> => Eq.by(List.Eq(X), q => q.toList),
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

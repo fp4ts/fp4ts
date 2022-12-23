@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind } from '@fp4ts/core';
+import { $, Eval, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import {
   Cokleisli,
@@ -16,7 +16,6 @@ import {
   OptionF,
   Some,
 } from '@fp4ts/cats-core/lib/data';
-import { Eval } from '@fp4ts/cats-core';
 import { Cofree, CofreeF } from '@fp4ts/cats-free';
 import { ArrowSuite, ComposeSuite, MonadSuite } from '@fp4ts/cats-laws';
 import {

@@ -4,15 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Kind } from '@fp4ts/core';
-import {
-  CommutativeMonoid,
-  Eq,
-  Eval,
-  EvalF,
-  Identity,
-  IdentityF,
-} from '@fp4ts/cats';
+import { $, EvalF, Kind } from '@fp4ts/core';
+import { CommutativeMonoid, Eq, Identity, IdentityF, Monad } from '@fp4ts/cats';
 import {
   IxRWSF,
   IxStateTF,
@@ -78,7 +71,7 @@ describe('State Effect', () => {
     StateC.IxStateT(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsIxStateT(fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt())))),
-    X => eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, MiniInt.Eq))),
+    X => eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
   );
 
   runTests<$<StateTF, [MiniInt, IdentityF]>, MiniInt>(
@@ -99,13 +92,13 @@ describe('State Effect', () => {
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
       A.fp4tsStateT(
-        Eval.Monad,
+        Monad.Eval,
         fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt()))),
       ),
     X =>
       Eq.by(
-        eq.fn1Eq(ec.miniInt(), Eval.Eq(Eq.tuple(X, MiniInt.Eq))),
-        StateT.runAS(Eval.Monad),
+        eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
+        StateT.runAS(Monad.Eval),
       ),
   );
 
@@ -153,7 +146,7 @@ describe('State Effect', () => {
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
       A.fp4tsRWST(
-        Eval.Monad,
+        Monad.Eval,
         fc.func(
           A.fp4tsEval(
             fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void)),
@@ -164,10 +157,10 @@ describe('State Effect', () => {
       Eq.by(
         eq.fn1Eq(
           ec.miniInt(),
-          Eval.Eq(Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals())),
+          Eq.Eval(Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals())),
         ),
         rwsfa => s =>
-          RWST.runASW(Eval.Monad, CommutativeMonoid.void)(rwsfa)(null, s),
+          RWST.runASW(Monad.Eval, CommutativeMonoid.void)(rwsfa)(null, s),
       ),
   );
 });

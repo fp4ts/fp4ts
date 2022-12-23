@@ -3,15 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
-import {
-  Eval,
-  EvalF,
-  FunctionK,
-  Functor,
-  Monad,
-  Traversable,
-} from '@fp4ts/cats-core';
+import { Eval, EvalF, Kind } from '@fp4ts/core';
+import { FunctionK, Functor, Monad, Traversable } from '@fp4ts/cats-core';
 
 import { Cofree } from './algebra';
 import {

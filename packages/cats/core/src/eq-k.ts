@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, instance, Base, Kind, TyK, TyVar } from '@fp4ts/core';
+import {
+  $type,
+  instance,
+  Base,
+  Kind,
+  TyK,
+  TyVar,
+  EvalF,
+  lazyVal,
+} from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from './arrow';
 import { ComposedEqK } from './composed';
@@ -32,7 +41,13 @@ export const EqK = Object.freeze({
       liftEq: <A>(E: Eq<A>) =>
         Eq.by<Kind<G, [A]>, Kind<F, [A]>>(fa.liftEq(E), g),
     }),
+
+  get Eval(): EqK<EvalF> {
+    return evalEqK();
+  },
 });
+
+const evalEqK: () => EqK<EvalF> = lazyVal(() => EqK.of({ liftEq: Eq.Eval }));
 
 // -- HKT
 

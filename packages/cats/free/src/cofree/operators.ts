@@ -3,10 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval, EvalF } from '@fp4ts/core';
 import {
   Applicative,
-  Eval,
-  EvalF,
   Foldable,
   FunctionK,
   Functor,
@@ -56,7 +55,7 @@ export const cata = <S>(S: Traversable<S>) => {
     <B>(folder: (a: A, sb: Kind<S, [B]>) => Eval<B>): Eval<B> =>
       pipe(
         cfa.tail.value,
-        S.traverse(Eval.Applicative)(fr => Eval.defer(() => cata(fr)(folder))),
+        S.traverse(Monad.Eval)(fr => Eval.defer(() => cata(fr)(folder))),
       ).flatMap(fb => folder(cfa.head, fb));
   return cata;
 };

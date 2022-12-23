@@ -3,13 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, HKT, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, HKT, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { CoflatMap } from '../coflat-map';
 import { EqK } from '../eq-k';
-import { Eval } from '../eval';
 import { Functor } from '../functor';
 import { FunctorFilter } from '../functor-filter';
 import { Monad } from '../monad';

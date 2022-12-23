@@ -4,16 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { Eval, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
   Array,
   Const,
-  Eval,
   Foldable,
   Identity,
   FunctionK,
   FoldableF,
-  Monad,
   Monoid,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';

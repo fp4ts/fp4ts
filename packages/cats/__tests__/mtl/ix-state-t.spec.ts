@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, id, Kind } from '@fp4ts/core';
+import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, Monad } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
-import { IxStateT, StateT } from '@fp4ts/cats-mtl';
+import { IxStateT } from '@fp4ts/cats-mtl';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
 import { MonadErrorSuite, MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
 import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
@@ -63,21 +63,21 @@ describe('IxStateT', () => {
 
   describe('stack safety', () => {
     it('right-associative flatMap with Eval', () => {
-      const S = IxStateT.MonadState<number, EvalF>(Eval.Monad);
+      const S = IxStateT.MonadState<number, EvalF>(Monad.Eval);
       const size = 50_000;
       const go: IxStateT<number, number, EvalF, void> = S.flatMap_(S.get, n =>
         n >= size ? S.unit : S.flatMap_(S.set(n + 1), () => go),
       );
 
-      expect(IxStateT.runS(Eval.Monad)(0)(go).value).toBe(size);
+      expect(IxStateT.runS(Monad.Eval)(0)(go).value).toBe(size);
     });
   });
 
   runTests(['Identity', Identity.Monad], id, id);
 
-  runTests(['Eval', Eval.Monad], A.fp4tsEval, Eval.Eq);
+  runTests(['Eval', Monad.Eval], A.fp4tsEval, Eq.Eval);
 
-  runTests(['Eval', Eval.Monad], A.fp4tsEval, Eval.Eq);
+  runTests(['Eval', Monad.Eval], A.fp4tsEval, Eq.Eval);
 
   runTests(['Option', Option.Monad], A.fp4tsOption, Option.Eq);
 
@@ -114,7 +114,7 @@ describe('IxStateT', () => {
 
   checkAll(
     'Strong<IxStateT<number, *, *, Eval, number>>',
-    StrongSuite(IxStateT.Strong<EvalF, number>(Eval.Monad)).strong(
+    StrongSuite(IxStateT.Strong<EvalF, number>(Monad.Eval)).strong(
       A.fp4tsMiniInt(),
       fc.boolean(),
       fc.boolean(),
@@ -137,7 +137,7 @@ describe('IxStateT', () => {
         X: ExhaustiveCheck<X>,
         Y: Eq<Y>,
       ): Eq<IxStateT<X, Y, EvalF, number>> =>
-        eq.fn1Eq(X, Eval.Eq(Eq.tuple(Eq.fromUniversalEquals(), Y))),
+        eq.fn1Eq(X, Eq.Eval(Eq.tuple(Eq.fromUniversalEquals(), Y))),
     ),
   );
 });

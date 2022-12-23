@@ -7,6 +7,7 @@ import {
   $,
   $type,
   cached,
+  Eval,
   HKT,
   id,
   Kind,
@@ -18,7 +19,6 @@ import {
 } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 
-import { Eval } from '../eval';
 import { Applicative } from '../applicative';
 import { Functor } from '../functor';
 import { SemigroupK } from '../semigroup-k';

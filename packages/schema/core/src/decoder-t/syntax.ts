@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { isTypeClassInstance, Kind } from '@fp4ts/core';
-import { Applicative, Either, Eval, Functor, Monad, Option } from '@fp4ts/cats';
+import { Applicative, Either, Functor, Monad, Option } from '@fp4ts/cats';
 
 import { DecoderT } from './algebra';
 import { DecodeResultT } from './decode-result-t';
@@ -276,35 +276,35 @@ Object.defineProperty(DecoderT.prototype, 'decode', {
 });
 
 DecoderT.prototype.nullable = function (this: any, F?: any) {
-  return F ? nullable(F) : nullable(Eval.Applicative)(this);
+  return F ? nullable(F) : nullable(Monad.Eval)(this);
 } as any;
 
 DecoderT.prototype.optional = function (this: any, F?: any) {
-  return F ? optional(F) : optional(Eval.Applicative)(this);
+  return F ? optional(F) : optional(Monad.Eval)(this);
 } as any;
 
 DecoderT.prototype.orElse = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (that: any) => orElse_(F as any)(this, that)
-    : orElse_(Eval.Monad)(this, F);
+    : orElse_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype['<|>'] = DecoderT.prototype.orElse;
 
 DecoderT.prototype.filter = function (this: any, ...args: any[]) {
   return isTypeClassInstance(args[0])
     ? (f: any, cause: any) => filter_(args[0])(this, f, cause)
-    : filter_(Eval.Monad)(this, args[0], args[1]);
+    : filter_(Monad.Eval)(this, args[0], args[1]);
 } as any;
 DecoderT.prototype.collect = function (this: any, ...args: any[]) {
   return isTypeClassInstance(args[0])
     ? (f: any, cause: any) => collect_(args[0])(this, f, cause)
-    : collect_(Eval.Monad)(this, args[0], args[1]);
+    : collect_(Monad.Eval)(this, args[0], args[1]);
 } as any;
 
 DecoderT.prototype.dimap = function (this: any, ...args: any[]) {
   return isTypeClassInstance(args[0])
     ? (f: any, g: any) => dimap_(args[0])(this, f, g)
-    : dimap_(Eval.Functor)(this, args[0], args[1]);
+    : dimap_(Monad.Eval)(this, args[0], args[1]);
 } as any;
 DecoderT.prototype.adapt = function (f) {
   return adapt_(this, f);
@@ -316,73 +316,73 @@ DecoderT.prototype.adaptF = function (F) {
 DecoderT.prototype.bimap = function (this: any, ...args: any[]) {
   return isTypeClassInstance(args[0])
     ? (f: any, g: any) => bimap_(args[0])(this, f, g)
-    : bimap_(Eval.Functor)(this, args[0], args[1]);
+    : bimap_(Monad.Eval)(this, args[0], args[1]);
 } as any;
 DecoderT.prototype.leftMap = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (f: any) => leftMap_(F as any)(this, f)
-    : leftMap_(Eval.Functor)(this, F);
+    : leftMap_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.map = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (f: any) => map_(F as any)(this, f)
-    : map_(Eval.Functor)(this, F);
+    : map_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.flatMap = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (f: any) => flatMap_(F as any)(this, f)
-    : flatMap_(Eval.Monad)(this, F);
+    : flatMap_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.flatMapR = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (f: any) => flatMapR_(F as any)(this, f)
-    : flatMapR_(Eval.Monad)(this, F);
+    : flatMapR_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.flatten = function (this: any, ...args: any[]) {
-  return args.length === 0 ? flatten(Eval.Monad)(this) : flatten(args[0])(this);
+  return args.length === 0 ? flatten(Monad.Eval)(this) : flatten(args[0])(this);
 } as any;
 
 DecoderT.prototype.handleError = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => handleError_(F as any)(this, h)
-    : handleError_(Eval.Functor)(this, F);
+    : handleError_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.handleErrorWithR = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => handleErrorWithR_(F as any)(this, h)
-    : handleErrorWithR_(Eval.Monad)(this, F);
+    : handleErrorWithR_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.handleErrorWith = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => handleErrorWith_(F as any)(this, h)
-    : handleErrorWith_(Eval.Monad)(this, F);
+    : handleErrorWith_(Monad.Eval)(this, F);
 } as any;
 
 DecoderT.prototype.transform = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => transform_(F as any)(this, h)
-    : transform_(Eval.Monad)(this, F);
+    : transform_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.transformWithR = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => transformWithR_(F as any)(this, h)
-    : transformWithR_(Eval.Monad)(this, F);
+    : transformWithR_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.transformWith = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (h: any) => transformWith_(F as any)(this, h)
-    : transformWith_(Eval.Monad)(this, F);
+    : transformWith_(Monad.Eval)(this, F);
 } as any;
 
 DecoderT.prototype.andThen = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (that: any) => andThen_(F as any)(this, that)
-    : andThen_(Eval.Monad)(this, F);
+    : andThen_(Monad.Eval)(this, F);
 } as any;
 DecoderT.prototype.compose = function (this: any, F: any) {
   return isTypeClassInstance(F)
     ? (that: any) => compose_(F as any)(this, that)
-    : compose_(Eval.Monad)(this, F);
+    : compose_(Monad.Eval)(this, F);
 } as any;
 
 DecoderT.prototype.refine = function (F) {

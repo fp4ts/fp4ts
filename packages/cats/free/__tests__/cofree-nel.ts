@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Arbitrary } from 'fast-check';
-import { $ } from '@fp4ts/core';
+import { $, Eval } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, FunctionK } from '@fp4ts/cats-core';
+import { FunctionK } from '@fp4ts/cats-core';
 import { List, ListF, OptionF, None, Some } from '@fp4ts/cats-core/lib/data';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 

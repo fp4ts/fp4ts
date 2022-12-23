@@ -5,6 +5,7 @@
 
 import {
   $type,
+  Eval,
   HKT,
   Kind,
   lazyVal,
@@ -25,7 +26,6 @@ import { SemigroupK } from '../../semigroup-k';
 import { Defer } from '../../defer';
 import { Alternative } from '../../alternative';
 import { Align } from '../../align';
-import { Eval } from '../../eval';
 import { StackSafeMonad } from '../../stack-safe-monad';
 import { TraversableFilter } from '../../traversable-filter';
 import { Apply, TraverseStrategy } from '../../apply';

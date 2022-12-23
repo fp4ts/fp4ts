@@ -3,9 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, id, instance, Kind, lazyVal } from '@fp4ts/core';
+import { Base, Eval, id, instance, Kind, lazyVal } from '@fp4ts/core';
 import { CommutativeMonoid } from '@fp4ts/cats-kernel';
-import { Eval } from './eval';
 
 /**
  * @category Type Class

@@ -6,6 +6,8 @@
 import {
   $,
   $type,
+  Eval,
+  EvalF,
   Kind,
   lazyVal,
   throwError,
@@ -18,8 +20,6 @@ import {
   Applicative,
   Either,
   Eq,
-  Eval,
-  EvalF,
   Functor,
   FunctorFilter,
   isStackSafeMonad,
@@ -451,7 +451,7 @@ class _ParserT<S, F, out A> {
     this: ParserT<StringSource, EvalF, A>,
     input: string,
   ): Kind<EvalF, [Either<ParseError, A>]> {
-    return this.parseF(Eval.Monad, input);
+    return this.parseF(Monad.Eval, input);
   }
 
   public parseF(
@@ -466,7 +466,7 @@ class _ParserT<S, F, out A> {
     this: ParserT<S, EvalF, A>,
     input: S,
   ): Eval<Either<ParseError, A>> {
-    return this.parseSourceF(Eval.Monad, input);
+    return this.parseSourceF(Monad.Eval, input);
   }
 
   public parseSourceF<S extends Source<any, any>>(

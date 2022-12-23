@@ -3,10 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
+import { Eval, Kind, instance, tupled, TyK, $type, TyVar } from '@fp4ts/core';
 import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
-import { Eval } from './eval';
 import { MonoidK } from './monoid-k';
 import { UnorderedFoldable } from './unordered-foldable';
 import {

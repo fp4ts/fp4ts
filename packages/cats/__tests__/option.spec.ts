@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Eval, throwError } from '@fp4ts/core';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Right, Left, Option, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -14,10 +15,8 @@ import {
   MonadSuite,
   AlternativeSuite,
   CoflatMapSuite,
-  FunctorFilterSuite,
   TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
-import { throwError } from '@fp4ts/core';
 
 describe('Option', () => {
   describe('type', () => {
@@ -231,17 +230,17 @@ describe('Option', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Option.FunctorFilter,
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsOption,
         Option.Eq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

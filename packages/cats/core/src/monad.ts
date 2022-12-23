@@ -4,11 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $type, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
+import { $type, EvalF, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
 import { Functor } from './functor';
+import { StackSafeMonad } from './stack-safe-monad';
 
 /**
  * @category Type Class
@@ -37,6 +38,10 @@ export const Monad = Object.freeze({
     self.do = Monad.Do(self);
     self.liftM = f => fa => self.flatMap_(fa, a => self.pure(f(a)));
     return self;
+  },
+
+  get Eval(): StackSafeMonad<EvalF> {
+    return StackSafeMonad.Eval;
   },
 
   deriveFunctor: <F>(F: MonadRequirements<F>): Functor<F> =>

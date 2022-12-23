@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { MonoidK } from '../../../monoid-k';
@@ -12,7 +12,6 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Alternative } from '../../../alternative';
 import { CoflatMap } from '../../../coflat-map';
 import { Monad } from '../../../monad';
-import { Eval } from '../../../eval';
 
 import type { ChainF } from './chain';
 import { Chain } from './algebra';

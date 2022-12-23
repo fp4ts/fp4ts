@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { EvalF } from '@fp4ts/cats';
+import { EvalF } from '@fp4ts/core';
 import { Byte, Char, lazyVal } from '@fp4ts/core';
 import { ParserT, StringSource } from '@fp4ts/parse-core';
 import { HasTokenType } from '@fp4ts/parse-kernel';

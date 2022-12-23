@@ -4,8 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { id, throwError } from '@fp4ts/core';
+import { Eval, id, throwError } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
+import { EqK, Monad } from '@fp4ts/cats-core';
 import { Either, Right, Left, Some, None } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -15,7 +16,6 @@ import {
   BifunctorSuite,
   TraversableSuite,
 } from '@fp4ts/cats-laws';
-import { Eval } from '@fp4ts/cats-core';
 
 describe('Either', () => {
   describe('type', () => {
@@ -207,17 +207,17 @@ describe('Either', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         Either.Monad<string>(),
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         x => A.fp4tsEither(fc.string(), x),
         E => Either.Eq(Eq.fromUniversalEquals(), E),
         A.fp4tsEval,
-        Eval.EqK.liftEq,
+        EqK.Eval.liftEq,
         A.fp4tsEval,
-        Eval.EqK.liftEq,
+        EqK.Eval.liftEq,
       ),
     );
   });

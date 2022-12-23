@@ -6,7 +6,7 @@
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -57,17 +57,17 @@ describe('Identity Laws', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Identity.Functor,
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       id,
       id,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

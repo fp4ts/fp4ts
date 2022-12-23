@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Char } from '@fp4ts/core';
-import { Eq, Eval, EvalF, Left, List, None, Right, Some } from '@fp4ts/cats';
+import { Char, EvalF } from '@fp4ts/core';
+import { Eq, Left, List, Monad, None, Right, Some } from '@fp4ts/cats';
 import {
   Parser,
   ParseError,
@@ -338,7 +338,7 @@ expecting digit`),
     test(
       'backtrack either succeeds or fails without consuming any input',
       forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
-        const r = p.backtrack().runParser(Stream.forSource(Eval.Monad), {
+        const r = p.backtrack().runParser(Stream.forSource(Monad.Eval), {
           input: StringSource.fromString(s),
           position: SourcePosition.initial,
         }).value;

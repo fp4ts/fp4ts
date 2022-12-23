@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { add, configure, cycle, suite } from 'benny';
-import { Kind, pipe, tupled } from '@fp4ts/core';
-import { Eval, EvalF } from '@fp4ts/cats-core';
+import { Eval, EvalF, Kind, pipe, tupled } from '@fp4ts/core';
+import { Monad } from '@fp4ts/cats-core';
 import { Chain, Identity, IdentityF } from '@fp4ts/cats-core/lib/data';
 import { IxRWST, MonadState, MonadWriter, RWST } from '@fp4ts/cats-mtl';
 
@@ -85,11 +85,11 @@ suite(
     {
       ...IxRWST.MonadState<unknown, Chain<number>, number, EvalF>(
         Chain.MonoidK.algebra<number>(),
-        Eval.Monad,
+        Monad.Eval,
       ),
       ...IxRWST.MonadWriter<unknown, Chain<number>, number, EvalF>(
         Chain.MonoidK.algebra<number>(),
-        Eval.Monad,
+        Monad.Eval,
       ),
     },
     sfa => sfa(null, 0).value,
@@ -97,9 +97,9 @@ suite(
   ...makeSuite(
     'RWST<unknown, number, number, Eval, *>',
     {
-      ...RWST.MonadState<unknown, Chain<number>, number, EvalF>(Eval.Monad),
+      ...RWST.MonadState<unknown, Chain<number>, number, EvalF>(Monad.Eval),
       ...RWST.MonadWriter<unknown, Chain<number>, number, EvalF>(
-        Eval.Monad,
+        Monad.Eval,
         Chain.MonoidK.algebra<number>(),
       ),
     },

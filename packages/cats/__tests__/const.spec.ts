@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Monoid, CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Eval } from '@fp4ts/cats-core';
+import { Monad } from '@fp4ts/cats-core';
 import { Const } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -52,17 +52,17 @@ describe('Const Laws', () => {
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
       Const.Functor(),
-      Eval.Applicative,
-      Eval.Applicative,
+      Monad.Eval,
+      Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       x => x.map(Const.pure(Monoid.addition)),
       () => Eq.fromUniversalEquals(),
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
       A.fp4tsEval,
-      Eval.Eq,
+      Eq.Eval,
     ),
   );
 });

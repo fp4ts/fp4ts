@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, compose, id, pipe, throwError, tupled, flip } from '@fp4ts/core';
+import {
+  Eval,
+  Kind,
+  compose,
+  id,
+  pipe,
+  throwError,
+  tupled,
+  flip,
+} from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../../../applicative';
 import { MonoidK } from '../../../monoid-k';
@@ -17,9 +26,7 @@ import { Iter } from '../iterator';
 import { Array as CArray } from '../array';
 
 import { Queue } from './algebra';
-import { empty, fromArray, fromIterator, fromList } from './constructors';
-import { queueFoldable } from './instances';
-import { Eval } from '../../../eval';
+import { empty, fromIterator, fromList } from './constructors';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
   _in.isEmpty && _out.isEmpty;

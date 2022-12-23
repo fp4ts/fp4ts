@@ -4,9 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { id, tupled } from '@fp4ts/core';
-import { Eval } from '@fp4ts/cats-core';
+import { Eval, id, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
+import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
   LazyList,
@@ -1711,17 +1711,17 @@ describe('LazyList', () => {
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
         LazyList.FunctorFilter,
-        Eval.Applicative,
-        Eval.Applicative,
+        Monad.Eval,
+        Monad.Eval,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsLazyList,
         LazyList.EqK.liftEq,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
         A.fp4tsEval,
-        Eval.Eq,
+        Eq.Eval,
       ),
     );
   });

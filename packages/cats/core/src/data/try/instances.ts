@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazyVal } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Functor } from '../../functor';
@@ -31,7 +31,6 @@ import {
   tailRecM_,
 } from './operators';
 import { failure, success } from './constructors';
-import { Eval } from '../../eval';
 
 export const tryEq: <A>(EE: Eq<Error>, EA: Eq<A>) => Eq<Try<A>> = (EE, EA) =>
   Eq.of({

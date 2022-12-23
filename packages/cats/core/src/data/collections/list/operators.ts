@@ -3,12 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
+import { Eval, Kind, id, pipe, throwError, tupled } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
-import { Eval } from '../../../eval';
 import { Apply, TraverseStrategy } from '../../../apply';
 
 import { Ior } from '../../ior';

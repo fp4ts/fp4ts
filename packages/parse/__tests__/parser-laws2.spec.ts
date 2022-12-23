@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { compose, pipe } from '@fp4ts/core';
-import { Eval, EvalF } from '@fp4ts/cats';
+import { compose, Eval, EvalF, pipe } from '@fp4ts/core';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Parser, StringSource } from '@fp4ts/parse-core';
 import { eq, fp4tsStringParser0, mkStringParserArb0 } from './arbitraries';
