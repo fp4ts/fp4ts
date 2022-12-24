@@ -1064,7 +1064,6 @@ export const flatTraverse_ = <G, A, B>(
   return foldRight_(xs, Eval.now(G.pure(empty as List<B>)), concatF).value;
 };
 
-// -- Ref: https://hackage.haskell.org/package/base-4.17.0.0/docs/src/Data.OldList.html#sortBy
 export const sort_ = <A>(xs: List<A>, O: Ord<A>): List<A> =>
   fromArray(toArray(xs).sort((a, b) => O.compare(a, b) - 1));
 

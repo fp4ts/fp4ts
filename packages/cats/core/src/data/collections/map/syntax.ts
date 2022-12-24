@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, PrimitiveType } from '@fp4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Monoid, Ord } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Show } from '../../../show';
@@ -93,130 +93,83 @@ declare module './algebra' {
     readonly popMax: Option<[V, Map<K, V>]>;
     readonly popMaxWithKey: Option<[[K, V], Map<K, V>]>;
 
-    contains<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): boolean;
-    contains<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): boolean;
+    contains<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): boolean;
 
-    get<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): V;
-    get<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): V;
-    '!!'<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): V;
-    '!!'<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): V;
+    get<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): V;
+    '!!'<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): V;
 
-    lookup<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): Option<V>;
-    lookup<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): Option<V>;
-    '!?'<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): Option<V>;
-    '!?'<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): Option<V>;
+    lookup<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): Option<V>;
+    '!?'<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): Option<V>;
 
-    insert<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V2>,
-      k: K2,
-      v: V2,
-    ): Map<K2, V2>;
-    insert<K2, V2>(this: Map<K2, V2>, O: Ord<K2>, k: K2, v: V2): Map<K2, V2>;
+    insert<K2, V2>(this: Map<K2, V2>, k: K2, v: V2, O?: Ord<K2>): Map<K2, V2>;
 
-    insertWith<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V2>,
-      k: K2,
-      v: V2,
-      u: (v1: V2, v2: V2, k: K2) => V2,
-    ): Map<K2, V2>;
     insertWith<K2, V2>(
       this: Map<K2, V2>,
-      O: Ord<K2>,
       k: K2,
       v: V2,
       u: (v1: V2, v2: V2, k: K2) => V2,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
 
-    remove<K2 extends PrimitiveType>(this: Map<K2, V>, k: K2): Map<K2, V>;
-    remove<K2>(this: Map<K2, V>, O: Ord<K2>, k: K2): Map<K2, V>;
+    remove<K2>(this: Map<K2, V>, k: K2, O?: Ord<K2>): Map<K2, V>;
 
-    update<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V2>,
-      k: K2,
-      u: (v: V2, k: K2) => V2,
-    ): Map<K2, V2>;
     update<K2, V2>(
       this: Map<K2, V2>,
-      O: Ord<K2>,
       k: K2,
       u: (v: V2, k: K2) => V2,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
 
-    '+++'<K2, V2>(this: Map<K2, V2>, O: Ord<K2>, m2: Map<K2, V2>): Map<K2, V2>;
-    '+++'<K2 extends PrimitiveType, V2>(
+    '+++'<K2, V2>(
       this: Map<K2, V2>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
-    union<K2, V2>(this: Map<K2, V2>, O: Ord<K2>, m2: Map<K2, V2>): Map<K2, V2>;
-    union<K2 extends PrimitiveType, V2>(
+    union<K2, V2>(
       this: Map<K2, V2>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
 
     unionWith<K2, V2>(
       this: Map<K2, V2>,
-      O: Ord<K2>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
       u: (v1: V2, v2: V2, k: K2) => V2,
-    ): Map<K2, V2>;
-    unionWith<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V2>,
-      m2: Map<K2, V2>,
-      u: (v1: V2, v2: V2, k: K2) => V2,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
 
     intersect<K2, V2>(
       this: Map<K2, V>,
-      O: Ord<K2>,
       m2: Map<K2, V2>,
-    ): Map<K2, V>;
-    intersect<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V>,
-      m2: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V>;
 
     intersectWith<K2, V2, C>(
       this: Map<K2, V>,
-      O: Ord<K2>,
       m2: Map<K2, V2>,
       f: (v1: V, v2: V2, k: K2) => C,
-    ): Map<K2, C>;
-    intersectWith<K2 extends PrimitiveType, V2, C>(
-      this: Map<K2, V>,
-      m2: Map<K2, V2>,
-      f: (v1: V, v2: V2, k: K2) => C,
+      O?: Ord<K2>,
     ): Map<K2, C>;
 
-    '\\'<K2, V2>(this: Map<K2, V>, O: Ord<K2>, m2: Map<K2, V2>): Map<K2, V>;
-    '\\'<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V>,
-      m2: Map<K2, V2>,
-    ): Map<K2, V>;
+    '\\'<K2, V2>(this: Map<K2, V>, that: Map<K2, V2>, O?: Ord<K2>): Map<K2, V>;
     difference<K2, V2>(
       this: Map<K2, V>,
-      O: Ord<K2>,
-      m2: Map<K2, V2>,
-    ): Map<K2, V>;
-    difference<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V>;
 
-    '\\//'<K2, V2>(this: Map<K2, V2>, O: Ord<K2>, m2: Map<K2, V2>): Map<K2, V2>;
-    '\\//'<K2 extends PrimitiveType, V2>(
+    '\\//'<K2, V2>(
       this: Map<K2, V2>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
     symmetricDifference<K2, V2>(
       this: Map<K2, V2>,
-      O: Ord<K2>,
-      m2: Map<K2, V2>,
-    ): Map<K2, V2>;
-    symmetricDifference<K2 extends PrimitiveType, V2>(
-      this: Map<K2, V2>,
-      m2: Map<K2, V2>,
+      that: Map<K2, V2>,
+      O?: Ord<K2>,
     ): Map<K2, V2>;
 
+    filter<U extends V>(p: (v: V, k: K) => v is U): Map<K, U>;
     filter(p: (v: V, k: K) => boolean): Map<K, V>;
     map<B>(f: (v: V, k: K) => B): Map<K, B>;
 
@@ -239,7 +192,7 @@ declare module './algebra' {
     ): <B>(f: (v: V, k: K) => Kind<G, [B]>) => Kind<G, [Map<K, B>]>;
 
     show(this: Map<K, V>): string;
-    show<K2 extends PrimitiveType>(this: Map<K2, V>, SV: Show<V>): string;
+    show(this: Map<K, V>, SV: Show<V>): string;
     show(this: Map<K, V>, SK: Show<K>, SV: Show<V>): string;
   }
 }
@@ -371,87 +324,80 @@ Object.defineProperty(Map.prototype, 'popMaxWithKey', {
   },
 });
 
-Map.prototype.contains = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? contains_(args[0], this, args[1])
-    : contains_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.contains = function (k, O = Ord.fromUniversalCompare()): any {
+  return contains_(O, this, k);
 };
 
-Map.prototype.get = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? get_(args[0], this, args[1])
-    : get_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.get = function (k, O = Ord.fromUniversalCompare()): any {
+  return get_(O, this, k);
 };
 Map.prototype['!!'] = Map.prototype.get;
 
-Map.prototype.lookup = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? lookup_(args[0], this, args[1])
-    : lookup_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.lookup = function (k, O = Ord.fromUniversalCompare()): any {
+  return lookup_(O, this, k);
 };
 Map.prototype['!?'] = Map.prototype.lookup;
 
-Map.prototype.insert = function (this: any, ...args: any[]): any {
-  return args.length === 3
-    ? insert_(args[0], this, args[1], args[2])
-    : insert_(Ord.fromUniversalCompare(), this, args[0], args[1]);
+Map.prototype.insert = function (k, v, O = Ord.fromUniversalCompare()): any {
+  return insert_(O, this, k, v);
 };
 
-Map.prototype.insertWith = function (this: any, ...args: any[]): any {
-  return args.length === 4
-    ? insertWith_(args[0], this, args[1], args[2], args[3])
-    : insertWith_(Ord.fromUniversalCompare(), this, args[0], args[1], args[2]);
+Map.prototype.insertWith = function (
+  k,
+  v,
+  u,
+  O = Ord.fromUniversalCompare(),
+): any {
+  return insertWith_(O, this, k, v, u);
 };
 
-Map.prototype.remove = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? remove_(args[0], this, args[1])
-    : remove_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.remove = function (k, O = Ord.fromUniversalCompare()): any {
+  return remove_(O, this, k);
 };
 
-Map.prototype.update = function (this: any, ...args: any[]): any {
-  return args.length === 3
-    ? update_(args[0], this, args[1], args[2])
-    : update_(Ord.fromUniversalCompare(), this, args[0], args[1]);
+Map.prototype.update = function (k, f, O = Ord.fromUniversalCompare()): any {
+  return update_(O, this, k, f);
 };
 
-Map.prototype.union = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? union_(args[0], this, args[1])
-    : union_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.union = function (that, O = Ord.fromUniversalCompare()): any {
+  return union_(O, this, that);
 };
 
 Map.prototype['+++'] = Map.prototype.union;
 
-Map.prototype.unionWith = function (this: any, ...args: any[]): any {
-  return args.length === 3
-    ? unionWith_(args[0], this, args[1], args[2])
-    : unionWith_(Ord.fromUniversalCompare(), this, args[0], args[1]);
+Map.prototype.unionWith = function (
+  that,
+  f,
+  O = Ord.fromUniversalCompare(),
+): any {
+  return unionWith_(O, this, that, f);
 };
 
-Map.prototype.intersect = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? intersect_(args[0], this, args[1])
-    : intersect_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.intersect = function (that, O = Ord.fromUniversalCompare()): any {
+  return intersect_(O, this, that);
 };
 
-Map.prototype.intersectWith = function (this: any, ...args: any[]): any {
-  return args.length === 3
-    ? intersectWith_(args[0], this, args[1], args[2])
-    : intersectWith_(Ord.fromUniversalCompare(), this, args[0], args[1]);
+Map.prototype.intersectWith = function (
+  that,
+  f,
+  O = Ord.fromUniversalCompare(),
+): any {
+  return intersectWith_(O, this, that, f);
 };
 
-Map.prototype.difference = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? difference_(args[0], this, args[1])
-    : difference_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.difference = function (
+  that,
+  O = Ord.fromUniversalCompare(),
+): any {
+  return difference_(O, this, that);
 };
 Map.prototype['\\'] = Map.prototype.difference;
 
-Map.prototype.symmetricDifference = function (this: any, ...args: any[]): any {
-  return args.length === 2
-    ? symmetricDifference_(args[0], this, args[1])
-    : symmetricDifference_(Ord.fromUniversalCompare(), this, args[0]);
+Map.prototype.symmetricDifference = function (
+  that,
+  O = Ord.fromUniversalCompare(),
+): any {
+  return symmetricDifference_(O, this, that);
 };
 Map.prototype['\\//'] = Map.prototype.symmetricDifference;
 

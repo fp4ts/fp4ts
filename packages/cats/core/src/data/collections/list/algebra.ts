@@ -18,7 +18,7 @@ export class Cons<A> extends List<A> {
 
   public override toString(): string {
     let cur = this._tail as List<A>;
-    let acc = 'List(' + String(this.head);
+    let acc = 'List(' + String(this._head);
     while (cur !== Nil) {
       acc += ', ' + (cur as Cons<A>)._head;
       cur = (cur as Cons<A>)._tail;

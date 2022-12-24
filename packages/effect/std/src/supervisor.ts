@@ -48,14 +48,14 @@ class SupervisorImpl<F> implements Supervisor<F> {
         const done = yield* _(F.ref<boolean>(false));
         const token = yield* _(F.unique);
 
-        const cleanup = state.update(s => s.remove(UniqueToken.Ord, token));
+        const cleanup = state.update(s => s.remove(token, UniqueToken.Ord));
         const action = F.finalize_(fa, () =>
           F.productR_(done.set(true), cleanup),
         );
 
         const fiber = yield* _(F.fork(action));
         yield* _(
-          state.update(m => m.insert(UniqueToken.Ord, token, fiber.cancel)),
+          state.update(m => m.insert(token, fiber.cancel, UniqueToken.Ord)),
         );
         yield* _(F.flatMap_(done.get(), done => (done ? cleanup : F.unit)));
         return fiber;

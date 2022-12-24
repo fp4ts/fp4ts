@@ -138,7 +138,7 @@ const getMediaRange = (mainType: string, subType: string): MediaRange => {
         .lookup(mainType.toLowerCase())
         .getOrElse(() => new MediaRange(mainType.toLowerCase()))
     : MediaType.all
-        .lookup(OrdString2, tupled(mainType, subType))
+        .lookup(tupled(mainType, subType), OrdString2)
         .getOrElse(
           () => new MediaType(mainType.toLowerCase(), subType.toLowerCase()),
         );
@@ -146,7 +146,7 @@ const getMediaRange = (mainType: string, subType: string): MediaRange => {
 
 const getMediaType = (mainType: string, subType: string): MediaType => {
   return MediaType.all
-    .lookup(OrdString2, tupled(mainType, subType))
+    .lookup(tupled(mainType, subType), OrdString2)
     .getOrElse(
       () => new MediaType(mainType.toLowerCase(), subType.toLowerCase()),
     );

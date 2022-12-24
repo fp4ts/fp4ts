@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eval, EvalF, id } from '@fp4ts/core';
+import { EvalF, id } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Monad } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
@@ -28,7 +28,7 @@ describe('Map', () => {
     it('should disallow type expansion for unrelated types', () => {
       const m: Map<number, string> = Map([1, '2'], [2, '3']);
       // @ts-expect-error
-      m.lookup(Ord.fromUniversalCompare(), 'some-string-key');
+      m.lookup('some-string-key');
     });
   });
 
@@ -382,8 +382,8 @@ describe('Map', () => {
     const m = Map([1, 2], [2, 3]);
 
     it('should be true when the key exists', () => {
-      expect(m.contains(Ord.fromUniversalCompare(), 1)).toBe(true);
-      expect(m.contains(Ord.fromUniversalCompare(), 2)).toBe(true);
+      expect(m.contains(1)).toBe(true);
+      expect(m.contains(2)).toBe(true);
     });
 
     it('should be false when the key does not exists', () => {
@@ -513,9 +513,7 @@ describe('Map', () => {
 
   describe('union', () => {
     test('union of two empty maps to be empty', () => {
-      expect(Map.empty.union(Ord.fromUniversalCompare(), Map.empty)).toEqual(
-        Map.empty,
-      );
+      expect(Map.empty.union(Map.empty)).toEqual(Map.empty);
     });
 
     it('should return map on union with empty on lhs', () => {
@@ -709,10 +707,7 @@ describe('Map', () => {
 
   describe('symmetricDifference', () => {
     it('should return id when difference with empty map', () => {
-      expect(
-        Map([1, 2], [2, 3])['\\//'](Ord.fromUniversalCompare(), Map.empty)
-          .toArray,
-      ).toEqual([
+      expect(Map([1, 2], [2, 3])['\\//'](Map.empty).toArray).toEqual([
         [1, 2],
         [2, 3],
       ]);
@@ -970,15 +965,15 @@ describe('Map', () => {
       <V>(s: Map<K, V>, a: Action<K, V>): Map<K, V> => {
         switch (a.type) {
           case 'insert':
-            return s.insert(O, a.k, a.v);
+            return s.insert(a.k, a.v, O);
           case 'remove':
-            return s.remove(O, a.k);
+            return s.remove(a.k, O);
           case 'intersect':
-            return s.intersect(O, a.that);
+            return s.intersect(a.that, O);
           case 'union':
-            return s.union(O, a.that);
+            return s.union(a.that, O);
           case 'difference':
-            return s.difference(O, a.that);
+            return s.difference(a.that, O);
         }
       };
 
