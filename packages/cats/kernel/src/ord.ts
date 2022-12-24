@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance } from '@fp4ts/core';
+import { instance, lazyVal } from '@fp4ts/core';
 import { Eq } from './eq';
 
 export enum Compare {
@@ -60,14 +60,16 @@ export const Ord = Object.freeze({
       },
     }),
 
-  fromUniversalCompare: <A>(): Ord<A> =>
-    instance({
-      ...Eq.fromUniversalEquals(),
-      compare: (lhs: A, rhs: A) =>
-        lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
-      lt: (lhs: A, rhs: A) => lhs < rhs,
-      lte: (lhs: A, rhs: A) => lhs <= rhs,
-      gt: (lhs: A, rhs: A) => lhs > rhs,
-      gte: (lhs: A, rhs: A) => lhs >= rhs,
-    }),
+  fromUniversalCompare: lazyVal(
+    <A>(): Ord<A> =>
+      instance({
+        ...Eq.fromUniversalEquals(),
+        compare: (lhs: A, rhs: A) =>
+          lhs < rhs ? Compare.LT : lhs > rhs ? Compare.GT : Compare.EQ,
+        lt: (lhs: A, rhs: A) => lhs < rhs,
+        lte: (lhs: A, rhs: A) => lhs <= rhs,
+        gt: (lhs: A, rhs: A) => lhs > rhs,
+        gte: (lhs: A, rhs: A) => lhs >= rhs,
+      }),
+  ) as <A>() => Ord<A>,
 });

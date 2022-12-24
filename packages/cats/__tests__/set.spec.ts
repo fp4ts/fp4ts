@@ -874,15 +874,15 @@ describe('set', () => {
       (s: Set<A>, a: Action<A>): Set<A> => {
         switch (a.type) {
           case 'insert':
-            return s.insert(O, a.x);
+            return s.insert(a.x, O);
           case 'remove':
-            return s.remove(O, a.x);
+            return s.remove(a.x, O);
           case 'intersect':
-            return s.intersect(O, a.that);
+            return s.intersect(a.that, O);
           case 'union':
-            return s.union(O, a.that);
+            return s.union(a.that, O);
           case 'difference':
-            return s.difference(O, a.that);
+            return s.difference(a.that, O);
         }
       };
 

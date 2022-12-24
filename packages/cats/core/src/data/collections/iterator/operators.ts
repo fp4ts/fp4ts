@@ -346,8 +346,8 @@ export const distinctByOrd_ = <A, B>(
         return IR.done;
       }
       const b = f(next.value);
-      if (!set.contains(O, b)) {
-        set = set.insert(O, b);
+      if (!set.contains(b, O)) {
+        set = set.insert(b, O);
         return IR.pure(next.value);
       }
     }

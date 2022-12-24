@@ -1007,10 +1007,10 @@ export const distinctByOrd_ = <A, B>(
   let set: OrdSet<B> = OrdSet.empty;
   return filter_(xs, x => {
     const y = f(x);
-    if (set.contains(O, y)) {
+    if (set.contains(y, O)) {
       return false;
     } else {
-      set = set.insert(O, y);
+      set = set.insert(y, O);
       return true;
     }
   });

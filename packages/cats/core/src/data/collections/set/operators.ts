@@ -15,6 +15,8 @@ import { Iter } from '../iterator';
 import { Bin, Empty, Node, Set } from './algebra';
 import { fromArray } from './constructors';
 
+const { LT, GT, EQ } = Compare;
+
 export const isEmpty = <A>(sa: Set<A>): boolean => sa === Empty;
 export const nonEmpty = <A>(sa: Set<A>): boolean => sa !== Empty;
 
@@ -93,12 +95,12 @@ export const contains_ = <A>(O: Ord<A>, sa: Set<A>, x: A): boolean => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT:
+    case LT:
       return contains_(O, sn.lhs, x);
-    case Compare.GT:
-      return contains_(O, sn.rhs, x);
-    case Compare.EQ:
+    case EQ:
       return true;
+    case GT:
+      return contains_(O, sn.rhs, x);
   }
 };
 
@@ -182,16 +184,40 @@ export const insert_ = <A>(O: Ord<A>, sa: Set<A>, x: A): Set<A> => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT: {
+    case LT: {
       const l = insert_(O, sn.lhs, x);
       return l === sn.lhs ? sn : _balanceL(sn.value, l, sn.rhs);
     }
-    case Compare.GT: {
+
+    case EQ:
+      return sn;
+
+    case GT: {
       const r = insert_(O, sn.rhs, x);
       return r === sn.rhs ? sn : _balanceR(sn.value, sn.lhs, r);
     }
-    case Compare.EQ:
+  }
+};
+
+const insertR_ = <A>(O: Ord<A>, s: Set<A>, x: A): Set<A> => {
+  const sn = s as Node<A>;
+  if (sn.tag === 'empty') return new Bin(x, Empty, Empty);
+
+  const { value, lhs, rhs } = sn;
+  const cmp = O.compare(x, sn.value);
+  switch (cmp) {
+    case LT: {
+      const l = insertR_(O, lhs, x);
+      return l === sn.lhs ? sn : _balanceL(value, l, rhs);
+    }
+
+    case EQ:
       return sn;
+
+    case GT: {
+      const r = insertR_(O, rhs, x);
+      return r === sn.rhs ? sn : _balanceR(value, lhs, r);
+    }
   }
 };
 
@@ -201,16 +227,18 @@ export const remove_ = <A>(O: Ord<A>, sa: Set<A>, x: A): Set<A> => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT: {
+    case LT: {
       const l = remove_(O, sn.lhs, x);
       return l === sn.lhs ? sn : _balanceR(sn.value, l, sn.rhs);
     }
-    case Compare.GT: {
+
+    case EQ:
+      return _glue(sn.lhs, sn.rhs);
+
+    case GT: {
       const r = remove_(O, sn.rhs, x);
       return r === sn.rhs ? sn : _balanceL(sn.value, sn.lhs, r);
     }
-    case Compare.EQ:
-      return _glue(sn.lhs, sn.rhs);
   }
 };
 
@@ -220,7 +248,7 @@ export const union_ = <A>(O: Ord<A>, l: Set<A>, r: Set<A>): Set<A> => {
   const rn = r as Node<A>;
   if (rn.tag === 'empty') return l;
 
-  if (rn.size === 1) return insert_(O, ln, rn.value);
+  if (rn.size === 1) return insertR_(O, ln, rn.value);
   if (ln.size === 1) return insert_(O, rn, ln.value);
 
   const [l2, r2] = split_(O, rn, ln.value);
@@ -272,16 +300,16 @@ export const split_ = <A>(O: Ord<A>, sa: Set<A>, x: A): [Set<A>, Set<A>] => {
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT: {
+    case LT: {
       const [lt, gt] = split_(O, sn.lhs, x);
       return [lt, _link(sn.value, gt, sn.rhs)];
     }
-    case Compare.GT: {
+    case EQ:
+      return [sn.lhs, sn.rhs];
+    case GT: {
       const [lt, gt] = split_(O, sn.rhs, x);
       return [_link(sn.value, sn.lhs, lt), gt];
     }
-    case Compare.EQ:
-      return [sn.lhs, sn.rhs];
   }
 };
 
@@ -295,16 +323,16 @@ export const splitMember_ = <A>(
 
   const cmp = O.compare(x, sn.value);
   switch (cmp) {
-    case Compare.LT: {
+    case LT: {
       const [lt, found, gt] = splitMember_(O, sn.lhs, x);
       return [lt, found, _link(sn.value, gt, sn.rhs)];
     }
-    case Compare.GT: {
+    case EQ:
+      return [sn.lhs, true, sn.rhs];
+    case GT: {
       const [lt, found, gt] = splitMember_(O, sn.rhs, x);
       return [_link(sn.value, sn.lhs, lt), found, gt];
     }
-    case Compare.EQ:
-      return [sn.lhs, true, sn.rhs];
   }
 };
 
@@ -331,14 +359,11 @@ export const map_ = <A, B>(O: Ord<B>, sa: Set<A>, f: (a: A) => B): Set<B> =>
 
 export const forEach_ = <A>(sa: Set<A>, f: (a: A) => void): void => {
   const sn = sa as Node<A>;
-  switch (sn.tag) {
-    case 'empty':
-      return;
-    case 'bin':
-      forEach_(sn.lhs, f);
-      f(sn.value);
-      forEach_(sn.rhs, f);
-  }
+  if (sn.tag === 'empty') return;
+
+  forEach_(sn.lhs, f);
+  f(sn.value);
+  forEach_(sn.rhs, f);
 };
 
 export const partition_ = <A>(
@@ -383,15 +408,23 @@ export const foldRight_ = <A, B>(
   sa: Set<A>,
   ez: Eval<B>,
   f: (x: A, eb: Eval<B>) => Eval<B>,
-): Eval<B> =>
-  Eval.defer(() => {
-    const sn = sa as Node<A>;
-    if (sn.tag === 'empty') return ez;
-
-    const rr = Eval.defer(() => foldRight_(sn.rhs, ez, f));
-    const xr = Eval.defer(() => f(sn.value, rr));
-    return foldRight_(sn.lhs, xr, f);
-  });
+): Eval<B> => {
+  const go = (s: Set<A>, ez: Eval<B>): Eval<B> => {
+    const n = s as Node<A>;
+    return n.tag === 'empty'
+      ? ez
+      : go(
+          n.lhs,
+          Eval.defer(() =>
+            f(
+              n.value,
+              Eval.defer(() => go(n.rhs, ez)),
+            ),
+          ),
+        );
+  };
+  return Eval.defer(() => go(sa, ez));
+};
 
 export const foldRightStrict_ = <A, B>(
   sa: Set<A>,
@@ -399,15 +432,11 @@ export const foldRightStrict_ = <A, B>(
   f: (x: A, b: B) => B,
 ): B => {
   const sn = sa as Node<A>;
-  switch (sn.tag) {
-    case 'empty':
-      return z;
-    case 'bin': {
-      const rr = foldRightStrict_(sn.rhs, z, f);
-      const xr = f(sn.value, rr);
-      return foldRightStrict_(sn.lhs, xr, f);
-    }
-  }
+  if (sn.tag === 'empty') return z;
+
+  const rr = foldRightStrict_(sn.rhs, z, f);
+  const xr = f(sn.value, rr);
+  return foldRightStrict_(sn.lhs, xr, f);
 };
 
 export const foldRight1_ = <A>(sa: Set<A>, f: (x: A, b: A) => A): A =>

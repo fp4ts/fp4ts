@@ -8,11 +8,11 @@
  */
 
 export * from './eq';
-export * from './hashable';
-export * from './monoid';
 export * from './ord';
-export * from './semigroup';
+export * from './hashable';
 
+export * from './monoid';
+export * from './semigroup';
 export * from './commutative-monoid';
 export * from './commutative-semigroup';
 

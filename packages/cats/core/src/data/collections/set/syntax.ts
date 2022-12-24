@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind, PrimitiveType } from '@fp4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { MonoidK } from '../../../monoid-k';
 import { Option } from '../../option';
@@ -90,8 +90,7 @@ declare module './algebra' {
     readonly toList: List<A>;
     readonly toVector: Vector<A>;
 
-    contains<B extends PrimitiveType>(this: Set<A>, x: B): boolean;
-    contains<B>(this: Set<A>, O: Ord<B>, x: B): boolean;
+    contains<B>(this: Set<A>, x: B, O?: Ord<B>): boolean;
 
     all(p: (a: A) => boolean): boolean;
     any(p: (a: A) => boolean): boolean;
@@ -111,40 +110,25 @@ declare module './algebra' {
 
     slice(from: number, until: number): Set<A>;
 
-    insert<B extends PrimitiveType>(this: Set<B>, x: B): Set<B>;
-    insert<B>(this: Set<B>, O: Ord<B>, x: B): Set<B>;
+    insert<B>(this: Set<B>, x: B, O?: Ord<B>): Set<B>;
+    remove<B>(this: Set<B>, x: B, O?: Ord<B>): Set<B>;
 
-    remove<B extends PrimitiveType>(this: Set<B>, x: B): Set<B>;
-    remove<B>(this: Set<B>, O: Ord<B>, x: B): Set<B>;
+    union<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
+    '+++'<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
 
-    union<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    union<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
-    '+++'<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    '+++'<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
+    intersect<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
 
-    intersect<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    intersect<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
+    difference<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
+    '\\'<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
 
-    difference<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    difference<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
-    '\\'<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    '\\'<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
+    symmetricDifference<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
+    '\\//'<B>(this: Set<B>, that: Set<B>, O?: Ord<B>): Set<B>;
 
-    symmetricDifference<B extends PrimitiveType>(
-      this: Set<B>,
-      that: Set<B>,
-    ): Set<B>;
-    symmetricDifference<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
-    '\\//'<B extends PrimitiveType>(this: Set<B>, that: Set<B>): Set<B>;
-    '\\//'<B>(this: Set<B>, O: Ord<B>, that: Set<B>): Set<B>;
-
-    split<B extends PrimitiveType>(this: Set<B>, x: B): [Set<B>, Set<B>];
-    split<B>(this: Set<B>, O: Ord<B>, x: B): [Set<B>, Set<B>];
+    split<B>(this: Set<B>, x: B, O?: Ord<B>): [Set<B>, Set<B>];
 
     filter(p: (a: A) => boolean): Set<A>;
 
-    map<B extends PrimitiveType>(f: (a: A) => B): Set<B>;
-    map<B>(O: Ord<B>, f: (a: A) => B): Set<B>;
+    map<B>(f: (a: A) => B, O?: Ord<B>): Set<B>;
 
     forEach(f: (a: A) => void): void;
 
@@ -270,10 +254,8 @@ Object.defineProperty(Set.prototype, 'toVector', {
   },
 });
 
-Set.prototype.contains = function (...args: any[]) {
-  return args.length === 1
-    ? contains_(Ord.fromUniversalCompare(), this, args[0])
-    : contains_(args[0], this, args[1]);
+Set.prototype.contains = function (x, O = Ord.fromUniversalCompare()) {
+  return contains_(O, this, x);
 };
 
 Set.prototype.all = function (p) {
@@ -316,49 +298,38 @@ Set.prototype.slice = function (from, until) {
   return slice_(this, from, until);
 };
 
-Set.prototype.insert = function (...args: any[]) {
-  return args.length === 1
-    ? insert_(Ord.fromUniversalCompare(), this, args[0])
-    : insert_(args[0], this, args[1]);
+Set.prototype.insert = function (x, O = Ord.fromUniversalCompare()) {
+  return insert_(O, this, x);
 };
 
-Set.prototype.remove = function (...args: any[]) {
-  return args.length === 1
-    ? remove_(Ord.fromUniversalCompare(), this, args[0])
-    : remove_(args[0], this, args[1]);
+Set.prototype.remove = function (x, O = Ord.fromUniversalCompare()) {
+  return remove_(O, this, x);
 };
 
-Set.prototype.union = function (...args: any[]) {
-  return args.length === 1
-    ? union_(Ord.fromUniversalCompare(), this, args[0])
-    : union_(args[0], this, args[1]);
+Set.prototype.union = function (that, O = Ord.fromUniversalCompare()) {
+  return union_(O, this, that);
 };
 Set.prototype['+++'] = Set.prototype.union;
 
-Set.prototype.intersect = function (...args: any[]) {
-  return args.length === 1
-    ? intersection_(Ord.fromUniversalCompare(), this, args[0])
-    : intersection_(args[0], this, args[1]);
+Set.prototype.intersect = function (that, O = Ord.fromUniversalCompare()) {
+  return intersection_(O, this, that);
 };
 
-Set.prototype.difference = function (...args: any[]) {
-  return args.length === 1
-    ? difference_(Ord.fromUniversalCompare(), this, args[0])
-    : difference_(args[0], this, args[1]);
+Set.prototype.difference = function (that, O = Ord.fromUniversalCompare()) {
+  return difference_(O, this, that);
 };
 Set.prototype['\\'] = Set.prototype.difference;
 
-Set.prototype.symmetricDifference = function (...args: any[]) {
-  return args.length === 1
-    ? symmetricDifference_(Ord.fromUniversalCompare(), this, args[0])
-    : symmetricDifference_(args[0], this, args[1]);
+Set.prototype.symmetricDifference = function (
+  that,
+  O = Ord.fromUniversalCompare(),
+) {
+  return symmetricDifference_(O, this, that);
 };
 Set.prototype['\\//'] = Set.prototype.symmetricDifference;
 
-Set.prototype.split = function (...args: any[]) {
-  return args.length === 1
-    ? split_(Ord.fromUniversalCompare(), this, args[0])
-    : split_(args[0], this, args[1]);
+Set.prototype.split = function (x, O = Ord.fromUniversalCompare()) {
+  return split_(O, this, x);
 };
 
 Set.prototype.filter = function (p) {
