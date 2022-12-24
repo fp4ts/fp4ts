@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Eval, id } from '@fp4ts/core';
-import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from '@fp4ts/cats-core';
 import {
   Some,
@@ -16,7 +16,7 @@ import {
   Vector,
   Identity,
 } from '@fp4ts/cats-core/lib/data';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
@@ -903,6 +903,24 @@ describe('Vector', () => {
       );
     });
   });
+
+  test(
+    'foldMap is List.foldMap',
+    forAll(A.fp4tsVector(fc.integer()), xs =>
+      expect(xs.foldMap(Monoid.addition)(id)).toEqual(
+        xs.toList.foldMap(Monoid.addition)(id),
+      ),
+    ),
+  );
+
+  test(
+    'foldMapLeft is List.foldMapLeft',
+    forAll(A.fp4tsVector(fc.integer()), xs =>
+      expect(xs.foldMap(Monoid.addition)(id)).toEqual(
+        xs.toList.foldMap(Monoid.addition)(id),
+      ),
+    ),
+  );
 
   describe('scanLeft', () => {
     const add = (x: number, y: number): number => x + y;

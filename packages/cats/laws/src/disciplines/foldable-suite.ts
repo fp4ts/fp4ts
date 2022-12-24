@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Kind } from '@fp4ts/core';
+import { Eval, Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '@fp4ts/cats-core';
 import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
@@ -32,11 +32,11 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
           forAll(mkArbF(arbA), laws.foldRightLazy),
         ],
         [
-          'foldable foldLeft consistent with foldMap',
+          'foldable foldLeft consistent with foldMapLeft',
           forAll(
             mkArbF(arbA),
             fc.func<[A], B>(arbB),
-            laws.leftFoldConsistentWithFoldMap(MB),
+            laws.leftFoldConsistentWithFoldMapLeft(MB),
           )(EqB),
         ],
         [
@@ -45,6 +45,24 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
             mkArbF(arbA),
             fc.func<[A], B>(arbB),
             laws.rightFoldConsistentWithFoldMap(MB),
+          )(EqB),
+        ],
+        [
+          'foldable foldMap consistent with foldRight',
+          forAll(
+            mkArbF(arbA),
+            A.fp4tsEval(arbB),
+            fc.func<[A, Eval<B>], Eval<B>>(A.fp4tsEval(arbB)),
+            laws.foldMapConsistentWithRightFold,
+          )(EqB),
+        ],
+        [
+          'foldable foldMap consistent with foldLeft',
+          forAll(
+            mkArbF(arbA),
+            arbB,
+            fc.func<[B, A], B>(arbB),
+            laws.foldMapConsistentWithLeftFold,
           )(EqB),
         ],
         [

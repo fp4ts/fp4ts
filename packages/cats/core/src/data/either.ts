@@ -326,6 +326,10 @@ const eitherTraversable = lazyVal(
         <M>(M: Monoid<M>) =>
         <A>(fa: Either<E, A>, f: (a: A) => M) =>
           fa.foldMap(M)(f),
+      foldMapLeft_:
+        <M>(M: Monoid<M>) =>
+        <A>(fa: Either<E, A>, f: (a: A) => M) =>
+          fa.foldMap(M)(f),
       foldLeft_: (fa, z, f) => fa.foldLeft(z, f),
       foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
       isEmpty: fa => fa.isEmpty,

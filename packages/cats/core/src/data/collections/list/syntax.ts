@@ -89,6 +89,7 @@ import {
   distinctBy_,
   distinctByOrd_,
   partitionWith_,
+  foldMapLeft_,
 } from './operators';
 import { View } from '../view';
 
@@ -210,6 +211,7 @@ declare module './algebra' {
     foldRight1_<B>(this: List<B>, f: (x: B, a: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
 
     scanLeft<B>(z: B, f: (b: B, a: A) => B): List<B>;
@@ -546,6 +548,12 @@ List.prototype.foldMap = function <A, M>(
   M: Monoid<M>,
 ): (f: (a: A) => M) => M {
   return f => foldMap_(M)(this, f);
+};
+List.prototype.foldMapLeft = function <A, M>(
+  this: List<A>,
+  M: Monoid<M>,
+): (f: (a: A) => M) => M {
+  return f => foldMapLeft_(M)(this, f);
 };
 
 List.prototype.foldMapK = function <F, A>(

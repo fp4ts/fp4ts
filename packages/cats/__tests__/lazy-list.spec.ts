@@ -1317,16 +1317,43 @@ describe('LazyList', () => {
       ),
     );
 
-    it('should be lazy in application of f', () => {
+    it('should be lazy', () => {
       let cnt = 0;
-      LazyList(true, true).foldMap(CommutativeMonoid.disjunction)(
-        x => (cnt++, x),
-      );
+      LazyList(true, true)
+        .map(x => (cnt++, x))
+        .foldMap(CommutativeMonoid.disjunction)(id);
+
       expect(cnt).toBe(1);
     });
 
     it('should be stack safe on large list', () => {
       LazyList.range(0, 50_000).foldMap(CommutativeMonoid.addition)(id);
+    });
+
+    it('should be stack safe under composition', () => {
+      let xs = LazyList(0);
+      for (let i = 0; i < 50_000; i++) {
+        xs = xs.map(id);
+      }
+      xs.foldMap(CommutativeMonoid.addition)(id);
+    });
+  });
+
+  describe('foldMapLeft', () => {
+    it(
+      'should be List.foldMapLeft',
+      forAll(
+        fc.array(fc.integer()),
+        fc.func<[number], number>(fc.integer()),
+        (xs, f) =>
+          expect(
+            LazyList.fromArray(xs).foldMapLeft(CommutativeMonoid.addition)(f),
+          ).toBe(List.fromArray(xs).foldMapLeft(CommutativeMonoid.addition)(f)),
+      ),
+    );
+
+    it('should be stack safe on large list', () => {
+      LazyList.range(0, 50_000).foldMapLeft(CommutativeMonoid.addition)(id);
     });
 
     it('should be stack safe under composition', () => {

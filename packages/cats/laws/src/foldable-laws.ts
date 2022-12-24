@@ -16,6 +16,7 @@ import {
   Either,
   Left,
   Right,
+  Endo,
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -29,11 +30,11 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
     return F.isEmpty(fa) ? i === 0 : i === 1;
   },
 
-  leftFoldConsistentWithFoldMap:
+  leftFoldConsistentWithFoldMapLeft:
     <B>(B: Monoid<B>) =>
     <A>(fa: Kind<F, [A]>, f: (a: A) => B): IsEq<B> =>
       new IsEq(
-        F.foldMap_(B)(fa, f),
+        F.foldMapLeft_(B)(fa, f),
         F.foldLeft_(fa, B.empty, (b, a) => B.combine_(b, f(a))),
       ),
 
@@ -46,6 +47,31 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
           B.combineEval_(f(a), eb),
         ).value,
       ),
+
+  foldMapConsistentWithRightFold: <A, B>(
+    fa: Kind<F, [A]>,
+    ez: Eval<B>,
+    f: (a: A, eb: Eval<B>) => Eval<B>,
+  ): IsEq<B> =>
+    new IsEq(
+      F.foldRight_(fa, ez, f).value,
+      F.foldMap_(Endo.EvalMonoidK.algebra<B>())(
+        fa,
+        a => (eb: Eval<B>) => f(a, eb),
+      )(ez).value,
+    ),
+
+  foldMapConsistentWithLeftFold: <A, B>(
+    fa: Kind<F, [A]>,
+    z: B,
+    f: (b: B, a: A) => B,
+  ): IsEq<B> =>
+    new IsEq(
+      F.foldLeft_(fa, z, f),
+      F.foldMap_(Endo.MonoidK.algebra<B>().dual())(fa, a => (b: B) => f(b, a))(
+        z,
+      ),
+    ),
 
   foldMapKConsistentWithFoldMap:
     <G>(G: MonoidK<G>) =>
@@ -138,13 +164,25 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
 export interface FoldableLaws<F> {
   foldRightLazy: <A>(fa: Kind<F, [A]>) => boolean;
 
-  leftFoldConsistentWithFoldMap: <B>(
+  leftFoldConsistentWithFoldMapLeft: <B>(
     B: Monoid<B>,
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => B) => IsEq<B>;
 
   rightFoldConsistentWithFoldMap: <B>(
     B: Monoid<B>,
   ) => <A>(fa: Kind<F, [A]>, f: (a: A) => B) => IsEq<B>;
+
+  foldMapConsistentWithRightFold: <A, B>(
+    fa: Kind<F, [A]>,
+    ez: Eval<B>,
+    f: (a: A, eb: Eval<B>) => Eval<B>,
+  ) => IsEq<B>;
+
+  foldMapConsistentWithLeftFold: <A, B>(
+    fa: Kind<F, [A]>,
+    z: B,
+    f: (b: B, a: A) => B,
+  ) => IsEq<B>;
 
   foldMapKConsistentWithFoldMap: <G>(
     G: MonoidK<G>,

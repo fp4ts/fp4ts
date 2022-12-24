@@ -366,15 +366,11 @@ export const partition_ = <A>(
 
 export const foldLeft_ = <A, B>(sa: Set<A>, z: B, f: (b: B, x: A) => B): B => {
   const sn = sa as Node<A>;
-  switch (sn.tag) {
-    case 'empty':
-      return z;
-    case 'bin': {
-      const lr = foldLeft_(sn.lhs, z, f);
-      const xr = f(lr, sn.value);
-      return foldLeft_(sn.rhs, xr, f);
-    }
-  }
+  if (sn.tag === 'empty') return z;
+
+  const lr = foldLeft_(sn.lhs, z, f);
+  const xr = f(lr, sn.value);
+  return foldLeft_(sn.rhs, xr, f);
 };
 
 export const foldLeft1_ = <A>(sa: Set<A>, f: (b: A, x: A) => A): A =>
@@ -390,15 +386,11 @@ export const foldRight_ = <A, B>(
 ): Eval<B> =>
   Eval.defer(() => {
     const sn = sa as Node<A>;
-    switch (sn.tag) {
-      case 'empty':
-        return ez;
-      case 'bin': {
-        const rr = foldRight_(sn.rhs, ez, f);
-        const xr = Eval.defer(() => f(sn.value, rr));
-        return foldRight_(sn.lhs, xr, f);
-      }
-    }
+    if (sn.tag === 'empty') return ez;
+
+    const rr = Eval.defer(() => foldRight_(sn.rhs, ez, f));
+    const xr = Eval.defer(() => f(sn.value, rr));
+    return foldRight_(sn.lhs, xr, f);
   });
 
 export const foldRightStrict_ = <A, B>(
@@ -429,6 +421,11 @@ export const foldMap_ =
   <A>(sa: Set<A>, f: (a: A) => M): M =>
     foldRight_(sa, Eval.now(M.empty), (a, efb) => M.combineEval_(f(a), efb))
       .value;
+
+export const foldMapLeft_ =
+  <M>(M: Monoid<M>) =>
+  <A>(sa: Set<A>, f: (a: A) => M): M =>
+    foldLeft_(sa, M.empty, (b, a) => M.combine_(b, f(a)));
 
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>

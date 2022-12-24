@@ -26,6 +26,7 @@ import {
   flatten,
   folding,
   foldLeft_,
+  foldMapLeft_,
   foldMap_,
   foldRight_,
   forEach_,
@@ -122,6 +123,7 @@ declare module './algebra' {
     foldRight<B>(z: B, f: (a: A, b: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     folding<AA>(this: Chain<AA>, M: Monoid<AA>): AA;
 
     traverse<G>(
@@ -311,6 +313,9 @@ Chain.prototype.foldRight = function (z, f) {
 
 Chain.prototype.foldMap = function (M) {
   return f => foldMap_(M)(this, f);
+};
+Chain.prototype.foldMapLeft = function (M) {
+  return f => foldMapLeft_(M)(this, f);
 };
 Chain.prototype.folding = function (M) {
   return folding(M)(this);

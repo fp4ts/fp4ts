@@ -588,6 +588,11 @@ export const foldMap_ =
     foldRight_(m, Eval.now(M.empty), (v, eb, k) => M.combineEval_(f(v, k), eb))
       .value;
 
+export const foldMapLeft_ =
+  <M>(M: Monoid<M>) =>
+  <K, V>(m: Map<K, V>, f: (v: V, k: K) => M): M =>
+    foldLeft_(m, M.empty, (b, v, k) => M.combine_(b, f(v, k)));
+
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <K, V, B>(m: Map<K, V>, f: (v: V, k: K) => Kind<F, [B]>): Kind<F, [B]> =>

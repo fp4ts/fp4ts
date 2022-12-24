@@ -22,6 +22,7 @@ import {
   equals_,
   foldLeft_,
   foldMapK_,
+  foldMapLeft_,
   foldMap_,
   foldRight_,
   isEmpty,
@@ -74,6 +75,7 @@ export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =
     FoldableWithIndex.of<$<MapF, [K]>, K>({
       foldLeftWithIndex_: foldLeft_,
       foldRightWithIndex_: foldRight_,
+      foldMapLeftWithIndex_: foldMapLeft_,
       foldMapWithIndex_: foldMap_,
       foldMapKWithIndex_: foldMapK_,
       all_: (m, p) => all_(m, x => p(x)),

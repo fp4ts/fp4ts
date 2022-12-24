@@ -79,34 +79,6 @@ export const cataM =
     return M.flatten(inclusion(loop(cfa)));
   };
 
-export const foldMap: <S, M>(
-  S: Foldable<S>,
-  M: Monoid<M>,
-) => <A>(f: (a: A) => M) => (csa: Cofree<S, A>) => M = (S, M) => f => csa =>
-  foldMap_(S, M)(csa, f);
-
-export const foldLeft: <S>(
-  S: Foldable<S>,
-) => <A, B>(z: B, f: (b: B, a: A) => B) => (csa: Cofree<S, A>) => B =
-  S => (z, f) => csa =>
-    foldLeft_(S)(csa, z, f);
-
-export const foldRightEval: <S>(
-  S: Foldable<S>,
-) => <A, B>(
-  ez: Eval<B>,
-  f: (a: A, eb: Eval<B>) => Eval<B>,
-) => (csa: Cofree<S, A>) => Eval<B> = S => (ez, f) => csa =>
-  foldRightEval_(S)(csa, ez, f);
-
-export const traverse: <S, G>(
-  S: Traversable<S>,
-  G: Applicative<G>,
-) => <A, B>(
-  f: (a: A) => Kind<G, [B]>,
-) => (csa: Cofree<S, A>) => Kind<G, [Cofree<S, B>]> = (S, G) => f => csa =>
-  traverse_(S, G)(csa, f);
-
 // -- Point-ful operators
 
 export const transform_ =
@@ -128,14 +100,11 @@ export const coflatMap_ =
   <A, B>(cfa: Cofree<S, A>, f: (cfr: Cofree<S, A>) => B): Cofree<S, B> =>
     anaEval(S)(cfa)(cfr => cfr.tail, f);
 
-export const foldMap_ = <S, M>(S: Foldable<S>, M: Monoid<M>) => {
-  const foldMap_ = <A>(csa: Cofree<S, A>, f: (a: A) => M): M =>
-    M.combine_(
-      f(csa.head),
-      S.foldMap_(M)(csa.tail.value, csa => foldMap_(csa, f)),
-    );
-  return foldMap_;
-};
+export const foldMap_ =
+  <S, M>(S: Foldable<S>, M: Monoid<M>) =>
+  <A>(csa: Cofree<S, A>, f: (a: A) => M): M =>
+    foldRight_(S)(csa, Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb))
+      .value;
 
 export const foldLeft_ = <S>(S: Foldable<S>) => {
   const foldLeft_ = <A, B>(csa: Cofree<S, A>, z: B, f: (b: B, a: A) => B): B =>
@@ -145,19 +114,17 @@ export const foldLeft_ = <S>(S: Foldable<S>) => {
   return foldLeft_;
 };
 
-export const foldRightEval_ = <S>(S: Foldable<S>) => {
-  const foldRightEval_ = <A, B>(
+export const foldRight_ = <S>(S: Foldable<S>) => {
+  const foldRight_ = <A, B>(
     csa: Cofree<S, A>,
     ez: Eval<B>,
     f: (a: A, eb: Eval<B>) => Eval<B>,
   ): Eval<B> =>
     f(
       csa.head,
-      csa.tail.flatMap(
-        S.foldRight(ez, (cfr, eb) => foldRightEval_(cfr, eb, f)),
-      ),
+      csa.tail.flatMap(S.foldRight(ez, (cfr, eb) => foldRight_(cfr, eb, f))),
     );
-  return foldRightEval_;
+  return foldRight_;
 };
 
 export const traverse_ = <S, G>(S: Traversable<S>, G: Applicative<G>) => {

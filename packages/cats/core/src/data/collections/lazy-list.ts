@@ -250,14 +250,12 @@ export class _LazyList<out A> {
   }
 
   public all(p: (a: A) => boolean): boolean {
-    return this.foldRight(Eval.now(true), (x, eb) =>
-      !p(x) ? Eval.now(false) : eb,
-    ).value;
+    return this.foldRight(Eval.now(true), (x, eb) => (!p(x) ? Eval.false : eb))
+      .value;
   }
   public any(p: (a: A) => boolean): boolean {
-    return this.foldRight(Eval.now(false), (x, eb) =>
-      p(x) ? Eval.now(true) : eb,
-    ).value;
+    return this.foldRight(Eval.now(false), (x, eb) => (p(x) ? Eval.true : eb))
+      .value;
   }
   public count(p: (a: A) => boolean): number {
     return this.foldLeft(0, (x, y) => (p(y) ? x + 1 : x));
@@ -391,6 +389,11 @@ export class _LazyList<out A> {
       this.foldRight(Eval.now(M.empty), (a, efb) => M.combineEval_(f(a), efb))
         .value;
   }
+
+  public foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M {
+    return f => this.foldLeft(M.empty, (b, a) => M.combine_(b, f(a)));
+  }
+
   public foldMapK<F>(
     F: MonoidK<F>,
   ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
@@ -999,6 +1002,10 @@ const lazyListFoldable = lazyVal(() =>
       <M>(M: Monoid<M>) =>
       <A>(fa: LazyList<A>, f: (a: A) => M) =>
         fa.foldMap(M)(f),
+    foldMapLeft_:
+      <M>(M: Monoid<M>) =>
+      <A>(fa: LazyList<A>, f: (a: A) => M) =>
+        fa.foldMapLeft(M)(f),
     foldMapK_:
       <F>(F: MonoidK<F>) =>
       <A, B>(fa: LazyList<A>, f: (a: A) => Kind<F, [B]>) =>

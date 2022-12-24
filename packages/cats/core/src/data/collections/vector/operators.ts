@@ -315,6 +315,11 @@ export const foldMap_ =
   <A>(xs: Vector<A>, f: (a: A) => M): M =>
     Iter.foldMap_(M, iterator(xs), f);
 
+export const foldMapLeft_ =
+  <M>(M: Monoid<M>) =>
+  <A>(xs: Vector<A>, f: (a: A) => M): M =>
+    Iter.foldMapLeft_(M, iterator(xs), f);
+
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(xs: Vector<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>

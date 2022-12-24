@@ -344,6 +344,9 @@ class _NonEmptyList<out A> {
   public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {
     return this.toList.foldMap(M);
   }
+  public foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M {
+    return this.toList.foldMapLeft(M);
+  }
   public foldMapK<F>(
     F: MonoidK<F>,
   ): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]> {
@@ -505,6 +508,11 @@ const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazyVal(() =>
       <M>(M: Monoid<M>) =>
       <A>(fa: NonEmptyList<A>, f: (a: A) => M) =>
         fa.foldMap(M)(f),
+
+    foldMapLeft_:
+      <M>(M: Monoid<M>) =>
+      <A>(fa: NonEmptyList<A>, f: (a: A) => M) =>
+        fa.foldMapLeft(M)(f),
 
     foldMapK_:
       <F>(F: MonoidK<F>) =>

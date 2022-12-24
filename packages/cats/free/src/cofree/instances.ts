@@ -18,7 +18,7 @@ import {
   extract,
   foldLeft_,
   foldMap_,
-  foldRightEval_,
+  foldRight_,
   map_,
   traverse_,
 } from './operators';
@@ -49,7 +49,7 @@ export const cofreeFoldable: <S>(
   Foldable.of<$<CofreeF, [S]>>({
     foldMap_: M => foldMap_(S, M),
     foldLeft_: foldLeft_(S),
-    foldRight_: foldRightEval_(S),
+    foldRight_: foldRight_(S),
   });
 
 export const cofreeTraversable: <S>(

@@ -249,6 +249,24 @@ describe('Views', () => {
   );
 
   test(
+    'foldMap is List.foldMap',
+    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.foldMap(Monoid.addition)(f)).toEqual(
+        xs.toList.foldMap(Monoid.addition)(f),
+      ),
+    ),
+  );
+
+  test(
+    'foldMapLeft is List.foldMapLeft',
+    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.foldMapLeft(Monoid.addition)(f)).toEqual(
+        xs.toList.foldMapLeft(Monoid.addition)(f),
+      ),
+    ),
+  );
+
+  test(
     'scanLeft is List.scanLeft',
     forAll(
       A.fp4tsView(fc.integer()),

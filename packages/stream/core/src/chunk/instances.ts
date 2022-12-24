@@ -12,7 +12,6 @@ import {
   MonoidK,
   Traversable,
   Applicative,
-  Monoid,
 } from '@fp4ts/cats';
 
 import { Chunk as ChunkBase, EmptyChunk } from './algebra';
@@ -61,10 +60,6 @@ export const chunkTraversable: Lazy<Traversable<ChunkF>> = lazyVal(() =>
   Traversable.of({
     ...chunkFunctor(),
     foldLeft_: (xs, z, f) => xs.foldLeft(z, f),
-    foldMap_:
-      <M>(M: Monoid<M>) =>
-      <A>(xs: Chunk<A>, f: (a: A) => M) =>
-        xs.foldLeft(M.empty, (b, x) => M.combine_(b, f(x))),
     foldRight_: <A, B>(
       fa: Chunk<A>,
       b: Eval<B>,

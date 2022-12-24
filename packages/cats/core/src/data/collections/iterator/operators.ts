@@ -221,6 +221,12 @@ export const foldMap_ = <A, M>(
 ): M =>
   foldRight_(it, Eval.now(M.empty), (a, eb) => M.combineEval_(f(a), eb)).value;
 
+export const foldMapLeft_ = <A, M>(
+  M: Monoid<M>,
+  it: Iterator<A>,
+  f: (a: A) => M,
+): M => foldLeft_(it, M.empty, (b, a) => M.combine_(b, f(a)));
+
 export const forEach_ = <A>(it: Iterator<A>, f: (a: A) => void): void => {
   for (let i = it.next(); !i.done; i = it.next()) {
     f(i.value);

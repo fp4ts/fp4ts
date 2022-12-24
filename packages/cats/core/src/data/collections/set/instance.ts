@@ -24,6 +24,7 @@ import {
   toList,
   toVector,
   foldMapK_,
+  foldMapLeft_,
 } from './operators';
 
 import type { Set, SetF } from './set';
@@ -40,18 +41,19 @@ export const setMonoid: <A>(O: Ord<A>) => Monoid<Set<A>> = <A>(O: Ord<A>) =>
 
 export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
   Foldable.of({
-    foldLeft_: foldLeft_,
-    foldRight_: foldRight_,
-    foldMap_: foldMap_,
-    foldMapK_: foldMapK_,
-    all_: all_,
-    any_: any_,
-    count_: count_,
-    iterator: iterator,
-    isEmpty: isEmpty,
-    nonEmpty: nonEmpty,
-    size: size,
-    toList: toList,
-    toVector: toVector,
+    foldLeft_,
+    foldRight_,
+    foldMap_,
+    foldMapLeft_,
+    foldMapK_,
+    all_,
+    any_,
+    count_,
+    iterator,
+    isEmpty,
+    nonEmpty,
+    size,
+    toList,
+    toVector,
   }),
 );

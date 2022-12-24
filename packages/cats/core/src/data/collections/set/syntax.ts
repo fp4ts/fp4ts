@@ -26,6 +26,7 @@ import {
   foldLeft1_,
   foldLeft_,
   foldMapK_,
+  foldMapLeft_,
   foldMap_,
   foldRight1_,
   foldRightStrict_,
@@ -156,6 +157,7 @@ declare module './algebra' {
     foldRight1<B>(this: Set<B>, f: (x: B, b: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
 
     equals<B>(this: Set<B>, E: Eq<B>): (that: Set<B>) => boolean;
@@ -393,6 +395,9 @@ Set.prototype.foldRight1 = function (f) {
 
 Set.prototype.foldMap = function (M) {
   return f => foldMap_(M)(this, f);
+};
+Set.prototype.foldMapLeft = function (M) {
+  return f => foldMapLeft_(M)(this, f);
 };
 Set.prototype.foldMapK = function (F) {
   return f => foldMapK_(F)(this, f);

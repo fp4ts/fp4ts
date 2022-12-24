@@ -35,6 +35,7 @@ import {
   foldLeft1_,
   foldLeft_,
   foldMapK_,
+  foldMapLeft_,
   foldMap_,
   foldRight1_,
   foldRight_,
@@ -159,6 +160,7 @@ declare module './algebra' {
     foldRight1<B>(this: Queue<B>, f: (x: B, a: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
 
     align<B>(ys: Queue<B>): Queue<Ior<A, B>>;
@@ -425,6 +427,10 @@ Queue.prototype.foldRight1 = function (f) {
 
 Queue.prototype.foldMap = function (M) {
   return f => foldMap_(M)(this, f);
+};
+
+Queue.prototype.foldMapLeft = function (M) {
+  return f => foldMapLeft_(M)(this, f);
 };
 
 Queue.prototype.foldMapK = function (F) {

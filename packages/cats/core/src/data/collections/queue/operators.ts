@@ -394,6 +394,11 @@ export const foldMap_ =
   <A>(q: Queue<A>, f: (a: A) => M): M =>
     Iter.foldMap_(M, iterator(q), f);
 
+export const foldMapLeft_ =
+  <M>(M: Monoid<M>) =>
+  <A>(q: Queue<A>, f: (a: A) => M): M =>
+    Iter.foldMapLeft_(M, iterator(q), f);
+
 export const foldMapK_ =
   <F>(F: MonoidK<F>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<F, [B]>): Kind<F, [B]> =>

@@ -3,36 +3,46 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Eval, id, instance, Kind, lazyVal } from '@fp4ts/core';
+import { Base, id, instance, Kind } from '@fp4ts/core';
 import { CommutativeMonoid } from '@fp4ts/cats-kernel';
 
 /**
  * @category Type Class
  */
 export interface UnorderedFoldable<F> extends Base<F> {
-  readonly unorderedFoldMap: <M>(
+  /**
+   * Lazy fold mapping each element of the structure `Kind<F, [A]>` into a commutative
+   *  monoid `M` and combining them using `combineEval`.
+   */
+  unorderedFoldMap<M>(
     M: CommutativeMonoid<M>,
-  ) => <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
-  readonly unorderedFoldMap_: <M>(
+  ): <A>(f: (a: A) => M) => (fa: Kind<F, [A]>) => M;
+  /**
+   * Lazy fold mapping each element of the structure `Kind<F, [A]>` into a commutative
+   * monoid `M` and combining them using `combineEval`.
+   */
+  unorderedFoldMap_<M>(
     M: CommutativeMonoid<M>,
-  ) => <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
+  ): <A>(fa: Kind<F, [A]>, f: (a: A) => M) => M;
 
-  readonly unorderedFold: <A>(
-    M: CommutativeMonoid<A>,
-  ) => (fa: Kind<F, [A]>) => A;
+  /**
+   * Lazy fold combining each element of the structure `Kind<F, [A]>` using
+   * `combineEval` of the provided commutative monoid.
+   */
+  unorderedFold<A>(M: CommutativeMonoid<A>): (fa: Kind<F, [A]>) => A;
 
-  readonly isEmpty: <A>(fa: Kind<F, [A]>) => boolean;
-  readonly nonEmpty: <A>(fa: Kind<F, [A]>) => boolean;
+  isEmpty<A>(fa: Kind<F, [A]>): boolean;
+  nonEmpty<A>(fa: Kind<F, [A]>): boolean;
 
-  readonly all: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => boolean;
-  readonly all_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
-  readonly any: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => boolean;
-  readonly any_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
+  all<A>(p: (a: A) => boolean): (fa: Kind<F, [A]>) => boolean;
+  all_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): boolean;
+  any<A>(p: (a: A) => boolean): (fa: Kind<F, [A]>) => boolean;
+  any_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): boolean;
 
-  readonly count: <A>(p: (a: A) => boolean) => (fa: Kind<F, [A]>) => number;
-  readonly count_: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => number;
+  count<A>(p: (a: A) => boolean): (fa: Kind<F, [A]>) => number;
+  count_<A>(fa: Kind<F, [A]>, p: (a: A) => boolean): number;
 
-  readonly size: <A>(fa: Kind<F, [A]>) => number;
+  size<A>(fa: Kind<F, [A]>): number;
 }
 
 export type UnorderedFoldableRequirements<F> = Pick<
@@ -52,13 +62,11 @@ export const UnorderedFoldable = Object.freeze({
 
       all: f => fa => self.all_(fa, f),
       all_: (fa, p) =>
-        self.unorderedFoldMap_(andEvalMonoid())(fa, x => Eval.later(() => p(x)))
-          .value,
+        self.unorderedFoldMap_(CommutativeMonoid.conjunction)(fa, p),
 
       any: f => fa => self.any_(fa, f),
       any_: (fa, p) =>
-        self.unorderedFoldMap_(orEvalMonoid())(fa, x => Eval.later(() => p(x)))
-          .value,
+        self.unorderedFoldMap_(CommutativeMonoid.disjunction)(fa, p),
 
       count: p => fa => self.count_(fa, p),
       count_: (fa, p) =>
@@ -74,16 +82,3 @@ export const UnorderedFoldable = Object.freeze({
     return self;
   },
 });
-
-const orEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
-  CommutativeMonoid.of({
-    empty: Eval.false,
-    combine_: (x, y) => x.flatMap(x => (!x ? y : Eval.true)),
-  }),
-);
-const andEvalMonoid: () => CommutativeMonoid<Eval<boolean>> = lazyVal(() =>
-  CommutativeMonoid.of({
-    empty: Eval.true,
-    combine_: (x, y) => x.flatMap(x => (x ? y : Eval.false)),
-  }),
-);

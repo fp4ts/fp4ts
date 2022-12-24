@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Eval, id } from '@fp4ts/core';
-import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
+import { CommutativeMonoid, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
@@ -894,6 +894,12 @@ describe('List', () => {
   });
 
   describe('foldMap', () => {
+    it('should be lazy', () => {
+      let cnt = 0;
+      List(1, 2, 3, 4).foldMap(Monoid.disjunction)(_ => (cnt++, true));
+      expect(cnt).toBe(1);
+    });
+
     it('should produce an empty list out of empty list', () => {
       expect(
         List.empty.foldMap(List.MonoidK.algebra())(x => List(x, x)),
@@ -911,6 +917,27 @@ describe('List', () => {
       expect(xs.foldMap(List.MonoidK.algebra())(x => List(x)).toArray).toEqual(
         xs.toArray,
       );
+    });
+  });
+
+  describe('foldMapLeft', () => {
+    it('should produce an empty list out of empty list', () => {
+      expect(
+        List.empty.foldMapLeft(List.MonoidK.algebra())(x => List(x, x)),
+      ).toEqual(List.empty);
+    });
+
+    it('should produce double the number of elements', () => {
+      expect(
+        List(1, 2, 3).foldMapLeft(List.MonoidK.algebra())(x => List(x, x)),
+      ).toEqual(List(1, 1, 2, 2, 3, 3));
+    });
+
+    it('should be stack safe', () => {
+      const xs = List.fromArray([...new Array(10_000).keys()]);
+      expect(
+        xs.foldMapLeft(List.MonoidK.algebra())(x => List(x)).toArray,
+      ).toEqual(xs.toArray);
     });
   });
 

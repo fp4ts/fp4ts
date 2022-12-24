@@ -30,6 +30,9 @@ import {
   flatMap_,
   foldLeft1_,
   foldLeft_,
+  foldMapK_,
+  foldMapLeft_,
+  foldMap_,
   foldRight1Strict_,
   foldRight1_,
   foldRightStrict_,
@@ -134,6 +137,7 @@ declare module './algebra' {
     foldRight1_<B>(this: Vector<B>, f: (a: B, b: B) => B): B;
 
     foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M;
+    foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M;
     foldMapK<F>(F: MonoidK<F>): <B>(f: (a: A) => Kind<F, [B]>) => Kind<F, [B]>;
 
     align<B>(that: Vector<B>): Vector<Ior<A, B>>;
@@ -345,6 +349,15 @@ Vector.prototype.foldRight_ = function (z, f) {
 };
 Vector.prototype.foldRight1_ = function (f) {
   return foldRight1Strict_(this, f);
+};
+Vector.prototype.foldMap = function (M) {
+  return f => foldMap_(M)(this, f);
+};
+Vector.prototype.foldMapLeft = function (M) {
+  return f => foldMapLeft_(M)(this, f);
+};
+Vector.prototype.foldMapK = function (M) {
+  return f => foldMapK_(M)(this, f);
 };
 
 Vector.prototype.align = function (that) {
