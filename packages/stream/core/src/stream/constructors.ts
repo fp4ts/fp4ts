@@ -119,7 +119,7 @@ export const fixedDelay =
 
 export const range = <F>(
   from: number,
-  until: number,
+  until: number = Infinity,
   step: number = 1,
 ): Stream<F, number> => {
   const go = (i: number): Stream<F, number> =>

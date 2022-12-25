@@ -47,6 +47,34 @@ describe('Views', () => {
     );
   });
 
+  describe('head', () => {
+    it('should throw on empty collection', () => {
+      expect(() => View.empty.head).toThrow();
+    });
+
+    it('should return the first element', () => {
+      expect(View(1, 2, 3).head).toBe(1);
+    });
+
+    it('should return the first element of composed collection', () => {
+      expect(View(1, 2, 3).filter(x => x % 2 === 0).head).toBe(2);
+    });
+  });
+
+  test(
+    'headOption to be List.headOption',
+    forAll(A.fp4tsView(fc.integer()), xs =>
+      expect(xs.headOption).toEqual(xs.toList.headOption),
+    ),
+  );
+
+  test(
+    'tail to be List.tail',
+    forAll(A.fp4tsView(fc.integer()), xs =>
+      expect(xs.tail.toList).toEqual(xs.toList.tail),
+    ),
+  );
+
   describe('take', () => {
     it(
       'should be List.take',
@@ -64,6 +92,20 @@ describe('Views', () => {
       ),
     );
   });
+
+  test(
+    'slice to be List.slice',
+    forAll(A.fp4tsView(fc.integer()), fc.integer(), fc.integer(), (xs, f, t) =>
+      expect(xs.slice(f, t).toList).toEqual(xs.toList.slice(f, t)),
+    ),
+  );
+
+  test(
+    'splitAt to be List.splitAt',
+    forAll(A.fp4tsView(fc.integer()), fc.integer(), (xs, n) =>
+      expect(xs.splitAt(n).map(ys => ys.toList)).toEqual(xs.toList.splitAt(n)),
+    ),
+  );
 
   describe('filter', () => {
     it(
@@ -179,6 +221,24 @@ describe('Views', () => {
       expect(cnt).toBe(0);
     });
   });
+
+  test(
+    'flatten to be List.flatten',
+    forAll(
+      A.fp4tsView(
+        fc.oneof(
+          A.fp4tsList(fc.integer()),
+          fc.array(fc.integer()),
+          A.fp4tsView(fc.integer()),
+        ),
+      ),
+      xss =>
+        expect(xss.flatten().toList).toEqual(
+          xss.toList.map(xs => List.fromIterator(xs[Symbol.iterator]()))
+            .flatten,
+        ),
+    ),
+  );
 
   describe('zip', () => {
     it(
@@ -561,6 +621,21 @@ class ZipWithAction<A, B, C> extends Action<A, C> {
     .tuple(A.fp4tsView(fc.integer()), fc.func(fc.integer()))
     .map(([xs, f]) => new ZipWithAction(xs, f));
 }
+class ZipWithIndexAction<A> extends Action<A, [A, number]> {
+  readonly name = 'ZipWith';
+  public constructor() {
+    super();
+  }
+
+  public runOnView(xs: View<A>): View<[A, number]> {
+    return xs.zipWithIndex;
+  }
+  public runOnList(xs: List<A>): List<[A, number]> {
+    return xs.zipWithIndex;
+  }
+
+  static readonly Arb = fc.constant(new ZipWithIndexAction());
+}
 class ZipAllAction<A, B> extends Action<A, [A, B]> {
   readonly name = 'ZipAll';
   public constructor(
@@ -704,6 +779,7 @@ describe('fusion', () => {
     FlatMapAction.Arb,
     ZipAction.Arb,
     ZipWithAction.Arb,
+    ZipWithIndexAction.Arb,
     ZipAllAction.Arb,
     ZipAllWithAction.Arb,
     FoldLeftAction.Arb,

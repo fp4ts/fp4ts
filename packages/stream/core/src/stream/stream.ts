@@ -112,7 +112,7 @@ interface StreamObj {
   empty<F = PureF>(): Stream<F, never>;
   range<F = PureF>(
     from: number,
-    until: number,
+    until?: number,
     step?: number,
   ): Stream<F, number>;
   never<F = PureF>(F: Spawn<F, Error>): Stream<F, never>;

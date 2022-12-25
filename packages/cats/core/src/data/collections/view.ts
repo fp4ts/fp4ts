@@ -5,12 +5,12 @@
 
 import {
   $type,
-  compose,
   Eval,
   id,
   Kind,
   Lazy,
   lazyVal,
+  throwError,
   TyK,
   TyVar,
 } from '@fp4ts/core';
@@ -43,16 +43,6 @@ import { Vector } from './vector';
  *   .filter(p)
  *   .map(h)
  *   .toList;
- * ```
- *
- * Furthermore, the `View` also "fuses" possible operations into one, making the
- * collection transformations even more efficient. The above example effectively
- * produces:
- *
- * ```typescript
- * const ys = List.fromIterator(
- *   Iter.collect_(xs.iterator, x => Some(f(x)).filter(p).map(h)),
- * );
  * ```
  */
 export type View<A> = _View<A>;
@@ -90,6 +80,20 @@ abstract class _View<out A> implements Iterable<A> {
     return this.iterator;
   }
 
+  public get head(): A {
+    const r = this.iterator.next();
+    return r.done ? throwError(new Error('View.head')) : r.value;
+  }
+
+  public get headOption(): Option<A> {
+    const r = this.iterator.next();
+    return r.done ? None : Some(r.value);
+  }
+
+  public get tail(): View<A> {
+    return this.drop(1);
+  }
+
   public get toArray(): A[] {
     return [...this];
   }
@@ -113,11 +117,11 @@ abstract class _View<out A> implements Iterable<A> {
   public all<B extends A>(p: (a: A) => a is B): this is View<B>;
   public all(p: (a: A) => boolean): boolean;
   public all(p: (a: A) => boolean): boolean {
-    return this.foldMap(Monoid.conjunction)(p);
+    return Iter.all_(this.iterator, p);
   }
 
   public any(p: (a: A) => boolean): boolean {
-    return this.foldMap(Monoid.disjunction)(p);
+    return Iter.any_(this.iterator, p);
   }
 
   public count(f: (a: A) => boolean): number {
@@ -129,6 +133,13 @@ abstract class _View<out A> implements Iterable<A> {
   }
   public drop(n: number): View<A> {
     return n <= 0 ? this : new DropView(this, n);
+  }
+
+  public slice(from: number, until: number): View<A> {
+    return this.drop(from).take(until - from);
+  }
+  public splitAt(n: number): [View<A>, View<A>] {
+    return [this.take(n), this.drop(n)];
   }
 
   public filter<B extends A>(f: (a: A) => a is B): View<B>;
@@ -157,11 +168,19 @@ abstract class _View<out A> implements Iterable<A> {
     return new FlatMapView(this, x => View.fromIterable(f(x)));
   }
 
+  public flatten<A>(this: View<Iterable<A>>): View<A> {
+    return this.flatMap(id);
+  }
+
   public zip<B>(that: View<B>): View<[A, B]> {
     return new ZipView(this, that);
   }
   public zipWith<B, C>(that: View<B>, f: (a: A, b: B) => C): View<C> {
     return new ZipWithView(this, that, f);
+  }
+
+  public get zipWithIndex(): View<[A, number]> {
+    return this.zip(View.range(0));
   }
 
   public zipAll<A, B>(
@@ -180,6 +199,10 @@ abstract class _View<out A> implements Iterable<A> {
     f: (a: A, b: B) => C,
   ): View<C> {
     return new ZipAllWithView(this, that, defaultL, defaultR, f);
+  }
+
+  public partition(p: (a: A) => boolean): [View<A>, View<A>] {
+    return [this.filter(p), this.filterNot(p)];
   }
 
   public forEach(f: (a: A) => void): void {
@@ -373,21 +396,6 @@ class FilterView<A> extends _View<A> {
   public get iterator(): Iterator<A> {
     return Iter.filter_(this.self.iterator, this.f);
   }
-
-  public override filter(f: (a: A) => boolean): View<A> {
-    const g = this.f;
-    return new FilterView(this.self, x => g(x) && f(x));
-  }
-
-  public override collect<B>(f: (a: A) => Option<B>): View<B> {
-    const g = this.f;
-    return this.self.collect(a => (g(a) ? f(a) : None));
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    const g = this.f;
-    return this.self.collect(a => (g(a) ? Some(f(a)) : None));
-  }
 }
 
 class CollectView<E, A> extends _View<A> {
@@ -400,23 +408,6 @@ class CollectView<E, A> extends _View<A> {
 
   public get iterator(): Iterator<A> {
     return Iter.collect_(this.self.iterator, this.f);
-  }
-
-  public override filter<B extends A>(f: (a: A) => a is B): View<B>;
-  public override filter(f: (a: A) => boolean): View<A>;
-  public override filter(f: (a: A) => boolean): View<A> {
-    const g = this.f;
-    return new CollectView(this.self, e => g(e).filter(f));
-  }
-
-  public override collect<B>(f: (a: A) => Option<B>): View<B> {
-    const g = this.f;
-    return new CollectView(this.self, e => g(e).flatMap(f));
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    const g = this.f;
-    return new CollectView(this.self, e => g(e).map(f));
   }
 }
 
@@ -468,35 +459,6 @@ class MapView<E, A> extends _View<A> {
   public get iterator(): Iterator<A> {
     return Iter.map_(this.self.iterator, this.f);
   }
-
-  public override filter<B extends A>(f: (a: A) => a is B): View<B>;
-  public override filter(f: (a: A) => boolean): View<A>;
-  public override filter(f: (a: A) => boolean): View<A> {
-    const g = this.f;
-    return this.self.collect(e => Some(g(e)).filter(f));
-  }
-
-  public override collect<B>(f: (a: A) => Option<B>): View<B> {
-    return this.self.collect(compose(f, this.f));
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    return new MapView(this.self, compose(f, this.f));
-  }
-
-  public override flatMap<B>(f: (a: A) => Iterable<B>): View<B> {
-    return this.self.flatMap(compose(f, this.f));
-  }
-
-  public override zip<B>(that: View<B>): View<[A, B]> {
-    const g = this.f;
-    return this.self.zipWith(that, (e, d) => [g(e), d]);
-  }
-
-  public override zipWith<B, C>(that: View<B>, f: (a: A, b: B) => C): View<C> {
-    const g = this.f;
-    return this.self.zipWith(that, (e, b) => f(g(e), b));
-  }
 }
 
 class FlatMapView<E, A> extends _View<A> {
@@ -524,10 +486,6 @@ class ZipView<D, E> extends _View<[D, E]> {
   public get iterator(): Iterator<[D, E]> {
     return Iter.zip_(this.lhs.iterator, this.rhs.iterator);
   }
-
-  public override map<B>(f: (a: [D, E]) => B): View<B> {
-    return new ZipWithView(this.lhs, this.rhs, (d, e) => f([d, e]));
-  }
 }
 
 class ZipWithView<D, E, A> extends _View<A> {
@@ -541,11 +499,6 @@ class ZipWithView<D, E, A> extends _View<A> {
 
   public get iterator(): Iterator<A> {
     return Iter.zipWith_(this.lhs.iterator, this.rhs.iterator)(this.f);
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    const g = this.f;
-    return new ZipWithView(this.lhs, this.rhs, (d, e) => f(g(d, e)));
   }
 }
 
@@ -565,16 +518,6 @@ class ZipAllView<D, E> extends _View<[D, E]> {
       this.rhs.iterator,
       this.defaultL,
       this.defaultR,
-    );
-  }
-
-  public override map<B>(f: (a: [D, E]) => B): View<B> {
-    return new ZipAllWithView(
-      this.lhs,
-      this.rhs,
-      this.defaultL,
-      this.defaultR,
-      (d, e) => f([d, e]),
     );
   }
 }
@@ -597,17 +540,6 @@ class ZipAllWithView<D, E, A> extends _View<A> {
       this.defaultL,
       this.defaultR,
     )(this.f);
-  }
-
-  public override map<B>(f: (a: A) => B): View<B> {
-    const g = this.f;
-    return new ZipAllWithView(
-      this.lhs,
-      this.rhs,
-      this.defaultL,
-      this.defaultR,
-      (d, e) => f(g(d, e)),
-    );
   }
 }
 

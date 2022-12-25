@@ -204,14 +204,11 @@ export const foldRight_ = <A, B>(
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>) => Eval<B>,
 ): Eval<B> => {
-  const go = (next: IteratorResult<A>): Eval<B> =>
-    next.done
-      ? ez
-      : f(
-          next.value,
-          Eval.defer(() => go(it.next())),
-        );
-  return Eval.defer(() => go(it.next()));
+  const go: Eval<B> = Eval.defer(() => {
+    const next = it.next();
+    return next.done ? ez : f(next.value, go);
+  });
+  return go;
 };
 
 export const foldMap_ = <A, M>(
