@@ -27,6 +27,7 @@ import { Array as CArray } from '../array';
 
 import { Queue } from './algebra';
 import { empty, fromIterator, fromList } from './constructors';
+import { View } from '../view';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
   _in.isEmpty && _out.isEmpty;
@@ -269,6 +270,9 @@ export const toList = <A>(q: Queue<A>): List<A> =>
 
 export const toVector = <A>(q: Queue<A>): Vector<A> =>
   Vector.fromIterator(iterator(q));
+
+export const view = <A>(q: Queue<A>): View<A> =>
+  View.build((ez, f) => foldRightEval_(q, ez, f));
 
 // -- Point-ful operators
 

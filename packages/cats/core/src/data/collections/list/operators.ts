@@ -703,14 +703,13 @@ export const foldRight_ = <A, B>(
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>) => Eval<B>,
 ): Eval<B> => {
-  const go = (xs: List<A>): Eval<B> =>
-    xs.isEmpty
-      ? ez
-      : f(
-          xs.head,
-          Eval.defer(() => go(xs.tail)),
-        );
-  return Eval.defer(() => go(xs));
+  const go: Eval<B> = Eval.defer(() => {
+    if (xs === nil) return ez;
+    const x = (xs as Cons<A>)._head;
+    xs = (xs as Cons<A>)._tail;
+    return f(x, go);
+  });
+  return go;
 };
 
 export const foldRight1_ = <A>(

@@ -11,6 +11,7 @@ import { Show } from '../../../show';
 
 import { Option, Some, None } from '../../option';
 import { List } from '../list';
+import { View } from '../view';
 
 import { Bin, Empty, Node, Map, toNode } from './algebra';
 
@@ -49,6 +50,9 @@ export const toList = <K, V>(m: Map<K, V>): List<[K, V]> =>
   foldRightStrict_(m, List.empty as List<[K, V]>, (x, xs, k) =>
     xs.prepend([k, x]),
   );
+
+export const view = <K, V>(m: Map<K, V>): View<[K, V]> =>
+  View.build((ez, f) => foldRight_(m, ez, (v, eb, k) => f([k, v], eb)));
 
 export const min = <K, V>(m: Map<K, V>): Option<V> =>
   minWithKey(m).map(([, v]) => v);

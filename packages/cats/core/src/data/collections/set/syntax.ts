@@ -59,8 +59,10 @@ import {
   toList,
   toVector,
   union_,
+  view,
 } from './operators';
 import { Set } from './algebra';
+import { View } from '../view';
 
 declare module './algebra' {
   interface Set<out A> {
@@ -89,6 +91,7 @@ declare module './algebra' {
     readonly toArray: A[];
     readonly toList: List<A>;
     readonly toVector: Vector<A>;
+    readonly view: View<A>;
 
     contains<B>(this: Set<A>, x: B, O?: Ord<B>): boolean;
 
@@ -251,6 +254,12 @@ Object.defineProperty(Set.prototype, 'toList', {
 Object.defineProperty(Set.prototype, 'toVector', {
   get<A>(this: Set<A>) {
     return toVector(this);
+  },
+});
+
+Object.defineProperty(Set.prototype, 'view', {
+  get<A>(this: Set<A>) {
+    return view(this);
   },
 });
 

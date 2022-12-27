@@ -21,6 +21,7 @@ import {
   Right,
   Endo,
   LazyList,
+  View,
 } from './data';
 import { ComposedFoldable } from './composed';
 
@@ -107,6 +108,7 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
 
   iterator<A>(fa: Kind<F, [A]>): Iterator<A>;
   toList<A>(fa: Kind<F, [A]>): List<A>;
+  view<A>(fa: Kind<F, [A]>): View<A>;
   toVector<A>(fa: Kind<F, [A]>): Vector<A>;
 }
 
@@ -189,11 +191,12 @@ export const Foldable = Object.freeze({
       count_: (fa, p) =>
         self.foldLeft_(fa, 0, (acc, x) => (p(x) ? acc + 1 : acc)),
 
-      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> =>
-        LazyList.fromFoldable(self)(fa).iterator,
+      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => self.view(fa).iterator,
 
       toList: <A>(fa: Kind<F, [A]>) =>
         self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
+
+      view: <A>(fa: Kind<F, [A]>) => View.fromFoldable(self)(fa),
 
       toVector: <A>(fa: Kind<F, [A]>) =>
         self.foldLeft_(fa, new VectorBuilder<A>(), (as, a) => as.addOne(a))

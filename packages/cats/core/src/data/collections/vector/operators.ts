@@ -40,7 +40,7 @@ export const popHead = <A>(xs: Vector<A>): Option<[A, Vector<A>]> =>
 export const popLast = <A>(xs: Vector<A>): Option<[A, Vector<A>]> =>
   lastOption(xs).map(l => [l, init(xs)]);
 
-export const view = <A>(xs: Vector<A>): View<A> => View.fromVector(xs);
+export const view = <A>(xs: Vector<A>): View<A> => View.fromIterable(xs);
 
 export function* iterator<A>(v: Vector<A>): Generator<A> {
   const vv = v as VectorView<A>;

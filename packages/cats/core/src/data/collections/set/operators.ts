@@ -14,6 +14,7 @@ import { Iter } from '../iterator';
 
 import { Bin, Empty, Node, Set } from './algebra';
 import { fromArray } from './constructors';
+import { View } from '../view';
 
 const { LT, GT, EQ } = Compare;
 
@@ -86,6 +87,9 @@ export const toList = <A>(sa: Set<A>): List<A> =>
 
 export const toVector = <A>(sa: Set<A>): Vector<A> =>
   foldLeft_(sa, Vector.empty as Vector<A>, (xs, x) => xs.append(x));
+
+export const view = <A>(sa: Set<A>): View<A> =>
+  View.build((ez, f) => foldRight_(sa, ez, f));
 
 // -- Point-ful operators
 

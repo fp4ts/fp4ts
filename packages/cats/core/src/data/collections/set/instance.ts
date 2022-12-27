@@ -22,7 +22,7 @@ import {
   foldLeft_,
   foldRight_,
   toList,
-  toVector,
+  view,
   foldMapK_,
   foldMapLeft_,
 } from './operators';
@@ -54,6 +54,6 @@ export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
     nonEmpty,
     size,
     toList,
-    toVector,
+    view,
   }),
 );

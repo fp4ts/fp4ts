@@ -55,6 +55,7 @@ export const LazyList: LazyListObj = function <A>(...xs: A[]): LazyList<A> {
 interface LazyListObj {
   empty: LazyList<never>;
   singleton<A>(x: A): LazyList<A>;
+  consEval<A>(x: A, exs: Eval<LazyList<A>>): LazyList<A>;
   defer<A>(thunk: () => LazyList<A>): LazyList<A>;
   unfoldRight<A, B>(z: B, f: (b: B) => Option<[A, B]>): LazyList<A>;
   range(from: number, until?: number, step?: number): LazyList<number>;
@@ -64,6 +65,7 @@ interface LazyListObj {
   fromArray<A>(xs: A[]): LazyList<A>;
   fromList<A>(xs: List<A>): LazyList<A>;
   fromVector<A>(xs: Vector<A>): LazyList<A>;
+  fromView<A>(xs: View<A>): LazyList<A>;
   fromIterator<A>(xs: Iterator<A>): LazyList<A>;
   fromFoldable<F>(F: Foldable<F>): <A>(fa: Kind<F, [A]>) => LazyList<A>;
 
@@ -86,6 +88,16 @@ interface LazyListObj {
 export class _LazyList<out A> {
   static defer = <A>(thunk: () => LazyList<A>): LazyList<A> =>
     new _LazyList(Eval.defer(() => thunk().source));
+
+  static consEval = <A>(x: A, exs: Eval<LazyList<A>>): LazyList<A> =>
+    new _LazyList(
+      Eval.now(
+        new Cons(
+          x,
+          exs.flatMap(l => l.source),
+        ),
+      ),
+    );
 
   public constructor(private _source: Eval<Source<A>>) {}
 
@@ -531,6 +543,9 @@ LazyList.singleton = <A>(x: A): LazyList<A> =>
 LazyList.defer = <A>(thunk: () => LazyList<A>): LazyList<A> =>
   _LazyList.defer(thunk);
 
+LazyList.consEval = <A>(x: A, exs: Eval<LazyList<A>>): LazyList<A> =>
+  _LazyList.consEval(x, exs);
+
 LazyList.unfoldRight = <A, B>(
   z: B,
   f: (b: B) => Option<[A, B]>,
@@ -583,6 +598,13 @@ LazyList.fromList = <A>(xs: List<A>): LazyList<A> =>
 
 LazyList.fromVector = <A>(xs: Vector<A>): LazyList<A> =>
   LazyList.fromIterator(xs.iterator);
+
+LazyList.fromView = <A>(xs: View<A>): LazyList<A> =>
+  new _LazyList(
+    xs.foldRight(Eval.now(Nil as Source<A>), (x, xs) =>
+      Eval.now(new Cons(x, xs)),
+    ),
+  );
 
 LazyList.fromIterator = <A>(it: Iterator<A>): LazyList<A> => {
   const go = (next: IteratorResult<A>): Source<A> =>
@@ -1017,7 +1039,7 @@ const lazyListFoldable = lazyVal(() =>
     all_: (fa, f) => fa.all(f),
     count_: (fa, f) => fa.count(f),
     toList: fa => fa.toList,
-    toVector: fa => fa.toVector,
+    view: fa => fa.view,
   }),
 );
 

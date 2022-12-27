@@ -41,6 +41,7 @@ import {
   size,
   traverseFilter_,
   traverse_,
+  view,
   zipAll_,
 } from './operators';
 import type { Queue, QueueF } from './queue';
@@ -124,6 +125,7 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
     foldRight_: foldRightEval_,
     elem_: elemOption_,
     iterator,
+    view,
   }),
 );
 

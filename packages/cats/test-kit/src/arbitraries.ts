@@ -247,7 +247,7 @@ export const fp4tsView = <A>(arbA: Arbitrary<A>): Arbitrary<View<A>> =>
     fc.array(arbA).map(View.fromArray),
     fp4tsList(arbA).map(View.fromList),
     fp4tsLazyList(arbA).map(View.fromLazyList),
-    fp4tsVector(arbA).map(View.fromVector),
+    fp4tsVector(arbA).map(View.fromIterable),
   );
 
 export const fp4tsWriterT = <F, W, A>(

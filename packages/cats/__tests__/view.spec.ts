@@ -5,10 +5,9 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eval, tupled } from '@fp4ts/core';
-import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { List, Option, Some, View } from '@fp4ts/cats-core/lib/data';
 import {
-  AlignSuite,
   FoldableSuite,
   FunctorFilterSuite,
   MonoidKSuite,
@@ -72,6 +71,20 @@ describe('Views', () => {
     'tail to be List.tail',
     forAll(A.fp4tsView(fc.integer()), xs =>
       expect(xs.tail.toList).toEqual(xs.toList.tail),
+    ),
+  );
+
+  test(
+    'prepend to be List.prepend',
+    forAll(A.fp4tsView(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.prepend(x).toList).toEqual(xs.toList.prepend(x)),
+    ),
+  );
+
+  test(
+    'prepend to be List.append',
+    forAll(A.fp4tsView(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.append(x).toList).toEqual(xs.toList.append(x)),
     ),
   );
 
@@ -209,7 +222,9 @@ describe('Views', () => {
         A.fp4tsView(fc.integer()),
         fc.func<[number], List<string>>(A.fp4tsList(fc.string())),
         (xs, f) =>
-          expect(xs.flatMap(f).toList).toEqual(xs.toList.flatMap(x => f(x))),
+          expect(xs.flatMap(x => f(x).view).toList).toEqual(
+            xs.toList.flatMap(x => f(x)),
+          ),
       ),
     );
 
@@ -224,19 +239,10 @@ describe('Views', () => {
 
   test(
     'flatten to be List.flatten',
-    forAll(
-      A.fp4tsView(
-        fc.oneof(
-          A.fp4tsList(fc.integer()),
-          fc.array(fc.integer()),
-          A.fp4tsView(fc.integer()),
-        ),
+    forAll(A.fp4tsView(A.fp4tsList(fc.integer())), xss =>
+      expect(xss.map(xs => xs.view).flatten().toList).toEqual(
+        xss.toList.flatten,
       ),
-      xss =>
-        expect(xss.flatten().toList).toEqual(
-          xss.toList.map(xs => List.fromIterator(xs[Symbol.iterator]()))
-            .flatten,
-        ),
     ),
   );
 
@@ -311,7 +317,7 @@ describe('Views', () => {
   test(
     'foldMap is List.foldMap',
     forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
-      expect(xs.foldMap(Monoid.addition)(f)).toEqual(
+      expect(xs.foldMap(Monoid.addition, f)).toEqual(
         xs.toList.foldMap(Monoid.addition)(f),
       ),
     ),
@@ -320,7 +326,7 @@ describe('Views', () => {
   test(
     'foldMapLeft is List.foldMapLeft',
     forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
-      expect(xs.foldMapLeft(Monoid.addition)(f)).toEqual(
+      expect(xs.foldMapLeft(Monoid.addition, f)).toEqual(
         xs.toList.foldMapLeft(Monoid.addition)(f),
       ),
     ),
@@ -344,30 +350,30 @@ describe('Views', () => {
     ),
   );
 
-  test(
-    'distinctBy is List.distinctBy',
-    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
-      expect(xs.distinctBy(f).toList).toEqual(xs.toList.distinctBy(f)),
-    ),
-  );
+  // test(
+  //   'distinctBy is List.distinctBy',
+  //   forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+  //     expect(xs.distinctBy(f).toList).toEqual(xs.toList.distinctBy(f)),
+  //   ),
+  // );
 
-  test(
-    'distinctOrd is List.distinctOrd',
-    forAll(A.fp4tsView(fc.integer()), xs =>
-      expect(xs.distinctOrd(Ord.fromUniversalCompare()).toList).toEqual(
-        xs.toList.distinctOrd(Ord.fromUniversalCompare()),
-      ),
-    ),
-  );
+  // test(
+  //   'distinctOrd is List.distinctOrd',
+  //   forAll(A.fp4tsView(fc.integer()), xs =>
+  //     expect(xs.distinctOrd(Ord.fromUniversalCompare()).toList).toEqual(
+  //       xs.toList.distinctOrd(Ord.fromUniversalCompare()),
+  //     ),
+  //   ),
+  // );
 
-  test(
-    'distinctByOrd is List.distinctByOrd',
-    forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
-      expect(xs.distinctByOrd(f, Ord.fromUniversalCompare()).toList).toEqual(
-        xs.toList.distinctByOrd(f, Ord.fromUniversalCompare()),
-      ),
-    ),
-  );
+  // test(
+  //   'distinctByOrd is List.distinctByOrd',
+  //   forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+  //     expect(xs.distinctByOrd(f, Ord.fromUniversalCompare()).toList).toEqual(
+  //       xs.toList.distinctByOrd(f, Ord.fromUniversalCompare()),
+  //     ),
+  //   ),
+  // );
 
   describe('Laws', () => {
     checkAll(
@@ -376,22 +382,6 @@ describe('Views', () => {
         fc.integer(),
         fc.integer(),
         fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsView,
-        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
-      ),
-    );
-
-    checkAll(
-      'Align<View>',
-      AlignSuite(View.Align).align(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
@@ -636,74 +626,6 @@ class ZipWithIndexAction<A> extends Action<A, [A, number]> {
 
   static readonly Arb = fc.constant(new ZipWithIndexAction());
 }
-class ZipAllAction<A, B> extends Action<A, [A, B]> {
-  readonly name = 'ZipAll';
-  public constructor(
-    public readonly that: View<B>,
-    public readonly defaultL: () => A,
-    public readonly defaultR: () => B,
-  ) {
-    super();
-  }
-
-  public runOnView(xs: View<A>): View<[A, B]> {
-    return xs.zipAll(this.that, this.defaultL, this.defaultR);
-  }
-  public runOnList(xs: List<A>): List<[A, B]> {
-    return xs.zipAll(this.that.toList, this.defaultL, this.defaultR);
-  }
-
-  static readonly Arb = fc
-    .tuple(A.fp4tsView(fc.integer()), fc.integer(), fc.integer())
-    .map(
-      ([xs, dl, dr]) =>
-        new ZipAllAction(
-          xs,
-          () => dl,
-          () => dr,
-        ),
-    );
-}
-class ZipAllWithAction<A, B, C> extends Action<A, C> {
-  readonly name = 'ZipAllWith';
-  public constructor(
-    public readonly that: View<B>,
-    public readonly defaultL: () => A,
-    public readonly defaultR: () => B,
-    public readonly f: (a: A, b: B) => C,
-  ) {
-    super();
-  }
-
-  public runOnView(xs: View<A>): View<C> {
-    return xs.zipAllWith(this.that, this.defaultL, this.defaultR, this.f);
-  }
-  public runOnList(xs: List<A>): List<C> {
-    return xs.zipAllWith(
-      this.that.toList,
-      this.defaultL,
-      this.defaultR,
-      this.f,
-    );
-  }
-
-  static readonly Arb = fc
-    .tuple(
-      A.fp4tsView(fc.integer()),
-      fc.integer(),
-      fc.integer(),
-      fc.func(fc.integer()),
-    )
-    .map(
-      ([xs, dl, dr, f]) =>
-        new ZipAllWithAction(
-          xs,
-          () => dl,
-          () => dr,
-          f,
-        ),
-    );
-}
 class FoldLeftAction<A, B> extends Action<A, B> {
   readonly name = 'FoldLeft';
   public constructor(
@@ -780,8 +702,6 @@ describe('fusion', () => {
     ZipAction.Arb,
     ZipWithAction.Arb,
     ZipWithIndexAction.Arb,
-    ZipAllAction.Arb,
-    ZipAllWithAction.Arb,
     FoldLeftAction.Arb,
     FoldRightAction.Arb,
     ScanLeftAction.Arb,

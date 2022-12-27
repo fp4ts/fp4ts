@@ -72,12 +72,14 @@ import {
   traverseFilter_,
   traverse_,
   uncons,
+  view,
   zipAllWith_,
   zipAll_,
   zipWithIndex,
   zipWith_,
   zip_,
 } from './operators';
+import { View } from '../view';
 
 declare module './algebra' {
   interface Queue<out A> {
@@ -106,6 +108,7 @@ declare module './algebra' {
     readonly reverseIterator: Iterator<A>;
     [Symbol.iterator](): Iterator<A>;
 
+    readonly view: View<A>;
     readonly toArray: A[];
     readonly toList: List<A>;
     readonly toVector: Vector<A>;
@@ -298,6 +301,12 @@ Object.defineProperty(Queue.prototype, 'reverseIterator', {
 Queue.prototype[Symbol.iterator] = function () {
   return iterator(this);
 };
+
+Object.defineProperty(Queue.prototype, 'view', {
+  get() {
+    return view(this);
+  },
+});
 
 Object.defineProperty(Queue.prototype, 'toArray', {
   get<A>(this: Queue<A>): A[] {

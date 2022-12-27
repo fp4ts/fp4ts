@@ -35,6 +35,7 @@ import { Ior } from '../ior';
 
 import { List, ListBuffer } from './list';
 import { Vector } from './vector';
+import { View } from './view';
 
 export type NonEmptyList<A> = _NonEmptyList<A>;
 
@@ -128,6 +129,9 @@ class _NonEmptyList<out A> {
   }
   public get toList(): List<A> {
     return this.tail.cons(this.head);
+  }
+  public get view(): View<A> {
+    return this.toList.view;
   }
   public get toVector(): Vector<A> {
     return Vector.fromList(this.tail.cons(this.head));
@@ -527,7 +531,7 @@ const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazyVal(() =>
 
     elem_: (fa, idx) => fa.elemOption(idx),
     toList: fa => fa.toList,
-    toVector: fa => fa.toVector,
+    view: fa => fa.view,
   }),
 );
 

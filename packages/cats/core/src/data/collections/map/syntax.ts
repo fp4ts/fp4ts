@@ -11,6 +11,7 @@ import { Applicative } from '../../../applicative';
 
 import { Option } from '../../option';
 import { List } from '../list';
+import { View } from '../view';
 
 import { Map } from './algebra';
 import {
@@ -60,6 +61,7 @@ import {
   unionWith_,
   union_,
   update_,
+  view,
 } from './operators';
 
 declare module './algebra' {
@@ -76,6 +78,7 @@ declare module './algebra' {
     readonly last: V;
     readonly lastOption: V;
 
+    readonly view: View<[K, V]>;
     readonly toArray: [K, V][];
     readonly toList: List<[K, V]>;
 
@@ -242,6 +245,12 @@ Object.defineProperty(Map.prototype, 'last', {
 Object.defineProperty(Map.prototype, 'lastOption', {
   get<K, V>(this: Map<K, V>): Option<V> {
     return lastOption(this);
+  },
+});
+
+Object.defineProperty(Map.prototype, 'view', {
+  get() {
+    return view(this);
   },
 });
 
