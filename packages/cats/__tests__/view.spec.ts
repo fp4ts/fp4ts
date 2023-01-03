@@ -241,7 +241,7 @@ describe('Views', () => {
     'flatten to be List.flatten',
     forAll(A.fp4tsView(A.fp4tsList(fc.integer())), xss =>
       expect(xss.map(xs => xs.view).flatten().toList).toEqual(
-        xss.toList.flatten,
+        xss.toList.flatten(),
       ),
     ),
   );
@@ -318,7 +318,7 @@ describe('Views', () => {
     'foldMap is List.foldMap',
     forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
       expect(xs.foldMap(Monoid.addition, f)).toEqual(
-        xs.toList.foldMap(Monoid.addition)(f),
+        xs.toList.foldMap(Monoid.addition, f),
       ),
     ),
   );
@@ -327,7 +327,7 @@ describe('Views', () => {
     'foldMapLeft is List.foldMapLeft',
     forAll(A.fp4tsView(fc.integer()), fc.func(fc.integer()), (xs, f) =>
       expect(xs.foldMapLeft(Monoid.addition, f)).toEqual(
-        xs.toList.foldMapLeft(Monoid.addition)(f),
+        xs.toList.foldMapLeft(Monoid.addition, f),
       ),
     ),
   );

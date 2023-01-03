@@ -379,11 +379,11 @@ describe('LazyList', () => {
 
   describe('concat', () => {
     it(
-      'should be List.append',
+      'should be List.concat',
       forAll(fc.array(fc.integer()), fc.array(fc.integer()), (xs, ys) =>
         expect(
           LazyList.fromArray(xs)['+++'](LazyList.fromArray(ys)).toArray,
-        ).toEqual(List.fromArray(xs)['+++'](List.fromArray(ys)).toArray),
+        ).toEqual(List.fromArray(xs)['++'](List.fromArray(ys)).toArray),
       ),
     );
 
@@ -1282,12 +1282,7 @@ describe('LazyList', () => {
               f,
             ).toArray,
           ).toEqual(
-            List.fromArray(xs).zipAllWith(
-              List.fromArray(ys),
-              () => 0,
-              () => 0,
-              f,
-            ).toArray,
+            List.fromArray(xs).zipAllWith(List.fromArray(ys), 0, 0, f).toArray,
           ),
       ),
     );
@@ -1313,7 +1308,7 @@ describe('LazyList', () => {
         (xs, f) =>
           expect(
             LazyList.fromArray(xs).foldMap(CommutativeMonoid.addition)(f),
-          ).toBe(List.fromArray(xs).foldMap(CommutativeMonoid.addition)(f)),
+          ).toBe(List.fromArray(xs).foldMap(CommutativeMonoid.addition, f)),
       ),
     );
 
@@ -1348,7 +1343,7 @@ describe('LazyList', () => {
         (xs, f) =>
           expect(
             LazyList.fromArray(xs).foldMapLeft(CommutativeMonoid.addition)(f),
-          ).toBe(List.fromArray(xs).foldMapLeft(CommutativeMonoid.addition)(f)),
+          ).toBe(List.fromArray(xs).foldMapLeft(CommutativeMonoid.addition, f)),
       ),
     );
 
@@ -1471,7 +1466,7 @@ describe('LazyList', () => {
             LazyList.fromArray(xs).scanRight(Eval.now(0), (x, eb) =>
               eb.map(y => f(x, y)),
             ).toArray,
-          ).toEqual(List.fromArray(xs).scanRight(0, f).toArray),
+          ).toEqual(List.fromArray(xs).scanRight_(0, f).toArray),
       ),
     );
 

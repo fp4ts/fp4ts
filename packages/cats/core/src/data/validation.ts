@@ -343,7 +343,7 @@ abstract class _ValidationError<E> {
   }
 
   public get toList(): List<E> {
-    return this.foldMap(List.SemigroupK.algebra<E>())(List.pure);
+    return this.foldMap(List.MonoidK.algebra<E>())(List.singleton);
   }
 
   public map<E2>(f: (e: E) => E2): ValidationError<E2> {

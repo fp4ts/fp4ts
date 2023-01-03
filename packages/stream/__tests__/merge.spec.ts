@@ -18,7 +18,7 @@ describe('Stream merge', () => {
         A.fp4tsPureStreamGenerator(fc.integer()),
         A.fp4tsPureStreamGenerator(fc.integer()),
         (s1, s2) => {
-          const expected = new Set([...s1.toList['+++'](s2.toList)]);
+          const expected = new Set([...s1.toList['++'](s2.toList)]);
 
           return s1
             .merge(IO.Concurrent)(s2)
@@ -128,7 +128,7 @@ describe('Stream merge', () => {
             const halt = yield* _(IO.deferred<void>());
 
             const bracketed = Stream.bracket<IOF, void>(IO.unit, () =>
-              finalizerRef.update(xs => xs['::+']('Outer')),
+              finalizerRef.update(xs => xs.append('Outer')),
             );
 
             const register = (side: string): IO<void> =>
@@ -139,15 +139,15 @@ describe('Stream merge', () => {
             const finalizer = (side: string): IO<void> => {
               if (leftBias && side === 'L')
                 return IO.sleep(50)
-                  ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                  ['>>>'](finalizerRef.update(s => s.append(`Inner ${side}`)))
                   ['>>>'](IO.throwError(new TestError()));
               else if (!leftBias && side === 'R')
                 return IO.sleep(50)
-                  ['>>>'](finalizerRef.update(s => s['::+'](`Inner ${side}`)))
+                  ['>>>'](finalizerRef.update(s => s.append(`Inner ${side}`)))
                   ['>>>'](IO.throwError(new TestError()));
               else
                 return IO.sleep(25)['>>>'](
-                  finalizerRef.update(s => s['::+'](`Inner ${side}`)),
+                  finalizerRef.update(s => s.append(`Inner ${side}`)),
                 );
             };
 
@@ -221,12 +221,8 @@ describe('Stream merge', () => {
             .compileConcurrent()
             .toList.map(
               eas =>
-                eas
-                  .collect(ea => ea.fold(Some, () => None))
-                  .equals(Eq.fromUniversalEquals(), s1List) ||
-                eas
-                  .collect(ea => ea.fold(() => None, Some))
-                  .equals(Eq.fromUniversalEquals(), s2List),
+                eas.collect(ea => ea.fold(Some, () => None)).equals(s1List) ||
+                eas.collect(ea => ea.fold(() => None, Some)).equals(s2List),
             )
             .unsafeRunToPromise();
         },
@@ -245,9 +241,7 @@ describe('Stream merge', () => {
             .mergeHaltL(IO.Concurrent)(s2.map(Right))
             .compileConcurrent()
             .toList.map(eas =>
-              eas
-                .collect(ea => ea.fold(Some, () => None))
-                .equals(Eq.fromUniversalEquals(), s1.toList),
+              eas.collect(ea => ea.fold(Some, () => None)).equals(s1.toList),
             )
             .unsafeRunToPromise(),
       ),
@@ -265,9 +259,7 @@ describe('Stream merge', () => {
             .mergeHaltR(IO.Concurrent)(s2.map(Right))
             .compileConcurrent()
             .toList.map(eas =>
-              eas
-                .collect(ea => ea.fold(() => None, Some))
-                .equals(Eq.fromUniversalEquals(), s2.toList),
+              eas.collect(ea => ea.fold(() => None, Some)).equals(s2.toList),
             )
             .unsafeRunToPromise(),
       ),
@@ -287,9 +279,7 @@ describe('Stream merge', () => {
               )
               .take(2)
               .compileConcurrent()
-              .toList.map(xs =>
-                xs.equals(Eq.fromUniversalEquals(), List(v, v + 1)),
-              ),
+              .toList.map(xs => xs.equals(List(v, v + 1))),
           )
           .unsafeRunToPromise(),
       ),

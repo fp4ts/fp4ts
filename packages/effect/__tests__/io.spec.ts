@@ -1058,9 +1058,9 @@ describe('IO', () => {
       });
 
       expect(io).toCompleteWith(undefined, ticker);
-      expect(fins.elem(0)).toHaveBeenCalled();
-      expect(fins.elem(1)).toHaveBeenCalled();
-      expect(fins.elem(2)).not.toHaveBeenCalled();
+      expect(fins.get(0)).toHaveBeenCalled();
+      expect(fins.get(1)).toHaveBeenCalled();
+      expect(fins.get(2)).not.toHaveBeenCalled();
     });
 
     it.ticked(

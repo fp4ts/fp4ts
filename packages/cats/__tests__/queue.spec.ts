@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval, tupled } from '@fp4ts/core';
+import { tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Monad } from '@fp4ts/cats-core';
 import { Either, Option, Vector, List, Queue } from '@fp4ts/cats-core/lib/data';
@@ -95,7 +95,7 @@ describe('Queue', () => {
   test(
     'tail',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.tail.toList.equals(Eq.fromUniversalEquals(), q.toList.tail),
+      q.tail.toList.equals(q.toList.tail),
     ),
   );
 
@@ -107,9 +107,7 @@ describe('Queue', () => {
         .equals(
           q.toList.uncons,
           Eq.of({
-            equals: (lhs, rhs) =>
-              lhs[0] === rhs[0] &&
-              lhs[1].equals(Eq.fromUniversalEquals(), rhs[1]),
+            equals: (lhs, rhs) => lhs[0] === rhs[0] && lhs[1].equals(rhs[1]),
           }),
         ),
     ),
@@ -118,38 +116,35 @@ describe('Queue', () => {
   test(
     'init',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.init.toList.equals(Eq.fromUniversalEquals(), q.toList.init),
+      q.init.toList.equals(q.toList.init),
     ),
   );
 
   test(
     'reverse',
     forAll(A.fp4tsQueue(fc.integer()), q =>
-      q.reverse.toList.equals(Eq.fromUniversalEquals(), q.toList.reverse),
+      q.reverse.toList.equals(q.toList.reverse),
     ),
   );
 
   test(
     'prepend',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, x) =>
-      q.prepend(x).toList.equals(Eq.fromUniversalEquals(), q.toList.prepend(x)),
+      q.prepend(x).toList.equals(q.toList.prepend(x)),
     ),
   );
 
   test(
     'enqueue',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, x) =>
-      q.enqueue(x).toList.equals(Eq.fromUniversalEquals(), q.toList.append(x)),
+      q.enqueue(x).toList.equals(q.toList.append(x)),
     ),
   );
 
   test(
     'concat',
     forAll(A.fp4tsQueue(fc.integer()), A.fp4tsQueue(fc.integer()), (lhs, rhs) =>
-      lhs['+++'](rhs).toList.equals(
-        Eq.fromUniversalEquals(),
-        lhs.toList['+++'](rhs.toList),
-      ),
+      lhs['+++'](rhs).toList.equals(lhs.toList['++'](rhs.toList)),
     ),
   );
 
@@ -202,30 +197,26 @@ describe('Queue', () => {
   test(
     'take',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.take(n).toList.equals(Eq.fromUniversalEquals(), q.toList.take(n)),
+      q.take(n).toList.equals(q.toList.take(n)),
     ),
   );
   test(
     'takeRight',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q
-        .takeRight(n)
-        .toList.equals(Eq.fromUniversalEquals(), q.toList.takeRight(n)),
+      q.takeRight(n).toList.equals(q.toList.takeRight(n)),
     ),
   );
 
   test(
     'drop',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q.drop(n).toList.equals(Eq.fromUniversalEquals(), q.toList.drop(n)),
+      q.drop(n).toList.equals(q.toList.drop(n)),
     ),
   );
   test(
     'dropRight',
     forAll(A.fp4tsQueue(fc.integer()), fc.integer(), (q, n) =>
-      q
-        .dropRight(n)
-        .toList.equals(Eq.fromUniversalEquals(), q.toList.dropRight(n)),
+      q.dropRight(n).toList.equals(q.toList.dropRight(n)),
     ),
   );
 
@@ -236,9 +227,7 @@ describe('Queue', () => {
       fc.integer(),
       fc.integer(),
       (q, from, until) =>
-        q
-          .slice(from, until)
-          .toList.equals(Eq.fromUniversalEquals(), q.toList.slice(from, until)),
+        q.slice(from, until).toList.equals(q.toList.slice(from, until)),
     ),
   );
 
@@ -247,8 +236,7 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
-      (q, p) =>
-        q.filter(p).toList.equals(Eq.fromUniversalEquals(), q.toList.filter(p)),
+      (q, p) => q.filter(p).toList.equals(q.toList.filter(p)),
     ),
   );
 
@@ -257,10 +245,7 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
-      (q, p) =>
-        q
-          .collect(p)
-          .toList.equals(Eq.fromUniversalEquals(), q.toList.collect(p)),
+      (q, p) => q.collect(p).toList.equals(q.toList.collect(p)),
     ),
   );
 
@@ -269,10 +254,7 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Option<string>>(A.fp4tsOption(fc.string())),
-      (q, p) =>
-        q
-          .collectWhile(p)
-          .toList.equals(Eq.fromUniversalEquals(), q.toList.collectWhile(p)),
+      (q, p) => q.collectWhile(p).toList.equals(q.toList.collectWhile(p)),
     ),
   );
 
@@ -281,8 +263,7 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (q, f) =>
-        q.map(f).toList.equals(Eq.fromUniversalEquals(), q.toList.map(f)),
+      (q, f) => q.map(f).toList.equals(q.toList.map(f)),
     ),
   );
 
@@ -291,11 +272,7 @@ describe('Queue', () => {
     forAll(
       A.fp4tsQueue(fc.integer()),
       fc.func<[number], Queue<string>>(A.fp4tsQueue(fc.string())),
-      (q, f) =>
-        q.flatMap(f).toList.equals(
-          Eq.fromUniversalEquals(),
-          q.toList.flatMap(x => f(x).toList),
-        ),
+      (q, f) => q.flatMap(f).toList.equals(q.toList.flatMap(x => f(x).toList)),
     ),
   );
 
@@ -326,12 +303,7 @@ describe('Queue', () => {
       A.fp4tsQueue(fc.string()),
       fc.func<[number, string], number>(fc.integer()),
       (lhs, rhs, f) =>
-        lhs
-          .zipWith(rhs, f)
-          .toList.equals(
-            Eq.fromUniversalEquals(),
-            lhs.toList.zipWith(rhs.toList, f),
-          ),
+        lhs.zipWith(rhs, f).toList.equals(lhs.toList.zipWith(rhs.toList, f)),
     ),
   );
 
@@ -340,10 +312,7 @@ describe('Queue', () => {
     forAll(A.fp4tsQueue(fc.integer()), fc.func(fc.boolean()), (q, f) => {
       const [lhsQ, rhsQ] = q.partition(f);
       const [lhs, rhs] = q.toList.partition(f);
-      return (
-        lhsQ.toList.equals(Eq.fromUniversalEquals(), lhs) &&
-        rhsQ.toList.equals(Eq.fromUniversalEquals(), rhs)
-      );
+      return lhsQ.toList.equals(lhs) && rhsQ.toList.equals(rhs);
     }),
   );
 
@@ -357,10 +326,7 @@ describe('Queue', () => {
       (q, f) => {
         const [lhsQ, rhsQ] = q.partitionWith(f);
         const [lhs, rhs] = q.toList.partitionWith(f);
-        return (
-          lhsQ.toList.equals(Eq.fromUniversalEquals(), lhs) &&
-          rhsQ.toList.equals(Eq.fromUniversalEquals(), rhs)
-        );
+        return lhsQ.toList.equals(lhs) && rhsQ.toList.equals(rhs);
       },
     ),
   );
@@ -373,10 +339,7 @@ describe('Queue', () => {
       fc.func<[string, number], string>(fc.string()),
       (q, z, f) => {
         const q2 = q.scanLeft(z, f);
-        return q2.toList.equals(
-          Eq.fromUniversalEquals(),
-          q.toList.scanLeft(z, f),
-        );
+        return q2.toList.equals(q.toList.scanLeft(z, f));
       },
     ),
   );
@@ -389,10 +352,7 @@ describe('Queue', () => {
       fc.func<[number, string], string>(fc.string()),
       (q, z, f) => {
         const q2 = q.scanRight(z, f);
-        return q2.toList.equals(
-          Eq.fromUniversalEquals(),
-          q.toList.scanRight(z, f),
-        );
+        return q2.toList.equals(q.toList.scanRight_(z, f));
       },
     ),
   );

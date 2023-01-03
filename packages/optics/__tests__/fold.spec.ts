@@ -39,7 +39,7 @@ describe('Fold', () => {
       xs =>
         focus(eachli)
           .asGetting(Monoid.string)
-          .foldMap(x => `${x}`)(xs) === xs.foldMap(Monoid.string)(x => `${x}`),
+          .foldMap(x => `${x}`)(xs) === xs.foldMap(Monoid.string, x => `${x}`),
     ),
   );
 
@@ -64,7 +64,7 @@ describe('Fold', () => {
   test(
     'getAll',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli).toList(xs).equals(Eq.fromUniversalEquals(), xs),
+      focus(eachli).toList(xs).equals(xs),
     ),
   );
 
@@ -135,11 +135,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (xs, f) =>
-        focus(eachli)
-          .to(f)
-          .toList(xs)
-          .equals(Eq.fromUniversalEquals(), xs.map(f)),
+      (xs, f) => focus(eachli).to(f).toList(xs).equals(xs.map(f)),
     ),
   );
 
@@ -164,11 +160,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
-      (xs, f) =>
-        focus(eachli)
-          .filter(f)
-          .toList(xs)
-          .equals(Eq.fromUniversalEquals(), xs.filter(f)),
+      (xs, f) => focus(eachli).filter(f).toList(xs).equals(xs.filter(f)),
     ),
   );
 

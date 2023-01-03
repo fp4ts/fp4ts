@@ -300,7 +300,7 @@ export class Scope<F> {
 
               const results = resultChildren
                 .fold(List, () => List.empty)
-                ['+++'](resultResources.fold(List, () => List.empty));
+                ['++'](resultResources.fold(List, () => List.empty));
 
               return CompositeFailure.fromList(results).fold(
                 () => Either.rightUnit as Either<Error, void>,

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, lazyVal } from './function';
+import { id, lazyVal, throwError } from './function';
 import { $type, HKT, TyK, TyVar } from './hkt';
 
 /**
@@ -39,6 +39,7 @@ export abstract class Eval<out A> {
   public static readonly true: Eval<boolean> = null as any /* defined below */;
   public static readonly zero: Eval<number> = null as any /* defined below */;
   public static readonly one: Eval<number> = null as any /* defined below */;
+  public static readonly bottom = <A = never>(): Eval<A> => bottom;
 
   private readonly __void!: void;
 
@@ -48,6 +49,10 @@ export abstract class Eval<out A> {
 
   public map<B>(f: (a: A) => B): Eval<B> {
     return new Map(this, f);
+  }
+
+  public tap(f: (a: A) => void): Eval<A> {
+    return this.map(x => (f(x), x));
   }
 
   public map2<B, C>(that: Eval<B>, f: (a: A, b: B) => C): Eval<C> {
@@ -201,6 +206,8 @@ interface EvalObj {
 (Eval as any).zero = Eval.now(0);
 (Eval as any).one = Eval.now(1);
 
+const bottom = Eval.always(() => throwError(new Error('Eval.bottom')));
+
 interface DeferredValue<A> {
   resolved: boolean;
   value?: A;
@@ -288,6 +295,7 @@ function evaluate<A>(e: Eval<A>): A {
         conts.push(Cont.MemoizeK);
         stack.push(cur.result);
         _cur = cur.self;
+        (cur.self as any) = null; // allow to GC as we'll never need it
         continue;
     }
 

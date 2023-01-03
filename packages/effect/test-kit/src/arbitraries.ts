@@ -68,7 +68,7 @@ export const fp4tsKind = <F, A>(
 
   const baseCase = KG.baseGen(arbA);
   const recursiveCase = (deeper: GenK<F>) =>
-    baseCase['+++'](KG.recursiveGen(arbA, deeper));
+    baseCase['++'](KG.recursiveGen(arbA, deeper));
 
   const stripDuplicates = (cases: List<[string, Arbitrary<Kind<F, [A]>>]>) =>
     Map.fromList(Ord.fromUniversalCompare())(cases).toArray.map(snd);

@@ -6,11 +6,19 @@
 import { instance, lazyVal } from '@fp4ts/core';
 import { Eq } from './eq';
 
-export enum Compare {
+const LT = 0;
+type LT = typeof LT;
+const EQ = 1;
+type EQ = typeof EQ;
+const GT = 2;
+type GT = typeof GT;
+
+export const Compare = Object.freeze({
   LT,
   EQ,
   GT,
-}
+});
+export type Compare = typeof Compare[keyof typeof Compare];
 
 /**
  * @category Type Class

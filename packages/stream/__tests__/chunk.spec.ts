@@ -37,8 +37,7 @@ describe('chunk', () => {
     forAll(
       A.fp4tsStreamChunkGenerator(fc.integer()),
       A.fp4tsStreamChunkGenerator(fc.integer()),
-      (c1, c2) =>
-        c1.equals(c2) === c1.toList.equals(Eq.fromUniversalEquals(), c2.toList),
+      (c1, c2) => c1.equals(c2) === c1.toList.equals(c2.toList),
     ),
   );
 

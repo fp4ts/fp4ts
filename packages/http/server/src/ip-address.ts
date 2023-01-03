@@ -220,7 +220,7 @@ export class Ipv6Address extends IpAddress {
       const prefixSize = prefix.size;
       let prefixIdx = prefixSize - 1;
       while (prefixIdx >= 0) {
-        const value = prefix.elem(prefixIdx);
+        const value = prefix.get(prefixIdx);
         bytes[idx] = (value >> 8) as Byte;
         bytes[idx + 1] = value as Byte;
         prefixIdx -= 1;
@@ -231,7 +231,7 @@ export class Ipv6Address extends IpAddress {
       idx += numCondensedZeroes;
       let suffixIdx = suffixSize - 1;
       while (suffixIdx >= 0) {
-        const value = suffix.elem(suffixIdx);
+        const value = suffix.get(suffixIdx);
         bytes[idx] = (value >> 8) as Byte;
         bytes[idx + 1] = value as Byte;
         suffixIdx -= 1;

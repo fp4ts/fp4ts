@@ -82,6 +82,10 @@ abstract class _Option<out A> {
     return (this as Option<A>) !== None && f(this.get) ? this : None;
   }
 
+  public filterNot(p: (a: A) => boolean): Option<A> {
+    return this.filter(x => !p(x));
+  }
+
   public collect<B>(f: (a: A) => Option<B>): Option<B> {
     return this.flatMap(f);
   }

@@ -132,9 +132,7 @@ describe('Stream interruption', () => {
         s
           .interruptWhenTrue(IO.Concurrent)(Stream.repeat(false))
           .compileConcurrent()
-          .toList.flatMap(xs =>
-            IO(() => xs.equals(Eq.fromUniversalEquals(), s.toList)),
-          )
+          .toList.flatMap(xs => IO(() => xs.equals(s.toList)))
           .unsafeRunToPromise(),
       ),
     ));
@@ -199,7 +197,7 @@ describe('Stream interruption', () => {
           .evalMap(() => IO.never)
           .drain.concat(s)
           .compileConcurrent()
-          .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
+          .toList.map(xs => xs.equals(expected))
           .unsafeRunToPromise();
       }),
     ));
@@ -217,7 +215,7 @@ describe('Stream interruption', () => {
           .drain.concat(s.map(Some))
           .collect(id)
           .compileConcurrent()
-          .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
+          .toList.map(xs => xs.equals(expected))
           .unsafeRunToPromise();
       }),
     ));
@@ -242,7 +240,7 @@ describe('Stream interruption', () => {
           )
           .collect(id)
           .compileConcurrent()
-          .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
+          .toList.map(xs => xs.equals(expected))
           .unsafeRunToPromise();
       }),
     ));
@@ -278,7 +276,7 @@ describe('Stream interruption', () => {
             )
             .collect(id)
             .compileConcurrent()
-            .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
+            .toList.map(xs => xs.equals(expected))
             .unsafeRunToPromise();
         }),
       ));

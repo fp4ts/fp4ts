@@ -291,7 +291,7 @@ export class Query {
         m.insertWith(
           k,
           v.map(List).getOrElse(() => List.empty),
-          (xs, ys) => xs['+++'](ys),
+          (xs, ys) => xs['++'](ys),
         ),
     );
   }

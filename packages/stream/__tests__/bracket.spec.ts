@@ -24,8 +24,8 @@ describe('Stream Bracket', () => {
     events: Ref<IOF, List<BracketEvent>>,
   ): Stream<IOF, void> =>
     Stream.bracket(
-      events.update(es => es['::+'](Acquired)),
-      () => events.update(es => es['::+'](Released)),
+      events.update(es => es.append(Acquired)),
+      () => events.update(es => es.append(Released)),
     );
 
   const eraseTestError = (err: Error): IO<void> =>
@@ -231,7 +231,7 @@ describe('Stream Bracket', () => {
               (acc, i) =>
                 Stream.bracket<IOF, number>(
                   IO(() => i),
-                  () => track.update(xs => xs['::+'](i)),
+                  () => track.update(xs => xs.append(i)),
                 ).flatMap(() => acc),
               Stream(0).covary<IOF>(),
             )
@@ -256,7 +256,7 @@ describe('Stream Bracket', () => {
               (acc, i) =>
                 Stream.bracket<IOF, number>(
                   IO(() => i),
-                  () => track.update(xs => xs['::+'](i)),
+                  () => track.update(xs => xs.append(i)),
                 ).flatMap(() => acc),
               Stream(1)
                 .covary<IOF>()

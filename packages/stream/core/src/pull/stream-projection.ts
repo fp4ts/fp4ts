@@ -604,7 +604,7 @@ export const compile_ =
 
         case 'fail': {
           const mixed = CompositeFailure.fromList(
-            inter.deferredError.toList['::+'](view.error),
+            inter.deferredError.toList.append(view.error),
           ).getOrElse(() => view.error);
           return new Fail(mixed);
         }
@@ -1302,7 +1302,7 @@ function goCloseScope<F, G, X, End>(
       ({ context, deferredError }) => {
         const err1 = () =>
           CompositeFailure.fromList(
-            r.swapped.toOption.toList['+++'](deferredError.toList),
+            r.swapped.toOption.toList['++'](deferredError.toList),
           );
 
         return ancestor.descendsFrom(context)

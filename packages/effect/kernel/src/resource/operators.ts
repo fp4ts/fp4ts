@@ -257,9 +257,9 @@ export const allocated =
                     () => release,
                   );
 
-                  return stack.fold(
+                  return stack.uncons.fold(
                     () => F.pure([b as A, rel2]),
-                    (hd, tl) =>
+                    ([hd, tl]) =>
                       pipe(
                         poll(loop(hd(b), tl, rel2)),
                         F.onCancel(rel(ExitCase.Canceled)),

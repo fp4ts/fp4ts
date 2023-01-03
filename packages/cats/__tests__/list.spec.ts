@@ -66,13 +66,13 @@ describe('List', () => {
     });
 
     it('should create a list from array', () => {
-      const xs = List.of(1, 2, 3);
+      const xs = List(1, 2, 3);
       expect(xs.toArray).toEqual([1, 2, 3]);
     });
 
-    it('should create a list from vector', () => {
-      expect(List.fromVector(Vector(1, 2, 3))).toEqual(List(1, 2, 3));
-    });
+    // it('should create a list from vector', () => {
+    //   expect(List.fromVector(Vector(1, 2, 3))).toEqual(List(1, 2, 3));
+    // });
   });
 
   describe('accessors', () => {
@@ -107,9 +107,9 @@ describe('List', () => {
       expect(List(1).uncons).toEqual(Some([1, List.empty]));
     });
 
-    it('should transform the list to vector', () => {
-      expect(List(1, 2, 3).toVector.toArray).toEqual([1, 2, 3]);
-    });
+    // it('should transform the list to vector', () => {
+    //   expect(List(1, 2, 3).toVector.toArray).toEqual([1, 2, 3]);
+    // });
   });
 
   describe('iterator', () => {
@@ -191,24 +191,24 @@ describe('List', () => {
   describe('equality', () => {
     const E = Eq.fromUniversalEquals();
     test('two empty lists to be the same', () => {
-      expect(List.empty.equals(E, List.empty)).toBe(true);
+      expect(List.empty.equals(List.empty, E)).toBe(true);
     });
 
     test('list with a single element not to be equal to empty list', () => {
-      expect(List(1).notEquals(E, List.empty)).toBe(true);
+      expect(List(1).equals(List.empty, E)).toBe(false);
     });
 
     test('empty list not to be equal to list with a single element', () => {
-      expect(List.empty.notEquals(E, List(1))).toBe(true);
+      expect(List.empty.equals(List(1), E)).toBe(false);
     });
 
     test('two lists identical lists to be equal', () => {
-      expect(List(1, 2, 3).equals(E, List(1, 2, 3))).toBe(true);
+      expect(List(1, 2, 3).equals(List(1, 2, 3), E)).toBe(true);
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.equals(E, xs)).toBe(true);
+      expect(xs.equals(xs, E)).toBe(true);
     });
   });
 
@@ -243,7 +243,7 @@ describe('List', () => {
     });
 
     it('should prepend multiple elements', () => {
-      expect(List.empty.prepend(0).prepend(1)['+::'](2)).toEqual(List(2, 1, 0));
+      expect(List.empty.prepend(0).prepend(1).cons(2)).toEqual(List(2, 1, 0));
     });
 
     it('should be stack safe', () => {
@@ -260,11 +260,11 @@ describe('List', () => {
     });
 
     it('should add an additional element to the head of the List', () => {
-      expect(List(1, 2, 3, 4).snoc(0)).toEqual(List(1, 2, 3, 4, 0));
+      expect(List(1, 2, 3, 4).append(0)).toEqual(List(1, 2, 3, 4, 0));
     });
 
     it('should append multiple elements', () => {
-      expect(List.empty.append(0).append(1)['::+'](2)).toEqual(List(0, 1, 2));
+      expect(List.empty.append(0).append(1).append(2)).toEqual(List(0, 1, 2));
     });
 
     it('should be stack safe', () => {
@@ -277,26 +277,26 @@ describe('List', () => {
 
   describe('concat', () => {
     it('should concat two empty lists into an empty list', () => {
-      expect(List.empty['+++'](List.empty)).toEqual(List.empty);
+      expect(List.empty['++'](List.empty)).toEqual(List.empty);
     });
 
     it('should concat a list with empty list on lhs', () => {
-      expect(List.empty['+++'](List(1, 2, 3))).toEqual(List(1, 2, 3));
+      expect(List.empty['++'](List(1, 2, 3))).toEqual(List(1, 2, 3));
     });
 
     it('should concat a list with empty list on rhs', () => {
-      expect(List(1, 2, 3)['+++'](List.empty)).toEqual(List(1, 2, 3));
+      expect(List(1, 2, 3)['++'](List.empty)).toEqual(List(1, 2, 3));
     });
 
     it('should concat two lists', () => {
-      expect(List(1, 2, 3)['+++'](List(4, 5, 6))).toEqual(
+      expect(List(1, 2, 3)['++'](List(4, 5, 6))).toEqual(
         List(1, 2, 3, 4, 5, 6),
       );
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs['+++'](xs).toArray).toEqual([...xs.toArray, ...xs.toArray]);
+      expect(xs['++'](xs).toArray).toEqual([...xs.toArray, ...xs.toArray]);
     });
   });
 
@@ -692,16 +692,16 @@ describe('List', () => {
 
   describe('tailRecM', () => {
     it('should return initial result when returned singleton list', () => {
-      expect(List.tailRecM(42)(x => List(Right(x)))).toEqual(List(42));
+      expect(List.tailRecM_(42, x => List(Right(x)))).toEqual(List(42));
     });
 
     it('should return empty list when an empty list is returned', () => {
-      expect(List.tailRecM(42)(x => List.empty)).toEqual(List.empty);
+      expect(List.tailRecM_(42, x => List.empty)).toEqual(List.empty);
     });
 
     it('should compute recursive sum', () => {
       expect(
-        List.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+        List.tailRecM_<[number, number], number>([0, 0], ([i, x]) =>
           i < 10
             ? List<Either<[number, number], number>>(
                 Right(x),
@@ -714,7 +714,7 @@ describe('List', () => {
 
     it('should compute recursive sum inverted', () => {
       expect(
-        List.tailRecM<[number, number]>([0, 0])(([i, x]) =>
+        List.tailRecM_<[number, number], number>([0, 0], ([i, x]) =>
           i < 10
             ? List<Either<[number, number], number>>(
                 Left([i + 1, x + i]),
@@ -729,7 +729,7 @@ describe('List', () => {
       const size = 100_000;
 
       expect(
-        List.tailRecM(0)(i => (i < size ? List(Left(i + 1)) : List(Right(i)))),
+        List.tailRecM_(0, i => (i < size ? List(Left(i + 1)) : List(Right(i)))),
       ).toEqual(List(size));
     });
   });
@@ -896,25 +896,25 @@ describe('List', () => {
   describe('foldMap', () => {
     it('should be lazy', () => {
       let cnt = 0;
-      List(1, 2, 3, 4).foldMap(Monoid.disjunction)(_ => (cnt++, true));
+      List(1, 2, 3, 4).foldMap(Monoid.disjunction, _ => (cnt++, true));
       expect(cnt).toBe(1);
     });
 
     it('should produce an empty list out of empty list', () => {
       expect(
-        List.empty.foldMap(List.MonoidK.algebra())(x => List(x, x)),
+        List.empty.foldMap(List.MonoidK.algebra(), x => List(x, x)),
       ).toEqual(List.empty);
     });
 
     it('should produce double the number of elements', () => {
       expect(
-        List(1, 2, 3).foldMap(List.MonoidK.algebra())(x => List(x, x)),
+        List(1, 2, 3).foldMap(List.MonoidK.algebra(), x => List(x, x)),
       ).toEqual(List(1, 1, 2, 2, 3, 3));
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.foldMap(List.MonoidK.algebra())(x => List(x)).toArray).toEqual(
+      expect(xs.foldMap(List.MonoidK.algebra(), x => List(x)).toArray).toEqual(
         xs.toArray,
       );
     });
@@ -923,20 +923,20 @@ describe('List', () => {
   describe('foldMapLeft', () => {
     it('should produce an empty list out of empty list', () => {
       expect(
-        List.empty.foldMapLeft(List.MonoidK.algebra())(x => List(x, x)),
+        List.empty.foldMapLeft(List.MonoidK.algebra(), x => List(x, x)),
       ).toEqual(List.empty);
     });
 
     it('should produce double the number of elements', () => {
       expect(
-        List(1, 2, 3).foldMapLeft(List.MonoidK.algebra())(x => List(x, x)),
+        List(1, 2, 3).foldMapLeft(List.MonoidK.algebra(), x => List(x, x)),
       ).toEqual(List(1, 1, 2, 2, 3, 3));
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(
-        xs.foldMapLeft(List.MonoidK.algebra())(x => List(x)).toArray,
+        xs.foldMapLeft(List.MonoidK.algebra(), x => List(x)).toArray,
       ).toEqual(xs.toArray);
     });
   });
@@ -1019,44 +1019,20 @@ describe('List', () => {
 
   describe('zipAll', () => {
     it('should fill default value on left', () => {
-      expect(
-        List.empty.zipAll(
-          List(42),
-          () => 1,
-          () => 2,
-        ),
-      ).toEqual(List([1, 42]));
+      expect(List.empty.zipAll(List(42), 1, 2)).toEqual(List([1, 42]));
     });
 
     it('should fill default value on right', () => {
-      expect(
-        List(42).zipAll(
-          List.empty,
-          () => 1,
-          () => 2,
-        ),
-      ).toEqual(List([42, 2]));
+      expect(List(42).zipAll(List.empty, 1, 2)).toEqual(List([42, 2]));
     });
 
     it('should zip two single element lists', () => {
-      expect(
-        List(42).zipAll(
-          List(43),
-          () => 1,
-          () => 2,
-        ),
-      ).toEqual(List([42, 43]));
+      expect(List(42).zipAll(List(43), 1, 2)).toEqual(List([42, 43]));
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(
-        xs.zipAll(
-          xs,
-          () => 1,
-          () => 2,
-        ).toArray,
-      ).toEqual(xs.toArray.map(x => [x, x]));
+      expect(xs.zipAll(xs, 1, 2).toArray).toEqual(xs.toArray.map(x => [x, x]));
     });
   });
 
@@ -1064,48 +1040,22 @@ describe('List', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should fill default value on left', () => {
-      expect(
-        List.empty.zipAllWith(
-          List(42),
-          () => 1,
-          () => 2,
-          add,
-        ),
-      ).toEqual(List(43));
+      expect(List.empty.zipAllWith(List(42), 1, 2, add)).toEqual(List(43));
     });
 
     it('should fill default value on right', () => {
-      expect(
-        List(42).zipAllWith(
-          List.empty,
-          () => 1,
-          () => 2,
-          add,
-        ),
-      ).toEqual(List(44));
+      expect(List(42).zipAllWith(List.empty, 1, 2, add)).toEqual(List(44));
     });
 
     it('should zip two single element lists', () => {
-      expect(
-        List(42).zipAllWith(
-          List(43),
-          () => 1,
-          () => 2,
-          add,
-        ),
-      ).toEqual(List(85));
+      expect(List(42).zipAllWith(List(43), 1, 2, add)).toEqual(List(85));
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(
-        xs.zipAllWith(
-          xs,
-          () => 1,
-          () => 2,
-          add,
-        ).toArray,
-      ).toEqual(xs.toArray.map(x => x + x));
+      expect(xs.zipAllWith(xs, 1, 2, add).toArray).toEqual(
+        xs.toArray.map(x => x + x),
+      );
     });
   });
 
@@ -1211,8 +1161,8 @@ describe('List', () => {
   describe('scanLeft1', () => {
     const add = (x: number, y: number): number => x + y;
 
-    it('should throw error when list is empty', () => {
-      expect(() => List.empty.scanLeft1(add)).toThrow();
+    it('should return an empty list on empty', () => {
+      expect(List.empty.scanLeft1(add)).toEqual(List.empty);
     });
 
     it('should accumulate sums of the values', () => {
@@ -1235,22 +1185,22 @@ describe('List', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should return an initial result when list is empty', () => {
-      expect(List.empty.scanRight(0, add)).toEqual(List(0));
+      expect(List.empty.scanRight_(0, add)).toEqual(List(0));
     });
 
     it('should accumulate sums of the values', () => {
-      expect(List(1, 2, 3).scanRight(0, add)).toEqual(List(6, 5, 3, 0));
+      expect(List(1, 2, 3).scanRight_(0, add)).toEqual(List(6, 5, 3, 0));
     });
 
     it('should be right associate', () => {
-      expect(List(1, 2, 3).scanRight('', (x, y) => `(${x} ${y})`)).toEqual(
+      expect(List(1, 2, 3).scanRight_('', (x, y) => `(${x} ${y})`)).toEqual(
         List('(1 (2 (3 )))', '(2 (3 ))', '(3 )', ''),
       );
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.scanRight(0, x => x).toArray).toEqual([...xs.toArray, 0]);
+      expect(xs.scanRight_(0, x => x).toArray).toEqual([...xs.toArray, 0]);
     });
   });
 
@@ -1258,22 +1208,22 @@ describe('List', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should throw when list is empty', () => {
-      expect(() => List.empty.scanRight1(add)).toThrow();
+      expect(List.empty.scanRight1_(add)).toEqual(List.empty);
     });
 
     it('should accumulate sums of the values', () => {
-      expect(List(1, 2, 3).scanRight1(add)).toEqual(List(6, 5, 3));
+      expect(List(1, 2, 3).scanRight1_(add)).toEqual(List(6, 5, 3));
     });
 
     it('should be right associate', () => {
-      expect(List('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`)).toEqual(
+      expect(List('1', '2', '3').scanRight1_((x, y) => `(${x} ${y})`)).toEqual(
         List('(1 (2 3))', '(2 3)', '3'),
       );
     });
 
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(xs.scanRight1(x => x).toArray).toEqual(xs.toArray);
+      expect(xs.scanRight1_(x => x).toArray).toEqual(xs.toArray);
     });
   });
 
@@ -1301,134 +1251,19 @@ describe('List', () => {
     it(
       'should be distinctBy(id)',
       forAll(A.fp4tsList(fc.string()), xs =>
-        expect(xs.distinct()).toEqual(xs.distinctBy(id)),
+        expect(xs.distinct()).toEqual(xs.distinctBy((x, y) => x === y)),
       ),
     );
-  });
-
-  describe('distinctBy', () => {
-    it('should return an empty List on empty', () => {
-      expect(List.empty.distinctBy(xs => xs[0])).toEqual(List.empty);
-    });
-
-    it('should return an unchanged list if all elements are different', () => {
-      expect(List([1], [2], [3]).distinctBy(xs => xs[0])).toEqual(
-        List([1], [2], [3]),
-      );
-    });
-
-    it('should reduce list of all of the same values into a singleton list', () => {
-      expect(
-        List([1], [1], [1], [1], [1], [1]).distinctBy(xs => xs[0]),
-      ).toEqual(List([1]));
-    });
-
-    it('should remove two successive elements if they are the same', () => {
-      expect(List([1], [2], [2], [3]).distinctBy(xs => xs[0])).toEqual(
-        List([1], [2], [3]),
-      );
-    });
-
-    it('should remove all duplicates from the list', () => {
-      expect(
-        List([1], [2], [2], [1], [2], [3], [2], [3]).distinctBy(xs => xs[0]),
-      ).toEqual(List([1], [2], [3]));
-    });
-  });
-
-  describe('distinctOrd', () => {
-    it('should return an empty List on empty', () => {
-      expect(List.empty.distinctOrd(Ord.fromUniversalCompare())).toEqual(
-        List.empty,
-      );
-    });
-
-    it('should return an unchanged list if all elements are different', () => {
-      expect(List(1, 2, 3).distinctOrd(Ord.fromUniversalCompare())).toEqual(
-        List(1, 2, 3),
-      );
-    });
-
-    it('should reduce list of all of the same values into a singleton list', () => {
-      expect(
-        List(1, 1, 1, 1, 1, 1).distinctOrd(Ord.fromUniversalCompare()),
-      ).toEqual(List(1));
-    });
-
-    it('should remove two successive elements if they are the same', () => {
-      expect(List(1, 2, 2, 3).distinctOrd(Ord.fromUniversalCompare())).toEqual(
-        List(1, 2, 3),
-      );
-    });
-
-    it('should remove all duplicates from the list', () => {
-      expect(
-        List(1, 2, 2, 1, 2, 3, 2, 3).distinctOrd(Ord.fromUniversalCompare()),
-      ).toEqual(List(1, 2, 3));
-    });
-
-    it(
-      'should be distinctByOrd(id)',
-      forAll(A.fp4tsList(fc.string()), xs =>
-        expect(xs.distinctOrd(Ord.fromUniversalCompare())).toEqual(
-          xs.distinctByOrd(id, Ord.fromUniversalCompare()),
-        ),
-      ),
-    );
-  });
-
-  describe('distinctByOrd', () => {
-    it('should return an empty List on empty', () => {
-      expect(
-        List.empty.distinctByOrd(xs => xs[0], Ord.fromUniversalCompare()),
-      ).toEqual(List.empty);
-    });
-
-    it('should return an unchanged list if all elements are different', () => {
-      expect(
-        List([1], [2], [3]).distinctByOrd(
-          xs => xs[0],
-          Ord.fromUniversalCompare(),
-        ),
-      ).toEqual(List([1], [2], [3]));
-    });
-
-    it('should reduce list of all of the same values into a singleton list', () => {
-      expect(
-        List([1], [1], [1], [1], [1], [1]).distinctByOrd(
-          xs => xs[0],
-          Ord.fromUniversalCompare(),
-        ),
-      ).toEqual(List([1]));
-    });
-
-    it('should remove two successive elements if they are the same', () => {
-      expect(
-        List([1], [2], [2], [3]).distinctByOrd(
-          xs => xs[0],
-          Ord.fromUniversalCompare(),
-        ),
-      ).toEqual(List([1], [2], [3]));
-    });
-
-    it('should remove all duplicates from the list', () => {
-      expect(
-        List([1], [2], [2], [1], [2], [3], [2], [3]).distinctByOrd(
-          xs => xs[0],
-          Ord.fromUniversalCompare(),
-        ),
-      ).toEqual(List([1], [2], [3]));
-    });
   });
 
   describe('traverse', () => {
     it('should return empty list when empty', () => {
-      expect(List().traverse(Identity.Applicative)(id)).toEqual(List.empty);
+      expect(List().traverse(Identity.Applicative, id)).toEqual(List.empty);
     });
 
     it('should invoke elements in order', () => {
       const arr: number[] = [];
-      List(1, 2, 3, 4, 5).traverse(Identity.Applicative)(x => {
+      List(1, 2, 3, 4, 5).traverse(Identity.Applicative, x => {
         arr.push(x);
         return x;
       });
@@ -1439,48 +1274,8 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(20_000).keys()]);
       expect(
-        xs
-          .traverse(Vector.Applicative)(x => Vector(x))
-          ['!!'](0).toArray,
+        xs.traverse(Vector.Applicative, x => Vector(x))['!!'](0).toArray,
       ).toEqual(xs.toArray);
-    });
-  });
-
-  describe('flatTraverse', () => {
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(
-        xs
-          .flatTraverse(Vector.Applicative)(x => Vector(List(x)))
-          ['!!'](0).toArray,
-      ).toEqual(xs.toArray);
-    });
-
-    it('should be stack safe', () => {
-      const xs = List.fromArray([...new Array(10_000).keys()]);
-      expect(
-        xs
-          .flatTraverse(Vector.Applicative)(x => Vector(List(x)))
-          ['!!'](0).toArray,
-      ).toEqual(xs.toArray);
-    });
-  });
-
-  describe('show', () => {
-    it('should show empty list', () => {
-      expect(List.empty.show()).toBe('List()');
-    });
-
-    it('should show list of primitive values', () => {
-      expect(List(1, 2, 3).show()).toBe('List(1, 2, 3)');
-    });
-
-    it('should show list of complex', () => {
-      expect(
-        List<[number, number]>([1, 1], [2, 2], [3, 3]).show({
-          show: ([x, y]) => `(${x}, ${y})`,
-        }),
-      ).toBe('List((1, 1), (2, 2), (3, 3))');
     });
   });
 

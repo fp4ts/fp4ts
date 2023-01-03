@@ -338,7 +338,7 @@ describe('Capture All', () => {
     ...builtins,
     [JSON.mime]: { [AnimalTypeTag]: AnimalCodable },
   })(S => xs => {
-    switch (xs.foldMap(Monoid.addition)(id)) {
+    switch (xs.sum()) {
       case 4:
         return S.return(jerry);
       case 2:

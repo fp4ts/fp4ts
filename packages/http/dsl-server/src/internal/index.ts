@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { compose, id, pipe, tupled, TypeRef, TypeOf } from '@fp4ts/core';
-import { Either, Left, List, None, Right, Some } from '@fp4ts/cats';
+import { compose, id, pipe, tupled, TypeRef, TypeOf, $ } from '@fp4ts/core';
+import { Either, EitherF, Left, List, None, Right, Some } from '@fp4ts/cats';
 import {
   Accept,
   NotAcceptFailure,
@@ -415,7 +415,10 @@ export function route<F>(F: Concurrent<F, Error>) {
           txts => () =>
             pipe(
               List.fromArray(txts)
-                .traverse(Either.Monad<DecodeFailure>())(fromPathComponent)
+                .traverse<$<EitherF, [DecodeFailure]>, A>(
+                  Either.Monad(),
+                  fromPathComponent,
+                )
                 .leftMap(f => new ParsingFailure(f.toString())),
               RouteResult.fromEither,
               RouteResultT.lift(F),
@@ -558,7 +561,7 @@ export function route<F>(F: Concurrent<F, Error>) {
         const h = hs[i];
         if (h instanceof HeaderElement) {
           const raw = h.header.toRaw(a.header);
-          acc = acc['+++'](raw);
+          acc = acc['++'](raw);
           a = a.body;
         } else if (h instanceof RawHeaderElement) {
           const { toHeader } = (codings as any)[ToHttpApiDataTag][h.type.Ref];

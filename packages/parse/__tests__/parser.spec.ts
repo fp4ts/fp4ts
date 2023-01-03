@@ -119,10 +119,7 @@ describe('Parser', () => {
         anyChar()
           .rep()
           .parse(s)
-          .value.get.equals(
-            Eq.fromUniversalEquals<string>(),
-            List.fromArray(s.split('')),
-          ),
+          .value.get.equals(List.fromArray(s.split(''))),
       ),
     );
 
@@ -144,10 +141,7 @@ describe('Parser', () => {
           ? anyChar()
               .rep1()
               .parse(s)
-              .value.get.equals(
-                Eq.fromUniversalEquals<string>(),
-                List.fromArray(s.split('')),
-              )
+              .value.get.equals(List.fromArray(s.split('')))
           : anyChar().rep1().parse(s).value.isLeft,
       ),
     );

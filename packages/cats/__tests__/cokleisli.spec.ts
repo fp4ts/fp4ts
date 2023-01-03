@@ -103,7 +103,7 @@ describe('Cokleisli', () => {
         <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Option<X>], Y>(Y),
         <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
           eqCokleisli<OptionF, X, Y>(
-            ec.instance(List(None as Option<X>)['+++'](X.allValues.map(Some))),
+            ec.instance(List(None as Option<X>)['++'](X.allValues.map(Some))),
             Y,
           ),
       ),

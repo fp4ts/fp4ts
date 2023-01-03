@@ -106,11 +106,11 @@ export const MonadErrorGenerators = <F, E>(
     baseGen: <A>(arbA: Arbitrary<A>) =>
       applicativeErrorGenerators
         .baseGen(arbA)
-        ['+++'](monadGenerators.baseGen(arbA)),
+        ['++'](monadGenerators.baseGen(arbA)),
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
       applicativeErrorGenerators
         .recursiveGen(arbA, deeper)
-        ['+++'](monadGenerators.recursiveGen(arbA, deeper)),
+        ['++'](monadGenerators.recursiveGen(arbA, deeper)),
   };
 };
 
@@ -160,7 +160,7 @@ export const MonadCancelGenerators = <F, E>(
       List<[string, Arbitrary<Kind<F, [A]>>]>(
         ['uncancelable', genUncancelable(arbA, deeper)],
         ['onCancel', genOnCancel(arbA, deeper)],
-      )['+++'](monadErrorGens.recursiveGen(arbA, deeper)),
+      )['++'](monadErrorGens.recursiveGen(arbA, deeper)),
   };
 };
 
@@ -234,14 +234,14 @@ export const SpawnGenerators = <F, E>(
       List<[string, Arbitrary<Kind<F, [A]>>]>(
         ['suspend', genSuspend(arbA)],
         ['never', fc.constant(F.never)],
-      )['+++'](monadCancelGens.baseGen(arbA)),
+      )['++'](monadCancelGens.baseGen(arbA)),
 
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
       List<[string, Arbitrary<Kind<F, [A]>>]>(
         ['racePair', genRacePair<A>(arbA, deeper)],
         ['fork', genFork(arbA, deeper)],
         ['join', genJoin(arbA, deeper)],
-      )['+++'](monadCancelGens.recursiveGen(arbA, deeper)),
+      )['++'](monadCancelGens.recursiveGen(arbA, deeper)),
   };
 };
 
@@ -299,14 +299,14 @@ export const AsyncGenerators = <F, E>(
 
   return {
     baseGen: <A>(arbA: Arbitrary<A>) =>
-      temporalGens.baseGen(arbA)['+++'](syncGens.baseGen(arbA)),
+      temporalGens.baseGen(arbA)['++'](syncGens.baseGen(arbA)),
 
     recursiveGen: <A>(arbA: Arbitrary<A>, deeper: GenK<F>) =>
       List<[string, Arbitrary<Kind<F, [A]>>]>(
         ['async', genAsync(arbA, deeper)],
         ['executeOn', genExecuteOn(arbA, deeper)],
       )
-        ['+++'](temporalGens.recursiveGen(arbA, deeper))
-        ['+++'](syncGens.recursiveGen(arbA, deeper)),
+        ['++'](temporalGens.recursiveGen(arbA, deeper))
+        ['++'](syncGens.recursiveGen(arbA, deeper)),
   };
 };

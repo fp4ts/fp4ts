@@ -28,7 +28,7 @@ describe('Resource', () => {
 
       forAll(arb, as => {
         let released: List<number> = List.empty;
-        const r = as.traverse(Instance)(([a, e]) =>
+        const r = as.traverse(Instance, ([a, e]) =>
           Resource.make(IO.Functor)(
             IO(() => a),
             a =>

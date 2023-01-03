@@ -73,7 +73,7 @@ describe('Stream concurrently', () => {
             .delayBy(IO.Temporal)(20)
             .concurrently(IO.Concurrent)(s2)
             .compileConcurrent()
-            .toList.map(xs => xs.equals(Eq.fromUniversalEquals(), expected))
+            .toList.map(xs => xs.equals(expected))
             .unsafeRunToPromise();
         },
       ),

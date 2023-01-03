@@ -29,7 +29,6 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
-import { ListBuffer as ListBuffer2, List as List2 } from './_list';
 
 /**
  * Lazy, ordered sequence collection.
@@ -680,13 +679,6 @@ export class _View<A> {
   }
 
   /**
-   * Converts the view into a `List`.
-   */
-  public get toList2(): List2<A> {
-    return this.foldLeft(new ListBuffer2<A>(), (b, x) => b.addOne(x)).toList;
-  }
-
-  /**
    * Converts the view into a `LazyList`. Since `LazyList` is a lazy collection,
    * the view does not get evaluated until the elements are accessed.
    */
@@ -881,15 +873,17 @@ export class _View<A> {
   public get iterator(): Iterator<A> {
     let done: boolean = false;
     let value: A | undefined;
-    let next: Eval<void> = this.foldRight(
-      Eval.always(() => {
-        done = true;
-      }),
-      (x, r) => {
-        value = x;
-        next = r;
-        return Eval.unit;
-      },
+    let next: Eval<void> = Eval.defer(() =>
+      this.foldRight(
+        Eval.always(() => {
+          done = true;
+        }),
+        (x, r) => {
+          value = x;
+          next = r;
+          return Eval.unit;
+        },
+      ),
     );
 
     return {
@@ -2049,8 +2043,7 @@ export class _View<A> {
    * ```
    */
   public get reverse(): View<A> {
-    return this.foldLeft(List2.empty as List2<A>, (xs, x) => xs.prepend(x))
-      .view;
+    return this.foldLeft(List.empty as List<A>, (xs, x) => xs.prepend(x)).view;
   }
 
   /**
@@ -2880,11 +2873,11 @@ export class _View<A> {
   public traverseList<G, B>(
     G: Applicative<G>,
     f: (a: A) => Kind<G, [B]>,
-  ): Kind<G, [List2<B>]> {
+  ): Kind<G, [List<B>]> {
     return isIdentityTC(G)
-      ? (this.map(f).toList2 as any)
-      : this.foldRight(Eval.now(G.pure(List2.empty as List2<B>)), (x, eys) =>
-          G.map2Eval_(f(x), eys)(List2.cons),
+      ? (this.map(f).toList as any)
+      : this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
+          G.map2Eval_(f(x), eys)(List.cons),
         ).value;
   }
 
@@ -2932,7 +2925,7 @@ export class _View<A> {
   public sequenceList<G, A>(
     this: View<Kind<G, [A]>>,
     G: Applicative<G>,
-  ): Kind<G, [List2<A>]> {
+  ): Kind<G, [List<A>]> {
     return this.traverseList(G, id);
   }
 
@@ -2994,11 +2987,11 @@ export class _View<A> {
       return this.collect(f as any) as any;
     }
 
-    const consOpt = (x: Option<B>, ys: List2<B>): List2<B> =>
+    const consOpt = (x: Option<B>, ys: List<B>): List<B> =>
       x === None ? ys : ys.prepend(x.get);
 
     return G.map_(
-      this.foldRight(Eval.now(G.pure(List2.empty as List2<B>)), (x, eys) =>
+      this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
         G.map2Eval_(f(x), eys)(consOpt),
       ).value,
       xs => xs.view,
@@ -3017,11 +3010,11 @@ export class _View<A> {
       return this.collect(f as any) as any;
     }
 
-    const consOpt = (x: Option<B>, ys: List2<B>): List2<B> =>
+    const consOpt = (x: Option<B>, ys: List<B>): List<B> =>
       x === None ? ys : ys.prepend(x.get);
 
     return G.map_(
-      this.foldRight(Eval.now(G.pure(List2.empty as List2<B>)), (x, eys) =>
+      this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
         G.map2Eval_(f(x), eys)(consOpt),
       ).value,
       xs => xs.view,
@@ -3147,6 +3140,10 @@ Object.defineProperty(View, 'Foldable', {
 
 // -- HKT
 
+/**
+ * @category Type Constructor
+ * @category Data
+ */
 export interface ViewF extends TyK<[unknown]> {
   [$type]: View<TyVar<this, 0>>;
 }

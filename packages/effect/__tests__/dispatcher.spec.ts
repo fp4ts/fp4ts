@@ -56,7 +56,7 @@ describe('Dispatcher', () => {
 
     return Monad.Do(IO.Monad)(function* (_) {
       const latches = yield* _(
-        List.range(0, num).traverse(IO.Applicative)(() => IO.deferred<void>()),
+        List.range(0, num).traverse(IO.Applicative, () => IO.deferred<void>()),
       );
       const awaitAll = yield* _(
         IO.pure(IO.parTraverse_(List.TraversableFilter)(latches, l => l.get())),

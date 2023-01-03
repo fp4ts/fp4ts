@@ -29,10 +29,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), xs =>
       focus(eachLi)
         .replace(0)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(() => 0),
-        ),
+        .equals(xs.map(() => 0)),
     ),
   );
 
@@ -41,10 +38,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), xs =>
       focus(eachLi)
         .modify(x => x + 1)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x + 1),
-        ),
+        .equals(xs.map(x => x + 1)),
     ),
   );
 
@@ -54,10 +48,7 @@ describe('Setter', () => {
       focus(eachLi)
         .filter(x => x % 2 === 0)
         .replace(0)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => (x % 2 === 0 ? 0 : x)),
-        ),
+        .equals(xs.map(x => (x % 2 === 0 ? 0 : x))),
     ),
   );
 
@@ -66,10 +57,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       focus(eachLi)
         .add(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x + n),
-        ),
+        .equals(xs.map(x => x + n)),
     ),
   );
 
@@ -78,10 +66,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       focus(eachLi)
         .sub(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x - n),
-        ),
+        .equals(xs.map(x => x - n)),
     ),
   );
 
@@ -90,10 +75,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       focus(eachLi)
         .mul(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x * n),
-        ),
+        .equals(xs.map(x => x * n)),
     ),
   );
 
@@ -102,10 +84,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       focus(eachLi)
         .div(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x / n),
-        ),
+        .equals(xs.map(x => x / n)),
     ),
   );
 
@@ -114,10 +93,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
       focus(eachL<boolean>())
         .and(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x && n),
-        ),
+        .equals(xs.map(x => x && n)),
     ),
   );
 
@@ -126,10 +102,7 @@ describe('Setter', () => {
     forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
       focus(eachL<boolean>())
         .or(n)(xs)
-        .equals(
-          Eq.fromUniversalEquals(),
-          xs.map(x => x || n),
-        ),
+        .equals(xs.map(x => x || n)),
     ),
   );
 
@@ -140,10 +113,10 @@ describe('Setter', () => {
       A.fp4tsList(fc.integer()),
       (xxs, xs) =>
         focus(eachL<List<number>>())
-          .concat(List.SemigroupK.algebra())(xs)(xxs)
+          .concat(List.MonoidK.algebra())(xs)(xxs)
           .equals(
+            xxs.map(x => x['++'](xs)),
             List.Eq(Eq.fromUniversalEquals()),
-            xxs.map(x => x['+++'](xs)),
           ),
     ),
   );
@@ -235,10 +208,7 @@ describe('Setter', () => {
           )(x)
           .runA(null, y),
       ).toEqual(
-        State.state((s: List<number>) => [undefined, s['+++'](x)]).runA(
-          null,
-          y,
-        ),
+        State.state((s: List<number>) => [undefined, s['++'](x)]).runA(null, y),
       ),
     ),
   );

@@ -23,7 +23,7 @@ function makeSuite(size: number) {
     }),
 
     add(`equals (${size})`, () => {
-      values.equals(Eq.fromUniversalEquals(), values);
+      values.equals(values, Eq.fromUniversalEquals());
     }),
 
     add(`elem mid (${size})`, () => {
@@ -67,7 +67,7 @@ function makeSuite(size: number) {
     }),
 
     add(`concat (${size})`, () => {
-      firstHalf['+++'](lastHalf);
+      firstHalf['++'](lastHalf);
     }),
 
     add(`reverse (${size})`, () => {
@@ -127,7 +127,7 @@ function makeSuite(size: number) {
       values.scanLeft(0, (x, y) => x + y);
     }),
     add(`scanRight sum (${size})`, () => {
-      values.scanRight(0, (x, y) => x + y);
+      values.scanRight_(0, (x, y) => x + y);
     }),
   ];
 }

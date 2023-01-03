@@ -402,7 +402,7 @@ const traverseFilterViaChainImpl =
             Rhs.map2Rhs(
               f(a, idx0),
               right,
-            )((opt, tl) => (opt.nonEmpty ? tl.cons(opt.get) : tl)),
+            )((opt, tl) => (opt.nonEmpty ? tl.prepend(opt.get) : tl)),
           );
         }
         return Rhs.map(first, fromList);

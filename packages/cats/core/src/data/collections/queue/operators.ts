@@ -284,7 +284,7 @@ export const enqueue_ = <A>(q: Queue<A>, x: A): Queue<A> =>
 export const append_ = enqueue_;
 
 export const concat_ = <A>(lhs: Queue<A>, rhs: Queue<A>): Queue<A> => {
-  const newIn = rhs._in['+++'](rhs._out.reverse['+++'](lhs._in));
+  const newIn = rhs._in['++'](rhs._out.reverse['++'](lhs._in));
   return newIn === lhs._in ? lhs : new Queue(newIn, lhs._out);
 };
 
@@ -486,7 +486,7 @@ export const scanRight_ = <A, B>(
   q: Queue<A>,
   z: B,
   f: (a: A, b: B) => B,
-): Queue<B> => new Queue(List.empty, q.toList.scanRight(z, f));
+): Queue<B> => new Queue(List.empty, q.toList.scanRight_(z, f));
 
 export const scanRight1_ = <A>(q: Queue<A>, f: (a: A, b: A) => A): Queue<A> =>
   popLast(q)

@@ -908,7 +908,7 @@ describe('Vector', () => {
     'foldMap is List.foldMap',
     forAll(A.fp4tsVector(fc.integer()), xs =>
       expect(xs.foldMap(Monoid.addition)(id)).toEqual(
-        xs.toList.foldMap(Monoid.addition)(id),
+        xs.toList.foldMap(Monoid.addition, id),
       ),
     ),
   );
@@ -917,7 +917,7 @@ describe('Vector', () => {
     'foldMapLeft is List.foldMapLeft',
     forAll(A.fp4tsVector(fc.integer()), xs =>
       expect(xs.foldMap(Monoid.addition)(id)).toEqual(
-        xs.toList.foldMap(Monoid.addition)(id),
+        xs.toList.foldMap(Monoid.addition, id),
       ),
     ),
   );

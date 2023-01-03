@@ -88,7 +88,7 @@ describe('NonEmptyList', () => {
     forAll(
       A.fp4tsNel(fc.integer()),
       A.fp4tsList(fc.integer()),
-      (nel, ys) => new IsEq(nel['+++'](ys).toList, nel.toList['+++'](ys)),
+      (nel, ys) => new IsEq(nel['+++'](ys).toList, nel.toList['++'](ys)),
     )(List.Eq(Eq.fromUniversalEquals())),
   );
 
@@ -98,7 +98,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       A.fp4tsNel(fc.integer()),
       (nel, ys) =>
-        new IsEq(nel.concatNel(ys).toList, nel.toList['+++'](ys.toList)),
+        new IsEq(nel.concatNel(ys).toList, nel.toList['++'](ys.toList)),
     )(List.Eq(Eq.fromUniversalEquals())),
   );
 
@@ -107,7 +107,7 @@ describe('NonEmptyList', () => {
     forAll(
       A.fp4tsNel(fc.integer()),
       fc.integer(),
-      (nel, idx) => new IsEq(nel.elemOption(idx), nel.toList.elemOption(idx)),
+      (nel, idx) => new IsEq(nel.elemOption(idx), nel.toList.getOption(idx)),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
@@ -357,7 +357,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       (xs, ys) =>
         xs.equals(Eq.fromUniversalEquals(), ys) ===
-        xs.toList.equals(Eq.fromUniversalEquals(), ys.toList),
+        xs.toList.equals(ys.toList, Eq.fromUniversalEquals()),
     ),
   );
 

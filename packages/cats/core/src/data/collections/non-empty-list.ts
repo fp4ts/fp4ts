@@ -76,8 +76,8 @@ class _NonEmptyList<out A> {
 
   public get init(): List<A> {
     return this.tail.isEmpty
-      ? List.pure(this.head)
-      : this.tail.init.cons(this.head);
+      ? List.singleton(this.head)
+      : this.tail.init.prepend(this.head);
   }
 
   public get last(): A {
@@ -91,7 +91,7 @@ class _NonEmptyList<out A> {
   public get popLast(): [A, List<A>] {
     return this.tail.popLast.fold(
       () => [this.head, List.empty],
-      ([l, ini]) => [l, ini.cons(this.head)],
+      ([l, ini]) => [l, ini.prepend(this.head)],
     );
   }
 
@@ -148,7 +148,7 @@ class _NonEmptyList<out A> {
   }
 
   public append<B>(this: NonEmptyList<B>, that: B): NonEmptyList<B> {
-    return new _NonEmptyList(this.head, this.tail.snoc(that));
+    return new _NonEmptyList(this.head, this.tail.append(that));
   }
   public snoc<B>(this: NonEmptyList<B>, that: B): NonEmptyList<B> {
     return this.append(that);
@@ -180,7 +180,7 @@ class _NonEmptyList<out A> {
   }
 
   public elemOption(idx: number): Option<A> {
-    return idx === 0 ? Some(this.head) : this.tail.elemOption(idx - 1);
+    return idx === 0 ? Some(this.head) : this.tail.getOption(idx - 1);
   }
   public '!?'(idx: number): Option<A> {
     return this.elemOption(idx);
@@ -295,7 +295,7 @@ class _NonEmptyList<out A> {
   ): NonEmptyList<[AA, B]> {
     return new _NonEmptyList(
       [this.head, that.head],
-      this.tail.zipAll(that.tail, defaultL, defaultR),
+      this.tail.zipAll(that.tail, defaultL(), defaultR()),
     );
   }
   public zipAllWith<AA, B, C>(
@@ -307,7 +307,7 @@ class _NonEmptyList<out A> {
   ): NonEmptyList<C> {
     return new _NonEmptyList(
       f(this.head, that.head),
-      this.tail.zipAllWith(that.tail, defaultL, defaultR, f),
+      this.tail.zipAllWith(that.tail, defaultL(), defaultR(), f),
     );
   }
 
@@ -346,10 +346,10 @@ class _NonEmptyList<out A> {
   }
 
   public foldMap<M>(M: Monoid<M>): (f: (a: A) => M) => M {
-    return this.toList.foldMap(M);
+    return f => this.toList.foldMap(M, f);
   }
   public foldMapLeft<M>(M: Monoid<M>): (f: (a: A) => M) => M {
-    return this.toList.foldMapLeft(M);
+    return f => this.toList.foldMapLeft(M, f);
   }
   public foldMapK<F>(
     F: MonoidK<F>,
@@ -363,7 +363,7 @@ class _NonEmptyList<out A> {
     return f =>
       G.map2Eval_(
         f(this.head),
-        Eval.always(() => this.tail.traverse(G)(f)),
+        Eval.always(() => this.tail.traverse(G, f)),
       )((hd, tl) => new _NonEmptyList(hd, tl)).value;
   }
 
@@ -372,7 +372,7 @@ class _NonEmptyList<out A> {
     E: Eq<B>,
     that: NonEmptyList<B>,
   ): boolean {
-    return E.equals(this.head, that.head) && this.tail.equals(E, that.tail);
+    return E.equals(this.head, that.head) && this.tail.equals(that.tail, E);
   }
   public notEquals<B>(
     this: NonEmptyList<B>,

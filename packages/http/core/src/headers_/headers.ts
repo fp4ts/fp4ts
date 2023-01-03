@@ -49,7 +49,7 @@ export class Headers {
       const s = new Set<string>();
       that.headers.forEach(rh => s.add(rh.headerName));
       return new Headers(
-        this.headers.filter(h => !s.has(h.headerName))['+++'](that.headers),
+        this.headers.filter(h => !s.has(h.headerName))['++'](that.headers),
       );
     }
   }

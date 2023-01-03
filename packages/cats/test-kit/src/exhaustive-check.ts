@@ -27,7 +27,7 @@ export const either = <A, B>(
   new ExhaustiveCheck(
     eca.allValues
       .map(a => Left<A, B>(a))
-      ['+++'](ecb.allValues.map(b => Right<B, A>(b))),
+      ['++'](ecb.allValues.map(b => Right<B, A>(b))),
   );
 
 export const instance = <A>(xs: List<A>): ExhaustiveCheck<A> =>

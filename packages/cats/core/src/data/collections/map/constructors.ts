@@ -42,7 +42,7 @@ export const fromList =
         return _insertMax(k, v, l);
       }
 
-      const [[xk, xv], xss] = xs.popHead.get;
+      const [[xk, xv], xss] = xs.uncons.get;
       if (notOrdered(xk, xss)) return fromList(l, xs);
       const [r, ys, zs] = create(s << 1, xss);
       return zs.isEmpty
@@ -54,17 +54,14 @@ export const fromList =
       xs.foldLeft(t0, (t, [xk, xv]) => insert_(O, t, xk, xv));
 
     const notOrdered = (xk: K, xs: List<[K, V]>): boolean =>
-      xs.fold(
-        () => false,
-        hd => O.gte(xk, hd[0]),
-      );
+      xs.isEmpty ? false : O.gte(xk, xs.head[0]);
 
     const create = (
       s: number,
       xs: List<[K, V]>,
     ): [Map<K, V>, List<[K, V]>, List<[K, V]>] => {
       if (xs.isEmpty) return [Empty, List.empty, List.empty];
-      const [[xk, xv], xss] = xs.popHead.get;
+      const [[xk, xv], xss] = xs.uncons.get;
 
       if (s === 1) {
         return notOrdered(xk, xss)
@@ -78,7 +75,7 @@ export const fromList =
           return [_insertMax(k, v, l), List.empty, zs];
         }
 
-        const [[yk, yv], yss] = ys.popHead.get;
+        const [[yk, yv], yss] = ys.uncons.get;
         if (notOrdered(yk, yss)) return [l, List.empty, ys];
         const [r, zs_, ws] = create(s >> 1, yss);
         return [_link(yk, yv, l, r), zs_, ws];
@@ -90,7 +87,7 @@ export const fromList =
       const [k, v] = xs.head;
       return singleton(k, v);
     }
-    const [[k0, v0], xss0] = xs.popHead.get;
+    const [[k0, v0], xss0] = xs.uncons.get;
     return notOrdered(k0, xss0)
       ? fromList(singleton(k0, v0), xss0)
       : go(1, singleton(k0, v0), xss0);

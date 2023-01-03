@@ -43,7 +43,7 @@ describe('State', () => {
       const add1 = State((n: number) => [n, n + 1]);
 
       const ns = List.range(0, size);
-      const x = ns.traverse(State.Monad<number>())(() => add1);
+      const x = ns.traverse(State.Monad<number>(), () => add1);
 
       expect(x.runStateS(0)).toBe(size);
       expect(x.map(xs => xs.size).runStateA(0)).toBe(size);

@@ -96,7 +96,8 @@ class SignallingRefImpl<F, A> extends Ref<F, A> implements Signal<F, A> {
     const [newValue, result] = f(state.value);
     const lastUpdate = state.lastUpdate + 1;
     const newState = new State<F, A>(newValue, lastUpdate, Map.empty);
-    const notifyListeners = state.listeners.toList.traverse(this.F)(
+    const notifyListeners = state.listeners.toList.traverse(
+      this.F,
       ([, listener]) => listener.complete([newValue, lastUpdate]),
     );
 

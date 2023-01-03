@@ -36,7 +36,7 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
     if (xs.isEmpty) return l;
     if (xs.size === 1) return _insertMax(xs.head, l);
 
-    const [x, xss] = xs.popHead.get;
+    const [x, xss] = xs.uncons.get;
     if (notOrdered(x, xss)) return fromList(l, xs);
     const [r, ys, zs] = create(s << 1, xss);
     return zs.isEmpty
@@ -48,14 +48,11 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
     xs.foldLeft(t0, (t, x) => insert_(O, t, x));
 
   const notOrdered = (x: A, xs: List<A>): boolean =>
-    xs.fold(
-      () => false,
-      hd => O.gte(x, hd),
-    );
+    xs.isEmpty ? false : O.gte(x, xs.head);
 
   const create = (s: number, xs: List<A>): [Set<A>, List<A>, List<A>] => {
     if (xs.isEmpty) return [Empty, List.empty, List.empty];
-    const [x, xss] = xs.popHead.get;
+    const [x, xss] = xs.uncons.get;
 
     if (s === 1) {
       return notOrdered(x, xss)
@@ -66,7 +63,7 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
       if (ys.isEmpty) return [l, ys, zs];
       if (ys.size === 1) return [_insertMax(ys.head, l), List.empty, zs];
 
-      const [y, yss] = ys.popHead.get;
+      const [y, yss] = ys.uncons.get;
       if (notOrdered(y, yss)) return [l, List.empty, ys];
       const [r, zs_, ws] = create(s >> 1, yss);
       return [_link(y, l, r), zs_, ws];
@@ -75,7 +72,7 @@ export const fromList = <A>(O: Ord<A>, xs: List<A>): Set<A> => {
 
   if (xs.isEmpty) return Empty;
   if (xs.size === 1) return pure(xs.head);
-  const [x0, xss0] = xs.popHead.get;
+  const [x0, xss0] = xs.uncons.get;
   return notOrdered(x0, xss0)
     ? fromList(pure(x0), xss0)
     : go(1, pure(x0), xss0);

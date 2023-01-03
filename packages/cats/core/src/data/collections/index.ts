@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './array';
-export * from './list';
+export { List, ListF, ListBuffer } from './list';
 export * from './hash-map';
 export * from './map';
 export * from './vector';

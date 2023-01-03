@@ -100,7 +100,7 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
               )
             : pipe(
                 F.uncancelable(() =>
-                  rgs.traverse(F)(({ action, active, prepareCancel }) => {
+                  rgs.traverse(F, ({ action, active, prepareCancel }) => {
                     const supervise: () => Kind<F, [void]> = () =>
                       pipe(
                         supervisor.supervise(action),
@@ -117,7 +117,7 @@ export function Dispatcher<F>(F: Async<F>): Resource<F, Dispatcher<F>> {
       });
 
     yield* _(
-      List.range(0, Cpus).traverse(R)(n =>
+      List.range(0, Cpus).traverse(R, n =>
         pipe(dispatcher(latches[n], states[n]), F.foreverM, F.background),
       ),
     );
