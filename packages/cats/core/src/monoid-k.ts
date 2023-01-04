@@ -23,6 +23,13 @@ export const MonoidK = Object.freeze({
     const self: MonoidK<F> = {
       ...SemigroupK.of(F),
 
+      algebra: <A>() =>
+        Monoid.of<Kind<F, [A]>>({
+          combine_: self.combineK_,
+          combineEval_: self.combineKEval_,
+          empty: F.emptyK<A>(),
+        }),
+
       dual: () =>
         MonoidK.of({
           dual: () => self,
@@ -30,11 +37,6 @@ export const MonoidK = Object.freeze({
           emptyK: self.emptyK,
         }),
 
-      algebra: <A>() =>
-        Monoid.of<Kind<F, [A]>>({
-          combine_: SemigroupK.of(F).algebra<A>().combine_,
-          empty: F.emptyK<A>(),
-        }),
       ...F,
     };
     return self;

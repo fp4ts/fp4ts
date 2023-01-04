@@ -1701,6 +1701,8 @@ export abstract class _List<out A> {
     if (idx === 0) return new Cons(f(xs.head), xs.tail);
 
     const h = new Cons(xs.head, Nil);
+    xs = xs.tail;
+    idx--;
     let t = h;
     while (xs !== Nil && idx > 0) {
       const nx = new Cons(xs.head, Nil);
@@ -1746,6 +1748,8 @@ export abstract class _List<out A> {
     if (xs === Nil || idx < 0) return iob();
 
     const h = new Cons(xs.head, Nil);
+    xs = xs.tail;
+    idx--;
     let t = h;
     while (xs !== Nil && idx > 0) {
       const nx = new Cons(xs.head, Nil);
@@ -1783,10 +1787,12 @@ export abstract class _List<out A> {
   public removeAt(idx: number): List<A> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let xs = this as List<A>;
-    if (idx === 0) return xs.tail;
     if (xs === Nil || idx < 0) return iob();
+    if (idx === 0) return xs.tail;
 
     const h = new Cons(xs.head, Nil);
+    xs = xs.tail;
+    idx--;
     let t = h;
     while (xs !== Nil && idx > 0) {
       const nx = new Cons(xs.head, Nil);
@@ -1795,8 +1801,8 @@ export abstract class _List<out A> {
       xs = xs.tail;
       idx--;
     }
-    if (idx !== 0) return iob();
-    t.tail = xs;
+    if (xs === Nil || idx !== 0) return iob();
+    t.tail = xs.tail;
     return h;
   }
 
@@ -2128,9 +2134,9 @@ export abstract class _List<out A> {
     let xs = this.tail;
 
     while (xs !== Nil) {
-      const nx = new Cons(sep, new Cons(xs.head, Nil));
-      t.tail = nx;
-      t = nx;
+      const tx = new Cons(xs.head, Nil);
+      t.tail = new Cons(sep, tx);
+      t = tx;
       xs = xs.tail;
     }
     return h;
@@ -2748,8 +2754,8 @@ export abstract class _List<out A> {
     if (toRemove === Nil) return this; // we have not found an element to remove
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let xs = this;
-    const h = new Cons(xs.head, Nil);
+    const h = new Cons(this.head, Nil);
+    let xs = this.tail;
     let t = h;
 
     while (xs !== toRemove) {

@@ -995,8 +995,8 @@ export class _View<A> {
    * > View.empty.all(() => false)
    * // true
    *
-   * > View.repeat(1).all(() => true)
-   * // true
+   * > View.repeat(1).all(() => false)
+   * // false
    *
    * > View.repeat(1).all(() => false)
    * // *hangs*
@@ -1290,9 +1290,14 @@ export class _View<A> {
    * ```
    */
   public take(n: number): View<A> {
+    if (n <= 0) return View.empty;
     return View.build((ez, g) => {
       let rem = n;
-      return this.foldRight(ez, (a, eb) => (rem <= 0 ? ez : (rem--, g(a, eb))));
+      return this.foldRight(ez, (a, eb) =>
+        rem-- === 1
+          ? g(a, ez) // ensure we terminate asap and remain lazy
+          : g(a, eb),
+      );
     });
   }
 
@@ -1319,6 +1324,7 @@ export class _View<A> {
    * ```
    */
   public drop(n: number): View<A> {
+    if (n <= 0) return this;
     return View.build((ez, g) => {
       let rem = n;
       return this.foldRight(ez, (a, eb) => (rem <= 0 ? g(a, eb) : (rem--, eb)));
@@ -1815,8 +1821,8 @@ export class _View<A> {
    * ```
    */
   public modifyAt<A>(this: View<A>, idx: number, f: (a: A) => A): View<A> {
-    if (idx < 0) return iob();
     return View.build((ez, g) => {
+      if (idx < 0) return iob();
       let i = idx;
       return this.foldRight(
         Eval.defer(() => (i >= 0 ? iob() : ez)),
@@ -1851,8 +1857,8 @@ export class _View<A> {
    * ```
    */
   public insertAt<A>(this: View<A>, idx: number, x: A): View<A> {
-    if (idx < 0) return iob();
     return View.build((ez, g) => {
+      if (idx < 0) return iob();
       let i = idx;
       return this.foldRight(
         Eval.defer(() => (i > 0 ? iob() : i === 0 ? g(x, ez) : ez)),
@@ -2362,10 +2368,10 @@ export class _View<A> {
     const cc = cs.iterator;
     return this.foldRight(ez, (a, ec) => {
       const ys = bb.next();
-      if (!ys.done) return ez;
+      if (ys.done) return ez;
 
       const zs = cc.next();
-      if (!zs.done) return ez;
+      if (zs.done) return ez;
 
       return f(a, ys.value, zs.value, ec);
     });
@@ -2515,7 +2521,7 @@ export class _View<A> {
     return View.build((ez, g) => {
       let deleted = false;
       return this.foldRight(ez, (a, eb) =>
-        !deleted ? (eq(x, a) ? ((deleted = true), eb) : g(a, eb)) : g(a, eb),
+        !deleted && eq(x, a) ? ((deleted = true), eb) : g(a, eb),
       );
     });
   }
@@ -2830,7 +2836,7 @@ export class _View<A> {
    * `traverse` uses `map2Eval` function of the provided applicative `G` allowing
    * for short-circuiting.
    *
-   * @see traverseA for result-ignoring version.
+   * @see traverse_ for result-ignoring version.
    * @see traverseList for a `List` producing traversal.
    *
    * @examples
@@ -2874,11 +2880,9 @@ export class _View<A> {
     G: Applicative<G>,
     f: (a: A) => Kind<G, [B]>,
   ): Kind<G, [List<B>]> {
-    return isIdentityTC(G)
-      ? (this.map(f).toList as any)
-      : this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
-          G.map2Eval_(f(x), eys)(List.cons),
-        ).value;
+    return this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
+      G.map2Eval_(f(x), eys)(List.cons),
+    ).value;
   }
 
   /**
@@ -2890,7 +2894,7 @@ export class _View<A> {
    * `sequence` uses `map2Eval` function of the provided applicative `G` allowing
    * for short-circuiting.
    *
-   * @see sequenceA for result-ignoring version.
+   * @see sequence_ for result-ignoring version.
    * @see sequenceList for `List` producing version.
    *
    * @examples
@@ -2936,7 +2940,7 @@ export class _View<A> {
    * `traverseA` uses `map2Eval` function of the provided applicative `G` allowing
    * for short-circuiting.
    */
-  public traverseA<G>(
+  public traverse_<G>(
     G: Applicative<G>,
     f: (a: A) => Kind<G, [unknown]>,
   ): Kind<G, [void]> {
@@ -2956,11 +2960,11 @@ export class _View<A> {
    * `sequenceA` uses `map2Eval` function of the provided applicative `G` allowing
    * for short-circuiting.
    */
-  public sequenceA<G>(
+  public sequence_<G>(
     this: View<Kind<G, [unknown]>>,
     G: Applicative<G>,
   ): Kind<G, [void]> {
-    return this.traverseA(G, id);
+    return this.traverse_(G, id);
   }
 
   /**
@@ -2983,19 +2987,9 @@ export class _View<A> {
     G: Applicative<G>,
     f: (a: A) => Kind<G, [Option<B>]>,
   ): Kind<G, [View<B>]> {
-    if (isIdentityTC(G)) {
-      return this.collect(f as any) as any;
-    }
-
-    const consOpt = (x: Option<B>, ys: List<B>): List<B> =>
-      x === None ? ys : ys.prepend(x.get);
-
-    return G.map_(
-      this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
-        G.map2Eval_(f(x), eys)(consOpt),
-      ).value,
-      xs => xs.view,
-    );
+    return isIdentityTC(G)
+      ? (this.collect(f as any) as any)
+      : G.map_(this.traverseFilterList(G, f), xs => xs.view);
   }
 
   /**
@@ -3005,20 +2999,13 @@ export class _View<A> {
   public traverseFilterList<G, B>(
     G: Applicative<G>,
     f: (a: A) => Kind<G, [Option<B>]>,
-  ): Kind<G, [View<B>]> {
-    if (isIdentityTC(G)) {
-      return this.collect(f as any) as any;
-    }
-
+  ): Kind<G, [List<B>]> {
     const consOpt = (x: Option<B>, ys: List<B>): List<B> =>
       x === None ? ys : ys.prepend(x.get);
 
-    return G.map_(
-      this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
-        G.map2Eval_(f(x), eys)(consOpt),
-      ).value,
-      xs => xs.view,
-    );
+    return this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
+      G.map2Eval_(f(x), eys)(consOpt),
+    ).value;
   }
 
   // -- Strings
