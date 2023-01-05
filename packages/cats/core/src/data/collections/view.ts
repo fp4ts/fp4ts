@@ -29,6 +29,11 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
+import { Apply } from '../../apply';
+import { Functor } from '../../functor';
+import { Alternative } from '../../alternative';
+import { Monad } from '../../monad';
+import { TraversableFilter } from '../../traversable-filter';
 
 /**
  * Lazy, ordered sequence collection.
@@ -226,6 +231,19 @@ View.unfoldRight = <A, B>(z: B, f: (b: B) => Option<[A, B]>): View<A> =>
     const go: Eval<X> = Eval.defer(() => f(cur).fold(end, cont));
     return go;
   });
+
+View.tailRecM_ = <A, B>(a: A, f: (a: A) => View<Either<A, B>>): View<B> => {
+  return View.build(
+    <X>(ez: Eval<X>, g: (b: B, ex: Eval<X>) => Eval<X>): Eval<X> => {
+      const go = (ea: Either<A, B>, ex: Eval<X>): Eval<X> =>
+        ea.isLeft
+          ? Eval.defer(() => f(ea.getLeft).foldRight(ex, go)) // stack safety granted by Eval
+          : g(ea.get, ex);
+
+      return f(a).foldRight(ez, go);
+    },
+  );
+};
 
 /**
  * Construct a view from an array.
@@ -3057,9 +3075,15 @@ function iob(): never {
 
 // -- Instances
 
+const viewFunctor = lazyVal(() =>
+  Functor.of<ViewF>({
+    map_: (fa, f) => fa.map(f),
+  }),
+);
+
 const viewFunctorFilter = lazyVal(() =>
   FunctorFilter.of<ViewF>({
-    map_: (fa, f) => fa.map(f),
+    ...viewFunctor(),
     mapFilter_: (fa, f) => fa.collect(f),
     collect_: (fa, f) => fa.collect(f),
     filter_: <A>(fa: View<A>, f: (a: A) => boolean) => fa.filter(f),
@@ -3070,7 +3094,46 @@ const viewFunctorFilter = lazyVal(() =>
 const viewMonoidK = lazyVal(() =>
   MonoidK.of<ViewF>({
     combineK_: (fa, fb) => fa.concat(fb),
+    combineKEval_: (fa, efb) => Eval.now(fa.concatEval(efb)),
     emptyK: () => View.empty,
+  }),
+);
+
+const viewApply = lazyVal(() =>
+  Apply.of<ViewF>({
+    ...viewFunctor(),
+    ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
+    map2_:
+      <A, B>(fa: View<A>, fb: View<B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.map2(fb, f),
+    map2Eval_:
+      <A, B>(fa: View<A>, efb: Eval<View<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.map2Eval(efb, f),
+  }),
+);
+
+const viewApplicative = lazyVal(() =>
+  Applicative.of<ViewF>({
+    ...viewApply(),
+    pure: View.singleton,
+  }),
+);
+
+const viewAlternative = lazyVal(() =>
+  Alternative.of<ViewF>({
+    ...viewMonoidK(),
+    ...viewApplicative(),
+  }),
+);
+
+const viewMonad = lazyVal(() =>
+  Monad.of<ViewF>({
+    ...viewApplicative(),
+    flatMap_: (fa, f) => fa.flatMap(f),
+    flatten: ffa => ffa.flatten(),
+    tailRecM_: View.tailRecM_,
   }),
 );
 
@@ -3103,11 +3166,33 @@ const viewFoldable = lazyVal(() =>
   }),
 );
 
+const viewTraversableFilter = lazyVal(() =>
+  TraversableFilter.of<ViewF>({
+    ...viewFunctorFilter(),
+    ...viewFoldable(),
+    traverseFilter_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: View<A>, f: (a: A) => Kind<G, [Option<B>]>) =>
+        fa.traverseFilter(G, f),
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: View<A>, f: (a: A) => Kind<G, [B]>) =>
+        fa.traverse(G, f),
+    sequence:
+      <G>(G: Applicative<G>) =>
+      <A>(fa: View<Kind<G, [A]>>) =>
+        fa.sequence(G),
+  }),
+);
+
 View.empty = View.build<never>((ez, _f) => ez);
 
 View.FunctorFilter = null as any as FunctorFilter<ViewF>;
 View.MonoidK = null as any as MonoidK<ViewF>;
+View.Alternative = null as any as Alternative<ViewF>;
+View.Monad = null as any as Monad<ViewF>;
 View.Foldable = null as any as Foldable<ViewF>;
+View.TraversableFilter = null as any as TraversableFilter<ViewF>;
 
 Object.defineProperty(View, 'FunctorFilter', {
   get() {
@@ -3119,9 +3204,24 @@ Object.defineProperty(View, 'MonoidK', {
     return viewMonoidK();
   },
 });
+Object.defineProperty(View, 'Alternative', {
+  get() {
+    return viewAlternative();
+  },
+});
+Object.defineProperty(View, 'Monad', {
+  get() {
+    return viewMonad();
+  },
+});
 Object.defineProperty(View, 'Foldable', {
   get() {
     return viewFoldable();
+  },
+});
+Object.defineProperty(View, 'TraversableFilter', {
+  get() {
+    return viewTraversableFilter();
   },
 });
 
