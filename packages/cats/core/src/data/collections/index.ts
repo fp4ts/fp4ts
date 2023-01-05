@@ -10,6 +10,7 @@ export * from './map';
 export * from './vector';
 export * from './chain';
 export * from './queue';
+export * from './seq';
 export * from './set';
 export * from './iterator';
 export * from './non-empty-list';

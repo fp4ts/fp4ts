@@ -17,9 +17,9 @@ import {
   View,
 } from '@fp4ts/cats-core/lib/data';
 import {
-  FoldableSuite,
-  FunctorFilterSuite,
-  MonoidKSuite,
+  AlternativeSuite,
+  MonadSuite,
+  TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -1121,9 +1121,12 @@ describe('Views', () => {
   );
 
   describe('Laws', () => {
+    const viewEq = <X>(E: Eq<X>) =>
+      Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList);
+
     checkAll(
-      'FunctorFilter<View>',
-      FunctorFilterSuite(View.FunctorFilter).functorFilter(
+      'Alternative<View>',
+      AlternativeSuite(View.Alternative).alternative(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1131,30 +1134,46 @@ describe('Views', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsView,
-        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
+        viewEq,
       ),
     );
 
     checkAll(
-      'Foldable<View>',
-      FoldableSuite(View.Foldable).foldable(
+      'Monad<View>',
+      MonadSuite(View.Monad).monad(
         fc.integer(),
         fc.integer(),
-        Monoid.addition,
-        Monoid.addition,
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsView,
+        viewEq,
       ),
     );
 
     checkAll(
-      'MonoidK<View>',
-      MonoidKSuite(View.MonoidK).monoidK(
+      'TraversableFilter<View>',
+      TraversableFilterSuite(View.TraversableFilter).traversableFilter(
         fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Monoid.addition,
+        Monoid.addition,
+        View.FunctorFilter,
+        Monad.Eval,
+        Monad.Eval,
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         A.fp4tsView,
-        <X>(E: Eq<X>) => Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList),
+        viewEq,
+        A.fp4tsEval,
+        Eq.Eval,
+        A.fp4tsEval,
+        Eq.Eval,
       ),
     );
   });

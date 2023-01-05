@@ -15,10 +15,15 @@ import {
   TyVar,
 } from '@fp4ts/core';
 import { Compare, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Alternative } from '../../alternative';
 import { Applicative } from '../../applicative';
+import { Apply } from '../../apply';
 import { Foldable } from '../../foldable';
-import { MonoidK } from '../../monoid-k';
+import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
+import { Monad } from '../../monad';
+import { MonoidK } from '../../monoid-k';
+import { TraversableFilter } from '../../traversable-filter';
 
 import { Either, Left, Right } from '../either';
 import { isIdentityTC } from '../identity';
@@ -29,11 +34,7 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
-import { Apply } from '../../apply';
-import { Functor } from '../../functor';
-import { Alternative } from '../../alternative';
-import { Monad } from '../../monad';
-import { TraversableFilter } from '../../traversable-filter';
+import { Seq } from './seq';
 
 /**
  * Lazy, ordered sequence collection.
@@ -695,6 +696,13 @@ export class _View<A> {
   public get toList(): List<A> {
     return this.foldLeft(new ListBuffer<A>(), (b, x) => b.addOne(x)).toList;
   }
+
+  // /**
+  //  * Converts the view into a `Seq`.
+  //  */
+  // public get toSeq(): Seq<A> {
+  //   return this.foldLeft(Seq.empty as Seq<A>, (xs, x) => xs.append(x));
+  // }
 
   /**
    * Converts the view into a `LazyList`. Since `LazyList` is a lazy collection,
@@ -2067,7 +2075,7 @@ export class _View<A> {
    * ```
    */
   public get reverse(): View<A> {
-    return this.foldLeft(List.empty as List<A>, (xs, x) => xs.prepend(x)).view;
+    return View.fromArray(this.toArray.reverse());
   }
 
   /**

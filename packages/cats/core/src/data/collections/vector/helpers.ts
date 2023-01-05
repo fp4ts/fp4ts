@@ -119,3 +119,25 @@ export function mapElems<A, B, T>(n: number, xs: T[], f: (a: A) => B): T[] {
     return rs;
   }
 }
+export function foldLeft1<A, B, T>(xs: Arr1, z: B, f: (b: B, a: A) => B): B {
+  for (let i = 0, l = xs.length; i < l; i++) {
+    z = f(z, xs[i] as A);
+  }
+  return z;
+}
+export function foldLeft<A, B, T>(
+  n: number,
+  xs: T[],
+  z: B,
+  f: (b: B, a: A) => B,
+): B {
+  assert(n > 0);
+  if (n === 1) {
+    return foldLeft1(xs, z, f) as B;
+  } else {
+    for (let i = 0, l = xs.length; i < l; i++) {
+      z = foldLeft(n - 1, xs[i] as unknown as unknown[], z, f);
+    }
+    return z;
+  }
+}

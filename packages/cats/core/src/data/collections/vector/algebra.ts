@@ -28,6 +28,7 @@ import {
 } from './constants';
 import { VectorSliceBuilder } from './slice-builder';
 import {
+  foldLeft,
   ioob,
   mapElems,
   mapElems1,
@@ -466,6 +467,17 @@ export class Vector4<A> extends Vector<A> {
       .consider(1, this.suffix1)
       .toVector();
   }
+
+  public foldLeft_<B>(z: B, f: (b: B, a: A) => B): B {
+    z = foldLeft(1, this.prefix1, z, f);
+    z = foldLeft(2, this.prefix2, z, f);
+    z = foldLeft(3, this.prefix3, z, f);
+    z = foldLeft(4, this.data4, z, f);
+    z = foldLeft(3, this.suffix3, z, f);
+    z = foldLeft(2, this.suffix2, z, f);
+    z = foldLeft(1, this.suffix1, z, f);
+    return z;
+  }
 }
 
 export class Vector5<A> extends Vector<A> {
@@ -531,7 +543,7 @@ export class Vector5<A> extends Vector<A> {
       } else if (idx >= this.len123) {
         const io = idx - this.len123;
         // prettier-ignore
-        return Some(this.prefix4[io >>> BITS3][(io >>> BITS2) & MASK][(io >>> BITS) & MASK][io & MASK] as A);
+        return Some(this.prefix4[io >>> BITS3 & MASK][(io >>> BITS2) & MASK][(io >>> BITS) & MASK][io & MASK] as A);
       } else if (idx >= this.len12) {
         const io = idx - this.len12;
         return Some(
@@ -604,6 +616,19 @@ export class Vector5<A> extends Vector<A> {
       .consider(2, this.suffix2)
       .consider(1, this.suffix1)
       .toVector();
+  }
+
+  public foldLeft_<B>(z: B, f: (b: B, a: A) => B): B {
+    z = foldLeft(1, this.prefix1, z, f);
+    z = foldLeft(2, this.prefix2, z, f);
+    z = foldLeft(3, this.prefix3, z, f);
+    z = foldLeft(4, this.prefix4, z, f);
+    z = foldLeft(6, this.data5, z, f);
+    z = foldLeft(4, this.suffix4, z, f);
+    z = foldLeft(3, this.suffix3, z, f);
+    z = foldLeft(2, this.suffix2, z, f);
+    z = foldLeft(1, this.suffix1, z, f);
+    return z;
   }
 }
 
@@ -762,6 +787,21 @@ export class Vector6<A> extends Vector<A> {
       .consider(2, this.suffix2)
       .consider(1, this.suffix1)
       .toVector();
+  }
+
+  public foldLeft_<B>(z: B, f: (b: B, a: A) => B): B {
+    z = foldLeft(1, this.prefix1, z, f);
+    z = foldLeft(2, this.prefix2, z, f);
+    z = foldLeft(3, this.prefix3, z, f);
+    z = foldLeft(4, this.prefix4, z, f);
+    z = foldLeft(5, this.prefix5, z, f);
+    z = foldLeft(6, this.data6, z, f);
+    z = foldLeft(5, this.suffix5, z, f);
+    z = foldLeft(4, this.suffix4, z, f);
+    z = foldLeft(3, this.suffix3, z, f);
+    z = foldLeft(2, this.suffix2, z, f);
+    z = foldLeft(1, this.suffix1, z, f);
+    return z;
   }
 }
 

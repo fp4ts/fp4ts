@@ -15,7 +15,6 @@ import {
 } from './unordered-traversable';
 import { ComposedTraversable } from './composed';
 import { Const, Identity } from './data';
-import { MonoidK } from './monoid-k';
 
 /**
  * @category Type Class

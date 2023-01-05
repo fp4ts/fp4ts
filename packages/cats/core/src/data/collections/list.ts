@@ -35,6 +35,7 @@ import { None, Option, Some } from '../option';
 
 import { Map } from './map';
 import { Set as CSet } from './set';
+import { Seq } from './seq';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
 
@@ -113,6 +114,11 @@ List.unfoldRight = <A, B>(z: B, f: (b: B) => Option<[A, B]>): List<A> => {
   }
   return buf.toList;
 };
+
+/**
+ * Construct a list from a sequence.
+ */
+List.fromSeq = <A>(xs: Seq<A>): List<A> => xs.toList;
 
 /**
  * Constructs a list from an array.
@@ -455,7 +461,7 @@ export abstract class _List<out A> {
    * ```
    */
   public get toOption(): Option<A> {
-    return (this as List<A>) === Nil ? None : Some(this.head);
+    return this.headOption;
   }
 
   /**
@@ -619,7 +625,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(1)_ Prepend an element `x` at the beginning the list.
+   * _O(1)_ Prepend an element `x` at the beginning of the list.
    *
    * @examples
    *
@@ -643,7 +649,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Appends an element `x` at the end the list.
+   * _O(n)_ Appends an element `x` at the end of the list.
    *
    * @examples
    *
@@ -660,7 +666,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Returns `true` if for all elements of the view satisfy the predicate
+   * _O(n)_ Returns `true` if for all elements of the list satisfy the predicate
    * `p`, or `false` otherwise.
    *
    * ```typescript
@@ -722,7 +728,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Returns number of elements of the view for which satisfy the
+   * _O(n)_ Returns number of elements of the list for which satisfy the
    * predicate `p`.
    *
    * @examples
@@ -990,8 +996,10 @@ export abstract class _List<out A> {
    * Return a tuple where the first element if the list's prefix of size `n`
    * and the second element is its remainder.
    *
+   * `xs.splitAt(n)` is equivalent to `[xs.take(n), xs.drop(n)]
+   *
    * ```typescript
-   * > View(1, 2, 3).splitAt(1)
+   * > List(1, 2, 3).splitAt(1)
    * // [List(1), List(2, 3)]
    * ```
    */
@@ -1068,13 +1076,13 @@ export abstract class _List<out A> {
    * @examples
    *
    * ```typescript
-   * > View(1, 2, 3, 4, 1, 2, 3, 4).dropWhile(x => x < 3)
+   * > List(1, 2, 3, 4, 1, 2, 3, 4).span(x => x < 3)
    * // [List(1, 2), List(3, 4, 1, 2, 3, 4)]
    *
-   * > View(1, 2, 3).dropWhile(_ => true)
+   * > List(1, 2, 3).span(_ => true)
    * // [List(1, 2, 3), List()]
    *
-   * > View(1, 2, 3).dropWhile(_ => false)
+   * > List(1, 2, 3).span(_ => false)
    * // [List(), List(1, 2, 3)]
    * ```
    */
@@ -1159,7 +1167,7 @@ export abstract class _List<out A> {
    * @examples
    *
    * ```typescript
-   * > View(1, 2, 3).inits().toArray
+   * > List(1, 2, 3).inits().toArray
    * // [List(), List(1), List(1, 2), List(1, 2, 3)]
    * ```
    */
@@ -1180,7 +1188,7 @@ export abstract class _List<out A> {
    * @examples
    *
    * ```typescript
-   * > View(1, 2, 3).inits().toArray
+   * > List(1, 2, 3).inits().toArray
    * // [List(1, 2, 3), List(2, 3), List(3), List()]
    * ```
    */
@@ -1283,9 +1291,6 @@ export abstract class _List<out A> {
   /**
    * _O(n)_ Optionally returns the first element of the structure matching the
    * predicate `p`.
-   *
-   * `find` is a strict, short-circuiting operation that requires evaluation of
-   * at least one element.
    *
    * @examples
    *
@@ -1764,23 +1769,23 @@ export abstract class _List<out A> {
   }
 
   /**
-   * Removes an element `x` at the index `idx`.
+   * _O(n)_ Removes an element `x` at the index `idx`.
    *
    * @note This is a partial function.
    *
    * @examples
    *
    * ```typescript
-   * > View('a', 'b', 'c').removeAt(0).toArray
+   * > Seq('a', 'b', 'c').removeAt(0).toArray
    * // ['b', 'c']
    *
-   * > View('a', 'b', 'c').removeAt(2).toArray
+   * > Seq('a', 'b', 'c').removeAt(2).toArray
    * // ['a', 'b']
    *
-   * > View('a', 'b', 'c').removeAt(3).toArray
+   * > Seq('a', 'b', 'c').removeAt(3).toArray
    * // Uncaught Error: IndexOutOfBounds
    *
-   * > View('a', 'b', 'c').removeAt(-1).toArray
+   * > Seq('a', 'b', 'c').removeAt(-1).toArray
    * // Uncaught Error: IndexOutOfBounds
    * ```
    */
@@ -1885,7 +1890,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * Returns indices of all elements satisfying the predicate `p`.
+   * _O(n)_ Returns indices of all elements satisfying the predicate `p`.
    *
    * @examples
    *
@@ -1943,7 +1948,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Appends all elements of the second view.
+   * _O(n1)_ Appends all elements of the second list.
    *
    * @examples
    *
@@ -1977,20 +1982,20 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Returns a new view by transforming each element using the function
+   * _O(n)_ Returns a new list by transforming each element using the function
    * `f`.
    *
    * @examples
    *
    * ```typescript
-   * > View('a', 'b', 'c').map(x => x.toUpperCase()).toArray
-   * // ['A', 'B', 'C']
+   * > List('a', 'b', 'c').map(x => x.toUpperCase())
+   * // List('A', 'B', 'C')
    *
-   * > View.empty.map(() => { throw new Error(); }).toArray
-   * // []
+   * > List.empty.map(() => { throw new Error(); })
+   * // List()
    *
-   * > View.range(1).map(x => x + 1).take(3).toArray
-   * // [2, 3, 4]
+   * > List.range(1, 3).map(x => x + 1)
+   * // List(2, 3, 4)
    * ```
    */
   public map<B>(f: (a: A) => B): List<B> {
@@ -2096,8 +2101,8 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Create a new list by transforming each of its tails using a function
-   * `f`.
+   * _O(n)_ Create a new list by transforming each of its non-empty tails using
+   * a function `f`.
    *
    * @examples
    *
@@ -2252,7 +2257,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(min(m, n))_ A version of `zip` that takes a user-supplied zipping
+   * _O(min(n, m))_ A version of `zip` that takes a user-supplied zipping
    * function `f`.
    *
    * ```typescript
@@ -2288,8 +2293,8 @@ export abstract class _List<out A> {
   }
 
   /**
-   * _O(n)_ Returns a view where each element is zipped with its index in the
-   * resulting sequence.
+   * _O(n)_ Returns a list where each element is zipped with its index in the
+   * resulting list.
    *
    * @examples
    *
@@ -2377,21 +2382,21 @@ export abstract class _List<out A> {
   }
 
   /**
-   * Version of `zip` working on three Lists.
+   * Version of `zip` working on three lists.
    */
   public zip3<B, C>(ys: List<B>, zs: List<C>): List<[A, B, C]> {
     return this.zipWith3(ys, zs, tupled);
   }
 
   /**
-   * Version of `zipView` working on three Lists.
+   * Version of `zipView` working on three lists.
    */
   public zipView3<B, C>(ys: List<B>, zs: List<C>): View<[A, B, C]> {
     return this.zipWithView3(ys, zs, tupled);
   }
 
   /**
-   * Version of `zipWith` working on three Lists.
+   * Version of `zipWith` working on three lists.
    */
   public zipWith3<B, C, D>(
     ys: List<B>,
@@ -2410,7 +2415,7 @@ export abstract class _List<out A> {
   }
 
   /**
-   * Version of `zipWithView` working on three Lists.
+   * Version of `zipWithView` working on three lists.
    */
   public zipWithView3<B, C, D>(
     ys: List<B>,
@@ -2481,14 +2486,30 @@ export abstract class _List<out A> {
    * ```
    */
   public unzip<A, B>(this: List<readonly [A, B]>): [List<A>, List<B>] {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let xs = this;
+    return this.unzipWith(id);
+  }
+
+  /**
+   * _O(n)_ Transform a list into a tuple of list by transforming contents of the
+   * original into tuples.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > const quotRem = (x: number, y: number): [number, number] =>
+   * >   [x / y | 0, x % y];
+   * > List(1, 2, 3, 4).unzipWith(x => quoteRem(x, 2))
+   * // [List(0, 1, 1, 2), List(1, 0, 1, 0)]
+   * ```
+   */
+  public unzipWith<B, C>(f: (a: A) => readonly [B, C]): [List<B>, List<C>] {
+    let xs = this as List<A>;
     if (xs === Nil) return [Nil, Nil];
 
-    const l = new ListBuffer<A>();
-    const r = new ListBuffer<B>();
+    const l = new ListBuffer<B>();
+    const r = new ListBuffer<C>();
     while (xs !== Nil) {
-      const ab = xs.head;
+      const ab = f(xs.head);
       l.addOne(ab[0]);
       r.addOne(ab[1]);
       xs = xs.tail;
@@ -2497,20 +2518,29 @@ export abstract class _List<out A> {
   }
 
   /**
-   * Version of `unzip` working on three lists.
+   * Version of `unzip` producing three lists.
    */
   public unzip3<A, B, C>(
     this: List<readonly [A, B, C]>,
   ): [List<A>, List<B>, List<C>] {
+    return this.unzipWith3(id);
+  }
+
+  /**
+   * Version of `unzipWith` producing three lists.
+   */
+  public unzipWith3<B, C, D>(
+    f: (a: A) => readonly [B, C, D],
+  ): [List<B>, List<C>, List<D>] {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let xs = this;
+    let xs = this as List<A>;
     if (xs === Nil) return [Nil, Nil, Nil];
 
-    const l = new ListBuffer<A>();
-    const m = new ListBuffer<B>();
-    const r = new ListBuffer<C>();
+    const l = new ListBuffer<B>();
+    const m = new ListBuffer<C>();
+    const r = new ListBuffer<D>();
     while (xs !== Nil) {
-      const ab = xs.head;
+      const ab = f(xs.head);
       l.addOne(ab[0]);
       m.addOne(ab[1]);
       r.addOne(ab[2]);
@@ -2604,6 +2634,68 @@ export abstract class _List<out A> {
    */
   public scanLeft1<A>(this: List<A>, f: (res: A, a: A) => A): List<A> {
     return this === Nil ? Nil : this.tail.scanLeft(this.head, f);
+  }
+
+  /**
+   * _O(n)_ Right-to-left dual of `scanLeft`.
+   *
+   * @see foldRight_ for strict version.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > List(1, 2, 3).scanRight_(0, (x, z) => x + z)
+   * // List(6, 5, 3, 0)
+   *
+   * > List.empty.scanRight_(42, (x, z) => x + z)
+   * // List(42)
+   *
+   * > List.range(1, 5).scanRight_(100, (x, z) => x - z)
+   * // List(98, -97, 99, -96, 100)
+   * ```
+   */
+  public scanRight<B>(
+    ez: Eval<B>,
+    f: (a: A, eb: Eval<B>) => Eval<B>,
+  ): Eval<List<B>> {
+    if ((this as List<A>) === Nil) return ez.map(z => new Cons(z, Nil));
+    const eqs = Eval.defer(() => this.tail.scanRight(ez, f)).memoize;
+    return f(
+      this.head,
+      eqs.map(qs => qs.head),
+    ).flatMap(hd => eqs.map(qs => new Cons(hd, qs)));
+  }
+
+  /**
+   * Version of `scanRight` with no initial value.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > List(1, 2, 3).scanRight1_((x, z) => x + z)
+   * // List(6, 5, 3)
+   *
+   * > List.empty.scanRight1_((x, z) => x + z)
+   * // List()
+   *
+   * > List.range(1, 5).scanRight1_((x, z) => x - z)
+   * // List(-2, 3, -1, 4)
+   * ```
+   */
+  public scanRight1<A>(
+    this: List<A>,
+    f: (a: A, er: Eval<A>) => Eval<A>,
+  ): Eval<List<A>> {
+    if (this === Nil) return Eval.now(Nil);
+    const go = (xs: List<A>): Eval<List<A>> => {
+      if (xs.tail === Nil) return Eval.now(xs);
+      const eqs = Eval.defer(() => go(xs.tail)).memoize;
+      return f(
+        xs.head,
+        eqs.map(qs => qs.head),
+      ).flatMap(hd => eqs.map(qs => new Cons(hd, qs)));
+    };
+    return go(this);
   }
 
   /**
@@ -2752,6 +2844,7 @@ export abstract class _List<out A> {
   ): List<A> {
     const toRemove = this.findToRemove(x, eq);
     if (toRemove === Nil) return this; // we have not found an element to remove
+    if (toRemove === this) return this.tail;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const h = new Cons(this.head, Nil);
@@ -3204,13 +3297,13 @@ export abstract class _List<out A> {
     const h = new Cons(ys.head, Nil);
     let t = h;
     ys = ys.tail;
-    while (ys !== Nil && cmp(x, ys.head) !== Compare.GT) {
+    while (ys !== Nil && cmp(x, ys.head) === Compare.GT) {
       const nx = new Cons(ys.head, Nil);
       t.tail = nx;
       t = nx;
       ys = ys.tail;
     }
-    h.tail = new Cons(x, ys);
+    t.tail = new Cons(x, ys);
     return h;
   }
 
@@ -3473,7 +3566,7 @@ class _Nil extends _List<never> {
   }
 }
 
-const Nil = new _Nil();
+const Nil: List<never> = new _Nil();
 
 List.empty = Nil as List<never>;
 
