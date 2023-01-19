@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022 Peter Matta
+// Copyright (c) 2021-2023 Peter Matta
 //
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
@@ -35,7 +35,6 @@ import { None, Option, Some } from '../option';
 
 import { Map } from './map';
 import { Set as CSet } from './set';
-import { Seq } from './seq';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
 
@@ -114,11 +113,6 @@ List.unfoldRight = <A, B>(z: B, f: (b: B) => Option<[A, B]>): List<A> => {
   }
   return buf.toList;
 };
-
-/**
- * Construct a list from a sequence.
- */
-List.fromSeq = <A>(xs: Seq<A>): List<A> => xs.toList;
 
 /**
  * Constructs a list from an array.
@@ -1776,16 +1770,16 @@ export abstract class _List<out A> {
    * @examples
    *
    * ```typescript
-   * > Seq('a', 'b', 'c').removeAt(0).toArray
+   * > List('a', 'b', 'c').removeAt(0).toArray
    * // ['b', 'c']
    *
-   * > Seq('a', 'b', 'c').removeAt(2).toArray
+   * > List('a', 'b', 'c').removeAt(2).toArray
    * // ['a', 'b']
    *
-   * > Seq('a', 'b', 'c').removeAt(3).toArray
+   * > List('a', 'b', 'c').removeAt(3).toArray
    * // Uncaught Error: IndexOutOfBounds
    *
-   * > Seq('a', 'b', 'c').removeAt(-1).toArray
+   * > List('a', 'b', 'c').removeAt(-1).toArray
    * // Uncaught Error: IndexOutOfBounds
    * ```
    */
