@@ -27,6 +27,7 @@ import { FunctorFilter } from '../../functor-filter';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { TraversableFilter } from '../../traversable-filter';
+import { Unzip } from '../../unzip';
 
 import { Either, Left, Right } from '../either';
 import { isIdentityTC } from '../identity';
@@ -37,7 +38,7 @@ import { Map } from './map';
 import { Set as CSet } from './set';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
-import { Unzip } from '../../unzip';
+import { Seq } from './seq';
 
 /**
  * Immutable, strict linked-list collection of ordered elements `A`.
@@ -414,6 +415,13 @@ export abstract class _List<out A> {
     const rs: A[] = [];
     this.forEach(x => rs.push(x));
     return rs;
+  }
+
+  /**
+   * _O(n)_ Converts the list into a sequence.
+   */
+  public get toSeq(): Seq<A> {
+    return Seq.fromList(this);
   }
 
   /**
@@ -3064,11 +3072,11 @@ export abstract class _List<out A> {
    * @examples
    *
    * ```typescript
-   * > View(1, 2, 3).foldLeft1((x, y) => x + y)
+   * > List(1, 2, 3).foldLeft1((x, y) => x + y)
    * // 6
    *
-   * > View.empty.foldLeft1((x, y) => x + y)
-   * // Uncaught Error: View.foldLeft1: empty View
+   * > List.empty.foldLeft1((x, y) => x + y)
+   * // Uncaught Error: List.foldLeft1: empty List
    * ```
    */
   public foldLeft1<A>(this: List<A>, f: (res: A, x: A) => A): A {
@@ -3096,7 +3104,7 @@ export abstract class _List<out A> {
    * > List(false).foldRight(Eval.false, (x, r) => x ? Eval.true : r).value
    * // false
    *
-   * > List(true).foldRight(Eval.false, (x, r) => x ? Eval.true : r).value
+   * > List(true).foldRight(Eval.bottom(), (x, r) => x ? Eval.true : r).value
    * // true
    * ```
    */
@@ -3200,9 +3208,6 @@ export abstract class _List<out A> {
 
   /**
    * Left-associative, strict version of `foldMap`.
-   *
-   * `foldMapLeft` is a strict, _non_-short-circuiting function needing to evaluate
-   * the entire view.
    */
   public foldMapLeft<M>(M: Monoid<M>, f: (a: A) => M): M {
     return this.foldLeft(M.empty, (b, a) => M.combine_(b, f(a)));

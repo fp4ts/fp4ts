@@ -35,6 +35,7 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
+import { Seq } from './seq';
 
 /**
  * Lazy, ordered sequence collection.
@@ -695,6 +696,13 @@ export class _View<A> {
    */
   public get toList(): List<A> {
     return this.foldLeft(new ListBuffer<A>(), (b, x) => b.addOne(x)).toList;
+  }
+
+  /**
+   * Converts the view into a `Seq`.
+   */
+  public get toSeq(): Seq<A> {
+    return this.foldLeft(Seq.empty as Seq<A>, (xs, x) => xs.append(x));
   }
 
   /**
