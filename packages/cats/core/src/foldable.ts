@@ -94,6 +94,9 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
   elem(idx: number): <A>(fa: Kind<F, [A]>) => Option<A>;
   elem_<A>(fa: Kind<F, [A]>, idx: number): Option<A>;
 
+  get(idx: number): <A>(fa: Kind<F, [A]>) => Option<A>;
+  get_<A>(fa: Kind<F, [A]>, idx: number): Option<A>;
+
   iterator<A>(fa: Kind<F, [A]>): Iterator<A>;
   toArray<A>(fa: Kind<F, [A]>): A[];
 }
@@ -156,8 +159,11 @@ export const Foldable = Object.freeze({
         );
       },
 
-      elem: idx => fa => self.elem_(fa, idx),
-      elem_: <A>(fa: Kind<F, [A]>, idx: number) => {
+      elem: idx => self.get(idx),
+      elem_: (fa, idx) => self.get_(fa, idx),
+
+      get: idx => fa => self.elem_(fa, idx),
+      get_: <A>(fa: Kind<F, [A]>, idx: number) => {
         if (idx < 0) return None;
         return self
           .foldM_(Either.Monad<A>())(fa, 0, (i, a) =>
