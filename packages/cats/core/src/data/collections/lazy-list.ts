@@ -35,7 +35,7 @@ import { Ior } from '../ior';
 import { Iter } from './iterator';
 import { isIdentityTC } from '../identity';
 import { List, ListBuffer } from './list';
-import { Vector, VectorBuilder } from './vector';
+import { Vector } from './vector';
 import { View } from './view';
 
 /**
@@ -194,8 +194,7 @@ export class _LazyList<out A> {
   }
 
   public get toVector(): Vector<A> {
-    return this.foldLeft(new VectorBuilder<A>(), (ac, x) => ac.addOne(x))
-      .toVector;
+    return Vector.fromArray(this.toArray);
   }
 
   public get iterator(): Iterator<A> {
@@ -296,6 +295,8 @@ export class _LazyList<out A> {
   }
 
   public slice(from: number, until: number): LazyList<A> {
+    from = Math.max(from, 0);
+    until = Math.max(until, 0);
     return until <= from ? LazyList.empty : this.drop(from).take(until - from);
   }
 

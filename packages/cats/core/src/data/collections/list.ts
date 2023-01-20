@@ -386,7 +386,7 @@ export abstract class _List<out A> {
    * // 0
    *
    * > List(42)
-   * // 3
+   * // 1
    *
    * > List(1, 2, 3)
    * // 3
@@ -992,6 +992,8 @@ export abstract class _List<out A> {
    * ```
    */
   public slice(from: number, until: number): List<A> {
+    from = Math.max(from, 0);
+    until = Math.max(until, 0);
     return this.drop(from).take(until - from);
   }
 

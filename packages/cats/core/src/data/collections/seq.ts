@@ -3,12 +3,31 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, id, Kind, throwError } from '@fp4ts/core';
+import {
+  $type,
+  cached,
+  Eval,
+  id,
+  Kind,
+  lazy,
+  throwError,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Compare, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Alternative } from '../../alternative';
 import { Applicative } from '../../applicative';
 import { Apply, TraverseStrategy } from '../../apply';
+import { CoflatMap } from '../../coflat-map';
+import { EqK } from '../../eq-k';
+import { Functor } from '../../functor';
+import { FunctorFilter } from '../../functor-filter';
 import { Foldable } from '../../foldable';
 import { MonoidK } from '../../monoid-k';
+import { Monad } from '../../monad';
+import { Traversable } from '../../traversable';
+import { TraversableFilter } from '../../traversable-filter';
+import { Unzip } from '../../unzip';
 
 import { isIdentityTC } from '../identity';
 import { Either, Left, Right } from '../either';
@@ -18,10 +37,9 @@ import { Map } from './map';
 import { Set as CSet } from './set';
 import { List } from './list';
 import { View } from './view';
-import { Array as CatsArray } from './array';
 
 /**
- * Immutable, strict, finite sequence of elements `A`.
+ * General purpose, strict, finite sequence of elements `A`.
  */
 export type Seq<A> = _Seq<A>;
 export const Seq = function <A>(...xs: A[]): Seq<A> {
@@ -31,14 +49,14 @@ Seq.empty = null as any as Seq<never>;
 
 Seq.cons = <A>(x: A, tl: Seq<A>): Seq<A> => tl.prepend(x);
 
+Seq.snoc = <A>(tl: Seq<A>, x: A): Seq<A> => tl.append(x);
+
 Seq.singleton = <A>(x: A): Seq<A> => new Single(1, x);
 
-Seq.range = (from: number, until: number): Seq<number> => {
-  if (until <= from) return Seq.empty;
-  return fromFunction(until - from, idx => from + idx);
-};
+Seq.range = (from: number, until: number): Seq<number> =>
+  Seq.fromFunction(until - from, idx => from + idx);
 
-Seq.fromArray = <A>(xs: A[]): Seq<A> => fromFunction(xs.length, i => xs[i]);
+Seq.fromArray = <A>(xs: A[]): Seq<A> => Seq.fromFunction(xs.length, i => xs[i]);
 
 Seq.fromList = <A>(xs: List<A>): Seq<A> => Seq.fromArray(xs.toArray);
 
@@ -53,14 +71,34 @@ Seq.fromIterator = <A>(it: Iterator<A>): Seq<A> => {
   return xs;
 };
 
+Seq.fromFunction = <A>(sz: number, f: (idx: number) => A): Seq<A> =>
+  sz <= 0 ? Empty : createTree(f, 1, 0, sz);
+
 abstract class _Seq<out A> {
   readonly __void!: A;
 
+  /**
+   * _O(1)_ Extracts the first element of the sequence, which must be non-empty.
+   *
+   * @note This function is partial.
+   *
+   * @see headOption for a safe variant
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).head
+   * // 1
+   *
+   * > Seq.empty.head
+   * // Uncaught Error: Seq.empty: head
+   * ```
+   */
   public get head(): A {
     const xs = this as any as ViewSeq<A>;
     switch (xs.tag) {
       case 0:
-        throw new Error('Seq.empty.head');
+        throw new Error('Seq.empty: head');
       case 1:
         return xs.value;
       case 2:
@@ -68,24 +106,97 @@ abstract class _Seq<out A> {
     }
   }
 
+  /**
+   * _O(1)_ Safe version of the `head` which optionally returns the first element
+   * of the sequence.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).head
+   * // Some(1)
+   *
+   * > Seq.empty.head
+   * // None
+   * ```
+   */
   public get headOption(): Option<A> {
     return this.isEmpty ? None : Some(this.head);
   }
 
+  /**
+   * _O(1)_ Extracts the elements of the sequence which come after the initial
+   * head.
+   * Equivalent to:
+   *
+   * `xs.tail` is equivalent to `xs.drop(1)`.
+   *
+   * As such, it is safe to perform `tail` on empty sequences as well.
+   *
+   * @examples
+   *
+   *```typescript
+   * > Seq(1, 2, 3).tail
+   * // Seq(2, 3)
+   *
+   * > Seq(1).tail
+   * // Seq()
+   *
+   * > Seq.empty.tail
+   * // Seq()
+   * ```
+   */
   public get tail(): Seq<A> {
     const v = viewLE(this);
     return v == null ? Empty : v[1];
   }
 
+  /**
+   * _O(1)_ Optionally decompose the sequence into its head and tail.
+   * Returns `None` if empty.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).uncons
+   * // Some([1, Seq(2, 3)])
+   *
+   * > Seq(42).uncons
+   * // Some([42, Seq()])
+   *
+   * > Seq.empty.uncons
+   * // None
+   * ```
+   */
   public get uncons(): Option<[A, Seq<A>]> {
     return Option.fromNullable(viewLE(this));
   }
 
+  /**
+   * _O(1)_ Extracts the last element of the sequence, which must be non-empty.
+   *
+   * @note This is a partial function.
+   *
+   * @see lastOption for a safe variant
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).last
+   * // 3
+   *
+   * > Seq(1).last
+   * // 1
+   *
+   * > Seq.empty.last
+   * // Uncaught Error: Seq.empty: last
+   * ```
+   */
   public get last(): A {
     const xs = this as any as ViewSeq<A>;
     switch (xs.tag) {
       case 0:
-        throw new Error('Seq.empty.last');
+        throw new Error('Seq.empty: last');
       case 1:
         return xs.value;
       case 2:
@@ -93,38 +204,129 @@ abstract class _Seq<out A> {
     }
   }
 
+  /**
+   * _O(1)_ Optionally extracts the last element of the sequence.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).last
+   * // Some(3)
+   *
+   * > Seq(1).last
+   * // Some(1)
+   *
+   * > Seq.empty.last
+   * // None
+   * ```
+   */
   public get lastOption(): Option<A> {
     return this.isEmpty ? None : Some(this.last);
   }
 
+  /**
+   * _O(1)_ Extract all elements of the sequence expect from the last one.
+   *
+   * `xs.init` is equivalent to `xs.dropRight(1)`
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq(1, 2, 3).init
+   * // Seq(1, 2)
+   *
+   * > Seq(1).init
+   * // Seq()
+   *
+   * > Seq.empty.init
+   * // Seq()
+   * ```
+   */
   public get init(): Seq<A> {
     const v = viewRE(this);
     return v == null ? Empty : v[0];
   }
 
+  /**
+   * _O(1)_ Optionally extract init and the last element of the sequence.
+   */
   public get popLast(): Option<[A, Seq<A>]> {
     const v = viewRE(this);
     return v == null ? None : Some([v[1], v[0]]);
   }
 
+  /**
+   * _O(1)_ Returns `true` if the sequence is empty, or `false` otherwise.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq.empty.isEmpty
+   * // true
+   *
+   * > Seq(42).isEmpty
+   * // false
+   * ```
+   */
   public get isEmpty(): boolean {
     return this.size === 0;
   }
 
+  /**
+   * _O(1)_ Negation of `isEmpty`:
+   *
+   * ```typescript
+   * xs.nonEmpty == !xs.isEmpty
+   * ```
+   */
   public get nonEmpty(): boolean {
     return !this.isEmpty;
   }
 
+  /**
+   * _O(1)_ Returns the size of the sequence.
+   *
+   * @examples
+   *
+   * ```typescript
+   * > Seq.empty.size
+   * // 0
+   *
+   * > Seq(42)
+   * // 1
+   *
+   * > Seq(1, 2, 3)
+   * // 3
+   * ```
+   */
   public abstract readonly size: number;
 
+  /**
+   * _O(1)_ Return a view of the sequence's elements. This function is typically
+   * used to "fuse" transformations without creating intermediate structures:
+   *
+   * ```typescript
+   * xs.map(f).filter(p) === xs.view.map(f).filter(p).toSeq
+   * ```
+   */
   public get view(): View<A> {
     return View.build((ez, g) => this.foldRight(ez, g));
   }
 
+  /**
+   * _O(1)_ Right-to-left dual to `view`.
+   *
+   * ```typescript
+   * xs.reverse.map(f).filter(p) === xs.viewRight.map(f).filter(p).toSeq
+   * ```
+   */
   public get viewRight(): View<A> {
     return View.build((ez, g) => this.foldRightReverse(ez, g));
   }
 
+  /**
+   * _O(n)_ Converts the sequence into an array.
+   */
   public get toArray(): A[] {
     const xs = new Array<A>(this.size);
     let idx = 0;
@@ -132,6 +334,9 @@ abstract class _Seq<out A> {
     return xs;
   }
 
+  /**
+   * _O(n)_ Converts the sequence into a list.
+   */
   public get toList(): List<A> {
     return this.foldRight_(List.empty as List<A>, List.cons);
   }
@@ -327,7 +532,7 @@ abstract class _Seq<out A> {
   }
 
   /**
-   * _O(n)_ Appends an element `x` at the end of the sequence.
+   * _O(1)_ Appends an element `x` at the end of the sequence.
    *
    * @examples
    *
@@ -473,6 +678,8 @@ abstract class _Seq<out A> {
    * ```
    */
   public slice(from: number, until: number): Seq<A> {
+    from = Math.max(from, 0);
+    until = Math.max(until, 0);
     return this.drop(from).take(until - from);
   }
 
@@ -1868,7 +2075,7 @@ abstract class _Seq<out A> {
   // -- Scans
 
   /**
-   * _O(n)_ Returns a view of cumulative results reduced from left:
+   * _O(n)_ Returns a sequence of cumulative results reduced from left:
    *
    * `Seq(x1, x2, ...).scanLeft(z, f)` is equivalent to `Seq(z, f(z, x1), f(f(z, x1), x2), ...)`
    *
@@ -1901,14 +2108,14 @@ abstract class _Seq<out A> {
    * @examples
    *
    * ```typescript
-   * > List(1, 2, 3).scanLeft1((z, x) => z + x)
-   * // List(1, 3, 6)
+   * > Seq(1, 2, 3).scanLeft1((z, x) => z + x)
+   * // Seq(1, 3, 6)
    *
-   * > List.empty.scanLeft1((z, x) => z + x)
-   * // List()
+   * > Seq.empty.scanLeft1((z, x) => z + x)
+   * // Seq()
    *
-   * > List.range(1, 5).scanLeft1((x, y) => x - y)
-   * // List(1, -1, -4, -8)
+   * > Seq.range(1, 5).scanLeft1((x, y) => x - y)
+   * // Seq(1, -1, -4, -8)
    */
   public scanLeft1<A>(this: Seq<A>, f: (acc: A, x: A) => A): Seq<A> {
     const v = viewLE(this);
@@ -1921,14 +2128,14 @@ abstract class _Seq<out A> {
    * @examples
    *
    * ```typescript
-   * > List(1, 2, 3).scanRight_(0, (x, z) => x + z)
-   * // List(6, 5, 3, 0)
+   * > Seq(1, 2, 3).scanRight_(0, (x, z) => x + z)
+   * // Seq(6, 5, 3, 0)
    *
-   * > List.empty.scanRight_(42, (x, z) => x + z)
-   * // List(42)
+   * > Seq.empty.scanRight_(42, (x, z) => x + z)
+   * // Seq(42)
    *
-   * > List.range(1, 5).scanRight_(100, (x, z) => x - z)
-   * // List(98, -97, 99, -96, 100)
+   * > Seq.range(1, 5).scanRight_(100, (x, z) => x - z)
+   * // Seq(98, -97, 99, -96, 100)
    * ```
    */
   public scanRight_<B>(z: B, f: (a: A, b: B) => B): Seq<B> {
@@ -1942,14 +2149,14 @@ abstract class _Seq<out A> {
    * @examples
    *
    * ```typescript
-   * > List(1, 2, 3).scanRight1_((x, z) => x + z)
-   * // List(6, 5, 3)
+   * > Seq(1, 2, 3).scanRight1_((x, z) => x + z)
+   * // Seq(6, 5, 3)
    *
-   * > List.empty.scanRight1_((x, z) => x + z)
-   * // List()
+   * > Seq.empty.scanRight1_((x, z) => x + z)
+   * // Seq()
    *
-   * > List.range(1, 5).scanRight1_((x, z) => x - z)
-   * // List(-2, 3, -1, 4)
+   * > Seq.range(1, 5).scanRight1_((x, z) => x - z)
+   * // Seq(-2, 3, -1, 4)
    * ```
    */
   public scanRight1_<A>(this: Seq<A>, f: (x: A, acc: A) => A): Seq<A> {
@@ -2178,7 +2385,7 @@ abstract class _Seq<out A> {
   // -- Folds
 
   /**
-   * _O(n)_ Apply `f` to each element of the view for its side-effect.
+   * _O(n)_ Apply `f` to each element of the sequence for its side-effect.
    *
    * @examples
    *
@@ -2562,15 +2769,7 @@ abstract class _Seq<out A> {
   ): Kind<G, [Seq<B>]> {
     return isIdentityTC(G)
       ? (this.map(f) as any)
-      : Apply.TraverseStrategy(G)(Rhs =>
-          traverseViaSeqImpl(
-            G,
-            CatsArray.FoldableWithIndex(),
-            Rhs,
-            this.toArray,
-            (x: A) => f(x),
-          ),
-        );
+      : Apply.TraverseStrategy(G)(Rhs => traverseViaSeqImpl(G, Rhs, this, f));
   }
 
   /**
@@ -2602,6 +2801,40 @@ abstract class _Seq<out A> {
   }
 
   /**
+   * Transform each element of the structure into an applicative action and
+   * evaluate them left-to-right ignoring the results.
+   *
+   * `traverse_` uses `map2Eval` function of the provided applicative `G` allowing
+   * for short-circuiting.
+   */
+  public traverse_<G>(
+    G: Applicative<G>,
+    f: (a: A) => Kind<G, [unknown]>,
+  ): Kind<G, [void]> {
+    const discard = (): void => {};
+
+    return isIdentityTC(G)
+      ? (this.forEach(f) as any)
+      : this.foldRight(Eval.now(G.unit), (x, eb) =>
+          G.map2Eval_(f(x), eb)(discard),
+        ).value;
+  }
+
+  /**
+   * Evaluate each applicative action of the structure left-to-right ignoring
+   * their results.
+   *
+   * `sequence_` uses `map2Eval` function of the provided applicative `G` allowing
+   * for short-circuiting.
+   */
+  public sequence_<G>(
+    this: List<Kind<G, [unknown]>>,
+    G: Applicative<G>,
+  ): Kind<G, [void]> {
+    return this.traverse_(G, id);
+  }
+
+  /**
    * _O(n)_ Version of `traverse` which removes elements of the original sequence.
    *
    * @examples
@@ -2618,13 +2851,13 @@ abstract class _Seq<out A> {
   public traverseFilter<G, B>(
     G: Applicative<G>,
     f: (a: A) => Kind<G, [Option<B>]>,
-  ): Kind<G, [List<B>]> {
+  ): Kind<G, [Seq<B>]> {
     return isIdentityTC(G)
       ? (this.collect(f as any) as any)
       : Apply.TraverseStrategy(G)(Rhs =>
           traverseFilterViaSeqImpl(
             G,
-            CatsArray.FoldableWithIndex(),
+            Foldable.Array,
             Rhs,
             this.toArray,
             (x: A) => f(x),
@@ -2641,6 +2874,20 @@ abstract class _Seq<out A> {
 
   public toString(): string {
     return `Seq(${this.map(String).join(',')})`;
+  }
+
+  // -- Misc
+
+  public equals<A>(
+    this: Seq<A>,
+    that: Seq<A>,
+    E: Eq<A> = Eq.fromUniversalEquals(),
+  ): boolean {
+    if (this === that) return true;
+    if (this.size !== that.size) return false;
+    return this.foldRight2(that, Eval.true, (x, y, r) =>
+      E.equals(x, y) ? r : Eval.false,
+    ).value;
   }
 }
 
@@ -2673,6 +2920,31 @@ class Deep<A> extends _Seq<A> {
 type ViewSeq<A> = typeof Empty | Single<A> | Deep<A>;
 
 Seq.empty = Empty as any;
+Seq.tailRecM_ = <A, B>(a: A, f: (a: A) => Seq<Either<A, B>>): Seq<B> => {
+  const stack: Iterator<Either<A, B>>[] = [f(a).iterator];
+  const buf: B[] = [];
+
+  let ptr = 0;
+  while (ptr >= 0) {
+    const xhd = stack[ptr].next();
+
+    if (xhd.done) {
+      stack.pop();
+      ptr--;
+      continue;
+    }
+
+    const nx = xhd.value;
+    if (nx.isLeft) {
+      stack.push(f(nx.getLeft).iterator);
+      ptr++;
+    } else {
+      buf.push(nx.get);
+    }
+  }
+
+  return Seq.fromArray(buf);
+};
 
 // -- Private implementation
 
@@ -2721,10 +2993,6 @@ function digitToTree<A>(s: number, xs: Digit<A>): Seq<A> {
     case 4:
       return new Deep(s, [xs[0], xs[1]], Empty, [xs[2], xs[3]]);
   }
-}
-
-function fromFunction<A>(sz: number, f: (idx: number) => A): Seq<A> {
-  return sz <= 0 ? Empty : createTree(f, 1, 0, sz);
 }
 
 function createTree<A>(
@@ -4608,9 +4876,11 @@ function concatE<A>(self: Seq<A>, m: readonly A[], that: Seq<A>): Seq<A> {
   const ys = that as ViewSeq<A>;
   switch (xs.tag) {
     case 0:
-      return m.reduce((ys, x) => ys.prepend(x), ys as Seq<A>);
+      return m.reduceRight((ys, x) => ys.prepend(x), ys as Seq<A>);
     case 1:
-      return m.reduce((ys, x) => ys.prepend(x), ys as Seq<A>).prepend(xs.value);
+      return m
+        .reduceRight((ys, x) => ys.prepend(x), ys as Seq<A>)
+        .prepend(xs.value);
     case 2:
       switch (ys.tag) {
         case 0:
@@ -4638,11 +4908,11 @@ function concatN<A>(
   const ys = that as ViewSeq<Node<A>>;
   switch (xs.tag) {
     case 0:
-      return m.reduce((ys, x) => prependN(x, ys), ys as Seq<Node<A>>);
+      return m.reduceRight((ys, x) => prependN(x, ys), ys as Seq<Node<A>>);
     case 1:
       return prependN(
         xs.value,
-        m.reduce((ys, x) => prependN(x, ys), ys as Seq<Node<A>>),
+        m.reduceRight((ys, x) => prependN(x, ys), ys as Seq<Node<A>>),
       );
     case 2:
       switch (ys.tag) {
@@ -4860,7 +5130,7 @@ function foldRightDigit_<A, B>(xs: Digit<A>, z: B, f: (a: A, b: B) => B): B {
 function foldRightNode_<A, B>(xs: Node<A>, z: B, f: (a: A, z: B) => B): B {
   switch (xs.length) {
     case 3:
-      return f(xs[1], z);
+      return f(xs[1], f(xs[2], z));
     case 4:
       return f(xs[1], f(xs[2], f(xs[3], z)));
   }
@@ -5041,51 +5311,117 @@ function forEachUntilRNode<A>(xs: Node<A>, f: (a: A) => boolean): boolean {
 }
 
 const concat_ = <A>(lhs: Seq<A>, rhs: Seq<A>): Seq<A> => lhs.concat(rhs);
-function traverseViaSeqImpl<G, F, Rhs, A, B>(
+function traverseViaSeqImpl<G, Rhs, A, B>(
   G: Applicative<G>,
-  F: Foldable<F>,
   Rhs: TraverseStrategy<G, Rhs>,
-  xs: Kind<F, [A]>,
-  f: (a: A, i: number) => Kind<G, [B]>,
+  xs: Seq<A>,
+  f: (a: A) => Kind<G, [B]>,
 ): Kind<G, [Seq<B>]> {
-  if (F.isEmpty(xs)) return G.pure(Empty);
-
-  // Max width of the tree -- max depth log_128(F.size(xs))
-  const width = 128;
-
-  const loop = (start: number, end: number): Kind<Rhs, [Kind<G, [Seq<B>]>]> => {
-    if (end - start <= width) {
-      // We've entered leaves of the tree
-      let first = Rhs.toRhs(() =>
-        G.map_(f(F.get_(xs, end - 1).get, end - 1), Seq),
+  return Rhs.toG(traverseImpl(G, Rhs, xs, f));
+}
+function traverseImpl<G, Rhs, A, B>(
+  G: Applicative<G>,
+  Rhs: TraverseStrategy<G, Rhs>,
+  self: Seq<A>,
+  f: (a: A) => Kind<G, [B]>,
+): Kind<Rhs, [Kind<G, [Seq<B>]>]> {
+  const xs = self as ViewSeq<A>;
+  switch (xs.tag) {
+    case 0:
+      return Rhs.toRhs(() => G.pure(Empty));
+    case 1:
+      return Rhs.toRhs(() =>
+        G.map_(f(xs.value), value => new Single(xs.size, value)),
       );
-      for (let idx = end - 2; start <= idx; idx--) {
-        const a = F.get_(xs, idx).get;
-        const right = first;
-        const idx0 = idx;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(Seq.cons));
-      }
-      return first;
-    } else {
-      const step = ((end - start) / width) | 0;
+    case 2: {
+      const pfxRhs = traverseDigit(G, Rhs, xs.pfx, f);
+      const middleRhs = traverseImpl(G, Rhs, xs.deeper, n =>
+        Rhs.toG(traverseNode(Rhs, n, f)),
+      );
+      const sfxRhs = traverseDigit(G, Rhs, xs.sfx, f);
 
-      let fseq = Rhs.defer(() => loop(start, start + step));
-
-      for (
-        let start0 = start + step, end0 = start0 + step;
-        start0 < end;
-        start0 += step, end0 += step
-      ) {
-        const start1 = start0;
-        const end1 = Math.min(end, end0);
-        const right = Rhs.defer(() => loop(start1, end1));
-        fseq = Rhs.map2(fseq, right)(concat_);
-      }
-      return fseq;
+      let middle: Seq<Node<B>>;
+      let sfx: Digit<B>;
+      return Rhs.map2(
+        pfxRhs,
+        Rhs.map2(middleRhs, sfxRhs)((m, s) => ((middle = m), (sfx = s))),
+      )((pfx, _) => new Deep(xs.size, pfx, middle, sfx));
     }
-  };
-
-  return Rhs.toG(loop(0, F.size(xs)));
+  }
+}
+function traverseNode<G, Rhs, A, B>(
+  Rhs: TraverseStrategy<G, Rhs>,
+  xs: Node<A>,
+  f: (a: A) => Kind<G, [B]>,
+): Kind<Rhs, [Kind<G, [Node<B>]>]> {
+  switch (xs.length) {
+    case 3:
+      return Rhs.map2Rhs(
+        f(xs[1]),
+        Rhs.toRhs(() => f(xs[2])),
+      )((a, b) => [xs[0], a, b]);
+    case 4: {
+      let b: B;
+      let c: B;
+      return Rhs.map2Rhs(
+        f(xs[1]),
+        Rhs.defer(() =>
+          Rhs.map2Rhs(
+            f(xs[2]),
+            Rhs.toRhs(() => f(xs[3])),
+          )((x, y) => ((b = x), (c = y))),
+        ),
+      )((a, _) => [xs[0], a, b, c]);
+    }
+  }
+}
+function traverseDigit<G, Rhs, A, B>(
+  G: Applicative<G>,
+  Rhs: TraverseStrategy<G, Rhs>,
+  xs: Digit<A>,
+  f: (a: A) => Kind<G, [B]>,
+): Kind<Rhs, [Kind<G, [Digit<B>]>]> {
+  switch (xs.length) {
+    case 1:
+      return Rhs.toRhs(() => G.map_(f(xs[0]), a => [a]));
+    case 2:
+      return Rhs.map2Rhs(
+        f(xs[0]),
+        Rhs.toRhs(() => f(xs[1])),
+      )((a, b) => [a, b]);
+    case 3: {
+      let b: B;
+      let c: B;
+      return Rhs.map2Rhs(
+        f(xs[0]),
+        Rhs.defer(() =>
+          Rhs.map2Rhs(
+            f(xs[1]),
+            Rhs.toRhs(() => f(xs[2])),
+          )((x, y) => ((b = x), (c = y))),
+        ),
+      )(a => [a, b, c]);
+    }
+    case 4: {
+      let b: B;
+      let c: B;
+      let d: B;
+      return Rhs.map2Rhs(
+        f(xs[0]),
+        Rhs.defer(() =>
+          Rhs.map2Rhs(
+            f(xs[1]),
+            Rhs.defer(() =>
+              Rhs.map2Rhs(
+                f(xs[2]),
+                Rhs.toRhs(() => f(xs[3])),
+              )((y, w) => ((c = y), (d = w))),
+            ),
+          )((x, _) => (b = x)),
+        ),
+      )(a => [a, b, c, d]);
+    }
+  }
 }
 
 function traverseFilterViaSeqImpl<G, F, Rhs, A, B>(
@@ -5347,4 +5683,185 @@ function* nodeReversedIterator<A>(xs: Node<A>): Generator<A, void, undefined> {
       yield xs[1];
       break;
   }
+}
+
+Seq.Eq = cached(<A>(E: Eq<A>) =>
+  Eq.of<Seq<A>>({ equals: (xs, ys) => xs.equals(ys, E) }),
+);
+
+Seq.EqK = null as any as EqK<SeqF>;
+Seq.Monad = null as any as Monad<SeqF>;
+Seq.Alternative = null as any as Alternative<SeqF>;
+Seq.Foldable = null as any as Foldable<SeqF>;
+Seq.Traversable = null as any as Traversable<SeqF>;
+Seq.TraversableFilter = null as any as TraversableFilter<SeqF>;
+Seq.CoflatMap = null as any as CoflatMap<SeqF>;
+Seq.Unzip = null as any as Unzip<SeqF>;
+
+const seqEqK = lazy(() => EqK.of<SeqF>({ liftEq: Seq.Eq }));
+
+const seqMonoidK = lazy(() =>
+  MonoidK.of<SeqF>({
+    emptyK: () => Seq.empty,
+    combineK_: (xs, ys) => xs.concat(ys),
+    combineKEval_: (xs, eys) =>
+      xs.isEmpty ? eys : eys.map(ys => xs.concat(ys)),
+  }),
+);
+
+const seqFunctor = lazy(() =>
+  Functor.of<SeqF>({
+    map_: (xs, f) => xs.map(f),
+  }),
+);
+
+const seqFunctorFilter = lazy(() =>
+  FunctorFilter.of<SeqF>({
+    ...seqFunctor(),
+    mapFilter_: (xs, f) => xs.collect(f),
+    collect_: (xs, f) => xs.collect(f),
+  }),
+);
+
+const seqApplicative = lazy(() =>
+  Applicative.of<SeqF>({
+    ...seqFunctor(),
+    pure: Seq.singleton,
+    ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
+    map2_:
+      <A, B>(xs: Seq<A>, ys: Seq<B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        xs.map2(ys, f),
+    map2Eval_:
+      <A, B>(xs: Seq<A>, ys: Eval<Seq<B>>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        xs.map2Eval(ys, f),
+  }),
+);
+
+const seqAlternative = lazy(() =>
+  Alternative.of<SeqF>({
+    ...seqApplicative(),
+    ...seqMonoidK(),
+  }),
+);
+
+const seqMonad = lazy(() =>
+  Monad.of<SeqF>({
+    ...seqApplicative(),
+    flatMap_: (xs, f) => xs.flatMap(f),
+    tailRecM_: Seq.tailRecM_,
+  }),
+);
+
+const seqFoldable = lazy(() =>
+  Foldable.of<SeqF>({
+    foldLeft_: (xs, z, f) => xs.foldLeft(z, f),
+    foldRight_: (xs, ez, f) => xs.foldRight(ez, f),
+    foldMap_:
+      <M>(M: Monoid<M>) =>
+      <A>(xs: Seq<A>, f: (a: A) => M) =>
+        xs.foldMap(M, f),
+    foldMapK_:
+      <F>(F: MonoidK<F>) =>
+      <A, B>(xs: Seq<A>, f: (a: A) => Kind<F, [B]>) =>
+        xs.foldMapK(F, f),
+
+    iterator: xs => xs.iterator,
+    toArray: xs => xs.toArray,
+
+    elem_: (xs, idx) => xs.getOption(idx),
+    count_: (xs, f) => xs.count(f),
+    all_: (xs, f) => xs.all(f),
+    any_: (xs, f) => xs.any(f),
+    isEmpty: xs => xs.isEmpty,
+    nonEmpty: xs => xs.nonEmpty,
+    size: xs => xs.size,
+  }),
+);
+
+const seqTraversable = lazy(() =>
+  Traversable.of<SeqF>({
+    ...seqFoldable(),
+    ...seqFunctor(),
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(xs: Seq<A>, f: (a: A) => Kind<G, [B]>) =>
+        xs.traverse(G, f),
+  }),
+);
+
+const seqTraversableFilter = lazy(() =>
+  TraversableFilter.of<SeqF>({
+    ...seqTraversable(),
+    ...seqFunctorFilter(),
+    traverseFilter_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(xs: Seq<A>, f: (a: A) => Kind<G, [Option<B>]>) =>
+        xs.traverseFilter(G, f),
+  }),
+);
+
+const seqCoflatMap = lazy(() =>
+  CoflatMap.of<SeqF>({
+    ...seqFunctor(),
+    coflatMap_: (xs, f) => xs.coflatMap(f),
+  }),
+);
+
+const seqUnzip = lazy(() =>
+  Unzip.of<SeqF>({
+    ...seqFunctor(),
+    zipWith_: (xs, ys, f) => xs.zipWith(ys, f),
+    zip_: (xs, ys) => xs.zip(ys),
+    unzip: xs => xs.unzip(),
+    unzipWith_: (xs, f) => xs.unzipWith(f),
+  }),
+);
+
+Object.defineProperty(Seq, 'EqK', {
+  get() {
+    return seqEqK();
+  },
+});
+Object.defineProperty(Seq, 'Monad', {
+  get() {
+    return seqMonad();
+  },
+});
+Object.defineProperty(Seq, 'Alternative', {
+  get() {
+    return seqAlternative();
+  },
+});
+Object.defineProperty(Seq, 'Foldable', {
+  get() {
+    return seqFoldable();
+  },
+});
+Object.defineProperty(Seq, 'Traversable', {
+  get() {
+    return seqTraversable();
+  },
+});
+Object.defineProperty(Seq, 'TraversableFilter', {
+  get() {
+    return seqTraversableFilter();
+  },
+});
+Object.defineProperty(Seq, 'CoflatMap', {
+  get() {
+    return seqCoflatMap();
+  },
+});
+Object.defineProperty(Seq, 'Unzip', {
+  get() {
+    return seqUnzip();
+  },
+});
+
+// -- HKT
+
+export interface SeqF extends TyK<[unknown]> {
+  [$type]: Seq<TyVar<this, 0>>;
 }

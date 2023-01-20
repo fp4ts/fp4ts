@@ -299,6 +299,13 @@ describe('List', () => {
       const xs = List.fromArray([...new Array(10_000).keys()]);
       expect(xs['++'](xs).toArray).toEqual([...xs.toArray, ...xs.toArray]);
     });
+
+    test(
+      'should be toArray concat',
+      forAll(A.fp4tsList(fc.integer()), A.fp4tsList(fc.integer()), (xs, ys) =>
+        expect(xs.concat(ys).toArray).toEqual([...xs.toArray, ...ys.toArray]),
+      ),
+    );
   });
 
   describe('elem', () => {
@@ -1275,7 +1282,7 @@ describe('List', () => {
     it('should be stack safe', () => {
       const xs = List.fromArray([...new Array(20_000).keys()]);
       expect(
-        xs.traverse(Vector.Applicative, x => Vector(x))['!!'](0).toArray,
+        xs.traverse(Vector.Monad, x => Vector(x))['!!'](0).toArray,
       ).toEqual(xs.toArray);
     });
   });

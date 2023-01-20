@@ -31,6 +31,7 @@ import {
   LazyList,
   View,
   Coproduct,
+  Seq,
 } from '@fp4ts/cats-core/lib/data';
 import {
   Reader,
@@ -130,47 +131,20 @@ export const fp4tsVector = <A>(
   arbA: Arbitrary<A>,
   constraints: VectorConstraints = {},
 ): Arbitrary<Vector<A>> => {
-  const minLength =
-    constraints.minLength != null && constraints.minLength >= 0
-      ? constraints.minLength
-      : 0;
-  const maxLength =
-    constraints.maxLength != null &&
-    constraints.maxLength <= Number.MAX_SAFE_INTEGER
-      ? constraints.maxLength
-      : Math.min(2 * minLength + 10, 0x7fffffff);
-  const size = fc.integer({ min: minLength, max: maxLength });
+  const arb = fc.array(arbA, constraints).map(Vector.fromArray);
+  return fc.oneof(
+    arb,
+    arb.map(xs => xs.drop(1)),
+    arb.map(xs => xs.dropRight(1)),
+  );
+};
 
-  const genSized = fc.memo((size: number) => {
-    const fromArray = fc
-      .array(arbA, { minLength: size, maxLength: size })
-      .map(Vector.fromArray);
-
-    let recursive: Arbitrary<Vector<A>>;
-    switch (size) {
-      case 0:
-        recursive = fc.constant(Vector.empty);
-        break;
-      case 1:
-        recursive = arbA.map(Vector.pure);
-        break;
-      default: {
-        const s0 = fc.integer({ min: 1, max: size - 1 });
-        const s1 = s0.map(s0 => size - s0);
-        const left = s0.chain(genSized);
-        const right = s1.chain(genSized);
-        recursive = left.chain(l => right.map(r => l['+++'](r)));
-        break;
-      }
-    }
-
-    return fc.oneof(
-      { arbitrary: recursive, weight: 3 },
-      { arbitrary: fromArray, weight: 1 },
-    );
-  });
-
-  return size.chain(genSized);
+export const fp4tsSeq = <A>(arbA: Arbitrary<A>): Arbitrary<Seq<A>> => {
+  const arb = fc.array(arbA).map(Seq.fromArray);
+  return fc.oneof(
+    arb,
+    fc.tuple(arb, arb).map(([x, y]) => x.concat(y)),
+  );
 };
 
 export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {

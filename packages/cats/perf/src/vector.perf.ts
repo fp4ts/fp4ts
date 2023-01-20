@@ -61,7 +61,7 @@ function makeSuite(size: number) {
     }),
 
     add(`concat (${size})`, () => {
-      firstHalf['+++'](lastHalf);
+      firstHalf['++'](lastHalf);
     }),
 
     add(`reverse (${size})`, () => {
@@ -111,14 +111,14 @@ function makeSuite(size: number) {
     }),
 
     add(`zipWith tupled (${size})`, () => {
-      values.zipWith(values)((a, b) => [a, b]);
+      values.zipWith(values, (a, b) => [a, b]);
     }),
 
     add(`scanLeft sum (${size})`, () => {
       values.scanLeft(0, (x, y) => x + y);
     }),
     add(`scanRight sum (${size})`, () => {
-      values.scanRight(0, (x, y) => x + y);
+      values.scanRight_(0, (x, y) => x + y);
     }),
   ];
 }

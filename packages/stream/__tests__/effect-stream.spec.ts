@@ -398,7 +398,7 @@ describe('Effect-ful stream', () => {
             3,
           ),
         )
-        .attempt.evalMap(ea => IO(() => (results = results['::+'](ea))));
+        .attempt.evalMap(ea => IO(() => (results = results.append(ea))));
 
       const io = s.compileConcurrent().drain;
       io.unsafeRunToPromise({

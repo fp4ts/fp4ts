@@ -42,8 +42,8 @@ export const throwError = (e: Error): never => {
 export const id: <A>(a: A) => A = x => x;
 export const constant: <A>(a: A) => () => A = x => () => x;
 
-export const fst: <A, B>(x: [A, B]) => A = xs => xs[0];
-export const snd: <A, B>(x: [A, B]) => B = xs => xs[1];
+export const fst: <A, B>(x: readonly [A, B]) => A = xs => xs[0];
+export const snd: <A, B>(x: readonly [A, B]) => B = xs => xs[1];
 
 export const tupled = <A extends unknown[]>(...args: A): A => args;
 

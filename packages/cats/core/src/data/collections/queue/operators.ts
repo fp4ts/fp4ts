@@ -334,9 +334,15 @@ export const dropRight_ = <A>({ _in, _out }: Queue<A>, n: number): Queue<A> => {
   return new Queue(newIn, _out.dropRight(n - inSize));
 };
 
-export const slice_ = <A>(q: Queue<A>, from: number, until: number): Queue<A> =>
-  pipe(q, drop(from), take(until - from));
-
+export const slice_ = <A>(
+  q: Queue<A>,
+  from: number,
+  until: number,
+): Queue<A> => {
+  from = Math.max(from, 0);
+  until = Math.max(until, 0);
+  return pipe(q, drop(from), take(until - from));
+};
 export const splitAt_ = <A>(q: Queue<A>, idx: number): [Queue<A>, Queue<A>] => {
   const [l, r] = toList(q).splitAt(idx);
   return [new Queue(List.empty, l), new Queue(List.empty, r)];
