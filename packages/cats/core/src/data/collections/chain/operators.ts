@@ -71,9 +71,8 @@ export const popHead = <A>(c: Chain<A>): Option<[A, Chain<A>]> => {
         break;
 
       case 'wrap': {
-        const [hd, tl] = Vector.fromIterator(
-          cur.instance.iterator<A>(cur.values),
-        ).popHead.get;
+        const [hd, tl] = Vector.fromFoldable(cur.instance, cur.values).uncons
+          .get;
         sfx = (
           sfx ? concat_(fromVector(tl), sfx) : fromVector(tl)
         ) as NonEmpty<A>;
@@ -108,9 +107,8 @@ export const popLast = <A>(c: Chain<A>): Option<[A, Chain<A>]> => {
         break;
 
       case 'wrap': {
-        const [lst, ini] = Vector.fromIterator(
-          cur.instance.iterator<A>(cur.values),
-        ).popLast.get;
+        const [lst, ini] = Vector.fromFoldable(cur.instance, cur.values).popLast
+          .get;
         pfx = (
           pfx ? concat_(pfx, fromVector(ini)) : fromVector(ini)
         ) as NonEmpty<A>;
@@ -197,9 +195,7 @@ export const reversedIterator = <A>(c: Chain<A>): Iterator<A> => {
           case 'singleton':
             return Iter.Result.pure(v.value);
           case 'wrap':
-            cur = Vector.fromIterator(
-              v.instance.iterator<A>(v.values),
-            ).reverseIterator;
+            cur = Vector.fromFoldable(v.instance, v.values).reverseIterator;
             continue iterLoop;
           case 'concat':
             stack = stack.prepend(v.lhs).prepend(v.rhs);

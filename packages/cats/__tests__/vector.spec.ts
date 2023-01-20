@@ -25,6 +25,7 @@ import {
   AlignSuite,
   CoflatMapSuite,
   TraversableFilterSuite,
+  UnzipSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Vector', () => {
@@ -59,7 +60,7 @@ describe('Vector', () => {
     });
 
     test('singleton vector not to be empty', () => {
-      expect(Vector.pure(1).nonEmpty).toBe(true);
+      expect(Vector.singleton(1).nonEmpty).toBe(true);
     });
   });
 
@@ -87,6 +88,15 @@ describe('Vector', () => {
     it('should return head of the vector', () => {
       expect(Vector(1, 2).head).toBe(1);
     });
+
+    it(
+      'should be List.head',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        xs.nonEmpty
+          ? expect(xs.head).toEqual(xs.toList.head)
+          : expect(() => xs.head).toThrow(),
+      ),
+    );
   });
 
   describe('headOption', () => {
@@ -97,6 +107,13 @@ describe('Vector', () => {
     it('should return Some head when vector is not empty', () => {
       expect(Vector(1, 2).headOption).toEqual(Some(1));
     });
+
+    it(
+      'should be List.headOption',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.headOption).toEqual(xs.toList.headOption),
+      ),
+    );
   });
 
   describe('last', () => {
@@ -107,6 +124,15 @@ describe('Vector', () => {
     it('should return Some last when vector is not empty', () => {
       expect(Vector(1, 2).last).toEqual(2);
     });
+
+    it(
+      'should be List.last',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        xs.nonEmpty
+          ? expect(xs.last).toEqual(xs.toList.last)
+          : expect(() => xs.last).toThrow(),
+      ),
+    );
   });
 
   describe('lastOption', () => {
@@ -117,6 +143,13 @@ describe('Vector', () => {
     it('should return Some last when list is not empty', () => {
       expect(Vector(1, 2).lastOption).toEqual(Some(2));
     });
+
+    it(
+      'should be List.lastOption',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.lastOption).toEqual(xs.toList.lastOption),
+      ),
+    );
   });
 
   describe('tail', () => {
@@ -127,6 +160,13 @@ describe('Vector', () => {
     it('should return a list without the first element', () => {
       expect(Vector(1, 2, 3).tail.toArray).toEqual(Vector(2, 3).toArray);
     });
+
+    it(
+      'should be List.tail',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.tail.toList).toEqual(xs.toList.tail),
+      ),
+    );
   });
 
   describe('init', () => {
@@ -137,19 +177,28 @@ describe('Vector', () => {
     it('should return a vector without the last element', () => {
       expect(Vector(1, 2, 3).init.toArray).toEqual(Vector(1, 2).toArray);
     });
+
+    it(
+      'should be List.init',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.init.toList).toEqual(xs.toList.init),
+      ),
+    );
   });
 
   describe('popHead', () => {
     it('should return None when vector is empty', () => {
-      expect(Vector.empty.popHead).toEqual(None);
+      expect(Vector.empty.uncons).toEqual(None);
     });
 
     it('should pop head of a singleton vector', () => {
-      expect(Vector(42).popHead).toEqual(Some([42, Vector.empty]));
+      expect(Vector(42).uncons.map(([x, xs]) => [x, xs.toArray])).toEqual(
+        Some([42, []]),
+      );
     });
 
     it('should pop head of a vector', () => {
-      const [hd, tl] = Vector(1, 2, 3, 4, 5).popHead.get;
+      const [hd, tl] = Vector(1, 2, 3, 4, 5).uncons.get;
       expect([hd, tl.toArray]).toEqual([1, [2, 3, 4, 5]]);
     });
   });
@@ -160,7 +209,8 @@ describe('Vector', () => {
     });
 
     it('should pop lst element of a singleton vector', () => {
-      expect(Vector(42).popLast).toEqual(Some([42, Vector.empty]));
+      const [l, init] = Vector(42).popLast.get;
+      expect([l, init.toArray]).toEqual([42, []]);
     });
 
     it('should pop last element of a vector', () => {
@@ -188,6 +238,13 @@ describe('Vector', () => {
         [...new Array(10_000).keys()].reverse(),
       );
     });
+
+    it(
+      'should be List.reverse',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.reverse.toList).toEqual(xs.toList.reverse),
+      ),
+    );
   });
 
   describe('prepend', () => {
@@ -202,7 +259,7 @@ describe('Vector', () => {
     });
 
     it('should prepend multiple elements', () => {
-      expect(Vector.empty.prepend(0).prepend(1)['+::'](2).toArray).toEqual([
+      expect(Vector.empty.prepend(0).prepend(1).prepend(2).toArray).toEqual([
         2, 1, 0,
       ]);
     });
@@ -216,6 +273,13 @@ describe('Vector', () => {
 
       expect(v.toArray).toEqual(xs.reverse());
     });
+
+    it(
+      'should be List.prepend',
+      forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+        expect(xs.prepend(x).toList).toEqual(xs.toList.prepend(x)),
+      ),
+    );
   });
 
   describe('append', () => {
@@ -230,7 +294,7 @@ describe('Vector', () => {
     });
 
     it('should append multiple elements', () => {
-      expect(Vector.empty.append(0).append(1)['::+'](2).toArray).toEqual([
+      expect(Vector.empty.append(0).append(1).append(2).toArray).toEqual([
         0, 1, 2,
       ]);
     });
@@ -244,11 +308,18 @@ describe('Vector', () => {
 
       expect(v.toArray).toEqual(xs);
     });
+
+    it(
+      'should be List.append',
+      forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+        expect(xs.append(x).toList).toEqual(xs.toList.append(x)),
+      ),
+    );
   });
 
-  describe('elem', () => {
+  describe('get', () => {
     it('should throw when empty', () => {
-      expect(() => Vector.empty.elem(0)).toThrow();
+      expect(() => Vector.empty.get(0)).toThrow();
     });
 
     it('should return element at the given index', () => {
@@ -256,13 +327,13 @@ describe('Vector', () => {
       const xs = Vector.fromArray([...new Array(size).keys()]);
       const ys = [] as number[];
       for (let i = 0; i < size; i++) {
-        ys[i] = xs.elem(i);
+        ys[i] = xs.get(i);
       }
       expect(ys).toEqual([...new Array(size).keys()]);
     });
   });
 
-  describe('elemOption', () => {
+  describe('getOption', () => {
     it('should return None when index is less than zero', () => {
       expect(Vector(1, 2, 3)['!?'](-1)).toEqual(None);
     });
@@ -428,6 +499,13 @@ describe('Vector', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
       expect(xs.drop(10_000).toArray).toEqual([]);
     });
+
+    it(
+      'should be List.drop',
+      forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, n) =>
+        expect(xs.drop(n).toList).toEqual(xs.toList.drop(n)),
+      ),
+    );
   });
 
   describe('dropRight', () => {
@@ -463,6 +541,13 @@ describe('Vector', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
       expect(xs.dropRight(10_000).toArray).toEqual([]);
     });
+
+    it(
+      'should be List.dropRight',
+      forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, n) =>
+        expect(xs.dropRight(n).toList).toEqual(xs.toList.dropRight(n)),
+      ),
+    );
   });
 
   describe('slice', () => {
@@ -492,6 +577,17 @@ describe('Vector', () => {
         [...new Array(10_000)].slice(2_500, 5_000),
       );
     });
+
+    it(
+      'should be List.slice',
+      forAll(
+        A.fp4tsVector(fc.integer()),
+        fc.integer(),
+        fc.integer(),
+        (xs, n, m) =>
+          expect(xs.slice(n, m).toList).toEqual(xs.toList.slice(n, m)),
+      ),
+    );
   });
 
   describe('splitAt', () => {
@@ -544,19 +640,19 @@ describe('Vector', () => {
     });
 
     it('should return rhs when lhs empty', () => {
-      expect(Vector.empty['+++'](Vector(1, 2, 3)).toArray).toEqual(
+      expect(Vector.empty['++'](Vector(1, 2, 3)).toArray).toEqual(
         Vector(1, 2, 3).toArray,
       );
     });
 
     it('should return lhs when rhs empty', () => {
-      expect(Vector(1, 2, 3)['+++'](Vector.empty).toArray).toEqual(
+      expect(Vector(1, 2, 3)['++'](Vector.empty).toArray).toEqual(
         Vector(1, 2, 3).toArray,
       );
     });
 
     it('should concatenate two vectors', () => {
-      expect(Vector(1, 2, 3)['+++'](Vector(4, 5, 6)).toArray).toEqual(
+      expect(Vector(1, 2, 3)['++'](Vector(4, 5, 6)).toArray).toEqual(
         Vector(1, 2, 3, 4, 5, 6).toArray,
       );
     });
@@ -565,7 +661,7 @@ describe('Vector', () => {
       const xs = [...new Array(10_000).keys()];
       const vx = Vector.fromArray(xs);
 
-      expect(vx['+++'](vx).toArray).toEqual([...xs, ...xs]);
+      expect(vx['++'](vx).toArray).toEqual([...xs, ...xs]);
     });
   });
 
@@ -584,6 +680,13 @@ describe('Vector', () => {
       const xs = Vector.fromArray([...new Array(10_000).keys()]);
       expect(xs.map(id).toArray).toEqual(xs.toArray);
     });
+
+    it(
+      'should be List.map',
+      forAll(A.fp4tsVector(fc.integer()), fc.func(fc.string()), (xs, f) =>
+        expect(xs.map(f).toList).toEqual(xs.toList.map(f)),
+      ),
+    );
   });
 
   describe('flatMap', () => {
@@ -603,6 +706,18 @@ describe('Vector', () => {
         xs.toArray.flatMap(x => [x, x]),
       );
     });
+
+    it(
+      'should be List.flatMap',
+      forAll(
+        A.fp4tsVector(fc.integer()),
+        fc.func(A.fp4tsVector(fc.string())),
+        (xs, f) =>
+          expect(xs.flatMap(f).toList).toEqual(
+            xs.toList.flatMap(x => f(x).toList),
+          ),
+      ),
+    );
   });
 
   // describe('tailRecM', () => {
@@ -663,6 +778,27 @@ describe('Vector', () => {
     it('should zip two single element Vectors', () => {
       expect(Vector(42).zip(Vector(43))).toEqual(Vector([42, 43]));
     });
+
+    it(
+      'should be List.zip',
+      forAll(
+        A.fp4tsVector(fc.integer()),
+        A.fp4tsVector(fc.string()),
+        (xs, ys) => expect(xs.zip(ys).toList).toEqual(xs.toList.zip(ys.toList)),
+      ),
+    );
+
+    it(
+      'should be List.zipView',
+      forAll(
+        A.fp4tsVector(fc.integer()),
+        A.fp4tsVector(fc.string()),
+        (xs, ys) =>
+          expect(xs.zipView(ys).toList).toEqual(
+            xs.toList.zipView(ys.toList).toList,
+          ),
+      ),
+    );
   });
 
   describe('zipWithIndex', () => {
@@ -677,53 +813,44 @@ describe('Vector', () => {
         [3, 2],
       ]);
     });
+
+    it(
+      'should be List.zipWithIndex',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.zipWithIndex.toList).toEqual(xs.toList.zipWithIndex),
+      ),
+    );
   });
 
   describe('zipWith', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should produce an empty Vector when zipped with empty Vector on lhs', () => {
-      expect(Vector.empty.zipWith(Vector(42))(add)).toEqual(Vector.empty);
+      expect(Vector.empty.zipWith(Vector(42), add)).toEqual(Vector.empty);
     });
 
     it('should produce an empty Vector when zipped with empty Vector on rhs', () => {
-      expect(Vector(42).zipWith(Vector.empty)(add)).toEqual(Vector.empty);
+      expect(Vector(42).zipWith(Vector.empty, add)).toEqual(Vector.empty);
     });
 
     it('should zip two single element Vectors', () => {
-      expect(Vector(42).zipWith(Vector(43))(add)).toEqual(Vector(85));
+      expect(Vector(42).zipWith(Vector(43), add)).toEqual(Vector(85));
     });
   });
 
   describe('zipAll', () => {
     it('should fill default value on left', () => {
       expect(
-        Vector.empty.zipAll(
-          Vector(42),
-          () => 1,
-          () => 2,
-        ).toArray,
+        (Vector.empty as Vector<number>).zipAll(Vector(42), 1, 2).toArray,
       ).toEqual([[1, 42]]);
     });
 
     it('should fill default value on right', () => {
-      expect(
-        Vector(42).zipAll(
-          Vector.empty,
-          () => 1,
-          () => 2,
-        ).toArray,
-      ).toEqual([[42, 2]]);
+      expect(Vector(42).zipAll(Vector.empty, 1, 2).toArray).toEqual([[42, 2]]);
     });
 
     it('should zip two single element Vectors', () => {
-      expect(
-        Vector(42).zipAll(
-          Vector(43),
-          () => 1,
-          () => 2,
-        ).toArray,
-      ).toEqual([[42, 43]]);
+      expect(Vector(42).zipAll(Vector(43), 1, 2).toArray).toEqual([[42, 43]]);
     });
   });
 
@@ -732,32 +859,21 @@ describe('Vector', () => {
 
     it('should fill default value on left', () => {
       expect(
-        Vector.empty.zipAllWith(
-          Vector(42),
-          () => 1,
-          () => 2,
-        )(add).toArray,
+        (Vector.empty as Vector<number>).zipAllWith(Vector(42), 1, 2, add)
+          .toArray,
       ).toEqual([43]);
     });
 
     it('should fill default value on right', () => {
-      expect(
-        Vector(42).zipAllWith(
-          Vector.empty,
-          () => 1,
-          () => 2,
-        )(add).toArray,
-      ).toEqual([44]);
+      expect(Vector(42).zipAllWith(Vector.empty, 1, 2, add).toArray).toEqual([
+        44,
+      ]);
     });
 
     it('should zip two single element Vectors', () => {
-      expect(
-        Vector(42).zipAllWith(
-          Vector(43),
-          () => 1,
-          () => 2,
-        )(add).toArray,
-      ).toEqual([85]);
+      expect(Vector(42).zipAllWith(Vector(43), 1, 2, add).toArray).toEqual([
+        85,
+      ]);
     });
   });
 
@@ -907,7 +1023,7 @@ describe('Vector', () => {
   test(
     'foldMap is List.foldMap',
     forAll(A.fp4tsVector(fc.integer()), xs =>
-      expect(xs.foldMap(Monoid.addition)(id)).toEqual(
+      expect(xs.foldMap(Monoid.addition, id)).toEqual(
         xs.toList.foldMap(Monoid.addition, id),
       ),
     ),
@@ -916,7 +1032,7 @@ describe('Vector', () => {
   test(
     'foldMapLeft is List.foldMapLeft',
     forAll(A.fp4tsVector(fc.integer()), xs =>
-      expect(xs.foldMap(Monoid.addition)(id)).toEqual(
+      expect(xs.foldMap(Monoid.addition, id)).toEqual(
         xs.toList.foldMap(Monoid.addition, id),
       ),
     ),
@@ -943,8 +1059,8 @@ describe('Vector', () => {
   describe('scanLeft1', () => {
     const add = (x: number, y: number): number => x + y;
 
-    it('should throw error when vector is empty', () => {
-      expect(() => Vector.empty.scanLeft1(add)).toThrow();
+    it('should return an empty vector on empty', () => {
+      expect(Vector.empty.scanLeft1(add)).toEqual(Vector.empty);
     });
 
     it('should accumulate sums of the values', () => {
@@ -958,50 +1074,50 @@ describe('Vector', () => {
     });
   });
 
-  describe('scanRight', () => {
+  describe('scanRight_', () => {
     const add = (x: number, y: number): number => x + y;
 
     it('should return an initial result when list is empty', () => {
-      expect(Vector.empty.scanRight(0, add)).toEqual(Vector(0));
+      expect(Vector.empty.scanRight_(0, add)).toEqual(Vector(0));
     });
 
     it('should accumulate sums of the values', () => {
-      expect(Vector(1, 2, 3).scanRight(0, add).toArray).toEqual([6, 5, 3, 0]);
+      expect(Vector(1, 2, 3).scanRight_(0, add).toArray).toEqual([6, 5, 3, 0]);
     });
 
     it('should be right associate', () => {
       expect(
-        Vector(1, 2, 3).scanRight('', (x, y) => `(${x} ${y})`).toArray,
+        Vector(1, 2, 3).scanRight_('', (x, y) => `(${x} ${y})`).toArray,
       ).toEqual(['(1 (2 (3 )))', '(2 (3 ))', '(3 )', '']);
     });
   });
 
-  describe('scanRight1', () => {
+  describe('scanRight1_', () => {
     const add = (x: number, y: number): number => x + y;
 
-    it('should throw when vector is empty', () => {
-      expect(() => Vector.empty.scanRight1(add)).toThrow();
+    it('should return an empty vector', () => {
+      expect(Vector.empty.scanRight1_(add)).toEqual(Vector.empty);
     });
 
     it('should accumulate sums of the values', () => {
-      expect(Vector(1, 2, 3).scanRight1(add).toArray).toEqual([6, 5, 3]);
+      expect(Vector(1, 2, 3).scanRight1_(add).toArray).toEqual([6, 5, 3]);
     });
 
     it('should be right associate', () => {
       expect(
-        Vector('1', '2', '3').scanRight1((x, y) => `(${x} ${y})`).toArray,
+        Vector('1', '2', '3').scanRight1_((x, y) => `(${x} ${y})`).toArray,
       ).toEqual(['(1 (2 3))', '(2 3)', '3']);
     });
   });
 
   describe('traverse', () => {
     it('should return empty list when empty', () => {
-      expect(Vector().traverse(Identity.Applicative)(id)).toEqual(Vector.empty);
+      expect(Vector().traverse(Identity.Applicative, id)).toEqual(Vector.empty);
     });
 
     it('should invoke elements in order', () => {
       const arr: number[] = [];
-      Vector(1, 2, 3, 4, 5).traverse(Identity.Applicative)(x => {
+      Vector(1, 2, 3, 4, 5).traverse(Identity.Applicative, x => {
         arr.push(x);
         return x;
       });
@@ -1011,7 +1127,7 @@ describe('Vector', () => {
 
     it('should be stack safe', () => {
       const xs = Vector.fromArray([...new Array(200).keys()]);
-      expect(xs.traverse(List.Applicative)(x => List(x)).head.toArray).toEqual(
+      expect(xs.traverse(List.Applicative, x => List(x)).head.toArray).toEqual(
         xs.toArray,
       );
     });
@@ -1021,6 +1137,22 @@ describe('Vector', () => {
     checkAll(
       'Align<Vector>',
       AlignSuite(Vector.Align).align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsVector,
+        Vector.Eq,
+      ),
+    );
+
+    checkAll(
+      'Unzip<Vector>',
+      UnzipSuite(Vector.Unzip).unzip(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -1088,7 +1220,7 @@ describe('Vector', () => {
         fc.integer(),
         CommutativeMonoid.addition,
         CommutativeMonoid.addition,
-        Vector.FunctorFilter,
+        Vector.TraversableFilter,
         Monad.Eval,
         Monad.Eval,
         Eq.fromUniversalEquals(),

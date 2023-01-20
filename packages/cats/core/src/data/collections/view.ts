@@ -33,7 +33,7 @@ import { None, Option, Some } from '../option';
 import { Set as OrdSet } from './set';
 import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
-import { Vector, VectorBuilder } from './vector';
+import { Vector } from './vector';
 import { Map } from './map';
 import { Seq } from './seq';
 
@@ -699,13 +699,6 @@ export class _View<A> {
   }
 
   /**
-   * Converts the view into a `Seq`.
-   */
-  public get toSeq(): Seq<A> {
-    return this.foldLeft(Seq.empty as Seq<A>, (xs, x) => xs.append(x));
-  }
-
-  /**
    * Converts the view into a `LazyList`. Since `LazyList` is a lazy collection,
    * the view does not get evaluated until the elements are accessed.
    */
@@ -717,8 +710,14 @@ export class _View<A> {
    * Converts the view into a `Vector`.
    */
   public get toVector(): Vector<A> {
-    return this.foldLeft(new VectorBuilder<A>(), (b, x) => b.addOne(x))
-      .toVector;
+    return Vector.fromArray(this.toArray);
+  }
+
+  /**
+   * Converts the view into a `Seq`.
+   */
+  public get toSeq(): Seq<A> {
+    return this.foldLeft(Seq.empty as Seq<A>, (b, x) => b.prepend(x));
   }
 
   /**
@@ -1366,6 +1365,8 @@ export class _View<A> {
    * ```
    */
   public slice(from: number, until: number): View<A> {
+    from = Math.max(from, 0);
+    until = Math.max(until, 0);
     return this.drop(from).take(until - from);
   }
 

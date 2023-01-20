@@ -134,7 +134,7 @@ class _NonEmptyList<out A> {
     return this.toList.view;
   }
   public get toVector(): Vector<A> {
-    return Vector.fromList(this.tail.cons(this.head));
+    return Vector.fromArray(this.toArray);
   }
 
   public prepend<B>(this: NonEmptyList<B>, that: B): NonEmptyList<B> {

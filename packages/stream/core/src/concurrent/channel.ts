@@ -78,7 +78,7 @@ export class Channel<F, A> {
                   return s.size < capacity
                     ? [
                         s.copy({
-                          values: s.values['::+'](a),
+                          values: s.values.append(a),
                           size: s.size + 1,
                           waiting: None,
                         }),
@@ -90,7 +90,7 @@ export class Channel<F, A> {
                     : [
                         s.copy({
                           waiting: None,
-                          producers: s.producers['::+']([a, producer]),
+                          producers: s.producers.append([a, producer]),
                         }),
                         F.productL_(
                           F.map_(
@@ -138,7 +138,7 @@ export class Channel<F, A> {
 
                 s.producers.forEach(([value, producer]) => {
                   unblock = F.productR_(unblock, producer.complete(undefined));
-                  allValues = allValues['::+'](value);
+                  allValues = allValues.append(value);
                 });
 
                 const toEmit = Chunk.fromVector(allValues);
