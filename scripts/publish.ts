@@ -144,7 +144,7 @@ unsafeRunMain(
           opt.fold(
             () => IO.throwError(new Error('ERROR')),
             xs =>
-              xs.traverse(IO.Applicative)(releaseWorkspace(cwd, version, tag)),
+              xs.traverse(IO.Applicative, releaseWorkspace(cwd, version, tag)),
           ),
         ),
     ),
