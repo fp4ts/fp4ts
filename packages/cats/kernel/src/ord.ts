@@ -5,6 +5,8 @@
 
 import { instance, lazyVal } from '@fp4ts/core';
 import { Eq } from './eq';
+import { arrayOrd } from './instances/array';
+import { tupleOrd } from './instances/tuple';
 
 const LT = 0;
 type LT = typeof LT;
@@ -29,6 +31,9 @@ export interface Ord<A> extends Eq<A> {
   readonly lte: (lhs: A, rhs: A) => boolean;
   readonly gt: (lhs: A, rhs: A) => boolean;
   readonly gte: (lhs: A, rhs: A) => boolean;
+
+  readonly max: (lhs: A, rhs: A) => A;
+  readonly min: (lhs: A, rhs: A) => A;
 }
 
 type OrdRequirements<A> = Pick<Ord<A>, 'compare'> & Partial<Ord<A>>;
@@ -42,6 +47,10 @@ export const Ord = Object.freeze({
       gte: (lhs, rhs) => self.compare(lhs, rhs) !== Compare.LT,
       equals: (lhs, rhs) => self.compare(lhs, rhs) === Compare.EQ,
       notEquals: (lhs, rhs) => self.compare(lhs, rhs) !== Compare.EQ,
+
+      max: (lhs: A, rhs: A) => (self.lte(lhs, rhs) ? rhs : lhs),
+      min: (lhs: A, rhs: A) => (self.lte(lhs, rhs) ? lhs : rhs),
+
       ...O,
     });
     return self;
@@ -50,19 +59,8 @@ export const Ord = Object.freeze({
   by: <A, B>(O: Ord<A>, f: (b: B) => A): Ord<B> =>
     Ord.of({ compare: (lhs, rhs) => O.compare(f(lhs), f(rhs)) }),
 
-  tuple2: <A, B>(ordA: Ord<A>, ordB: Ord<B>): Ord<[A, B]> =>
-    Ord.of({
-      compare: (x, y) => {
-        switch (ordA.compare(x[0], y[0])) {
-          case Compare.LT:
-            return Compare.LT;
-          case Compare.GT:
-            return Compare.GT;
-          case Compare.EQ:
-            return ordB.compare(x[1], y[1]);
-        }
-      },
-    }),
+  tuple: <A extends unknown[]>(...os: { [k in keyof A]: Ord<A[k]> }): Ord<A> =>
+    tupleOrd<A>(os),
 
   fromUniversalCompare: lazyVal(
     <A>(): Ord<A> =>
@@ -74,6 +72,11 @@ export const Ord = Object.freeze({
         lte: (lhs: A, rhs: A) => lhs <= rhs,
         gt: (lhs: A, rhs: A) => lhs > rhs,
         gte: (lhs: A, rhs: A) => lhs >= rhs,
+
+        max: (lhs: A, rhs: A) => (lhs <= rhs ? rhs : lhs),
+        min: (lhs: A, rhs: A) => (lhs <= rhs ? lhs : rhs),
       }),
   ) as <A>() => Ord<A>,
+
+  Array: <A>(O: Ord<A>): Ord<A[]> => arrayOrd(O),
 });

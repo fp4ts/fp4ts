@@ -109,7 +109,7 @@ describe('chunk', () => {
         vectorScan.last,
       ] as [Vector<Vector<number>>, Vector<number>]);
     })(
-      Eq.tuple2(
+      Eq.tuple(
         Vector.Eq(Vector.Eq(Eq.fromUniversalEquals())),
         Vector.Eq(Eq.fromUniversalEquals()),
       ),

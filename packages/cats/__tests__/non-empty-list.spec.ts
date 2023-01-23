@@ -260,7 +260,7 @@ describe('NonEmptyList', () => {
       A.fp4tsNel(fc.integer()),
       A.fp4tsNel(fc.string()),
       (xs, ys) => new IsEq(xs.zip(ys).toList, xs.toList.zip(ys.toList)),
-    )(List.Eq(Eq.tuple2(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
+    )(List.Eq(Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
@@ -270,7 +270,7 @@ describe('NonEmptyList', () => {
       fc.func(fc.boolean()),
       (xs, f) => new IsEq(xs.partition(f), xs.toList.partition(f)),
     )(
-      Eq.tuple2(
+      Eq.tuple(
         List.Eq(Eq.fromUniversalEquals()),
         List.Eq(Eq.fromUniversalEquals()),
       ),
@@ -285,7 +285,7 @@ describe('NonEmptyList', () => {
       ),
       (xs, f) => new IsEq(xs.partitionWith(f), xs.toList.partitionWith(f)),
     )(
-      Eq.tuple2(
+      Eq.tuple(
         List.Eq(Eq.fromUniversalEquals()),
         List.Eq(Eq.fromUniversalEquals()),
       ),

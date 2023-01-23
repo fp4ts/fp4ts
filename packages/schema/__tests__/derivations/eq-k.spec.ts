@@ -17,7 +17,7 @@ describe('EqK derivation', () => {
   const GenericAdtEqK = GenericAdt.schemaK.interpret(SchemableK.EqK);
   const AndStringEqK = AndString.schemaK.interpret(SchemableK.EqK);
 
-  const EqStringNumber = Eq.tuple2(
+  const EqStringNumber = Eq.tuple(
     Eq.fromUniversalEquals() as Eq<string>,
     Eq.fromUniversalEquals() as Eq<number>,
   );

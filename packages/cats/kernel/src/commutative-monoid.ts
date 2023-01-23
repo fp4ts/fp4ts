@@ -7,6 +7,9 @@ import { Eval, instance } from '@fp4ts/core';
 import { CommutativeSemigroup } from './commutative-semigroup';
 import { Monoid } from './monoid';
 import { SemigroupRequirements } from './semigroup';
+import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
+import { additionMonoid, productMonoid } from './instances/number';
+import { recordCommutativeMonoid } from './instances/record';
 
 /**
  * @category Type Class
@@ -36,33 +39,19 @@ export const CommutativeMonoid = Object.freeze({
   },
 
   get disjunction(): CommutativeMonoid<boolean> {
-    return CommutativeMonoid.of({
-      combine_: CommutativeSemigroup.disjunction.combine_,
-      combineEval_: CommutativeSemigroup.disjunction.combineEval_,
-      empty: false,
-    });
+    return disjunctionMonoid();
   },
 
   get conjunction(): CommutativeMonoid<boolean> {
-    return CommutativeMonoid.of({
-      combine_: CommutativeSemigroup.conjunction.combine_,
-      combineEval_: CommutativeSemigroup.conjunction.combineEval_,
-      empty: true,
-    });
+    return conjunctionMonoid();
   },
 
   get addition(): CommutativeMonoid<number> {
-    return CommutativeMonoid.of({
-      combine_: CommutativeSemigroup.addition.combine_,
-      empty: 0,
-    });
+    return additionMonoid();
   },
 
   get product(): CommutativeMonoid<number> {
-    return CommutativeMonoid.of({
-      combine_: CommutativeSemigroup.product.combine_,
-      empty: 1,
-    });
+    return productMonoid();
   },
 
   get void(): CommutativeMonoid<void> {
@@ -72,4 +61,8 @@ export const CommutativeMonoid = Object.freeze({
       empty: undefined,
     });
   },
+
+  Record: <A>(
+    S: CommutativeSemigroup<A>,
+  ): CommutativeMonoid<Record<string, A>> => recordCommutativeMonoid(S),
 });

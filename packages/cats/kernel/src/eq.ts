@@ -4,6 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $type, Base, Eval, instance, TyK, TyVar } from '@fp4ts/core';
+import { arrayEq } from './instances/array';
+import { recordEq } from './instances/record';
+import { tupleEq } from './instances/tuple';
 
 /**
  * @category Type Class
@@ -40,8 +43,6 @@ export const Eq = Object.freeze({
     return Eq.of({ equals: () => false });
   },
 
-  Eval: <A>(A: Eq<A>): Eq<Eval<A>> => Eq.by(A, e => e.value),
-
   Error: {
     get allEqual(): Eq<Error> {
       return Eq.of({ equals: () => true });
@@ -59,39 +60,28 @@ export const Eq = Object.freeze({
     },
   },
 
-  tuple2<A, B>(A: Eq<A>, B: Eq<B>): Eq<[A, B]> {
-    return Eq.of({
-      equals: ([la, lb], [ra, rb]) => A.equals(la, ra) && B.equals(lb, rb),
-    });
-  },
+  tuple: <A extends unknown[]>(...es: { [k in keyof A]: Eq<A[k]> }): Eq<A> =>
+    tupleEq<A>(es),
 
-  tuple<A extends unknown[]>(...es: { [k in keyof A]: Eq<A[k]> }): Eq<A> {
-    return Eq.of({
-      equals: (xs, ys) => es.every((e, i) => e.equals(xs[i], ys[i])),
-    });
-  },
-  record<A>(e: Eq<A>): Eq<Record<string, A>> {
-    return Eq.of({
-      equals: (xs, ys) => {
-        for (const k in xs) {
-          if (!(k in ys)) return false;
-        }
-        for (const k in ys) {
-          if (!(k in xs)) return false;
-        }
-        return Object.keys(xs).every(k => e.equals(xs[k], ys[k]));
-      },
-    });
-  },
   // eslint-disable-next-line @typescript-eslint/ban-types
   struct<A extends {}>(es: { [k in keyof A]: Eq<A[k]> }): Eq<A> {
     return Eq.of({
-      equals: (xs, ys) =>
-        (Object.keys(es) as (keyof typeof es)[]).every(k =>
-          es[k].equals(xs[k], ys[k]),
-        ),
+      equals: (xs, ys) => {
+        for (const k in es) {
+          if (!es[k].equals(xs[k], ys[k])) return false;
+        }
+        return true;
+      },
     });
   },
+
+  Eval: <A>(A: Eq<A>): Eq<Eval<A>> => Eq.by(A, e => e.value),
+
+  Array: <A>(A: Eq<A>): Eq<A[]> => arrayEq(A),
+
+  Record: <A, K extends symbol | number | string = string>(
+    E: Eq<A>,
+  ): Eq<Record<K, A>> => recordEq(E),
 });
 
 // -- HKT

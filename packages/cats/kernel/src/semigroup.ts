@@ -3,7 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Eval, instance, Lazy, lazyVal } from '@fp4ts/core';
+import { Base, Eval, instance, lazyVal } from '@fp4ts/core';
+import { arraySemigroup } from './instances/array';
+import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
+import { additionMonoid, productMonoid } from './instances/number';
+import { recordSemigroup } from './instances/record';
 
 /**
  * @category Type Class
@@ -45,24 +49,24 @@ export const Semigroup = Object.freeze({
   },
 
   get disjunction(): Semigroup<boolean> {
-    return Semigroup.of({
-      combine_: (x, y) => x || y,
-      combineEval_: (x, ey) => (x ? Eval.true : ey),
-    });
+    return disjunctionMonoid();
   },
 
   get conjunction(): Semigroup<boolean> {
-    return Semigroup.of({
-      combine_: (x, y) => x && y,
-      combineEval_: (x, ey) => (x ? ey : Eval.false),
-    });
+    return conjunctionMonoid();
   },
 
   get addition(): Semigroup<number> {
-    return Semigroup.of({ combine_: (x, y) => x + y });
+    return additionMonoid();
   },
 
   get product(): Semigroup<number> {
-    return Semigroup.of({ combine_: (x, y) => x * y });
+    return productMonoid();
   },
+
+  Array: <A>(): Semigroup<A[]> => arraySemigroup(),
+
+  Record: <A, K extends symbol | number | string = string>(
+    S: Semigroup<A>,
+  ): Semigroup<Record<K, A>> => recordSemigroup(S),
 });

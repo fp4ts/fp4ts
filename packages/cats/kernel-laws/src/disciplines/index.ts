@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './eq-suite';
+export * from './ord-suite';
 export * from './monoid-suite';
 export * from './semigroup-suite';
 

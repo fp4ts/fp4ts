@@ -10,5 +10,6 @@
 export * from './disciplines';
 
 export * from './eq-laws';
+export * from './ord-laws';
 export * from './monoid-laws';
 export * from './semigroup-laws';

@@ -4,7 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { instance, lazyVal } from '@fp4ts/core';
+import { arrayMonoid } from './instances/array';
 import { Semigroup, SemigroupRequirements } from './semigroup';
+import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
+import { additionMonoid, productMonoid } from './instances/number';
+import { recordMonoid } from './instances/record';
 
 /**
  * @category Type Class
@@ -40,26 +44,22 @@ export const Monoid = Object.freeze({
   },
 
   get disjunction(): Monoid<boolean> {
-    return Monoid.of({
-      combine_: Semigroup.disjunction.combine_,
-      combineEval_: Semigroup.disjunction.combineEval_,
-      empty: false,
-    });
+    return disjunctionMonoid();
   },
 
   get conjunction(): Monoid<boolean> {
-    return Monoid.of({
-      combine_: Semigroup.conjunction.combine_,
-      combineEval_: Semigroup.conjunction.combineEval_,
-      empty: true,
-    });
+    return conjunctionMonoid();
   },
 
   get addition(): Monoid<number> {
-    return Monoid.of({ combine_: Semigroup.addition.combine_, empty: 0 });
+    return additionMonoid();
   },
 
   get product(): Monoid<number> {
-    return Monoid.of({ combine_: Semigroup.product.combine_, empty: 1 });
+    return productMonoid();
   },
+
+  Array: <A>(): Monoid<A[]> => arrayMonoid(),
+
+  Record: <A>(S: Semigroup<A>): Monoid<Record<string, A>> => recordMonoid(S),
 });

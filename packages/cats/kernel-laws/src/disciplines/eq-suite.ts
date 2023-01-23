@@ -14,29 +14,13 @@ export function EqSuite<A>(E: Eq<A>) {
   return {
     eq: (arbA: Arbitrary<A>): RuleSet =>
       new RuleSet('Eq', [
-        ['eq reflexivity', forAll(arbA, laws.reflexivityEq)(E)],
-        [
-          'eq symmetric',
-          forAll(arbA, arbA, laws.symmetricEq)(Eq.fromUniversalEquals()),
-        ],
+        ['eq reflexivity', forAll(arbA, laws.reflexivityEq)],
+        ['eq symmetric', forAll(arbA, arbA, laws.symmetricEq)],
         [
           'eq anti symmetric',
-          forAll(
-            arbA,
-            arbA,
-            fc.func<[A], A>(arbA),
-            laws.antiSymmetricEq,
-          )(Eq.fromUniversalEquals()),
+          forAll(arbA, arbA, fc.func<[A], A>(arbA), laws.antiSymmetricEq),
         ],
-        [
-          'eq transitivity',
-          forAll(
-            arbA,
-            arbA,
-            arbA,
-            laws.transitivityEq,
-          )(Eq.fromUniversalEquals()),
-        ],
+        ['eq transitivity', forAll(arbA, arbA, arbA, laws.transitivityEq)],
       ]),
   };
 }

@@ -44,7 +44,7 @@ describe('Ior', () => {
       i.onlyBoth['<=>'](
         i.left.flatMap(l => i.right.map(r => [l, r] as [number, string])),
       ),
-    )(Option.Eq(Eq.tuple2(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
+    )(Option.Eq(Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
@@ -52,7 +52,7 @@ describe('Ior', () => {
     forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
       i.pad['<=>']([i.left, i.right] as [Option<number>, Option<string>]),
     )(
-      Eq.tuple2(
+      Eq.tuple(
         Option.Eq(Eq.fromUniversalEquals()),
         Option.Eq(Eq.fromUniversalEquals()),
       ),

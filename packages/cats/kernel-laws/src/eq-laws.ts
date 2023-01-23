@@ -7,16 +7,15 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 export const EqLaws = <A>(E: Eq<A>) => ({
-  reflexivityEq: (x: A): IsEq<A> => new IsEq(x, x),
+  reflexivityEq: (x: A): boolean => E.equals(x, x) === true,
 
-  symmetricEq: (x: A, y: A): IsEq<boolean> =>
-    new IsEq(E.equals(x, y), E.equals(y, x)),
+  symmetricEq: (x: A, y: A): boolean => E.equals(x, y) === E.equals(y, x),
 
-  antiSymmetricEq: (x: A, y: A, f: (a: A) => A): IsEq<boolean> =>
-    new IsEq(E.notEquals(x, y) || E.equals(f(x), f(y)), true),
+  antiSymmetricEq: (x: A, y: A, f: (a: A) => A): boolean =>
+    E.notEquals(x, y) || E.equals(f(x), f(y)) === true,
 
-  transitivityEq: (x: A, y: A, z: A): IsEq<boolean> =>
-    new IsEq(!(E.equals(x, y) && E.equals(y, z)) || E.equals(x, z), true),
+  transitivityEq: (x: A, y: A, z: A): boolean =>
+    !(E.equals(x, y) && E.equals(y, z)) || E.equals(x, z) === true,
 });
 
 export interface EqLaws<A> {

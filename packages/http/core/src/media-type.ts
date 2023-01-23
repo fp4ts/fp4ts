@@ -9,7 +9,7 @@ import { Parser, StringSource, text } from '@fp4ts/parse';
 
 import { ParseResult, Rfc7230 } from './parsing';
 
-const OrdString2: Ord<[string, string]> = Ord.tuple2(
+const OrdString2: Ord<[string, string]> = Ord.tuple(
   Ord.fromUniversalCompare(),
   Ord.fromUniversalCompare(),
 );
