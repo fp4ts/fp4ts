@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance } from '@fp4ts/core';
+import { instance, lazyVal } from '@fp4ts/core';
 import { Semigroup, SemigroupRequirements } from './semigroup';
 
 /**
@@ -23,13 +23,14 @@ export const Monoid = Object.freeze({
       ...Semigroup.of(M),
       ...M,
 
-      dual: () =>
+      dual: lazyVal(() =>
         Monoid.of({
           dual: () => self,
           empty: self.empty,
           combine: y => x => self.combine_(y, x),
           combine_: (x, y) => self.combine_(y, x),
         }),
+      ),
     });
     return self;
   },
