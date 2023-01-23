@@ -79,6 +79,10 @@ abstract class _SyncIO<out A> {
     return new Map(this, f);
   }
 
+  public map2<B, C>(that: SyncIO<B>, f: (a: A, b: B) => C): SyncIO<C> {
+    return this.flatMap(a => that.map(b => f(a, b)));
+  }
+
   public flatMap<B>(f: (a: A) => SyncIO<B>): SyncIO<B> {
     return new _FlatMap(this, f);
   }
@@ -485,6 +489,10 @@ const syncIoApply: Lazy<Apply<SyncIOF>> = lazyVal(() =>
   Apply.of({
     ...syncIoFunctor(),
     ap_: (ff, fa) => ff.flatMap(f => fa.map(a => f(a))),
+    map2_:
+      <A, B>(fa: SyncIO<A>, fb: SyncIO<B>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        fa.map2(fb, f),
   }),
 );
 

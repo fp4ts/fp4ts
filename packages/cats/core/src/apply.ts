@@ -63,13 +63,17 @@ export interface Apply<F> extends Functor<F> {
   productR_<A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>): Kind<F, [B]>;
 }
 
-export type ApplyRequirements<F> = Pick<Apply<F>, 'ap_'> &
+export type ApplyRequirements<F> = (
+  | Pick<Apply<F>, 'ap_'>
+  | Pick<Apply<F>, 'map2_'>
+) &
   FunctorRequirements<F> &
   Partial<Apply<F>>;
 export const Apply = Object.freeze({
   of: <F>(F: ApplyRequirements<F>): Apply<F> => {
     const self: Apply<F> = {
       ap: fa => ff => self.ap_(ff, fa),
+      ap_: (ff, fa) => self.map2_(ff, fa)((f, a) => f(a)),
 
       product: fb => fa => self.product_(fa, fb),
       product_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
@@ -79,14 +83,25 @@ export const Apply = Object.freeze({
         ),
 
       map2: (fb, f) => fa => self.map2_(fa, fb)(f),
-      map2_: (fa, fb) => f =>
-        self.map_(self.product_(fa, fb), ([a, b]) => f(a, b)),
+      map2_:
+        <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+        <C>(f: (a: A, b: B) => C) =>
+          self.ap_(
+            self.map_(fa, a => (b: B) => f(a, b)),
+            fb,
+          ),
 
       map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc)(f),
-      map3_: (fa, fb, fc) => f =>
-        self.map_(self.product_(fa, self.product_(fb, fc)), ([a, [b, c]]) =>
-          f(a, b, c),
-        ),
+      map3_:
+        <A, B, C>(fa: Kind<F, [A]>, fb: Kind<F, [B]>, fc: Kind<F, [C]>) =>
+        <D>(f: (a: A, b: B, c: C) => D) =>
+          self.ap_(
+            self.ap_(
+              self.map_(fa, a => (b: B) => (c: C) => f(a, b, c)),
+              fb,
+            ),
+            fc,
+          ),
 
       mapN: (<BS extends unknown[]>(
           ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
@@ -119,10 +134,18 @@ export const Apply = Object.freeze({
       map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),
 
       productL: fb => fa => self.productL_(fa, fb),
-      productL_: (fa, fb) => self.map_(self.product_(fa, fb), ([a]) => a),
+      productL_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+        self.ap_(
+          self.map_(fa, a => (_: B) => a),
+          fb,
+        ),
 
       productR: fb => fa => self.productR_(fa, fb),
-      productR_: (fa, fb) => self.map_(self.product_(fa, fb), ([, b]) => b),
+      productR_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+        self.ap_(
+          self.map_(fa, _a => (b: B) => b),
+          fb,
+        ),
 
       ...Functor.of<F>(F),
       ...F,

@@ -77,6 +77,10 @@ export const FlatMap = Object.freeze({
   deriveApply: <F>(F: FlatMapRequirements<F>): Apply<F> =>
     Apply.of<F>({
       ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
+      map2_:
+        <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+        <C>(f: (a: A, b: B) => C) =>
+          F.flatMap_(fa, a => F.map_(fb, b => f(a, b))),
       ...F,
     }),
 });
