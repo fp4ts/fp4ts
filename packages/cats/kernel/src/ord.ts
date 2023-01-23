@@ -35,19 +35,15 @@ type OrdRequirements<A> = Pick<Ord<A>, 'compare'> & Partial<Ord<A>>;
 
 export const Ord = Object.freeze({
   of: <A>(O: OrdRequirements<A>): Ord<A> => {
-    const self: Ord<A> = {
+    const self: Ord<A> = instance({
       lt: (lhs, rhs) => self.compare(lhs, rhs) === Compare.LT,
-      lte: (lhs, rhs) => self.equals(lhs, rhs) || self.lt(lhs, rhs),
+      lte: (lhs, rhs) => self.compare(lhs, rhs) !== Compare.GT,
       gt: (lhs, rhs) => self.compare(lhs, rhs) === Compare.GT,
-      gte: (lhs, rhs) => self.equals(lhs, rhs) || self.gt(lhs, rhs),
-
-      ...Eq.of({
-        equals:
-          O.equals ?? ((lhs, rhs) => self.compare(lhs, rhs) === Compare.EQ),
-        ...O,
-      }),
+      gte: (lhs, rhs) => self.compare(lhs, rhs) !== Compare.LT,
+      equals: (lhs, rhs) => self.compare(lhs, rhs) === Compare.EQ,
+      notEquals: (lhs, rhs) => self.compare(lhs, rhs) !== Compare.EQ,
       ...O,
-    };
+    });
     return self;
   },
 
