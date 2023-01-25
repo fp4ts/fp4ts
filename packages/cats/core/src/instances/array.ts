@@ -28,10 +28,9 @@ import { Monad } from '../monad';
 import { FoldableWithIndex } from '../foldable-with-index';
 import { TraversableWithIndex } from '../traversable-with-index';
 import { TraversableFilter } from '../traversable-filter';
-import { Align } from '../align';
 import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
-import { Zip } from '../zip';
+import { Unalign } from '../unalign';
 
 export const arrayEqK = lazyVal(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -103,8 +102,13 @@ function unzip<A, B>(xs: (readonly [A, B])[]): [A[], B[]] {
   return [as, bs];
 }
 
-export const arrayAlign = lazyVal(() =>
-  Align.of<ArrayF>({ ...arrayFunctorWithIndex(), align_: align }),
+export const arrayUnalign = lazyVal(() =>
+  Unalign.of<ArrayF>({
+    ...arrayFunctorWithIndex(),
+    align_: align,
+    alignWith_: alignWith,
+    unalignWith_: unalignWith,
+  }),
 );
 
 function align<A, B>(xs: A[], ys: B[]): Ior<A, B>[] {
@@ -121,6 +125,37 @@ function align<A, B>(xs: A[], ys: B[]): Ior<A, B>[] {
     abs.push(Ior.Right(ys[i++]));
   }
   return abs;
+}
+
+function alignWith<A, B, C>(xs: A[], ys: B[], f: (ior: Ior<A, B>) => C): C[] {
+  let i = 0;
+  const cs: C[] = [];
+
+  for (let len = Math.min(xs.length, ys.length); i < len; i++) {
+    cs.push(f(Ior.Both(xs[i], ys[i])));
+  }
+  while (i < xs.length) {
+    cs.push(f(Ior.Left(xs[i++])));
+  }
+  while (i < ys.length) {
+    cs.push(f(Ior.Right(ys[i++])));
+  }
+  return cs;
+}
+
+function unalignWith<A, B, C>(xs: A[], f: (a: A) => Ior<B, C>): [B[], C[]] {
+  const bs: B[] = [];
+  const cs: C[] = [];
+  const l = (b: B) => bs.push(b);
+  const r = (c: C) => cs.push(c);
+  const lr = (b: B, c: C) => {
+    bs.push(b);
+    cs.push(c);
+  };
+  for (let i = 0, len = xs.length; i < len; i++) {
+    f(xs[i]).fold(l, r, lr);
+  }
+  return [bs, cs];
 }
 
 export const arrayFunctorFilter = lazyVal(() =>

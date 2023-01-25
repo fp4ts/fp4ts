@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-export * from './align-suite';
 export * from './alternative-suite';
 export * from './applicative-error-suite';
 export * from './applicative-suite';
@@ -30,6 +29,8 @@ export * from './functor-with-index-suite';
 export * from './foldable-with-index-suite';
 export * from './traversable-with-index-suite';
 
+export * from './align-suite';
+export * from './unalign-suite';
 export * from './unzip-suite';
 export * from './zip-suite';
 

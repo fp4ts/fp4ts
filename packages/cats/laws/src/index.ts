@@ -6,7 +6,6 @@
 /**
  * @module cats/laws
  */
-export * from './align-laws';
 export * from './alternative-laws';
 export * from './applicative-error-laws';
 export * from './applicative-laws';
@@ -28,6 +27,8 @@ export * from './unordered-foldable-laws';
 export * from './unordered-traversable-laws';
 export * from './bifunctor-laws';
 
+export * from './align-laws';
+export * from './unalign-laws';
 export * from './unzip-laws';
 export * from './zip-laws';
 

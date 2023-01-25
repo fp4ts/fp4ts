@@ -16,13 +16,15 @@ export const ZipSuite = <F>(F: Zip<F>) => {
 
   const self = {
     ...FunctorSuite(F),
-    zip: <A, B, C>(
+    zip: <A, B, C, D>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
+      arbD: Arbitrary<D>,
       EqA: Eq<A>,
       EqB: Eq<B>,
       EqC: Eq<C>,
+      EqD: Eq<D>,
       mkArbF: <X>(X: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
       mkEqF: <X>(X: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
@@ -53,6 +55,16 @@ export const ZipSuite = <F>(F: Zip<F>) => {
               mkArbF(arbC),
               laws.zipAssociativity,
             )(mkEqF(Eq.tuple(Eq.tuple(EqA, EqB), EqC))),
+          ],
+          [
+            'zip distributes',
+            forAll(
+              mkArbF(arbA),
+              mkArbF(arbB),
+              fc.func(arbC),
+              fc.func(arbD),
+              laws.zipDistributes,
+            )(mkEqF(Eq.tuple(EqC, EqD))),
           ],
           [
             'zipWith consistent with zip . map',

@@ -6,19 +6,18 @@
 import fc from 'fast-check';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
-  AlignSuite,
   AlternativeSuite,
   CoflatMapSuite,
   FunctorFilterSuite,
   MonadSuite,
   TraversableFilterSuite,
   TraversableWithIndexSuite,
+  UnalignSuite,
   UnzipSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
-  Align,
   Alternative,
   CoflatMap,
   FunctorFilter,
@@ -26,14 +25,14 @@ import {
   Monad,
   TraversableFilter,
   TraversableWithIndex,
+  Unalign,
   Unzip,
 } from '@fp4ts/cats-core';
 
 describe('Array laws', () => {
-  const alignTests = AlignSuite(Align.Array);
   checkAll(
-    'Align<Array>',
-    alignTests.align(
+    'Unalign<Array>',
+    UnalignSuite(Unalign.Array).unalign(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -53,6 +52,8 @@ describe('Array laws', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
@@ -61,10 +62,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(FunctorFilter.Array);
   checkAll(
     'FunctorFilter<Array>',
-    functorFilterTests.functorFilter(
+    FunctorFilterSuite(FunctorFilter.Array).functorFilter(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -76,10 +76,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const alternativeTests = AlternativeSuite(Alternative.Array);
   checkAll(
     'Alternative<Array>',
-    alternativeTests.alternative(
+    AlternativeSuite(Alternative.Array).alternative(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -91,10 +90,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const coflatMapTests = CoflatMapSuite(CoflatMap.Array);
   checkAll(
     'CoflatMap<Array>',
-    coflatMapTests.coflatMap(
+    CoflatMapSuite(CoflatMap.Array).coflatMap(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -108,10 +106,9 @@ describe('Array laws', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Monad.Array);
   checkAll(
     'Monad<Array>',
-    monadTests.monad(
+    MonadSuite(Monad.Array).monad(
       fc.integer(),
       fc.integer(),
       fc.integer(),

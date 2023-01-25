@@ -7,7 +7,6 @@
  * @module cats/core
  */
 export * from './arrow';
-export * from './align';
 export * from './eq-k';
 export * from './semigroup-k';
 export * from './monoid-k';
@@ -38,6 +37,8 @@ export * from './defer';
 export * from './bifunctor';
 export * from './parallel';
 
+export * from './align';
+export * from './unalign';
 export * from './unzip';
 export * from './zip';
 

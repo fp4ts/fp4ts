@@ -3,11 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind } from '@fp4ts/core';
+import { id, instance, Kind } from '@fp4ts/core';
 
 import { Functor, FunctorRequirements } from './functor';
 import { Ior, Option } from './data';
-import { ArrayF, arrayAlign } from './instances/array';
+import { ArrayF } from './instances/array';
+import { Unalign } from './unalign';
 
 /**
  * @category Type Class
@@ -51,16 +52,21 @@ export interface Align<F> extends Functor<F> {
   ): Kind<F, [[A, B]]>;
 }
 
-export type AlignRequirements<F> = Pick<Align<F>, 'align_'> &
+export type AlignRequirements<F> = (
+  | Pick<Align<F>, 'align_'>
+  | Pick<Align<F>, 'alignWith_'>
+) &
   FunctorRequirements<F> &
   Partial<Align<F>>;
 export const Align = Object.freeze({
   of: <F>(F: AlignRequirements<F>): Align<F> => {
     const self: Align<F> = instance<Align<F>>({
       align: fb => fa => self.align_(fa, fb),
+      align_: F.align_ ?? ((fa, fb) => self.alignWith_(fa, fb, id)),
 
       alignWith: (fb, f) => fa => self.alignWith_(fa, fb, f),
-      alignWith_: (fa, fb, f) => self.map_(self.align_(fa, fb), f),
+      alignWith_:
+        F.alignWith_ ?? ((fa, fb, f) => self.map_(self.align_(fa, fb), f)),
 
       padZip: fb => fa => self.padZip_(fa, fb),
       padZip_: (fa, fb) => self.alignWith_(fa, fb, ior => ior.pad),
@@ -87,6 +93,6 @@ export const Align = Object.freeze({
   },
 
   get Array(): Align<ArrayF> {
-    return arrayAlign();
+    return Unalign.Array;
   },
 });
