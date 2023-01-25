@@ -20,6 +20,7 @@ import {
   AlternativeSuite,
   MonadSuite,
   TraversableFilterSuite,
+  UnzipSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -1174,6 +1175,22 @@ describe('Views', () => {
         Eq.Eval,
         A.fp4tsEval,
         Eq.Eval,
+      ),
+    );
+
+    checkAll(
+      'Unzip<View>',
+      UnzipSuite(View.Unzip).unzip(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsView,
+        viewEq,
       ),
     );
   });

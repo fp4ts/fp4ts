@@ -34,7 +34,7 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
-// import { Seq } from './seq';
+import { Unzip } from '../../unzip';
 
 /**
  * Lazy, ordered sequence collection.
@@ -696,13 +696,6 @@ export class _View<A> {
   public get toList(): List<A> {
     return this.foldLeft(new ListBuffer<A>(), (b, x) => b.addOne(x)).toList;
   }
-
-  // /**
-  //  * Converts the view into a `Seq`.
-  //  */
-  // public get toSeq(): Seq<A> {
-  //   return this.foldLeft(Seq.empty as Seq<A>, (xs, x) => xs.append(x));
-  // }
 
   /**
    * Converts the view into a `LazyList`. Since `LazyList` is a lazy collection,
@@ -3193,6 +3186,15 @@ const viewTraversableFilter = lazyVal(() =>
   }),
 );
 
+const viewUnzip = lazyVal(() =>
+  Unzip.of<ViewF>({
+    ...viewFunctor(),
+    unzip: fa => fa.unzip(),
+    zipWith_: (fa, fb, f) => fa.zipWith(fb, f),
+    zip_: (fa, fb) => fa.zip(fb),
+  }),
+);
+
 View.empty = View.build<never>((ez, _f) => ez);
 
 View.FunctorFilter = null as any as FunctorFilter<ViewF>;
@@ -3201,6 +3203,7 @@ View.Alternative = null as any as Alternative<ViewF>;
 View.Monad = null as any as Monad<ViewF>;
 View.Foldable = null as any as Foldable<ViewF>;
 View.TraversableFilter = null as any as TraversableFilter<ViewF>;
+View.Unzip = null as any as Unzip<ViewF>;
 
 Object.defineProperty(View, 'FunctorFilter', {
   get() {
@@ -3230,6 +3233,11 @@ Object.defineProperty(View, 'Foldable', {
 Object.defineProperty(View, 'TraversableFilter', {
   get() {
     return viewTraversableFilter();
+  },
+});
+Object.defineProperty(View, 'Unzip', {
+  get() {
+    return viewUnzip();
   },
 });
 
