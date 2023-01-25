@@ -26,6 +26,7 @@ import {
   AlignSuite,
   CoflatMapSuite,
   TraversableFilterSuite,
+  UnzipSuite,
 } from '@fp4ts/cats-laws';
 
 describe('List', () => {
@@ -1322,6 +1323,22 @@ describe('List', () => {
     checkAll(
       'Align<List>',
       AlignSuite(List.Align).align(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        A.fp4tsList,
+        List.Eq,
+      ),
+    );
+
+    checkAll(
+      'Unzip<List>',
+      UnzipSuite(List.Unzip).unzip(
         fc.integer(),
         fc.integer(),
         fc.integer(),

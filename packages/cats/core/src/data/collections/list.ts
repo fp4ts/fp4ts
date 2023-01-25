@@ -37,6 +37,7 @@ import { Map } from './map';
 import { Set as CSet } from './set';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
+import { Unzip } from '../../unzip';
 
 /**
  * Immutable, strict linked-list collection of ordered elements `A`.
@@ -3568,6 +3569,7 @@ List.Eq = <A>(E: Eq<A>): Eq<List<A>> =>
   Eq.of({ equals: (l, r) => l.equals(r, E) });
 List.EqK = null as any as EqK<ListF>;
 List.Align = null as any as Align<ListF>;
+List.Unzip = null as any as Unzip<ListF>;
 List.MonoidK = null as any as MonoidK<ListF>;
 List.Functor = null as any as Functor<ListF>;
 List.FunctorFilter = null as any as FunctorFilter<ListF>;
@@ -3587,6 +3589,15 @@ const listAlign = lazyVal(() =>
     ...listFunctor(),
     align_: (fa, fb) => fa.align(fb),
     zipAll: (fa, fb, a, b) => fa.zipAll(fb, a, b),
+  }),
+);
+const listUnzip = lazyVal(() =>
+  Unzip.of({
+    ...listFunctor(),
+    zip_: (xs, ys) => xs.zip(ys),
+    zipWith_: (xs, ys, f) => xs.zipWith(ys, f),
+    unzip: xs => xs.unzip(),
+    unzipWith_: (xs, f) => xs.unzipWith(f),
   }),
 );
 const listFunctorFilter = lazyVal(() =>
@@ -3695,6 +3706,11 @@ Object.defineProperty(List, 'Functor', {
 Object.defineProperty(List, 'Align', {
   get() {
     return listAlign();
+  },
+});
+Object.defineProperty(List, 'Unzip', {
+  get() {
+    return listUnzip();
   },
 });
 Object.defineProperty(List, 'FunctorFilter', {
