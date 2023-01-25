@@ -30,6 +30,8 @@ import { TraversableWithIndex } from '../traversable-with-index';
 import { TraversableFilter } from '../traversable-filter';
 import { Align } from '../align';
 import { CoflatMap } from '../coflat-map';
+import { Unzip } from '../unzip';
+import { Zip } from '../zip';
 
 export const arrayEqK = lazyVal(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -49,6 +51,56 @@ export const arrayFunctorWithIndex = lazyVal(() =>
 
 function mapWithIndex<A, B>(xs: A[], f: (a: A, i: number) => B): B[] {
   return xs.map((x, i) => f(x, i));
+}
+
+export const arrayUnzip = lazyVal(() =>
+  Unzip.of({
+    ...arrayFunctorWithIndex(),
+    zip_: zip,
+    zipWith_: zipWith,
+    unzipWith_: unzipWith,
+    unzip,
+  }),
+);
+
+function zipWith<A, B, C>(xs: A[], ys: B[], f: (a: A, b: B) => C): C[] {
+  const sz = Math.min(xs.length, ys.length);
+  const cs = new Array<C>(sz);
+  for (let i = 0; i < sz; i++) {
+    cs[i] = f(xs[i], ys[i]);
+  }
+  return cs;
+}
+function zip<A, B>(xs: A[], ys: B[]): [A, B][] {
+  const sz = Math.min(xs.length, ys.length);
+  const cs = new Array<[A, B]>(sz);
+  for (let i = 0; i < sz; i++) {
+    cs[i] = [xs[i], ys[i]];
+  }
+  return cs;
+}
+
+function unzipWith<A, B, C>(xs: A[], f: (a: A) => readonly [B, C]): [B[], C[]] {
+  const sz = xs.length;
+  const bs = new Array<B>(sz);
+  const cs = new Array<C>(sz);
+  for (let i = 0; i < sz; i++) {
+    const bc = f(xs[i]);
+    bs[i] = bc[0];
+    cs[i] = bc[1];
+  }
+  return [bs, cs];
+}
+function unzip<A, B>(xs: (readonly [A, B])[]): [A[], B[]] {
+  const sz = xs.length;
+  const as = new Array<A>(sz);
+  const bs = new Array<B>(sz);
+  for (let i = 0; i < sz; i++) {
+    const ab = xs[i];
+    as[i] = ab[0];
+    bs[i] = ab[1];
+  }
+  return [as, bs];
 }
 
 export const arrayAlign = lazyVal(() =>

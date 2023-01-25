@@ -38,6 +38,9 @@ export * from './defer';
 export * from './bifunctor';
 export * from './parallel';
 
+export * from './unzip';
+export * from './zip';
+
 export * from './functor-with-index';
 export * from './foldable-with-index';
 export * from './traversable-with-index';

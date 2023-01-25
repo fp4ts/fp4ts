@@ -13,6 +13,7 @@ import {
   MonadSuite,
   TraversableFilterSuite,
   TraversableWithIndexSuite,
+  UnzipSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -25,6 +26,7 @@ import {
   Monad,
   TraversableFilter,
   TraversableWithIndex,
+  Unzip,
 } from '@fp4ts/cats-core';
 
 describe('Array laws', () => {
@@ -37,6 +39,20 @@ describe('Array laws', () => {
       fc.integer(),
       fc.integer(),
       Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      fc.array,
+      Eq.Array,
+    ),
+  );
+
+  checkAll(
+    'Unzip<Array>',
+    UnzipSuite(Unzip.Array).unzip(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
