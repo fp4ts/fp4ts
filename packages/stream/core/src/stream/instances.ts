@@ -42,7 +42,7 @@ export const streamFunctor: <F>() => Functor<$<StreamF, [F]>> = lazyVal(() =>
 );
 
 export const streamAlign: <F>() => Align<$<StreamF, [F]>> = lazyVal(() =>
-  Align.of({ functor: streamFunctor(), align_: align_ }),
+  Align.of({ ...streamFunctor(), align_: align_ }),
 );
 
 export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamF, [F]>> =

@@ -948,7 +948,7 @@ const lazyListDefer = lazyVal(() =>
 
 const lazyListAlign = lazyVal(() =>
   Align.of<LazyListF>({
-    functor: lazyListFunctor(),
+    ...lazyListFunctor(),
     align_: (fa, fb) => fa.align(fb),
     zipAll: (fa, fb, a, b) =>
       fa.zipAllWith(

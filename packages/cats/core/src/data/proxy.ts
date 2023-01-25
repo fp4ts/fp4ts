@@ -73,7 +73,7 @@ const proxyApplicative: Lazy<Applicative<ProxyF>> = lazyVal(() =>
 );
 const proxyAlign: Lazy<Align<ProxyF>> = lazyVal(() =>
   Align.of({
-    functor: proxyFunctor(),
+    ...proxyFunctor(),
     align_: <A, B>() => Proxy<Ior<A, B>>(),
   }),
 );

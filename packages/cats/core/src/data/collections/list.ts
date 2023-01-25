@@ -3584,7 +3584,7 @@ const listFunctor = lazyVal(() =>
 );
 const listAlign = lazyVal(() =>
   Align.of<ListF>({
-    functor: listFunctor(),
+    ...listFunctor(),
     align_: (fa, fb) => fa.align(fb),
     zipAll: (fa, fb, a, b) => fa.zipAll(fb, a, b),
   }),

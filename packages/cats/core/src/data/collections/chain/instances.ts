@@ -39,7 +39,7 @@ export const chainEq = <A>(E: Eq<A>): Eq<Chain<A>> =>
   Eq.of({ equals: equals_(E) });
 
 export const chainAlign: Lazy<Align<ChainF>> = lazyVal(() =>
-  Align.of({ align_: align_, functor: chainFunctor() }),
+  Align.of({ ...chainFunctor(), align_: align_ }),
 );
 
 export const chainMonoidK: Lazy<MonoidK<ChainF>> = lazyVal(() =>

@@ -464,10 +464,7 @@ const nelFunctor: Lazy<Functor<NonEmptyListF>> = lazyVal(() =>
 );
 
 const nelAlign: Lazy<Align<NonEmptyListF>> = lazyVal(() =>
-  Align.of({
-    functor: nelFunctor(),
-    align_: (fa, fb) => fa.align(fb),
-  }),
+  Align.of({ ...nelFunctor(), align_: (fa, fb) => fa.align(fb) }),
 );
 
 const nelCoflatMap: Lazy<CoflatMap<NonEmptyListF>> = lazyVal(() =>

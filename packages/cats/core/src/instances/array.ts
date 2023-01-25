@@ -104,7 +104,7 @@ function unzip<A, B>(xs: (readonly [A, B])[]): [A[], B[]] {
 }
 
 export const arrayAlign = lazyVal(() =>
-  Align.of<ArrayF>({ functor: arrayFunctorWithIndex(), align_: align }),
+  Align.of<ArrayF>({ ...arrayFunctorWithIndex(), align_: align }),
 );
 
 function align<A, B>(xs: A[], ys: B[]): Ior<A, B>[] {

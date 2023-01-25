@@ -57,7 +57,7 @@ export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazyVal(() =>
 
 export const vectorAlign: Lazy<Align<VectorF>> = lazyVal(() =>
   Align.of({
-    functor: vectorFunctor(),
+    ...vectorFunctor(),
     align_: align_,
     zipAll: (xs, ys, a, b) =>
       zipAll_(

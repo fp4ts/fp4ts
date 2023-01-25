@@ -60,7 +60,7 @@ export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazyVal(() =>
 
 export const queueAlign: Lazy<Align<QueueF>> = lazyVal(() =>
   Align.of({
-    functor: queueFunctor(),
+    ...queueFunctor(),
     align_: align_,
     zipAll: (xs, ys, a, b) =>
       zipAll_(
