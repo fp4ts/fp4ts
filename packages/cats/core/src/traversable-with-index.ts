@@ -10,6 +10,7 @@ import { FoldableWithIndex } from './foldable-with-index';
 import { FunctorWithIndex } from './functor-with-index';
 import { Traversable } from './traversable';
 import { MonoidK } from './monoid-k';
+import { ArrayF, arrayTraversableWithIndex } from './instances/array';
 
 /**
  * @category Type Class
@@ -76,5 +77,9 @@ export const TraversableWithIndex = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Array(): TraversableWithIndex<ArrayF, number> {
+    return arrayTraversableWithIndex();
   },
 });

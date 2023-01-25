@@ -5,6 +5,7 @@
 
 import { instance, Kind } from '@fp4ts/core';
 import { Functor } from './functor';
+import { ArrayF, arrayFunctorWithIndex } from './instances/array';
 
 /**
  * @category Type Class
@@ -34,5 +35,9 @@ export const FunctorWithIndex = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Array(): FunctorWithIndex<ArrayF, number> {
+    return arrayFunctorWithIndex();
   },
 });

@@ -5,7 +5,6 @@
 
 import fc from 'fast-check';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
-import { Array } from '@fp4ts/cats-core/lib/data';
 import { Writer } from '@fp4ts/cats-mtl';
 import { ComonadSuite, MonadSuite } from '@fp4ts/cats-laws';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
@@ -57,7 +56,7 @@ describe('Writer', () => {
       expect(
         Writer([[1, 2, 3], 42])
           .flatMap(x => Writer([[4, 5, 6], x + 1]))
-          .runWriter(Array.MonoidK().algebra()),
+          .runWriter(Monoid.Array()),
       ).toEqual([43, [1, 2, 3, 4, 5, 6]]);
     });
   });
@@ -146,8 +145,8 @@ describe('Writer', () => {
         Eq.fromUniversalEquals(),
         arbX => A.fp4tsWriter(fc.tuple(fc.array(fc.string()), arbX)),
         <X>(E: Eq<X>): Eq<Writer<string[], X>> =>
-          Eq.by(Eq.tuple(E, Array.Eq(Eq.fromUniversalEquals<string>())), w =>
-            w.runWriter(Array.MonoidK().algebra<string>()),
+          Eq.by(Eq.tuple(E, Eq.Array(Eq.fromUniversalEquals<string>())), w =>
+            w.runWriter(Monoid.Array<string>()),
           ),
       ),
     );

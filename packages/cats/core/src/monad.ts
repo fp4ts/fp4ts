@@ -10,6 +10,7 @@ import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
 import { Functor } from './functor';
 import { StackSafeMonad } from './stack-safe-monad';
+import { ArrayF, arrayMonad } from './instances/array';
 
 /**
  * @category Type Class
@@ -42,6 +43,10 @@ export const Monad = Object.freeze({
 
   get Eval(): StackSafeMonad<EvalF> {
     return StackSafeMonad.Eval;
+  },
+
+  get Array(): Monad<ArrayF> {
+    return arrayMonad();
   },
 
   deriveFunctor: <F>(F: MonadRequirements<F>): Functor<F> =>

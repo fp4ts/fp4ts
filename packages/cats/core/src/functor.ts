@@ -6,6 +6,8 @@
 import { $type, instance, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Invariant } from './invariant';
 import { ComposedFunctor } from './composed';
+import { ArrayF } from './instances/array';
+import { FunctorWithIndex } from './functor-with-index';
 
 /**
  * @category Type Class
@@ -53,6 +55,10 @@ export const Functor = Object.freeze({
 
   compose: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> =>
     ComposedFunctor.of(F, G),
+
+  get ArrayF(): Functor<ArrayF> {
+    return FunctorWithIndex.Array;
+  },
 });
 
 // -- HKT

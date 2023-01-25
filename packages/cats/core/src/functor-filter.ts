@@ -6,6 +6,7 @@
 import { Kind, id } from '@fp4ts/core';
 import { Functor } from './functor';
 import { Option, Some, None } from './data/option';
+import { ArrayF, arrayFunctorFilter } from './instances/array';
 
 /**
  * @category Type Class
@@ -61,5 +62,9 @@ export const FunctorFilter = Object.freeze({
       ...F,
     };
     return self;
+  },
+
+  get Array(): FunctorFilter<ArrayF> {
+    return arrayFunctorFilter();
   },
 });

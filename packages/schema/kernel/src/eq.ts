@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Eval, Lazy, lazyVal } from '@fp4ts/core';
-import { Array, Eq, EqF } from '@fp4ts/cats';
+import { Eq, EqF } from '@fp4ts/cats';
 import { Schemable } from './schemable';
 
 export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
@@ -17,7 +17,7 @@ export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
     literal: () => Eq.fromUniversalEquals(),
     array: <A>(E: Eq<A>) =>
       SafeEq.of<A[]>({
-        safeEquals: (x, y) => Eval.defer(() => safeEquals(Array.Eq(E), x, y)),
+        safeEquals: (x, y) => Eval.defer(() => safeEquals(Eq.Array(E), x, y)),
       }),
     product: productSafeEq as Schemable<EqF>['product'],
     struct: structSafeEq,

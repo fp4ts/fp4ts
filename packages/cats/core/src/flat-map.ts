@@ -6,6 +6,7 @@
 import { id, Kind } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Either, Left } from './data';
+import { ArrayF, arrayFlatMap } from './instances/array';
 
 /**
  * @category Type Class
@@ -83,4 +84,8 @@ export const FlatMap = Object.freeze({
           F.flatMap_(fa, a => F.map_(fb, b => f(a, b))),
       ...F,
     }),
+
+  get Array(): FlatMap<ArrayF> {
+    return arrayFlatMap();
+  },
 });

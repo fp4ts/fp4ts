@@ -6,7 +6,6 @@
 import { $, applyTo, flow, id, Kind, pipe } from '@fp4ts/core';
 import {
   Applicative,
-  Array,
   Backwards,
   Const,
   Contravariant,
@@ -21,6 +20,7 @@ import {
   Option,
   Right,
   Some,
+  Traversable,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Choice } from '@fp4ts/optics-kernel';
@@ -208,7 +208,7 @@ export function words<F>(
     (s: string): Kind<F, [string]> =>
       pipe(
         s.trim().split(/\s+/),
-        Array.TraversableWithIndex().traverse(F)(f),
+        Traversable.Array.traverse(F)(f),
         F.map(ss => ss.join(' ')),
       );
 }
@@ -220,7 +220,7 @@ export function lines<F>(
     (s: string): Kind<F, [string]> =>
       pipe(
         s.split(/\r?\n/),
-        Array.TraversableWithIndex().traverse(F)(f),
+        Traversable.Array.traverse(F)(f),
         F.map(ss => ss.join('\n')),
       );
 }

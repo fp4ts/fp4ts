@@ -24,6 +24,8 @@ import {
   View,
 } from './data';
 import { ComposedFoldable } from './composed';
+import { ArrayF } from './instances/array';
+import { FoldableWithIndex } from './foldable-with-index';
 
 /**
  * @category Type Class
@@ -209,6 +211,10 @@ export const Foldable = Object.freeze({
 
   compose: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> =>
     ComposedFoldable.of(F, G),
+
+  get Array(): Foldable<ArrayF> {
+    return FoldableWithIndex.Array;
+  },
 });
 
 // -- HKT

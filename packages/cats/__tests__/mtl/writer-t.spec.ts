@@ -8,7 +8,6 @@ import { $, Eval, EvalF, id, Kind, pipe, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Monoid, Eq } from '@fp4ts/cats-kernel';
 import { EqK, Monad } from '@fp4ts/cats-core';
 import {
-  Array,
   Either,
   EitherF,
   Identity,
@@ -74,10 +73,7 @@ describe('WriterT', () => {
     });
 
     it('should combine result of the flatMap', () => {
-      const W = WriterT.MonadWriter(
-        Monad.Eval,
-        Array.MonoidK().algebra<number>(),
-      );
+      const W = WriterT.MonadWriter(Monad.Eval, Monoid.Array<number>());
       expect(
         pipe(
           Eval.now(tupled(42, [1, 2, 3])),
@@ -171,9 +167,9 @@ describe('WriterT', () => {
       ['Option', Option.Monad],
       [
         'string[]',
-        Array.MonoidK().algebra<string>(),
+        Monoid.Array<string>(),
         fc.array(fc.string()),
-        Array.Eq(Eq.fromUniversalEquals()),
+        Eq.Array(Eq.fromUniversalEquals()),
       ],
       A.fp4tsOption,
       Option.EqK,

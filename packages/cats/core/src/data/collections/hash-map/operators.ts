@@ -10,11 +10,11 @@ import { Show } from '../../../show';
 import { MonoidK } from '../../../monoid-k';
 import { Applicative } from '../../../applicative';
 
-import { foldRightEval_ as foldRightArray_ } from '../array/operators';
 import { List } from '../list';
 import { Option, None, Some } from '../../option';
 
 import { Bucket, Empty, Inner, Leaf, HashMap, toNode } from './algebra';
+import { Foldable } from '../../../foldable';
 
 const MAX_DEPTH = 5;
 const SIZE = 1 << MAX_DEPTH;
@@ -509,12 +509,14 @@ export const foldRightEval_ = <K, V, B>(
       return ez;
 
     case 'inner':
-      return foldRightArray_(n.children, ez, (m2, ez2) =>
+      return Foldable.Array.foldRight_(n.children, ez, (m2, ez2) =>
         foldRightEval_(m2, ez2, f),
       );
 
     case 'leaf':
-      return foldRightArray_(n.buckets, ez, ([, k, v], eb) => f(v, eb, k));
+      return Foldable.Array.foldRight_(n.buckets, ez, ([, k, v], eb) =>
+        f(v, eb, k),
+      );
   }
 };
 

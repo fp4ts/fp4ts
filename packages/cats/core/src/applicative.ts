@@ -8,9 +8,10 @@ import { Functor } from './functor';
 import { Apply } from './apply';
 import { CoflatMap } from './coflat-map';
 import { ComposedApplicative } from './composed';
-import { Array } from './data';
 import { Foldable } from './foldable';
 import { FoldableWithIndex } from './foldable-with-index';
+import { ArrayF, arrayApplicative } from './instances/array';
+import { Traversable } from './traversable';
 
 /**
  * @category Type Class
@@ -51,9 +52,7 @@ export const Applicative = Object.freeze({
       unit: F.pure(undefined as void),
 
       tupled: ((...xs) =>
-        Array.TraversableWithIndex().sequence(self)(
-          xs,
-        )) as Applicative<F>['tupled'],
+        Traversable.Array.sequence(self)(xs)) as Applicative<F>['tupled'],
 
       traverseA: G => f => ta => self.traverseA_(G)(ta, f),
       traverseA_: G => (ta, f) =>
@@ -88,4 +87,8 @@ export const Applicative = Object.freeze({
 
   coflatMap: <F>(F: Applicative<F>): CoflatMap<F> =>
     CoflatMap.of({ ...F, coflatMap_: (fa, f) => F.pure(f(fa)) }),
+
+  get Array(): Applicative<ArrayF> {
+    return arrayApplicative();
+  },
 });

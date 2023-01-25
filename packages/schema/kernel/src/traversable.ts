@@ -7,7 +7,6 @@
 import { Eval, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
   Applicative,
-  Array,
   Const,
   FunctionK,
   Identity,
@@ -46,7 +45,7 @@ export const traversableSchemableK: Lazy<SchemableK<TraversableF>> = lazyVal(
       null: Const.TraversableFilter<null>(),
       par: Identity.Traversable,
 
-      array: f => self.compose_(Array.TraversableWithIndex(), f),
+      array: f => self.compose_(Traversable.Array, f),
       nullable: <F>(F: Traversable<F>) =>
         SafeTraversable.of<[NullableK, F]>({
           ...SafeFunctor.of<[NullableK, F]>({

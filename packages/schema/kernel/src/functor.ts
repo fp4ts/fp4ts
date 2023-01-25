@@ -6,11 +6,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Eval, Kind, Lazy, lazyVal } from '@fp4ts/core';
 import {
-  Array,
   Const,
   FunctionK,
   Functor,
   FunctorF,
+  FunctorFilter,
   Identity,
 } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
@@ -25,7 +25,7 @@ export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
     null: Const.Functor<null>(),
     par: Identity.Functor,
 
-    array: f => self.compose_(Array.FunctorFilter(), f),
+    array: f => self.compose_(FunctorFilter.Array, f),
     nullable: <F>(F: Functor<F>) =>
       SafeFunctor.of<[NullableK, F]>({
         safeMap_: (fa, f) =>

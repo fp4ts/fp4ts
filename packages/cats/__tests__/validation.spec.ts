@@ -5,9 +5,8 @@
 
 import fc from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monad } from '@fp4ts/cats-core';
+import { Monad, Traversable } from '@fp4ts/cats-core';
 import {
-  Array,
   Either,
   List,
   Option,
@@ -138,9 +137,10 @@ describe('Validation', () => {
       (hd, tl) =>
         new IsEq(
           hd.mapN(...tl)((...xs) => xs),
-          Array.TraversableWithIndex().sequence(
-            Validation.Applicative<string>(),
-          )([hd, ...tl]),
+          Traversable.Array.sequence(Validation.Applicative<string>())([
+            hd,
+            ...tl,
+          ]),
         ),
     )(
       Validation.EqK(
@@ -148,7 +148,7 @@ describe('Validation', () => {
           Semigroup.string,
           Eq.fromUniversalEquals(),
         )<string>(id),
-      ).liftEq(Array.Eq(Eq.fromUniversalEquals())),
+      ).liftEq(Eq.Array(Eq.fromUniversalEquals())),
     ),
   );
 

@@ -4,7 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Array, Eq, List, Monoid, Option } from '@fp4ts/cats';
+import {
+  FoldableWithIndex,
+  List,
+  Monoid,
+  Option,
+  TraversableWithIndex,
+} from '@fp4ts/cats';
 import { Reader, State } from '@fp4ts/cats-mtl';
 import {
   Fold,
@@ -193,7 +199,7 @@ describe('Fold', () => {
       'fold',
       forAll(fc.array(fc.integer()), xs =>
         expect(
-          focus(fromFoldable(Array.FoldableWithIndex())<number>())
+          focus(fromFoldable(FoldableWithIndex.Array)<number>())
             .backwards()
             .toList(xs),
         ).toEqual(List.fromArray(xs.reverse())),
@@ -204,7 +210,7 @@ describe('Fold', () => {
       'traversal',
       forAll(fc.array(fc.integer()), xs =>
         expect(
-          focus(fromTraversable(Array.TraversableWithIndex())<number>())
+          focus(fromTraversable(TraversableWithIndex.Array)<number>())
             .backwards()
             .toList(xs),
         ).toEqual(List.fromArray(xs.reverse())),
@@ -215,7 +221,7 @@ describe('Fold', () => {
       'indexed fold',
       forAll(fc.array(fc.integer()), xs =>
         expect(
-          focus(fromFoldableWithIndex(Array.FoldableWithIndex())<number>())
+          focus(fromFoldableWithIndex(FoldableWithIndex.Array)<number>())
             .backwards()
             .toList(xs),
         ).toEqual(List.fromArray(xs.reverse())),
@@ -226,9 +232,7 @@ describe('Fold', () => {
       'indexed traversal',
       forAll(fc.array(fc.integer()), xs =>
         expect(
-          focus(
-            fromTraversableWithIndex(Array.TraversableWithIndex())<number>(),
-          )
+          focus(fromTraversableWithIndex(TraversableWithIndex.Array)<number>())
             .backwards()
             .toList(xs),
         ).toEqual(List.fromArray(xs.reverse())),
@@ -244,7 +248,7 @@ describe('Fold', () => {
       (xs, f) =>
         expect(
           focus(
-            fromFoldableWithIndex(Array.FoldableWithIndex())<number>(),
+            fromFoldableWithIndex(FoldableWithIndex.Array)<number>(),
           ).ifoldRight(
             '',
             f,
@@ -261,7 +265,7 @@ describe('Fold', () => {
       (xs, f) =>
         expect(
           focus(
-            fromFoldableWithIndex(Array.FoldableWithIndex())<number>(),
+            fromFoldableWithIndex(FoldableWithIndex.Array)<number>(),
           ).ifoldLeft(
             '',
             f,
@@ -277,7 +281,7 @@ describe('Fold', () => {
       fc.func<[number], boolean>(fc.boolean()),
       (xs, p) =>
         expect(
-          focus(fromFoldableWithIndex(Array.FoldableWithIndex())<string>())
+          focus(fromFoldableWithIndex(FoldableWithIndex.Array)<string>())
             .ifilter((x, i) => p(i))
             .toList(xs),
         ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),

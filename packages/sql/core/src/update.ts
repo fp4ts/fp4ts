@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Array, Foldable, Option } from '@fp4ts/cats';
+import { Foldable, Option } from '@fp4ts/cats';
 import { Chunk, Stream } from '@fp4ts/stream';
 import { DefaultChunkSize } from './consts';
 import {
@@ -74,10 +74,7 @@ export class Update<in A> {
     R: Read<R> = Read.id(),
   ): (a: A, chunkSize: number) => Stream<ConnectionIOF, R> {
     return (a, chunkSize) =>
-      this.updateManyReturningWithChunkSize(Array.FoldableWithIndex(), R)(
-        [a],
-        chunkSize,
-      );
+      this.updateManyReturningWithChunkSize(Foldable.Array, R)([a], chunkSize);
   }
 
   public updateManyReturningWithChunkSize<F, R>(

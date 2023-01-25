@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { id } from '@fp4ts/core';
-import { Array, Ord } from '@fp4ts/cats';
+import { Foldable, Ord } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect';
 import { sql, ConnectionIO, Update, Write, Fragment } from '@fp4ts/sql-core';
 import { PgTransactor } from '../src';
@@ -39,7 +39,7 @@ describe.skip('pg', () => {
           Fragment.query(
             'INSERT INTO person(first_name, last_name) VALUES ($1, $2)',
           ),
-        ).updateMany(Array.FoldableWithIndex())([
+        ).updateMany(Foldable.Array)([
           ['test0', 'test0'],
           ['test1', 'test1'],
           ['test2', 'test2'],

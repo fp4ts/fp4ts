@@ -7,7 +7,6 @@
 import { $, Kind, pipe, tupled } from '@fp4ts/core';
 import {
   Applicative,
-  Array as CatsArray,
   Either,
   EitherT,
   EitherTF,
@@ -16,6 +15,7 @@ import {
   None,
   Option,
   Some,
+  Traversable,
 } from '@fp4ts/cats';
 import { Literal } from '@fp4ts/schema-kernel';
 
@@ -227,7 +227,7 @@ export const partial =
         new DecoderT(xs =>
           pipe(
             Object.keys(ds) as (keyof A)[],
-            traverse<$<EitherTF, [F, DecodeFailure]>>(
+            Traversable.Array.traverse<$<EitherTF, [F, DecodeFailure]>>(
               EitherT.Monad<F, DecodeFailure>(F),
             )(k => {
               if (!(k in xs)) return DecodeResultT.success(F)(None);
@@ -315,5 +315,3 @@ export const defer = <F, I, A>(
 
 const zipWithIndex = <A>(xs: A[]): [A, number][] =>
   xs.map((x, idx) => [x, idx]);
-
-const { traverse } = CatsArray.TraversableWithIndex();

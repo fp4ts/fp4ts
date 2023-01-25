@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Eval, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
 import {
-  Array,
   Const,
   Foldable,
   Identity,
@@ -26,7 +25,7 @@ export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
     null: Const.Foldable<null>(),
     par: Identity.Foldable,
 
-    array: f => self.compose_(Array.FoldableWithIndex(), f),
+    array: f => self.compose_(Foldable.Array, f),
     nullable: <F>(F: Foldable<F>) =>
       SafeFoldable.of<[NullableK, F]>({
         safeFoldLeft_: (fa, z, f) =>

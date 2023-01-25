@@ -23,11 +23,11 @@ import { List, ListBuffer } from '../list';
 import { Vector } from '../vector';
 import { Chain } from '../chain';
 import { Iter } from '../iterator';
-import { Array as CArray } from '../array';
 
 import { Queue } from './algebra';
 import { empty, fromIterator, fromList } from './constructors';
 import { View } from '../view';
+import { Foldable } from '../../../foldable';
 
 export const isEmpty = <A>({ _in, _out }: Queue<A>): boolean =>
   _in.isEmpty && _out.isEmpty;
@@ -497,9 +497,7 @@ export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Queue<B>]> =>
     G.map_(
-      Chain.traverseViaChain(G, CArray.FoldableWithIndex())(toArray(q), x =>
-        f(x),
-      ),
+      Chain.traverseViaChain(G, Foldable.Array)(toArray(q), x => f(x)),
       ys => fromList(ys.toList),
     );
 
@@ -507,9 +505,6 @@ export const traverseFilter_ =
   <G>(G: Applicative<G>) =>
   <A, B>(q: Queue<A>, f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [Queue<B>]> =>
     G.map_(
-      Chain.traverseFilterViaChain(G, CArray.FoldableWithIndex())(
-        toArray(q),
-        x => f(x),
-      ),
+      Chain.traverseFilterViaChain(G, Foldable.Array)(toArray(q), x => f(x)),
       ys => fromList(ys.toList),
     );

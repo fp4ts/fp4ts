@@ -4,11 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Eval, EvalF, id, Kind, pipe } from '@fp4ts/core';
+import { $, EvalF, id, Kind, pipe } from '@fp4ts/core';
 import { Monoid, Eq } from '@fp4ts/cats-kernel';
 import { EqK, Monad } from '@fp4ts/cats-core';
 import {
-  Array,
   Either,
   EitherF,
   Identity,
@@ -130,9 +129,9 @@ describe('WriterT', () => {
       ['Option', Option.Monad],
       [
         'string[]',
-        Array.MonoidK().algebra<string>(),
+        Monoid.Array<string>(),
         fc.array(fc.string()),
-        Array.Eq(Eq.fromUniversalEquals()),
+        Eq.Array(Eq.fromUniversalEquals()),
       ],
       A.fp4tsOption,
       Option.EqK,

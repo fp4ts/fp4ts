@@ -24,10 +24,10 @@ import { MonoidK } from '../../../monoid-k';
 import { Iter } from '../iterator';
 import { List } from '../list';
 import { Vector } from '../vector';
-import { Array as CatsArray } from '../array';
 
 import { Chain, Concat, Empty, NonEmpty, view } from './algebra';
 import { empty, fromArray, fromList, fromVector, pure } from './constructors';
+import { FoldableWithIndex } from '../../../foldable-with-index';
 
 export const isEmpty = <A>(c: Chain<A>): boolean => c === Empty;
 
@@ -603,7 +603,7 @@ export const foldMapK_ =
 export const traverse_ =
   <G>(G: Applicative<G>) =>
   <A, B>(xs: Chain<A>, f: (a: A) => Kind<G, [B]>): Kind<G, [Chain<B>]> =>
-    traverseViaChain(G, CatsArray.FoldableWithIndex())(toArray(xs), x => f(x));
+    traverseViaChain(G, Foldable.Array)(toArray(xs), x => f(x));
 
 export const traverseFilter_ =
   <G>(G: Applicative<G>) =>
@@ -611,9 +611,7 @@ export const traverseFilter_ =
     xs: Chain<A>,
     f: (a: A) => Kind<G, [Option<B>]>,
   ): Kind<G, [Chain<B>]> =>
-    traverseFilterViaChain(G, CatsArray.FoldableWithIndex())(toArray(xs), x =>
-      f(x),
-    );
+    traverseFilterViaChain(G, FoldableWithIndex.Array)(toArray(xs), x => f(x));
 
 export const equals_ =
   <A>(E: Eq<A>) =>

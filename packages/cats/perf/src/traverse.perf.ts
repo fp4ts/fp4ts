@@ -5,14 +5,15 @@
 
 import { add, configure, cycle, suite } from 'benny';
 import { id } from '@fp4ts/core';
-import { Array as CArray, Identity } from '@fp4ts/cats-core/lib/data';
+import { Traversable } from '@fp4ts/cats-core';
+import { Identity } from '@fp4ts/cats-core/lib/data';
 
 function makeSuite(size: number) {
   const xs = [...new Array(size).keys()];
 
   return [
     add(`Array Identity (${size})`, () => {
-      CArray.TraversableWithIndex().traverse_(Identity.Applicative)(xs, id);
+      Traversable.Array.traverse_(Identity.Applicative)(xs, id);
     }),
   ];
 }

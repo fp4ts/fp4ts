@@ -5,6 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Functor, FunctorRequirements } from './functor';
+import { ArrayF, arrayCoflatMap } from './instances/array';
 
 export interface CoflatMap<F> extends Functor<F> {
   coflatMap<A, B>(
@@ -28,5 +29,9 @@ export const CoflatMap = Object.freeze({
     };
 
     return self;
+  },
+
+  get Array(): CoflatMap<ArrayF> {
+    return arrayCoflatMap();
   },
 });

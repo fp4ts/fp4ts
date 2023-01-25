@@ -8,6 +8,7 @@ import { Semigroup } from '@fp4ts/cats-kernel';
 
 import { Functor } from './functor';
 import { Ior, Option } from './data';
+import { ArrayF, arrayAlign } from './instances/array';
 
 /**
  * @category Type Class
@@ -114,5 +115,9 @@ export const Align = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Array(): Align<ArrayF> {
+    return arrayAlign();
   },
 });

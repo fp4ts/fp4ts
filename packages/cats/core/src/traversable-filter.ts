@@ -8,6 +8,7 @@ import { Traversable } from './traversable';
 import { FunctorFilter } from './functor-filter';
 import { Applicative } from './applicative';
 import { Identity, None, Option, Some } from './data';
+import { ArrayF, arrayTraversableFilter } from './instances/array';
 
 /**
  * @category Type Class
@@ -89,5 +90,9 @@ export const TraversableFilter = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Array(): TraversableFilter<ArrayF> {
+    return arrayTraversableFilter();
   },
 });

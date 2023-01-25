@@ -9,7 +9,6 @@ import { Foldable } from '../../../foldable';
 import { Either } from '../../either';
 import { Vector } from '../vector';
 import { List } from '../list';
-import { Array } from '../array';
 
 import { Chain, Empty, Singleton, Wrap } from './algebra';
 
@@ -21,7 +20,7 @@ export const empty: Chain<never> = Empty;
 export const of = <A>(...xs: A[]): Chain<A> => fromArray(xs);
 
 export const fromArray: <A>(xs: A[]) => Chain<A> = xs =>
-  fromFoldable(Array.FoldableWithIndex())(xs);
+  fromFoldable(Foldable.Array)(xs);
 
 export const fromList: <A>(xs: List<A>) => Chain<A> = xs =>
   fromFoldable(List.Foldable)(xs);

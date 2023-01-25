@@ -43,3 +43,5 @@ export * from './foldable-with-index';
 export * from './traversable-with-index';
 
 export * from './show';
+
+export * from './instances';

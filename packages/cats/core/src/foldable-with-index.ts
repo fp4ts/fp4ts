@@ -8,6 +8,7 @@ import { Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from './foldable';
 import { MonoidK } from './monoid-k';
 import { Endo } from './data';
+import { ArrayF, arrayFoldableWithIndex } from './instances/array';
 
 /**
  * @category Type Class
@@ -128,5 +129,9 @@ export const FoldableWithIndex = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Array(): FoldableWithIndex<ArrayF, number> {
+    return arrayFoldableWithIndex();
   },
 });

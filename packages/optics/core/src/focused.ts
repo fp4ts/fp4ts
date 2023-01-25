@@ -6,7 +6,6 @@
 import { Kind, compose as composeF } from '@fp4ts/core';
 import {
   Applicative,
-  Array,
   Contravariant,
   Either,
   List,
@@ -310,7 +309,7 @@ export class Focused<O> {
   each<G, S, T, A, B>(this: Focused<T.PTraversal<S, T, Kind<G, [A]>, Kind<G, [B]>>>, G: Traversable<G>): Focused<T.PTraversal<S, T, A, B>>;
   each<S, A>(this: Focused<F.Fold<S, A[]>>): Focused<F.Fold<S, A>>;
   each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G>): Focused<F.Fold<S, A>>;
-  each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G> = Array.TraversableWithIndex() as any as Traversable<G>): Focused<F.Fold<S, A>> {
+  each<G, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: Traversable<G> = Traversable.Array as any as Traversable<G>): Focused<F.Fold<S, A>> {
     return this.compose(T.fromTraversable(G)<A>());
   }
 
@@ -318,7 +317,7 @@ export class Focused<O> {
   eachWithIndex<G, I, S, T, A, B>(this: Focused<T.IndexedPTraversal<I, S, T, Kind<G, [A]>, Kind<G, [B]>>>, G: TraversableWithIndex<G, I>): Focused<T.IndexedPTraversal<I, S, T, A, B>>;
   eachWithIndex<S, A>(this: Focused<F.Fold<S, A[]>>): Focused<F.IndexedFold<number, S, A>>;
   eachWithIndex<G, I, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: TraversableWithIndex<G, I>): Focused<F.IndexedFold<I, S, A>>;
-  eachWithIndex<G, I, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: TraversableWithIndex<G, any> = Array.TraversableWithIndex() as any as TraversableWithIndex<G, I>): Focused<F.IndexedFold<I, S, A>> {
+  eachWithIndex<G, I, S, A>(this: Focused<F.Fold<S, Kind<G, [A]>>>, G: TraversableWithIndex<G, any> = Traversable.Array as any as TraversableWithIndex<G, I>): Focused<F.IndexedFold<I, S, A>> {
     return this.icomposeR(T.fromTraversableWithIndex(G)<A>());
   }
 

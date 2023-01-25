@@ -5,7 +5,6 @@
 
 import fc from 'fast-check';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
-import { Array } from '@fp4ts/cats-core/lib/data/collections/array';
 import {
   AlignSuite,
   AlternativeSuite,
@@ -17,10 +16,19 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { Monad } from '@fp4ts/cats-core';
+import {
+  Align,
+  Alternative,
+  CoflatMap,
+  FunctorFilter,
+  FunctorWithIndex,
+  Monad,
+  TraversableFilter,
+  TraversableWithIndex,
+} from '@fp4ts/cats-core';
 
 describe('Array laws', () => {
-  const alignTests = AlignSuite(Array.Align());
+  const alignTests = AlignSuite(Align.Array);
   checkAll(
     'Align<Array>',
     alignTests.align(
@@ -33,11 +41,11 @@ describe('Array laws', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
     ),
   );
 
-  const functorFilterTests = FunctorFilterSuite(Array.FunctorFilter());
+  const functorFilterTests = FunctorFilterSuite(FunctorFilter.Array);
   checkAll(
     'FunctorFilter<Array>',
     functorFilterTests.functorFilter(
@@ -48,11 +56,11 @@ describe('Array laws', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
     ),
   );
 
-  const alternativeTests = AlternativeSuite(Array.Alternative());
+  const alternativeTests = AlternativeSuite(Alternative.Array);
   checkAll(
     'Alternative<Array>',
     alternativeTests.alternative(
@@ -63,11 +71,11 @@ describe('Array laws', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
     ),
   );
 
-  const coflatMapTests = CoflatMapSuite(Array.CoflatMap());
+  const coflatMapTests = CoflatMapSuite(CoflatMap.Array);
   checkAll(
     'CoflatMap<Array>',
     coflatMapTests.coflatMap(
@@ -80,11 +88,11 @@ describe('Array laws', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
     ),
   );
 
-  const monadTests = MonadSuite(Array.Monad());
+  const monadTests = MonadSuite(Monad.Array);
   checkAll(
     'Monad<Array>',
     monadTests.monad(
@@ -97,28 +105,26 @@ describe('Array laws', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
     ),
   );
 
   checkAll(
     'TraversableWithIndex<Array, number>',
-    TraversableWithIndexSuite(
-      Array.TraversableWithIndex(),
-    ).traversableWithIndex(
+    TraversableWithIndexSuite(TraversableWithIndex.Array).traversableWithIndex(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
-      Array.FunctorWithIndex(),
+      FunctorWithIndex.Array,
       Monad.Eval,
       Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
       A.fp4tsEval,
       Eq.Eval,
       A.fp4tsEval,
@@ -127,21 +133,21 @@ describe('Array laws', () => {
   );
 
   checkAll(
-    'TraversableFilter<Array, number>',
-    TraversableFilterSuite(Array.TraversableFilter()).traversableFilter(
+    'TraversableFilter<Array>',
+    TraversableFilterSuite(TraversableFilter.Array).traversableFilter(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
-      Array.FunctorFilter(),
+      FunctorFilter.Array,
       Monad.Eval,
       Monad.Eval,
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       fc.array,
-      Array.Eq,
+      Eq.Array,
       A.fp4tsEval,
       Eq.Eval,
       A.fp4tsEval,

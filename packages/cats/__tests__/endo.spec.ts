@@ -5,12 +5,13 @@
 
 import { id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Endo, Array as CArray } from '@fp4ts/cats-core/lib/data';
+import { Endo } from '@fp4ts/cats-core/lib/data';
 import { MonoidKSuite } from '@fp4ts/cats-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { Foldable } from '@fp4ts/cats-core';
 
 describe('Endo', () => {
   it('should apply composition of endo', () => {
@@ -26,9 +27,10 @@ describe('Endo', () => {
     const increment = (x: number): number => x + 1;
     const xs: Endo<number>[] = [...new Array(50_000)].map(() => increment);
 
-    const sumAll = CArray.FoldableWithIndex().foldMap_(
-      Endo.MonoidK.algebra<number>(),
-    )(xs, id);
+    const sumAll = Foldable.Array.foldMap_(Endo.MonoidK.algebra<number>())(
+      xs,
+      id,
+    );
     sumAll(1);
   });
 

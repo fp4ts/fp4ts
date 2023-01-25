@@ -7,6 +7,7 @@ import { Eval, Kind } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
 import { List } from './data';
+import { ArrayF, arrayAlternative } from './instances/array';
 
 /**
  * @category Type Class
@@ -62,5 +63,9 @@ export const Alternative = Object.freeze({
       ...F,
     };
     return self;
+  },
+
+  get Array(): Alternative<ArrayF> {
+    return arrayAlternative();
   },
 });

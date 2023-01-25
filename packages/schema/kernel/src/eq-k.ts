@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Eval, Kind, Lazy, lazyVal } from '@fp4ts/core';
-import { Array, Const, Eq, EqK, EqKF, FunctionK, Identity } from '@fp4ts/cats';
+import { Const, Eq, EqK, EqKF, FunctionK, Identity } from '@fp4ts/cats';
 import { SchemableK } from './schemable-k';
 import { NullableK, ProductK, StructK, SumK } from './kinds';
 import {
@@ -25,7 +25,7 @@ export const eqKSchemableK: Lazy<SchemableK<EqKF>> = lazyVal(() =>
     string: Const.EqK(Eq.fromUniversalEquals<string>()),
     null: Const.EqK(Eq.fromUniversalEquals<null>()),
     literal: lazyVal(() => Const.EqK(Eq.fromUniversalEquals<any>())),
-    array: f => EqK.compose(Array.EqK(), f),
+    array: f => EqK.compose(EqK.Array, f),
     nullable: f => new NullableSafeEqK(f),
 
     compose_: EqK.compose,

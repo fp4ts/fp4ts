@@ -6,6 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { SemigroupK, SemigroupKRequirements } from './semigroup-k';
+import { ArrayF, arrayMonoidK } from './instances/array';
 
 /**
  * @category Type Class
@@ -40,5 +41,9 @@ export const MonoidK = Object.freeze({
       ...F,
     };
     return self;
+  },
+
+  get Array(): MonoidK<ArrayF> {
+    return arrayMonoidK();
   },
 });

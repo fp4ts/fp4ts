@@ -15,6 +15,8 @@ import {
 } from './unordered-traversable';
 import { ComposedTraversable } from './composed';
 import { Const, Identity } from './data';
+import { ArrayF } from './instances/array';
+import { TraversableWithIndex } from './traversable-with-index';
 
 /**
  * @category Type Class
@@ -104,6 +106,10 @@ export const Traversable = Object.freeze({
     F: Traversable<F>,
     G: Traversable<G>,
   ): ComposedTraversable<F, G> => ComposedTraversable.of(F, G),
+
+  get Array(): Traversable<ArrayF> {
+    return TraversableWithIndex.Array;
+  },
 });
 
 // -- HKT

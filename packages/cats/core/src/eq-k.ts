@@ -16,6 +16,7 @@ import {
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from './arrow';
 import { ComposedEqK } from './composed';
+import { ArrayF, arrayEqK } from './instances/array';
 
 export interface EqK<F> extends Base<F> {
   liftEq<A>(E: Eq<A>): Eq<Kind<F, [A]>>;
@@ -44,6 +45,10 @@ export const EqK = Object.freeze({
 
   get Eval(): EqK<EvalF> {
     return evalEqK();
+  },
+
+  get Array(): EqK<ArrayF> {
+    return arrayEqK();
   },
 });
 
