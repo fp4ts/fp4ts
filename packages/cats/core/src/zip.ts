@@ -46,15 +46,23 @@ export interface Zip<F> extends Functor<F> {
   zip_<A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>): Kind<F, [[A, B]]>;
 }
 
-export type ZipRequirements<F> = Pick<Zip<F>, 'zipWith_'> &
+export type ZipRequirements<F> = (
+  | Pick<Zip<F>, 'zip'>
+  | Pick<Zip<F>, 'zipWith_'>
+) &
   FunctorRequirements<F> &
   Partial<Zip<F>>;
 export const Zip = Object.freeze({
   of: <F>(F: ZipRequirements<F>): Zip<F> => {
     const self: Zip<F> = {
       zipWith: (fb, f) => fa => self.zipWith_(fa, fb, f),
+      zipWith_:
+        F.zipWith_ ??
+        ((fa, fb, f) => self.map_(self.zip_(fa, fb), ([a, b]) => f(a, b))),
+
       zip: fb => fa => self.zip_(fa, fb),
-      zip_: (fa, fb) => self.zipWith_(fa, fb, (a, b) => [a, b]),
+      zip_: F.zip_ ?? ((fa, fb) => self.zipWith_(fa, fb, (a, b) => [a, b])),
+
       ...Functor.of(F),
       ...F,
     };

@@ -34,14 +34,20 @@ export interface Unzip<F> extends Zip<F> {
   unzip<A, B>(fab: Kind<F, [readonly [A, B]]>): [Kind<F, [A]>, Kind<F, [B]>];
 }
 
-export type UnzipRequirements<F> = Pick<Unzip<F>, 'unzipWith_'> &
+export type UnzipRequirements<F> = (
+  | Pick<Unzip<F>, 'unzip'>
+  | Pick<Unzip<F>, 'unzipWith_'>
+) &
   ZipRequirements<F> &
   Partial<Unzip<F>>;
 export const Unzip = Object.freeze({
   of: <F>(F: UnzipRequirements<F>): Unzip<F> => {
     const self: Unzip<F> = {
       unzipWith: f => fa => self.unzipWith_(fa, f),
-      unzip: fab => self.unzipWith_(fab, id),
+      unzipWith_: F.unzipWith_ ?? ((fa, f) => self.unzip(self.map_(fa, f))),
+
+      unzip: F.unzip ?? (fab => self.unzipWith_(fab, id)),
+
       ...Zip.of(F),
       ...F,
     };
