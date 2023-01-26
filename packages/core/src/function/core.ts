@@ -20,8 +20,8 @@ export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
   };
 };
 
-export function cached<A, B>(f: (a: A) => B): (a: A) => B {
-  const cache = new Map<A, B>();
+export function cached<A extends object, B>(f: (a: A) => B): (a: A) => B {
+  const cache = new WeakMap<A, B>();
   return function (a: A): B {
     if (cache.has(a)) {
       return cache.get(a)!;

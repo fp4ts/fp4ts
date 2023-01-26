@@ -5,10 +5,9 @@
 
 import fc from 'fast-check';
 import { EvalF } from '@fp4ts/core';
-import { Eq, Hashable, CommutativeMonoid } from '@fp4ts/cats-kernel';
-import { Monad } from '@fp4ts/cats-core';
+import { Eq, Hashable, CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
+import { Monad, MonoidK } from '@fp4ts/cats-core';
 import { List, Option, Some, None, HashMap } from '@fp4ts/cats-core/lib/data';
-import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
@@ -598,7 +597,7 @@ describe('Map', () => {
 
     it('should fold map into array of its values', () => {
       expect(
-        HashMap([1, 2], [3, 4]).foldMap(arrayMonoidK().algebra())(x => [x]),
+        HashMap([1, 2], [3, 4]).foldMap(Monoid.Array<number>())(x => [x]),
       ).toEqual(expect.arrayContaining([2, 4]));
     });
   });
@@ -611,9 +610,9 @@ describe('Map', () => {
     });
 
     it('should fold map into array of its values', () => {
-      expect(
-        HashMap([1, 2], [3, 4]).foldMapK(arrayMonoidK())(x => [x]),
-      ).toEqual(expect.arrayContaining([2, 4]));
+      expect(HashMap([1, 2], [3, 4]).foldMapK(MonoidK.Array)(x => [x])).toEqual(
+        expect.arrayContaining([2, 4]),
+      );
     });
   });
 

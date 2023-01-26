@@ -5,10 +5,9 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { EvalF, id } from '@fp4ts/core';
-import { CommutativeMonoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { Monad } from '@fp4ts/cats-core';
+import { CommutativeMonoid, Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
+import { Monad, MonoidK } from '@fp4ts/cats-core';
 import { List, Option, Some, None, Map } from '@fp4ts/cats-core/lib/data';
-import { arrayMonoidK } from '@fp4ts/cats-core/lib/data/collections/array/instances';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -870,7 +869,7 @@ describe('Map', () => {
 
     it('should fold map into array of its values', () => {
       expect(
-        Map([1, 2], [3, 4]).foldMap(arrayMonoidK().algebra())(x => [x]),
+        Map([1, 2], [3, 4]).foldMap(Monoid.Array<number>())(x => [x]),
       ).toEqual([2, 4]);
     });
   });
@@ -883,7 +882,7 @@ describe('Map', () => {
     });
 
     it('should fold map into array of its values', () => {
-      expect(Map([1, 2], [3, 4]).foldMapK(arrayMonoidK())(x => [x])).toEqual([
+      expect(Map([1, 2], [3, 4]).foldMapK(MonoidK.Array)(x => [x])).toEqual([
         2, 4,
       ]);
     });
