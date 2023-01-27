@@ -20,14 +20,19 @@ export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
   };
 };
 
-export function cached<A extends object, B>(f: (a: A) => B): (a: A) => B {
+export function cached<A extends object, B extends object>(
+  f: (a: A) => B,
+): (a: A) => B {
   const cache = new WeakMap<A, B>();
   return function (a: A): B {
     if (cache.has(a)) {
-      return cache.get(a)!;
+      const ref = cache.get(a) as any;
+      const b = ref.deref();
+      if (b) return b;
     }
     const b = f(a);
-    cache.set(a, b);
+    // @ts-ignore
+    cache.set(a, new WeakRef(b));
     return b;
   };
 }
