@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Applicative } from '@fp4ts/cats-core';
+import { Applicative, CoflatMap } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -198,7 +198,7 @@ describe('OptionT', () => {
     checkAll(
       'CoflatMap<OptionT<Either<string, *>>>',
       CoflatMapSuite(
-        Applicative.coflatMap(OptionT.Monad(Either.Monad<string>())),
+        CoflatMap.fromApplicative(OptionT.Monad(Either.Monad<string>())),
       ).coflatMap(
         fc.integer(),
         fc.integer(),

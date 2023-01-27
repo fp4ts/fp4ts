@@ -11,7 +11,7 @@ import {
   FunctorFilter,
   TraversableFilter,
 } from '@fp4ts/cats-core';
-import { Nested, Option } from '@fp4ts/cats-core/lib/data';
+import { Option } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -83,7 +83,7 @@ export const TraversableFilterSuite = <T>(T: TraversableFilter<T>) => {
               fc.func<[A], Kind<F, [Option<B>]>>(mkArbF(A.fp4tsOption(arbB))),
               fc.func<[B], Kind<G, [Option<C>]>>(mkArbG(A.fp4tsOption(arbC))),
               laws.traverseFilterSequentialComposition(F, G),
-            )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
+            )(mkEqF(mkEqG(mkEqT(EqC)))),
           ],
         ],
         {

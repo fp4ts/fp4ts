@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
 import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
-import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { UnorderedTraversableLaws } from '../unordered-traversable-laws';
@@ -55,7 +55,7 @@ export const UnorderedTraversableSuite = <T>(T: UnorderedTraversable<T>) => {
               fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               fc.func<[B], Kind<G, [C]>>(mkArbG(arbC)),
               laws.unorderedTraversableSequentialComposition(F, G),
-            )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
+            )(mkEqF(mkEqG(mkEqT(EqC)))),
           ],
           [
             'unorderedTraversable traversable parallel composition',

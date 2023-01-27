@@ -91,7 +91,7 @@ export const tryFlatMap: Lazy<FlatMap<TryF>> = lazyVal(() =>
 );
 
 export const tryCoflatMap: Lazy<CoflatMap<TryF>> = lazyVal(() =>
-  Applicative.coflatMap(tryApplicative()),
+  CoflatMap.fromApplicative(tryApplicative()),
 );
 
 export const tryMonad: Lazy<Monad<TryF>> = lazyVal(() =>

@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Applicative, TraversableFilter } from '@fp4ts/cats-core';
-import { Identity, Nested, Option, Some } from '@fp4ts/cats-core/lib/data';
+import { Identity, Option, Some } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FunctorFilterLaws } from './functor-filter-laws';
 import { TraversableLaws } from './traversable-laws';
@@ -56,12 +56,12 @@ export const TraversableFilterLaws = <F>(F: TraversableFilter<F>) => ({
       ta: Kind<F, [A]>,
       f: (a: A) => Kind<M, [Option<B>]>,
       g: (b: B) => Kind<N, [Option<C>]>,
-    ): IsEq<Nested<M, N, Kind<F, [C]>>> => {
-      const lhs = Nested(
-        M.map_(F.traverseFilter_(M)(ta, f), fb => F.traverseFilter_(N)(fb, g)),
+    ): IsEq<Kind<[M, N], [Kind<F, [C]>]>> => {
+      const lhs = M.map_(F.traverseFilter_(M)(ta, f), fb =>
+        F.traverseFilter_(N)(fb, g),
       );
-      const rhs = F.traverseFilter_(Nested.Applicative(M, N))(ta, a =>
-        Nested(M.map_(f(a), x => x.traverseFilter(N)(g))),
+      const rhs = F.traverseFilter_<[M, N]>(Applicative.compose(M, N))(ta, a =>
+        M.map_(f(a), x => x.traverseFilter(N)(g)),
       );
 
       return new IsEq(lhs, rhs);

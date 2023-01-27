@@ -3,22 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, Kind } from '@fp4ts/core';
+import { id, Kind } from '@fp4ts/core';
 import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
-import {
-  Identity,
-  IdentityF,
-  Nested,
-  NestedF,
-  Tuple2K,
-} from '@fp4ts/cats-core/lib/data';
+import { Identity, IdentityF, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { UnorderedFoldableLaws } from './unordered-foldable-laws';
 
-export const UnorderedTraversableLaws = <T>(
-  T: UnorderedTraversable<T>,
-): UnorderedTraversableLaws<T> => ({
+export const UnorderedTraversableLaws = <T>(T: UnorderedTraversable<T>) => ({
   ...UnorderedFoldableLaws(T),
 
   unorderedTraversableIdentity:
@@ -35,15 +27,14 @@ export const UnorderedTraversableLaws = <T>(
       fa: Kind<T, [A]>,
       f: (a: A) => Kind<M, [B]>,
       g: (b: B) => Kind<N, [C]>,
-    ): IsEq<Nested<M, N, Kind<T, [C]>>> => {
-      const lhs = Nested<M, N, Kind<T, [C]>>(
-        M.map_(T.unorderedTraverse_(M)(fa, f), fb =>
-          T.unorderedTraverse_(N)(fb, g),
-        ),
+    ): IsEq<Kind<[M, N], [Kind<T, [C]>]>> => {
+      const lhs = M.map_(T.unorderedTraverse_(M)(fa, f), fb =>
+        T.unorderedTraverse_(N)(fb, g),
       );
-      const rhs = T.unorderedTraverse_<$<NestedF, [M, N]>>(
-        Nested.Applicative(M, N),
-      )(fa, a => Nested(M.map_(f(a), g)));
+      const rhs = T.unorderedTraverse_<[M, N]>(Applicative.compose(M, N))(
+        fa,
+        a => M.map_(f(a), g),
+      );
 
       return new IsEq(lhs, rhs);
     },
@@ -72,31 +63,3 @@ export const UnorderedTraversableLaws = <T>(
     <A>(tga: Kind<T, [Kind<G, [A]>]>): IsEq<Kind<G, [Kind<T, [A]>]>> =>
       new IsEq(T.unorderedTraverse_(G)(tga, id), T.unorderedSequence(G)(tga)),
 });
-
-export interface UnorderedTraversableLaws<T> extends UnorderedFoldableLaws<T> {
-  unorderedTraversableIdentity: (
-    F: Functor<T>,
-  ) => <A, B>(fa: Kind<T, [A]>, f: (a: A) => B) => IsEq<Kind<T, [B]>>;
-
-  unorderedTraversableSequentialComposition: <M, N>(
-    M: Applicative<M>,
-    N: Applicative<N>,
-  ) => <A, B, C>(
-    fa: Kind<T, [A]>,
-    f: (a: A) => Kind<M, [B]>,
-    g: (b: B) => Kind<N, [C]>,
-  ) => IsEq<Nested<M, N, Kind<T, [C]>>>;
-
-  unorderedTraversableParallelComposition: <M, N>(
-    M: Applicative<M>,
-    N: Applicative<N>,
-  ) => <A, B>(
-    fa: Kind<T, [A]>,
-    f: (a: A) => Kind<M, [B]>,
-    g: (a: A) => Kind<N, [B]>,
-  ) => IsEq<Tuple2K<M, N, Kind<T, [B]>>>;
-
-  unorderedSequenceConsistent: <G>(
-    G: Applicative<G>,
-  ) => <A>(tga: Kind<T, [Kind<G, [A]>]>) => IsEq<Kind<G, [Kind<T, [A]>]>>;
-}

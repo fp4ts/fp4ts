@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
+import { Applicative } from './applicative';
 import { Functor, FunctorRequirements } from './functor';
 import { ArrayF, arrayCoflatMap } from './instances/array';
 
@@ -30,6 +31,9 @@ export const CoflatMap = Object.freeze({
 
     return self;
   },
+
+  fromApplicative: <F>(F: Applicative<F>): CoflatMap<F> =>
+    CoflatMap.of({ ...F, coflatMap_: (fa, f) => F.pure(f(fa)) }),
 
   get Array(): CoflatMap<ArrayF> {
     return arrayCoflatMap();

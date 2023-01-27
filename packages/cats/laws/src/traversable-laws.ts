@@ -5,13 +5,13 @@
 
 import { Kind } from '@fp4ts/core';
 import { Applicative, Traversable } from '@fp4ts/cats-core';
-import { Identity, Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Identity, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FoldableLaws } from './foldable-laws';
 import { FunctorLaws } from './functor-laws';
 import { UnorderedTraversableLaws } from './unordered-traversable-laws';
 
-export const TraversableLaws = <T>(T: Traversable<T>): TraversableLaws<T> => ({
+export const TraversableLaws = <T>(T: Traversable<T>) => ({
   ...FunctorLaws(T),
   ...FoldableLaws(T),
   ...UnorderedTraversableLaws(T),
@@ -31,12 +31,10 @@ export const TraversableLaws = <T>(T: Traversable<T>): TraversableLaws<T> => ({
       ta: Kind<T, [A]>,
       f: (a: A) => Kind<M, [B]>,
       g: (b: B) => Kind<N, [C]>,
-    ): IsEq<Nested<M, N, Kind<T, [C]>>> => {
-      const lhs = Nested(
-        M.map_(T.traverse_(M)(ta, f), fb => T.traverse_(N)(fb, g)),
-      );
-      const rhs = T.traverse_(Nested.Applicative(M, N))(ta, a =>
-        Nested(M.map_(f(a), g)),
+    ): IsEq<Kind<[M, N], [Kind<T, [C]>]>> => {
+      const lhs = M.map_(T.traverse_(M)(ta, f), fb => T.traverse_(N)(fb, g));
+      const rhs = T.traverse_<[M, N]>(Applicative.compose(M, N))(ta, a =>
+        M.map_(f(a), g),
       );
 
       return new IsEq(lhs, rhs);
@@ -58,28 +56,3 @@ export const TraversableLaws = <T>(T: Traversable<T>): TraversableLaws<T> => ({
       return new IsEq(lhs, rhs);
     },
 });
-
-export interface TraversableLaws<T> extends FunctorLaws<T>, FoldableLaws<T> {
-  traversableIdentity: <A, B>(
-    fa: Kind<T, [A]>,
-    f: (a: A) => B,
-  ) => IsEq<Kind<T, [B]>>;
-
-  traversableSequentialComposition: <M, N>(
-    M: Applicative<M>,
-    N: Applicative<N>,
-  ) => <A, B, C>(
-    ta: Kind<T, [A]>,
-    f: (a: A) => Kind<M, [B]>,
-    g: (b: B) => Kind<N, [C]>,
-  ) => IsEq<Nested<M, N, Kind<T, [C]>>>;
-
-  traversableParallelComposition: <M, N>(
-    M: Applicative<M>,
-    N: Applicative<N>,
-  ) => <A, B>(
-    ta: Kind<T, [A]>,
-    f: (a: A) => Kind<M, [B]>,
-    g: (a: A) => Kind<N, [B]>,
-  ) => IsEq<Tuple2K<M, N, Kind<T, [B]>>>;
-}

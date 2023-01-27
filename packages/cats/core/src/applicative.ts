@@ -4,9 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eval, Kind } from '@fp4ts/core';
-import { Functor } from './functor';
 import { Apply } from './apply';
-import { CoflatMap } from './coflat-map';
 import { ComposedApplicative } from './composed';
 import { Foldable } from './foldable';
 import { FoldableWithIndex } from './foldable-with-index';
@@ -68,7 +66,7 @@ export const Applicative = Object.freeze({
           (x, ac, i) => self.map2Eval_(f(x, i), ac)(() => {}),
         ).value,
 
-      ...Apply.of<F>({ ...Applicative.functor<F>(F), ...F }),
+      ...Apply.of<F>({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),
       ...F,
     };
     return self;
@@ -78,15 +76,6 @@ export const Applicative = Object.freeze({
     F: Applicative<F>,
     G: Applicative<G>,
   ): ComposedApplicative<F, G> => ComposedApplicative.of(F, G),
-
-  functor: <F>(F: ApplicativeRequirements<F>): Functor<F> =>
-    Functor.of<F>({
-      map_: (fa, f) => F.ap_(F.pure(f), fa),
-      ...F,
-    }),
-
-  coflatMap: <F>(F: Applicative<F>): CoflatMap<F> =>
-    CoflatMap.of({ ...F, coflatMap_: (fa, f) => F.pure(f(fa)) }),
 
   get Array(): Applicative<ArrayF> {
     return arrayApplicative();

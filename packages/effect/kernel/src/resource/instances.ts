@@ -42,8 +42,9 @@ import {
 } from './operators';
 import { ResourceF } from './resource';
 
-export const resourceApplicative: <F>() => Applicative<$<ResourceF, [F]>> =
-  lazyVal(() => Monad.deriveApplicative(resourceMonad()));
+export const resourceApplicative: <F>() => Applicative<$<ResourceF, [F]>> = <
+  F,
+>() => resourceMonad<F>();
 
 export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazyVal(<F>() =>
   Monad.of<$<ResourceF, [F]>>({

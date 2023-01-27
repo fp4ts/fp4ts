@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative, Functor, TraversableWithIndex } from '@fp4ts/cats-core';
-import { Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { TraversableWithIndexLaws } from '../traversable-with-index-laws';
@@ -62,7 +62,7 @@ export const TraversableWithIndexSuite = <T, I>(
               fc.func<[A, I], Kind<F, [B]>>(mkArbF(arbB)),
               fc.func<[B, I], Kind<G, [C]>>(mkArbG(arbC)),
               laws.indexedTraversableSequentialComposition(F, G),
-            )(Nested.Eq(mkEqF(mkEqG(mkEqT(EqC))))),
+            )(mkEqF(mkEqG(mkEqT(EqC)))),
           ],
           [
             'traversable parallel composition',

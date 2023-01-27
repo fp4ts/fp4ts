@@ -6,7 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { Applicative, TraversableWithIndex } from '@fp4ts/cats-core';
-import { Identity, Nested, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Identity, Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { TraversableLaws } from './traversable-laws';
 
 export const TraversableWithIndexLaws = <T, I>(
@@ -29,14 +29,13 @@ export const TraversableWithIndexLaws = <T, I>(
       ta: Kind<T, [A]>,
       f: (a: A, i: I) => Kind<M, [B]>,
       g: (b: B, i: I) => Kind<N, [C]>,
-    ): IsEq<Nested<M, N, Kind<T, [C]>>> => {
-      const lhs = Nested(
-        M.map_(T.traverseWithIndex_(M)(ta, f), fb =>
-          T.traverseWithIndex_(N)(fb, g),
-        ),
+    ): IsEq<Kind<[M, N], [Kind<T, [C]>]>> => {
+      const lhs = M.map_(T.traverseWithIndex_(M)(ta, f), fb =>
+        T.traverseWithIndex_(N)(fb, g),
       );
-      const rhs = T.traverseWithIndex_(Nested.Applicative(M, N))(ta, (a, i) =>
-        Nested(M.map_(f(a, i), b => g(b, i))),
+      const rhs = T.traverseWithIndex_<[M, N]>(Applicative.compose(M, N))(
+        ta,
+        (a, i) => M.map_(f(a, i), b => g(b, i)),
       );
 
       return new IsEq(lhs, rhs);

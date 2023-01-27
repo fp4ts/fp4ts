@@ -22,7 +22,6 @@ export * from './backwards';
 export * from './proxy';
 export * from './tuple2';
 
-export * from './nested';
 export * from './cokleisli';
 export * from './kleisli';
 export * from './tuple2-k';

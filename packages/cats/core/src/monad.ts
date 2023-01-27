@@ -32,10 +32,19 @@ export type MonadRequirements<F> = Pick<
   Partial<Monad<F>>;
 export const Monad = Object.freeze({
   of: <M>(M: MonadRequirements<M>): Monad<M> => {
-    const F = Monad.deriveFlatMap(M);
-    const A = Monad.deriveApplicative(M);
+    const apply: Apply<M> = Apply.of<M>({
+      map_: (fa, f) => M.flatMap_(fa, a => M.pure(f(a))),
+      ap_: (ff, fa) => M.flatMap_(ff, f => apply.map_(fa, a => f(a))),
+      map2_:
+        <A, B>(fa: Kind<M, [A]>, fb: Kind<M, [B]>) =>
+        <C>(f: (a: A, b: B) => C) =>
+          M.flatMap_(fa, a => apply.map_(fb, b => f(a, b))),
+      ...M,
+    });
+    const flatMap = FlatMap.of({ ...apply, ...M });
+    const applicative = Applicative.of({ ...apply, ...M });
 
-    const self: Monad<M> = { ...F, ...A, ...M } as any;
+    const self: Monad<M> = { ...flatMap, ...applicative, ...M } as any;
     self.do = Monad.Do(self);
     self.liftM = f => fa => self.flatMap_(fa, a => self.pure(f(a)));
     return self;
@@ -48,30 +57,6 @@ export const Monad = Object.freeze({
   get Array(): Monad<ArrayF> {
     return arrayMonad();
   },
-
-  deriveFunctor: <F>(F: MonadRequirements<F>): Functor<F> =>
-    Functor.of({ map_: (fa, f) => F.flatMap_(fa, x => F.pure(f(x))), ...F }),
-
-  deriveApply: <F>(F: MonadRequirements<F>): Apply<F> => {
-    const self: Apply<F> = Apply.of({
-      ap_: (ff, fa) => F.flatMap_(ff, f => self.map_(fa, a => f(a))),
-      ...Monad.deriveFunctor(F),
-      ...F,
-    });
-    return self;
-  },
-
-  deriveApplicative: <F>(F: MonadRequirements<F>): Applicative<F> =>
-    Applicative.of({
-      ...Monad.deriveApply(F),
-      ...F,
-    }),
-
-  deriveFlatMap: <F>(F: MonadRequirements<F>): FlatMap<F> =>
-    FlatMap.of({
-      ...Monad.deriveApply(F),
-      ...F,
-    }),
 
   // -- Generator Based Do notation
 

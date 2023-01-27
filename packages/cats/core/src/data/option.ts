@@ -248,7 +248,7 @@ const optionAlternative = lazyVal(() =>
   }),
 );
 
-const optionCoflatMap = lazyVal(() => Applicative.coflatMap(optionMonad()));
+const optionCoflatMap = lazyVal(() => CoflatMap.fromApplicative(optionMonad()));
 
 const optionMonad = lazyVal(() =>
   Monad.of<OptionF>({
