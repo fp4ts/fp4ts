@@ -25,11 +25,15 @@ interface BackwardsObj {
 
 Backwards.Functor = F => Functor.of({ map_: F.map_ });
 Backwards.Contravariant = F => Contravariant.of({ contramap_: F.contramap_ });
-Backwards.Applicative = F =>
+Backwards.Applicative = <F>(F: Applicative<F>) =>
   Applicative.of({
     ...Backwards.Functor(F),
     pure: F.pure,
     ap_: (ff, fa) => F.map2_(fa, ff)((a, f) => f(a)),
+    map2_:
+      <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
+      <C>(f: (a: A, b: B) => C) =>
+        F.map2_(fb, fa)((b, a) => f(a, b)),
   });
 Backwards.Monad = <F>(F: Monad<F>) =>
   Monad.of({
