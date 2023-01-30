@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazy } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { MonoidK } from '../../../monoid-k';
@@ -38,19 +38,19 @@ import { TraversableFilter } from '../../../traversable-filter';
 export const chainEq = <A>(E: Eq<A>): Eq<Chain<A>> =>
   Eq.of({ equals: equals_(E) });
 
-export const chainAlign: Lazy<Align<ChainF>> = lazyVal(() =>
+export const chainAlign: Lazy<Align<ChainF>> = lazy(() =>
   Align.of({ ...chainFunctor(), align_: align_ }),
 );
 
-export const chainMonoidK: Lazy<MonoidK<ChainF>> = lazyVal(() =>
+export const chainMonoidK: Lazy<MonoidK<ChainF>> = lazy(() =>
   MonoidK.of({ emptyK: () => empty, combineK_: (xs, ys) => concat_(xs, ys) }),
 );
 
-export const chainFunctor: Lazy<Functor<ChainF>> = lazyVal(() =>
+export const chainFunctor: Lazy<Functor<ChainF>> = lazy(() =>
   Functor.of({ map_ }),
 );
 
-export const chainFunctorFilter: Lazy<FunctorFilter<ChainF>> = lazyVal(() =>
+export const chainFunctorFilter: Lazy<FunctorFilter<ChainF>> = lazy(() =>
   FunctorFilter.of({
     ...chainFunctor(),
     mapFilter_: collect_,
@@ -59,15 +59,15 @@ export const chainFunctorFilter: Lazy<FunctorFilter<ChainF>> = lazyVal(() =>
   }),
 );
 
-export const chainAlternative: Lazy<Alternative<ChainF>> = lazyVal(() =>
+export const chainAlternative: Lazy<Alternative<ChainF>> = lazy(() =>
   Alternative.of({ ...chainMonad(), ...chainMonoidK() }),
 );
 
-export const chainCoflatMap: Lazy<CoflatMap<ChainF>> = lazyVal(() =>
+export const chainCoflatMap: Lazy<CoflatMap<ChainF>> = lazy(() =>
   CoflatMap.of({ ...chainFunctor(), coflatMap_ }),
 );
 
-export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
+export const chainMonad: Lazy<Monad<ChainF>> = lazy(() =>
   Monad.of({
     pure: pure,
     flatMap_: flatMap_,
@@ -82,7 +82,7 @@ export const chainMonad: Lazy<Monad<ChainF>> = lazyVal(() =>
   }),
 );
 
-export const chainTraversable: Lazy<TraversableFilter<ChainF>> = lazyVal(() =>
+export const chainTraversable: Lazy<TraversableFilter<ChainF>> = lazy(() =>
   TraversableFilter.of({
     ...chainFunctorFilter(),
     foldLeft_,

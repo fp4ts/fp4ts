@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Lazy, lazyVal, flow, cached } from '@fp4ts/core';
+import { $, Lazy, lazy, flow, cached } from '@fp4ts/core';
 import { Alternative, Either, Functor, Left, Monad, Right } from '@fp4ts/cats';
 
 import { Route, RouteResult, RouteResultT, view } from './algebra';
@@ -19,11 +19,11 @@ import {
 import type { RouteResultF, RouteResultTF } from './route-result';
 import { NotFoundFailure } from '@fp4ts/http-core';
 
-export const routeResultFunctor: Lazy<Functor<RouteResultF>> = lazyVal(() =>
+export const routeResultFunctor: Lazy<Functor<RouteResultF>> = lazy(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const routeResultAlternative: Lazy<Alternative<RouteResultF>> = lazyVal(
+export const routeResultAlternative: Lazy<Alternative<RouteResultF>> = lazy(
   () =>
     Alternative.of({
       ...routeResultMonad(),
@@ -32,7 +32,7 @@ export const routeResultAlternative: Lazy<Alternative<RouteResultF>> = lazyVal(
     }),
 );
 
-export const routeResultMonad: Lazy<Monad<RouteResultF>> = lazyVal(() =>
+export const routeResultMonad: Lazy<Monad<RouteResultF>> = lazy(() =>
   Monad.of({
     ...routeResultFunctor(),
     flatMap_: flatMap_,

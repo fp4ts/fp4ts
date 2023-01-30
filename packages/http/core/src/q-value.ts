@@ -8,7 +8,7 @@ import {
   coerce,
   EvalF,
   Lazy,
-  lazyVal,
+  lazy,
   newtype,
   TypeOf,
 } from '@fp4ts/core';
@@ -49,7 +49,7 @@ const mkQValue = (thousands: number, s: string): ParseResult<QValue> =>
     ? ParseResult.fail('Invalid q-value', `${s} must be between 0.0 and 1.0`)
     : ParseResult.success(QValueCotr(thousands));
 
-const parser_: Lazy<Parser<StringSource, QValue>> = lazyVal(() => {
+const parser_: Lazy<Parser<StringSource, QValue>> = lazy(() => {
   const eof = Parser.eof<StringSource, EvalF>();
   const ch = text.char;
   const decQValue = Rfc5234.digit<StringSource, EvalF>()

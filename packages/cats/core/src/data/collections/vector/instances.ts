@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, id, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, id, Lazy, lazy } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Align } from '../../../align';
 import { Alternative } from '../../../alternative';
@@ -46,7 +46,7 @@ import { TraversableFilter } from '../../../traversable-filter';
 export const vectorEq: <A>(E: Eq<A>) => Eq<Vector<A>> = E =>
   Eq.of({ equals: equals_(E) });
 
-export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazyVal(() =>
+export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazy(() =>
   MonoidK.of({
     emptyK: () => Vector.empty,
     combineK_: (x, y) => x.concat(y),
@@ -55,7 +55,7 @@ export const vectorMonoidK: Lazy<MonoidK<VectorF>> = lazyVal(() =>
   }),
 );
 
-export const vectorAlign: Lazy<Align<VectorF>> = lazyVal(() =>
+export const vectorAlign: Lazy<Align<VectorF>> = lazy(() =>
   Align.of({
     ...vectorFunctor(),
     align_: align_,
@@ -69,10 +69,10 @@ export const vectorAlign: Lazy<Align<VectorF>> = lazyVal(() =>
   }),
 );
 
-export const vectorFunctor: Lazy<Functor<VectorF>> = lazyVal(() =>
+export const vectorFunctor: Lazy<Functor<VectorF>> = lazy(() =>
   Functor.of({ map_: (xs, f) => xs.map(f) }),
 );
-export const vectorFunctorFilter: Lazy<FunctorFilter<VectorF>> = lazyVal(() =>
+export const vectorFunctorFilter: Lazy<FunctorFilter<VectorF>> = lazy(() =>
   FunctorFilter.of({
     ...vectorFunctor(),
     mapFilter_: collect_,
@@ -80,19 +80,19 @@ export const vectorFunctorFilter: Lazy<FunctorFilter<VectorF>> = lazyVal(() =>
   }),
 );
 
-export const vectorApplicative: Lazy<Applicative<VectorF>> = lazyVal(() =>
+export const vectorApplicative: Lazy<Applicative<VectorF>> = lazy(() =>
   vectorMonad(),
 );
 
-export const vectorAlternative: Lazy<Alternative<VectorF>> = lazyVal(() =>
+export const vectorAlternative: Lazy<Alternative<VectorF>> = lazy(() =>
   Alternative.of({ ...vectorMonoidK(), ...vectorApplicative() }),
 );
 
-export const vectorCoflatMap: Lazy<CoflatMap<VectorF>> = lazyVal(() =>
+export const vectorCoflatMap: Lazy<CoflatMap<VectorF>> = lazy(() =>
   CoflatMap.of({ ...vectorFunctor(), coflatMap_ }),
 );
 
-export const vectorMonad: Lazy<Monad<VectorF>> = lazyVal(() =>
+export const vectorMonad: Lazy<Monad<VectorF>> = lazy(() =>
   Monad.of({
     ...vectorFunctor(),
     pure: pure,
@@ -108,7 +108,7 @@ export const vectorMonad: Lazy<Monad<VectorF>> = lazyVal(() =>
   }),
 );
 
-export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
+export const vectorFoldable: Lazy<Foldable<VectorF>> = lazy(() =>
   Foldable.of({
     all_: all_,
     any_: any_,
@@ -129,7 +129,7 @@ export const vectorFoldable: Lazy<Foldable<VectorF>> = lazyVal(() =>
 );
 
 export const vectorTraversableFilter: Lazy<TraversableFilter<VectorF>> =
-  lazyVal(() =>
+  lazy(() =>
     TraversableFilter.of({
       ...vectorFoldable(),
       ...vectorFunctorFilter(),

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazy } from '@fp4ts/core';
 import { Compare, Ord } from '@fp4ts/cats';
 
 export class SourcePosition {
@@ -43,6 +43,6 @@ export class SourcePosition {
   }
 }
 
-const sourceLocationOrd: Lazy<Ord<SourcePosition>> = lazyVal(() =>
+const sourceLocationOrd: Lazy<Ord<SourcePosition>> = lazy(() =>
   Ord.of({ compare: (x, y) => x.compare(y) }),
 );

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { instance, Kind, Lazy, lazy, pipe } from '@fp4ts/core';
 import {
   Either,
   Function1,
@@ -60,7 +60,7 @@ export const Choice = Object.freeze({
 
 // -- Instances
 
-const taggedChoice: Lazy<Choice<TaggedF>> = lazyVal(() =>
+const taggedChoice: Lazy<Choice<TaggedF>> = lazy(() =>
   Choice.of({
     ...Tagged.Profunctor,
     left:

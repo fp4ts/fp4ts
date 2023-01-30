@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { instance, lazyVal } from '@fp4ts/core';
+import { instance, lazy } from '@fp4ts/core';
 import { Eq } from './eq';
 import { arrayOrd } from './instances/array';
 import { tupleOrd } from './instances/tuple';
@@ -62,7 +62,7 @@ export const Ord = Object.freeze({
   tuple: <A extends unknown[]>(...os: { [k in keyof A]: Ord<A[k]> }): Ord<A> =>
     tupleOrd<A>(os),
 
-  fromUniversalCompare: lazyVal(
+  fromUniversalCompare: lazy(
     <A>(): Ord<A> =>
       instance({
         ...Eq.fromUniversalEquals(),

@@ -9,7 +9,7 @@ import {
   Kind,
   KindOf,
   Lazy,
-  lazyVal,
+  lazy,
   newtypeK,
   newtypeKDerive,
   TyK,
@@ -45,22 +45,22 @@ interface TaggedObj {
 
 // -- Instances
 
-const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazyVal(<S>() =>
+const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazy(<S>() =>
   newtypeKDerive<EqKF, $<TaggedF, [S]>>()(Identity.EqK),
 ) as <S>() => EqK<$<TaggedF, [S]>>;
 
-const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazyVal(<S>() =>
+const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazy(<S>() =>
   newtypeKDerive<MonadF, $<TaggedF, [S]>>()(Identity.Monad),
 ) as <S>() => Monad<$<TaggedF, [S]>>;
 
-const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazyVal(() =>
+const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazy(() =>
   Bifunctor.of({
     bimap_: <A, B, C, D>(tab: Tagged<A, B>, f: (a: A) => C, g: (b: B) => D) =>
       Tagged<C, D>(g(Tagged.unTag(tab))),
   }),
 );
 
-const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazyVal(() =>
+const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazy(() =>
   Profunctor.of({
     dimap_: <A, B, C, D>(fab: Tagged<A, B>, f: (c: C) => A, g: (b: B) => D) =>
       Tagged<C, D>(g(Tagged.unTag(fab))),

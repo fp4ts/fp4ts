@@ -11,7 +11,7 @@ import {
   TyK,
   TyVar,
   EvalF,
-  lazyVal,
+  lazy,
 } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from './arrow';
@@ -52,7 +52,7 @@ export const EqK = Object.freeze({
   },
 });
 
-const evalEqK: () => EqK<EvalF> = lazyVal(() => EqK.of({ liftEq: Eq.Eval }));
+const evalEqK: () => EqK<EvalF> = lazy(() => EqK.of({ liftEq: Eq.Eval }));
 
 // -- HKT
 

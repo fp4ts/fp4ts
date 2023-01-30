@@ -13,7 +13,7 @@ import {
   Fix,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
   TyK,
   TyVar,
   α,
@@ -132,7 +132,7 @@ const kleisliMonoidK: <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>> =
 
 const kleisliContravariant: <F, B>() => Contravariant<
   λ<KleisliF, [Fix<F>, α, Fix<B>]>
-> = lazyVal(() =>
+> = lazy(() =>
   Contravariant.of({ contramap_: (fa, f) => AndThen(f).andThen(fa) }),
 );
 

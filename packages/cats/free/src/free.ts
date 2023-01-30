@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, HKT, id, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, id, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { FunctionK, Monad, StackSafeMonad } from '@fp4ts/cats-core';
 import { Left, Right } from '@fp4ts/cats-core/lib/data';
 
@@ -108,7 +108,7 @@ class FlatMap<F, A, B> extends _Free<F, B> {
 
 type View<F, A> = Pure<F, A> | Suspend<F, A> | FlatMap<F, unknown, A>;
 
-Free.Monad = lazyVal(<F>() =>
+Free.Monad = lazy(<F>() =>
   StackSafeMonad.of<$<FreeF, [F]>>({
     pure: Free.pure,
     map_: (fa, f) => fa.map(f),

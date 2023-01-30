@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Eval, Kind, Lazy, lazyVal, pipe } from '@fp4ts/core';
+import { Eval, Kind, Lazy, lazy, pipe } from '@fp4ts/core';
 import {
   Const,
   Foldable,
@@ -16,7 +16,7 @@ import {
 import { SchemableK } from './schemable-k';
 import { NullableK, ProductK, StructK, SumK } from './kinds';
 
-export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazyVal(() => {
+export const foldableSchemableK: Lazy<SchemableK<FoldableF>> = lazy(() => {
   const self: SchemableK<FoldableF> = SchemableK.of({
     boolean: Const.Foldable<boolean>(),
     string: Const.Foldable<string>(),
@@ -217,7 +217,7 @@ export const imapSafeFoldable = <F, G>(
 export const deferSafeFoldable = <F>(
   thunk: () => Foldable<F>,
 ): SafeFoldable<F> => {
-  const t = lazyVal(thunk);
+  const t = lazy(thunk);
   return SafeFoldable.of({
     foldRight_: (fa, eb, f) => t().foldRight_(fa, eb, f),
     safeFoldLeft_: (fa, b, f) => safeFoldLeft(t(), fa, b, f),

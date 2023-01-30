@@ -9,7 +9,7 @@ import {
   Fix,
   fst,
   Kind,
-  lazyVal,
+  lazy,
   snd,
   TyK,
   TyVar,
@@ -43,7 +43,7 @@ interface Tuple2Obj {
   };
 }
 
-const tuple2RightComonad: <A>() => Comonad<$<Tuple2F, [A]>> = lazyVal(<A>() =>
+const tuple2RightComonad: <A>() => Comonad<$<Tuple2F, [A]>> = lazy(<A>() =>
   Comonad.of({
     ...Tuple2.Bifunctor.rightFunctor<A>(),
     extract: snd,
@@ -51,7 +51,7 @@ const tuple2RightComonad: <A>() => Comonad<$<Tuple2F, [A]>> = lazyVal(<A>() =>
   }),
 ) as <A>() => Comonad<$<Tuple2F, [A]>>;
 
-const tuple2RightTraversable: <A>() => Traversable<$<Tuple2F, [A]>> = lazyVal(<
+const tuple2RightTraversable: <A>() => Traversable<$<Tuple2F, [A]>> = lazy(<
   A,
 >() =>
   Traversable.of({
@@ -66,7 +66,7 @@ const tuple2RightTraversable: <A>() => Traversable<$<Tuple2F, [A]>> = lazyVal(<
   }),
 ) as <A>() => Traversable<$<Tuple2F, [A]>>;
 
-const tuple2LeftComonad: <A>() => Comonad<Tuple2LF<A>> = lazyVal(<A>() =>
+const tuple2LeftComonad: <A>() => Comonad<Tuple2LF<A>> = lazy(<A>() =>
   Comonad.of({
     ...Tuple2.Bifunctor.leftFunctor<A>(),
     extract: fst,
@@ -74,9 +74,7 @@ const tuple2LeftComonad: <A>() => Comonad<Tuple2LF<A>> = lazyVal(<A>() =>
   }),
 ) as <A>() => Comonad<Tuple2LF<A>>;
 
-const tuple2LeftTraversable: <A>() => Traversable<Tuple2LF<A>> = lazyVal(<
-  A,
->() =>
+const tuple2LeftTraversable: <A>() => Traversable<Tuple2LF<A>> = lazy(<A>() =>
   Traversable.of({
     ...Tuple2.Bifunctor.leftFunctor<A>(),
     traverse_:
@@ -89,7 +87,7 @@ const tuple2LeftTraversable: <A>() => Traversable<Tuple2LF<A>> = lazyVal(<
   }),
 ) as <A>() => Traversable<Tuple2LF<A>>;
 
-const tuple2Bifunctor = lazyVal(() =>
+const tuple2Bifunctor = lazy(() =>
   Bifunctor.of<Tuple2F>({
     bimap_: <A, B, C, D>(
       [a, b]: [A, B],

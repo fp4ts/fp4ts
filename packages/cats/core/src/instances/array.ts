@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
@@ -32,9 +32,9 @@ import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
 
-export const arrayEqK = lazyVal(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
+export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
-export const arrayMonoidK = lazyVal(() => {
+export const arrayMonoidK = lazy(() => {
   const M = Monoid.Array<any>();
   return MonoidK.of<ArrayF>({
     emptyK: () => M.empty,
@@ -44,7 +44,7 @@ export const arrayMonoidK = lazyVal(() => {
   });
 });
 
-export const arrayFunctorWithIndex = lazyVal(() =>
+export const arrayFunctorWithIndex = lazy(() =>
   FunctorWithIndex.of<ArrayF, number>({ mapWithIndex_: mapWithIndex }),
 );
 
@@ -52,7 +52,7 @@ function mapWithIndex<A, B>(xs: A[], f: (a: A, i: number) => B): B[] {
   return xs.map((x, i) => f(x, i));
 }
 
-export const arrayUnzip = lazyVal(() =>
+export const arrayUnzip = lazy(() =>
   Unzip.of({
     ...arrayFunctorWithIndex(),
     zip_: zip,
@@ -102,7 +102,7 @@ function unzip<A, B>(xs: (readonly [A, B])[]): [A[], B[]] {
   return [as, bs];
 }
 
-export const arrayUnalign = lazyVal(() =>
+export const arrayUnalign = lazy(() =>
   Unalign.of<ArrayF>({
     ...arrayFunctorWithIndex(),
     align_: align,
@@ -158,7 +158,7 @@ function unalignWith<A, B, C>(xs: A[], f: (a: A) => Ior<B, C>): [B[], C[]] {
   return [bs, cs];
 }
 
-export const arrayFunctorFilter = lazyVal(() =>
+export const arrayFunctorFilter = lazy(() =>
   FunctorFilter.of<ArrayF>({
     ...arrayFunctorWithIndex(),
     mapFilter_: collect,
@@ -180,7 +180,7 @@ function filter<A>(xs: A[], f: (a: A) => boolean): A[] {
   return xs.filter(x => f(x));
 }
 
-export const arrayApply = lazyVal(() =>
+export const arrayApply = lazy(() =>
   Apply.of<ArrayF>({
     ...arrayFunctorWithIndex(),
     ap_: ap,
@@ -221,14 +221,14 @@ function map2<A, B, C>(fa: A[], fb: B[], f: (a: A, b: B) => C): C[] {
   return zs;
 }
 
-export const arrayApplicative = lazyVal(() =>
+export const arrayApplicative = lazy(() =>
   Applicative.of<ArrayF>({
     ...arrayApply(),
     pure,
   }),
 );
 
-export const arrayAlternative = lazyVal(() =>
+export const arrayAlternative = lazy(() =>
   Alternative.of<ArrayF>({
     ...arrayApplicative(),
     ...arrayMonoidK(),
@@ -239,7 +239,7 @@ function pure<A>(x: A): A[] {
   return [x];
 }
 
-export const arrayFlatMap = lazyVal(() =>
+export const arrayFlatMap = lazy(() =>
   FlatMap.of<ArrayF>({
     ...arrayApply(),
     flatMap_: flatMap,
@@ -277,11 +277,11 @@ function tailRecM<S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] {
   return as;
 }
 
-export const arrayMonad = lazyVal(() =>
+export const arrayMonad = lazy(() =>
   Monad.of<ArrayF>({ ...arrayApplicative(), ...arrayFlatMap() }),
 );
 
-export const arrayCoflatMap = lazyVal(() =>
+export const arrayCoflatMap = lazy(() =>
   CoflatMap.of<ArrayF>({ ...arrayFunctorWithIndex(), coflatMap_: coflatMap }),
 );
 
@@ -294,7 +294,7 @@ function coflatMap<A, B>(xs: A[], f: (xs: A[]) => B): B[] {
   return bs;
 }
 
-export const arrayFoldableWithIndex = lazyVal(() =>
+export const arrayFoldableWithIndex = lazy(() =>
   FoldableWithIndex.of<ArrayF, number>({
     foldLeft_: foldLeft,
     foldLeftWithIndex_: foldLeftWithIndex,
@@ -377,7 +377,7 @@ function view<A>(xs: A[]): View<A> {
   return View.build((ez, g) => foldRight(xs, ez, g));
 }
 
-export const arrayTraversableWithIndex = lazyVal(() =>
+export const arrayTraversableWithIndex = lazy(() =>
   TraversableWithIndex.of<ArrayF, number>({
     ...arrayFoldableWithIndex(),
     ...arrayFunctorWithIndex(),
@@ -393,7 +393,7 @@ const traverseWithIndex =
       xs => xs.toArray,
     );
 
-export const arrayTraversableFilter = lazyVal(() =>
+export const arrayTraversableFilter = lazy(() =>
   TraversableFilter.of<ArrayF>({
     ...arrayFoldableWithIndex(),
     ...arrayFunctorFilter(),

@@ -11,7 +11,7 @@ import {
   id,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
   TyK,
   TyVar,
   α,
@@ -23,8 +23,8 @@ import { Contravariant } from '../contravariant';
 import { Functor } from '../functor';
 import { Distributive } from '../distributive';
 import { Monad } from '../monad';
-import { Either, Left, Right } from './either';
 import { Defer } from '../defer';
+import { Either, Left, Right } from './either';
 
 export const Function1: Function1Obj = function () {} as any;
 
@@ -49,7 +49,7 @@ interface Deferred1<R, A> {
 function isDeferred<R, A>(f: (r: R) => A): f is Deferred1<R, A> {
   return deferredFunction1 in f;
 }
-const function1Defer: <R>() => Defer<$<Function1F, [R]>> = lazyVal(<R>() =>
+const function1Defer: <R>() => Defer<$<Function1F, [R]>> = lazy(<R>() =>
   Defer.of<$<Function1F, [R]>>({
     defer: <A>(f: () => (r: R) => A) => {
       const deferred = (f: () => (r: R) => A): Deferred1<R, A> => {
@@ -63,13 +63,13 @@ const function1Defer: <R>() => Defer<$<Function1F, [R]>> = lazyVal(<R>() =>
         apply[deferredFunction1] = cached;
         return apply as Deferred1<R, A>;
       };
-      const cached = lazyVal(f);
+      const cached = lazy(f);
       return deferred(cached);
     },
   }),
 ) as <R>() => Defer<$<Function1F, [R]>>;
 
-const function1Functor: <A>() => Functor<$<Function1F, [A]>> = lazyVal(<A>() =>
+const function1Functor: <A>() => Functor<$<Function1F, [A]>> = lazy(<A>() =>
   Functor.of<$<Function1F, [A]>>({
     map_:
       <B, C>(fa: (a: A) => B, f: (a: B) => C) =>
@@ -88,7 +88,7 @@ const function1Distributive = <R>(): Distributive<$<Function1F, [R]>> =>
         G.map_(ga, (a: A) => f(a)(r)),
   });
 
-const function1Applicative: <A>() => Applicative<$<Function1F, [A]>> = lazyVal(<
+const function1Applicative: <A>() => Applicative<$<Function1F, [A]>> = lazy(<
   A,
 >() =>
   Applicative.of<$<Function1F, [A]>>({
@@ -104,7 +104,7 @@ const function1Applicative: <A>() => Applicative<$<Function1F, [A]>> = lazyVal(<
   }),
 ) as <A>() => Applicative<$<Function1F, [A]>>;
 
-const function1Monad: <A>() => Monad<$<Function1F, [A]>> = lazyVal(<A>() =>
+const function1Monad: <A>() => Monad<$<Function1F, [A]>> = lazy(<A>() =>
   Monad.of<$<Function1F, [A]>>({
     ...function1Applicative(),
     flatMap_:
@@ -125,7 +125,7 @@ const function1Monad: <A>() => Monad<$<Function1F, [A]>> = lazyVal(<A>() =>
 
 const function1Contravariant: <A>() => Contravariant<
   λ<Function1F, [α, Fix<A>]>
-> = lazyVal(<A>() =>
+> = lazy(<A>() =>
   Contravariant.of<λ<Function1F, [α, Fix<A>]>>({
     contramap_:
       <B, C>(fa: (b: B) => A, f: (c: C) => B) =>
@@ -134,7 +134,7 @@ const function1Contravariant: <A>() => Contravariant<
   }),
 ) as <A>() => Contravariant<λ<Function1F, [α, Fix<A>]>>;
 
-const function1Arrow: Lazy<Arrow<Function1F>> = lazyVal(() =>
+const function1Arrow: Lazy<Arrow<Function1F>> = lazy(() =>
   Arrow.of({
     compose_: compose,
     id:
@@ -150,7 +150,7 @@ const function1Arrow: Lazy<Arrow<Function1F>> = lazyVal(() =>
   }),
 );
 
-const function1ArrowApply: Lazy<ArrowApply<Function1F>> = lazyVal(() =>
+const function1ArrowApply: Lazy<ArrowApply<Function1F>> = lazy(() =>
   ArrowApply.of({
     ...function1Arrow(),
     app:
@@ -160,7 +160,7 @@ const function1ArrowApply: Lazy<ArrowApply<Function1F>> = lazyVal(() =>
   }),
 );
 
-const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazyVal(() =>
+const function1ArrowChoice: Lazy<ArrowChoice<Function1F>> = lazy(() =>
   ArrowChoice.of({
     ...function1Arrow(),
     choose:

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, HKT, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, id, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import {
   Either,
   FunctionK,
@@ -563,7 +563,7 @@ export type Suspend = ConnectionOp<void>;
 
 // -- Instances
 
-const connectionIOMonad: Lazy<Monad<ConnectionIOF>> = lazyVal(() =>
+const connectionIOMonad: Lazy<Monad<ConnectionIOF>> = lazy(() =>
   Monad.of<ConnectionIOF>({
     pure: ConnectionIO.pure,
     map_: (fa, f) => fa.map(f),
@@ -572,7 +572,7 @@ const connectionIOMonad: Lazy<Monad<ConnectionIOF>> = lazyVal(() =>
   }),
 );
 
-const connectionIOMonadThrow: Lazy<MonadThrow<ConnectionIOF>> = lazyVal(() =>
+const connectionIOMonadThrow: Lazy<MonadThrow<ConnectionIOF>> = lazy(() =>
   MonadThrow.of<ConnectionIOF>({
     ...connectionIOMonad(),
     throwError: ConnectionIO.throwError,
@@ -581,7 +581,7 @@ const connectionIOMonadThrow: Lazy<MonadThrow<ConnectionIOF>> = lazyVal(() =>
 );
 
 const connectionIOMonadCancelThrow: Lazy<MonadCancelThrow<ConnectionIOF>> =
-  lazyVal(() =>
+  lazy(() =>
     MonadCancelThrow.of<ConnectionIOF>({
       ...connectionIOMonadThrow(),
       canceled: ConnectionIO.canceled,
@@ -590,7 +590,7 @@ const connectionIOMonadCancelThrow: Lazy<MonadCancelThrow<ConnectionIOF>> =
     }),
   );
 
-const connectionIOSync: Lazy<Sync<ConnectionIOF>> = lazyVal(() =>
+const connectionIOSync: Lazy<Sync<ConnectionIOF>> = lazy(() =>
   Sync.of({
     ...connectionIOMonadCancelThrow(),
     monotonic: ConnectionIO.monotonic,
@@ -600,7 +600,7 @@ const connectionIOSync: Lazy<Sync<ConnectionIOF>> = lazyVal(() =>
   }),
 );
 
-const connectionIOAsync: Lazy<Async<ConnectionIOF>> = lazyVal(() =>
+const connectionIOAsync: Lazy<Async<ConnectionIOF>> = lazy(() =>
   Async.of<ConnectionIOF>({
     ...connectionIOSync(),
     cont: ConnectionIO.cont,

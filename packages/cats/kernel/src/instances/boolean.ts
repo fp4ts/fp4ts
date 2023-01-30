@@ -3,10 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, lazyVal } from '@fp4ts/core';
+import { Eval, lazy } from '@fp4ts/core';
 import { CommutativeMonoid } from '../commutative-monoid';
 
-export const disjunctionMonoid = lazyVal(() =>
+export const disjunctionMonoid = lazy(() =>
   CommutativeMonoid.of({
     combine_: (x, y) => x || y,
     combineEval_: (x, y) => (x ? Eval.true : y),
@@ -14,7 +14,7 @@ export const disjunctionMonoid = lazyVal(() =>
   }),
 );
 
-export const conjunctionMonoid = lazyVal(() =>
+export const conjunctionMonoid = lazy(() =>
   CommutativeMonoid.of({
     combine_: (x, y) => x && y,
     combineEval_: (x, y) => (!x ? Eval.false : y),

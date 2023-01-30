@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Base, Fix, id, instance, Kind, lazyVal, α, λ } from '@fp4ts/core';
+import { $, Base, Fix, id, instance, Kind, lazy, α, λ } from '@fp4ts/core';
 import { Functor } from './functor';
 
 /**
@@ -47,12 +47,12 @@ export const Bifunctor = Object.freeze({
     const self: Bifunctor<F> = instance<Bifunctor<F>>({
       bimap: (f, g) => fab => self.bimap_(fab, f, g),
 
-      leftFunctor: lazyVal(<X>() =>
+      leftFunctor: lazy(<X>() =>
         Functor.of<λ<F, [α, Fix<X>]>>({
           map_: (fa, f) => self.leftMap_(fa, f),
         }),
       ) as <X>() => Functor<λ<F, [α, Fix<X>]>>,
-      rightFunctor: lazyVal(<X>() =>
+      rightFunctor: lazy(<X>() =>
         Functor.of<$<F, [X]>>({
           map_: (fa, f) => self.map_(fa, f),
         }),

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind, lazyVal } from '@fp4ts/core';
+import { $, Kind, lazy } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -49,14 +49,14 @@ export const hashMapMonoidK: <K>(E: Eq<K>) => MonoidK<$<HashMapF, [K]>> = <K>(
     combineK_: (x, y) => union_(E, x, y),
   });
 
-export const hashMapFunctor: <K>() => Functor<$<HashMapF, [K]>> = lazyVal(<
+export const hashMapFunctor: <K>() => Functor<$<HashMapF, [K]>> = lazy(<
   K,
 >() =>
   Functor.of<$<HashMapF, [K]>>({ map_: (m, f) => map_(m, v => f(v)) }),
 ) as <K>() => Functor<$<HashMapF, [K]>>;
 
 export const hashMapFunctorFilter: <K>() => FunctorFilter<$<HashMapF, [K]>> =
-  lazyVal(() =>
+  lazy(() =>
     FunctorFilter.of({
       ...hashMapFunctor(),
       mapFilter_: (m, f) => collect_(m, v => f(v)),
@@ -65,7 +65,7 @@ export const hashMapFunctorFilter: <K>() => FunctorFilter<$<HashMapF, [K]>> =
 
 export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
   $<HashMapF, [K]>
-> = lazyVal(<K>() =>
+> = lazy(<K>() =>
   UnorderedFoldable.of<$<HashMapF, [K]>>({
     unorderedFoldMap_:
       <M>(M: Monoid<M>) =>
@@ -82,7 +82,7 @@ export const hashMapUnorderedFoldable: <K>() => UnorderedFoldable<
 
 export const hashMapUnorderedTraversable: <K>() => UnorderedTraversable<
   $<HashMapF, [K]>
-> = lazyVal(() =>
+> = lazy(() =>
   UnorderedTraversable.of({
     ...hashMapUnorderedFoldable(),
 

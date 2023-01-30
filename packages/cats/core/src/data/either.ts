@@ -3,17 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  $type,
-  Eval,
-  HKT,
-  Kind,
-  Lazy,
-  lazyVal,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
+import { $, $type, Eval, HKT, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../applicative';
 import { Bifunctor } from '../bifunctor';
@@ -271,7 +261,7 @@ interface EitherObj {
 const eitherEqK = <E>(EE: Eq<E>): EqK<$<EitherF, [E]>> =>
   EqK.of<$<EitherF, [E]>>({ liftEq: <A>(EA: Eq<A>) => Either.Eq(EE, EA) });
 
-const eitherSemigroupK = lazyVal(
+const eitherSemigroupK = lazy(
   <E>(): SemigroupK<$<EitherF, [E]>> =>
     SemigroupK.of<$<EitherF, [E]>>({
       combineK_: (fa, fb) => fa.orElse(() => fb),
@@ -279,7 +269,7 @@ const eitherSemigroupK = lazyVal(
     }),
 ) as <E>() => SemigroupK<$<EitherF, [E]>>;
 
-const eitherBifunctor = lazyVal(() =>
+const eitherBifunctor = lazy(() =>
   Bifunctor.of<EitherF>({
     bimap_: (fa, f, g) => fa.bimap(f, g),
     map_: (fa, f) => fa.map(f),
@@ -287,7 +277,7 @@ const eitherBifunctor = lazyVal(() =>
   }),
 );
 
-const eitherMonad = lazyVal(
+const eitherMonad = lazy(
   <E>(): Monad<$<EitherF, [E]>> =>
     Monad.of<$<EitherF, [E]>>({
       pure: Either.pure,
@@ -306,7 +296,7 @@ const eitherMonad = lazyVal(
     }),
 ) as <E>() => Monad<$<EitherF, [E]>>;
 
-const eitherMonadError = lazyVal(
+const eitherMonadError = lazy(
   <E>(): MonadError<$<EitherF, [E]>, E> =>
     MonadError.of<$<EitherF, [E]>, E>({
       ...eitherMonad<E>(),
@@ -315,7 +305,7 @@ const eitherMonadError = lazyVal(
     }),
 ) as <E>() => MonadError<$<EitherF, [E]>, E>;
 
-const eitherTraversable = lazyVal(
+const eitherTraversable = lazy(
   <E>(): Traversable<$<EitherF, [E]>> =>
     Traversable.of<$<EitherF, [E]>>({
       traverse_:

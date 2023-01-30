@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Char, Lazy, lazyVal, tupled } from '@fp4ts/core';
+import { Char, Lazy, lazy, tupled } from '@fp4ts/core';
 import { Map, Ord } from '@fp4ts/cats';
 import { Parser, StringSource, text } from '@fp4ts/parse';
 
@@ -172,7 +172,7 @@ const mediaRangeParser = <A>(
 
 export const mediaTypeExtensionParser: Lazy<
   Parser<StringSource, [string, string]>
-> = lazyVal(() =>
+> = lazy(() =>
   text
     .char(';' as Char)
     ['*>'](Rfc7230.ows)

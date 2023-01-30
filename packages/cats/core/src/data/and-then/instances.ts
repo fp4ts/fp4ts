@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Fix, Kind, Lazy, lazyVal, α, λ } from '@fp4ts/core';
+import { $, Fix, Kind, Lazy, lazy, α, λ } from '@fp4ts/core';
 import { Contravariant } from '../../contravariant';
 import { ArrowChoice } from '../../arrow';
 import { Monad } from '../../monad';
@@ -48,7 +48,7 @@ export const andThenMonad: <A>() => Monad<$<AndThenF, [A]>> = <A>() =>
       }),
   });
 
-export const andThenArrowChoice: Lazy<ArrowChoice<AndThenF>> = lazyVal(() =>
+export const andThenArrowChoice: Lazy<ArrowChoice<AndThenF>> = lazy(() =>
   ArrowChoice.of({
     choose: <A, B, C, D>(f: AndThen<A, C>, g: AndThen<B, D>) =>
       lift((ea: Either<A, B>) =>

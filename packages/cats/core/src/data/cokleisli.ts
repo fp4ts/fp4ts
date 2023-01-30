@@ -11,7 +11,7 @@ import {
   Fix,
   fst,
   Kind,
-  lazyVal,
+  lazy,
   pipe,
   snd,
   TyK,
@@ -61,8 +61,8 @@ const cokleisliMonoidK: <F>(
   F: Comonad<F>,
 ) => MonoidK<λ<CokleisliF, [Fix<F>, α, α]>> = F => cokleisliArrow(F).algebraK();
 
-const cokleisliFunctor: <F, R>() => Functor<$<CokleisliF, [F, R]>> = lazyVal(
-  () => Functor.of({ map_: (fa, f) => AndThen(fa).andThen(f) }),
+const cokleisliFunctor: <F, R>() => Functor<$<CokleisliF, [F, R]>> = lazy(() =>
+  Functor.of({ map_: (fa, f) => AndThen(fa).andThen(f) }),
 );
 
 const cokleisliContravariant: <F, B>(
@@ -71,7 +71,7 @@ const cokleisliContravariant: <F, B>(
   Contravariant.of({ contramap_: (fa, f) => AndThen(fa).compose(F.map(f)) }),
 );
 
-const cokleisliMonad: <F, A>() => Monad<$<CokleisliF, [F, A]>> = lazyVal(() =>
+const cokleisliMonad: <F, A>() => Monad<$<CokleisliF, [F, A]>> = lazy(() =>
   Monad.of({
     ...cokleisliFunctor(),
     pure: constant,

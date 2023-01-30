@@ -7,12 +7,10 @@ export interface Lazy<A> {
   (): A;
 }
 
-export const lazyVal = <A>(init: Lazy<A>): Lazy<A> => {
+export const lazy = <A>(init: Lazy<A>): Lazy<A> => {
   let value: A | undefined;
-  let initialized: boolean = false;
   return () => {
-    if (!initialized) {
-      initialized = true;
+    if (init) {
       value = init();
       (init as any) = null; // allow for GC
     }

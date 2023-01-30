@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Eval, Lazy, lazyVal } from '@fp4ts/core';
+import { $, Eval, Lazy, lazy } from '@fp4ts/core';
 import { Try } from '@fp4ts/cats';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 import { Guard, SafeGuard, safeTest } from './algebra';
@@ -34,13 +34,13 @@ import {
   refine_,
 } from './operators';
 
-export const guardRefining: Lazy<Refining<$<GuardF, [unknown]>>> = lazyVal(() =>
+export const guardRefining: Lazy<Refining<$<GuardF, [unknown]>>> = lazy(() =>
   Refining.of({
     refine_: refine_ as Refining<$<GuardF, [unknown]>>['refine_'],
   }),
 );
 
-export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
+export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazy(
   () =>
     Schemable.of({
       literal,
@@ -72,7 +72,7 @@ export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazyVal(
 );
 
 export const guardConstraining: Lazy<Constraining<$<GuardF, [unknown]>>> =
-  lazyVal(() =>
+  lazy(() =>
     Constraining.of({
       ...guardSchemable(),
 

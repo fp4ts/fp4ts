@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal, tupled } from '@fp4ts/core';
+import { Lazy, lazy, tupled } from '@fp4ts/core';
 import {
   IdentityF,
   List,
@@ -93,7 +93,7 @@ export class MediaRangeAndQValue {
   }
 }
 
-const parser: Lazy<Parser<StringSource, Accept>> = lazyVal(() => {
+const parser: Lazy<Parser<StringSource, Accept>> = lazy(() => {
   const acceptParams = QValue.parser.product(mediaTypeExtensionParser().rep());
 
   const qAndExtension = acceptParams.orElse(

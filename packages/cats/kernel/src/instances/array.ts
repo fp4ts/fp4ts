@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { cached, lazyVal } from '@fp4ts/core';
+import { cached, lazy } from '@fp4ts/core';
 import { Eq } from '../eq';
 import { Monoid } from '../monoid';
 import { Compare, Ord } from '../ord';
@@ -40,7 +40,7 @@ function compare<A>(xs: A[], ys: A[], O: Ord<A>): Compare {
   return Ord.fromUniversalCompare<number>().compare(xs.length, ys.length);
 }
 
-export const arraySemigroup = lazyVal(<A>() =>
+export const arraySemigroup = lazy(<A>() =>
   Semigroup.of<A[]>({
     combine_: (xs, ys) => xs.concat(ys),
     combineEval_: (xs, eys) =>
@@ -48,7 +48,7 @@ export const arraySemigroup = lazyVal(<A>() =>
   }),
 ) as <A>() => Semigroup<A[]>;
 
-export const arrayMonoid = lazyVal(<A>() => {
+export const arrayMonoid = lazy(<A>() => {
   const S = arraySemigroup<A>();
   return Monoid.of<A[]>({
     combine_: S.combine_,

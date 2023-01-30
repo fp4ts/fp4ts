@@ -12,7 +12,7 @@ import {
   id,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
   tupled,
   TyK,
   TyVar,
@@ -450,17 +450,15 @@ const validationEqK: <E>(
       Eq.of<Validation<E, A>>({ equals: (xs, ys) => xs.equals(EE, EA)(ys) }),
   });
 
-const validationFunctor: <E>() => Functor<$<ValidationF, [E]>> = lazyVal(<
-  E,
->() => Functor.of<$<ValidationF, [E]>>({ map_: (fa, f) => fa.map(f) })) as <
-  E,
->() => Functor<$<ValidationF, [E]>>;
+const validationFunctor: <E>() => Functor<$<ValidationF, [E]>> = lazy(<E>() =>
+  Functor.of<$<ValidationF, [E]>>({ map_: (fa, f) => fa.map(f) }),
+) as <E>() => Functor<$<ValidationF, [E]>>;
 
-const validationBifunctor: Lazy<Bifunctor<ValidationF>> = lazyVal(() =>
+const validationBifunctor: Lazy<Bifunctor<ValidationF>> = lazy(() =>
   Bifunctor.of<ValidationF>({ bimap_: (fa, f, g) => fa.bimap(f, g) }),
 );
 
-const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazyVal(<
+const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazy(<
   E,
 >() =>
   SemigroupK.of<$<ValidationF, [E]>>({
@@ -489,7 +487,7 @@ const validationApplicative: <E>() => Applicative<$<ValidationF, [E]>> = <
 const validationApplicativeError: <E>() => ApplicativeError<
   $<ValidationF, [E]>,
   ValidationError<E>
-> = lazyVal(() =>
+> = lazy(() =>
   ApplicativeError.of({
     ...validationApplicative(),
     throwError: e => new _Invalid(e),
@@ -511,7 +509,7 @@ const validationApplicativeErrorConcat: <E>(
   }),
 );
 
-const validationFoldable: <E>() => Foldable<$<ValidationF, [E]>> = lazyVal(() =>
+const validationFoldable: <E>() => Foldable<$<ValidationF, [E]>> = lazy(() =>
   Foldable.of({
     foldMap_:
       <M>(M: Monoid<M>) =>

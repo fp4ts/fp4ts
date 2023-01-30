@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Monoid } from '@fp4ts/cats-kernel';
-import { $type, Eval, EvalF, id, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, EvalF, id, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import { MonoidK } from '../monoid-k';
 import { AndThen } from './and-then';
 
@@ -24,11 +24,11 @@ interface EndoObj {
   readonly EvalMonoidK: MonoidK<[EndoF, EvalF]>;
 }
 
-const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() => {
+const endoMonoidK: Lazy<MonoidK<EndoF>> = lazy(() => {
   const self: MonoidK<EndoF> = MonoidK.of({
     emptyK: <A>() => id<A>,
     combineK_: <A>(f: Endo<A>, g: Endo<A>) => AndThen(g).andThen(f),
-    algebra: lazyVal(<A>() => {
+    algebra: lazy(<A>() => {
       const that: Monoid<Endo<A>> = Monoid.of<Endo<A>>({
         empty: id,
         combine_: self.combineK_,
@@ -45,7 +45,7 @@ const endoMonoidK: Lazy<MonoidK<EndoF>> = lazyVal(() => {
   return self;
 });
 
-const endoEvalMonoidK: Lazy<MonoidK<[EndoF, EvalF]>> = lazyVal(() => {
+const endoEvalMonoidK: Lazy<MonoidK<[EndoF, EvalF]>> = lazy(() => {
   const self: MonoidK<[EndoF, EvalF]> = MonoidK.of({
     emptyK: <A>() => id<A>,
 
@@ -57,7 +57,7 @@ const endoEvalMonoidK: Lazy<MonoidK<[EndoF, EvalF]>> = lazyVal(() => {
     combineKEval_: <A>(f: Endo<Eval<A>>, eg: Eval<Endo<Eval<A>>>) =>
       Eval.now((eb: Eval<A>) => f(eg.flatMap(g => g(eb)))),
 
-    algebra: lazyVal(<A>() => {
+    algebra: lazy(<A>() => {
       const that: Monoid<Endo<Eval<A>>> = Monoid.of<Endo<Eval<A>>>({
         empty: id,
         combine_: self.combineK_,

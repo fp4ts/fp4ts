@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { id, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
   Applicative,
   ApplicativeRequirements,
@@ -56,7 +56,7 @@ export const Settable = Object.freeze({
 
 // -- Instances
 
-const identitySettable: Lazy<Settable<IdentityF>> = lazyVal(
+const identitySettable: Lazy<Settable<IdentityF>> = lazy(
   (): Settable<IdentityF> =>
     Settable.of({
       ...Identity.Applicative,

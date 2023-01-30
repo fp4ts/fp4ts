@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, HKT, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, HKT, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
@@ -222,14 +222,14 @@ interface OptionObj {
 Option.Eq = <A>(E: Eq<A>): Eq<Option<A>> =>
   Eq.of({ equals: (fa, fb) => fa.equals(fb, E) });
 
-const optionEqK = lazyVal(() =>
+const optionEqK = lazy(() =>
   EqK.of<OptionF>({ liftEq: <A>(E: Eq<A>) => Option.Eq(E) }),
 );
 
-const optionFunctor = lazyVal(() =>
+const optionFunctor = lazy(() =>
   Functor.of<OptionF>({ map_: (fa, f) => fa.map(f) }),
 );
-const optionFunctorFilter = lazyVal(() =>
+const optionFunctorFilter = lazy(() =>
   FunctorFilter.of<OptionF>({
     ...optionFunctor(),
     mapFilter_: (fa, f) => fa.collect(f),
@@ -239,7 +239,7 @@ const optionFunctorFilter = lazyVal(() =>
   }),
 );
 
-const optionAlternative = lazyVal(() =>
+const optionAlternative = lazy(() =>
   Alternative.of<OptionF>({
     ...optionMonad(),
     combineK_: (fa, lfb) => fa.orElse(() => lfb),
@@ -248,9 +248,9 @@ const optionAlternative = lazyVal(() =>
   }),
 );
 
-const optionCoflatMap = lazyVal(() => CoflatMap.fromApplicative(optionMonad()));
+const optionCoflatMap = lazy(() => CoflatMap.fromApplicative(optionMonad()));
 
-const optionMonad = lazyVal(() =>
+const optionMonad = lazy(() =>
   Monad.of<OptionF>({
     ...optionFunctor(),
     pure: Option.pure,
@@ -268,7 +268,7 @@ const optionMonad = lazyVal(() =>
   }),
 );
 
-const optionTraversableFilter = lazyVal(() =>
+const optionTraversableFilter = lazy(() =>
   TraversableFilter.of<OptionF>({
     ...optionFunctorFilter(),
     traverseFilter_:

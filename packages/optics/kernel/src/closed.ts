@@ -11,7 +11,7 @@ import {
   instance,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
 } from '@fp4ts/core';
 import {
   Distributive,
@@ -62,7 +62,7 @@ export const Closed = Object.freeze({
     }),
 });
 
-const closedFunction1: Lazy<Closed<Function1F>> = lazyVal(() =>
+const closedFunction1: Lazy<Closed<Function1F>> = lazy(() =>
   Closed.of<Function1F>({
     closed:
       <X>() =>
@@ -73,7 +73,7 @@ const closedFunction1: Lazy<Closed<Function1F>> = lazyVal(() =>
   }),
 );
 
-const closedTagged: Lazy<Closed<TaggedF>> = lazyVal(() =>
+const closedTagged: Lazy<Closed<TaggedF>> = lazy(() =>
   Closed.of<TaggedF>({
     closed:
       <X>() =>

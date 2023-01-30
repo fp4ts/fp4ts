@@ -3,16 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  $type,
-  constant,
-  Eval,
-  Kind,
-  lazyVal,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
+import { $, $type, constant, Eval, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Applicative } from '../applicative';
 import { Apply } from '../apply';
@@ -63,15 +54,15 @@ const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
     combineK_: (x, y) => A.combine_(x, y),
   });
 
-const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazyVal(<A>() =>
+const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazy(<A>() =>
   Functor.of({ map_: (fa, f) => fa }),
 );
 
-const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> = lazyVal(() =>
+const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> = lazy(() =>
   Contravariant.of({ contramap_: (fa, f) => fa }),
 );
 
-const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> = lazyVal(() =>
+const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> = lazy(() =>
   FunctorFilter.of({ ...constFunctor(), mapFilter_: (fa, f) => fa }),
 );
 
@@ -101,12 +92,12 @@ const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(
     pure: constant(A.empty),
   });
 
-const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazyVal(() =>
+const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazy(() =>
   Foldable.of({ foldRight_: (fa, ez, f) => ez }),
 );
 
-const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> =
-  lazyVal(<A>() =>
+const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> = lazy(
+  <A>() =>
     TraversableFilter.of({
       ...constFunctor<A>(),
       ...constFoldable<A>(),
@@ -121,7 +112,7 @@ const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> =
         <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [Option<C>]>) =>
           G.pure(fa),
     }),
-  ) as <A>() => TraversableFilter<$<ConstF, [A]>>;
+) as <A>() => TraversableFilter<$<ConstF, [A]>>;
 
 Const.pure = M => constant(M.empty);
 Const.empty = M => M.empty;

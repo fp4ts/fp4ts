@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { $, id, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
   Function1,
   Function1F,
@@ -101,7 +101,7 @@ export const Corepresentable = Object.freeze({
 // -- Instances
 
 const function1Representable: Lazy<Representable<Function1F, IdentityF>> =
-  lazyVal(() =>
+  lazy(() =>
     Representable.of(
       {
         tabulate: id,
@@ -113,7 +113,7 @@ const function1Representable: Lazy<Representable<Function1F, IdentityF>> =
   );
 
 const function1Corepresentable: Lazy<Corepresentable<Function1F, IdentityF>> =
-  lazyVal(() =>
+  lazy(() =>
     Corepresentable.of(
       {
         cotabulate: id,
@@ -124,7 +124,7 @@ const function1Corepresentable: Lazy<Corepresentable<Function1F, IdentityF>> =
     ),
   );
 
-const taggedCorepresentable: Lazy<Corepresentable<TaggedF, ProxyF>> = lazyVal(
+const taggedCorepresentable: Lazy<Corepresentable<TaggedF, ProxyF>> = lazy(
   () =>
     Corepresentable.of(
       {

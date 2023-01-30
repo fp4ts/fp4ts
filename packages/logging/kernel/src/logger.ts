@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, cached, Kind, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, cached, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import {
   Alternative,
   Applicative,
@@ -147,7 +147,7 @@ export class Logger<F, A> {
 
   public static readonly Contravariant: <F>() => Contravariant<
     $<LoggerF, [F]>
-  > = lazyVal(() =>
+  > = lazy(() =>
     Contravariant.of({ contramap_: (fa, f) => fa.contramap(f) }),
   );
 

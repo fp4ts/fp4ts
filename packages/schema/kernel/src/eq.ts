@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Eval, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazy } from '@fp4ts/core';
 import { Eq, EqF } from '@fp4ts/cats';
 import { Schemable } from './schemable';
 
-export const eqSchemable: Lazy<Schemable<EqF>> = lazyVal(() =>
+export const eqSchemable: Lazy<Schemable<EqF>> = lazy(() =>
   Schemable.of({
     boolean: Eq.fromUniversalEquals(),
     null: Eq.fromUniversalEquals(),

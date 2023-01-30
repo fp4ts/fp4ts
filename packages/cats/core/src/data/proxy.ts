@@ -10,7 +10,7 @@ import {
   Kind,
   KindOf,
   Lazy,
-  lazyVal,
+  lazy,
   newtypeK,
   throwError,
   TyK,
@@ -50,17 +50,17 @@ interface ProxyObj {
 
 // -- Instances
 
-const proxyEq: <A>() => Eq<Proxy<A>> = lazyVal(() =>
+const proxyEq: <A>() => Eq<Proxy<A>> = lazy(() =>
   Eq.of({ equals: () => true }),
 );
-const proxyEqK: Lazy<EqK<ProxyF>> = lazyVal(() => EqK.of({ liftEq: proxyEq }));
-const proxyFunctor: Lazy<Functor<ProxyF>> = lazyVal(() =>
+const proxyEqK: Lazy<EqK<ProxyF>> = lazy(() => EqK.of({ liftEq: proxyEq }));
+const proxyFunctor: Lazy<Functor<ProxyF>> = lazy(() =>
   Functor.of({ map_: <A, B>() => Proxy<B>() }),
 );
-const proxyContravariant: Lazy<Contravariant<ProxyF>> = lazyVal(() =>
+const proxyContravariant: Lazy<Contravariant<ProxyF>> = lazy(() =>
   Contravariant.of({ contramap_: <A, B>() => Proxy<B>() }),
 );
-const proxyApplicative: Lazy<Applicative<ProxyF>> = lazyVal(() =>
+const proxyApplicative: Lazy<Applicative<ProxyF>> = lazy(() =>
   Applicative.of({
     ...proxyFunctor(),
     pure: <A>() => Proxy<A>(),
@@ -71,13 +71,13 @@ const proxyApplicative: Lazy<Applicative<ProxyF>> = lazyVal(() =>
         Eval.now(Proxy<C>()),
   }),
 );
-const proxyAlign: Lazy<Align<ProxyF>> = lazyVal(() =>
+const proxyAlign: Lazy<Align<ProxyF>> = lazy(() =>
   Align.of({
     ...proxyFunctor(),
     align_: <A, B>() => Proxy<Ior<A, B>>(),
   }),
 );
-const proxyAlternative: Lazy<Alternative<ProxyF>> = lazyVal(() =>
+const proxyAlternative: Lazy<Alternative<ProxyF>> = lazy(() =>
   Alternative.of({
     ...proxyApplicative(),
     emptyK: Proxy,
@@ -85,7 +85,7 @@ const proxyAlternative: Lazy<Alternative<ProxyF>> = lazyVal(() =>
     combineKEval_: (lhs, erhs) => Eval.now(lhs),
   }),
 );
-const proxyMonad: Lazy<Monad<ProxyF>> = lazyVal(() =>
+const proxyMonad: Lazy<Monad<ProxyF>> = lazy(() =>
   StackSafeMonad.of({
     ...proxyApplicative(),
     flatMap_: <A, B>() => Proxy<B>(),

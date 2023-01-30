@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Lazy, lazyVal } from '@fp4ts/core';
+import { $, Lazy, lazy } from '@fp4ts/core';
 import { Invariant } from '@fp4ts/cats';
 import { Schemable } from '@fp4ts/schema-kernel';
 import { Codec } from './algebra';
@@ -23,12 +23,12 @@ import {
 } from './constructors';
 import { imap_, nullable, optional } from './operators';
 
-export const codecInvariant: <I, O>() => Invariant<$<CodecF, [I, O]>> = lazyVal(
+export const codecInvariant: <I, O>() => Invariant<$<CodecF, [I, O]>> = lazy(
   () => Invariant.of({ imap_: imap_ }),
 );
 
 export const codecSchemable: Lazy<Schemable<$<CodecF, [unknown, unknown]>>> =
-  lazyVal(() =>
+  lazy(() =>
     Schemable.of({
       literal: literal as Schemable<$<CodecF, [unknown, unknown]>>['literal'],
       boolean: boolean,

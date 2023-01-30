@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazy } from '@fp4ts/core';
 import { SchemableK } from '../schemable-k';
 import {
   booleanSchemaK,
@@ -20,7 +20,7 @@ import {
 import { array, compose_, imap_, nullable } from './operators';
 import { SchemaKF } from './schema-k';
 
-export const schemaKSchemableK: Lazy<SchemableK<SchemaKF>> = lazyVal(() =>
+export const schemaKSchemableK: Lazy<SchemableK<SchemaKF>> = lazy(() =>
   SchemableK.of<SchemaKF>({
     literal: literal as SchemableK<SchemaKF>['literal'],
 

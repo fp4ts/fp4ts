@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazy } from '@fp4ts/core';
 import { Identity, IdentityF, None, Some } from '@fp4ts/cats';
 import { Ref, Sync, Concurrent, SyncIO } from '@fp4ts/effect';
 
@@ -36,7 +36,7 @@ export const compilerConcurrentTarget = <F>(
   F: Concurrent<F, Error>,
 ): Compiler<F, F> => compilerTargetInstance(concurrentTarget(F));
 
-export const compilerPureInstance: Lazy<Compiler<PureF, IdentityF>> = lazyVal(
+export const compilerPureInstance: Lazy<Compiler<PureF, IdentityF>> = lazy(
   () => ({
     target: Identity.Monad,
     compile:
@@ -52,7 +52,7 @@ export const compilerPureInstance: Lazy<Compiler<PureF, IdentityF>> = lazyVal(
 );
 
 export const compilerIdentityInstance: Lazy<Compiler<IdentityF, IdentityF>> =
-  lazyVal(() => ({
+  lazy(() => ({
     target: Identity.Monad,
     compile:
       <O, B>(pull: Pull<IdentityF, O, void>, init: B) =>

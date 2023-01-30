@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazy } from '@fp4ts/core';
 import { Eq, Monoid, Ord } from '@fp4ts/cats-kernel';
 import { Foldable } from '../../../foldable';
 
@@ -39,7 +39,7 @@ export const setMonoid: <A>(O: Ord<A>) => Monoid<Set<A>> = <A>(O: Ord<A>) =>
     combineEval_: (x, ey) => (x === empty ? ey : ey.map(y => union_(O, x, y))),
   });
 
-export const setFoldable: Lazy<Foldable<SetF>> = lazyVal(() =>
+export const setFoldable: Lazy<Foldable<SetF>> = lazy(() =>
   Foldable.of({
     foldLeft_,
     foldRight_,

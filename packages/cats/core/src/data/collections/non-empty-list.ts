@@ -10,7 +10,7 @@ import {
   id,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
   throwError,
   tupled,
   TyK,
@@ -448,30 +448,30 @@ Object.defineProperty(NonEmptyList, 'Traversable', {
 
 // -- Instances
 
-const nelEqK: Lazy<EqK<NonEmptyListF>> = lazyVal(() =>
+const nelEqK: Lazy<EqK<NonEmptyListF>> = lazy(() =>
   EqK.of({
     liftEq: <A>(E: Eq<A>) =>
       Eq.of<NonEmptyList<A>>({ equals: (x, y) => x.equals(E, y) }),
   }),
 );
 
-const nelSemigroupK: Lazy<SemigroupK<NonEmptyListF>> = lazyVal(() =>
+const nelSemigroupK: Lazy<SemigroupK<NonEmptyListF>> = lazy(() =>
   SemigroupK.of({ combineK_: (x, y) => x.concatNel(y) }),
 );
 
-const nelFunctor: Lazy<Functor<NonEmptyListF>> = lazyVal(() =>
+const nelFunctor: Lazy<Functor<NonEmptyListF>> = lazy(() =>
   Functor.of({ map_: (xs, f) => xs.map(f) }),
 );
 
-const nelAlign: Lazy<Align<NonEmptyListF>> = lazyVal(() =>
+const nelAlign: Lazy<Align<NonEmptyListF>> = lazy(() =>
   Align.of({ ...nelFunctor(), align_: (fa, fb) => fa.align(fb) }),
 );
 
-const nelCoflatMap: Lazy<CoflatMap<NonEmptyListF>> = lazyVal(() =>
+const nelCoflatMap: Lazy<CoflatMap<NonEmptyListF>> = lazy(() =>
   CoflatMap.of({ ...nelFunctor(), coflatMap_: (xs, f) => xs.coflatMap(f) }),
 );
 
-const nelMonad: Lazy<Monad<NonEmptyListF>> = lazyVal(() =>
+const nelMonad: Lazy<Monad<NonEmptyListF>> = lazy(() =>
   Monad.of({
     ...nelFunctor(),
     pure: NonEmptyList.pure,
@@ -500,7 +500,7 @@ const nelMonad: Lazy<Monad<NonEmptyListF>> = lazyVal(() =>
   }),
 );
 
-const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazyVal(() =>
+const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazy(() =>
   Foldable.of({
     foldLeft_: (fa, b, f) => fa.foldLeft(b, f),
     foldRight_: (fa, eb, f) => List.Foldable.foldRight_(fa.toList, eb, f),
@@ -532,7 +532,7 @@ const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazyVal(() =>
   }),
 );
 
-const nelTraversable: Lazy<Traversable<NonEmptyListF>> = lazyVal(() =>
+const nelTraversable: Lazy<Traversable<NonEmptyListF>> = lazy(() =>
   Traversable.of({
     ...nelFunctor(),
     ...nelFoldable(),

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Lazy, lazy } from '@fp4ts/core';
 import { Align } from '../../../align';
 import { Apply } from '../../../apply';
 import { Applicative } from '../../../applicative';
@@ -46,11 +46,11 @@ import {
 } from './operators';
 import type { Queue, QueueF } from './queue';
 
-export const queueSemigroupK: Lazy<SemigroupK<QueueF>> = lazyVal(() =>
+export const queueSemigroupK: Lazy<SemigroupK<QueueF>> = lazy(() =>
   queueMonoidK(),
 );
 
-export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazyVal(() =>
+export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazy(() =>
   MonoidK.of({
     emptyK: () => empty,
     combineK_: (x, y) => concat_(x, y),
@@ -58,7 +58,7 @@ export const queueMonoidK: Lazy<MonoidK<QueueF>> = lazyVal(() =>
   }),
 );
 
-export const queueAlign: Lazy<Align<QueueF>> = lazyVal(() =>
+export const queueAlign: Lazy<Align<QueueF>> = lazy(() =>
   Align.of({
     ...queueFunctor(),
     align_: align_,
@@ -72,31 +72,31 @@ export const queueAlign: Lazy<Align<QueueF>> = lazyVal(() =>
   }),
 );
 
-export const queueFunctor: Lazy<Functor<QueueF>> = lazyVal(() =>
+export const queueFunctor: Lazy<Functor<QueueF>> = lazy(() =>
   Functor.of({ map_ }),
 );
 
-export const queueFunctorFilter: Lazy<FunctorFilter<QueueF>> = lazyVal(() =>
+export const queueFunctorFilter: Lazy<FunctorFilter<QueueF>> = lazy(() =>
   FunctorFilter.of({ ...queueFunctor(), mapFilter_: collect_ }),
 );
 
-export const queueApply: Lazy<Apply<QueueF>> = lazyVal(() => queueMonad());
+export const queueApply: Lazy<Apply<QueueF>> = lazy(() => queueMonad());
 
-export const queueApplicative: Lazy<Applicative<QueueF>> = lazyVal(() =>
+export const queueApplicative: Lazy<Applicative<QueueF>> = lazy(() =>
   queueMonad(),
 );
 
-export const queueFlatMap: Lazy<FlatMap<QueueF>> = lazyVal(() => queueMonad());
+export const queueFlatMap: Lazy<FlatMap<QueueF>> = lazy(() => queueMonad());
 
-export const queueCoflatMap: Lazy<CoflatMap<QueueF>> = lazyVal(() =>
+export const queueCoflatMap: Lazy<CoflatMap<QueueF>> = lazy(() =>
   CoflatMap.of({ ...queueFunctor(), coflatMap_ }),
 );
 
-export const queueAlternative: Lazy<Alternative<QueueF>> = lazyVal(() =>
+export const queueAlternative: Lazy<Alternative<QueueF>> = lazy(() =>
   Alternative.of({ ...queueMonad(), ...queueMonoidK() }),
 );
 
-export const queueMonad: Lazy<Monad<QueueF>> = lazyVal(() =>
+export const queueMonad: Lazy<Monad<QueueF>> = lazy(() =>
   Monad.of({
     pure,
     flatMap_,
@@ -110,7 +110,7 @@ export const queueMonad: Lazy<Monad<QueueF>> = lazyVal(() =>
   }),
 );
 
-export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
+export const queueFoldable: Lazy<Foldable<QueueF>> = lazy(() =>
   Foldable.of({
     isEmpty,
     nonEmpty,
@@ -129,7 +129,7 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazyVal(() =>
   }),
 );
 
-export const queueTraversableFilter: Lazy<TraversableFilter<QueueF>> = lazyVal(
+export const queueTraversableFilter: Lazy<TraversableFilter<QueueF>> = lazy(
   () =>
     TraversableFilter.of({
       ...queueFoldable(),

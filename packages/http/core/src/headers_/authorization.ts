@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { IdentityF, NonEmptyList } from '@fp4ts/cats';
-import { lazyVal } from '@fp4ts/core';
+import { lazy } from '@fp4ts/core';
 import { Credentials } from '../credentials';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
 import { ParseResult, Rfc7235 } from '../parsing';
@@ -38,6 +38,6 @@ export class Authorization {
     new SingleSelectHeader(Authorization.Header);
 }
 
-const parser = lazyVal(() =>
+const parser = lazy(() =>
   Rfc7235.credentials.map(creds => new Authorization(creds)),
 );

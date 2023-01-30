@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, id, Kind, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, id, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import { EqK } from '../eq-k';
 import { Distributive } from '../distributive';
 import { Applicative } from '../applicative';
@@ -116,21 +116,21 @@ Object.defineProperty(Identity, 'Traversable', {
   },
 });
 
-const identityEqK: Lazy<EqK<IdentityF>> = lazyVal(() => EqK.of({ liftEq: id }));
+const identityEqK: Lazy<EqK<IdentityF>> = lazy(() => EqK.of({ liftEq: id }));
 
-const identityFunctor: Lazy<Functor<IdentityF>> = lazyVal(() => ({
+const identityFunctor: Lazy<Functor<IdentityF>> = lazy(() => ({
   [IdentitySymbol]: true,
   ...Functor.of({ map_: (fa, f) => f(fa) }),
 }));
 
-const identityDistributive: Lazy<Distributive<IdentityF>> = lazyVal(() =>
+const identityDistributive: Lazy<Distributive<IdentityF>> = lazy(() =>
   Distributive.of<IdentityF>({
     ...identityFunctor(),
     distribute_: G => G.map_,
   }),
 );
 
-const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>
+const identityApply: Lazy<Apply<IdentityF>> = lazy(() =>
   Apply.of({
     ...identityFunctor(),
     ap_: (ff, fa) => ff(fa),
@@ -141,11 +141,11 @@ const identityApply: Lazy<Apply<IdentityF>> = lazyVal(() =>
   }),
 );
 
-const identityApplicative: Lazy<Applicative<IdentityF>> = lazyVal(() =>
+const identityApplicative: Lazy<Applicative<IdentityF>> = lazy(() =>
   Applicative.of({ ...identityApply(), pure: id, unit: undefined }),
 );
 
-const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
+const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazy(() =>
   FlatMap.of({
     ...identityApply(),
     flatMap_: (fa, f) => f(fa),
@@ -171,7 +171,7 @@ const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazyVal(() =>
   }),
 );
 
-const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
+const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazy(() =>
   CoflatMap.of({
     ...identityFunctor(),
     coflatMap_: (fa, f) => f(fa),
@@ -179,25 +179,25 @@ const identityCoflatMap: Lazy<CoflatMap<IdentityF>> = lazyVal(() =>
   }),
 );
 
-const identityMonad: Lazy<Monad<IdentityF>> = lazyVal(() =>
+const identityMonad: Lazy<Monad<IdentityF>> = lazy(() =>
   Monad.of({
     ...identityApplicative(),
     ...identityFlatMap(),
   }),
 );
 
-const identityComonad: Lazy<Comonad<IdentityF>> = lazyVal(() =>
+const identityComonad: Lazy<Comonad<IdentityF>> = lazy(() =>
   Comonad.of({ ...identityCoflatMap(), extract: id }),
 );
 
-const identityFoldable: Lazy<Foldable<IdentityF>> = lazyVal(() => ({
+const identityFoldable: Lazy<Foldable<IdentityF>> = lazy(() => ({
   [IdentitySymbol]: true,
   ...Foldable.of({
     foldRight_: (fa, ez, f) => Eval.defer(() => f(fa, ez)),
   }),
 }));
 
-const identityTraversable: Lazy<Traversable<IdentityF>> = lazyVal(() =>
+const identityTraversable: Lazy<Traversable<IdentityF>> = lazy(() =>
   Traversable.of({
     ...identityFoldable(),
     ...identityFunctor(),

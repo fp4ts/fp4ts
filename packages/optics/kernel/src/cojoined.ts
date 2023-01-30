@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { $, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
   ArrowApply,
   ArrowChoice,
@@ -46,7 +46,7 @@ export const Cojoined = Object.freeze({
 // -- Instances
 
 const function1Cojoined: Lazy<Cojoined<Function1F, IdentityF, IdentityF>> =
-  lazyVal(() =>
+  lazy(() =>
     instance<Cojoined<Function1F, IdentityF, IdentityF>>({
       ...Function1.ArrowApply,
       ...Function1.ArrowChoice,

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, Kind, lazyVal } from '@fp4ts/core';
+import { $, Kind, lazy } from '@fp4ts/core';
 import { ConstF, IdentityF } from '@fp4ts/cats';
 import { Literal } from '../literal';
 import { ProductK, SumK, StructK } from '../kinds';
@@ -48,7 +48,7 @@ export const sum =
     new SumSchemaK(tag, fs);
 
 export const defer = <F>(thunk: () => SchemaK<F>): SchemaK<F> =>
-  new DeferSchemaK(lazyVal(thunk));
+  new DeferSchemaK(lazy(thunk));
 
 export const make = <F>(f: <S>(S: SchemableK<S>) => Kind<S, [F]>): SchemaK<F> =>
   new MakeSchemaK(f);

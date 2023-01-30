@@ -8,7 +8,7 @@ import {
   Eval,
   id,
   Kind,
-  lazyVal,
+  lazy,
   throwError,
   tupled,
   TyK,
@@ -119,7 +119,7 @@ View.singleton = <A>(x: A): View<A> => View.build((ez, f) => f(x, ez));
  * ```
  */
 View.defer = <A>(thunk: () => View<A>): View<A> => {
-  const l = lazyVal(thunk);
+  const l = lazy(thunk);
   return View.build((ez, f) => Eval.defer(() => l().foldRight(ez, f)));
 };
 
@@ -3076,13 +3076,13 @@ function iob(): never {
 
 // -- Instances
 
-const viewFunctor = lazyVal(() =>
+const viewFunctor = lazy(() =>
   Functor.of<ViewF>({
     map_: (fa, f) => fa.map(f),
   }),
 );
 
-const viewFunctorFilter = lazyVal(() =>
+const viewFunctorFilter = lazy(() =>
   FunctorFilter.of<ViewF>({
     ...viewFunctor(),
     mapFilter_: (fa, f) => fa.collect(f),
@@ -3092,7 +3092,7 @@ const viewFunctorFilter = lazyVal(() =>
   }),
 );
 
-const viewMonoidK = lazyVal(() =>
+const viewMonoidK = lazy(() =>
   MonoidK.of<ViewF>({
     combineK_: (fa, fb) => fa.concat(fb),
     combineKEval_: (fa, efb) => Eval.now(fa.concatEval(efb)),
@@ -3100,7 +3100,7 @@ const viewMonoidK = lazyVal(() =>
   }),
 );
 
-const viewApply = lazyVal(() =>
+const viewApply = lazy(() =>
   Apply.of<ViewF>({
     ...viewFunctor(),
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
@@ -3115,21 +3115,21 @@ const viewApply = lazyVal(() =>
   }),
 );
 
-const viewApplicative = lazyVal(() =>
+const viewApplicative = lazy(() =>
   Applicative.of<ViewF>({
     ...viewApply(),
     pure: View.singleton,
   }),
 );
 
-const viewAlternative = lazyVal(() =>
+const viewAlternative = lazy(() =>
   Alternative.of<ViewF>({
     ...viewMonoidK(),
     ...viewApplicative(),
   }),
 );
 
-const viewMonad = lazyVal(() =>
+const viewMonad = lazy(() =>
   Monad.of<ViewF>({
     ...viewApplicative(),
     flatMap_: (fa, f) => fa.flatMap(f),
@@ -3138,7 +3138,7 @@ const viewMonad = lazyVal(() =>
   }),
 );
 
-const viewFoldable = lazyVal(() =>
+const viewFoldable = lazy(() =>
   Foldable.of<ViewF>({
     foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
     foldLeft_: (fa, z, f) => fa.foldLeft(z, f),
@@ -3167,7 +3167,7 @@ const viewFoldable = lazyVal(() =>
   }),
 );
 
-const viewTraversableFilter = lazyVal(() =>
+const viewTraversableFilter = lazy(() =>
   TraversableFilter.of<ViewF>({
     ...viewFunctorFilter(),
     ...viewFoldable(),
@@ -3186,7 +3186,7 @@ const viewTraversableFilter = lazyVal(() =>
   }),
 );
 
-const viewUnzip = lazyVal(() =>
+const viewUnzip = lazy(() =>
   Unzip.of<ViewF>({
     ...viewFunctor(),
     unzip: fa => fa.unzip(),

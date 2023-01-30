@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, HKT, Lazy, lazyVal, TyK, TyVar } from '@fp4ts/core';
+import { $type, HKT, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
@@ -477,15 +477,15 @@ enum Continuation {
 
 // -- instances
 
-const syncIoDefer: Lazy<Defer<SyncIOF>> = lazyVal(() =>
+const syncIoDefer: Lazy<Defer<SyncIOF>> = lazy(() =>
   Defer.of({ defer: SyncIO.defer }),
 );
 
-const syncIoFunctor: Lazy<Functor<SyncIOF>> = lazyVal(() =>
+const syncIoFunctor: Lazy<Functor<SyncIOF>> = lazy(() =>
   Functor.of({ map_: (fa, f) => fa.map(f) }),
 );
 
-const syncIoApply: Lazy<Apply<SyncIOF>> = lazyVal(() =>
+const syncIoApply: Lazy<Apply<SyncIOF>> = lazy(() =>
   Apply.of({
     ...syncIoFunctor(),
     ap_: (ff, fa) => ff.flatMap(f => fa.map(a => f(a))),
@@ -496,7 +496,7 @@ const syncIoApply: Lazy<Apply<SyncIOF>> = lazyVal(() =>
   }),
 );
 
-const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazyVal(() =>
+const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazy(() =>
   Applicative.of({
     ...syncIoFunctor(),
     ...syncIoApply(),
@@ -508,7 +508,7 @@ const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazyVal(() =>
   }),
 );
 
-const syncIoMonad: Lazy<Monad<SyncIOF>> = lazyVal(() =>
+const syncIoMonad: Lazy<Monad<SyncIOF>> = lazy(() =>
   StackSafeMonad.of({
     ...syncIoApplicative(),
     ...syncIoDefer(),
@@ -516,7 +516,7 @@ const syncIoMonad: Lazy<Monad<SyncIOF>> = lazyVal(() =>
   }),
 );
 
-const syncIoMonadError: Lazy<MonadError<SyncIOF, Error>> = lazyVal(() =>
+const syncIoMonadError: Lazy<MonadError<SyncIOF, Error>> = lazy(() =>
   MonadError.of({
     ...syncIoMonad(),
     throwError: SyncIO.throwError,
@@ -527,7 +527,7 @@ const syncIoMonadError: Lazy<MonadError<SyncIOF, Error>> = lazyVal(() =>
   }),
 );
 
-const syncIoSync: Lazy<Sync<SyncIOF>> = lazyVal(() =>
+const syncIoSync: Lazy<Sync<SyncIOF>> = lazy(() =>
   Sync.of({
     ...MonadCancel.Uncancelable(syncIoMonadError()),
     ...Clock.of({

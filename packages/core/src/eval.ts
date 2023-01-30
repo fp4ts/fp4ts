@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, lazyVal, throwError } from './function';
+import { id, lazy, throwError } from './function';
 import { $type, HKT, TyK, TyVar } from './hkt';
 
 /**
@@ -87,7 +87,7 @@ class Later<A> extends Eval<A> {
   public readonly tag = 1;
   public constructor(thunk: () => A) {
     super();
-    this._value = lazyVal(thunk);
+    this._value = lazy(thunk);
   }
 
   private readonly _value: () => A;

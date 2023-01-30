@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, lazyVal } from '@fp4ts/core';
+import { $, lazy } from '@fp4ts/core';
 import { Applicative, Monad } from '@fp4ts/cats';
 import { Async } from '../async';
 import { Clock } from '../clock';
@@ -46,7 +46,7 @@ export const resourceApplicative: <F>() => Applicative<$<ResourceF, [F]>> = <
   F,
 >() => resourceMonad<F>();
 
-export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazyVal(<F>() =>
+export const resourceMonad: <F>() => Monad<$<ResourceF, [F]>> = lazy(<F>() =>
   Monad.of<$<ResourceF, [F]>>({
     pure: pure,
     flatMap_: flatMap_,

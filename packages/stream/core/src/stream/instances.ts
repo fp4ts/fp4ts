@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, lazyVal } from '@fp4ts/core';
+import { $, lazy } from '@fp4ts/core';
 import {
   Align,
   Defer,
@@ -29,24 +29,24 @@ import {
 } from './operators';
 import { defer, empty, pure, tailRecM_, throwError } from './constructors';
 
-export const streamMonoidK: <F>() => MonoidK<$<StreamF, [F]>> = lazyVal(() =>
+export const streamMonoidK: <F>() => MonoidK<$<StreamF, [F]>> = lazy(() =>
   MonoidK.of({ combineK_: (xs, ys) => concat_(xs, ys), emptyK: empty }),
 );
 
-export const streamDefer: <F>() => Defer<$<StreamF, [F]>> = lazyVal(() =>
+export const streamDefer: <F>() => Defer<$<StreamF, [F]>> = lazy(() =>
   Defer.of({ defer: defer }),
 );
 
-export const streamFunctor: <F>() => Functor<$<StreamF, [F]>> = lazyVal(() =>
+export const streamFunctor: <F>() => Functor<$<StreamF, [F]>> = lazy(() =>
   Functor.of({ map_: map_ }),
 );
 
-export const streamAlign: <F>() => Align<$<StreamF, [F]>> = lazyVal(() =>
+export const streamAlign: <F>() => Align<$<StreamF, [F]>> = lazy(() =>
   Align.of({ ...streamFunctor(), align_: align_ }),
 );
 
 export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamF, [F]>> =
-  lazyVal(() =>
+  lazy(() =>
     FunctorFilter.of({
       ...streamFunctor(),
       mapFilter_: collect_,
@@ -54,7 +54,7 @@ export const streamFunctorFilter: <F>() => FunctorFilter<$<StreamF, [F]>> =
     }),
   );
 
-export const streamMonad: <F>() => Monad<$<StreamF, [F]>> = lazyVal(() =>
+export const streamMonad: <F>() => Monad<$<StreamF, [F]>> = lazy(() =>
   Monad.of({
     ...streamFunctor(),
     pure: pure,
@@ -65,7 +65,7 @@ export const streamMonad: <F>() => Monad<$<StreamF, [F]>> = lazyVal(() =>
 );
 
 export const streamMonadError: <F>() => MonadError<$<StreamF, [F]>, Error> =
-  lazyVal(() =>
+  lazy(() =>
     MonadError.of({
       ...streamMonad(),
       throwError: throwError,

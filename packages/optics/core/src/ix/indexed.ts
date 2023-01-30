@@ -8,7 +8,7 @@ import {
   $type,
   curry,
   id,
-  lazyVal,
+  lazy,
   tuple,
   TyK,
   TyVar,
@@ -101,7 +101,7 @@ export function indexed<S, A>(l: Fold<S, A>): IndexedFold<number, S, A> {
 
 // -- Instances
 
-const indexedProfunctor: <I>() => Profunctor<$<IndexedF, [I]>> = lazyVal(<
+const indexedProfunctor: <I>() => Profunctor<$<IndexedF, [I]>> = lazy(<
   I,
 >() =>
   Profunctor.of<$<IndexedF, [I]>>({
@@ -116,7 +116,7 @@ const indexedProfunctor: <I>() => Profunctor<$<IndexedF, [I]>> = lazyVal(<
   }),
 ) as <I>() => Profunctor<$<IndexedF, [I]>>;
 
-const indexedStrong: <I>() => Strong<$<IndexedF, [I]>> = lazyVal(<I>() =>
+const indexedStrong: <I>() => Strong<$<IndexedF, [I]>> = lazy(<I>() =>
   Strong.of<$<IndexedF, [I]>>({
     ...indexedProfunctor<I>(),
     first:
@@ -133,7 +133,7 @@ const indexedStrong: <I>() => Strong<$<IndexedF, [I]>> = lazyVal(<I>() =>
   }),
 ) as <I>() => Strong<$<IndexedF, [I]>>;
 
-const indexedCostrong: <I>() => Costrong<$<IndexedF, [I]>> = lazyVal(<I>() =>
+const indexedCostrong: <I>() => Costrong<$<IndexedF, [I]>> = lazy(<I>() =>
   Costrong.of<$<IndexedF, [I]>>({
     ...indexedProfunctor<I>(),
     unfirst:
@@ -151,7 +151,7 @@ const indexedCostrong: <I>() => Costrong<$<IndexedF, [I]>> = lazyVal(<I>() =>
 const indexedRepresentable: <I>() => Representable<
   $<IndexedF, [I]>,
   $<Function1F, [I]>
-> = lazyVal(<I>() =>
+> = lazy(<I>() =>
   Representable.of<$<IndexedF, [I]>, $<Function1F, [I]>>(
     { ...indexedStrong<I>(), sieve: curry, tabulate: uncurry },
     Function1.Functor<I>(),
@@ -161,7 +161,7 @@ const indexedRepresentable: <I>() => Representable<
 const indexedCorepresentable: <I>() => Corepresentable<
   $<IndexedF, [I]>,
   Tuple2LF<I>
-> = lazyVal(<I>() =>
+> = lazy(<I>() =>
   Corepresentable.of<$<IndexedF, [I]>, Tuple2LF<I>>(
     {
       ...indexedCostrong<I>(),
@@ -172,7 +172,7 @@ const indexedCorepresentable: <I>() => Corepresentable<
   ),
 ) as <I>() => Corepresentable<$<IndexedF, [I]>, Tuple2LF<I>>;
 
-const indexedClosed: <I>() => Closed<$<IndexedF, [I]>> = lazyVal(<I>() =>
+const indexedClosed: <I>() => Closed<$<IndexedF, [I]>> = lazy(<I>() =>
   Closed.of<$<IndexedF, [I]>>({
     ...indexedProfunctor(),
     closed:
@@ -184,7 +184,7 @@ const indexedClosed: <I>() => Closed<$<IndexedF, [I]>> = lazyVal(<I>() =>
   }),
 ) as <I>() => Closed<$<IndexedF, [I]>>;
 
-const indexedArrow: <I>() => Arrow<$<IndexedF, [I]>> = lazyVal(
+const indexedArrow: <I>() => Arrow<$<IndexedF, [I]>> = lazy(
   <I>(): Arrow<$<IndexedF, [I]>> =>
     Arrow.of({
       ...indexedStrong<I>(),
@@ -202,7 +202,7 @@ const indexedArrow: <I>() => Arrow<$<IndexedF, [I]>> = lazyVal(
     }),
 ) as <I>() => Arrow<$<IndexedF, [I]>>;
 
-const indexedArrowApply: <I>() => ArrowApply<$<IndexedF, [I]>> = lazyVal(
+const indexedArrowApply: <I>() => ArrowApply<$<IndexedF, [I]>> = lazy(
   <I>(): ArrowApply<$<IndexedF, [I]>> =>
     ArrowApply.of({
       ...indexedArrow<I>(),
@@ -214,7 +214,7 @@ const indexedArrowApply: <I>() => ArrowApply<$<IndexedF, [I]>> = lazyVal(
     }),
 ) as <I>() => ArrowApply<$<IndexedF, [I]>>;
 
-const indexedArrowChoice: <I>() => ArrowChoice<$<IndexedF, [I]>> = lazyVal(
+const indexedArrowChoice: <I>() => ArrowChoice<$<IndexedF, [I]>> = lazy(
   <I>(): ArrowChoice<$<IndexedF, [I]>> =>
     ArrowChoice.of({
       ...indexedArrow<I>(),
@@ -236,7 +236,7 @@ const indexedCojoined: <I>() => Cojoined<
   $<IndexedF, [I]>,
   $<Function1F, [I]>,
   Tuple2LF<I>
-> = lazyVal(<I>() =>
+> = lazy(<I>() =>
   instance<Cojoined<$<IndexedF, [I]>, $<Function1F, [I]>, Tuple2LF<I>>>({
     ...Indexed.ArrowApply<I>(),
     ...Indexed.ArrowChoice<I>(),

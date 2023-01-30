@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { Eval, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { Eval, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
   Const,
   FunctionK,
@@ -16,7 +16,7 @@ import {
 import { SchemableK } from './schemable-k';
 import { ProductK, SumK, StructK, NullableK } from './kinds';
 
-export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazyVal(() => {
+export const functorSchemableK: Lazy<SchemableK<FunctorF>> = lazy(() => {
   const self: SchemableK<FunctorF> = SchemableK.of({
     boolean: Const.Functor<boolean>(),
     string: Const.Functor<string>(),
@@ -141,6 +141,6 @@ export const imapSafeFunctor = <F, G>(
 export const deferSafeFunctor = <G>(
   thunk: () => Functor<G>,
 ): SafeFunctor<G> => {
-  const t = lazyVal(thunk);
+  const t = lazy(thunk);
   return SafeFunctor.of<G>({ safeMap_: (x, f) => safeMap(t(), x, f) });
 };

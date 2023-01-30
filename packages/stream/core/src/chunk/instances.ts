@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Eval, Lazy, lazyVal, Kind } from '@fp4ts/core';
+import { id, Eval, Lazy, lazy, Kind } from '@fp4ts/core';
 import {
   Alternative,
   Functor,
@@ -17,18 +17,18 @@ import {
 import { Chunk as ChunkBase, EmptyChunk } from './algebra';
 import type { ChunkF, Chunk } from './chunk';
 
-export const chunkMonoidK: Lazy<MonoidK<ChunkF>> = lazyVal(() =>
+export const chunkMonoidK: Lazy<MonoidK<ChunkF>> = lazy(() =>
   MonoidK.of({
     emptyK: () => ChunkBase.empty,
     combineK_: (lhs, rhs) => lhs.concat(rhs),
   }),
 );
 
-export const chunkFunctor: Lazy<Functor<ChunkF>> = lazyVal(() =>
+export const chunkFunctor: Lazy<Functor<ChunkF>> = lazy(() =>
   Functor.of({ map_: (x, f) => x.map(f) }),
 );
 
-export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkF>> = lazyVal(() =>
+export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkF>> = lazy(() =>
   FunctorFilter.of({
     ...chunkFunctor(),
     mapFilter_: (x, f) => x.collect(f),
@@ -36,11 +36,11 @@ export const chunkFunctorFilter: Lazy<FunctorFilter<ChunkF>> = lazyVal(() =>
   }),
 );
 
-export const chunkAlternative: Lazy<Alternative<ChunkF>> = lazyVal(() =>
+export const chunkAlternative: Lazy<Alternative<ChunkF>> = lazy(() =>
   Alternative.of({ ...chunkMonad(), ...chunkMonoidK() }),
 );
 
-export const chunkMonad: Lazy<Monad<ChunkF>> = lazyVal(() =>
+export const chunkMonad: Lazy<Monad<ChunkF>> = lazy(() =>
   Monad.of({
     pure: ChunkBase.singleton,
     map_: (fa, f) => fa.map(f),
@@ -56,7 +56,7 @@ export const chunkMonad: Lazy<Monad<ChunkF>> = lazyVal(() =>
   }),
 );
 
-export const chunkTraversable: Lazy<Traversable<ChunkF>> = lazyVal(() =>
+export const chunkTraversable: Lazy<Traversable<ChunkF>> = lazy(() =>
   Traversable.of({
     ...chunkFunctor(),
     foldLeft_: (xs, z, f) => xs.foldLeft(z, f),

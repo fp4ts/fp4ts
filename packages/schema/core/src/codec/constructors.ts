@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, lazyVal } from '@fp4ts/core';
+import { id, lazy } from '@fp4ts/core';
 import { Literal } from '@fp4ts/schema-kernel';
 import { Decoder } from '../decoder-t';
 import { Encoder } from '../encoder';
@@ -117,7 +117,7 @@ export const sum =
   };
 
 export const defer = <I, O, A>(thunk: () => Codec<I, O, A>): Codec<I, O, A> => {
-  const t = lazyVal(thunk) as () => Codec<I, O, A>;
+  const t = lazy(thunk) as () => Codec<I, O, A>;
   return new Codec(
     Encoder.defer(() => t().toEncoder),
     Decoder.defer(() => t().toDecoder),

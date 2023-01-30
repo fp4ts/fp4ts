@@ -27,7 +27,7 @@ import {
   id,
   Kind,
   Lazy,
-  lazyVal,
+  lazy,
   TyK,
   TyVar,
 } from '@fp4ts/core';
@@ -712,13 +712,13 @@ IO.parTraverseN_ =
 
 // -- instances
 
-const ioDefer: Lazy<Defer<IOF>> = lazyVal(() => Defer.of({ defer: IO.defer }));
+const ioDefer: Lazy<Defer<IOF>> = lazy(() => Defer.of({ defer: IO.defer }));
 
-const ioFunctor: Lazy<Functor<IOF>> = lazyVal(() =>
+const ioFunctor: Lazy<Functor<IOF>> = lazy(() =>
   Functor.of({ map_: (fa, f) => fa.map(f), tap_: (fa, f) => fa.tap(f) }),
 );
 
-const ioApply: Lazy<Apply<IOF>> = lazyVal(() =>
+const ioApply: Lazy<Apply<IOF>> = lazy(() =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
@@ -729,7 +729,7 @@ const ioApply: Lazy<Apply<IOF>> = lazyVal(() =>
   }),
 );
 
-const ioApplicative: Lazy<Applicative<IOF>> = lazyVal(() =>
+const ioApplicative: Lazy<Applicative<IOF>> = lazy(() =>
   Applicative.of({
     ...ioApply(),
     pure: IO.pure,
@@ -737,7 +737,7 @@ const ioApplicative: Lazy<Applicative<IOF>> = lazyVal(() =>
   }),
 );
 
-const ioMonad: Lazy<Monad<IOF>> = lazyVal(() =>
+const ioMonad: Lazy<Monad<IOF>> = lazy(() =>
   StackSafeMonad.of({
     ...ioDefer(),
     ...ioApplicative(),
@@ -745,7 +745,7 @@ const ioMonad: Lazy<Monad<IOF>> = lazyVal(() =>
   }),
 );
 
-const ioMonadError: Lazy<MonadError<IOF, Error>> = lazyVal(() =>
+const ioMonadError: Lazy<MonadError<IOF, Error>> = lazy(() =>
   MonadError.of({
     ...ioMonad(),
     throwError: IO.throwError,
@@ -758,7 +758,7 @@ const ioMonadError: Lazy<MonadError<IOF, Error>> = lazyVal(() =>
   }),
 );
 
-const ioMonadCancel: Lazy<MonadCancel<IOF, Error>> = lazyVal(() =>
+const ioMonadCancel: Lazy<MonadCancel<IOF, Error>> = lazy(() =>
   MonadCancel.of({
     ...ioMonadError(),
     canceled: IO.canceled,
@@ -770,7 +770,7 @@ const ioMonadCancel: Lazy<MonadCancel<IOF, Error>> = lazyVal(() =>
   }),
 );
 
-const ioSync: Lazy<Sync<IOF>> = lazyVal(() =>
+const ioSync: Lazy<Sync<IOF>> = lazy(() =>
   Sync.of({
     ...ioMonadCancel(),
     ...Clock.of({
@@ -783,7 +783,7 @@ const ioSync: Lazy<Sync<IOF>> = lazyVal(() =>
   }),
 );
 
-const ioSpawn: Lazy<Spawn<IOF, Error>> = lazyVal(() =>
+const ioSpawn: Lazy<Spawn<IOF, Error>> = lazy(() =>
   Spawn.of({
     ...ioMonadCancel(),
     unique: IO.delay(() => new UniqueToken()),
@@ -794,11 +794,11 @@ const ioSpawn: Lazy<Spawn<IOF, Error>> = lazyVal(() =>
   }),
 );
 
-const ioParallel: Lazy<Parallel<IOF, IOF>> = lazyVal(() =>
+const ioParallel: Lazy<Parallel<IOF, IOF>> = lazy(() =>
   Spawn.parallelForSpawn(ioSpawn()),
 );
 
-const ioConcurrent: Lazy<Concurrent<IOF, Error>> = lazyVal(() =>
+const ioConcurrent: Lazy<Concurrent<IOF, Error>> = lazy(() =>
   Concurrent.of({
     ...ioSpawn(),
     ref: a => Ref.of(ioAsync())(a),
@@ -806,7 +806,7 @@ const ioConcurrent: Lazy<Concurrent<IOF, Error>> = lazyVal(() =>
   }),
 );
 
-const ioTemporal: Lazy<Temporal<IOF, Error>> = lazyVal(() =>
+const ioTemporal: Lazy<Temporal<IOF, Error>> = lazy(() =>
   Temporal.of({
     ...ioConcurrent(),
     ...Clock.of({
@@ -821,7 +821,7 @@ const ioTemporal: Lazy<Temporal<IOF, Error>> = lazyVal(() =>
   }),
 );
 
-const ioAsync: Lazy<Async<IOF>> = lazyVal(() =>
+const ioAsync: Lazy<Async<IOF>> = lazy(() =>
   Async.of({
     ...ioSync(),
     ...ioTemporal(),

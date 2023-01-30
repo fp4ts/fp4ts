@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, instance, Kind, lazyVal } from '@fp4ts/core';
+import { $, id, instance, Kind, lazy } from '@fp4ts/core';
 import { Function1F, IdentityF, Tuple2LF } from '@fp4ts/cats';
 import { Cojoined } from '@fp4ts/optics-kernel';
 import { Indexed, IndexedF } from './indexed';
@@ -35,7 +35,7 @@ const function1Indexable: <I>() => Indexable<
   I,
   IdentityF,
   IdentityF
-> = lazyVal(<I>() =>
+> = lazy(<I>() =>
   instance<Indexable<Function1F, I, IdentityF, IdentityF>>({
     ...Cojoined.Function1,
     indexed: id,
@@ -47,7 +47,7 @@ const indexedIndexable: <I>() => Indexable<
   I,
   $<Function1F, [I]>,
   Tuple2LF<I>
-> = lazyVal(<I>() =>
+> = lazy(<I>() =>
   instance<Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, Tuple2LF<I>>>({
     ...Indexed.Cojoined<I>(),
     indexed: id,

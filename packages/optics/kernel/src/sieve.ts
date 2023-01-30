@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, coerce, id, instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { $, coerce, id, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
   Function1,
   Function1F,
@@ -77,15 +77,15 @@ export const Cosieve = Object.freeze({
 
 // -- Instances
 
-const function1Sieve: Lazy<Sieve<Function1F, IdentityF>> = lazyVal(() =>
+const function1Sieve: Lazy<Sieve<Function1F, IdentityF>> = lazy(() =>
   Sieve.of({ sieve: id, ...Function1.ArrowChoice }, Identity.Functor),
 );
 
-const function1Cosieve: Lazy<Cosieve<Function1F, IdentityF>> = lazyVal(() =>
+const function1Cosieve: Lazy<Cosieve<Function1F, IdentityF>> = lazy(() =>
   Cosieve.of({ cosieve: id, ...Function1.ArrowChoice }, Identity.Functor),
 );
 
-const taggedCosieve: Lazy<Cosieve<TaggedF, ProxyF>> = lazyVal(() =>
+const taggedCosieve: Lazy<Cosieve<TaggedF, ProxyF>> = lazy(() =>
   Cosieve.of(
     {
       cosieve:

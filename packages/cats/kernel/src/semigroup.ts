@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Eval, instance, lazyVal } from '@fp4ts/core';
+import { Base, Eval, instance, lazy } from '@fp4ts/core';
 import { arraySemigroup } from './instances/array';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
 import { additionMonoid, productMonoid } from './instances/number';
@@ -27,7 +27,7 @@ export type SemigroupRequirements<A> = Pick<Semigroup<A>, 'combine_'> &
 export const Semigroup = Object.freeze({
   of: <A>(S: SemigroupRequirements<A>): Semigroup<A> => {
     const self: Semigroup<A> = instance({
-      dual: lazyVal(() =>
+      dual: lazy(() =>
         Semigroup.of({
           dual: () => self,
           combine: y => x => self.combine_(y, x),

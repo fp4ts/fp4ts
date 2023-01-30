@@ -8,7 +8,7 @@ import {
   Eval,
   HKT,
   Kind,
-  lazyVal,
+  lazy,
   PrimitiveType,
   throwError,
   tupled,
@@ -935,18 +935,18 @@ class Cons<out A> extends Source<A> {
 
 // -- Instances
 
-const lazyListEqK = lazyVal(() =>
+const lazyListEqK = lazy(() =>
   EqK.of<LazyListF>({
     liftEq: <A>(A: Eq<A>) =>
       Eq.of({ equals: (lhs: LazyList<A>, rhs) => lhs.equals(rhs, A) }),
   }),
 );
 
-const lazyListDefer = lazyVal(() =>
+const lazyListDefer = lazy(() =>
   Defer.of<LazyListF>({ defer: LazyList.defer }),
 );
 
-const lazyListAlign = lazyVal(() =>
+const lazyListAlign = lazy(() =>
   Align.of<LazyListF>({
     ...lazyListFunctor(),
     align_: (fa, fb) => fa.align(fb),
@@ -960,30 +960,30 @@ const lazyListAlign = lazyVal(() =>
   }),
 );
 
-const lazyListSemigroupK = lazyVal(() =>
+const lazyListSemigroupK = lazy(() =>
   SemigroupK.of<LazyListF>({
     combineK_: (fa, fb) => fa.concat(fb),
     combineKEval_: (fa, efb) => Eval.now(fa.concatEval(efb)),
   }),
 );
-const lazyListMonoidK = lazyVal(() =>
+const lazyListMonoidK = lazy(() =>
   MonoidK.of<LazyListF>({
     emptyK: () => LazyList.empty,
     combineK_: lazyListSemigroupK().combineK_,
   }),
 );
-const lazyListAlternative = lazyVal(() =>
+const lazyListAlternative = lazy(() =>
   Alternative.of<LazyListF>({
     ...lazyListApplicative(),
     ...lazyListMonoidK(),
   }),
 );
 
-const lazyListFunctor = lazyVal(() =>
+const lazyListFunctor = lazy(() =>
   Functor.of<LazyListF>({ map_: (fa, f) => fa.map(f) }),
 );
 
-const lazyListFunctorFilter = lazyVal(() =>
+const lazyListFunctorFilter = lazy(() =>
   FunctorFilter.of<LazyListF>({
     ...lazyListFunctor(),
     mapFilter_: (fa, f) => fa.collect(f),
@@ -994,7 +994,7 @@ const lazyListFunctorFilter = lazyVal(() =>
   }),
 );
 
-const lazyListApplicative = lazyVal(() =>
+const lazyListApplicative = lazy(() =>
   Applicative.of<LazyListF>({
     ...lazyListFunctor(),
     pure: LazyList.singleton,
@@ -1010,7 +1010,7 @@ const lazyListApplicative = lazyVal(() =>
   }),
 );
 
-const lazyListMonad = lazyVal(() =>
+const lazyListMonad = lazy(() =>
   StackSafeMonad.of<LazyListF>({
     ...lazyListApplicative(),
     ...lazyListDefer(),
@@ -1018,7 +1018,7 @@ const lazyListMonad = lazyVal(() =>
   }),
 );
 
-const lazyListFoldable = lazyVal(() =>
+const lazyListFoldable = lazy(() =>
   Foldable.of<LazyListF>({
     foldMap_:
       <M>(M: Monoid<M>) =>
@@ -1043,7 +1043,7 @@ const lazyListFoldable = lazyVal(() =>
   }),
 );
 
-const lazyListTraversableFilter = lazyVal(() =>
+const lazyListTraversableFilter = lazy(() =>
   TraversableFilter.of<LazyListF>({
     ...lazyListFoldable(),
     ...lazyListFunctor(),

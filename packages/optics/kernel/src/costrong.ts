@@ -11,7 +11,7 @@ import {
   Tagged,
   TaggedF,
 } from '@fp4ts/cats';
-import { instance, Kind, Lazy, lazyVal } from '@fp4ts/core';
+import { instance, Kind, Lazy, lazy } from '@fp4ts/core';
 
 export interface Costrong<P> extends Profunctor<P> {
   unfirst<A, B, C>(pacbc: Kind<P, [[A, C], [B, C]]>): Kind<P, [A, B]>;
@@ -41,7 +41,7 @@ export const Costrong = Object.freeze({
 
 // -- Instances
 
-const function1Costrong: Lazy<Costrong<Function1F>> = lazyVal(() =>
+const function1Costrong: Lazy<Costrong<Function1F>> = lazy(() =>
   Costrong.of({
     unfirst:
       <A, B, C>(f: (ac: [A, C]) => [B, C]) =>
@@ -55,7 +55,7 @@ const function1Costrong: Lazy<Costrong<Function1F>> = lazyVal(() =>
   }),
 );
 
-const taggedCostrong: Lazy<Costrong<TaggedF>> = lazyVal(() =>
+const taggedCostrong: Lazy<Costrong<TaggedF>> = lazy(() =>
   Costrong.of({
     unfirst: <A, B, C>(f: Tagged<[A, C], [B, C]>) =>
       Tagged<A, B>(Tagged.unTag(f)[0]),

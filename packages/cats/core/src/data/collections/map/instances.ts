@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, lazyVal } from '@fp4ts/core';
+import { $, lazy } from '@fp4ts/core';
 import { Eq, Ord } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../../semigroup-k';
 import { MonoidK } from '../../../monoid-k';
@@ -53,16 +53,16 @@ export const mapMonoidK: <K>(O: Ord<K>) => MonoidK<$<MapF, [K]>> = <K>(
     combineKEval_: (x, ey) => (x === empty ? ey : ey.map(y => union_(O, x, y))),
   });
 
-export const mapFunctor: <K>() => Functor<$<MapF, [K]>> = lazyVal(<K>() =>
+export const mapFunctor: <K>() => Functor<$<MapF, [K]>> = lazy(<K>() =>
   Functor.of<$<MapF, [K]>>({ map_: (fa, f) => map_(fa, x => f(x)) }),
 ) as <K>() => Functor<$<MapF, [K]>>;
 
 export const mapFunctorWithIndex: <K>() => FunctorWithIndex<$<MapF, [K]>, K> =
-  lazyVal(<K>() =>
+  lazy(<K>() =>
     FunctorWithIndex.of<$<MapF, [K]>, K>({ mapWithIndex_: map_ }),
   ) as <K>() => FunctorWithIndex<$<MapF, [K]>, K>;
 
-export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazyVal(
+export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazy(
   () =>
     FunctorFilter.of({
       ...mapFunctor(),
@@ -71,7 +71,7 @@ export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazyVal(
 );
 
 export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =
-  lazyVal(<K>() =>
+  lazy(<K>() =>
     FoldableWithIndex.of<$<MapF, [K]>, K>({
       foldLeftWithIndex_: foldLeft_,
       foldRightWithIndex_: foldRight_,
@@ -90,7 +90,7 @@ export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =
 export const mapTraversableWithIndex: <K>() => TraversableWithIndex<
   $<MapF, [K]>,
   K
-> = lazyVal(<K>() =>
+> = lazy(<K>() =>
   TraversableWithIndex.of<$<MapF, [K]>, K>({
     ...mapFunctorWithIndex<K>(),
     ...mapFoldableWithIndex<K>(),

@@ -8,7 +8,7 @@ import {
   Eval,
   id,
   Kind,
-  lazyVal,
+  lazy,
   throwError,
   tupled,
   TyK,
@@ -3580,18 +3580,18 @@ List.CoflatMap = null as any as CoflatMap<ListF>;
 List.Foldable = null as any as Foldable<ListF>;
 List.TraversableFilter = null as any as TraversableFilter<ListF>;
 
-const listEqK = lazyVal(() => EqK.of<ListF>({ liftEq: List.Eq }));
-const listFunctor = lazyVal(() =>
+const listEqK = lazy(() => EqK.of<ListF>({ liftEq: List.Eq }));
+const listFunctor = lazy(() =>
   Functor.of<ListF>({ map_: (fa, f) => fa.map(f) }),
 );
-const listAlign = lazyVal(() =>
+const listAlign = lazy(() =>
   Align.of<ListF>({
     ...listFunctor(),
     align_: (fa, fb) => fa.align(fb),
     zipAll: (fa, fb, a, b) => fa.zipAll(fb, a, b),
   }),
 );
-const listUnzip = lazyVal(() =>
+const listUnzip = lazy(() =>
   Unzip.of({
     ...listFunctor(),
     zip_: (xs, ys) => xs.zip(ys),
@@ -3600,7 +3600,7 @@ const listUnzip = lazyVal(() =>
     unzipWith_: (xs, f) => xs.unzipWith(f),
   }),
 );
-const listFunctorFilter = lazyVal(() =>
+const listFunctorFilter = lazy(() =>
   FunctorFilter.of<ListF>({
     ...listFunctor(),
     mapFilter_: (fa, f) => fa.collect(f),
@@ -3609,13 +3609,13 @@ const listFunctorFilter = lazyVal(() =>
     filterNot_: (fa, f) => fa.filterNot(f),
   }),
 );
-const listMonoidK = lazyVal(() =>
+const listMonoidK = lazy(() =>
   MonoidK.of<ListF>({
     emptyK: () => List.empty,
     combineK_: (xs, ys) => xs['++'](ys),
   }),
 );
-const listApplicative = lazyVal(() =>
+const listApplicative = lazy(() =>
   Applicative.of<ListF>({
     ...listFunctor(),
     pure: List.singleton,
@@ -3630,19 +3630,19 @@ const listApplicative = lazyVal(() =>
         fa.map2Eval(efb, f),
   }),
 );
-const listAlternative = lazyVal(() =>
+const listAlternative = lazy(() =>
   Alternative.of<ListF>({
     ...listMonoidK(),
     ...listApplicative(),
   }),
 );
-const listCoflatMap = lazyVal(() =>
+const listCoflatMap = lazy(() =>
   CoflatMap.of({
     ...listFunctor(),
     coflatMap_: (fa, f) => fa.coflatMap(f),
   }),
 );
-const listMonad = lazyVal(() =>
+const listMonad = lazy(() =>
   Monad.of<ListF>({
     ...listApplicative(),
     flatMap_: (fa, f) => fa.flatMap(f),
@@ -3650,7 +3650,7 @@ const listMonad = lazyVal(() =>
     tailRecM_: List.tailRecM_,
   }),
 );
-const listFoldable = lazyVal(() =>
+const listFoldable = lazy(() =>
   Foldable.of<ListF>({
     foldMap_:
       <M>(M: Monoid<M>) =>
@@ -3673,7 +3673,7 @@ const listFoldable = lazyVal(() =>
     iterator: xs => xs.iterator,
   }),
 );
-const listTraversableFilter = lazyVal(() =>
+const listTraversableFilter = lazy(() =>
   TraversableFilter.of<ListF>({
     ...listFoldable(),
     ...listFunctorFilter(),

@@ -4,11 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Lazy, lazyVal } from '@fp4ts/core';
+import { Lazy, lazy } from '@fp4ts/core';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 import { ArbitraryF } from './arbitrary';
 
-export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
+export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazy(() =>
   Schemable.of({
     array: x => fc.array(x),
     string: fc.string(),
@@ -30,13 +30,13 @@ export const arbitrarySchemable: Lazy<Schemable<ArbitraryF>> = lazyVal(() =>
   }),
 );
 
-export const arbitraryRefining: Lazy<Refining<ArbitraryF>> = lazyVal(() =>
+export const arbitraryRefining: Lazy<Refining<ArbitraryF>> = lazy(() =>
   Refining.of({
     refine_: ((arb, p) => arb.filter(p)) as Refining<ArbitraryF>['refine_'],
   }),
 );
 
-export const arbitraryConstraining: Lazy<Constraining<ArbitraryF>> = lazyVal(
+export const arbitraryConstraining: Lazy<Constraining<ArbitraryF>> = lazy(
   () =>
     Constraining.of({
       ...arbitrarySchemable(),

@@ -9,7 +9,7 @@ import {
   Eval,
   EvalF,
   Kind,
-  lazyVal,
+  lazy,
   throwError,
   tupled,
   TyK,
@@ -515,7 +515,7 @@ ParserT.succeed = <S, F, A>(a: A): ParserT<S, F, A> =>
 ParserT.unit = <S, F>(): ParserT<S, F, void> => ParserT.succeed(undefined);
 
 ParserT.defer = <S, F, A>(that: () => ParserT<S, F, A>): ParserT<S, F, A> => {
-  const lazyThat = lazyVal(that);
+  const lazyThat = lazy(that);
   return new _ParserT((S, s, cok, cerr, eok, eerr) =>
     lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr),
   );
