@@ -23,8 +23,9 @@ import {
   Foldable,
   Traversable,
   EqK,
+  Bifunctor,
 } from '@fp4ts/cats-core';
-import { Left, Right, Tuple2 } from '@fp4ts/cats-core/lib/data';
+import { Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MonadWriter } from '../monad-writer';
 
 export type WriterT<F, W, A> = Kind<F, [[A, W]]>;
@@ -59,7 +60,7 @@ WriterT.Defer = <F, W>(F: Defer<F>): Defer<$<WriterTF, [F, W]>> =>
   Defer.of<$<WriterTF, [F, W]>>({ defer: F.defer });
 
 WriterT.Functor = <F, W>(F: Functor<F>): Functor<$<WriterTF, [F, W]>> =>
-  Functor.of({ map_: (fa, f) => F.map_(fa, Tuple2.Bifunctor.leftMap(f)) });
+  Functor.of({ map_: (fa, f) => F.map_(fa, Bifunctor.Tuple2.leftMap(f)) });
 
 WriterT.Apply = <F, W>(
   F: Apply<F>,
@@ -200,7 +201,7 @@ WriterT.Contravariant = <F, W>(
   F: Contravariant<F>,
 ): Contravariant<$<WriterTF, [F, W]>> =>
   Contravariant.of<$<WriterTF, [F, W]>>({
-    contramap_: (fa, f) => F.contramap_(fa, Tuple2.Bifunctor.leftMap(f)),
+    contramap_: (fa, f) => F.contramap_(fa, Bifunctor.Tuple2.leftMap(f)),
   });
 
 WriterT.CoflatMap = <F, W>(F: Functor<F>): CoflatMap<$<WriterTF, [F, W]>> => {

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, cached, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
-import { Functor, Monad, Monoid, Tuple2 } from '@fp4ts/cats';
+import { Bifunctor, Functor, Monad, Monoid } from '@fp4ts/cats';
 import { WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
@@ -71,7 +71,7 @@ class WriterCarrier<W, N extends string> extends Carrier<
   }
 
   private buildCtxFunctor = cached(<H>(H: Functor<H>) =>
-    Functor.compose(Tuple2.Bifunctor.leftFunctor<W>(), H),
+    Functor.compose(Bifunctor.Tuple2.leftFunctor<W>(), H),
   );
 }
 

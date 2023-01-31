@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
-import { Functor, Monad, Tuple2 } from '@fp4ts/cats';
+import { Bifunctor, Functor, Monad } from '@fp4ts/cats';
 import { IxStateT, IxStateTF } from '@fp4ts/cats-mtl';
 import { StateF } from '@fp4ts/fused-core';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
@@ -64,7 +64,7 @@ class StateCarrier<S, N extends string> extends Carrier<
   }
 
   private buildCtxFunctor = cached(<H>(H: Functor<H>) =>
-    Functor.compose(Tuple2.Bifunctor.leftFunctor<S>(), H),
+    Functor.compose(Bifunctor.Tuple2.leftFunctor<S>(), H),
   );
 }
 

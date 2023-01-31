@@ -5,3 +5,4 @@
 
 export { ArrayF } from './array';
 export { EndoF, Function0F, Function1F } from './function';
+export { Tuple2F, TupleLeftF, TupleRightF } from './tuple2';

@@ -3,22 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  $type,
-  Fix,
-  Kind,
-  Lazy,
-  tupled,
-  TyK,
-  TyVar,
-  α,
-  β,
-  λ,
-} from '@fp4ts/core';
+import { $, $type, Fix, Kind, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import {
   Applicative,
   Apply,
+  Bifunctor,
   FlatMap,
   FunctionK,
   Functor,
@@ -30,7 +19,7 @@ import {
   SemigroupK,
   Strong,
 } from '@fp4ts/cats-core';
-import { Left, Right, Tuple2 } from '@fp4ts/cats-core/lib/data';
+import { Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
 
 /**
@@ -96,7 +85,7 @@ IxStateT.Profunctor = <F, A>(
       fab: IxStateT<S1, S2, F, A>,
       f: (s0: S0) => S1,
       g: (s2: S2) => S3,
-    ) => suspend(F, (s: S0) => F.map_(fab(f(s)), Tuple2.Bifunctor.map(g))),
+    ) => suspend(F, (s: S0) => F.map_(fab(f(s)), Bifunctor.Tuple2.map(g))),
   });
 
 IxStateT.Strong = <F, A>(
@@ -121,7 +110,7 @@ IxStateT.Strong = <F, A>(
 IxStateT.Functor = <F, S>(F: Functor<F>): Functor<$<IxStateTF, [S, S, F]>> =>
   Functor.of({
     map_: (fa, f) =>
-      suspend(F, s => F.map_(fa(s), Tuple2.Bifunctor.leftMap(f))),
+      suspend(F, s => F.map_(fa(s), Bifunctor.Tuple2.leftMap(f))),
   });
 
 IxStateT.Apply = <F, S>(F: FlatMap<F>): Apply<$<IxStateTF, [S, S, F]>> =>
@@ -130,7 +119,7 @@ IxStateT.Apply = <F, S>(F: FlatMap<F>): Apply<$<IxStateTF, [S, S, F]>> =>
     ap_: (ff, fa) =>
       suspend(F, s1 =>
         F.flatMap_(ff(s1), ([f, s2]) =>
-          F.map_(fa(s2), Tuple2.Bifunctor.leftMap(f)),
+          F.map_(fa(s2), Bifunctor.Tuple2.leftMap(f)),
         ),
       ),
   });

@@ -17,6 +17,10 @@ import { ComposedTraversable } from './composed';
 import { Const, Identity } from './data';
 import { ArrayF } from './instances/array';
 import { TraversableWithIndex } from './traversable-with-index';
+import {
+  tuple2LeftTraversable,
+  tuple2RightTraversable,
+} from './instances/tuple2';
 
 /**
  * @category Type Class
@@ -109,6 +113,11 @@ export const Traversable = Object.freeze({
 
   get Array(): Traversable<ArrayF> {
     return TraversableWithIndex.Array;
+  },
+
+  Tuple2: {
+    left: <R>() => tuple2LeftTraversable<R>(),
+    right: <L>() => tuple2RightTraversable<L>(),
   },
 });
 

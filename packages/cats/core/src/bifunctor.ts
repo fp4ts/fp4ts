@@ -5,6 +5,7 @@
 
 import { $, Base, Fix, id, instance, Kind, lazy, α, λ } from '@fp4ts/core';
 import { Functor } from './functor';
+import { tuple2Bifunctor, Tuple2F } from './instances/tuple2';
 
 /**
  * @category Type Class
@@ -67,5 +68,9 @@ export const Bifunctor = Object.freeze({
       ...F,
     });
     return self;
+  },
+
+  get Tuple2(): Bifunctor<Tuple2F> {
+    return tuple2Bifunctor();
   },
 });

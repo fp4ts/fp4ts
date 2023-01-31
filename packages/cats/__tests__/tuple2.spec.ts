@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Monad } from '@fp4ts/cats-core';
-import { Tuple2 } from '@fp4ts/cats-core/lib/data';
+import { Bifunctor, Comonad, Monad, Traversable } from '@fp4ts/cats-core';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
   BifunctorSuite,
@@ -18,7 +17,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 describe('Tuple2', () => {
   checkAll(
     'Bifunctor<Tuple2>',
-    BifunctorSuite(Tuple2.Bifunctor).bifunctor(
+    BifunctorSuite(Bifunctor.Tuple2).bifunctor(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -34,7 +33,7 @@ describe('Tuple2', () => {
 
   checkAll(
     'Comonad<[number, *]>',
-    ComonadSuite(Tuple2.right.Comonad<number>()).comonad(
+    ComonadSuite(Comonad.Tuple2.right<number>()).comonad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -50,13 +49,13 @@ describe('Tuple2', () => {
 
   checkAll(
     'Traversable<[number, *]>',
-    TraversableSuite(Tuple2.right.Traversable<number>()).traversable(
+    TraversableSuite(Traversable.Tuple2.right<number>()).traversable(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
-      Tuple2.Bifunctor.rightFunctor<number>(),
+      Bifunctor.Tuple2.rightFunctor<number>(),
       Monad.Eval,
       Monad.Eval,
       Eq.fromUniversalEquals(),
@@ -73,7 +72,7 @@ describe('Tuple2', () => {
 
   checkAll(
     'Comonad<[*, number]>',
-    ComonadSuite(Tuple2.left.Comonad<number>()).comonad(
+    ComonadSuite(Comonad.Tuple2.left<number>()).comonad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -89,13 +88,13 @@ describe('Tuple2', () => {
 
   checkAll(
     'Traversable<[*, number]>',
-    TraversableSuite(Tuple2.left.Traversable<number>()).traversable(
+    TraversableSuite(Traversable.Tuple2.left<number>()).traversable(
       fc.integer(),
       fc.integer(),
       fc.integer(),
       CommutativeMonoid.addition,
       CommutativeMonoid.addition,
-      Tuple2.Bifunctor.leftFunctor<number>(),
+      Bifunctor.Tuple2.leftFunctor<number>(),
       Monad.Eval,
       Monad.Eval,
       Eq.fromUniversalEquals(),

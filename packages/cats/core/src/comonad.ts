@@ -6,6 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { CoflatMap, CoflatMapRequirements } from './coflat-map';
 import { function0Comonad, Function0F } from './instances/function';
+import { tuple2LeftComonad, tuple2RightComonad } from './instances/tuple2';
 
 export interface Comonad<F> extends CoflatMap<F> {
   extract<A>(fa: Kind<F, [A]>): A;
@@ -22,5 +23,10 @@ export const Comonad = Object.freeze({
 
   get Function0(): Comonad<Function0F> {
     return function0Comonad();
+  },
+
+  Tuple2: {
+    left: <R>() => tuple2LeftComonad<R>(),
+    right: <L>() => tuple2RightComonad<L>(),
   },
 });

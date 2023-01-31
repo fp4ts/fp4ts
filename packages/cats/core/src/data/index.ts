@@ -17,7 +17,6 @@ export * from './validation';
 export * from './tagged';
 export * from './backwards';
 export * from './proxy';
-export * from './tuple2';
 
 export * from './cokleisli';
 export * from './kleisli';

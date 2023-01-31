@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, id, instance, Kind, lazy } from '@fp4ts/core';
-import { Function1F, IdentityF, Tuple2LF } from '@fp4ts/cats';
+import { Function1F, IdentityF, TupleLeftF } from '@fp4ts/cats';
 import { Cojoined } from '@fp4ts/optics-kernel';
 import { Indexed, IndexedF } from './indexed';
 
@@ -22,7 +22,7 @@ export const Indexable = Object.freeze({
     $<IndexedF, [I]>,
     I,
     $<Function1F, [I]>,
-    Tuple2LF<I>
+    TupleLeftF<I>
   > {
     return indexedIndexable();
   },
@@ -46,10 +46,10 @@ const indexedIndexable: <I>() => Indexable<
   $<IndexedF, [I]>,
   I,
   $<Function1F, [I]>,
-  Tuple2LF<I>
+  TupleLeftF<I>
 > = lazy(<I>() =>
-  instance<Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, Tuple2LF<I>>>({
+  instance<Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, TupleLeftF<I>>>({
     ...Indexed.Cojoined<I>(),
     indexed: id,
   }),
-) as <I>() => Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, Tuple2LF<I>>;
+) as <I>() => Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, TupleLeftF<I>>;
