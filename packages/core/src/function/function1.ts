@@ -28,11 +28,15 @@ export function compose<A, B, C>(fa: (b: B) => C, f: (a: A) => B): (a: A) => C {
   return apply;
 }
 
-export function flatMap<A, B, C>(
-  fa: (a: A) => B,
-  f: (b: B) => (a: A) => C,
-): (a: A) => C {
-  const apply = ((a: A) => runFunction1(apply, a)) as FlatMap1<A, B, C>;
+export function flatMap<A1, A2, B, C>(
+  fa: (a: A1) => B,
+  f: (b: B) => (a: A2) => C,
+): (a: A1 & A2) => C {
+  const apply = ((a: A1 & A2) => runFunction1(apply, a)) as FlatMap1<
+    A1 & A2,
+    B,
+    C
+  >;
   apply.self = fa;
   apply.f = f;
   apply[tag] = 3;

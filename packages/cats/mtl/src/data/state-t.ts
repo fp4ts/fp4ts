@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, F1, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
   Defer,
@@ -55,8 +55,7 @@ StateT.state =
 StateT.modify =
   <F, S>(f: (s: S) => S): StateT<S, F, undefined> =>
   g =>
-  s =>
-    g(undefined)(f(s));
+    F1.compose(g(undefined), f);
 
 StateT.inspect =
   <F, S, A>(f: (s: S) => A): StateT<S, F, A> =>
@@ -82,7 +81,7 @@ StateT.runAS =
 StateT.map_ =
   <F, S, A, B>(sfa: StateT<S, F, A>, f: (a: A) => B): StateT<S, F, B> =>
   g =>
-    sfa(a => g(f(a)));
+    sfa(F1.compose(g, f));
 
 StateT.ap_ =
   <F, S, A, B>(
@@ -90,7 +89,7 @@ StateT.ap_ =
     fa: StateT<S, F, A>,
   ): StateT<S, F, B> =>
   g =>
-    ff(f => fa(a => g(f(a))));
+    ff(f => fa(F1.compose(g, f)));
 
 StateT.map2_ =
   <F, S, A, B>(fa: StateT<S, F, A>, fb: StateT<S, F, B>) =>
@@ -134,7 +133,7 @@ StateT.tailRecM_ =
         ea => s =>
           ea.fold<Kind<F, [Either<[A, S], R>]>>(
             (a: A) => F.pure(Left(tupled(a, s))),
-            (b: B) => F.map_(g(b)(s), r => Right(r)),
+            (b: B) => F.map_(g(b)(s), Right),
           ),
       )(s),
     );

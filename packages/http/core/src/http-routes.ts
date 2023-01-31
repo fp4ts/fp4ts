@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $ } from '@fp4ts/core';
-import { AndThen, Kleisli, Monad, OptionT, OptionTF } from '@fp4ts/cats';
+import { $, F1 } from '@fp4ts/core';
+import { Kleisli, Monad, OptionT, OptionTF } from '@fp4ts/cats';
 import { Http } from './http';
 import {
   Status,
@@ -22,7 +22,10 @@ export const HttpRoutes: HttpRoutesObj = function (run) {
 HttpRoutes.orNotFound =
   <F>(F: Monad<F>) =>
   (routes: HttpRoutes<F>): Http<F, F> =>
-    AndThen(routes).andThen(OptionT.getOrElse(F)(() => Status.NotFound<F>()));
+    F1.andThen(
+      routes,
+      OptionT.getOrElse(F)(() => Status.NotFound<F>()),
+    );
 
 export type ContextRoutes<F, A> = Kleisli<
   $<OptionTF, [F]>,

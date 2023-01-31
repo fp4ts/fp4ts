@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, instance } from '@fp4ts/core';
+import { $, F1, instance } from '@fp4ts/core';
 import { Monad, MonadRequirements } from '@fp4ts/cats-core';
 import {
   EitherT,
@@ -38,8 +38,8 @@ export const MonadWriter = Object.freeze({
     MonadWriter.of<$<KleisliF, [F, R]>, W>({
       monoid: F.monoid,
       ...Kleisli.Monad<F, R>(F),
-      censor_: (fa, f) => Kleisli(r => F.censor_(fa(r), f)),
-      listen: fa => Kleisli(r => F.listen(fa(r))),
+      censor_: (fa, f) => F1.andThen(fa, F.censor(f)),
+      listen: fa => F1.andThen(fa, F.listen),
       tell: w => Kleisli(() => F.tell(w)),
     }),
 

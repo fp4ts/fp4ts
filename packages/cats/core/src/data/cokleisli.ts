@@ -9,6 +9,7 @@ import {
   cached,
   constant,
   Fix,
+  F1,
   fst,
   Kind,
   lazy,
@@ -27,8 +28,6 @@ import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { MonoidK } from '../monoid-k';
 import { SemigroupK } from '../semigroup-k';
-
-import { AndThen } from './and-then';
 
 export type Cokleisli<F, A, B> = (fa: Kind<F, [A]>) => B;
 
@@ -62,20 +61,20 @@ const cokleisliMonoidK: <F>(
 ) => MonoidK<λ<CokleisliF, [Fix<F>, α, α]>> = F => cokleisliArrow(F).algebraK();
 
 const cokleisliFunctor: <F, R>() => Functor<$<CokleisliF, [F, R]>> = lazy(() =>
-  Functor.of({ map_: (fa, f) => AndThen(fa).andThen(f) }),
+  Functor.of({ map_: F1.andThen }),
 );
 
 const cokleisliContravariant: <F, B>(
   F: Functor<F>,
 ) => Contravariant<λ<CokleisliF, [Fix<F>, α, Fix<B>]>> = cached(F =>
-  Contravariant.of({ contramap_: (fa, f) => AndThen(fa).compose(F.map(f)) }),
+  Contravariant.of({ contramap_: (fa, f) => F1.compose(fa, F.map(f)) }),
 );
 
 const cokleisliMonad: <F, A>() => Monad<$<CokleisliF, [F, A]>> = lazy(() =>
   Monad.of({
     ...cokleisliFunctor(),
     pure: constant,
-    flatMap_: (fab, f) => Cokleisli(fa => f(fab(fa))(fa)),
+    flatMap_: F1.flatMap,
     tailRecM_: (s, f) =>
       Cokleisli(fa => {
         let cur = f(s)(fa);
@@ -91,7 +90,7 @@ const cokleisliProfunctor: <F>(
   F: Functor<F>,
 ) => Profunctor<$<CokleisliF, [F]>> = cached(<F>(F: Functor<F>) =>
   Profunctor.of<$<CokleisliF, [F]>>({
-    dimap_: (fa, f, g) => AndThen(fa).compose(F.map(f)).andThen(g),
+    dimap_: (fa, f, g) => F1.andThen(F1.compose(fa, F.map(f)), g),
     lmap_: <A, B, C>(fa: Cokleisli<F, A, B>, f: (c: C) => A) =>
       cokleisliContravariant<F, B>(F).contramap_(fa, f),
     rmap_: <A, B, D>(fa: Cokleisli<F, A, B>, g: (b: B) => D) =>
@@ -102,10 +101,8 @@ const cokleisliProfunctor: <F>(
 const cokleisliCompose: <F>(F: CoflatMap<F>) => Compose<$<CokleisliF, [F]>> =
   cached(<F>(F: CoflatMap<F>) =>
     Compose.of<$<CokleisliF, [F]>>({
-      compose_:
-        <A, B, C>(fbc: Cokleisli<F, B, C>, fab: Cokleisli<F, A, B>) =>
-        (fa: Kind<F, [A]>) =>
-          fbc(F.coflatMap_(fa, fab)),
+      compose_: <A, B, C>(fbc: Cokleisli<F, B, C>, fab: Cokleisli<F, A, B>) =>
+        F1.andThen(F.coflatMap(fab), fbc),
     }),
   );
 

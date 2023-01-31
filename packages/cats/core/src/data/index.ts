@@ -14,7 +14,6 @@ export * from './const';
 export * from './try';
 export * from './ior';
 export * from './validation';
-export * from './and-then';
 export * from './tagged';
 export * from './backwards';
 export * from './proxy';

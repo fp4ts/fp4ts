@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import fc from 'fast-check';
 import { compose, flow, pipe, F0, F1 } from '../function';
 
 describe('Function', () => {
@@ -154,6 +155,27 @@ describe('Function', () => {
               ),
             );
       expect(loop(0)(null)).toBe(SIZE);
+    });
+
+    it('should locally change the scope', () => {
+      const f = (x: string) => x;
+      const g = F1.flatMap(
+        F1.compose(f, (x: number) => `${x}`),
+        x => y => [x, y],
+      );
+
+      expect(g(42)).toEqual(['42', 42]);
+    });
+
+    test('andThen(f, g) is compose(g, f)', () => {
+      fc.assert(
+        fc.property(
+          fc.func(fc.integer()),
+          fc.func(fc.integer()),
+          fc.integer(),
+          (f, g, x) => expect(F1.andThen(f, g)(x)).toBe(F1.compose(g, f)(x)),
+        ),
+      );
     });
   });
 });

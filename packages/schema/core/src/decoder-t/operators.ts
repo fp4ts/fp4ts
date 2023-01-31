@@ -3,9 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind, pipe } from '@fp4ts/core';
+import { id, F1, Kind, pipe } from '@fp4ts/core';
 import {
-  AndThen,
   Applicative,
   Either,
   EitherT,
@@ -106,7 +105,7 @@ export const collect_ =
     cause?: string,
   ): DecoderT<F, I, B> =>
     new DecoderT(
-      AndThen(d.decodeT).andThen(fb =>
+      F1.andThen(d.decodeT, fb =>
         EitherT.Monad<F, DecodeFailure>(F).flatMap_(fb, b =>
           f(b).fold(
             () => DecodeResultT.failure(F)(new DecodeFailure(cause)),
@@ -128,7 +127,7 @@ export const dimap_ =
 export const adapt_ = <F, II, I, A>(
   d: DecoderT<F, I, A>,
   f: (ii: II) => I,
-): DecoderT<F, II, A> => new DecoderT(AndThen(f).andThen(d.decodeT));
+): DecoderT<F, II, A> => new DecoderT(F1.andThen(f, d.decodeT));
 
 export const adaptF_ =
   <F>(F: Monad<F>) =>
@@ -146,7 +145,7 @@ export const bimap_ =
     g: (a: A) => B,
   ): DecoderT<F, I, B> =>
     new DecoderT(
-      AndThen(d.decodeT).andThen(fea => F.map_(fea, ea => ea.bimap(f, g))),
+      F1.andThen(d.decodeT, fea => F.map_(fea, ea => ea.bimap(f, g))),
     );
 
 export const leftMap_ =
@@ -181,7 +180,7 @@ export const flatMapR_ =
     f: (a: A) => DecodeResultT<F, B>,
   ): DecoderT<F, I, B> =>
     new DecoderT(
-      AndThen(d.decodeT).andThen(fea =>
+      F1.andThen(d.decodeT, fea =>
         EitherT.Monad<F, DecodeFailure>(F).flatMap_(fea, f),
       ),
     );
@@ -213,11 +212,7 @@ export const transform_ =
     d: DecoderT<F, I, A>,
     f: (ea: Either<DecodeFailure, A>) => Either<DecodeFailure, B>,
   ): DecoderT<F, I, B> =>
-    new DecoderT(
-      AndThen(d.decodeT)
-        .andThen(r => F.map_(r, f))
-        .andThen(EitherT),
-    );
+    new DecoderT(F1.andThen(d.decodeT, r => F.map_(r, f)));
 
 export const transformWithR_ =
   <F>(F: Monad<F>) =>
@@ -225,7 +220,7 @@ export const transformWithR_ =
     d: DecoderT<F, I, A>,
     f: (ea: Either<DecodeFailure, A>) => DecodeResultT<F, B>,
   ): DecoderT<F, I, B> =>
-    new DecoderT(AndThen(d.decodeT).andThen(r => F.flatMap_(r, ea => f(ea))));
+    new DecoderT(F1.andThen(d.decodeT, F.flatMap(f)));
 
 export const transformWith_ =
   <F>(F: Monad<F>) =>
@@ -244,7 +239,7 @@ export const andThen_ =
   <F>(F: Monad<F>) =>
   <I, A, B>(da: DecoderT<F, I, A>, db: DecoderT<F, A, B>): DecoderT<F, I, B> =>
     new DecoderT(
-      AndThen(da.decodeT).andThen(fea =>
+      F1.andThen(da.decodeT, fea =>
         EitherT.Monad<F, DecodeFailure>(F).flatMap_(fea, db.decodeT),
       ),
     );

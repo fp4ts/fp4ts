@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen } from '@fp4ts/cats';
+import { F1 } from '@fp4ts/core';
 import { Encoder, safeEncode, SafeEncoder } from './algebra';
 
 export const nullable = <O, A>(
@@ -54,12 +54,12 @@ export const contramap_ = <O, A, B>(
 export const andThen_ = <A, B, O>(
   fab: Encoder<B, A>,
   fbo: Encoder<O, B>,
-): Encoder<O, A> => new Encoder(AndThen(fab.encode).andThen(fbo.encode));
+): Encoder<O, A> => new Encoder(F1.andThen(fab.encode, fbo.encode));
 
 export const compose_ = <O, B, A>(
   fbo: Encoder<O, B>,
   fab: Encoder<B, A>,
-): Encoder<O, A> => new Encoder(AndThen(fab.encode).andThen(fbo.encode));
+): Encoder<O, A> => new Encoder(F1.andThen(fab.encode, fbo.encode));
 
 export const intersection_ = <O1, O2, A, B>(
   fa: Encoder<O1, A>,

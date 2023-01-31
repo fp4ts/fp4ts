@@ -8,8 +8,8 @@ import {
   $type,
   Base,
   cached,
-  compose,
   Eval,
+  F1,
   Fix,
   Kind,
   Lazy,
@@ -36,7 +36,6 @@ import { Arrow, ArrowApply, ArrowChoice, Compose } from '../arrow';
 import { Distributive } from '../distributive';
 import { isStackSafeMonad } from '../stack-safe-monad';
 
-import { AndThen } from './and-then';
 import { Either, Left, Right } from './either';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
@@ -93,7 +92,7 @@ const kleisliSemigroupK: <F, A>(
 ) => SemigroupK<$<KleisliF, [F, A]>> = cached(<F, A>(F: SemigroupK<F>) =>
   SemigroupK.of<$<KleisliF, [F, A]>>({
     combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
-      suspend(F, (a: A) => F.combineK_(x(a), y(a))),
+      F1.flatMap(x, x => F1.andThen(y, y => F.combineK_(x, y))),
     combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
       Eval.now(
         suspend(
@@ -112,7 +111,7 @@ const kleisliMonoidK: <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>> =
   cached(<F, A>(F: MonoidK<F>) =>
     MonoidK.of<$<KleisliF, [F, A]>>({
       combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
-        suspend(F, (a: A) => F.combineK_(x(a), y(a))),
+        F1.flatMap(x, x => F1.andThen(y, y => F.combineK_(x, y))),
 
       combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
         Eval.now(
@@ -132,19 +131,17 @@ const kleisliMonoidK: <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>> =
 
 const kleisliContravariant: <F, B>() => Contravariant<
   λ<KleisliF, [Fix<F>, α, Fix<B>]>
-> = lazy(() =>
-  Contravariant.of({ contramap_: (fa, f) => AndThen(f).andThen(fa) }),
-);
+> = lazy(() => Contravariant.of({ contramap_: F1.compose }));
 
 const kleisliFunctor: <F, A>(F: Functor<F>) => Functor<$<KleisliF, [F, A]>> =
-  cached(F => Functor.of({ map_: (fa, f) => AndThen(fa).andThen(F.map(f)) }));
+  cached(F => Functor.of({ map_: (fa, f) => F1.andThen(fa, F.map(f)) }));
 
 const kleisliFunctorFilter: <F, A>(
   F: FunctorFilter<F>,
 ) => FunctorFilter<$<KleisliF, [F, A]>> = cached(F =>
   FunctorFilter.of({
     ...kleisliFunctor(F),
-    mapFilter_: (fa, f) => AndThen(fa).andThen(F.mapFilter(f)),
+    mapFilter_: (fa, f) => F1.andThen(fa, F.mapFilter(f)),
   }),
 );
 
@@ -165,11 +162,11 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
   <F, R>(F: Apply<F>) =>
     Apply.of<$<KleisliF, [F, R]>>({
       ...kleisliFunctor(F),
-      ap_: (ff, fa) => suspend(F, r => F.ap_(ff(r), fa(r))),
+      ap_: (ff, fa) => F1.flatMap(ff, f => F1.andThen(fa, a => F.ap_(f, a))),
       map2_:
         <A, B>(fa: Kleisli<F, R, A>, fb: Kleisli<F, R, B>) =>
         <C>(f: (a: A, b: B) => C) =>
-          suspend(F, (r: R) => F.map2_(fa(r), fb(r))(f)),
+          F1.flatMap(fa, a => F1.andThen(fb, b => F.map2_(a, b)(f))),
       map2Eval_:
         <A, B>(fa: Kleisli<F, R, A>, efb: Eval<Kleisli<F, R, B>>) =>
         <C>(f: (a: A, b: B) => C) =>
@@ -256,7 +253,7 @@ const kleisliCompose: <F>(F: FlatMap<F>) => Compose<$<KleisliF, [F]>> = cached(
     Compose.of({
       compose_: <A, B, C>(g: Kleisli<F, B, C>, f: Kleisli<F, A, B>) =>
         suspend(F, (a: A) => F.flatMap_(f(a), g)),
-      andThen_: (f, g) => AndThen(f).andThen(F.flatMap(g)),
+      andThen_: (f, g) => F1.andThen(f, F.flatMap(g)),
     }),
 );
 
@@ -302,7 +299,10 @@ const kleisliArrowChoice: <F>(F: Monad<F>) => ArrowChoice<$<KleisliF, [F]>> =
           suspend(
             F,
             (ab: Either<A, B>): Kind<F, [Either<C, D>]> =>
-              ab.fold(compose(F.map(Left), fac), compose(F.map(Right), fbd)),
+              ab.fold(
+                F1.compose(F.map(Left), fac),
+                F1.compose(F.map(Right), fbd),
+              ),
           ),
       }),
   );
