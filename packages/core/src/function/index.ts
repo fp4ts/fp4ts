@@ -7,3 +7,5 @@ export * from './core';
 export * from './pipe';
 export * from './flow';
 export * from './compose';
+export * as F0 from './function0';
+export * as F1 from './function1';

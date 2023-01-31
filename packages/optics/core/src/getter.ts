@@ -5,10 +5,10 @@
 
 import { $, flow, fst, Kind, pipe, tuple } from '@fp4ts/core';
 import {
+  Arrow,
   Const,
   ConstF,
   Contravariant,
-  Function1,
   Function1F,
   Functor,
   Monoid,
@@ -102,6 +102,6 @@ export function ito<I, S, A>(f: (s: S) => [A, I]): IndexedGetter<I, S, A> {
     flow(
       P.indexed,
       f => tuple(f),
-      Function1.ArrowChoice.dimap(f, F.contramap(flow(f, fst))),
+      Arrow.Function1.dimap(f, F.contramap(flow(f, fst))),
     );
 }

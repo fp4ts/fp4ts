@@ -8,6 +8,10 @@ import { Semigroup } from './semigroup';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
 import { additionMonoid, productMonoid } from './instances/number';
 import { recordCommutativeSemigroup } from './instances/record';
+import {
+  function0CommutativeSemigroup,
+  function1CommutativeSemigroup,
+} from './instances/funciton';
 
 /**
  * @category Type Class
@@ -52,4 +56,11 @@ export const CommutativeSemigroup = Object.freeze({
   Record: <A, K extends symbol | number | string = string>(
     S: CommutativeSemigroup<A>,
   ): CommutativeSemigroup<Record<K, A>> => recordCommutativeSemigroup(S),
+
+  Function0: <A>(S: CommutativeSemigroup<A>): CommutativeSemigroup<() => A> =>
+    function0CommutativeSemigroup(S),
+
+  Function1: <A, B>(
+    S: CommutativeSemigroup<B>,
+  ): CommutativeSemigroup<(a: A) => B> => function1CommutativeSemigroup(S),
 });

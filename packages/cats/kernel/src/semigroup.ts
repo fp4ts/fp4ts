@@ -6,6 +6,7 @@
 import { Base, Eval, instance, lazy } from '@fp4ts/core';
 import { arraySemigroup } from './instances/array';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
+import { function0Semigroup, function1Semigroup } from './instances/funciton';
 import { additionMonoid, productMonoid } from './instances/number';
 import { recordSemigroup } from './instances/record';
 
@@ -69,4 +70,8 @@ export const Semigroup = Object.freeze({
   Record: <A, K extends symbol | number | string = string>(
     S: Semigroup<A>,
   ): Semigroup<Record<K, A>> => recordSemigroup(S),
+
+  Function0: <A>(S: Semigroup<A>): Semigroup<() => A> => function0Semigroup(S),
+  Function1: <A, B>(S: Semigroup<B>): Semigroup<(a: A) => B> =>
+    function1Semigroup(S),
 });

@@ -14,12 +14,12 @@ import { Arrow } from './arrow';
 export type ArrowMonad<F, B> = Kind<F, [void, B]>;
 
 export const ArrowMonad = Object.freeze({
-  Functor<F>(F: Arrow<F>): Functor<$<ArrowMonadF, [F]>> {
+  Functor<F>(F: Arrow<F>): Functor<$<F, [void]>> {
     return Functor.of({ map_: (fa, f) => F.andThen_(fa, F.lift(f)) });
   },
 
-  Applicative<F>(F: Arrow<F>): Applicative<$<ArrowMonadF, [F]>> {
-    return Applicative.of<$<ArrowMonadF, [F]>>({
+  Applicative<F>(F: Arrow<F>): Applicative<$<F, [void]>> {
+    return Applicative.of<$<F, [void]>>({
       ...ArrowMonad.Functor(F),
       pure: a => F.lift(() => a),
       ap_: (ff, fa) =>
@@ -30,8 +30,8 @@ export const ArrowMonad = Object.freeze({
     });
   },
 
-  Monad<F>(F: ArrowApply<F>): Monad<$<ArrowMonadF, [F]>> {
-    return StackSafeMonad.of<$<ArrowMonadF, [F]>>({
+  Monad<F>(F: ArrowApply<F>): Monad<$<F, [void]>> {
+    return StackSafeMonad.of<$<F, [void]>>({
       ...ArrowMonad.Applicative(F),
 
       flatMap_: (fa, f) =>

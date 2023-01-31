@@ -8,7 +8,6 @@ import { Arrow, ArrowApply, ArrowChoice } from '../arrow';
 import { Contravariant } from '../contravariant';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
-import { Function1 } from './function';
 
 /**
  * A single-input function that supports stack-safe function composition via
@@ -221,7 +220,7 @@ const andThenFunctor = lazy(
 ) as <R>() => Functor<$<AndThenF, [R]>>;
 
 export const andThenMonad = lazy(<A>() => {
-  const F = Function1.Monad<A>();
+  const F = Monad.Function1<A>();
   return Monad.of<$<AndThenF, [A]>>({
     ...andThenFunctor(),
     pure: AndThen.pure,
@@ -256,7 +255,7 @@ const andThenArrow = lazy(
 );
 
 const andThenArrowChoice = lazy((): ArrowChoice<AndThenF> => {
-  const A = Function1.ArrowChoice;
+  const A = ArrowChoice.Function1;
   return ArrowChoice.of({
     ...andThenArrow(),
 
@@ -266,7 +265,7 @@ const andThenArrowChoice = lazy((): ArrowChoice<AndThenF> => {
 });
 
 const andThenArrowApply = lazy((): ArrowApply<AndThenF> => {
-  const A = Function1.ArrowApply;
+  const A = ArrowApply.Function1;
   return ArrowApply.of({
     ...andThenArrow(),
 

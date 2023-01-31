@@ -5,10 +5,10 @@
 
 import { Kind, pipe } from '@fp4ts/core';
 import { ArrowChoice } from '@fp4ts/cats-core';
-import { Either, Function1, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-const FAC = Function1.ArrowChoice;
+const FAC = ArrowChoice.Function1;
 
 export const ArrowChoiceLaws = <F>(F: ArrowChoice<F>) => ({
   leftLiftCommute:
@@ -16,7 +16,7 @@ export const ArrowChoiceLaws = <F>(F: ArrowChoice<F>) => ({
     <A, B>(f: (a: A) => B): IsEq<Kind<F, [Either<A, C>, Either<B, C>]>> =>
       new IsEq(
         F.left<C>()(F.lift(f)),
-        F.lift(Function1.ArrowChoice.left<C>()(f)),
+        F.lift(ArrowChoice.Function1.left<C>()(f)),
       ),
 
   leftComposeCommute:

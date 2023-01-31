@@ -22,13 +22,14 @@ import {
   Left,
   Right,
   Function1F,
-  Function1,
   Profunctor,
   Strong,
   Tuple2,
   Tuple2LF,
   Arrow,
   ArrowApply,
+  Monad,
+  Distributive,
 } from '@fp4ts/cats';
 import {
   Cojoined,
@@ -101,9 +102,7 @@ export function indexed<S, A>(l: Fold<S, A>): IndexedFold<number, S, A> {
 
 // -- Instances
 
-const indexedProfunctor: <I>() => Profunctor<$<IndexedF, [I]>> = lazy(<
-  I,
->() =>
+const indexedProfunctor: <I>() => Profunctor<$<IndexedF, [I]>> = lazy(<I>() =>
   Profunctor.of<$<IndexedF, [I]>>({
     dimap_:
       <A, B, C, D>(
@@ -154,7 +153,7 @@ const indexedRepresentable: <I>() => Representable<
 > = lazy(<I>() =>
   Representable.of<$<IndexedF, [I]>, $<Function1F, [I]>>(
     { ...indexedStrong<I>(), sieve: curry, tabulate: uncurry },
-    Function1.Functor<I>(),
+    Monad.Function1<I>(),
   ),
 ) as <I>() => Representable<$<IndexedF, [I]>, $<Function1F, [I]>>;
 
@@ -243,7 +242,7 @@ const indexedCojoined: <I>() => Cojoined<
     ...Indexed.Representable<I>(),
     ...Indexed.Corepresentable<I>(),
     ...Indexed.Closed<I>(),
-    F: { ...Function1.Distributive<I>(), ...Function1.Monad<I>() },
+    F: { ...Distributive.Function1<I>(), ...Monad.Function1<I>() },
     C: { ...Tuple2.left.Traversable<I>(), ...Tuple2.left.Comonad<I>() },
   }),
 ) as <I>() => Cojoined<$<IndexedF, [I]>, $<Function1F, [I]>, Tuple2LF<I>>;

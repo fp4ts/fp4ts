@@ -10,12 +10,13 @@ import {
   flow,
   instance,
   Kind,
+  F1,
   Lazy,
   lazy,
 } from '@fp4ts/core';
 import {
+  ArrowChoice,
   Distributive,
-  Function1,
   Function1F,
   Kleisli,
   KleisliF,
@@ -56,7 +57,7 @@ export const Closed = Object.freeze({
         <X>() =>
         <A, B>(pab: Kleisli<F, A, B>): Kleisli<F, (x: X) => A, (x: X) => B> =>
           Kleisli(xa =>
-            F.consequence(Function1.Functor<X>())(compose(pab, xa)),
+            F.consequence(Monad.Function1<X>())(F1.compose(pab, xa)),
           ),
       ...Kleisli.Arrow(F),
     }),
@@ -69,7 +70,7 @@ const closedFunction1: Lazy<Closed<Function1F>> = lazy(() =>
       <A, B>(pab: (a: A) => B) =>
       (xa: (x: X) => A): ((x: X) => B) =>
         flow(xa, pab),
-    ...Function1.ArrowChoice,
+    ...ArrowChoice.Function1,
   }),
 );
 

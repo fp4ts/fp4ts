@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { AndThen, Function1, Function1F, Functor } from '@fp4ts/cats';
+import { AndThen, Function1F, Functor, Monad } from '@fp4ts/cats';
 import { $, Kind } from '@fp4ts/core';
 import { ReaderF } from '@fp4ts/fused-core';
 import { Algebra, Eff, Handler } from '@fp4ts/fused-kernel';
@@ -13,7 +13,7 @@ export function Function1Algebra<R>(): Algebra<
   $<Function1F, [R]>
 > {
   return Algebra.of({
-    ...Function1.Monad<R>(),
+    ...Monad.Function1<R>(),
 
     eff: <H, G, A>(
       H: Functor<H>,

@@ -24,8 +24,8 @@ import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { StackSafeMonad } from '../stack-safe-monad';
-import { Function0F } from './function';
 import { Ior } from './ior';
+import type { Function0F } from '../instances';
 
 const _Proxy = newtypeK<Function0F>()('@fp4ts/cats/core/proxy');
 type _ProxyF = KindOf<typeof _Proxy>;

@@ -10,7 +10,6 @@ import {
   Comonad,
   Distributive,
   Either,
-  Function1,
   Function1F,
   Identity,
   IdentityF,
@@ -48,8 +47,8 @@ export const Cojoined = Object.freeze({
 const function1Cojoined: Lazy<Cojoined<Function1F, IdentityF, IdentityF>> =
   lazy(() =>
     instance<Cojoined<Function1F, IdentityF, IdentityF>>({
-      ...Function1.ArrowApply,
-      ...Function1.ArrowChoice,
+      ...ArrowApply.Function1,
+      ...ArrowChoice.Function1,
       ...Representable.Function1,
       ...Corepresentable.Function1,
       ...Closed.Function1,

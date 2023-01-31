@@ -10,6 +10,10 @@ import { SemigroupRequirements } from './semigroup';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
 import { additionMonoid, productMonoid } from './instances/number';
 import { recordCommutativeMonoid } from './instances/record';
+import {
+  function0CommutativeMonoid,
+  function1CommutativeMonoid,
+} from './instances/funciton';
 
 /**
  * @category Type Class
@@ -65,4 +69,10 @@ export const CommutativeMonoid = Object.freeze({
   Record: <A>(
     S: CommutativeSemigroup<A>,
   ): CommutativeMonoid<Record<string, A>> => recordCommutativeMonoid(S),
+
+  Function0: <A>(M: CommutativeMonoid<A>): CommutativeMonoid<() => A> =>
+    function0CommutativeMonoid(M),
+
+  Function1: <A, B>(M: CommutativeMonoid<B>): CommutativeMonoid<(a: A) => B> =>
+    function1CommutativeMonoid(M),
 });

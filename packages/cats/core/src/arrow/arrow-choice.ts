@@ -5,6 +5,7 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Either } from '../data';
+import { function1ArrowChoice, Function1F } from '../instances/function';
 
 import { Arrow, ArrowRequirements } from './arrow';
 import { Choice, ChoiceRequirements } from './choice';
@@ -51,5 +52,9 @@ export const ArrowChoice = Object.freeze({
       ...F,
     };
     return self;
+  },
+
+  get Function1(): ArrowChoice<Function1F> {
+    return function1ArrowChoice();
   },
 });

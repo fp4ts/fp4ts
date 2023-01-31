@@ -5,7 +5,7 @@
 
 import { $, coerce, id, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
-  Function1,
+  ArrowChoice,
   Function1F,
   Functor,
   Identity,
@@ -78,11 +78,11 @@ export const Cosieve = Object.freeze({
 // -- Instances
 
 const function1Sieve: Lazy<Sieve<Function1F, IdentityF>> = lazy(() =>
-  Sieve.of({ sieve: id, ...Function1.ArrowChoice }, Identity.Functor),
+  Sieve.of({ sieve: id, ...ArrowChoice.Function1 }, Identity.Functor),
 );
 
 const function1Cosieve: Lazy<Cosieve<Function1F, IdentityF>> = lazy(() =>
-  Cosieve.of({ cosieve: id, ...Function1.ArrowChoice }, Identity.Functor),
+  Cosieve.of({ cosieve: id, ...ArrowChoice.Function1 }, Identity.Functor),
 );
 
 const taggedCosieve: Lazy<Cosieve<TaggedF, ProxyF>> = lazy(() =>

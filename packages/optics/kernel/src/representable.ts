@@ -5,7 +5,7 @@
 
 import { $, id, instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
-  Function1,
+  ArrowChoice,
   Function1F,
   Functor,
   Identity,
@@ -100,17 +100,17 @@ export const Corepresentable = Object.freeze({
 
 // -- Instances
 
-const function1Representable: Lazy<Representable<Function1F, IdentityF>> =
-  lazy(() =>
+const function1Representable: Lazy<Representable<Function1F, IdentityF>> = lazy(
+  () =>
     Representable.of(
       {
         tabulate: id,
         ...Sieve.Function1,
-        ...Function1.ArrowChoice,
+        ...ArrowChoice.Function1,
       },
       Identity.Functor,
     ),
-  );
+);
 
 const function1Corepresentable: Lazy<Corepresentable<Function1F, IdentityF>> =
   lazy(() =>
@@ -124,15 +124,14 @@ const function1Corepresentable: Lazy<Corepresentable<Function1F, IdentityF>> =
     ),
   );
 
-const taggedCorepresentable: Lazy<Corepresentable<TaggedF, ProxyF>> = lazy(
-  () =>
-    Corepresentable.of(
-      {
-        cotabulate: <D, C>(f: (corep: Proxy<D>) => C): Tagged<D, C> =>
-          Tagged(f(Proxy<D>())),
-        ...Cosieve.Tagged,
-        ...Costrong.Tagged,
-      },
-      Proxy.Functor,
-    ),
+const taggedCorepresentable: Lazy<Corepresentable<TaggedF, ProxyF>> = lazy(() =>
+  Corepresentable.of(
+    {
+      cotabulate: <D, C>(f: (corep: Proxy<D>) => C): Tagged<D, C> =>
+        Tagged(f(Proxy<D>())),
+      ...Cosieve.Tagged,
+      ...Costrong.Tagged,
+    },
+    Proxy.Functor,
+  ),
 );

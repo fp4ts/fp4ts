@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import {
-  Function1,
+  ArrowChoice,
   Function1F,
   Profunctor,
   ProfunctorRequirements,
@@ -51,7 +51,7 @@ const function1Costrong: Lazy<Costrong<Function1F>> = lazy(() =>
       <A, B, C>(f: (ca: [C, A]) => [C, B]) =>
       (a: A) =>
         f([undefined as any as C, a])[1],
-    ...Function1.ArrowChoice,
+    ...ArrowChoice.Function1,
   }),
 );
 

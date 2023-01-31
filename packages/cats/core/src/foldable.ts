@@ -19,7 +19,6 @@ import {
   Either,
   Left,
   Right,
-  Endo,
   LazyList,
   View,
 } from './data';
@@ -145,7 +144,7 @@ export const Foldable = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>) => Eval<B>,
       ): Eval<B> =>
-        self.foldMap_(Endo.EvalMonoidK.algebra<B>())(
+        self.foldMap_(MonoidK.EndoEval.algebra<B>())(
           fa,
           a => (eb: Eval<B>) => f(a, eb),
         )(ez),

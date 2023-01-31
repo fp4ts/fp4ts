@@ -3,9 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Eval, instance, Kind } from '@fp4ts/core';
+import { Base, Eval, instance, Kind, lazy } from '@fp4ts/core';
 import { Semigroup } from '@fp4ts/cats-kernel';
-import { ArrayF } from './instances/array';
 
 /**
  * @category Type Class
@@ -34,18 +33,20 @@ export const SemigroupK = Object.freeze({
       combineKEval: ey => x => self.combineKEval_(x, ey),
       combineKEval_: (x, ey) => ey.map(y => F.combineK_(x, y)),
 
-      algebra: <A>() =>
+      algebra: lazy(<A>() =>
         Semigroup.of<Kind<F, [A]>>({
           combine: F.combineK ?? (y => x => F.combineK_(x, y)),
           combine_: F.combineK_,
           combineEval_: F.combineKEval_,
         }),
+      ) as <A>() => Semigroup<Kind<F, [A]>>,
 
-      dual: () =>
+      dual: lazy(() =>
         SemigroupK.of<F>({
           dual: () => self,
           combineK_: (x, y) => self.combineK_(y, x),
         }),
+      ),
       ...F,
     });
     return self;

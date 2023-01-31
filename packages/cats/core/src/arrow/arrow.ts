@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind } from '@fp4ts/core';
+import { function1Arrow, Function1F } from '../instances/function';
 import { Category } from './category';
 import { Strong } from './strong';
 
@@ -75,5 +76,9 @@ export const Arrow = Object.freeze({
       ...F,
     };
     return self;
+  },
+
+  get Function1(): Arrow<Function1F> {
+    return function1Arrow();
   },
 });

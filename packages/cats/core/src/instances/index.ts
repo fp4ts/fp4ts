@@ -4,3 +4,4 @@
 // LICENSE file in the root directory of this source tree.
 
 export { ArrayF } from './array';
+export { EndoF, Function0F, Function1F } from './function';

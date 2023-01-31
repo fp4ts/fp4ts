@@ -5,6 +5,7 @@
 
 import { $type, Base, Eval, instance, TyK, TyVar } from '@fp4ts/core';
 import { arrayEq } from './instances/array';
+import { function0Eq } from './instances/funciton';
 import { recordEq } from './instances/record';
 import { tupleEq } from './instances/tuple';
 
@@ -82,6 +83,8 @@ export const Eq = Object.freeze({
   Record: <A, K extends symbol | number | string = string>(
     E: Eq<A>,
   ): Eq<Record<K, A>> => recordEq(E),
+
+  Function0: <A>(E: Eq<A>): Eq<() => A> => function0Eq(E),
 });
 
 // -- HKT

@@ -3,8 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, id, instance, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, id, instance, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Functor, FunctorRequirements } from './functor';
+import {
+  function0Distributive,
+  Function1F,
+  Function0F,
+  function1Distributive,
+} from './instances/function';
 
 /**
  * @category Type Class
@@ -40,6 +46,12 @@ export const Distributive = Object.freeze({
     });
     return self;
   },
+
+  get Function0(): Distributive<Function0F> {
+    return function0Distributive();
+  },
+
+  Function1: <R>(): Distributive<$<Function1F, [R]>> => function1Distributive(),
 });
 
 // -- HKT

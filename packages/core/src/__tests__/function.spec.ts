@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { compose, flow, pipe } from '../function';
+import { compose, flow, pipe, F0, F1 } from '../function';
 
 describe('Function', () => {
   const add = (x: number) => x + 1;
@@ -65,5 +65,95 @@ describe('Function', () => {
             [...new Array(fns.length).keys()].join(''),
           )),
       );
+  });
+
+  describe('Function0', () => {
+    const SIZE = 100_000;
+    it('should be stack safe under defer composition', () => {
+      let cnt = 0;
+      const f: () => number = F0.defer(() =>
+        cnt >= SIZE ? () => cnt : (cnt++, f),
+      );
+      expect(f()).toBe(SIZE);
+    });
+
+    it('should be safe under map composition', () => {
+      let f = () => 0;
+      for (let i = 0; i < SIZE; i++) {
+        f = F0.map(f, x => x + 1);
+      }
+      expect(f()).toBe(SIZE);
+    });
+
+    it('should be stack safe under flatMap composition', () => {
+      const loop = (n: number): (() => number) =>
+        n >= SIZE ? () => n : F0.flatMap(() => n + 1, loop);
+      expect(loop(0)()).toBe(SIZE);
+    });
+
+    it('should be stack safe under mixed composition', () => {
+      const loop = (n: number): (() => number) =>
+        n >= SIZE
+          ? () => n
+          : F0.defer(() =>
+              F0.flatMap(
+                F0.map(
+                  () => n,
+                  x => x + 1,
+                ),
+                loop,
+              ),
+            );
+      expect(loop(0)()).toBe(SIZE);
+    });
+  });
+
+  describe('Function1', () => {
+    const SIZE = 100_000;
+    it('should be stack safe under defer composition', () => {
+      let cnt = 0;
+      const f: (_: unknown) => number = F1.defer(() =>
+        cnt >= SIZE ? _ => cnt : (cnt++, f),
+      );
+      expect(f(null)).toBe(SIZE);
+    });
+
+    it('should be safe under andThen composition', () => {
+      let f = (_: unknown) => 0;
+      for (let i = 0; i < SIZE; i++) {
+        f = F1.andThen(f, x => x + 1);
+      }
+      expect(f(null)).toBe(SIZE);
+    });
+
+    it('should be safe under compose composition', () => {
+      let f = (x: number) => x;
+      for (let i = 0; i < SIZE; i++) {
+        f = F1.compose(f, x => x + 1);
+      }
+      expect(f(0)).toBe(SIZE);
+    });
+
+    it('should be stack safe under flatMap composition', () => {
+      const loop = (n: number): ((_: unknown) => number) =>
+        n >= SIZE ? _ => n : F1.flatMap(() => n + 1, loop);
+      expect(loop(0)(null)).toBe(SIZE);
+    });
+
+    it('should be stack safe under mixed composition', () => {
+      const loop = (n: number): ((_: unknown) => number) =>
+        n >= SIZE
+          ? () => n
+          : F1.defer(() =>
+              F1.flatMap(
+                F1.andThen(
+                  () => n,
+                  x => x + 1,
+                ),
+                loop,
+              ),
+            );
+      expect(loop(0)(null)).toBe(SIZE);
+    });
   });
 });

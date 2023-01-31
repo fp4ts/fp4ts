@@ -25,7 +25,6 @@ import {
   Queue,
   AndThen,
   Set,
-  Endo,
   NonEmptyList,
   Tagged,
   ValidationError,
@@ -284,7 +283,7 @@ export const fp4tsAndThen = <A, B>(
   return go as Arbitrary<AndThen<A, B>>;
 };
 
-export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<Endo<A>> =>
+export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<(_: A) => A> =>
   fc.func<[A], A>(arbA);
 
 export const fp4tsIxRWST = <R, W, S1, S2, F, A>(

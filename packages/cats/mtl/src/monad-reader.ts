@@ -3,14 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, compose, id, instance, Kind } from '@fp4ts/core';
-import { Monad, MonadRequirements } from '@fp4ts/cats-core';
+import { $, F1, id, instance, Kind } from '@fp4ts/core';
+import { Function1F, Monad, MonadRequirements } from '@fp4ts/cats-core';
 import {
-  AndThen,
   EitherT,
   EitherTF,
-  Function1,
-  Function1F,
   Kleisli,
   KleisliF,
   OptionT,
@@ -39,16 +36,16 @@ export const MonadReader = Object.freeze({
 
   Function1: <R>(): MonadReader<$<Function1F, [R]>, R> =>
     MonadReader.of<$<Function1F, [R]>, R>({
-      ...Function1.Monad<R>(),
+      ...Monad.Function1<R>(),
       ask: (() => id) as MonadReader<$<Function1F, [R]>, R>['ask'],
-      local_: compose,
+      local_: F1.compose,
     }),
 
   Kleisli: <F, R>(F: Monad<F>): MonadReader<$<KleisliF, [F, R]>, R> =>
     MonadReader.of<$<KleisliF, [F, R]>, R>({
       ...Kleisli.Monad(F),
       ask: () => (r: R) => F.pure(r),
-      local_: (fa, f) => AndThen(f).andThen(fa),
+      local_: F1.compose,
     }),
 
   EitherT: <F, E, R>(

@@ -5,8 +5,8 @@
 
 import { instance, Kind, Lazy, lazy, pipe } from '@fp4ts/core';
 import {
+  ArrowChoice,
   Either,
-  Function1,
   Function1F,
   Left,
   Profunctor,
@@ -50,7 +50,7 @@ export const Choice = Object.freeze({
   },
 
   get Function1(): Choice<Function1F> {
-    return Function1.ArrowChoice;
+    return ArrowChoice.Function1;
   },
 
   get Tagged(): Choice<TaggedF> {

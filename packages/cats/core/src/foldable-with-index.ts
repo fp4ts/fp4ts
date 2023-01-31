@@ -7,7 +7,6 @@ import { Eval, instance, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from './foldable';
 import { MonoidK } from './monoid-k';
-import { Endo } from './data';
 import { ArrayF, arrayFoldableWithIndex } from './instances/array';
 
 /**
@@ -100,7 +99,7 @@ export const FoldableWithIndex = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>, i: I) => Eval<B>,
       ): Eval<B> =>
-        self.foldMapWithIndex_(Endo.EvalMonoidK.algebra<B>())(
+        self.foldMapWithIndex_(MonoidK.EndoEval.algebra<B>())(
           fa,
           (a, i) => (eb: Eval<B>) => f(a, eb, i),
         )(ez),

@@ -4,11 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Function1 } from '@fp4ts/cats-core/lib/data';
 import { Eq } from '@fp4ts/cats-kernel';
+import {
+  ArrowApply,
+  ArrowChoice,
+  CoflatMap,
+  Defer,
+  Distributive,
+  Monad,
+} from '@fp4ts/cats-core';
+import { List } from '@fp4ts/cats-core/lib/data';
 import {
   ArrowApplySuite,
   ArrowChoiceSuite,
+  CoflatMapSuite,
   DeferSuite,
   DistributiveSuite,
   MonadSuite,
@@ -21,7 +30,7 @@ import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 describe('Function1', () => {
   describe('fix point', () => {
     it('should calculate factorial', () => {
-      const fact = Function1.Defer<number>().fix<number>(
+      const fact = Defer.Function1<number>().fix<number>(
         rec => n => n <= 1 ? 1 : n * rec(n - 1),
       );
       expect(fact(5)).toBe(120);
@@ -30,7 +39,7 @@ describe('Function1', () => {
 
   checkAll(
     'Defer<Function1<MiniInt, *>',
-    DeferSuite(Function1.Defer<MiniInt>()).defer(
+    DeferSuite(Defer.Function1<MiniInt>()).defer(
       fc.integer(),
       Eq.fromUniversalEquals(),
       fc.func,
@@ -39,8 +48,8 @@ describe('Function1', () => {
   );
 
   checkAll(
-    'Distributive<Function1<number, *>>',
-    DistributiveSuite(Function1.Distributive<MiniInt>()).distributive(
+    'Distributive<Function1<MiniInt, *>>',
+    DistributiveSuite(Distributive.Function1<MiniInt>()).distributive(
       fc.string(),
       fc.string(),
       fc.string(),
@@ -53,8 +62,24 @@ describe('Function1', () => {
   );
 
   checkAll(
-    'Monad<Function1<number, *>>',
-    MonadSuite(Function1.Monad<MiniInt>()).monad(
+    'CoflatMap<Function1<MiniInt, *>>',
+    CoflatMapSuite(CoflatMap.Function1<MiniInt>()).coflatMap(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      <X>(arbX: Arbitrary<X>) => fc.func<[MiniInt], X>(arbX),
+      <X>(EqX: Eq<X>) => eq.fn1Eq(ec.miniInt(), EqX),
+    ),
+  );
+
+  checkAll(
+    'Monad<Function1<MiniInt, *>>',
+    MonadSuite(Monad.Function1<MiniInt>()).monad(
       fc.string(),
       fc.string(),
       fc.string(),
@@ -70,7 +95,7 @@ describe('Function1', () => {
 
   checkAll(
     'ArrowApply<Function1>',
-    ArrowApplySuite(Function1.ArrowApply).arrowApply(
+    ArrowApplySuite(ArrowApply.Function1).arrowApply(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       fc.boolean(),
@@ -95,7 +120,7 @@ describe('Function1', () => {
 
   checkAll(
     'ArrowChoice<Function1>',
-    ArrowChoiceSuite(Function1.ArrowChoice).arrowChoice(
+    ArrowChoiceSuite(ArrowChoice.Function1).arrowChoice(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       fc.boolean(),
@@ -115,4 +140,11 @@ describe('Function1', () => {
       eq.fn1Eq,
     ),
   );
+
+  it('should be stack safe on traverse', () => {
+    const xs = List.range(0, 1_000_000);
+    expect(
+      xs.traverse(Monad.Function1<unknown>(), x => _ => x)(null).toArray,
+    ).toEqual(xs.toArray);
+  });
 });

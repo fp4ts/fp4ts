@@ -6,6 +6,7 @@
 import { instance, lazy } from '@fp4ts/core';
 import { Eq } from './eq';
 import { arrayOrd } from './instances/array';
+import { function0Ord } from './instances/funciton';
 import { tupleOrd } from './instances/tuple';
 
 const LT = 0;
@@ -79,4 +80,6 @@ export const Ord = Object.freeze({
   ) as <A>() => Ord<A>,
 
   Array: <A>(O: Ord<A>): Ord<A[]> => arrayOrd(O),
+
+  Function0: <A>(O: Ord<A>): Ord<() => A> => function0Ord(O),
 });

@@ -8,7 +8,6 @@ import { FoldableWithIndex, MonoidK } from '@fp4ts/cats-core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FoldableLaws } from './foldable-laws';
-import { Endo } from '@fp4ts/cats-core/lib/data';
 
 export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
   ...FoldableLaws(F),
@@ -38,7 +37,7 @@ export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
   ): IsEq<B> =>
     new IsEq(
       F.foldRightWithIndex_(fa, ez, f).value,
-      F.foldMapWithIndex_(Endo.EvalMonoidK.algebra<B>())(
+      F.foldMapWithIndex_(MonoidK.EndoEval.algebra<B>())(
         fa,
         (a, i) => (eb: Eval<B>) => f(a, eb, i),
       )(ez).value,
@@ -51,7 +50,7 @@ export const FoldableWithIndexLaws = <F, I>(F: FoldableWithIndex<F, I>) => ({
   ): IsEq<B> =>
     new IsEq(
       F.foldLeftWithIndex_(fa, z, f),
-      F.foldMapWithIndex_(Endo.MonoidK.algebra<B>().dual())(
+      F.foldMapWithIndex_(MonoidK.Endo.algebra<B>().dual())(
         fa,
         (a, i) => (b: B) => f(b, a, i),
       )(z),

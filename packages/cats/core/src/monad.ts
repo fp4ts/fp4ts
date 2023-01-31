@@ -4,13 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $type, EvalF, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, EvalF, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
-import { Functor } from './functor';
 import { StackSafeMonad } from './stack-safe-monad';
 import { ArrayF, arrayMonad } from './instances/array';
+import { Function0F, Function1F } from './instances/function';
 
 /**
  * @category Type Class
@@ -57,6 +57,12 @@ export const Monad = Object.freeze({
   get Array(): Monad<ArrayF> {
     return arrayMonad();
   },
+
+  get Function0(): Monad<Function0F> {
+    return StackSafeMonad.Function0;
+  },
+
+  Function1: <R>(): Monad<$<Function1F, [R]>> => StackSafeMonad.Function1(),
 
   // -- Generator Based Do notation
 

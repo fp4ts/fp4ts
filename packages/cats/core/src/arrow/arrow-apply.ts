@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Kind, pipe, tupled } from '@fp4ts/core';
+import { function1ArrowApply, Function1F } from '../instances/function';
 import { GenKind, Monad } from '../monad';
 import { Arrow, ArrowRequirements } from './arrow';
-import { ArrowMonad, ArrowMonadF } from './arrow-monad';
+import { ArrowMonad } from './arrow-monad';
 
 export interface ArrowApply<F> extends Arrow<F> {
   app<A, B>(): Kind<F, [[Kind<F, [A, B]>, A], B]>;
@@ -20,7 +21,7 @@ export interface ArrowApply<F> extends Arrow<F> {
     ) => Generator<Eff, R, any>,
   ): ArrowMonad<F, R>;
 
-  Monad: Monad<$<ArrowMonadF, [F]>>;
+  Monad: Monad<$<F, [void]>>;
 }
 
 export type ArrowApplyRequirements<F> = Pick<ArrowApply<F>, 'app'> &
@@ -36,6 +37,10 @@ export const ArrowApply = Object.freeze({
 
     return self;
   },
+
+  get Function1(): ArrowApply<Function1F> {
+    return function1ArrowApply();
+  },
 });
 
 function proc<F>(F: ArrowApply<F>) {
@@ -47,7 +52,7 @@ function proc<F>(F: ArrowApply<F>) {
 }
 
 function Do<F>(F: ArrowApply<F>) {
-  const M: Monad<$<ArrowMonadF, [F]>> = F.Monad;
+  const M: Monad<$<F, [void]>> = F.Monad;
 
   return function doNotation<Eff extends GenKind<ArrowMonad<F, any>, any>, R>(
     f: (

@@ -16,7 +16,6 @@ import {
   Either,
   Left,
   Right,
-  Endo,
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -55,7 +54,7 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   ): IsEq<B> =>
     new IsEq(
       F.foldRight_(fa, ez, f).value,
-      F.foldMap_(Endo.EvalMonoidK.algebra<B>())(
+      F.foldMap_(MonoidK.EndoEval.algebra<B>())(
         fa,
         a => (eb: Eval<B>) => f(a, eb),
       )(ez).value,
@@ -68,7 +67,7 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   ): IsEq<B> =>
     new IsEq(
       F.foldLeft_(fa, z, f),
-      F.foldMap_(Endo.MonoidK.algebra<B>().dual())(fa, a => (b: B) => f(b, a))(
+      F.foldMap_(MonoidK.Endo.algebra<B>().dual())(fa, a => (b: B) => f(b, a))(
         z,
       ),
     ),

@@ -5,6 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Invariant } from './invariant';
+import { function1Contravariant } from './instances/function';
 
 /**
  * @category Type Class
@@ -43,4 +44,6 @@ export const Contravariant = Object.freeze({
     };
     return self;
   },
+
+  Function1: <A>() => function1Contravariant<A>(),
 });
