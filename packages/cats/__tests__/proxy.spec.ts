@@ -5,18 +5,27 @@
 
 import fc from 'fast-check';
 import { Proxy } from '@fp4ts/cats-core/lib/data';
-import { Eq } from '@fp4ts/cats-kernel';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import {
-  AlignSuite,
   AlternativeSuite,
   ContravariantSuite,
   MonadSuite,
+  OrdSuite,
+  TraversableFilterSuite,
+  UnalignSuite,
+  UnzipSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { Monad } from '@fp4ts/cats-core';
 
 describe('Proxy', () => {
+  checkAll(
+    'Ord<Proxy<any>>',
+    OrdSuite(Proxy.Ord<any>()).ord(fc.constant(Proxy<any>())),
+  );
+
   checkAll(
     'Monad<Proxy>',
     MonadSuite(Proxy.Monad).monad(
@@ -60,8 +69,8 @@ describe('Proxy', () => {
   );
 
   checkAll(
-    'Align<Proxy>',
-    AlignSuite(Proxy.Align).align(
+    'Unalign<Proxy>',
+    UnalignSuite(Proxy.Unalign).unalign(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -72,6 +81,45 @@ describe('Proxy', () => {
       Eq.fromUniversalEquals(),
       <X>() => fc.constant(Proxy<X>()),
       Proxy.EqK.liftEq,
+    ),
+  );
+
+  checkAll(
+    'Unzip<Proxy>',
+    UnzipSuite(Proxy.Unzip).unzip(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      <X>() => fc.constant(Proxy<X>()),
+      Proxy.EqK.liftEq,
+    ),
+  );
+
+  checkAll(
+    'TraversableFilter<Proxy>',
+    TraversableFilterSuite(Proxy.TraversableFilter).traversableFilter(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Monoid.addition,
+      Monoid.addition,
+      Proxy.TraversableFilter,
+      Monad.Eval,
+      Monad.Eval,
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      <X>() => fc.constant(Proxy<X>()),
+      Proxy.EqK.liftEq,
+      A.fp4tsEval,
+      Eq.Eval,
+      A.fp4tsEval,
+      Eq.Eval,
     ),
   );
 });

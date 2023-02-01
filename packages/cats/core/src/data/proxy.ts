@@ -3,36 +3,30 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eq } from '@fp4ts/cats-kernel';
-import {
-  $type,
-  Eval,
-  Kind,
-  KindOf,
-  Lazy,
-  lazy,
-  newtypeK,
-  throwError,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
-import { Align } from '../align';
+import { $type, Eval, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
+import { CommutativeMonoid, Compare, Eq, Ord } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { Contravariant } from '../contravariant';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
+import { MonoidK } from '../monoid-k';
 import { StackSafeMonad } from '../stack-safe-monad';
 import { Ior } from './ior';
-import type { Function0F } from '../instances';
+import { Unzip } from '../unzip';
+import { Unalign } from '../unalign';
+import { TraversableFilter } from '../traversable-filter';
+import { Option } from './option';
 
-const _Proxy = newtypeK<Function0F>()('@fp4ts/cats/core/proxy');
-type _ProxyF = KindOf<typeof _Proxy>;
+const tag = Symbol('@fp4ts/cats/core/data/proxy');
+export interface Proxy<A> {
+  [tag]: A;
+}
 
-export type Proxy<A> = Kind<_ProxyF, [A]>;
+const _Proxy: Proxy<any> = { [tag]: undefined };
 export const Proxy: ProxyObj = function () {
-  return _Proxy(() => throwError(new Error('Proxy does not have any values')));
+  return _Proxy;
 } as any;
 
 interface ProxyObj {
@@ -40,20 +34,46 @@ interface ProxyObj {
 
   Eq<A>(): Eq<Proxy<A>>;
   EqK: EqK<ProxyF>;
+  Ord<A>(): Ord<Proxy<A>>;
+  CommutativeMonoid<A>(): CommutativeMonoid<Proxy<A>>;
+  MonoidK: MonoidK<ProxyF>;
   Functor: Functor<ProxyF>;
   Contravariant: Contravariant<ProxyF>;
   Applicative: Applicative<ProxyF>;
-  Align: Align<ProxyF>;
   Alternative: Alternative<ProxyF>;
   Monad: Monad<ProxyF>;
+  Unalign: Unalign<ProxyF>;
+  Unzip: Unzip<ProxyF>;
+  TraversableFilter: TraversableFilter<ProxyF>;
 }
 
 // -- Instances
 
 const proxyEq: <A>() => Eq<Proxy<A>> = lazy(() =>
-  Eq.of({ equals: () => true }),
+  Eq.of({ equals: (x, y) => true }),
 );
 const proxyEqK: Lazy<EqK<ProxyF>> = lazy(() => EqK.of({ liftEq: proxyEq }));
+const proxyOrd: <A>() => Ord<Proxy<A>> = lazy(() =>
+  Ord.of({ compare: (x, y) => Compare.EQ }),
+);
+const proxyCommutativeMonoid = lazy(<A>() =>
+  CommutativeMonoid.of<Proxy<A>>({
+    empty: Proxy<A>(),
+    combine_: (x, y) => Proxy<A>(),
+    combineEval_: (x, ey) => Eval.now(Proxy<A>()),
+  }),
+) as <A>() => CommutativeMonoid<Proxy<A>>;
+const proxyMonoidK: Lazy<MonoidK<ProxyF>> = lazy(() => {
+  const M = proxyCommutativeMonoid<any>();
+  const self: MonoidK<ProxyF> = MonoidK.of({
+    emptyK: Proxy,
+    combineK_: M.combine_,
+    combineKEval_: M.combineEval_,
+    algebra: () => M,
+    dual: () => self,
+  });
+  return self;
+});
 const proxyFunctor: Lazy<Functor<ProxyF>> = lazy(() =>
   Functor.of({ map_: <A, B>() => Proxy<B>() }),
 );
@@ -71,18 +91,28 @@ const proxyApplicative: Lazy<Applicative<ProxyF>> = lazy(() =>
         Eval.now(Proxy<C>()),
   }),
 );
-const proxyAlign: Lazy<Align<ProxyF>> = lazy(() =>
-  Align.of({
+const proxyUnalign: Lazy<Unalign<ProxyF>> = lazy(() =>
+  Unalign.of({
     ...proxyFunctor(),
     align_: <A, B>() => Proxy<Ior<A, B>>(),
+    unalign: <A, B>(fa: Proxy<Ior<A, B>>) => [Proxy<A>(), Proxy<B>()],
+  }),
+);
+const proxyUnzip: Lazy<Unzip<ProxyF>> = lazy(() =>
+  Unzip.of({
+    ...proxyFunctor(),
+    unzipWith_: <A, B, C>(ab: Proxy<A>, f: (a: A) => readonly [B, C]) => [
+      Proxy<B>(),
+      Proxy<C>(),
+    ],
+    zipWith_: <A, B, C>(a: Proxy<A>, b: Proxy<B>, f: (a: A, b: B) => C) =>
+      Proxy<C>(),
   }),
 );
 const proxyAlternative: Lazy<Alternative<ProxyF>> = lazy(() =>
   Alternative.of({
     ...proxyApplicative(),
-    emptyK: Proxy,
-    combineK_: <A>() => Proxy<A>(),
-    combineKEval_: (lhs, erhs) => Eval.now(lhs),
+    ...proxyMonoidK(),
   }),
 );
 const proxyMonad: Lazy<Monad<ProxyF>> = lazy(() =>
@@ -92,10 +122,35 @@ const proxyMonad: Lazy<Monad<ProxyF>> = lazy(() =>
   }),
 );
 
+const proxyTraversableFilter: Lazy<TraversableFilter<ProxyF>> = lazy(() =>
+  TraversableFilter.of<ProxyF>({
+    ...proxyFunctor(),
+    traverseFilter_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: Proxy<A>, f: (a: A) => Kind<G, [Option<B>]>) =>
+        G.pure(Proxy<B>()),
+    traverse_:
+      <G>(G: Applicative<G>) =>
+      <A, B>(fa: Proxy<A>, f: (a: A) => Kind<G, [B]>) =>
+        G.pure(Proxy<B>()),
+    sequence:
+      <G>(G: Applicative<G>) =>
+      <A>(fa: Proxy<Kind<G, [A]>>) =>
+        G.pure(Proxy<A>()),
+  }),
+);
+
 Proxy.Eq = proxyEq;
 Object.defineProperty(Proxy, 'EqK', {
   get() {
     return proxyEqK();
+  },
+});
+Proxy.Ord = proxyOrd;
+Proxy.CommutativeMonoid = proxyCommutativeMonoid;
+Object.defineProperty(Proxy, 'MonoidK', {
+  get() {
+    return proxyMonoidK();
   },
 });
 Object.defineProperty(Proxy, 'Functor', {
@@ -113,9 +168,9 @@ Object.defineProperty(Proxy, 'Applicative', {
     return proxyApplicative();
   },
 });
-Object.defineProperty(Proxy, 'Align', {
+Object.defineProperty(Proxy, 'Unalign', {
   get() {
-    return proxyAlign();
+    return proxyUnalign();
   },
 });
 Object.defineProperty(Proxy, 'Alternative', {
@@ -126,6 +181,16 @@ Object.defineProperty(Proxy, 'Alternative', {
 Object.defineProperty(Proxy, 'Monad', {
   get() {
     return proxyMonad();
+  },
+});
+Object.defineProperty(Proxy, 'Unzip', {
+  get() {
+    return proxyUnzip();
+  },
+});
+Object.defineProperty(Proxy, 'TraversableFilter', {
+  get() {
+    return proxyTraversableFilter();
   },
 });
 
