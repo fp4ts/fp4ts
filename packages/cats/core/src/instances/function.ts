@@ -156,6 +156,8 @@ export const function1Monad = lazy(<R>() =>
 export const function1Arrow = lazy(() =>
   Arrow.of<Function1F>({
     compose_: F1.compose,
+    andThen_: F1.andThen,
+
     id: () => id,
     lift: id,
     first:

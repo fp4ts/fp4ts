@@ -3,13 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Base, Kind, instance, $ } from '@fp4ts/core';
+import { Base, Kind, instance, $, EvalF } from '@fp4ts/core';
 import {
   function0Defer,
   Function0F,
   Function1F,
   function1Defer,
 } from './instances/function';
+import { StackSafeMonad } from './stack-safe-monad';
 
 /**
  * @category Type Class
@@ -31,6 +32,10 @@ export const Defer = Object.freeze({
 
       ...F,
     }),
+
+  get Eval(): Defer<EvalF> {
+    return StackSafeMonad.Eval;
+  },
 
   get Function0(): Defer<Function0F> {
     return function0Defer();

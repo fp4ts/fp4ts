@@ -24,6 +24,7 @@ import { FunctorFilter } from '../../functor-filter';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { TraversableFilter } from '../../traversable-filter';
+import { Unzip } from '../../unzip';
 
 import { Either, Left, Right } from '../either';
 import { isIdentityTC } from '../identity';
@@ -34,7 +35,6 @@ import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector, VectorBuilder } from './vector';
 import { Map } from './map';
-import { Unzip } from '../../unzip';
 
 /**
  * Lazy, ordered sequence collection.

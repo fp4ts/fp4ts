@@ -3,15 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Base, Eval, EvalF, lazy } from '@fp4ts/core';
+import { $, Base, EvalF, Kind } from '@fp4ts/core';
 import { Defer } from './defer';
 import { Monad } from './monad';
+import { evalMonad } from './instances/eval';
 import {
   Function0F,
   Function1F,
   function0Monad,
   function1Monad,
 } from './instances/function';
+import { Either } from './data';
 
 export function isStackSafeMonad<F>(F: Base<F>): F is StackSafeMonad<F> {
   return (F as any).defer != null && (F as any).flatMap != null;
@@ -33,8 +35,11 @@ export const StackSafeMonad = Object.freeze({
         ...F,
       }),
       ...Monad.of({
-        tailRecM_: (a, f) =>
-          self.flatMap_(f(a), ea => ea.fold(a => self.tailRecM_(a, f), F.pure)),
+        tailRecM_: <A, B>(a: A, f: (a: A) => Kind<F, [Either<A, B>]>) => {
+          const cont = (ea: Either<A, B>): Kind<F, [B]> => ea.fold(go, F.pure);
+          const go = (a: A): Kind<F, [B]> => self.flatMap_(f(a), cont);
+          return go(a);
+        },
         ...F,
       }),
     };
@@ -51,12 +56,3 @@ export const StackSafeMonad = Object.freeze({
 
   Function1: <R>(): StackSafeMonad<$<Function1F, [R]>> => function1Monad(),
 });
-
-const evalMonad: () => StackSafeMonad<EvalF> = lazy(() =>
-  StackSafeMonad.of({
-    pure: Eval.pure,
-    map_: (fa, f) => fa.map(f),
-    flatMap_: (fa, f) => fa.flatMap(f),
-    flatten: fa => fa.flatten(),
-  }),
-);

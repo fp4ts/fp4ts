@@ -128,6 +128,7 @@ const cokleisliArrow: <F>(F: Comonad<F>) => Arrow<$<CokleisliF, [F]>> = cached(
         (fa: Kind<F, [A]>) =>
           F.extract(fa),
       compose_: cokleisliCompose(F).compose_,
+      andThen_: cokleisliCompose(F).andThen_,
     }),
 );
 
