@@ -84,14 +84,14 @@ export const FoldableWithIndex = Object.freeze({
         fa: Kind<F, [A]>,
         z: B,
         f: (b: B, a: A, i: I) => B,
-      ): B =>
-        self
-          .foldRightWithIndex_(
-            fa,
-            Eval.now((x: B) => Eval.now(x)),
-            (a, ek, i) => Eval.now((b: B) => ek.flatMap(k => k(f(b, a, i)))),
-          )
-          .value(z).value,
+      ): B => {
+        self.foldRightWithIndex_(
+          fa,
+          Eval.unit,
+          (a, r, i) => ((z = f(z, a, i)), r),
+        ).value;
+        return z;
+      },
 
       foldRightWithIndex: (ez, f) => fa => self.foldRightWithIndex_(fa, ez, f),
       foldRightWithIndex_: <A, B>(
@@ -99,7 +99,7 @@ export const FoldableWithIndex = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>, i: I) => Eval<B>,
       ): Eval<B> =>
-        self.foldMapWithIndex_(MonoidK.EndoEval.algebra<B>())(
+        self.foldMapWithIndex_(Monoid.EndoEval<B>())(
           fa,
           (a, i) => (eb: Eval<B>) => f(a, eb, i),
         )(ez),

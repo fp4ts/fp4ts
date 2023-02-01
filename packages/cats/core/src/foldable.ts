@@ -144,20 +144,15 @@ export const Foldable = Object.freeze({
         ez: Eval<B>,
         f: (a: A, eb: Eval<B>) => Eval<B>,
       ): Eval<B> =>
-        self.foldMap_(MonoidK.EndoEval.algebra<B>())(
-          fa,
-          a => (eb: Eval<B>) => f(a, eb),
-        )(ez),
+        self.foldMap_(Monoid.EndoEval<B>())(fa, a => (eb: Eval<B>) => f(a, eb))(
+          ez,
+        ),
 
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
-      foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B =>
-        self
-          .foldRight_(
-            fa,
-            Eval.now((x: B) => Eval.now(x)),
-            (a, ek) => Eval.now((b: B) => ek.flatMap(k => k(f(b, a)))),
-          )
-          .value(z).value,
+      foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B => {
+        self.foldRight_(fa, Eval.unit, (a, r) => ((z = f(z, a)), r)).value;
+        return z;
+      },
 
       foldMapK: G => f => fa => self.foldMapK_(G)(fa, f),
       foldMapK_:
