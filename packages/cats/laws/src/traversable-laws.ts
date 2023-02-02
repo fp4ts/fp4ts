@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Applicative, Traversable } from '@fp4ts/cats-core';
-import { Identity, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Identity, Product } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { FoldableLaws } from './foldable-laws';
 import { FunctorLaws } from './functor-laws';
@@ -46,9 +46,9 @@ export const TraversableLaws = <T>(T: Traversable<T>) => ({
       ta: Kind<T, [A]>,
       f: (a: A) => Kind<M, [B]>,
       g: (a: A) => Kind<N, [B]>,
-    ): IsEq<Tuple2K<M, N, Kind<T, [B]>>> => {
-      const lhs = T.traverse_(Tuple2K.Applicative(M, N))(ta, a => [f(a), g(a)]);
-      const rhs: Tuple2K<M, N, Kind<T, [B]>> = [
+    ): IsEq<Product<M, N, Kind<T, [B]>>> => {
+      const lhs = T.traverse_(Product.Applicative(M, N))(ta, a => [f(a), g(a)]);
+      const rhs: Product<M, N, Kind<T, [B]>> = [
         T.traverse_(M)(ta, f),
         T.traverse_(N)(ta, g),
       ];

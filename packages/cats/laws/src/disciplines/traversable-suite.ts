@@ -7,7 +7,6 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative, Functor, Traversable } from '@fp4ts/cats-core';
-import { Tuple2K } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { TraversableLaws } from '../traversable-laws';
@@ -67,7 +66,7 @@ export const TraversableSuite = <T>(T: Traversable<T>) => {
               fc.func<[A], Kind<F, [B]>>(mkArbF(arbB)),
               fc.func<[A], Kind<G, [B]>>(mkArbG(arbB)),
               laws.traversableParallelComposition(F, G),
-            )(Tuple2K.Eq(mkEqF(mkEqT(EqB)), mkEqG(mkEqT(EqB)))),
+            )(Eq.tuple(mkEqF(mkEqT(EqB)), mkEqG(mkEqT(EqB)))),
           ],
         ],
         {

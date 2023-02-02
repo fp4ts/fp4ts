@@ -18,9 +18,11 @@ export * from './tagged';
 export * from './backwards';
 export * from './proxy';
 
+export * from './coproduct';
+export * from './product';
+
 export * from './cokleisli';
 export * from './kleisli';
-export * from './tuple2-k';
 export * from './identity-t';
 export * from './option-t';
 export * from './either-t';

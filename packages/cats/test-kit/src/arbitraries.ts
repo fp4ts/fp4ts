@@ -30,6 +30,7 @@ import {
   Validation,
   LazyList,
   View,
+  Coproduct,
 } from '@fp4ts/cats-core/lib/data';
 import {
   Reader,
@@ -95,6 +96,13 @@ export const fp4tsEval = <A>(arbA: Arbitrary<A>): Arbitrary<Eval<A>> =>
     arbA.map(a => () => a).map(Eval.later),
     arbA.map(a => () => a).map(Eval.later),
   );
+
+export const fp4tsCoproduct = <F, G, A>(
+  arbFa: Arbitrary<Kind<F, [A]>>,
+  arbGa: Arbitrary<Kind<G, [A]>>,
+): Arbitrary<Coproduct<F, G, A>> =>
+  // prettier-ignore
+  fc.oneof(arbFa.map((Coproduct.Inl)<F, G, A>), arbGa.map((Coproduct.Inr)<F, G, A>));
 
 interface ListConstraints {
   readonly minLength?: number;

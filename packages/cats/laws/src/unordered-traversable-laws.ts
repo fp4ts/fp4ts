@@ -5,7 +5,7 @@
 
 import { id, Kind } from '@fp4ts/core';
 import { Applicative, Functor, UnorderedTraversable } from '@fp4ts/cats-core';
-import { Identity, IdentityF, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Identity, IdentityF, Product } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { UnorderedFoldableLaws } from './unordered-foldable-laws';
@@ -45,12 +45,12 @@ export const UnorderedTraversableLaws = <T>(T: UnorderedTraversable<T>) => ({
       fa: Kind<T, [A]>,
       f: (a: A) => Kind<M, [B]>,
       g: (a: A) => Kind<N, [B]>,
-    ): IsEq<Tuple2K<M, N, Kind<T, [B]>>> => {
-      const lhs = T.unorderedTraverse_(Tuple2K.Applicative(M, N))(fa, a => [
+    ): IsEq<Product<M, N, Kind<T, [B]>>> => {
+      const lhs = T.unorderedTraverse_(Product.Applicative(M, N))(fa, a => [
         f(a),
         g(a),
       ]);
-      const rhs: Tuple2K<M, N, Kind<T, [B]>> = [
+      const rhs: Product<M, N, Kind<T, [B]>> = [
         T.unorderedTraverse_(M)(fa, f),
         T.unorderedTraverse_(N)(fa, g),
       ];

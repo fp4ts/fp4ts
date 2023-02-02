@@ -6,7 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 import { Applicative, TraversableWithIndex } from '@fp4ts/cats-core';
-import { Identity, Tuple2K } from '@fp4ts/cats-core/lib/data';
+import { Identity, Product } from '@fp4ts/cats-core/lib/data';
 import { TraversableLaws } from './traversable-laws';
 
 export const TraversableWithIndexLaws = <T, I>(
@@ -47,12 +47,12 @@ export const TraversableWithIndexLaws = <T, I>(
       ta: Kind<T, [A]>,
       f: (a: A, i: I) => Kind<M, [B]>,
       g: (a: A, i: I) => Kind<N, [B]>,
-    ): IsEq<Tuple2K<M, N, Kind<T, [B]>>> => {
-      const lhs = T.traverseWithIndex_(Tuple2K.Applicative(M, N))(
+    ): IsEq<Product<M, N, Kind<T, [B]>>> => {
+      const lhs = T.traverseWithIndex_(Product.Applicative(M, N))(
         ta,
         (a, i) => [f(a, i), g(a, i)],
       );
-      const rhs: Tuple2K<M, N, Kind<T, [B]>> = [
+      const rhs: Product<M, N, Kind<T, [B]>> = [
         T.traverseWithIndex_(M)(ta, f),
         T.traverseWithIndex_(N)(ta, g),
       ];
