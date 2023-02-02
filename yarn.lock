@@ -657,7 +657,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats-kernel": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -672,7 +672,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -684,7 +684,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -693,7 +693,7 @@ __metadata:
   resolution: "@fp4ts/cats-kernel@workspace:packages/cats/kernel"
   dependencies:
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -707,7 +707,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -722,7 +722,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -733,7 +733,7 @@ __metadata:
     "@fp4ts/cats-core": "*"
     "@fp4ts/cats-kernel": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -746,7 +746,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     benny: ^3.7.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -761,7 +761,7 @@ __metadata:
     "@types/jest": ^29.2.3
     fast-check: ^3.3.0
     jest: ^29.3.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -771,7 +771,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats-core": "*"
     "@fp4ts/cats-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -779,7 +779,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fp4ts/core@workspace:packages/core"
   dependencies:
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -790,7 +790,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -800,7 +800,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -816,7 +816,7 @@ __metadata:
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-test-kit": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -828,7 +828,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/effect-core": "*"
     benny: ^3.7.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -838,7 +838,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -856,7 +856,7 @@ __metadata:
     "@types/jest": ^29.2.3
     fast-check: ^3.3.0
     jest: ^29.3.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -867,7 +867,7 @@ __metadata:
     "@fp4ts/effect-core": "*"
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-std": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -879,7 +879,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -891,7 +891,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/fused-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -904,7 +904,7 @@ __metadata:
     "@fp4ts/effect": "*"
     "@fp4ts/fused": "*"
     "@fp4ts/http-test-kit-node": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -914,7 +914,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -926,7 +926,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/fused-core": "*"
     "@fp4ts/fused-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -940,7 +940,7 @@ __metadata:
     "@fp4ts/fused-core": "*"
     "@fp4ts/fused-kernel": "*"
     "@fp4ts/fused-std": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -953,7 +953,7 @@ __metadata:
     "@fp4ts/effect": "*"
     "@fp4ts/http-core": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -970,7 +970,7 @@ __metadata:
     "@fp4ts/schema": "*"
     "@fp4ts/stream": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -987,7 +987,7 @@ __metadata:
     "@fp4ts/schema": "*"
     "@fp4ts/schema-json": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1004,7 +1004,7 @@ __metadata:
     "@fp4ts/schema": "*"
     "@fp4ts/schema-json": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1017,7 +1017,7 @@ __metadata:
     "@fp4ts/http-core": "*"
     "@fp4ts/schema": "*"
     "@fp4ts/schema-json": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1030,7 +1030,7 @@ __metadata:
     "@fp4ts/http-core": "*"
     "@fp4ts/http-dsl-shared": "*"
     "@fp4ts/schema-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1042,7 +1042,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     "@fp4ts/http-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1058,7 +1058,7 @@ __metadata:
     "@fp4ts/http-node-shared": "*"
     "@fp4ts/stream": "*"
     "@fp4ts/stream-io": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1075,7 +1075,7 @@ __metadata:
     "@fp4ts/schema": "*"
     "@fp4ts/stream": "*"
     "@fp4ts/stream-io": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1088,7 +1088,7 @@ __metadata:
     "@fp4ts/effect": "*"
     "@fp4ts/http-core": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1102,7 +1102,7 @@ __metadata:
     "@fp4ts/http-core": "*"
     "@fp4ts/logging": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1119,7 +1119,7 @@ __metadata:
     "@fp4ts/http-dsl-shared": "*"
     "@fp4ts/http-test-kit": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1137,7 +1137,7 @@ __metadata:
     "@fp4ts/http-dsl-shared": "*"
     "@fp4ts/stream": "*"
     "@fp4ts/stream-test-kit": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1146,7 +1146,7 @@ __metadata:
   resolution: "@fp4ts/http@workspace:packages/http"
   dependencies:
     "@fp4ts/http-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1158,7 +1158,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
     "@fp4ts/logging-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1169,7 +1169,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1179,7 +1179,7 @@ __metadata:
   dependencies:
     "@fp4ts/logging-core": "*"
     "@fp4ts/logging-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1191,7 +1191,7 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1203,7 +1203,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
     "@fp4ts/schema": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1213,7 +1213,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1227,7 +1227,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1241,7 +1241,7 @@ __metadata:
     "@fp4ts/optics-kernel": "*"
     benny: ^3.7.1
     monocle-ts: ^2.3.13
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1252,7 +1252,7 @@ __metadata:
     "@fp4ts/optics-core": "*"
     "@fp4ts/optics-derivation": "*"
     "@fp4ts/optics-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1263,7 +1263,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/parse-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1273,7 +1273,7 @@ __metadata:
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1288,7 +1288,7 @@ __metadata:
     benny: ^3.7.1
     fp-ts: 2.11.8
     parser-ts: 0.6.16
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1299,7 +1299,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/parse-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1312,7 +1312,7 @@ __metadata:
     "@fp4ts/parse-core": "*"
     "@fp4ts/parse-kernel": "*"
     "@fp4ts/parse-text": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1323,7 +1323,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/schema-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1334,7 +1334,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/schema-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1346,7 +1346,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1359,7 +1359,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1372,7 +1372,7 @@ __metadata:
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1385,7 +1385,7 @@ __metadata:
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
     benny: ^3.7.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1399,7 +1399,7 @@ __metadata:
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-kernel": "*"
     fast-check: ^3.3.0
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1410,7 +1410,7 @@ __metadata:
     "@fp4ts/schema-core": "*"
     "@fp4ts/schema-derivation": "*"
     "@fp4ts/schema-kernel": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1421,7 +1421,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/cats-free": "*"
     "@fp4ts/core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1435,7 +1435,7 @@ __metadata:
     "@fp4ts/sql-core": "*"
     "@fp4ts/stream": "*"
     mariadb: ^3.0.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1454,7 +1454,7 @@ __metadata:
     pg: ^8.8.0
     pg-cursor: ^2.7.4
     pg-pool: ^3.5.2
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1469,7 +1469,7 @@ __metadata:
     "@fp4ts/stream": "*"
     "@types/sqlite3": ^3.1.8
     sqlite3: ^5.1.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1478,7 +1478,7 @@ __metadata:
   resolution: "@fp4ts/sql@workspace:packages/sql"
   dependencies:
     "@fp4ts/sql-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1489,7 +1489,7 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1501,7 +1501,7 @@ __metadata:
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
     "@fp4ts/stream-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1518,7 +1518,7 @@ __metadata:
     "@types/jest": ^29.2.3
     fast-check: ^3.3.0
     jest: ^29.3.1
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1527,7 +1527,7 @@ __metadata:
   resolution: "@fp4ts/stream@workspace:packages/stream"
   dependencies:
     "@fp4ts/stream-core": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1550,7 +1550,7 @@ __metadata:
     "@fp4ts/sql": "*"
     "@fp4ts/sql-sqlite": "*"
     "@fp4ts/stream": "*"
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -6608,7 +6608,7 @@ __metadata:
     ts-node: ^10.9.1
     typedoc: ^0.22.15
     typedoc-plugin-missing-exports: ^0.22.6
-    typescript: 4.9.3
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -7211,23 +7211,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.3":
-  version: 4.9.3
-  resolution: "typescript@npm:4.9.3"
+"typescript@npm:4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 17b8f816050b412403e38d48eef0e893deb6be522d6dc7caf105e54a72e34daf6835c447735fd2b28b66784e72bfbf87f627abb4818a8e43d1fa8106396128dc
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.3#~builtin<compat/typescript>":
-  version: 4.9.3
-  resolution: "typescript@patch:typescript@npm%3A4.9.3#~builtin<compat/typescript>::version=4.9.3&hash=7ad353"
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=7ad353"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ef65c22622d864497d0a0c5db693523329b3284c15fe632e93ad9aa059e8dc38ef3bd767d6f26b1e5ecf9446f49bd0f6c4e5714a2eeaf352805dc002479843d1
+  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
   languageName: node
   linkType: hard
 
