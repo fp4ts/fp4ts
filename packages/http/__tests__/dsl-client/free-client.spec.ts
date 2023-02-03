@@ -97,7 +97,9 @@ describe('FreeClient', () => {
     withServer(server)(server =>
       getCapture('Paula')(new Request({ uri: server.baseUri }))
         .foldMap(IO.Monad)(interpret)
-        .map(res => expect(res).toEqual(Person({ name: 'Paula', age: 0 }))),
+        .map(res =>
+          expect(res).toEqual(Person.unsafeWrap({ name: 'Paula', age: 0 })),
+        ),
     ),
   );
 
@@ -113,7 +115,9 @@ describe('FreeClient', () => {
     withServer(server)(server =>
       getCaptureAll(List('Paula'))(new Request({ uri: server.baseUri }))
         .foldMap(IO.Monad)(interpret)
-        .map(res => expect(res).toEqual([Person({ name: 'Paula', age: 0 })])),
+        .map(res =>
+          expect(res).toEqual([Person.unsafeWrap({ name: 'Paula', age: 0 })]),
+        ),
     ),
   );
 
@@ -125,9 +129,9 @@ describe('FreeClient', () => {
         .foldMap(IO.Monad)(interpret)
         .map(res =>
           expect(res).toEqual([
-            Person({ name: 'Paula', age: 0 }),
-            Person({ name: 'Kim', age: 1 }),
-            Person({ name: 'Jessica', age: 2 }),
+            Person.unsafeWrap({ name: 'Paula', age: 0 }),
+            Person.unsafeWrap({ name: 'Kim', age: 1 }),
+            Person.unsafeWrap({ name: 'Jessica', age: 2 }),
           ]),
         ),
     ),
@@ -136,7 +140,7 @@ describe('FreeClient', () => {
   it.M('should pass request body', () =>
     withServer(server)(server => {
       const uri = server.baseUri;
-      const clara = Person({ name: 'Clara', age: 34 });
+      const clara = Person.unsafeWrap({ name: 'Clara', age: 34 });
 
       return postBody(clara)(new Request({ uri }))
         .foldMap(IO.Monad)(interpret)

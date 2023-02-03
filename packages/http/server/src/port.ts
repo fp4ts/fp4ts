@@ -4,24 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import { None, Option, Some } from '@fp4ts/cats';
-import { newtype, TypeOf } from '@fp4ts/core';
+import { subtype } from '@fp4ts/core';
 
-const PortNT = newtype<number>()('@fp4ts/http/server/port');
-export type Port = TypeOf<typeof PortNT>;
+export const Port = class extends subtype<number>()('@fp4ts/http/server/port') {
+  static readonly MinValue = 0;
+  static readonly MaxValue = 65535;
 
-export const Port = Object.freeze({
-  MinValue: 0,
-  MaxValue: 65535,
+  static fromNumber(n: number): Option<Port> {
+    return n >= Port.MinValue && n <= Port.MaxValue
+      ? Some(this.unsafeWrap(n))
+      : None;
+  }
 
-  fromNumber(n: number): Option<Port> {
-    return n >= Port.MinValue && n <= Port.MaxValue ? Some(PortNT(n)) : None;
-  },
-
-  fromString(value: string): Option<Port> {
-    return Port.fromNumber(parseInt(value));
-  },
-
-  unapply(port: Port): number {
-    return PortNT.unapply(port);
-  },
-});
+  static fromString(value: string): Option<Port> {
+    return this.fromNumber(parseInt(value));
+  }
+};
+export type Port = typeof Port['Type'];

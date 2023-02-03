@@ -4,11 +4,53 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $type, $variables, Kind, TyK, TyVar } from '../hkt';
+import { id } from '../function';
 import { TypeRef } from './type-ref';
+
+export const newtype =
+  <A>() =>
+  <Ref extends string>(Ref: Ref): Constructor<Ref, A> => {
+    const nt = function () {} as any as Constructor<Ref, A>;
+    (nt as any).Ref = Ref;
+    (nt as any).unsafeWrap = id as any;
+    (nt as any).unwrap = id as any;
+    return nt;
+  };
+
+export const subtype =
+  <A>() =>
+  <Ref extends string>(Ref: Ref): SubtypeConstructor<Ref, A> => {
+    const nt = function () {} as any as SubtypeConstructor<Ref, A>;
+    (nt as any).Ref = Ref;
+    (nt as any).unsafeWrap = id as any;
+    (nt as any).unwrap = id as any;
+    return nt;
+  };
 
 export interface Newtype<Ref extends string, A> {
   readonly Ref: Ref;
   readonly _A: A;
+}
+
+export type Subtype<Ref extends string, A> = A & {
+  readonly Ref: Ref;
+  readonly _A: A;
+};
+
+export interface Constructor<Ref extends string, A>
+  extends TypeRef<Ref, Newtype<Ref, A>> {
+  new (...args: [never]): Newtype<Ref, A>;
+  unsafeWrap(a: A): Newtype<Ref, A>;
+  unwrap(a: Newtype<Ref, A>): A;
+  readonly Type: Newtype<Ref, A>;
+}
+
+export interface SubtypeConstructor<Ref extends string, A>
+  extends TypeRef<Ref, Subtype<Ref, A>> {
+  new (...args: [never]): Newtype<Ref, A>;
+  unsafeWrap(a: A): Subtype<Ref, A>;
+  unwrap(a: Subtype<Ref, A>): A;
+  readonly Type: Subtype<Ref, A>;
 }
 
 // prettier-ignore
@@ -25,31 +67,11 @@ export interface KindId extends TyK<[unknown]> {
   [$type]: TyVar<this, 0>;
 }
 
-export interface Constructor<Ref extends string, A>
-  extends TypeRef<Ref, Newtype<Ref, A>> {
-  Ref: Ref;
-  (a: A): Newtype<Ref, A>;
-  unapply(nt: Newtype<Ref, A>): A;
-}
-
 export interface ConstructorK<Ref extends string, F = KindId> {
   Ref: Ref;
   <A extends unknown[]>(fa: Kind<F, A>): NewKind<Ref, F, A>;
   unapply<A extends unknown[]>(nt: NewKind<Ref, F, A>): Kind<F, A>;
   fix<A extends unknown[]>(): Constructor<Ref, Kind<F, A>>;
-}
-
-export function newtype<A>(): <Ref extends string>(
-  Ref: Ref,
-) => Constructor<Ref, A> {
-  return function <Ref extends string>(Ref: Ref): Constructor<Ref, A> {
-    const cotr: Constructor<Ref, A> = function (_: A): Newtype<Ref, A> {
-      return _ as any;
-    } as Constructor<Ref, A>;
-    cotr.Ref = Ref;
-    cotr.unapply = (_): A => _ as any;
-    return cotr;
-  };
 }
 
 export function newtypeK<F = KindId>(): <Ref extends string>(

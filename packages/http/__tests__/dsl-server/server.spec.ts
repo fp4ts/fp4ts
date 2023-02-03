@@ -64,13 +64,13 @@ const verbApi = <M extends Method>(method: M, status: Status) =>
     ),
   );
 
-const alice = Person({
+const alice = Person.unsafeWrap({
   name: 'Alice',
   age: 42,
 });
-const jerry = Animal({ spieces: 'mouse', legs: 4 });
-const tweety = Animal({ spieces: 'bird', legs: 2 });
-const beholder = Animal({ spieces: 'beholder', legs: 0 });
+const jerry = Animal.unsafeWrap({ spieces: 'mouse', legs: 4 });
+const tweety = Animal.unsafeWrap({ spieces: 'bird', legs: 2 });
+const beholder = Animal.unsafeWrap({ spieces: 'beholder', legs: 0 });
 
 describe('verbs', () => {
   const makeServer = <M extends Method>(m: M, status: Status): HttpApp<IOF> =>
@@ -303,7 +303,7 @@ const reqBodyApi = group(
 describe('ReqBody', () => {
   const server = toHttpAppIO(reqBodyApi, {
     [JSON.mime]: { [PersonTypeTag]: PersonCodable },
-  })(S => [S.return, p => S.return(Person.unapply(p).age)]);
+  })(S => [S.return, p => S.return(Person.unwrap(p).age)]);
 
   it.M('should pass argument to the method handler', () =>
     withServerP(server)(server =>

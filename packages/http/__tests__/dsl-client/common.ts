@@ -64,7 +64,7 @@ export type PersonArray = typeof PersonArray;
 export const PersonSchema = Schema.struct({
   name: Schema.string,
   age: Schema.number,
-}).imap(Person, Person.unapply);
+}).imap(Person.unsafeWrap, Person.unwrap);
 export const PersonArraySchema = PersonSchema.array;
 
 export const PersonCodable: JsonCodec<Person> =
@@ -72,8 +72,8 @@ export const PersonCodable: JsonCodec<Person> =
 export const PersonArrayCodable: JsonCodec<Person[]> =
   JsonCodec.fromSchema(PersonArraySchema);
 
-export const carol = Person({ name: 'Carol', age: 42 });
-export const alice = Person({ name: 'Alice', age: 18 });
+export const carol = Person.unsafeWrap({ name: 'Carol', age: 42 });
+export const alice = Person.unsafeWrap({ name: 'Alice', age: 18 });
 
 export const stringNumberArrayTupleTag =
   '@fp4ts/http/__tests__/dsl-client/stringNumberArrayTuple';
@@ -148,10 +148,11 @@ export const server = toHttpAppIO(api, {
   S.return(carol),
   S.return(alice),
   S.unit,
-  name => S.return(Person({ name, age: 0 })),
+  name => S.return(Person.unsafeWrap({ name, age: 0 })),
   names =>
     S.return(
-      names.zipWithIndex.map(([name, age]) => Person({ name, age })).toArray,
+      names.zipWithIndex.map(([name, age]) => Person.unsafeWrap({ name, age }))
+        .toArray,
     ),
   S.return,
   name =>

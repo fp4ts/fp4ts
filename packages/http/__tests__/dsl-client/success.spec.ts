@@ -87,7 +87,9 @@ describe('Success', () => {
     it.M('should capture the parameter', () =>
       withServer(server)(server =>
         getCapture('Paula')(new Request({ uri: server.baseUri })).map(res =>
-          expect(res).toEqual(Right(Person({ name: 'Paula', age: 0 }))),
+          expect(res).toEqual(
+            Right(Person.unsafeWrap({ name: 'Paula', age: 0 })),
+          ),
         ),
       ),
     );
@@ -106,7 +108,9 @@ describe('Success', () => {
       withServer(server)(server =>
         getCaptureAll(List('Paula'))(new Request({ uri: server.baseUri })).map(
           res =>
-            expect(res).toEqual(Right([Person({ name: 'Paula', age: 0 })])),
+            expect(res).toEqual(
+              Right([Person.unsafeWrap({ name: 'Paula', age: 0 })]),
+            ),
         ),
       ),
     );
@@ -118,9 +122,9 @@ describe('Success', () => {
         ).map(res =>
           expect(res).toEqual(
             Right([
-              Person({ name: 'Paula', age: 0 }),
-              Person({ name: 'Kim', age: 1 }),
-              Person({ name: 'Jessica', age: 2 }),
+              Person.unsafeWrap({ name: 'Paula', age: 0 }),
+              Person.unsafeWrap({ name: 'Kim', age: 1 }),
+              Person.unsafeWrap({ name: 'Jessica', age: 2 }),
             ]),
           ),
         ),
@@ -132,7 +136,7 @@ describe('Success', () => {
     it.M('should pass request body', () =>
       withServer(server)(server => {
         const uri = server.baseUri;
-        const clara = Person({ name: 'Clara', age: 34 });
+        const clara = Person.unsafeWrap({ name: 'Clara', age: 34 });
 
         return postBody(clara)(new Request({ uri })).map(res =>
           expect(res).toEqual(Right(clara)),
