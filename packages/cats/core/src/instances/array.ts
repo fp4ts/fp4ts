@@ -7,22 +7,11 @@ import { $type, Eval, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
-import { Apply } from '../apply';
+import { Apply, TraverseStrategy } from '../apply';
 import { EqK } from '../eq-k';
 import { FunctorFilter } from '../functor-filter';
 import { FunctorWithIndex } from '../functor-with-index';
 import { MonoidK } from '../monoid-k';
-import {
-  Chain,
-  Either,
-  Ior,
-  List,
-  None,
-  Option,
-  Some,
-  Vector,
-  View,
-} from '../data';
 import { FlatMap } from '../flat-map';
 import { Monad } from '../monad';
 import { FoldableWithIndex } from '../foldable-with-index';
@@ -31,6 +20,17 @@ import { TraversableFilter } from '../traversable-filter';
 import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
+import {
+  Either,
+  Ior,
+  isIdentityTC,
+  List,
+  None,
+  Option,
+  Some,
+  Vector,
+  View,
+} from '../data';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -48,8 +48,12 @@ export const arrayFunctorWithIndex = lazy(() =>
   FunctorWithIndex.of<ArrayF, number>({ mapWithIndex_: mapWithIndex }),
 );
 
-function mapWithIndex<A, B>(xs: A[], f: (a: A, i: number) => B): B[] {
-  return xs.map((x, i) => f(x, i));
+function mapWithIndex<A, B>(xs: readonly A[], f: (a: A, i: number) => B): B[] {
+  const ys = new Array<B>(xs.length);
+  for (let i = 0, len = xs.length; i < len; i++) {
+    ys[i] = f(xs[i], i);
+  }
+  return ys;
 }
 
 export const arrayUnzip = lazy(() =>
@@ -62,7 +66,11 @@ export const arrayUnzip = lazy(() =>
   }),
 );
 
-function zipWith<A, B, C>(xs: A[], ys: B[], f: (a: A, b: B) => C): C[] {
+function zipWith<A, B, C>(
+  xs: readonly A[],
+  ys: readonly B[],
+  f: (a: A, b: B) => C,
+): C[] {
   const sz = Math.min(xs.length, ys.length);
   const cs = new Array<C>(sz);
   for (let i = 0; i < sz; i++) {
@@ -79,7 +87,10 @@ function zip<A, B>(xs: A[], ys: B[]): [A, B][] {
   return cs;
 }
 
-function unzipWith<A, B, C>(xs: A[], f: (a: A) => readonly [B, C]): [B[], C[]] {
+function unzipWith<A, B, C>(
+  xs: readonly A[],
+  f: (a: A) => readonly [B, C],
+): [B[], C[]] {
   const sz = xs.length;
   const bs = new Array<B>(sz);
   const cs = new Array<C>(sz);
@@ -111,7 +122,7 @@ export const arrayUnalign = lazy(() =>
   }),
 );
 
-function align<A, B>(xs: A[], ys: B[]): Ior<A, B>[] {
+function align<A, B>(xs: readonly A[], ys: readonly B[]): Ior<A, B>[] {
   let i = 0;
   const abs: Ior<A, B>[] = [];
 
@@ -127,7 +138,11 @@ function align<A, B>(xs: A[], ys: B[]): Ior<A, B>[] {
   return abs;
 }
 
-function alignWith<A, B, C>(xs: A[], ys: B[], f: (ior: Ior<A, B>) => C): C[] {
+function alignWith<A, B, C>(
+  xs: readonly A[],
+  ys: readonly B[],
+  f: (ior: Ior<A, B>) => C,
+): C[] {
   let i = 0;
   const cs: C[] = [];
 
@@ -143,7 +158,10 @@ function alignWith<A, B, C>(xs: A[], ys: B[], f: (ior: Ior<A, B>) => C): C[] {
   return cs;
 }
 
-function unalignWith<A, B, C>(xs: A[], f: (a: A) => Ior<B, C>): [B[], C[]] {
+function unalignWith<A, B, C>(
+  xs: readonly A[],
+  f: (a: A) => Ior<B, C>,
+): [B[], C[]] {
   const bs: B[] = [];
   const cs: C[] = [];
   const l = (b: B) => bs.push(b);
@@ -167,7 +185,7 @@ export const arrayFunctorFilter = lazy(() =>
   }),
 );
 
-function collect<A, B>(xs: A[], f: (a: A) => Option<B>): B[] {
+function collect<A, B>(xs: readonly A[], f: (a: A) => Option<B>): B[] {
   const ys: B[] = [];
   for (let i = 0, len = xs.length; i < len; i++) {
     const oy = f(xs[i]);
@@ -176,7 +194,7 @@ function collect<A, B>(xs: A[], f: (a: A) => Option<B>): B[] {
   return ys;
 }
 
-function filter<A>(xs: A[], f: (a: A) => boolean): A[] {
+function filter<A>(xs: readonly A[], f: (a: A) => boolean): A[] {
   return xs.filter(x => f(x));
 }
 
@@ -208,7 +226,11 @@ function ap<A, B>(ff: ((a: A) => B)[], fa: A[]): B[] {
   return zs;
 }
 
-function map2<A, B, C>(fa: A[], fb: B[], f: (a: A, b: B) => C): C[] {
+function map2<A, B, C>(
+  fa: readonly A[],
+  fb: readonly B[],
+  f: (a: A, b: B) => C,
+): C[] {
   const len1 = fa.length;
   const len2 = fb.length;
   const zs: C[] = new Array(len1 * len2);
@@ -247,7 +269,7 @@ export const arrayFlatMap = lazy(() =>
   }),
 );
 
-function flatMap<A, B>(xs: A[], f: (a: A) => B[]): B[] {
+function flatMap<A, B>(xs: readonly A[], f: (a: A) => readonly B[]): B[] {
   return xs.flatMap(x => f(x));
 }
 
@@ -311,12 +333,12 @@ export const arrayFoldableWithIndex = lazy(() =>
   }),
 );
 
-function foldLeft<A, B>(xs: A[], z: B, f: (b: B, a: A) => B): B {
+function foldLeft<A, B>(xs: readonly A[], z: B, f: (b: B, a: A) => B): B {
   return xs.reduce((b, x) => f(b, x), z);
 }
 
 function foldLeftWithIndex<A, B>(
-  xs: A[],
+  xs: readonly A[],
   z: B,
   f: (b: B, a: A, i: number) => B,
 ): B {
@@ -324,7 +346,7 @@ function foldLeftWithIndex<A, B>(
 }
 
 function foldRight<A, B>(
-  xs: A[],
+  xs: readonly A[],
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>) => Eval<B>,
 ): Eval<B> {
@@ -335,7 +357,7 @@ function foldRight<A, B>(
 }
 
 function foldRightWithIndex<A, B>(
-  xs: A[],
+  xs: readonly A[],
   ez: Eval<B>,
   f: (a: A, eb: Eval<B>, i: number) => Eval<B>,
 ): Eval<B> {
@@ -347,33 +369,33 @@ function foldRightWithIndex<A, B>(
   return go;
 }
 
-function elem<A>(xs: A[], idx: number): Option<A> {
+function elem<A>(xs: readonly A[], idx: number): Option<A> {
   return idx < 0 || idx >= xs.length ? None : Some(xs[idx]);
 }
 
-function count<A>(xs: A[], f: (x: A) => boolean): number {
+function count<A>(xs: readonly A[], f: (x: A) => boolean): number {
   let count = 0;
   for (let i = 0, len = xs.length; i < len; i++) {
     if (f(xs[i])) count++;
   }
   return count;
 }
-function all<A>(xs: A[], f: (a: A) => boolean): boolean {
+function all<A>(xs: readonly A[], f: (a: A) => boolean): boolean {
   for (let i = 0, len = xs.length; i < len; i++) {
     if (!f(xs[i])) return false;
   }
   return true;
 }
-function any<A>(xs: A[], f: (a: A) => boolean): boolean {
+function any<A>(xs: readonly A[], f: (a: A) => boolean): boolean {
   for (let i = 0, len = xs.length; i < len; i++) {
     if (f(xs[i])) return true;
   }
   return false;
 }
-function iterator<A>(xs: A[]): Iterator<A> {
+function iterator<A>(xs: readonly A[]): Iterator<A> {
   return xs[Symbol.iterator]();
 }
-function view<A>(xs: A[]): View<A> {
+function view<A>(xs: readonly A[]): View<A> {
   return View.build((ez, g) => foldRight(xs, ez, g));
 }
 
@@ -387,11 +409,60 @@ export const arrayTraversableWithIndex = lazy(() =>
 
 const traverseWithIndex =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: A[], f: (a: A, i: number) => Kind<G, [B]>): Kind<G, [B[]]> =>
-    G.map_(
-      Chain.traverseViaChain(G, arrayFoldableWithIndex())(xs, f),
-      xs => xs.toArray,
-    );
+  <A, B>(
+    xs: readonly A[],
+    f: (a: A, i: number) => Kind<G, [B]>,
+  ): Kind<G, [B[]]> =>
+    xs.length === 0
+      ? G.pure([])
+      : isIdentityTC(G)
+      ? (mapWithIndex(xs, f) as any)
+      : Apply.TraverseStrategy(G)(Rhs => traverseWithIndexImpl(G, Rhs, xs, f));
+
+const traverseWithIndexImpl = <G, Rhs, A, B>(
+  G: Applicative<G>,
+  Rhs: TraverseStrategy<G, Rhs>,
+  xs: readonly A[],
+  f: (a: A, i: number) => Kind<G, [B]>,
+): Kind<G, [B[]]> => {
+  // Max width of the tree -- max depth log_128(c.size)
+  const width = 128;
+
+  const loop = (
+    start: number,
+    end: number,
+  ): Kind<Rhs, [Kind<G, [Concat<B>]>]> => {
+    if (end - start <= width) {
+      // We've entered leaves of the tree
+      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1], end - 1), singleton));
+      for (let idx = end - 2; start <= idx; idx--) {
+        const a = xs[idx];
+        const right = first;
+        const idx0 = idx;
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(cons));
+      }
+      return Rhs.map(first, single);
+    } else {
+      const step = ((end - start) / width) | 0;
+
+      let fchain = Rhs.defer(() => loop(start, start + step));
+
+      for (
+        let start0 = start + step, end0 = start0 + step;
+        start0 < end;
+        start0 += step, end0 += step
+      ) {
+        const start1 = start0;
+        const end1 = Math.min(end, end0);
+        const right = Rhs.defer(() => loop(start1, end1));
+        fchain = Rhs.map2(fchain, right)(concat);
+      }
+      return fchain;
+    }
+  };
+
+  return G.map_(Rhs.toG(loop(0, xs.length)), xs => concatCopyToArray(xs, []));
+};
 
 export const arrayTraversableFilter = lazy(() =>
   TraversableFilter.of<ArrayF>({
@@ -403,11 +474,106 @@ export const arrayTraversableFilter = lazy(() =>
 
 const traverseFilter =
   <G>(G: Applicative<G>) =>
-  <A, B>(xs: A[], f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [B[]]> =>
-    G.map_(
-      Chain.traverseFilterViaChain(G, arrayFoldableWithIndex())(xs, x => f(x)),
-      xs => xs.toArray,
-    );
+  <A, B>(xs: readonly A[], f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [B[]]> =>
+    xs.length === 0
+      ? G.pure([])
+      : isIdentityTC(G)
+      ? (collect(xs, f as any) as any)
+      : Apply.TraverseStrategy(G)(Rhs => traverseFilterImpl(G, Rhs, xs, f));
+
+const traverseFilterImpl = <G, Rhs, A, B>(
+  G: Applicative<G>,
+  Rhs: TraverseStrategy<G, Rhs>,
+  xs: readonly A[],
+  f: (a: A) => Kind<G, [Option<B>]>,
+): Kind<G, [B[]]> => {
+  // Max width of the tree -- max depth log_128(c.size)
+  const width = 128;
+
+  const loop = (
+    start: number,
+    end: number,
+  ): Kind<Rhs, [Kind<G, [Concat<B>]>]> => {
+    if (end - start <= width) {
+      // We've entered leaves of the tree
+      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1]), singletonFilter));
+      for (let idx = end - 2; start <= idx; idx--) {
+        const a = xs[idx];
+        const right = first;
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(consFilter));
+      }
+      return Rhs.map(first, single);
+    } else {
+      const step = ((end - start) / width) | 0;
+
+      let fchain = Rhs.defer(() => loop(start, start + step));
+
+      for (
+        let start0 = start + step, end0 = start0 + step;
+        start0 < end;
+        start0 += step, end0 += step
+      ) {
+        const start1 = start0;
+        const end1 = Math.min(end, end0);
+        const right = Rhs.defer(() => loop(start1, end1));
+        fchain = Rhs.map2(fchain, right)(concat);
+      }
+      return fchain;
+    }
+  };
+
+  return G.map_(Rhs.toG(loop(0, xs.length)), xs => concatCopyToArray(xs, []));
+};
+
+type Cons<A> = { tag: 0 } | { tag: 1; head: A; tail: Cons<A> };
+
+function singleton<A>(head: A): Cons<A> {
+  return { tag: 1, head, tail: { tag: 0 } };
+}
+function singletonFilter<A>(head: Option<A>): Cons<A> {
+  return head.nonEmpty
+    ? { tag: 1, head: head.get, tail: { tag: 0 } }
+    : { tag: 0 };
+}
+function cons<A>(head: A, tail: Cons<A>): Cons<A> {
+  return { tag: 1, head, tail };
+}
+function consFilter<A>(head: Option<A>, tail: Cons<A>): Cons<A> {
+  return head.nonEmpty ? { tag: 1, head: head.get, tail } : tail;
+}
+function consCopyToArray<A>(xs: Cons<A>, ys: A[]): void {
+  while (xs.tag !== 0) {
+    ys.push(xs.head);
+    xs = xs.tail;
+  }
+}
+
+type Concat<A> =
+  | { tag: 0 }
+  | { tag: 1; value: Cons<A> }
+  | { tag: 2; lhs: Concat<A>; rhs: Concat<A> };
+
+function single<A>(value: Cons<A>): Concat<A> {
+  return { tag: 1, value };
+}
+
+function concat<A>(lhs: Concat<A>, rhs: Concat<A>): Concat<A> {
+  return { tag: 2, lhs, rhs };
+}
+
+function concatCopyToArray<A>(xs: Concat<A>, ys: A[]): A[] {
+  switch (xs.tag) {
+    case 0:
+      return ys;
+    case 1:
+      consCopyToArray(xs.value, ys);
+      return ys;
+    case 2:
+      concatCopyToArray(xs.lhs, ys);
+      concatCopyToArray(xs.rhs, ys);
+      return ys;
+  }
+}
 
 // -- HKT
 
