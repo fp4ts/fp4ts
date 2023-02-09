@@ -39,8 +39,6 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
-  const KIA = Kleisli.Compose<IdentityF>(Identity.Monad);
-  const KEA = Kleisli.Compose<EvalF>(Monad.Eval);
   const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);
 
   it('should be stack safe on flatMap with StackSafeMonad', () => {
@@ -54,7 +52,7 @@ describe('Kleisli', () => {
   it('should be stack safe on andThen', () => {
     const size = 50_000;
     const fs = List.range(0, size).map(() => (x: number) => x + 1);
-    const result = fs.foldLeft(id<number>, KIA.andThen_)(42);
+    const result = fs.foldLeft(id<number>, Identity.Monad.andThen_)(42);
     expect(result).toBe(size + 42);
   });
 
@@ -63,7 +61,7 @@ describe('Kleisli', () => {
     const fs = List.range(0, size).map(() => (x: number) => Eval.now(x + 1));
     const result = fs.foldLeft(
       Eval.now as (x: number) => Eval<number>,
-      KEA.compose_,
+      Monad.Eval.compose_,
     )(42);
     expect(result.value).toBe(size + 42);
   });

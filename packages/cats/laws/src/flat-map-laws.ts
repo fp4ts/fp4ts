@@ -5,15 +5,7 @@
 
 import { Kind, pipe } from '@fp4ts/core';
 import { FlatMap } from '@fp4ts/cats-core';
-import {
-  Kleisli,
-  Left,
-  None,
-  Option,
-  Right,
-  Some,
-  Syntax2K,
-} from '@fp4ts/cats-core/lib/data';
+import { Left, None, Option, Right, Some } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplyLaws } from './apply-laws';
@@ -76,10 +68,8 @@ export const FlatMapLaws = <F>(F: FlatMap<F>): FlatMapLaws<F> => ({
     g: (a: B) => Kind<F, [C]>,
     h: (a: C) => Kind<F, [D]>,
   ): IsEq<Kind<F, [D]>> => {
-    const KFS = Syntax2K(Kleisli.Compose(F));
-
-    const l = KFS(f)['>>>'](KFS(g)['>>>'](h)).value(a);
-    const r = KFS(f)['>>>'](g)['>>>'](h).value(a);
+    const l = pipe(f, F.andThen(g), F.andThen(h))(a);
+    const r = pipe(f, F.andThen(F.andThen_(g, h)))(a);
 
     return new IsEq(l, r);
   },

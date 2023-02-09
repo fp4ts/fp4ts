@@ -40,6 +40,10 @@ export const StackSafeMonad = Object.freeze({
           const go = (a: A): Kind<F, [B]> => self.flatMap_(f(a), cont);
           return go(a);
         },
+        compose_:
+          <A, B, C>(g: (b: B) => Kind<F, [C]>, f: (a: A) => Kind<F, [B]>) =>
+          (a: A) =>
+            self.defer(() => self.flatMap_(f(a), g)),
         ...F,
       }),
     };

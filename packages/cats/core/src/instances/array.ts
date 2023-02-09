@@ -20,7 +20,7 @@ import { TraversableFilter } from '../traversable-filter';
 import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
-import { Either, Ior, isIdentityTC, None, Option, Some, View } from '../data';
+import { Either, Ior, isIdentityTC, None, Option, Some } from '../data';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -382,9 +382,6 @@ function any<A>(xs: readonly A[], f: (a: A) => boolean): boolean {
 }
 function iterator<A>(xs: readonly A[]): Iterator<A> {
   return xs[Symbol.iterator]();
-}
-function view<A>(xs: readonly A[]): View<A> {
-  return View.build((ez, g) => foldRight(xs, ez, g));
 }
 
 export const arrayTraversableWithIndex = lazy(() =>

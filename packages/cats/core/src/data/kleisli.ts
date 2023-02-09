@@ -250,11 +250,7 @@ const kleisliMonadError: <F, A, E>(
 
 const kleisliCompose: <F>(F: FlatMap<F>) => Compose<$<KleisliF, [F]>> = cached(
   <F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>> =>
-    Compose.of({
-      compose_: <A, B, C>(g: Kleisli<F, B, C>, f: Kleisli<F, A, B>) =>
-        suspend(F, (a: A) => F.flatMap_(f(a), g)),
-      andThen_: (f, g) => F1.andThen(f, F.flatMap(g)),
-    }),
+    Compose.of({ compose_: F.compose_, andThen_: F.andThen_ }),
 );
 
 const kleisliArrow: <F>(F: Monad<F>) => Arrow<$<KleisliF, [F]>> = cached(
@@ -273,8 +269,8 @@ const kleisliArrow: <F>(F: Monad<F>) => Arrow<$<KleisliF, [F]>> = cached(
         <A>() =>
         (a: A) =>
           F.pure(a),
-      compose_: kleisliCompose(F).compose_,
-      andThen_: kleisliCompose(F).andThen_,
+      compose_: F.compose_,
+      andThen_: F.andThen_,
     }),
 );
 
