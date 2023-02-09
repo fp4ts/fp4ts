@@ -3162,8 +3162,8 @@ const viewFoldable = lazy(() =>
     any_: (fa, p) => fa.any(p),
     count_: (fa, p) => fa.count(p),
 
-    toList: fa => fa.toList,
     iterator: fa => fa.iterator,
+    toArray: fa => fa.toArray,
   }),
 );
 

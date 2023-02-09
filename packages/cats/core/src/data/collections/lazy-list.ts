@@ -1038,8 +1038,7 @@ const lazyListFoldable = lazy(() =>
     any_: (fa, f) => fa.any(f),
     all_: (fa, f) => fa.all(f),
     count_: (fa, f) => fa.count(f),
-    toList: fa => fa.toList,
-    view: fa => fa.view,
+    toArray: fa => fa.toArray,
   }),
 );
 

@@ -8,20 +8,7 @@ import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { MonoidK } from './monoid-k';
 import { UnorderedFoldable } from './unordered-foldable';
-import {
-  List,
-  ListBuffer,
-  Vector,
-  VectorBuilder,
-  Option,
-  Some,
-  None,
-  Either,
-  Left,
-  Right,
-  LazyList,
-  View,
-} from './data';
+import { Option, Some, None, Either, Left, Right, LazyList } from './data';
 import { ComposedFoldable } from './composed';
 import { ArrayF } from './instances/array';
 import { FoldableWithIndex } from './foldable-with-index';
@@ -108,9 +95,7 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
   elem_<A>(fa: Kind<F, [A]>, idx: number): Option<A>;
 
   iterator<A>(fa: Kind<F, [A]>): Iterator<A>;
-  toList<A>(fa: Kind<F, [A]>): List<A>;
-  view<A>(fa: Kind<F, [A]>): View<A>;
-  toVector<A>(fa: Kind<F, [A]>): Vector<A>;
+  toArray<A>(fa: Kind<F, [A]>): A[];
 }
 
 export type FoldableRequirements<F> = (
@@ -187,16 +172,35 @@ export const Foldable = Object.freeze({
       count_: (fa, p) =>
         self.foldLeft_(fa, 0, (acc, x) => (p(x) ? acc + 1 : acc)),
 
-      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => self.view(fa).iterator,
+      iterator: <A>(fa: Kind<F, [A]>): Iterator<A> => {
+        let done: boolean = false;
+        let value: A | undefined;
+        let next: Eval<void> = Eval.defer(() =>
+          self.foldRight_(
+            fa,
+            Eval.always(() => {
+              done = true;
+            }),
+            (x, r) => {
+              value = x;
+              next = r;
+              return Eval.unit;
+            },
+          ),
+        );
 
-      toList: <A>(fa: Kind<F, [A]>) =>
-        self.foldLeft_(fa, new ListBuffer<A>(), (as, a) => as.addOne(a)).toList,
+        return {
+          next() {
+            next.value;
+            return done
+              ? { value: undefined, done: true }
+              : { value: value!, done: false };
+          },
+        };
+      },
 
-      view: <A>(fa: Kind<F, [A]>) => View.fromFoldable(self)(fa),
-
-      toVector: <A>(fa: Kind<F, [A]>) =>
-        self.foldLeft_(fa, new VectorBuilder<A>(), (as, a) => as.addOne(a))
-          .toVector,
+      toArray: <A>(fa: Kind<F, [A]>) =>
+        self.foldLeft_(fa, [] as A[], (xs, x) => (xs.push(x), xs)),
 
       ...F,
     });

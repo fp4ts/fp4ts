@@ -124,9 +124,7 @@ export const ComposedFoldable = Object.freeze({
         foldLeft_: (fga, z, f) =>
           F.foldLeft_(fga, z, (b, ga) => G.foldLeft_(ga, b, f)),
 
-        toList: fga => self.view(fga).toList,
-
-        view: fga => F.view(fga).flatMap(ga => G.view(ga)),
+        toArray: fga => Iter.toArray(self.iterator(fga)),
 
         iterator: fga => Iter.flatMap_(F.iterator(fga), ga => G.iterator(ga)),
       }),

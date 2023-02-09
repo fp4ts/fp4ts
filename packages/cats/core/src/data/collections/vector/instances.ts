@@ -33,6 +33,7 @@ import {
   isEmpty,
   iterator,
   nonEmpty,
+  toArray,
   toList,
   traverseFilter_,
   traverse_,
@@ -122,18 +123,17 @@ export const vectorFoldable: Lazy<Foldable<VectorF>> = lazy(() =>
     isEmpty: isEmpty,
     nonEmpty: nonEmpty,
     size: xs => xs.size,
-    toList: toList,
-    toVector: id,
+    toArray: toArray,
     iterator: iterator,
   }),
 );
 
-export const vectorTraversableFilter: Lazy<TraversableFilter<VectorF>> =
-  lazy(() =>
+export const vectorTraversableFilter: Lazy<TraversableFilter<VectorF>> = lazy(
+  () =>
     TraversableFilter.of({
       ...vectorFoldable(),
       ...vectorFunctorFilter(),
       traverse_: traverse_,
       traverseFilter_: traverseFilter_,
     }),
-  );
+);

@@ -97,7 +97,7 @@ export class Update<in A> {
         ps => ps.close(),
       )
         .flatMap(ps =>
-          Stream.fromList<ConnectionIOF, A>(F.toList(fa)).evalMap(
+          Stream.fromArray<ConnectionIOF, A>(F.toArray(fa)).evalMap(
             ps.set(this.W),
           ),
         )

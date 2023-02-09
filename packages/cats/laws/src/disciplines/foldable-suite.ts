@@ -7,7 +7,7 @@ import fc, { Arbitrary } from 'fast-check';
 import { Eval, Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Foldable } from '@fp4ts/cats-core';
-import { Option, List, Vector } from '@fp4ts/cats-core/lib/data';
+import { Option, List } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -121,16 +121,12 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
           )(Option.Eq(EqA)),
         ],
         [
-          'foldable toList reference',
-          forAll(mkArbF(arbA), laws.toListRef)(List.Eq(EqA)),
+          'foldable toArray reference',
+          forAll(mkArbF(arbA), laws.toArrayRef)(Eq.Array(EqA)),
         ],
         [
-          'foldable toVector reference',
-          forAll(mkArbF(arbA), laws.toVectorRef)(Vector.Eq(EqA)),
-        ],
-        [
-          'foldable list from iterator is toList',
-          forAll(mkArbF(arbA), laws.listFromIteratorIsToList)(List.Eq(EqA)),
+          'foldable array from iterator is toArray',
+          forAll(mkArbF(arbA), laws.arrayFromIteratorIsToArray)(Eq.Array(EqA)),
         ],
       ]),
   };

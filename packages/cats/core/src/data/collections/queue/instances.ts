@@ -39,6 +39,7 @@ import {
   map_,
   nonEmpty,
   size,
+  toArray,
   traverseFilter_,
   traverse_,
   view,
@@ -125,7 +126,7 @@ export const queueFoldable: Lazy<Foldable<QueueF>> = lazy(() =>
     foldRight_: foldRightEval_,
     elem_: elemOption_,
     iterator,
-    view,
+    toArray,
   }),
 );
 

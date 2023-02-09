@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
+import { $type, Eval, id, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
@@ -20,17 +20,7 @@ import { TraversableFilter } from '../traversable-filter';
 import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
-import {
-  Either,
-  Ior,
-  isIdentityTC,
-  List,
-  None,
-  Option,
-  Some,
-  Vector,
-  View,
-} from '../data';
+import { Either, Ior, isIdentityTC, None, Option, Some, View } from '../data';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -327,9 +317,7 @@ export const arrayFoldableWithIndex = lazy(() =>
     any_: any,
     count_: count,
     iterator,
-    view,
-    toList: List.fromArray,
-    toVector: Vector.fromArray,
+    toArray: id,
   }),
 );
 

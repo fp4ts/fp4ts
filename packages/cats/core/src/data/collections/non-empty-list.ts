@@ -527,8 +527,7 @@ const nelFoldable: Lazy<Foldable<NonEmptyListF>> = lazy(() =>
     iterator: fa => fa.iterator,
 
     elem_: (fa, idx) => fa.elemOption(idx),
-    toList: fa => fa.toList,
-    view: fa => fa.view,
+    toArray: fa => fa.toArray,
   }),
 );
 

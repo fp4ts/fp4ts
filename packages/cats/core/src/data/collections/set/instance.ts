@@ -21,10 +21,9 @@ import {
   size,
   foldLeft_,
   foldRight_,
-  toList,
-  view,
   foldMapK_,
   foldMapLeft_,
+  toArray,
 } from './operators';
 
 import type { Set, SetF } from './set';
@@ -53,7 +52,6 @@ export const setFoldable: Lazy<Foldable<SetF>> = lazy(() =>
     isEmpty,
     nonEmpty,
     size,
-    toList,
-    view,
+    toArray,
   }),
 );

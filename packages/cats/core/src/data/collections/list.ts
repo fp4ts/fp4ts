@@ -3668,9 +3668,8 @@ const listFoldable = lazy(() =>
     all_: (xs, f) => xs.all(f),
     any_: (xs, f) => xs.any(f),
     count_: (xs, f) => xs.count(f),
-    toList: id,
-    view: xs => xs.view,
     iterator: xs => xs.iterator,
+    toArray: xs => xs.toArray,
   }),
 );
 const listTraversableFilter = lazy(() =>

@@ -7,8 +7,6 @@ import { Eval, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Foldable, MonoidK } from '@fp4ts/cats-core';
 import {
-  List,
-  Vector,
   Identity,
   Option,
   Some,
@@ -16,6 +14,7 @@ import {
   Either,
   Left,
   Right,
+  Iter,
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -132,32 +131,18 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
     return new IsEq(F.elem_(fa, idx), ref(fa, idx));
   },
 
-  toListRef: <A>(fa: Kind<F, [A]>): IsEq<List<A>> => {
+  toArrayRef: <A>(fa: Kind<F, [A]>): IsEq<A[]> => {
     const ref = <A>(fa: Kind<F, [A]>) =>
-      List.fromArray(
-        F.foldLeft_(fa, [] as A[], (as, a) => {
-          as.push(a);
-          return as;
-        }),
-      );
+      F.foldLeft_(fa, [] as A[], (as, a) => {
+        as.push(a);
+        return as;
+      });
 
-    return new IsEq(F.toList(fa), ref(fa));
+    return new IsEq(F.toArray(fa), ref(fa));
   },
 
-  toVectorRef: <A>(fa: Kind<F, [A]>): IsEq<Vector<A>> => {
-    const ref = <A>(fa: Kind<F, [A]>) =>
-      Vector.fromArray(
-        F.foldLeft_(fa, [] as A[], (as, a) => {
-          as.push(a);
-          return as;
-        }),
-      );
-
-    return new IsEq(F.toVector(fa), ref(fa));
-  },
-
-  listFromIteratorIsToList: <A>(fa: Kind<F, [A]>): IsEq<List<A>> =>
-    new IsEq(List.fromIterator(F.iterator(fa)), F.toList(fa)),
+  arrayFromIteratorIsToArray: <A>(fa: Kind<F, [A]>): IsEq<A[]> =>
+    new IsEq(Iter.toArray(F.iterator(fa)), F.toArray(fa)),
 });
 
 export interface FoldableLaws<F> {
@@ -208,8 +193,7 @@ export interface FoldableLaws<F> {
 
   elemRef: <A>(fa: Kind<F, [A]>, idx: number) => IsEq<Option<A>>;
 
-  toListRef: <A>(fa: Kind<F, [A]>) => IsEq<List<A>>;
-  toVectorRef: <A>(fa: Kind<F, [A]>) => IsEq<Vector<A>>;
+  toArrayRef: <A>(fa: Kind<F, [A]>) => IsEq<A[]>;
 
-  listFromIteratorIsToList: <A>(fa: Kind<F, [A]>) => IsEq<List<A>>;
+  arrayFromIteratorIsToArray: <A>(fa: Kind<F, [A]>) => IsEq<A[]>;
 }

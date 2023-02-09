@@ -130,8 +130,8 @@ Coproduct.Foldable = <F, G>(F: Foldable<F>, G: Foldable<G>) =>
     all_: (fga, f) => fga.eliminate(F.all(f), G.all(f)),
     any_: (fga, f) => fga.eliminate(F.any(f), G.any(f)),
     count_: (fga, f) => fga.eliminate(F.count(f), G.count(f)),
-    toList: fga => fga.eliminate(F.toList, G.toList),
-    view: fga => fga.eliminate(F.view, G.view),
+    iterator: fga => fga.eliminate(F.iterator, G.iterator),
+    toArray: fga => fga.eliminate(F.toArray, G.toArray),
   });
 
 Coproduct.Traversable = <F, G>(F: Traversable<F>, G: Traversable<G>) =>

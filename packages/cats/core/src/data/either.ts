@@ -53,6 +53,9 @@ abstract class _Either<out E, out A> {
   public get toList(): List<A> {
     return this.isEmpty ? List.empty : List(this.get);
   }
+  public get toArray(): A[] {
+    return this.isEmpty ? [] : [this.get];
+  }
 
   public get swapped(): Either<A, E> {
     return this.isEmpty ? new _Right(this.getLeft) : new _Left(this.get);
@@ -324,7 +327,7 @@ const eitherTraversable = lazy(
       foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
       isEmpty: fa => fa.isEmpty,
       nonEmpty: fa => fa.nonEmpty,
-      toList: fa => fa.toList,
+      toArray: fa => fa.toArray,
     }),
 ) as <E>() => Traversable<$<EitherF, [E]>>;
 

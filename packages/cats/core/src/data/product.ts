@@ -24,6 +24,7 @@ import { TraversableFilter } from '../traversable-filter';
 import { Zip } from '../zip';
 import { Option } from './option';
 import { Alternative } from '../alternative';
+import { Iter } from './collections';
 
 /**
  * Product of the two functors.
@@ -183,8 +184,8 @@ Product.Foldable = <F, G>(F: Foldable<F>, G: Foldable<G>) =>
     all_: ([fa, ga], f) => F.all_(fa, f) && G.all_(ga, f),
     any_: ([fa, ga], f) => F.any_(fa, f) || G.any_(ga, f),
     count_: ([fa, ga], f) => F.count_(fa, f) + G.count_(ga, f),
-    toList: ([fa, ga]) => F.toList(fa).concat(G.toList(ga)),
-    view: ([fa, ga]) => F.view(fa).concat(G.view(ga)),
+    iterator: ([fa, ga]) => Iter.concat_(F.iterator(fa), G.iterator(ga)),
+    toArray: ([fa, ga]) => F.toArray(fa).concat(G.toArray(ga)),
   });
 
 Product.Traversable = <F, G>(F: Traversable<F>, G: Traversable<G>) =>

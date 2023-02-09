@@ -41,6 +41,10 @@ abstract class _Option<out A> {
     return (this as Option<A>) === None ? List.empty : List(this.get);
   }
 
+  public get toArray(): A[] {
+    return (this as Option<A>) === None ? [] : [this.get];
+  }
+
   public toLeft<B>(right: Lazy<B>): Either<A, B> {
     return (this as Option<A>) === None ? Right(right()) : Left(this.get);
   }
@@ -287,7 +291,7 @@ const optionTraversableFilter = lazy(() =>
     foldRight_: (fa, z, f) => fa.foldRight(z, f),
     isEmpty: fa => fa.isEmpty,
     nonEmpty: fa => fa.nonEmpty,
-    toList: fa => fa.toList,
+    toArray: xs => xs.toArray,
   }),
 );
 
