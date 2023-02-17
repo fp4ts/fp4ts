@@ -345,7 +345,16 @@ export abstract class _List<out A> {
    * _O(n)_ Optionally extract init and the last element of the list.
    */
   public get popLast(): Option<[A, List<A>]> {
-    return this.uncons;
+    let cur = this as List<A>;
+    if (cur === Nil) return None;
+
+    const buf = new ListBuffer<A>();
+    while (cur.tail !== Nil) {
+      buf.addOne(cur.head);
+      cur = cur.tail;
+    }
+
+    return Some([cur.head, buf.toList]);
   }
 
   /**
@@ -3171,9 +3180,15 @@ export abstract class _List<out A> {
    * Strict, non-short-circuiting version of the `foldRight1`.
    */
   public foldRight1_<A>(this: List<A>, f: (x: A, res: A) => A): A {
-    return this === Nil
-      ? throwError(new Error('Nil.foldRight1_'))
-      : this.tail.foldRight_(this.head, f);
+    if (this === Nil) throw new Error('Nil.foldRight1_');
+    let xs = this.reverse;
+    let z = xs.head;
+    xs = xs.tail;
+    while (xs !== Nil) {
+      z = f(xs.head, z);
+      xs = xs.tail;
+    }
+    return z;
   }
 
   /**

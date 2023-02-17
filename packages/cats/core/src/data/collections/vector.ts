@@ -808,7 +808,7 @@ class _Vector<out A> {
   public span(p: (a: A) => boolean): [Vector<A>, Vector<A>];
   public span(p: (a: A) => boolean): [Vector<A>, Vector<A>] {
     const idxOpt = this.findIndex(x => !p(x));
-    return idxOpt ? this.splitAt(idxOpt.get) : [this, Vector.empty];
+    return idxOpt.nonEmpty ? this.splitAt(idxOpt.get) : [this, Vector.empty];
   }
 
   /**
@@ -883,7 +883,7 @@ class _Vector<out A> {
   public takeWhileRight(p: (a: A) => boolean): Vector<A>;
   public takeWhileRight(p: (a: A) => boolean): Vector<A> {
     const idxOpt = this.findIndexRight(x => !p(x));
-    return idxOpt.nonEmpty ? this.takeRight(this.size - idxOpt.get) : this;
+    return idxOpt.nonEmpty ? this.takeRight(this.size - idxOpt.get - 1) : this;
   }
 
   /**
@@ -906,13 +906,13 @@ class _Vector<out A> {
   public dropWhileRight(p: (a: A) => boolean): Vector<A> {
     const idxOpt = this.findIndexRight(x => !p(x));
     return idxOpt.nonEmpty
-      ? this.dropRight(this.size - idxOpt.get)
+      ? this.dropRight(this.size - idxOpt.get - 1)
       : Vector.empty;
   }
 
   /**
-   * _O(i)_ where `i` is the suffix length. Returns a tuple where the first
-   * element is the longest suffix satisfying the predicate `p` and the second
+   * _O(i)_ where `i` is the prefix length. Returns a tuple where the first
+   * element is the longest prefix satisfying the predicate `p` and the second
    * is the remainder of the vector.
    *
    * `xs.span(p)` is equivalent to `[xs.takeWhileRight(p), xs.dropWhileRight(p)]`
@@ -935,7 +935,7 @@ class _Vector<out A> {
   public spanRight(p: (a: A) => boolean): [Vector<A>, Vector<A>] {
     const idxOpt = this.findIndexRight(x => !p(x));
     return idxOpt.nonEmpty
-      ? (this.splitAt(idxOpt.get + 1).reverse() as [Vector<A>, Vector<A>])
+      ? this.splitAt(idxOpt.get + 1)
       : [Vector.empty, this];
   }
 
@@ -1169,9 +1169,8 @@ class _Vector<out A> {
    */
   public collectWhile<B>(f: (a: A) => Option<B>): Vector<B> {
     const ys: B[] = [];
-    const xs = this.xs;
     for (let i = this.start, end = this.end; i < end; i++) {
-      const o = f(xs[i]);
+      const o = f(this.xs[i]);
       if (o.isEmpty) break;
       ys.push(o.get);
     }
@@ -1192,9 +1191,8 @@ class _Vector<out A> {
    */
   public collectWhileRight<B>(f: (a: A) => Option<B>): Vector<B> {
     const ys: B[] = [];
-    const xs = this.xs;
-    for (let i = this.end, start = this.start; i >= start; i--) {
-      const o = f(xs[i]);
+    for (let i = this.end - 1, start = this.start; i >= start; i--) {
+      const o = f(this.xs[i]);
       if (o.isEmpty) break;
       ys.push(o.get);
     }
@@ -1409,7 +1407,7 @@ class _Vector<out A> {
    * ```
    */
   public insertAt<A>(this: Vector<A>, i: number, x: A): Vector<A> {
-    if (i < 0 || i >= this.size) return iob();
+    if (i < 0 || i > this.size) return iob();
     const sz = this.size;
     const start = this.start;
     const xs = this.xs;
@@ -1639,7 +1637,7 @@ class _Vector<out A> {
     const last = this.end - 1;
     const xs = this.xs;
     for (let i = 0; i < sz; i++) {
-      if (p(xs[last - i + start])) return Some(last - i);
+      if (p(xs[last - i])) return Some(last - i - start);
     }
     return None;
   }
@@ -1668,7 +1666,7 @@ class _Vector<out A> {
     const xs = this.xs;
     const ys: number[] = [];
     for (let i = 0; i < sz; i++) {
-      if (p(xs[last - i + start])) ys.push(last - i + start);
+      if (p(xs[last - i])) ys.push(last - i - start);
     }
     return Vector.fromArray(ys);
   }
@@ -1869,9 +1867,10 @@ class _Vector<out A> {
    */
   public intersperse<A>(this: Vector<A>, sep: A): Vector<A> {
     if (this.size <= 1) return this;
-    const sz = this.size + this.size - 1;
+    const sz = 2 * this.size - 1;
     const ys = new Array(sz);
-    for (let i = this.start + 1, j = 0; j < sz; i++, j += 2) {
+    ys[0] = this.xs[this.start];
+    for (let i = this.start + 1, j = 1; j < sz; i++, j += 2) {
       ys[j] = sep;
       ys[j + 1] = this.xs[i];
     }
@@ -1898,17 +1897,14 @@ class _Vector<out A> {
     const rs = [] as A[][];
     let rsSz = 0;
 
-    const send = this.end;
-    const xss = this.xs;
-
-    for (let i = this.start; i < send; i++) {
+    for (let i = this.start, send = this.end; i < send; i++) {
       let k = 0;
-      for (let xs = xss[i], j = xs.start, end = xs.end; j < end; j++) {
+      for (let xs = this.xs[i], j = xs.start, end = xs.end; j < end; j++) {
         if (k >= rsSz) {
           rs.push([]);
           rsSz++;
         }
-        rs[k].push(xs.xs[i]);
+        rs[k].push(xs.xs[j]);
         k++;
       }
     }
@@ -2179,13 +2175,12 @@ class _Vector<out A> {
    */
   public scanRight_<B>(z: B, f: (a: A, b: B) => B): Vector<B> {
     const sz = this.size;
-    const start = this.start;
     const last = this.end - 1;
     const xs = this.xs;
     const ys = new Array<B>(sz + 1);
     ys[sz] = z;
     for (let i = 0; i < sz; i++) {
-      ys[sz - 1 - i] = f(xs[last - i + start], ys[sz - i]);
+      ys[sz - 1 - i] = f(xs[last - i], ys[sz - i]);
     }
     return Vector.fromArray(ys);
   }
@@ -2684,7 +2679,10 @@ class _Vector<out A> {
    * // Vector(1, 2, 3, 4, 5, 6)
    * ```
    */
-  public sort<A>(this: Seq<A>, O: Ord<A> = Ord.fromUniversalCompare()): Seq<A> {
+  public sort<A>(
+    this: Vector<A>,
+    O: Ord<A> = Ord.fromUniversalCompare(),
+  ): Vector<A> {
     return this.sortBy(O.compare);
   }
 
