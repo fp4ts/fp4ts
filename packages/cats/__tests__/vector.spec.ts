@@ -317,6 +317,28 @@ describe('Vector', () => {
     );
   });
 
+  test(
+    'collectWhile to be List.collectWhile',
+    forAll(
+      A.fp4tsVector(fc.integer()),
+      fc.func(A.fp4tsOption(fc.string())),
+      (xs, f) =>
+        expect(xs.collectWhile(f).toList).toEqual(xs.toList.collectWhile(f)),
+    ),
+  );
+
+  test(
+    'collectWhileRight to be reverse.collectWhile.reverse',
+    forAll(
+      A.fp4tsVector(fc.integer()),
+      fc.func(A.fp4tsOption(fc.string())),
+      (xs, f) =>
+        expect(xs.collectWhileRight(f).toArray).toEqual(
+          xs.reverse.collectWhile(f).reverse.toArray,
+        ),
+    ),
+  );
+
   describe('get', () => {
     it('should throw when empty', () => {
       expect(() => Vector.empty.get(0)).toThrow();
@@ -348,6 +370,41 @@ describe('Vector', () => {
       expect(Vector.empty['!?'](1_000)).toEqual(None);
     });
   });
+
+  test(
+    'replaceAt to be List.replaceAt',
+    forAll(A.fp4tsSeq(fc.integer()), fc.integer(), fc.integer(), (xs, idx, x) =>
+      idx < 0 || idx >= xs.size
+        ? expect(() => xs.replaceAt(idx, x)).toThrow()
+        : expect(xs.replaceAt(idx, x).toList).toEqual(
+            xs.toList.replaceAt(idx, x),
+          ),
+    ),
+  );
+
+  test(
+    'insertAt to be List.insertAt',
+    forAll(
+      A.fp4tsVector(fc.integer()),
+      fc.integer(),
+      fc.integer(),
+      (xs, idx, x) =>
+        idx < 0 || idx > xs.size
+          ? expect(() => xs.insertAt(idx, x)).toThrow()
+          : expect(xs.insertAt(idx, x).toList).toEqual(
+              xs.toList.insertAt(idx, x),
+            ),
+    ),
+  );
+
+  test(
+    'removeAt to be List.removeAt',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, idx) =>
+      idx < 0 || idx >= xs.size
+        ? expect(() => xs.removeAt(idx)).toThrow()
+        : expect(xs.removeAt(idx).toList).toEqual(xs.toList.removeAt(idx)),
+    ),
+  );
 
   describe('all', () => {
     it('should return true when list is empty', () => {
@@ -438,6 +495,13 @@ describe('Vector', () => {
       expect(xs.take(10_000).toArray).toEqual(xs.toArray);
     });
   });
+
+  test(
+    'span to be List.span',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.boolean()), (xs, f) =>
+      expect(xs.span(f).map(xs => xs.toList)).toEqual(xs.toList.span(f)),
+    ),
+  );
 
   describe('takeRight', () => {
     it('should return an empty vector when vector is vector is empty', () => {
@@ -632,7 +696,73 @@ describe('Vector', () => {
         Vector.empty,
       ]);
     });
+
+    it(
+      'should be List.slitAt',
+      forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, i) =>
+        expect(xs.splitAt(i).map(xs => xs.toList)).toEqual(
+          xs.toList.splitAt(i),
+        ),
+      ),
+    );
   });
+
+  test(
+    'takeWhileRight to be .reverse.takeWhile.reverse',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.boolean()), (xs, f) =>
+      expect(xs.takeWhileRight(f).toArray).toEqual(
+        xs.reverse.takeWhile(f).reverse.toArray,
+      ),
+    ),
+  );
+  test(
+    'dropWhileRight to be .reverse.dropWhile.reverse',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.boolean()), (xs, f) =>
+      expect(xs.dropWhileRight(f).toArray).toEqual(
+        xs.reverse.dropWhile(f).reverse.toArray,
+      ),
+    ),
+  );
+
+  test(
+    'spanRight to be [takeWhileRight(p), dropWhileRight(p)]',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.boolean()), (xs, f) =>
+      expect(xs.spanRight(f).map(xs => xs.toArray)).toEqual([
+        xs.dropWhileRight(f).toArray,
+        xs.takeWhileRight(f).toArray,
+      ]),
+    ),
+  );
+
+  test(
+    'inits to be List.inits',
+    forAll(A.fp4tsVector(fc.integer()), xs =>
+      expect(xs.inits().map(xs => xs.toList).toArray).toEqual(
+        xs.toList.inits().toArray,
+      ),
+    ),
+  );
+  test(
+    'tails to be List.tails',
+    forAll(A.fp4tsVector(fc.integer()), xs =>
+      expect(xs.tails().map(xs => xs.toList).toArray).toEqual(
+        xs.toList.tails().toArray,
+      ),
+    ),
+  );
+
+  test(
+    'elem to be List.elem',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.elem(x)).toBe(xs.toList.elem(x)),
+    ),
+  );
+  test(
+    'notElem to be elem',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.notElem(x)).toBe(!xs.elem(x)),
+    ),
+  );
 
   describe('concat', () => {
     it('should concat two empty vectors into an empty vector', () => {
@@ -688,6 +818,22 @@ describe('Vector', () => {
       ),
     );
   });
+
+  test(
+    'intersperse to be List.intersperse',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.intersperse(x).toList).toEqual(xs.toList.intersperse(x)),
+    ),
+  );
+
+  test(
+    'transpose to be List.transpose',
+    forAll(A.fp4tsVector(A.fp4tsVector(fc.integer())), xss =>
+      expect(xss.transpose().map(xs => xs.toList).toList).toEqual(
+        xss.map(xs => xs.toList).toList.transpose(),
+      ),
+    ),
+  );
 
   describe('flatMap', () => {
     it('should return an empty vector if empty vector if mapped', () => {
@@ -947,6 +1093,42 @@ describe('Vector', () => {
     });
   });
 
+  test(
+    'scanLeft to be List.scanLeft',
+    forAll(
+      A.fp4tsVector(fc.integer()),
+      fc.string(),
+      fc.func(fc.string()),
+      (xs, z, f) =>
+        expect(xs.scanLeft(z, f).toList).toEqual(xs.toList.scanLeft(z, f)),
+    ),
+  );
+
+  test(
+    'scanLeft1 to be List.scanLeft1',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.scanLeft1(f).toList).toEqual(xs.toList.scanLeft1(f)),
+    ),
+  );
+
+  test(
+    'scanRight to be List.scanRight',
+    forAll(
+      A.fp4tsVector(fc.integer()),
+      fc.string(),
+      fc.func(fc.string()),
+      (xs, z, f) =>
+        expect(xs.scanRight_(z, f).toList).toEqual(xs.toList.scanRight_(z, f)),
+    ),
+  );
+
+  test(
+    'scanRight1 to be List.scanRight1',
+    forAll(A.fp4tsVector(fc.integer()), fc.func(fc.integer()), (xs, f) =>
+      expect(xs.scanRight1_(f).toList).toEqual(xs.toList.scanRight1_(f)),
+    ),
+  );
+
   describe('foldLeft', () => {
     const add = (x: number, y: number): number => x + y;
 
@@ -1110,6 +1292,51 @@ describe('Vector', () => {
     });
   });
 
+  describe('distinct to be List.distinct', () => {
+    test(
+      'prim',
+      forAll(A.fp4tsVector(fc.integer()), xs =>
+        expect(xs.distinct().toList).toEqual(xs.toList.distinct()),
+      ),
+    );
+
+    test(
+      'Eq',
+      forAll(A.fp4tsVector(fc.tuple(fc.integer(), fc.integer())), xs => {
+        const E = Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals());
+        expect(xs.distinct(E).toList).toEqual(xs.toList.distinct(E));
+      }),
+    );
+  });
+
+  test(
+    'remove be List.remove',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.remove(x).toArray).toEqual(xs.toList.remove(x).toArray),
+    ),
+  );
+
+  test(
+    'difference be List.difference',
+    forAll(A.fp4tsVector(fc.integer()), A.fp4tsVector(fc.integer()), (xs, ys) =>
+      expect(xs['\\'](ys).toList).toEqual(xs.toList['\\'](ys.toList)),
+    ),
+  );
+
+  it(
+    'union be List.union',
+    forAll(A.fp4tsVector(fc.integer()), A.fp4tsVector(fc.integer()), (xs, ys) =>
+      expect(xs.union(ys).toList).toEqual(xs.toList.union(ys.toList)),
+    ),
+  );
+
+  test(
+    'intersect to be List.intersect',
+    forAll(A.fp4tsVector(fc.integer()), A.fp4tsVector(fc.integer()), (xs, ys) =>
+      expect(xs.intersect(ys).toList).toEqual(xs.toList.intersect(ys.toList)),
+    ),
+  );
+
   describe('traverse', () => {
     it('should return empty list when empty', () => {
       expect(Vector().traverse(Identity.Applicative, id)).toEqual(Vector.empty);
@@ -1132,6 +1359,20 @@ describe('Vector', () => {
       );
     });
   });
+
+  test(
+    'sort to be List.sort',
+    forAll(A.fp4tsVector(fc.integer()), xs =>
+      expect(xs.sort().toList).toEqual(xs.toList.sort()),
+    ),
+  );
+
+  test(
+    'insert to be List.insert',
+    forAll(A.fp4tsVector(fc.integer()), fc.integer(), (xs, x) =>
+      expect(xs.insert(x).toList).toEqual(xs.toList.insert(x)),
+    ),
+  );
 
   describe('Laws', () => {
     checkAll(

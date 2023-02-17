@@ -34,7 +34,7 @@ import { Either, Left, Right } from '../either';
 import { Option, None, Some } from '../option';
 
 import { Map } from './map';
-import { Set as CSet } from './set';
+import { Set } from './set';
 import { List } from './list';
 import { View } from './view';
 
@@ -434,8 +434,8 @@ abstract class _Seq<out A> {
   public toSet<A>(
     this: Seq<A>,
     O: Ord<A> = Ord.fromUniversalCompare(),
-  ): CSet<A> {
-    return this.foldLeft(CSet.empty as CSet<A>, (s, x) => s.insert(x, O));
+  ): Set<A> {
+    return this.foldLeft(Set.empty as Set<A>, (s, x) => s.insert(x, O));
   }
 
   /**
@@ -770,7 +770,7 @@ abstract class _Seq<out A> {
   public span(p: (a: A) => boolean): [Seq<A>, Seq<A>];
   public span(p: (a: A) => boolean): [Seq<A>, Seq<A>] {
     const idxOpt = this.findIndex(x => !p(x));
-    return idxOpt ? this.splitAt(idxOpt.get) : [this, Empty];
+    return idxOpt.nonEmpty ? this.splitAt(idxOpt.get) : [this, Empty];
   }
 
   /**
@@ -844,7 +844,7 @@ abstract class _Seq<out A> {
   public takeWhileRight(p: (a: A) => boolean): Seq<A>;
   public takeWhileRight(p: (a: A) => boolean): Seq<A> {
     const idxOpt = this.findIndexRight(x => !p(x));
-    return idxOpt.nonEmpty ? this.takeRight(this.size - idxOpt.get) : this;
+    return idxOpt.nonEmpty ? this.takeRight(this.size - idxOpt.get - 1) : this;
   }
 
   /**
@@ -866,15 +866,15 @@ abstract class _Seq<out A> {
    */
   public dropWhileRight(p: (a: A) => boolean): Seq<A> {
     const idxOpt = this.findIndexRight(x => !p(x));
-    return idxOpt.nonEmpty ? this.dropRight(this.size - idxOpt.get) : Empty;
+    return idxOpt.nonEmpty ? this.dropRight(this.size - idxOpt.get - 1) : Empty;
   }
 
   /**
-   * _O(i)_ where `i` is the suffix length. Returns a tuple where the first
-   * element is the longest suffix satisfying the predicate `p` and the second
+   * _O(i)_ where `i` is the prefix length. Returns a tuple where the first
+   * element is the longest prefix satisfying the predicate `p` and the second
    * is the remainder of the sequence.
    *
-   * `xs.span(p)` is equivalent to `[xs.takeWhileRight(p), xs.dropWhileRight(p)]`
+   * `xs.span(p)` is equivalent to `[xs.dropWhileRight(p), xs.takeWhileRight(p)]`
    *
    * @examples
    *
@@ -893,9 +893,7 @@ abstract class _Seq<out A> {
   public spanRight(p: (a: A) => boolean): [Seq<A>, Seq<A>];
   public spanRight(p: (a: A) => boolean): [Seq<A>, Seq<A>] {
     const idxOpt = this.findIndexRight(x => !p(x));
-    return idxOpt.nonEmpty
-      ? (this.splitAt(idxOpt.get + 1).reverse() as [Seq<A>, Seq<A>])
-      : [Empty, this];
+    return idxOpt.nonEmpty ? this.splitAt(idxOpt.get + 1) : [Empty, this];
   }
 
   /**
@@ -975,7 +973,7 @@ abstract class _Seq<out A> {
     a: A,
     E: Eq<A> = Eq.fromUniversalEquals(),
   ): boolean {
-    return this.forEachUntil(x => E.notEquals(x, a));
+    return !this.forEachUntil(x => E.notEquals(x, a));
   }
   /**
    * Negation of `elem`:
@@ -1392,7 +1390,7 @@ abstract class _Seq<out A> {
    * ```
    */
   public removeAt(i: number): Seq<A> {
-    if (i < 0 || i > this.size) throw new Error('IndexOutOfBounds');
+    if (i < 0 || i >= this.size) throw new Error('IndexOutOfBounds');
     // TODO
     const split = this.splitAt(i);
     return split[0].concat(split[1].tail);
@@ -1636,7 +1634,7 @@ abstract class _Seq<out A> {
    * ```
    */
   public concat<A>(this: Seq<A>, that: Seq<A>): Seq<A> {
-    return concatE(this, [], that);
+    return concatE(this, that);
   }
   /**
    * Alias for `concat`.
@@ -1805,7 +1803,7 @@ abstract class _Seq<out A> {
           rs.push(Empty);
           rsSz++;
         }
-        rs[i].append(x);
+        rs[i] = rs[i].append(x);
         i++;
       });
     });
@@ -2164,224 +2162,6 @@ abstract class _Seq<out A> {
     return v ? v[0].scanRight_(v[1], f) : Empty;
   }
 
-  // -- Set operations
-
-  /**
-   * _O(n^2)_ Removes duplicate elements from the sequence.
-   *
-   * @see distinctBy for the user supplied equality check.
-   *
-   * @note In case the `Eq<A>` is not provided, the implementation falls back
-   * to default equality comparison with _O(n)_.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3, 4, 3, 2, 1, 2, 4, 3, 5).distinct()
-   * // Seq(1, 2, 3, 4, 5)
-   * ```
-   */
-  public distinct<A>(
-    this: Seq<A>,
-    E: Eq<A> = Eq.fromUniversalEquals(),
-  ): Seq<A> {
-    return E ? this.distinctBy(E.equals) : this.distinctPrim();
-  }
-
-  /**
-   * Version of `distinct` function using a user-supplied equality check `eq`.
-   */
-  public distinctBy(eq: (x: A, y: A) => boolean): Seq<A> {
-    const seen: A[] = [];
-    return this.filter(x => {
-      if (seen.some(y => eq(x, y))) return false;
-      seen.push(x);
-      return true;
-    });
-  }
-
-  private distinctPrim(): Seq<A> {
-    const seen: Set<A> = new Set();
-    return this.filter(x => {
-      if (seen.has(x)) return false;
-      seen.add(x);
-      return true;
-    });
-  }
-
-  /**
-   * _O(n)_ Removes the first occurrence of `x` in the sequence.
-   *
-   * @see removeBy for the use-supplied comparison function.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3, 1, 2, 3).remove(1)
-   * // Seq(2, 3, 1, 2, 3)
-   *
-   * > Seq(2, 3).remove(1)
-   * // Seq(2, 3)
-   *
-   * > Seq().remove(1)
-   * // Seq()
-   * ```
-   */
-  public remove<A>(
-    this: Seq<A>,
-    x: A,
-    E: Eq<A> = Eq.fromUniversalEquals(),
-  ): Seq<A> {
-    return this.removeBy(x, E.equals);
-  }
-
-  /**
-   * Version of `remove` function using a user-supplied equality check `eq`.
-   */
-  public removeBy<A>(this: Seq<A>, x: A, eq: (x: A, y: A) => boolean): Seq<A> {
-    const toRemove = this.findIndex(y => eq(x, y));
-    return toRemove.isEmpty ? this : this.removeAt(toRemove.get);
-  }
-
-  /**
-   * _O(n * m)_ A non-associative collection difference. `difference` removes
-   * first occurrence of each element of `that` in the current sequence.
-   *
-   * `xs.concat(ys).difference(xs) === ys`
-   *
-   * @see differenceBy for the user-supplied comparison function.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3, 1, 2, 3).difference(Seq(2, 3))
-   * // Seq(1, 1, 2, 3)
-   *
-   * > Seq(1, 2, 3, 1, 2, 3).difference(Seq(1, 1, 2))
-   * // Seq(3, 2, 3)
-   *
-   * > Seq.range(1, 9).difference(Seq(1, 2, 3))
-   * // Seq(4, 5, 6, 7, 8)
-   * ```
-   */
-  public difference<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    E: Eq<A> = Eq.fromUniversalEquals(),
-  ): Seq<A> {
-    return this.differenceBy(that, E.equals);
-  }
-  /**
-   * Alias for `difference`.
-   */
-  public '\\'<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    E: Eq<A> = Eq.fromUniversalEquals(),
-  ): Seq<A> {
-    return this.difference(that, E);
-  }
-
-  /**
-   * Version of `difference` that uses user-supplied equality check `eq`.
-   */
-  public differenceBy<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    eq: (x: A, y: A) => boolean,
-  ): Seq<A> {
-    return that.foldLeft(this, (xs, x) => xs.removeBy(x, eq));
-  }
-
-  /**
-   * _O(max(n, m) * m)_ Creates a union of two sequences.
-   *
-   * Duplicates and the elements from the first sequence are removed from the
-   * second one. But if there are duplicates in the original sequence, they are
-   * present in the result as well.
-   *
-   * @see unionBy for the user-supplied equality check.
-   *
-   * @note In case the `Eq<A>` is not provided, the implementation falls back
-   * to default equality comparison with _O(max(n, m))_.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3).union(Seq(2, 3, 4))
-   * // Seq(1, 2, 3, 4)
-   *
-   * > Seq(1, 2, 3).union(Seq(1, 2, 3, 3, 4))
-   * // Seq(1, 2, 3, 4)
-   *
-   * > Seq(1, 1, 2, 3, 6).union(Seq(2, 3, 4))
-   * // Seq(1, 1, 2, 3, 6, 4)
-   *
-   * > Seq.range(1).union(Seq.range(1)).take(5)
-   * // Seq(1, 2, 3, 4, 5)
-   *
-   * > Seq(1, 2, 3).union(Seq.rage(1)).take(5)
-   * // Seq(1, 2, 3, 4, 5)
-   * ```
-   */
-  public union<A>(this: Seq<A>, that: Seq<A>, E?: Eq<A>): Seq<A> {
-    return E ? this.unionBy(that, E.equals) : this.unionPrim(that);
-  }
-
-  /**
-   * Version of `union` that uses a user-supplied equality check `eq`.
-   */
-  public unionBy<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    eq: (x: A, y: A) => boolean,
-  ): Seq<A> {
-    return this.concat(
-      this.foldLeft(that.distinctBy(eq), (xs, x) => xs.removeBy(x, eq)),
-    );
-  }
-
-  private unionPrim<A>(this: Seq<A>, that: Seq<A>): Seq<A> {
-    return this.concat(
-      this.foldLeft(that.distinctPrim(), (xs, x) => xs.remove(x)),
-    );
-  }
-
-  /**
-   * _O(n * m)_ Creates an intersection of two sequences. If the first sequence
-   * contains duplicates so does the second
-   *
-   * @see intersectBy for a user-supplied equality check.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3, 4).intersect(Seq(2, 4, 6, 8))
-   * // Seq(2, 4)
-   *
-   * > Seq(1, 1, 2, 3).intersect(Seq(1, 2, 2, 5))
-   * // Seq(1, 1, 2)
-   * ```
-   */
-  public intersect<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    E: Eq<A> = Eq.fromUniversalEquals(),
-  ): Seq<A> {
-    return this.intersectBy(that, E.equals);
-  }
-
-  /**
-   * Version of `intersect` that uses user-supplied equality check `eq`.
-   */
-  public intersectBy<A>(
-    this: Seq<A>,
-    that: Seq<A>,
-    eq: (x: A, y: A) => boolean,
-  ): Seq<A> {
-    return this.filter(x => that.any(y => eq(x, y)));
-  }
-
   // -- Folds
 
   /**
@@ -2457,10 +2237,10 @@ abstract class _Seq<out A> {
    * ```
    */
   public foldLeft1<A>(this: Seq<A>, f: (acc: A, x: A) => A): A {
-    const v = viewRE(this);
+    const v = viewLE(this);
     return !v
       ? throwError(new Error('Seq.empty: foldLeft1'))
-      : v[0].foldLeft(v[1], f);
+      : v[1].foldLeft(v[0], f);
   }
 
   /**
@@ -2532,10 +2312,10 @@ abstract class _Seq<out A> {
     this: Seq<A>,
     f: (a: A, eac: Eval<A>) => Eval<A>,
   ): Eval<A> {
-    const v = viewLE(this);
+    const v = viewRE(this);
     return !v
       ? Eval.always(() => throwError(new Error('Seq.empty: foldRight1')))
-      : v[1].foldRight(Eval.now(v[0]), f);
+      : v[0].foldRight(Eval.now(v[1]), f);
   }
 
   /**
@@ -2590,10 +2370,10 @@ abstract class _Seq<out A> {
    * Strict, non-short-circuiting version of the `foldRight1`.
    */
   public foldRight1_<A>(this: Seq<A>, f: (a: A, acc: A) => A): A {
-    const v = viewLE(this);
+    const v = viewRE(this);
     return !v
       ? throwError(new Error('Seq.empty: foldRight1_'))
-      : v[1].foldRight_(v[0], f);
+      : v[0].foldRight_(v[1], f);
   }
 
   /**
@@ -2710,36 +2490,6 @@ abstract class _Seq<out A> {
    */
   public sortBy(cmp: (l: A, r: A) => Compare): Seq<A> {
     return Seq.fromArray(this.toArray.sort((x, y) => cmp(x, y) - 1));
-  }
-
-  /**
-   * _O(n)_ Inserts the element at the first position which is less, or equal to
-   * the inserted element. In particular, if the sequence is sorted to begin with,
-   * it will remain to be sorted.
-   *
-   * @see insertBy for user-supplied comparison function.
-   *
-   * @examples
-   *
-   * ```typescript
-   * > Seq(1, 2, 3, 5, 6, 7).insert(4)
-   * // Seq(1, 2, 3, 4, 5, 6, 7)
-   * ```
-   */
-  public insert<A>(
-    this: Seq<A>,
-    x: A,
-    O: Ord<A> = Ord.fromUniversalCompare(),
-  ): Seq<A> {
-    return this.insertBy(x, O.compare);
-  }
-
-  /**
-   * Version of `insert` function using a user-supplied comparator `cmp`.
-   */
-  public insertBy<A>(this: Seq<A>, x: A, cmp: (x: A, y: A) => Compare): Seq<A> {
-    const idx = this.findIndex(y => cmp(x, y) !== Compare.GT);
-    return idx.isEmpty ? this.append(x) : this.insertAt(idx.get, x);
   }
 
   // -- Traversals
@@ -2972,6 +2722,14 @@ function digitSizeN<A>(xs: Digit<Node<A>>): number {
     case 4:
       return xs[0][0] + xs[1][0] + xs[2][0] + xs[3][0];
   }
+}
+
+function nodesSize<A>(xs: readonly Node<A>[]): number {
+  let sz = 0;
+  for (let i = 0, len = xs.length; i < len; i++) {
+    sz += xs[i][0];
+  }
+  return sz;
 }
 
 function nodeToDigit<A>(xs: Node<A>): Digit<A> {
@@ -3255,7 +3013,9 @@ function takePrefixN<A>(
     case 1:
       return [Empty, xs[0]];
     case 2:
-      return n < 1 ? [Empty, xs[0]] : [new Single(xs[0][0], xs[0]), xs[1]];
+      return n < xs[0][0]
+        ? [Empty, xs[0]]
+        : [new Single(xs[0][0], xs[0]), xs[1]];
     case 3: {
       const sa = xs[0][0];
       if (n < sa) return [Empty, xs[0]];
@@ -3445,7 +3205,9 @@ function takeSuffixNR<A>(
     case 1:
       return [xs[0], Empty];
     case 2:
-      return n < 1 ? [xs[1], Empty] : [xs[0], new Single(xs[1][0], xs[1])];
+      return n < xs[1][0]
+        ? [xs[1], Empty]
+        : [xs[0], new Single(xs[1][0], xs[1])];
     case 3: {
       const sc = xs[2][0];
       if (n < sc) return [xs[2], Empty];
@@ -3458,7 +3220,7 @@ function takeSuffixNR<A>(
       if (n < sd) return [xs[3], Empty];
       const sdc = sd + xs[2][0];
       if (n < sdc) return [xs[2], new Single(sd, xs[3])];
-      const sdcb = sd + xs[1][0];
+      const sdcb = sdc + xs[1][0];
       if (n < sdcb) return [xs[1], new Deep(sdc, [xs[2]], Empty, [xs[3]])];
       return [xs[0], new Deep(sdcb, [xs[1], xs[2]], Empty, [xs[3]])];
     }
@@ -4099,14 +3861,20 @@ function modifyE<A>(self: Seq<A>, idx: number, f: (a: A) => A): Seq<A> {
           xs.deeper,
           xs.sfx,
         );
-      if (idx < sp + xs.deeper.size)
+      const spm = sp + xs.deeper.size;
+      if (idx < spm)
         return new Deep(
           xs.size,
           xs.pfx,
           modifyN(xs.deeper, idx - sp, modifyNodeE(f)),
           xs.sfx,
         );
-      return new Deep(xs.size, xs.pfx, xs.deeper, modifyDigitE(xs.sfx, idx, f));
+      return new Deep(
+        xs.size,
+        xs.pfx,
+        xs.deeper,
+        modifyDigitE(xs.sfx, idx - spm, f),
+      );
   }
 }
 function modifyN<A>(
@@ -4121,7 +3889,7 @@ function modifyN<A>(
     case 1:
       return new Single(xs.size, f(xs.value, idx));
     case 2:
-      const sp = xs.pfx.length;
+      const sp = digitSizeN(xs.pfx);
       if (idx < sp)
         return new Deep(
           xs.size,
@@ -4129,7 +3897,8 @@ function modifyN<A>(
           xs.deeper,
           xs.sfx,
         );
-      if (idx < sp + xs.deeper.size)
+      const spm = sp + xs.deeper.size;
+      if (idx < spm)
         return new Deep(
           xs.size,
           xs.pfx,
@@ -4140,7 +3909,7 @@ function modifyN<A>(
         xs.size,
         xs.pfx,
         xs.deeper,
-        modifyDigitN(xs.sfx, idx - sp - xs.deeper.size, f),
+        modifyDigitN(xs.sfx, idx - spm, f),
       );
   }
 }
@@ -4184,7 +3953,7 @@ function modifyDigitN<A>(
 ): Digit<Node<A>> {
   switch (xs.length) {
     case 1:
-      return [f(xs[0], idx - xs[0][0])];
+      return [f(xs[0], idx)];
     case 2:
       return idx < xs[0][0]
         ? [f(xs[0], idx), xs[1]]
@@ -4198,10 +3967,12 @@ function modifyDigitN<A>(
     }
     case 4: {
       const sa = xs[0][0];
-      if (idx < sa) return [f(xs[0], idx), xs[1], xs[2]];
+      if (idx < sa) return [f(xs[0], idx), xs[1], xs[2], xs[3]];
       const sab = sa + xs[1][0];
-      if (idx < sab) return [xs[0], f(xs[1], idx - sa), xs[2]];
-      return [xs[0], xs[1], f(xs[2], idx - sab)];
+      if (idx < sab) return [xs[0], f(xs[1], idx - sa), xs[2], xs[3]];
+      const sabc = sab + xs[2][0];
+      if (idx < sabc) return [xs[0], xs[1], f(xs[2], idx - sab), xs[3]];
+      return [xs[0], xs[1], xs[2], f(xs[3], idx - sab)];
     }
   }
 }
@@ -4817,20 +4588,34 @@ function mapDigitRight<A, B>(xs: Digit<A>, f: (a: A) => B): Digit<B> {
   switch (xs.length) {
     case 1:
       return [f(xs[0])];
-    case 2:
-      return [f(xs[1]), f(xs[0])];
-    case 3:
-      return [f(xs[2]), f(xs[1]), f(xs[0])];
-    case 4:
-      return [f(xs[3]), f(xs[2]), f(xs[1]), f(xs[0])];
+    case 2: {
+      const b = f(xs[1]);
+      return [f(xs[0]), b];
+    }
+    case 3: {
+      const c = f(xs[2]);
+      const b = f(xs[1]);
+      return [f(xs[0]), b, c];
+    }
+    case 4: {
+      const d = f(xs[3]);
+      const c = f(xs[2]);
+      const b = f(xs[1]);
+      return [f(xs[0]), b, c, d];
+    }
   }
 }
 function mapNodeRight<A, B>(xs: Node<A>, f: (a: A) => B): Node<B> {
   switch (xs.length) {
-    case 3:
-      return [xs[0], f(xs[2]), f(xs[1])];
-    case 4:
-      return [xs[0], f(xs[3]), f(xs[2]), f(xs[1])];
+    case 3: {
+      const b = f(xs[2]);
+      return [xs[0], f(xs[1]), b];
+    }
+    case 4: {
+      const c = f(xs[3]);
+      const b = f(xs[2]);
+      return [xs[0], f(xs[1]), b, c];
+    }
   }
 }
 
@@ -4871,29 +4656,25 @@ function reverseNode<A, B>(xs: Node<A>, f: (a: A) => B): Node<B> {
   }
 }
 
-function concatE<A>(self: Seq<A>, m: readonly A[], that: Seq<A>): Seq<A> {
+function concatE<A>(self: Seq<A>, that: Seq<A>): Seq<A> {
   const xs = self as ViewSeq<A>;
   const ys = that as ViewSeq<A>;
   switch (xs.tag) {
     case 0:
-      return m.reduceRight((ys, x) => ys.prepend(x), ys as Seq<A>);
+      return ys;
     case 1:
-      return m
-        .reduceRight((ys, x) => ys.prepend(x), ys as Seq<A>)
-        .prepend(xs.value);
+      return ys.prepend(xs.value);
     case 2:
       switch (ys.tag) {
         case 0:
-          return m.reduce((xs, x) => xs.append(x), xs as Seq<A>);
+          return xs;
         case 1:
-          return m
-            .reduce((xs, x) => xs.append(x), xs as Seq<A>)
-            .append(ys.value);
+          return xs.append(ys.value);
         case 2:
           return new Deep(
             xs.size + ys.size,
             xs.pfx,
-            concatN(xs.deeper, nodesE([...xs.sfx, ...m, ...ys.pfx]), ys.deeper),
+            concatN(xs.deeper, nodesE([...xs.sfx, ...ys.pfx]), ys.deeper),
             ys.sfx,
           );
       }
@@ -4925,7 +4706,7 @@ function concatN<A>(
           );
         case 2:
           return new Deep(
-            xs.size + ys.size,
+            xs.size + ys.size + nodesSize(m),
             xs.pfx,
             concatN(xs.deeper, nodesN([...xs.sfx, ...m, ...ys.pfx]), ys.deeper),
             ys.sfx,
@@ -5663,11 +5444,33 @@ function* reverseIterator<A>(self: Seq<A>): Generator<A, void, undefined> {
       yield xs.value;
       break;
     case 2:
-      yield* xs.sfx;
+      yield* digitReverseIterator(xs.sfx);
       for (const n of reverseIterator(xs.deeper)) {
         yield* nodeReversedIterator(n);
       }
-      yield* xs.pfx;
+      yield* digitReverseIterator(xs.pfx);
+      break;
+  }
+}
+function* digitReverseIterator<A>(xs: Digit<A>): Generator<A, void, undefined> {
+  switch (xs.length) {
+    case 1:
+      yield xs[0];
+      break;
+    case 2:
+      yield xs[1];
+      yield xs[0];
+      break;
+    case 3:
+      yield xs[2];
+      yield xs[1];
+      yield xs[0];
+      break;
+    case 4:
+      yield xs[3];
+      yield xs[2];
+      yield xs[1];
+      yield xs[0];
       break;
   }
 }
