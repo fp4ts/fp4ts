@@ -11,10 +11,10 @@ import {
   Option,
   Some,
   None,
-  Chain,
   IdentityF,
   List,
   Monad,
+  Seq,
 } from '@fp4ts/cats';
 import {
   Ref,
@@ -184,7 +184,7 @@ export class Scope<F> {
         this.state.modify(s =>
           s.tag === 'closed'
             ? [s, None]
-            : [s.copy({ children: s.children['+::'](scope) }), Some(scope)],
+            : [s.copy({ children: s.children.append(scope) }), Some(scope)],
         ),
         F.flatMap(optScope =>
           optScope.fold<Kind<F, [Either<Error, Scope<F>>]>>(
@@ -324,15 +324,15 @@ export class Scope<F> {
             : throwError(new Error('Scope closed at the time of the lease')),
         ),
       );
-      const allScopes = children['::+'](self)['+++'](self.ancestors);
+      const allScopes = children.append(self)['++'](self.ancestors);
       const allResources = yield* _(
-        Chain.TraversableFilter.flatTraverse_(Chain.Monad, F)(
+        Seq.TraversableFilter.flatTraverse_(Seq.Monad, F)(
           allScopes,
           scope => scope.resources,
         ),
       );
       const allLeases = yield* _(
-        allResources.traverse(F)(resource => resource.lease),
+        allResources.traverse(F, resource => resource.lease),
       );
       return new Lease(
         self.traverseError(allLeases.collect(id), l => l.cancel),
@@ -343,26 +343,26 @@ export class Scope<F> {
   private register = (resource: ScopedResource<F>): Kind<F, [boolean]> =>
     this.state.modify(s =>
       s.tag === 'open'
-        ? [s.copy({ resources: s.resources['+::'](resource) }), true]
+        ? [s.copy({ resources: s.resources.prepend(resource) }), true]
         : [s, false],
     );
 
   private releaseChildScope = (id: UniqueToken): Kind<F, [void]> =>
     this.state.update(s => (s.tag === 'open' ? s.unregisterChild(id) : s));
 
-  private get resources(): Kind<F, [Chain<ScopedResource<F>>]> {
+  private get resources(): Kind<F, [Seq<ScopedResource<F>>]> {
     const { F } = this.target;
     return F.map_(this.state.get(), s =>
-      s.tag === 'open' ? s.resources : Chain.empty,
+      s.tag === 'open' ? s.resources : Seq.empty,
     );
   }
 
   private traverseError = <A>(
-    ca: Chain<A>,
+    ca: Seq<A>,
     f: (a: A) => Kind<F, [Either<Error, void>]>,
   ): Kind<F, [Either<Error, void>]> =>
     this.target.F.map_(
-      Chain.TraversableFilter.traverse_(this.target.F)(ca, f),
+      Seq.TraversableFilter.traverse_(this.target.F)(ca, f),
       results =>
         CompositeFailure.fromList(
           results.collect(ea =>
@@ -377,13 +377,13 @@ export class Scope<F> {
         ),
     );
 
-  private get ancestors(): Chain<Scope<F>> {
+  private get ancestors(): Seq<Scope<F>> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let cur: Scope<F> = this;
-    let acc: Chain<Scope<F>> = Chain.empty;
+    let acc: Seq<Scope<F>> = Seq.empty;
     while (cur.parent.nonEmpty) {
       const next = cur.parent.get;
-      acc = acc['::+'](next);
+      acc = acc.append(next);
       cur = next;
     }
     return acc;
@@ -405,7 +405,7 @@ export class Scope<F> {
   ): Kind<F, [Option<Scope<F>>]> => {
     const { F } = this.target;
 
-    const go = (scopes: Chain<Scope<F>>): Kind<F, [Option<Scope<F>>]> =>
+    const go = (scopes: Seq<Scope<F>>): Kind<F, [Option<Scope<F>>]> =>
       scopes.uncons.fold(
         () => F.pure(None),
         ([scope, tl]) =>
@@ -442,28 +442,27 @@ export class Scope<F> {
 
 type ScopeState<F> = Open<F> | Closed;
 const ScopeState = Object.freeze({
-  initial: <F>(): ScopeState<F> => new Open<F>(Chain.empty, Chain.empty),
+  initial: <F>(): ScopeState<F> => new Open<F>(Seq.empty, Seq.empty),
   closed: <F>(): ScopeState<F> => Closed,
 });
 
 type StateProps<F> = {
-  readonly resources: Chain<ScopedResource<F>>;
-  readonly children: Chain<Scope<F>>;
+  readonly resources: Seq<ScopedResource<F>>;
+  readonly children: Seq<Scope<F>>;
 };
 class Open<F> {
   public readonly tag = 'open';
   public constructor(
-    public readonly resources: Chain<ScopedResource<F>>,
-    public readonly children: Chain<Scope<F>>,
+    public readonly resources: Seq<ScopedResource<F>>,
+    public readonly children: Seq<Scope<F>>,
   ) {}
 
-  public unregisterChild = (id: UniqueToken): ScopeState<F> =>
-    this.children
-      .deleteFirst(s => s.id === id)
-      .fold(
-        () => this,
-        ([, newChildren]) => this.copy({ children: newChildren }),
-      );
+  public unregisterChild = (id: UniqueToken): ScopeState<F> => {
+    const idx = this.children.findIndex(s => s.id === id);
+    return idx.isEmpty
+      ? this
+      : this.copy({ children: this.children.removeAt(idx.get) });
+  };
 
   public copy({
     resources = this.resources,

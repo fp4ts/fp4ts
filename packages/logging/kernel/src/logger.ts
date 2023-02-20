@@ -147,9 +147,7 @@ export class Logger<F, A> {
 
   public static readonly Contravariant: <F>() => Contravariant<
     $<LoggerF, [F]>
-  > = lazy(() =>
-    Contravariant.of({ contramap_: (fa, f) => fa.contramap(f) }),
-  );
+  > = lazy(() => Contravariant.of({ contramap_: (fa, f) => fa.contramap(f) }));
 
   public static readonly MonoidK: <F>(
     F: Applicative<F>,

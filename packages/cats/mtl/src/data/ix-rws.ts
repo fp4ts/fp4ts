@@ -6,7 +6,7 @@
 import { $, $type, Fix, snd, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Profunctor, StackSafeMonad, Strong } from '@fp4ts/cats-core';
-import { Chain } from '@fp4ts/cats-core/lib/data';
+import { Seq } from '@fp4ts/cats-core/lib/data';
 import { MonadReader } from '../monad-reader';
 import { MonadWriter } from '../monad-writer';
 import { MonadState } from '../monad-state';
@@ -67,8 +67,8 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
   }
 
   public censor<W2>(f: (w: W) => W2, W: Semigroup<W2>): IxRWS<R, W2, S1, S2, A>;
-  public censor<W2>(f: (w: W) => Chain<W2>): IxRWS<R, Chain<W2>, S1, S2, A>;
-  public censor(f: any, W: any = Chain.MonoidK.algebra()): any {
+  public censor<W2>(f: (w: W) => Seq<W2>): IxRWS<R, Seq<W2>, S1, S2, A>;
+  public censor(f: any, W: any = Seq.Alternative.algebra()): any {
     return new Censor(this, f, W);
   }
 
@@ -76,8 +76,8 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     this: IxRWS<R, W, S1, S2, A>,
     W: Monoid<W>,
   ): IxRWS<R, W, S1, S2, A>;
-  public reset<W>(this: IxRWS<R, W, S1, S2, Chain<W>>): IxRWS<R, W, S1, S2, A>;
-  public reset(W: any = Chain.MonoidK.algebra()): any {
+  public reset<W>(this: IxRWS<R, W, S1, S2, Seq<W>>): IxRWS<R, W, S1, S2, A>;
+  public reset(W: any = Seq.Alternative.algebra()): any {
     return this.censor(() => W.empty, W);
   }
 
@@ -176,24 +176,24 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
 
   // -- Run
 
-  public run(this: IxRWS<unknown, Chain<never>, unknown, unknown, A>): A {
+  public run(this: IxRWS<unknown, Seq<never>, unknown, unknown, A>): A {
     return this.runA(null, null);
   }
 
   public runState(
-    this: IxRWS<unknown, Chain<never>, S1, S2, A>,
+    this: IxRWS<unknown, Seq<never>, S1, S2, A>,
     s1: S1,
   ): [A, S2] {
     return this.runAS(null, s1);
   }
-  public runStateA(this: IxRWS<unknown, Chain<never>, S1, S2, A>, s1: S1): A {
+  public runStateA(this: IxRWS<unknown, Seq<never>, S1, S2, A>, s1: S1): A {
     return this.runAS(null, s1)[0];
   }
-  public runStateS(this: IxRWS<unknown, Chain<never>, S1, S2, A>, s1: S1): S2 {
+  public runStateS(this: IxRWS<unknown, Seq<never>, S1, S2, A>, s1: S1): S2 {
     return this.runAS(null, s1)[1];
   }
 
-  public runReader(this: IxRWS<R, Chain<never>, unknown, unknown, A>, r: R): A {
+  public runReader(this: IxRWS<R, Seq<never>, unknown, unknown, A>, r: R): A {
     return this.runA(r, null);
   }
 
@@ -202,11 +202,11 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     W: Monoid<W>,
   ): [A, W];
   public runWriter<W>(
-    this: IxRWS<unknown, Chain<W>, unknown, unknown, A>,
+    this: IxRWS<unknown, Seq<W>, unknown, unknown, A>,
   ): [A, W];
   public runWriter(
     this: IxRWS<unknown, any, unknown, unknown, A>,
-    W: Monoid<any> = Chain.MonoidK.algebra(),
+    W: Monoid<any> = Seq.Alternative.algebra(),
   ): [A, any] {
     return this.runAW(null, null, W);
   }
@@ -215,10 +215,10 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     this: IxRWS<unknown, W, unknown, unknown, A>,
     W: Monoid<W>,
   ): A;
-  public runWriterA<W>(this: IxRWS<unknown, Chain<W>, unknown, unknown, A>): A;
+  public runWriterA<W>(this: IxRWS<unknown, Seq<W>, unknown, unknown, A>): A;
   public runWriterA(
     this: IxRWS<unknown, any, unknown, unknown, A>,
-    W: Monoid<any> = Chain.MonoidK.algebra(),
+    W: Monoid<any> = Seq.Alternative.algebra(),
   ): A {
     return this.runA(null, null, W);
   }
@@ -228,11 +228,11 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     W: Monoid<W>,
   ): W;
   public runWriterW<W>(
-    this: IxRWS<unknown, Chain<W>, unknown, unknown, A>,
-  ): Chain<W>;
+    this: IxRWS<unknown, Seq<W>, unknown, unknown, A>,
+  ): Seq<W>;
   public runWriterW(
     this: IxRWS<unknown, any, unknown, unknown, A>,
-    W: Monoid<any> = Chain.MonoidK.algebra(),
+    W: Monoid<any> = Seq.Alternative.algebra(),
   ): any {
     return this.runW(null, null, W);
   }
@@ -243,14 +243,14 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     s1: S1,
     W: Monoid<W2>,
   ): A;
-  public runA<W2>(this: IxRWS<R, Chain<W2>, S1, S2, A>, r: R, s1: S1): A;
-  public runA(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): A {
+  public runA<W2>(this: IxRWS<R, Seq<W2>, S1, S2, A>, r: R, s1: S1): A;
+  public runA(r: R, s1: S1, W: any = Seq.Alternative.algebra()): A {
     return this.runAll(r, s1, W as any)[0];
   }
 
   public runS<W>(this: IxRWS<R, W, S1, S2, A>, r: R, s1: S1, W: Monoid<W>): S2;
-  public runS<W>(this: IxRWS<R, Chain<W>, S1, S2, A>, r: R, s1: S1): S2;
-  public runS(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): S2 {
+  public runS<W>(this: IxRWS<R, Seq<W>, S1, S2, A>, r: R, s1: S1): S2;
+  public runS(r: R, s1: S1, W: any = Seq.Alternative.algebra()): S2 {
     return this.runAll(r, s1, W as any)[1];
   }
 
@@ -260,15 +260,15 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     s1: S1,
     W: Monoid<W>,
   ): [A, S2];
-  public runAS<W2>(this: IxRWS<R, Chain<W2>, S1, S2, A>, r: R, s1: S1): [A, S2];
-  public runAS(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): [A, S2] {
+  public runAS<W2>(this: IxRWS<R, Seq<W2>, S1, S2, A>, r: R, s1: S1): [A, S2];
+  public runAS(r: R, s1: S1, W: any = Seq.Alternative.algebra()): [A, S2] {
     const [a, s2] = this.runAll(r, s1, W);
     return [a, s2];
   }
 
   public runW<W>(this: IxRWS<R, W, S1, S2, A>, r: R, s1: S1, W: Monoid<W>): W;
-  public runW<W>(this: IxRWS<R, Chain<W>, S1, S2, A>, r: R, s1: S1): Chain<W>;
-  public runW(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): any {
+  public runW<W>(this: IxRWS<R, Seq<W>, S1, S2, A>, r: R, s1: S1): Seq<W>;
+  public runW(r: R, s1: S1, W: any = Seq.Alternative.algebra()): any {
     return this.runAll(r, s1, W as any)[2];
   }
 
@@ -278,12 +278,8 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     s1: S1,
     W: Monoid<W>,
   ): [A, W];
-  public runAW<W>(
-    this: IxRWS<R, Chain<W>, S1, S2, A>,
-    r: R,
-    s1: S1,
-  ): [A, Chain<W>];
-  public runAW(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): [A, any] {
+  public runAW<W>(this: IxRWS<R, Seq<W>, S1, S2, A>, r: R, s1: S1): [A, Seq<W>];
+  public runAW(r: R, s1: S1, W: any = Seq.Alternative.algebra()): [A, any] {
     const [a, , w] = this.runAll(r, s1, W);
     return [a, w];
   }
@@ -295,11 +291,11 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     W: Monoid<W>,
   ): [S2, W];
   public runSW<W>(
-    this: IxRWS<R, Chain<W>, S1, S2, A>,
+    this: IxRWS<R, Seq<W>, S1, S2, A>,
     r: R,
     s1: S1,
-  ): [S2, Chain<W>];
-  public runSW(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): [S2, any] {
+  ): [S2, Seq<W>];
+  public runSW(r: R, s1: S1, W: any = Seq.Alternative.algebra()): [S2, any] {
     const [, s2, w] = this.runAll(r, s1, W);
     return [s2, w];
   }
@@ -310,12 +306,12 @@ class _IxRWS<in R, out W, in S1, out S2, out A> {
     s1: S1,
     W: Monoid<W>,
   ): [A, S2, W];
-  public runAll<W>(
-    this: IxRWS<R, Chain<W>, S1, S2, A>,
+  public runAll<W>(this: IxRWS<R, Seq<W>, S1, S2, A>, r: R, s1: S1): [A, S2, W];
+  public runAll(
     r: R,
     s1: S1,
-  ): [A, S2, W];
-  public runAll(r: R, s1: S1, W: any = Chain.MonoidK.algebra()): [A, S2, any] {
+    W: any = Seq.Alternative.algebra(),
+  ): [A, S2, any] {
     return this._runAll(r, s1, W as any);
   }
 
