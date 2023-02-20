@@ -47,12 +47,10 @@ export const chunkMonad: Lazy<Monad<ChunkF>> = lazy(() =>
     flatMap_: (xs, f) => xs.flatMap(f),
     flatten: xs => xs.flatMap(id),
     tailRecM_: ChunkBase.tailRecM_,
-    map2Eval_:
-      <A, B>(fa: Chunk<A>, efb: Eval<Chunk<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.isEmpty
-          ? Eval.now(EmptyChunk)
-          : efb.map(fb => fa.flatMap(a => fb.map(b => f(a, b)))),
+    map2Eval_: (fa, efb, f) =>
+      fa.isEmpty
+        ? Eval.now(EmptyChunk)
+        : efb.map(fb => fa.flatMap(a => fb.map(b => f(a, b)))),
   }),
 );
 

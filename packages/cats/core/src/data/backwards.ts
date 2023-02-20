@@ -29,11 +29,8 @@ Backwards.Applicative = <F>(F: Applicative<F>) =>
   Applicative.of({
     ...Backwards.Functor(F),
     pure: F.pure,
-    ap_: (ff, fa) => F.map2_(fa, ff)((a, f) => f(a)),
-    map2_:
-      <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        F.map2_(fb, fa)((b, a) => f(a, b)),
+    ap_: (ff, fa) => F.map2_(fa, ff, (a, f) => f(a)),
+    map2_: (fa, fb, f) => F.map2_(fb, fa, (b, a) => f(a, b)),
   });
 Backwards.Monad = <F>(F: Monad<F>) =>
   Monad.of({

@@ -285,14 +285,8 @@ const eitherMonad = lazy(
     Monad.of<$<EitherF, [E]>>({
       pure: Either.pure,
       map_: (fa, f) => fa.map(f),
-      map2_:
-        <A, B>(fa: Either<E, A>, fb: Either<E, B>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          fa.map2(fb, f),
-      map2Eval_:
-        <A, B>(fa: Either<E, A>, efb: Eval<Either<E, B>>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          fa.map2Eval(efb, f),
+      map2_: (fa, fb, f) => fa.map2(fb, f),
+      map2Eval_: (fa, efb, f) => fa.map2Eval(efb, f),
       flatMap_: (fa, f) => fa.flatMap(f),
       flatten: fa => fa.flatten(),
       tailRecM_: Either.tailRecM_,

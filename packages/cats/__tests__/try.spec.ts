@@ -249,7 +249,8 @@ describe('Try', () => {
       Try.Applicative.map2Eval_(
         Failure(new Error('err 1')),
         Eval.delay(() => throwError(new Error('err 2'))),
-      )(() => 42).value,
+        () => 42,
+      ).value,
     ).toEqual(Failure(new Error('err 1')));
   });
 

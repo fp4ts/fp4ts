@@ -2909,7 +2909,7 @@ export class _View<A> {
     f: (a: A) => Kind<G, [B]>,
   ): Kind<G, [List<B>]> {
     return this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
-      G.map2Eval_(f(x), eys)(List.cons),
+      G.map2Eval_(f(x), eys, List.cons),
     ).value;
   }
 
@@ -2977,7 +2977,7 @@ export class _View<A> {
     return isIdentityTC(G)
       ? (this.forEach(f) as any)
       : this.foldRight(Eval.now(G.unit), (x, eb) =>
-          G.map2Eval_(f(x), eb)(discard),
+          G.map2Eval_(f(x), eb, discard),
         ).value;
   }
 
@@ -3032,7 +3032,7 @@ export class _View<A> {
       x === None ? ys : ys.prepend(x.get);
 
     return this.foldRight(Eval.now(G.pure(List.empty as List<B>)), (x, eys) =>
-      G.map2Eval_(f(x), eys)(consOpt),
+      G.map2Eval_(f(x), eys, consOpt),
     ).value;
   }
 
@@ -3113,14 +3113,8 @@ const viewApply = lazy(() =>
   Apply.of<ViewF>({
     ...viewFunctor(),
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: View<A>, fb: View<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2(fb, f),
-    map2Eval_:
-      <A, B>(fa: View<A>, efb: Eval<View<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2Eval(efb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
+    map2Eval_: (fa, efb, f) => fa.map2Eval(efb, f),
   }),
 );
 

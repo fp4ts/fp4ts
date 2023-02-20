@@ -36,7 +36,8 @@ export const Clock = Object.freeze({
           self.monotonic,
           fa,
           self.monotonic,
-        )((start, a, end) => [end - start, a]),
+          (start, a, end) => [end - start, a],
+        ),
 
       ...F,
     };

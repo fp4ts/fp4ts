@@ -85,10 +85,8 @@ const proxyApplicative: Lazy<Applicative<ProxyF>> = lazy(() =>
     ...proxyFunctor(),
     pure: <A>() => Proxy<A>(),
     ap_: <A, B>() => Proxy<B>(),
-    map2Eval_:
-      () =>
-      <C>() =>
-        Eval.now(Proxy<C>()),
+    map2_: <A, B, C>() => Proxy<C>(),
+    map2Eval_: <A, B, C>() => Eval.now(Proxy<C>()),
   }),
 );
 const proxyUnalign: Lazy<Unalign<ProxyF>> = lazy(() =>

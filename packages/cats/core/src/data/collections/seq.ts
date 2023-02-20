@@ -2566,7 +2566,7 @@ abstract class _Seq<out A> {
     return isIdentityTC(G)
       ? (this.forEach(f) as any)
       : this.foldRight(Eval.now(G.unit), (x, eb) =>
-          G.map2Eval_(f(x), eb)(discard),
+          G.map2Eval_(f(x), eb, discard),
         ).value;
   }
 
@@ -5125,8 +5125,9 @@ function traverseImpl<G, Rhs, A, B>(
       let sfx: Digit<B>;
       return Rhs.map2(
         pfxRhs,
-        Rhs.map2(middleRhs, sfxRhs)((m, s) => ((middle = m), (sfx = s))),
-      )((pfx, _) => new Deep(xs.size, pfx, middle, sfx));
+        Rhs.map2(middleRhs, sfxRhs, (m, s) => ((middle = m), (sfx = s))),
+        (pfx, _) => new Deep(xs.size, pfx, middle, sfx),
+      );
     }
   }
 }
@@ -5140,7 +5141,8 @@ function traverseNode<G, Rhs, A, B>(
       return Rhs.map2Rhs(
         f(xs[1]),
         Rhs.toRhs(() => f(xs[2])),
-      )((a, b) => [xs[0], a, b]);
+        (a, b) => [xs[0], a, b],
+      );
     case 4: {
       let b: B;
       let c: B;
@@ -5150,9 +5152,11 @@ function traverseNode<G, Rhs, A, B>(
           Rhs.map2Rhs(
             f(xs[2]),
             Rhs.toRhs(() => f(xs[3])),
-          )((x, y) => ((b = x), (c = y))),
+            (x, y) => ((b = x), (c = y)),
+          ),
         ),
-      )((a, _) => [xs[0], a, b, c]);
+        (a, _) => [xs[0], a, b, c],
+      );
     }
   }
 }
@@ -5169,7 +5173,8 @@ function traverseDigit<G, Rhs, A, B>(
       return Rhs.map2Rhs(
         f(xs[0]),
         Rhs.toRhs(() => f(xs[1])),
-      )((a, b) => [a, b]);
+        (a, b) => [a, b],
+      );
     case 3: {
       let b: B;
       let c: B;
@@ -5179,9 +5184,11 @@ function traverseDigit<G, Rhs, A, B>(
           Rhs.map2Rhs(
             f(xs[1]),
             Rhs.toRhs(() => f(xs[2])),
-          )((x, y) => ((b = x), (c = y))),
+            (x, y) => ((b = x), (c = y)),
+          ),
         ),
-      )(a => [a, b, c]);
+        a => [a, b, c],
+      );
     }
     case 4: {
       let b: B;
@@ -5196,11 +5203,14 @@ function traverseDigit<G, Rhs, A, B>(
               Rhs.map2Rhs(
                 f(xs[2]),
                 Rhs.toRhs(() => f(xs[3])),
-              )((y, w) => ((c = y), (d = w))),
+                (y, w) => ((c = y), (d = w)),
+              ),
             ),
-          )((x, _) => (b = x)),
+            (x, _) => (b = x),
+          ),
         ),
-      )(a => [a, b, c, d]);
+        a => [a, b, c, d],
+      );
     }
   }
 }
@@ -5230,10 +5240,9 @@ function traverseFilterViaSeqImpl<G, F, Rhs, A, B>(
         const right = first;
         const idx0 = idx;
         first = Rhs.defer(() =>
-          Rhs.map2Rhs(
-            f(a, idx0),
-            right,
-          )((opt, tl) => (opt.nonEmpty ? tl.prepend(opt.get) : tl)),
+          Rhs.map2Rhs(f(a, idx0), right, (opt, tl) =>
+            opt.nonEmpty ? tl.prepend(opt.get) : tl,
+          ),
         );
       }
       return first;
@@ -5250,7 +5259,7 @@ function traverseFilterViaSeqImpl<G, F, Rhs, A, B>(
         const start1 = start0;
         const end1 = Math.min(end, end0);
         const right = Rhs.defer(() => loop(start1, end1));
-        fseq = Rhs.map2(fseq, right)(concat_);
+        fseq = Rhs.map2(fseq, right, concat_);
       }
       return fseq;
     }
@@ -5531,14 +5540,8 @@ const seqApplicative = lazy(() =>
     ...seqFunctor(),
     pure: Seq.singleton,
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(xs: Seq<A>, ys: Seq<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        xs.map2(ys, f),
-    map2Eval_:
-      <A, B>(xs: Seq<A>, ys: Eval<Seq<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        xs.map2Eval(ys, f),
+    map2_: (xs, ys, f) => xs.map2(ys, f),
+    map2Eval_: (xs, ys, f) => xs.map2Eval(ys, f),
   }),
 );
 

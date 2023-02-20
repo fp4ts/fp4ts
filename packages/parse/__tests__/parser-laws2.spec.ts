@@ -46,7 +46,7 @@ describe('Parser Laws', () => {
         (fa, fb, f, s) =>
           eq(
             F.map_(F.product_(fa, fb), ([a, b]) => f(a, b)).parse(s),
-            F.map2_(fa, fb)(f).parse(s),
+            F.map2_(fa, fb, f).parse(s),
           ),
       ),
     );
@@ -60,8 +60,8 @@ describe('Parser Laws', () => {
         fc.string(),
         (fa, fb, f, s) =>
           eq(
-            F.map2_(fa, fb)(f).parse(s),
-            F.map2Eval_(fa, Eval.now(fb))(f).value.parse(s),
+            F.map2_(fa, fb, f).parse(s),
+            F.map2Eval_(fa, Eval.now(fb), f).value.parse(s),
           ),
       ),
     );
@@ -76,7 +76,7 @@ describe('Parser Laws', () => {
           eq(fa['<*'](fb).parse(s), F.productL_(fa, fb).parse(s)) &&
           eq(
             F.productL_(fa, fb).parse(s),
-            F.map2_(fa, fb)((a, _) => a).parse(s),
+            F.map2_(fa, fb, (a, _) => a).parse(s),
           ),
       ),
     );
@@ -91,7 +91,7 @@ describe('Parser Laws', () => {
           eq(fa['*>'](fb).parse(s), F.productR_(fa, fb).parse(s)) &&
           eq(
             F.productR_(fa, fb).parse(s),
-            F.map2_(fa, fb)((_, b) => b).parse(s),
+            F.map2_(fa, fb, (_, b) => b).parse(s),
           ),
       ),
     );

@@ -722,10 +722,7 @@ const ioApply: Lazy<Apply<IOF>> = lazy(() =>
   Apply.of({
     ...ioFunctor(),
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: IO<A>, fb: IO<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2(fb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
   }),
 );
 

@@ -183,7 +183,7 @@ describe('Product', () => {
     it('preserves short-circuiting behavior', () => {
       const F = Product.Apply(Option.Monad, Option.Monad);
 
-      expect(F.map2Eval_([None, None], Eval.bottom())(() => {}).value).toEqual([
+      expect(F.map2Eval_([None, None], Eval.bottom(), () => {}).value).toEqual([
         None,
         None,
       ]);

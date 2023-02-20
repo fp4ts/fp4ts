@@ -92,8 +92,11 @@ StateT.ap_ =
     ff(f => fa(F1.compose(g, f)));
 
 StateT.map2_ =
-  <F, S, A, B>(fa: StateT<S, F, A>, fb: StateT<S, F, B>) =>
-  <C>(f: (a: A, b: B) => C): StateT<S, F, C> =>
+  <F, S, A, B, C>(
+    fa: StateT<S, F, A>,
+    fb: StateT<S, F, B>,
+    f: (a: A, b: B) => C,
+  ): StateT<S, F, C> =>
   g =>
     fa(a => fb(b => g(f(a, b))));
 

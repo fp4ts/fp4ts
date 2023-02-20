@@ -2794,7 +2794,7 @@ class _Vector<out A> {
     return isIdentityTC(G)
       ? (this.forEach(f) as any)
       : this.foldRight(Eval.now(G.unit), (x, eb) =>
-          G.map2Eval_(f(x), eb)(discard),
+          G.map2Eval_(f(x), eb, discard),
         ).value;
   }
 
@@ -2934,14 +2934,8 @@ const vectorApplicative = lazy(() =>
     ...vectorFunctor(),
     pure: Vector.singleton,
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(xs: Vector<A>, ys: Vector<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        xs.map2(ys, f),
-    map2Eval_:
-      <A, B>(xs: Vector<A>, eys: Eval<Vector<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        xs.map2Eval(eys, f),
+    map2_: (xs, ys, f) => xs.map2(ys, f),
+    map2Eval_: (xs, eys, f) => xs.map2Eval(eys, f),
   }),
 );
 

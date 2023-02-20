@@ -465,7 +465,8 @@ export class _LazyList<out A> {
           : Rhs.map2Rhs(
               f(xs.head),
               Rhs.defer(() => go(xs.forceTail)),
-            )((y, ys) => ys.cons(y));
+              (y, ys) => ys.cons(y),
+            );
 
       return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
     };
@@ -490,7 +491,8 @@ export class _LazyList<out A> {
           : Rhs.map2Rhs(
               f(xs.head),
               Rhs.defer(() => go(xs.forceTail)),
-            )((y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys));
+              (y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys),
+            );
 
       return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
     };
@@ -1000,14 +1002,8 @@ const lazyListApplicative = lazy(() =>
     ...lazyListFunctor(),
     pure: LazyList.singleton,
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: LazyList<A>, fb: LazyList<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2(fb, f),
-    map2Eval_:
-      <A, B>(fa: LazyList<A>, efb: Eval<LazyList<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2Eval(efb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
+    map2Eval_: (fa, efb, f) => fa.map2Eval(efb, f),
   }),
 );
 

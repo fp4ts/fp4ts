@@ -34,14 +34,12 @@ export const iorMonad: <S>(S: Semigroup<S>) => Monad<$<IorF, [S]>> = <S>(
     pure: right,
     flatMap_: flatMap_(S),
     tailRecM_: tailRecM_(S),
-    map2Eval_:
-      <A, B>(fa: Ior<S, A>, efb: Eval<Ior<S, B>>) =>
-      <C>(f: (a: A, b: B) => C): Eval<Ior<S, C>> =>
-        fa.fold(
-          s => Eval.now(left(s)),
-          a => efb.map(fb => fb.map(b => f(a, b))),
-          () => efb.map(fb => flatMap_(S)(fa, a => map_(fb, b => f(a, b)))),
-        ),
+    map2Eval_: (fa, efb, f) =>
+      fa.fold(
+        s => Eval.now(left(s)),
+        a => efb.map(fb => fb.map(b => f(a, b))),
+        () => efb.map(fb => flatMap_(S)(fa, a => map_(fb, b => f(a, b)))),
+      ),
   });
 
 export const iorMonadError: <S>(

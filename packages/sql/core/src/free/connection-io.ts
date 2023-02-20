@@ -187,10 +187,11 @@ export class ConnectionIO<out A> {
     return this.map(() => {});
   }
 
-  public map2<B>(
+  public map2<B, C>(
     that: ConnectionIO<B>,
-  ): <C>(f: (a: A, b: B) => C) => ConnectionIO<C> {
-    return ConnectionIO.Monad.map2_(this, that);
+    f: (a: A, b: B) => C,
+  ): ConnectionIO<C> {
+    return ConnectionIO.Monad.map2_(this, that, f);
   }
 
   public flatMap<B>(f: (a: A) => ConnectionIO<B>): ConnectionIO<B> {

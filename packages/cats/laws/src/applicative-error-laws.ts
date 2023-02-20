@@ -54,7 +54,7 @@ export const ApplicativeErrorLaws = <F, E>(
   ): IsEq<Kind<F, [A]>> =>
     new IsEq(
       F.onError_(F.throwError<A>(e), () => fb),
-      F.map2_(fb, F.throwError<A>(e))((_, b) => b),
+      F.map2_(fb, F.throwError<A>(e), (_, b) => b),
     ),
 
   redeemDerivedFromAttemptMap: <A, B>(

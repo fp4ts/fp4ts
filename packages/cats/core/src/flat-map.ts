@@ -7,7 +7,6 @@ import { F1, id, Kind } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Either, Left } from './data';
 import { ArrayF, arrayFlatMap } from './instances/array';
-import { isStackSafeMonad } from './stack-safe-monad';
 
 /**
  * @category Type Class
@@ -95,10 +94,7 @@ export const FlatMap = Object.freeze({
 
       ...Apply.of({
         ap_: (ff, fa) => F.flatMap_(ff, f => F.map_(fa, a => f(a))),
-        map2_:
-          <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-          <C>(f: (a: A, b: B) => C) =>
-            F.flatMap_(fa, a => F.map_(fb, b => f(a, b))),
+        map2_: (fa, fb, f) => F.flatMap_(fa, a => F.map_(fb, b => f(a, b))),
         ...F,
       }),
       ...F,

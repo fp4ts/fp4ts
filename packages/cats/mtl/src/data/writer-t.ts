@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Eval, fst, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, fst, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import {
   Applicative,
@@ -69,18 +69,11 @@ WriterT.Apply = <F, W>(
   Apply.of<$<WriterTF, [F, W]>>({
     ...WriterT.Functor(F),
     ap_: (ff, fa) =>
-      F.map2_(ff, fa)(([f, w1], [a, w2]) => [f(a), W.combine_(w1, w2)]),
-    map2_:
-      <A, B>(fa: WriterT<F, W, A>, fb: WriterT<F, W, B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        F.map2_(fa, fb)(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
-    map2Eval_:
-      <A, B>(fa: WriterT<F, W, A>, efb: Eval<WriterT<F, W, B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        F.map2Eval_(
-          fa,
-          efb,
-        )(([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
+      F.map2_(ff, fa, ([f, w1], [a, w2]) => [f(a), W.combine_(w1, w2)]),
+    map2_: (fa, fb, f) =>
+      F.map2_(fa, fb, ([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
+    map2Eval_: (fa, efb, f) =>
+      F.map2Eval_(fa, efb, ([a, w1], [b, w2]) => [f(a, b), W.combine_(w1, w2)]),
   });
 
 WriterT.FlatMap1 = <F, W>(

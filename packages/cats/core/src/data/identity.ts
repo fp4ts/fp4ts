@@ -134,10 +134,7 @@ const identityApply: Lazy<Apply<IdentityF>> = lazy(() =>
   Apply.of({
     ...identityFunctor(),
     ap_: (ff, fa) => ff(fa),
-    map2_:
-      <A, B>(a: A, b: B) =>
-      <C>(f: (a: A, b: B) => C) =>
-        f(a, b),
+    map2_: (a, b, f) => f(a, b),
   }),
 );
 

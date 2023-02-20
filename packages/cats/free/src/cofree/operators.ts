@@ -135,7 +135,8 @@ export const traverse_ = <S, G>(S: Traversable<S>, G: Applicative<G>) => {
     G.map2_(
       f(csa.head),
       S.traverse_(G)(csa.tail.value, csa => traverse_(csa, f)),
-    )((h, t) => new Cofree(h, Eval.now(t)));
+      (h, t) => new Cofree(h, Eval.now(t)),
+    );
 
   return traverse_;
 };

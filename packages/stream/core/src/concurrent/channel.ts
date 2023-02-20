@@ -59,137 +59,142 @@ export class Channel<F, A> {
       return F.map2_(
         F.ref(initial),
         F.deferred<void>(),
-      )((state, closedGate) => {
-        const sendAll: Pipe<F, A, never> = ins =>
-          ins['+++'](Stream.execF(F.void(close)))
-            .evalMap(send)
-            .takeWhile(ea => ea.isRight).drain;
+        (state, closedGate) => {
+          const sendAll: Pipe<F, A, never> = ins =>
+            ins['+++'](Stream.execF(F.void(close)))
+              .evalMap(send)
+              .takeWhile(ea => ea.isRight).drain;
 
-        const send = (a: A) =>
-          F.flatMap_(F.deferred<void>(), producer =>
-            F.flatten(
-              F.uncancelable(poll =>
-                state.modify(s => {
-                  if (s.closed)
-                    return [
-                      s,
-                      F.pure(Channel.closed as Either<ChannelClosed, void>),
-                    ];
-                  return s.size < capacity
-                    ? [
-                        s.copy({
-                          values: s.values.append(a),
-                          size: s.size + 1,
-                          waiting: None,
-                        }),
-                        F.map_(
-                          notifyStream(s.waiting),
-                          () => Either.rightUnit as Either<ChannelClosed, void>,
-                        ),
-                      ]
-                    : [
-                        s.copy({
-                          waiting: None,
-                          producers: s.producers.append([a, producer]),
-                        }),
-                        F.productL_(
+          const send = (a: A) =>
+            F.flatMap_(F.deferred<void>(), producer =>
+              F.flatten(
+                F.uncancelable(poll =>
+                  state.modify(s => {
+                    if (s.closed)
+                      return [
+                        s,
+                        F.pure(Channel.closed as Either<ChannelClosed, void>),
+                      ];
+                    return s.size < capacity
+                      ? [
+                          s.copy({
+                            values: s.values.append(a),
+                            size: s.size + 1,
+                            waiting: None,
+                          }),
                           F.map_(
                             notifyStream(s.waiting),
                             () =>
                               Either.rightUnit as Either<ChannelClosed, void>,
                           ),
-                          waitOnBound(producer, poll),
+                        ]
+                      : [
+                          s.copy({
+                            waiting: None,
+                            producers: s.producers.append([a, producer]),
+                          }),
+                          F.productL_(
+                            F.map_(
+                              notifyStream(s.waiting),
+                              () =>
+                                Either.rightUnit as Either<ChannelClosed, void>,
+                            ),
+                            waitOnBound(producer, poll),
+                          ),
+                        ];
+                  }),
+                ),
+              ),
+            );
+
+          const close = F.uncancelable(() =>
+            F.flatten(
+              state.modify(s =>
+                s.closed
+                  ? [s, F.pure(Channel.closed)]
+                  : [
+                      s.copy({ closed: true, waiting: None }),
+                      F.productL_(
+                        F.map_(
+                          notifyStream(s.waiting),
+                          () => Either.rightUnit as Either<ChannelClosed, void>,
                         ),
-                      ];
-                }),
+                        signalClosure,
+                      ),
+                    ],
               ),
             ),
           );
 
-        const close = F.uncancelable(() =>
-          F.flatten(
-            state.modify(s =>
-              s.closed
-                ? [s, F.pure(Channel.closed)]
-                : [
-                    s.copy({ closed: true, waiting: None }),
-                    F.productL_(
-                      F.map_(
-                        notifyStream(s.waiting),
-                        () => Either.rightUnit as Either<ChannelClosed, void>,
-                      ),
-                      signalClosure,
+          const isClosed = F.map_(closedGate.tryGet(), o => o.nonEmpty);
+          const closed = closedGate.get();
+
+          const consumeLoop: Pull<F, A, void> = pipe(
+            F.deferred<void>(),
+            F.flatMap(waiting =>
+              state.modify(s => {
+                if (s.values.nonEmpty || s.producers.nonEmpty) {
+                  let unblock = F.unit;
+                  let allValues = s.values;
+
+                  s.producers.forEach(([value, producer]) => {
+                    unblock = F.productR_(
+                      unblock,
+                      producer.complete(undefined),
+                    );
+                    allValues = allValues.append(value);
+                  });
+
+                  const toEmit = Chunk.fromVector(allValues);
+
+                  return [
+                    s.copy({
+                      values: Vector(),
+                      size: 0,
+                      waiting: None,
+                      producers: Vector(),
+                    }),
+                    F.map_(unblock, () =>
+                      Pull.output<F, A>(toEmit)['>>>'](() => consumeLoop),
                     ),
-                  ],
-            ),
-          ),
-        );
-
-        const isClosed = F.map_(closedGate.tryGet(), o => o.nonEmpty);
-        const closed = closedGate.get();
-
-        const consumeLoop: Pull<F, A, void> = pipe(
-          F.deferred<void>(),
-          F.flatMap(waiting =>
-            state.modify(s => {
-              if (s.values.nonEmpty || s.producers.nonEmpty) {
-                let unblock = F.unit;
-                let allValues = s.values;
-
-                s.producers.forEach(([value, producer]) => {
-                  unblock = F.productR_(unblock, producer.complete(undefined));
-                  allValues = allValues.append(value);
-                });
-
-                const toEmit = Chunk.fromVector(allValues);
-
-                return [
-                  s.copy({
-                    values: Vector(),
-                    size: 0,
-                    waiting: None,
-                    producers: Vector(),
-                  }),
-                  F.map_(unblock, () =>
-                    Pull.output<F, A>(toEmit)['>>>'](() => consumeLoop),
-                  ),
-                ];
-              } else {
-                return [
-                  s.copy({ waiting: Some(waiting) }),
-                  F.pure(
-                    s.closed
-                      ? Pull.done<F>()
-                      : Pull.evalF(waiting.get())['>>>'](() => consumeLoop),
-                  ),
-                ];
-              }
-            }),
-          ),
-          F.flatten,
-          Pull.evalF,
-          x => x.flatMap(id),
-        );
-
-        const stream = consumeLoop.stream();
-
-        const notifyStream = (waitForChanges: Option<Deferred<F, void>>) =>
-          waitForChanges.traverse(F)(a => a.complete(undefined));
-
-        const waitOnBound = (producer: Deferred<F, void>, poll: Poll<F>) =>
-          F.onCancel_(
-            poll(producer.get()),
-            state.update(s =>
-              s.copy({
-                producers: s.producers.filter(([, x]) => x !== producer),
+                  ];
+                } else {
+                  return [
+                    s.copy({ waiting: Some(waiting) }),
+                    F.pure(
+                      s.closed
+                        ? Pull.done<F>()
+                        : Pull.evalF(waiting.get())['>>>'](() => consumeLoop),
+                    ),
+                  ];
+                }
               }),
             ),
+            F.flatten,
+            Pull.evalF,
+            x => x.flatMap(id),
           );
 
-        const signalClosure = closedGate.complete(undefined);
+          const stream = consumeLoop.stream();
 
-        return new Channel(sendAll, send, stream, close, isClosed, closed);
-      });
+          const notifyStream = (waitForChanges: Option<Deferred<F, void>>) =>
+            waitForChanges.traverse(F)(a => a.complete(undefined));
+
+          const waitOnBound = (producer: Deferred<F, void>, poll: Poll<F>) =>
+            F.onCancel_(
+              poll(producer.get()),
+              state.update(s =>
+                s.copy({
+                  producers: s.producers.filter(([, x]) => x !== producer),
+                }),
+              ),
+            );
+
+          const signalClosure = closedGate.complete(undefined);
+
+          return new Channel(sendAll, send, stream, close, isClosed, closed);
+        },
+      );
     };
 }
 

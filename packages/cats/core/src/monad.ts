@@ -35,10 +35,7 @@ export const Monad = Object.freeze({
     const apply: Apply<M> = Apply.of<M>({
       map_: (fa, f) => M.flatMap_(fa, a => M.pure(f(a))),
       ap_: (ff, fa) => M.flatMap_(ff, f => apply.map_(fa, a => f(a))),
-      map2_:
-        <A, B>(fa: Kind<M, [A]>, fb: Kind<M, [B]>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          M.flatMap_(fa, a => apply.map_(fb, b => f(a, b))),
+      map2_: (fa, fb, f) => M.flatMap_(fa, a => apply.map_(fb, b => f(a, b))),
       ...M,
     });
     const flatMap = FlatMap.of({ ...apply, ...M });

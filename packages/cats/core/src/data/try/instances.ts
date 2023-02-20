@@ -63,13 +63,11 @@ export const tryApply: Lazy<Apply<TryF>> = lazy(() =>
   Apply.of({
     ...tryFunctor(),
     ap_: (ff, fa) => flatMap_(ff, f => map_(fa, a => f(a))),
-    map2Eval_:
-      <A, B>(fa: Try<A>, efb: Eval<Try<B>>) =>
-      <C>(f: (a: A, b: B) => C): Eval<Try<C>> =>
-        fa.fold(
-          e => Eval.now(failure(e)),
-          a => efb.map(fb => fb.map(b => f(a, b))),
-        ),
+    map2Eval_: (fa, efb, f) =>
+      fa.fold(
+        e => Eval.now(failure(e)),
+        a => efb.map(fb => fb.map(b => f(a, b))),
+      ),
   }),
 );
 

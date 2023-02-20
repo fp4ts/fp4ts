@@ -38,7 +38,8 @@ export const Alternative = Object.freeze({
         const many1: Eval<Kind<F, [A.Cons<A>]>> = self.map2Eval_(
           fa,
           many,
-        )(A.cons);
+          A.cons,
+        );
 
         return self.map_(many.value, xs => A.consCopyToArray(xs, []));
       },
@@ -50,7 +51,8 @@ export const Alternative = Object.freeze({
         const many1: Eval<Kind<F, [A.Cons<A>]>> = self.map2Eval_(
           fa,
           many,
-        )(A.cons);
+          A.cons,
+        );
 
         return self.map_(many1.value, xs => A.consCopyToArray(xs, []));
       },

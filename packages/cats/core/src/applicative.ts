@@ -55,7 +55,7 @@ export const Applicative = Object.freeze({
       traverseA: G => f => ta => self.traverseA_(G)(ta, f),
       traverseA_: G => (ta, f) =>
         G.foldRight_(ta, Eval.now(self.pure<void>(undefined)), (x, ac) =>
-          self.map2Eval_(f(x), ac)(() => {}),
+          self.map2Eval_(f(x), ac, () => {}),
         ).value,
 
       traverseWithIndexA: G => f => ta => self.traverseWithIndexA_(G)(ta, f),
@@ -63,7 +63,7 @@ export const Applicative = Object.freeze({
         G.foldRightWithIndex_(
           ta,
           Eval.now(self.pure<void>(undefined)),
-          (x, ac, i) => self.map2Eval_(f(x, i), ac)(() => {}),
+          (x, ac, i) => self.map2Eval_(f(x, i), ac, () => {}),
         ).value,
 
       ...Apply.of<F>({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),

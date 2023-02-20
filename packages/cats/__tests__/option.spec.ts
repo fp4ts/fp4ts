@@ -170,7 +170,8 @@ describe('Option', () => {
       Option.Monad.map2Eval_(
         None,
         Eval.delay(() => throwError(new Error())),
-      )(() => 42).value,
+        () => 42,
+      ).value,
     ).toEqual(None);
   });
 

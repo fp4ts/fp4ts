@@ -258,14 +258,8 @@ const optionMonad = lazy(() =>
   Monad.of<OptionF>({
     ...optionFunctor(),
     pure: Option.pure,
-    map2_:
-      <A, B>(fa: Option<A>, fb: Option<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2(fb, f),
-    map2Eval_:
-      <A, B>(fa: Option<A>, efb: Eval<Option<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2Eval(efb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
+    map2Eval_: (fa, efb, f) => fa.map2Eval(efb, f),
     flatMap_: (fa, f) => fa.flatMap(f),
     flatten: fa => fa.flatten(),
     tailRecM_: Option.tailRecM_,

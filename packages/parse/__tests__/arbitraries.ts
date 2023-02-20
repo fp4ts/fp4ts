@@ -221,12 +221,13 @@ export const product = <S, F, A, B>(
     fc.oneof(
       fc.constant(l.product(r)),
       fc.constant(ParserT.Monad<S, F>().product_(l, r)),
-      fc.constant(ParserT.Monad<S, F>().map2_(l, r)(tupled)),
+      fc.constant(ParserT.Monad<S, F>().map2_(l, r, tupled)),
       fc.constant(
         ParserT.Monad<S, F>().map2Eval_(
           l,
           Eval.later(() => r),
-        )(tupled).value,
+          tupled,
+        ).value,
       ),
     ),
   );

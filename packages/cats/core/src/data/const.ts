@@ -72,14 +72,8 @@ const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
   Apply.of({
     ...constFunctor<E>(),
     ap_: (ff, fc) => E.combine_(ff, fc),
-    map2_:
-      <A, B>(fa: Const<E, A>, fb: Const<E, B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        E.combine_(fa, fb),
-    map2Eval_:
-      <A, B>(fa: Const<E, A>, efb: Eval<Const<E, B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        E.combineEval_(fa, efb),
+    map2_: (fa, fb, f) => E.combine_(fa, fb),
+    map2Eval_: (fa, efb, f) => E.combineEval_(fa, efb),
     product_: (fa, fb) => E.combine_(fa, fb),
   });
 

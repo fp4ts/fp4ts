@@ -157,10 +157,10 @@ export const productSafeTraversable = <F extends unknown[]>(
         fas.reduce(
           (egac, fa, i) =>
             egac.flatMap(gac =>
-              G.map2Eval_(
-                gac,
-                safeTraverse(G)(fs[i], fa, f),
-              )((ac, x) => [...ac, x]),
+              G.map2Eval_(gac, safeTraverse(G)(fs[i], fa, f), (ac, x) => [
+                ...ac,
+                x,
+              ]),
             ),
           Eval.now(G.pure([] as any[])),
         ) as Eval<Kind<G, [Kind<ProductK<F>, [B]>]>>,
@@ -183,10 +183,10 @@ export const structSafeTraversable = <F extends {}>(fs: {
         return keys.reduce(
           (egac, k) =>
             egac.flatMap(gac =>
-              G.map2Eval_(
-                gac,
-                safeTraverse(G)(fs[k], fas[k], f),
-              )((ac, x) => ({ ...ac, [k]: x })),
+              G.map2Eval_(gac, safeTraverse(G)(fs[k], fas[k], f), (ac, x) => ({
+                ...ac,
+                [k]: x,
+              })),
             ),
           Eval.now(G.pure({} as Partial<Kind<StructK<F>, [B]>>)),
         ) as Eval<Kind<G, [Kind<StructK<F>, [B]>]>>;

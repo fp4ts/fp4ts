@@ -159,7 +159,7 @@ export class _SyntaxK<TC extends Base<any>, A> {
     that: Kind<TC['_F'], [B]>,
     f: (a: A, b: B) => C,
   ): SyntaxK<TC, C> {
-    return new _SyntaxK(this.TC, this.TC.map2_<A, B>(this.value, that)(f));
+    return new _SyntaxK(this.TC, this.TC.map2_<A, B, C>(this.value, that, f));
   }
   public map2<A, B, C>(
     this: SyntaxK<TC & Apply<TC['_F']>, A>,
@@ -174,10 +174,9 @@ export class _SyntaxK<TC extends Base<any>, A> {
     that: Eval<Kind<TC['_F'], [B]>>,
     f: (a: A, b: B) => C,
   ): Eval<SyntaxK<TC, C>> {
-    return this.TC.map2Eval_<A, B>(
-      this.value,
-      that,
-    )(f).map(fc => new _SyntaxK(this.TC, fc));
+    return this.TC.map2Eval_<A, B, C>(this.value, that, f).map(
+      fc => new _SyntaxK(this.TC, fc),
+    );
   }
   public map2Eval<A, B, C>(
     this: SyntaxK<TC & Apply<TC['_F']>, A>,

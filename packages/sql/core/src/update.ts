@@ -51,7 +51,7 @@ export class Update<in A> {
             .set(this.W)(a)
             .flatMap(ps => ps.query())
             .flatMap(rs => rs.getRowCount())
-            .map2(fi)((a, b) => a + b),
+            .map2(fi, (a, b) => a + b),
         ),
       );
   }

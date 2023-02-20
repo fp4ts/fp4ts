@@ -474,14 +474,8 @@ const validationApplicative: <E>() => Applicative<$<ValidationF, [E]>> = <
     pure: Validation.pure,
     unit: Validation.unit<E>(),
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: Validation<E, A>, fb: Validation<E, B>) =>
-      <C>(f: (a: A, b: B) => C): Validation<E, C> =>
-        fa.map2(fb, f),
-    map2Eval_:
-      <A, B>(fa: Validation<E, A>, fb: Eval<Validation<E, B>>) =>
-      <C>(f: (a: A, b: B) => C): Eval<Validation<E, C>> =>
-        fa.map2Eval(fb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
+    map2Eval_: (fa, fb, f) => fa.map2Eval(fb, f),
   });
 
 const validationApplicativeError: <E>() => ApplicativeError<

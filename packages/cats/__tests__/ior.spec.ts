@@ -131,7 +131,8 @@ describe('Ior', () => {
       Ior.Monad<string>(Monoid.string).map2Eval_(
         Ior.Left('42'),
         Eval.delay(() => throwError(new Error('err 2'))),
-      )(() => 42).value,
+        () => 42,
+      ).value,
     ).toEqual(Ior.Left('42'));
   });
 

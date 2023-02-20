@@ -13,7 +13,7 @@ export const UniqueLaws = <F>(
 ): UniqueLaws<F> => ({
   uniqueness: (): IsEq<Kind<F, [boolean]>> =>
     new IsEq(
-      F.map2_(F.unique, F.unique)((l, r) => l.notEquals(r)),
+      F.map2_(F.unique, F.unique, (l, r) => l.notEquals(r)),
       F.pure(true),
     ),
 });

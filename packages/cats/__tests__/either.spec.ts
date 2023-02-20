@@ -149,7 +149,8 @@ describe('Either', () => {
       Either.Monad<string>().map2Eval_(
         Left('left'),
         Eval.delay(() => throwError(new Error())),
-      )(() => 42).value,
+        () => 42,
+      ).value,
     ).toEqual(Left('left'));
   });
 

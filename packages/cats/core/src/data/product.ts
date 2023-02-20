@@ -109,22 +109,20 @@ Product.Apply = <F, G>(F: Apply<F>, G: Apply<G>): Apply<$<ProductF, [F, G]>> =>
   Apply.of({
     ...Product.Functor(F, G),
     ap_: ([ffa, gfa], [fa, ga]) => [F.ap_(ffa, fa), G.ap_(gfa, ga)],
-    map2_:
-      <A, B>([fa, ga]: Product<F, G, A>, [fb, gb]: Product<F, G, B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        [F.map2_(fa, fb)(f), G.map2_(ga, gb)(f)],
-    map2Eval_: <A, B>(
+    map2_: <A, B, C>(
+      [fa, ga]: Product<F, G, A>,
+      [fb, gb]: Product<F, G, B>,
+      f: (a: A, b: B) => C,
+    ) => [F.map2_(fa, fb, f), G.map2_(ga, gb, f)],
+    map2Eval_: <A, B, C>(
       [fa, ga]: Product<F, G, A>,
       efbgb: Eval<Product<F, G, B>>,
+      f: (a: A, b: B) => C,
     ) => {
       efbgb = efbgb.memoize;
-      return <C>(f: (a: A, b: B) => C) =>
-        F.map2Eval_(
-          fa,
-          efbgb.map(fst),
-        )(f).flatMap(fc =>
-          G.map2Eval_(ga, efbgb.map(snd))(f).map(gc => [fc, gc]),
-        );
+      return F.map2Eval_(fa, efbgb.map(fst), f).flatMap(fc =>
+        G.map2Eval_(ga, efbgb.map(snd), f).map(gc => [fc, gc]),
+      );
     },
   });
 

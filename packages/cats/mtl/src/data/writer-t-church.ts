@@ -79,8 +79,11 @@ WriterT.ap_ =
     ff(f => fa(a => g(f(a))));
 
 WriterT.map2_ =
-  <F, W, A, B>(fa: WriterT<F, W, A>, fb: WriterT<F, W, B>) =>
-  <C>(f: (a: A, b: B) => C): WriterT<F, W, C> =>
+  <F, W, A, B, C>(
+    fa: WriterT<F, W, A>,
+    fb: WriterT<F, W, B>,
+    f: (a: A, b: B) => C,
+  ): WriterT<F, W, C> =>
   g =>
     fa(a => fb(b => g(f(a, b))));
 

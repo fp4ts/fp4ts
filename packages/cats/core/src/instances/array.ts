@@ -193,14 +193,9 @@ export const arrayApply = lazy(() =>
   Apply.of<ArrayF>({
     ...arrayFunctorWithIndex(),
     ap_: ap,
-    map2_:
-      <A, B>(xs: A[], ys: B[]) =>
-      <C>(f: (a: A, b: B) => C) =>
-        map2(xs, ys, f),
-    map2Eval_:
-      <A, B>(xs: A[], eys: Eval<B[]>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        xs.length === 0 ? Eval.now([]) : eys.map(ys => map2(xs, ys, f)),
+    map2_: (xs, ys, f) => map2(xs, ys, f),
+    map2Eval_: (xs, eys, f) =>
+      xs.length === 0 ? Eval.now([]) : eys.map(ys => map2(xs, ys, f)),
   }),
 );
 
@@ -425,7 +420,7 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
         const a = xs[idx];
         const right = first;
         const idx0 = idx;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(A.cons));
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right, A.cons));
       }
       return Rhs.map(first, A.single);
     } else {
@@ -441,7 +436,7 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
         const start1 = start0;
         const end1 = Math.min(end, end0);
         const right = Rhs.defer(() => loop(start1, end1));
-        fchain = Rhs.map2(fchain, right)(A.concat);
+        fchain = Rhs.map2(fchain, right, A.concat);
       }
       return fchain;
     }
@@ -486,7 +481,7 @@ const traverseFilterImpl = <G, Rhs, A, B>(
       for (let idx = end - 2; start <= idx; idx--) {
         const a = xs[idx];
         const right = first;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(A.consFilter));
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right, A.consFilter));
       }
       return Rhs.map(first, A.single);
     } else {
@@ -502,7 +497,7 @@ const traverseFilterImpl = <G, Rhs, A, B>(
         const start1 = start0;
         const end1 = Math.min(end, end0);
         const right = Rhs.defer(() => loop(start1, end1));
-        fchain = Rhs.map2(fchain, right)(A.concat);
+        fchain = Rhs.map2(fchain, right, A.concat);
       }
       return fchain;
     }

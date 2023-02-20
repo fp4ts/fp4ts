@@ -20,21 +20,23 @@ export interface Apply<F> extends Functor<F> {
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => C,
   ): (fa: Kind<F, [A]>) => Kind<F, [C]>;
-  map2_<A, B>(
+  map2_<A, B, C>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
-  ): <C>(f: (a: A, b: B) => C) => Kind<F, [C]>;
+    f: (a: A, b: B) => C,
+  ): Kind<F, [C]>;
 
   map3<A, B, C, D>(
     fb: Kind<F, [B]>,
     fc: Kind<F, [C]>,
     f: (a: A, b: B, c: C) => D,
   ): (fa: Kind<F, [A]>) => Kind<F, [D]>;
-  map3_<A, B, C>(
+  map3_<A, B, C, D>(
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
     fC: Kind<F, [C]>,
-  ): <D>(f: (a: A, b: B, c: C) => D) => Kind<F, [D]>;
+    f: (a: A, b: B, c: C) => D,
+  ): Kind<F, [D]>;
 
   mapN<BS extends unknown[]>(
     ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
@@ -48,10 +50,11 @@ export interface Apply<F> extends Functor<F> {
     fb: Eval<Kind<F, [B]>>,
     f: (a: A, b: B) => D,
   ): (fa: Kind<F, [A]>) => Eval<Kind<F, [D]>>;
-  map2Eval_<A, B>(
+  map2Eval_<A, B, C>(
     fa: Kind<F, [A]>,
     fb: Eval<Kind<F, [B]>>,
-  ): <D>(f: (a: A, b: B) => D) => Eval<Kind<F, [D]>>;
+    f: (a: A, b: B) => C,
+  ): Eval<Kind<F, [C]>>;
 
   product<B>(fb: Kind<F, [B]>): <A>(fa: Kind<F, [A]>) => Kind<F, [[A, B]]>;
   product_<A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>): Kind<F, [[A, B]]>;
@@ -73,7 +76,7 @@ export const Apply = Object.freeze({
   of: <F>(F: ApplyRequirements<F>): Apply<F> => {
     const self: Apply<F> = {
       ap: fa => ff => self.ap_(ff, fa),
-      ap_: (ff, fa) => self.map2_(ff, fa)((f, a) => f(a)),
+      ap_: (ff, fa) => self.map2_(ff, fa, (f, a) => f(a)),
 
       product: fb => fa => self.product_(fa, fb),
       product_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
@@ -82,26 +85,31 @@ export const Apply = Object.freeze({
           fb,
         ),
 
-      map2: (fb, f) => fa => self.map2_(fa, fb)(f),
-      map2_:
-        <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-        <C>(f: (a: A, b: B) => C) =>
+      map2: (fb, f) => fa => self.map2_(fa, fb, f),
+      map2_: <A, B, C>(
+        fa: Kind<F, [A]>,
+        fb: Kind<F, [B]>,
+        f: (a: A, b: B) => C,
+      ) =>
+        self.ap_(
+          self.map_(fa, a => (b: B) => f(a, b)),
+          fb,
+        ),
+
+      map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc, f),
+      map3_: <A, B, C, D>(
+        fa: Kind<F, [A]>,
+        fb: Kind<F, [B]>,
+        fc: Kind<F, [C]>,
+        f: (a: A, b: B, c: C) => D,
+      ) =>
+        self.ap_(
           self.ap_(
-            self.map_(fa, a => (b: B) => f(a, b)),
+            self.map_(fa, a => (b: B) => (c: C) => f(a, b, c)),
             fb,
           ),
-
-      map3: (fb, fc, f) => fa => self.map3_(fa, fb, fc)(f),
-      map3_:
-        <A, B, C>(fa: Kind<F, [A]>, fb: Kind<F, [B]>, fc: Kind<F, [C]>) =>
-        <D>(f: (a: A, b: B, c: C) => D) =>
-          self.ap_(
-            self.ap_(
-              self.map_(fa, a => (b: B) => (c: C) => f(a, b, c)),
-              fb,
-            ),
-            fc,
-          ),
+          fc,
+        ),
 
       mapN: (<BS extends unknown[]>(
           ...fbs: { [k in keyof BS]: Kind<F, [BS[k]]> }
@@ -120,7 +128,7 @@ export const Apply = Object.freeze({
             idx >= sz
               ? self.map_(acc, xs => f(...(xs as [A, ...BS])))
               : go(
-                  self.map2_(acc, fbs[idx])((xs, y) => [...xs, y]),
+                  self.map2_(acc, fbs[idx], (xs, y) => [...xs, y]),
                   idx + 1,
                 );
 
@@ -130,8 +138,8 @@ export const Apply = Object.freeze({
           );
         }) as Apply<F>['mapN_'],
 
-      map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb)(f),
-      map2Eval_: (fa, fb) => f => fb.map(fb => self.map2_(fa, fb)(f)),
+      map2Eval: (fb, f) => fa => self.map2Eval_(fa, fb, f),
+      map2Eval_: (fa, fb, f) => fb.map(fb => self.map2_(fa, fb, f)),
 
       productL: fb => fa => self.productL_(fa, fb),
       productL_: <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
@@ -172,10 +180,7 @@ export const Apply = Object.freeze({
           toRhs: Eval.always,
           map: (fa, f) => fa.map(F.map(f)),
           map2Rhs: F.map2Eval_,
-          map2:
-            <A, B>(fa: Eval<Kind<F, [A]>>, efb: Eval<Kind<F, [B]>>) =>
-            <C>(f: (a: A, b: B) => C) =>
-              fa.flatMap(fa => F.map2Eval_(fa, efb)(f)),
+          map2: (fa, efb, f) => fa.flatMap(fa => F.map2Eval_(fa, efb, f)),
           toG: fa => fa.value,
         } as TraverseStrategy<F, EvalF>);
 
@@ -192,12 +197,14 @@ export interface TraverseStrategy<G, Rhs> {
     fa: Kind<Rhs, [Kind<G, [A]>]>,
     f: (a: A) => B,
   ): Kind<Rhs, [Kind<G, [B]>]>;
-  map2Rhs<A, B>(
+  map2Rhs<A, B, C>(
     lhs: Kind<G, [A]>,
     rhs: Kind<Rhs, [Kind<G, [B]>]>,
-  ): <C>(f: (a: A, b: B) => C) => Kind<Rhs, [Kind<G, [C]>]>;
-  map2<A, B>(
+    f: (a: A, b: B) => C,
+  ): Kind<Rhs, [Kind<G, [C]>]>;
+  map2<A, B, C>(
     lhs: Kind<Rhs, [Kind<G, [A]>]>,
     rhs: Kind<Rhs, [Kind<G, [B]>]>,
-  ): <C>(f: (a: A, b: B) => C) => Kind<Rhs, [Kind<G, [C]>]>;
+    f: (a: A, b: B) => C,
+  ): Kind<Rhs, [Kind<G, [C]>]>;
 }

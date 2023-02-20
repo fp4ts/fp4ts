@@ -299,83 +299,59 @@ export const Spawn = Object.freeze({
     const self: Applicative<F> = Applicative.of({
       pure: F.pure,
 
-      ap_: (ff, fa) => self.map2_(ff, fa)((f, a) => f(a)),
+      ap_: (ff, fa) => self.map2_(ff, fa, (f, a) => f(a)),
 
-      product_: (fa, fb) => self.map2_(fa, fb)(tupled),
+      product_: (fa, fb) => self.map2_(fa, fb, tupled),
 
-      map2_:
-        <A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          F.uncancelable(poll =>
-            F.do(function* (_) {
-              const fiberA = yield* _(F.fork(fa));
-              const fiberB = yield* _(F.fork(fb));
+      map2_: <A, B, C>(
+        fa: Kind<F, [A]>,
+        fb: Kind<F, [B]>,
+        f: (a: A, b: B) => C,
+      ) =>
+        F.uncancelable(poll =>
+          F.do(function* (_) {
+            const fiberA = yield* _(F.fork(fa));
+            const fiberB = yield* _(F.fork(fb));
 
-              yield* _(
-                pipe(
-                  fiberB.join,
-                  F.flatMap(oc =>
-                    oc.fold(
-                      () => fiberA.cancel,
-                      () => fiberA.cancel,
-                      () => F.unit,
-                    ),
-                  ),
-                  F.fork,
-                ),
-              );
-
-              yield* _(
-                pipe(
-                  fiberA.join,
-                  F.flatMap(oc =>
-                    oc.fold(
-                      () => fiberB.cancel,
-                      () => fiberB.cancel,
-                      () => F.unit,
-                    ),
-                  ),
-                  F.fork,
-                ),
-              );
-
-              const a = yield* _(
-                pipe(
-                  poll(fiberA.join),
-                  F.onCancel(fiberB.cancel),
-                  F.onCancel(fiberA.cancel),
-                  F.flatMap(oc =>
-                    oc.fold<Kind<F, [A]>>(
-                      () =>
-                        F.flatMap_(fiberB.cancel, () =>
-                          pipe(
-                            fiberB.join,
-                            F.flatMap(oc =>
-                              oc.fold(
-                                () => F.flatMap_(F.canceled, () => F.never),
-                                e => F.throwError(e),
-                                () => F.flatMap_(F.canceled, () => F.never),
-                              ),
-                            ),
-                            poll,
-                          ),
-                        ),
-                      e => F.flatMap_(fiberB.cancel, () => F.throwError(e)),
-                      fa => fa,
-                    ),
+            yield* _(
+              pipe(
+                fiberB.join,
+                F.flatMap(oc =>
+                  oc.fold(
+                    () => fiberA.cancel,
+                    () => fiberA.cancel,
+                    () => F.unit,
                   ),
                 ),
-              );
+                F.fork,
+              ),
+            );
 
-              const b = yield* _(
-                pipe(
-                  poll(fiberB.join),
-                  F.onCancel(fiberB.cancel),
-                  F.flatMap(oc =>
-                    oc.fold<Kind<F, [B]>>(
-                      () =>
+            yield* _(
+              pipe(
+                fiberA.join,
+                F.flatMap(oc =>
+                  oc.fold(
+                    () => fiberB.cancel,
+                    () => fiberB.cancel,
+                    () => F.unit,
+                  ),
+                ),
+                F.fork,
+              ),
+            );
+
+            const a = yield* _(
+              pipe(
+                poll(fiberA.join),
+                F.onCancel(fiberB.cancel),
+                F.onCancel(fiberA.cancel),
+                F.flatMap(oc =>
+                  oc.fold<Kind<F, [A]>>(
+                    () =>
+                      F.flatMap_(fiberB.cancel, () =>
                         pipe(
-                          fiberA.join,
+                          fiberB.join,
                           F.flatMap(oc =>
                             oc.fold(
                               () => F.flatMap_(F.canceled, () => F.never),
@@ -385,15 +361,41 @@ export const Spawn = Object.freeze({
                           ),
                           poll,
                         ),
-                      e => F.throwError(e),
-                      fb => fb,
-                    ),
+                      ),
+                    e => F.flatMap_(fiberB.cancel, () => F.throwError(e)),
+                    fa => fa,
                   ),
                 ),
-              );
-              return f(a, b);
-            }),
-          ),
+              ),
+            );
+
+            const b = yield* _(
+              pipe(
+                poll(fiberB.join),
+                F.onCancel(fiberB.cancel),
+                F.flatMap(oc =>
+                  oc.fold<Kind<F, [B]>>(
+                    () =>
+                      pipe(
+                        fiberA.join,
+                        F.flatMap(oc =>
+                          oc.fold(
+                            () => F.flatMap_(F.canceled, () => F.never),
+                            e => F.throwError(e),
+                            () => F.flatMap_(F.canceled, () => F.never),
+                          ),
+                        ),
+                        poll,
+                      ),
+                    e => F.throwError(e),
+                    fb => fb,
+                  ),
+                ),
+              ),
+            );
+            return f(a, b);
+          }),
+        ),
     });
     return { ...F, ...self };
   }),

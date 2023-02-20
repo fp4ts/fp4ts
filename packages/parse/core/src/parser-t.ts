@@ -733,7 +733,7 @@ ParserT.Applicative = <S, F>(): Applicative<$<ParserTF, [S, F]>> =>
     ...ParserT.Functor(),
     pure: ParserT.succeed,
     ap_: (ff, fa) => ff.ap(fa),
-    map2_: (fa, fb) => f => fa.map2(fb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
     product_: (fa, fb) => fa.product(fb),
     productL_: (fa, fb) => fa.productL(fb),
     productR_: (fa, fb) => fa.productR(fb),

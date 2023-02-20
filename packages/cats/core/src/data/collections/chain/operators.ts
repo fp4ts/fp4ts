@@ -336,7 +336,7 @@ const traverseViaChainImpl =
           const a = F.elem_(xs, idx).get;
           const right = first;
           const idx0 = idx;
-          first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(List.cons));
+          first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right, List.cons));
         }
         return Rhs.map(first, fromList);
       } else {
@@ -352,7 +352,7 @@ const traverseViaChainImpl =
           const start1 = start0;
           const end1 = Math.min(end, end0);
           const right = Rhs.defer(() => loop(start1, end1));
-          fchain = Rhs.map2(fchain, right)(concat_);
+          fchain = Rhs.map2(fchain, right, concat_);
         }
         return fchain;
       }
@@ -401,10 +401,9 @@ const traverseFilterViaChainImpl =
           const right = first;
           const idx0 = idx;
           first = Rhs.defer(() =>
-            Rhs.map2Rhs(
-              f(a, idx0),
-              right,
-            )((opt, tl) => (opt.nonEmpty ? tl.prepend(opt.get) : tl)),
+            Rhs.map2Rhs(f(a, idx0), right, (opt, tl) =>
+              opt.nonEmpty ? tl.prepend(opt.get) : tl,
+            ),
           );
         }
         return Rhs.map(first, fromList);
@@ -421,7 +420,7 @@ const traverseFilterViaChainImpl =
           const start1 = start0;
           const end1 = Math.min(end, end0);
           const right = Rhs.defer(() => loop(start1, end1));
-          fchain = Rhs.map2(fchain, right)(concat_);
+          fchain = Rhs.map2(fchain, right, concat_);
         }
         return fchain;
       }

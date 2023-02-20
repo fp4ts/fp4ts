@@ -551,7 +551,7 @@ export const traverse_ =
           gbs: Kind<G, [HashMap<K, B>[]]>,
           m2: HashMap<K, V>,
         ): Kind<G, [HashMap<K, B>[]]> =>
-          G.map2_(traverse_(G)(m2, f), gbs)((m, ms) => [...ms, m]);
+          G.map2_(traverse_(G)(m2, f), gbs, (m, ms) => [...ms, m]);
 
         return pipe(
           n.children.reduce(appendF, G.pure([] as HashMap<K, B>[])),
@@ -570,7 +570,7 @@ export const traverse_ =
           gbs: Kind<G, [Bucket<K, B>[]]>,
           [h, k, v]: Bucket<K, V>,
         ): Kind<G, [Bucket<K, B>[]]> =>
-          G.map2_(f(v, k), gbs)((b, bs) => [...bs, [h, k, b]]);
+          G.map2_(f(v, k), gbs, (b, bs) => [...bs, [h, k, b]]);
 
         return pipe(
           n.buckets.reduce(appendF, G.pure([] as Bucket<K, B>[])),

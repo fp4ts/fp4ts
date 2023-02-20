@@ -619,7 +619,8 @@ export const traverse_ =
       lhsF,
       bF,
       rhsF,
-    )((lhs, b, rhs) => new Bin(n.key, b, lhs, rhs));
+      (lhs, b, rhs) => new Bin(n.key, b, lhs, rhs),
+    );
   };
 
 export const show_ = <K, V>(SK: Show<K>, SV: Show<V>, m: Map<K, V>): string => {

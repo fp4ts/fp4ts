@@ -163,23 +163,27 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
     Apply.of<$<KleisliF, [F, R]>>({
       ...kleisliFunctor(F),
       ap_: (ff, fa) => F1.flatMap(ff, f => F1.andThen(fa, a => F.ap_(f, a))),
-      map2_:
-        <A, B>(fa: Kleisli<F, R, A>, fb: Kleisli<F, R, B>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          F1.flatMap(fa, a => F1.andThen(fb, b => F.map2_(a, b)(f))),
-      map2Eval_:
-        <A, B>(fa: Kleisli<F, R, A>, efb: Eval<Kleisli<F, R, B>>) =>
-        <C>(f: (a: A, b: B) => C) =>
-          Eval.now(
-            suspend(
-              F,
-              (r: R) =>
-                F.map2Eval_(
-                  fa(r),
-                  efb.map(fb => fb(r)),
-                )(f).value,
-            ),
+      map2_: <A, B, C>(
+        fa: Kleisli<F, R, A>,
+        fb: Kleisli<F, R, B>,
+        f: (a: A, b: B) => C,
+      ) => F1.flatMap(fa, a => F1.andThen(fb, b => F.map2_(a, b, f))),
+      map2Eval_: <A, B, C>(
+        fa: Kleisli<F, R, A>,
+        efb: Eval<Kleisli<F, R, B>>,
+        f: (a: A, b: B) => C,
+      ) =>
+        Eval.now(
+          suspend(
+            F,
+            (r: R) =>
+              F.map2Eval_(
+                fa(r),
+                efb.map(fb => fb(r)),
+                f,
+              ).value,
           ),
+        ),
     }),
 ) as <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>>;
 

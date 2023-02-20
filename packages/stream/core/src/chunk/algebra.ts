@@ -308,7 +308,7 @@ export abstract class Chunk<out O> {
           for (let idx = end - 2; start <= idx; idx--) {
             const a = this.elem(idx);
             const right = first;
-            first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(List.cons));
+            first = Rhs.defer(() => Rhs.map2Rhs(f(a), right, List.cons));
           }
           return Rhs.map(first, Chunk.fromList);
         } else {
@@ -324,7 +324,7 @@ export abstract class Chunk<out O> {
             const end1 = Math.min(end, end0);
             const start1 = start0;
             const right = Rhs.defer(() => loop(start1, end1));
-            fchunk = Rhs.map2(fchunk, right)((xs, ys) => xs.concat(ys));
+            fchunk = Rhs.map2(fchunk, right, (xs, ys) => xs.concat(ys));
           }
           return fchunk;
         }

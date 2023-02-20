@@ -364,7 +364,8 @@ class _NonEmptyList<out A> {
       G.map2Eval_(
         f(this.head),
         Eval.always(() => this.tail.traverse(G, f)),
-      )((hd, tl) => new _NonEmptyList(hd, tl)).value;
+        (hd, tl) => new _NonEmptyList(hd, tl),
+      ).value;
   }
 
   public equals<B>(

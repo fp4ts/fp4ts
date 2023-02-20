@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, Kind } from '@fp4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from './eq-k';
 import { Apply } from './apply';
@@ -64,18 +64,11 @@ export const ComposedApply = Object.freeze({
             fga,
           ),
 
-        map2_:
-          <A, B>(fga: Kind<F, [Kind<G, [A]>]>, fgb: Kind<F, [Kind<G, [B]>]>) =>
-          <C>(f: (a: A, b: B) => C) =>
-            F.map2_(fga, fgb)((ga, gb) => G.map2_(ga, gb)(f)),
+        map2_: (fga, fgb, f) =>
+          F.map2_(fga, fgb, (ga, gb) => G.map2_(ga, gb, f)),
 
-        map2Eval_:
-          <A, B>(
-            fga: Kind<F, [Kind<G, [A]>]>,
-            efgb: Eval<Kind<F, [Kind<G, [B]>]>>,
-          ) =>
-          <C>(f: (a: A, b: B) => C) =>
-            F.map2Eval_(fga, efgb)((ga, gb) => G.map2_(ga, gb)(f)),
+        map2Eval_: (fga, efgb, f) =>
+          F.map2Eval_(fga, efgb, (ga, gb) => G.map2_(ga, gb, f)),
       }),
     };
   },

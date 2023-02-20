@@ -3360,7 +3360,7 @@ export abstract class _List<out A> {
     f: (a: A) => Kind<G, [B]>,
   ): Kind<G, [List<B>]> {
     const consF = (x: A, gys: Kind<Rhs, [Kind<G, [List<B>]>]>) =>
-      Rhs.map2Rhs(f(x), gys)(List.cons);
+      Rhs.map2Rhs(f(x), gys, List.cons);
 
     return Rhs.toG(
       Rhs.defer(() =>
@@ -3417,7 +3417,7 @@ export abstract class _List<out A> {
     return isIdentityTC(G)
       ? (this.forEach(f) as any)
       : this.foldRight(Eval.now(G.unit), (x, eb) =>
-          G.map2Eval_(f(x), eb)(discard),
+          G.map2Eval_(f(x), eb, discard),
         ).value;
   }
 
@@ -3464,10 +3464,9 @@ export abstract class _List<out A> {
     f: (a: A) => Kind<G, [Option<B>]>,
   ): Kind<G, [List<B>]> {
     const consF = (x: A, gys: Kind<Rhs, [Kind<G, [List<B>]>]>) =>
-      Rhs.map2Rhs(
-        f(x),
-        gys,
-      )((oy, ys) => (oy.isEmpty ? ys : new Cons(oy.get, ys)));
+      Rhs.map2Rhs(f(x), gys, (oy, ys) =>
+        oy.isEmpty ? ys : new Cons(oy.get, ys),
+      );
 
     return Rhs.toG(
       Rhs.defer(() =>
@@ -3642,14 +3641,8 @@ const listApplicative = lazy(() =>
     ...listFunctor(),
     pure: List.singleton,
     ap_: (ff, fa) => ff.map2(fa, (f, a) => f(a)),
-    map2_:
-      <A, B>(fa: List<A>, fb: List<B>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2(fb, f),
-    map2Eval_:
-      <A, B>(fa: List<A>, efb: Eval<List<B>>) =>
-      <C>(f: (a: A, b: B) => C) =>
-        fa.map2Eval(efb, f),
+    map2_: (fa, fb, f) => fa.map2(fb, f),
+    map2Eval_: (fa, efb, f) => fa.map2Eval(efb, f),
   }),
 );
 const listAlternative = lazy(() =>

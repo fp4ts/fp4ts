@@ -33,7 +33,7 @@ export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
   ): IsEq<Kind<F, [C]>> =>
     new IsEq(
       F.map_(F.product_(fa, fb), ([a, b]) => f(a, b)),
-      F.map2_(fa, fb)(f),
+      F.map2_(fa, fb, f),
     ),
 
   map2EvalConsistency: <A, B, C>(
@@ -41,7 +41,7 @@ export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => C,
   ): IsEq<Kind<F, [C]>> =>
-    new IsEq(F.map2_(fa, fb)(f), F.map2Eval_(fa, Eval.now(fb))(f).value),
+    new IsEq(F.map2_(fa, fb, f), F.map2Eval_(fa, Eval.now(fb), f).value),
 
   mapNMapConsistency: <A, B>(
     fa: Kind<F, [A]>,
@@ -52,7 +52,7 @@ export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
     fa: Kind<F, [A]>,
     fb: Kind<F, [B]>,
     f: (a: A, b: B) => C,
-  ): IsEq<Kind<F, [C]>> => new IsEq(F.map2_(fa, fb)(f), F.mapN_(fa, fb)(f)),
+  ): IsEq<Kind<F, [C]>> => new IsEq(F.map2_(fa, fb, f), F.mapN_(fa, fb)(f)),
 
   mapNProductConsistency: <A, B, C, D>(
     fa: Kind<F, [A]>,
@@ -75,7 +75,7 @@ export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
   ): IsEq<Kind<F, [A]>> =>
     new IsEq(
       F.productL_(fa, fb),
-      F.map2_(fa, fb)((a, _) => a),
+      F.map2_(fa, fb, (a, _) => a),
     ),
 
   productRConsistency: <A, B>(
@@ -84,7 +84,7 @@ export const ApplyLaws = <F>(F: Apply<F>): ApplyLaws<F> => ({
   ): IsEq<Kind<F, [B]>> =>
     new IsEq(
       F.productR_(fa, fb),
-      F.map2_(fa, fb)((_, b) => b),
+      F.map2_(fa, fb, (_, b) => b),
     ),
 });
 
