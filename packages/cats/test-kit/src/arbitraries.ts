@@ -22,7 +22,6 @@ import {
   Ior,
   OptionT,
   EitherT,
-  Queue,
   Set,
   NonEmptyList,
   Tagged,
@@ -171,17 +170,6 @@ export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
 
   return gen(0);
 };
-
-export const fp4tsQueue = <A>(arbA: Arbitrary<A>): Arbitrary<Queue<A>> =>
-  fc
-    .array(arbA)
-    .chain(_in =>
-      fc
-        .array(arbA)
-        .map(_out =>
-          Queue.fromArray(_out)['+++'](Queue.fromArray(_in).reverse),
-        ),
-    );
 
 export const fp4tsMap = <K, V>(
   arbK: Arbitrary<K>,

@@ -5,7 +5,7 @@
 
 import { ok as assert } from 'assert';
 import { Kind, tupled } from '@fp4ts/core';
-import { Option, Some, None, Queue as DataQueue, FunctionK } from '@fp4ts/cats';
+import { Option, Some, None, Seq, FunctionK } from '@fp4ts/cats';
 import { Concurrent, Deferred, Poll, Ref } from '@fp4ts/effect-kernel';
 
 export abstract class Queue<F, A>
@@ -102,14 +102,14 @@ abstract class AbstractQueue<F, A> extends Queue<F, A> {
         F.flatten(
           this.state.modify(s => {
             if (s.takers.nonEmpty) {
-              const [taker, rest] = s.takers.dequeue.get;
+              const [taker, rest] = s.takers.uncons.get;
               return tupled(
                 s.copy({ takers: rest }),
                 F.void(taker.complete(a)),
               );
             } else if (s.size < this.capacity) {
               return tupled(
-                s.copy({ queue: s.queue.enqueue(a), size: s.size + 1 }),
+                s.copy({ queue: s.queue.append(a), size: s.size + 1 }),
                 F.unit,
               );
             } else {
@@ -127,14 +127,14 @@ abstract class AbstractQueue<F, A> extends Queue<F, A> {
       F.flatten(
         this.state.modify(s => {
           if (s.takers.nonEmpty) {
-            const [taker, rest] = s.takers.dequeue.get;
+            const [taker, rest] = s.takers.uncons.get;
             return tupled(
               s.copy({ takers: rest }),
               F.map_(taker.complete(a), () => true),
             );
           } else if (s.size < this.capacity) {
             return tupled(
-              s.copy({ queue: s.queue.enqueue(a), size: s.size + 1 }),
+              s.copy({ queue: s.queue.append(a), size: s.size + 1 }),
               F.pure(true),
             );
           } else {
@@ -152,20 +152,20 @@ abstract class AbstractQueue<F, A> extends Queue<F, A> {
         F.flatten(
           this.state.modify(s => {
             if (s.queue.nonEmpty && s.offerers.isEmpty) {
-              const [a, rest] = s.queue.dequeue.get;
+              const [a, rest] = s.queue.uncons.get;
               return tupled(
                 s.copy({ queue: rest, size: s.size - 1 }),
                 F.pure(a),
               );
             } else if (s.queue.nonEmpty) {
-              const [a, rest] = s.queue.dequeue.get;
-              const [[move, release], tail] = s.offerers.dequeue.get;
+              const [a, rest] = s.queue.uncons.get;
+              const [[move, release], tail] = s.offerers.uncons.get;
               return tupled(
-                s.copy({ queue: rest.enqueue(move), offerers: tail }),
+                s.copy({ queue: rest.append(move), offerers: tail }),
                 F.map_(release.complete(), () => a),
               );
             } else if (s.offerers.nonEmpty) {
-              const [[a, release], tail] = s.offerers.dequeue.get;
+              const [[a, release], tail] = s.offerers.uncons.get;
               return tupled(
                 s.copy({ offerers: tail }),
                 F.map_(release.complete(), () => a),
@@ -176,7 +176,7 @@ abstract class AbstractQueue<F, A> extends Queue<F, A> {
               );
 
               return tupled(
-                s.copy({ takers: s.takers.enqueue(taker) }),
+                s.copy({ takers: s.takers.append(taker) }),
                 F.onCancel_(poll(taker.get()), cleanup),
               );
             }
@@ -192,20 +192,20 @@ abstract class AbstractQueue<F, A> extends Queue<F, A> {
       F.flatten(
         this.state.modify(s => {
           if (s.queue.nonEmpty && s.offerers.isEmpty) {
-            const [a, rest] = s.queue.dequeue.get;
+            const [a, rest] = s.queue.uncons.get;
             return tupled(
               s.copy({ queue: rest, size: s.size - 1 }),
               F.pure(Some(a)),
             );
           } else if (s.queue.nonEmpty) {
-            const [a, rest] = s.queue.dequeue.get;
-            const [[move, release], tail] = s.offerers.dequeue.get;
+            const [a, rest] = s.queue.uncons.get;
+            const [[move, release], tail] = s.offerers.uncons.get;
             return tupled(
-              s.copy({ queue: rest.enqueue(move), offerers: tail }),
+              s.copy({ queue: rest.append(move), offerers: tail }),
               F.map_(release.complete(), () => Some(a)),
             );
           } else if (s.offerers.nonEmpty) {
-            const [[a, release], tail] = s.offerers.dequeue.get;
+            const [[a, release], tail] = s.offerers.uncons.get;
             return tupled(
               s.copy({ offerers: tail }),
               F.map_(release.complete(), () => Some(a)),
@@ -230,7 +230,7 @@ class BoundedQueue<F, A> extends AbstractQueue<F, A> {
       s.copy({ offerers: s.offerers.filter(o => o[1] !== offerer) }),
     );
     return tupled(
-      s.copy({ offerers: s.offerers.enqueue([a, offerer]) }),
+      s.copy({ offerers: s.offerers.append([a, offerer]) }),
       this.F.onCancel_(poll(offerer.get()), cleanup),
     );
   }
@@ -276,8 +276,8 @@ class CircularBufferQueue<F, A> extends AbstractQueue<F, A> {
     s: State<F, A>,
     a: A,
   ): [State<F, A>, Kind<F, [boolean]>] {
-    const [, rest] = s.queue.dequeue.get;
-    return tupled(s.copy({ queue: rest.enqueue(a) }), this.F.pure(true));
+    const [, rest] = s.queue.uncons.get;
+    return tupled(s.copy({ queue: rest.append(a) }), this.F.pure(true));
   }
 }
 
@@ -307,20 +307,20 @@ class TranslateQueue<G, F, A> extends Queue<G, A> {
 }
 
 type Props<F, A> = {
-  readonly queue: DataQueue<A>;
+  readonly queue: Seq<A>;
   readonly size: number;
-  readonly takers: DataQueue<Deferred<F, A>>;
-  readonly offerers: DataQueue<[A, Deferred<F, void>]>;
+  readonly takers: Seq<Deferred<F, A>>;
+  readonly offerers: Seq<[A, Deferred<F, void>]>;
 };
 class State<F, A> {
   public static readonly empty = <F, A>(): State<F, A> =>
-    new State(DataQueue.empty, 0, DataQueue.empty, DataQueue.empty);
+    new State(Seq.empty, 0, Seq.empty, Seq.empty);
 
   public constructor(
-    public readonly queue: DataQueue<A>,
+    public readonly queue: Seq<A>,
     public readonly size: number,
-    public readonly takers: DataQueue<Deferred<F, A>>,
-    public readonly offerers: DataQueue<[A, Deferred<F, void>]>,
+    public readonly takers: Seq<Deferred<F, A>>,
+    public readonly offerers: Seq<[A, Deferred<F, void>]>,
   ) {}
 
   public copy({

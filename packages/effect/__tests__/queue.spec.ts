@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit';
 import { id, Kind } from '@fp4ts/core';
-import { Option, None, Queue as CatsQueue } from '@fp4ts/cats';
+import { Option, None, Seq } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Queue } from '@fp4ts/effect-std';
 import { AssertionError } from 'assert';
@@ -76,10 +76,10 @@ describe('Queue', () => {
       const consumer = (
         q: Queue<IOF, number>,
         n: number,
-        acc: CatsQueue<number> = CatsQueue.empty,
+        acc: Seq<number> = Seq.empty,
       ): IO<number> =>
         n > 0
-          ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.enqueue(a)))
+          ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.append(a)))
           : IO.pure(acc.foldLeft(0, (x, y) => x + y));
 
       return IO.Monad.do(function* (_) {
@@ -221,10 +221,10 @@ function offerTakeOverCapacityTests(Q: QueueLike<IOF, number>) {
     const consumer = (
       q: Queue<IOF, number>,
       n: number,
-      acc: CatsQueue<number> = CatsQueue.empty,
+      acc: Seq<number> = Seq.empty,
     ): IO<number> =>
       n > 0
-        ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.enqueue(a)))
+        ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.append(a)))
         : IO.pure(acc.foldLeft(0, (x, y) => x + y));
 
     return IO.Monad.do(function* (_) {
@@ -267,13 +267,13 @@ function tryOfferTryTakeTests(Q: QueueLike<IOF, number>) {
     const consumer = (
       q: Queue<IOF, number>,
       n: number,
-      acc: CatsQueue<number> = CatsQueue.empty,
+      acc: Seq<number> = Seq.empty,
     ): IO<number> =>
       n > 0
         ? Q.tryTake(q).flatMap(opt =>
             opt.fold(
               () => IO.suspend['>>>'](consumer(q, n, acc)),
-              a => consumer(q, n - 1, acc.enqueue(a)),
+              a => consumer(q, n - 1, acc.append(a)),
             ),
           )
         : IO.pure(acc.foldLeft(0, (x, y) => x + y));
