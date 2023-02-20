@@ -128,7 +128,7 @@ const taggedCorepresentable: Lazy<Corepresentable<TaggedF, ProxyF>> = lazy(() =>
   Corepresentable.of(
     {
       cotabulate: <D, C>(f: (corep: Proxy<D>) => C): Tagged<D, C> =>
-        Tagged(f(Proxy<D>())),
+        f(Proxy<D>()),
       ...Cosieve.Tagged,
       ...Costrong.Tagged,
     },

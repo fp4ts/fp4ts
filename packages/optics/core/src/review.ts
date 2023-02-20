@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, absurd, pipe, Kind, coerce } from '@fp4ts/core';
+import { flow, absurd, pipe, Kind } from '@fp4ts/core';
 import { Bifunctor, Tagged } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Settable, Choice } from '@fp4ts/optics-kernel';
@@ -32,11 +32,7 @@ export function re<T, B>(r: Review<T, B>): Getter<B, T> {
 }
 
 export function reverseGet<T, B>(r: Review<T, B>): (b: B) => T {
-  return flow(
-    Tagged,
-    r(Settable.Identity, { ...Tagged.Bifunctor, ...Choice.Tagged }),
-    Tagged.unTag,
-  );
+  return r(Settable.Identity, { ...Tagged.Bifunctor, ...Choice.Tagged });
 }
 
 export function review<R, B>(

@@ -3,37 +3,21 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  $type,
-  Kind,
-  KindOf,
-  Lazy,
-  lazy,
-  newtypeK,
-  newtypeKDerive,
-  TyK,
-  TyVar,
-} from '@fp4ts/core';
+import { $, $type, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
 import { Profunctor } from '../arrow';
 import { Bifunctor } from '../bifunctor';
-import { EqK, EqKF } from '../eq-k';
-import { Monad, MonadF } from '../monad';
+import { EqK } from '../eq-k';
+import { Monad } from '../monad';
 import { Identity } from './identity';
 
-const TaggedF = newtypeK<KindSnd>()('@fp4ts/cats/core/data/Tagged');
-
-export type Tagged<S, B> = Kind<TaggedF, [S, B]>;
+export type Tagged<S, B> = B;
 
 export const Tagged: TaggedObj = function <S, B>(b: B): Tagged<S, B> {
-  return TaggedF(b);
+  return b;
 } as any;
-
-Tagged.unTag = TaggedF.unapply;
 
 interface TaggedObj {
   <S, B>(b: B): Tagged<S, B>;
-  unTag<S, B>(t: Tagged<S, B>): B;
 
   // -- Instances
 
@@ -45,25 +29,25 @@ interface TaggedObj {
 
 // -- Instances
 
-const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazy(<S>() =>
-  newtypeKDerive<EqKF, $<TaggedF, [S]>>()(Identity.EqK),
+const taggedEqK: <S>() => EqK<$<TaggedF, [S]>> = lazy(
+  <S>() => Identity.EqK as any,
 ) as <S>() => EqK<$<TaggedF, [S]>>;
 
-const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazy(<S>() =>
-  newtypeKDerive<MonadF, $<TaggedF, [S]>>()(Identity.Monad),
+const taggedMonad: <S>() => Monad<$<TaggedF, [S]>> = lazy(
+  <S>() => Identity.Monad as any,
 ) as <S>() => Monad<$<TaggedF, [S]>>;
 
 const taggedBifunctor: Lazy<Bifunctor<TaggedF>> = lazy(() =>
   Bifunctor.of({
     bimap_: <A, B, C, D>(tab: Tagged<A, B>, f: (a: A) => C, g: (b: B) => D) =>
-      Tagged<C, D>(g(Tagged.unTag(tab))),
+      g(tab),
   }),
 );
 
 const taggedProfunctor: Lazy<Profunctor<TaggedF>> = lazy(() =>
   Profunctor.of({
     dimap_: <A, B, C, D>(fab: Tagged<A, B>, f: (c: C) => A, g: (b: B) => D) =>
-      Tagged<C, D>(g(Tagged.unTag(fab))),
+      g(fab),
   }),
 );
 
@@ -90,4 +74,6 @@ export interface KindSnd extends TyK<[unknown, unknown]> {
  * @category Type Constructor
  * @category Data
  */
-export type TaggedF = KindOf<typeof TaggedF>;
+export interface TaggedF extends TyK<[unknown, unknown]> {
+  [$type]: TyVar<this, 1>;
+}

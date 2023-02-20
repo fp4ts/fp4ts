@@ -57,10 +57,8 @@ const function1Costrong: Lazy<Costrong<Function1F>> = lazy(() =>
 
 const taggedCostrong: Lazy<Costrong<TaggedF>> = lazy(() =>
   Costrong.of({
-    unfirst: <A, B, C>(f: Tagged<[A, C], [B, C]>) =>
-      Tagged<A, B>(Tagged.unTag(f)[0]),
-    unsecond: <A, B, C>(f: Tagged<[C, A], [C, B]>) =>
-      Tagged<A, B>(Tagged.unTag(f)[1]),
+    unfirst: <A, B, C>(f: Tagged<[A, C], [B, C]>) => f[0],
+    unsecond: <A, B, C>(f: Tagged<[C, A], [C, B]>) => f[1],
     ...Tagged.Profunctor,
   }),
 );

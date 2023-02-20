@@ -7,7 +7,6 @@ import { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Choice } from '@fp4ts/cats-core';
-import { Either } from '@fp4ts/cats-core/lib/data';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 

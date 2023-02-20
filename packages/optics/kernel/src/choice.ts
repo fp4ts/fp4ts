@@ -66,6 +66,6 @@ const taggedChoice: Lazy<Choice<TaggedF>> = lazy(() =>
     left:
       <C>() =>
       <A, B>(tab: Tagged<A, B>): Tagged<Either<A, C>, Either<B, C>> =>
-        Tagged(Left(Tagged.unTag(tab))),
+        Left(tab),
   }),
 );

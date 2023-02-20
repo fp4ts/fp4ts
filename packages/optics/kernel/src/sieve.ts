@@ -91,7 +91,7 @@ const taggedCosieve: Lazy<Cosieve<TaggedF, ProxyF>> = lazy(() =>
       cosieve:
         <A, B>(pab: Tagged<A, B>) =>
         (p: Proxy<A>) =>
-          coerce(pab),
+          pab,
       ...Tagged.Profunctor,
     },
     Proxy.Functor,

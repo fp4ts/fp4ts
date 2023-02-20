@@ -79,7 +79,8 @@ const closedTagged: Lazy<Closed<TaggedF>> = lazy(() =>
     closed:
       <X>() =>
       <A, B>(pab: Tagged<A, B>): Tagged<(x: X) => A, (x: X) => B> =>
-        Tagged(() => coerce(pab)),
+      _ =>
+        pab,
 
     ...Tagged.Profunctor,
   }),
