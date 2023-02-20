@@ -744,8 +744,8 @@ ParserT.Alternative = <S, F>(): Alternative<$<ParserTF, [S, F]>> =>
     ...ParserT.Applicative(),
     ...ParserT.MonoidK(),
     orElse_: (fa, fb) => fa.orElse(fb()),
-    many: fa => fa.rep(),
-    many1: fa => fa.rep1(),
+    many: fa => fa.rep().map(xs => xs.toArray),
+    many1: fa => fa.rep1().map(xs => xs.toArray),
   });
 
 ParserT.Monad = <S, F>(): Monad<$<ParserTF, [S, F]>> =>

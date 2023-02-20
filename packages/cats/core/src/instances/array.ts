@@ -21,6 +21,7 @@ import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
 import { Either, Ior, isIdentityTC, None, Option, Some } from '../data';
+import * as A from '../internal/array-helpers';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -416,17 +417,17 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
   const loop = (
     start: number,
     end: number,
-  ): Kind<Rhs, [Kind<G, [Concat<B>]>]> => {
+  ): Kind<Rhs, [Kind<G, [A.Concat<B>]>]> => {
     if (end - start <= width) {
       // We've entered leaves of the tree
-      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1], end - 1), singleton));
+      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1], end - 1), A.singleton));
       for (let idx = end - 2; start <= idx; idx--) {
         const a = xs[idx];
         const right = first;
         const idx0 = idx;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(cons));
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right)(A.cons));
       }
-      return Rhs.map(first, single);
+      return Rhs.map(first, A.single);
     } else {
       const step = ((end - start) / width) | 0;
 
@@ -440,13 +441,13 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
         const start1 = start0;
         const end1 = Math.min(end, end0);
         const right = Rhs.defer(() => loop(start1, end1));
-        fchain = Rhs.map2(fchain, right)(concat);
+        fchain = Rhs.map2(fchain, right)(A.concat);
       }
       return fchain;
     }
   };
 
-  return G.map_(Rhs.toG(loop(0, xs.length)), xs => concatCopyToArray(xs, []));
+  return G.map_(Rhs.toG(loop(0, xs.length)), xs => A.concatCopyToArray(xs, []));
 };
 
 export const arrayTraversableFilter = lazy(() =>
@@ -478,16 +479,16 @@ const traverseFilterImpl = <G, Rhs, A, B>(
   const loop = (
     start: number,
     end: number,
-  ): Kind<Rhs, [Kind<G, [Concat<B>]>]> => {
+  ): Kind<Rhs, [Kind<G, [A.Concat<B>]>]> => {
     if (end - start <= width) {
       // We've entered leaves of the tree
-      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1]), singletonFilter));
+      let first = Rhs.toRhs(() => G.map_(f(xs[end - 1]), A.singletonFilter));
       for (let idx = end - 2; start <= idx; idx--) {
         const a = xs[idx];
         const right = first;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(consFilter));
+        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right)(A.consFilter));
       }
-      return Rhs.map(first, single);
+      return Rhs.map(first, A.single);
     } else {
       const step = ((end - start) / width) | 0;
 
@@ -501,64 +502,14 @@ const traverseFilterImpl = <G, Rhs, A, B>(
         const start1 = start0;
         const end1 = Math.min(end, end0);
         const right = Rhs.defer(() => loop(start1, end1));
-        fchain = Rhs.map2(fchain, right)(concat);
+        fchain = Rhs.map2(fchain, right)(A.concat);
       }
       return fchain;
     }
   };
 
-  return G.map_(Rhs.toG(loop(0, xs.length)), xs => concatCopyToArray(xs, []));
+  return G.map_(Rhs.toG(loop(0, xs.length)), xs => A.concatCopyToArray(xs, []));
 };
-
-type Cons<A> = { tag: 0 } | { tag: 1; head: A; tail: Cons<A> };
-
-function singleton<A>(head: A): Cons<A> {
-  return { tag: 1, head, tail: { tag: 0 } };
-}
-function singletonFilter<A>(head: Option<A>): Cons<A> {
-  return head.nonEmpty
-    ? { tag: 1, head: head.get, tail: { tag: 0 } }
-    : { tag: 0 };
-}
-function cons<A>(head: A, tail: Cons<A>): Cons<A> {
-  return { tag: 1, head, tail };
-}
-function consFilter<A>(head: Option<A>, tail: Cons<A>): Cons<A> {
-  return head.nonEmpty ? { tag: 1, head: head.get, tail } : tail;
-}
-function consCopyToArray<A>(xs: Cons<A>, ys: A[]): void {
-  while (xs.tag !== 0) {
-    ys.push(xs.head);
-    xs = xs.tail;
-  }
-}
-
-type Concat<A> =
-  | { tag: 0 }
-  | { tag: 1; value: Cons<A> }
-  | { tag: 2; lhs: Concat<A>; rhs: Concat<A> };
-
-function single<A>(value: Cons<A>): Concat<A> {
-  return { tag: 1, value };
-}
-
-function concat<A>(lhs: Concat<A>, rhs: Concat<A>): Concat<A> {
-  return { tag: 2, lhs, rhs };
-}
-
-function concatCopyToArray<A>(xs: Concat<A>, ys: A[]): A[] {
-  switch (xs.tag) {
-    case 0:
-      return ys;
-    case 1:
-      consCopyToArray(xs.value, ys);
-      return ys;
-    case 2:
-      concatCopyToArray(xs.lhs, ys);
-      concatCopyToArray(xs.rhs, ys);
-      return ys;
-  }
-}
 
 // -- HKT
 

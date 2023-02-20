@@ -6,15 +6,15 @@
 import { Eval, Kind } from '@fp4ts/core';
 import { Applicative, ApplicativeRequirements } from './applicative';
 import { MonoidK, MonoidKRequirements } from './monoid-k';
-import { List } from './data';
 import { ArrayF, arrayAlternative } from './instances/array';
+import * as A from './internal/array-helpers';
 
 /**
  * @category Type Class
  */
 export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
-  readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
-  readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [List<A>]>;
+  readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [A[]]>;
+  readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [A[]]>;
 
   readonly orElse: <A>(
     fb: () => Kind<F, [A]>,
@@ -31,28 +31,28 @@ export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
 export const Alternative = Object.freeze({
   of: <F>(F: AlternativeRequirements<F>): Alternative<F> => {
     const self: Alternative<F> = {
-      many: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> => {
-        const many: Eval<Kind<F, [List<A>]>> = Eval.defer(() => many1).map(
-          self.combineK(self.pure(List.empty as List<A>)),
+      many: <A>(fa: Kind<F, [A]>): Kind<F, [A[]]> => {
+        const many: Eval<Kind<F, [A.Cons<A>]>> = Eval.defer(() => many1).map(
+          self.combineK(self.pure({ tag: 0 } as A.Cons<A>)),
         );
-        const many1: Eval<Kind<F, [List<A>]>> = self.map2Eval_(
+        const many1: Eval<Kind<F, [A.Cons<A>]>> = self.map2Eval_(
           fa,
           many,
-        )(List.cons);
+        )(A.cons);
 
-        return many.value;
+        return self.map_(many.value, xs => A.consCopyToArray(xs, []));
       },
 
-      many1: <A>(fa: Kind<F, [A]>): Kind<F, [List<A>]> => {
-        const many: Eval<Kind<F, [List<A>]>> = Eval.defer(() => many1).map(
-          self.combineK(self.pure(List.empty as List<A>)),
+      many1: <A>(fa: Kind<F, [A]>): Kind<F, [A[]]> => {
+        const many: Eval<Kind<F, [A.Cons<A>]>> = Eval.defer(() => many1).map(
+          self.combineK(self.pure({ tag: 0 } as A.Cons<A>)),
         );
-        const many1: Eval<Kind<F, [List<A>]>> = self.map2Eval_(
+        const many1: Eval<Kind<F, [A.Cons<A>]>> = self.map2Eval_(
           fa,
           many,
-        )(List.cons);
+        )(A.cons);
 
-        return many1.value;
+        return self.map_(many1.value, xs => A.consCopyToArray(xs, []));
       },
 
       orElse: fb => fa => self.orElse_(fa, fb),

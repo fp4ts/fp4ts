@@ -101,19 +101,12 @@ function formatErrorMessages(
       ([hd, tl]) =>
         tl.isEmpty
           ? hd
-          : `${tl.prepend(hd).init.toArray.join(', ')} ${msgOr} ${tl.last}`,
+          : `${tl.prepend(hd).init.join(', ')} ${msgOr} ${tl.last}`,
     );
   }
 
   function clean(msgs: List<string>): List<string> {
-    const set = new Set<string>();
-    return msgs
-      .filter(s => s !== '')
-      .foldLeft(List.empty as List<string>, (acc, next) => {
-        if (set.has(next)) return acc;
-        set.add(next);
-        return acc.prepend(next);
-      }).reverse;
+    return msgs.filter(s => s !== '').distinct();
   }
 
   if (msgs.isEmpty) return msgUnknown;
@@ -140,5 +133,5 @@ function formatErrorMessages(
 
   return clean(
     List(formatSysUnExpect, formatUnExpect, formatExpect, formatMessages),
-  ).toArray.join('\n');
+  ).join('\n');
 }
