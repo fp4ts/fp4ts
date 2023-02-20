@@ -8,7 +8,7 @@ import { CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from './monad';
 import { MonoidK } from './monoid-k';
 import { UnorderedFoldable } from './unordered-foldable';
-import { Option, Some, None, Either, Left, Right, LazyList } from './data';
+import { Option, Some, None, Either, Left, Right } from './data';
 import { ComposedFoldable } from './composed';
 import { ArrayF } from './instances/array';
 import { FoldableWithIndex } from './foldable-with-index';
@@ -150,11 +150,11 @@ export const Foldable = Object.freeze({
 
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {
-        const src = LazyList.fromFoldable(self)(fa);
+        const src = Source.fromFoldable(self, fa);
         return G.tailRecM(tupled(z, src))(([b, src]) =>
-          src.uncons.fold(
+          src.value.uncons.fold(
             () => G.pure(Right(b)),
-            ([a, src]) => G.map_(f(b, a), b => Left(tupled(b, src))),
+            ({ head, tail }) => G.map_(f(b, head), b => Left(tupled(b, tail))),
           ),
         );
       },
@@ -219,6 +219,14 @@ export const Foldable = Object.freeze({
   get Array(): Foldable<ArrayF> {
     return FoldableWithIndex.Array;
   },
+});
+
+type Source<A> = { uncons: Option<{ head: A; tail: Eval<Source<A>> }> };
+const Source = Object.freeze({
+  fromFoldable: <F, A>(F: Foldable<F>, fa: Kind<F, [A]>): Eval<Source<A>> =>
+    F.foldRight_(fa, Eval.now({ uncons: None } as Source<A>), (head, tail) =>
+      Eval.now({ uncons: Some({ head, tail }) }),
+    ),
 });
 
 // -- HKT
