@@ -14,3 +14,5 @@ export * from './representable';
 export * from './sieve';
 export * from './strong';
 export * from './traversing';
+
+export * from './data';
