@@ -651,6 +651,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fp4ts/cats-arrow@workspace:packages/cats/arrow":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-arrow@workspace:packages/cats/arrow"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/cats-profunctor": "*"
+    "@fp4ts/core": "*"
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/cats-core@*, @fp4ts/cats-core@workspace:packages/cats/core":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-core@workspace:packages/cats/core"
@@ -746,6 +758,30 @@ __metadata:
     "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     benny: ^3.7.1
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/cats-profunctor-laws@workspace:packages/cats/profunctor-laws":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-profunctor-laws@workspace:packages/cats/profunctor-laws"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/cats-profunctor": "*"
+    "@fp4ts/core": "*"
+    fast-check: ^3.3.0
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/cats-profunctor@*, @fp4ts/cats-profunctor@workspace:packages/cats/profunctor":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-profunctor@workspace:packages/cats/profunctor"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/core": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
