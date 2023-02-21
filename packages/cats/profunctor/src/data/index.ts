@@ -6,4 +6,5 @@
 /**
  * @module cats/profunctor/data
  */
+export * from './forget';
 export * from './tagged';
