@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Function1F } from '@fp4ts/cats-core';
+import { Function1F, Functor } from '@fp4ts/cats-core';
 import { IdentityF } from '@fp4ts/cats-core/lib/data';
 import { Kind } from '@fp4ts/core';
 import {
@@ -18,7 +18,12 @@ import {
   Strong,
   StrongRequirements,
 } from './strong';
-import { function1Corepresentable } from './instances/function';
+import {
+  function1Corepresentable,
+  function1Representable,
+} from './instances/function';
+import { kleisliRepresentable } from './instances/kleisli';
+import { cokleisliCorepresentable } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -43,6 +48,12 @@ export const Representable = Object.freeze({
     ...Strong.of(P),
     ...P,
   }),
+
+  get Function1() {
+    return function1Representable();
+  },
+
+  Kleisli: <F>(F: Functor<F>) => kleisliRepresentable(F),
 });
 
 /**
@@ -74,4 +85,6 @@ export const Corepresentable = Object.freeze({
   get Function1(): Corepresentable<Function1F, IdentityF> {
     return function1Corepresentable();
   },
+
+  Cokleisli: <F>(F: Functor<F>) => cokleisliCorepresentable(F),
 });

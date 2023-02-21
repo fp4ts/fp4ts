@@ -3,7 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Functor } from '@fp4ts/cats-core';
 import { Kind } from '@fp4ts/core';
+import { cokleisliCostrong } from './instances/cokleisli';
+import { function1Costrong, function1Strong } from './instances/function';
+import { kleisliStrong } from './instances/kleisli';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 
 /**
@@ -41,6 +45,12 @@ export const Strong = Object.freeze({
     };
     return self;
   },
+
+  get Function1() {
+    return function1Strong();
+  },
+
+  Kleisli: <F>(F: Functor<F>) => kleisliStrong(F),
 });
 
 /**
@@ -80,6 +90,12 @@ export const Costrong = Object.freeze({
     };
     return self;
   },
+
+  get Function1() {
+    return function1Costrong();
+  },
+
+  Cokleisli: <F>(F: Functor<F>) => cokleisliCostrong(F),
 });
 
 const swap = <X, Y>([x, y]: readonly [X, Y]): [Y, X] => [y, x];

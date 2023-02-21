@@ -8,6 +8,7 @@ import { Applicative, Function1F, Traversable } from '@fp4ts/cats-core';
 import { Choice, ChoiceRequirements } from './choice';
 import { Strong, StrongRequirements } from './strong';
 import { Mapping } from './mapping';
+import { kleisliTraversing } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -58,4 +59,6 @@ export const Traversing = Object.freeze({
   get Function1F(): Traversing<Function1F> {
     return Mapping.Function1;
   },
+
+  Kleisli: <F>(F: Applicative<F>) => kleisliTraversing(F),
 });
