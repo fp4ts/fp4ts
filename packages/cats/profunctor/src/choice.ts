@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { Either } from '@fp4ts/cats-core/lib/data';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 import { Function1F } from '@fp4ts/cats-core';
-import { function1Cochoice } from './instances/function';
+import { function1Choice, function1Cochoice } from './instances/function';
 
 /**
  * @category Type Class
@@ -47,6 +47,10 @@ export const Choice = Object.freeze({
       ...P,
     };
     return self;
+  },
+
+  get Function1(): Choice<Function1F> {
+    return function1Choice();
   },
 });
 

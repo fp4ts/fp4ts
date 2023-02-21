@@ -4,7 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
+import { Function1F } from '@fp4ts/cats-core';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
+import { function1Closed } from './instances/function';
 
 /**
  * @category Type Class
@@ -24,4 +26,8 @@ export const Closed = Object.freeze({
     ...Profunctor.of(P),
     ...P,
   }),
+
+  get Function1(): Closed<Function1F> {
+    return function1Closed();
+  },
 });

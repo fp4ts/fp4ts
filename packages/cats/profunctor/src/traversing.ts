@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Applicative, Traversable } from '@fp4ts/cats-core';
+import { Applicative, Function1F, Traversable } from '@fp4ts/cats-core';
 import { Choice, ChoiceRequirements } from './choice';
 import { Strong, StrongRequirements } from './strong';
+import { Mapping } from './mapping';
 
 /**
  * @category Type Class
@@ -52,5 +53,9 @@ export const Traversing = Object.freeze({
       ...P,
     };
     return self;
+  },
+
+  get Function1F(): Traversing<Function1F> {
+    return Mapping.Function1;
   },
 });
