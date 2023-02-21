@@ -3,17 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  $,
-  coerce,
-  compose,
-  flow,
-  instance,
-  Kind,
-  F1,
-  Lazy,
-  lazy,
-} from '@fp4ts/core';
+import { $, flow, instance, Kind, F1, Lazy, lazy } from '@fp4ts/core';
 import {
   ArrowChoice,
   Distributive,

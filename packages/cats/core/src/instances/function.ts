@@ -30,7 +30,6 @@ import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
 import { StackSafeMonad } from '../stack-safe-monad';
-
 import { Either, Left, Right } from '../data';
 
 // -- Function0
