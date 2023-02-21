@@ -29,38 +29,40 @@ export const function1Profunctor = lazy(() =>
   }),
 );
 
-export const function1Strong = lazy(() =>
-  Strong.of<Function1F>({
-    ...function1Profunctor(),
+export const function1Strong = lazy(
+  (): Strong<Function1F> =>
+    Strong.of<Function1F>({
+      ...function1Profunctor(),
 
-    first:
-      <C>() =>
-      <A, B>(f: (a: A) => B) =>
-      ([a, c]: [A, C]): [B, C] =>
-        [f(a), c],
+      first:
+        <C>() =>
+        <A, B>(f: (a: A) => B) =>
+        ([a, c]: [A, C]): [B, C] =>
+          [f(a), c],
 
-    second:
-      <C>() =>
-      <A, B>(f: (a: A) => B) =>
-      ([c, a]: [C, A]): [C, B] =>
-        [c, f(a)],
-  }),
+      second:
+        <C>() =>
+        <A, B>(f: (a: A) => B) =>
+        ([c, a]: [C, A]): [C, B] =>
+          [c, f(a)],
+    }),
 );
 
-export const function1Costrong = lazy(() =>
-  Costrong.of<Function1F>({
-    ...function1Profunctor(),
+export const function1Costrong = lazy(
+  (): Costrong<Function1F> =>
+    Costrong.of<Function1F>({
+      ...function1Profunctor(),
 
-    unfirst:
-      <A, B, C>(f: (a: [A, C]) => [B, C]) =>
-      (a: A): B =>
-        f([a, undefined as any])[0],
+      unfirst:
+        <A, B, C>(f: (a: [A, C]) => [B, C]) =>
+        (a: A): B =>
+          f([a, undefined as any])[0],
 
-    unsecond:
-      <A, B, C>(f: (a: [C, A]) => [C, B]) =>
-      (a: A): B =>
-        f([undefined as any, a])[1],
-  }),
+      unsecond:
+        <A, B, C>(f: (a: [C, A]) => [C, B]) =>
+        (a: A): B =>
+          f([undefined as any, a])[1],
+    }),
 );
 
 export const function1Choice = lazy(() =>
@@ -113,32 +115,35 @@ export const function1Closed = lazy(() =>
   }),
 );
 
-export const function1Sieve = lazy(() =>
-  Sieve.of<Function1F, IdentityF>({
-    ...function1Profunctor(),
+export const function1Sieve = lazy(
+  (): Sieve<Function1F, IdentityF> =>
+    Sieve.of<Function1F, IdentityF>({
+      ...function1Profunctor(),
 
-    F: Identity.Functor,
+      F: Identity.Functor,
 
-    sieve: id,
-  }),
+      sieve: id,
+    }),
 );
 
-export const function1Cosieve = lazy(() =>
-  Cosieve.of<Function1F, IdentityF>({
-    ...function1Profunctor(),
+export const function1Cosieve = lazy(
+  (): Cosieve<Function1F, IdentityF> =>
+    Cosieve.of<Function1F, IdentityF>({
+      ...function1Profunctor(),
 
-    C: Identity.Functor,
+      C: Identity.Functor,
 
-    cosieve: id,
-  }),
+      cosieve: id,
+    }),
 );
 
-export const function1Representable = lazy(() =>
-  Representable.of<Function1F, IdentityF>({
-    ...function1Sieve(),
-    ...function1Strong(),
-    tabulate: id,
-  }),
+export const function1Representable = lazy(
+  (): Representable<Function1F, IdentityF> =>
+    Representable.of<Function1F, IdentityF>({
+      ...function1Sieve(),
+      ...function1Strong(),
+      tabulate: id,
+    }),
 );
 
 export const function1Corepresentable = lazy(() =>

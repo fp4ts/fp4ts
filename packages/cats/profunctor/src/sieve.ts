@@ -6,6 +6,9 @@
 import { Kind } from '@fp4ts/core';
 import { Functor } from '@fp4ts/cats-core';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
+import { function1Cosieve, function1Sieve } from './instances/function';
+import { kleisliSieve } from './instances/kleisli';
+import { cokleisliCosieve } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -25,6 +28,12 @@ export const Sieve = Object.freeze({
     ...Profunctor.of(P),
     ...P,
   }),
+
+  get Function1() {
+    return function1Sieve();
+  },
+
+  Kleisli: <F>(F: Functor<F>) => kleisliSieve(F),
 });
 
 /**
@@ -45,4 +54,10 @@ export const Cosieve = Object.freeze({
     ...Profunctor.of(P),
     ...P,
   }),
+
+  get Function1() {
+    return function1Cosieve();
+  },
+
+  Cokleisli: <F>(F: Functor<F>) => cokleisliCosieve(F),
 });

@@ -6,8 +6,10 @@
 import { Kind } from '@fp4ts/core';
 import { Either } from '@fp4ts/cats-core/lib/data';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
-import { Function1F } from '@fp4ts/cats-core';
+import { Applicative, Function1F, Functor } from '@fp4ts/cats-core';
 import { function1Choice, function1Cochoice } from './instances/function';
+import { kleisliChoice, kleisliCochoice } from './instances/kleisli';
+import { cokleisliCochoice } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -52,6 +54,8 @@ export const Choice = Object.freeze({
   get Function1(): Choice<Function1F> {
     return function1Choice();
   },
+
+  Kleisli: <F>(F: Applicative<F>) => kleisliChoice(F),
 });
 
 /**
@@ -99,6 +103,9 @@ export const Cochoice = Object.freeze({
   get Function1(): Cochoice<Function1F> {
     return function1Cochoice();
   },
+
+  Kleisli: <F>(F: Functor<F>) => kleisliCochoice(F),
+  Cokleisli: <F>(F: Functor<F>) => cokleisliCochoice(F),
 });
 
 const swap = <X, Y>(ea: Either<X, Y>): Either<Y, X> => ea.swapped;

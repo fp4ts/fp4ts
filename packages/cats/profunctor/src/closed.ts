@@ -4,9 +4,11 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Function1F } from '@fp4ts/cats-core';
+import { Distributive, Function1F, Functor } from '@fp4ts/cats-core';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 import { function1Closed } from './instances/function';
+import { cokleisliClosed } from './instances/cokleisli';
+import { kleisliClosed } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -30,4 +32,7 @@ export const Closed = Object.freeze({
   get Function1(): Closed<Function1F> {
     return function1Closed();
   },
+
+  Kleisli: <F>(F: Distributive<F>) => kleisliClosed(F),
+  Cokleisli: <F>(F: Functor<F>) => cokleisliClosed(F),
 });

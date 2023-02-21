@@ -3,7 +3,11 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Function1F, Functor } from '@fp4ts/cats-core';
 import { Base, Kind, instance, id } from '@fp4ts/core';
+import { cokleisliProfunctor } from './instances/cokleisli';
+import { function1Profunctor } from './instances/function';
+import { kleisliProfunctor } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -48,4 +52,11 @@ export const Profunctor = Object.freeze({
     });
     return self;
   },
+
+  get Function1(): Profunctor<Function1F> {
+    return function1Profunctor();
+  },
+
+  Kleisli: <F>(F: Functor<F>) => kleisliProfunctor(F),
+  Cokleisli: <F>(F: Functor<F>) => cokleisliProfunctor(F),
 });

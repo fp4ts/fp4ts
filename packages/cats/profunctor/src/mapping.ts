@@ -4,10 +4,16 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Function1F, Functor } from '@fp4ts/cats-core';
+import {
+  Applicative,
+  Distributive,
+  Function1F,
+  Functor,
+} from '@fp4ts/cats-core';
 import { Closed, ClosedRequirements } from './closed';
 import { Traversing, TraversingRequirements } from './traversing';
 import { function1Mapping } from './instances/function';
+import { kleisliMapping } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -53,4 +59,6 @@ export const Mapping = Object.freeze({
   get Function1(): Mapping<Function1F> {
     return function1Mapping();
   },
+
+  Kleisli: <F>(F: Applicative<F> & Distributive<F>) => kleisliMapping(F),
 });
