@@ -6,4 +6,9 @@
 /**
  * @module cats/arrow
  */
-export {};
+export * from './arrow';
+export * from './arrow-apply';
+export * from './arrow-choice';
+export * from './arrow-loop';
+export * from './category';
+export * from './compose';

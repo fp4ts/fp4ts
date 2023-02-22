@@ -8,8 +8,8 @@ import { Applicative } from '../applicative';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
 import { StackSafeMonad } from '../stack-safe-monad';
-import { ArrowApply } from './arrow-apply';
 import { Arrow } from './arrow';
+import { ArrowApply } from './arrow-apply';
 
 export type ArrowMonad<F, B> = Kind<F, [void, B]>;
 
