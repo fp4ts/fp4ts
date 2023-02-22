@@ -75,7 +75,7 @@ describe('Kleisli', () => {
 
   checkAll(
     'Cochoice<* => Eval<*>>',
-    CochoiceSuite(Cochoice.Kleisli(Monad.Eval)).cochoice(
+    CochoiceSuite(Cochoice.Kleisli(Identity.Traversable)).cochoice(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
@@ -85,9 +85,8 @@ describe('Kleisli', () => {
       MiniInt.Eq,
       ec.miniInt(),
       MiniInt.Eq,
-      <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) =>
-        fc.func<[X], Eval<Y>>(A.fp4tsEval(Y)),
-      (X, Y) => eq.fn1Eq(X, Eq.Eval(Y)),
+      <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
+      (X, Y) => eq.fn1Eq(X, Y),
     ),
   );
 });

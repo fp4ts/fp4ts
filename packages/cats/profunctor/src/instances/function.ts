@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { F1, id, lazy } from '@fp4ts/core';
+import { Eval, F1, id, lazy } from '@fp4ts/core';
 import { Function1F } from '@fp4ts/cats-core';
 import {
   Either,
@@ -83,25 +83,41 @@ export const function1Choice = lazy(() =>
   }),
 );
 
-export const function1Cochoice = lazy(() =>
-  Cochoice.of<Function1F>({
+export const function1Cochoice = lazy((): Cochoice<Function1F> => {
+  const goUnleft = <A, B, C>(
+    f: (ac: Either<A, C>) => Either<B, C>,
+    ac: Either<A, C>,
+  ): Eval<B> => {
+    const bc = f(ac);
+    return bc.isLeft
+      ? Eval.now(bc.getLeft)
+      : Eval.defer(() => goUnleft(f, bc as any as Either<A, C>));
+  };
+
+  const goUnright = <A, B, C>(
+    f: (ac: Either<C, A>) => Either<C, B>,
+    ca: Either<C, A>,
+  ): Eval<B> => {
+    const cb = f(ca);
+    return cb.isRight
+      ? Eval.now(cb.get)
+      : Eval.defer(() => goUnright(f, cb as any as Either<C, A>));
+  };
+
+  return Cochoice.of<Function1F>({
     ...function1Profunctor(),
 
     unleft:
       <A, B, C>(f: (ac: Either<A, C>) => Either<B, C>) =>
       (a: A): B =>
-        f(Left(a)).fold(id, _ => {
-          while (true) {}
-        }),
+        goUnleft(f, Left(a)).value,
 
     unright:
       <A, B, C>(f: (ac: Either<C, A>) => Either<C, B>) =>
       (a: A): B =>
-        f(Right(a)).fold(_ => {
-          while (true) {}
-        }, id),
-  }),
-);
+        goUnright(f, Right(a)).value,
+  });
+});
 
 export const function1Closed = lazy(() =>
   Closed.of<Function1F>({
@@ -173,43 +189,3 @@ export const function1Mapping = lazy(() =>
     roam_: (pab, f) => f(pab),
   }),
 );
-
-// const bottom = new Proxy(
-//   {
-//     valueOf() {
-//       while (true);
-//     },
-//   },
-//   {
-//     // get() {
-//     //   while (true) {}
-//     // },
-//     // set() {
-//     //   while (true) {}
-//     // },
-//     // apply() {
-//     //   while (true) {}
-//     // },
-//     // ownKeys() {
-//     //   while (true) {}
-//     // },
-//     // construct() {
-//     //   while (true) {}
-//     // },
-//     // deleteProperty() {
-//     //   while (true) {}
-//     // },
-//     // has() {
-//     //   while (true) {}
-//     // },
-//     // getOwnPropertyDescriptor() {
-//     //   while (true) {}
-//     // },
-//     // getPrototypeOf() {
-//     //   while (true) {}
-//     // },
-//     // defineProperty() {
-//     //   while (true) {}
-//     // },
-//   },
-// ) as any as never;
