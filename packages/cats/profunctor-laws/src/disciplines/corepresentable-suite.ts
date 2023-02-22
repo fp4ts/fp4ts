@@ -12,6 +12,7 @@ import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 import { CorepresentableLaws } from '../corepresentable-laws';
 import { CostrongSuite } from './costrong-suite';
+import { Defer, Unzip } from '@fp4ts/cats-core';
 
 export const CorepresentableSuite = <P, F>(P: Corepresentable<P, F>) => {
   const laws = CorepresentableLaws(P);
@@ -19,7 +20,7 @@ export const CorepresentableSuite = <P, F>(P: Corepresentable<P, F>) => {
   const self = {
     ...CostrongSuite(P),
 
-    corepresentable: <A, B, C, D, B1, B2>(
+    corepresentable: <G, A, B, C, D, B1, B2>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
@@ -36,6 +37,8 @@ export const CorepresentableSuite = <P, F>(P: Corepresentable<P, F>) => {
       ) => Arbitrary<Kind<P, [X, Y]>>,
       mkEqP: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<P, [X, Y]>>,
       mkEcF: <X>(arbX: ExhaustiveCheck<X>) => ExhaustiveCheck<Kind<F, [X]>>,
+      G: Defer<G> & Unzip<G>,
+      mkArbG: <X>(X: Arbitrary<X>) => Arbitrary<Kind<G, [X]>>,
     ) =>
       new RuleSet(
         'Corepresentable',
@@ -69,6 +72,8 @@ export const CorepresentableSuite = <P, F>(P: Corepresentable<P, F>) => {
             EqB2,
             mkArbP,
             mkEqP,
+            G,
+            mkArbG,
           ),
         },
       ),

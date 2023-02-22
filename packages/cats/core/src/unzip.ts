@@ -3,9 +3,10 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, Kind } from '@fp4ts/core';
+import { EvalF, id, Kind } from '@fp4ts/core';
 import { Zip, ZipRequirements } from './zip';
 import { ArrayF, arrayUnzip } from './instances/array';
+import { evalUnzip } from './instances/eval';
 
 /**
  * @category Type Class
@@ -56,5 +57,9 @@ export const Unzip = Object.freeze({
 
   get Array(): Unzip<ArrayF> {
     return arrayUnzip();
+  },
+
+  get Eval(): Unzip<EvalF> {
+    return evalUnzip();
   },
 });

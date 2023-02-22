@@ -5,6 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
+import { Defer, Unzip } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import {
   Cochoice,
@@ -87,6 +88,8 @@ describe('Function1', () => {
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
       eq.fn1Eq,
       id,
+      { ...Defer.Eval, ...Unzip.Eval },
+      A.fp4tsEval,
     ),
   );
 

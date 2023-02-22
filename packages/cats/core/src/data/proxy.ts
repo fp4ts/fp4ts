@@ -10,7 +10,6 @@ import { Applicative } from '../applicative';
 import { Contravariant } from '../contravariant';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
-import { Monad } from '../monad';
 import { MonoidK } from '../monoid-k';
 import { StackSafeMonad } from '../stack-safe-monad';
 import { Ior } from './ior';
@@ -18,6 +17,7 @@ import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
 import { TraversableFilter } from '../traversable-filter';
 import { Option } from './option';
+import { Defer } from '../defer';
 
 const tag = Symbol('@fp4ts/cats/core/data/proxy');
 export interface Proxy<A> {
@@ -36,12 +36,13 @@ interface ProxyObj {
   EqK: EqK<ProxyF>;
   Ord<A>(): Ord<Proxy<A>>;
   CommutativeMonoid<A>(): CommutativeMonoid<Proxy<A>>;
+  Defer: Defer<ProxyF>;
   MonoidK: MonoidK<ProxyF>;
   Functor: Functor<ProxyF>;
   Contravariant: Contravariant<ProxyF>;
   Applicative: Applicative<ProxyF>;
   Alternative: Alternative<ProxyF>;
-  Monad: Monad<ProxyF>;
+  Monad: StackSafeMonad<ProxyF>;
   Unalign: Unalign<ProxyF>;
   Unzip: Unzip<ProxyF>;
   TraversableFilter: TraversableFilter<ProxyF>;
@@ -74,6 +75,9 @@ const proxyMonoidK: Lazy<MonoidK<ProxyF>> = lazy(() => {
   });
   return self;
 });
+const proxyDefer: Lazy<Defer<ProxyF>> = lazy(() =>
+  Defer.of({ defer: <A>() => Proxy<A>() }),
+);
 const proxyFunctor: Lazy<Functor<ProxyF>> = lazy(() =>
   Functor.of({ map_: <A, B>() => Proxy<B>() }),
 );
@@ -113,9 +117,10 @@ const proxyAlternative: Lazy<Alternative<ProxyF>> = lazy(() =>
     ...proxyMonoidK(),
   }),
 );
-const proxyMonad: Lazy<Monad<ProxyF>> = lazy(() =>
+const proxyMonad: Lazy<StackSafeMonad<ProxyF>> = lazy(() =>
   StackSafeMonad.of({
     ...proxyApplicative(),
+    ...proxyDefer(),
     flatMap_: <A, B>() => Proxy<B>(),
   }),
 );
@@ -149,6 +154,11 @@ Proxy.CommutativeMonoid = proxyCommutativeMonoid;
 Object.defineProperty(Proxy, 'MonoidK', {
   get() {
     return proxyMonoidK();
+  },
+});
+Object.defineProperty(Proxy, 'Defer', {
+  get() {
+    return proxyDefer();
   },
 });
 Object.defineProperty(Proxy, 'Functor', {

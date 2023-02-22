@@ -4,7 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { Defer, Unzip } from '@fp4ts/cats-core';
 import { List, Proxy } from '@fp4ts/cats-core/lib/data';
 import { Tagged } from '@fp4ts/cats-profunctor';
 import {
@@ -16,7 +18,6 @@ import { BifunctorSuite, MonadSuite } from '@fp4ts/cats-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { id } from '@fp4ts/core';
 
 describe('Tagged', () => {
   checkAll(
@@ -35,6 +36,8 @@ describe('Tagged', () => {
       (_, Y) => Y,
       (_, Y) => Y,
       () => ec.instance(List(Proxy<any>())),
+      { ...Defer.Eval, ...Unzip.Eval },
+      A.fp4tsEval,
     ),
   );
 

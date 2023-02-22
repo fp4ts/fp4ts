@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
-import { Applicative, Functor } from '@fp4ts/cats-core';
+import { Applicative, Defer, Functor } from '@fp4ts/cats-core';
 import {
   Cokleisli,
   CokleisliF,
@@ -32,15 +32,29 @@ export const cokleisliCostrong = cached(<F>(F: Functor<F>) =>
   Costrong.of<$<CokleisliF, [F]>>({
     ...cokleisliProfunctor(F),
 
-    unfirst:
-      <A, B, C>(pab: Cokleisli<F, [A, C], [B, C]>) =>
-      (fa: Kind<F, [A]>) =>
-        pab(F.map_(fa, a => [a, undefined as any]))[0],
+    unfirst_:
+      <G, A, B, C>(
+        G: Defer<G>,
+        pab: Cokleisli<F, [A, Kind<G, [C]>], [B, Kind<G, [C]>]>,
+      ) =>
+      (fa: Kind<F, [A]>) => {
+        const bgc: [B, Kind<G, [C]>] = pab(
+          F.map_(fa, a => [a, G.defer(() => bgc[1])]),
+        );
+        return bgc[0];
+      },
 
-    unsecond:
-      <A, B, C>(pab: Cokleisli<F, [C, A], [C, B]>) =>
-      (fa: Kind<F, [A]>) =>
-        pab(F.map_(fa, a => [undefined as any, a]))[1],
+    unsecond_:
+      <G, A, B, C>(
+        G: Defer<G>,
+        pab: Cokleisli<F, [Kind<G, [C]>, A], [Kind<G, [C]>, B]>,
+      ) =>
+      (fa: Kind<F, [A]>) => {
+        const gcb: [Kind<G, [C]>, B] = pab(
+          F.map_(fa, a => [G.defer(() => gcb[0]), a]),
+        );
+        return gcb[1];
+      },
   }),
 );
 

@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, F1, id, lazy } from '@fp4ts/core';
-import { Function1F } from '@fp4ts/cats-core';
+import { Eval, F1, id, Kind, lazy } from '@fp4ts/core';
+import { Defer, Function1F } from '@fp4ts/cats-core';
 import {
   Either,
   Identity,
@@ -53,15 +53,25 @@ export const function1Costrong = lazy(
     Costrong.of<Function1F>({
       ...function1Profunctor(),
 
-      unfirst:
-        <A, B, C>(f: (a: [A, C]) => [B, C]) =>
-        (a: A): B =>
-          f([a, undefined as any])[0],
+      unfirst_:
+        <F, A, B, C>(
+          F: Defer<F>,
+          f: (a: [A, Kind<F, [C]>]) => [B, Kind<F, [C]>],
+        ) =>
+        (a: A): B => {
+          const bfc: [B, Kind<F, [C]>] = f([a, F.defer(() => bfc[1])]);
+          return bfc[0];
+        },
 
-      unsecond:
-        <A, B, C>(f: (a: [C, A]) => [C, B]) =>
-        (a: A): B =>
-          f([undefined as any, a])[1],
+      unsecond_:
+        <F, A, B, C>(
+          F: Defer<F>,
+          f: (a: [Kind<F, [C]>, A]) => [Kind<F, [C]>, B],
+        ) =>
+        (a: A): B => {
+          const fcb: [Kind<F, [C]>, B] = f([F.defer(() => fcb[0]), a]);
+          return fcb[1];
+        },
     }),
 );
 

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id, lazy, throwError } from './function';
+import { fst, id, lazy, snd, throwError } from './function';
 import { $type, HKT, TyK, TyVar } from './hkt';
 
 /**
@@ -65,6 +65,16 @@ export abstract class Eval<out A> {
 
   public flatten<A>(this: Eval<Eval<A>>): Eval<A> {
     return this.flatMap(id);
+  }
+
+  public unzip<A, B>(this: Eval<readonly [A, B]>): [Eval<A>, Eval<B>] {
+    const ac = this.memoize;
+    return [ac.map(fst), ac.map(snd)];
+  }
+
+  public unzipWith<B, C>(f: (a: A) => readonly [B, C]): [Eval<B>, Eval<C>] {
+    const ebc = this.map(f).memoize;
+    return [ebc.map(fst), ebc.map(snd)];
   }
 
   public toString(): string {

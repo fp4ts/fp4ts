@@ -10,13 +10,17 @@ import { Monad } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { ComonadSuite, MonadSuite, TraversableSuite } from '@fp4ts/cats-laws';
+import {
+  ComonadSuite,
+  MonadSuite,
+  TraversableSuite,
+  UnzipSuite,
+} from '@fp4ts/cats-laws';
 
 describe('Identity Laws', () => {
-  const comonadTests = ComonadSuite(Identity.Comonad);
   checkAll(
     'Comonad<Identity>',
-    comonadTests.comonad(
+    ComonadSuite(Identity.Comonad).comonad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -30,10 +34,9 @@ describe('Identity Laws', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Identity.Monad);
   checkAll(
     'Monad<Identity>',
-    monadTests.monad(
+    MonadSuite(Identity.Monad).monad(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -47,10 +50,25 @@ describe('Identity Laws', () => {
     ),
   );
 
-  const traversableTests = TraversableSuite(Identity.Traversable);
+  checkAll(
+    'Unzip<Identity>',
+    UnzipSuite(Identity.Unzip).unzip(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      id,
+      id,
+    ),
+  );
+
   checkAll(
     'Traversable<Identity>',
-    traversableTests.traversable(
+    TraversableSuite(Identity.Traversable).traversable(
       fc.integer(),
       fc.integer(),
       fc.integer(),

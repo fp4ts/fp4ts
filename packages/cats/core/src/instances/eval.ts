@@ -8,6 +8,7 @@ import { Eval, EvalF, lazy } from '@fp4ts/core';
 import { Defer } from '../defer';
 import { EqK } from '../eq-k';
 import { StackSafeMonad } from '../stack-safe-monad';
+import { Unzip } from '../unzip';
 
 export const evalEqK: () => EqK<EvalF> = lazy(() =>
   EqK.of({ liftEq: Eq.Eval }),
@@ -24,3 +25,14 @@ export const evalMonad: () => StackSafeMonad<EvalF> = lazy(() =>
     flatten: fa => fa.flatten(),
   }),
 );
+
+export const evalUnzip: () => Unzip<EvalF> = lazy(() => {
+  const M = evalMonad();
+  return Unzip.of({
+    ...M,
+    zipWith_: M.map2_,
+    zip_: M.product_,
+    unzipWith_: (fa, f) => fa.unzipWith(f),
+    unzip: fab => fab.unzip(),
+  });
+});
