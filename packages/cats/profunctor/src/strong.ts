@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Functor } from '@fp4ts/cats-core';
+import { Defer, Functor } from '@fp4ts/cats-core';
 import { Kind } from '@fp4ts/core';
 import { cokleisliCostrong } from './instances/cokleisli';
 import { function1Costrong, function1Strong } from './instances/function';
@@ -58,32 +58,53 @@ export const Strong = Object.freeze({
  * @category Profunctor
  */
 export interface Costrong<P> extends Profunctor<P> {
-  unfirst<A, B, C>(pacbc: Kind<P, [[A, C], [B, C]]>): Kind<P, [A, B]>;
-  unsecond<A, B, C>(pcacb: Kind<P, [[C, A], [C, B]]>): Kind<P, [A, B]>;
+  unfirst<F>(
+    F: Defer<F>,
+  ): <A, B, C>(
+    pafcbfc: Kind<P, [[A, Kind<F, [C]>], [B, Kind<F, [C]>]]>,
+  ) => Kind<P, [A, B]>;
+  unfirst_<F, A, B, C>(
+    F: Defer<F>,
+    pafcbfc: Kind<P, [[A, Kind<F, [C]>], [B, Kind<F, [C]>]]>,
+  ): Kind<P, [A, B]>;
+
+  unsecond<F>(
+    F: Defer<F>,
+  ): <A, B, C>(
+    pfcafcb: Kind<P, [[Kind<F, [C]>, A], [Kind<F, [C]>, B]]>,
+  ) => Kind<P, [A, B]>;
+  unsecond_<F, A, B, C>(
+    F: Defer<F>,
+    pfcafcb: Kind<P, [[Kind<F, [C]>, A], [Kind<F, [C]>, B]]>,
+  ): Kind<P, [A, B]>;
 }
 
 export type CostrongRequirements<P> = (
-  | Pick<Costrong<P>, 'unfirst'>
-  | Pick<Costrong<P>, 'unsecond'>
+  | Pick<Costrong<P>, 'unfirst_'>
+  | Pick<Costrong<P>, 'unsecond_'>
 ) &
   ProfunctorRequirements<P> &
   Partial<Costrong<P>>;
 export const Costrong = Object.freeze({
   of: <P>(P: CostrongRequirements<P>): Costrong<P> => {
     const self: Costrong<P> = {
-      unfirst:
-        P.unfirst ??
-        (<A, B, C>(pacbc: Kind<P, [[A, C], [B, C]]>): Kind<P, [A, B]> =>
-          self.unsecond(
-            self.lmap_<[A, C], [C, B], [C, A]>(self.rmap_(pacbc, swap), swap),
-          )),
+      unfirst: F => pacfbcf => self.unfirst_(F, pacfbcf),
+      unfirst_:
+        P.unfirst_ ??
+        (<F, A, B, C>(
+          F: Defer<F>,
+          pafcbfc: Kind<P, [[A, Kind<F, [C]>], [B, Kind<F, [C]>]]>,
+        ): Kind<P, [A, B]> =>
+          self.unsecond_(F, self.lmap_(self.rmap_(pafcbfc, swap), swap))),
 
-      unsecond:
-        P.unsecond ??
-        (<A, B, C>(pcacb: Kind<P, [[C, A], [C, B]]>): Kind<P, [A, B]> =>
-          self.unfirst(
-            self.lmap_<[C, A], [B, C], [A, C]>(self.rmap_(pcacb, swap), swap),
-          )),
+      unsecond: F => pfcafcb => self.unsecond_(F, pfcafcb),
+      unsecond_:
+        P.unsecond_ ??
+        (<F, A, B, C>(
+          F: Defer<F>,
+          pfcafcb: Kind<P, [[Kind<F, [C]>, A], [Kind<F, [C]>, B]]>,
+        ): Kind<P, [A, B]> =>
+          self.unfirst_(F, self.lmap_(self.rmap_(pfcafcb, swap), swap))),
 
       ...Profunctor.of(P),
       ...P,

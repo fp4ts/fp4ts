@@ -15,6 +15,7 @@ import { Monad } from '../monad';
 import { Comonad } from '../comonad';
 import { Foldable } from '../foldable';
 import { Traversable } from '../traversable';
+import { Unzip } from '../unzip';
 
 import { Either } from './either';
 
@@ -38,6 +39,7 @@ interface IdentityObj {
   readonly Comonad: Comonad<IdentityF>;
   readonly Foldable: Foldable<IdentityF>;
   readonly Traversable: Traversable<IdentityF>;
+  readonly Unzip: Unzip<IdentityF>;
 }
 
 const IdentitySymbol = Symbol('@fp4ts/cats/core/data/Identity');
@@ -113,6 +115,11 @@ Object.defineProperty(Identity, 'Foldable', {
 Object.defineProperty(Identity, 'Traversable', {
   get(): Traversable<IdentityF> {
     return identityTraversable();
+  },
+});
+Object.defineProperty(Identity, 'Unzip', {
+  get(): Unzip<IdentityF> {
+    return identityUnzip();
   },
 });
 
@@ -202,6 +209,16 @@ const identityTraversable: Lazy<Traversable<IdentityF>> = lazy(() =>
       <G>(G: Applicative<G>) =>
       <A, B>(fa: Identity<A>, f: (a: A) => Kind<G, [B]>) =>
         f(fa),
+  }),
+);
+
+const identityUnzip: Lazy<Unzip<IdentityF>> = lazy(() =>
+  Unzip.of({
+    ...identityFunctor(),
+    zip_: (fa, fb) => [fa, fb],
+    zipWith_: (fa, fb, f) => f(fa, fb),
+    unzip: ([a, b]) => [a, b],
+    unzipWith_: (fa, f) => [...f(fa)],
   }),
 );
 

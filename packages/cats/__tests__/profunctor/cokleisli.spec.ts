@@ -5,7 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eval } from '@fp4ts/core';
-import { Monad } from '@fp4ts/cats-core';
+import { Defer, Monad, Unzip } from '@fp4ts/cats-core';
 import { Closed, Cochoice, Corepresentable } from '@fp4ts/cats-profunctor';
 import {
   ClosedSuite,
@@ -34,6 +34,8 @@ describe('Cokleisli', () => {
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
       (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(Eval.now)), Y),
       X => ec.instance(X.allValues.map(Eval.now)),
+      { ...Defer.Eval, ...Unzip.Eval },
+      A.fp4tsEval,
     ),
   );
 

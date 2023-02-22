@@ -9,6 +9,7 @@ import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import {
   AlternativeSuite,
   ContravariantSuite,
+  DeferSuite,
   MonadSuite,
   OrdSuite,
   TraversableFilterSuite,
@@ -24,6 +25,16 @@ describe('Proxy', () => {
   checkAll(
     'Ord<Proxy<any>>',
     OrdSuite(Proxy.Ord<any>()).ord(fc.constant(Proxy<any>())),
+  );
+
+  checkAll(
+    'Defer<Proxy>',
+    DeferSuite(Proxy.Defer).defer(
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      <X>() => fc.constant(Proxy<X>()),
+      Proxy.EqK.liftEq,
+    ),
   );
 
   checkAll(

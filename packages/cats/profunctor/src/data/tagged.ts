@@ -72,8 +72,8 @@ const taggedClosed = lazy(() =>
 const taggedCostrong = lazy(() =>
   Costrong.of<TaggedF>({
     ...taggedProfunctor(),
-    unfirst: bc => bc[0],
-    unsecond: bc => bc[1],
+    unfirst_: (F, bc) => bc[0],
+    unsecond_: (F, bc) => bc[1],
   }),
 );
 

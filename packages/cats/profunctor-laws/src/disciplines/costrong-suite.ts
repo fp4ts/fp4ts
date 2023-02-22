@@ -5,6 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
+import { Defer, Unzip } from '@fp4ts/cats-core';
+import { Proxy } from '@fp4ts/cats-core/lib/data';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Costrong } from '@fp4ts/cats-profunctor';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
@@ -18,7 +20,7 @@ export const CostrongSuite = <P>(P: Costrong<P>) => {
   const self = {
     ...ProfunctorSuite(P),
 
-    costrong: <A, B, C, D, B1, B2>(
+    costrong: <F, A, B, C, D, B1, B2>(
       arbA: Arbitrary<A>,
       arbB: Arbitrary<B>,
       arbC: Arbitrary<C>,
@@ -29,11 +31,13 @@ export const CostrongSuite = <P>(P: Costrong<P>) => {
       EqB: Eq<B>,
       EcD: ExhaustiveCheck<D>,
       EqB2: Eq<B2>,
-      mkArbF: <X, Y>(
+      mkArbP: <X, Y>(
         arbX: Arbitrary<X>,
         arbY: Arbitrary<Y>,
       ) => Arbitrary<Kind<P, [X, Y]>>,
-      mkEqF: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<P, [X, Y]>>,
+      mkEqP: <X, Y>(EqX: ExhaustiveCheck<X>, EqY: Eq<Y>) => Eq<Kind<P, [X, Y]>>,
+      F: Defer<F> & Unzip<F>,
+      mkArbF: <X>(X: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
     ) =>
       new RuleSet(
         'Costrong',
@@ -41,72 +45,78 @@ export const CostrongSuite = <P>(P: Costrong<P>) => {
           [
             'costrong unfirst is swapped unsecond',
             forAll(
-              mkArbF(fc.tuple(arbA, arbC), fc.tuple(arbB, arbC)),
-              laws.unfirstIsSwappedUnsecond,
-            )(mkEqF(EcA, EqB)),
+              mkArbP(
+                fc.tuple(arbA, mkArbF(arbC)),
+                fc.tuple(arbB, mkArbF(arbC)),
+              ),
+              laws.unfirstIsSwappedUnsecond(F),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong unsecond is swapped unfirst',
             forAll(
-              mkArbF(fc.tuple(arbC, arbA), fc.tuple(arbC, arbB)),
-              laws.unsecondIsSwappedUnfirst,
-            )(mkEqF(EcA, EqB)),
+              mkArbP(
+                fc.tuple(mkArbF(arbC), arbA),
+                fc.tuple(mkArbF(arbC), arbB),
+              ),
+              laws.unsecondIsSwappedUnfirst(F),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong lmap is rmap andThen unfirst',
             forAll(
-              mkArbF(fc.tuple(arbA, fc.constant(undefined)), arbB),
+              mkArbP(fc.tuple(arbA, fc.constant(Proxy<void>())), arbB),
               laws.lmapIsRmapAndThenUnfirst,
-            )(mkEqF(EcA, EqB)),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong lmap is rmap andThen unsecond',
             forAll(
-              mkArbF(fc.tuple(fc.constant(undefined), arbA), arbB),
+              mkArbP(fc.tuple(fc.constant(Proxy<void>()), arbA), arbB),
               laws.lmapIsRmapAndThenUnsecond,
-            )(mkEqF(EcA, EqB)),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong dinaturality unfirst',
             forAll(
-              mkArbF(
-                fc.tuple(arbA, fc.constant(undefined)),
-                fc.tuple(arbB, fc.constant(undefined)),
+              mkArbP(
+                fc.tuple(arbA, mkArbF(arbC)),
+                fc.tuple(arbB, mkArbF(arbD)),
               ),
-              fc.func(fc.constant(undefined)),
-              laws.dinaturalityUnfirst,
-            )(mkEqF(EcA, EqB)),
+              fc.func(arbC),
+              laws.dinaturalityUnfirst(F),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong dinaturality unsecond',
             forAll(
-              mkArbF(
-                fc.tuple(fc.constant(undefined), arbA),
-                fc.tuple(fc.constant(undefined), arbB),
+              mkArbP(
+                fc.tuple(mkArbF(arbC), arbA),
+                fc.tuple(mkArbF(arbD), arbB),
               ),
-              fc.func(fc.constant(undefined)),
-              laws.dinaturalityUnsecond,
-            )(mkEqF(EcA, EqB)),
+              fc.func(arbC),
+              laws.dinaturalityUnsecond(F),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong unfirst . unfirst == dimap',
             forAll(
-              mkArbF(
-                fc.tuple(fc.tuple(arbA, arbC), arbD),
-                fc.tuple(fc.tuple(arbB, arbC), arbD),
+              mkArbP(
+                fc.tuple(fc.tuple(arbA, mkArbF(arbC)), mkArbF(arbD)),
+                fc.tuple(fc.tuple(arbB, mkArbF(arbC)), mkArbF(arbD)),
               ),
-              laws.unfirstUnfirstIsDimap,
-            )(mkEqF(EcA, EqB)),
+              laws.unfirstUnfirstIsDimap(F),
+            )(mkEqP(EcA, EqB)),
           ],
           [
             'costrong unsecond . unsecond == dimap',
             forAll(
-              mkArbF(
-                fc.tuple(arbD, fc.tuple(arbC, arbA)),
-                fc.tuple(arbD, fc.tuple(arbC, arbB)),
+              mkArbP(
+                fc.tuple(mkArbF(arbD), fc.tuple(mkArbF(arbC), arbA)),
+                fc.tuple(mkArbF(arbD), fc.tuple(mkArbF(arbC), arbB)),
               ),
-              laws.unsecondUnsecondIsDimap,
-            )(mkEqF(EcA, EqB)),
+              laws.unsecondUnsecondIsDimap(F),
+            )(mkEqP(EcA, EqB)),
           ],
         ],
         {
@@ -120,8 +130,8 @@ export const CostrongSuite = <P>(P: Costrong<P>) => {
             EqB,
             EcD,
             EqB2,
-            mkArbF,
-            mkEqF,
+            mkArbP,
+            mkEqP,
           ),
         },
       ),

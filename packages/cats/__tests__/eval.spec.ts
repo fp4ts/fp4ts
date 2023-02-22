@@ -6,11 +6,15 @@
 import fc from 'fast-check';
 import { Eval } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-// import { Memoize } from '@fp4ts/cats-core/lib/eval/algebra';
+import { Monad, Unzip } from '@fp4ts/cats-core';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { CoflatMapSuite, DeferSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { Monad } from '@fp4ts/cats-core';
+import {
+  CoflatMapSuite,
+  DeferSuite,
+  MonadSuite,
+  UnzipSuite,
+} from '@fp4ts/cats-laws';
 
 describe('Eval', () => {
   describe('memoization', () => {
@@ -103,10 +107,25 @@ describe('Eval', () => {
   //   ),
   // );
 
-  const tests = MonadSuite(Monad.Eval);
   checkAll(
     'Monad<Eval>',
-    tests.monad(
+    MonadSuite(Monad.Eval).monad(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      A.fp4tsEval,
+      Eq.Eval,
+    ),
+  );
+
+  checkAll(
+    'Unzip<Eval>',
+    UnzipSuite(Unzip.Eval).unzip(
       fc.integer(),
       fc.integer(),
       fc.integer(),
