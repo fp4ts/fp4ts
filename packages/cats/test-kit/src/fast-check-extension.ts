@@ -12,7 +12,7 @@ import {
 } from '@fp4ts/cats-core/lib/data/collections/lazy-list';
 
 (Eval.prototype as any)[toStringMethod] = function (this: Eval<unknown>) {
-  return `Eval(${this.value})`;
+  return `Eval(${stringify(this.value)})`;
 };
 (Chain.prototype as any)[toStringMethod] = function (this: Chain<unknown>) {
   return `Chain(${stringify(this.toArray)})`;

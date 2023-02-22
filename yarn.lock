@@ -651,6 +651,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fp4ts/cats-arrow-laws@workspace:packages/cats/arrow-laws":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/cats-arrow-laws@workspace:packages/cats/arrow-laws"
+  dependencies:
+    "@fp4ts/cats-core": "*"
+    "@fp4ts/cats-kernel": "*"
+    "@fp4ts/cats-laws": "*"
+    "@fp4ts/cats-profunctor": "*"
+    "@fp4ts/cats-profunctor-laws": "*"
+    "@fp4ts/core": "*"
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/cats-arrow@workspace:packages/cats/arrow":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-arrow@workspace:packages/cats/arrow"
@@ -762,7 +776,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-profunctor-laws@workspace:packages/cats/profunctor-laws":
+"@fp4ts/cats-profunctor-laws@*, @fp4ts/cats-profunctor-laws@workspace:packages/cats/profunctor-laws":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-profunctor-laws@workspace:packages/cats/profunctor-laws"
   dependencies:

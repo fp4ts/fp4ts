@@ -6,11 +6,11 @@
 import fc from 'fast-check';
 import { Eval } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Monad, Unzip } from '@fp4ts/cats-core';
+import { Comonad, Monad, Unzip } from '@fp4ts/cats-core';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
-  CoflatMapSuite,
+  ComonadSuite,
   DeferSuite,
   MonadSuite,
   UnzipSuite,
@@ -79,33 +79,15 @@ describe('Eval', () => {
     // });
   });
 
-  const deferTests = DeferSuite(Monad.Eval);
   checkAll(
     'Defer<Eval>',
-    deferTests.defer(
+    DeferSuite(Monad.Eval).defer(
       fc.integer(),
       Eq.fromUniversalEquals(),
       A.fp4tsEval,
       Eq.Eval,
     ),
   );
-
-  // const coflatMapTests = CoflatMapSuite(Eval.CoflatMap);
-  // checkAll(
-  //   'CoflatMap<Eval>',
-  //   coflatMapTests.coflatMap(
-  //     fc.integer(),
-  //     fc.integer(),
-  //     fc.integer(),
-  //     fc.integer(),
-  //     Eq.fromUniversalEquals(),
-  //     Eq.fromUniversalEquals(),
-  //     Eq.fromUniversalEquals(),
-  //     Eq.fromUniversalEquals(),
-  //     A.fp4tsEval,
-  //     Eq.Eval,
-  //   ),
-  // );
 
   checkAll(
     'Monad<Eval>',
@@ -126,6 +108,22 @@ describe('Eval', () => {
   checkAll(
     'Unzip<Eval>',
     UnzipSuite(Unzip.Eval).unzip(
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      fc.integer(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      Eq.fromUniversalEquals(),
+      A.fp4tsEval,
+      Eq.Eval,
+    ),
+  );
+
+  checkAll(
+    'Comonad<Eval>',
+    ComonadSuite(Comonad.Eval).comonad(
       fc.integer(),
       fc.integer(),
       fc.integer(),

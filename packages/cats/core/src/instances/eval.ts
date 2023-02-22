@@ -5,6 +5,7 @@
 
 import { Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF, lazy } from '@fp4ts/core';
+import { Comonad } from '../comonad';
 import { Defer } from '../defer';
 import { EqK } from '../eq-k';
 import { StackSafeMonad } from '../stack-safe-monad';
@@ -36,3 +37,11 @@ export const evalUnzip: () => Unzip<EvalF> = lazy(() => {
     unzip: fab => fab.unzip(),
   });
 });
+
+export const evalComonad: () => Comonad<EvalF> = lazy(() =>
+  Comonad.of({
+    ...evalMonad(),
+    coflatMap_: (fa, f) => Eval.later(() => f(fa)),
+    extract: fa => fa.value,
+  }),
+);

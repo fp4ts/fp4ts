@@ -3,8 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { EvalF, Kind } from '@fp4ts/core';
 import { CoflatMap, CoflatMapRequirements } from './coflat-map';
+import { evalComonad } from './instances/eval';
 import { function0Comonad, Function0F } from './instances/function';
 import { tuple2LeftComonad, tuple2RightComonad } from './instances/tuple2';
 
@@ -28,5 +29,9 @@ export const Comonad = Object.freeze({
   Tuple2: {
     left: <R>() => tuple2LeftComonad<R>(),
     right: <L>() => tuple2RightComonad<L>(),
+  },
+
+  get Eval(): Comonad<EvalF> {
+    return evalComonad();
   },
 });
