@@ -6,4 +6,9 @@
 /**
  * @module cats/arrow-laws
  */
-export {};
+export * from './arrow-apply-laws';
+export * from './arrow-choice-laws';
+export * from './arrow-laws';
+export * from './arrow-loop-laws';
+
+export * from './discipline';
