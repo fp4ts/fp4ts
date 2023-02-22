@@ -3,8 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, F1, id, Kind } from '@fp4ts/core';
-import { Applicative, Distributive, Functor, Monad } from '@fp4ts/cats-core';
+import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
+import {
+  Applicative,
+  Distributive,
+  Functor,
+  Monad,
+  Traversable,
+} from '@fp4ts/cats-core';
 import {
   Either,
   Kleisli,
@@ -69,26 +75,32 @@ export const kleisliChoice = cached(
 );
 
 export const kleisliCochoice = cached(
-  <F>(F: Functor<F>): Cochoice<$<KleisliF, [F]>> =>
-    Cochoice.of<$<KleisliF, [F]>>({
+  <F>(F: Traversable<F>): Cochoice<$<KleisliF, [F]>> => {
+    const _sequence = F.sequence(Either.Monad<any>());
+    const sequence: <C, B>(
+      fga: Kind<F, [Either<C, B>]>,
+    ) => Either<C, Kind<F, [B]>> = _sequence;
+
+    const goUnright = <A, B, C>(
+      pab: Kleisli<F, Either<C, A>, Either<C, B>>,
+      ac: Either<C, A>,
+    ): Eval<Kind<F, [B]>> => {
+      const fcb = pab(ac);
+      const cfb = sequence(fcb);
+      return cfb.isLeft
+        ? Eval.defer(() => goUnright(pab, cfb as any as Either<C, A>))
+        : Eval.now(cfb.get);
+    };
+
+    return Cochoice.of<$<KleisliF, [F]>>({
       ...kleisliProfunctor(F),
 
-      unleft: <A, B, C>(
-        pab: Kleisli<F, Either<A, C>, Either<B, C>>,
-      ): Kleisli<F, A, B> =>
-        F1.andThen(
-          F1.compose(pab, Left),
-          F.map(ea => ea.getLeft),
-        ),
-
-      unright: <A, B, C>(
-        pab: Kleisli<F, Either<C, A>, Either<C, B>>,
-      ): Kleisli<F, A, B> =>
-        F1.andThen(
-          F1.compose(pab, Right),
-          F.map(ea => ea.get),
-        ),
-    }),
+      unright:
+        <A, B, C>(pab: Kleisli<F, Either<C, A>, Either<C, B>>) =>
+        (a: A) =>
+          goUnright(pab, Right(a)).value,
+    });
+  },
 );
 
 export const kleisliTraversing = cached(

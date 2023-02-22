@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, F1, id, Kind } from '@fp4ts/core';
-import { Functor } from '@fp4ts/cats-core';
+import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
+import { Applicative, Functor } from '@fp4ts/cats-core';
 import {
   Cokleisli,
   CokleisliF,
@@ -44,21 +44,41 @@ export const cokleisliCostrong = cached(<F>(F: Functor<F>) =>
   }),
 );
 
-export const cokleisliCochoice = cached(<F>(F: Functor<F>) =>
-  Cochoice.of<$<CokleisliF, [F]>>({
+export const cokleisliCochoice = cached(<F>(F: Applicative<F>) => {
+  const goUnleft = <A, B, C>(
+    pab: Cokleisli<F, Either<A, C>, Either<B, C>>,
+    fac: Kind<F, [Either<A, C>]>,
+  ): Eval<B> => {
+    const bc = pab(fac);
+    return bc.isLeft
+      ? Eval.now(bc.getLeft)
+      : Eval.defer(() => goUnleft(pab, F.pure(bc as any as Either<A, C>)));
+  };
+
+  const goUnright = <A, B, C>(
+    pab: Cokleisli<F, Either<C, A>, Either<C, B>>,
+    fca: Kind<F, [Either<C, A>]>,
+  ): Eval<B> => {
+    const cb = pab(fca);
+    return cb.isRight
+      ? Eval.now(cb.get)
+      : Eval.defer(() => goUnright(pab, F.pure(cb as any as Either<C, A>)));
+  };
+
+  return Cochoice.of<$<CokleisliF, [F]>>({
     ...cokleisliProfunctor(F),
 
     unleft:
       <A, B, C>(pab: Cokleisli<F, Either<A, C>, Either<B, C>>) =>
       (fa: Kind<F, [A]>) =>
-        pab(F.map_(fa, Left)).getLeft,
+        goUnleft(pab, F.map_(fa, Left)).value,
 
     unright:
       <A, B, C>(pab: Cokleisli<F, Either<C, A>, Either<C, B>>) =>
       (fa: Kind<F, [A]>) =>
-        pab(F.map_(fa, Right)).get,
-  }),
-);
+        goUnright(pab, F.map_(fa, Right)).value,
+  });
+});
 
 export const cokleisliCosieve = cached(
   <F>(F: Functor<F>): Cosieve<$<CokleisliF, [F]>, F> =>
