@@ -22,7 +22,7 @@ import {
   Eq,
   Functor,
   FunctorFilter,
-  isStackSafeMonad,
+  isMonadDefer,
   Left,
   List,
   Monad,
@@ -234,7 +234,7 @@ class _ParserT<S, F, out A> {
             );
 
       const F = S.monad;
-      return isStackSafeMonad(F)
+      return isMonadDefer(F)
         ? F.defer(() => this.runParserPrim(S, s, mcok, cerr, meok, eerr))
         : this.runParserPrim(S, s, mcok, cerr, meok, eerr);
     });

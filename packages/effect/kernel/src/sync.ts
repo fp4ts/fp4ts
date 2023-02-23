@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Kind, id } from '@fp4ts/core';
-import { Defer, KleisliF, Kleisli, OptionTF, OptionT } from '@fp4ts/cats';
+import { $, id } from '@fp4ts/core';
+import { KleisliF, Kleisli, OptionTF, OptionT, MonadDefer } from '@fp4ts/cats';
 import { MonadCancel, MonadCancelRequirements } from './monad-cancel';
 import { Clock, ClockRequirements } from './clock';
 import { UniqueToken, Unique } from './unique';
@@ -12,10 +12,8 @@ import { UniqueToken, Unique } from './unique';
 export interface Sync<F, E = Error>
   extends Clock<F>,
     MonadCancel<F, E>,
-    Defer<F>,
-    Unique<F> {
-  readonly delay: <A>(a: () => A) => Kind<F, [A]>;
-}
+    MonadDefer<F>,
+    Unique<F> {}
 
 export type SyncRequirements<F, E = Error> = Pick<
   Omit<Sync<F, E>, 'unique'>,
@@ -30,8 +28,9 @@ export const Sync = Object.freeze({
       unique: F.delay(() => new UniqueToken()),
       ...Clock.of(F),
       ...MonadCancel.of<F, E>(F),
-      ...Defer.of({
+      ...MonadDefer.of({
         defer: F.defer ?? (thunk => self.flatMap_(self.delay(thunk), id)),
+        ...F,
       }),
       ...F,
     };

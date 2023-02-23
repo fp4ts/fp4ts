@@ -11,7 +11,7 @@ import {
   FlatMap,
   FunctionK,
   Functor,
-  isStackSafeMonad,
+  isMonadDefer,
   Monad,
   MonadError,
   MonoidK,
@@ -293,7 +293,7 @@ const suspend = <R, W, S1, S2, F, A>(
   F: Functor<F>,
   f: (r: R, s1: S1) => Kind<F, [[A, S2, W]]>,
 ): IxRWST<R, W, S1, S2, F, A> =>
-  isStackSafeMonad(F) ? (r, s1) => F.defer(() => f(r, s1)) : f;
+  isMonadDefer(F) ? (r, s1) => F.defer(() => f(r, s1)) : f;
 
 // -- HKT
 

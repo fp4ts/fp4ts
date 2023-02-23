@@ -7,7 +7,8 @@ import fc, { Arbitrary } from 'fast-check';
 import { Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats';
 import { Sync } from '@fp4ts/effect-kernel';
-import { forAll, IsEq, RuleSet } from '@fp4ts/cats-test-kit';
+import { MonadDeferSuite } from '@fp4ts/cats-laws';
+import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { SyncLaws } from '../sync-laws';
@@ -22,6 +23,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
   const self = {
     ...UniqueSuite(F),
     ...ClockSuite(F),
+    ...MonadDeferSuite(F),
     ...MonadCancelSuite(F),
 
     sync: <A, B, C, D>(
@@ -37,7 +39,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'sync',
+        'Sync',
         [
           [
             'sync delayed value is pure',
@@ -71,6 +73,18 @@ export const SyncSuite = <F>(F: Sync<F>) => {
           parents: [
             self.unique(mkEqF),
             self.clock(mkEqF),
+            self.monadDefer(
+              arbA,
+              arbB,
+              arbC,
+              arbD,
+              EqA,
+              EqB,
+              EqC,
+              EqD,
+              mkArbF,
+              mkEqF,
+            ),
             self.monadCancel(
               arbA,
               arbB,
@@ -102,7 +116,7 @@ export const SyncSuite = <F>(F: Sync<F>) => {
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'sync',
+        'Sync',
         [
           [
             'sync delayed value is pure',
@@ -135,6 +149,18 @@ export const SyncSuite = <F>(F: Sync<F>) => {
         {
           parents: [
             self.clock(mkEqF),
+            self.monadDefer(
+              arbA,
+              arbB,
+              arbC,
+              arbD,
+              EqA,
+              EqB,
+              EqC,
+              EqD,
+              mkArbF,
+              mkEqF,
+            ),
             self.monadCancelUncancelable(
               arbA,
               arbB,

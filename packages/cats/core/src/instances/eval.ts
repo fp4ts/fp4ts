@@ -6,20 +6,23 @@
 import { Eq } from '@fp4ts/cats-kernel';
 import { Eval, EvalF, lazy } from '@fp4ts/core';
 import { Comonad } from '../comonad';
-import { Defer } from '../defer';
 import { EqK } from '../eq-k';
-import { StackSafeMonad } from '../stack-safe-monad';
+import { Defer } from '../defer';
+import { MonadDefer } from '../monad-defer';
 import { Unzip } from '../unzip';
 
 export const evalEqK: () => EqK<EvalF> = lazy(() =>
   EqK.of({ liftEq: Eq.Eval }),
 );
 
-export const evalDefer = lazy(() => Defer.of<EvalF>({ defer: Eval.defer }));
+export const evalDefer = lazy(() =>
+  Defer.of<EvalF>({ defer: Eval.defer, fix: Eval.fix }),
+);
 
-export const evalMonad: () => StackSafeMonad<EvalF> = lazy(() =>
-  StackSafeMonad.of({
+export const evalMonadDefer: () => MonadDefer<EvalF> = lazy(() =>
+  MonadDefer.of({
     ...evalDefer(),
+    delay: Eval.always,
     pure: Eval.pure,
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
@@ -28,7 +31,7 @@ export const evalMonad: () => StackSafeMonad<EvalF> = lazy(() =>
 );
 
 export const evalUnzip: () => Unzip<EvalF> = lazy(() => {
-  const M = evalMonad();
+  const M = evalMonadDefer();
   return Unzip.of({
     ...M,
     zipWith_: M.map2_,
@@ -40,7 +43,7 @@ export const evalUnzip: () => Unzip<EvalF> = lazy(() => {
 
 export const evalComonad: () => Comonad<EvalF> = lazy(() =>
   Comonad.of({
-    ...evalMonad(),
+    ...evalMonadDefer(),
     coflatMap_: (fa, f) => Eval.later(() => f(fa)),
     extract: fa => fa.value,
   }),

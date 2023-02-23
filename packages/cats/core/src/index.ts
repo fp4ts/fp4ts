@@ -22,7 +22,7 @@ export * from './contravariant';
 export * from './functor';
 export * from './functor-filter';
 export * from './monad';
-export * from './stack-safe-monad';
+export * from './monad-defer';
 export * from './monad-error';
 export * from './monad-throw';
 export * from './coflat-map';

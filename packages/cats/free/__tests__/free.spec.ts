@@ -14,7 +14,7 @@ import {
   Identity,
 } from '@fp4ts/cats-core/lib/data';
 import { State, StateF } from '@fp4ts/cats-mtl';
-import { MonadSuite } from '@fp4ts/cats-laws';
+import { MonadDeferSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -91,10 +91,9 @@ describe('Free', () => {
     expect(fa.foldMap(Identity.Monad)(id)).toEqual(size);
   });
 
-  const identityMonadTests = MonadSuite(Free.Monad<IdentityF>());
   checkAll(
-    'Monad<Free<Identity, *>>',
-    identityMonadTests.monad(
+    'MonadDefer<Free<Identity, *>>',
+    MonadDeferSuite(Free.Monad<IdentityF>()).monadDefer(
       fc.integer(),
       fc.integer(),
       fc.integer(),
@@ -111,10 +110,9 @@ describe('Free', () => {
     ),
   );
 
-  const monadTests = MonadSuite(Free.Monad<OptionF>());
   checkAll(
-    'Monad<Free<Option, *>>',
-    monadTests.monad(
+    'MonadDefer<Free<Option, *>>',
+    MonadDeferSuite(Free.Monad<OptionF>()).monadDefer(
       fc.integer(),
       fc.integer(),
       fc.integer(),

@@ -5,7 +5,7 @@
 
 import { $, $type, Fix, snd, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
-import { Profunctor, StackSafeMonad, Strong } from '@fp4ts/cats-core';
+import { Profunctor, MonadDefer, Strong } from '@fp4ts/cats-core';
 import { Seq } from '@fp4ts/cats-core/lib/data';
 import { MonadReader } from '../monad-reader';
 import { MonadWriter } from '../monad-writer';
@@ -522,8 +522,8 @@ RWS.state = IxRWS.state as <S, A>(
 RWS.get = IxRWS.get;
 RWS.set = IxRWS.set as <S>(s: S) => RWS<unknown, never, S, void>;
 
-RWS.Monad = <R, W, S>(): StackSafeMonad<$<IxRWSF, [R, W, S, S]>> =>
-  StackSafeMonad.of({
+RWS.Monad = <R, W, S>(): MonadDefer<$<IxRWSF, [R, W, S, S]>> =>
+  MonadDefer.of({
     pure: <A>(a: A) => IxRWS.pure<S, A>(a),
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),

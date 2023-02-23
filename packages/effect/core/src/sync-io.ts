@@ -14,7 +14,7 @@ import {
   Monad,
   MonadError,
   Right,
-  StackSafeMonad,
+  MonadDefer,
 } from '@fp4ts/cats';
 import { Clock, MonadCancel, Sync } from '@fp4ts/effect-kernel';
 
@@ -502,10 +502,11 @@ const syncIoApplicative: Lazy<Applicative<SyncIOF>> = lazy(() =>
   }),
 );
 
-const syncIoMonad: Lazy<Monad<SyncIOF>> = lazy(() =>
-  StackSafeMonad.of({
+const syncIoMonad: Lazy<MonadDefer<SyncIOF>> = lazy(() =>
+  MonadDefer.of({
     ...syncIoApplicative(),
     ...syncIoDefer(),
+    delay: SyncIO.delay,
     flatMap_: (fa, f) => fa.flatMap(f),
   }),
 );

@@ -5,27 +5,16 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Comonad, Defer, Distributive, Monad } from '@fp4ts/cats-core';
+import { Comonad, Distributive, Monad } from '@fp4ts/cats-core';
 import { List } from '@fp4ts/cats-core/lib/data';
 import {
   ComonadSuite,
-  DeferSuite,
   DistributiveSuite,
-  MonadSuite,
+  MonadDeferSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 
 describe('Function0', () => {
-  checkAll(
-    'Defer<() => *>',
-    DeferSuite(Defer.Function0).defer(
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      <X>(X: Arbitrary<X>) => X.map(x => () => x),
-      <X>(X: Eq<X>) => Eq.by(X, (fx: () => X) => fx()),
-    ),
-  );
-
   checkAll(
     'Distributive<() => *>',
     DistributiveSuite(Distributive.Function0).distributive(
@@ -57,8 +46,8 @@ describe('Function0', () => {
   // );
 
   checkAll(
-    'Monad<() => *>',
-    MonadSuite(Monad.Function0).monad(
+    'MonadDefer<() => *>',
+    MonadDeferSuite(Monad.Function0).monadDefer(
       fc.string(),
       fc.string(),
       fc.string(),

@@ -8,10 +8,10 @@ import {
   Applicative,
   Defer,
   Functor,
-  isStackSafeMonad,
+  isMonadDefer,
   Monad,
   MonadError,
-  StackSafeMonad,
+  MonadDefer,
 } from '@fp4ts/cats-core';
 import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MonadState } from '../monad-state';
@@ -155,8 +155,8 @@ StateT.Applicative = <F, S>(): Applicative<$<StateTF, [S, F]>> =>
   });
 
 StateT.Monad = <F, S>(F: Monad<F>): Monad<$<StateTF, [S, F]>> =>
-  isStackSafeMonad(F)
-    ? StackSafeMonad.of({
+  isMonadDefer(F)
+    ? MonadDefer.of({
         ...StateT.Applicative(),
         flatMap_: StateT.flatMapDefer_(F),
       })

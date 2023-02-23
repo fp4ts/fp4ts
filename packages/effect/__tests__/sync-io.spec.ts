@@ -153,10 +153,9 @@ describe('SyncIO', () => {
     });
   });
 
-  const SyncTests = SyncSuite(SyncIO.Sync);
   checkAll(
     'Sync<SyncIO>',
-    SyncTests.syncUncancelable(
+    SyncSuite(SyncIO.Sync).syncUncancelable(
       fc.integer(),
       fc.integer(),
       fc.integer(),

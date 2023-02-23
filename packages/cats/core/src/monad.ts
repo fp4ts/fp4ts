@@ -8,7 +8,7 @@ import { $, $type, EvalF, Kind, pipe, TyK, TyVar } from '@fp4ts/core';
 import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
-import { StackSafeMonad } from './stack-safe-monad';
+import { MonadDefer } from './monad-defer';
 import { ArrayF, arrayMonad } from './instances/array';
 import { Function0F, Function1F } from './instances/function';
 
@@ -47,19 +47,19 @@ export const Monad = Object.freeze({
     return self;
   },
 
-  get Eval(): StackSafeMonad<EvalF> {
-    return StackSafeMonad.Eval;
+  get Eval(): MonadDefer<EvalF> {
+    return MonadDefer.Eval;
   },
 
   get Array(): Monad<ArrayF> {
     return arrayMonad();
   },
 
-  get Function0(): Monad<Function0F> {
-    return StackSafeMonad.Function0;
+  get Function0(): MonadDefer<Function0F> {
+    return MonadDefer.Function0;
   },
 
-  Function1: <R>(): Monad<$<Function1F, [R]>> => StackSafeMonad.Function1(),
+  Function1: <R>(): MonadDefer<$<Function1F, [R]>> => MonadDefer.Function1(),
 
   // -- Generator Based Do notation
 

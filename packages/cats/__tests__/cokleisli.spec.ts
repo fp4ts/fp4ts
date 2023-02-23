@@ -17,7 +17,7 @@ import {
   Some,
 } from '@fp4ts/cats-core/lib/data';
 import { Cofree, CofreeF } from '@fp4ts/cats-free';
-import { ArrowSuite, ComposeSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { ArrowSuite, ComposeSuite, MonadDeferSuite } from '@fp4ts/cats-laws';
 import {
   checkAll,
   ExhaustiveCheck,
@@ -61,8 +61,8 @@ describe('Cokleisli', () => {
     ): Eq<Cokleisli<F, A, B>> => fn1Eq(EFA, EqB);
 
     checkAll(
-      'Monad<Cokleisli<Identity, MiniInt, *>>',
-      MonadSuite(Cokleisli.Monad<IdentityF, MiniInt>()).monad(
+      'MonadDefer<Cokleisli<Identity, MiniInt, *>>',
+      MonadDeferSuite(Cokleisli.MonadDefer<IdentityF, MiniInt>()).monadDefer(
         fc.integer(),
         fc.integer(),
         fc.integer(),

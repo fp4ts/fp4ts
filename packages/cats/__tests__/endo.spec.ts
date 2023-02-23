@@ -5,12 +5,12 @@
 
 import { id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { Foldable, MonoidK } from '@fp4ts/cats-core';
 import { MonoidKSuite } from '@fp4ts/cats-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { Foldable, MonoidK } from '@fp4ts/cats-core';
 
 describe('Endo', () => {
   it('should apply composition of endo', () => {

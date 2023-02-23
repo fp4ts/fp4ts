@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { IxRWS, RWS } from '@fp4ts/cats-mtl';
-import { MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
+import { MonadDeferSuite, StrongSuite } from '@fp4ts/cats-laws';
 import {
   MonadReaderSuite,
   MonadStateSuite,
@@ -19,8 +19,8 @@ import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('RWS', () => {
   checkAll(
-    'Monad<RWS<boolean, string, MiniInt, *>>',
-    MonadSuite(RWS.Monad<boolean, string, MiniInt>()).monad(
+    'MonadDefer<RWS<boolean, string, MiniInt, *>>',
+    MonadDeferSuite(RWS.Monad<boolean, string, MiniInt>()).monadDefer(
       fc.integer(),
       fc.integer(),
       fc.integer(),

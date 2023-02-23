@@ -26,7 +26,7 @@ import { SemigroupK } from '../../semigroup-k';
 import { Defer } from '../../defer';
 import { Alternative } from '../../alternative';
 import { Align } from '../../align';
-import { StackSafeMonad } from '../../stack-safe-monad';
+import { MonadDefer } from '../../monad-defer';
 import { TraversableFilter } from '../../traversable-filter';
 import { Apply, TraverseStrategy } from '../../apply';
 
@@ -80,7 +80,7 @@ interface LazyListObj {
   Functor: Functor<LazyListF>;
   FunctorFilter: FunctorFilter<LazyListF>;
   Applicative: Applicative<LazyListF>;
-  Monad: StackSafeMonad<LazyListF>;
+  Monad: MonadDefer<LazyListF>;
   Foldable: Foldable<LazyListF>;
   TraversableFilter: TraversableFilter<LazyListF>;
 }
@@ -1008,7 +1008,7 @@ const lazyListApplicative = lazy(() =>
 );
 
 const lazyListMonad = lazy(() =>
-  StackSafeMonad.of<LazyListF>({
+  MonadDefer.of<LazyListF>({
     ...lazyListApplicative(),
     ...lazyListDefer(),
     flatMap_: (fa, f) => fa.flatMap(f),

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, HKT, id, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
-import { FunctionK, Monad, StackSafeMonad } from '@fp4ts/cats-core';
+import { FunctionK, Monad, MonadDefer } from '@fp4ts/cats-core';
 import { Left, Right } from '@fp4ts/cats-core/lib/data';
 
 export type Free<F, A> = _Free<F, A>;
@@ -79,7 +79,7 @@ interface FreeObj {
   pure<F, A>(a: A): Free<F, A>;
   suspend<F, A>(a: Kind<F, [A]>): Free<F, A>;
 
-  Monad<F>(): Monad<$<FreeF, [F]>>;
+  Monad<F>(): MonadDefer<$<FreeF, [F]>>;
 }
 
 class Pure<F, A> extends _Free<F, A> {
@@ -109,12 +109,12 @@ class FlatMap<F, A, B> extends _Free<F, B> {
 type View<F, A> = Pure<F, A> | Suspend<F, A> | FlatMap<F, unknown, A>;
 
 Free.Monad = lazy(<F>() =>
-  StackSafeMonad.of<$<FreeF, [F]>>({
+  MonadDefer.of<$<FreeF, [F]>>({
     pure: Free.pure,
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
   }),
-) as <F>() => Monad<$<FreeF, [F]>>;
+) as <F>() => MonadDefer<$<FreeF, [F]>>;
 
 // HKT
 

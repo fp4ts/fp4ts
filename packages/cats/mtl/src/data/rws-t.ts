@@ -8,10 +8,10 @@ import {
   Applicative,
   Defer,
   Functor,
-  isStackSafeMonad,
+  isMonadDefer,
   Monad,
   MonadError,
-  StackSafeMonad,
+  MonadDefer,
 } from '@fp4ts/cats-core';
 import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
@@ -160,8 +160,8 @@ RWST.Functor = <R, W, S, F>(): Functor<$<RWSTF, [R, W, S, F]>> =>
   Functor.of({ map_: RWST.map_ });
 
 RWST.Monad = <R, W, S, F>(F: Monad<F>): Monad<$<RWSTF, [R, W, S, F]>> =>
-  isStackSafeMonad(F)
-    ? StackSafeMonad.of({
+  isMonadDefer(F)
+    ? MonadDefer.of({
         ...RWST.Functor(),
         pure: RWST.pure,
         flatMap_: RWST.flatMapDefer_(F),
