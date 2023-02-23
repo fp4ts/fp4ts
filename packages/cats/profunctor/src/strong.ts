@@ -7,7 +7,7 @@ import { Defer, Functor } from '@fp4ts/cats-core';
 import { Kind } from '@fp4ts/core';
 import { cokleisliCostrong } from './instances/cokleisli';
 import { function1Costrong, function1Strong } from './instances/function';
-import { kleisliStrong } from './instances/kleisli';
+import { kleisliCostrong, kleisliStrong } from './instances/kleisli';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 
 /**
@@ -116,6 +116,7 @@ export const Costrong = Object.freeze({
     return function1Costrong();
   },
 
+  Kleisli: <F>(F: Functor<F>) => kleisliCostrong(F),
   Cokleisli: <F>(F: Functor<F>) => cokleisliCostrong(F),
 });
 

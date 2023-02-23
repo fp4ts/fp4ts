@@ -6,11 +6,17 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eval, id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Monad } from '@fp4ts/cats-core';
+import { Defer, Monad, Unzip } from '@fp4ts/cats-core';
 import { Identity, IdentityF } from '@fp4ts/cats-core/lib/data';
-import { Cochoice, Mapping, Representable } from '@fp4ts/cats-profunctor';
+import {
+  Cochoice,
+  Costrong,
+  Mapping,
+  Representable,
+} from '@fp4ts/cats-profunctor';
 import {
   CochoiceSuite,
+  CostrongSuite,
   MappingSuite,
   RepresentableSuite,
 } from '@fp4ts/cats-profunctor-laws';
@@ -87,6 +93,26 @@ describe('Kleisli', () => {
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
       (X, Y) => eq.fn1Eq(X, Y),
+    ),
+  );
+
+  checkAll(
+    'Costrong<* => Eval<*>>',
+    CostrongSuite(Costrong.Kleisli(Identity.Traversable)).costrong(
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      ec.miniInt(),
+      MiniInt.Eq,
+      ec.miniInt(),
+      MiniInt.Eq,
+      <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
+      (X, Y) => eq.fn1Eq(X, Y),
+      { ...Defer.Eval, ...Unzip.Eval },
+      A.fp4tsEval,
     ),
   );
 });
