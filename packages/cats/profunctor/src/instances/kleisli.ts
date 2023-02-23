@@ -6,6 +6,7 @@
 import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
 import {
   Applicative,
+  Defer,
   Distributive,
   Functor,
   Monad,
@@ -23,7 +24,7 @@ import { Closed } from '../closed';
 import { Profunctor } from '../profunctor';
 import { Representable } from '../representable';
 import { Sieve } from '../sieve';
-import { Strong } from '../strong';
+import { Costrong, Strong } from '../strong';
 import { Traversing } from '../traversing';
 import { Mapping } from '../mapping';
 
@@ -52,6 +53,39 @@ export const kleisliStrong = cached(
         <A, B>(pab: Kleisli<F, A, B>) =>
         ([c, a]: [C, A]) =>
           F.map_(pab(a), b => [c, b]),
+    }),
+);
+
+export const kleisliCostrong = cached(
+  <F>(F: Functor<F>): Costrong<$<KleisliF, [F]>> =>
+    Costrong.of<$<KleisliF, [F]>>({
+      ...kleisliProfunctor(F),
+
+      unfirst_:
+        <G, A, B, C>(
+          G: Defer<G>,
+          f: Kleisli<F, [A, Kind<G, [C]>], [B, Kind<G, [C]>]>,
+        ) =>
+        (a: A) => {
+          let gc: Kind<G, [C]>;
+          return F.map_(
+            f([a, G.defer(() => gc)]),
+            ([b, _gc]) => ((gc = _gc), b),
+          );
+        },
+
+      unsecond_:
+        <G, A, B, C>(
+          G: Defer<G>,
+          f: Kleisli<F, [Kind<G, [C]>, A], [Kind<G, [C]>, B]>,
+        ) =>
+        (a: A) => {
+          let gc: Kind<G, [C]>;
+          return F.map_(
+            f([G.defer(() => gc), a]),
+            ([_gc, b]) => ((gc = _gc), b),
+          );
+        },
     }),
 );
 
