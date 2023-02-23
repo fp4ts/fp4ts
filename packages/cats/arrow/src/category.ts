@@ -5,10 +5,11 @@
 
 import { Kind, lazy, α, λ } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Monad, MonoidK } from '@fp4ts/cats-core';
+import { Comonad, Monad, MonoidK } from '@fp4ts/cats-core';
 import { Compose, ComposeRequirements } from './compose';
 import { functionCategory } from './instances/function';
 import { kleisliCategory } from './instances/kleisli';
+import { cokleisliCategory } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -53,4 +54,6 @@ export const Category = Object.freeze({
   },
 
   Kleisli: <F>(F: Monad<F>) => kleisliCategory(F),
+
+  Cokleisli: <F>(F: Comonad<F>) => cokleisliCategory(F),
 });

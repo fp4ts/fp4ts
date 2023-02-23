@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { $, cached, F1, Kind, lazy } from '@fp4ts/core';
 import { ArrowApply, FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Either,
@@ -12,7 +13,6 @@ import {
   Right,
 } from '@fp4ts/cats-core/lib/data';
 import { Choice, Costrong, Strong } from '@fp4ts/cats-profunctor';
-import { $, cached, F1, Kind, lazy } from '@fp4ts/core';
 import { ArrowChoice } from '../arrow-choice';
 import { Arrow } from '../arrow';
 import { Compose } from '../compose';

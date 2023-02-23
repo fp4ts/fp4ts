@@ -8,7 +8,8 @@ import { Strong } from '@fp4ts/cats-profunctor';
 import { Category } from './category';
 import { functionArrow } from './instances/function';
 import { kleisliArrow } from './instances/kleisli';
-import { Monad } from '@fp4ts/cats-core';
+import { Comonad, Monad } from '@fp4ts/cats-core';
+import { cokleisliArrow } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -67,4 +68,6 @@ export const Arrow = Object.freeze({
   },
 
   Kleisli: <F>(F: Monad<F>) => kleisliArrow(F),
+
+  Cokleisli: <F>(F: Comonad<F>) => cokleisliArrow(F),
 });

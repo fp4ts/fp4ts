@@ -5,17 +5,24 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eval } from '@fp4ts/core';
-import { Defer, Monad, Unzip } from '@fp4ts/cats-core';
-import { Closed, Cochoice, Corepresentable } from '@fp4ts/cats-profunctor';
+import { Comonad, Defer, Monad, Unzip } from '@fp4ts/cats-core';
+import {
+  Closed,
+  Cochoice,
+  Corepresentable,
+  Strong,
+} from '@fp4ts/cats-profunctor';
 import {
   ClosedSuite,
   CochoiceSuite,
   CorepresentableSuite,
+  StrongSuite,
 } from '@fp4ts/cats-profunctor-laws';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { Eq } from '@fp4ts/cats-kernel';
 
 describe('Cokleisli', () => {
   checkAll(
@@ -71,6 +78,27 @@ describe('Cokleisli', () => {
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
       (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(Eval.now)), Y),
+    ),
+  );
+
+  checkAll(
+    'Strong<* => Eval<*>>',
+    StrongSuite(Strong.Cokleisli(Comonad.Eval)).strong(
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      A.fp4tsMiniInt(),
+      ec.miniInt(),
+      MiniInt.Eq,
+      MiniInt.Eq,
+      ec.miniInt(),
+      MiniInt.Eq,
+      ec.miniInt(),
+      MiniInt.Eq,
+      <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
+      (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(x => Eval.now(x))), Y),
     ),
   );
 });

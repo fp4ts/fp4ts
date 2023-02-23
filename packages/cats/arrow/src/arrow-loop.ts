@@ -4,11 +4,12 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Defer, Monad } from '@fp4ts/cats-core';
+import { Comonad, Defer, Monad } from '@fp4ts/cats-core';
 import { Costrong } from '@fp4ts/cats-profunctor';
 import { Arrow, ArrowRequirements } from './arrow';
 import { functionArrowLoop } from './instances/function';
 import { kleisliArrowLoop } from './instances/kleisli';
+import { cokleisliArrowLoop } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -53,4 +54,6 @@ export const ArrowLoop = Object.freeze({
   },
 
   Kleisli: <F>(F: Monad<F>) => kleisliArrowLoop(F),
+
+  Cokleisli: <F>(F: Comonad<F>) => cokleisliArrowLoop(F),
 });
