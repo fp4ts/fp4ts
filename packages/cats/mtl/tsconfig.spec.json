@@ -9,5 +9,6 @@
     { "path": "../../core/tsconfig.spec.json" },
     { "path": "../core/tsconfig.spec.json" },
     { "path": "../kernel/tsconfig.spec.json" },
+    { "path": "../profunctor/tsconfig.spec.json" },
   ]
 }

@@ -14,7 +14,8 @@ import {
   MonadStateSuite,
   MonadWriterSuite,
 } from '@fp4ts/cats-mtl-laws';
-import { MonadErrorSuite, MonadSuite, StrongSuite } from '@fp4ts/cats-laws';
+import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
+import { StrongSuite } from '@fp4ts/cats-profunctor-laws';
 import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';

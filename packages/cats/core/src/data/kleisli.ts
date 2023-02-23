@@ -32,11 +32,8 @@ import { FlatMap } from '../flat-map';
 import { Monad } from '../monad';
 import { MonadError } from '../monad-error';
 import { Contravariant } from '../contravariant';
-import { Arrow, ArrowApply, ArrowChoice, Compose } from '../arrow';
 import { Distributive } from '../distributive';
 import { isMonadDefer, MonadDefer } from '../monad-defer';
-
-import { Either, Left, Right } from './either';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
 
@@ -65,11 +62,6 @@ export interface KleisliObj {
   Monad<F, A>(F: Monad<F>): Monad<$<KleisliF, [F, A]>>;
   MonadDefer<F, A>(F: MonadDefer<F>): MonadDefer<$<KleisliF, [F, A]>>;
   MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
-
-  Compose<F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>>;
-  Arrow<F>(F: Monad<F>): Arrow<$<KleisliF, [F]>>;
-  ArrowApply<F>(F: Monad<F>): ArrowApply<$<KleisliF, [F]>>;
-  ArrowChoice<F>(F: Monad<F>): ArrowChoice<$<KleisliF, [F]>>;
 }
 
 const suspend = <F, A, B>(
@@ -260,61 +252,6 @@ const kleisliMonadError: <F, A, E>(
   }),
 );
 
-const kleisliCompose: <F>(F: FlatMap<F>) => Compose<$<KleisliF, [F]>> = cached(
-  <F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>> =>
-    Compose.of({ compose_: F.compose_, andThen_: F.andThen_ }),
-);
-
-const kleisliArrow: <F>(F: Monad<F>) => Arrow<$<KleisliF, [F]>> = cached(
-  <F>(F: Monad<F>): Arrow<$<KleisliF, [F]>> =>
-    Arrow.of({
-      lift:
-        <A, B>(f: (a: A) => B) =>
-        (a: A) =>
-          F.pure(f(a)),
-      first:
-        <C>() =>
-        <A, B>(k: Kleisli<F, A, B>) =>
-        ([a, c]: [A, C]) =>
-          F.map_(k(a), b => [b, c]),
-      id:
-        <A>() =>
-        (a: A) =>
-          F.pure(a),
-      compose_: F.compose_,
-      andThen_: F.andThen_,
-    }),
-);
-
-const kleisliArrowApply: <F>(F: Monad<F>) => ArrowApply<$<KleisliF, [F]>> =
-  cached(
-    <F>(F: Monad<F>): ArrowApply<$<KleisliF, [F]>> =>
-      ArrowApply.of<$<KleisliF, [F]>>({
-        ...kleisliArrow(F),
-        app:
-          <A, B>() =>
-          ([fab, a]: [Kleisli<F, A, B>, A]) =>
-            fab(a),
-      }),
-  );
-
-const kleisliArrowChoice: <F>(F: Monad<F>) => ArrowChoice<$<KleisliF, [F]>> =
-  cached(
-    <F>(F: Monad<F>): ArrowChoice<$<KleisliF, [F]>> =>
-      ArrowChoice.of({
-        ...kleisliArrow(F),
-        choose: <A, B, C, D>(fac: Kleisli<F, A, C>, fbd: Kleisli<F, B, D>) =>
-          suspend(
-            F,
-            (ab: Either<A, B>): Kind<F, [Either<C, D>]> =>
-              ab.fold(
-                F1.compose(F.map(Left), fac),
-                F1.compose(F.map(Right), fbd),
-              ),
-          ),
-      }),
-  );
-
 Kleisli.Defer = kleisliDefer;
 Kleisli.SemigroupK = kleisliSemigroupK;
 Kleisli.MonoidK = kleisliMonoidK;
@@ -330,11 +267,6 @@ Kleisli.FlatMap = kleisliFlatMap;
 Kleisli.Monad = kleisliMonad;
 Kleisli.MonadDefer = kleisliMonadDefer;
 Kleisli.MonadError = kleisliMonadError;
-
-Kleisli.Compose = kleisliCompose;
-Kleisli.Arrow = kleisliArrow;
-Kleisli.ArrowApply = kleisliArrowApply;
-Kleisli.ArrowChoice = kleisliArrowChoice;
 
 // -- HKT
 

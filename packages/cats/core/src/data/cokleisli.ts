@@ -20,7 +20,6 @@ import {
   α,
   λ,
 } from '@fp4ts/core';
-import { Arrow, Compose, Profunctor } from '../arrow';
 import { CoflatMap } from '../coflat-map';
 import { Comonad } from '../comonad';
 import { Contravariant } from '../contravariant';
@@ -45,20 +44,21 @@ interface CokleisliObj {
     F: Functor<F>,
   ): Contravariant<λ<CokleisliF, [Fix<F>, α, Fix<B>]>>;
   MonadDefer<F, A>(): MonadDefer<$<CokleisliF, [F, A]>>;
-
-  Profunctor<F>(F: Functor<F>): Profunctor<$<CokleisliF, [F]>>;
-  Compose<F>(F: CoflatMap<F>): Compose<$<CokleisliF, [F]>>;
-  Arrow<F>(F: Comonad<F>): Arrow<$<CokleisliF, [F]>>;
 }
 
 const cokleisliSemigroupK: <F>(
   F: CoflatMap<F>,
 ) => SemigroupK<λ<CokleisliF, [Fix<F>, α, α]>> = F =>
-  cokleisliCompose(F).algebraK();
+  SemigroupK.of({ combineK_: (x, y) => F1.andThen(F.coflatMap(x), y) });
 
 const cokleisliMonoidK: <F>(
   F: Comonad<F>,
-) => MonoidK<λ<CokleisliF, [Fix<F>, α, α]>> = F => cokleisliArrow(F).algebraK();
+) => MonoidK<λ<CokleisliF, [Fix<F>, α, α]>> = F =>
+  MonoidK.of({
+    combineK_: (x, y) => F1.andThen(F.coflatMap(x), y),
+    // eslint-disable-next-line prettier/prettier
+    emptyK: <A>() => (F).extract<A>,
+  });
 
 const cokleisliFunctor: <F, R>() => Functor<$<CokleisliF, [F, R]>> = lazy(() =>
   Functor.of({ map_: F1.andThen }),
@@ -88,60 +88,11 @@ const cokleisliMonadDefer: <F, A>() => MonadDefer<$<CokleisliF, [F, A]>> = lazy(
     }),
 );
 
-const cokleisliProfunctor: <F>(
-  F: Functor<F>,
-) => Profunctor<$<CokleisliF, [F]>> = cached(<F>(F: Functor<F>) =>
-  Profunctor.of<$<CokleisliF, [F]>>({
-    dimap_: (fa, f, g) => F1.andThen(F1.compose(fa, F.map(f)), g),
-    lmap_: <A, B, C>(fa: Cokleisli<F, A, B>, f: (c: C) => A) =>
-      cokleisliContravariant<F, B>(F).contramap_(fa, f),
-    rmap_: <A, B, D>(fa: Cokleisli<F, A, B>, g: (b: B) => D) =>
-      cokleisliFunctor<F, A>().map_(fa, g),
-  }),
-);
-
-const cokleisliCompose: <F>(F: CoflatMap<F>) => Compose<$<CokleisliF, [F]>> =
-  cached(<F>(F: CoflatMap<F>) =>
-    Compose.of<$<CokleisliF, [F]>>({
-      compose_: <A, B, C>(fbc: Cokleisli<F, B, C>, fab: Cokleisli<F, A, B>) =>
-        F1.andThen(F.coflatMap(fab), fbc),
-    }),
-  );
-
-const cokleisliArrow: <F>(F: Comonad<F>) => Arrow<$<CokleisliF, [F]>> = cached(
-  <F>(F: Comonad<F>) =>
-    Arrow.of<$<CokleisliF, [F]>>({
-      lift:
-        <A, B>(f: (a: A) => B) =>
-        (fa: Kind<F, [A]>) =>
-          f(F.extract(fa)),
-      first:
-        <C>() =>
-        <A, B>(ck: Cokleisli<F, A, B>) =>
-        (fac: Kind<F, [[A, C]]>) =>
-          [pipe(fac, F.map(fst), ck), pipe(fac, F.map(snd), F.extract)],
-      second:
-        <C>() =>
-        <A, B>(ck: Cokleisli<F, A, B>) =>
-        (fca: Kind<F, [[C, A]]>) =>
-          [pipe(fca, F.map(fst), F.extract), pipe(fca, F.map(snd), ck)],
-      id:
-        <A>() =>
-        (fa: Kind<F, [A]>) =>
-          F.extract(fa),
-      compose_: cokleisliCompose(F).compose_,
-      andThen_: cokleisliCompose(F).andThen_,
-    }),
-);
-
 Cokleisli.SemigroupK = cokleisliSemigroupK;
 Cokleisli.MonoidK = cokleisliMonoidK;
 Cokleisli.Functor = cokleisliFunctor;
 Cokleisli.Contravariant = cokleisliContravariant;
 Cokleisli.MonadDefer = cokleisliMonadDefer;
-Cokleisli.Profunctor = cokleisliProfunctor;
-Cokleisli.Compose = cokleisliCompose;
-Cokleisli.Arrow = cokleisliArrow;
 
 // -- HKT
 

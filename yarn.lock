@@ -1375,6 +1375,8 @@ __metadata:
   resolution: "@fp4ts/schema-core@workspace:packages/schema/core"
   dependencies:
     "@fp4ts/cats": "*"
+    "@fp4ts/cats-arrow": "*"
+    "@fp4ts/cats-profunctor": "*"
     "@fp4ts/core": "*"
     "@fp4ts/schema-kernel": "*"
     typescript: 4.9.5

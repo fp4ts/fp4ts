@@ -4,16 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable @typescript-eslint/ban-types */
-import { $, $type, Eval, EvalF, Kind, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, EvalF, Kind, TyK, TyVar } from '@fp4ts/core';
 import {
   Applicative,
-  Category,
   Either,
   EitherT,
   Functor,
   Monad,
   MonoidK,
-  Profunctor,
 } from '@fp4ts/cats';
 import {
   Constraining,
@@ -62,6 +60,8 @@ import {
   decoderTRefining,
   decoderTSchemable,
 } from './instances';
+import { Profunctor } from '@fp4ts/cats-profunctor';
+import { Category } from '@fp4ts/cats-arrow';
 
 export type DecoderT<F, I, A> = DecoderTBase<F, I, A>;
 export type Decoder<I, A> = DecoderTBase<EvalF, I, A>;

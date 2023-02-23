@@ -4,7 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { Category, Functor, Monad, MonoidK, Profunctor } from '@fp4ts/cats';
+import { Functor, Monad, MonoidK } from '@fp4ts/cats';
+import { Category } from '@fp4ts/cats-arrow';
+import { Profunctor } from '@fp4ts/cats-profunctor';
 import { Constraining, Refining, Schemable } from '@fp4ts/schema-kernel';
 
 import {

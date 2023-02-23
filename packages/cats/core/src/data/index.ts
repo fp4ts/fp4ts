@@ -14,7 +14,6 @@ export * from './const';
 export * from './try';
 export * from './ior';
 export * from './validation';
-export * from './tagged';
 export * from './backwards';
 export * from './proxy';
 
@@ -28,6 +27,5 @@ export * from './option-t';
 export * from './either-t';
 
 export { SyntaxK } from './syntax-k';
-export { Syntax2K } from './syntax-2k';
 
 export * from './collections';

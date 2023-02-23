@@ -22,8 +22,6 @@ import { MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import {
   AlternativeSuite,
-  ArrowApplySuite,
-  ArrowChoiceSuite,
   ContravariantSuite,
   DistributiveSuite,
   FunctorFilterSuite,
@@ -204,60 +202,6 @@ describe('Kleisli', () => {
           A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
         <X>(E: Eq<X>) =>
           eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
-      ),
-    );
-
-    checkAll(
-      'ArrowApply<Kleisli<Eval, *, *>>',
-      ArrowApplySuite(Kleisli.ArrowApply(Monad.Eval)).arrowApply(
-        A.fp4tsMiniInt(),
-        A.fp4tsMiniInt(),
-        fc.boolean(),
-        fc.boolean(),
-        fc.integer(),
-        fc.integer(),
-        MiniInt.Eq,
-        ec.miniInt(),
-        MiniInt.Eq,
-        ec.miniInt(),
-        Eq.fromUniversalEquals(),
-        ec.boolean(),
-        Eq.fromUniversalEquals(),
-        ec.boolean(),
-        Eq.fromUniversalEquals(),
-        <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
-          A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
-        <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
-          eqKleisli<EvalF, X, Y>(X, Eq.Eval(Y)),
-        <X, Y>(X: ExhaustiveCheck<X>, Y: ExhaustiveCheck<Y>) =>
-          ec.instance<Kleisli<EvalF, X, Y>>(
-            Y.allValues.map(y => Kleisli((x: X) => Eval.now(y))),
-          ),
-      ),
-    );
-
-    checkAll(
-      'ArrowChoice<Kleisli<Eval, *, *>>',
-      ArrowChoiceSuite(Kleisli.ArrowChoice(Monad.Eval)).arrowChoice(
-        A.fp4tsMiniInt(),
-        A.fp4tsMiniInt(),
-        fc.boolean(),
-        fc.boolean(),
-        fc.integer(),
-        fc.integer(),
-        MiniInt.Eq,
-        ec.miniInt(),
-        MiniInt.Eq,
-        ec.miniInt(),
-        Eq.fromUniversalEquals(),
-        ec.boolean(),
-        Eq.fromUniversalEquals(),
-        ec.boolean(),
-        Eq.fromUniversalEquals(),
-        <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
-          A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
-        <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
-          eqKleisli<EvalF, X, Y>(X, Eq.Eval(Y)),
       ),
     );
   });

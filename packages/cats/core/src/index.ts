@@ -6,7 +6,7 @@
 /**
  * @module cats/core
  */
-export * from './arrow';
+export * from './function-k';
 export * from './eq-k';
 export * from './semigroup-k';
 export * from './monoid-k';

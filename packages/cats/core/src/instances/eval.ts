@@ -10,6 +10,7 @@ import { EqK } from '../eq-k';
 import { Defer } from '../defer';
 import { MonadDefer } from '../monad-defer';
 import { Unzip } from '../unzip';
+import { Functor } from '../functor';
 
 export const evalEqK: () => EqK<EvalF> = lazy(() =>
   EqK.of({ liftEq: Eq.Eval }),
@@ -17,6 +18,10 @@ export const evalEqK: () => EqK<EvalF> = lazy(() =>
 
 export const evalDefer = lazy(() =>
   Defer.of<EvalF>({ defer: Eval.defer, fix: Eval.fix }),
+);
+
+export const evalFunctor: () => Functor<EvalF> = lazy(() =>
+  Functor.of({ map_: (fa, f) => fa.map(f) }),
 );
 
 export const evalMonadDefer: () => MonadDefer<EvalF> = lazy(() =>
@@ -42,8 +47,8 @@ export const evalUnzip: () => Unzip<EvalF> = lazy(() => {
 });
 
 export const evalComonad: () => Comonad<EvalF> = lazy(() =>
-  Comonad.of({
-    ...evalMonadDefer(),
+  Comonad.of<EvalF>({
+    ...evalFunctor(),
     coflatMap_: (fa, f) => Eval.later(() => f(fa)),
     extract: fa => fa.value,
   }),
