@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow, absurd, pipe, Kind } from '@fp4ts/core';
-import { Bifunctor, Tagged } from '@fp4ts/cats';
+import { Bifunctor } from '@fp4ts/cats';
+import { Choice, Tagged } from '@fp4ts/cats-profunctor';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
-import { Settable, Choice } from '@fp4ts/optics-kernel';
+import { Settable } from '@fp4ts/optics-kernel';
 
 import { Optic } from './optics';
 import { asGetting, get, Getter, to, use, view } from './getter';
@@ -32,7 +33,7 @@ export function re<T, B>(r: Review<T, B>): Getter<B, T> {
 }
 
 export function reverseGet<T, B>(r: Review<T, B>): (b: B) => T {
-  return r(Settable.Identity, { ...Tagged.Bifunctor, ...Choice.Tagged });
+  return r(Settable.Identity, { ...Tagged.Bifunctor, ...Tagged.Choice });
 }
 
 export function review<R, B>(

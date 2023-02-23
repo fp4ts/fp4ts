@@ -12,8 +12,8 @@ import {
   Function1F,
   Functor,
   Monoid,
-  Profunctor,
 } from '@fp4ts/cats';
+import { Profunctor } from '@fp4ts/cats-profunctor';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Indexable, IndexedF } from './ix';
 import { LensLike, Optic, Over } from './optics';

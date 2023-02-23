@@ -12,7 +12,4 @@ export * from './prism-laws';
 export * from './setter-laws';
 export * from './traversal-laws';
 
-export * from './affine-laws';
-export * from './choice-laws';
-
 export * from './discipline';

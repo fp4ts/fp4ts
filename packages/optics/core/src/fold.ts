@@ -23,7 +23,7 @@ import {
   Traversable,
 } from '@fp4ts/cats';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
-import { Choice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/cats-profunctor';
 
 import * as Monoids from './internal/monoids';
 import { Indexable, Indexed, IndexedF } from './ix';

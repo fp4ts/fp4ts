@@ -8,6 +8,3 @@ export * from './lens-suite';
 export * from './prism-suite';
 export * from './setter-suite';
 export * from './traversal-suite';
-
-export * from './affine-suite';
-export * from './choice-suite';
