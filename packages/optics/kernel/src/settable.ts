@@ -11,10 +11,10 @@ import {
   DistributiveRequirements,
   Identity,
   IdentityF,
-  Profunctor,
   Traversable,
   TraversableRequirements,
 } from '@fp4ts/cats';
+import { Profunctor } from '@fp4ts/cats-profunctor';
 
 export interface Settable<F>
   extends Applicative<F>,

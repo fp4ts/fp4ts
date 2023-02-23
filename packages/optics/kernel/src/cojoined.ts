@@ -3,10 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, instance, Kind, Lazy, lazy } from '@fp4ts/core';
+import { instance, Kind, Lazy, lazy } from '@fp4ts/core';
 import {
-  ArrowApply,
-  ArrowChoice,
   Comonad,
   Distributive,
   Either,
@@ -16,14 +14,15 @@ import {
   Monad,
   Traversable,
 } from '@fp4ts/cats';
-import { Closed } from './closed';
-import { Corepresentable, Representable } from './representable';
+import { ArrowApply, ArrowChoice, ArrowLoop } from '@fp4ts/cats-arrow';
+import { Corepresentable, Representable, Closed } from '@fp4ts/cats-profunctor';
 
-export interface Cojoined<P, RepF = unknown, CorepF = unknown>
+export interface Conjoined<P, RepF = unknown, CorepF = unknown>
   extends Representable<P, RepF>,
     Corepresentable<P, CorepF>,
     ArrowApply<P>,
     ArrowChoice<P>,
+    ArrowLoop<P>,
     Closed<P> {
   readonly F: Distributive<RepF> & Monad<RepF>;
   readonly C: Traversable<CorepF> & Comonad<CorepF>;
@@ -36,19 +35,20 @@ export interface Cojoined<P, RepF = unknown, CorepF = unknown>
   ) => Kind<P, [Either<C, A>, Either<C, B>]>;
 }
 
-export const Cojoined = Object.freeze({
-  get Function1(): Cojoined<Function1F, IdentityF, IdentityF> {
-    return function1Cojoined();
+export const Conjoined = Object.freeze({
+  get Function1(): Conjoined<Function1F, IdentityF, IdentityF> {
+    return function1Conjoined();
   },
 });
 
 // -- Instances
 
-const function1Cojoined: Lazy<Cojoined<Function1F, IdentityF, IdentityF>> =
+const function1Conjoined: Lazy<Conjoined<Function1F, IdentityF, IdentityF>> =
   lazy(() =>
-    instance<Cojoined<Function1F, IdentityF, IdentityF>>({
+    instance<Conjoined<Function1F, IdentityF, IdentityF>>({
       ...ArrowApply.Function1,
       ...ArrowChoice.Function1,
+      ...ArrowLoop.Function1,
       ...Representable.Function1,
       ...Corepresentable.Function1,
       ...Closed.Function1,

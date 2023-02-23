@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { flow, Kind, pipe, tupled } from '@fp4ts/core';
-import { Function1F, Functor, Strong } from '@fp4ts/cats';
+import { Function1F, Functor } from '@fp4ts/cats';
+import { Strong } from '@fp4ts/cats-profunctor';
 import { Optic, PLensLike, POptic, POver } from './optics';
 import { Indexable } from './ix';
 

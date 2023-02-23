@@ -5,11 +5,11 @@
 
 import { $, id, instance, Kind, lazy } from '@fp4ts/core';
 import { Function1F, IdentityF, TupleLeftF } from '@fp4ts/cats';
-import { Cojoined } from '@fp4ts/optics-kernel';
+import { Conjoined } from '@fp4ts/optics-kernel';
 import { Indexed, IndexedF } from './indexed';
 
 export interface Indexable<P, I, RepF = any, CorepF = any>
-  extends Cojoined<P, RepF, CorepF> {
+  extends Conjoined<P, RepF, CorepF> {
   indexed<A, B>(pab: Kind<P, [A, B]>): (a: A, i: I) => B;
 }
 
@@ -37,7 +37,7 @@ const function1Indexable: <I>() => Indexable<
   IdentityF
 > = lazy(<I>() =>
   instance<Indexable<Function1F, I, IdentityF, IdentityF>>({
-    ...Cojoined.Function1,
+    ...Conjoined.Function1,
     indexed: id,
   }),
 );

@@ -4,13 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { constant, flow, Kind } from '@fp4ts/core';
-import {
-  Contravariant,
-  Function1F,
-  Functor,
-  Profunctor,
-  Semigroup,
-} from '@fp4ts/cats';
+import { Contravariant, Function1F, Functor, Semigroup } from '@fp4ts/cats';
+import { Profunctor } from '@fp4ts/cats-profunctor';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Settable } from '@fp4ts/optics-kernel';
 import { Indexable } from './ix';

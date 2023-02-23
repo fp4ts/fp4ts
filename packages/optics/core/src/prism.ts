@@ -5,7 +5,7 @@
 
 import { flow } from '@fp4ts/core';
 import { Applicative, Either, Left, Option, Right } from '@fp4ts/cats';
-import { Choice } from '@fp4ts/optics-kernel';
+import { Choice } from '@fp4ts/cats-profunctor';
 import { Indexable } from './ix';
 import { POptic } from './optics';
 

@@ -15,31 +15,21 @@ import {
   uncurry,
   untuple,
   instance,
+  Kind,
 } from '@fp4ts/core';
 import {
-  ArrowChoice,
   Either,
   Left,
   Right,
   Function1F,
-  Profunctor,
-  Strong,
   TupleLeftF,
-  Arrow,
-  ArrowApply,
   Monad,
   Distributive,
   Bifunctor,
   Comonad,
   Traversable,
+  Defer,
 } from '@fp4ts/cats';
-import {
-  Cojoined,
-  Closed,
-  Costrong,
-  Corepresentable,
-  Representable,
-} from '@fp4ts/optics-kernel';
 
 import { IndexedPLens, PLens } from '../lens';
 import { IndexedPTraversal, PTraversal } from '../traversal';
@@ -49,6 +39,16 @@ import { IndexedFold, Fold } from '../fold';
 import { AnyIndexedOptical } from '../optics';
 import { Indexable } from './indexable';
 import { Indexing } from './indexing';
+import {
+  Closed,
+  Corepresentable,
+  Costrong,
+  Profunctor,
+  Representable,
+  Strong,
+} from '@fp4ts/cats-profunctor';
+import { Conjoined } from '@fp4ts/optics-kernel';
+import { Arrow, ArrowApply, ArrowChoice, ArrowLoop } from '@fp4ts/cats-arrow';
 
 export type Indexed<I, A, B> = (a: A, i: I) => B;
 
@@ -64,7 +64,8 @@ interface IndexedObj {
   Arrow<I>(): Arrow<$<IndexedF, [I]>>;
   ArrowApply<I>(): ArrowApply<$<IndexedF, [I]>>;
   ArrowChoice<I>(): ArrowChoice<$<IndexedF, [I]>>;
-  Cojoined<I>(): Cojoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>;
+  ArrowLoop<I>(): ArrowLoop<$<IndexedF, [I]>>;
+  Cojoined<I>(): Conjoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>;
 }
 
 // -- Optics functions
@@ -137,15 +138,25 @@ const indexedStrong: <I>() => Strong<$<IndexedF, [I]>> = lazy(<I>() =>
 const indexedCostrong: <I>() => Costrong<$<IndexedF, [I]>> = lazy(<I>() =>
   Costrong.of<$<IndexedF, [I]>>({
     ...indexedProfunctor<I>(),
-    unfirst:
-      <A, B, C>(ab: Indexed<I, [A, C], [B, C]>): Indexed<I, A, B> =>
-      (a, i) =>
-        ab([a, undefined as never], i)[0],
+    unfirst_:
+      <F, A, B, C>(
+        F: Defer<F>,
+        ab: Indexed<I, [A, Kind<F, [C]>], [B, Kind<F, [C]>]>,
+      ): Indexed<I, A, B> =>
+      (a, i) => {
+        const bfc: [B, Kind<F, [C]>] = ab([a, F.defer(() => bfc[1])], i);
+        return bfc[0];
+      },
 
-    unsecond:
-      <A, B, C>(ab: Indexed<I, [C, A], [C, B]>): Indexed<I, A, B> =>
-      (a, i) =>
-        ab([undefined as never, a], i)[1],
+    unsecond_:
+      <F, A, B, C>(
+        F: Defer<F>,
+        ab: Indexed<I, [Kind<F, [C]>, A], [Kind<F, [C]>, B]>,
+      ): Indexed<I, A, B> =>
+      (a, i) => {
+        const fcb: [Kind<F, [C]>, B] = ab([F.defer(() => fcb[0]), a], i);
+        return fcb[1];
+      },
   }),
 ) as <I>() => Costrong<$<IndexedF, [I]>>;
 
@@ -153,24 +164,24 @@ const indexedRepresentable: <I>() => Representable<
   $<IndexedF, [I]>,
   $<Function1F, [I]>
 > = lazy(<I>() =>
-  Representable.of<$<IndexedF, [I]>, $<Function1F, [I]>>(
-    { ...indexedStrong<I>(), sieve: curry, tabulate: uncurry },
-    Monad.Function1<I>(),
-  ),
+  Representable.of<$<IndexedF, [I]>, $<Function1F, [I]>>({
+    ...indexedStrong<I>(),
+    F: Monad.Function1<I>(),
+    sieve: curry,
+    tabulate: uncurry,
+  }),
 ) as <I>() => Representable<$<IndexedF, [I]>, $<Function1F, [I]>>;
 
 const indexedCorepresentable: <I>() => Corepresentable<
   $<IndexedF, [I]>,
   TupleLeftF<I>
 > = lazy(<I>() =>
-  Corepresentable.of<$<IndexedF, [I]>, TupleLeftF<I>>(
-    {
-      ...indexedCostrong<I>(),
-      cosieve: tuple,
-      cotabulate: untuple,
-    },
-    Bifunctor.Tuple2.leftFunctor<I>(),
-  ),
+  Corepresentable.of<$<IndexedF, [I]>, TupleLeftF<I>>({
+    ...indexedCostrong<I>(),
+    C: Bifunctor.Tuple2.leftFunctor<I>(),
+    cosieve: tuple,
+    cotabulate: untuple,
+  }),
 ) as <I>() => Corepresentable<$<IndexedF, [I]>, TupleLeftF<I>>;
 
 const indexedClosed: <I>() => Closed<$<IndexedF, [I]>> = lazy(<I>() =>
@@ -203,6 +214,14 @@ const indexedArrow: <I>() => Arrow<$<IndexedF, [I]>> = lazy(
     }),
 ) as <I>() => Arrow<$<IndexedF, [I]>>;
 
+const indexedArrowLoop: <I>() => ArrowLoop<$<IndexedF, [I]>> = lazy(
+  <I>(): ArrowLoop<$<IndexedF, [I]>> =>
+    ArrowLoop.of({
+      ...indexedArrow<I>(),
+      ...indexedCostrong<I>(),
+    }),
+) as <I>() => ArrowLoop<$<IndexedF, [I]>>;
+
 const indexedArrowApply: <I>() => ArrowApply<$<IndexedF, [I]>> = lazy(
   <I>(): ArrowApply<$<IndexedF, [I]>> =>
     ArrowApply.of({
@@ -220,7 +239,7 @@ const indexedArrowChoice: <I>() => ArrowChoice<$<IndexedF, [I]>> = lazy(
     ArrowChoice.of({
       ...indexedArrow<I>(),
 
-      choose:
+      choose_:
         <A, B, C, D>(
           f: Indexed<I, A, C>,
           g: Indexed<I, B, D>,
@@ -233,21 +252,22 @@ const indexedArrowChoice: <I>() => ArrowChoice<$<IndexedF, [I]>> = lazy(
     }),
 ) as <I>() => ArrowChoice<$<IndexedF, [I]>>;
 
-const indexedCojoined: <I>() => Cojoined<
+const indexedCojoined: <I>() => Conjoined<
   $<IndexedF, [I]>,
   $<Function1F, [I]>,
   TupleLeftF<I>
 > = lazy(<I>() =>
-  instance<Cojoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>>({
+  instance<Conjoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>>({
     ...Indexed.ArrowApply<I>(),
     ...Indexed.ArrowChoice<I>(),
+    ...Indexed.ArrowLoop<I>(),
     ...Indexed.Representable<I>(),
     ...Indexed.Corepresentable<I>(),
     ...Indexed.Closed<I>(),
     F: { ...Distributive.Function1<I>(), ...Monad.Function1<I>() },
     C: { ...Traversable.Tuple2.left<I>(), ...Comonad.Tuple2.left<I>() },
   }),
-) as <I>() => Cojoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>;
+) as <I>() => Conjoined<$<IndexedF, [I]>, $<Function1F, [I]>, TupleLeftF<I>>;
 
 Indexed.Profunctor = indexedProfunctor;
 Indexed.Strong = indexedStrong;
@@ -258,6 +278,7 @@ Indexed.Closed = indexedClosed;
 Indexed.Arrow = indexedArrow;
 Indexed.ArrowApply = indexedArrowApply;
 Indexed.ArrowChoice = indexedArrowChoice;
+Indexed.ArrowLoop = indexedArrowLoop;
 Indexed.Cojoined = indexedCojoined;
 
 // -- HKT

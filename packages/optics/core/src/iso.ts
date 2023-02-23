@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id } from '@fp4ts/core';
-import { Functor, Profunctor } from '@fp4ts/cats';
+import { Functor } from '@fp4ts/cats';
+import { Profunctor } from '@fp4ts/cats-profunctor';
 import { POptic } from './optics';
 
 export type PIso<S, T, A, B> = <F, P>(

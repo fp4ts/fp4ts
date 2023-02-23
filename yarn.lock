@@ -665,7 +665,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-arrow@workspace:packages/cats/arrow":
+"@fp4ts/cats-arrow@*, @fp4ts/cats-arrow@workspace:packages/cats/arrow":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-arrow@workspace:packages/cats/arrow"
   dependencies:
@@ -1238,7 +1238,9 @@ __metadata:
   resolution: "@fp4ts/optics-core@workspace:packages/optics/core"
   dependencies:
     "@fp4ts/cats": "*"
+    "@fp4ts/cats-arrow": "*"
     "@fp4ts/cats-mtl": "*"
+    "@fp4ts/cats-profunctor": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-kernel": "*"
     typescript: 4.9.5
@@ -1262,6 +1264,8 @@ __metadata:
   resolution: "@fp4ts/optics-kernel@workspace:packages/optics/kernel"
   dependencies:
     "@fp4ts/cats": "*"
+    "@fp4ts/cats-arrow": "*"
+    "@fp4ts/cats-profunctor": "*"
     "@fp4ts/core": "*"
     typescript: 4.9.5
   languageName: unknown
