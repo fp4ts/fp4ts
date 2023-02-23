@@ -7,6 +7,7 @@ import { Applicative, Functor, MonadDefer } from '@fp4ts/cats-core';
 import { $, cached, Kind, pipe, tupled } from '@fp4ts/core';
 import { Arrow, ArrowRequirements } from './arrow';
 import { functionArrowApply } from './instances/function';
+import { kleisliArrowApply } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -28,6 +29,8 @@ export const ArrowApply = Object.freeze({
   get Function1() {
     return functionArrowApply();
   },
+
+  Kleisli: <F>(F: MonadDefer<F>) => kleisliArrowApply(F),
 });
 
 export const ArrowMonad = Object.freeze({
