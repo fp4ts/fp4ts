@@ -3,9 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Defer, Functor } from '@fp4ts/cats-core';
+import { Comonad, Defer, Functor } from '@fp4ts/cats-core';
 import { Kind } from '@fp4ts/core';
-import { cokleisliCostrong } from './instances/cokleisli';
+import { cokleisliCostrong, cokleisliStrong } from './instances/cokleisli';
 import { function1Costrong, function1Strong } from './instances/function';
 import { kleisliCostrong, kleisliStrong } from './instances/kleisli';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
@@ -51,6 +51,8 @@ export const Strong = Object.freeze({
   },
 
   Kleisli: <F>(F: Functor<F>) => kleisliStrong(F),
+
+  Cokleisli: <F>(F: Comonad<F>) => cokleisliStrong(F),
 });
 
 /**

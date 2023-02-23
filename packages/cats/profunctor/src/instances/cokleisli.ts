@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
-import { Applicative, Defer, Functor } from '@fp4ts/cats-core';
+import { $, cached, Eval, F1, fst, id, Kind, snd } from '@fp4ts/core';
+import { Applicative, Comonad, Defer, Functor } from '@fp4ts/cats-core';
 import {
   Cokleisli,
   CokleisliF,
@@ -13,7 +13,7 @@ import {
   Right,
 } from '@fp4ts/cats-core/lib/data';
 import { Profunctor } from '../profunctor';
-import { Costrong } from '../strong';
+import { Costrong, Strong } from '../strong';
 import { Cochoice } from '../choice';
 import { Cosieve } from '../sieve';
 import { Corepresentable } from '../representable';
@@ -25,6 +25,25 @@ export const cokleisliProfunctor = cached(
       dimap_: (pab, f, g) => F1.andThen(F1.compose(pab, F.map(f)), g),
       lmap_: (pab, f) => F1.compose(pab, F.map(f)),
       rmap_: (pab, g) => F1.andThen(pab, g),
+    }),
+);
+
+export const cokleisliStrong = cached(
+  <F>(F: Comonad<F>): Strong<$<CokleisliF, [F]>> =>
+    Strong.of<$<CokleisliF, [F]>>({
+      ...cokleisliProfunctor(F),
+
+      first:
+        <C>() =>
+        <A, B>(pab: Cokleisli<F, A, B>): Cokleisli<F, [A, C], [B, C]> =>
+        (fac: Kind<F, [[A, C]]>) =>
+          [pab(F.map_(fac, fst)), F.extract(fac)[1]],
+
+      second:
+        <C>() =>
+        <A, B>(pab: Cokleisli<F, A, B>): Cokleisli<F, [C, A], [C, B]> =>
+        (fca: Kind<F, [[C, A]]>) =>
+          [F.extract(fca)[0], pab(F.map_(fca, snd))],
     }),
 );
 

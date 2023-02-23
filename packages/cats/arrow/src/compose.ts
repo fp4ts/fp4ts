@@ -5,9 +5,10 @@
 
 import { Base, instance, Kind, lazy, α, λ } from '@fp4ts/core';
 import { Semigroup } from '@fp4ts/cats-kernel';
-import { FlatMap, SemigroupK } from '@fp4ts/cats-core';
+import { CoflatMap, FlatMap, SemigroupK } from '@fp4ts/cats-core';
 import { functionCompose } from './instances/function';
 import { kleisliCompose } from './instances/kleisli';
+import { cokleisliCompose } from './instances/cokleisli';
 
 /**
  * @category Type Class
@@ -54,4 +55,6 @@ export const Compose = Object.freeze({
   },
 
   Kleisli: <F>(F: FlatMap<F>) => kleisliCompose(F),
+
+  Cokleisli: <F>(F: CoflatMap<F>) => cokleisliCompose(F),
 });
