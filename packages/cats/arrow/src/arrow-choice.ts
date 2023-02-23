@@ -8,6 +8,8 @@ import { Either } from '@fp4ts/cats-core/lib/data';
 import { Choice } from '@fp4ts/cats-profunctor';
 import { Arrow, ArrowRequirements } from './arrow';
 import { functionArrowChoice } from './instances/function';
+import { Monad } from '@fp4ts/cats-core';
+import { kleisliArrowChoice } from './instances/kleisli';
 
 /**
  * @category Type Class
@@ -72,4 +74,6 @@ export const ArrowChoice = Object.freeze({
   get Function1() {
     return functionArrowChoice();
   },
+
+  Kleisli: <F>(F: Monad<F>) => kleisliArrowChoice(F),
 });

@@ -67,10 +67,11 @@ export const functionArrowApply = lazy(
     ArrowApply.of({
       ...functionArrow(),
 
-      app:
+      app: lazy(
         <A, B>() =>
-        ([f, a]: [(a: A) => B, A]) =>
-          f(a),
+          ([f, a]: [(a: A) => B, A]): B =>
+            f(a),
+      ) as <A, B>() => (fa: [(a: A) => B, A]) => B,
     }),
 );
 

@@ -7,6 +7,8 @@ import { id, Kind } from '@fp4ts/core';
 import { Strong } from '@fp4ts/cats-profunctor';
 import { Category } from './category';
 import { functionArrow } from './instances/function';
+import { kleisliArrow } from './instances/kleisli';
+import { Monad } from '@fp4ts/cats-core';
 
 /**
  * @category Type Class
@@ -63,4 +65,6 @@ export const Arrow = Object.freeze({
   get Function1() {
     return functionArrow();
   },
+
+  Kleisli: <F>(F: Monad<F>) => kleisliArrow(F),
 });
