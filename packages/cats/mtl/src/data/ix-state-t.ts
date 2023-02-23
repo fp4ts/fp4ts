@@ -15,11 +15,10 @@ import {
   Monad,
   MonadError,
   MonoidK,
-  Profunctor,
   SemigroupK,
-  Strong,
 } from '@fp4ts/cats-core';
 import { Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Profunctor, Strong } from '@fp4ts/cats-profunctor';
 import { MonadState } from '../monad-state';
 
 /**

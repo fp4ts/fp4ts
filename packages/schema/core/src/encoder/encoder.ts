@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Fix, TyK, TyVar, α, β, λ } from '@fp4ts/core';
-import { Category, Compose, Contravariant, Functor } from '@fp4ts/cats';
+import { Contravariant, Functor } from '@fp4ts/cats';
 import { Encoder as EncoderBase } from './algebra';
 import {
   array,
@@ -25,6 +25,7 @@ import {
 } from './instances';
 import { OutputOf, TypeOf } from './types';
 import { Schemable } from '@fp4ts/schema-kernel';
+import { Category, Compose } from '@fp4ts/cats-arrow';
 
 export type Encoder<O, A> = EncoderBase<O, A>;
 

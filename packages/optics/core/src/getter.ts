@@ -5,7 +5,6 @@
 
 import { $, flow, fst, Kind, pipe, tuple } from '@fp4ts/core';
 import {
-  Arrow,
   Const,
   ConstF,
   Contravariant,
@@ -13,6 +12,7 @@ import {
   Functor,
   Monoid,
 } from '@fp4ts/cats';
+import { Arrow } from '@fp4ts/cats-arrow';
 import { Profunctor } from '@fp4ts/cats-profunctor';
 import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
 import { Indexable, IndexedF } from './ix';

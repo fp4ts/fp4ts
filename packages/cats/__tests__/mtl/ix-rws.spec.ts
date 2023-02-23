@@ -6,7 +6,8 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eq, CommutativeMonoid, Monoid } from '@fp4ts/cats-kernel';
 import { IxRWS, RWS } from '@fp4ts/cats-mtl';
-import { MonadDeferSuite, StrongSuite } from '@fp4ts/cats-laws';
+import { MonadDeferSuite } from '@fp4ts/cats-laws';
+import { StrongSuite } from '@fp4ts/cats-profunctor-laws';
 import {
   MonadReaderSuite,
   MonadStateSuite,

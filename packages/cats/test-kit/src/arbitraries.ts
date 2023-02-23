@@ -24,7 +24,6 @@ import {
   EitherT,
   Set,
   NonEmptyList,
-  Tagged,
   ValidationError,
   Validation,
   LazyList,
@@ -281,11 +280,6 @@ export const fp4tsIxRWS = <R, W, S1, S2, A>(
 export const fp4tsRWS = <R, W, S, A>(
   A: Arbitrary<(r: R, s: S) => [A, S, W]>,
 ): Arbitrary<RWS<R, W, S, A>> => A.map(RWS);
-
-export const fp4tsTagged =
-  <S>() =>
-  <A>(arbA: Arbitrary<A>): Arbitrary<Tagged<S, A>> =>
-    arbA.map(Tagged<S, A>);
 
 export const fp4tsValidation = <E, A>(
   arbVE: Arbitrary<ValidationError<E>>,

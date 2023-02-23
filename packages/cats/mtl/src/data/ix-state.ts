@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Fix, α, β, λ } from '@fp4ts/core';
-import { Profunctor, Strong } from '@fp4ts/cats-core';
+import { Profunctor, Strong } from '@fp4ts/cats-profunctor';
 import { IxRWS, IxRWSF } from './ix-rws';
 
 export type IxState<S1, S2, A> = IxRWS<unknown, never, S1, S2, A>;

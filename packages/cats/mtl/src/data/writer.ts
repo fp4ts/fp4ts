@@ -31,12 +31,14 @@ Writer.pure = RWS.pure;
 Writer.tell = RWS.tell;
 Writer.Monad = RWS.Monad;
 
-Writer.Comonad = <W>(W: Monoid<W>) =>
-  Comonad.of<WriterF<W>>({
-    ...Writer.Monad<W>(),
+Writer.Comonad = <W>(W: Monoid<W>) => {
+  const { andThen, andThen_, compose, compose_, ...WF } = Writer.Monad<W>();
+  return Comonad.of<WriterF<W>>({
+    ...WF,
     extract: fa => fa.runA(undefined, undefined, W),
     coflatMap_: (fa, f) => fa.map(() => f(fa)),
   });
+};
 
 Writer.MonadWriter = RWS.MonadWriter;
 

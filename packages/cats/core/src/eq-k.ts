@@ -5,7 +5,7 @@
 
 import { $type, instance, Base, Kind, TyK, TyVar, EvalF } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { FunctionK } from './arrow';
+import { FunctionK } from './function-k';
 import { ComposedEqK } from './composed';
 import { ArrayF, arrayEqK } from './instances/array';
 import { function0EqK, Function0F } from './instances/function';

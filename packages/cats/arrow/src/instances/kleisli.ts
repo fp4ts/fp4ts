@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, cached, F1, Kind, lazy } from '@fp4ts/core';
-import { ArrowApply, FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
+import { FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Either,
   Kleisli,
@@ -14,10 +14,11 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import { Choice, Costrong, Strong } from '@fp4ts/cats-profunctor';
 import { ArrowChoice } from '../arrow-choice';
+import { ArrowApply } from '../arrow-apply';
+import { ArrowLoop } from '../arrow-loop';
 import { Arrow } from '../arrow';
 import { Compose } from '../compose';
 import { Category } from '../category';
-import { ArrowLoop } from '../arrow-loop';
 
 export const kleisliCompose = cached(
   <F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>> =>

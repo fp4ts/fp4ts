@@ -30,21 +30,14 @@ export const ComonadLaws = <F>(F: Comonad<F>) => ({
     fa: Kind<F, [A]>,
     f: (fa: Kind<F, [A]>) => B,
   ): IsEq<B> => {
-    const C = Cokleisli.Compose(F);
-    return new IsEq(
-      C.andThen_(Cokleisli<F, A, A>(F.extract), Cokleisli(f))(fa),
-      f(fa),
-    );
+    // eslint-disable-next-line prettier/prettier
+    return new IsEq(F.andThen_((F).extract<A>, Cokleisli(f))(fa), f(fa));
   },
 
   cokleisliRightIdentity: <A, B>(
     fa: Kind<F, [A]>,
     f: (fa: Kind<F, [A]>) => B,
   ): IsEq<B> => {
-    const C = Cokleisli.Compose(F);
-    return new IsEq(
-      C.andThen_(Cokleisli(f), Cokleisli<F, B, B>(F.extract))(fa),
-      f(fa),
-    );
+    return new IsEq(F.andThen_(f, F.extract)(fa), f(fa));
   },
 });

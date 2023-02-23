@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, instance, Kind } from '@fp4ts/core';
-import { FunctionK } from './arrow';
+import { FunctionK } from './function-k';
 import { Applicative } from './applicative';
 import { Monad } from './monad';
 import { Traversable } from './traversable';

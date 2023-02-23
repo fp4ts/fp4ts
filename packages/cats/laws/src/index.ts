@@ -36,15 +36,6 @@ export * from './zip-laws';
 export * from './coflat-map-laws';
 export * from './comonad-laws';
 
-export * from './profunctor-laws';
-export * from './strong-laws';
-export * from './compose-laws';
-export * from './category-laws';
-export * from './choice-laws';
-export * from './arrow-laws';
-export * from './arrow-apply-laws';
-export * from './arrow-choice-laws';
-
 export * from './disciplines';
 
 export * from '@fp4ts/cats-kernel-laws';

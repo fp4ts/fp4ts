@@ -20,7 +20,6 @@ import {
   λ,
 } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Arrow, ArrowApply, ArrowChoice } from '../arrow';
 import { CoflatMap } from '../coflat-map';
 import { Comonad } from '../comonad';
 import { Contravariant } from '../contravariant';
@@ -30,7 +29,7 @@ import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
 import { MonadDefer } from '../monad-defer';
-import { Either, Left, Right } from '../data';
+import { Either } from '../data';
 
 // -- Function0
 
@@ -151,58 +150,6 @@ export const function1MonadDefer = lazy(<R>() =>
     flatMap_: F1.flatMap,
   }),
 ) as <R>() => MonadDefer<$<Function1F, [R]>>;
-
-export const function1Arrow = lazy(() =>
-  Arrow.of<Function1F>({
-    compose_: F1.compose,
-    andThen_: F1.andThen,
-
-    id: () => id,
-    lift: id,
-    first:
-      <C>() =>
-      <A, B>(f: (a: A) => B) =>
-      ([a, c]: [A, C]): [B, C] =>
-        [f(a), c],
-    second:
-      <C>() =>
-      <A, B>(f: (a: A) => B) =>
-      ([c, a]: [C, A]): [C, B] =>
-        [c, f(a)],
-
-    merge_: <A, B, C>(f: (a: A) => B, g: (a: A) => C): ((a: A) => [B, C]) =>
-      F1.flatMap(f, b => F1.andThen(g, c => [b, c])),
-
-    lmap_: F1.compose,
-
-    rmap_: F1.andThen,
-  }),
-);
-
-export const function1ArrowChoice = lazy(() =>
-  ArrowChoice.of<Function1F>({
-    ...function1Arrow(),
-    choose:
-      <A, B, C, D>(f: (a: A) => C, g: (b: B) => D) =>
-      (ea: Either<A, B>): Either<C, D> =>
-        ea.fold(
-          a => Left(f(a)),
-          b => Right(g(b)),
-        ),
-  }),
-);
-
-export const function1ArrowApply = lazy(() =>
-  ArrowApply.of<Function1F>({
-    ...function1Arrow(),
-    app:
-      <A, B>() =>
-      ([fab, a]: [(a: A) => B, A]) =>
-        fab(a),
-
-    Monad: function1MonadDefer(),
-  }),
-);
 
 // -- HKT
 
