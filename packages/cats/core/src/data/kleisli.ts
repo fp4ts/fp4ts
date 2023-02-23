@@ -34,7 +34,7 @@ import { MonadError } from '../monad-error';
 import { Contravariant } from '../contravariant';
 import { Arrow, ArrowApply, ArrowChoice, Compose } from '../arrow';
 import { Distributive } from '../distributive';
-import { isStackSafeMonad } from '../stack-safe-monad';
+import { isMonadDefer, MonadDefer } from '../monad-defer';
 
 import { Either, Left, Right } from './either';
 
@@ -63,6 +63,7 @@ export interface KleisliObj {
   ): ApplicativeError<$<KleisliF, [F, A]>, E>;
   FlatMap<F, A>(F: FlatMap<F>): FlatMap<$<KleisliF, [F, A]>>;
   Monad<F, A>(F: Monad<F>): Monad<$<KleisliF, [F, A]>>;
+  MonadDefer<F, A>(F: MonadDefer<F>): MonadDefer<$<KleisliF, [F, A]>>;
   MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
 
   Compose<F>(F: FlatMap<F>): Compose<$<KleisliF, [F]>>;
@@ -74,8 +75,7 @@ export interface KleisliObj {
 const suspend = <F, A, B>(
   F: Base<F>,
   f: (a: A) => Kind<F, [B]>,
-): Kleisli<F, A, B> =>
-  isStackSafeMonad(F) ? (a: A) => F.defer<B>(() => f(a)) : f;
+): Kleisli<F, A, B> => (isMonadDefer(F) ? (a: A) => F.defer<B>(() => f(a)) : f);
 
 const kleisliDefer: <F, R>(F: Defer<F>) => Defer<$<KleisliF, [F, R]>> = cached(
   <F, R>(F: Defer<F>) =>
@@ -242,6 +242,14 @@ const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliF, [F, A]>> = cached(
       ...kleisliFlatMap(F),
     }),
 );
+const kleisliMonadDefer: <F, A>(
+  F: MonadDefer<F>,
+) => MonadDefer<$<KleisliF, [F, A]>> = cached(F =>
+  MonadDefer.of({
+    ...kleisliDefer(F),
+    ...kleisliMonad(F),
+  }),
+);
 
 const kleisliMonadError: <F, A, E>(
   F: MonadError<F, E>,
@@ -320,6 +328,7 @@ Kleisli.Alternative = kleisliAlternative;
 Kleisli.ApplicativeError = kleisliApplicativeError;
 Kleisli.FlatMap = kleisliFlatMap;
 Kleisli.Monad = kleisliMonad;
+Kleisli.MonadDefer = kleisliMonadDefer;
 Kleisli.MonadError = kleisliMonadError;
 
 Kleisli.Compose = kleisliCompose;

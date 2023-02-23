@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, throwError } from '@fp4ts/core';
+import { MonadDeferLaws } from '@fp4ts/cats-laws';
 import { Sync } from '@fp4ts/effect-kernel';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -13,6 +14,7 @@ import { MonadCancelLaws } from './monad-cancel-laws';
 
 export const SyncLaws = <F>(F: Sync<F>): SyncLaws<F> => ({
   ...MonadCancelLaws(F),
+  ...MonadDeferLaws(F),
   ...ClockLaws(F),
   ...UniqueLaws(F),
 

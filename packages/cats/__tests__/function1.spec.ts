@@ -18,9 +18,8 @@ import {
   ArrowApplySuite,
   ArrowChoiceSuite,
   CoflatMapSuite,
-  DeferSuite,
   DistributiveSuite,
-  MonadSuite,
+  MonadDeferSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -36,16 +35,6 @@ describe('Function1', () => {
       expect(fact(5)).toBe(120);
     });
   });
-
-  checkAll(
-    'Defer<Function1<MiniInt, *>',
-    DeferSuite(Defer.Function1<MiniInt>()).defer(
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      fc.func,
-      EqX => eq.fn1Eq(ec.miniInt(), EqX),
-    ),
-  );
 
   checkAll(
     'Distributive<Function1<MiniInt, *>>',
@@ -78,8 +67,8 @@ describe('Function1', () => {
   );
 
   checkAll(
-    'Monad<Function1<MiniInt, *>>',
-    MonadSuite(Monad.Function1<MiniInt>()).monad(
+    'MonadDefer<Function1<MiniInt, *>>',
+    MonadDeferSuite(Monad.Function1<MiniInt>()).monadDefer(
       fc.string(),
       fc.string(),
       fc.string(),

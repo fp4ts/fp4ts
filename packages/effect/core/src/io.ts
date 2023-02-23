@@ -17,7 +17,7 @@ import {
   Option,
   Parallel,
   Right,
-  StackSafeMonad,
+  MonadDefer,
   Traversable,
 } from '@fp4ts/cats';
 import {
@@ -734,10 +734,11 @@ const ioApplicative: Lazy<Applicative<IOF>> = lazy(() =>
   }),
 );
 
-const ioMonad: Lazy<Monad<IOF>> = lazy(() =>
-  StackSafeMonad.of({
+const ioMonad: Lazy<MonadDefer<IOF>> = lazy(() =>
+  MonadDefer.of({
     ...ioDefer(),
     ...ioApplicative(),
+    delay: IO.delay,
     flatMap_: (fa, f) => fa.flatMap(f),
   }),
 );

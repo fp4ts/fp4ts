@@ -6,7 +6,7 @@
 import { cached, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
-import { isStackSafeMonad } from './stack-safe-monad';
+import { isMonadDefer } from './monad-defer';
 import { IdentityF } from './data';
 
 /**
@@ -166,7 +166,7 @@ export const Apply = Object.freeze({
     ComposedApply.of(F, G),
 
   TraverseStrategy: cached(<F>(F: Apply<F>) => {
-    const traverseStrategy: TraverseStrategy<F, unknown> = isStackSafeMonad(F)
+    const traverseStrategy: TraverseStrategy<F, unknown> = isMonadDefer(F)
       ? ({
           defer: F.defer,
           toRhs: F.defer,

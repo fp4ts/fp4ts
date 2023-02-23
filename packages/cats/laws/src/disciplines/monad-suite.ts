@@ -39,7 +39,7 @@ export const MonadSuite = <F>(F: Monad<F>) => {
       mkEqF: <X>(E: Eq<X>) => Eq<Kind<F, [X]>>,
     ): RuleSet =>
       new RuleSet(
-        'monad',
+        'Monad',
         [
           [
             'monad left identity',

@@ -12,7 +12,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import {
   ComonadSuite,
   DeferSuite,
-  MonadSuite,
+  MonadDeferSuite,
   UnzipSuite,
 } from '@fp4ts/cats-laws';
 
@@ -90,8 +90,8 @@ describe('Eval', () => {
   );
 
   checkAll(
-    'Monad<Eval>',
-    MonadSuite(Monad.Eval).monad(
+    'MonadDefer<Eval>',
+    MonadDeferSuite(Monad.Eval).monadDefer(
       fc.integer(),
       fc.integer(),
       fc.integer(),

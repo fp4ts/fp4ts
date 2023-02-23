@@ -4,21 +4,21 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, Kind, instance, $, EvalF } from '@fp4ts/core';
+import { evalMonadDefer } from './instances/eval';
 import {
   function0Defer,
   Function0F,
   Function1F,
   function1Defer,
 } from './instances/function';
-import { StackSafeMonad } from './stack-safe-monad';
 
 /**
  * @category Type Class
  */
 export interface Defer<F> extends Base<F> {
-  readonly defer: <A>(fa: () => Kind<F, [A]>) => Kind<F, [A]>;
+  defer<A>(fa: () => Kind<F, [A]>): Kind<F, [A]>;
 
-  readonly fix: <A>(f: (fa: Kind<F, [A]>) => Kind<F, [A]>) => Kind<F, [A]>;
+  fix<A>(f: (fa: Kind<F, [A]>) => Kind<F, [A]>): Kind<F, [A]>;
 }
 
 export type DeferRequirements<F> = Pick<Defer<F>, 'defer'> & Partial<Defer<F>>;
@@ -34,7 +34,7 @@ export const Defer = Object.freeze({
     }),
 
   get Eval(): Defer<EvalF> {
-    return StackSafeMonad.Eval;
+    return evalMonadDefer();
   },
 
   get Function0(): Defer<Function0F> {

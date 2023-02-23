@@ -7,7 +7,7 @@ import { Kind } from '@fp4ts/core';
 import { Defer } from '@fp4ts/cats-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-export const DeferLaws = <F>(F: Defer<F>): DeferLaws<F> => ({
+export const DeferLaws = <F>(F: Defer<F>) => ({
   deferIdentity: <A>(ffa: () => Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
     new IsEq(
       F.defer(() => ffa()),
@@ -36,10 +36,3 @@ export const DeferLaws = <F>(F: Defer<F>): DeferLaws<F> => ({
       F.fix(() => ffa()),
     ),
 });
-
-export interface DeferLaws<F> {
-  deferIdentity: <A>(ffa: () => Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-  deferDoesNotEvaluate: <A>(ffa: () => Kind<F, [A]>) => IsEq<boolean>;
-  deferIsStackSafe: <A>(ffa: () => Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-  deferMatchesFix: <A>(ffa: () => Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-}

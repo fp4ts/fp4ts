@@ -8,10 +8,10 @@ import {
   Applicative,
   Defer,
   Functor,
-  isStackSafeMonad,
+  isMonadDefer,
   Monad,
   MonadError,
-  StackSafeMonad,
+  MonadDefer,
 } from '@fp4ts/cats-core';
 import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
@@ -142,8 +142,8 @@ WriterT.Applicative = <F, S>(): Applicative<$<WriterTF, [S, F]>> =>
   });
 
 WriterT.Monad = <F, W>(F: Monad<F>): Monad<$<WriterTF, [F, W]>> =>
-  isStackSafeMonad(F)
-    ? StackSafeMonad.of({
+  isMonadDefer(F)
+    ? MonadDefer.of({
         ...WriterT.Applicative(),
         flatMap_: WriterT.flatMapDefer_(F),
       })

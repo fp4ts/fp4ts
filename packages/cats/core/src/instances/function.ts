@@ -29,7 +29,7 @@ import { Distributive } from '../distributive';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
-import { StackSafeMonad } from '../stack-safe-monad';
+import { MonadDefer } from '../monad-defer';
 import { Either, Left, Right } from '../data';
 
 // -- Function0
@@ -66,8 +66,8 @@ export const function0Comonad = lazy(() =>
   }),
 );
 
-export const function0Monad = lazy(() =>
-  StackSafeMonad.of<Function0F>({
+export const function0MonadDefer = lazy(() =>
+  MonadDefer.of<Function0F>({
     ...function0Defer(),
     ...function0Functor(),
     pure: constant,
@@ -143,14 +143,14 @@ export const function1CoflatMap = lazy(<R>() =>
   }),
 ) as <R>() => CoflatMap<$<Function1F, [R]>>;
 
-export const function1Monad = lazy(<R>() =>
-  StackSafeMonad.of<$<Function1F, [R]>>({
+export const function1MonadDefer = lazy(<R>() =>
+  MonadDefer.of<$<Function1F, [R]>>({
     ...function1Functor(),
     ...function1Defer(),
     pure: constant,
     flatMap_: F1.flatMap,
   }),
-) as <R>() => StackSafeMonad<$<Function1F, [R]>>;
+) as <R>() => MonadDefer<$<Function1F, [R]>>;
 
 export const function1Arrow = lazy(() =>
   Arrow.of<Function1F>({
@@ -200,7 +200,7 @@ export const function1ArrowApply = lazy(() =>
       ([fab, a]: [(a: A) => B, A]) =>
         fab(a),
 
-    Monad: function1Monad(),
+    Monad: function1MonadDefer(),
   }),
 );
 

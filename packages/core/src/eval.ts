@@ -34,6 +34,11 @@ export abstract class Eval<out A> {
   public static readonly defer = <A>(thunk: () => Eval<A>): Eval<A> =>
     new Defer(thunk);
 
+  public static readonly fix = <A>(f: (a: Eval<A>) => Eval<A>): Eval<A> => {
+    const a: Eval<A> = Eval.defer(() => f(a));
+    return a;
+  };
+
   public static readonly void: Eval<void> = null as any /* defined below */;
   public static readonly false: Eval<boolean> = null as any /* defined below */;
   public static readonly true: Eval<boolean> = null as any /* defined below */;

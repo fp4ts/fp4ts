@@ -11,7 +11,7 @@ import { Contravariant } from '../contravariant';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
-import { StackSafeMonad } from '../stack-safe-monad';
+import { MonadDefer } from '../monad-defer';
 import { Ior } from './ior';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
@@ -42,7 +42,7 @@ interface ProxyObj {
   Contravariant: Contravariant<ProxyF>;
   Applicative: Applicative<ProxyF>;
   Alternative: Alternative<ProxyF>;
-  Monad: StackSafeMonad<ProxyF>;
+  Monad: MonadDefer<ProxyF>;
   Unalign: Unalign<ProxyF>;
   Unzip: Unzip<ProxyF>;
   TraversableFilter: TraversableFilter<ProxyF>;
@@ -117,8 +117,8 @@ const proxyAlternative: Lazy<Alternative<ProxyF>> = lazy(() =>
     ...proxyMonoidK(),
   }),
 );
-const proxyMonad: Lazy<StackSafeMonad<ProxyF>> = lazy(() =>
-  StackSafeMonad.of({
+const proxyMonad: Lazy<MonadDefer<ProxyF>> = lazy(() =>
+  MonadDefer.of({
     ...proxyApplicative(),
     ...proxyDefer(),
     flatMap_: <A, B>() => Proxy<B>(),

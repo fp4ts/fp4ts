@@ -7,7 +7,7 @@ import { $, $type, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Applicative } from '../applicative';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
-import { StackSafeMonad } from '../stack-safe-monad';
+import { MonadDefer } from '../monad-defer';
 import { Arrow } from './arrow';
 import { ArrowApply } from './arrow-apply';
 
@@ -31,7 +31,7 @@ export const ArrowMonad = Object.freeze({
   },
 
   Monad<F>(F: ArrowApply<F>): Monad<$<F, [void]>> {
-    return StackSafeMonad.of<$<F, [void]>>({
+    return MonadDefer.of<$<F, [void]>>({
       ...ArrowMonad.Applicative(F),
 
       flatMap_: (fa, f) =>

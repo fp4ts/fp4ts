@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { StackSafeMonad } from '@fp4ts/cats-core';
+import { MonadDefer } from '@fp4ts/cats-core';
 import { MonadState } from '../monad-state';
 import { IxRWS, IxRWSF, RWS } from './ix-rws';
 
@@ -25,7 +25,7 @@ interface StateObj {
 
   // -- Instances
 
-  Monad<S>(): StackSafeMonad<StateF<S>>;
+  Monad<S>(): MonadDefer<StateF<S>>;
   MonadState<S>(): MonadState<StateF<S>, S>;
 }
 

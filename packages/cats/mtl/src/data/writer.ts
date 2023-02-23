@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $ } from '@fp4ts/core';
-import { Comonad, StackSafeMonad } from '@fp4ts/cats-core';
+import { Comonad, MonadDefer } from '@fp4ts/cats-core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { MonadWriter } from '../monad-writer';
 import { IxRWSF, RWS } from './ix-rws';
@@ -22,7 +22,7 @@ interface WriterObj {
 
   // -- Instances
 
-  Monad<W>(): StackSafeMonad<WriterF<W>>;
+  Monad<W>(): MonadDefer<WriterF<W>>;
   Comonad<W>(W: Monoid<W>): Comonad<WriterF<W>>;
   MonadWriter<W>(L: Monoid<W>): MonadWriter<WriterF<W>, W>;
 }

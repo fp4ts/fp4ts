@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Applicative, Functor, StackSafeMonad } from '@fp4ts/cats-core';
+import { Applicative, Functor, MonadDefer } from '@fp4ts/cats-core';
 import { $, cached, Kind, pipe, tupled } from '@fp4ts/core';
 import { Arrow, ArrowRequirements } from './arrow';
 import { functionArrowApply } from './instances/function';
@@ -56,8 +56,8 @@ export const ArrowMonad = Object.freeze({
   ),
 
   Monad: cached(
-    <P>(P: ArrowApply<P>): StackSafeMonad<$<P, [void]>> =>
-      StackSafeMonad.of<$<P, [void]>>({
+    <P>(P: ArrowApply<P>): MonadDefer<$<P, [void]>> =>
+      MonadDefer.of<$<P, [void]>>({
         ...ArrowMonad.Applicative(P),
 
         flatMap_: <A, B>(

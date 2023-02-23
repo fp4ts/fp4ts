@@ -15,6 +15,7 @@ export * from './foldable-suite';
 export * from './functor-filter-suite';
 export * from './functor-suite';
 export * from './invariant-suite';
+export * from './monad-defer-suite';
 export * from './monad-error-suite';
 export * from './monad-suite';
 export * from './monoid-k-suite';

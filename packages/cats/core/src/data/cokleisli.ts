@@ -25,7 +25,7 @@ import { CoflatMap } from '../coflat-map';
 import { Comonad } from '../comonad';
 import { Contravariant } from '../contravariant';
 import { Functor } from '../functor';
-import { Monad } from '../monad';
+import { MonadDefer } from '../monad-defer';
 import { MonoidK } from '../monoid-k';
 import { SemigroupK } from '../semigroup-k';
 
@@ -44,7 +44,7 @@ interface CokleisliObj {
   Contravariant<F, B>(
     F: Functor<F>,
   ): Contravariant<λ<CokleisliF, [Fix<F>, α, Fix<B>]>>;
-  Monad<F, A>(): Monad<$<CokleisliF, [F, A]>>;
+  MonadDefer<F, A>(): MonadDefer<$<CokleisliF, [F, A]>>;
 
   Profunctor<F>(F: Functor<F>): Profunctor<$<CokleisliF, [F]>>;
   Compose<F>(F: CoflatMap<F>): Compose<$<CokleisliF, [F]>>;
@@ -70,20 +70,22 @@ const cokleisliContravariant: <F, B>(
   Contravariant.of({ contramap_: (fa, f) => F1.compose(fa, F.map(f)) }),
 );
 
-const cokleisliMonad: <F, A>() => Monad<$<CokleisliF, [F, A]>> = lazy(() =>
-  Monad.of({
-    ...cokleisliFunctor(),
-    pure: constant,
-    flatMap_: F1.flatMap,
-    tailRecM_: (s, f) =>
-      Cokleisli(fa => {
-        let cur = f(s)(fa);
-        while (cur.isLeft) {
-          cur = f(cur.getLeft)(fa);
-        }
-        return cur.get;
-      }),
-  }),
+const cokleisliMonadDefer: <F, A>() => MonadDefer<$<CokleisliF, [F, A]>> = lazy(
+  () =>
+    MonadDefer.of({
+      ...cokleisliFunctor(),
+      defer: F1.defer,
+      pure: constant,
+      flatMap_: F1.flatMap,
+      tailRecM_: (s, f) =>
+        Cokleisli(fa => {
+          let cur = f(s)(fa);
+          while (cur.isLeft) {
+            cur = f(cur.getLeft)(fa);
+          }
+          return cur.get;
+        }),
+    }),
 );
 
 const cokleisliProfunctor: <F>(
@@ -136,7 +138,7 @@ Cokleisli.SemigroupK = cokleisliSemigroupK;
 Cokleisli.MonoidK = cokleisliMonoidK;
 Cokleisli.Functor = cokleisliFunctor;
 Cokleisli.Contravariant = cokleisliContravariant;
-Cokleisli.Monad = cokleisliMonad;
+Cokleisli.MonadDefer = cokleisliMonadDefer;
 Cokleisli.Profunctor = cokleisliProfunctor;
 Cokleisli.Compose = cokleisliCompose;
 Cokleisli.Arrow = cokleisliArrow;

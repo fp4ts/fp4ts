@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Monad } from '@fp4ts/cats-core';
+import { Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -27,6 +27,7 @@ import {
   ContravariantSuite,
   DistributiveSuite,
   FunctorFilterSuite,
+  MonadDeferSuite,
   MonadErrorSuite,
 } from '@fp4ts/cats-laws';
 import {
@@ -41,7 +42,7 @@ import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 describe('Kleisli', () => {
   const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);
 
-  it('should be stack safe on flatMap with StackSafeMonad', () => {
+  it('should be stack safe on flatMap with MonadDefer', () => {
     const size = 50_000;
     const go = (i: number): Kleisli<EvalF, unknown, number> =>
       i >= size ? () => Eval.now(i) : KEM().flatMap_(() => Eval.now(i + 1), go);
@@ -136,6 +137,25 @@ describe('Kleisli', () => {
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<ListF, MiniInt, X>(A.fp4tsList(x)),
         <X>(E: Eq<X>) => eqKleisli<ListF, MiniInt, X>(ec.miniInt(), List.Eq(E)),
+      ),
+    );
+
+    checkAll(
+      'MonadDefer<Eval, MiniInt, *>>',
+      MonadDeferSuite(
+        Kleisli.MonadDefer<EvalF, MiniInt>(MonadDefer.Eval),
+      ).monadDefer(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        <X>(X: Arbitrary<X>) =>
+          A.fp4tsKleisli<EvalF, MiniInt, X>(A.fp4tsEval(X)),
+        <X>(E: Eq<X>) => eqKleisli<EvalF, MiniInt, X>(ec.miniInt(), Eq.Eval(E)),
       ),
     );
 
