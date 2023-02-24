@@ -43,29 +43,37 @@ describe('chunk', () => {
 
   test(
     'take',
-    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
-      c.take(n).toList['<=>'](c.toList.take(n)),
+    forAll(
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      fc.integer(),
+      (c, n) => new IsEq(c.take(n).toList, c.toList.take(n)),
     )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'takeRight',
-    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
-      c.takeRight(n).toList['<=>'](c.toList.takeRight(n)),
+    forAll(
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      fc.integer(),
+      (c, n) => new IsEq(c.takeRight(n).toList, c.toList.takeRight(n)),
     )(List.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'drop',
-    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
-      c.drop(n).toList['<=>'](c.toList.drop(n)),
-    )(List.Eq(Eq.fromUniversalEquals())),
+    forAll(
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      fc.integer(),
+      (c, n) => new IsEq(c.drop(n).toList, c.toList.drop(n)),
+    )(List.Eq<number>(Eq.fromUniversalEquals())),
   );
 
   test(
     'dropRight',
-    forAll(A.fp4tsStreamChunkGenerator(fc.integer()), fc.integer(), (c, n) =>
-      c.dropRight(n).toList['<=>'](c.toList.dropRight(n)),
+    forAll(
+      A.fp4tsStreamChunkGenerator(fc.integer()),
+      fc.integer(),
+      (c, n) => new IsEq(c.dropRight(n).toList, c.toList.dropRight(n)),
     )(List.Eq(Eq.fromUniversalEquals())),
   );
 
@@ -89,9 +97,10 @@ describe('chunk', () => {
         acc.append(next);
       const init: Vector<number> = Vector.empty;
 
-      return c
-        .scanLeft(init, step)
-        .toVector['<=>'](c.toVector.scanLeft(init, step));
+      return new IsEq(
+        c.scanLeft(init, step).toVector,
+        c.toVector.scanLeft(init, step),
+      );
     })(Vector.Eq(Vector.Eq(Eq.fromUniversalEquals()))),
   );
 
@@ -104,10 +113,13 @@ describe('chunk', () => {
       const vectorScan = c.toVector.scanLeft(init, step);
       const [chunkScan, carry] = c.scanLeftCarry(init, step);
 
-      return [chunkScan.toVector, carry]['<=>']([
-        vectorScan.tail,
-        vectorScan.last,
-      ] as [Vector<Vector<number>>, Vector<number>]);
+      return new IsEq<[Vector<Vector<number>>, Vector<number>]>(
+        [chunkScan.toVector, carry],
+        [vectorScan.tail, vectorScan.last] as [
+          Vector<Vector<number>>,
+          Vector<number>,
+        ],
+      );
     })(
       Eq.tuple(
         Vector.Eq(Vector.Eq(Eq.fromUniversalEquals())),

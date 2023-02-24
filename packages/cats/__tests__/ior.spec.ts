@@ -7,7 +7,7 @@ import fc from 'fast-check';
 import { Eval, throwError } from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Option, Either, Left, Right, Ior } from '@fp4ts/cats-core/lib/data';
-import { checkAll, forAll } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import { BifunctorSuite, MonadErrorSuite } from '@fp4ts/cats-laws';
 
@@ -30,27 +30,35 @@ describe('Ior', () => {
 
   test(
     'only left or right',
-    forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
-      i.onlyLeft
-        .map<Either<number, string>>(Left)
-        ['<|>'](() => i.onlyRight.map(Right))
-        ['<=>'](i.onlyLeftOrRight),
+    forAll(
+      A.fp4tsIor(fc.integer(), fc.string()),
+      i =>
+        new IsEq(
+          i.onlyLeft
+            .map<Either<number, string>>(Left)
+            ['<|>'](() => i.onlyRight.map(Right)),
+          i.onlyLeftOrRight,
+        ),
     )(Option.Eq(Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
     'onlyBoth consistent with left and right',
-    forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
-      i.onlyBoth['<=>'](
-        i.left.flatMap(l => i.right.map(r => [l, r] as [number, string])),
-      ),
+    forAll(
+      A.fp4tsIor(fc.integer(), fc.string()),
+      i =>
+        new IsEq(
+          i.onlyBoth,
+          i.left.flatMap(l => i.right.map(r => [l, r] as [number, string])),
+        ),
     )(Option.Eq(Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
   );
 
   test(
-    'pad consistent with left and right tuple',
-    forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
-      i.pad['<=>']([i.left, i.right] as [Option<number>, Option<string>]),
+    'pad consistent  with left and right tuple',
+    forAll(
+      A.fp4tsIor(fc.integer(), fc.string()),
+      i => new IsEq<[Option<number>, Option<string>]>(i.pad, [i.left, i.right]),
     )(
       Eq.tuple(
         Option.Eq(Eq.fromUniversalEquals()),
@@ -65,14 +73,10 @@ describe('Ior', () => {
       A.fp4tsIor(fc.integer(), fc.string()),
       A.fp4tsIor(fc.integer(), fc.string()),
       (i, j) =>
-        i
-          .combine(
-            Semigroup.addition,
-            Semigroup.string,
-          )(j)
-          .left['<=>'](
-            i.left.map(x => x + j.left.getOrElse(() => 0)).orElse(() => j.left),
-          ),
+        new IsEq(
+          i.combine(Semigroup.addition, Semigroup.string)(j).left,
+          i.left.map(x => x + j.left.getOrElse(() => 0)).orElse(() => j.left),
+        ),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
@@ -106,23 +110,20 @@ describe('Ior', () => {
       A.fp4tsIor(fc.integer(), fc.string()),
       A.fp4tsIor(fc.integer(), fc.string()),
       (i, j) =>
-        i
-          .combine(
-            Semigroup.addition,
-            Semigroup.string,
-          )(j)
-          .right['<=>'](
-            i.right
-              .map(x => x + j.right.getOrElse(() => ''))
-              .orElse(() => j.right),
-          ),
+        new IsEq(
+          i.combine(Semigroup.addition, Semigroup.string)(j).right,
+          i.right
+            .map(x => x + j.right.getOrElse(() => ''))
+            .orElse(() => j.right),
+        ),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );
 
   test(
     'toEither consistent with right',
-    forAll(A.fp4tsIor(fc.integer(), fc.string()), i =>
-      i.toEither.toOption['<=>'](i.right),
+    forAll(
+      A.fp4tsIor(fc.integer(), fc.string()),
+      i => new IsEq(i.toEither.toOption, i.right),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );
 

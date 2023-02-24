@@ -76,8 +76,10 @@ describe('IO', () => {
     test.ticked(
       'attempt is redeem with Left for recover and Right for map',
       ticker =>
-        forAll(A.fp4tsIO(fc.integer()), io =>
-          io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
+        forAll(
+          A.fp4tsIO(fc.integer()),
+          io =>
+            new IsEq(io.attempt, io.redeem<Either<Error, number>>(Left, Right)),
         )(
           E.eqIO(
             Either.Eq(Eq.Error.strict, Eq.fromUniversalEquals() as Eq<number>),
@@ -92,9 +94,10 @@ describe('IO', () => {
         fc.func<[Error], IO<string>>(A.fp4tsIO(fc.string())),
         fc.func<[number], IO<string>>(A.fp4tsIO(fc.string())),
         (io, recover, bind) =>
-          io.attempt
-            .flatMap(ea => ea.fold(recover, bind))
-            ['<=>'](io.redeemWith(recover, bind)),
+          new IsEq(
+            io.attempt.flatMap(ea => ea.fold(recover, bind)),
+            io.redeemWith(recover, bind),
+          ),
       )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
@@ -104,9 +107,10 @@ describe('IO', () => {
         fc.func<[Error], IO<string>>(A.fp4tsIO(fc.string())),
         fc.func<[number], IO<string>>(A.fp4tsIO(fc.string())),
         (io, recover, bind) =>
-          io.attempt
-            .flatMap(ea => ea.fold(recover, bind))
-            ['<=>'](io.redeemWith(recover, bind)),
+          new IsEq(
+            io.attempt.flatMap(ea => ea.fold(recover, bind)),
+            io.redeemWith(recover, bind),
+          ),
       )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
@@ -114,7 +118,8 @@ describe('IO', () => {
       forAll(
         A.fp4tsIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
-        (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
+        (io, recover) =>
+          new IsEq(io.redeem(recover, id), io.handleError(recover)),
       )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 
@@ -123,7 +128,10 @@ describe('IO', () => {
         A.fp4tsIO(fc.integer()),
         fc.func<[Error], IO<number>>(A.fp4tsIO(fc.integer())),
         (io, recover) =>
-          io.redeemWith(recover, IO.pure)['<=>'](io.handleErrorWith(recover)),
+          new IsEq(
+            io.redeemWith(recover, IO.pure),
+            io.handleErrorWith(recover),
+          ),
       )(E.eqIO(Eq.fromUniversalEquals(), ticker))(),
     );
 

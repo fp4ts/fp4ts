@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { IsEq } from './rules';
 import { Eq } from '@fp4ts/cats-kernel';
+import { IsEq } from './rules';
 
 export function exec<R>(predicate: () => IsEq<R>): (E: Eq<R>) => () => void;
 export function exec(predicate: () => boolean): () => void;

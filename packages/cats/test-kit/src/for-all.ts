@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 /* eslint-disable prettier/prettier */
-import { Eq } from '@fp4ts/cats-kernel';
 import fc, { Arbitrary } from 'fast-check';
+import { Eq } from '@fp4ts/cats-kernel';
 import { IsEq } from './rules';
 
 export function forAll<A0, R>(

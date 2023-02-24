@@ -8,7 +8,7 @@ import { id, pipe, throwError } from '@fp4ts/core';
 import { Eq, Either, Left, Right } from '@fp4ts/cats';
 import { SyncIO } from '@fp4ts/effect-core';
 import { SyncSuite } from '@fp4ts/effect-laws';
-import { checkAll, forAll } from '@fp4ts/cats-test-kit';
+import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 
@@ -63,8 +63,10 @@ describe('SyncIO', () => {
 
     test(
       'attempt is redeem with Left for recover and Right for map',
-      forAll(A.fp4tsSyncIO(fc.integer()), io =>
-        io.attempt['<=>'](io.redeem<Either<Error, number>>(Left, Right)),
+      forAll(
+        A.fp4tsSyncIO(fc.integer()),
+        io =>
+          new IsEq(io.attempt, io.redeem<Either<Error, number>>(Left, Right)),
       )(E.eqSyncIO(Either.Eq(Eq.Error.strict, Eq.fromUniversalEquals()))),
     );
 
@@ -75,10 +77,11 @@ describe('SyncIO', () => {
         fc.func<[Error], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         fc.func<[number], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         (io, recover, bind) =>
-          io.attempt
-            .flatMap(ea => ea.fold(recover, bind))
-            ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqSyncIO(Eq.fromUniversalEquals())),
+          new IsEq(
+            io.attempt.flatMap(ea => ea.fold(recover, bind)),
+            io.redeemWith(recover, bind),
+          ),
+      )(E.eqSyncIO<string>(Eq.fromUniversalEquals())),
     );
 
     test(
@@ -88,11 +91,11 @@ describe('SyncIO', () => {
         fc.func<[Error], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         fc.func<[number], SyncIO<string>>(A.fp4tsSyncIO(fc.string())),
         (io, recover, bind) =>
-          io
-            .redeem(recover, bind)
-            .flatMap(id)
-            ['<=>'](io.redeemWith(recover, bind)),
-      )(E.eqSyncIO(Eq.fromUniversalEquals())),
+          new IsEq(
+            io.redeem(recover, bind).flatMap(id),
+            io.redeemWith(recover, bind),
+          ),
+      )(E.eqSyncIO<string>(Eq.fromUniversalEquals())),
     );
 
     test(
@@ -100,7 +103,8 @@ describe('SyncIO', () => {
       forAll(
         A.fp4tsSyncIO(fc.integer()),
         fc.func<[Error], number>(fc.integer()),
-        (io, recover) => io.redeem(recover, id)['<=>'](io.handleError(recover)),
+        (io, recover) =>
+          new IsEq(io.redeem(recover, id), io.handleError(recover)),
       )(E.eqSyncIO(Eq.fromUniversalEquals())),
     );
 
@@ -110,10 +114,11 @@ describe('SyncIO', () => {
         A.fp4tsSyncIO(fc.integer()),
         fc.func<[Error], SyncIO<number>>(A.fp4tsSyncIO(fc.integer())),
         (io, recover) =>
-          io
-            .redeemWith(recover, SyncIO.pure)
-            ['<=>'](io.handleErrorWith(recover)),
-      )(E.eqSyncIO(Eq.fromUniversalEquals())),
+          new IsEq(
+            io.redeemWith(recover, SyncIO.pure),
+            io.handleErrorWith(recover),
+          ),
+      )(E.eqSyncIO<number>(Eq.fromUniversalEquals())),
     );
 
     it('should recover from error', () => {
