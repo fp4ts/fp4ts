@@ -13,7 +13,6 @@ import { MonadError } from '../monad-error';
 import { MonoidK } from '../monoid-k';
 import { SemigroupK } from '../semigroup-k';
 import { Traversable } from '../traversable';
-import { List } from './collections';
 import { None, Option, Some } from './option';
 
 export type Either<E, A> = _Either<E, A>;
@@ -49,9 +48,6 @@ abstract class _Either<out E, out A> {
 
   public get toOption(): Option<A> {
     return this.isEmpty ? None : Some(this.get);
-  }
-  public get toList(): List<A> {
-    return this.isEmpty ? List.empty : List(this.get);
   }
   public get toArray(): A[] {
     return this.isEmpty ? [] : [this.get];

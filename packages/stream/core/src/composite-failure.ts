@@ -4,47 +4,35 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ok as assert } from 'assert';
-import { List, Option, Some, None, Either, Left } from '@fp4ts/cats';
+import { Option, Some, None, Either, Left } from '@fp4ts/cats';
 
 export class CompositeFailure extends Error {
-  public constructor(
-    public readonly head: Error,
-    public readonly tail: List<Error>,
-  ) {
+  public constructor(public readonly errors: Error[]) {
     super();
-    assert(tail.nonEmpty, 'Composite failure must have at least two items');
+    assert(errors.length > 1, 'Composite failure must have at least two items');
   }
 
-  public static from(
-    fst: Error,
-    snd: Error,
-    tl: List<Error> = List.empty,
-  ): CompositeFailure {
-    return new CompositeFailure(fst, tl.prepend(snd));
+  public static from(...errors: [Error, Error, ...Error[]]): CompositeFailure {
+    return new CompositeFailure(errors);
   }
 
-  public static fromList(xs: List<Error>): Option<Error> {
-    return xs.uncons.fold(
-      () => None,
-      ([fst, tl]) =>
-        tl.uncons.fold(
-          () => Some(fst),
-          ([snd, rest]) => Some(new CompositeFailure(fst, rest.prepend(snd))),
-        ),
-    );
+  public static fromArray(xs: Error[]): Option<Error> {
+    switch (xs.length) {
+      case 0:
+        return None;
+      case 1:
+        return Some(xs[0]);
+      default:
+        return Some(new CompositeFailure(xs));
+    }
   }
 
   public static fromResults(
     fst: Either<Error, void>,
     snd: Either<Error, void>,
   ): Either<Error, void> {
-    return fst.fold(
-      fstE =>
-        snd.fold(
-          sndE => Left(this.fromList(List(fstE, sndE)).get),
-          () => Left(fstE),
-        ),
-      () => snd,
-    );
+    if (fst.isLeft() && snd.isLeft())
+      return Left(new CompositeFailure([fst.getLeft, snd.getLeft]));
+    return fst.isLeft() ? fst : snd;
   }
 }

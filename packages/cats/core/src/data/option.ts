@@ -15,7 +15,6 @@ import { Monad } from '../monad';
 import { MonoidK } from '../monoid-k';
 import { TraversableFilter } from '../traversable-filter';
 import { Either, Left, Right } from './either';
-import { List } from './collections';
 
 export type Option<A> = _Option<A>;
 export const Option: OptionObj = function <A>(
@@ -36,10 +35,6 @@ abstract class _Option<out A> {
   }
 
   public abstract readonly get: A;
-
-  public get toList(): List<A> {
-    return (this as Option<A>) === None ? List.empty : List(this.get);
-  }
 
   public get toArray(): A[] {
     return (this as Option<A>) === None ? [] : [this.get];

@@ -12,7 +12,6 @@ import {
   Some,
   None,
   IdentityF,
-  List,
   Monad,
   Seq,
 } from '@fp4ts/cats';
@@ -298,11 +297,11 @@ export class Scope<F> {
                 ),
               );
 
-              const results = resultChildren
-                .fold(List, () => List.empty)
-                ['++'](resultResources.fold(List, () => List.empty));
-
-              return CompositeFailure.fromList(results).fold(
+              const results = [
+                ...resultChildren.swapped.toArray,
+                ...resultResources.swapped.toArray,
+              ];
+              return CompositeFailure.fromArray(results).fold(
                 () => Either.rightUnit as Either<Error, void>,
                 Left,
               );
@@ -364,13 +363,13 @@ export class Scope<F> {
     this.target.F.map_(
       Seq.TraversableFilter.traverse_(this.target.F)(ca, f),
       results =>
-        CompositeFailure.fromList(
+        CompositeFailure.fromArray(
           results.collect(ea =>
             ea.fold(
               e => Some(e),
               () => None,
             ),
-          ).toList,
+          ).toArray,
         ).fold(
           () => Either.rightUnit,
           e => Left(e),

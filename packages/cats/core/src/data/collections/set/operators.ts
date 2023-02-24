@@ -10,7 +10,6 @@ import { Option, Some, None } from '../../option';
 
 import { List } from '../list';
 import { Vector } from '../vector';
-import { Iter } from '../iterator';
 
 import { Bin, Empty, Node, Set } from './algebra';
 import { fromArray } from './constructors';
@@ -109,11 +108,11 @@ export const contains_ = <A>(O: Ord<A>, sa: Set<A>, x: A): boolean => {
 };
 
 export const all_ = <A>(sa: Set<A>, p: (a: A) => boolean): boolean =>
-  Iter.all_(iterator(sa), p);
+  view(sa).all(p);
 export const any_ = <A>(sa: Set<A>, p: (a: A) => boolean): boolean =>
-  Iter.any_(iterator(sa), p);
+  view(sa).any(p);
 export const count_ = <A>(sa: Set<A>, p: (a: A) => boolean): number =>
-  Iter.count_(iterator(sa), p);
+  view(sa).count(p);
 
 export const elem_ = <A>(sa: Set<A>, idx: number): A =>
   elemOption_(sa, idx).getOrElse(() =>

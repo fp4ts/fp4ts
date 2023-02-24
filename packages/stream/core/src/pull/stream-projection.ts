@@ -603,9 +603,10 @@ export const compile_ =
           return inter;
 
         case 'fail': {
-          const mixed = CompositeFailure.fromList(
-            inter.deferredError.toList.append(view.error),
-          ).getOrElse(() => view.error);
+          const mixed = CompositeFailure.fromArray([
+            ...inter.deferredError.toArray,
+            view.error,
+          ]).getOrElse(() => view.error);
           return new Fail(mixed);
         }
 
@@ -1301,9 +1302,10 @@ function goCloseScope<F, G, X, End>(
         ),
       ({ context, deferredError }) => {
         const err1 = () =>
-          CompositeFailure.fromList(
-            r.swapped.toOption.toList['++'](deferredError.toList),
-          );
+          CompositeFailure.fromArray([
+            ...r.swapped.toArray,
+            ...deferredError.toArray,
+          ]);
 
         return ancestor.descendsFrom(context)
           ? new Interrupted(context, err1())
