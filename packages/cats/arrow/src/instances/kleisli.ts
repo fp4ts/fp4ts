@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, cached, F1, Kind, lazy } from '@fp4ts/core';
-import { FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
+import { Comonad, FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Either,
   Kleisli,
@@ -83,7 +83,7 @@ export const kleisliArrowApply = cached(
 );
 
 export const kleisliArrowLoop = cached(
-  <F>(F: Monad<F>): ArrowLoop<$<KleisliF, [F]>> =>
+  <F>(F: MonadDefer<F> & Comonad<F>): ArrowLoop<$<KleisliF, [F]>> =>
     ArrowLoop.of({
       ...kleisliArrow(F),
       ...Costrong.Kleisli(F),

@@ -3,13 +3,15 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
+import { $, cached, Eval, F1, fst, id, Kind, snd } from '@fp4ts/core';
 import {
   Applicative,
+  Comonad,
   Defer,
   Distributive,
   Functor,
   Monad,
+  MonadDefer,
   Traversable,
 } from '@fp4ts/cats-core';
 import {
@@ -57,7 +59,7 @@ export const kleisliStrong = cached(
 );
 
 export const kleisliCostrong = cached(
-  <F>(F: Functor<F>): Costrong<$<KleisliF, [F]>> =>
+  <F>(F: MonadDefer<F> & Comonad<F>): Costrong<$<KleisliF, [F]>> =>
     Costrong.of<$<KleisliF, [F]>>({
       ...kleisliProfunctor(F),
 
@@ -66,26 +68,26 @@ export const kleisliCostrong = cached(
           G: Defer<G>,
           f: Kleisli<F, [A, Kind<G, [C]>], [B, Kind<G, [C]>]>,
         ) =>
-        (a: A) => {
-          let gc: Kind<G, [C]>;
-          return F.map_(
-            f([a, G.defer(() => gc)]),
-            ([b, _gc]) => ((gc = _gc), b),
-          );
-        },
+        (a: A) =>
+          F.map_(
+            F.fix<[B, Kind<G, [C]>]>(fbgc =>
+              f([a, G.defer(() => F.extract(fbgc)[1])]),
+            ),
+            fst,
+          ),
 
       unsecond_:
         <G, A, B, C>(
           G: Defer<G>,
           f: Kleisli<F, [Kind<G, [C]>, A], [Kind<G, [C]>, B]>,
         ) =>
-        (a: A) => {
-          let gc: Kind<G, [C]>;
-          return F.map_(
-            f([G.defer(() => gc), a]),
-            ([_gc, b]) => ((gc = _gc), b),
-          );
-        },
+        (a: A) =>
+          F.map_(
+            F.fix<[Kind<G, [C]>, B]>(fgcb =>
+              f([G.defer(() => F.extract(fgcb)[0]), a]),
+            ),
+            snd,
+          ),
     }),
 );
 

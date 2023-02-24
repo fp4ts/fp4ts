@@ -19,18 +19,18 @@ export interface CoflatMap<F> extends Functor<F> {
 
   // -- Cokleisli composition
 
-  andThen<B, C>(
+  coandThen<B, C>(
     g: (fb: Kind<F, [B]>) => C,
   ): <A>(f: (fa: Kind<F, [A]>) => B) => (fa: Kind<F, [A]>) => C;
-  andThen_<A, B, C>(
+  coandThen_<A, B, C>(
     f: (fa: Kind<F, [A]>) => B,
     g: (fb: Kind<F, [B]>) => C,
   ): (fa: Kind<F, [A]>) => C;
 
-  compose<A, B>(
+  cocompose<A, B>(
     f: (fa: Kind<F, [A]>) => B,
   ): <C>(g: (fb: Kind<F, [B]>) => C) => (fa: Kind<F, [A]>) => C;
-  compose_<A, B, C>(
+  cocompose_<A, B, C>(
     g: (fb: Kind<F, [B]>) => C,
     f: (fa: Kind<F, [A]>) => B,
   ): (fa: Kind<F, [A]>) => C;
@@ -45,11 +45,11 @@ export const CoflatMap = Object.freeze({
       coflatMap: f => fa => self.coflatMap_(fa, f),
       coflatten: fa => self.coflatMap_(fa, fa => fa),
 
-      andThen: g => f => self.andThen_(f, g),
-      andThen_: (f, g) => F1.andThen(self.coflatMap(f), g),
+      coandThen: g => f => self.coandThen_(f, g),
+      coandThen_: (f, g) => F1.andThen(self.coflatMap(f), g),
 
-      compose: f => g => self.compose_(g, f),
-      compose_: (g, f) => F1.compose(g, self.coflatMap(f)),
+      cocompose: f => g => self.cocompose_(g, f),
+      cocompose_: (g, f) => F1.compose(g, self.coflatMap(f)),
 
       ...Functor.of(F),
       ...F,

@@ -39,8 +39,8 @@ export const CoflatMapLaws = <F>(F: CoflatMap<F>) => ({
     g: (fb: Kind<F, [B]>) => C,
     h: (fc: Kind<F, [C]>) => D,
   ): IsEq<D> => {
-    const l = F.andThen_(F.andThen_(f, g), h)(fa);
-    const r = F.andThen_(f, F.andThen_(g, h))(fa);
+    const l = F.coandThen_(F.coandThen_(f, g), h)(fa);
+    const r = F.coandThen_(f, F.coandThen_(g, h))(fa);
 
     return new IsEq(l, r);
   },

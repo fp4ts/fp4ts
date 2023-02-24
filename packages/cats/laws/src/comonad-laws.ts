@@ -31,13 +31,13 @@ export const ComonadLaws = <F>(F: Comonad<F>) => ({
     f: (fa: Kind<F, [A]>) => B,
   ): IsEq<B> => {
     // eslint-disable-next-line prettier/prettier
-    return new IsEq(F.andThen_((F).extract<A>, Cokleisli(f))(fa), f(fa));
+    return new IsEq(F.coandThen_((F).extract<A>, Cokleisli(f))(fa), f(fa));
   },
 
   cokleisliRightIdentity: <A, B>(
     fa: Kind<F, [A]>,
     f: (fa: Kind<F, [A]>) => B,
   ): IsEq<B> => {
-    return new IsEq(F.andThen_(f, F.extract)(fa), f(fa));
+    return new IsEq(F.coandThen_(f, F.extract)(fa), f(fa));
   },
 });

@@ -13,7 +13,7 @@ import {
   ArrowChoiceSuite,
   ArrowLoopSuite,
 } from '@fp4ts/cats-arrow-laws';
-import { Defer, Monad, Unzip } from '@fp4ts/cats-core';
+import { Comonad, Defer, Monad, MonadDefer, Unzip } from '@fp4ts/cats-core';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -77,7 +77,9 @@ describe('Kleisli', () => {
 
   checkAll(
     'ArrowLoop<Kleisli<Eval, *, *>>',
-    ArrowLoopSuite(ArrowLoop.Kleisli(Monad.Eval)).arrowLoop(
+    ArrowLoopSuite(
+      ArrowLoop.Kleisli({ ...MonadDefer.Eval, ...Comonad.Eval }),
+    ).arrowLoop(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       fc.boolean(),

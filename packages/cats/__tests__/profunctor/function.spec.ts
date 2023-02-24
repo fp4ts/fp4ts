@@ -4,12 +4,13 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { id } from '@fp4ts/core';
+import { Eval, id } from '@fp4ts/core';
 import { Defer, Unzip } from '@fp4ts/cats-core';
 import { Identity } from '@fp4ts/cats-core/lib/data';
 import {
   Cochoice,
   Corepresentable,
+  Costrong,
   Mapping,
   Representable,
 } from '@fp4ts/cats-profunctor';
@@ -25,6 +26,20 @@ import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Function1', () => {
+  describe('Costrong', () => {
+    test('fibonacci', () => {
+      type T = [number, number, number];
+      const fib = (n: number): number =>
+        Costrong.Function1.unfirst(Defer.Function1<T>())<T, Eval<T>, T>(bd => [
+          Eval.later(() => bd[1](bd[0])),
+          ([n, f0, f1]) =>
+            n === 0 ? [n, f0, f1] : bd[1]([n - 1, f1, f1 + f0]),
+        ])([n, 0, 1]).value[1];
+
+      expect(fib(40)).toBe(102334155);
+    });
+  });
+
   checkAll(
     'Mapping<* => *>',
     MappingSuite(Mapping.Function1).mapping(
