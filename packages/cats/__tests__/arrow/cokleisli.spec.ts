@@ -8,7 +8,6 @@ import { Eval } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import {
   Identity,
-  List,
   None,
   Option,
   OptionF,
@@ -58,29 +57,33 @@ describe('Cokleisli', () => {
     ),
   );
 
-  const nonEmptySubsequences = <A>(xs: List<A>): List<List<A>> =>
-    xs.fold(
-      () => List.empty,
-      (x, xs) =>
-        nonEmptySubsequences(xs)
-          .foldLeft(List.empty as List<List<A>>, (r, ys) =>
-            r.cons(ys.cons(x)).cons(ys),
-          )
-          .cons(List(x)),
-    );
+  const nonEmptySubsequences = <A>(xs: A[]): A[][] =>
+    xs.length === 0
+      ? []
+      : [
+          [xs[0]],
+          ...nonEmptySubsequences(xs.slice(1)).reduce(
+            (r, ys) => [ys, [xs[0], ...ys], ...r],
+            [] as A[][],
+          ),
+        ];
 
-  const nelToCofree = <A>(xs: List<A>): Cofree<OptionF, A> =>
-    Cofree(
-      xs.head,
-      Eval.later(() => (xs.tail.isEmpty ? None : Some(nelToCofree(xs.tail)))),
-    );
+  const nelToCofree = <A>(xs: A[]): Cofree<OptionF, A> => {
+    const sz = xs.length;
+    const go = (idx: number): Cofree<OptionF, A> =>
+      Cofree(
+        xs[idx],
+        Eval.later(() => (idx + 1 >= sz ? None : Some(go(idx + 1)))),
+      );
+    return go(0);
+  };
 
   const cofreeNelEC = <A>(
     ecA: ExhaustiveCheck<A>,
   ): ExhaustiveCheck<Cofree<OptionF, A>> =>
-    ExhaustiveCheck.instance(
-      nonEmptySubsequences(ecA.allValues.take(3))
-        .filter(xs => xs.nonEmpty)
+    ExhaustiveCheck.fromArray(
+      nonEmptySubsequences(ecA.allValues.slice(0, 5))
+        .filter(xs => xs.length > 0)
         .map(nelToCofree),
     );
 

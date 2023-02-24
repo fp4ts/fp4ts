@@ -3,16 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { lazy } from '@fp4ts/core';
+import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
 export type ExhaustiveCheck<A> = _ExhaustiveCheck<A>;
 export function ExhaustiveCheck<A>(...xs: A[]): ExhaustiveCheck<A> {
-  return new _ExhaustiveCheck(List.fromArray(xs));
+  return ExhaustiveCheck.fromArray(xs);
 }
 
 class _ExhaustiveCheck<out A> {
-  public constructor(public readonly allValues: List<A>) {}
+  public constructor(public readonly allValues: A[]) {}
 
   public concat<A>(
     this: ExhaustiveCheck<A>,
@@ -34,20 +35,22 @@ class _ExhaustiveCheck<out A> {
   }
 }
 
-ExhaustiveCheck.miniInt = (): ExhaustiveCheck<MiniInt> =>
-  new _ExhaustiveCheck(MiniInt.values);
+ExhaustiveCheck.fromArray = <A>(xs: A[]): ExhaustiveCheck<A> =>
+  new _ExhaustiveCheck(xs);
 
-ExhaustiveCheck.boolean = (): ExhaustiveCheck<boolean> =>
-  new _ExhaustiveCheck(List(false, true));
+ExhaustiveCheck.miniInt = lazy(
+  (): ExhaustiveCheck<MiniInt> => new _ExhaustiveCheck(MiniInt.values),
+);
+
+ExhaustiveCheck.boolean = lazy(
+  (): ExhaustiveCheck<boolean> => new _ExhaustiveCheck([false, true]),
+);
 
 ExhaustiveCheck.either = <A, B>(
   eca: ExhaustiveCheck<A>,
   ecb: ExhaustiveCheck<B>,
 ): ExhaustiveCheck<Either<A, B>> =>
   eca.map(Left<A, B>).concat(ecb.map(Right<B, A>));
-
-ExhaustiveCheck.instance = <A>(xs: List<A>): ExhaustiveCheck<A> =>
-  new _ExhaustiveCheck(xs);
 
 ExhaustiveCheck.tuple3 = <A, B, C>(
   a: ExhaustiveCheck<A>,

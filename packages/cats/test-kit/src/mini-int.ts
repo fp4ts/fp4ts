@@ -5,7 +5,6 @@
 
 import { ok as assert } from 'assert';
 import { Monoid, Eq, Ord } from '@fp4ts/cats-kernel';
-import { List, ListBuffer } from '@fp4ts/cats-core/lib/data';
 
 const intShift = 28;
 
@@ -75,11 +74,11 @@ export class MiniInt {
     x => x.toInt,
   );
 
-  public static get values(): List<MiniInt> {
-    const buf = new ListBuffer<MiniInt>();
+  public static get values(): MiniInt[] {
+    const xs: MiniInt[] = [];
     for (let i = this.MIN_MINI_INT; i <= this.MAX_MINI_INT; i++) {
-      buf.addOne(this.unsafeFromNumber(i));
+      xs.push(this.unsafeFromNumber(i));
     }
-    return buf.toList;
+    return xs;
   }
 }
