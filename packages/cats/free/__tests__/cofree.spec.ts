@@ -8,7 +8,6 @@ import { Eval, EvalF } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats-core';
 import {
   Identity,
-  List,
   None,
   Option,
   OptionF,
@@ -22,7 +21,7 @@ import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { Cofree } from '@fp4ts/cats-free';
 import {
-  cofNelToList,
+  cofNelToArray,
   CofreeNel,
   cofreeOptionArb,
   eqCofreeNel,
@@ -52,44 +51,44 @@ describe('Cofree', () => {
       expect(counter).toBe(1);
     });
 
-    it('should unfold 100 options to a list', () => {
+    it('should unfold 100 options to a array', () => {
       const anaNel: CofreeNel<number> = Cofree.unfold(Option.Functor)(0)(i =>
         i === 100 ? None : Some(i + 1),
       );
-      const raw = List.range(0, 101);
+      const raw = [...new Array(101).keys()];
 
-      expect(cofNelToList(anaNel)).toEqual(raw);
+      expect(cofNelToArray(anaNel)).toEqual(raw);
     });
 
-    it('should unfold a list of hundred elements into a tree', () => {
-      const anaNel: CofreeNel<number> = Cofree.ana(Option.Functor)(
-        List.range(0, 101),
-      )(
-        xs => (xs.tail.isEmpty ? None : Some(xs.tail)),
-        xs => xs.head,
+    it('should unfold a array of hundred elements into a tree', () => {
+      const anaNel: CofreeNel<number> = Cofree.ana(Option.Functor)([
+        ...new Array(101).keys(),
+      ])(
+        xs => (xs.length < 2 ? None : Some(xs.slice(1))),
+        xs => xs[0],
       );
-      const raw = List.range(0, 101);
+      const raw = [...new Array(101).keys()];
 
-      expect(cofNelToList(anaNel)).toEqual(raw);
+      expect(cofNelToArray(anaNel)).toEqual(raw);
     });
   });
 
   describe('catamorphism', () => {
-    it('should transform a unfolded structure of options into a list', () => {
+    it('should transform a unfolded structure of options into a array', () => {
       const unfolded: Cofree<OptionF, number> = Cofree.unfold(Option.Functor)(
         0,
       )(i => (i === 100 ? None : Some(i + 1)));
 
-      const cata = unfolded.cata(Option.TraversableFilter)<List<number>>(
-        (i, lb) => Eval.now(lb.getOrElse(() => List.empty).cons(i)),
+      const cata = unfolded.cata(Option.TraversableFilter)<number[]>((i, lb) =>
+        Eval.now([i, ...lb.getOrElse(() => [])]),
       );
 
-      expect(cata.value).toEqual(List.range(0, 101));
+      expect(cata.value).toEqual([...new Array(101).keys()]);
     });
 
     it('should be stack safe', () => {
       const size = 50_000;
-      const sum = List.range(0, size + 1).foldLeft(0, (a, b) => a + b);
+      const sum = [...new Array(size + 1).keys()].reduce((a, b) => a + b, 0);
       const unfolded: Cofree<OptionF, number> = Cofree.unfold(Option.Functor)(
         0,
       )(i => (i === size ? None : Some(i + 1)));
@@ -104,13 +103,10 @@ describe('Cofree', () => {
     it('should allow evaluation in provided effect', () => {
       type EvalOption<A> = OptionT<EvalF, A>;
 
-      const folder = (
-        i: number,
-        lb: Option<List<number>>,
-      ): EvalOption<List<number>> =>
+      const folder = (i: number, lb: Option<number[]>): EvalOption<number[]> =>
         i > 100
           ? OptionT.None(Monad.Eval)
-          : OptionT.Some(Monad.Eval)(lb.getOrElse(() => List.empty).cons(i));
+          : OptionT.Some(Monad.Eval)([i, ...lb.getOrElse(() => [])]);
       const inclusion = OptionT.liftF(Monad.Eval);
 
       const unfolded: Cofree<OptionF, number> = Cofree.unfold(Option.Functor)(
@@ -129,7 +125,7 @@ describe('Cofree', () => {
         inclusion,
       ).value;
 
-      expect(cataHundred).toEqual(Some(List.range(0, 101)));
+      expect(cataHundred).toEqual(Some([...new Array(101).keys()]));
       expect(cataHundredOne).toEqual(None);
     });
   });
