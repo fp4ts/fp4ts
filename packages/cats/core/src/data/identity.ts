@@ -162,7 +162,7 @@ const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazy(() =>
       let result: B;
 
       while (!resolved) {
-        if (cur.isLeft) {
+        if (cur.isEmpty) {
           cur = f(cur.getLeft);
         } else {
           resolved = true;

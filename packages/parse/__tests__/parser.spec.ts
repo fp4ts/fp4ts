@@ -60,7 +60,7 @@ describe('Parser', () => {
       expect(
         Parser.fail<StringSource, EvalF, never>('').optional().parse('x').value,
       ).toEqual(Right(None));
-      expect(string('xy').optional().parse('x').value.isLeft).toBe(true);
+      expect(string('xy').optional().parse('x').value.isLeft()).toBe(true);
     });
   });
 
@@ -79,7 +79,8 @@ describe('Parser', () => {
         string('xy')
           .flatMap(() => Parser.succeed(42))
           .orElse(Parser.succeed(84))
-          .parse('x').value.isLeft,
+          .parse('x')
+          .value.isLeft(),
       ).toBe(true);
     });
 
@@ -97,7 +98,8 @@ describe('Parser', () => {
         char('x' as Char)
           .flatMap(() => Parser.fail(''))
           .orElse(Parser.succeed(84))
-          .parse('x').value.isLeft,
+          .parse('x')
+          .value.isLeft(),
       ).toBe(true);
     });
   });
@@ -125,13 +127,13 @@ describe('Parser', () => {
 
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
-      expect(anyChar().rep().parse(input).value.isRight).toBe(true);
+      expect(anyChar().rep().parse(input).value.isRight()).toBe(true);
     });
   });
 
   describe('rep1', () => {
     it('should fail to parse an empty input', () => {
-      expect(anyChar().rep1().parse('').value.isLeft).toBe(true);
+      expect(anyChar().rep1().parse('').value.isLeft()).toBe(true);
     });
 
     it(
@@ -142,13 +144,15 @@ describe('Parser', () => {
               .rep1()
               .parse(s)
               .value.get.equals(List.fromArray(s.split('')))
-          : anyChar().rep1().parse(s).value.isLeft,
+          : anyChar().rep1().parse(s).value.isLeft(),
       ),
     );
 
     it('should be stack safe', () => {
       const input = 'x'.repeat(1_000_000);
-      expect(anyChar().rep1().complete().parse(input).value.isRight).toBe(true);
+      expect(anyChar().rep1().complete().parse(input).value.isRight()).toBe(
+        true,
+      );
     });
   });
 
@@ -249,7 +253,7 @@ expecting digit`),
           .label('my helpful message')
           .parse(s)
           .value.fold(
-            () => p.parse(s).value.isLeft,
+            () => p.parse(s).value.isLeft(),
             x => {
               expect(x).toEqual(p.parse(s).value.get);
               return true;
@@ -286,7 +290,7 @@ expecting digit`),
           const p1r = p1.parse(s).value;
           const p2r = p2.parse(s).value;
 
-          return r.isRight === (p1r.isRight || p2r.isRight);
+          return r.isRight() === (p1r.isRight() || p2r.isRight());
         },
       ),
     );
@@ -309,11 +313,8 @@ expecting digit`),
 
     test(
       'backtrack orElse succeed always succeeds',
-      forAll(
-        fp4tsStringParser0(),
-        fc.string(),
-        (p, s) =>
-          p.backtrack().orElse(Parser.succeed('')).parse(s).value.isRight,
+      forAll(fp4tsStringParser0(), fc.string(), (p, s) =>
+        p.backtrack().orElse(Parser.succeed('')).parse(s).value.isRight(),
       ),
     );
 
@@ -324,8 +325,8 @@ expecting digit`),
         fp4tsStringParser0(),
         fc.string(),
         (l, r, s) =>
-          l.backtrack().orElse(r).parse(s).value.isRight ===
-          r.backtrack().orElse(l).parse(s).value.isRight,
+          l.backtrack().orElse(r).parse(s).value.isRight() ===
+          r.backtrack().orElse(l).parse(s).value.isRight(),
       ),
     );
 
@@ -387,7 +388,7 @@ expecting digit`),
     //   forAll(fp4tsStringParser0(), fc.string(), (p, s) => {
     //     const l = p.complete().parse(s);
     //     const r = p.notFollowedBy(Parser.anyToken()).parse(s);
-    //     return (l.isLeft && r.isLeft) || (expect(l).toEqual(r), true);
+    //     return (l.isLeft() && r.isLeft()) || (expect(l).toEqual(r), true);
     //   }),
     // );
   });

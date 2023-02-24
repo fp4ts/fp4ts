@@ -155,11 +155,10 @@ export class Uri {
     let authority: Option<Authority> = None;
     if (m[4]) {
       const a = Authority.fromString(m[4]);
-      if (a.isRight) {
-        authority = Some(a.get);
-      } else {
-        return a as any as Either<ParsingFailure, Uri>;
+      if (a.isLeft()) {
+        return a;
       }
+      authority = Some(a.get);
     }
 
     let path = Path.empty;
@@ -170,11 +169,10 @@ export class Uri {
     let query = Query.empty;
     if (m[6]) {
       const q = Query.fromString(m[7] ?? '');
-      if (q.isRight) {
-        query = q.get;
-      } else {
-        return q as any as Either<ParsingFailure, Uri>;
+      if (q.isLeft()) {
+        return q;
       }
+      query = q.get;
     }
     let fragment: Option<string> = None;
     if (m[8]) {

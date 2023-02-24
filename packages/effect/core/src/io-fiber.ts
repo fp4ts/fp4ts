@@ -414,7 +414,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
                   if (!this.shouldFinalize()) {
                     // We have not been canceled while suspended. Schedule
                     // fiber to continue execution with the result.
-                    if (ea.isRight) {
+                    if (ea.isRight()) {
                       this.stack.push(ea.get);
                       this.resumeTag = AsyncContinueSuccessfulR;
                     } else {
@@ -493,7 +493,7 @@ export class IOFiber<A> extends Fiber<IOF, Error, A> {
             // result and continue the execution without suspending
             case ContStatePhase.Result: {
               const result = state.result!;
-              _cur = result.isRight
+              _cur = result.isRight()
                 ? this.succeeded(result.get)
                 : this.failed(result.getLeft);
               continue;

@@ -238,7 +238,7 @@ View.tailRecM_ = <A, B>(a: A, f: (a: A) => View<Either<A, B>>): View<B> => {
   return View.build(
     <X>(ez: Eval<X>, g: (b: B, ex: Eval<X>) => Eval<X>): Eval<X> => {
       const go = (ea: Either<A, B>, ex: Eval<X>): Eval<X> =>
-        ea.isLeft
+        ea.isEmpty
           ? Eval.defer(() => f(ea.getLeft).foldRight(ex, go)) // stack safety granted by Eval
           : g(ea.get, ex);
 

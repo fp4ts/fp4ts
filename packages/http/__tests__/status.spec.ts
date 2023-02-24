@@ -54,7 +54,7 @@ describe('Status', () => {
     'should fail to find a status when the code is <MinCode',
     forAll(
       fc.integer({ min: Number.MIN_SAFE_INTEGER, max: Status.MinCode - 1 }),
-      code => Status.fromCode(code).isLeft,
+      code => Status.fromCode(code).isLeft(),
     ),
   );
 
@@ -62,7 +62,7 @@ describe('Status', () => {
     'should fail to find a status when the code is >MaxCode',
     forAll(
       fc.integer({ min: Status.MaxCode + 1, max: Number.MAX_SAFE_INTEGER }),
-      code => Status.fromCode(code).isLeft,
+      code => Status.fromCode(code).isLeft(),
     ),
   );
 

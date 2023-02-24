@@ -61,9 +61,8 @@ describe('Uri', () => {
 
     it(
       'should fail to parse port if its negative',
-      forAll(
-        fc.integer({ min: Number.MIN_SAFE_INTEGER, max: -1 }),
-        port => Uri.fromString(`http://localhost:${port}/`).isLeft,
+      forAll(fc.integer({ min: Number.MIN_SAFE_INTEGER, max: -1 }), port =>
+        Uri.fromString(`http://localhost:${port}/`).isLeft(),
       ),
     );
 
@@ -71,7 +70,7 @@ describe('Uri', () => {
       'should fail to parse port if its decimal',
       forAll(
         fc.float().filter(x => x % 1 !== 0),
-        port => Uri.fromString(`http://localhost:${port}/`).isLeft,
+        port => Uri.fromString(`http://localhost:${port}/`).isLeft(),
       ),
     );
 
@@ -82,7 +81,7 @@ describe('Uri', () => {
           .string()
           .filter(x => /^\w+$/.test(x))
           .filter(x => !/^\d+$/.test(x)),
-        port => Uri.fromString(`http://localhost:${port}/`).isLeft,
+        port => Uri.fromString(`http://localhost:${port}/`).isLeft(),
       ),
     );
   });

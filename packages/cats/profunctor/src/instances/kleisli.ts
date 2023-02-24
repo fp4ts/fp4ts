@@ -3,15 +3,12 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, Eval, F1, fst, id, Kind, snd } from '@fp4ts/core';
+import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
 import {
   Applicative,
-  Comonad,
-  Defer,
   Distributive,
   Functor,
   Monad,
-  MonadDefer,
   Traversable,
 } from '@fp4ts/cats-core';
 import {
@@ -26,7 +23,7 @@ import { Closed } from '../closed';
 import { Profunctor } from '../profunctor';
 import { Representable } from '../representable';
 import { Sieve } from '../sieve';
-import { Costrong, Strong } from '../strong';
+import { Strong } from '../strong';
 import { Traversing } from '../traversing';
 import { Mapping } from '../mapping';
 
@@ -58,39 +55,6 @@ export const kleisliStrong = cached(
     }),
 );
 
-export const kleisliCostrong = cached(
-  <F>(F: MonadDefer<F> & Comonad<F>): Costrong<$<KleisliF, [F]>> =>
-    Costrong.of<$<KleisliF, [F]>>({
-      ...kleisliProfunctor(F),
-
-      unfirst_:
-        <G, A, B, C>(
-          G: Defer<G>,
-          f: Kleisli<F, [A, Kind<G, [C]>], [B, Kind<G, [C]>]>,
-        ) =>
-        (a: A) =>
-          F.map_(
-            F.fix<[B, Kind<G, [C]>]>(fbgc =>
-              f([a, G.defer(() => F.extract(fbgc)[1])]),
-            ),
-            fst,
-          ),
-
-      unsecond_:
-        <G, A, B, C>(
-          G: Defer<G>,
-          f: Kleisli<F, [Kind<G, [C]>, A], [Kind<G, [C]>, B]>,
-        ) =>
-        (a: A) =>
-          F.map_(
-            F.fix<[Kind<G, [C]>, B]>(fgcb =>
-              f([G.defer(() => F.extract(fgcb)[0]), a]),
-            ),
-            snd,
-          ),
-    }),
-);
-
 export const kleisliChoice = cached(
   <F>(F: Applicative<F>): Choice<$<KleisliF, [F]>> =>
     Choice.of<$<KleisliF, [F]>>({
@@ -100,13 +64,13 @@ export const kleisliChoice = cached(
         <C>() =>
         <A, B>(pab: Kleisli<F, A, B>) =>
         (ac: Either<A, C>): Kind<F, [Either<B, C>]> =>
-          ac.isLeft ? F.map_(pab(ac.getLeft), Left) : F.pure(ac as any),
+          ac.isRight() ? F.pure(ac) : F.map_(pab(ac.getLeft), Left),
 
       right:
         <C>() =>
         <A, B>(pab: Kleisli<F, A, B>) =>
         (ca: Either<C, A>): Kind<F, [Either<C, B>]> =>
-          ca.isRight ? F.map_(pab(ca.get), Right) : F.pure(ca as any),
+          ca.isLeft() ? F.pure(ca) : F.map_(pab(ca.get), Right),
     }),
 );
 
@@ -123,8 +87,8 @@ export const kleisliCochoice = cached(
     ): Eval<Kind<F, [B]>> => {
       const fcb = pab(ac);
       const cfb = sequence(fcb);
-      return cfb.isLeft
-        ? Eval.defer(() => goUnright(pab, cfb as any as Either<C, A>))
+      return cfb.isLeft()
+        ? Eval.defer(() => goUnright(pab, cfb))
         : Eval.now(cfb.get);
     };
 

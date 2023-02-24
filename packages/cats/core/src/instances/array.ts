@@ -274,7 +274,7 @@ function tailRecM<S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] {
     }
 
     const nx = xhd.value;
-    if (nx.isLeft) {
+    if (nx.isEmpty) {
       stack.push(f(nx.getLeft)[Symbol.iterator]());
       ptr++;
     } else {

@@ -63,7 +63,7 @@ export class Channel<F, A> {
           const sendAll: Pipe<F, A, never> = ins =>
             ins['+++'](Stream.execF(F.void(close)))
               .evalMap(send)
-              .takeWhile(ea => ea.isRight).drain;
+              .takeWhile(ea => ea.isRight()).drain;
 
           const send = (a: A) =>
             F.flatMap_(F.deferred<void>(), producer =>

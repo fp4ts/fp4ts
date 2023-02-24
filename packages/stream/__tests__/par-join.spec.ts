@@ -178,8 +178,8 @@ describe('Stream Parallel Join', () => {
                       ) &&
                       finalizers.last === 'Outer' &&
                       ([...streamExecuted].includes(biasIdx)
-                        ? result.isLeft && result.getLeft instanceof TestError
-                        : result.isRight)
+                        ? result.isLeft() && result.getLeft instanceof TestError
+                        : result.isRight())
                     );
                   }),
                 ),

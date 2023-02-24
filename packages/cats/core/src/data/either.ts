@@ -36,11 +36,11 @@ abstract class _Either<out E, out A> {
     return !this.isEmpty;
   }
 
-  public get isLeft(): boolean {
+  public isLeft(): this is Either<E, never> {
     return this.isEmpty;
   }
 
-  public get isRight(): boolean {
+  public isRight(): this is Either<never, A> {
     return this.nonEmpty;
   }
 

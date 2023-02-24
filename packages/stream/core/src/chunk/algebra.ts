@@ -87,7 +87,7 @@ export abstract class Chunk<out O> {
 
       if (next.done) {
         stack = tl;
-      } else if (next.value.isRight) {
+      } else if (next.value.isRight()) {
         results.push(next.value.get);
       } else {
         stack = tl.prepend(hd).prepend(f(next.value.getLeft).iterator);

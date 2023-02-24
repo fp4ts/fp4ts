@@ -179,7 +179,7 @@ export function filtered<A>(
   return <F, P>(F: Applicative<F>, P: Choice<P>) =>
     (pafa: Kind<P, [A, Kind<F, [A]>]>) =>
       P.dimap_(P.right<A>()(pafa), g, ea =>
-        ea.isLeft ? F.pure(ea.getLeft) : ea.get,
+        ea.isLeft() ? F.pure(ea.getLeft) : ea.get,
       );
 }
 

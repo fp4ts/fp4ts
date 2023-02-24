@@ -224,7 +224,7 @@ export class Scope<F> {
                 return pipe(
                   resource.acquired(finalizer),
                   F.flatMap(result =>
-                    result.isRight
+                    result.isRight()
                       ? F.flatMap_(this.register(resource), registered =>
                           registered
                             ? F.pure(Right(r))

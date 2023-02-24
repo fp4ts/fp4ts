@@ -485,7 +485,7 @@ const nelMonad: Lazy<Monad<NonEmptyListF>> = lazy(() =>
 
       let v = f(a);
       while (true) {
-        if (v.head.isRight) {
+        if (v.head.nonEmpty) {
           buf.addOne(v.head.get);
           const tlo = NonEmptyList.fromList(v.tail);
           if (tlo.isEmpty) break;

@@ -83,9 +83,9 @@ export const cokleisliCochoice = cached(<F>(F: Applicative<F>) => {
     fac: Kind<F, [Either<A, C>]>,
   ): Eval<B> => {
     const bc = pab(fac);
-    return bc.isLeft
-      ? Eval.now(bc.getLeft)
-      : Eval.defer(() => goUnleft(pab, F.pure(bc as any as Either<A, C>)));
+    return bc.isRight()
+      ? Eval.defer(() => goUnleft(pab, F.pure(bc)))
+      : Eval.now(bc.getLeft);
   };
 
   const goUnright = <A, B, C>(
@@ -93,9 +93,9 @@ export const cokleisliCochoice = cached(<F>(F: Applicative<F>) => {
     fca: Kind<F, [Either<C, A>]>,
   ): Eval<B> => {
     const cb = pab(fca);
-    return cb.isRight
-      ? Eval.now(cb.get)
-      : Eval.defer(() => goUnright(pab, F.pure(cb as any as Either<C, A>)));
+    return cb.isLeft()
+      ? Eval.defer(() => goUnright(pab, F.pure(cb)))
+      : Eval.now(cb.get);
   };
 
   return Cochoice.of<$<CokleisliF, [F]>>({

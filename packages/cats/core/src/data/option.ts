@@ -190,7 +190,7 @@ Option.fromNullable = <A>(value: A | null | undefined): Option<A> =>
   value == null ? None : new _Some(value);
 Option.pure = Some;
 Option.fromEither = <A>(ea: Either<unknown, A>): Option<A> =>
-  ea.isRight ? new _Some(ea.get) : None;
+  ea.nonEmpty ? new _Some(ea.get) : None;
 Option.tailRecM_ = <A, B>(
   a: A,
   f: (a: A) => Option<Either<A, B>>,
@@ -198,7 +198,7 @@ Option.tailRecM_ = <A, B>(
   let cur: Option<Either<A, B>> = f(a);
   while (cur !== None) {
     const ea = cur.get;
-    if (ea.isRight) return new _Some(ea.get);
+    if (ea.nonEmpty) return new _Some(ea.get);
     cur = f(ea.getLeft);
   }
   return None;

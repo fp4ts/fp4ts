@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, cached, F1, Kind, lazy } from '@fp4ts/core';
-import { Comonad, FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
+import { FlatMap, Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Either,
   Kleisli,
@@ -12,10 +12,9 @@ import {
   Left,
   Right,
 } from '@fp4ts/cats-core/lib/data';
-import { Choice, Costrong, Strong } from '@fp4ts/cats-profunctor';
+import { Choice, Strong } from '@fp4ts/cats-profunctor';
 import { ArrowChoice } from '../arrow-choice';
 import { ArrowApply } from '../arrow-apply';
-import { ArrowLoop } from '../arrow-loop';
 import { Arrow } from '../arrow';
 import { Compose } from '../compose';
 import { Category } from '../category';
@@ -79,13 +78,5 @@ export const kleisliArrowApply = cached(
           ([fab, a]) =>
             F.defer(() => fab(a)),
       ) as <A, B>() => Kleisli<F, [Kleisli<F, A, B>, A], B>,
-    }),
-);
-
-export const kleisliArrowLoop = cached(
-  <F>(F: MonadDefer<F> & Comonad<F>): ArrowLoop<$<KleisliF, [F]>> =>
-    ArrowLoop.of({
-      ...kleisliArrow(F),
-      ...Costrong.Kleisli(F),
     }),
 );

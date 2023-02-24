@@ -99,9 +99,9 @@ export const function1Cochoice = lazy((): Cochoice<Function1F> => {
     ac: Either<A, C>,
   ): Eval<B> => {
     const bc = f(ac);
-    return bc.isLeft
-      ? Eval.now(bc.getLeft)
-      : Eval.defer(() => goUnleft(f, bc as any as Either<A, C>));
+    return bc.isRight()
+      ? Eval.defer(() => goUnleft(f, bc))
+      : Eval.now(bc.getLeft);
   };
 
   const goUnright = <A, B, C>(
@@ -109,9 +109,7 @@ export const function1Cochoice = lazy((): Cochoice<Function1F> => {
     ca: Either<C, A>,
   ): Eval<B> => {
     const cb = f(ca);
-    return cb.isRight
-      ? Eval.now(cb.get)
-      : Eval.defer(() => goUnright(f, cb as any as Either<C, A>));
+    return cb.isLeft() ? Eval.defer(() => goUnright(f, cb)) : Eval.now(cb.get);
   };
 
   return Cochoice.of<Function1F>({

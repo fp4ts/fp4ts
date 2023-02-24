@@ -536,7 +536,7 @@ export const rethrow = <F, A>(s: Stream<F, Either<Error, A>>): Stream<F, A> =>
   pipe(
     chunks(s),
     flatMap(c => {
-      const firstError = c.findIndex(ea => ea.isLeft);
+      const firstError = c.findIndex(ea => ea.isLeft());
       return firstError.fold(
         () => fromChunk(c.map(ea => ea.get)),
         i => throwError(c['!!'](i).getLeft),

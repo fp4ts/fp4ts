@@ -666,7 +666,7 @@ ParserT.tailRecM_ = <S, F, A, B>(
             if (rea.tag === 'ok') {
               // we can recurse iff we're in the success branch
               const { output, remainder } = rea;
-              return output.isLeft
+              return output.isLeft()
                 ? F.pure(Left(tupled(output.getLeft, remainder, e2, consumed)))
                 : consumed
                 ? F.map_(cok(output.get, remainder, e2), Right)

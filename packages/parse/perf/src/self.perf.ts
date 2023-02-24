@@ -42,7 +42,9 @@ const parse = (input: string) =>
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s plain parse', () =>
-    console.log(text.string('aa').rep().complete().parse(input).value.isRight),
+    console.log(
+      text.string('aa').rep().complete().parse(input).value.isRight(),
+    ),
   );
 }
 {
@@ -53,13 +55,16 @@ const parse = (input: string) =>
         .char('a' as Char)
         .rep()
         .complete()
-        .parse(input).value.isRight,
+        .parse(input)
+        .value.isRight(),
     ),
   );
 }
 {
   const input = 'a'.repeat(1_000_000);
   timed('sequence of "aa"s prim parse', () =>
-    console.log(text.stringF('aa').rep().complete().parse(input).value.isRight),
+    console.log(
+      text.stringF('aa').rep().complete().parse(input).value.isRight(),
+    ),
   );
 }

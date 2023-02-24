@@ -155,7 +155,7 @@ List.tailRecM_ = <A, B>(a: A, f: (a: A) => List<Either<A, B>>): List<B> => {
     }
 
     const nx = xhd.head;
-    if (nx.isLeft) {
+    if (nx.isEmpty) {
       stack[ptr] = xhd.tail;
       stack.push(f(nx.getLeft));
       ptr++;
@@ -1581,7 +1581,7 @@ export abstract class _List<out A> {
 
     while (xs !== Nil) {
       const lr = f(xs.head);
-      if (lr.isLeft) {
+      if (lr.isEmpty) {
         lb.addOne(lr.getLeft);
       } else {
         rb.addOne(lr.get);

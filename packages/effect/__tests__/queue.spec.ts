@@ -183,7 +183,7 @@ describe('Queue', () => {
 function zeroCapacityConstructor(Q: QueueLike<IOF, number>) {
   it.real('should throw an exception when constructed with zero capacity', () =>
     IO.defer(() => Q.construct(0)).attempt.map(r => {
-      expect(r.isLeft).toBe(true);
+      expect(r.isLeft()).toBe(true);
       expect(r.getLeft).toBeInstanceOf(AssertionError);
     }),
   );
@@ -194,7 +194,7 @@ function negativeCapacityConstructor(Q: QueueLike<IOF, number>) {
     'should throw an exception when constructed with negative capacity',
     () =>
       IO.defer(() => Q.construct(-1)).attempt.map(r => {
-        expect(r.isLeft).toBe(true);
+        expect(r.isLeft()).toBe(true);
         expect(r.getLeft).toBeInstanceOf(AssertionError);
       }),
   );

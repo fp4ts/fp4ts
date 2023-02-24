@@ -170,7 +170,7 @@ describe('Stream merge', () => {
                       [...finalizers].includes(x),
                     ) &&
                     finalizers.lastOption.equals(Some('Outer')) &&
-                    r.isLeft &&
+                    r.isLeft() &&
                     r.getLeft instanceof TestError
                   );
                 }),

@@ -7,13 +7,9 @@ import fc, { Arbitrary } from 'fast-check';
 import { Eval, EvalF } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Kleisli } from '@fp4ts/cats-core/lib/data';
-import { ArrowApply, ArrowChoice, ArrowLoop } from '@fp4ts/cats-arrow';
-import {
-  ArrowApplySuite,
-  ArrowChoiceSuite,
-  ArrowLoopSuite,
-} from '@fp4ts/cats-arrow-laws';
-import { Comonad, Defer, Monad, MonadDefer, Unzip } from '@fp4ts/cats-core';
+import { ArrowApply, ArrowChoice } from '@fp4ts/cats-arrow';
+import { ArrowApplySuite, ArrowChoiceSuite } from '@fp4ts/cats-arrow-laws';
+import { Monad } from '@fp4ts/cats-core';
 import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
@@ -72,34 +68,6 @@ describe('Kleisli', () => {
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
         A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
       eqKleisli,
-    ),
-  );
-
-  checkAll(
-    'ArrowLoop<Kleisli<Eval, *, *>>',
-    ArrowLoopSuite(
-      ArrowLoop.Kleisli({ ...MonadDefer.Eval, ...Comonad.Eval }),
-    ).arrowLoop(
-      A.fp4tsMiniInt(),
-      A.fp4tsMiniInt(),
-      fc.boolean(),
-      fc.boolean(),
-      fc.integer(),
-      fc.integer(),
-      ec.miniInt(),
-      MiniInt.Eq,
-      ec.miniInt(),
-      MiniInt.Eq,
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      ec.boolean(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
-        fc.func<[X], Eval<Y>>(A.fp4tsEval(Y)),
-      eqKleisli,
-      { ...Defer.Eval, ...Unzip.Eval },
-      A.fp4tsEval,
     ),
   );
 });

@@ -80,7 +80,7 @@ const cokleisliMonadDefer: <F, A>() => MonadDefer<$<CokleisliF, [F, A]>> = lazy(
       tailRecM_: (s, f) =>
         Cokleisli(fa => {
           let cur = f(s)(fa);
-          while (cur.isLeft) {
+          while (cur.isLeft()) {
             cur = f(cur.getLeft)(fa);
           }
           return cur.get;

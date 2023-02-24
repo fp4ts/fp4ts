@@ -75,7 +75,7 @@ export const function0MonadDefer = lazy(() =>
       <S, A>(s: S, f: (x: S) => () => Either<S, A>) =>
       () => {
         let cur = f(s)();
-        while (cur.isLeft) {
+        while (cur.isEmpty) {
           cur = f(cur.getLeft)();
         }
         return cur.get;

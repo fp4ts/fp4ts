@@ -2685,7 +2685,7 @@ Seq.tailRecM_ = <A, B>(a: A, f: (a: A) => Seq<Either<A, B>>): Seq<B> => {
     }
 
     const nx = xhd.value;
-    if (nx.isLeft) {
+    if (nx.isEmpty) {
       stack.push(f(nx.getLeft).iterator);
       ptr++;
     } else {

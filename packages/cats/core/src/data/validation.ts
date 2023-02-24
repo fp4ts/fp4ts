@@ -309,7 +309,7 @@ Validation.tailRecM =
     while (res != null) {
       if (cur.isValid) {
         const ea = cur.get;
-        if (ea.isRight) {
+        if (ea.nonEmpty) {
           res = Validation.Valid(ea.get);
         } else {
           cur = f(ea.getLeft);

@@ -1252,7 +1252,7 @@ class _Vector<out A> {
     const xs = this.xs;
     for (let i = this.start, end = this.end; i < end; i++) {
       const x = f(xs[i]);
-      if (x.isLeft) {
+      if (x.isEmpty) {
         ys.push(x.getLeft);
       } else {
         zs.push(x.get);
@@ -2874,7 +2874,7 @@ Vector.tailRecM_ = <A, B>(
     }
 
     const nx = xhd.value;
-    if (nx.isLeft) {
+    if (nx.isEmpty) {
       stack.push(f(nx.getLeft).iterator);
       ptr++;
     } else {
