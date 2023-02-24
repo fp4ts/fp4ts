@@ -99,37 +99,37 @@ describe('OptionT', () => {
 
   describe('orElse', () => {
     it('should return left result on Some', () => {
-      expect(mkSomeS(42).orElse(() => mkSomeS(43)).value).toEqual(
+      expect(mkSomeS(42).combineK(() => mkSomeS(43)).value).toEqual(
         Identity(Some(42)),
       );
     });
 
     it('should return right result on None', () => {
-      expect(mkNoneS<number>().orElse(() => mkSomeS(43)).value).toEqual(
+      expect(mkNoneS<number>().combineK(() => mkSomeS(43)).value).toEqual(
         Identity(Some(43)),
       );
     });
 
     it('should return None when both sides are None', () => {
-      expect(mkNoneS().orElse(() => mkNoneS()).value).toEqual(Identity(None));
+      expect(mkNoneS().combineK(() => mkNoneS()).value).toEqual(Identity(None));
     });
   });
 
   describe('orElseF', () => {
     it('should return left result on Some', () => {
-      expect(mkSomeS(42).orElseF(() => Identity(Some(43))).value).toEqual(
+      expect(mkSomeS(42).combineKF(() => Identity(Some(43))).value).toEqual(
         Identity(Some(42)),
       );
     });
 
     it('should return right result on None', () => {
-      expect(mkNoneS<number>().orElseF(() => Identity(Some(43))).value).toEqual(
-        Identity(Some(43)),
-      );
+      expect(
+        mkNoneS<number>().combineKF(() => Identity(Some(43))).value,
+      ).toEqual(Identity(Some(43)));
     });
 
     it('should return None when both sides are None', () => {
-      expect(mkNoneS<number>().orElseF(() => Identity(None)).value).toEqual(
+      expect(mkNoneS<number>().combineKF(() => Identity(None)).value).toEqual(
         Identity(None),
       );
     });

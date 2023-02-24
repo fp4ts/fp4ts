@@ -349,31 +349,13 @@ export class _SyntaxK<TC extends Base<any>, A> {
     this: SyntaxK<TC, A>,
     that: Lazy<Kind<TC['_F'], [A]>>,
   ): SyntaxK<TC, A> {
-    return new _SyntaxK(this.TC, this.TC.combineK_(this.value, that));
+    return new _SyntaxK(this.TC, this.TC.combineK_(this.value, that()));
   }
   public combineK<TC extends SemigroupK<any>>(
     this: SyntaxK<TC, A>,
     that: Lazy<SyntaxK<TC, A>>,
   ): SyntaxK<TC, A> {
     return this.combineKF(() => that().value);
-  }
-
-  // -- Alternative
-
-  public orElseF<TC extends Alternative<any>>(
-    this: SyntaxK<TC, A>,
-    that: Lazy<Kind<TC['_F'], [A]>>,
-  ): SyntaxK<TC, A> {
-    return new _SyntaxK(this.TC, this.TC.orElse_(this.value, that));
-  }
-  public orElse<TC extends Alternative<any>>(
-    this: SyntaxK<TC, A>,
-    that: Lazy<SyntaxK<TC, A>>,
-  ): SyntaxK<TC, A> {
-    return new _SyntaxK(
-      this.TC,
-      this.TC.orElse_(this.value, () => that().value),
-    );
   }
 
   // -- UnorderedFoldable

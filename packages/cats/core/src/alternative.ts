@@ -13,16 +13,8 @@ import * as A from './internal/array-helpers';
  * @category Type Class
  */
 export interface Alternative<F> extends Applicative<F>, MonoidK<F> {
-  readonly many: <A>(fa: Kind<F, [A]>) => Kind<F, [A[]]>;
-  readonly many1: <A>(fa: Kind<F, [A]>) => Kind<F, [A[]]>;
-
-  readonly orElse: <A>(
-    fb: () => Kind<F, [A]>,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [A]>;
-  readonly orElse_: <A>(
-    fa: Kind<F, [A]>,
-    fb: () => Kind<F, [A]>,
-  ) => Kind<F, [A]>;
+  many<A>(fa: Kind<F, [A]>): Kind<F, [A[]]>;
+  many1<A>(fa: Kind<F, [A]>): Kind<F, [A[]]>;
 }
 
 export type AlternativeRequirements<F> = ApplicativeRequirements<F> &
@@ -56,9 +48,6 @@ export const Alternative = Object.freeze({
 
         return self.map_(many1.value, xs => A.consCopyToArray(xs, []));
       },
-
-      orElse: fb => fa => self.orElse_(fa, fb),
-      orElse_: (fa, fb) => self.combineKEval_(fa, Eval.later(fb)).value,
 
       ...MonoidK.of(F),
       ...Applicative.of(F),
