@@ -26,18 +26,21 @@ abstract class _Free<in out F, out A> {
   }
 
   public foldMap<G>(G: Monad<G>): (nt: FunctionK<F, G>) => Kind<G, [A]> {
-    return (nt: FunctionK<F, G>): Kind<G, [A]> =>
-      G.tailRecM(this as Free<F, A>)(_free => {
-        const free = _free.step as View<F, A>;
-        switch (free.tag) {
-          case 0:
-            return G.pure(Right(free.value));
-          case 1:
-            return G.map_(nt(free.fa), Right);
-          case 2:
-            return G.map_(free.self.foldMap(G)(nt), cc => Left(free.f(cc)));
-        }
-      });
+    return (nt: FunctionK<F, G>): Kind<G, [A]> => this.foldMapImpl(G, nt);
+  }
+
+  private foldMapImpl<G>(G: Monad<G>, nt: FunctionK<F, G>): Kind<G, [A]> {
+    return G.tailRecM(this as Free<F, A>)(_free => {
+      const free = _free.step as View<F, A>;
+      switch (free.tag) {
+        case 0:
+          return G.pure(Right(free.value));
+        case 1:
+          return G.map_(nt(free.fa), Right);
+        case 2:
+          return G.map_(free.self.foldMap(G)(nt), cc => Left(free.f(cc)));
+      }
+    });
   }
 
   public runTailRec(F: Monad<F>): Kind<F, [A]> {

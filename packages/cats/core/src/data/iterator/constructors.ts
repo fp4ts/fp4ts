@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Option } from '../../option';
+import { Option } from '../option';
 import { pure as one, done } from './iterator-result';
 
 export const singleton = <A>(x: A): Iterator<A> => {

@@ -20,6 +20,8 @@ export * from './proxy';
 export * from './coproduct';
 export * from './product';
 
+export * from './iterator';
+
 export * from './cokleisli';
 export * from './kleisli';
 export * from './identity-t';

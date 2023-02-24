@@ -4,10 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eval, tupled } from '@fp4ts/core';
-import { Monoid, Ord } from '@fp4ts/cats-kernel';
-import { Option } from '../../option';
+import { Monoid } from '@fp4ts/cats-kernel';
+import { Option } from '../option';
 import { empty, lift } from './constructors';
-import { Set as OrdSet } from '../set';
 import * as IR from './iterator-result';
 
 export const toArray = <A>(iter: Iterator<A>): A[] => {
@@ -320,31 +319,6 @@ export const distinctBy_ = <A, B>(
       const b = f(next.value);
       if (!set.has(b)) {
         set.add(b);
-        return IR.pure(next.value);
-      }
-    }
-  });
-};
-
-export const distinctByOrd_ = <A, B>(
-  it: Iterator<A>,
-  f: (a: A) => B,
-  O: Ord<B>,
-): Iterator<A> => {
-  let set: OrdSet<B> = OrdSet.empty;
-  let done: boolean | undefined;
-  return lift(() => {
-    if (done) return IR.done;
-    while (true) {
-      const next = it.next();
-      if (next.done) {
-        // drop set reference to no leak
-        set = null as any;
-        return IR.done;
-      }
-      const b = f(next.value);
-      if (!set.contains(b, O)) {
-        set = set.insert(b, O);
         return IR.pure(next.value);
       }
     }

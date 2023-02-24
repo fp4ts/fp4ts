@@ -6,6 +6,7 @@
 import { $, $type, Eval, fst, Kind, snd, TyK, TyVar } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Align } from '../align';
+import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
 import { Apply } from '../apply';
 import { Contravariant } from '../contravariant';
@@ -23,8 +24,7 @@ import { Traversable } from '../traversable';
 import { TraversableFilter } from '../traversable-filter';
 import { Zip } from '../zip';
 import { Option } from './option';
-import { Alternative } from '../alternative';
-import { Iter } from './collections';
+import { Iter } from './iterator';
 
 /**
  * Product of the two functors.

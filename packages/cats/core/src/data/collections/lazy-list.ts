@@ -32,7 +32,7 @@ import { Apply, TraverseStrategy } from '../../apply';
 
 import { None, Option, Some } from '../option';
 import { Ior } from '../ior';
-import { Iter } from './iterator';
+import { Iter } from '../iterator';
 import { isIdentityTC } from '../identity';
 import { List, ListBuffer } from './list';
 import { Vector } from './vector';

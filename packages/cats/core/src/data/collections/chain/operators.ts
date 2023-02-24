@@ -21,7 +21,7 @@ import { Option, None, Some } from '../../option';
 import { Apply, TraverseStrategy } from '../../../apply';
 import { MonoidK } from '../../../monoid-k';
 
-import { Iter } from '../iterator';
+import { Iter } from '../../iterator';
 import { List } from '../list';
 import { Vector } from '../vector';
 

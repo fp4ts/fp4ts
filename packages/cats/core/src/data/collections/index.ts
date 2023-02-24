@@ -10,7 +10,6 @@ export * from './vector';
 export * from './chain';
 export * from './seq';
 export * from './set';
-export * from './iterator';
 export * from './non-empty-list';
 
 export * from './view';
