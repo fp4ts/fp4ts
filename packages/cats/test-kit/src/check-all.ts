@@ -3,7 +3,6 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Map } from '@fp4ts/cats-core/lib/data';
 import { Rule, RuleSet } from './rule-set';
 
 export function checkAll(setName: string, rs: RuleSet): void {
@@ -21,19 +20,20 @@ export function checkAll(setName: string, rs: RuleSet): void {
 }
 
 const collectSuites = (rs: RuleSet): [string, Rule[]][] => {
-  const loop = (acc: Map<string, Rule[]>, rs: RuleSet): Map<string, Rule[]> => {
-    acc = acc.insert(rs.name, rs.rules);
+  const acc = new Map<string, Rule[]>();
+  const loop = (rs: RuleSet): void => {
+    acc.set(rs.name, rs.rules);
 
     if (rs.parentProps.parents) {
-      return rs.parentProps.parents.reduce(loop, acc);
+      return rs.parentProps.parents.forEach(loop);
     }
 
     if (rs.parentProps.parent) {
-      return loop(acc, rs.parentProps.parent);
+      return loop(rs.parentProps.parent);
     }
-
-    return acc;
   };
 
-  return loop(Map.empty, rs).toArray;
+  loop(rs);
+
+  return [...acc.entries()];
 };
