@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { List, Show, Some } from '@fp4ts/cats';
-import { Writer } from '@fp4ts/cats-mtl';
+import { Writer } from '@fp4ts/mtl';
 import {
   Logger,
   logFormat,

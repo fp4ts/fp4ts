@@ -11,7 +11,6 @@
   "dependencies": {
     "@fp4ts/cats-core": "*",
     "@fp4ts/cats-kernel": "*",
-    "@fp4ts/cats-mtl": "*",
     "@fp4ts/core": "*",
     "@types/jest": "^29.2.3",
     "fast-check": "^3.3.0",

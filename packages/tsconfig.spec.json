@@ -7,6 +7,7 @@
     { "path": "./fused/tsconfig.spec.json" },
     { "path": "./http/tsconfig.spec.json" },
     { "path": "./logging/tsconfig.spec.json" },
+    { "path": "./mtl/tsconfig.spec.json" },
     { "path": "./optics/tsconfig.spec.json" },
     { "path": "./parse/tsconfig.spec.json" },
     { "path": "./schema/tsconfig.spec.json" },

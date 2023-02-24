@@ -11,7 +11,7 @@ import {
   Option,
   TraversableWithIndex,
 } from '@fp4ts/cats';
-import { Reader, State } from '@fp4ts/cats-mtl';
+import { Reader, State } from '@fp4ts/mtl';
 import {
   Fold,
   focus,

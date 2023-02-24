@@ -5,7 +5,7 @@
 
 import { $, Kind, pipe } from '@fp4ts/core';
 import { Functor } from '@fp4ts/cats';
-import { StateTF, WriterTF } from '@fp4ts/cats-mtl';
+import { StateTF, WriterTF } from '@fp4ts/mtl';
 import {
   Algebra,
   Eff,

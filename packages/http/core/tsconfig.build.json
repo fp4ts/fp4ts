@@ -9,6 +9,7 @@
     { "path": "../../core/tsconfig.build.json" },
     { "path": "../../cats/tsconfig.build.json" },
     { "path": "../../effect/tsconfig.build.json" },
+    { "path": "../../mtl/tsconfig.build.json" },
     { "path": "../../optics/tsconfig.build.json" },
     { "path": "../../parse/tsconfig.build.json" },
     { "path": "../../schema/tsconfig.build.json" },

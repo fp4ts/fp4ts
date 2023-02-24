@@ -7,6 +7,7 @@
     { "path": "./fused/tsconfig.build.json" },
     { "path": "./http/tsconfig.build.json" },
     { "path": "./logging/tsconfig.build.json" },
+    { "path": "./mtl/tsconfig.build.json" },
     { "path": "./optics/tsconfig.build.json" },
     { "path": "./parse/tsconfig.build.json" },
     { "path": "./schema/tsconfig.build.json" },

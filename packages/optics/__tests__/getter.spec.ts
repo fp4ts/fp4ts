@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { List, Monoid, None, Some } from '@fp4ts/cats';
-import { Reader, State } from '@fp4ts/cats-mtl';
+import { Reader, State } from '@fp4ts/mtl';
 import { to, fromFoldable, focus } from '@fp4ts/optics-core';
 
 describe('Getter', () => {

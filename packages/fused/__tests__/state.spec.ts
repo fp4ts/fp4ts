@@ -14,10 +14,11 @@ import {
   RWSTF,
   StateT,
   StateTF,
-} from '@fp4ts/cats-mtl';
-import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
+} from '@fp4ts/mtl';
+import { MonadStateSuite } from '@fp4ts/mtl-laws';
 import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as MA from '@fp4ts/mtl-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 import { RWSC, RWSTC, StateC } from '@fp4ts/fused-std';
@@ -61,7 +62,7 @@ describe('State Effect', () => {
     'IxStateT<MiniInt, MiniInt, Identity, *>',
     StateC.IxStateT(Algebra.Id),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
-    X => A.fp4tsIxStateT(fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
+    X => MA.fp4tsIxStateT(fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
     X => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(X, MiniInt.Eq)),
   );
 
@@ -69,7 +70,7 @@ describe('State Effect', () => {
     'IxStateT<MiniInt, MiniInt, Eval, *>',
     StateC.IxStateT(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
-    X => A.fp4tsIxStateT(fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt())))),
+    X => MA.fp4tsIxStateT(fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt())))),
     X => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
   );
 
@@ -77,7 +78,7 @@ describe('State Effect', () => {
     'StateT<MiniInt, MiniInt, Identity, *>',
     StateC.StateT(Algebra.Id),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
-    X => A.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
+    X => MA.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
     X =>
       Eq.by(
         eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(X, MiniInt.Eq)),
@@ -90,7 +91,7 @@ describe('State Effect', () => {
     StateC.StateT(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsStateT(
+      MA.fp4tsStateT(
         Monad.Eval,
         fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt()))),
       ),
@@ -106,7 +107,7 @@ describe('State Effect', () => {
     RWSC.Algebra(CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWS(
+      MA.fp4tsRWS(
         fc.func(fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void))),
       ),
     X =>
@@ -124,7 +125,7 @@ describe('State Effect', () => {
     RWSTC.Algebra(Algebra.Id, CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Identity.Monad,
         fc.func(fc.tuple(X, A.fp4tsMiniInt(), fc.constant(undefined as void))),
       ),
@@ -144,7 +145,7 @@ describe('State Effect', () => {
     RWSTC.Algebra(Algebra.Eval, CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Monad.Eval,
         fc.func(
           A.fp4tsEval(

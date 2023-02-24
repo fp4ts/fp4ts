@@ -12,6 +12,8 @@
     "./packages/http/*",
     "./packages/logging",
     "./packages/logging/*",
+    "./packages/mtl",
+    "./packages/mtl/*",
     "./packages/optics",
     "./packages/optics/*",
     "./packages/parse",

@@ -23,6 +23,7 @@ module.exports = {
     '<rootDir>/fused/__tests__',
     '<rootDir>/logging/__tests__',
     '<rootDir>/http/__tests__',
+    '<rootDir>/mtl/__tests__',
     '<rootDir>/optics/__tests__',
     '<rootDir>/parse/__tests__',
     '<rootDir>/schema/__tests__',

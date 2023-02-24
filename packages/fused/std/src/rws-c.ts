@@ -5,7 +5,7 @@
 
 import { $, absurd, Kind } from '@fp4ts/core';
 import { Functor, Monoid } from '@fp4ts/cats';
-import { RWS, IxRWSF } from '@fp4ts/cats-mtl';
+import { RWS, IxRWSF } from '@fp4ts/mtl';
 import { ReaderF, StateF, WriterF } from '@fp4ts/fused-core';
 import { Algebra, Eff, Handler } from '@fp4ts/fused-kernel';
 

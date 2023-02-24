@@ -9,7 +9,6 @@
   "dependencies": {
     "@fp4ts/cats-core": "*",
     "@fp4ts/cats-kernel": "*",
-    "@fp4ts/cats-mtl": "*",
     "@fp4ts/core": "*",
     "benny": "^3.7.1"
   },

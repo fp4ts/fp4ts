@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
-    "@fp4ts/cats-mtl": "*",
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
     "@fp4ts/effect-core": "*",
     "@fp4ts/effect-kernel": "*",
     "@fp4ts/effect-std": "*",
+    "@fp4ts/mtl": "*",
     "@types/jest": "^29.2.3",
     "fast-check": "^3.3.0",
     "jest": "^29.3.1"

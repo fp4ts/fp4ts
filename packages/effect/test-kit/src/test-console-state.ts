@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Show } from '@fp4ts/cats';
-import { State, StateF } from '@fp4ts/cats-mtl';
+import { State, StateF } from '@fp4ts/mtl';
 import { Console } from '@fp4ts/effect-std';
 
 export type ConsoleState<A> = State<ConsoleStateState, A>;

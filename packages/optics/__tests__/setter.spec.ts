@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq, List } from '@fp4ts/cats';
-import { Reader, State } from '@fp4ts/cats-mtl';
+import { Reader, State } from '@fp4ts/mtl';
 import { focus, fromFunctor, Setter } from '@fp4ts/optics-core';
 import { SetterSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';

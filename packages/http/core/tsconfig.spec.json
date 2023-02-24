@@ -9,6 +9,7 @@
     { "path": "../../core/tsconfig.spec.json" },
     { "path": "../../cats/tsconfig.spec.json" },
     { "path": "../../effect/tsconfig.spec.json" },
+    { "path": "../../mtl/tsconfig.spec.json" },
     { "path": "../../optics/tsconfig.spec.json" },
     { "path": "../../parse/tsconfig.spec.json" },
     { "path": "../../schema/tsconfig.spec.json" },

@@ -28,9 +28,18 @@ to verify correctness of those implementations.
   - `@fp4ts/cats-kernel` Small set of basic types and type classes (_included_)
   - `@fp4ts/cats-core` Majority of the type classes and basic data types (_included_) 
   - `@fp4ts/cats-laws` Laws for testing type class instances/implementations
+  - `@fp4ts/cats-profunctor` Profunctor type classes, data type, and instances for core types
+  - `@fp4ts/cats-profunctor-laws` Laws for testing profunctor type classes
+  - `@fp4ts/cats-arrow` Arrow type classes, data type, and instances for core types
+  - `@fp4ts/cats-arrow-laws` Laws for testing arrow type classes
   - `@fp4ts/cats-test-kit` Jest integration for testing type class instances and collection of builtin arbitraries for provided data types
   - `@fp4ts/free` Free structures
-  - `@fp4ts/cats-mtl` Transformer type classes and data types
+
+
+- `@fp4ts/mtl` Monad Transformer Library
+
+ - `@fp4ts/mtl-core` Set of type classes and transformer data types (_included_)
+ - `@fp4ts/mtl-laws` Set of laws for testing monad transformer implementations
 
 
 - `@fp4ts/effect` Port of the [Cats Effect](https://github.com/typelevel/cats-effect)

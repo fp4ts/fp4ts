@@ -1,0 +1,20 @@
+{
+  "name": "@fp4ts/mtl",
+  "version": "0.0.0",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/mtl-core": "*"
+  },
+  "devDependencies": {
+    "@fp4ts/cats-laws": "*",
+    "@fp4ts/cats-test-kit": "*",
+    "@fp4ts/mtl-laws": "*",
+    "typescript": "4.9.5"
+  }
+}

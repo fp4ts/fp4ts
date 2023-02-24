@@ -6,7 +6,7 @@
 import { flow, absurd, pipe, Kind } from '@fp4ts/core';
 import { Bifunctor } from '@fp4ts/cats';
 import { Choice, Tagged } from '@fp4ts/cats-profunctor';
-import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
+import { MonadReader, MonadState } from '@fp4ts/mtl';
 import { Settable } from '@fp4ts/optics-kernel';
 
 import { Optic } from './optics';

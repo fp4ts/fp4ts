@@ -15,8 +15,8 @@
   },
   "devDependencies": {
     "@fp4ts/cats-laws": "*",
-    "@fp4ts/cats-mtl-laws": "*",
     "@fp4ts/cats-test-kit": "*",
+    "@fp4ts/mtl-laws": "*",
     "typescript": "4.9.5"
   }
 }

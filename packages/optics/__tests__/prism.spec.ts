@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Eq, List, None, Some } from '@fp4ts/cats';
-import { Reader, State } from '@fp4ts/cats-mtl';
+import { Reader, State } from '@fp4ts/mtl';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
 import { focus, Prism_ } from '@fp4ts/optics-core';
 import { derivePrisms } from '@fp4ts/optics-derivation';

@@ -5,7 +5,7 @@
 
 import { $, $type, cached, Kind, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Functor, Monoid } from '@fp4ts/cats';
-import { RWSTF, RWST } from '@fp4ts/cats-mtl';
+import { RWSTF, RWST } from '@fp4ts/mtl';
 import {
   Reader,
   ReaderF,

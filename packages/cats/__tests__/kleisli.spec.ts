@@ -18,8 +18,6 @@ import {
   EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
-import { MonadReader } from '@fp4ts/cats-mtl';
-import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
 import {
   AlternativeSuite,
   ContravariantSuite,
@@ -187,27 +185,6 @@ describe('Kleisli', () => {
           eqKleisli<EitherStringF, MiniInt, X>(
             ExhaustiveCheck.miniInt(),
             Either.Eq(Eq.fromUniversalEquals(), E),
-          ),
-      ),
-    );
-
-    checkAll(
-      'Local<Kleisli<Option, MiniInt, *>>',
-      MonadReaderSuite(
-        MonadReader.Kleisli<OptionF, MiniInt>(Option.Monad),
-      ).local(
-        fc.integer(),
-        fc.integer(),
-        A.fp4tsMiniInt(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        MiniInt.Eq,
-        <X>(x: Arbitrary<X>) =>
-          A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
-        <X>(E: Eq<X>) =>
-          eqKleisli<OptionF, MiniInt, X>(
-            ExhaustiveCheck.miniInt(),
-            Option.Eq(E),
           ),
       ),
     );

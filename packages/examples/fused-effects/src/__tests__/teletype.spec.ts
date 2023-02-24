@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Monoid } from '@fp4ts/cats';
-import { StateT } from '@fp4ts/cats-mtl';
-import { Algebra } from '@fp4ts/fused';
+import { StateT } from '@fp4ts/mtl';
+import { Algebra } from '@fp4ts/fused-kernel';
 import { StateC, WriterC } from '@fp4ts/fused-std';
 import { teletype } from '../teletype';
 import { TeletypeTestC } from './teletype-test-c';

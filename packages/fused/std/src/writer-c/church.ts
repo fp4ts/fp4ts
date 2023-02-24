@@ -8,7 +8,7 @@ import { Bifunctor, Functor, Monad, Monoid } from '@fp4ts/cats';
 import {
   WriterTChurch as WriterT,
   WriterTChurchF as WriterTF,
-} from '@fp4ts/cats-mtl';
+} from '@fp4ts/mtl';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
 

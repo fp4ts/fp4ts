@@ -12,8 +12,6 @@
     { "path": "./free/tsconfig.build.json" },
     { "path": "./laws/tsconfig.build.json" },
     { "path": "./kernel/tsconfig.build.json" },
-    { "path": "./mtl/tsconfig.build.json" },
-    { "path": "./mtl-laws/tsconfig.build.json" },
     { "path": "./perf/tsconfig.build.json" },
     { "path": "./profunctor/tsconfig.build.json" },
     { "path": "./profunctor-laws/tsconfig.build.json" },

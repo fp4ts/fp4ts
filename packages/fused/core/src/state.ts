@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, compose, Kind, TyK, TyVar } from '@fp4ts/core';
-import { MonadState } from '@fp4ts/cats-mtl';
+import { MonadState } from '@fp4ts/mtl';
 import { Algebra } from '@fp4ts/fused-kernel';
 
 /**

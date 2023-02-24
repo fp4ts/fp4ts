@@ -15,7 +15,7 @@ import {
   Traversable,
   TraversableWithIndex,
 } from '@fp4ts/cats';
-import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
+import { MonadReader, MonadState } from '@fp4ts/mtl';
 import * as I from './iso';
 import * as F from './fold';
 import * as ST from './setter';

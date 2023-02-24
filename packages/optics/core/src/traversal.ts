@@ -10,7 +10,7 @@ import {
   Traversable,
   TraversableWithIndex,
 } from '@fp4ts/cats';
-import { State } from '@fp4ts/cats-mtl';
+import { State } from '@fp4ts/mtl';
 import { Indexable } from './ix';
 import { backwards } from './fold';
 import { PLensLike, POver } from './optics';

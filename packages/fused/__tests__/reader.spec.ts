@@ -14,10 +14,11 @@ import {
   KleisliF,
   Monad,
 } from '@fp4ts/cats';
-import { IxRWSF, RWST, RWSTF } from '@fp4ts/cats-mtl';
-import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
+import { IxRWSF, RWST, RWSTF } from '@fp4ts/mtl';
+import { MonadReaderSuite } from '@fp4ts/mtl-laws';
 import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as MA from '@fp4ts/mtl-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 import { ReaderC, RWSC, RWSTC } from '@fp4ts/fused-std';
@@ -32,7 +33,7 @@ describe('Reader Effect', () => {
     mkArbF: <X>(A: Arbitrary<X>) => Arbitrary<Kind<F, [X]>>,
     mkEqF: <X>(A: Eq<X>) => Eq<Kind<F, [X]>>,
   ) {
-    const M = Reader.MonadReader(F);
+    const M = Reader.MonadReader<R, F>(F);
     describe(nameF, () => {
       checkAll(
         `Local<${nameF}, ${nameR}>`,
@@ -95,7 +96,7 @@ describe('Reader Effect', () => {
     RWSC.Algebra(CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWS(
+      MA.fp4tsRWS(
         fc.func(fc.tuple(X, fc.constant(undefined), fc.constant(undefined))),
       ),
     X =>
@@ -110,7 +111,7 @@ describe('Reader Effect', () => {
     RWSTC.Algebra(Algebra.Id, CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Identity.Monad,
         fc.func(fc.tuple(X, fc.constant(undefined), fc.constant(undefined))),
       ),
@@ -137,7 +138,7 @@ describe('Reader Effect', () => {
     RWSTC.Algebra(Algebra.Id, CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Identity.Monad,
         fc.func(fc.tuple(X, fc.constant(undefined), fc.constant(undefined))),
       ),
@@ -164,7 +165,7 @@ describe('Reader Effect', () => {
     RWSTC.Algebra(Algebra.Eval, CommutativeMonoid.void),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Monad.Eval,
         fc.func(
           A.fp4tsEval(

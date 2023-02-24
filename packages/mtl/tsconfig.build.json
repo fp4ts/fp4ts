@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./lib",
+  },
+  "include": ["./index.ts"],
+  "references": [
+    { "path": "./core/tsconfig.build.json" },
+    { "path": "./laws/tsconfig.build.json" },
+    { "path": "./perf/tsconfig.build.json" },
+    { "path": "./test-kit/tsconfig.build.json" },
+  ]
+}

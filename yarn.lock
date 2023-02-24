@@ -651,7 +651,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fp4ts/cats-arrow-laws@workspace:packages/cats/arrow-laws":
+"@fp4ts/cats-arrow-laws@*, @fp4ts/cats-arrow-laws@workspace:packages/cats/arrow-laws":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-arrow-laws@workspace:packages/cats/arrow-laws"
   dependencies:
@@ -694,7 +694,6 @@ __metadata:
     "@fp4ts/cats-core": "*"
     "@fp4ts/cats-kernel": "*"
     "@fp4ts/cats-laws": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     fast-check: ^3.3.0
@@ -737,39 +736,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fp4ts/cats-mtl-laws@*, @fp4ts/cats-mtl-laws@workspace:packages/cats/mtl-laws":
-  version: 0.0.0-use.local
-  resolution: "@fp4ts/cats-mtl-laws@workspace:packages/cats/mtl-laws"
-  dependencies:
-    "@fp4ts/cats-core": "*"
-    "@fp4ts/cats-kernel": "*"
-    "@fp4ts/cats-laws": "*"
-    "@fp4ts/cats-mtl": "*"
-    "@fp4ts/cats-test-kit": "*"
-    "@fp4ts/core": "*"
-    fast-check: ^3.3.0
-    typescript: 4.9.5
-  languageName: unknown
-  linkType: soft
-
-"@fp4ts/cats-mtl@*, @fp4ts/cats-mtl@workspace:packages/cats/mtl":
-  version: 0.0.0-use.local
-  resolution: "@fp4ts/cats-mtl@workspace:packages/cats/mtl"
-  dependencies:
-    "@fp4ts/cats-core": "*"
-    "@fp4ts/cats-kernel": "*"
-    "@fp4ts/core": "*"
-    typescript: 4.9.5
-  languageName: unknown
-  linkType: soft
-
 "@fp4ts/cats-perf@workspace:packages/cats/perf":
   version: 0.0.0-use.local
   resolution: "@fp4ts/cats-perf@workspace:packages/cats/perf"
   dependencies:
     "@fp4ts/cats-core": "*"
     "@fp4ts/cats-kernel": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     benny: ^3.7.1
     typescript: 4.9.5
@@ -806,7 +778,6 @@ __metadata:
   dependencies:
     "@fp4ts/cats-core": "*"
     "@fp4ts/cats-kernel": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@types/jest": ^29.2.3
     fast-check: ^3.3.0
@@ -897,12 +868,12 @@ __metadata:
   resolution: "@fp4ts/effect-test-kit@workspace:packages/effect/test-kit"
   dependencies:
     "@fp4ts/cats": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect-core": "*"
     "@fp4ts/effect-kernel": "*"
     "@fp4ts/effect-std": "*"
+    "@fp4ts/mtl": "*"
     "@types/jest": ^29.2.3
     fast-check: ^3.3.0
     jest: ^29.3.1
@@ -926,9 +897,9 @@ __metadata:
   resolution: "@fp4ts/fp-to-the-max@workspace:packages/examples/fp-to-the-max"
   dependencies:
     "@fp4ts/cats": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
+    "@fp4ts/mtl": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -938,9 +909,9 @@ __metadata:
   resolution: "@fp4ts/fused-core@workspace:packages/fused/core"
   dependencies:
     "@fp4ts/cats": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/fused-kernel": "*"
+    "@fp4ts/mtl": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -954,6 +925,7 @@ __metadata:
     "@fp4ts/effect": "*"
     "@fp4ts/fused": "*"
     "@fp4ts/http-test-kit-node": "*"
+    "@fp4ts/mtl": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -985,11 +957,11 @@ __metadata:
   resolution: "@fp4ts/fused@workspace:packages/fused"
   dependencies:
     "@fp4ts/cats-laws": "*"
-    "@fp4ts/cats-mtl-laws": "*"
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/fused-core": "*"
     "@fp4ts/fused-kernel": "*"
     "@fp4ts/fused-std": "*"
+    "@fp4ts/mtl-laws": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -1012,7 +984,6 @@ __metadata:
   resolution: "@fp4ts/http-core@workspace:packages/http/core"
   dependencies:
     "@fp4ts/cats": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     "@fp4ts/effect": "*"
     "@fp4ts/optics": "*"
@@ -1217,7 +1188,6 @@ __metadata:
   resolution: "@fp4ts/logging-kernel@workspace:packages/logging/kernel"
   dependencies:
     "@fp4ts/cats": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/core": "*"
     typescript: 4.9.5
   languageName: unknown
@@ -1233,15 +1203,82 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@fp4ts/mtl-core@*, @fp4ts/mtl-core@workspace:packages/mtl/core":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/mtl-core@workspace:packages/mtl/core"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/cats-arrow": "*"
+    "@fp4ts/cats-profunctor": "*"
+    "@fp4ts/core": "*"
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/mtl-laws@*, @fp4ts/mtl-laws@workspace:packages/mtl/laws":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/mtl-laws@workspace:packages/mtl/laws"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/cats-arrow": "*"
+    "@fp4ts/cats-arrow-laws": "*"
+    "@fp4ts/cats-laws": "*"
+    "@fp4ts/cats-profunctor": "*"
+    "@fp4ts/cats-profunctor-laws": "*"
+    "@fp4ts/cats-test-kit": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/mtl-core": "*"
+    fast-check: ^3.3.0
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/mtl-perf@workspace:packages/mtl/perf":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/mtl-perf@workspace:packages/mtl/perf"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/mtl-core": "*"
+    benny: ^3.7.1
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/mtl-test-kit@workspace:packages/mtl/test-kit":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/mtl-test-kit@workspace:packages/mtl/test-kit"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/cats-test-kit": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/mtl-core": "*"
+    fast-check: ^3.3.0
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/mtl@*, @fp4ts/mtl@workspace:packages/mtl":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/mtl@workspace:packages/mtl"
+  dependencies:
+    "@fp4ts/cats-laws": "*"
+    "@fp4ts/cats-test-kit": "*"
+    "@fp4ts/mtl-core": "*"
+    "@fp4ts/mtl-laws": "*"
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
 "@fp4ts/optics-core@*, @fp4ts/optics-core@workspace:packages/optics/core":
   version: 0.0.0-use.local
   resolution: "@fp4ts/optics-core@workspace:packages/optics/core"
   dependencies:
     "@fp4ts/cats": "*"
     "@fp4ts/cats-arrow": "*"
-    "@fp4ts/cats-mtl": "*"
     "@fp4ts/cats-profunctor": "*"
     "@fp4ts/core": "*"
+    "@fp4ts/mtl": "*"
     "@fp4ts/optics-kernel": "*"
     typescript: 4.9.5
   languageName: unknown

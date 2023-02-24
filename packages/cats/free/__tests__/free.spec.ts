@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { $type, HKT, id, TyK, TyVar } from '@fp4ts/core';
+import { $, $type, HKT, id, TyK, TyVar } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { FunctionK } from '@fp4ts/cats-core';
 import {
@@ -13,13 +13,13 @@ import {
   IdentityF,
   Identity,
 } from '@fp4ts/cats-core/lib/data';
-import { State, StateF } from '@fp4ts/cats-mtl';
 import { MonadDeferSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import { Free } from '@fp4ts/cats-free';
 
+import { State, StateF } from './state';
 import { fp4tsFree } from './free-arbitraries';
 
 class TestConsole<A> implements HKT<TestConsoleF, [A]> {
@@ -45,7 +45,7 @@ interface TestConsoleF extends TyK<[unknown]> {
 
 describe('Free', () => {
   type S = [string[], string[]];
-  const nt: FunctionK<TestConsoleF, StateF<S>> = <A>(
+  const nt: FunctionK<TestConsoleF, $<StateF, [S]>> = <A>(
     _c: TestConsole<A>,
   ): State<S, A> => {
     const c = _c as any as WriteLine | ReadLine;
@@ -75,7 +75,7 @@ describe('Free', () => {
 
     const resultState = program.foldMap(State.Monad<S>())(nt);
 
-    const [a, s] = resultState.runState([['James'], []]);
+    const [a, s] = resultState([['James'], []]).value;
     expect(s).toEqual([[], ['What is your name?', 'Hello James!']]);
     expect(a).toBeUndefined();
   });

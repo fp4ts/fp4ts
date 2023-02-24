@@ -14,7 +14,7 @@ import {
 } from '@fp4ts/cats';
 import { Arrow } from '@fp4ts/cats-arrow';
 import { Profunctor } from '@fp4ts/cats-profunctor';
-import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
+import { MonadReader, MonadState } from '@fp4ts/mtl';
 import { Indexable, IndexedF } from './ix';
 import { LensLike, Optic, Over } from './optics';
 import { Fold, IndexedFold } from './fold';

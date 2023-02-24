@@ -22,7 +22,7 @@ import {
   Some,
   Traversable,
 } from '@fp4ts/cats';
-import { MonadReader, MonadState } from '@fp4ts/cats-mtl';
+import { MonadReader, MonadState } from '@fp4ts/mtl';
 import { Choice } from '@fp4ts/cats-profunctor';
 
 import * as Monoids from './internal/monoids';

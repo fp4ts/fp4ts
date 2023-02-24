@@ -5,8 +5,8 @@
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats';
-import { MonadWriter } from '@fp4ts/cats-mtl';
 import { Algebra } from '@fp4ts/fused-kernel';
+import { MonadWriter } from '@fp4ts/mtl';
 
 /**
  * The `Writer` effect.

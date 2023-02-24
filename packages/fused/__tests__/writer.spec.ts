@@ -6,13 +6,14 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, EvalF, Kind } from '@fp4ts/core';
 import { Eq, IdentityF, Monoid, Identity, Monad } from '@fp4ts/cats';
-import { IxRWSF, RWST, RWSTF, WriterTF } from '@fp4ts/cats-mtl';
-import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
+import { IxRWSF, RWST, RWSTF, WriterTF } from '@fp4ts/mtl';
+import { MonadWriterSuite } from '@fp4ts/mtl-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { Writer, WriterF } from '@fp4ts/fused-core';
 import { Algebra } from '@fp4ts/fused-kernel';
 import { RWSC, RWSTC, WriterC } from '@fp4ts/fused-std';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as MA from '@fp4ts/mtl-test-kit/lib/arbitraries';
 
 describe('Writer Effect', () => {
   function runTests<F, W>(
@@ -75,7 +76,7 @@ describe('Writer Effect', () => {
     RWSC.Algebra(Monoid.string),
     [fc.string(), Eq.fromUniversalEquals(), Monoid.string, 'string'],
     X =>
-      A.fp4tsRWS(
+      MA.fp4tsRWS(
         fc.func(fc.tuple(X, fc.constant(undefined as void), fc.string())),
       ),
     X =>
@@ -89,7 +90,7 @@ describe('Writer Effect', () => {
     RWSTC.Algebra(Algebra.Id, Monoid.string),
     [fc.string(), Eq.fromUniversalEquals(), Monoid.string, 'string'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Identity.Monad,
         fc.func(fc.tuple(X, fc.constant(undefined as void), fc.string())),
       ),
@@ -106,7 +107,7 @@ describe('Writer Effect', () => {
     RWSTC.Algebra(Algebra.Eval, Monoid.string),
     [fc.string(), Eq.fromUniversalEquals(), Monoid.string, 'string'],
     X =>
-      A.fp4tsRWST(
+      MA.fp4tsRWST(
         Monad.Eval,
         fc.func(
           A.fp4tsEval(fc.tuple(X, fc.constant(undefined as void), fc.string())),

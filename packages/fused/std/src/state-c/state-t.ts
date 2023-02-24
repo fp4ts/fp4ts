@@ -5,7 +5,7 @@
 
 import { $, $type, cached, Kind, TyK, TyVar } from '@fp4ts/core';
 import { Bifunctor, Functor, Monad } from '@fp4ts/cats';
-import { StateT, StateTF } from '@fp4ts/cats-mtl';
+import { StateT, StateTF } from '@fp4ts/mtl';
 import { StateF } from '@fp4ts/fused-core';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 

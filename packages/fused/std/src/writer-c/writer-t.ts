@@ -5,7 +5,7 @@
 
 import { $, $type, cached, Kind, pipe, tupled, TyK, TyVar } from '@fp4ts/core';
 import { Bifunctor, Functor, Monad, Monoid } from '@fp4ts/cats';
-import { WriterT, WriterTF } from '@fp4ts/cats-mtl';
+import { WriterT, WriterTF } from '@fp4ts/mtl';
 import { Algebra, Carrier, Eff, Handler } from '@fp4ts/fused-kernel';
 import { WriterF } from '@fp4ts/fused-core';
 
