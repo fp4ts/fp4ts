@@ -9,10 +9,14 @@ import { List, Option } from '@fp4ts/cats-core/lib/data';
 import { State, IxState } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, forAll, MiniInt } from '@fp4ts/cats-test-kit';
+import {
+  checkAll,
+  forAll,
+  ExhaustiveCheck,
+  MiniInt,
+} from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('State', () => {
   describe('types', () => {
@@ -187,7 +191,7 @@ describe('State', () => {
         X => A.fp4tsState(A.fp4tsMiniInt(), X),
         <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
             fa => s => fa.runState(s),
           ),
       ),
@@ -201,7 +205,7 @@ describe('State', () => {
         X => A.fp4tsState(A.fp4tsMiniInt(), X),
         <X>(EX: Eq<X>): Eq<State<MiniInt, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(EX, MiniInt.Eq)),
             fa => s => fa.runState(s),
           ),
       ),

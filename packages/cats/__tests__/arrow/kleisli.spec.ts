@@ -10,13 +10,12 @@ import { Kleisli } from '@fp4ts/cats-core/lib/data';
 import { ArrowApply, ArrowChoice } from '@fp4ts/cats-arrow';
 import { ArrowApplySuite, ArrowChoiceSuite } from '@fp4ts/cats-arrow-laws';
 import { Monad } from '@fp4ts/cats-core';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Kleisli', () => {
-  const eqKleisli = <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
+  const eqKleisli = <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
     eq.fn1Eq(X, Eq.Eval(Y));
 
   checkAll(
@@ -28,22 +27,20 @@ describe('Kleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
         A.fp4tsKleisli<EvalF, X, Y>(A.fp4tsEval(Y)),
       eqKleisli,
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: ec.ExhaustiveCheck<Y>) =>
-        ec.instance<Kleisli<EvalF, X, Y>>(
-          Y.allValues.map(y => Kleisli((x: X) => Eval.now(y))),
-        ),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: ExhaustiveCheck<Y>) =>
+        Y.map(y => Kleisli((x: X) => Eval.now(y))),
     ),
   );
 
@@ -56,13 +53,13 @@ describe('Kleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>

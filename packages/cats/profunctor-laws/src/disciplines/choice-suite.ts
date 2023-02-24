@@ -9,7 +9,6 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { Either } from '@fp4ts/cats-core/lib/data';
 import { Choice } from '@fp4ts/cats-profunctor';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { ChoiceLaws } from '../choice-laws';
 import { ProfunctorSuite } from './profunctor-suite';
@@ -48,14 +47,14 @@ export const ChoiceSuite = <P>(P: Choice<P>) => {
             forAll(
               mkArbP(arbA, arbB),
               laws.leftIsSwappedRight<C>(),
-            )(mkEqP(ec.either(EcA, EcC), Either.Eq(EqB, EqC))),
+            )(mkEqP(ExhaustiveCheck.either(EcA, EcC), Either.Eq(EqB, EqC))),
           ],
           [
             'choice right is swapped left',
             forAll(
               mkArbP(arbA, arbB),
               laws.rightIsSwappedLeft<C>(),
-            )(mkEqP(ec.either(EcC, EcA), Either.Eq(EqC, EqB))),
+            )(mkEqP(ExhaustiveCheck.either(EcC, EcA), Either.Eq(EqC, EqB))),
           ],
           [
             'choice rmap Left is lmap Left andThen left',
@@ -77,7 +76,7 @@ export const ChoiceSuite = <P>(P: Choice<P>) => {
               mkArbP(arbA, arbB),
               fc.func<[C], D>(arbD),
               laws.dinaturalityLeft,
-            )(mkEqP(ec.either(EcA, EcC), Either.Eq(EqB, EqD))),
+            )(mkEqP(ExhaustiveCheck.either(EcA, EcC), Either.Eq(EqB, EqD))),
           ],
           [
             'choice dinaturality right',
@@ -85,7 +84,7 @@ export const ChoiceSuite = <P>(P: Choice<P>) => {
               mkArbP(arbA, arbB),
               fc.func<[C], D>(arbD),
               laws.dinaturalityRight,
-            )(mkEqP(ec.either(EcC, EcA), Either.Eq(EqD, EqB))),
+            )(mkEqP(ExhaustiveCheck.either(EcC, EcA), Either.Eq(EqD, EqB))),
           ],
           [
             'choice left . left == dimap',
@@ -94,7 +93,7 @@ export const ChoiceSuite = <P>(P: Choice<P>) => {
               laws.leftLeftIsIsDimap<C, D>(),
             )(
               mkEqP(
-                ec.either(ec.either(EcA, EcC), EcD),
+                ExhaustiveCheck.either(ExhaustiveCheck.either(EcA, EcC), EcD),
                 Either.Eq(Either.Eq(EqB, EqC), EqD),
               ),
             ),
@@ -106,7 +105,7 @@ export const ChoiceSuite = <P>(P: Choice<P>) => {
               laws.rightRightIsIsDimap<C, D>(),
             )(
               mkEqP(
-                ec.either(EcD, ec.either(EcC, EcA)),
+                ExhaustiveCheck.either(EcD, ExhaustiveCheck.either(EcC, EcA)),
                 Either.Eq(EqD, Either.Eq(EqC, EqB)),
               ),
             ),

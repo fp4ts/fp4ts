@@ -6,6 +6,7 @@
 import fc from 'fast-check';
 import { Proxy } from '@fp4ts/cats-core/lib/data';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { Monad } from '@fp4ts/cats-core';
 import {
   AlternativeSuite,
   ContravariantSuite,
@@ -16,10 +17,8 @@ import {
   UnalignSuite,
   UnzipSuite,
 } from '@fp4ts/cats-laws';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { Monad } from '@fp4ts/cats-core';
 
 describe('Proxy', () => {
   checkAll(
@@ -72,8 +71,8 @@ describe('Proxy', () => {
     ContravariantSuite(Proxy.Contravariant).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
+      ExhaustiveCheck.miniInt(),
       <X>() => fc.constant(Proxy<X>()),
       <X>() => Proxy.Eq<X>(),
     ),

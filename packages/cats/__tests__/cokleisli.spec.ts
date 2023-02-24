@@ -14,7 +14,6 @@ import {
   fn1Eq,
   MiniInt,
 } from '@fp4ts/cats-test-kit';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Cokleisli', () => {
   describe('Laws', () => {
@@ -35,7 +34,7 @@ describe('Cokleisli', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>) => fc.func<[MiniInt], X>(X),
-        <X>(X: Eq<X>) => eqCokleisli(ec.miniInt(), X),
+        <X>(X: Eq<X>) => eqCokleisli(ExhaustiveCheck.miniInt(), X),
       ),
     );
   });

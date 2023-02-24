@@ -12,9 +12,8 @@ import {
   ArrowChoiceSuite,
   ArrowLoopSuite,
 } from '@fp4ts/cats-arrow-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function', () => {
@@ -27,19 +26,19 @@ describe('Function', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
       eq.fn1Eq,
-      <X, Y>(ecx: ec.ExhaustiveCheck<X>, ecy: ec.ExhaustiveCheck<Y>) =>
-        ec.instance(ecy.allValues.map(y => (x: X) => y)),
+      <X, Y>(ecx: ExhaustiveCheck<X>, ecy: ExhaustiveCheck<Y>) =>
+        ecy.map(y => (x: X) => y),
     ),
   );
 
@@ -52,13 +51,13 @@ describe('Function', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
@@ -75,13 +74,13 @@ describe('Function', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),

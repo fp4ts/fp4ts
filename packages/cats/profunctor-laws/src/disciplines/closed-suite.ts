@@ -9,7 +9,6 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { Closed } from '@fp4ts/cats-profunctor';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { ClosedLaws } from '../closed-laws';
 import { ProfunctorSuite } from './profunctor-suite';
@@ -48,7 +47,7 @@ export const ClosedSuite = <P>(P: Closed<P>) => {
               laws.lmapClosedIsRmapClosed,
             )(
               mkEqP(
-                ec.instance(EcA.allValues.map(a => (_: X) => a)),
+                EcA.map(a => (_: X) => a),
                 eq.fn1Eq(EcX, EqB),
               ),
             ),
@@ -60,7 +59,7 @@ export const ClosedSuite = <P>(P: Closed<P>) => {
               laws.closedClosedIsClosedDimapUncurryCurry<X, Y>(),
             )(
               mkEqP(
-                ec.instance(EcA.allValues.map(a => (_: X) => (_: Y) => a)),
+                EcA.map(a => (_: X) => (_: Y) => a),
                 eq.fn1Eq(EcX, eq.fn1Eq(EcY, EqB)),
               ),
             ),

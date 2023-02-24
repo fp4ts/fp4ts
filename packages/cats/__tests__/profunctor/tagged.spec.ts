@@ -7,7 +7,7 @@ import fc from 'fast-check';
 import { id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Defer, Unzip } from '@fp4ts/cats-core';
-import { List, Proxy } from '@fp4ts/cats-core/lib/data';
+import { Proxy } from '@fp4ts/cats-core/lib/data';
 import { Tagged } from '@fp4ts/cats-profunctor';
 import {
   ChoiceSuite,
@@ -15,9 +15,8 @@ import {
   CorepresentableSuite,
 } from '@fp4ts/cats-profunctor-laws';
 import { BifunctorSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Tagged', () => {
   checkAll(
@@ -29,13 +28,13 @@ describe('Tagged', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       (_, Y) => Y,
       (_, Y) => Y,
-      () => ec.instance(List(Proxy<any>())),
+      () => ExhaustiveCheck(Proxy<any>()),
       { ...Defer.Eval, ...Unzip.Eval },
       A.fp4tsEval,
     ),
@@ -49,10 +48,10 @@ describe('Tagged', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       (_, Y) => Y,
       (_, Y) => Y,
@@ -68,12 +67,12 @@ describe('Tagged', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       (_, Y) => Y,
       (_, Y) => Y,

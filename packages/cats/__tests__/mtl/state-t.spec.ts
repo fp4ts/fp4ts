@@ -11,10 +11,9 @@ import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
 import { StateT } from '@fp4ts/cats-mtl';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
 import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('IxStateT', () => {
   function runTests<F>(
@@ -36,7 +35,7 @@ describe('IxStateT', () => {
           ),
         <X>(X: Eq<X>): Eq<StateT<MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
             StateT.runAS(F),
           ),
       ),
@@ -62,7 +61,7 @@ describe('IxStateT', () => {
           ),
         <X>(X: Eq<X>): Eq<StateT<MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
             StateT.runAS(F),
           ),
       ),
@@ -117,7 +116,7 @@ describe('IxStateT', () => {
       <X>(X: Eq<X>): Eq<StateT<MiniInt, $<EitherF, [string]>, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.miniInt(),
+            ExhaustiveCheck.miniInt(),
             Either.Eq(Eq.fromUniversalEquals(), Eq.tuple(X, MiniInt.Eq)),
           ),
           StateT.runAS(EitherSM),

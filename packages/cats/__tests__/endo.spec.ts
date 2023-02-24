@@ -7,10 +7,9 @@ import { id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Foldable, MonoidK } from '@fp4ts/cats-core';
 import { MonoidKSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Endo', () => {
   it('should apply composition of endo', () => {
@@ -43,7 +42,7 @@ describe('Endo', () => {
         MiniInt.Eq,
         A.fp4tsEndo,
         // @ts-expect-error
-        <X>(EX: Eq<X>) => E.fn1Eq(ec.miniInt(), EX),
+        <X>(EX: Eq<X>) => E.fn1Eq(ExhaustiveCheck.miniInt(), EX),
       ),
     );
   });

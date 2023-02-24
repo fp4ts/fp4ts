@@ -22,14 +22,16 @@ import {
   ArrowSuite,
   ComposeSuite,
 } from '@fp4ts/cats-arrow-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Cokleisli', () => {
-  const eqCokleisli = <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
-    eq.fn1Eq(ec.instance(X.allValues.map((x: X) => Eval.now(x))), Y);
+  const eqCokleisli = <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
+    eq.fn1Eq(
+      X.map((x: X) => Eval.now(x)),
+      Y,
+    );
 
   checkAll(
     'ArrowLoop<Cokleisli<Eval, *, *>>',
@@ -40,13 +42,13 @@ describe('Cokleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
@@ -74,9 +76,9 @@ describe('Cokleisli', () => {
     );
 
   const cofreeNelEC = <A>(
-    ecA: ec.ExhaustiveCheck<A>,
-  ): ec.ExhaustiveCheck<Cofree<OptionF, A>> =>
-    ec.instance(
+    ecA: ExhaustiveCheck<A>,
+  ): ExhaustiveCheck<Cofree<OptionF, A>> =>
+    ExhaustiveCheck.instance(
       nonEmptySubsequences(ecA.allValues.take(3))
         .filter(xs => xs.nonEmpty)
         .map(nelToCofree),
@@ -89,11 +91,11 @@ describe('Cokleisli', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
     ),
   );
 
@@ -104,15 +106,12 @@ describe('Cokleisli', () => {
       fc.integer(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Option<X>], Y>(Y),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
-        eq.fn1Eq(
-          ec.instance(List(None as Option<X>)['++'](X.allValues.map(Some))),
-          Y,
-        ),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
+        eq.fn1Eq(ExhaustiveCheck(None as Option<X>).concat(X.map(Some)), Y),
     ),
   );
 
@@ -125,16 +124,16 @@ describe('Cokleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
     ),
   );
 
@@ -147,16 +146,16 @@ describe('Cokleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[X], Y>(Y),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(X, Y),
     ),
   );
 
@@ -169,17 +168,17 @@ describe('Cokleisli', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X, Y>(X: Arbitrary<X>, Y: Arbitrary<Y>) =>
         fc.func<[Cofree<OptionF, X>], Y>(Y),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(cofreeNelEC(X), Y),
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) => eq.fn1Eq(cofreeNelEC(X), Y),
     ),
   );
 });

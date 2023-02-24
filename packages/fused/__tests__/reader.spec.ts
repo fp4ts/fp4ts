@@ -16,10 +16,9 @@ import {
 } from '@fp4ts/cats';
 import { IxRWSF, RWST, RWSTF } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { ReaderC, RWSC, RWSTC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
@@ -72,7 +71,7 @@ describe('Reader Effect', () => {
     ReaderC.Function1(),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => fc.func(X),
-    X => eq.fn1Eq(ec.miniInt(), X),
+    X => eq.fn1Eq(ExhaustiveCheck.miniInt(), X),
   );
 
   runTests<$<KleisliF, [IdentityF, MiniInt]>, MiniInt>(
@@ -80,7 +79,7 @@ describe('Reader Effect', () => {
     ReaderC.Kleisli(Algebra.Id),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsKleisli(X),
-    X => eq.fn1Eq(ec.miniInt(), X),
+    X => eq.fn1Eq(ExhaustiveCheck.miniInt(), X),
   );
 
   runTests<$<KleisliF, [EvalF, MiniInt]>, MiniInt>(
@@ -88,7 +87,7 @@ describe('Reader Effect', () => {
     ReaderC.Kleisli(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsKleisli(A.fp4tsEval(X)),
-    X => eq.fn1Eq(ec.miniInt(), Eq.Eval(X)),
+    X => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.Eval(X)),
   );
 
   runTests<$<IxRWSF, [MiniInt, void, void, void]>, MiniInt>(
@@ -101,7 +100,7 @@ describe('Reader Effect', () => {
       ),
     X =>
       Eq.by(
-        eq.fn1Eq(ec.miniInt(), X),
+        eq.fn1Eq(ExhaustiveCheck.miniInt(), X),
         rws => r => rws.runAll(r, undefined, CommutativeMonoid.void)[0],
       ),
   );
@@ -118,7 +117,7 @@ describe('Reader Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.tuple(
             X,
             Eq.fromUniversalEquals<void>(),
@@ -145,7 +144,7 @@ describe('Reader Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.tuple(
             X,
             Eq.fromUniversalEquals<void>(),
@@ -180,7 +179,7 @@ describe('Reader Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.Eval(
             Eq.tuple(
               X,

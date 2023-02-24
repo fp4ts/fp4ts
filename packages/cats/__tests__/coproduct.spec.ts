@@ -29,9 +29,8 @@ import {
   FunctorSuite,
   TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
-import { checkAll } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('coproduct', () => {
@@ -92,10 +91,10 @@ describe('coproduct', () => {
       ).contravariant(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
-        ec.miniInt(),
-        ec.miniInt(),
+        ExhaustiveCheck.miniInt(),
+        ExhaustiveCheck.miniInt(),
         () => A.fp4tsCoproduct(fc.func(fc.integer()), fc.func(fc.integer())),
-        <X>(X: ec.ExhaustiveCheck<X>) =>
+        <X>(X: ExhaustiveCheck<X>) =>
           Coproduct.Eq(
             eq.fn1Eq(X, Eq.fromUniversalEquals<number>()) as any,
             eq.fn1Eq(X, Eq.fromUniversalEquals<number>()) as any,
@@ -113,14 +112,14 @@ describe('coproduct', () => {
       ).contravariant(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
-        ec.miniInt(),
-        ec.miniInt(),
+        ExhaustiveCheck.miniInt(),
+        ExhaustiveCheck.miniInt(),
         () =>
           A.fp4tsCoproduct(
             fc.func(A.fp4tsEval(fc.integer())),
             fc.func(A.fp4tsOption(fc.integer())),
           ),
-        <X>(X: ec.ExhaustiveCheck<X>) =>
+        <X>(X: ExhaustiveCheck<X>) =>
           Coproduct.Eq(
             eq.fn1Eq(X, Eq.Eval(Eq.fromUniversalEquals())) as any,
             eq.fn1Eq(X, Option.Eq(Eq.fromUniversalEquals())) as any,

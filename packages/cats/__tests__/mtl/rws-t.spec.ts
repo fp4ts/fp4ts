@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { $, Eval, EvalF, id, Kind, tupled } from '@fp4ts/core';
+import { $, EvalF, id, Kind, tupled } from '@fp4ts/core';
 import { CommutativeMonoid, Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Monad } from '@fp4ts/cats-core';
 import { Identity, Option, EitherF, Either } from '@fp4ts/cats-core/lib/data';
@@ -15,10 +15,9 @@ import {
   MonadWriterSuite,
 } from '@fp4ts/cats-mtl-laws';
 import { MonadErrorSuite, MonadSuite } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('RWST', () => {
   function runTests<F, W>(
@@ -41,7 +40,10 @@ describe('RWST', () => {
           ),
         <X>(X: Eq<X>): Eq<RWST<unknown, W, MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq, eqW))),
+            eq.fn1Eq(
+              ExhaustiveCheck.miniInt(),
+              mkEqF(Eq.tuple(X, MiniInt.Eq, eqW)),
+            ),
             fa => x => RWST.runASW(F, WM)(fa)(null, x),
           ),
       ),
@@ -88,7 +90,7 @@ describe('RWST', () => {
           ),
         <X>(X: Eq<X>): Eq<RWST<MiniInt, W, unknown, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(X)),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(X)),
             fa => r => F.map_(RWST.runASW(F, WM)(fa)(r, null), ([x]) => x),
           ),
       ),
@@ -114,7 +116,10 @@ describe('RWST', () => {
           ),
         <X>(X: Eq<X>): Eq<RWST<MiniInt, W, MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq, eqW))),
+            eq.fn1Eq(
+              ExhaustiveCheck.miniInt(),
+              mkEqF(Eq.tuple(X, MiniInt.Eq, eqW)),
+            ),
             fa => s => RWST.runASW(F, WM)(fa)(s, s),
           ),
       ),
@@ -208,7 +213,7 @@ describe('RWST', () => {
       ): Eq<RWST<MiniInt, number, MiniInt, $<EitherF, [string]>, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.miniInt(),
+            ExhaustiveCheck.miniInt(),
             Either.Eq(
               Eq.fromUniversalEquals(),
               Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),

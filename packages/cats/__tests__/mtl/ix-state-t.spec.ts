@@ -15,7 +15,6 @@ import { StrongSuite } from '@fp4ts/cats-profunctor-laws';
 import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('IxStateT', () => {
   function runTests<F>(
@@ -35,7 +34,7 @@ describe('IxStateT', () => {
             ),
           ),
         <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, F, X>> =>
-          eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+          eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
       ),
     );
 
@@ -57,7 +56,7 @@ describe('IxStateT', () => {
             ),
           ),
         <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, F, X>> =>
-          eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+          eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
       ),
     );
   }
@@ -107,7 +106,7 @@ describe('IxStateT', () => {
         ),
       <X>(X: Eq<X>): Eq<IxStateT<MiniInt, MiniInt, $<EitherF, [string]>, X>> =>
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Either.Eq(Eq.fromUniversalEquals(), Eq.tuple(X, MiniInt.Eq)),
         ),
     ),
@@ -122,12 +121,12 @@ describe('IxStateT', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,

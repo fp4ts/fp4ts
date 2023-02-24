@@ -17,9 +17,8 @@ import {
   MonoidSuite,
   OrdSuite,
 } from '@fp4ts/cats-kernel-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function0 instances', () => {
@@ -71,7 +70,7 @@ describe('Function1 instances', () => {
     'Monoid<MiniInt => string>',
     MonoidSuite(Monoid.Function1<MiniInt, string>(Monoid.string)).monoid(
       fc.func(fc.string()),
-      eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
     ),
   );
 
@@ -79,7 +78,7 @@ describe('Function1 instances', () => {
     'Monoid<Endo<MiniInt>>',
     MonoidSuite(Monoid.Endo<MiniInt>()).monoid(
       fc.func(A.fp4tsMiniInt()),
-      eq.fn1Eq(ec.miniInt(), MiniInt.Eq),
+      eq.fn1Eq(ExhaustiveCheck.miniInt(), MiniInt.Eq),
     ),
   );
 
@@ -89,7 +88,7 @@ describe('Function1 instances', () => {
       CommutativeMonoid.Function1<MiniInt, number>(CommutativeMonoid.addition),
     ).commutativeMonoid(
       fc.func(fc.integer()),
-      eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
     ),
   );
 

@@ -15,10 +15,9 @@ import {
   MonoidKSuite,
   TraversableSuite,
 } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import {
   CochoiceSuite,
   RepresentableSuite,
@@ -52,7 +51,7 @@ describe('Forget', () => {
       fc.integer(),
       Eq.fromUniversalEquals(),
       _ => fc.func(fc.integer()),
-      _ => eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      _ => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
     ),
   );
 
@@ -68,7 +67,7 @@ describe('Forget', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       _ => fc.func(fc.integer()),
-      _ => eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      _ => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
     ),
   );
 
@@ -87,7 +86,7 @@ describe('Forget', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       _ => fc.func(fc.integer()),
-      _ => eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      _ => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
       A.fp4tsEval,
       Eq.Eval,
       A.fp4tsEval,
@@ -100,10 +99,10 @@ describe('Forget', () => {
     ContravariantSuite(Forget.Contravariant<number, MiniInt>()).contravariant(
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
+      ExhaustiveCheck.miniInt(),
       _ => fc.func(fc.integer()),
-      _ => eq.fn1Eq(ec.miniInt(), Eq.fromUniversalEquals()),
+      _ => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.fromUniversalEquals()),
     ),
   );
 
@@ -116,17 +115,17 @@ describe('Forget', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       Identity.Traversable,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) =>
         fc.func<[X], number>(fc.integer()),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
         eq.fn1Eq(X, Eq.fromUniversalEquals()),
       id,
       id,
@@ -142,16 +141,16 @@ describe('Forget', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) =>
         fc.func<[X], number>(fc.integer()),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
         eq.fn1Eq(X, Eq.fromUniversalEquals()),
       _ => fc.integer(),
       _ => Eq.fromUniversalEquals(),
@@ -166,13 +165,13 @@ describe('Forget', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) =>
         fc.func<[X], number>(fc.integer()),
-      <X, Y>(X: ec.ExhaustiveCheck<X>, Y: Eq<Y>) =>
+      <X, Y>(X: ExhaustiveCheck<X>, Y: Eq<Y>) =>
         eq.fn1Eq(X, Eq.fromUniversalEquals()),
     ),
   );

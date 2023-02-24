@@ -10,10 +10,9 @@ import { EqK, Monad } from '@fp4ts/cats-core';
 import { EitherT, Option, OptionT } from '@fp4ts/cats-core/lib/data';
 import { MonadWriter, WriterT, WriterTF } from '@fp4ts/cats-mtl';
 import { MonadWriterSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('MonadWriter', () => {
   checkAll(
@@ -29,7 +28,10 @@ describe('MonadWriter', () => {
       Eq.fromUniversalEquals(),
       X => fc.func(A.fp4tsEval(fc.tuple(X, fc.string()))),
       X =>
-        eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, Eq.fromUniversalEquals()))),
+        eq.fn1Eq(
+          ExhaustiveCheck.miniInt(),
+          Eq.Eval(Eq.tuple(X, Eq.fromUniversalEquals())),
+        ),
     ),
   );
 

@@ -10,7 +10,6 @@ import { Either } from '@fp4ts/cats-core/lib/data';
 import { ArrowChoice } from '@fp4ts/cats-arrow';
 import { ChoiceSuite } from '@fp4ts/cats-profunctor-laws';
 import { ExhaustiveCheck, forAll, RuleSet } from '@fp4ts/cats-test-kit';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { ArrowChoiceLaws } from '../arrow-choice-laws';
 import { ArrowSuite } from './arrow-suite';
@@ -52,7 +51,7 @@ export const ArrowChoiceSuite = <P>(P: ArrowChoice<P>) => {
             forAll(
               fc.func<[A], B>(arbB),
               laws.arrowChoiceLiftCommutes<C>(),
-            )(mkEqP(ec.either(EcA, EcC), Either.Eq(EqB, EqC))),
+            )(mkEqP(ExhaustiveCheck.either(EcA, EcC), Either.Eq(EqB, EqC))),
           ],
           [
             'arrowChoice left composition commutes',
@@ -60,7 +59,7 @@ export const ArrowChoiceSuite = <P>(P: ArrowChoice<P>) => {
               mkArbP(arbA, arbB),
               mkArbP(arbB, arbC),
               laws.arrowChoiceLeftCompositionCommutes<D>(),
-            )(mkEqP(ec.either(EcA, EcD), Either.Eq(EqC, EqD))),
+            )(mkEqP(ExhaustiveCheck.either(EcA, EcD), Either.Eq(EqC, EqD))),
           ],
           [
             'arrowChoice left andThen lift(Left) commutes',
@@ -75,7 +74,7 @@ export const ArrowChoiceSuite = <P>(P: ArrowChoice<P>) => {
               mkArbP(arbA, arbB),
               fc.func<[C], D>(arbD),
               laws.arrowChoiceLeftAndThenRightIdentityCommutes,
-            )(mkEqP(ec.either(EcA, EcC), Either.Eq(EqB, EqD))),
+            )(mkEqP(ExhaustiveCheck.either(EcA, EcC), Either.Eq(EqB, EqD))),
           ],
           [
             'arrowChoice left . left commutes with assocSum',
@@ -84,7 +83,7 @@ export const ArrowChoiceSuite = <P>(P: ArrowChoice<P>) => {
               laws.arrowChoiceLeftLeftCommutesWithSumAssoc<B, C>(),
             )(
               mkEqP(
-                ec.either(ec.either(EcA, EcB), EcC),
+                ExhaustiveCheck.either(ExhaustiveCheck.either(EcA, EcB), EcC),
                 Either.Eq(EqD, Either.Eq(EqB, EqC)),
               ),
             ),

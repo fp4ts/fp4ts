@@ -19,9 +19,8 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import { RWS, IxRWSF, MonadReader } from '@fp4ts/cats-mtl';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('MonadReader', () => {
@@ -37,7 +36,8 @@ describe('MonadReader', () => {
         MiniInt.Eq,
         <X>(arbX: Arbitrary<X>): Arbitrary<(m: MiniInt) => X> =>
           fc.func<[MiniInt], X>(arbX),
-        <X>(EqX: Eq<X>): Eq<(m: MiniInt) => X> => eq.fn1Eq(ec.miniInt(), EqX),
+        <X>(EqX: Eq<X>): Eq<(m: MiniInt) => X> =>
+          eq.fn1Eq(ExhaustiveCheck.miniInt(), EqX),
       ),
     );
   });
@@ -57,7 +57,7 @@ describe('MonadReader', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<IdentityF, MiniInt, X>> =>
           A.fp4tsKleisli(arbX),
         <X>(EqX: Eq<X>): Eq<Kleisli<IdentityF, MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), EqX), k => a => k(a)),
+          Eq.by(eq.fn1Eq(ExhaustiveCheck.miniInt(), EqX), k => a => k(a)),
       ),
     );
 
@@ -75,7 +75,10 @@ describe('MonadReader', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<Kleisli<OptionF, MiniInt, X>> =>
           A.fp4tsKleisli(A.fp4tsOption(arbX)),
         <X>(EqX: Eq<X>): Eq<Kleisli<OptionF, MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), Option.Eq(EqX)), k => a => k(a)),
+          Eq.by(
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), Option.Eq(EqX)),
+            k => a => k(a),
+          ),
       ),
     );
 
@@ -96,7 +99,10 @@ describe('MonadReader', () => {
           ),
         <X>(EqX: Eq<X>): Eq<Kleisli<$<EitherF, [string]>, MiniInt, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), Either.Eq(Eq.fromUniversalEquals(), EqX)),
+            eq.fn1Eq(
+              ExhaustiveCheck.miniInt(),
+              Either.Eq(Eq.fromUniversalEquals(), EqX),
+            ),
             k => a => k(a),
           ),
       ),
@@ -131,7 +137,7 @@ describe('MonadReader', () => {
         <X>(EqX: Eq<X>): Eq<EitherT<RWSF_, Error, X>> =>
           Eq.by(
             eq.fn1Eq(
-              ec.boolean().product(ec.miniInt()),
+              ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
               Eq.tuple(
                 Either.Eq(Eq.Error.allEqual, EqX),
                 MiniInt.Eq,
@@ -165,7 +171,7 @@ describe('MonadReader', () => {
         <X>(EqX: Eq<X>): Eq<OptionT<RWSF_, X>> =>
           Eq.by(
             eq.fn1Eq(
-              ec.boolean().product(ec.miniInt()),
+              ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
               Eq.tuple(
                 Option.Eq(EqX),
                 MiniInt.Eq,

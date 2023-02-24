@@ -13,9 +13,8 @@ import {
   MonadStateSuite,
   MonadWriterSuite,
 } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('RWS', () => {
@@ -39,7 +38,7 @@ describe('RWS', () => {
       <X>(X: Eq<X>): Eq<RWS<boolean, string, MiniInt, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(ec.miniInt()),
+            ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
             Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals<string>()),
           ),
           rsw =>
@@ -67,7 +66,7 @@ describe('RWS', () => {
       <X>(X: Eq<X>): Eq<RWS<boolean, string, MiniInt, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(ec.miniInt()),
+            ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
             Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals<string>()),
           ),
           rsw =>
@@ -95,7 +94,7 @@ describe('RWS', () => {
       <X>(X: Eq<X>): Eq<RWS<boolean, string, MiniInt, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(ec.miniInt()),
+            ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
             Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals<string>()),
           ),
           rsw =>
@@ -119,7 +118,7 @@ describe('RWS', () => {
       <X>(X: Eq<X>): Eq<RWS<boolean, string, MiniInt, X>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(ec.miniInt()),
+            ExhaustiveCheck.boolean().product(ExhaustiveCheck.miniInt()),
             Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals<string>()),
           ),
           rsw =>
@@ -138,12 +137,12 @@ describe('RWS', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,
@@ -155,12 +154,12 @@ describe('RWS', () => {
           ),
         ),
       <X, Y>(
-        X: ec.ExhaustiveCheck<X>,
+        X: ExhaustiveCheck<X>,
         Y: Eq<Y>,
       ): Eq<IxRWS<boolean, number, X, Y, number>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(X),
+            ExhaustiveCheck.boolean().product(X),
             Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
           ),
           fa =>

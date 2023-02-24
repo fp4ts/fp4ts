@@ -12,8 +12,7 @@ import {
   DistributiveSuite,
   MonadDeferSuite,
 } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function1', () => {
@@ -36,7 +35,7 @@ describe('Function1', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X>(arbX: Arbitrary<X>) => fc.func<[MiniInt], X>(arbX),
-      <X>(EqX: Eq<X>) => eq.fn1Eq(ec.miniInt(), EqX),
+      <X>(EqX: Eq<X>) => eq.fn1Eq(ExhaustiveCheck.miniInt(), EqX),
     ),
   );
 
@@ -52,7 +51,7 @@ describe('Function1', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X>(arbX: Arbitrary<X>) => fc.func<[MiniInt], X>(arbX),
-      <X>(EqX: Eq<X>) => eq.fn1Eq(ec.miniInt(), EqX),
+      <X>(EqX: Eq<X>) => eq.fn1Eq(ExhaustiveCheck.miniInt(), EqX),
     ),
   );
 
@@ -68,7 +67,7 @@ describe('Function1', () => {
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
       <X>(arbX: Arbitrary<X>) => fc.func<[MiniInt], X>(arbX),
-      <X>(EqX: Eq<X>) => eq.fn1Eq(ec.miniInt(), EqX),
+      <X>(EqX: Eq<X>) => eq.fn1Eq(ExhaustiveCheck.miniInt(), EqX),
     ),
   );
 

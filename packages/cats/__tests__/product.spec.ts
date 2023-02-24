@@ -38,9 +38,8 @@ import {
   TraversableFilterSuite,
   ZipSuite,
 } from '@fp4ts/cats-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Product', () => {
@@ -81,7 +80,7 @@ describe('Product', () => {
             X.map(x => () => x),
             fc.func(X),
           ),
-        X => Eq.tuple(Eq.Function0(X), eq.fn1Eq(ec.miniInt(), X)),
+        X => Eq.tuple(Eq.Function0(X), eq.fn1Eq(ExhaustiveCheck.miniInt(), X)),
       ),
     );
   });
@@ -97,8 +96,8 @@ describe('Product', () => {
       ).contravariant(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
-        ec.miniInt(),
-        ec.miniInt(),
+        ExhaustiveCheck.miniInt(),
+        ExhaustiveCheck.miniInt(),
         () => fc.tuple(fc.func(fc.integer()), fc.func(fc.integer())),
         X =>
           Eq.tuple(
@@ -118,8 +117,8 @@ describe('Product', () => {
       ).contravariant(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
-        ec.miniInt(),
-        ec.miniInt(),
+        ExhaustiveCheck.miniInt(),
+        ExhaustiveCheck.miniInt(),
         () =>
           fc.tuple(
             fc.func(A.fp4tsEval(fc.integer())),
@@ -174,7 +173,7 @@ describe('Product', () => {
             fc.func(X),
             X.map(x => () => x),
           ),
-        X => Eq.tuple(eq.fn1Eq(ec.miniInt(), X), Eq.Function0(X)),
+        X => Eq.tuple(eq.fn1Eq(ExhaustiveCheck.miniInt(), X), Eq.Function0(X)),
       ),
     );
   });

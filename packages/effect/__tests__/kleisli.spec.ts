@@ -9,8 +9,7 @@ import { Eq } from '@fp4ts/cats';
 import { Async, Outcome } from '@fp4ts/effect-kernel';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { AsyncSuite } from '@fp4ts/effect-laws';
-import { checkAll } from '@fp4ts/cats-test-kit';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
+import { checkAll, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as eq from '@fp4ts/effect-test-kit/lib/eq';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 
@@ -29,10 +28,13 @@ describe.ticked('Kleisli', ticker => {
       Eq.fromUniversalEquals(),
       Outcome.Eq(
         Eq.Error.strict,
-        eq.fn1Eq(ec.boolean(), eq.eqIO(Eq.fromUniversalEquals(), ticker)),
+        eq.fn1Eq(
+          ExhaustiveCheck.boolean(),
+          eq.eqIO(Eq.fromUniversalEquals(), ticker),
+        ),
       ),
       <X>(X: Arbitrary<X>) => fc.func<[boolean], IO<X>>(A.fp4tsIO(X)),
-      <X>(X: Eq<X>) => eq.fn1Eq(ec.boolean(), eq.eqIO(X, ticker)),
+      <X>(X: Eq<X>) => eq.fn1Eq(ExhaustiveCheck.boolean(), eq.eqIO(X, ticker)),
     ),
   );
 });

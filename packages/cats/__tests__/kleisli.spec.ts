@@ -35,7 +35,6 @@ import {
   ExhaustiveCheck,
 } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('Kleisli', () => {
   const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);
@@ -78,8 +77,8 @@ describe('Kleisli', () => {
       ).contravariant(
         A.fp4tsMiniInt(),
         A.fp4tsMiniInt(),
-        ec.miniInt(),
-        ec.miniInt(),
+        ExhaustiveCheck.miniInt(),
+        ExhaustiveCheck.miniInt(),
         <X>(_: Arbitrary<X>) =>
           A.fp4tsKleisli<IdentityF, X, number>(fc.integer()),
         X => eqKleisli(X, Eq.fromUniversalEquals()),
@@ -99,7 +98,7 @@ describe('Kleisli', () => {
         Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>) => A.fp4tsKleisli<IdentityF, MiniInt, X>(X),
         <X>(X: Eq<X>): Eq<Kleisli<IdentityF, MiniInt, X>> =>
-          eqKleisli(ec.miniInt(), X),
+          eqKleisli(ExhaustiveCheck.miniInt(), X),
       ),
     );
 
@@ -117,7 +116,10 @@ describe('Kleisli', () => {
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
         <X>(E: Eq<X>) =>
-          eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
+          eqKleisli<OptionF, MiniInt, X>(
+            ExhaustiveCheck.miniInt(),
+            Option.Eq(E),
+          ),
       ),
     );
 
@@ -134,7 +136,8 @@ describe('Kleisli', () => {
         Eq.fromUniversalEquals(),
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<ListF, MiniInt, X>(A.fp4tsList(x)),
-        <X>(E: Eq<X>) => eqKleisli<ListF, MiniInt, X>(ec.miniInt(), List.Eq(E)),
+        <X>(E: Eq<X>) =>
+          eqKleisli<ListF, MiniInt, X>(ExhaustiveCheck.miniInt(), List.Eq(E)),
       ),
     );
 
@@ -153,7 +156,8 @@ describe('Kleisli', () => {
         Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>) =>
           A.fp4tsKleisli<EvalF, MiniInt, X>(A.fp4tsEval(X)),
-        <X>(E: Eq<X>) => eqKleisli<EvalF, MiniInt, X>(ec.miniInt(), Eq.Eval(E)),
+        <X>(E: Eq<X>) =>
+          eqKleisli<EvalF, MiniInt, X>(ExhaustiveCheck.miniInt(), Eq.Eval(E)),
       ),
     );
 
@@ -181,7 +185,7 @@ describe('Kleisli', () => {
           ),
         <X>(E: Eq<X>) =>
           eqKleisli<EitherStringF, MiniInt, X>(
-            ec.miniInt(),
+            ExhaustiveCheck.miniInt(),
             Either.Eq(Eq.fromUniversalEquals(), E),
           ),
       ),
@@ -201,7 +205,10 @@ describe('Kleisli', () => {
         <X>(x: Arbitrary<X>) =>
           A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(x)),
         <X>(E: Eq<X>) =>
-          eqKleisli<OptionF, MiniInt, X>(ec.miniInt(), Option.Eq(E)),
+          eqKleisli<OptionF, MiniInt, X>(
+            ExhaustiveCheck.miniInt(),
+            Option.Eq(E),
+          ),
       ),
     );
   });

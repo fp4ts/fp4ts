@@ -16,10 +16,9 @@ import {
   StateTF,
 } from '@fp4ts/cats-mtl';
 import { MonadStateSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 import { RWSC, RWSTC, StateC } from '@fp4ts/fused-std';
 import { Algebra } from '@fp4ts/fused-kernel';
@@ -63,7 +62,7 @@ describe('State Effect', () => {
     StateC.IxStateT(Algebra.Id),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsIxStateT(fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
-    X => eq.fn1Eq(ec.miniInt(), Eq.tuple(X, MiniInt.Eq)),
+    X => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(X, MiniInt.Eq)),
   );
 
   runTests<$<IxStateTF, [MiniInt, MiniInt, EvalF]>, MiniInt>(
@@ -71,7 +70,7 @@ describe('State Effect', () => {
     StateC.IxStateT(Algebra.Eval),
     [A.fp4tsMiniInt(), MiniInt.Eq, 'MiniInt'],
     X => A.fp4tsIxStateT(fc.func(A.fp4tsEval(fc.tuple(X, A.fp4tsMiniInt())))),
-    X => eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
+    X => eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
   );
 
   runTests<$<StateTF, [MiniInt, IdentityF]>, MiniInt>(
@@ -81,7 +80,7 @@ describe('State Effect', () => {
     X => A.fp4tsStateT(Identity.Monad, fc.func(fc.tuple(X, A.fp4tsMiniInt()))),
     X =>
       Eq.by(
-        eq.fn1Eq(ec.miniInt(), Eq.tuple(X, MiniInt.Eq)),
+        eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.tuple(X, MiniInt.Eq)),
         StateT.runAS(Identity.Monad),
       ),
   );
@@ -97,7 +96,7 @@ describe('State Effect', () => {
       ),
     X =>
       Eq.by(
-        eq.fn1Eq(ec.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
+        eq.fn1Eq(ExhaustiveCheck.miniInt(), Eq.Eval(Eq.tuple(X, MiniInt.Eq))),
         StateT.runAS(Monad.Eval),
       ),
   );
@@ -113,7 +112,7 @@ describe('State Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
         ),
         rws => s => rws.runAll(null, s, CommutativeMonoid.void),
@@ -132,7 +131,7 @@ describe('State Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
         ),
         rwsfa => s =>
@@ -156,7 +155,7 @@ describe('State Effect', () => {
     X =>
       Eq.by(
         eq.fn1Eq(
-          ec.miniInt(),
+          ExhaustiveCheck.miniInt(),
           Eq.Eval(Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals())),
         ),
         rwsfa => s =>

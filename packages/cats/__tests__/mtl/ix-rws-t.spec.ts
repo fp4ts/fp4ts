@@ -19,7 +19,6 @@ import { StrongSuite } from '@fp4ts/cats-profunctor-laws';
 import { checkAll, MiniInt, ExhaustiveCheck } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 
 describe('IxRWST', () => {
   function runTests<F, W>(
@@ -45,7 +44,7 @@ describe('IxRWST', () => {
           ),
         <X>(X: Eq<X>): Eq<IxRWST<unknown, W, MiniInt, MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq))),
             fa => x => IxRWST.runAS(F)(null, x)(fa),
           ),
       ),
@@ -92,7 +91,7 @@ describe('IxRWST', () => {
           ),
         <X>(X: Eq<X>): Eq<IxRWST<MiniInt, W, unknown, unknown, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(X)),
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), mkEqF(X)),
             fa => r => IxRWST.runA(F)(r, null)(fa),
           ),
       ),
@@ -119,7 +118,10 @@ describe('IxRWST', () => {
           ),
         <X>(X: Eq<X>): Eq<IxRWST<MiniInt, W, MiniInt, MiniInt, F, X>> =>
           Eq.by(
-            eq.fn1Eq(ec.miniInt(), mkEqF(Eq.tuple(X, MiniInt.Eq, eqW))),
+            eq.fn1Eq(
+              ExhaustiveCheck.miniInt(),
+              mkEqF(Eq.tuple(X, MiniInt.Eq, eqW)),
+            ),
             fa => s => fa(s, s),
           ),
       ),
@@ -216,7 +218,7 @@ describe('IxRWST', () => {
       > =>
         Eq.by(
           eq.fn1Eq(
-            ec.miniInt(),
+            ExhaustiveCheck.miniInt(),
             Either.Eq(
               Eq.fromUniversalEquals(),
               Eq.tuple(X, MiniInt.Eq, Eq.fromUniversalEquals()),
@@ -238,12 +240,12 @@ describe('IxRWST', () => {
       fc.boolean(),
       fc.integer(),
       fc.integer(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       Eq.fromUniversalEquals(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
-      ec.boolean(),
+      ExhaustiveCheck.boolean(),
       Eq.fromUniversalEquals(),
       <X, Y>(
         X: Arbitrary<X>,
@@ -258,7 +260,7 @@ describe('IxRWST', () => {
       ): Eq<IxRWST<boolean, number, X, Y, EvalF, number>> =>
         Eq.by(
           eq.fn1Eq(
-            ec.boolean().product(X),
+            ExhaustiveCheck.boolean().product(X),
             Eq.Eval(
               Eq.tuple(Eq.fromUniversalEquals(), Y, Eq.fromUniversalEquals()),
             ),

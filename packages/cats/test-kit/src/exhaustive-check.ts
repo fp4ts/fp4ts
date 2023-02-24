@@ -6,45 +6,55 @@
 import { List, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
 
-export class ExhaustiveCheck<A> {
+export type ExhaustiveCheck<A> = _ExhaustiveCheck<A>;
+export function ExhaustiveCheck<A>(...xs: A[]): ExhaustiveCheck<A> {
+  return new _ExhaustiveCheck(List.fromArray(xs));
+}
+
+class _ExhaustiveCheck<out A> {
   public constructor(public readonly allValues: List<A>) {}
 
+  public concat<A>(
+    this: ExhaustiveCheck<A>,
+    that: ExhaustiveCheck<A>,
+  ): ExhaustiveCheck<A> {
+    return new _ExhaustiveCheck(this.allValues.concat(that.allValues));
+  }
+
+  public map<B>(f: (a: A) => B): ExhaustiveCheck<B> {
+    return new _ExhaustiveCheck(this.allValues.map(x => f(x)));
+  }
+
+  public flatMap<B>(f: (a: A) => ExhaustiveCheck<B>): ExhaustiveCheck<B> {
+    return new _ExhaustiveCheck(this.allValues.flatMap(x => f(x).allValues));
+  }
+
   public product<B>(that: ExhaustiveCheck<B>): ExhaustiveCheck<[A, B]> {
-    return tuple2(this, that);
+    return this.flatMap(a => that.map(b => [a, b] as [A, B]));
   }
 }
 
-export const miniInt = (): ExhaustiveCheck<MiniInt> =>
-  new ExhaustiveCheck(MiniInt.values);
+ExhaustiveCheck.miniInt = (): ExhaustiveCheck<MiniInt> =>
+  new _ExhaustiveCheck(MiniInt.values);
 
-export const boolean = (): ExhaustiveCheck<boolean> =>
-  new ExhaustiveCheck(List(false, true));
+ExhaustiveCheck.boolean = (): ExhaustiveCheck<boolean> =>
+  new _ExhaustiveCheck(List(false, true));
 
-export const either = <A, B>(
+ExhaustiveCheck.either = <A, B>(
   eca: ExhaustiveCheck<A>,
   ecb: ExhaustiveCheck<B>,
 ): ExhaustiveCheck<Either<A, B>> =>
-  new ExhaustiveCheck(
-    eca.allValues
-      .map(a => Left<A, B>(a))
-      ['++'](ecb.allValues.map(b => Right<B, A>(b))),
-  );
+  eca.map(Left<A, B>).concat(ecb.map(Right<B, A>));
 
-export const instance = <A>(xs: List<A>): ExhaustiveCheck<A> =>
-  new ExhaustiveCheck(xs);
+ExhaustiveCheck.instance = <A>(xs: List<A>): ExhaustiveCheck<A> =>
+  new _ExhaustiveCheck(xs);
 
-export const tuple2 = <A, B>(
-  a: ExhaustiveCheck<A>,
-  b: ExhaustiveCheck<B>,
-): ExhaustiveCheck<[A, B]> =>
-  instance(a.allValues.flatMap(a => b.allValues.map(b => [a, b] as [A, B])));
-
-export const tuple3 = <A, B, C>(
+ExhaustiveCheck.tuple3 = <A, B, C>(
   a: ExhaustiveCheck<A>,
   b: ExhaustiveCheck<B>,
   c: ExhaustiveCheck<C>,
 ): ExhaustiveCheck<[A, B, C]> =>
-  instance(
+  new _ExhaustiveCheck(
     a.allValues.flatMap(a =>
       b.allValues.flatMap(b => c.allValues.map(c => [a, b, c] as [A, B, C])),
     ),

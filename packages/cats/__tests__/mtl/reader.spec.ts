@@ -8,9 +8,8 @@ import { Eq } from '@fp4ts/cats-kernel';
 import { Reader } from '@fp4ts/cats-mtl';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadReaderSuite } from '@fp4ts/cats-mtl-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Reader', () => {
@@ -95,7 +94,10 @@ describe('Reader', () => {
         Eq.fromUniversalEquals(),
         X => A.fp4tsReader(X),
         <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+          Eq.by(
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), X),
+            fa => r => fa.runReader(r),
+          ),
       ),
     );
 
@@ -110,7 +112,10 @@ describe('Reader', () => {
         MiniInt.Eq,
         X => A.fp4tsReader(X),
         <X>(X: Eq<X>): Eq<Reader<MiniInt, X>> =>
-          Eq.by(eq.fn1Eq(ec.miniInt(), X), fa => r => fa.runReader(r)),
+          Eq.by(
+            eq.fn1Eq(ExhaustiveCheck.miniInt(), X),
+            fa => r => fa.runReader(r),
+          ),
       ),
     );
   });

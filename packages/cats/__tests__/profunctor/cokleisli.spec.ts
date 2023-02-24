@@ -18,11 +18,9 @@ import {
   CorepresentableSuite,
   StrongSuite,
 } from '@fp4ts/cats-profunctor-laws';
-import { checkAll, MiniInt } from '@fp4ts/cats-test-kit';
+import { checkAll, ExhaustiveCheck, MiniInt } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 import * as eq from '@fp4ts/cats-test-kit/lib/eq';
-import * as ec from '@fp4ts/cats-test-kit/lib/exhaustive-check';
-import { Eq } from '@fp4ts/cats-kernel';
 
 describe('Cokleisli', () => {
   checkAll(
@@ -34,13 +32,13 @@ describe('Cokleisli', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
-      (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(Eval.now)), Y),
-      X => ec.instance(X.allValues.map(Eval.now)),
+      (X, Y) => eq.fn1Eq(X.map(Eval.now), Y),
+      X => X.map(Eval.now),
       { ...Defer.Eval, ...Unzip.Eval },
       A.fp4tsEval,
     ),
@@ -54,12 +52,12 @@ describe('Cokleisli', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
-      (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(Eval.now)), Y),
+      (X, Y) => eq.fn1Eq(X.map(Eval.now), Y),
     ),
   );
 
@@ -71,13 +69,13 @@ describe('Cokleisli', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
-      (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(Eval.now)), Y),
+      (X, Y) => eq.fn1Eq(X.map(Eval.now), Y),
     ),
   );
 
@@ -90,15 +88,15 @@ describe('Cokleisli', () => {
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
       A.fp4tsMiniInt(),
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
-      ec.miniInt(),
+      ExhaustiveCheck.miniInt(),
       MiniInt.Eq,
       <X, Y>(_: Arbitrary<X>, Y: Arbitrary<Y>) => fc.func<[Eval<X>], Y>(Y),
-      (X, Y) => eq.fn1Eq(ec.instance(X.allValues.map(x => Eval.now(x))), Y),
+      (X, Y) => eq.fn1Eq(X.map(Eval.now), Y),
     ),
   );
 });
