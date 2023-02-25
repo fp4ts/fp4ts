@@ -26,6 +26,7 @@ import {
   Left,
   List,
   Monad,
+  MonadPlus,
   MonoidK,
   None,
   Option,
@@ -517,7 +518,9 @@ ParserT.unit = <S, F>(): ParserT<S, F, void> => ParserT.succeed(undefined);
 ParserT.defer = <S, F, A>(that: () => ParserT<S, F, A>): ParserT<S, F, A> => {
   const lazyThat = lazy(that);
   return new _ParserT((S, s, cok, cerr, eok, eerr) =>
-    lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr),
+    isMonadDefer(S)
+      ? S.defer(() => lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr))
+      : lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr),
   );
 };
 
@@ -754,6 +757,13 @@ ParserT.Monad = <S, F>(): Monad<$<ParserTF, [S, F]>> =>
     map_: (pa, f) => pa.map(f),
     flatMap_: (pa, f) => pa.flatMap(f),
     tailRecM_: ParserT.tailRecM_,
+  });
+
+ParserT.MonadPlus = <S, F>(): MonadPlus<$<ParserTF, [S, F]>> =>
+  MonadPlus.of({
+    ...ParserT.Monad(),
+    ...ParserT.Alternative(),
+    ...ParserT.FunctorFilter(),
   });
 
 // -- HKT

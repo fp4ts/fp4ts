@@ -165,4 +165,24 @@ describe('Parser Laws', () => {
       ),
     );
   });
+
+  describe('MonadPlus', () => {
+    const F = Parser.MonadPlus<StringSource, EvalF>();
+
+    test(
+      'filter(_ => false) is empty',
+      forAll(fp4tsStringParser(), fc.string(), (fa, s) =>
+        expect(fa.filter(_ => false).parse(s).value.toOption).toEqual(
+          F.emptyK().parse(s).value.toOption,
+        ),
+      ),
+    );
+
+    test(
+      'filter(_ => true) is identity',
+      forAll(fp4tsStringParser(), fc.string(), (fa, s) =>
+        eq(fa.filter(_ => true).parse(s), fa.parse(s)),
+      ),
+    );
+  });
 });
