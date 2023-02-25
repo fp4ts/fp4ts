@@ -12,6 +12,7 @@ import { EqK } from '../eq-k';
 import { FunctorFilter } from '../functor-filter';
 import { FunctorWithIndex } from '../functor-with-index';
 import { MonoidK } from '../monoid-k';
+import { MonadPlus } from '../monad-plus';
 import { FlatMap } from '../flat-map';
 import { Monad } from '../monad';
 import { FoldableWithIndex } from '../foldable-with-index';
@@ -287,6 +288,14 @@ function tailRecM<S, A>(s: S, f: (s: S) => Either<S, A>[]): A[] {
 
 export const arrayMonad = lazy(() =>
   Monad.of<ArrayF>({ ...arrayApplicative(), ...arrayFlatMap() }),
+);
+
+export const arrayMonadPlus = lazy(() =>
+  MonadPlus.of<ArrayF>({
+    ...arrayFunctorFilter(),
+    ...arrayAlternative(),
+    ...arrayMonad(),
+  }),
 );
 
 export const arrayCoflatMap = lazy(() =>

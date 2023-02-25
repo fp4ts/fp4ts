@@ -38,8 +38,8 @@ to verify correctness of those implementations.
 
 - `@fp4ts/mtl` Monad Transformer Library
 
- - `@fp4ts/mtl-core` Set of type classes and transformer data types (_included_)
- - `@fp4ts/mtl-laws` Set of laws for testing monad transformer implementations
+  - `@fp4ts/mtl-core` Set of type classes and transformer data types (_included_)
+  - `@fp4ts/mtl-laws` Set of laws for testing monad transformer implementations
 
 
 - `@fp4ts/effect` Port of the [Cats Effect](https://github.com/typelevel/cats-effect)

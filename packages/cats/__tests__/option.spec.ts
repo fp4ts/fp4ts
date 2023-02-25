@@ -12,10 +12,9 @@ import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
-  MonadSuite,
-  AlternativeSuite,
   CoflatMapSuite,
   TraversableFilterSuite,
+  MonadPlusSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Option', () => {
@@ -177,20 +176,6 @@ describe('Option', () => {
 
   describe('Laws', () => {
     checkAll(
-      'Alternative<Option>',
-      AlternativeSuite(Option.Alternative).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsOption,
-        Option.Eq,
-      ),
-    );
-
-    checkAll(
       'CoflatMap<Option>',
       CoflatMapSuite(Option.CoflatMap).coflatMap(
         fc.integer(),
@@ -207,8 +192,8 @@ describe('Option', () => {
     );
 
     checkAll(
-      'Monad<Option>',
-      MonadSuite(Option.Monad).monad(
+      'MonadPlus<Option>',
+      MonadPlusSuite(Option.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),

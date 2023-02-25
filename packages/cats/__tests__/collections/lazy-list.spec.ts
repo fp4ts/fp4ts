@@ -17,9 +17,8 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
-  AlternativeSuite,
-  DeferSuite,
-  MonadSuite,
+  MonadDeferSuite,
+  MonadPlusSuite,
   TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -1669,16 +1668,6 @@ describe('LazyList', () => {
 
   describe('Laws', () => {
     checkAll(
-      'Defer<LazyList>',
-      DeferSuite(LazyList.Defer).defer(
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsLazyList,
-        LazyList.EqK.liftEq,
-      ),
-    );
-
-    checkAll(
       'Align<LazyList>',
       AlignSuite(LazyList.Align).align(
         fc.integer(),
@@ -1695,11 +1684,13 @@ describe('LazyList', () => {
     );
 
     checkAll(
-      'Alternative<LazyList>',
-      AlternativeSuite(LazyList.Alternative).alternative(
+      'MonadDefer<LazyList>',
+      MonadDeferSuite(LazyList.Monad).monadDefer(
         fc.integer(),
         fc.integer(),
         fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
@@ -1709,8 +1700,8 @@ describe('LazyList', () => {
     );
 
     checkAll(
-      'Monad<LazyList>',
-      MonadSuite(LazyList.Monad).monad(
+      'MonadPlus<LazyList>',
+      MonadPlusSuite(LazyList.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),

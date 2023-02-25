@@ -6,10 +6,19 @@
 import fc from 'fast-check';
 import { Eq, CommutativeMonoid } from '@fp4ts/cats-kernel';
 import {
-  AlternativeSuite,
+  CoflatMap,
+  FunctorFilter,
+  FunctorWithIndex,
+  Monad,
+  MonadPlus,
+  TraversableFilter,
+  TraversableWithIndex,
+  Unalign,
+  Unzip,
+} from '@fp4ts/cats-core';
+import {
   CoflatMapSuite,
-  FunctorFilterSuite,
-  MonadSuite,
+  MonadPlusSuite,
   TraversableFilterSuite,
   TraversableWithIndexSuite,
   UnalignSuite,
@@ -17,17 +26,6 @@ import {
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import {
-  Alternative,
-  CoflatMap,
-  FunctorFilter,
-  FunctorWithIndex,
-  Monad,
-  TraversableFilter,
-  TraversableWithIndex,
-  Unalign,
-  Unzip,
-} from '@fp4ts/cats-core';
 
 describe('Array laws', () => {
   checkAll(
@@ -63,34 +61,6 @@ describe('Array laws', () => {
   );
 
   checkAll(
-    'FunctorFilter<Array>',
-    FunctorFilterSuite(FunctorFilter.Array).functorFilter(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      fc.array,
-      Eq.Array,
-    ),
-  );
-
-  checkAll(
-    'Alternative<Array>',
-    AlternativeSuite(Alternative.Array).alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      fc.array,
-      Eq.Array,
-    ),
-  );
-
-  checkAll(
     'CoflatMap<Array>',
     CoflatMapSuite(CoflatMap.Array).coflatMap(
       fc.integer(),
@@ -107,8 +77,8 @@ describe('Array laws', () => {
   );
 
   checkAll(
-    'Monad<Array>',
-    MonadSuite(Monad.Array).monad(
+    'MonadPlus<Array>',
+    MonadPlusSuite(MonadPlus.Array).monadPlus(
       fc.integer(),
       fc.integer(),
       fc.integer(),

@@ -62,12 +62,11 @@ export const mapFunctorWithIndex: <K>() => FunctorWithIndex<$<MapF, [K]>, K> =
     FunctorWithIndex.of<$<MapF, [K]>, K>({ mapWithIndex_: map_ }),
   ) as <K>() => FunctorWithIndex<$<MapF, [K]>, K>;
 
-export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazy(
-  () =>
-    FunctorFilter.of({
-      ...mapFunctor(),
-      mapFilter_: (fa, p) => collect_(fa, x => p(x)),
-    }),
+export const mapFunctorFilter: <K>() => FunctorFilter<$<MapF, [K]>> = lazy(() =>
+  FunctorFilter.of({
+    ...mapFunctor(),
+    mapFilter_: (fa, p) => collect_(fa, x => p(x)),
+  }),
 );
 
 export const mapFoldableWithIndex: <K>() => FoldableWithIndex<$<MapF, [K]>, K> =

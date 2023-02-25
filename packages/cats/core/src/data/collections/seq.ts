@@ -23,8 +23,9 @@ import { EqK } from '../../eq-k';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { Foldable } from '../../foldable';
-import { MonoidK } from '../../monoid-k';
+import { MonadPlus } from '../../monad-plus';
 import { Monad } from '../../monad';
+import { MonoidK } from '../../monoid-k';
 import { Traversable } from '../../traversable';
 import { TraversableFilter } from '../../traversable-filter';
 import { Unzip } from '../../unzip';
@@ -5503,6 +5504,7 @@ Seq.Eq = cached(<A>(E: Eq<A>) =>
 
 Seq.EqK = null as any as EqK<SeqF>;
 Seq.Monad = null as any as Monad<SeqF>;
+Seq.MonadPlus = null as any as MonadPlus<SeqF>;
 Seq.Alternative = null as any as Alternative<SeqF>;
 Seq.Foldable = null as any as Foldable<SeqF>;
 Seq.Traversable = null as any as Traversable<SeqF>;
@@ -5557,6 +5559,14 @@ const seqMonad = lazy(() =>
     ...seqApplicative(),
     flatMap_: (xs, f) => xs.flatMap(f),
     tailRecM_: Seq.tailRecM_,
+  }),
+);
+
+const seqMonadPlus = lazy(() =>
+  MonadPlus.of<SeqF>({
+    ...seqMonad(),
+    ...seqFunctorFilter(),
+    ...seqAlternative(),
   }),
 );
 
@@ -5633,6 +5643,11 @@ Object.defineProperty(Seq, 'EqK', {
 Object.defineProperty(Seq, 'Monad', {
   get() {
     return seqMonad();
+  },
+});
+Object.defineProperty(Seq, 'MonadPlus', {
+  get() {
+    return seqMonadPlus();
   },
 });
 Object.defineProperty(Seq, 'Alternative', {

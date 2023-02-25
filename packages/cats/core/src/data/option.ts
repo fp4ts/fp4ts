@@ -11,6 +11,7 @@ import { CoflatMap } from '../coflat-map';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { FunctorFilter } from '../functor-filter';
+import { MonadPlus } from '../monad-plus';
 import { Monad } from '../monad';
 import { MonoidK } from '../monoid-k';
 import { TraversableFilter } from '../traversable-filter';
@@ -215,6 +216,7 @@ interface OptionObj {
   CoflatMap: CoflatMap<OptionF>;
   Alternative: Alternative<OptionF>;
   Monad: Monad<OptionF>;
+  MonadPlus: MonadPlus<OptionF>;
   TraversableFilter: TraversableFilter<OptionF>;
 }
 
@@ -258,6 +260,14 @@ const optionMonad = lazy(() =>
     flatMap_: (fa, f) => fa.flatMap(f),
     flatten: fa => fa.flatten(),
     tailRecM_: Option.tailRecM_,
+  }),
+);
+
+const optionMonadPlus = lazy(() =>
+  MonadPlus.of<OptionF>({
+    ...optionAlternative(),
+    ...optionFunctorFilter(),
+    ...optionMonad(),
   }),
 );
 
@@ -312,6 +322,11 @@ Object.defineProperty(Option, 'Alternative', {
 Object.defineProperty(Option, 'Monad', {
   get() {
     return optionMonad();
+  },
+});
+Object.defineProperty(Option, 'MonadPlus', {
+  get() {
+    return optionMonadPlus();
   },
 });
 Object.defineProperty(Option, 'TraversableFilter', {

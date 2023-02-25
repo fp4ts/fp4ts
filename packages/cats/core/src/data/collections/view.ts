@@ -21,6 +21,7 @@ import { Apply } from '../../apply';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
+import { MonadPlus } from '../../monad-plus';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { TraversableFilter } from '../../traversable-filter';
@@ -3141,6 +3142,14 @@ const viewMonad = lazy(() =>
   }),
 );
 
+const viewMonadPlus = lazy(() =>
+  MonadPlus.of<ViewF>({
+    ...viewMonad(),
+    ...viewFunctorFilter(),
+    ...viewAlternative(),
+  }),
+);
+
 const viewFoldable = lazy(() =>
   Foldable.of<ViewF>({
     foldRight_: (fa, ez, f) => fa.foldRight(ez, f),
@@ -3204,6 +3213,7 @@ View.FunctorFilter = null as any as FunctorFilter<ViewF>;
 View.MonoidK = null as any as MonoidK<ViewF>;
 View.Alternative = null as any as Alternative<ViewF>;
 View.Monad = null as any as Monad<ViewF>;
+View.MonadPlus = null as any as MonadPlus<ViewF>;
 View.Foldable = null as any as Foldable<ViewF>;
 View.TraversableFilter = null as any as TraversableFilter<ViewF>;
 View.Unzip = null as any as Unzip<ViewF>;
@@ -3226,6 +3236,11 @@ Object.defineProperty(View, 'Alternative', {
 Object.defineProperty(View, 'Monad', {
   get() {
     return viewMonad();
+  },
+});
+Object.defineProperty(View, 'MonadPlus', {
+  get() {
+    return viewMonadPlus();
   },
 });
 Object.defineProperty(View, 'Foldable', {

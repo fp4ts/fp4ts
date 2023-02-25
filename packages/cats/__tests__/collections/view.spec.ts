@@ -17,8 +17,7 @@ import {
   View,
 } from '@fp4ts/cats-core/lib/data';
 import {
-  AlternativeSuite,
-  MonadSuite,
+  MonadPlusSuite,
   TraversableFilterSuite,
   UnzipSuite,
 } from '@fp4ts/cats-laws';
@@ -1126,22 +1125,8 @@ describe('Views', () => {
       Eq.by<View<X>, List<X>>(List.Eq(E), xs => xs.toList);
 
     checkAll(
-      'Alternative<View>',
-      AlternativeSuite(View.Alternative).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsView,
-        viewEq,
-      ),
-    );
-
-    checkAll(
-      'Monad<View>',
-      MonadSuite(View.Monad).monad(
+      'MonadPlus<View>',
+      MonadPlusSuite(View.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),

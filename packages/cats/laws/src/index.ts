@@ -19,6 +19,7 @@ export * from './functor-laws';
 export * from './invariant-laws';
 export * from './monad-defer-laws';
 export * from './monad-error-laws';
+export * from './monad-plus-laws';
 export * from './monad-laws';
 export * from './monoid-k-laws';
 export * from './semigroup-k-laws';

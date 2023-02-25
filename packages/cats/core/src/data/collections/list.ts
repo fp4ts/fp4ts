@@ -24,6 +24,7 @@ import { EqK } from '../../eq-k';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
+import { MonadPlus } from '../../monad-plus';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { TraversableFilter } from '../../traversable-filter';
@@ -3597,6 +3598,7 @@ List.FunctorFilter = null as any as FunctorFilter<ListF>;
 List.Applicative = null as any as Applicative<ListF>;
 List.Alternative = null as any as Alternative<ListF>;
 List.Monad = null as any as Monad<ListF>;
+List.MonadPlus = null as any as MonadPlus<ListF>;
 List.CoflatMap = null as any as CoflatMap<ListF>;
 List.Foldable = null as any as Foldable<ListF>;
 List.TraversableFilter = null as any as TraversableFilter<ListF>;
@@ -3663,6 +3665,13 @@ const listMonad = lazy(() =>
     flatMap_: (fa, f) => fa.flatMap(f),
     flatten: fa => fa.flatten(),
     tailRecM_: List.tailRecM_,
+  }),
+);
+const listMonadPlus = lazy(() =>
+  MonadPlus.of<ListF>({
+    ...listMonad(),
+    ...listAlternative(),
+    ...listFunctorFilter(),
   }),
 );
 const listFoldable = lazy(() =>
@@ -3755,6 +3764,11 @@ Object.defineProperty(List, 'CoflatMap', {
 Object.defineProperty(List, 'Monad', {
   get() {
     return listMonad();
+  },
+});
+Object.defineProperty(List, 'MonadPlus', {
+  get() {
+    return listMonadPlus();
   },
 });
 Object.defineProperty(List, 'Foldable', {

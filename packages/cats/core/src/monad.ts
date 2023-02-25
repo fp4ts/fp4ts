@@ -9,6 +9,7 @@ import { Apply } from './apply';
 import { Applicative } from './applicative';
 import { FlatMap } from './flat-map';
 import { MonadDefer } from './monad-defer';
+
 import { ArrayF, arrayMonad } from './instances/array';
 import { Function0F, Function1F } from './instances/function';
 

@@ -17,6 +17,7 @@ export * from './functor-suite';
 export * from './invariant-suite';
 export * from './monad-defer-suite';
 export * from './monad-error-suite';
+export * from './monad-plus-suite';
 export * from './monad-suite';
 export * from './monoid-k-suite';
 export * from './semigroup-k-suite';

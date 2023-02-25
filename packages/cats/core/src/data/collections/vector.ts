@@ -23,6 +23,7 @@ import { EqK } from '../../eq-k';
 import { Foldable } from '../../foldable';
 import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
+import { MonadPlus } from '../../monad-plus';
 import { Monad } from '../../monad';
 import { MonoidK } from '../../monoid-k';
 import { Traversable } from '../../traversable';
@@ -2893,6 +2894,7 @@ Vector.Eq = cached(
 );
 
 Vector.EqK = null as any as EqK<VectorF>;
+Vector.MonadPlus = null as any as MonadPlus<VectorF>;
 Vector.Monad = null as any as Monad<VectorF>;
 Vector.Alternative = null as any as Alternative<VectorF>;
 Vector.Foldable = null as any as Foldable<VectorF>;
@@ -2951,6 +2953,14 @@ const vectorMonad = lazy(() =>
     ...vectorApplicative(),
     flatMap_: (fa, f) => fa.flatMap(f),
     tailRecM_: Vector.tailRecM_,
+  }),
+);
+
+const vectorMonadPlus = lazy(() =>
+  MonadPlus.of<VectorF>({
+    ...vectorMonad(),
+    ...vectorFunctorFilter(),
+    ...vectorAlternative(),
   }),
 );
 
@@ -3030,6 +3040,11 @@ Object.defineProperty(Vector, 'EqK', {
 Object.defineProperty(Vector, 'Monad', {
   get() {
     return vectorMonad();
+  },
+});
+Object.defineProperty(Vector, 'MonadPlus', {
+  get() {
+    return vectorMonadPlus();
   },
 });
 Object.defineProperty(Vector, 'Alternative', {

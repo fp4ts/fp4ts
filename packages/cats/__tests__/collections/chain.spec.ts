@@ -4,19 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval } from '@fp4ts/core';
 import { CommutativeMonoid, Eq } from '@fp4ts/cats-kernel';
-import { Chain, Identity, List, Option, Some } from '@fp4ts/cats-core/lib/data';
+import { Monad } from '@fp4ts/cats-core';
+import { Chain, Option } from '@fp4ts/cats-core/lib/data';
 import {
   AlignSuite,
-  AlternativeSuite,
   CoflatMapSuite,
-  MonadSuite,
+  MonadPlusSuite,
   TraversableFilterSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { Monad } from '@fp4ts/cats-core';
 
 describe('Chain', () => {
   describe('types', () => {
@@ -81,20 +79,6 @@ describe('Chain', () => {
     );
 
     checkAll(
-      'Alternative<Chain>',
-      AlternativeSuite(Chain.Alternative).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsChain,
-        Chain.Eq,
-      ),
-    );
-
-    checkAll(
       'CoflatMap<Chain>',
       CoflatMapSuite(Chain.CoflatMap).coflatMap(
         fc.integer(),
@@ -111,8 +95,8 @@ describe('Chain', () => {
     );
 
     checkAll(
-      'Monad<Chain>',
-      MonadSuite(Chain.Monad).monad(
+      'MonadPlus<Chain>',
+      MonadPlusSuite(Chain.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),

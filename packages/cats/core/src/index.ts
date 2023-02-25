@@ -24,6 +24,7 @@ export * from './functor-filter';
 export * from './monad';
 export * from './monad-defer';
 export * from './monad-error';
+export * from './monad-plus';
 export * from './monad-throw';
 export * from './coflat-map';
 export * from './comonad';

@@ -23,6 +23,7 @@ import { Functor } from '../../functor';
 import { FunctorFilter } from '../../functor-filter';
 import { MonoidK } from '../../monoid-k';
 import { SemigroupK } from '../../semigroup-k';
+import { MonadPlus } from '../../monad-plus';
 import { Defer } from '../../defer';
 import { Alternative } from '../../alternative';
 import { Align } from '../../align';
@@ -81,6 +82,7 @@ interface LazyListObj {
   FunctorFilter: FunctorFilter<LazyListF>;
   Applicative: Applicative<LazyListF>;
   Monad: MonadDefer<LazyListF>;
+  MonadPlus: MonadPlus<LazyListF>;
   Foldable: Foldable<LazyListF>;
   TraversableFilter: TraversableFilter<LazyListF>;
 }
@@ -1015,6 +1017,14 @@ const lazyListMonad = lazy(() =>
   }),
 );
 
+const lazyListMonadPlus = lazy(() =>
+  MonadPlus.of<LazyListF>({
+    ...lazyListMonad(),
+    ...lazyListAlternative(),
+    ...lazyListFunctorFilter(),
+  }),
+);
+
 const lazyListFoldable = lazy(() =>
   Foldable.of<LazyListF>({
     foldMap_:
@@ -1107,6 +1117,11 @@ Object.defineProperty(LazyList, 'Applicative', {
 Object.defineProperty(LazyList, 'Monad', {
   get() {
     return lazyListMonad();
+  },
+});
+Object.defineProperty(LazyList, 'MonadPlus', {
+  get() {
+    return lazyListMonadPlus();
   },
 });
 

@@ -18,6 +18,8 @@ import { Unalign } from '../unalign';
 import { TraversableFilter } from '../traversable-filter';
 import { Option } from './option';
 import { Defer } from '../defer';
+import { MonadPlus } from '../monad-plus';
+import { FunctorFilter } from '../functor-filter';
 
 const tag = Symbol('@fp4ts/cats/core/data/proxy');
 export interface Proxy<A> {
@@ -43,6 +45,7 @@ interface ProxyObj {
   Applicative: Applicative<ProxyF>;
   Alternative: Alternative<ProxyF>;
   Monad: MonadDefer<ProxyF>;
+  MonadPlus: MonadPlus<ProxyF>;
   Unalign: Unalign<ProxyF>;
   Unzip: Unzip<ProxyF>;
   TraversableFilter: TraversableFilter<ProxyF>;
@@ -80,6 +83,9 @@ const proxyDefer: Lazy<Defer<ProxyF>> = lazy(() =>
 );
 const proxyFunctor: Lazy<Functor<ProxyF>> = lazy(() =>
   Functor.of({ map_: <A, B>() => Proxy<B>() }),
+);
+const proxyFunctorFilter: Lazy<FunctorFilter<ProxyF>> = lazy(() =>
+  FunctorFilter.of({ ...proxyFunctor(), mapFilter_: <A, B>() => Proxy<B>() }),
 );
 const proxyContravariant: Lazy<Contravariant<ProxyF>> = lazy(() =>
   Contravariant.of({ contramap_: <A, B>() => Proxy<B>() }),
@@ -122,6 +128,13 @@ const proxyMonad: Lazy<MonadDefer<ProxyF>> = lazy(() =>
     ...proxyApplicative(),
     ...proxyDefer(),
     flatMap_: <A, B>() => Proxy<B>(),
+  }),
+);
+const proxyMonadPlus: Lazy<MonadPlus<ProxyF>> = lazy(() =>
+  MonadPlus.of({
+    ...proxyMonad(),
+    ...proxyAlternative(),
+    ...proxyFunctorFilter(),
   }),
 );
 
@@ -189,6 +202,11 @@ Object.defineProperty(Proxy, 'Alternative', {
 Object.defineProperty(Proxy, 'Monad', {
   get() {
     return proxyMonad();
+  },
+});
+Object.defineProperty(Proxy, 'MonadPlus', {
+  get() {
+    return proxyMonadPlus();
   },
 });
 Object.defineProperty(Proxy, 'Unzip', {

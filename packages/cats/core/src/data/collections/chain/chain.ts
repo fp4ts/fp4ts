@@ -13,6 +13,8 @@ import { FunctorFilter } from '../../../functor-filter';
 import { Applicative } from '../../../applicative';
 import { Alternative } from '../../../alternative';
 import { CoflatMap } from '../../../coflat-map';
+import { TraversableFilter } from '../../../traversable-filter';
+import { MonadPlus } from '../../../monad-plus';
 import { Monad } from '../../../monad';
 import { Either } from '../../either';
 import { Option } from '../../option';
@@ -39,10 +41,10 @@ import {
   chainFunctor,
   chainFunctorFilter,
   chainMonad,
+  chainMonadPlus,
   chainMonoidK,
   chainTraversable,
 } from './instances';
-import { TraversableFilter } from '../../../traversable-filter';
 
 /**
  * @category Collection
@@ -89,6 +91,7 @@ interface ChainObj {
   readonly Alternative: Alternative<ChainF>;
   readonly CoflatMap: CoflatMap<ChainF>;
   readonly Monad: Monad<ChainF>;
+  readonly MonadPlus: MonadPlus<ChainF>;
   readonly TraversableFilter: TraversableFilter<ChainF>;
 }
 
@@ -137,6 +140,11 @@ Object.defineProperty(Chain, 'CoflatMap', {
 Object.defineProperty(Chain, 'Monad', {
   get() {
     return chainMonad();
+  },
+});
+Object.defineProperty(Chain, 'MonadPlus', {
+  get() {
+    return chainMonadPlus();
   },
 });
 Object.defineProperty(Chain, 'TraversableFilter', {

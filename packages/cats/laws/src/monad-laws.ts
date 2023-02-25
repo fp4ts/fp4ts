@@ -5,7 +5,7 @@
 
 import { Kind, pipe } from '@fp4ts/core';
 import { Monad } from '@fp4ts/cats-core';
-import { Kleisli, Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Left, Right } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { ApplicativeLaws } from './applicative-laws';

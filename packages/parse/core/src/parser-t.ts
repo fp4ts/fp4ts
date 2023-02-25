@@ -743,7 +743,6 @@ ParserT.Alternative = <S, F>(): Alternative<$<ParserTF, [S, F]>> =>
   Alternative.of({
     ...ParserT.Applicative(),
     ...ParserT.MonoidK(),
-    orElse_: (fa, fb) => fa.orElse(fb()),
     many: fa => fa.rep().map(xs => xs.toArray),
     many1: fa => fa.rep1().map(xs => xs.toArray),
   });

@@ -20,12 +20,11 @@ import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 import {
-  AlternativeSuite,
-  MonadSuite,
   AlignSuite,
   CoflatMapSuite,
   TraversableFilterSuite,
   UnzipSuite,
+  MonadPlusSuite,
 } from '@fp4ts/cats-laws';
 
 describe('Vector', () => {
@@ -1408,20 +1407,6 @@ describe('Vector', () => {
     );
 
     checkAll(
-      'Alternative<Vector>',
-      AlternativeSuite(Vector.Alternative).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsVector,
-        Vector.Eq,
-      ),
-    );
-
-    checkAll(
       'CoflatMap<Vector>',
       CoflatMapSuite(Vector.CoflatMap).coflatMap(
         fc.integer(),
@@ -1438,8 +1423,8 @@ describe('Vector', () => {
     );
 
     checkAll(
-      'Monad<Vector>',
-      MonadSuite(Vector.Monad).monad(
+      'MonadPlus<Vector>',
+      MonadPlusSuite(Vector.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),
