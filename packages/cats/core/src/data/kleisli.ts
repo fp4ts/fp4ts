@@ -34,6 +34,7 @@ import { MonadError } from '../monad-error';
 import { Contravariant } from '../contravariant';
 import { Distributive } from '../distributive';
 import { isMonadDefer, MonadDefer } from '../monad-defer';
+import { MonadPlus } from '../monad-plus';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
 
@@ -60,6 +61,7 @@ export interface KleisliObj {
   ): ApplicativeError<$<KleisliF, [F, A]>, E>;
   FlatMap<F, A>(F: FlatMap<F>): FlatMap<$<KleisliF, [F, A]>>;
   Monad<F, A>(F: Monad<F>): Monad<$<KleisliF, [F, A]>>;
+  MonadPlus<F, A>(F: MonadPlus<F>): MonadPlus<$<KleisliF, [F, A]>>;
   MonadDefer<F, A>(F: MonadDefer<F>): MonadDefer<$<KleisliF, [F, A]>>;
   MonadError<F, A, E>(F: MonadError<F, E>): MonadError<$<KleisliF, [F, A]>, E>;
 }
@@ -234,6 +236,15 @@ const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliF, [F, A]>> = cached(
       ...kleisliFlatMap(F),
     }),
 );
+const kleisliMonadPlus: <F, A>(
+  F: MonadPlus<F>,
+) => MonadPlus<$<KleisliF, [F, A]>> = cached(F =>
+  MonadPlus.of({
+    ...kleisliAlternative(F),
+    ...kleisliFunctor(F),
+    ...kleisliMonad(F),
+  }),
+);
 const kleisliMonadDefer: <F, A>(
   F: MonadDefer<F>,
 ) => MonadDefer<$<KleisliF, [F, A]>> = cached(F =>
@@ -266,6 +277,7 @@ Kleisli.ApplicativeError = kleisliApplicativeError;
 Kleisli.FlatMap = kleisliFlatMap;
 Kleisli.Monad = kleisliMonad;
 Kleisli.MonadDefer = kleisliMonadDefer;
+Kleisli.MonadPlus = kleisliMonadPlus;
 Kleisli.MonadError = kleisliMonadError;
 
 // -- HKT

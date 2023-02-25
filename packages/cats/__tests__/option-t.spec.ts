@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $ } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Applicative, CoflatMap } from '@fp4ts/cats-core';
+import { CoflatMap, EqK, MonadDefer } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -21,7 +21,9 @@ import {
 import {
   AlternativeSuite,
   CoflatMapSuite,
+  MonadDeferSuite,
   MonadErrorSuite,
+  MonadPlusSuite,
 } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -181,21 +183,6 @@ describe('OptionT', () => {
 
   describe('laws', () => {
     checkAll(
-      'Alternative<OptionT<Identity, *>>',
-      AlternativeSuite(OptionT.Alternative(Identity.Monad)).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        <X>(arbX: Arbitrary<X>) =>
-          A.fp4tsOptionT<IdentityF, X>(A.fp4tsOption(arbX)),
-        OptionT.EqK(Identity.EqK).liftEq,
-      ),
-    );
-
-    checkAll(
       'CoflatMap<OptionT<Either<string, *>>>',
       CoflatMapSuite(
         CoflatMap.fromApplicative(OptionT.Monad(Either.Monad<string>())),
@@ -214,6 +201,40 @@ describe('OptionT', () => {
           ),
         OptionT.EqK<$<EitherF, [string]>>(Either.EqK(Eq.fromUniversalEquals()))
           .liftEq,
+      ),
+    );
+
+    checkAll(
+      'MonadPlus<OptionT<Eval, *>>',
+      MonadPlusSuite(OptionT.MonadPlus(MonadDefer.Eval)).monadPlus(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsOptionT(A.fp4tsEval(A.fp4tsOption(arbX))),
+        OptionT.EqK(EqK.Eval).liftEq,
+      ),
+    );
+
+    checkAll(
+      'MonadDefer<OptionT<Eval, *>>',
+      MonadDeferSuite(OptionT.MonadDefer(MonadDefer.Eval)).monadDefer(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        <X>(arbX: Arbitrary<X>) =>
+          A.fp4tsOptionT(A.fp4tsEval(A.fp4tsOption(arbX))),
+        OptionT.EqK(EqK.Eval).liftEq,
       ),
     );
 

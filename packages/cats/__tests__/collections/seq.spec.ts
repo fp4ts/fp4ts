@@ -9,6 +9,7 @@ import { Monad } from '@fp4ts/cats-core';
 import { Iter, Seq } from '@fp4ts/cats-core/lib/data';
 import {
   AlternativeSuite,
+  MonadPlusSuite,
   MonadSuite,
   TraversableFilterSuite,
   UnzipSuite,
@@ -775,22 +776,8 @@ describe('Seq', () => {
 
   describe('Laws', () => {
     checkAll(
-      'Alternative<Seq>',
-      AlternativeSuite(Seq.Alternative).alternative(
-        fc.integer(),
-        fc.integer(),
-        fc.integer(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        Eq.fromUniversalEquals(),
-        A.fp4tsSeq,
-        Seq.EqK.liftEq,
-      ),
-    );
-
-    checkAll(
-      'Monad<Seq>',
-      MonadSuite(Seq.Monad).monad(
+      'MonadPlus<Seq>',
+      MonadPlusSuite(Seq.MonadPlus).monadPlus(
         fc.integer(),
         fc.integer(),
         fc.integer(),

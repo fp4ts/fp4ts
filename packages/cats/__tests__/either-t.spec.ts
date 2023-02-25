@@ -4,7 +4,9 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
+import { EvalF } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
+import { EqK, MonadDefer } from '@fp4ts/cats-core';
 import {
   EitherT,
   IdentityF,
@@ -14,6 +16,7 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import {
   BifunctorSuite,
+  MonadDeferSuite,
   MonadErrorSuite,
   MonadSuite,
   SemigroupKSuite,
@@ -91,6 +94,25 @@ describe('EitherT', () => {
         <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<OptionF, string, X>> =>
           A.fp4tsEitherT(A.fp4tsOption(A.fp4tsEither(fc.string(), arbX))),
         EitherT.EqK(Option.EqK, Eq.fromUniversalEquals<string>()).liftEq,
+      ),
+    );
+
+    checkAll(
+      'MonadDefer<EitherT<Eval, string, *>>',
+      MonadDeferSuite(
+        EitherT.MonadDefer<EvalF, string>(MonadDefer.Eval),
+      ).monadDefer(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        <X>(arbX: Arbitrary<X>): Arbitrary<EitherT<EvalF, string, X>> =>
+          A.fp4tsEitherT(A.fp4tsEval(A.fp4tsEither(fc.string(), arbX))),
+        EitherT.EqK(EqK.Eval, Eq.fromUniversalEquals<string>()).liftEq,
       ),
     );
 

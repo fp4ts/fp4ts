@@ -11,10 +11,13 @@ import { Defer } from '../defer';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
+import { MonadDefer } from '../monad-defer';
 import { MonadError } from '../monad-error';
 
 import { Either, Right } from './either';
 import { None, Option, Some } from './option';
+import { FunctorFilter } from '../functor-filter';
+import { MonadPlus } from '../monad-plus';
 
 export type OptionT<F, A> = Kind<F, [Option<A>]>;
 export const OptionT = function <F, A>(
@@ -88,6 +91,38 @@ OptionT.Functor = cached(
     }),
 );
 
+OptionT.FunctorFilter = cached(
+  <F>(F: Functor<F>): FunctorFilter<$<OptionTF, [F]>> =>
+    FunctorFilter.of<$<OptionTF, [F]>>({
+      ...OptionT.Functor(F),
+      mapFilter_: (fa, f) => F.map_(fa, opt => opt.collect(f)),
+      filter_: <A>(fa: Kind<F, [Option<A>]>, f: (a: A) => boolean) =>
+        F.map_(fa, opt => opt.filter(f)),
+      filterNot_: (fa, f) => F.map_(fa, opt => opt.filterNot(f)),
+    }),
+);
+
+OptionT.Applicative = cached(
+  <F>(F: Applicative<F>): Applicative<$<OptionTF, [F]>> =>
+    Applicative.of<$<OptionTF, [F]>>({
+      pure: a => F.pure(Some(a)),
+      ap_: (ff, fa) =>
+        F.map2_(ff, fa, (f, a) =>
+          f.nonEmpty && a.nonEmpty ? Some(f.get(a.get)) : None,
+        ),
+      map2_: (fa, fb, f) => F.map2_(fa, fb, (a, b) => a.map2(b, f)),
+    }),
+);
+
+OptionT.Alternative = cached(
+  <F>(F: Applicative<F>): Alternative<$<OptionTF, [F]>> =>
+    Alternative.of<$<OptionTF, [F]>>({
+      ...OptionT.Applicative(F),
+      emptyK: <A>() => F.pure<Option<A>>(None),
+      combineK_: (fx, fy) => F.map2_(fx, fy, (x, y) => x.orElse(() => y)),
+    }),
+);
+
 OptionT.Monad = cached(
   <F>(F: Monad<F>): Monad<$<OptionTF, [F]>> =>
     Monad.of<$<OptionTF, [F]>>({
@@ -110,22 +145,29 @@ OptionT.Monad = cached(
     }),
 );
 
+OptionT.MonadPlus = cached(
+  <F>(F: Monad<F>): MonadPlus<$<OptionTF, [F]>> =>
+    MonadPlus.of<$<OptionTF, [F]>>({
+      ...OptionT.Monad(F),
+      ...OptionT.FunctorFilter(F),
+      ...OptionT.Alternative(F),
+    }),
+);
+
+OptionT.MonadDefer = cached(
+  <F>(F: MonadDefer<F>): MonadDefer<$<OptionTF, [F]>> =>
+    MonadDefer.of<$<OptionTF, [F]>>({
+      ...OptionT.Monad(F),
+      ...OptionT.Defer(F),
+    }),
+);
+
 OptionT.MonadError = cached(
   <F, E>(F: MonadError<F, E>): MonadError<$<OptionTF, [F]>, E> =>
     MonadError.of<$<OptionTF, [F]>, E>({
       ...OptionT.Monad(F),
       throwError: F.throwError,
       handleErrorWith_: F.handleErrorWith_,
-    }),
-);
-
-OptionT.Alternative = cached(
-  <F>(F: Monad<F>): Alternative<$<OptionTF, [F]>> =>
-    Alternative.of<$<OptionTF, [F]>>({
-      ...OptionT.Monad(F),
-      emptyK: () => F.pure(None),
-      combineK_: (fa, fb) =>
-        F.flatMap_(fa, opt => (opt.isEmpty ? fb : F.pure(opt))),
     }),
 );
 

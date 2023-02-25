@@ -11,6 +11,7 @@ import { Defer } from '../defer';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { Monad } from '../monad';
+import { MonadDefer } from '../monad-defer';
 import { MonadError } from '../monad-error';
 import { SemigroupK } from '../semigroup-k';
 import { Either, Left, Right } from './either';
@@ -85,6 +86,14 @@ EitherT.Monad = cached(
             ),
           ),
         ),
+    }),
+);
+
+EitherT.MonadDefer = cached(
+  <F, E>(F: MonadDefer<F>): MonadDefer<$<EitherTF, [F, E]>> =>
+    MonadDefer.of<$<EitherTF, [F, E]>>({
+      ...EitherT.Monad(F),
+      ...EitherT.Defer(F),
     }),
 );
 

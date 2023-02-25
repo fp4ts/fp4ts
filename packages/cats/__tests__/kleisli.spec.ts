@@ -25,6 +25,7 @@ import {
   FunctorFilterSuite,
   MonadDeferSuite,
   MonadErrorSuite,
+  MonadPlusSuite,
 } from '@fp4ts/cats-laws';
 import {
   checkAll,
@@ -156,6 +157,29 @@ describe('Kleisli', () => {
           A.fp4tsKleisli<EvalF, MiniInt, X>(A.fp4tsEval(X)),
         <X>(E: Eq<X>) =>
           eqKleisli<EvalF, MiniInt, X>(ExhaustiveCheck.miniInt(), Eq.Eval(E)),
+      ),
+    );
+
+    checkAll(
+      'MonadPlus<Option, MiniInt, *>>',
+      MonadPlusSuite(
+        Kleisli.MonadPlus<OptionF, MiniInt>(Option.MonadPlus),
+      ).monadPlus(
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        fc.integer(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        <X>(X: Arbitrary<X>) =>
+          A.fp4tsKleisli<OptionF, MiniInt, X>(A.fp4tsOption(X)),
+        <X>(E: Eq<X>) =>
+          eqKleisli<OptionF, MiniInt, X>(
+            ExhaustiveCheck.miniInt(),
+            Option.Eq(E),
+          ),
       ),
     );
 
