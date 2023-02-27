@@ -40,6 +40,7 @@ export const Semigroup = Object.freeze({
 
       combineEval: ey => x => self.combineEval_(x, ey),
       combineEval_: (x, ey) => ey.map(y => self.combine_(x, y)),
+
       ...S,
     });
     return self;

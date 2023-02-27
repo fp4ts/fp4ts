@@ -61,7 +61,7 @@ export const CommutativeMonoid = Object.freeze({
   get void(): CommutativeMonoid<void> {
     return CommutativeMonoid.of({
       combine_: () => {},
-      combineEval_: () => Eval.void,
+      combineEval_: (_, r) => r,
       empty: undefined,
     });
   },

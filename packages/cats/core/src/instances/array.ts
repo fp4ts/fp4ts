@@ -21,7 +21,15 @@ import { TraversableFilter } from '../traversable-filter';
 import { CoflatMap } from '../coflat-map';
 import { Unzip } from '../unzip';
 import { Unalign } from '../unalign';
-import { Either, Ior, isIdentityTC, None, Option, Some } from '../data';
+import {
+  Either,
+  Ior,
+  isConstTC,
+  isIdentityTC,
+  None,
+  Option,
+  Some,
+} from '../data';
 import * as A from '../internal/array-helpers';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
@@ -407,7 +415,20 @@ const traverseWithIndex =
       ? G.pure([])
       : isIdentityTC(G)
       ? (mapWithIndex(xs, f) as any)
+      : isConstTC(G)
+      ? (traverseWithIndex_(G, xs, f) as any)
       : Apply.TraverseStrategy(G)(Rhs => traverseWithIndexImpl(G, Rhs, xs, f));
+
+function traverseWithIndex_<G, A>(
+  G: Applicative<G>,
+  xs: readonly A[],
+  f: (a: A, i: number) => Kind<G, [unknown]>,
+): Kind<G, [void]> {
+  const discard = (): void => {};
+  return foldRightWithIndex(xs, Eval.now(G.unit), (x, eb, i) =>
+    G.map2Eval_(f(x, i), eb, discard),
+  ).value;
+}
 
 const traverseWithIndexImpl = <G, Rhs, A, B>(
   G: Applicative<G>,
