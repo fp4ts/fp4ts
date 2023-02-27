@@ -16,6 +16,9 @@ import { MonoidK } from '../monoid-k';
 import { SemigroupK } from '../semigroup-k';
 import { TraversableFilter } from '../traversable-filter';
 import { Option } from './option';
+import { Traversable } from '../traversable';
+import { Monad } from '../monad';
+import { FlatMap } from '../flat-map';
 
 export type Const<A, B> = A;
 
@@ -42,6 +45,20 @@ interface ConstObj {
   TraversableFilter<A>(): TraversableFilter<$<ConstF, [A]>>;
 }
 
+const ConstSymbol = Symbol('@fp4ts/cats/core/data/Const');
+export function isConstTC(TC: Traversable<any>): TC is Traversable<ConstF>;
+export function isConstTC(TC: Foldable<any>): TC is Foldable<ConstF>;
+export function isConstTC(TC: Monad<any>): TC is Monad<ConstF>;
+export function isConstTC(TC: Applicative<any>): TC is Applicative<ConstF>;
+export function isConstTC(TC: FlatMap<any>): TC is FlatMap<ConstF>;
+export function isConstTC(TC: Apply<any>): TC is Apply<ConstF>;
+export function isConstTC(TC: Functor<any>): TC is Functor<ConstF>;
+export function isConstTC(
+  TC: Functor<any> | Foldable<any>,
+): TC is Functor<ConstF> | Foldable<ConstF> {
+  return ConstSymbol in TC;
+}
+
 const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
   EqK.of({ liftEq: () => E });
 
@@ -54,45 +71,54 @@ const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
     combineK_: (x, y) => A.combine_(x, y),
   });
 
-const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazy(<A>() =>
-  Functor.of({ map_: (fa, f) => fa }),
-);
+const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazy(<A>() => ({
+  [ConstSymbol]: true,
+  ...Functor.of({ map_: (fa, f) => fa }),
+}));
 
-const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> = lazy(() =>
-  Contravariant.of({ contramap_: (fa, f) => fa }),
-);
+const constContravariant: <A>() => Contravariant<$<ConstF, [A]>> = lazy(() => ({
+  [ConstSymbol]: true,
+  ...Contravariant.of({ contramap_: (fa, f) => fa }),
+}));
 
-const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> = lazy(() =>
-  FunctorFilter.of({ ...constFunctor(), mapFilter_: (fa, f) => fa }),
-);
+const constFunctorFilter: <A>() => FunctorFilter<$<ConstF, [A]>> = lazy(() => ({
+  [ConstSymbol]: true,
+  ...FunctorFilter.of({ ...constFunctor(), mapFilter_: (fa, f) => fa }),
+}));
 
 const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
   E: Monoid<E>,
-) =>
-  Apply.of({
+) => ({
+  [ConstSymbol]: true,
+  ...Apply.of({
     ...constFunctor<E>(),
     ap_: (ff, fc) => E.combine_(ff, fc),
     map2_: (fa, fb, f) => E.combine_(fa, fb),
     map2Eval_: (fa, efb, f) => E.combineEval_(fa, efb),
     product_: (fa, fb) => E.combine_(fa, fb),
-  });
+  }),
+});
 
 const constApplicative: <A>(A: Monoid<A>) => Applicative<$<ConstF, [A]>> = <A>(
   A: Monoid<A>,
-) =>
-  Applicative.of({
+) => ({
+  [ConstSymbol]: true,
+  ...Applicative.of({
     ...constFunctor<A>(),
     ...constApply(A),
     pure: constant(A.empty),
-  });
+  }),
+});
 
-const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazy(() =>
-  Foldable.of({ foldRight_: (fa, ez, f) => ez }),
-);
+const constFoldable: <A>() => Foldable<$<ConstF, [A]>> = lazy(() => ({
+  [ConstSymbol]: true,
+  ...Foldable.of({ foldRight_: (fa, ez, f) => ez }),
+}));
 
 const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> = lazy(
-  <A>() =>
-    TraversableFilter.of({
+  <A>() => ({
+    [ConstSymbol]: true,
+    ...TraversableFilter.of({
       ...constFunctor<A>(),
       ...constFoldable<A>(),
 
@@ -106,6 +132,7 @@ const constTraversableFilter: <A>() => TraversableFilter<$<ConstF, [A]>> = lazy(
         <B, C>(fa: Const<A, B>, f: (x: B) => Kind<G, [Option<C>]>) =>
           G.pure(fa),
     }),
+  }),
 ) as <A>() => TraversableFilter<$<ConstF, [A]>>;
 
 Const.pure = M => constant(M.empty);

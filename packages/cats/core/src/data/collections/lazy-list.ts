@@ -975,6 +975,7 @@ const lazyListMonoidK = lazy(() =>
   MonoidK.of<LazyListF>({
     emptyK: () => LazyList.empty,
     combineK_: lazyListSemigroupK().combineK_,
+    combineKEval_: lazyListSemigroupK().combineKEval_,
   }),
 );
 const lazyListAlternative = lazy(() =>
