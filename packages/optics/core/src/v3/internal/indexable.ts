@@ -3,51 +3,56 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, id, instance, Kind, lazy } from '@fp4ts/core';
+import { $, id, Kind, lazy } from '@fp4ts/core';
 import { Function1F, IdentityF, TupleLeftF } from '@fp4ts/cats';
-import { Conjoined } from '@fp4ts/optics-kernel';
+import { Conjoined } from './conjoined';
 import { Indexed, IndexedF } from './indexed';
 
-export interface Indexable<P, I, RepF = any, CorepF = any>
-  extends Conjoined<P, RepF, CorepF> {
+/**
+ * @category Type Class
+ */
+export interface Indexable<P, in I, F = any, C = any>
+  extends Conjoined<P, F, C> {
   indexed<A, B>(pab: Kind<P, [A, B]>): (a: A, i: I) => B;
 }
 
 export const Indexable = Object.freeze({
-  Function1<I>(): Indexable<Function1F, I, IdentityF, IdentityF> {
-    return function1Indexable();
+  get Function1(): Indexable<Function1F, unknown, IdentityF, IdentityF> {
+    return functionIndexable();
   },
 
-  Indexed<I>(): Indexable<
+  Indexed: <I>(): Indexable<
     $<IndexedF, [I]>,
     I,
     $<Function1F, [I]>,
     TupleLeftF<I>
-  > {
-    return indexedIndexable();
-  },
+  > => indexedIndexable<I>(),
 });
 
 // -- Instances
 
-const function1Indexable: <I>() => Indexable<
+export type Function1Indexable = Indexable<
   Function1F,
-  I,
+  unknown,
   IdentityF,
   IdentityF
-> = lazy(<I>() =>
-  instance<Indexable<Function1F, I, IdentityF, IdentityF>>({
-    ...Conjoined.Function1,
-    indexed: id,
-  }),
-);
-
-const indexedIndexable: <I>() => Indexable<
+>;
+export type IndexedIndexable<I> = Indexable<
   $<IndexedF, [I]>,
   I,
   $<Function1F, [I]>,
   TupleLeftF<I>
-> = lazy(
+>;
+
+const functionIndexable = lazy(
+  (): Indexable<Function1F, unknown, IdentityF, IdentityF> => ({
+    ...Conjoined.Function1,
+
+    indexed: f => (a, _i) => f(a),
+  }),
+);
+
+const indexedIndexable = lazy(
   <I>(): Indexable<$<IndexedF, [I]>, I, $<Function1F, [I]>, TupleLeftF<I>> => ({
     ...Indexed.Cojoined<I>(),
     indexed: id,
