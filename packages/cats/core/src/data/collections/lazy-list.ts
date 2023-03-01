@@ -38,6 +38,7 @@ import { isIdentityTC } from '../identity';
 import { List, ListBuffer } from './list';
 import { Vector } from './vector';
 import { View } from './view';
+import { isConstTC } from '../const';
 
 /**
  * `LazyList` is implementation of fully lazy linked list.
@@ -61,6 +62,11 @@ interface LazyListObj {
   unfoldRight<A, B>(z: B, f: (b: B) => Option<[A, B]>): LazyList<A>;
   range(from: number, until?: number, step?: number): LazyList<number>;
   iterate<A>(a: A, f: (a: A) => A): LazyList<A>;
+
+  NilStep: Step<never>;
+  consStep<A>(head: A, tail: Eval<Step<A>>): Step<A>;
+  fromStep<A>(s: Step<A>): LazyList<A>;
+  fromStepEval<A>(s: Eval<Step<A>>): LazyList<A>;
 
   <A>(...xs: A[]): LazyList<A>;
   fromArray<A>(xs: A[]): LazyList<A>;
@@ -94,23 +100,26 @@ export class _LazyList<out A> {
   static consEval = <A>(x: A, exs: Eval<LazyList<A>>): LazyList<A> =>
     new _LazyList(
       Eval.now(
-        new Cons(
+        new ConsStep(
           x,
           exs.flatMap(l => l.source),
         ),
       ),
     );
 
-  public constructor(private _source: Eval<Source<A>>) {}
+  static fromStep = <A>(s: Step<A>) => new _LazyList(Eval.now(s));
+  static fromStepEval = <A>(s: Eval<Step<A>>) => new _LazyList(s);
 
-  private _forcedSource?: Source<A>;
-  private get source(): Eval<Source<A>> {
+  public constructor(private _source: Eval<Step<A>>) {}
+
+  private _forcedSource?: Step<A>;
+  private get source(): Eval<Step<A>> {
     return this._forcedSource
       ? Eval.now(this._forcedSource)
       : (this._source = this._source.memoize);
   }
 
-  private get forceSource(): Source<A> {
+  private get forceSource(): Step<A> {
     if (this._forcedSource) return this._forcedSource;
     this._forcedSource = this._source.value;
     (this._source as any) = null; // Dereference tail to allow for GC
@@ -118,7 +127,7 @@ export class _LazyList<out A> {
   }
 
   public get isEmpty(): boolean {
-    return this.forceSource === Nil;
+    return this.forceSource === NilStep;
   }
   public get nonEmpty(): boolean {
     return !this.isEmpty;
@@ -132,12 +141,12 @@ export class _LazyList<out A> {
 
   public get headOption(): Option<A> {
     const source = this.forceSource;
-    return source === Nil ? None : Some(source.head);
+    return source === NilStep ? None : Some(source.head);
   }
 
   public get tail(): LazyList<A> {
     const source = this.forceSource;
-    return source === Nil ? LazyList.empty : new _LazyList(source.tail);
+    return source === NilStep ? LazyList.empty : new _LazyList(source.tail);
   }
 
   public get last(): A {
@@ -148,25 +157,27 @@ export class _LazyList<out A> {
 
   public get lastOption(): Option<A> {
     let cur = this.forceSource;
-    while (cur !== Nil) {
+    while (cur !== NilStep) {
       const tmp = cur.forceTail;
-      if (tmp === Nil) return Some(cur.head);
+      if (tmp === NilStep) return Some(cur.head);
       cur = tmp;
     }
     return None;
   }
 
   public get init(): LazyList<A> {
-    const go = (src: Source<A>): Source<A> => {
+    const go = (src: Step<A>): Step<A> => {
       const tail = src.forceTail;
-      return tail === Nil
-        ? Nil
-        : new Cons(
+      return tail === NilStep
+        ? NilStep
+        : new ConsStep(
             src.head,
             Eval.later(() => go(tail)),
           );
     };
-    return new _LazyList(this.source.map(src => (src === Nil ? Nil : go(src))));
+    return new _LazyList(
+      this.source.map(src => (src === NilStep ? NilStep : go(src))),
+    );
   }
 
   public get size(): number {
@@ -175,7 +186,7 @@ export class _LazyList<out A> {
 
   public get uncons(): Option<[A, LazyList<A>]> {
     const source = this.forceSource;
-    return source === Nil
+    return source === NilStep
       ? None
       : Some([source.head, new _LazyList(source.tail)]);
   }
@@ -200,10 +211,10 @@ export class _LazyList<out A> {
   }
 
   public get iterator(): Iterator<A> {
-    let cur_: Eval<Source<A>> = this.source;
+    let cur_: Eval<Step<A>> = this.source;
     return Iter.lift(() => {
       const tmp = cur_.value;
-      return tmp === Nil
+      return tmp === NilStep
         ? Iter.Result.done
         : ((cur_ = tmp.tail), Iter.Result.pure(tmp.head));
     });
@@ -212,9 +223,9 @@ export class _LazyList<out A> {
   public get reverse(): LazyList<A> {
     return new _LazyList(
       this.source.map(cur => {
-        let acc: Source<A> = Nil;
-        while (cur !== Nil) {
-          acc = new Cons(cur.head, Eval.now(acc));
+        let acc: Step<A> = NilStep;
+        while (cur !== NilStep) {
+          acc = new ConsStep(cur.head, Eval.now(acc));
           cur = cur.forceTail;
         }
         return acc;
@@ -227,7 +238,7 @@ export class _LazyList<out A> {
   }
 
   public prepend<B>(this: LazyList<B>, x: B): LazyList<B> {
-    return new _LazyList(Eval.now(new Cons(x, this.source)));
+    return new _LazyList(Eval.now(new ConsStep(x, this.source)));
   }
   public cons<B>(this: LazyList<B>, x: B): LazyList<B> {
     return this.prepend(x);
@@ -327,11 +338,11 @@ export class _LazyList<out A> {
   public map2<B, C>(that: LazyList<B>, f: (a: A, b: B) => C): LazyList<C> {
     return new _LazyList(
       this.source.flatMap(l =>
-        l === Nil
-          ? Eval.now(Nil)
+        l === NilStep
+          ? EvalNil
           : that.source.flatMap(r =>
-              r === Nil
-                ? Eval.now(Nil)
+              r === NilStep
+                ? EvalNil
                 : l.flatMap(l => Eval.now(r.map(r => f(l, r)))),
             ),
       ),
@@ -343,7 +354,7 @@ export class _LazyList<out A> {
     f: (a: A, b: B) => C,
   ): Eval<LazyList<C>> {
     return this.source.flatMap(source =>
-      source === Nil
+      source === NilStep
         ? Eval.now(LazyList.empty)
         : that.map(that => this.map2(that, f)),
     );
@@ -351,12 +362,8 @@ export class _LazyList<out A> {
 
   public flatMap<B>(f: (a: A) => LazyList<B>): LazyList<B> {
     return new _LazyList(
-      this.source.flatMap(src =>
-        src === Nil
-          ? Eval.now(Nil)
-          : src.foldRight(Eval.now(Nil as Source<B>), (a, ebs) =>
-              f(a).source.flatMap(bs => bs.concat(ebs)),
-            ),
+      this.foldRight(EvalNil as Eval<Step<B>>, (x, exs) =>
+        f(x).source.flatMap(src => src.concat(exs)),
       ),
     );
   }
@@ -367,7 +374,7 @@ export class _LazyList<out A> {
   public zipWith<B, C>(that: LazyList<B>, f: (a: A, b: B) => C): LazyList<C> {
     return new _LazyList(
       this.source.flatMap(l =>
-        l === Nil ? Eval.now(Nil) : that.source.map(r => l.zipWith(r, f)),
+        l === NilStep ? EvalNil : that.source.map(r => l.zipWith(r, f)),
       ),
     );
   }
@@ -417,7 +424,7 @@ export class _LazyList<out A> {
 
   public foldLeft<B>(z: B, f: (b: B, a: A) => B): B {
     let cur = this.forceSource;
-    while (cur !== Nil) {
+    while (cur !== NilStep) {
       z = f(z, cur.head);
       cur = cur.forceTail;
     }
@@ -425,13 +432,20 @@ export class _LazyList<out A> {
   }
 
   public foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B> {
-    return this.source.flatMap(source => source.foldRight(ez, f));
+    const go = (xs: Step<A>): Eval<B> =>
+      xs === NilStep
+        ? ez
+        : f(
+            xs.head,
+            Eval.defer(() => go(xs.forceTail)),
+          );
+    return Eval.defer(() => go(this.forceSource));
   }
 
   public scanLeft<B>(z: B, f: (b: B, a: A) => B): LazyList<B> {
     return new _LazyList(
       Eval.now(
-        new Cons(
+        new ConsStep(
           z,
           this.source.map(source => source.scanLeft(z, f)),
         ),
@@ -453,7 +467,20 @@ export class _LazyList<out A> {
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
     return isIdentityTC(G)
       ? f => this.map(f) as any
+      : isConstTC(G)
+      ? f => this.traverse_(G, f) as any
       : Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs));
+  }
+
+  public traverse_<G>(
+    G: Applicative<G>,
+    f: (a: A) => Kind<G, [unknown]>,
+  ): Kind<G, [void]> {
+    const discard = (): void => {};
+
+    return this.foldRight(Eval.now(G.unit), (x, eb) =>
+      G.map2Eval_(f(x), eb, discard),
+    ).value;
   }
 
   private traverseImpl<G, Rhs>(
@@ -461,8 +488,8 @@ export class _LazyList<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
     return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
-      const go = (xs: Source<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
-        xs === Nil
+      const go = (xs: Step<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+        xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
           : Rhs.map2Rhs(
               f(xs.head),
@@ -487,8 +514,8 @@ export class _LazyList<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
   ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
     return <B>(f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [LazyList<B>]> => {
-      const go = (xs: Source<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
-        xs === Nil
+      const go = (xs: Step<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+        xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
           : Rhs.map2Rhs(
               f(xs.head),
@@ -522,7 +549,7 @@ export class _LazyList<out A> {
   public equals<A>(this: LazyList<A>, that: LazyList<A>, E: Eq<A>): boolean {
     let xs = this.forceSource;
     let ys = that.forceSource;
-    while (xs !== Nil && ys !== Nil) {
+    while (xs !== NilStep && ys !== NilStep) {
       if (xs === ys) return true;
       if (E.notEquals(xs.head, ys.head)) return false;
       xs = xs.forceTail;
@@ -536,14 +563,8 @@ export class _LazyList<out A> {
   }
 }
 
-Object.defineProperty(LazyList, 'empty', {
-  get() {
-    return new _LazyList(Eval.now(Nil));
-  },
-});
-
 LazyList.singleton = <A>(x: A): LazyList<A> =>
-  new _LazyList(Eval.now(new Cons(x, Eval.now(Nil))));
+  new _LazyList(Eval.now(new ConsStep(x, EvalNil)));
 
 LazyList.defer = <A>(thunk: () => LazyList<A>): LazyList<A> =>
   _LazyList.defer(thunk);
@@ -555,11 +576,11 @@ LazyList.unfoldRight = <A, B>(
   z: B,
   f: (b: B) => Option<[A, B]>,
 ): LazyList<A> => {
-  const go = (b: B): Source<A> =>
+  const go = (b: B): Step<A> =>
     f(b).fold(
-      () => Nil,
+      () => NilStep,
       ([a, b]) =>
-        new Cons(
+        new ConsStep(
           a,
           Eval.later(() => go(b)),
         ),
@@ -572,10 +593,10 @@ LazyList.range = (
   to: number = Infinity,
   step: number = 1,
 ): _LazyList<number> => {
-  const go = (n: number): Source<number> =>
+  const go = (n: number): Step<number> =>
     n >= to
-      ? Nil
-      : new Cons(
+      ? NilStep
+      : new ConsStep(
           n,
           Eval.later(() => go(n + step)),
         );
@@ -583,13 +604,18 @@ LazyList.range = (
 };
 
 LazyList.iterate = <A>(s: A, f: (a: A) => A): LazyList<A> => {
-  const go = (a: A): Source<A> =>
-    new Cons(
+  const go = (a: A): Step<A> =>
+    new ConsStep(
       a,
       Eval.later(() => go(f(a))),
     );
   return new _LazyList(Eval.later(() => go(s)));
 };
+
+LazyList.consStep = <A>(head: A, tail: Eval<Step<A>>): Step<A> =>
+  new ConsStep(head, tail);
+LazyList.fromStep = _LazyList.fromStep;
+LazyList.fromStepEval = _LazyList.fromStepEval;
 
 LazyList.fromArray = <A>(xs: A[]): LazyList<A> =>
   xs.length === 0
@@ -606,16 +632,16 @@ LazyList.fromVector = <A>(xs: Vector<A>): LazyList<A> =>
 
 LazyList.fromView = <A>(xs: View<A>): LazyList<A> =>
   new _LazyList(
-    xs.foldRight(Eval.now(Nil as Source<A>), (x, xs) =>
-      Eval.now(new Cons(x, xs)),
+    xs.foldRight(EvalNil as Eval<Step<A>>, (x, xs) =>
+      Eval.now(new ConsStep(x, xs)),
     ),
   );
 
 LazyList.fromIterator = <A>(it: Iterator<A>): LazyList<A> => {
-  const go = (next: IteratorResult<A>): Source<A> =>
+  const go = (next: IteratorResult<A>): Step<A> =>
     next.done
-      ? Nil
-      : new Cons(
+      ? NilStep
+      : new ConsStep(
           next.value,
           Eval.later(() => go(it.next())),
         );
@@ -626,52 +652,53 @@ LazyList.fromFoldable =
   <F>(F: Foldable<F>) =>
   <A>(fa: Kind<F, [A]>): LazyList<A> =>
     new _LazyList(
-      F.foldRight_(fa, Eval.now(Nil as Source<A>), (h, tl) =>
-        Eval.now(new Cons(h, tl)),
+      F.foldRight_(fa, EvalNil as Eval<Step<A>>, (h, tl) =>
+        Eval.now(new ConsStep(h, tl)),
       ),
     );
 
-abstract class Source<out A> {
+export type LazyListStep<A> = Step<A>;
+abstract class Step<out A> {
   abstract readonly head: A;
-  abstract readonly tail: Eval<Source<A>>;
-  abstract readonly forceTail: Source<A>;
+  abstract readonly tail: Eval<Step<A>>;
+  abstract readonly forceTail: Step<A>;
 
-  abstract take(n: number): Source<A>;
-  abstract takeWhile(p: (a: A) => boolean): Source<A>;
-  abstract drop(n: number): Source<A>;
-  abstract dropWhile(p: (a: A) => boolean): Source<A>;
-  abstract filter<B extends A>(f: (a: A) => a is B): Source<B>;
-  abstract filter(f: (a: A) => boolean): Source<A>;
-  abstract collect<B>(f: (a: A) => Option<B>): Source<B>;
-  abstract concat<B>(this: Source<B>, that: Eval<Source<B>>): Eval<Source<B>>;
+  abstract take(n: number): Step<A>;
+  abstract takeWhile(p: (a: A) => boolean): Step<A>;
+  abstract drop(n: number): Step<A>;
+  abstract dropWhile(p: (a: A) => boolean): Step<A>;
+  abstract filter<B extends A>(f: (a: A) => a is B): Step<B>;
+  abstract filter(f: (a: A) => boolean): Step<A>;
+  abstract collect<B>(f: (a: A) => Option<B>): Step<B>;
+  abstract concat<B>(this: Step<B>, that: Eval<Step<B>>): Eval<Step<B>>;
 
-  abstract map<B>(f: (a: A) => B): Source<B>;
-  abstract flatMap<B>(f: (a: A) => Eval<Source<B>>): Eval<Source<B>>;
+  abstract map<B>(f: (a: A) => B): Step<B>;
+  abstract flatMap<B>(f: (a: A) => Eval<Step<B>>): Eval<Step<B>>;
   abstract foldRight<B>(
     ez: Eval<B>,
     f: (a: A, eb: Eval<B>) => Eval<B>,
   ): Eval<B>;
 
-  abstract scanLeft<B>(z: B, f: (b: B, a: A) => B): Source<B>;
+  abstract scanLeft<B>(z: B, f: (b: B, a: A) => B): Step<B>;
   abstract scanRight<B>(
     ez: Eval<B>,
     f: (a: A, b: Eval<B>) => Eval<B>,
-  ): Eval<Cons<B>>;
+  ): Eval<ConsStep<B>>;
 
-  abstract zipWith<B, C>(that: Source<B>, f: (a: A, b: B) => C): Source<C>;
+  abstract zipWith<B, C>(that: Step<B>, f: (a: A, b: B) => C): Step<C>;
 
   abstract zipAllWith<A, B, C>(
-    this: Source<A>,
-    that: Source<B>,
+    this: Step<A>,
+    that: Step<B>,
     defaultA: () => A,
     defaultB: () => B,
     f: (a: A, b: B) => C,
-  ): Source<C>;
+  ): Step<C>;
 
-  abstract distinctBy(cmp: (x: A, y: A) => boolean): Source<A>;
+  abstract distinctBy(cmp: (x: A, y: A) => boolean): Step<A>;
 }
 
-const Nil: Source<never> = new (class Nil extends Source<never> {
+const NilStep: Step<never> = new (class Nil extends Step<never> {
   get head(): never {
     throw new Error();
   }
@@ -709,11 +736,11 @@ const Nil: Source<never> = new (class Nil extends Source<never> {
     return this;
   }
 
-  concat<B>(that: Eval<Source<B>>) {
+  concat<B>(that: Eval<Step<B>>) {
     return that;
   }
 
-  flatMap<B>(f: (a: never) => Eval<Source<B>>): Eval<Source<B>> {
+  flatMap<B>(f: (a: never) => Eval<Step<B>>): Eval<Step<B>> {
     return Eval.now(this);
   }
 
@@ -728,21 +755,21 @@ const Nil: Source<never> = new (class Nil extends Source<never> {
   scanRight<B>(
     ez: Eval<B>,
     f: (a: never, b: Eval<B>) => Eval<B>,
-  ): Eval<Cons<B>> {
-    return ez.map(h => new Cons(h, Eval.now(this)));
+  ): Eval<ConsStep<B>> {
+    return ez.map(h => new ConsStep(h, Eval.now(this)));
   }
 
-  zipWith<B, C>(that: Source<B>, f: (a: never, b: B) => C): Source<C> {
+  zipWith<B, C>(that: Step<B>, f: (a: never, b: B) => C): Step<C> {
     throw new Error('Nil.zipWith');
   }
 
   zipAllWith<A, B, C>(
-    this: Source<A>,
-    that: Source<B>,
+    this: Step<A>,
+    that: Step<B>,
     defaultA: () => A,
     defaultB: () => B,
     f: (a: A, b: B) => C,
-  ): Source<C> {
+  ): Step<C> {
     return that.map(b => f(defaultA(), b));
   }
 
@@ -751,19 +778,19 @@ const Nil: Source<never> = new (class Nil extends Source<never> {
   }
 })();
 
-class Cons<out A> extends Source<A> {
-  public constructor(public readonly head: A, private _tail: Eval<Source<A>>) {
+class ConsStep<out A> extends Step<A> {
+  public constructor(public readonly head: A, private _tail: Eval<Step<A>>) {
     super();
   }
-  private _forcedTail?: Source<A>;
+  private _forcedTail?: Step<A>;
 
-  public get tail(): Eval<Source<A>> {
+  public get tail(): Eval<Step<A>> {
     return this._forcedTail
       ? Eval.now(this._forcedTail)
       : (this._tail = this._tail.memoize);
   }
 
-  public get forceTail(): Source<A> {
+  public get forceTail(): Step<A> {
     if (this._forcedTail) return this._forcedTail;
 
     const source = this._tail.value;
@@ -772,123 +799,123 @@ class Cons<out A> extends Source<A> {
     return source;
   }
 
-  public take(n: number): Source<A> {
+  public take(n: number): Step<A> {
     return n <= 1
-      ? new Cons(this.head, Eval.now(Nil))
-      : new Cons(
+      ? new ConsStep(this.head, EvalNil)
+      : new ConsStep(
           this.head,
           this.tail.map(tail => tail.take(n - 1)),
         );
   }
 
-  public takeWhile(p: (a: A) => boolean): Source<A> {
+  public takeWhile(p: (a: A) => boolean): Step<A> {
     return p(this.head)
-      ? new Cons(
+      ? new ConsStep(
           this.head,
           this.tail.map(tail => tail.takeWhile(p)),
         )
-      : Nil;
+      : NilStep;
   }
 
-  public drop(n: number): Source<A> {
-    let cur = this as Source<A>;
-    while (cur != Nil && n > 0) {
+  public drop(n: number): Step<A> {
+    let cur = this as Step<A>;
+    while (cur != NilStep && n > 0) {
       cur = cur.forceTail;
       n -= 1;
     }
     return cur;
   }
 
-  public dropWhile(p: (a: A) => boolean): Source<A> {
-    let cur = this as Source<A>;
-    while (cur !== Nil && p(cur.head)) {
+  public dropWhile(p: (a: A) => boolean): Step<A> {
+    let cur = this as Step<A>;
+    while (cur !== NilStep && p(cur.head)) {
       cur = cur.forceTail;
     }
     return cur;
   }
 
-  public filter<B extends A>(f: (a: A) => a is B): Source<B>;
-  public filter(f: (a: A) => boolean): Source<A>;
-  public filter(f: (a: A) => boolean): Source<A> {
+  public filter<B extends A>(f: (a: A) => a is B): Step<B>;
+  public filter(f: (a: A) => boolean): Step<A>;
+  public filter(f: (a: A) => boolean): Step<A> {
     if (f(this.head))
-      return new Cons(
+      return new ConsStep(
         this.head,
         this.tail.map(tail => tail.filter(f)),
       );
 
-    for (let cur = this.forceTail; cur !== Nil; cur = cur.forceTail)
+    for (let cur = this.forceTail; cur !== NilStep; cur = cur.forceTail)
       if (f(cur.head))
-        return new Cons(
+        return new ConsStep(
           cur.head,
           cur.tail.map(tail => tail.filter(f)),
         );
-    return Nil;
+    return NilStep;
   }
 
-  public collect<B>(f: (a: A) => Option<B>): Source<B> {
+  public collect<B>(f: (a: A) => Option<B>): Step<B> {
     const x = f(this.head);
     if (x.nonEmpty)
-      return new Cons(
+      return new ConsStep(
         x.get,
         this.tail.map(tail => tail.collect(f)),
       );
 
-    for (let cur = this.forceTail; cur !== Nil; cur = cur.forceTail) {
+    for (let cur = this.forceTail; cur !== NilStep; cur = cur.forceTail) {
       const x = f(cur.head);
       if (x.nonEmpty)
-        return new Cons(
+        return new ConsStep(
           x.get,
           cur.tail.map(tail => tail.collect(f)),
         );
     }
-    return Nil;
+    return NilStep;
   }
 
-  public map<B>(f: (a: A) => B): Source<B> {
-    return new Cons(
+  public map<B>(f: (a: A) => B): Step<B> {
+    return new ConsStep(
       f(this.head),
       this.tail.map(tail => tail.map(f)),
     );
   }
 
-  public concat<B>(this: Cons<B>, that: Eval<Source<B>>): Eval<Source<B>> {
+  public concat<B>(this: ConsStep<B>, that: Eval<Step<B>>): Eval<Step<B>> {
     return Eval.now(
-      new Cons(
+      new ConsStep(
         this.head,
         this.tail.flatMap(tail => tail.concat(that)),
       ),
     );
   }
 
-  public flatMap<B>(f: (a: A) => Eval<Source<B>>): Eval<Source<B>> {
+  public flatMap<B>(f: (a: A) => Eval<Step<B>>): Eval<Step<B>> {
     return f(this.head).flatMap(hds =>
       hds.concat(this.tail.flatMap(tail => tail.flatMap(f))),
     );
   }
 
-  public zipWith<B, C>(that: Source<B>, f: (a: A, b: B) => C): Source<C> {
-    return that === Nil
-      ? Nil
-      : new Cons(
+  public zipWith<B, C>(that: Step<B>, f: (a: A, b: B) => C): Step<C> {
+    return that === NilStep
+      ? NilStep
+      : new ConsStep(
           f(this.head, that.head),
           this.tail.map(tail =>
-            tail === Nil
-              ? Nil // do not force rhs unless there is something to zip it with
+            tail === NilStep
+              ? NilStep // do not force rhs unless there is something to zip it with
               : tail.zipWith(that.forceTail, f),
           ),
         );
   }
 
   public zipAllWith<A, B, C>(
-    this: Source<A>,
-    that: Source<B>,
+    this: Step<A>,
+    that: Step<B>,
     defaultA: () => A,
     defaultB: () => B,
     f: (a: A, b: B) => C,
-  ): Source<C> {
-    return that === Nil
+  ): Step<C> {
+    return that === NilStep
       ? this.map(a => f(a, defaultB()))
-      : new Cons(
+      : new ConsStep(
           f(this.head, that.head),
           this.tail.map(l =>
             l.zipAllWith(that.forceTail, defaultA, defaultB, f),
@@ -897,15 +924,19 @@ class Cons<out A> extends Source<A> {
   }
 
   public foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B> {
-    return f(
-      this.head,
-      this.tail.flatMap(tail => tail.foldRight(ez, f)),
-    );
+    const go = (xs: Step<A>): Eval<B> =>
+      xs === NilStep
+        ? ez
+        : f(
+            xs.head,
+            Eval.defer(() => go(xs.forceTail)),
+          );
+    return go(this);
   }
 
-  public scanLeft<B>(z: B, f: (b: B, a: A) => B): Source<B> {
+  public scanLeft<B>(z: B, f: (b: B, a: A) => B): Step<B> {
     const q = f(z, this.head);
-    return new Cons(
+    return new ConsStep(
       q,
       this.tail.map(tail => tail.scanLeft(q, f)),
     );
@@ -914,22 +945,22 @@ class Cons<out A> extends Source<A> {
   public scanRight<B>(
     ez: Eval<B>,
     f: (a: A, b: Eval<B>) => Eval<B>,
-  ): Eval<Cons<B>> {
+  ): Eval<ConsStep<B>> {
     const eqs = this.tail.flatMap(tail => tail.scanRight(ez, f)).memoize;
     return f(
       this.head,
       eqs.map(qs => qs.head),
-    ).map(hd => new Cons(hd, eqs));
+    ).map(hd => new ConsStep(hd, eqs));
   }
 
-  public distinctBy(cmp: (x: A, y: A) => boolean): Source<A> {
-    const loop = (ys: Source<A>, dubs: A[]): Source<A> => {
-      while (ys !== Nil && dubs.findIndex(z => cmp(ys.head, z)) >= 0) {
+  public distinctBy(cmp: (x: A, y: A) => boolean): Step<A> {
+    const loop = (ys: Step<A>, dubs: A[]): Step<A> => {
+      while (ys !== NilStep && dubs.findIndex(z => cmp(ys.head, z)) >= 0) {
         ys = ys.forceTail;
       }
-      return ys === Nil
-        ? Nil
-        : new Cons(
+      return ys === NilStep
+        ? NilStep
+        : new ConsStep(
             ys.head,
             ys.tail.map(yss => (dubs.push(ys.head), loop(yss, dubs))),
           );
@@ -1136,6 +1167,10 @@ Object.defineProperty(LazyList, 'TraversableFilter', {
     return lazyListTraversableFilter();
   },
 });
+
+const EvalNil = Eval.now(NilStep);
+LazyList.NilStep = NilStep;
+LazyList.empty = new _LazyList(EvalNil);
 
 // -- HKT
 
