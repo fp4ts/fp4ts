@@ -14,4 +14,4 @@ export * from './non-empty-list';
 
 export * from './view';
 
-export { LazyList, LazyListF } from './lazy-list';
+export { LazyList, LazyListF, LazyListStep } from './lazy-list';

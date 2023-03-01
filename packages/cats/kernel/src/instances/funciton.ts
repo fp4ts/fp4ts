@@ -124,6 +124,13 @@ export const endoMonoid = lazy(
     Monoid.of({
       empty: id<A>,
       combine_: F1.compose,
+      combineEval_: (f, eg) =>
+        Eval.now(
+          F1.compose(
+            f,
+            F1.defer(() => eg.value),
+          ),
+        ),
     }),
 ) as <A>() => Monoid<(a: A) => A>;
 
