@@ -6,6 +6,7 @@
 import { Option, Some } from '@fp4ts/cats';
 import { Prism, getOrModify, reverseGet, getOption } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
+import { id } from '@fp4ts/core';
 
 // import { OptionalLaws } from './optional-laws';
 
@@ -13,10 +14,7 @@ export const PrismLaws = <S, A>(prism: Prism<S, A>) => ({
   // ...OptionalLaws(prism),
 
   partialRoundTripOneWay: (s: S): IsEq<S> =>
-    new IsEq(
-      getOrModify(prism)(s).fold(x => x, reverseGet(prism)),
-      s,
-    ),
+    new IsEq(getOrModify(prism)(s).fold(id, reverseGet(prism)), s),
 
   roundTripOtherWay: (a: A): IsEq<Option<A>> =>
     new IsEq(getOption(prism)(reverseGet(prism)(a)), Some(a)),

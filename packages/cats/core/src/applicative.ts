@@ -53,18 +53,10 @@ export const Applicative = Object.freeze({
         Traversable.Array.sequence(self)(xs)) as Applicative<F>['tupled'],
 
       traverseA: G => f => ta => self.traverseA_(G)(ta, f),
-      traverseA_: G => (ta, f) =>
-        G.foldRight_(ta, Eval.now(self.pure<void>(undefined)), (x, ac) =>
-          self.map2Eval_(f(x), ac, () => {}),
-        ).value,
+      traverseA_: G => (ta, f) => traverseA(self, G, ta, f),
 
       traverseWithIndexA: G => f => ta => self.traverseWithIndexA_(G)(ta, f),
-      traverseWithIndexA_: G => (ta, f) =>
-        G.foldRightWithIndex_(
-          ta,
-          Eval.now(self.pure<void>(undefined)),
-          (x, ac, i) => self.map2Eval_(f(x, i), ac, () => {}),
-        ).value,
+      traverseWithIndexA_: G => (ta, f) => traverseWithIndexA(self, G, ta, f),
 
       ...Apply.of<F>({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),
       ...F,
@@ -81,3 +73,27 @@ export const Applicative = Object.freeze({
     return arrayApplicative();
   },
 });
+
+const discard = () => {};
+
+function traverseA<F, G, A, B>(
+  F: Applicative<F>,
+  G: Foldable<G>,
+  ta: Kind<G, [A]>,
+  f: (a: A) => Kind<F, [B]>,
+): Kind<F, [void]> {
+  return G.foldRight_(ta, Eval.now(F.unit), (x, ac) =>
+    F.map2Eval_(f(x), ac, discard),
+  ).value;
+}
+
+function traverseWithIndexA<F, G, I, A, B>(
+  F: Applicative<F>,
+  G: FoldableWithIndex<G, I>,
+  ta: Kind<G, [A]>,
+  f: (a: A, i: I) => Kind<F, [B]>,
+): Kind<F, [void]> {
+  return G.foldRightWithIndex_(ta, Eval.now(F.unit), (x, ac, i) =>
+    F.map2Eval_(f(x, i), ac, discard),
+  ).value;
+}

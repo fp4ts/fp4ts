@@ -3,157 +3,278 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, Kind, pipe, tupled } from '@fp4ts/core';
-import { Function1F, Functor } from '@fp4ts/cats';
-import { Strong } from '@fp4ts/cats-profunctor';
-import { Optic, PLensLike, POptic, POver } from './optics';
-import { Indexable } from './ix';
+import { Functor } from '@fp4ts/cats';
+import { F1, Kind } from '@fp4ts/core';
+import { Getter, IndexedGetter, IndexPreservingGetter } from './getter';
+import {
+  IndexedPTraversal,
+  IndexPreservingPTraversal,
+  PTraversal,
+} from './traversal';
 
-export type PLens<S, T, A, B> = <F>(
-  F: Functor<F>,
-  P: Indexable<Function1F, unknown>,
-) => PLensLike<F, S, T, A, B>;
+import {
+  Conjoined,
+  Function1Indexable,
+  Indexable,
+  IndexedOptic,
+  IndexPreservingOptic,
+  Optic,
+} from './internal';
+
+export interface PLens<in S, out T, out A, in B>
+  extends Getter<S, A>,
+    PTraversal<S, T, A, B> {
+  readonly S: (s: S) => void;
+  readonly T: () => T;
+  readonly A: () => A;
+  readonly B: (b: B) => void;
+
+  readonly runOptic: <F>(
+    F: Functor<F>,
+    P: Function1Indexable,
+  ) => (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]>;
+
+  readonly taking: PTraversal<S, T, A, B>['taking'];
+  readonly dropping: PTraversal<S, T, A, B>['dropping'];
+  readonly orElse: PTraversal<S, T, A, B>['orElse'];
+}
+
 export type Lens<S, A> = PLens<S, S, A, A>;
 
-export type IndexedPLens<I, S, T, A, B> = <F, P>(
-  F: Functor<F>,
-  P: Indexable<P, I>,
-) => POver<F, P, S, T, A, B>;
+export interface IndexedPLens<out I, in S, out T, out A, in B>
+  extends IndexedGetter<I, S, A>,
+    IndexedPTraversal<I, S, T, A, B>,
+    PLens<S, T, A, B> {
+  readonly S: (s: S) => void;
+  readonly T: () => T;
+  readonly A: () => A;
+  readonly B: (b: B) => void;
+  readonly I: () => I;
+
+  readonly runOptic: <F, P, RepF, CorepF>(
+    F: Functor<F>,
+    P: Indexable<P, I, RepF, CorepF>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => (s: S) => Kind<F, [T]>;
+
+  readonly compose: IndexedOptic<I, S, T, A, B>['compose'];
+  readonly taking: IndexedPTraversal<I, S, T, A, B>['taking'];
+  readonly dropping: IndexedPTraversal<I, S, T, A, B>['dropping'];
+  readonly orElse: IndexedPTraversal<I, S, T, A, B>['orElse'];
+}
+
 export type IndexedLens<I, S, A> = IndexedPLens<I, S, S, A, A>;
 
-export function Lens<S, T, A, B>(
-  get: (s: S) => A,
-  replace: (b: B) => (s: S) => T,
+export interface IndexPreservingPLens<in S, out T, out A, in B>
+  extends IndexPreservingGetter<S, A>,
+    IndexPreservingPTraversal<S, T, A, B>,
+    PLens<S, T, A, B> {
+  readonly S: (s: S) => void;
+  readonly T: () => T;
+  readonly A: () => A;
+  readonly B: (b: B) => void;
+
+  readonly runOptic: <F, P>(
+    F: Functor<F>,
+    P: Conjoined<P, any, any>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>;
+
+  readonly compose: IndexPreservingOptic<S, T, A, B>['compose'];
+  readonly taking: PTraversal<S, T, A, B>['taking'];
+  readonly dropping: PTraversal<S, T, A, B>['dropping'];
+  readonly orElse: PTraversal<S, T, A, B>['orElse'];
+}
+
+export type IndexPreservingLens<S, A> = IndexPreservingPLens<S, S, A, A>;
+
+// -- Constructors
+
+export function lens<S, A>(
+  getter: (s: S) => A,
+  setter: (s: S) => (a: A) => S,
+): Lens<S, A>;
+export function lens<S, T, A, B>(
+  getter: (s: S) => A,
+  setter: (s: S) => (b: B) => T,
+): PLens<S, T, A, B>;
+export function lens<S, T, A, B>(
+  getter: (s: S) => A,
+  setter: (s: S) => (b: B) => T,
 ): PLens<S, T, A, B> {
-  return <F>(F: Functor<F>): PLensLike<F, S, T, A, B> =>
-    (pafb: (a: A) => Kind<F, [B]>): ((s: S) => Kind<F, [T]>) =>
-    s =>
-      pipe(
-        pafb(get(s)),
-        F.map(b => replace(b)(s)),
-      );
+  return mkLens(
+    <F>(F: Functor<F>, P: Function1Indexable) =>
+      (afb: (a: A) => Kind<F, [B]>) =>
+      (s: S): Kind<F, [T]> =>
+        F.map_(afb(getter(s)), setter(s)),
+  );
 }
 
-export function IndexedLens<I, S, T, A, B>(
-  get: (s: S) => [A, I],
-  replace: (b: B) => (s: S) => T,
+export function ilens<I, S, A>(
+  getter: (s: S) => [A, I],
+  setter: (s: S) => (a: A) => S,
+): IndexedLens<I, S, A>;
+export function ilens<I, S, T, A, B>(
+  getter: (s: S) => [A, I],
+  setter: (s: S) => (b: B) => T,
+): IndexedPLens<I, S, T, A, B>;
+export function ilens<I, S, T, A, B>(
+  getter: (s: S) => [A, I],
+  setter: (s: S) => (b: B) => T,
 ): IndexedPLens<I, S, T, A, B> {
-  return <F, P>(F: Functor<F>, P: Indexable<P, I>): POver<F, P, S, T, A, B> =>
-    (pafb: Kind<P, [A, Kind<F, [B]>]>): ((s: S) => Kind<F, [T]>) =>
-    s =>
-      pipe(
-        P.indexed(pafb)(...get(s)),
-        F.map(b => replace(b)(s)),
-      );
+  return mkIxLens(
+    <F, P, RepF, CorepF>(F: Functor<F>, P: Indexable<P, I, RepF, CorepF>) =>
+      (pafb: Kind<P, [A, Kind<F, [B]>]>) =>
+      (s: S): Kind<F, [T]> => {
+        const ai = getter(s);
+        return F.map_(P.indexed(pafb)(ai[0], ai[1]), setter(s));
+      },
+  );
 }
 
-export function nth<S extends unknown[]>(): <I extends keyof S>(
-  i: I,
-) => Lens<S, S[I]> {
-  return <I extends keyof S>(i: I) =>
-    <F, P>(F: Functor<F>, P: Strong<P>): Optic<F, P, S, S[I]> =>
-      flow(
-        P.first<S>(),
-        P.dimap(
-          s => tupled(s[i], s),
-          ([fsi, s]) =>
-            F.map_(fsi, si => s.map((x, idx) => (idx === i ? si : x)) as S),
-        ),
-      );
+export function iplens<S, A>(
+  getter: (s: S) => A,
+  setter: (s: S) => (a: A) => S,
+): IndexPreservingLens<S, A>;
+export function iplens<S, T, A, B>(
+  getter: (s: S) => A,
+  setter: (s: S) => (b: B) => T,
+): IndexPreservingPLens<S, T, A, B>;
+export function iplens<S, T, A, B>(
+  getter: (s: S) => A,
+  setter: (s: S) => (b: B) => T,
+): IndexPreservingPLens<S, T, A, B> {
+  return mkIxPLens(
+    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
+      (P as any) === Indexable.Function1
+        ? (((afb: (a: A) => Kind<F, [B]>) =>
+            (s: S): Kind<F, [T]> =>
+              F.map_(afb(getter(s)), setter(s))) as any)
+        : (P as any) === Indexable.Indexed<any>()
+        ? (((f: (a: A, i: unknown) => Kind<F, [B]>) =>
+            (s: S, i: unknown): Kind<F, [T]> =>
+              F.map_(f(getter(s), i), setter(s))) as any)
+        : (pafb: Kind<P, [A, Kind<F, [B]>]>): Kind<P, [S, Kind<F, [T]>]> =>
+            P.cotabulate((cs: Kind<CorepF, [S]>) =>
+              F.map_(
+                P.cosieve(pafb)(P.C.map_(cs, getter)),
+                setter(P.C.extract(cs)),
+              ),
+            ),
+  );
 }
 
-export function fst<A, C, B = A>(): PLens<[A, C], [B, C], A, B> {
-  return <F, P>(
-    F: Functor<F>,
-    P: Strong<P>,
-  ): POptic<F, P, [A, C], [B, C], A, B> =>
-    flow(
-      P.first<C>(),
-      P.rmap(([fb, c]) => F.map_(fb, b => tupled(b, c))),
-    );
-}
-
-export function snd<C, A, B = A>(): PLens<[C, A], [C, B], A, B> {
-  return <F, P>(
-    F: Functor<F>,
-    P: Strong<P>,
-  ): POptic<F, P, [C, A], [C, B], A, B> =>
-    flow(
-      P.second<C>(),
-      P.rmap(([c, fb]) => F.map_(fb, b => tupled(c, b))),
-    );
-}
-
-export function fromProp<S>(): <K extends keyof S>(k: K) => Lens<S, S[K]> {
-  return <K extends keyof S>(k: K) =>
-    Lens(
-      s => s[k],
-      b => s => ({ ...s, [k]: b }),
-    );
-}
-
-export function fromProps<S>(): FromProps<S> {
-  return (...keys: any[]): Lens<S, any> =>
-    Lens(
-      s =>
-        Object.fromEntries(
-          Object.entries(s as any as Record<string, any>).filter(([k]) =>
-            keys.includes(k),
+export function prop<S, k extends keyof S>(k: k): IndexPreservingLens<S, S[k]> {
+  return mkIxPLens(
+    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
+      (P as any) === Indexable.Function1
+        ? (((f: (sk: S[k]) => Kind<F, [S[k]]>) =>
+            (s: S): Kind<F, [S]> =>
+              F.map_(f(s[k]), sk => ({ ...s, [k]: sk }))) as any)
+        : (P as any) === Indexable.Indexed<any>()
+        ? (((f: (sk: S[k], i: unknown) => Kind<F, [S[k]]>) =>
+            (s: S, i: unknown): Kind<F, [S]> =>
+              F.map_(f(s[k], i), sk => ({ ...s, [k]: sk }))) as any)
+        : F1.andThen(
+            P.first<S>()<S[k], Kind<F, [S[k]]>>,
+            P.dimap(
+              (s: S): [S[k], S] => [s[k], s],
+              ([fsk, s]: [Kind<F, [S[k]]>, S]) =>
+                F.map_(fsk, (k: S[k]) => ({ ...s, [k as any]: k } as S)),
+            ),
           ),
-        ),
-      b => s => ({ ...s, ...b }),
-    );
+  );
+}
+export function pick<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
+  ...ks: ks
+): IndexPreservingLens<S, Pick<S, ks[number]>> {
+  type Sks = Pick<S, ks[number]>;
+  return mkIxPLens(
+    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
+      (P as any) === Indexable.Function1
+        ? (((f: (sk: Sks) => Kind<F, [Sks]>) =>
+            (s: S): Kind<F, [S]> =>
+              F.map_(f(_pick(s, ks)), sk => ({ ...s, ...sk }))) as any)
+        : (P as any) === Indexable.Indexed<any>()
+        ? (((f: (sk: Sks, i: unknown) => Kind<F, [Sks]>) =>
+            (s: S, i: unknown): Kind<F, [S]> =>
+              F.map_(f(_pick(s, ks), i), sk => ({ ...s, ...sk }))) as any)
+        : F1.andThen(
+            P.first<S>()<Sks, Kind<F, [Sks]>>,
+            P.dimap(
+              (s: S): [Sks, S] => [_pick(s, ks), s],
+              ([fsk, s]: [Kind<F, [Sks]>, S]) =>
+                F.map_(fsk, (sks: Sks) => ({ ...s, ...sks } as S)),
+            ),
+          ),
+  );
 }
 
-interface FromProps<S> {
-  (): Lens<S, S>;
-  <K1 extends keyof S>(k1: K1): Lens<S, Pick<S, K1>>;
-  <K1 extends keyof S, K2 extends keyof S>(k1: K1, k2: K2): Lens<
-    S,
-    Pick<S, K1 | K2>
-  >;
-  <K1 extends keyof S, K2 extends keyof S, K3 extends keyof S>(
-    k1: K1,
-    k2: K2,
-    k3: K3,
-  ): Lens<S, Pick<S, K1 | K2 | K3>>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S,
-    K3 extends keyof S,
-    K4 extends keyof S,
-  >(
-    k1: K1,
-    k2: K2,
-    k3: K3,
-    k4: K4,
-  ): Lens<S, Pick<S, K1 | K2 | K3 | K4>>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S,
-    K3 extends keyof S,
-    K4 extends keyof S,
-    K5 extends keyof S,
-  >(
-    k1: K1,
-    k2: K2,
-    k3: K3,
-    k4: K4,
-    k5: K5,
-  ): Lens<S, Pick<S, K1 | K2 | K3 | K4 | K5>>;
-  <
-    K1 extends keyof S,
-    K2 extends keyof S,
-    K3 extends keyof S,
-    K4 extends keyof S,
-    K5 extends keyof S,
-    K6 extends keyof S,
-  >(
-    k1: K1,
-    k2: K2,
-    k3: K3,
-    k4: K4,
-    k5: K5,
-    k6: K6,
-  ): Lens<S, Pick<S, K1 | K2 | K3 | K4 | K5 | K6>>;
+export function omit<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
+  ...ks: ks
+): IndexPreservingLens<S, Omit<S, ks[number]>> {
+  type Sks = Omit<S, ks[number]>;
+  return mkIxPLens(
+    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
+      (P as any) === Indexable.Function1
+        ? (((f: (sk: Sks) => Kind<F, [Sks]>) =>
+            (s: S): Kind<F, [S]> =>
+              F.map_(f(_omit(s, ks)), sk => ({ ...s, ...sk }))) as any)
+        : (P as any) === Indexable.Indexed<any>()
+        ? (((f: (sk: Sks, i: unknown) => Kind<F, [Sks]>) =>
+            (s: S, i: unknown): Kind<F, [S]> =>
+              F.map_(f(_omit(s, ks), i), sk => ({ ...s, ...sk }))) as any)
+        : F1.andThen(
+            P.first<S>()<Sks, Kind<F, [Sks]>>,
+            P.dimap(
+              (s: S): [Sks, S] => [_omit(s, ks), s],
+              ([fsk, s]: [Kind<F, [Sks]>, S]) =>
+                F.map_(fsk, (sks: Sks) => ({ ...s, ...sks } as S)),
+            ),
+          ),
+  );
+}
+
+// -- Private helpers
+
+const mkLens = <S, T, A, B>(
+  apply: <F>(
+    F: Functor<F>,
+    P: Function1Indexable,
+  ) => (f: (a: A) => Kind<F, [B]>) => (s: S) => Kind<F, [T]>,
+): PLens<S, T, A, B> => new Optic(apply as any) as any;
+
+const mkIxLens = <I, S, T, A, B>(
+  apply: <F, P, RepF, CorepF>(
+    F: Functor<F>,
+    P: Indexable<P, I, RepF, CorepF>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => (s: S) => Kind<F, [T]>,
+): IndexedPLens<I, S, T, A, B> => new IndexedOptic(apply as any) as any;
+
+const mkIxPLens = <S, T, A, B>(
+  apply: <F, P, RepF, CorepF>(
+    F: Functor<F>,
+    P: Conjoined<P, RepF, CorepF>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>,
+): IndexPreservingPLens<S, T, A, B> =>
+  new IndexPreservingOptic(apply as any) as any;
+
+function _pick<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
+  s: S,
+  ks: ks,
+): Pick<S, ks[number]> {
+  const sks: Partial<Pick<S, ks[number]>> = {};
+  for (let i = 0, len = ks.length; i < len; i++) {
+    sks[ks[i]] = s[ks[i]];
+  }
+  return sks as Pick<S, ks[number]>;
+}
+
+function _omit<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
+  s: S,
+  ks: ks,
+): Omit<S, ks[number]> {
+  const sks: S = { ...s };
+  for (let i = 0, len = ks.length; i < len; i++) {
+    delete (sks as any)[ks[i] as any];
+  }
+  return sks as Omit<S, ks[number]>;
 }

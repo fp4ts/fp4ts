@@ -4,37 +4,45 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import {
-  FoldableWithIndex,
-  List,
-  Monoid,
-  Option,
-  TraversableWithIndex,
-} from '@fp4ts/cats';
+import { List, Monoid, Option } from '@fp4ts/cats';
 import { Reader, State } from '@fp4ts/mtl';
 import {
   Fold,
-  focus,
-  fromFoldable,
   filtered,
-  fromTraversable,
-  fromTraversableWithIndex,
-  fromFoldableWithIndex,
+  folded,
+  toList,
+  foldMap,
+  foldRight_,
+  foldLeft,
+  headOption,
+  lastOption,
+  size,
+  isEmpty,
+  nonEmpty,
+  find,
+  any,
+  all,
+  to,
+  preview,
+  preuse,
+  ifoldRight_,
+  ifolded,
+  ifoldLeft,
 } from '@fp4ts/optics-core';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Fold', () => {
-  const eachli = fromFoldable(List.Foldable)((xs: List<number>) => xs);
+  const eachli = folded(List.Foldable)<number>();
 
   const nestedListFold = <A>(): Fold<List<List<A>>, List<A>> =>
-    fromFoldable(List.Foldable)((xs: List<List<A>>) => xs);
+    folded(List.Foldable)<List<A>>();
 
   it('should compose', () => {
     expect(
-      focus(nestedListFold<number>())
-        .compose(eachli)
-        .toList(List(List(1, 2, 3), List(4, 5, 6))),
+      nestedListFold<number>().compose(eachli).apply(toList)(
+        List(List(1, 2, 3), List(4, 5, 6)),
+      ),
     ).toEqual(List(1, 2, 3, 4, 5, 6));
   });
 
@@ -43,9 +51,8 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       xs =>
-        focus(eachli)
-          .asGetting(Monoid.string)
-          .foldMap(x => `${x}`)(xs) === xs.foldMap(Monoid.string, x => `${x}`),
+        eachli.apply(foldMap)(Monoid.string)(x => `${x}`)(xs) ===
+        xs.foldMap(Monoid.string, x => `${x}`),
     ),
   );
 
@@ -54,7 +61,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number, string], string>(fc.string()),
-      (xs, f) => focus(eachli).foldRight('', f)(xs) === xs.foldRight_('', f),
+      (xs, f) => eachli.apply(foldRight_)('', f)(xs) === xs.foldRight_('', f),
     ),
   );
 
@@ -63,41 +70,41 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[string, number], string>(fc.string()),
-      (xs, f) => focus(eachli).foldLeft('', f)(xs) === xs.foldLeft('', f),
+      (xs, f) => eachli.apply(foldLeft)('', f)(xs) === xs.foldLeft('', f),
     ),
   );
 
   test(
     'getAll',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli).toList(xs).equals(xs),
+      eachli.apply(toList)(xs).equals(xs),
     ),
   );
 
   test(
     'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli).headOption(xs).equals(xs.headOption),
+      eachli.apply(headOption)(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachli).lastOption(xs).equals(xs.lastOption),
+      eachli.apply(lastOption)(xs).equals(xs.lastOption),
     ),
   );
 
   test(
     'size',
-    forAll(A.fp4tsList(fc.integer()), xs => focus(eachli).size(xs) === xs.size),
+    forAll(A.fp4tsList(fc.integer()), xs => eachli.apply(size)(xs) === xs.size),
   );
 
   test(
     'isEmpty',
     forAll(
       A.fp4tsList(fc.integer()),
-      xs => focus(eachli).isEmpty(xs) === xs.isEmpty,
+      xs => eachli.apply(isEmpty)(xs) === xs.isEmpty,
     ),
   );
 
@@ -105,15 +112,15 @@ describe('Fold', () => {
     'nonEmpty',
     forAll(
       A.fp4tsList(fc.integer()),
-      xs => focus(eachli).nonEmpty(xs) === xs.nonEmpty,
+      xs => eachli.apply(nonEmpty)(xs) === xs.nonEmpty,
     ),
   );
 
   test(
     'find',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
-      focus(eachli)
-        .find(x => x > y)(xs)
+      eachli
+        .apply(find)(x => x > y)(xs)
         .equals(Option(xs.toArray.find(x => x > y))),
     ),
   );
@@ -123,7 +130,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.integer(),
-      (xs, y) => focus(eachli).any(x => x > y)(xs) === xs.any(x => x > y),
+      (xs, y) => eachli.apply(any)(x => x > y)(xs) === xs.any(x => x > y),
     ),
   );
 
@@ -132,7 +139,7 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.integer(),
-      (xs, y) => focus(eachli).all(x => x > y)(xs) === xs.all(x => x > y),
+      (xs, y) => eachli.apply(all)(x => x > y)(xs) === xs.all(x => x > y),
     ),
   );
 
@@ -141,13 +148,13 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (xs, f) => focus(eachli).to(f).toList(xs).equals(xs.map(f)),
+      (xs, f) => eachli.compose(to(f)).apply(toList)(xs).equals(xs.map(f)),
     ),
   );
 
   test('select (satisfied predicate)', () => {
     expect(
-      focus(filtered((xs: List<number>) => xs.all(x => x % 2 === 0))).toList(
+      filtered((xs: List<number>) => xs.all(x => x % 2 === 0)).apply(toList)(
         List(2, 4, 6),
       ),
     ).toEqual(List(List(2, 4, 6)));
@@ -155,7 +162,7 @@ describe('Fold', () => {
 
   test('select (unsatisfied predicate)', () => {
     expect(
-      focus(filtered((xs: List<number>) => xs.all(x => x % 2 === 0))).toList(
+      filtered((xs: List<number>) => xs.all(x => x % 2 === 0)).apply(toList)(
         List(1, 3, 5),
       ),
     ).toEqual(List.empty);
@@ -166,7 +173,8 @@ describe('Fold', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
-      (xs, f) => focus(eachli).filter(f).toList(xs).equals(xs.filter(f)),
+      (xs, f) =>
+        eachli.compose(filtered(f)).apply(toList)(xs).equals(xs.filter(f)),
     ),
   );
 
@@ -174,8 +182,8 @@ describe('Fold', () => {
     'preview',
     forAll(A.fp4tsList(fc.integer()), xs =>
       expect(
-        focus(eachli)
-          .preview(Reader.MonadReader<List<number>>())
+        eachli
+          .apply(preview(Reader.MonadReader<List<number>>()))
           .provide(xs)
           .run(),
       ).toEqual(xs.headOption),
@@ -186,59 +194,13 @@ describe('Fold', () => {
     'preuse',
     forAll(A.fp4tsList(fc.integer()), xs =>
       expect(
-        focus(eachli)
-          .preuse(State.MonadState<List<number>>())
+        eachli
+          .apply(preuse(State.MonadState<List<number>>()))
           .provideState(xs)
           .run(),
       ).toEqual(xs.headOption),
     ),
   );
-
-  describe('backwards', () => {
-    test(
-      'fold',
-      forAll(fc.array(fc.integer()), xs =>
-        expect(
-          focus(fromFoldable(FoldableWithIndex.Array)<number>())
-            .backwards()
-            .toList(xs),
-        ).toEqual(List.fromArray(xs.reverse())),
-      ),
-    );
-
-    test(
-      'traversal',
-      forAll(fc.array(fc.integer()), xs =>
-        expect(
-          focus(fromTraversable(TraversableWithIndex.Array)<number>())
-            .backwards()
-            .toList(xs),
-        ).toEqual(List.fromArray(xs.reverse())),
-      ),
-    );
-
-    test(
-      'indexed fold',
-      forAll(fc.array(fc.integer()), xs =>
-        expect(
-          focus(fromFoldableWithIndex(FoldableWithIndex.Array)<number>())
-            .backwards()
-            .toList(xs),
-        ).toEqual(List.fromArray(xs.reverse())),
-      ),
-    );
-
-    test(
-      'indexed traversal',
-      forAll(fc.array(fc.integer()), xs =>
-        expect(
-          focus(fromTraversableWithIndex(TraversableWithIndex.Array)<number>())
-            .backwards()
-            .toList(xs),
-        ).toEqual(List.fromArray(xs.reverse())),
-      ),
-    );
-  });
 
   test(
     'ifoldRight',
@@ -246,14 +208,9 @@ describe('Fold', () => {
       fc.array(fc.integer()),
       fc.func<[number, string, number], string>(fc.string()),
       (xs, f) =>
-        expect(
-          focus(
-            fromFoldableWithIndex(FoldableWithIndex.Array)<number>(),
-          ).ifoldRight(
-            '',
-            f,
-          )(xs),
-        ).toEqual(xs.reduceRight((r, x, i) => f(x, r, i), '')),
+        expect(ifolded<number>().apply(ifoldRight_)('', f)(xs)).toEqual(
+          xs.reduceRight((r, x, i) => f(x, r, i), ''),
+        ),
     ),
   );
 
@@ -263,56 +220,39 @@ describe('Fold', () => {
       fc.array(fc.integer()),
       fc.func<[string, number, number], string>(fc.string()),
       (xs, f) =>
-        expect(
-          focus(
-            fromFoldableWithIndex(FoldableWithIndex.Array)<number>(),
-          ).ifoldLeft(
-            '',
-            f,
-          )(xs),
-        ).toEqual(xs.reduce((r, x, i) => f(r, x, i), '')),
+        expect(ifolded<number>().apply(ifoldLeft)('', f)(xs)).toEqual(
+          xs.reduce((r, x, i) => f(r, x, i), ''),
+        ),
     ),
   );
 
-  test(
-    'ifilter',
-    forAll(
-      fc.array(fc.string()),
-      fc.func<[number], boolean>(fc.boolean()),
-      (xs, p) =>
-        expect(
-          focus(fromFoldableWithIndex(FoldableWithIndex.Array)<string>())
-            .ifilter((x, i) => p(i))
-            .toList(xs),
-        ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),
-    ),
-  );
+  // test(
+  //   'ifilter',
+  //   forAll(
+  //     fc.array(fc.string()),
+  //     fc.func<[number], boolean>(fc.boolean()),
+  //     (xs, p) =>
+  //       expect(
+  //         ifolded<string>()
+  //           .ifilter((x, i) => p(i))
+  //           .toList(xs),
+  //       ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),
+  //   ),
+  // );
 
-  test(
-    'eachIndexed',
-    forAll(fc.array(fc.string()), xs =>
-      expect(
-        focus<string[]>()
-          .eachWithIndex()
-          .ifilter((a, i) => i % 2 === 0)
-          .toList(xs),
-      ).toEqual(List.fromArray(xs.filter((a, i) => i % 2 === 0))),
-    ),
-  );
-
-  test(
-    'indexing',
-    forAll(fc.array(fc.string()), xs =>
-      expect(
-        focus<string[]>()
-          .each()
-          .filter(x => x.length > 2)
-          .indexed()
-          .ifilter((a, i) => i > 1)
-          .toList(xs),
-      ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
-    ),
-  );
+  // test(
+  //   'indexing',
+  //   forAll(fc.array(fc.string()), xs =>
+  //     expect(
+  //       focus<string[]>()
+  //         .each()
+  //         .filter(x => x.length > 2)
+  //         .indexed()
+  //         .ifilter((a, i) => i > 1)
+  //         .toList(xs),
+  //     ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
+  //   ),
+  // );
 
   // test('at', () => {
   //   const map = Map([1, 'one']);

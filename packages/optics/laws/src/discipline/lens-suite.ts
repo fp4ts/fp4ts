@@ -9,14 +9,11 @@ import { Lens } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { LensLaws } from '../lens-laws';
-// import { OptionalSuite } from './optional-suite';
 
 export const LensSuite = <S, A>(lens: Lens<S, A>) => {
   const laws = LensLaws(lens);
 
   const self = {
-    // ...OptionalSuite(lens),
-
     lens: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
         'Lens',

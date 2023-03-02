@@ -7,9 +7,9 @@ import { Identity, List, Option } from '@fp4ts/cats';
 import {
   Traversal,
   headOption,
-  toList,
   modify,
   Indexable,
+  toList,
 } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
@@ -30,6 +30,6 @@ export const TraversalLaws = <S, A>(traversal: Traversal<S, A>) => ({
   consistentModifyModifyId: (s: S, a: A): IsEq<S> =>
     new IsEq(
       modify(traversal)(() => a)(s),
-      traversal(Identity.Applicative, Indexable.Function1())(() => a)(s),
+      traversal.runOptic(Identity.Applicative, Indexable.Function1)(() => a)(s),
     ),
 });

@@ -8,4 +8,3 @@
  */
 export * from '@fp4ts/optics-core';
 export * from '@fp4ts/optics-derivation';
-export * from '@fp4ts/optics-kernel';
