@@ -11,16 +11,12 @@ import { function1Contravariant } from './instances/function';
  * @category Type Class
  */
 export interface Contravariant<F> extends Invariant<F> {
-  readonly contramap: <A, B>(
-    f: (b: B) => A,
-  ) => (fa: Kind<F, [A]>) => Kind<F, [B]>;
-  readonly contramap_: <A, B>(fa: Kind<F, [A]>, f: (b: B) => A) => Kind<F, [B]>;
+  contramap<A, B>(f: (b: B) => A): (fa: Kind<F, [A]>) => Kind<F, [B]>;
+  contramap_<A, B>(fa: Kind<F, [A]>, f: (b: B) => A): Kind<F, [B]>;
 
-  readonly narrow: <A, B extends A>(fa: Kind<F, [A]>) => Kind<F, [B]>;
+  narrow<A, B extends A>(fa: Kind<F, [A]>): Kind<F, [B]>;
 
-  readonly liftContravariant: <A, B>(
-    f: (b: A) => B,
-  ) => (fb: Kind<F, [B]>) => Kind<F, [A]>;
+  liftContravariant<A, B>(f: (b: A) => B): (fb: Kind<F, [B]>) => Kind<F, [A]>;
 }
 
 export type ContravariantRequirements<F> = Pick<

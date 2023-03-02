@@ -3,47 +3,86 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { flow, absurd, pipe, Kind } from '@fp4ts/core';
 import { Bifunctor } from '@fp4ts/cats';
-import { Choice, Tagged } from '@fp4ts/cats-profunctor';
+import { Choice } from '@fp4ts/cats-profunctor';
+import { absurd, F1, Kind } from '@fp4ts/core';
 import { MonadReader, MonadState } from '@fp4ts/mtl';
-import { Settable } from '@fp4ts/optics-kernel';
+import { Getter, to } from './getter';
 
-import { Optic } from './optics';
-import { asGetting, get, Getter, to, use, view } from './getter';
+import {
+  IndexPreservingOptic,
+  Optic,
+  Settable,
+  taggedInstance,
+} from './internal';
 
-export type Review<T, B> = <F, P>(
-  F: Settable<F>,
-  P: Choice<P> & Bifunctor<P>,
-) => Optic<F, P, T, B>;
+export interface Review<out T, in B> extends Optic<never, T, unknown, B> {
+  readonly runOptic: <F, P>(
+    F: Settable<F>,
+    P: Bifunctor<P> & Choice<P>,
+  ) => (
+    pafb: Kind<P, [never, Kind<F, [B]>]>,
+  ) => Kind<P, [unknown, Kind<F, [T]>]>;
+}
+
+// -- Constructors
 
 export function unto<B, T>(f: (b: B) => T): Review<T, B> {
-  return <F, P>(
+  return mkReview(<F, P>(F: Settable<F>, P: Choice<P> & Bifunctor<P>) =>
+    P.dimap(absurd<B>, F.map(f)),
+  );
+}
+
+// -- Combinators
+
+export function re<T, B>(l: Review<T, B>): Getter<B, T> {
+  return to(reverseGet(l));
+}
+
+// -- Consuming Reviews
+
+export function reverseGet<T, B>(l: Review<T, B>): (b: B) => T {
+  return l.runOptic(Settable.Identity, taggedInstance);
+}
+
+// -- mlt
+
+export function review<F, R>(
+  F: MonadReader<F, R>,
+): <T>(l: Review<T, R>) => Kind<F, [T]> {
+  return l => F.asks(l.runOptic(Settable.Identity, taggedInstance));
+}
+
+export function reviews<F, R>(
+  F: MonadReader<F, R>,
+): <T>(l: Review<T, R>) => <B>(f: (t: T) => B) => Kind<F, [B]> {
+  return l => {
+    const rt = l.runOptic(Settable.Identity, taggedInstance);
+    return tb => F.asks(F1.andThen(rt, tb));
+  };
+}
+
+export function reuse<F, S>(
+  F: MonadState<F, S>,
+): <T>(l: Review<T, S>) => Kind<F, [T]> {
+  return l => F.inspect(l.runOptic(Settable.Identity, taggedInstance));
+}
+export function reuses<F, S>(
+  F: MonadState<F, S>,
+): <T>(l: Review<T, S>) => <B>(f: (t: T) => B) => Kind<F, [B]> {
+  return l => {
+    const rt = l.runOptic(Settable.Identity, taggedInstance);
+    return tb => F.map_(F.get, F1.andThen(rt, tb));
+  };
+}
+
+// -- Private helpers
+
+const mkReview = <T, B>(
+  apply: <F, P>(
     F: Settable<F>,
     P: Choice<P> & Bifunctor<P>,
-  ): Optic<F, P, T, B> => flow(P.rmap(F.map(f)), P.lmap<B, never>(absurd));
-}
-
-export function un<S, A>(g: Getter<S, A>): Review<A, S> {
-  return pipe(g, get, unto);
-}
-
-export function re<T, B>(r: Review<T, B>): Getter<B, T> {
-  return to(reverseGet(r));
-}
-
-export function reverseGet<T, B>(r: Review<T, B>): (b: B) => T {
-  return r(Settable.Identity, { ...Tagged.Bifunctor, ...Tagged.Choice });
-}
-
-export function review<R, B>(
-  R: MonadReader<R, B>,
-): <T>(r: Review<T, B>) => Kind<R, [T]> {
-  return flow(re, asGetting(), view(R));
-}
-
-export function reuse<R, B>(
-  R: MonadState<R, B>,
-): <T>(r: Review<T, B>) => Kind<R, [T]> {
-  return flow(re, asGetting(), use(R));
-}
+  ) => (
+    pafb: Kind<P, [never, Kind<F, [B]>]>,
+  ) => Kind<P, [unknown, Kind<F, [T]>]>,
+): Review<T, B> => new IndexPreservingOptic(apply as any) as any;

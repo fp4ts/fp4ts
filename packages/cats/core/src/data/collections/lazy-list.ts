@@ -433,13 +433,8 @@ export class _LazyList<out A> {
 
   public foldRight<B>(ez: Eval<B>, f: (a: A, eb: Eval<B>) => Eval<B>): Eval<B> {
     const go = (xs: Step<A>): Eval<B> =>
-      xs === NilStep
-        ? ez
-        : f(
-            xs.head,
-            Eval.defer(() => go(xs.forceTail)),
-          );
-    return Eval.defer(() => go(this.forceSource));
+      xs === NilStep ? ez : f(xs.head, xs.tail.flatMap(go));
+    return this.source.flatMap(go);
   }
 
   public scanLeft<B>(z: B, f: (b: B, a: A) => B): LazyList<B> {

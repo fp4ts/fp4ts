@@ -3,33 +3,41 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { id } from '@fp4ts/core';
 import { Functor } from '@fp4ts/cats';
 import { Profunctor } from '@fp4ts/cats-profunctor';
-import { POptic } from './optics';
+import { id, Kind, lazy } from '@fp4ts/core';
+import { Optic } from './internal';
+import { IndexPreservingPLens } from './lens';
+import { PPrism } from './prism';
 
-export type PIso<S, T, A, B> = <F, P>(
-  F: Functor<F>,
-  P: Profunctor<P>,
-) => POptic<F, P, S, T, A, B>;
+export interface PIso<in S, out T, out A, in B>
+  extends IndexPreservingPLens<S, T, A, B>,
+    PPrism<S, T, A, B> {
+  readonly S: (s: S) => void;
+  readonly T: () => T;
+  readonly A: () => A;
+  readonly B: (b: B) => void;
+
+  readonly runOptic: <F, P>(
+    F: Functor<F>,
+    P: Profunctor<P>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>;
+}
+
 export type Iso<S, A> = PIso<S, S, A, A>;
 
-export function iso<A>(): Iso<A, A>;
-export function iso<S, T, A, B>(
-  get: (s: S) => A,
-  reverseGet: (b: B) => T,
-): PIso<S, T, A, B>;
-export function iso(...args: any[]): Iso<any, any> {
-  return args.length === 2 ? iso_(args[0], args[1]) : id_();
-}
-function iso_<S, T, A, B>(
-  get: (s: S) => A,
-  reverseGet: (b: B) => T,
-): PIso<S, T, A, B> {
-  return <F, P>(F: Functor<F>, P: Profunctor<P>) =>
-    P.dimap(get, F.map(reverseGet));
-}
+// -- Constructors
 
-function id_<A>(): Iso<A, A> {
-  return () => id;
-}
+export const iso = lazy(
+  <A>(): Iso<A, A> =>
+    mkIso<A, A, A, A>(<F, P>(F: Functor<F>, P: Profunctor<P>) => id),
+) as <A>() => Iso<A, A>;
+
+// -- Private helpers
+
+const mkIso = <S, T, A, B>(
+  apply: <F, P>(
+    F: Functor<F>,
+    P: Profunctor<P>,
+  ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>,
+): PIso<S, T, A, B> => new Optic(apply as any) as any;

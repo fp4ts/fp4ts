@@ -5,7 +5,19 @@
 
 import fc from 'fast-check';
 import { Eq, List, Monoid, None, Some } from '@fp4ts/cats';
-import { focus, fromProp } from '@fp4ts/optics-core';
+import {
+  all,
+  any,
+  find,
+  foldMap,
+  get,
+  iso,
+  modify,
+  prop,
+  replace,
+  to,
+  toList,
+} from '@fp4ts/optics-core';
 import { deriveLenses } from '@fp4ts/optics-derivation';
 import { LensSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { Schema, Schemable, TypeOf } from '@fp4ts/schema';
@@ -25,71 +37,72 @@ describe('Lens', () => {
   const arbExample = _Example.interpret(ArbitraryInstances.Schemable);
   const eqExample = _Example.interpret(Schemable.Eq);
 
-  const s = focus(fromProp<Example>()('s'));
-  const p = focus(fromProp<Example>()('p'));
+  const s = iso<Example>().compose(prop('s'));
+  const p = iso<Example>().compose(prop('p'));
 
-  const x = focus(deriveLenses(_Point).x);
-  const y = focus(deriveLenses(_Point).y);
+  const x = deriveLenses(_Point).x;
+  const y = deriveLenses(_Point).y;
 
   it('should compose', () => {
-    expect(p.compose(x).get(Example('', Point(2, 3)))).toBe(2);
-    expect(p.compose(y).get(Example('', Point(2, 3)))).toBe(3);
+    expect(p.compose(x).apply(get)(Example('', Point(2, 3)))).toBe(2);
+    expect(p.compose(y).apply(get)(Example('', Point(2, 3)))).toBe(3);
 
-    expect(p.compose(x).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(x).apply(replace)(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(42, 3)),
     );
-    expect(p.compose(y).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(y).apply(replace)(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(2, 42)),
     );
   });
 
   it('should compose with subclasses', () => {
-    expect(p.compose(x).get(Example('', Point(2, 3)))).toEqual(2);
+    expect(p.compose(x).apply(get)(Example('', Point(2, 3)))).toEqual(2);
     // expect(p.compose(x).getOptional(Example('', Point(2, 3)))).toEqual(Some(2));
-    expect(p.compose(x).toList(Example('', Point(2, 3)))).toEqual(List(2));
+    expect(p.compose(x).apply(toList)(Example('', Point(2, 3)))).toEqual(
+      List(2),
+    );
     expect(
-      p
-        .compose(x)
-        .asGetting(Monoid.addition)
-        .foldMap(x => x)(Example('', Point(2, 3))),
+      p.compose(x).apply(foldMap)(Monoid.addition)(x => x)(
+        Example('', Point(2, 3)),
+      ),
     ).toEqual(2);
-    expect(p.compose(x).replace(42)(Example('', Point(2, 3)))).toEqual(
+    expect(p.compose(x).apply(replace)(42)(Example('', Point(2, 3)))).toEqual(
       Example('', Point(42, 3)),
     );
   });
 
   test('get', () => {
-    expect(x.get(Point(2, 3))).toBe(2);
-    expect(y.get(Point(2, 3))).toBe(3);
+    expect(x.apply(get)(Point(2, 3))).toBe(2);
+    expect(y.apply(get)(Point(2, 3))).toBe(3);
   });
 
   test('find', () => {
-    expect(x.find(x => x % 2 === 0)(Point(2, 3))).toEqual(Some(2));
-    expect(y.find(x => x % 2 === 0)(Point(2, 3))).toEqual(None);
+    expect(x.apply(find)(x => x % 2 === 0)(Point(2, 3))).toEqual(Some(2));
+    expect(y.apply(find)(x => x % 2 === 0)(Point(2, 3))).toEqual(None);
   });
 
   test('any', () => {
-    expect(x.any(x => x % 2 === 0)(Point(2, 3))).toBe(true);
-    expect(x.any(x => x % 2 !== 0)(Point(2, 3))).toBe(false);
-    expect(y.any(x => x % 2 === 0)(Point(2, 3))).toBe(false);
-    expect(y.any(x => x % 2 !== 0)(Point(2, 3))).toBe(true);
+    expect(x.apply(any)(x => x % 2 === 0)(Point(2, 3))).toBe(true);
+    expect(x.apply(any)(x => x % 2 !== 0)(Point(2, 3))).toBe(false);
+    expect(y.apply(any)(x => x % 2 === 0)(Point(2, 3))).toBe(false);
+    expect(y.apply(any)(x => x % 2 !== 0)(Point(2, 3))).toBe(true);
   });
 
   test('all', () => {
-    expect(x.all(x => x % 2 === 0)(Point(2, 3))).toBe(true);
-    expect(x.all(x => x % 2 !== 0)(Point(2, 3))).toBe(false);
-    expect(y.all(x => x % 2 === 0)(Point(2, 3))).toBe(false);
-    expect(y.all(x => x % 2 !== 0)(Point(2, 3))).toBe(true);
+    expect(x.apply(all)(x => x % 2 === 0)(Point(2, 3))).toBe(true);
+    expect(x.apply(all)(x => x % 2 !== 0)(Point(2, 3))).toBe(false);
+    expect(y.apply(all)(x => x % 2 === 0)(Point(2, 3))).toBe(false);
+    expect(y.apply(all)(x => x % 2 !== 0)(Point(2, 3))).toBe(true);
   });
 
   test('modify', () => {
-    expect(x.modify(x => x + 1)(Point(2, 3))).toEqual(Point(3, 3));
-    expect(y.modify(x => x + 1)(Point(2, 3))).toEqual(Point(2, 4));
+    expect(x.apply(modify)(x => x + 1)(Point(2, 3))).toEqual(Point(3, 3));
+    expect(y.apply(modify)(x => x + 1)(Point(2, 3))).toEqual(Point(2, 4));
   });
 
   test('to', () => {
-    expect(x.to(x => `${x}`).get(Point(2, 3))).toBe('2');
-    expect(y.to(x => `${x}`).get(Point(2, 3))).toBe('3');
+    expect(x.compose(to(x => `${x}`)).apply(get)(Point(2, 3))).toBe('2');
+    expect(y.compose(to(x => `${x}`)).apply(get)(Point(2, 3))).toBe('3');
   });
 
   // test('filter', () => {
@@ -118,7 +131,7 @@ describe('Lens', () => {
   describe('Laws', () => {
     checkAll(
       'Lens<Example, string>',
-      LensSuite(s.toOptic).lens(
+      LensSuite(s).lens(
         arbExample,
         fc.string(),
         eqExample,
@@ -127,7 +140,7 @@ describe('Lens', () => {
     );
     checkAll(
       'Lens<Example, Point> . Lens<Point, number>',
-      LensSuite(p.compose(x).toOptic).lens(
+      LensSuite(p.compose(x)).lens(
         arbExample,
         fc.integer(),
         eqExample,
@@ -136,7 +149,7 @@ describe('Lens', () => {
     );
     checkAll(
       'lens.asTraversal',
-      TraversalSuite(s.toOptic).traversal(
+      TraversalSuite(s).traversal(
         arbExample,
         fc.string(),
         eqExample,
@@ -145,7 +158,7 @@ describe('Lens', () => {
     );
     checkAll(
       'lens.asSetter',
-      SetterSuite(s.toOptic).setter(
+      SetterSuite(s).setter(
         arbExample,
         fc.string(),
         eqExample,

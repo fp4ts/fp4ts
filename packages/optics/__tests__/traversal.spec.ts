@@ -4,14 +4,35 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { tupled } from '@fp4ts/core';
-import { Eq, List, Map, Monoid, Option, Some } from '@fp4ts/cats';
+import { id, tupled } from '@fp4ts/core';
+import { Eq, LazyList, List, Map, Monoid, Option, Some } from '@fp4ts/cats';
 import {
-  focus,
-  fromProps,
-  fromTraversable,
-  fromTraversableWithIndex,
+  all,
+  any,
+  filtered,
+  find,
+  foldMap,
+  headOption,
+  iheadOption,
+  isEmpty,
+  iso,
+  iterated,
+  itraversed,
+  lastOption,
+  mapAccumL,
+  mapAccumR,
+  modify,
+  nonEmpty,
+  pick,
+  repeated,
+  replace,
+  size,
+  to,
+  toArray,
+  toLazyList,
+  toList,
   Traversal,
+  traversed,
   words,
 } from '@fp4ts/optics-core';
 import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
@@ -30,10 +51,10 @@ describe('Traversal', () => {
     name: string,
   ): Location => ({ latitude, longitude, name });
 
-  const coordinates = fromProps<Location>()('latitude', 'longitude');
+  const coordinates = iso<Location>().compose(pick('latitude', 'longitude'));
 
   const eachL = <A>(): Traversal<List<A>, A> =>
-    fromTraversable(List.TraversableFilter)<A>();
+    traversed(List.TraversableFilter)<A>();
   const eachLi = eachL<number>();
 
   const locationArb: Arbitrary<Location> = fc
@@ -48,12 +69,12 @@ describe('Traversal', () => {
 
   it('should compose', () => {
     expect(
-      focus(eachL<Location>())
-        .compose(coordinates)
-        .modify(({ longitude, latitude }) => ({
+      eachL<Location>().compose(coordinates).apply(modify)(
+        ({ longitude, latitude }) => ({
           latitude: latitude + 1,
           longitude: longitude + 1,
-        }))(List(Location(1, 2, 'a'), Location(3, 4, 'b'))),
+        }),
+      )(List(Location(1, 2, 'a'), Location(3, 4, 'b'))),
     ).toEqual(List(Location(2, 3, 'a'), Location(4, 5, 'b')));
   });
 
@@ -62,43 +83,42 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       xs =>
-        focus(eachLi)
-          .asGetting(Monoid.string)
-          .foldMap(x => `${x}`)(xs) === xs.foldMap(Monoid.string, x => `${x}`),
+        eachLi.apply(foldMap)(Monoid.string)(x => `${x}`)(xs) ===
+        xs.foldMap(Monoid.string, x => `${x}`),
     ),
   );
 
   test(
     'toList',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).toList(xs).equals(xs),
+      eachLi.apply(toList)(xs).equals(xs),
     ),
   );
 
   test(
     'headOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).headOption(xs).equals(xs.headOption),
+      eachLi.apply(headOption)(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi).lastOption(xs).equals(xs.lastOption),
+      eachLi.apply(lastOption)(xs).equals(xs.lastOption),
     ),
   );
 
   test(
     'size',
-    forAll(A.fp4tsList(fc.integer()), xs => focus(eachLi).size(xs) === xs.size),
+    forAll(A.fp4tsList(fc.integer()), xs => eachLi.apply(size)(xs) === xs.size),
   );
 
   test(
     'isEmpty',
     forAll(
       A.fp4tsList(fc.integer()),
-      xs => focus(eachLi).isEmpty(xs) === xs.isEmpty,
+      xs => eachLi.apply(isEmpty)(xs) === xs.isEmpty,
     ),
   );
 
@@ -106,15 +126,15 @@ describe('Traversal', () => {
     'nonEmpty',
     forAll(
       A.fp4tsList(fc.integer()),
-      xs => focus(eachLi).nonEmpty(xs) === xs.nonEmpty,
+      xs => eachLi.apply(nonEmpty)(xs) === xs.nonEmpty,
     ),
   );
 
   test(
     'find',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
-      focus(eachLi)
-        .find(x => x > y)(xs)
+      eachLi
+        .apply(find)(x => x > y)(xs)
         .equals(Option(xs.toArray.find(x => x > y))),
     ),
   );
@@ -124,7 +144,7 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.integer(),
-      (xs, y) => focus(eachLi).any(x => x > y)(xs) === xs.any(x => x > y),
+      (xs, y) => eachLi.apply(any)(x => x > y)(xs) === xs.any(x => x > y),
     ),
   );
 
@@ -133,7 +153,7 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.integer(),
-      (xs, y) => focus(eachLi).all(x => x > y)(xs) === xs.all(x => x > y),
+      (xs, y) => eachLi.apply(all)(x => x > y)(xs) === xs.all(x => x > y),
     ),
   );
 
@@ -142,15 +162,15 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
-      (xs, f) => focus(eachLi).to(f).toList(xs).equals(xs.map(f)),
+      (xs, f) => eachLi.compose(to(f)).apply(toList)(xs).equals(xs.map(f)),
     ),
   );
 
   test(
     'replace',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      focus(eachLi)
-        .replace(0)(xs)
+      eachLi
+        .apply(replace)(0)(xs)
         .equals(xs.map(() => 0)),
     ),
   );
@@ -160,7 +180,7 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], number>(fc.integer()),
-      (xs, f) => focus(eachLi).modify(f)(xs).equals(xs.map(f)),
+      (xs, f) => eachLi.apply(modify)(f)(xs).equals(xs.map(f)),
     ),
   );
 
@@ -169,7 +189,8 @@ describe('Traversal', () => {
     forAll(
       A.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
-      (xs, f) => focus(eachLi).filter(f).toList(xs).equals(xs.filter(f)),
+      (xs, f) =>
+        eachLi.compose(filtered(f)).apply(toList)(xs).equals(xs.filter(f)),
     ),
   );
 
@@ -177,16 +198,16 @@ describe('Traversal', () => {
     'mapAccumL',
     forAll(
       A.fp4tsList(fc.integer()),
-      fc.func<[string, number], [string, number]>(
-        fc.tuple(fc.string(), fc.integer()),
+      fc.func<[string, number], [number, string]>(
+        fc.tuple(fc.integer(), fc.string()),
       ),
       (xs, f) =>
-        expect(focus(eachLi).mapAccumL('', f)(xs)).toEqual(
+        expect(eachLi.apply(mapAccumL)('', f)(xs)).toEqual(
           xs.foldLeft(
-            ['', List.empty] as [string, List<number>],
-            ([y, ys], x) => {
-              const [s, n] = f(y, x);
-              return tupled(s, ys.append(n));
+            [List.empty, ''] as [List<number>, string],
+            ([ys, y], x) => {
+              const [n, s] = f(y, x);
+              return tupled(ys.append(n), s);
             },
           ),
         ),
@@ -196,37 +217,152 @@ describe('Traversal', () => {
     'mapAccumR',
     forAll(
       A.fp4tsList(fc.integer()),
-      fc.func<[string, number], [string, number]>(
-        fc.tuple(fc.string(), fc.integer()),
+      fc.func<[string, number], [number, string]>(
+        fc.tuple(fc.integer(), fc.string()),
       ),
       (xs, f) =>
-        expect(focus(eachLi).mapAccumR('', f)(xs)).toEqual(
+        expect(eachLi.apply(mapAccumR)('', f)(xs)).toEqual(
           xs.foldRight_(
-            ['', List.empty] as [string, List<number>],
-            (x, [y, ys]) => {
-              const [s, n] = f(y, x);
+            [List.empty, ''] as [List<number>, string],
+            (x, [ys, y]) => {
+              const [n, s] = f(y, x);
               // we preserve the original order
-              return tupled(s, ys.prepend(n));
+              return tupled(ys.prepend(n), s);
             },
           ),
         ),
     ),
   );
 
+  test(
+    'repeated.taking.toLazyList is repeated.toLazyList.take',
+    forAll(fc.integer(), fc.integer({ max: 100 }), (x, n) =>
+      expect(repeated<number>().taking(n).apply(toLazyList)(x).toArray).toEqual(
+        repeated<number>().apply(toLazyList)(x).take(n).toArray,
+      ),
+    ),
+  );
+
+  test('repeated short-circuits', () => {
+    expect(repeated<number>().apply(isEmpty)(42)).toBe(false);
+  });
+
+  test(
+    'iterated.taking.toLazyList is iterated.toLazyList.take',
+    forAll(
+      fc.func(fc.integer()),
+      fc.integer(),
+      fc.integer({ max: 100 }),
+      (f, x, n) =>
+        expect(
+          iterated<number>(f).taking(n).apply(toLazyList)(x).toArray,
+        ).toEqual(iterated<number>(f).apply(toLazyList)(x).take(n).toArray),
+    ),
+  );
+
+  test(
+    'iterated.taking.toLazyList is LazyList.iterate.take',
+    forAll(
+      fc.func(fc.integer()),
+      fc.integer(),
+      fc.integer({ max: 100 }),
+      (f, x, n) =>
+        expect(
+          iterated<number>(f).taking(n).apply(toLazyList)(x).toArray,
+        ).toEqual(LazyList.iterate(x, f).take(n).toArray),
+    ),
+  );
+
+  test('iterated short-circuits', () => {
+    expect(iterated<number>(id).apply(isEmpty)(42)).toBe(false);
+  });
+
+  test('iterated is lazy', () => {
+    let inc = 0;
+    expect(iterated<number>(_ => inc++).apply(isEmpty)(42)).toBe(false);
+    expect(inc).toBe(0);
+  });
+
+  test('iterated.taking is lazy', () => {
+    let inc = 0;
+    expect(
+      iterated<number>(_ => inc++)
+        .taking(5)
+        .apply(toArray)(42),
+    ).toEqual([42, 0, 1, 2, 3]);
+    expect(inc).toBe(4);
+  });
+
   test('indexing', () => {
     const SN = Map.TraversableWithIndex<number>();
 
     expect(
-      focus(fromTraversableWithIndex(SN)<string>())
-        .compose(words)
-        .headOption(Map([42, 'test test'])),
+      itraversed(SN)<string>().compose(words).apply(headOption)(
+        Map([42, 'test test']),
+      ),
     ).toEqual(Some('test'));
 
     expect(
-      focus(fromTraversableWithIndex(SN)<string>())
-        .icomposeL(words)
-        .iheadOption(Map([42, 'test test'])),
+      itraversed(SN)<string>().icomposeL(words).apply(iheadOption)(
+        Map([42, 'test test']),
+      ),
     ).toEqual(Some(['test', 42]));
+  });
+
+  test('indexing supports laziness', () => {
+    let inc = 0;
+    expect(
+      iterated<number>(_ => inc++)
+        .indexing()
+        .taking(10)
+        .apply(toArray)(42),
+    ).toEqual([42, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(inc).toBe(9);
+  });
+
+  test('taking is stack safe', () => {
+    const size = 50_000;
+    expect(
+      iterated<number>(x => x + 1)
+        .taking(size)
+        .apply(toArray)(0),
+    ).toEqual([...new Array(size).keys()]);
+  });
+
+  test('dropping works on infinite optics', () => {
+    expect(
+      iterated<number>(x => x + 1)
+        .dropping(10)
+        .apply(toLazyList)(0)
+        .take(10).toArray,
+    ).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+  });
+
+  test('dropping is stack safe', () => {
+    const size = 50_000;
+    expect(
+      iterated<number>(x => x + 1)
+        .dropping(size)
+        .apply(toLazyList)(0)
+        .take(size).toArray,
+    ).toEqual([...new Array(size * 2).keys()].slice(size));
+  });
+
+  test('orElse returns first traversal is its not empty', () => {
+    expect(
+      traversed<number>()
+        .orElse(traversed<number>().compose(to(x => -x)))
+        .apply(toArray)([1, 2, 3, 4]),
+    ).toEqual([1, 2, 3, 4]);
+  });
+
+  test('orElse returns second traversal is its empty', () => {
+    expect(
+      traversed<number>()
+        .taking(0)
+        .orElse(traversed<number>().compose(to(x => -x)))
+        .apply(toArray)([1, 2, 3, 4]),
+    ).toEqual([-1, -2, -3, -4]);
   });
 
   test('nested indexing', () => {
@@ -234,40 +370,12 @@ describe('Traversal', () => {
     const SM = Map.TraversableWithIndex<string>();
 
     expect(
-      focus(fromTraversableWithIndex(SN)<Map<string, string>>())
-        .icompose(fromTraversableWithIndex(SM)<string>())
-        .icomposeL(words)
-        .iheadOption(Map([42, Map(['testing', 'test test'])])),
+      itraversed(SN)<Map<string, string>>()
+        .icompose(itraversed(SM)<string>())
+        .compose(words)
+        .apply(iheadOption)(Map([42, Map(['testing', 'test test'])])),
     ).toEqual(Some(['test', [42, 'testing']]));
   });
-
-  test(
-    'eachIndexed',
-    forAll(fc.array(fc.string()), xs =>
-      expect(
-        focus<string[]>()
-          .eachWithIndex()
-          .ifilter((a, i) => i % 2 === 0)
-          .replace('empty')(xs),
-      ).toEqual(xs.map((a, i) => (i % 2 === 0 ? 'empty' : a))),
-    ),
-  );
-
-  // test('at', () => {
-  //   const map = Map([1, 'one']);
-  //   const mapTraversal = Iso.id<Map<number, string>>().asTraversal();
-  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
-
-  //   expect(mapTraversal.at(1, at).getAll(map)).toEqual(List(Some('one')));
-  //   expect(mapTraversal.at(0, at).getAll(map)).toEqual(List(None));
-  //   expect(mapTraversal.at(1, at).replace(Some('two'))(map)).toEqual(
-  //     Map([1, 'two']),
-  //   );
-  //   expect(mapTraversal.at(0, at).replace(Some('two'))(map)).toEqual(
-  //     Map([0, 'two'], [1, 'one']),
-  //   );
-  //   expect(mapTraversal.at(1, at).replace(None)(map)).toEqual(Map.empty);
-  // });
 
   describe('Laws', () => {
     checkAll(
