@@ -13,11 +13,10 @@ import {
   get,
   iso,
   modify,
-  prop,
   replace,
   to,
-  toList,
 } from '@fp4ts/optics-core';
+import { prop, toList } from '@fp4ts/optics-std';
 import { deriveLenses } from '@fp4ts/optics-derivation';
 import { LensSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { Schema, Schemable, TypeOf } from '@fp4ts/schema';

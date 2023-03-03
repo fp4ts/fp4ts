@@ -78,11 +78,13 @@ export const function1Semigroup = cached(
         F1.flatMap(x, x => F1.andThen(y, y => S.combine_(x, y))),
       combineEval_: (x, ey) =>
         Eval.now(
-          (a: A) =>
-            S.combineEval_(
-              x(a),
-              ey.map(y => y(a)),
-            ).value,
+          F1.defer(
+            () => (a: A) =>
+              S.combineEval_(
+                x(a),
+                ey.map(y => y(a)),
+              ).value,
+          ),
         ),
     }),
 );
@@ -126,9 +128,9 @@ export const endoMonoid = lazy(
       combine_: F1.compose,
       combineEval_: (f, eg) =>
         Eval.now(
-          F1.compose(
-            f,
+          F1.andThen(
             F1.defer(() => eg.value),
+            f,
           ),
         ),
     }),

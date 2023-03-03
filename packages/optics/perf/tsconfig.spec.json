@@ -9,5 +9,6 @@
     { "path": "../../core/tsconfig.spec.json" },
     { "path": "../../cats/tsconfig.spec.json" },
     { "path": "../core/tsconfig.spec.json" },
+    { "path": "../std/tsconfig.spec.json" },
   ]
 }

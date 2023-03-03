@@ -37,14 +37,14 @@ export type Prism<S, A> = PPrism<S, S, A, A>;
 
 // -- Constructors
 
-export function prism<S, A>(
-  getOrModify: (s: S) => Either<S, A>,
-  reverseGet: (b: A) => S,
-): Prism<S, A>;
 export function prism<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   reverseGet: (b: B) => T,
 ): PPrism<S, T, A, B>;
+export function prism<S, A>(
+  getOrModify: (s: S) => Either<S, A>,
+  reverseGet: (b: A) => S,
+): Prism<S, A>;
 export function prism<S, T, A, B>(
   getOrModify: (s: S) => Either<T, A>,
   reverseGet: (b: B) => T,

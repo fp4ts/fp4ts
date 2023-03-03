@@ -3,13 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import {
-  Applicative,
-  Backwards,
-  Functor,
-  Traversable,
-  TraversableWithIndex,
-} from '@fp4ts/cats';
+import { Applicative, Backwards, Functor } from '@fp4ts/cats';
 import { Eval, F1, id, Kind } from '@fp4ts/core';
 import { State } from '@fp4ts/mtl';
 import { Fold, IndexedFold, IndexPreservingFold } from './fold';
@@ -139,40 +133,6 @@ export function itraversal<I, S, T, A, B>(
       // eslint-disable-next-line prettier/prettier
       F1.andThen((P).indexed<A, Kind<F, [B]>>, k(F)),
   );
-}
-
-export function traversed<A>(): Traversal<A[], A>;
-export function traversed<A, B>(): PTraversal<A[], B[], A, B>;
-export function traversed<G>(G: Traversable<G>): {
-  <A>(): Traversal<Kind<G, [A]>, A>;
-  <A, B>(): PTraversal<Kind<G, [A]>, Kind<G, [B]>, A, B>;
-};
-export function traversed(G?: any): any {
-  return G ? () => _fromTraversable(G) : arrayTraversal;
-}
-
-export function itraversed<A>(): IndexedTraversal<number, A[], A>;
-export function itraversed<A, B>(): IndexedPTraversal<number, A[], B[], A, B>;
-export function itraversed<G, I>(
-  G: TraversableWithIndex<G, I>,
-): {
-  <A>(): IndexedTraversal<I, Kind<G, [A]>, A>;
-  <A, B>(): IndexedPTraversal<I, Kind<G, [A]>, Kind<G, [B]>, A, B>;
-};
-export function itraversed(G?: any): any {
-  return G ? () => _fromTraversableWithIndex(G) : arrayIndexedTraversal;
-}
-
-function _fromTraversable<G, A, B = A>(
-  G: Traversable<G>,
-): PTraversal<Kind<G, [A]>, Kind<G, [B]>, A, B> {
-  return traversal<Kind<G, [A]>, Kind<G, [B]>, A, B>(G.traverse);
-}
-
-function _fromTraversableWithIndex<I, G, A, B = A>(
-  G: TraversableWithIndex<G, I>,
-): IndexedPTraversal<I, Kind<G, [A]>, Kind<G, [B]>, A, B> {
-  return itraversal<I, Kind<G, [A]>, Kind<G, [B]>, A, B>(G.traverseWithIndex);
 }
 
 export function repeated<A>(): Traversal<A, A> {
@@ -320,10 +280,5 @@ const mkIxPTraversal = <S, T, A, B>(
   ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>,
 ): IndexPreservingPTraversal<S, T, A, B> =>
   new IndexPreservingOptic(apply as any) as any;
-
-const arrayTraversal = _fromTraversable(Traversable.Array);
-const arrayIndexedTraversal = _fromTraversableWithIndex(
-  TraversableWithIndex.Array,
-);
 
 const _snd = <A, B>(a: A, b: B): B => b;
