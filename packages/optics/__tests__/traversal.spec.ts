@@ -5,7 +5,18 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id, tupled } from '@fp4ts/core';
-import { Eq, LazyList, List, Map, Monoid, Option, Some } from '@fp4ts/cats';
+import {
+  Either,
+  Eq,
+  LazyList,
+  List,
+  Map,
+  Monoid,
+  Option,
+  Seq,
+  Some,
+  Vector,
+} from '@fp4ts/cats';
 import {
   all,
   any,
@@ -33,8 +44,8 @@ import {
   toLazyList,
   Traversal,
 } from '@fp4ts/optics-core';
-import { pick, toList, worded } from '@fp4ts/optics-std';
-import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
+import { lined, pick, toList, worded } from '@fp4ts/optics-std';
+import { TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -291,7 +302,7 @@ describe('Traversal', () => {
     expect(inc).toBe(4);
   });
 
-  test('indexing', () => {
+  test('indexing worded', () => {
     expect(
       IEach.Map<number>()<string>().compose(worded).apply(headOption)(
         Map([42, 'test test']),
@@ -301,6 +312,20 @@ describe('Traversal', () => {
     expect(
       IEach.Map<number>()<string>().icomposeL(worded).apply(iheadOption)(
         Map([42, 'test test']),
+      ),
+    ).toEqual(Some(['test', 42]));
+  });
+
+  test('indexing lines', () => {
+    expect(
+      IEach.Map<number>()<string>().compose(lined).apply(headOption)(
+        Map([42, 'test\r\ntest']),
+      ),
+    ).toEqual(Some('test'));
+
+    expect(
+      IEach.Map<number>()<string>().icomposeL(lined).apply(iheadOption)(
+        Map([42, 'test\ntest']),
       ),
     ).toEqual(Some(['test', 42]));
   });
@@ -382,16 +407,6 @@ describe('Traversal', () => {
     );
 
     checkAll(
-      'Traversal<List<number>, number> as Setter',
-      SetterSuite(eachLi).setter(
-        A.fp4tsList(fc.integer()),
-        fc.integer(),
-        List.Eq(Eq.fromUniversalEquals()),
-        Eq.fromUniversalEquals(),
-      ),
-    );
-
-    checkAll(
       'Traversal<Location, { longitude: number, latitude: number  }>',
       TraversalSuite(coordinates).traversal(
         locationArb,
@@ -405,15 +420,105 @@ describe('Traversal', () => {
     );
 
     checkAll(
-      'Traversal<Location, { longitude: number, latitude: number  }> as Setter',
-      SetterSuite(coordinates).setter(
-        locationArb,
-        fc.record({ latitude: fc.integer(), longitude: fc.integer() }),
-        locationEq,
-        Eq.struct({
-          latitude: Eq.fromUniversalEquals(),
-          longitude: Eq.fromUniversalEquals(),
-        }),
+      'Traversal<Each<[number, number]>, number>',
+      TraversalSuite(Each.Tuple<[number, number]>()).traversal(
+        fc.tuple(fc.integer(), fc.integer()),
+        fc.integer(),
+        Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<[number, number, number]>, number>',
+      TraversalSuite(Each.Tuple<[number, number, number]>()).traversal(
+        fc.tuple(fc.integer(), fc.integer(), fc.integer()),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<number[]>, number>',
+      TraversalSuite(Each.Array<number>()).traversal(
+        fc.array(fc.integer()),
+        fc.integer(),
+        Eq.Array(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<List<number>>, number>',
+      TraversalSuite(Each.List<number>()).traversal(
+        A.fp4tsList(fc.integer()),
+        fc.integer(),
+        List.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<LazyList<number>>, number>',
+      TraversalSuite(Each.LazyList<number>()).traversal(
+        A.fp4tsLazyList(fc.integer()),
+        fc.integer(),
+        LazyList.EqK.liftEq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<Seq<number>>, number>',
+      TraversalSuite(Each.Seq<number>()).traversal(
+        A.fp4tsSeq(fc.integer()),
+        fc.integer(),
+        Seq.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<Vector<number>>, number>',
+      TraversalSuite(Each.Vector<number>()).traversal(
+        A.fp4tsVector(fc.integer()),
+        fc.integer(),
+        Vector.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<Map<string, number>>, number>',
+      TraversalSuite(Each.Map<string>()<number>()).traversal(
+        A.fp4tsMap(fc.string(), fc.integer()),
+        fc.integer(),
+        Map.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Traversal<Each<Option<number>>, number>',
+      TraversalSuite(Each.Option<number>()).traversal(
+        A.fp4tsOption(fc.integer()),
+        fc.integer(),
+        Option.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+    checkAll(
+      'Traversal<Each<Either<string, number>>, number>',
+      TraversalSuite(Each.Either<string>()<number>()).traversal(
+        A.fp4tsEither(fc.string(), fc.integer()),
+        fc.integer(),
+        Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
       ),
     );
   });

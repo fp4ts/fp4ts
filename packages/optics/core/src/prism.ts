@@ -71,7 +71,6 @@ export function prism_<S, A>(
 export function filtered<S, A extends S>(p: (s: S) => s is A): Prism<S, A>;
 export function filtered<S>(p: (s: S) => boolean): Prism<S, S>;
 export function filtered<S>(p: (s: S) => boolean): Prism<S, S> {
-  const g = (x: S) => (p(x) ? Right(x) : Left(x));
   return mkPrism(<F, P>(F: Applicative<F>, P: Choice<P>) =>
     (P as any) === Indexable.Function1
       ? (((f: (a: S) => Kind<F, [S]>) =>
@@ -82,8 +81,10 @@ export function filtered<S>(p: (s: S) => boolean): Prism<S, S> {
           (s: S, i: unknown): Kind<F, [S]> =>
             p(s) ? f(s, i) : F.pure(s)) as any)
       : (psfs: Kind<P, [S, Kind<F, [S]>]>): Kind<P, [S, Kind<F, [S]>]> =>
-          P.dimap_(P.left<S>()(psfs), g, ea =>
-            ea.isRight() ? F.pure(ea.get) : ea.getLeft,
+          P.dimap_(
+            P.right<S>()(psfs),
+            x => (p(x) ? Right(x) : Left(x)),
+            ae => (ae.isLeft() ? F.pure(ae.getLeft) : ae.get),
           ),
   );
 }

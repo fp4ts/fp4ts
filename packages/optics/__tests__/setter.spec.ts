@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List } from '@fp4ts/cats';
+import { Eq, List, Option } from '@fp4ts/cats';
 import { Reader, State } from '@fp4ts/mtl';
 import {
   add,
@@ -27,13 +27,14 @@ import {
   sub,
 } from '@fp4ts/optics-core';
 import { SetterSuite } from '@fp4ts/optics-laws';
+import { setmapped, toSet } from '@fp4ts/optics-std';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('Setter', () => {
   const eachL = <A>(): Setter<List<A>, A> => mapped<A, A>()(List.Functor);
 
-  const eachLi: Setter<List<number>, number> = eachL<number>();
+  const eachLi: Setter<List<number>, number> = eachL();
 
   it('should compose', () => {
     expect(
@@ -55,9 +56,7 @@ describe('Setter', () => {
   test(
     'modify',
     forAll(A.fp4tsList(fc.integer()), xs =>
-      eachLi
-        .apply(modify)(x => x + 1)(xs)
-        .equals(xs.map(x => x + 1)),
+      modify(eachLi)(x => x + 1)(xs).equals(xs.map(x => x + 1)),
     ),
   );
 
@@ -74,54 +73,42 @@ describe('Setter', () => {
   test(
     'plus',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
-      eachLi
-        .apply(add)(n)(xs)
-        .equals(xs.map(x => x + n)),
+      add(eachLi)(n)(xs).equals(xs.map(x => x + n)),
     ),
   );
 
   test(
     'sub',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
-      eachLi
-        .apply(sub)(n)(xs)
-        .equals(xs.map(x => x - n)),
+      sub(eachLi)(n)(xs).equals(xs.map(x => x - n)),
     ),
   );
 
   test(
     'mul',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
-      eachLi
-        .apply(mul)(n)(xs)
-        .equals(xs.map(x => x * n)),
+      mul(eachLi)(n)(xs).equals(xs.map(x => x * n)),
     ),
   );
 
   test(
     'div',
     forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
-      eachLi
-        .apply(div)(n)(xs)
-        .equals(xs.map(x => x / n)),
+      div(eachLi)(n)(xs).equals(xs.map(x => x / n)),
     ),
   );
 
   test(
     'and',
     forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
-      eachL<boolean>()
-        .apply(and)(n)(xs)
-        .equals(xs.map(x => x && n)),
+      and(eachL<boolean>())(n)(xs).equals(xs.map(x => x && n)),
     ),
   );
 
   test(
     'or',
     forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
-      eachL<boolean>()
-        .apply(or)(n)(xs)
-        .equals(xs.map(x => x || n)),
+      or(eachL<boolean>())(n)(xs).equals(xs.map(x => x || n)),
     ),
   );
 
@@ -133,7 +120,7 @@ describe('Setter', () => {
   test(
     'replacing',
     forAll(fc.integer(), fc.integer(), (x, y) =>
-      expect(i.apply(setting(SI))(x).runA(null, y)).toEqual(
+      expect(i.apply(setting(State.MonadState()))(x).runA(null, y)).toEqual(
         State.state(() => [undefined, x]).runA(null, y),
       ),
     ),
@@ -142,7 +129,7 @@ describe('Setter', () => {
   test(
     'modifying',
     forAll(fc.func<[number], number>(fc.integer()), fc.integer(), (f, y) =>
-      expect(i.apply(modifying(SI))(f).runA(null, y)).toEqual(
+      expect(i.apply(modifying(State.MonadState()))(f).runA(null, y)).toEqual(
         State.state((s: number) => [undefined, f(s)]).runA(null, y),
       ),
     ),
@@ -186,14 +173,36 @@ describe('Setter', () => {
     ),
   );
 
+  test(
+    'Set<number>',
+    forAll(A.fp4tsSet(fc.integer()), xs =>
+      expect(
+        setmapped<number, string>().apply(modify)(String)(xs).toArray,
+      ).toEqual(xs.map(String).toArray),
+    ),
+  );
+
   describe('Laws', () => {
-    const setterTests = SetterSuite(eachLi);
     checkAll(
       'Setter<List<number>, number>',
-      setterTests.setter(
+      SetterSuite(eachLi).setter(
         A.fp4tsList(fc.integer()),
         fc.integer(),
         List.Eq(Eq.fromUniversalEquals()),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Setter<List<Option<number>>, number>',
+      SetterSuite(
+        mapped<Option<number>>()(List.Functor).compose(
+          mapped<number>()(Option.Monad),
+        ),
+      ).setter(
+        A.fp4tsList(A.fp4tsOption(fc.integer())),
+        fc.integer(),
+        List.Eq(Option.Eq(Eq.fromUniversalEquals())),
         Eq.fromUniversalEquals(),
       ),
     );

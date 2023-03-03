@@ -27,10 +27,14 @@ import {
   ifoldRight_,
   ifolded,
   ifoldLeft,
+  ifiltered,
+  each,
+  ieach,
 } from '@fp4ts/optics-core';
 import { toList } from '@fp4ts/optics-std';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { fst } from '@fp4ts/core';
 
 describe('Fold', () => {
   const eachli = folded(List.Foldable)<number>();
@@ -226,40 +230,47 @@ describe('Fold', () => {
     ),
   );
 
-  // test(
-  //   'ifilter',
-  //   forAll(
-  //     fc.array(fc.string()),
-  //     fc.func<[number], boolean>(fc.boolean()),
-  //     (xs, p) =>
-  //       expect(
-  //         ifolded<string>()
-  //           .ifilter((x, i) => p(i))
-  //           .toList(xs),
-  //       ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),
-  //   ),
-  // );
+  test(
+    'ifilter',
+    forAll(
+      fc.array(fc.string()),
+      fc.func<[number], boolean>(fc.boolean()),
+      (xs, p) =>
+        expect(
+          ifolded<string>()
+            .apply(l => ifiltered(l))((x, i) => p(i))
+            .apply(toList)(xs),
+        ).toEqual(List.fromArray(xs.filter((x, i) => p(i)))),
+    ),
+  );
 
-  // test(
-  //   'indexing',
-  //   forAll(fc.array(fc.string()), xs =>
-  //     expect(
-  //       focus<string[]>()
-  //         .each()
-  //         .filter(x => x.length > 2)
-  //         .indexed()
-  //         .ifilter((a, i) => i > 1)
-  //         .toList(xs),
-  //     ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
-  //   ),
-  // );
+  test(
+    'indexing',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        each<string>()
+          .compose(filtered(x => x.length > 2))
+          .indexing()
+          .apply(l => ifiltered(l))((a, i) => i > 1)
+          .apply(toList)(xs),
+      ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
+    ),
+  );
 
-  // test('at', () => {
-  //   const map = Map([1, 'one']);
-  //   const mapFold = Iso.id<Map<number, string>>().asFold();
-  //   const at = At.Map<number, string>(Ord.fromUniversalCompare());
-
-  //   expect(mapFold.at(1, at).getAll(map)).toEqual(List(Some('one')));
-  //   expect(mapFold.at(0, at).getAll(map)).toEqual(List(None));
-  // });
+  test(
+    'ifilter preservation of indexes',
+    forAll(fc.array(fc.string()), xs =>
+      expect(
+        ieach<string>()
+          .compose(filtered(x => x.length > 2))
+          .apply(l => ifiltered(l))((a, i) => i > 1)
+          .apply(toList)(xs),
+      ).toEqual(
+        List.fromArray(xs)
+          .zipWithIndex.filter(([x]) => x.length > 2)
+          .filter(([, i]) => i > 1)
+          .map(fst),
+      ),
+    ),
+  );
 });

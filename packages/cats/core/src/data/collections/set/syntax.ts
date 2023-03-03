@@ -348,7 +348,7 @@ Set.prototype.filter = function (p) {
 Set.prototype.map = function (...args: any[]) {
   return args.length === 1
     ? map_(Ord.fromUniversalCompare(), this, args[0])
-    : map_(args[0], this, args[1]);
+    : map_(args[1], this, args[0]);
 };
 
 Set.prototype.forEach = function (f) {

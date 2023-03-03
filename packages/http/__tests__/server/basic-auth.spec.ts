@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit';
 import { None, Option, OptionT, Some } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect';
-import { match } from '@fp4ts/optics';
+import { headOption, to } from '@fp4ts/optics';
 import {
   AuthedRoutes,
   Authorization,
@@ -40,22 +40,28 @@ describe('Basic Auth', () => {
 
   const nukeService = (launchNukes: () => void) =>
     AuthedRoutes<IOF, string>(req =>
-      match(req.request)
-        .case(Get_(path`/launch-the-nukes`), () =>
-          OptionT.liftF(IO.Applicative)(
-            IO(launchNukes).map(() => Status.Gone<IOF>()),
+      Get_<IOF>(path`/launch-the-nukes`)
+        .compose(
+          to(() =>
+            OptionT.liftF(IO.Applicative)(
+              IO(launchNukes).map(() => Status.Gone<IOF>()),
+            ),
           ),
         )
-        .getOrElse(() => OptionT.None(IO.Applicative)),
+        .apply(headOption)(req.request)
+        .getOrElse(() => OptionT.Some(IO.Applicative)(Status.Gone<IOF>())),
     );
 
   const service = AuthedRoutes<IOF, string>(req =>
-    match(req.request)
-      .case(Get_(path`/`), () =>
-        OptionT.liftF(IO.Applicative)(
-          IO.pure(Status.Ok(req.context)(EntityEncoder.text<IOF>())),
+    Get_<IOF>(path`/`)
+      .compose(
+        to(() =>
+          OptionT.liftF(IO.Applicative)(
+            IO.pure(Status.Ok(req.context)(EntityEncoder.text<IOF>())),
+          ),
         ),
       )
+      .apply(headOption)(req.request)
       .getOrElse(() => OptionT.None(IO.Applicative)),
   );
 

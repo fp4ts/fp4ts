@@ -9,27 +9,25 @@ import { Lens } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { LensLaws } from '../lens-laws';
+import { TraversalSuite } from './traversal-suite';
 
 export const LensSuite = <S, A>(lens: Lens<S, A>) => {
   const laws = LensLaws(lens);
 
   const self = {
+    ...TraversalSuite(lens),
+
     lens: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
         'Lens',
         [
-          ['lens get replace', forAll(arbS, laws.getReplace)(EqS)],
-          ['lens replace get', forAll(arbS, arbA, laws.replaceGet)(EqA)],
+          ['get andThen replace identity', forAll(arbS, laws.getReplace)(EqS)],
           [
-            'lens consistent modify modify id',
-            forAll(arbS, arbA, laws.consistentModifyModifyId)(EqS),
-          ],
-          [
-            'lens consistent get modify id',
-            forAll(arbS, arbA, laws.consistentGetModifyId)(EqA),
+            'replace andThen get identity',
+            forAll(arbS, arbA, laws.replaceGet)(EqA),
           ],
         ],
-        // { parent: self.optional(arbS, arbA, EqS, EqA) },
+        { parent: self.traversal(arbS, arbA, EqS, EqA) },
       ),
   };
 

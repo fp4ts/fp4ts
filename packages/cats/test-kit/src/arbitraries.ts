@@ -160,12 +160,14 @@ export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
 export const fp4tsMap = <K, V>(
   arbK: Arbitrary<K>,
   arbV: Arbitrary<V>,
-  O: Ord<K>,
+  O: Ord<K> = Ord.fromUniversalCompare(),
 ): Arbitrary<Map<K, V>> =>
   fc.array(fc.tuple(arbK, arbV)).map(xs => Map.fromArray(O)(xs));
 
-export const fp4tsSet = <A>(arbA: Arbitrary<A>, O: Ord<A>): Arbitrary<Set<A>> =>
-  fc.array(arbA).map(xs => Set.fromArray(O, xs));
+export const fp4tsSet = <A>(
+  arbA: Arbitrary<A>,
+  O: Ord<A> = Ord.fromUniversalCompare(),
+): Arbitrary<Set<A>> => fc.array(arbA).map(xs => Set.fromArray(O, xs));
 
 interface HashMapConstraints {
   readonly minSize?: number;

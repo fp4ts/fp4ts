@@ -9,28 +9,28 @@ import { Prism } from '@fp4ts/optics-core';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { PrismLaws } from '../prism-laws';
-// import { OptionalSuite } from './optional-suite';
+import { TraversalSuite } from './traversal-suite';
 
 export const PrismSuite = <S, A>(prism: Prism<S, A>) => {
   const laws = PrismLaws(prism);
 
   const self = {
-    // ...OptionalSuite(prism),
+    ...TraversalSuite(prism),
 
     prism: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
         'Prism',
         [
-          // [
-          //   'prism partial round trip one way',
-          //   forAll(arbS, laws.partialRoundTripOneWay)(EqS),
-          // ],
-          // [
-          //   'prism round trip other way',
-          //   forAll(arbA, laws.roundTripOtherWay)(Option.Eq(EqA)),
-          // ],
+          [
+            'preview review is some',
+            forAll(arbA, laws.previewReviewIsSome)(Option.Eq(EqA)),
+          ],
+          [
+            'review preview is identity',
+            forAll(arbS, laws.reviewPreviewIsIdentity)(EqS),
+          ],
         ],
-        // { parent: self.optional(arbS, arbA, EqS, EqA) },
+        { parent: self.traversal(arbS, arbA, EqS, EqA) },
       ),
   };
 

@@ -68,5 +68,5 @@ export const lined = ipfold(
   },
 ) as IndexPreservingFold<string, string>;
 
-const ws = /(\r?\n)+/;
+const ws = /\s+/;
 const nl = /(\r?\n)+/;

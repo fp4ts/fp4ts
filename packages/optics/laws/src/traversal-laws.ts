@@ -3,28 +3,28 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Identity, List, Option } from '@fp4ts/cats';
-import { Traversal, headOption, modify, Indexable } from '@fp4ts/optics-core';
-import { toList } from '@fp4ts/optics-std';
+import { Applicative } from '@fp4ts/cats';
+import { Traversal, traverse } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SetterLaws } from './setter-laws';
+import { F1, Kind } from '@fp4ts/core';
 
 export const TraversalLaws = <S, A>(traversal: Traversal<S, A>) => ({
   ...SetterLaws(traversal),
 
-  headOption: (s: S): IsEq<Option<A>> =>
-    new IsEq(headOption(traversal)(s), toList(traversal)(s).headOption),
+  traversePureId:
+    <F>(F: Applicative<F>) =>
+    (s: S) =>
+      new IsEq(traverse(traversal)(F)(F.pure)(s), F.pure(s)),
 
-  modifyGetAll: (s: S, f: (a: A) => A): IsEq<List<A>> =>
-    new IsEq(
-      toList(traversal)(modify(traversal)(f)(s)),
-      toList(traversal)(s).map(f),
-    ),
-
-  consistentModifyModifyId: (s: S, a: A): IsEq<S> =>
-    new IsEq(
-      modify(traversal)(() => a)(s),
-      traversal.runOptic(Identity.Applicative, Indexable.Function1)(() => a)(s),
-    ),
+  traversalComposition:
+    <F, G>(F: Applicative<F>, G: Applicative<G>) =>
+    (f: (a: A) => Kind<F, [A]>, g: (a: A) => Kind<G, [A]>, s: S) =>
+      new IsEq(
+        F.map_(traverse(traversal)(F)(f)(s), traverse(traversal)(G)(g)),
+        traverse(traversal)<[F, G]>(Applicative.compose(F, G))(
+          F1.andThen(f, F.map(g)),
+        )(s),
+      ),
 });

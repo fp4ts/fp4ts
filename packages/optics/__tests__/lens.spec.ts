@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import fc from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { Eq, List, Monoid, None, Some } from '@fp4ts/cats';
 import {
   all,
@@ -16,9 +16,20 @@ import {
   replace,
   to,
 } from '@fp4ts/optics-core';
-import { prop, toList } from '@fp4ts/optics-std';
+import {
+  prop,
+  toList,
+  _1,
+  _2,
+  _3,
+  _4,
+  _5,
+  _6,
+  _7,
+  _8,
+} from '@fp4ts/optics-std';
 import { deriveLenses } from '@fp4ts/optics-derivation';
-import { LensSuite, SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
+import { LensSuite } from '@fp4ts/optics-laws';
 import { Schema, Schemable, TypeOf } from '@fp4ts/schema';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
 import { checkAll } from '@fp4ts/cats-test-kit';
@@ -27,8 +38,6 @@ describe('Lens', () => {
   const _Point = Schema.struct({ x: Schema.number, y: Schema.number });
   type Point = TypeOf<typeof _Point>;
   const Point = (x: number, y: number): Point => ({ x, y });
-  const arbPoint = _Point.interpret(ArbitraryInstances.Schemable);
-  const eqPoint = _Point.interpret(Schemable.Eq);
 
   const _Example = Schema.struct({ s: Schema.string, p: _Point });
   type Example = TypeOf<typeof _Example>;
@@ -137,6 +146,7 @@ describe('Lens', () => {
         Eq.fromUniversalEquals(),
       ),
     );
+
     checkAll(
       'Lens<Example, Point> . Lens<Point, number>',
       LensSuite(p.compose(x)).lens(
@@ -146,21 +156,177 @@ describe('Lens', () => {
         Eq.fromUniversalEquals(),
       ),
     );
+
     checkAll(
-      'lens.asTraversal',
-      TraversalSuite(s).traversal(
-        arbExample,
-        fc.string(),
-        eqExample,
+      'Lens<[number], number>',
+      LensSuite(_1<[number]>()).lens(
+        fc.tuple(fc.integer()),
+        fc.integer(),
+        Eq.tuple(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
       ),
     );
+
+    const arbVoid = fc.constant(undefined) as Arbitrary<void>;
+
     checkAll(
-      'lens.asSetter',
-      SetterSuite(s).setter(
-        arbExample,
+      'Lens<_1<[number, string, void]>, number>',
+      LensSuite(_1<[number, string, void]>()).lens(
+        fc.tuple(fc.integer(), fc.string(), arbVoid),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_2<[number, string, void]>, string>',
+      LensSuite(_2<[number, string, void]>()).lens(
+        fc.tuple(fc.integer(), fc.string(), arbVoid),
         fc.string(),
-        eqExample,
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_3<[number, string, boolean]>, boolean>',
+      LensSuite(_3<[number, string, boolean]>()).lens(
+        fc.tuple(fc.integer(), fc.string(), fc.boolean()),
+        fc.boolean(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_4<[void, void, void, number]>, number>',
+      LensSuite(_4<[void, void, void, number]>()).lens(
+        fc.tuple(arbVoid, arbVoid, arbVoid, fc.integer()),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_5<[void, void, void, void, number]>, number>',
+      LensSuite(_5<[void, void, void, void, number]>()).lens(
+        fc.tuple(arbVoid, arbVoid, arbVoid, arbVoid, fc.integer()),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_6<[void, void, void, void, void, number]>, number>',
+      LensSuite(_6<[void, void, void, void, void, number]>()).lens(
+        fc.tuple(arbVoid, arbVoid, arbVoid, arbVoid, arbVoid, fc.integer()),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_7<[void, void, void, void, void, number]>, number>',
+      LensSuite(_7<[void, void, void, void, void, void, number]>()).lens(
+        fc.tuple(
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          fc.integer(),
+        ),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_8<[void, void, void, void, void, void, number]>, number>',
+      LensSuite(_8<[void, void, void, void, void, void, void, number]>()).lens(
+        fc.tuple(
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          arbVoid,
+          fc.integer(),
+        ),
+        fc.integer(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+          Eq.fromUniversalEquals(),
+        ),
+        Eq.fromUniversalEquals(),
+      ),
+    );
+
+    checkAll(
+      'Lens<_2<[number, [number, boolean], string]> . _2<[number, boolean]>, boolean>',
+      LensSuite(_2<[number, [number, boolean], string]>().compose(_2())).lens(
+        fc.tuple(
+          fc.integer(),
+          fc.tuple(fc.integer(), fc.boolean()),
+          fc.string(),
+        ),
+        fc.boolean(),
+        Eq.tuple(
+          Eq.fromUniversalEquals(),
+          Eq.tuple(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+          Eq.fromUniversalEquals(),
+        ),
         Eq.fromUniversalEquals(),
       ),
     );

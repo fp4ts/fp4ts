@@ -10,6 +10,7 @@ export * from './date';
 export * from './either';
 export * from './list';
 export * from './map';
+export * from './non-nullable';
 export * from './option';
 export * from './seq';
 export * from './set';
