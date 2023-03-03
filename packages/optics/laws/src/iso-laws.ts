@@ -5,10 +5,14 @@
 
 import { Iso, reverseGet, get } from '@fp4ts/optics-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
+import { LensLaws } from './lens-laws';
+import { PrismLaws } from './prism-laws';
 
 export const IsoLaws = <S, A>(iso: Iso<S, A>) => ({
-  roundTripOneWay: (s: S): IsEq<S> => new IsEq(reverseGet(iso)(get(iso)(s)), s),
+  ...LensLaws(iso),
+  ...PrismLaws(iso),
 
-  roundTripOtherWay: (a: A): IsEq<A> =>
-    new IsEq(get(iso)(reverseGet(iso)(a)), a),
+  reverseGetGet: (s: S): IsEq<S> => new IsEq(reverseGet(iso)(get(iso)(s)), s),
+
+  getReverseGet: (a: A): IsEq<A> => new IsEq(get(iso)(reverseGet(iso)(a)), a),
 });

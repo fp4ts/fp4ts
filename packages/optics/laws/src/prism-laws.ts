@@ -4,18 +4,28 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Option, Some } from '@fp4ts/cats';
-import { Prism, getOrModify, reverseGet, getOption } from '@fp4ts/optics-core';
+import { Prism, preview, review } from '@fp4ts/optics-core';
+import { MonadReader } from '@fp4ts/mtl-core';
 import { IsEq } from '@fp4ts/cats-test-kit';
-import { id } from '@fp4ts/core';
-
-// import { OptionalLaws } from './optional-laws';
+import { TraversalLaws } from './traversal-laws';
 
 export const PrismLaws = <S, A>(prism: Prism<S, A>) => ({
-  // ...OptionalLaws(prism),
+  ...TraversalLaws(prism),
 
-  partialRoundTripOneWay: (s: S): IsEq<S> =>
-    new IsEq(getOrModify(prism)(s).fold(id, reverseGet(prism)), s),
+  previewReviewIsSome: (a: A): IsEq<Option<A>> =>
+    new IsEq(
+      preview(MonadReader.Function1<S>())(prism)(
+        review(MonadReader.Function1<A>())(prism)(a),
+      ),
+      Some(a),
+    ),
 
-  roundTripOtherWay: (a: A): IsEq<Option<A>> =>
-    new IsEq(getOption(prism)(reverseGet(prism)(a)), Some(a)),
+  reviewPreviewIsIdentity: (s: S): IsEq<S> =>
+    new IsEq(
+      preview(MonadReader.Function1<S>())(prism)(s).fold(
+        () => s,
+        review(MonadReader.Function1<A>())(prism),
+      ),
+      s,
+    ),
 });

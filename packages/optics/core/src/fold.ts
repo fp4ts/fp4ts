@@ -23,7 +23,7 @@ import { Corepresentable } from '@fp4ts/cats-profunctor';
 import { Eval, F1, id, Kind, unsafeCoerce } from '@fp4ts/core';
 import { MonadReader, MonadState, State } from '@fp4ts/mtl';
 
-import { IndexedPTraversal, PTraversal } from './traversal';
+import { IndexedPTraversal, IndexedTraversal, PTraversal } from './traversal';
 import {
   _firstOption,
   _lastOption,
@@ -536,6 +536,42 @@ export function orElse<S, A>(l: Fold<S, A>, r: Fold<S, A>): Fold<S, A> {
           const b = sb(s);
           return ins(b).isEmpty ? r.runOptic(F, P)(f)(s) : b(F)(f);
         };
+    },
+  );
+}
+
+export function ifiltered<I, S, A>(
+  l: IndexedTraversal<I, S, A>,
+): {
+  <B extends A>(p: (a: A, i: I) => a is B): IndexedTraversal<I, S, B>;
+  (p: (a: A, i: I) => boolean): IndexedTraversal<I, S, A>;
+};
+export function ifiltered<I, S, A>(
+  l: IndexedFold<I, S, A>,
+): {
+  <B extends A>(p: (a: A, i: I) => a is B): IndexedFold<I, S, B>;
+  (p: (a: A, i: I) => boolean): IndexedFold<I, S, A>;
+};
+export function ifiltered<I, S, A>(
+  l: IndexedFold<I, S, A>,
+): (p: (a: A, i: I) => boolean) => IndexedFold<I, S, A> {
+  return p => _ifiltered(p, l);
+}
+
+function _ifiltered<I, S, A>(
+  p: (a: A, i: I) => boolean,
+  l: IndexedFold<I, S, A>,
+): IndexedFold<I, S, A> {
+  return mkIxFold(
+    <F, P, RepF, CorepF>(
+      F: Applicative<F> & Contravariant<F>,
+      P: Indexable<P, I, RepF, CorepF>,
+    ) => {
+      const g = l.runOptic(F, Indexable.Indexed<I>());
+      return (pafb: Kind<P, [A, Kind<F, [never]>]>) => {
+        const aifb = P.indexed(pafb);
+        return g((a, i) => (p(a, i) ? aifb(a, i) : unsafeCoerce(F.pure(a))));
+      };
     },
   );
 }

@@ -29,12 +29,17 @@ export interface Each<F> {
   <A>(): Traversal<Kind<F, [A]>, A>;
 }
 
+function Tuple<
+  S extends unknown[],
+  T extends unknown[],
+>(): S['length'] extends T['length'] ? PTraversal<S, T, S[0], T[0]> : never;
+function Tuple<S extends unknown[]>(): Traversal<S, S[0]>;
+function Tuple<S extends unknown[]>(): Traversal<S, S[0]> {
+  return Each.Array() as any;
+}
+
 export const Each = Object.freeze({
-  Tuple: <
-    S extends unknown[],
-    T extends unknown[],
-  >(): S['length'] extends T['length'] ? PTraversal<S, T, S[0], T[0]> : never =>
-    Each.Array() as any,
+  Tuple,
 
   Array: lazy(
     <A, B>(): PTraversal<A[], B[], A, B> =>

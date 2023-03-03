@@ -21,17 +21,10 @@ export const IsoSuite = <S, A>(iso: Iso<S, A>) => {
 
     iso: (arbS: Arbitrary<S>, arbA: Arbitrary<A>, EqS: Eq<S>, EqA: Eq<A>) =>
       new RuleSet(
-        'ISO',
+        'Iso',
         [
-          // ['iso round trip one way', forAll(arbS, laws.roundTripOneWay)(EqS)],
-          // [
-          //   'iso round trip other way',
-          //   forAll(arbA, laws.roundTripOtherWay)(EqA),
-          // ],
-          // [
-          //   'iso consistent modify modify id',
-          //   forAll(arbS, arbA, laws.consistentModifyModifyId)(EqS),
-          // ],
+          ['reverseGet get', forAll(arbS, laws.reverseGetGet)(EqS)],
+          ['get reverseGet', forAll(arbA, laws.getReverseGet)(EqA)],
         ],
         {
           parents: [

@@ -7,7 +7,7 @@ import '@fp4ts/effect-test-kit';
 import { Byte } from '@fp4ts/core';
 import { FunctionK } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect';
-import { match } from '@fp4ts/optics';
+import { headOption, to } from '@fp4ts/optics';
 import { Logger, LogLevel, LogMessage } from '@fp4ts/logging';
 import { Chunk, Stream } from '@fp4ts/stream';
 import {
@@ -26,17 +26,24 @@ import { HttpLogger, RequestLogger, ResponseLogger } from '@fp4ts/http-server';
 
 describe('Logger', () => {
   const testApp = HttpApp<IOF>(req =>
-    match(req)
-      .case(Post_(path`/post`), () =>
-        IO.pure(
-          Status.Ok<IOF>()
-            .withBodyStream(req.body)
-            .putHeaders(new RawHeader('X-Response-H', 'response')),
+    Post_<IOF>(path`/post`)
+      .compose(
+        to(() =>
+          IO.pure(
+            Status.Ok<IOF>()
+              .withBodyStream(req.body)
+              .putHeaders(new RawHeader('X-Response-H', 'response')),
+          ),
         ),
       )
-      .case(Get_(path`/request`), () =>
-        IO.pure(Status.Ok('request response')(EntityEncoder.text<IOF>())),
+      .orElse(
+        Get_<IOF>(path`/request`).compose(
+          to(() =>
+            IO.pure(Status.Ok('request response')(EntityEncoder.text<IOF>())),
+          ),
+        ),
       )
+      .apply(headOption)(req)
       .getOrElse(() => IO.pure(Status.NotFound())),
   );
 
