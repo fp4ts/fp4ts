@@ -10,7 +10,6 @@ import {
   Fold,
   filtered,
   folded,
-  toList,
   foldMap,
   foldRight_,
   foldLeft,
@@ -29,6 +28,7 @@ import {
   ifolded,
   ifoldLeft,
 } from '@fp4ts/optics-core';
+import { toList } from '@fp4ts/optics-std';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 

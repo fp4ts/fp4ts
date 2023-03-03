@@ -20,8 +20,8 @@ import {
   reverseGet,
   review,
   to,
-  toList,
 } from '@fp4ts/optics-core';
+import { toList } from '@fp4ts/optics-std';
 import { derivePrisms } from '@fp4ts/optics-derivation';
 import { PrismSuite, TraversalSuite, SetterSuite } from '@fp4ts/optics-laws';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';

@@ -1279,7 +1279,6 @@ __metadata:
     "@fp4ts/cats-profunctor": "*"
     "@fp4ts/core": "*"
     "@fp4ts/mtl": "*"
-    "@fp4ts/optics-kernel": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -1291,19 +1290,8 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
+    "@fp4ts/optics-std": "*"
     "@fp4ts/schema": "*"
-    typescript: 4.9.5
-  languageName: unknown
-  linkType: soft
-
-"@fp4ts/optics-kernel@*, @fp4ts/optics-kernel@workspace:packages/optics/kernel":
-  version: 0.0.0-use.local
-  resolution: "@fp4ts/optics-kernel@workspace:packages/optics/kernel"
-  dependencies:
-    "@fp4ts/cats": "*"
-    "@fp4ts/cats-arrow": "*"
-    "@fp4ts/cats-profunctor": "*"
-    "@fp4ts/core": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -1317,6 +1305,7 @@ __metadata:
     "@fp4ts/cats-test-kit": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
+    "@fp4ts/optics-std": "*"
     fast-check: ^3.3.0
     typescript: 4.9.5
   languageName: unknown
@@ -1329,9 +1318,20 @@ __metadata:
     "@fp4ts/cats": "*"
     "@fp4ts/core": "*"
     "@fp4ts/optics-core": "*"
-    "@fp4ts/optics-kernel": "*"
+    "@fp4ts/optics-std": "*"
     benny: ^3.7.1
     monocle-ts: ^2.3.13
+    typescript: 4.9.5
+  languageName: unknown
+  linkType: soft
+
+"@fp4ts/optics-std@*, @fp4ts/optics-std@workspace:packages/optics/std":
+  version: 0.0.0-use.local
+  resolution: "@fp4ts/optics-std@workspace:packages/optics/std"
+  dependencies:
+    "@fp4ts/cats": "*"
+    "@fp4ts/core": "*"
+    "@fp4ts/optics-core": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft
@@ -1342,7 +1342,7 @@ __metadata:
   dependencies:
     "@fp4ts/optics-core": "*"
     "@fp4ts/optics-derivation": "*"
-    "@fp4ts/optics-kernel": "*"
+    "@fp4ts/optics-std": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft

@@ -9,32 +9,31 @@ import { Eq, LazyList, List, Map, Monoid, Option, Some } from '@fp4ts/cats';
 import {
   all,
   any,
+  each,
+  Each,
   filtered,
   find,
   foldMap,
   headOption,
+  IEach,
   iheadOption,
   isEmpty,
   iso,
   iterated,
-  itraversed,
   lastOption,
   mapAccumL,
   mapAccumR,
   modify,
   nonEmpty,
-  pick,
   repeated,
   replace,
   size,
   to,
   toArray,
   toLazyList,
-  toList,
   Traversal,
-  traversed,
-  words,
 } from '@fp4ts/optics-core';
+import { pick, toList, worded } from '@fp4ts/optics-std';
 import { SetterSuite, TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
@@ -53,8 +52,7 @@ describe('Traversal', () => {
 
   const coordinates = iso<Location>().compose(pick('latitude', 'longitude'));
 
-  const eachL = <A>(): Traversal<List<A>, A> =>
-    traversed(List.TraversableFilter)<A>();
+  const eachL = <A>(): Traversal<List<A>, A> => Each.List<A>();
   const eachLi = eachL<number>();
 
   const locationArb: Arbitrary<Location> = fc
@@ -294,16 +292,14 @@ describe('Traversal', () => {
   });
 
   test('indexing', () => {
-    const SN = Map.TraversableWithIndex<number>();
-
     expect(
-      itraversed(SN)<string>().compose(words).apply(headOption)(
+      IEach.Map<number>()<string>().compose(worded).apply(headOption)(
         Map([42, 'test test']),
       ),
     ).toEqual(Some('test'));
 
     expect(
-      itraversed(SN)<string>().icomposeL(words).apply(iheadOption)(
+      IEach.Map<number>()<string>().icomposeL(worded).apply(iheadOption)(
         Map([42, 'test test']),
       ),
     ).toEqual(Some(['test', 42]));
@@ -350,29 +346,26 @@ describe('Traversal', () => {
 
   test('orElse returns first traversal is its not empty', () => {
     expect(
-      traversed<number>()
-        .orElse(traversed<number>().compose(to(x => -x)))
+      each<number>()
+        .orElse(each<number>().compose(to(x => -x)))
         .apply(toArray)([1, 2, 3, 4]),
     ).toEqual([1, 2, 3, 4]);
   });
 
   test('orElse returns second traversal is its empty', () => {
     expect(
-      traversed<number>()
+      each<number>()
         .taking(0)
-        .orElse(traversed<number>().compose(to(x => -x)))
+        .orElse(each<number>().compose(to(x => -x)))
         .apply(toArray)([1, 2, 3, 4]),
     ).toEqual([-1, -2, -3, -4]);
   });
 
   test('nested indexing', () => {
-    const SN = Map.TraversableWithIndex<number>();
-    const SM = Map.TraversableWithIndex<string>();
-
     expect(
-      itraversed(SN)<Map<string, string>>()
-        .icompose(itraversed(SM)<string>())
-        .compose(words)
+      IEach.Map<number>()<Map<string, string>>()
+        .icompose(IEach.Map<string>()())
+        .compose(worded)
         .apply(iheadOption)(Map([42, Map(['testing', 'test test'])])),
     ).toEqual(Some(['test', [42, 'testing']]));
   });

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Functor } from '@fp4ts/cats';
-import { F1, Kind } from '@fp4ts/core';
+import { Kind } from '@fp4ts/core';
 import { Getter, IndexedGetter, IndexPreservingGetter } from './getter';
 import {
   IndexedPTraversal,
@@ -149,9 +149,9 @@ export function iplens<S, T, A, B>(
             (s: S): Kind<F, [T]> =>
               F.map_(afb(getter(s)), setter(s))) as any)
         : (P as any) === Indexable.Indexed<any>()
-        ? (((f: (a: A, i: unknown) => Kind<F, [B]>) =>
+        ? (((aifb: (a: A, i: unknown) => Kind<F, [B]>) =>
             (s: S, i: unknown): Kind<F, [T]> =>
-              F.map_(f(getter(s), i), setter(s))) as any)
+              F.map_(aifb(getter(s), i), setter(s))) as any)
         : (pafb: Kind<P, [A, Kind<F, [B]>]>): Kind<P, [S, Kind<F, [T]>]> =>
             P.cotabulate((cs: Kind<CorepF, [S]>) =>
               F.map_(
@@ -159,77 +159,6 @@ export function iplens<S, T, A, B>(
                 setter(P.C.extract(cs)),
               ),
             ),
-  );
-}
-
-export function prop<S, k extends keyof S>(k: k): IndexPreservingLens<S, S[k]> {
-  return mkIxPLens(
-    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
-      (P as any) === Indexable.Function1
-        ? (((f: (sk: S[k]) => Kind<F, [S[k]]>) =>
-            (s: S): Kind<F, [S]> =>
-              F.map_(f(s[k]), sk => ({ ...s, [k]: sk }))) as any)
-        : (P as any) === Indexable.Indexed<any>()
-        ? (((f: (sk: S[k], i: unknown) => Kind<F, [S[k]]>) =>
-            (s: S, i: unknown): Kind<F, [S]> =>
-              F.map_(f(s[k], i), sk => ({ ...s, [k]: sk }))) as any)
-        : F1.andThen(
-            P.first<S>()<S[k], Kind<F, [S[k]]>>,
-            P.dimap(
-              (s: S): [S[k], S] => [s[k], s],
-              ([fsk, s]: [Kind<F, [S[k]]>, S]) =>
-                F.map_(fsk, (k: S[k]) => ({ ...s, [k as any]: k } as S)),
-            ),
-          ),
-  );
-}
-export function pick<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
-  ...ks: ks
-): IndexPreservingLens<S, Pick<S, ks[number]>> {
-  type Sks = Pick<S, ks[number]>;
-  return mkIxPLens(
-    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
-      (P as any) === Indexable.Function1
-        ? (((f: (sk: Sks) => Kind<F, [Sks]>) =>
-            (s: S): Kind<F, [S]> =>
-              F.map_(f(_pick(s, ks)), sk => ({ ...s, ...sk }))) as any)
-        : (P as any) === Indexable.Indexed<any>()
-        ? (((f: (sk: Sks, i: unknown) => Kind<F, [Sks]>) =>
-            (s: S, i: unknown): Kind<F, [S]> =>
-              F.map_(f(_pick(s, ks), i), sk => ({ ...s, ...sk }))) as any)
-        : F1.andThen(
-            P.first<S>()<Sks, Kind<F, [Sks]>>,
-            P.dimap(
-              (s: S): [Sks, S] => [_pick(s, ks), s],
-              ([fsk, s]: [Kind<F, [Sks]>, S]) =>
-                F.map_(fsk, (sks: Sks) => ({ ...s, ...sks } as S)),
-            ),
-          ),
-  );
-}
-
-export function omit<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
-  ...ks: ks
-): IndexPreservingLens<S, Omit<S, ks[number]>> {
-  type Sks = Omit<S, ks[number]>;
-  return mkIxPLens(
-    <F, P, RepF, CorepF>(F: Functor<F>, P: Conjoined<P, RepF, CorepF>) =>
-      (P as any) === Indexable.Function1
-        ? (((f: (sk: Sks) => Kind<F, [Sks]>) =>
-            (s: S): Kind<F, [S]> =>
-              F.map_(f(_omit(s, ks)), sk => ({ ...s, ...sk }))) as any)
-        : (P as any) === Indexable.Indexed<any>()
-        ? (((f: (sk: Sks, i: unknown) => Kind<F, [Sks]>) =>
-            (s: S, i: unknown): Kind<F, [S]> =>
-              F.map_(f(_omit(s, ks), i), sk => ({ ...s, ...sk }))) as any)
-        : F1.andThen(
-            P.first<S>()<Sks, Kind<F, [Sks]>>,
-            P.dimap(
-              (s: S): [Sks, S] => [_omit(s, ks), s],
-              ([fsk, s]: [Kind<F, [Sks]>, S]) =>
-                F.map_(fsk, (sks: Sks) => ({ ...s, ...sks } as S)),
-            ),
-          ),
   );
 }
 
@@ -256,25 +185,3 @@ const mkIxPLens = <S, T, A, B>(
   ) => (pafb: Kind<P, [A, Kind<F, [B]>]>) => Kind<P, [S, Kind<F, [T]>]>,
 ): IndexPreservingPLens<S, T, A, B> =>
   new IndexPreservingOptic(apply as any) as any;
-
-function _pick<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
-  s: S,
-  ks: ks,
-): Pick<S, ks[number]> {
-  const sks: Partial<Pick<S, ks[number]>> = {};
-  for (let i = 0, len = ks.length; i < len; i++) {
-    sks[ks[i]] = s[ks[i]];
-  }
-  return sks as Pick<S, ks[number]>;
-}
-
-function _omit<S, ks extends readonly [keyof S, ...(keyof S)[]]>(
-  s: S,
-  ks: ks,
-): Omit<S, ks[number]> {
-  const sks: S = { ...s };
-  for (let i = 0, len = ks.length; i < len; i++) {
-    delete (sks as any)[ks[i] as any];
-  }
-  return sks as Omit<S, ks[number]>;
-}

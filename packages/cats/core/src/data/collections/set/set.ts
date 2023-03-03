@@ -10,7 +10,7 @@ import { Foldable } from '../../../foldable';
 import { List } from '../list';
 
 import { Set as SetBase } from './algebra';
-import { empty, fromArray, fromList } from './constructors';
+import { empty, fromArray, fromList, pure } from './constructors';
 import { setEq, setFoldable, setMonoid } from './instance';
 
 export type Set<A> = SetBase<A>;
@@ -23,6 +23,7 @@ export const Set: SetObj = function <A extends PrimitiveType>(
 
 interface SetObj {
   <A extends PrimitiveType>(...xs: A[]): Set<A>;
+  singleton<A>(a: A): Set<A>;
   fromArray<A extends PrimitiveType>(xs: A[]): Set<A>;
   fromArray<A>(O: Ord<A>, xs: A[]): Set<A>;
   fromList<A extends PrimitiveType>(xs: List<A>): Set<A>;
@@ -35,6 +36,8 @@ interface SetObj {
   Monoid<A>(O: Ord<A>): Monoid<Set<A>>;
   Foldable: Foldable<SetF>;
 }
+
+Set.singleton = pure;
 
 Set.fromArray = function (O: any, xs?: any) {
   return xs !== undefined

@@ -10,6 +10,7 @@
     "@fp4ts/cats": "*",
     "@fp4ts/core": "*",
     "@fp4ts/optics-core": "*",
+    "@fp4ts/optics-std": "*",
     "benny": "^3.7.1",
     "monocle-ts": "^2.3.13"
   },

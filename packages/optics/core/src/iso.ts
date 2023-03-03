@@ -28,7 +28,21 @@ export type Iso<S, A> = PIso<S, S, A, A>;
 
 // -- Constructors
 
-export const iso = lazy(
+export function iso<S, T, A, B>(
+  get: (s: S) => A,
+  reverseGet: (b: B) => T,
+): PIso<S, T, A, B>;
+export function iso<S, A>(get: (s: S) => A, reverseGet: (a: A) => S): Iso<S, A>;
+export function iso<A>(): Iso<A, A>;
+export function iso<A>(get?: (s: A) => A, reverseGet?: (a: A) => A): Iso<A, A> {
+  return get && reverseGet
+    ? mkIso<A, A, A, A>(<F, P>(F: Functor<F>, P: Profunctor<P>) =>
+        P.dimap(get, F.map(reverseGet)),
+      )
+    : _iso<A>();
+}
+
+const _iso = lazy(
   <A>(): Iso<A, A> =>
     mkIso<A, A, A, A>(<F, P>(F: Functor<F>, P: Profunctor<P>) => id),
 ) as <A>() => Iso<A, A>;

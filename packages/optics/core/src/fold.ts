@@ -14,15 +14,13 @@ import {
   Functor,
   LazyList,
   LazyListStep,
-  List,
   Monoid,
   None,
   Option,
   Some,
-  Traversable,
 } from '@fp4ts/cats';
 import { Corepresentable } from '@fp4ts/cats-profunctor';
-import { Eval, F1, id, Kind, lazy, unsafeCoerce } from '@fp4ts/core';
+import { Eval, F1, id, Kind, unsafeCoerce } from '@fp4ts/core';
 import { MonadReader, MonadState, State } from '@fp4ts/mtl';
 
 import { IndexedPTraversal, PTraversal } from './traversal';
@@ -142,61 +140,6 @@ export function replicated<A>(n: number): Fold<A, A> {
     },
   );
 }
-
-// -- exported below as a const
-const _words = (): IndexPreservingFold<string, string> =>
-  mkIxPFold(
-    <F, P, RepF, CorepF>(
-      F: Contravariant<F> & Applicative<F>,
-      P: Conjoined<P, RepF, CorepF>,
-    ) => {
-      if ((P as any) === Indexable.Function1) {
-        const traverse = Traversable.Array.traverse_(F);
-        return ((pafb: (a: string) => Kind<F, [never]>) => (s: string) =>
-          traverse(s.split(/\s+/), pafb)) as any;
-      } else if ((P as any) === Indexable.Indexed<any>()) {
-        const traverse = Traversable.Array.traverse_(F);
-        return ((pafb: (a: string, i: unknown) => Kind<F, [never]>) =>
-          (s: string, i: unknown) =>
-            traverse(s.split(/\s+/), a => pafb(a, i))) as any;
-      }
-      const traverse = Traversable.Array.traverse_<[RepF, F]>(
-        Applicative.compose(P.F, F),
-      );
-      return (
-        pafb: Kind<P, [string, Kind<F, [never]>]>,
-      ): Kind<P, [string, Kind<F, [unknown]>]> =>
-        P.tabulate((s: string) => traverse(s.split(/s+/), P.sieve(pafb)));
-    },
-  );
-
-// -- exported below as a const
-const _lines = (): IndexPreservingFold<string, string> =>
-  mkIxPFold(
-    <F, P, RepF, CorepF>(
-      F: Contravariant<F> & Applicative<F>,
-      P: Conjoined<P, RepF, CorepF>,
-    ) => {
-      if ((P as any) === Indexable.Function1) {
-        const traverse = Traversable.Array.traverse_(F);
-        return ((pafb: (a: string) => Kind<F, [never]>) => (s: string) =>
-          traverse(s.split(/(\r?\n)+/), pafb)) as any;
-      } else if ((P as any) === Indexable.Indexed<any>()) {
-        const traverse = Traversable.Array.traverse_(F);
-        return ((pafb: (a: string, i: unknown) => Kind<F, [never]>) =>
-          (s: string, i: unknown) =>
-            traverse(s.split(/(\r?\n)+/), a => pafb(a, i))) as any;
-      }
-
-      const traverse = Traversable.Array.traverse_<[RepF, F]>(
-        Applicative.compose(P.F, F),
-      );
-      return (
-        pafb: Kind<P, [string, Kind<F, [never]>]>,
-      ): Kind<P, [string, Kind<F, [unknown]>]> =>
-        P.tabulate((s: string) => traverse(s.split(/(\r?\n)+/), P.sieve(pafb)));
-    },
-  );
 
 // -- Consuming Folds
 
@@ -395,13 +338,7 @@ export function forEach<S, A>(
 }
 
 export function toArray<S, A>(l: Fold<S, A>): (s: S) => A[] {
-  const fl = foldLeft(l);
-  return (s: S) => fl([] as A[], (xs, x) => (xs.push(x), xs))(s);
-}
-
-export function toList<S, A>(l: Fold<S, A>): (s: S) => List<A> {
-  const fr = foldRight_(l);
-  return (s: S) => fr(List.empty as List<A>, List.cons)(s);
+  return foldLeft(l)([] as A[], (xs, x) => (xs.push(x), xs));
 }
 
 export function toLazyList<S, A>(l: Fold<S, A>): (s: S) => LazyList<A> {
@@ -654,8 +591,6 @@ const mkIxPFold = <S, A>(
   ) => Kind<P, [S, Kind<F, [unknown]>]>,
 ): IndexPreservingFold<S, A> => new IndexPreservingOptic(apply as any) as any;
 
-const voidFn = (x: unknown): void => {};
-
 const ins = <F, A, T>(b: BazaarT<Function1F, F, A, A, T>): LazyList<A> =>
   LazyList.fromStepEval(
     b(mkFoldConstInstance(Monoid.EndoEval<LazyListStep<A>>()))(
@@ -733,6 +668,3 @@ const phantom = <F>(
 };
 
 const _snd = <A, B>(a: A, b: B): B => b;
-
-export const words = _words();
-export const lines = _lines();

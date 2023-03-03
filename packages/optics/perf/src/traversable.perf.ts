@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { pipe } from '@fp4ts/core';
-import { filtered, iso, modify, traversed } from '@fp4ts/optics-core';
+import { each, filtered, iso, modify } from '@fp4ts/optics-core';
 import * as A from 'fp-ts/Array';
 import * as L from 'monocle-ts/Lens';
 import * as T from 'monocle-ts/Traversal';
@@ -16,7 +16,7 @@ function makeSuite(size: number) {
   return [
     add(`optics filter . modify (${size})`, () => {
       iso<number[]>()
-        .compose(traversed())
+        .compose(each())
         .compose(filtered(x => x % 2 === 0))
         .apply(modify)(x => x + 1)(xs);
     }),
@@ -36,7 +36,7 @@ function makeSuite(size: number) {
 
     add(`optics filter . filter . modify (${size})`, () => {
       iso<number[]>()
-        .compose(traversed())
+        .compose(each())
         .compose(filtered(x => x % 2 !== 0))
         .compose(filtered(x => x % 3 !== 0))
         .apply(modify)(x => x + 1)(xs);

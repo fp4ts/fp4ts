@@ -105,7 +105,9 @@ export class Optic<in S, out T, out A, in B> {
     );
   }
 
-  indexing<S, T, A, B>(this: PLens<S, T, A, B>): IndexedPLens<number, S, T, A, B>;
+  indexing<S, T, A, B>(
+    this: PLens<S, T, A, B>,
+  ): IndexedPLens<number, S, T, A, B>;
   indexing<S, T, A, B>(
     this: PTraversal<S, T, A, B>,
   ): IndexedPTraversal<number, S, T, A, B>;

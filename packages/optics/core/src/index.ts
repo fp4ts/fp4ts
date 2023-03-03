@@ -15,4 +15,9 @@ export * from './review';
 export * from './setter';
 export * from './traversal';
 
-export { Indexable, Indexing, Indexed } from './internal';
+export * from './cons';
+export * from './each';
+export * from './ieach';
+export * from './snoc';
+
+export { Conjoined, Indexable, Indexing, Indexed } from './internal';

@@ -10,10 +10,11 @@ import {
   add,
   and,
   div,
+  each,
   filtered,
+  ieach,
   imodify,
   iso,
-  itraversed,
   locally,
   mapped,
   modify,
@@ -24,7 +25,6 @@ import {
   Setter,
   setting,
   sub,
-  traversed,
 } from '@fp4ts/optics-core';
 import { SetterSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
@@ -164,7 +164,7 @@ describe('Setter', () => {
     'imodify',
     forAll(fc.array(fc.string()), xs =>
       expect(
-        iso<string[]>().compose(traversed()).indexing().apply(imodify)((x, i) =>
+        iso<string[]>().compose(each()).indexing().apply(imodify)((x, i) =>
           i % 2 === 0 ? 'empty' : x,
         )(xs),
       ).toEqual(xs.map((x, i) => (i % 2 === 0 ? 'empty' : x))),
@@ -175,11 +175,11 @@ describe('Setter', () => {
     'each vs eachWithIndex array equivalence',
     forAll(fc.array(fc.string()), xs =>
       expect(
-        iso<string[]>().compose(traversed()).indexing().apply(imodify)((x, i) =>
+        iso<string[]>().compose(each()).indexing().apply(imodify)((x, i) =>
           i % 2 === 0 ? 'empty' : x,
         )(xs),
       ).toEqual(
-        iso<string[]>().icomposeR(itraversed()).apply(imodify)((x, i) =>
+        iso<string[]>().icomposeR(ieach()).apply(imodify)((x, i) =>
           i % 2 === 0 ? 'empty' : x,
         )(xs),
       ),

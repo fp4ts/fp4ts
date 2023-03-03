@@ -10,5 +10,6 @@
     { "path": "./derivation/tsconfig.build.json" },
     { "path": "./laws/tsconfig.build.json" },
     { "path": "./perf/tsconfig.build.json" },
+    { "path": "./std/tsconfig.build.json" },
   ]
 }
