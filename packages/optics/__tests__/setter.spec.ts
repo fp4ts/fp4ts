@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List, Option } from '@fp4ts/cats';
+import { Eq, Option } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Reader, State } from '@fp4ts/mtl';
 import {
   add,
@@ -27,9 +28,10 @@ import {
   sub,
 } from '@fp4ts/optics-core';
 import { SetterSuite } from '@fp4ts/optics-laws';
-import { setmapped, toSet } from '@fp4ts/optics-std';
+import { setmapped } from '@fp4ts/optics-std';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as CA from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 describe('Setter', () => {
   const eachL = <A>(): Setter<List<A>, A> => mapped<A, A>()(List.Functor);
@@ -46,7 +48,7 @@ describe('Setter', () => {
 
   test(
     'replace',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi
         .apply(replace)(0)(xs)
         .equals(xs.map(() => 0)),
@@ -55,14 +57,14 @@ describe('Setter', () => {
 
   test(
     'modify',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       modify(eachLi)(x => x + 1)(xs).equals(xs.map(x => x + 1)),
     ),
   );
 
   test(
     'filter',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi
         .compose(filtered(x => x % 2 === 0))
         .apply(replace)(0)(xs)
@@ -72,42 +74,42 @@ describe('Setter', () => {
 
   test(
     'plus',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       add(eachLi)(n)(xs).equals(xs.map(x => x + n)),
     ),
   );
 
   test(
     'sub',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       sub(eachLi)(n)(xs).equals(xs.map(x => x - n)),
     ),
   );
 
   test(
     'mul',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       mul(eachLi)(n)(xs).equals(xs.map(x => x * n)),
     ),
   );
 
   test(
     'div',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, n) =>
       div(eachLi)(n)(xs).equals(xs.map(x => x / n)),
     ),
   );
 
   test(
     'and',
-    forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
       and(eachL<boolean>())(n)(xs).equals(xs.map(x => x && n)),
     ),
   );
 
   test(
     'or',
-    forAll(A.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
+    forAll(CA.fp4tsList(fc.boolean()), fc.boolean(), (xs, n) =>
       or(eachL<boolean>())(n)(xs).equals(xs.map(x => x || n)),
     ),
   );
@@ -175,7 +177,7 @@ describe('Setter', () => {
 
   test(
     'Set<number>',
-    forAll(A.fp4tsSet(fc.integer()), xs =>
+    forAll(CA.fp4tsSet(fc.integer()), xs =>
       expect(
         setmapped<number, string>().apply(modify)(String)(xs).toArray,
       ).toEqual(xs.map(String).toArray),
@@ -186,7 +188,7 @@ describe('Setter', () => {
     checkAll(
       'Setter<List<number>, number>',
       SetterSuite(eachLi).setter(
-        A.fp4tsList(fc.integer()),
+        CA.fp4tsList(fc.integer()),
         fc.integer(),
         List.Eq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -200,7 +202,7 @@ describe('Setter', () => {
           mapped<number>()(Option.Monad),
         ),
       ).setter(
-        A.fp4tsList(A.fp4tsOption(fc.integer())),
+        CA.fp4tsList(A.fp4tsOption(fc.integer())),
         fc.integer(),
         List.Eq(Option.Eq(Eq.fromUniversalEquals())),
         Eq.fromUniversalEquals(),

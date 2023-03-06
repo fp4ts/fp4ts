@@ -4,15 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char } from '@fp4ts/core';
-import {
-  Identity,
-  IdentityF,
-  LazyList,
-  List,
-  Monad,
-  Right,
-  Some,
-} from '@fp4ts/cats';
+import { Identity, IdentityF, Monad, Right, Some } from '@fp4ts/cats';
+import { LazyList, List } from '@fp4ts/collections';
 import {
   ArraySource,
   Parser,

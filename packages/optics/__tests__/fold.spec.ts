@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { List, Monoid, Option } from '@fp4ts/cats';
+import { Monoid, Option } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Reader, State } from '@fp4ts/mtl';
 import {
   Fold,
@@ -34,6 +35,7 @@ import {
 import { toList } from '@fp4ts/optics-std';
 import { forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as CA from '@fp4ts/collections-test-kit/lib/arbitraries';
 import { fst } from '@fp4ts/core';
 
 describe('Fold', () => {
@@ -53,7 +55,7 @@ describe('Fold', () => {
   test(
     'foldMap',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs =>
         eachli.apply(foldMap)(Monoid.string)(x => `${x}`)(xs) ===
         xs.foldMap(Monoid.string, x => `${x}`),
@@ -63,7 +65,7 @@ describe('Fold', () => {
   test(
     'foldRight',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number, string], string>(fc.string()),
       (xs, f) => eachli.apply(foldRight_)('', f)(xs) === xs.foldRight_('', f),
     ),
@@ -72,7 +74,7 @@ describe('Fold', () => {
   test(
     'foldLeft',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[string, number], string>(fc.string()),
       (xs, f) => eachli.apply(foldLeft)('', f)(xs) === xs.foldLeft('', f),
     ),
@@ -80,34 +82,37 @@ describe('Fold', () => {
 
   test(
     'getAll',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachli.apply(toList)(xs).equals(xs),
     ),
   );
 
   test(
     'headOption',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachli.apply(headOption)(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachli.apply(lastOption)(xs).equals(xs.lastOption),
     ),
   );
 
   test(
     'size',
-    forAll(A.fp4tsList(fc.integer()), xs => eachli.apply(size)(xs) === xs.size),
+    forAll(
+      CA.fp4tsList(fc.integer()),
+      xs => eachli.apply(size)(xs) === xs.size,
+    ),
   );
 
   test(
     'isEmpty',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs => eachli.apply(isEmpty)(xs) === xs.isEmpty,
     ),
   );
@@ -115,14 +120,14 @@ describe('Fold', () => {
   test(
     'nonEmpty',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs => eachli.apply(nonEmpty)(xs) === xs.nonEmpty,
     ),
   );
 
   test(
     'find',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
       eachli
         .apply(find)(x => x > y)(xs)
         .equals(Option(xs.toArray.find(x => x > y))),
@@ -132,7 +137,7 @@ describe('Fold', () => {
   test(
     'any',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.integer(),
       (xs, y) => eachli.apply(any)(x => x > y)(xs) === xs.any(x => x > y),
     ),
@@ -141,7 +146,7 @@ describe('Fold', () => {
   test(
     'all',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.integer(),
       (xs, y) => eachli.apply(all)(x => x > y)(xs) === xs.all(x => x > y),
     ),
@@ -150,7 +155,7 @@ describe('Fold', () => {
   test(
     'to',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
       (xs, f) => eachli.compose(to(f)).apply(toList)(xs).equals(xs.map(f)),
     ),
@@ -175,7 +180,7 @@ describe('Fold', () => {
   test(
     'filter',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
       (xs, f) =>
         eachli.compose(filtered(f)).apply(toList)(xs).equals(xs.filter(f)),
@@ -184,7 +189,7 @@ describe('Fold', () => {
 
   test(
     'preview',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       expect(
         eachli
           .apply(preview(Reader.MonadReader<List<number>>()))
@@ -196,7 +201,7 @@ describe('Fold', () => {
 
   test(
     'preuse',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       expect(
         eachli
           .apply(preuse(State.MonadState<List<number>>()))

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Headers, RawHeader } from '@fp4ts/http-core';
 import http from 'http';
 

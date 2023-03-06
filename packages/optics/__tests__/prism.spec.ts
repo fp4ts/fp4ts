@@ -4,19 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import {
-  Either,
-  Eq,
-  LazyList,
-  Left,
-  List,
-  None,
-  Option,
-  Right,
-  Seq,
-  Some,
-  Vector,
-} from '@fp4ts/cats';
+import { Either, Eq, Left, None, Option, Right, Some } from '@fp4ts/cats';
+import { LazyList, List, Seq, Vector } from '@fp4ts/collections';
 import { Reader, State } from '@fp4ts/mtl';
 import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
 import {
@@ -52,6 +41,7 @@ import { PrismSuite } from '@fp4ts/optics-laws';
 import { ArbitraryInstances } from '@fp4ts/schema-test-kit';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as CA from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 describe('Prism', () => {
   const _IOrS = Schema.sum('tag')({
@@ -311,8 +301,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Cons.List>',
       PrismSuite(_Cons.List<number>()).prism(
-        A.fp4tsList(fc.integer()),
-        fc.tuple(fc.integer(), A.fp4tsList(fc.integer())),
+        CA.fp4tsList(fc.integer()),
+        fc.tuple(fc.integer(), CA.fp4tsList(fc.integer())),
         List.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(Eq.fromUniversalEquals(), List.Eq(Eq.fromUniversalEquals())),
       ),
@@ -321,8 +311,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Cons.LazyList>',
       PrismSuite(_Cons.LazyList<number>()).prism(
-        A.fp4tsLazyList(fc.integer()),
-        fc.tuple(fc.integer(), A.fp4tsLazyList(fc.integer())),
+        CA.fp4tsLazyList(fc.integer()),
+        fc.tuple(fc.integer(), CA.fp4tsLazyList(fc.integer())),
         LazyList.EqK.liftEq(Eq.fromUniversalEquals()),
         Eq.tuple(
           Eq.fromUniversalEquals(),
@@ -334,8 +324,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Cons.Seq>',
       PrismSuite(_Cons.Seq<number>()).prism(
-        A.fp4tsSeq(fc.integer()),
-        fc.tuple(fc.integer(), A.fp4tsSeq(fc.integer())),
+        CA.fp4tsSeq(fc.integer()),
+        fc.tuple(fc.integer(), CA.fp4tsSeq(fc.integer())),
         Seq.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(Eq.fromUniversalEquals(), Seq.Eq(Eq.fromUniversalEquals())),
       ),
@@ -344,8 +334,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Cons.Vector>',
       PrismSuite(_Cons.Vector<number>()).prism(
-        A.fp4tsVector(fc.integer()),
-        fc.tuple(fc.integer(), A.fp4tsVector(fc.integer())),
+        CA.fp4tsVector(fc.integer()),
+        fc.tuple(fc.integer(), CA.fp4tsVector(fc.integer())),
         Vector.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(Eq.fromUniversalEquals(), Vector.Eq(Eq.fromUniversalEquals())),
       ),
@@ -364,8 +354,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Snoc.List>',
       PrismSuite(_Snoc.List<number>()).prism(
-        A.fp4tsList(fc.integer()),
-        fc.tuple(A.fp4tsList(fc.integer()), fc.integer()),
+        CA.fp4tsList(fc.integer()),
+        fc.tuple(CA.fp4tsList(fc.integer()), fc.integer()),
         List.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(List.Eq(Eq.fromUniversalEquals()), Eq.fromUniversalEquals()),
       ),
@@ -374,8 +364,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Snoc.LazyList>',
       PrismSuite(_Snoc.LazyList<number>()).prism(
-        A.fp4tsLazyList(fc.integer()),
-        fc.tuple(A.fp4tsLazyList(fc.integer()), fc.integer()),
+        CA.fp4tsLazyList(fc.integer()),
+        fc.tuple(CA.fp4tsLazyList(fc.integer()), fc.integer()),
         LazyList.EqK.liftEq(Eq.fromUniversalEquals()),
         Eq.tuple(
           LazyList.EqK.liftEq(Eq.fromUniversalEquals()),
@@ -387,8 +377,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Snoc.Seq>',
       PrismSuite(_Snoc.Seq<number>()).prism(
-        A.fp4tsSeq(fc.integer()),
-        fc.tuple(A.fp4tsSeq(fc.integer()), fc.integer()),
+        CA.fp4tsSeq(fc.integer()),
+        fc.tuple(CA.fp4tsSeq(fc.integer()), fc.integer()),
         Seq.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(Seq.Eq(Eq.fromUniversalEquals()), Eq.fromUniversalEquals()),
       ),
@@ -397,8 +387,8 @@ describe('Prism', () => {
     checkAll(
       'Prism<_Snoc.Vector>',
       PrismSuite(_Snoc.Vector<number>()).prism(
-        A.fp4tsVector(fc.integer()),
-        fc.tuple(A.fp4tsVector(fc.integer()), fc.integer()),
+        CA.fp4tsVector(fc.integer()),
+        fc.tuple(CA.fp4tsVector(fc.integer()), fc.integer()),
         Vector.Eq(Eq.fromUniversalEquals()),
         Eq.tuple(Vector.Eq(Eq.fromUniversalEquals()), Eq.fromUniversalEquals()),
       ),

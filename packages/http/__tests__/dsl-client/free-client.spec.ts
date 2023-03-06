@@ -5,7 +5,8 @@
 
 import '@fp4ts/effect-test-kit';
 import { $ } from '@fp4ts/core';
-import { FunctionK, List, Some } from '@fp4ts/cats';
+import { FunctionK, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { IO, IOF } from '@fp4ts/effect';
 import { Request } from '@fp4ts/http-core';
 import { JSON } from '@fp4ts/http-dsl';

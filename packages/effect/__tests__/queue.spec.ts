@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit';
 import { id, Kind } from '@fp4ts/core';
-import { Option, None, Seq } from '@fp4ts/cats';
+import { Option, None } from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { Queue } from '@fp4ts/effect-std';
 import { AssertionError } from 'assert';
@@ -76,11 +76,11 @@ describe('Queue', () => {
       const consumer = (
         q: Queue<IOF, number>,
         n: number,
-        acc: Seq<number> = Seq.empty,
+        acc: number[] = [],
       ): IO<number> =>
         n > 0
-          ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.append(a)))
-          : IO.pure(acc.foldLeft(0, (x, y) => x + y));
+          ? Q.take(q).flatMap(a => consumer(q, n - 1, [...acc, a]))
+          : IO.pure(acc.reduce((x, y) => x + y, 0));
 
       return IO.Monad.do(function* (_) {
         const q = yield* _(Q.construct(0));
@@ -221,11 +221,11 @@ function offerTakeOverCapacityTests(Q: QueueLike<IOF, number>) {
     const consumer = (
       q: Queue<IOF, number>,
       n: number,
-      acc: Seq<number> = Seq.empty,
+      acc: number[] = [],
     ): IO<number> =>
       n > 0
-        ? Q.take(q).flatMap(a => consumer(q, n - 1, acc.append(a)))
-        : IO.pure(acc.foldLeft(0, (x, y) => x + y));
+        ? Q.take(q).flatMap(a => consumer(q, n - 1, [...acc, a]))
+        : IO.pure(acc.reduce((x, y) => x + y, 0));
 
     return IO.Monad.do(function* (_) {
       const q = yield* _(Q.construct(10));
@@ -267,16 +267,16 @@ function tryOfferTryTakeTests(Q: QueueLike<IOF, number>) {
     const consumer = (
       q: Queue<IOF, number>,
       n: number,
-      acc: Seq<number> = Seq.empty,
+      acc: number[] = [],
     ): IO<number> =>
       n > 0
         ? Q.tryTake(q).flatMap(opt =>
             opt.fold(
               () => IO.suspend['>>>'](consumer(q, n, acc)),
-              a => consumer(q, n - 1, acc.append(a)),
+              a => consumer(q, n - 1, [...acc, a]),
             ),
           )
-        : IO.pure(acc.foldLeft(0, (x, y) => x + y));
+        : IO.pure(acc.reduce((x, y) => x + y, 0));
 
     return IO.Monad.do(function* (_) {
       const q = yield* _(Q.construct(10));

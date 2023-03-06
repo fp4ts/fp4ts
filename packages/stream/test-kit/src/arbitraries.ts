@@ -9,6 +9,7 @@ import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 
 export * from '@fp4ts/cats-test-kit/lib/arbitraries';
 export * from '@fp4ts/effect-test-kit/lib/arbitraries';
+export * from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 export const fp4tsPureStreamGenerator = <A>(
   arbA: Arbitrary<A>,

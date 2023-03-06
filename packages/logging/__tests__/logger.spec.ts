@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, ListF, None, Some } from '@fp4ts/cats';
+import { None, Some } from '@fp4ts/cats';
+import { List, ListF } from '@fp4ts/collections';
 import { LogLevel, LogMessage, WriterLogger } from '@fp4ts/logging-kernel';
 
 describe('Logger', () => {

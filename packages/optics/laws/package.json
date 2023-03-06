@@ -12,6 +12,7 @@
     "@fp4ts/cats": "*",
     "@fp4ts/cats-laws": "*",
     "@fp4ts/cats-test-kit": "*",
+    "@fp4ts/collections": "*",
     "@fp4ts/core": "*",
     "@fp4ts/optics-core": "*",
     "@fp4ts/optics-std": "*",

@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { List, Option, NonEmptyList, Set as CSet } from '@fp4ts/cats';
+import { Option } from '@fp4ts/cats';
+import { List, NonEmptyList, Set as CSet } from '@fp4ts/collections';
 import { RawHeader, SelectHeader, ToRaw } from '../header';
 import { Authorization } from './authorization';
 

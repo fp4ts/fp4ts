@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Byte } from '@fp4ts/core';
-import { List, Vector } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 import { Chunk } from '../chunk';
 
 export interface Collector<in A, Out> {

@@ -6,7 +6,6 @@
 import { $, fst, id, Kind, pipe, snd, tupled } from '@fp4ts/core';
 import {
   Kleisli,
-  List,
   Either,
   Right,
   Left,
@@ -14,6 +13,7 @@ import {
   ApplicativeError,
   Applicative,
 } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 
 import { Async } from '../async';
 import { Concurrent } from '../concurrent';

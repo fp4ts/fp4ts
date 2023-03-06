@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id, Kind, pipe, throwError } from '@fp4ts/core';
-import { List, Vector, Option, None, MonadError, Some } from '@fp4ts/cats';
+import { Option, None, MonadError, Some } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 
 import { Chunk } from '../chunk';
 import { Pull } from '../pull';

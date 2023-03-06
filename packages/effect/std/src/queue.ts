@@ -5,7 +5,8 @@
 
 import { ok as assert } from 'assert';
 import { Kind, tupled } from '@fp4ts/core';
-import { Option, Some, None, Seq, FunctionK } from '@fp4ts/cats';
+import { Option, Some, None, FunctionK } from '@fp4ts/cats';
+import { Seq } from '@fp4ts/collections';
 import { Concurrent, Deferred, Poll, Ref } from '@fp4ts/effect-kernel';
 
 export abstract class Queue<F, A>

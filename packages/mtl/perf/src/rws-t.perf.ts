@@ -5,7 +5,8 @@
 
 import { add, configure, cycle, suite } from 'benny';
 import { Eval, EvalF, Kind, pipe, tupled } from '@fp4ts/core';
-import { Monad, Identity, IdentityF, Seq } from '@fp4ts/cats';
+import { Monad, Identity, IdentityF } from '@fp4ts/cats';
+import { Seq } from '@fp4ts/collections';
 import { IxRWST, MonadState, MonadWriter, RWST } from '@fp4ts/mtl-core';
 
 function makeTests<F>(

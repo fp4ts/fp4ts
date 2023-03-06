@@ -5,9 +5,9 @@
 
 import { Arbitrary } from 'fast-check';
 import { $type, TyK, TyVar } from '@fp4ts/core';
-import { List } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { SchemaK } from '@fp4ts/schema-kernel';
-import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as A from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 export abstract class Snoc<A> {
   private readonly __void!: void;

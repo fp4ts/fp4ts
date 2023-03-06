@@ -3,19 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { ArrayF, Left, Right } from '@fp4ts/cats';
 import {
-  ArrayF,
   LazyList,
   LazyListF,
-  Left,
   List,
   ListF,
-  Right,
   Seq,
   SeqF,
   Vector,
   VectorF,
-} from '@fp4ts/cats';
+} from '@fp4ts/collections';
 import { Kind, lazy } from '@fp4ts/core';
 import { PPrism, Prism, prism } from './prism';
 

@@ -5,8 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id } from '@fp4ts/core';
-import { Monad } from '@fp4ts/cats-core';
-import { Identity, View } from '@fp4ts/cats-core/lib/data';
+import { Monad, Traversable } from '@fp4ts/cats-core';
+import { Identity, Iter } from '@fp4ts/cats-core/lib/data';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Forget } from '@fp4ts/cats-profunctor';
 import {
@@ -28,8 +28,9 @@ describe('Forget', () => {
   describe('stack safety', () => {
     it('should have Stack-Safe MonoidK instance', () => {
       expect(
-        View.range(0, 100_000).foldMapK(
-          Forget.MonoidK(Monoid.addition),
+        Iter.foldMap_(
+          Forget.MonoidK(Monoid.addition).algebra<number>(),
+          Iter.range(0, 100_000),
           _ => _ => 1,
         )(null),
       ).toBe(100_000);
@@ -37,8 +38,8 @@ describe('Forget', () => {
 
     it('should have Stack-Safe Applicative instance', () => {
       expect(
-        View.range(0, 100_000).traverse(
-          Forget.Applicative(Monoid.addition),
+        Traversable.Array.traverse_(Forget.Applicative(Monoid.addition))(
+          [...new Array(100_000).keys()],
           _ => _ => 1,
         )(null),
       ).toBe(100_000);

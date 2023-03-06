@@ -17,8 +17,6 @@ import {
   Coproduct,
   Identity,
   Kleisli,
-  List,
-  ListF,
   Option,
   OptionF,
 } from '@fp4ts/cats-core/lib/data';
@@ -130,10 +128,10 @@ describe('coproduct', () => {
 
   describe('TraversableFilter', () => {
     checkAll(
-      'TraversableFilter<Coproduct<List, Option, *>>',
+      'TraversableFilter<Coproduct<[], Option, *>>',
       TraversableFilterSuite(
         Coproduct.TraversableFilter(
-          List.TraversableFilter,
+          TraversableFilter.Array,
           Option.TraversableFilter,
         ),
       ).traversableFilter(
@@ -142,14 +140,14 @@ describe('coproduct', () => {
         fc.integer(),
         Monoid.addition,
         Monoid.addition,
-        Coproduct.FunctorFilter(List.FunctorFilter, Option.FunctorFilter),
+        Coproduct.FunctorFilter(FunctorFilter.Array, Option.FunctorFilter),
         Monad.Eval,
         Identity.Applicative,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => A.fp4tsCoproduct(A.fp4tsList(X), A.fp4tsOption(X)),
-        Coproduct.EqK(List.EqK, Option.EqK).liftEq,
+        X => A.fp4tsCoproduct(fc.array(X), A.fp4tsOption(X)),
+        Coproduct.EqK(EqK.Array, Option.EqK).liftEq,
         A.fp4tsEval,
         Eq.Eval,
         id,
@@ -158,10 +156,10 @@ describe('coproduct', () => {
     );
 
     checkAll(
-      'TraversableFilter<Coproduct<List, Array, *>>',
+      'TraversableFilter<Coproduct<[], [], *>>',
       TraversableFilterSuite(
         Coproduct.TraversableFilter(
-          List.TraversableFilter,
+          TraversableFilter.Array,
           TraversableFilter.Array,
         ),
       ).traversableFilter(
@@ -170,15 +168,15 @@ describe('coproduct', () => {
         fc.integer(),
         Monoid.addition,
         Monoid.addition,
-        Coproduct.FunctorFilter(List.FunctorFilter, FunctorFilter.Array),
+        Coproduct.FunctorFilter(FunctorFilter.Array, FunctorFilter.Array),
         Monad.Eval,
         Identity.Applicative,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         <X>(X: Arbitrary<X>) =>
-          A.fp4tsCoproduct<ListF, ArrayF, X>(A.fp4tsList(X), fc.array(X)),
-        Coproduct.EqK(List.EqK, EqK.Array).liftEq,
+          A.fp4tsCoproduct<ArrayF, ArrayF, X>(fc.array(X), fc.array(X)),
+        Coproduct.EqK(EqK.Array, EqK.Array).liftEq,
         A.fp4tsEval,
         Eq.Eval,
         id,

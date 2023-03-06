@@ -5,8 +5,7 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Comonad, Distributive, Monad } from '@fp4ts/cats-core';
-import { List } from '@fp4ts/cats-core/lib/data';
+import { Comonad, Distributive, Monad, Traversable } from '@fp4ts/cats-core';
 import {
   ComonadSuite,
   DistributiveSuite,
@@ -62,9 +61,9 @@ describe('Function0', () => {
   );
 
   it('should be stack safe on traverse', () => {
-    const xs = List.range(0, 1_000_000);
-    expect(xs.traverse(Monad.Function0, x => () => x)().toArray).toEqual(
-      xs.toArray,
-    );
+    const xs = [...Array(1_000_000)];
+    expect(
+      Traversable.Array.traverse_(Monad.Function0)(xs, x => () => x)(),
+    ).toEqual(xs);
   });
 });

@@ -12,9 +12,8 @@ import {
   Monad,
   MonoidK,
   Traversable,
-  List,
-  Vector,
 } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 
 import { ChainChunk, Chunk as ChunkBase } from './algebra';
 import {

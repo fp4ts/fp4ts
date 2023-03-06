@@ -6,15 +6,13 @@
 import fc, { Arbitrary } from 'fast-check';
 import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Monad, MonadDefer } from '@fp4ts/cats-core';
+import { Alternative, ArrayF, Monad, MonadDefer } from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
   OptionF,
   Option,
   Kleisli,
-  ListF,
-  List,
   EitherF,
   Either,
 } from '@fp4ts/cats-core/lib/data';
@@ -48,17 +46,19 @@ describe('Kleisli', () => {
 
   it('should be stack safe on andThen', () => {
     const size = 50_000;
-    const fs = List.range(0, size).map(() => (x: number) => x + 1);
-    const result = fs.foldLeft(id<number>, Identity.Monad.andThen_)(42);
+    const fs = [...new Array(size).keys()].map(() => (x: number) => x + 1);
+    const result = fs.reduce(Identity.Monad.andThen_, id<number>)(42);
     expect(result).toBe(size + 42);
   });
 
   it('should be stack safe on compose Eval', () => {
     const size = 50_000;
-    const fs = List.range(0, size).map(() => (x: number) => Eval.now(x + 1));
-    const result = fs.foldLeft(
-      Eval.now as (x: number) => Eval<number>,
+    const fs = [...new Array(size).keys()].map(
+      () => (x: number) => Eval.now(x + 1),
+    );
+    const result = fs.reduce(
       Monad.Eval.compose_,
+      Eval.now as (x: number) => Eval<number>,
     )(42);
     expect(result.value).toBe(size + 42);
   });
@@ -125,7 +125,7 @@ describe('Kleisli', () => {
     checkAll(
       'Alternative<Kleisli<List, MiniInt, *>>',
       AlternativeSuite(
-        Kleisli.Alternative<ListF, MiniInt>(List.Alternative),
+        Kleisli.Alternative<ArrayF, MiniInt>(Alternative.Array),
       ).alternative(
         fc.integer(),
         fc.integer(),
@@ -133,10 +133,9 @@ describe('Kleisli', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        <X>(x: Arbitrary<X>) =>
-          A.fp4tsKleisli<ListF, MiniInt, X>(A.fp4tsList(x)),
+        <X>(x: Arbitrary<X>) => A.fp4tsKleisli<ArrayF, MiniInt, X>(fc.array(x)),
         <X>(E: Eq<X>) =>
-          eqKleisli<ListF, MiniInt, X>(ExhaustiveCheck.miniInt(), List.Eq(E)),
+          eqKleisli<ArrayF, MiniInt, X>(ExhaustiveCheck.miniInt(), Eq.Array(E)),
       ),
     );
 

@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./cats/tsconfig.spec.json" },
+    { "path": "./collections/tsconfig.spec.json" },
     { "path": "./core/tsconfig.spec.json" },
     { "path": "./effect/tsconfig.spec.json" },
     { "path": "./fused/tsconfig.spec.json" },

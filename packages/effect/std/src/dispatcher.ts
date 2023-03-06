@@ -5,7 +5,8 @@
 
 import os from 'os';
 import { Kind, pipe } from '@fp4ts/core';
-import { Either, List } from '@fp4ts/cats';
+import { Either } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Async, Resource } from '@fp4ts/effect-kernel';
 
 import { Supervisor } from './supervisor';

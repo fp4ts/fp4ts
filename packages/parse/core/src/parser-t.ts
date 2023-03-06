@@ -24,7 +24,6 @@ import {
   FunctorFilter,
   isMonadDefer,
   Left,
-  List,
   Monad,
   MonadPlus,
   MonoidK,
@@ -33,6 +32,7 @@ import {
   Right,
   Some,
 } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Source, Stream, TokenType } from '@fp4ts/parse-kernel';
 import { Message, ParseError } from './parse-error';
 import { SourcePosition } from './source-position';

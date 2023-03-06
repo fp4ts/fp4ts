@@ -4,8 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Arbitrary } from 'fast-check';
-import { List } from '@fp4ts/cats';
-import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { List } from '@fp4ts/collections';
+import * as A from '@fp4ts/collections-test-kit/lib/arbitraries';
 import { $type, TyK, TyVar } from '@fp4ts/core';
 import { SchemaK } from '@fp4ts/schema-kernel';
 

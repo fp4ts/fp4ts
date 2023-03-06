@@ -6,8 +6,8 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Eval, Kind } from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
-import { Foldable } from '@fp4ts/cats-core';
-import { Option, List } from '@fp4ts/cats-core/lib/data';
+import { Alternative, Foldable } from '@fp4ts/cats-core';
+import { Option } from '@fp4ts/cats-core/lib/data';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
@@ -74,12 +74,12 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
           )(Option.Eq(EqB)),
         ],
         [
-          'foldable foldMapK consistent with foldMap (List)',
+          'foldable foldMapK consistent with foldMap (Array)',
           forAll(
             mkArbF(arbA),
-            fc.func<[A], List<B>>(A.fp4tsList(arbB)),
-            laws.foldMapKConsistentWithFoldMap(List.Alternative),
-          )(List.Eq(EqB)),
+            fc.func<[A], B[]>(fc.array(arbB)),
+            laws.foldMapKConsistentWithFoldMap(Alternative.Array),
+          )(Eq.Array(EqB)),
         ],
         [
           'foldable foldM identity',

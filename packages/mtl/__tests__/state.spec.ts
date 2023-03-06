@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eq, List, Option } from '@fp4ts/cats';
+import { Eq, Option } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { State, IxState } from '@fp4ts/mtl-core';
 import { MonadSuite } from '@fp4ts/cats-laws';
 import { MonadStateSuite } from '@fp4ts/mtl-laws';

@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Map, Option, Ord } from '@fp4ts/cats';
+import { Option, Ord } from '@fp4ts/cats';
+import { List, Map } from '@fp4ts/collections';
 import { Chunk, Stream } from '@fp4ts/stream';
 import {
   ConnectionIO,

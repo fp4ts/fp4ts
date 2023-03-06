@@ -5,7 +5,7 @@
 
 import { ClientBase as PgClientBase } from 'pg';
 import PgCursor from 'pg-cursor';
-import { Chain } from '@fp4ts/cats';
+import { Chain } from '@fp4ts/collections';
 import {
   ConnectionIO,
   PreparedStatement,

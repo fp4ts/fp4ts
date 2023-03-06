@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
+    "@fp4ts/collections": "*",
     "@fp4ts/core": "*",
     "@fp4ts/optics-core": "*"
   },

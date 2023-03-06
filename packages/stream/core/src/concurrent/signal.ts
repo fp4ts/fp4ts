@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, tupled } from '@fp4ts/core';
-import { Map } from '@fp4ts/cats';
+import { Map } from '@fp4ts/collections';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
 

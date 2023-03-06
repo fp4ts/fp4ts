@@ -5,7 +5,8 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
-import { Eq, List, Either, Left, Right, Some, None, Monad } from '@fp4ts/cats';
+import { Either, Left, Right, Some, None, Monad } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { IO, IOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';

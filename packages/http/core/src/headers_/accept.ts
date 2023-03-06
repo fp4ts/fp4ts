@@ -4,14 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Lazy, lazy, tupled } from '@fp4ts/core';
-import {
-  IdentityF,
-  List,
-  NonEmptyList,
-  Map,
-  Ord,
-  Semigroup,
-} from '@fp4ts/cats';
+import { IdentityF, Ord, Semigroup } from '@fp4ts/cats';
+import { List, NonEmptyList, Map } from '@fp4ts/collections';
 import { Parser, ParserT, StringSource } from '@fp4ts/parse';
 
 import { QValue } from '../q-value';

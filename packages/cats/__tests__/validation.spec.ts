@@ -8,7 +8,6 @@ import { id } from '@fp4ts/core';
 import { Monad, Traversable } from '@fp4ts/cats-core';
 import {
   Either,
-  List,
   Option,
   Validation,
   ValidationError,
@@ -107,24 +106,24 @@ describe('Validation', () => {
   );
 
   test(
-    'mapError . getError . toList <-> getError . toList . map',
+    'mapError . getError . toArray <-> getError . toArray . map',
     forAll(
       A.fp4tsValidation(A.fp4tsValidationError(fc.string()), fc.integer()),
       fc.func<[string], string>(fc.string()),
       (v, f) =>
         new IsEq(
           v.mapError(f).fold(
-            e => e.toList,
-            () => List.empty,
+            e => e.toArray,
+            () => [],
           ),
           v
-            .fold(
-              e => e.toList,
-              () => List.empty,
+            .fold<string[]>(
+              e => e.toArray,
+              () => [],
             )
-            .map(f),
+            .map(x => f(x)),
         ),
-    )(List.Eq(Eq.fromUniversalEquals())),
+    )(Eq.Array(Eq.fromUniversalEquals())),
   );
 
   test(
@@ -183,7 +182,7 @@ describe('Validation', () => {
         Eq.fromUniversalEquals(),
         (arbX, arbY) => A.fp4tsValidation(A.fp4tsValidationError(arbX), arbY),
         <X, Y>(EqX: Eq<X>, EqY: Eq<Y>) =>
-          Validation.EqK<X>(Eq.by(List.Eq(EqX), e => e.toList)).liftEq(EqY),
+          Validation.EqK<X>(Eq.by(Eq.Array(EqX), e => e.toArray)).liftEq(EqY),
       ),
     );
 

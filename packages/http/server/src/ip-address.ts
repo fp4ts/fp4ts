@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Byte } from '@fp4ts/core';
-import { List, Monad, None, Option, Some } from '@fp4ts/cats';
+import { Monad, None, Option, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 
 export abstract class IpAddress {
   private readonly __void!: void;

@@ -6,7 +6,7 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { throwError } from '@fp4ts/core';
-import { List } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { IO, IOF, ExitCase, Ref } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';

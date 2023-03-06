@@ -11,6 +11,8 @@
   "dependencies": {
     "@fp4ts/cats": "*",
     "@fp4ts/cats-test-kit": "*",
+    "@fp4ts/collections": "*",
+    "@fp4ts/collections-test-kit": "*",
     "@fp4ts/core": "*",
     "@fp4ts/effect": "*",
     "@fp4ts/effect-test-kit": "*",

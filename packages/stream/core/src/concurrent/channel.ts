@@ -5,14 +5,8 @@
 
 import { ok as assert } from 'assert';
 import { id, Kind, pipe } from '@fp4ts/core';
-import {
-  Either,
-  Left,
-  Option,
-  None,
-  Vector,
-  Some,
-} from '@fp4ts/cats-core/lib/data';
+import { Either, Left, Option, None, Some } from '@fp4ts/cats';
+import { Vector } from '@fp4ts/collections';
 import { Concurrent, Deferred, Poll } from '@fp4ts/effect-kernel';
 import { Chunk } from '../chunk';
 import { Pipe } from '../pipe';

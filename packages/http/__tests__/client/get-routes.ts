@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Map } from '@fp4ts/cats';
+import { Map } from '@fp4ts/collections';
 import { IO, IOF } from '@fp4ts/effect';
 import { Chunk, Stream, text } from '@fp4ts/stream';
 import { EntityEncoder, Response, Status } from '@fp4ts/http-core';

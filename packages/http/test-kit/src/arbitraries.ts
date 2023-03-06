@@ -10,7 +10,6 @@ import {
   QValue,
   MediaType,
   MediaRange,
-  Accept,
   AccessControlAllowMethod,
   MediaRangeAndQValue,
   ContentType,
@@ -22,9 +21,11 @@ import {
   BasicCredentials,
   Credentials,
   Authorization,
+  Accept,
 } from '@fp4ts/http-core';
-import { List, Map, Ord } from '@fp4ts/cats';
-import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import { Ord } from '@fp4ts/cats';
+import { List, Map } from '@fp4ts/collections';
+import * as A from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 export * from '@fp4ts/stream-test-kit/lib/arbitraries';
 
@@ -138,29 +139,29 @@ const arbAuthScheme: Arbitrary<AuthScheme> = fc.constantFrom(
   AuthScheme.OAuth,
 );
 
-// const arbT68Char: Arbitrary<Char> = fc
-//   .char()
-//   .filter(c => /\W-\._+\//.test(c)) as Arbitrary<Char>;
-// const arbAuthToken: Arbitrary<Token> = fc
-//   .tuple(arbAuthScheme, arbT68Char)
-//   .map(([scheme, tok]) => new Token(scheme, tok));
-// const arbAuthParam: Arbitrary<[string, string]> = fc.tuple(
-//   arbToken,
-//   fc.oneof(arbQDText, arbQuotedText),
-// );
-// const arbAuthParams_: Arbitrary<List<[string, string]>> = fc
-//   .array(arbAuthParam, { minLength: 1 })
-//   .map(xs => List.fromArray(xs));
+const arbT68Char: Arbitrary<Char> = fc
+  .char()
+  .filter(c => /\W-\._+\//.test(c)) as Arbitrary<Char>;
+const arbAuthToken: Arbitrary<Token> = fc
+  .tuple(arbAuthScheme, arbT68Char)
+  .map(([scheme, tok]) => new Token(scheme, tok));
+const arbAuthParam: Arbitrary<[string, string]> = fc.tuple(
+  arbToken,
+  fc.oneof(arbQDText, arbQuotedText),
+);
+const arbAuthParams_: Arbitrary<List<[string, string]>> = fc
+  .array(arbAuthParam, { minLength: 1 })
+  .map(xs => List.fromArray(xs));
 
-// const arbAuthParams: Arbitrary<AuthParams> = fc
-//   .tuple(arbAuthScheme, arbAuthParams_)
-//   .map(([scheme, params]) => new AuthParams(scheme, params));
+const arbAuthParams: Arbitrary<AuthParams> = fc
+  .tuple(arbAuthScheme, arbAuthParams_)
+  .map(([scheme, params]) => new AuthParams(scheme, params));
 
-// export const fp4tsCredentials = (): Arbitrary<Credentials> =>
-//   fc.oneof(arbAuthToken, arbAuthParams);
+export const fp4tsCredentials = (): Arbitrary<Credentials> =>
+  fc.oneof(arbAuthToken, arbAuthParams);
 
-// export const fp4tsAuthorizationHeader = (): Arbitrary<Authorization> =>
-//   fp4tsCredentials().map(creds => new Authorization(creds));
+export const fp4tsAuthorizationHeader = (): Arbitrary<Authorization> =>
+  fp4tsCredentials().map(creds => new Authorization(creds));
 
 export const fp4tsBasicCredentials = (): Arbitrary<BasicCredentials> =>
   fc

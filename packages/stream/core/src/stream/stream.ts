@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, Kind, TyK, TyVar } from '@fp4ts/core';
-import { Either, LazyList, List, Option, Vector } from '@fp4ts/cats';
+import { Either, Option } from '@fp4ts/cats';
+import { LazyList, List, Vector } from '@fp4ts/collections';
 import {
   Poll,
   ExitCase,

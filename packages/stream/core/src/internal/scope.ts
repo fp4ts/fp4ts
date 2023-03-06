@@ -13,8 +13,8 @@ import {
   None,
   IdentityF,
   Monad,
-  Seq,
 } from '@fp4ts/cats';
+import { Seq } from '@fp4ts/collections';
 import {
   Ref,
   Outcome,

@@ -29,8 +29,8 @@ import { ApplicativeError } from '../applicative-error';
 
 import { None, Option, Some } from './option';
 import { Either, Left, Right } from './either';
-import { List, NonEmptyList } from './collections';
 import { Bifunctor } from '../bifunctor';
+import { MonoidK } from '../monoid-k';
 
 export type Validation<E, A> = _Validation<E, A>;
 
@@ -336,14 +336,8 @@ ValidationError.Eq = {
 abstract class _ValidationError<E> {
   private readonly _E!: () => E;
 
-  public get toNel(): NonEmptyList<E> {
-    return this.foldMap(NonEmptyList.SemigroupK.algebra<E>())(
-      NonEmptyList.pure,
-    );
-  }
-
-  public get toList(): List<E> {
-    return this.foldMap(List.MonoidK.algebra<E>())(List.singleton);
+  public get toArray(): E[] {
+    return this.foldMap(MonoidK.Array.algebra<E>())(x => [x]);
   }
 
   public map<E2>(f: (e: E) => E2): ValidationError<E2> {

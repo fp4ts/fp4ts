@@ -13,45 +13,27 @@ import { Foldable } from './foldable';
 import { Traversable } from './traversable';
 import { Iter } from './data';
 
-export interface ComposedEqK<F, G> extends EqK<[F, G]> {
-  // readonly F: EqK<F>;
-  // readonly G: EqK<G>;
-}
+export interface ComposedEqK<F, G> extends EqK<[F, G]> {}
 export const ComposedEqK = Object.freeze({
   of: <F, G>(F: EqK<F>, G: EqK<G>): ComposedEqK<F, G> => ({
-    // F,
-    // G,
-
     ...EqK.of<[F, G]>({ liftEq: E => F.liftEq(G.liftEq(E)) }),
   }),
 });
 
-export interface ComposedFunctor<F, G> extends Functor<[F, G]> {
-  // readonly F: Functor<F>;
-  // readonly G: Functor<G>;
-}
+export interface ComposedFunctor<F, G> extends Functor<[F, G]> {}
 export const ComposedFunctor = Object.freeze({
   of: <F, G>(F: Functor<F>, G: Functor<G>): ComposedFunctor<F, G> => ({
-    // F: F,
-    // G: G,
-
     ...Functor.of<[F, G]>({ map_: (fga, f) => F.map_(fga, G.map(f)) }),
   }),
 });
 
 export interface ComposedApply<F, G>
   extends Apply<[F, G]>,
-    ComposedFunctor<F, G> {
-  // readonly F: Apply<F>;
-  // readonly G: Apply<G>;
-}
+    ComposedFunctor<F, G> {}
 export const ComposedApply = Object.freeze({
   of: <F, G>(F: Apply<F>, G: Apply<G>): ComposedApply<F, G> => {
     const functor = ComposedFunctor.of(F, G);
     return {
-      // F: F,
-      // G: G,
-
       ...Apply.of<[F, G]>({
         map_: functor.map_,
 
@@ -85,9 +67,6 @@ export const ComposedApplicative = Object.freeze({
     const apply = ComposedApply.of(F, G);
 
     return {
-      // F: F,
-      // G: G,
-
       ...Applicative.of<[F, G]>({
         ...apply,
         pure: a => F.pure(G.pure(a)),
@@ -96,16 +75,10 @@ export const ComposedApplicative = Object.freeze({
   },
 });
 
-export interface ComposedFoldable<F, G> extends Foldable<[F, G]> {
-  // readonly F: Foldable<F>;
-  // readonly G: Foldable<G>;
-}
+export interface ComposedFoldable<F, G> extends Foldable<[F, G]> {}
 export const ComposedFoldable = Object.freeze({
   of: <F, G>(F: Foldable<F>, G: Foldable<G>): ComposedFoldable<F, G> => {
     const self: ComposedFoldable<F, G> = {
-      // F: F,
-      // G: G,
-
       ...Foldable.of<[F, G]>({
         foldMap_:
           <M>(M: Monoid<M>) =>
@@ -134,9 +107,6 @@ export const ComposedTraversable = Object.freeze({
     F: Traversable<F>,
     G: Traversable<G>,
   ): ComposedTraversable<F, G> => ({
-    // F: F,
-    // G: G,
-
     ...Traversable.of<[F, G]>({
       ...ComposedFunctor.of(F, G),
       ...ComposedFoldable.of(F, G),
