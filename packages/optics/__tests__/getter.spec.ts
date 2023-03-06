@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, Monoid, None, Some } from '@fp4ts/cats';
+import { Monoid, None, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Reader, State } from '@fp4ts/mtl';
 import {

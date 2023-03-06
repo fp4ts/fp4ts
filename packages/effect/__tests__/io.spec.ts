@@ -11,11 +11,11 @@ import {
   Left,
   Right,
   Some,
-  List,
   Eq,
   None,
   Option,
   Kleisli,
+  Traversable,
 } from '@fp4ts/cats';
 import { Semaphore } from '@fp4ts/effect-kernel';
 import { IO, IOF, IOOutcome, LiftIO } from '@fp4ts/effect-core';
@@ -989,26 +989,23 @@ describe('IO', () => {
   });
 
   describe('parTraverse', () => {
+    const traverse = Traversable.Array.traverse_;
     it.real('should traverse sync list (real)', () =>
-      IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
-        IO(() => x),
-      )
-        .map(xs => xs.toArray)
-        .map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
+      IO.parTraverse_(Traversable.Array)([0, 1, 2, 3, 4], x => IO(() => x)).map(
+        r => expect(r).toEqual([0, 1, 2, 3, 4]),
+      ),
     );
 
     it.real('should traverse async list (real)', () =>
-      IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
+      IO.parTraverse_(Traversable.Array)([0, 1, 2, 3, 4], x =>
         IO.suspend.map(() => x),
-      )
-        .map(xs => xs.toArray)
-        .map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
+      ).map(r => expect(r).toEqual([0, 1, 2, 3, 4])),
     );
 
     it.ticked('should traverse sync list', ticker => {
-      const io = IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
+      const io = IO.parTraverse_(Traversable.Array)([0, 1, 2, 3, 4], x =>
         IO(() => x),
-      ).map(xs => xs.toArray);
+      );
 
       expect(io).toCompleteWith([0, 1, 2, 3, 4], ticker);
     });
@@ -1016,17 +1013,17 @@ describe('IO', () => {
 
   describe('parTraverseN', () => {
     it.ticked('should traverse async list', ticker => {
-      const io = IO.parTraverse_(List.TraversableFilter)(List.range(0, 5), x =>
+      const io = IO.parTraverse_(Traversable.Array)([0, 1, 2, 3, 4], x =>
         IO.suspend.map(() => x),
-      ).map(xs => xs.toArray);
+      );
 
       expect(io).toCompleteWith([0, 1, 2, 3, 4], ticker);
     });
 
     it.ticked('should propagate errors', ticker => {
       const io = pipe(
-        List(1, 2, 3),
-        IO.parTraverseN(List.TraversableFilter)(2, x =>
+        [1, 2, 3],
+        IO.parTraverseN(Traversable.Array)(2, x =>
           x === 2 ? throwError(new Error('test error')) : IO.unit,
         ),
       );
@@ -1036,8 +1033,8 @@ describe('IO', () => {
 
     it.ticked('should be cancelable', ticker => {
       const traverse = pipe(
-        List(1, 2, 3),
-        IO.parTraverseN(List.TraversableFilter)(2, () => IO.never),
+        [1, 2, 3],
+        IO.parTraverseN(Traversable.Array)(2, () => IO.never),
       );
 
       const io = IO.Monad.do(function* (_) {
@@ -1050,11 +1047,11 @@ describe('IO', () => {
     });
 
     it.ticked('should cancel all running tasks', ticker => {
-      const fins = List(jest.fn(), jest.fn(), jest.fn());
+      const fins = [jest.fn(), jest.fn(), jest.fn()];
 
       const traverse = pipe(
         fins,
-        IO.parTraverseN(List.TraversableFilter)(2, fin =>
+        IO.parTraverseN(Traversable.Array)(2, fin =>
           IO.never.onCancel(IO(fin)),
         ),
       );
@@ -1066,9 +1063,9 @@ describe('IO', () => {
       });
 
       expect(io).toCompleteWith(undefined, ticker);
-      expect(fins.get(0)).toHaveBeenCalled();
-      expect(fins.get(1)).toHaveBeenCalled();
-      expect(fins.get(2)).not.toHaveBeenCalled();
+      expect(fins[0]).toHaveBeenCalled();
+      expect(fins[1]).toHaveBeenCalled();
+      expect(fins[2]).not.toHaveBeenCalled();
     });
 
     it.ticked(
@@ -1076,14 +1073,14 @@ describe('IO', () => {
       ticker => {
         const fin = jest.fn();
         const cont = jest.fn();
-        const ts = List(
+        const ts = [
           IO.defer(() => IO.throwError(new Error('test test'))),
           IO.never.onCancel(IO(fin)),
           IO(cont),
           IO(cont),
-        );
+        ];
 
-        const io = pipe(ts, IO.parTraverseN(List.TraversableFilter)(2, id));
+        const io = pipe(ts, IO.parTraverseN(Traversable.Array)(2, id));
 
         expect(io).toFailWith(new Error('test test'), ticker);
         expect(fin).toHaveBeenCalled();

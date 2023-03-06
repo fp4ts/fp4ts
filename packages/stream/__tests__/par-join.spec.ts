@@ -6,8 +6,6 @@
 import fc from 'fast-check';
 import { $, pipe } from '@fp4ts/core';
 import {
-  Eq,
-  List,
   Left,
   Right,
   Some,
@@ -16,6 +14,7 @@ import {
   Monad,
   OptionT,
 } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { IO, IOF, Concurrent } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';

@@ -6,7 +6,15 @@
 import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
 import { $, fst, snd } from '@fp4ts/core';
-import { FunctionK, Eq, List, Either, Left, Right, Monad } from '@fp4ts/cats';
+import {
+  FunctionK,
+  Eq,
+  Either,
+  Left,
+  Right,
+  Monad,
+  Traversable,
+} from '@fp4ts/cats';
 import { IO, IOF } from '@fp4ts/effect-core';
 import { AsyncSuite } from '@fp4ts/effect-laws';
 import { Resource, ResourceF, Outcome } from '@fp4ts/effect-kernel';
@@ -19,22 +27,21 @@ describe('Resource', () => {
     const Instance = Resource.MonadCancel(IO.Async);
 
     it.ticked('should release resources in reversed order', ticker => {
-      const arb = A.fp4tsList(
+      const arb = fc.array(
         fc.tuple(
           fc.integer(),
           A.fp4tsEither(A.fp4tsError(), fc.constant<void>(undefined)),
         ),
       );
 
+      const traverse = Traversable.Array.traverse_;
       forAll(arb, as => {
-        let released: List<number> = List.empty;
-        const r = as.traverse(Instance, ([a, e]) =>
+        let released: number[] = [];
+        const r = traverse(Instance)(as, ([a, e]) =>
           Resource.make(IO.Functor)(
             IO(() => a),
             a =>
-              IO(() => (released = released.prepend(a)))['>>>'](
-                IO.fromEither(e),
-              ),
+              IO(() => (released = [a, ...released]))['>>>'](IO.fromEither(e)),
           ),
         );
 
@@ -43,7 +50,7 @@ describe('Resource', () => {
           ticker,
         );
         return new IsEq(released, as.map(fst));
-      })(List.Eq(Eq.fromUniversalEquals()))();
+      })(Eq.Array(Eq.fromUniversalEquals()))();
     });
   });
 
@@ -212,9 +219,10 @@ describe('Resource', () => {
 
   describe('stack safety', () => {
     test.ticked('use over binds - 1', ticker => {
-      const ioa = List.range(0, 10_000)
-        .foldLeft(Resource.evalF(IO.unit), r =>
-          r.flatMap(() => Resource.evalF(IO.unit)),
+      const ioa = [...new Array(10_000).keys()]
+        .reduce(
+          r => r.flatMap(() => Resource.evalF(IO.unit)),
+          Resource.evalF(IO.unit),
         )
         .use_(IO.MonadCancel);
 

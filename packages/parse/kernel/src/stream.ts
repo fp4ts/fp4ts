@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, instance, Kind } from '@fp4ts/core';
-import { LazyList, List, Monad, Option } from '@fp4ts/cats';
+import { Monad, Option } from '@fp4ts/cats';
+import { List, LazyList } from '@fp4ts/collections';
 import { Source } from './source';
 import { TokenType } from './token-type';
 

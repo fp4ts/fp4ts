@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { ArrayF, Map, MapF, TraversableWithIndex } from '@fp4ts/cats';
+import { ArrayF, TraversableWithIndex } from '@fp4ts/cats';
+import { Map, MapF } from '@fp4ts/collections';
 import { $, Kind, lazy } from '@fp4ts/core';
 import { IndexedPTraversal, IndexedTraversal, itraversal } from './traversal';
 

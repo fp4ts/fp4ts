@@ -12,13 +12,12 @@ import {
   FoldableWithIndex,
   Function1F,
   Functor,
-  LazyList,
-  LazyListStep,
   Monoid,
   None,
   Option,
   Some,
 } from '@fp4ts/cats';
+import { LazyList, LazyListStep } from '@fp4ts/collections';
 import { Corepresentable } from '@fp4ts/cats-profunctor';
 import { Eval, F1, id, Kind, unsafeCoerce } from '@fp4ts/core';
 import { MonadReader, MonadState, State } from '@fp4ts/mtl';

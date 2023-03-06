@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { Byte } from '@fp4ts/core';
-import { Eq, List } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Stream, Chunk, text } from '@fp4ts/stream-core';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';
 

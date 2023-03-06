@@ -5,8 +5,13 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { CoflatMap, Defer, Distributive, Monad } from '@fp4ts/cats-core';
-import { List } from '@fp4ts/cats-core/lib/data';
+import {
+  CoflatMap,
+  Defer,
+  Distributive,
+  Monad,
+  Traversable,
+} from '@fp4ts/cats-core';
 import {
   CoflatMapSuite,
   DistributiveSuite,
@@ -72,9 +77,11 @@ describe('Function1', () => {
   );
 
   it('should be stack safe on traverse', () => {
-    const xs = List.range(0, 1_000_000);
+    const xs = [...new Array(1_000_000)];
     expect(
-      xs.traverse(Monad.Function1<unknown>(), x => _ => x)(null).toArray,
-    ).toEqual(xs.toArray);
+      Traversable.Array.traverse_(Monad.Function1<unknown>())(xs, x => _ => x)(
+        null,
+      ),
+    ).toEqual(xs);
   });
 });

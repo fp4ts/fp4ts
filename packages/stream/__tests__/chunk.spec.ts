@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { CommutativeMonoid, Eq, List, Monad, Vector } from '@fp4ts/cats';
+import { CommutativeMonoid, Eq, Monad } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 import { Chunk } from '@fp4ts/stream-core';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/stream-test-kit/lib/arbitraries';

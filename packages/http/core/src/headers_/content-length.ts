@@ -6,13 +6,13 @@
 import {
   Either,
   Left,
-  NonEmptyList,
   None,
   Option,
   Right,
   Some,
   IdentityF,
 } from '@fp4ts/cats';
+import { NonEmptyList } from '@fp4ts/collections';
 import { Header, RawHeader, SelectHeader, SingleSelectHeader } from '../header';
 
 export class ContentLength {

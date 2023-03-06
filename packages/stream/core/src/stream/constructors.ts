@@ -5,7 +5,8 @@
 
 import { ok as assert } from 'assert';
 import { constant, fst, id, Kind, pipe } from '@fp4ts/core';
-import { Either, LazyList, List, Option, Some, Vector } from '@fp4ts/cats';
+import { Either, Option, Some } from '@fp4ts/cats';
+import { LazyList, List, Vector } from '@fp4ts/collections';
 import {
   ExitCase,
   Poll,

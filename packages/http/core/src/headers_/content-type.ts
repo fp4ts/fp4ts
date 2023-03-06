@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, IdentityF, NonEmptyList } from '@fp4ts/cats';
+import { Either, IdentityF } from '@fp4ts/cats';
+import { NonEmptyList } from '@fp4ts/collections';
 import { Header, SelectHeader, RawHeader, SingleSelectHeader } from '../header';
 import { MediaType } from '../media-type';
 

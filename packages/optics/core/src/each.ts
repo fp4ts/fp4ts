@@ -7,20 +7,22 @@ import {
   ArrayF,
   Either,
   EitherF,
+  Option,
+  OptionF,
+  Traversable,
+} from '@fp4ts/cats';
+import {
   LazyList,
   LazyListF,
   List,
   ListF,
   Map,
   MapF,
-  Option,
-  OptionF,
   Seq,
   SeqF,
-  Traversable,
   Vector,
   VectorF,
-} from '@fp4ts/cats';
+} from '@fp4ts/collections';
 import { $, Kind, lazy } from '@fp4ts/core';
 import { PTraversal, traversal, Traversal } from './traversal';
 

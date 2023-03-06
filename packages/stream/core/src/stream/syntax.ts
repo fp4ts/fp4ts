@@ -11,13 +11,12 @@ import {
   Monoid,
   MonoidK,
   Either,
-  List,
   Option,
-  Vector,
   Ior,
   IdentityF,
   FunctionK,
 } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 import {
   SyncIO,
   SyncIOF,

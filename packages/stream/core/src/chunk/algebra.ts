@@ -6,19 +6,17 @@
 import { ok as assert } from 'assert';
 import { Byte, Char, Kind, PrimitiveType } from '@fp4ts/core';
 import {
-  Chain,
   Option,
   Either,
   Some,
   None,
-  List,
-  Vector,
   Applicative,
   Eq,
   Iter,
   TraverseStrategy,
   Apply,
 } from '@fp4ts/cats';
+import { Chain, List, Vector } from '@fp4ts/collections';
 
 const te = new TextEncoder();
 

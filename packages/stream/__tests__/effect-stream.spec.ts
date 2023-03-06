@@ -6,17 +6,8 @@
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import fc from 'fast-check';
 import { id, throwError } from '@fp4ts/core';
-import {
-  Eq,
-  Either,
-  Left,
-  List,
-  Vector,
-  Right,
-  Some,
-  None,
-  Option,
-} from '@fp4ts/cats';
+import { Eq, Either, Left, Right, Some, None, Option } from '@fp4ts/cats';
+import { List, Vector } from '@fp4ts/collections';
 import { IO, IOF, SyncIO, SyncIOF } from '@fp4ts/effect';
 import { Stream } from '@fp4ts/stream-core';
 import {

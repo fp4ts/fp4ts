@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit';
-import { List, Monad } from '@fp4ts/cats';
+import { Monad, Traversable } from '@fp4ts/cats';
 import { IO } from '@fp4ts/effect-core';
 import { Resource } from '@fp4ts/effect-kernel';
 import { Dispatcher } from '@fp4ts/effect-std';
@@ -53,13 +53,15 @@ describe('Dispatcher', () => {
 
   it.real('should run multiple IOs in parallel', () => {
     const num = 10;
+    const traverse = Traversable.Array.traverse_;
+    const xs = [...new Array(num).keys()];
 
     return Monad.Do(IO.Monad)(function* (_) {
       const latches = yield* _(
-        List.range(0, num).traverse(IO.Applicative, () => IO.deferred<void>()),
+        traverse(IO.Applicative)(xs, () => IO.deferred<void>()),
       );
       const awaitAll = yield* _(
-        IO.pure(IO.parTraverse_(List.TraversableFilter)(latches, l => l.get())),
+        IO.pure(IO.parTraverse_(Traversable.Array)(latches, l => l.get())),
       );
       // engineer a deadlock: all subjects must be run in parallel or this will hang
       const subjects = yield* _(
@@ -68,7 +70,7 @@ describe('Dispatcher', () => {
 
       const rec = Dispatcher(IO.Async).flatMap(runner =>
         Resource.evalF(
-          IO.parTraverse_(List.TraversableFilter)(subjects, act =>
+          IO.parTraverse_(Traversable.Array)(subjects, act =>
             IO(() => runner.unsafeRunAndForget(act)),
           ),
         ),

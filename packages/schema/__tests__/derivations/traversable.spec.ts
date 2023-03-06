@@ -5,7 +5,8 @@
 
 import fc from 'fast-check';
 import { Eval } from '@fp4ts/core';
-import { Eq, List, CommutativeMonoid, Option, Some } from '@fp4ts/cats';
+import { Eq, CommutativeMonoid, Option, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import { SchemableK } from '@fp4ts/schema-kernel';

@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
-import { List, Map, None, Ord, Some } from '@fp4ts/cats';
+import { None, Ord, Some } from '@fp4ts/cats';
+import { List, Map } from '@fp4ts/collections';
 import { IO } from '@fp4ts/effect';
 import { Fragment, Query, Read, Write } from '@fp4ts/sql-core';
 import { SqliteTransactor } from '@fp4ts/sql-sqlite';

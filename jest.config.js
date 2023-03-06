@@ -15,6 +15,7 @@ module.exports = {
     '<rootDir>/cats/free/__tests__',
     '<rootDir>/cats/laws/src',
     '<rootDir>/core/src',
+    '<rootDir>/collections/__tests__',
     '<rootDir>/effect/__tests__',
     '<rootDir>/effect/core/src',
     '<rootDir>/effect/kernel/src',

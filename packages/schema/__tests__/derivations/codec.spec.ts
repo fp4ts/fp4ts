@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { Eq, List } from '@fp4ts/cats';
+import { Eq } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import { Schema, SchemableK } from '@fp4ts/schema-kernel';
 import { Codec, Decoder, Encoder } from '@fp4ts/schema-core';

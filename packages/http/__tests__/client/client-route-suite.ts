@@ -5,7 +5,8 @@
 
 import '@fp4ts/effect-test-kit';
 import { stringType, tupled } from '@fp4ts/core';
-import { List, Monad } from '@fp4ts/cats';
+import { Monad } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Resource, IO, IOF } from '@fp4ts/effect';
 import { Stream, text } from '@fp4ts/stream';
 import {

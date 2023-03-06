@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char } from '@fp4ts/core';
-import { Either, Left, List, Map, NonEmptyList, Ord, Right } from '@fp4ts/cats';
+import { Either, Left, Ord, Right } from '@fp4ts/cats';
+import { List, Map, NonEmptyList } from '@fp4ts/collections';
 import { Parser, StringSource, Rfc5234, text } from '@fp4ts/parse';
 import { Challenge } from '../challenge';
 import { AuthParams, Credentials, Token } from '../credentials';

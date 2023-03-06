@@ -1,0 +1,21 @@
+{
+  "name": "@fp4ts/collections-test-kit",
+  "version": "0.0.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf lib && rm -f *.tsbuildinfo && rm -rf node_modules",
+    "compile": "yarn tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@fp4ts/collections-core": "*",
+    "@fp4ts/core": "*",
+    "@types/jest": "^29.2.3",
+    "fast-check": "^3.3.0",
+    "jest": "^29.3.1"
+  },
+  "devDependencies": {
+    "typescript": "4.9.5"
+  }
+}

@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { List, Some, Vector, None, Eq, LazyList } from '@fp4ts/cats';
+import { Some, None, Eq } from '@fp4ts/cats';
+import { List, Vector, LazyList } from '@fp4ts/collections';
 import { SyncIOF } from '@fp4ts/effect';
 import { Stream, Chunk, PureF } from '@fp4ts/stream-core';
 import {

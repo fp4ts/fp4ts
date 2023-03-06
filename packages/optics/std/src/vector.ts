@@ -3,8 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Vector } from '@fp4ts/cats';
 import { F1 } from '@fp4ts/core';
+import { Vector } from '@fp4ts/collections';
 import { Fold, toArray } from '@fp4ts/optics-core';
 
 export function toVector<S, A>(l: Fold<S, A>): (s: S) => Vector<A> {

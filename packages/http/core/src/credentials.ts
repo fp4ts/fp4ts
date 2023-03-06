@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { List, None, Option, Some } from '@fp4ts/cats';
+import { None, Option, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { AuthScheme } from './auth-scheme';
 
 export type Credentials = Token | AuthParams;

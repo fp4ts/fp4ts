@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { id } from '@fp4ts/core';
-import { Chain } from '@fp4ts/cats';
+import { Chain } from '@fp4ts/collections';
 import { Read } from '../read';
 import { Query0 } from '../query';
 import { Update0 } from '../update';

@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, EvalF, id } from '@fp4ts/core';
-import { List } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { Parser, text, Rfc5234, StringSource, ParserT } from '@fp4ts/parse';
 
 /**

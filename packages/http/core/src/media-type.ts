@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Char, Lazy, lazy, tupled } from '@fp4ts/core';
-import { Map, Ord } from '@fp4ts/cats';
+import { Ord } from '@fp4ts/cats';
+import { Map } from '@fp4ts/collections';
 import { Parser, StringSource, text } from '@fp4ts/parse';
 
 import { ParseResult, Rfc7230 } from './parsing';

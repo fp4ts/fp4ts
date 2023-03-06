@@ -5,7 +5,7 @@
 
 import { $, $type, Fix, snd, tupled, TyK, TyVar, α, β, λ } from '@fp4ts/core';
 import { MonadDefer, Monoid, Semigroup } from '@fp4ts/cats';
-import { Seq } from '@fp4ts/cats-core/lib/data';
+import { Seq } from '@fp4ts/collections';
 import { Profunctor, Strong } from '@fp4ts/cats-profunctor';
 import { MonadReader } from '../monad-reader';
 import { MonadWriter } from '../monad-writer';

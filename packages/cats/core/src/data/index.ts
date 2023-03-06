@@ -29,5 +29,3 @@ export * from './option-t';
 export * from './either-t';
 
 export { SyntaxK } from './syntax-k';
-
-export * from './collections';

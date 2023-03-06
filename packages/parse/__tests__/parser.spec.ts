@@ -5,7 +5,8 @@
 
 import fc from 'fast-check';
 import { Char, EvalF } from '@fp4ts/core';
-import { Eq, Left, List, Monad, None, Right, Some } from '@fp4ts/cats';
+import { Left, Monad, None, Right, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import {
   Parser,
   ParseError,

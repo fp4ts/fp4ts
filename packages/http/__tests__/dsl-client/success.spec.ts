@@ -5,16 +5,8 @@
 
 import '@fp4ts/effect-test-kit';
 import fc from 'fast-check';
-import {
-  Either,
-  EitherT,
-  Left,
-  List,
-  None,
-  NonEmptyList,
-  Right,
-  Some,
-} from '@fp4ts/cats';
+import { Either, EitherT, Left, None, Right, Some } from '@fp4ts/cats';
+import { List, NonEmptyList } from '@fp4ts/collections';
 import { IO, IOF, Resource } from '@fp4ts/effect';
 import { RawHeader, Request, Status } from '@fp4ts/http-core';
 import { Client } from '@fp4ts/http-client';

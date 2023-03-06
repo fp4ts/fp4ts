@@ -5,7 +5,8 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { Kind, TypeOf } from '@fp4ts/core';
-import { List, Option } from '@fp4ts/cats';
+import { Option } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { HttpApp, SelectHeader } from '@fp4ts/http-core';
 import {
   Alt,

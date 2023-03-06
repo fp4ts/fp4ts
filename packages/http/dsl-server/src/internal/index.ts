@@ -5,7 +5,8 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 import { compose, id, pipe, tupled, TypeRef, TypeOf, $ } from '@fp4ts/core';
-import { Either, EitherF, Left, List, None, Right, Some } from '@fp4ts/cats';
+import { Either, EitherF, Left, None, Right, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import {
   Accept,
   NotAcceptFailure,

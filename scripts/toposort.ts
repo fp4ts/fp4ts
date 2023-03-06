@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { fst, snd, tupled } from '@fp4ts/core';
-import { List, Option, Some } from '@fp4ts/cats';
+import { Option, Some } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 
 // https://hackage.haskell.org/package/Agda-2.6.2.2/docs/src/Agda.Utils.Permutation.html#topoSortM
 export const toposort = <A>(

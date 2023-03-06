@@ -19,7 +19,6 @@ import {
   SyntaxK,
 } from '@fp4ts/cats-core/lib/data';
 import {
-  AlternativeSuite,
   CoflatMapSuite,
   MonadDeferSuite,
   MonadErrorSuite,

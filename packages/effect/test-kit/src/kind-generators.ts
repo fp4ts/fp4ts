@@ -5,13 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id, Kind, pipe } from '@fp4ts/core';
-import {
-  List,
-  Applicative,
-  ApplicativeError,
-  Monad,
-  MonadError,
-} from '@fp4ts/cats';
+import { Applicative, ApplicativeError, Monad, MonadError } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import {
   Sync,
   MonadCancel,

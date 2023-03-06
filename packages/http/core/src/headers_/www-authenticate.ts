@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Either, IdentityF, List, NonEmptyList, Semigroup } from '@fp4ts/cats';
+import { Either, IdentityF, Semigroup } from '@fp4ts/cats';
+import { List, NonEmptyList } from '@fp4ts/collections';
 import {
   Header,
   SelectHeader,

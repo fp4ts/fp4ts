@@ -4,18 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { tupled } from '@fp4ts/core';
-import {
-  Either,
-  Left,
-  List,
-  Map,
-  Monoid,
-  None,
-  Option,
-  Right,
-  Some,
-  Vector,
-} from '@fp4ts/cats';
+import { Either, Left, Monoid, None, Option, Right, Some } from '@fp4ts/cats';
+import { List, Map, Vector } from '@fp4ts/collections';
 import { Writer } from '@fp4ts/mtl';
 import { ParsingFailure } from './message-failure';
 

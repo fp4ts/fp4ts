@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, snd } from '@fp4ts/core';
-import { Map, List } from '@fp4ts/cats';
+import { Map, List } from '@fp4ts/collections';
 import {
   Fiber,
   Concurrent,

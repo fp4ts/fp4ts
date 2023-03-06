@@ -8,14 +8,12 @@ import {
   Either,
   IdentityF,
   Ior,
-  List,
   None,
-  NonEmptyList,
-  NonEmptyListF,
   Option,
   Semigroup,
   Some,
 } from '@fp4ts/cats';
+import { List, NonEmptyList, NonEmptyListF } from '@fp4ts/collections';
 
 type Nel<A> = NonEmptyList<A>;
 

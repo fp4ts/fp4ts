@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc, { Arbitrary } from 'fast-check';
-import { List, None } from '@fp4ts/cats';
+import { None } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { Schema } from '@fp4ts/schema-kernel';
 import { Guard } from '@fp4ts/schema-core';

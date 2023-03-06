@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Byte, Char, id } from '@fp4ts/core';
-import { Right, Set } from '@fp4ts/cats';
+import { Right } from '@fp4ts/cats';
+import { Set } from '@fp4ts/collections';
 import { Parser, StringSource } from '@fp4ts/parse-core';
 import { Rfc5234 } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';

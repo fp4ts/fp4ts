@@ -5,18 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { id, tupled } from '@fp4ts/core';
-import {
-  Either,
-  Eq,
-  LazyList,
-  List,
-  Map,
-  Monoid,
-  Option,
-  Seq,
-  Some,
-  Vector,
-} from '@fp4ts/cats';
+import { Either, Eq, Monoid, Option, Some } from '@fp4ts/cats';
+import { LazyList, List, Map, Seq, Vector } from '@fp4ts/collections';
 import {
   all,
   any,
@@ -48,6 +38,7 @@ import { lined, pick, toList, worded } from '@fp4ts/optics-std';
 import { TraversalSuite } from '@fp4ts/optics-laws';
 import { checkAll, forAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import * as CA from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 describe('Traversal', () => {
   interface Location {
@@ -90,7 +81,7 @@ describe('Traversal', () => {
   test(
     'foldMap',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs =>
         eachLi.apply(foldMap)(Monoid.string)(x => `${x}`)(xs) ===
         xs.foldMap(Monoid.string, x => `${x}`),
@@ -99,34 +90,37 @@ describe('Traversal', () => {
 
   test(
     'toList',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi.apply(toList)(xs).equals(xs),
     ),
   );
 
   test(
     'headOption',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi.apply(headOption)(xs).equals(xs.headOption),
     ),
   );
 
   test(
     'lastOption',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi.apply(lastOption)(xs).equals(xs.lastOption),
     ),
   );
 
   test(
     'size',
-    forAll(A.fp4tsList(fc.integer()), xs => eachLi.apply(size)(xs) === xs.size),
+    forAll(
+      CA.fp4tsList(fc.integer()),
+      xs => eachLi.apply(size)(xs) === xs.size,
+    ),
   );
 
   test(
     'isEmpty',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs => eachLi.apply(isEmpty)(xs) === xs.isEmpty,
     ),
   );
@@ -134,14 +128,14 @@ describe('Traversal', () => {
   test(
     'nonEmpty',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       xs => eachLi.apply(nonEmpty)(xs) === xs.nonEmpty,
     ),
   );
 
   test(
     'find',
-    forAll(A.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
+    forAll(CA.fp4tsList(fc.integer()), fc.integer(), (xs, y) =>
       eachLi
         .apply(find)(x => x > y)(xs)
         .equals(Option(xs.toArray.find(x => x > y))),
@@ -151,7 +145,7 @@ describe('Traversal', () => {
   test(
     'any',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.integer(),
       (xs, y) => eachLi.apply(any)(x => x > y)(xs) === xs.any(x => x > y),
     ),
@@ -160,7 +154,7 @@ describe('Traversal', () => {
   test(
     'all',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.integer(),
       (xs, y) => eachLi.apply(all)(x => x > y)(xs) === xs.all(x => x > y),
     ),
@@ -169,7 +163,7 @@ describe('Traversal', () => {
   test(
     'to',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number], string>(fc.string()),
       (xs, f) => eachLi.compose(to(f)).apply(toList)(xs).equals(xs.map(f)),
     ),
@@ -177,7 +171,7 @@ describe('Traversal', () => {
 
   test(
     'replace',
-    forAll(A.fp4tsList(fc.integer()), xs =>
+    forAll(CA.fp4tsList(fc.integer()), xs =>
       eachLi
         .apply(replace)(0)(xs)
         .equals(xs.map(() => 0)),
@@ -187,7 +181,7 @@ describe('Traversal', () => {
   test(
     'modify',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number], number>(fc.integer()),
       (xs, f) => eachLi.apply(modify)(f)(xs).equals(xs.map(f)),
     ),
@@ -196,7 +190,7 @@ describe('Traversal', () => {
   test(
     'filter',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[number], boolean>(fc.boolean()),
       (xs, f) =>
         eachLi.compose(filtered(f)).apply(toList)(xs).equals(xs.filter(f)),
@@ -206,7 +200,7 @@ describe('Traversal', () => {
   test(
     'mapAccumL',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[string, number], [number, string]>(
         fc.tuple(fc.integer(), fc.string()),
       ),
@@ -225,7 +219,7 @@ describe('Traversal', () => {
   test(
     'mapAccumR',
     forAll(
-      A.fp4tsList(fc.integer()),
+      CA.fp4tsList(fc.integer()),
       fc.func<[string, number], [number, string]>(
         fc.tuple(fc.integer(), fc.string()),
       ),
@@ -399,7 +393,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<List<number>, number>',
       TraversalSuite(eachLi).traversal(
-        A.fp4tsList(fc.integer()),
+        CA.fp4tsList(fc.integer()),
         fc.integer(),
         List.Eq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -456,7 +450,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<List<number>>, number>',
       TraversalSuite(Each.List<number>()).traversal(
-        A.fp4tsList(fc.integer()),
+        CA.fp4tsList(fc.integer()),
         fc.integer(),
         List.Eq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -466,7 +460,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<LazyList<number>>, number>',
       TraversalSuite(Each.LazyList<number>()).traversal(
-        A.fp4tsLazyList(fc.integer()),
+        CA.fp4tsLazyList(fc.integer()),
         fc.integer(),
         LazyList.EqK.liftEq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -476,7 +470,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<Seq<number>>, number>',
       TraversalSuite(Each.Seq<number>()).traversal(
-        A.fp4tsSeq(fc.integer()),
+        CA.fp4tsSeq(fc.integer()),
         fc.integer(),
         Seq.Eq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -486,7 +480,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<Vector<number>>, number>',
       TraversalSuite(Each.Vector<number>()).traversal(
-        A.fp4tsVector(fc.integer()),
+        CA.fp4tsVector(fc.integer()),
         fc.integer(),
         Vector.Eq(Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
@@ -496,7 +490,7 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<Map<string, number>>, number>',
       TraversalSuite(Each.Map<string>()<number>()).traversal(
-        A.fp4tsMap(fc.string(), fc.integer()),
+        CA.fp4tsMap(fc.string(), fc.integer()),
         fc.integer(),
         Map.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),

@@ -3,7 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Ord, Set } from '@fp4ts/cats';
+import { Ord } from '@fp4ts/cats';
+import { Set } from '@fp4ts/collections';
 import {
   Fold,
   foldMap,

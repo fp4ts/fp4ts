@@ -13,6 +13,7 @@
     "@fp4ts/cats": "*",
     "@fp4ts/cats-arrow": "*",
     "@fp4ts/cats-profunctor": "*",
+    "@fp4ts/collections": "*",
     "@fp4ts/core": "*"
   },
   "devDependencies": {

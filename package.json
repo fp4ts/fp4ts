@@ -3,6 +3,8 @@
   "workspaces": [
     "./packages/cats",
     "./packages/cats/*",
+    "./packages/collections",
+    "./packages/collections/*",
     "./packages/core",
     "./packages/effect",
     "./packages/effect/*",

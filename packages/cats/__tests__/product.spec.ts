@@ -14,13 +14,13 @@ import {
   EqK,
   FunctorFilter,
   Monad,
+  Traversable,
   TraversableFilter,
   Zip,
 } from '@fp4ts/cats-core';
 import {
   Identity,
   Kleisli,
-  List,
   None,
   Option,
   OptionF,
@@ -191,8 +191,10 @@ describe('Product', () => {
     it('allows short-circuiting on traverse', () => {
       let cnt = 0;
       expect(
-        List(1, 2, 3, 4, 5).traverse_(
+        Traversable.Array.traverse_(
           Product.Applicative(Option.Monad, Option.Monad),
+        )(
+          [1, 2, 3, 4, 5],
           _ => (cnt++, [None, None] as [Option<number>, Option<number>]),
         ),
       ).toEqual([None, None]);
@@ -202,33 +204,39 @@ describe('Product', () => {
     it("doesn't short-circuit on only left short-circuit", () => {
       let cnt = 0;
       expect(
-        List(1, 2, 3, 4, 5).traverse(
+        Traversable.Array.traverse_(
           Product.Applicative(Option.Monad, Option.Monad),
+        )(
+          [1, 2, 3, 4, 5],
           x => (cnt++, [None, Some(x)] as [Option<number>, Option<number>]),
         ),
-      ).toEqual([None, Some(List(1, 2, 3, 4, 5))]);
+      ).toEqual([None, Some([1, 2, 3, 4, 5])]);
       expect(cnt).toBe(5);
     });
 
     it("doesn't short-circuit on only right short-circuit", () => {
       let cnt = 0;
       expect(
-        List(1, 2, 3, 4, 5).traverse(
+        Traversable.Array.traverse_(
           Product.Applicative(Option.Monad, Option.Monad),
+        )(
+          [1, 2, 3, 4, 5],
           x => (cnt++, [Some(x), None] as [Option<number>, Option<number>]),
         ),
-      ).toEqual([Some(List(1, 2, 3, 4, 5)), None]);
+      ).toEqual([Some([1, 2, 3, 4, 5]), None]);
       expect(cnt).toBe(5);
     });
 
     it("doesn't call mapping function more than once per source element", () => {
       let cnt = 0;
       expect(
-        List(1, 2, 3, 4, 5).traverse(
+        Traversable.Array.traverse_(
           Product.Applicative(Option.Monad, Option.Monad),
+        )(
+          [1, 2, 3, 4, 5],
           x => (cnt++, [Some(x), Some(x)] as [Option<number>, Option<number>]),
         ),
-      ).toEqual([Some(List(1, 2, 3, 4, 5)), Some(List(1, 2, 3, 4, 5))]);
+      ).toEqual([Some([1, 2, 3, 4, 5]), Some([1, 2, 3, 4, 5])]);
       expect(cnt).toBe(5);
     });
   });
@@ -242,9 +250,9 @@ describe('Product', () => {
     });
 
     checkAll(
-      'Alternative<Product<List, List, *>>',
+      'Alternative<Product<[], [], *>>',
       AlternativeSuite(
-        Product.Alternative(List.Alternative, List.Alternative),
+        Product.Alternative(Alternative.Array, Alternative.Array),
       ).alternative(
         fc.integer(),
         fc.integer(),
@@ -252,8 +260,8 @@ describe('Product', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => fc.tuple(A.fp4tsList(X), A.fp4tsList(X)),
-        Product.EqK(List.EqK, List.EqK).liftEq,
+        X => fc.tuple(fc.array(X), fc.array(X)),
+        Product.EqK(EqK.Array, EqK.Array).liftEq,
       ),
     );
 
@@ -293,7 +301,7 @@ describe('Product', () => {
 
     checkAll(
       'Monad<Product<Eval, Identity, *>>',
-      MonadSuite(Product.Monad(Monad.Function0, List.Monad)).monad(
+      MonadSuite(Product.Monad(Monad.Function0, Monad.Array)).monad(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -305,19 +313,19 @@ describe('Product', () => {
         <X>(X: Arbitrary<X>) =>
           fc.tuple(
             X.map(x => () => x),
-            A.fp4tsList(X),
+            fc.array(X),
           ),
-        Product.EqK(EqK.Function0, List.EqK).liftEq,
+        Product.EqK(EqK.Function0, EqK.Array).liftEq,
       ),
     );
   });
 
   describe('TraversableFilter', () => {
     checkAll(
-      'TraversableFilter<Product<List, Option, *>>',
+      'TraversableFilter<Product<[], Option, *>>',
       TraversableFilterSuite(
         Product.TraversableFilter(
-          List.TraversableFilter,
+          TraversableFilter.Array,
           Option.TraversableFilter,
         ),
       ).traversableFilter(
@@ -326,14 +334,14 @@ describe('Product', () => {
         fc.integer(),
         Monoid.addition,
         Monoid.addition,
-        Product.FunctorFilter(List.FunctorFilter, Option.FunctorFilter),
+        Product.FunctorFilter(FunctorFilter.Array, Option.FunctorFilter),
         Monad.Eval,
         Identity.Applicative,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => fc.tuple(A.fp4tsList(X), A.fp4tsOption(X)),
-        Product.EqK(List.EqK, Option.EqK).liftEq,
+        X => fc.tuple(fc.array(X), A.fp4tsOption(X)),
+        Product.EqK(EqK.Array, Option.EqK).liftEq,
         A.fp4tsEval,
         Eq.Eval,
         id,
@@ -342,10 +350,10 @@ describe('Product', () => {
     );
 
     checkAll(
-      'TraversableFilter<Product<List, Array, *>>',
+      'TraversableFilter<Product<[], [], *>>',
       TraversableFilterSuite(
         Product.TraversableFilter(
-          List.TraversableFilter,
+          TraversableFilter.Array,
           TraversableFilter.Array,
         ),
       ).traversableFilter(
@@ -354,14 +362,14 @@ describe('Product', () => {
         fc.integer(),
         Monoid.addition,
         Monoid.addition,
-        Product.FunctorFilter(List.FunctorFilter, FunctorFilter.Array),
+        Product.FunctorFilter(FunctorFilter.Array, FunctorFilter.Array),
         Monad.Eval,
         Identity.Applicative,
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => fc.tuple(A.fp4tsList(X), fc.array(X)),
-        Product.EqK(List.EqK, EqK.Array).liftEq,
+        X => fc.tuple(fc.array(X), fc.array(X)),
+        Product.EqK(EqK.Array, EqK.Array).liftEq,
         A.fp4tsEval,
         Eq.Eval,
         id,
@@ -372,8 +380,8 @@ describe('Product', () => {
 
   describe('Zip', () => {
     checkAll(
-      'Zip<Product<List, Array, *>>',
-      ZipSuite(Product.Zip(List.Unzip, Zip.Array)).zip(
+      'Zip<Product<[], [], *>>',
+      ZipSuite(Product.Zip(Zip.Array, Zip.Array)).zip(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -382,16 +390,16 @@ describe('Product', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => fc.tuple(A.fp4tsList(X), fc.array(X)),
-        Product.EqK(List.EqK, EqK.Array).liftEq,
+        X => fc.tuple(fc.array(X), fc.array(X)),
+        Product.EqK(EqK.Array, EqK.Array).liftEq,
       ),
     );
   });
 
   describe('Align', () => {
     checkAll(
-      'Align<Product<List, Array, *>>',
-      AlignSuite(Product.Align(List.Align, Align.Array)).align(
+      'Align<Product<[], [], *>>',
+      AlignSuite(Product.Align(Align.Array, Align.Array)).align(
         fc.integer(),
         fc.integer(),
         fc.integer(),
@@ -400,8 +408,8 @@ describe('Product', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        X => fc.tuple(A.fp4tsList(X), fc.array(X)),
-        Product.EqK(List.EqK, EqK.Array).liftEq,
+        X => fc.tuple(fc.array(X), fc.array(X)),
+        Product.EqK(EqK.Array, EqK.Array).liftEq,
       ),
     );
   });
