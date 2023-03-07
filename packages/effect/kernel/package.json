@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@fp4ts/cats": "*",
-    "@fp4ts/collections": "*",
     "@fp4ts/core": "*"
   },
   "devDependencies": {

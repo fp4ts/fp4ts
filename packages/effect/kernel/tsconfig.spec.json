@@ -7,7 +7,6 @@
   "include": ["./src/**/*"],
   "references": [
     { "path": "../../cats/tsconfig.spec.json" },
-    { "path": "../../collections/tsconfig.spec.json" },
     { "path": "../../core/tsconfig.spec.json" },
   ]
 }

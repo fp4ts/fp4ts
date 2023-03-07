@@ -13,7 +13,6 @@ import {
   ApplicativeError,
   Applicative,
 } from '@fp4ts/cats';
-import { List } from '@fp4ts/collections';
 
 import { Async } from '../async';
 import { Concurrent } from '../concurrent';
@@ -221,11 +220,10 @@ export const allocated =
   <F>(F: MonadCancel<F, Error>) =>
   <A>(r: Resource<F, A>): Kind<F, [[A, Kind<F, [void]>]]> => {
     type Frame = (u: unknown) => Resource<F, unknown>;
-    type Stack = List<Frame>;
 
     const loop = (
       cur0: Resource<F, unknown>,
-      stack: Stack,
+      stack: Stack<Frame>,
       release: Kind<F, [void]>,
     ): Kind<F, [[A, Kind<F, [void]>]]> => {
       let _cur = cur0;
@@ -239,11 +237,10 @@ export const allocated =
             continue;
 
           case 'pure': {
-            const next = stack.uncons;
-            if (next.isEmpty) return F.pure([cur.value as A, release]);
-            const [hd, tl] = next.get;
-            _cur = hd(cur.value);
-            stack = tl;
+            if (stack === Nil) return F.pure([cur.value as A, release]);
+            const { head, tail } = stack;
+            _cur = head(cur.value);
+            stack = tail;
             continue;
           }
 
@@ -257,16 +254,14 @@ export const allocated =
                     () => release,
                   );
 
-                  return stack.uncons.fold(
-                    () => F.pure([b as A, rel2]),
-                    ([hd, tl]) =>
-                      pipe(
-                        poll(loop(hd(b), tl, rel2)),
-                        F.onCancel(rel(ExitCase.Canceled)),
-                        F.onError(e =>
-                          F.handleError_(rel(ExitCase.Errored(e)), () => {}),
-                        ),
-                      ),
+                  if (stack === Nil) return F.pure([b as A, rel2]);
+                  const { head, tail } = stack;
+                  return pipe(
+                    poll(loop(head(b), tail, rel2)),
+                    F.onCancel(rel(ExitCase.Canceled)),
+                    F.onError(e =>
+                      F.handleError_(rel(ExitCase.Errored(e)), () => {}),
+                    ),
                   );
                 }),
               ),
@@ -278,7 +273,7 @@ export const allocated =
       }
     };
 
-    return loop(r, List.empty, F.unit);
+    return loop(r, Nil, F.unit);
   };
 
 export const fold: <F>(
@@ -461,9 +456,11 @@ export const fold_ =
     onRelease: (fv: Kind<F, [void]>) => Kind<F, [void]>,
   ): Kind<F, [B]> => {
     type Frame = (u: unknown) => Resource<F, unknown>;
-    type Stack = List<Frame>;
 
-    const loop = (cur0: Resource<F, unknown>, stack: Stack): Kind<F, [B]> => {
+    const loop = (
+      cur0: Resource<F, unknown>,
+      stack: Stack<Frame>,
+    ): Kind<F, [B]> => {
       let _cur = cur0;
       while (true) {
         const cur = view(_cur);
@@ -475,11 +472,10 @@ export const fold_ =
             continue;
 
           case 'pure': {
-            const next = stack.uncons;
-            if (next.isEmpty) return onOutput(cur.value as A);
-            const [hd, tl] = next.get;
-            _cur = hd(cur.value);
-            stack = tl;
+            if (stack === Nil) return onOutput(cur.value as A);
+            const { head, tail } = stack;
+            _cur = head(cur.value);
+            stack = tail;
             continue;
           }
 
@@ -496,7 +492,7 @@ export const fold_ =
       }
     };
 
-    return loop(r, List.empty);
+    return loop(r, Nil);
   };
 
 export const executeOn_ =
@@ -564,5 +560,27 @@ class ResourceFiber<F, A> extends Fiber<$<ResourceF, [F]>, Error, A> {
         ),
       ),
     );
+  }
+}
+
+abstract class Stack<out A> {
+  public abstract readonly head: A;
+  public abstract readonly tail: Stack<A>;
+
+  public prepend<A>(this: Stack<A>, a: A): Stack<A> {
+    return new Cons(a, this);
+  }
+}
+const Nil = new (class Nil extends Stack<never> {
+  public get head(): never {
+    throw new Error('Nil.head');
+  }
+  public get tail(): never {
+    throw new Error('Nil.tail');
+  }
+})();
+class Cons<A> extends Stack<A> {
+  public constructor(public readonly head: A, public readonly tail: Stack<A>) {
+    super();
   }
 }
