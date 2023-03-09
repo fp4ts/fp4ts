@@ -5,7 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Char, Eval, EvalF, tupled } from '@fp4ts/core';
-import { Either, List, Option } from '@fp4ts/cats';
+import { Either, Option } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { ParseError, Parser, ParserT, StringSource } from '@fp4ts/parse-core';
 import { HasTokenType } from '@fp4ts/parse-kernel';
 import { text } from '@fp4ts/parse-text';

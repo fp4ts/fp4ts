@@ -5,7 +5,7 @@
 
 import fc from 'fast-check';
 import { None, Some } from '@fp4ts/cats';
-import { List, Map } from '@fp4ts/collections';
+import { List, OrdMap } from '@fp4ts/collections';
 import { forAll } from '@fp4ts/cats-test-kit';
 import { path, uri, Authority, Path, Uri, Query } from '@fp4ts/http-core';
 
@@ -336,38 +336,38 @@ describe('Uri', () => {
     it('should parse empty query string', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('')).query.multiParams,
-      ).toEqual(Map(['', List.empty]));
+      ).toEqual(OrdMap(['', List.empty]));
     });
     it('should parse parameter without key or value', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('=')).query.multiParams,
-      ).toEqual(Map(['', List('')]));
+      ).toEqual(OrdMap(['', List('')]));
     });
 
     it('should parse parameter without key and but with a value', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('=value')).query.multiParams,
-      ).toEqual(Map(['', List('value')]));
+      ).toEqual(OrdMap(['', List('value')]));
     });
 
     it('should parse parameter with key and but without a value', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('key=')).query.multiParams,
-      ).toEqual(Map(['key', List('')]));
+      ).toEqual(OrdMap(['key', List('')]));
     });
 
     it('should parse parameter with single key and single value', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('key=value')).query
           .multiParams,
-      ).toEqual(Map(['key', List('value')]));
+      ).toEqual(OrdMap(['key', List('value')]));
     });
 
     it('should parse a single parameter without value', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('parameter')).query
           .multiParams,
-      ).toEqual(Map(['parameter', List.empty]));
+      ).toEqual(OrdMap(['parameter', List.empty]));
     });
 
     it('should parse many parameters with value', () => {
@@ -378,7 +378,7 @@ describe('Uri', () => {
           ),
         ).query.multiParams,
       ).toEqual(
-        Map(
+        OrdMap(
           ['param1', List('value')],
           ['param2', List('value1', 'value2')],
           ['param3', List('value')],
@@ -391,7 +391,7 @@ describe('Uri', () => {
         new Uri().withQuery(Query.unsafeFromString('param1&param2&param3'))
           .query.multiParams,
       ).toEqual(
-        Map(
+        OrdMap(
           ['param1', List.empty],
           ['param2', List.empty],
           ['param3', List.empty],
@@ -402,7 +402,7 @@ describe('Uri', () => {
     it('should parse empty key-value pairs', () => {
       expect(
         new Uri().withQuery(Query.unsafeFromString('&&&&')).query.multiParams,
-      ).toEqual(Map(['', List.empty]));
+      ).toEqual(OrdMap(['', List.empty]));
     });
   });
 });

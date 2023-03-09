@@ -5,7 +5,7 @@
 
 import { tupled } from '@fp4ts/core';
 import { Either, Left, Monoid, None, Option, Right, Some } from '@fp4ts/cats';
-import { List, Map, Vector } from '@fp4ts/collections';
+import { List, OrdMap, Vector } from '@fp4ts/collections';
 import { Writer } from '@fp4ts/mtl';
 import { ParsingFailure } from './message-failure';
 
@@ -264,22 +264,22 @@ Path.prototype['/'] = Path.prototype.append;
 export class Query {
   private constructor(private readonly xs: Vector<[string, Option<string>]>) {}
 
-  public get params(): Map<string, string> {
+  public get params(): OrdMap<string, string> {
     return this.xs
       .collect(([k, v]) => v.map(v => tupled(k, v)))
-      .foldLeft(Map.empty as Map<string, string>, (m, [k, v]) =>
-        m.insertWith(k, v, fst => fst),
+      .foldLeft(OrdMap.empty as OrdMap<string, string>, (m, [k, v]) =>
+        m.insertWith(k, v, (_, fst) => fst),
       );
   }
 
-  public get multiParams(): Map<string, List<string>> {
+  public get multiParams(): OrdMap<string, List<string>> {
     return this.xs.foldLeft(
-      Map.empty as Map<string, List<string>>,
+      OrdMap.empty as OrdMap<string, List<string>>,
       (m, [k, v]) =>
         m.insertWith(
           k,
           v.map(List).getOrElse(() => List.empty),
-          (xs, ys) => xs['++'](ys),
+          (ys, xs) => xs['++'](ys),
         ),
     );
   }

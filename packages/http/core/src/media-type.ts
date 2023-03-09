@@ -5,7 +5,7 @@
 
 import { Char, Lazy, lazy, tupled } from '@fp4ts/core';
 import { Ord } from '@fp4ts/cats';
-import { Map } from '@fp4ts/collections';
+import { OrdMap } from '@fp4ts/collections';
 import { Parser, StringSource, text } from '@fp4ts/parse';
 
 import { ParseResult, Rfc7230 } from './parsing';
@@ -18,7 +18,7 @@ const OrdString2: Ord<[string, string]> = Ord.tuple(
 export class MediaRange {
   public constructor(
     public readonly mainType: string,
-    public readonly extensions: Map<string, string> = Map.empty,
+    public readonly extensions: OrdMap<string, string> = OrdMap.empty,
   ) {}
 
   public satisfiedBy(that: MediaRange): boolean {
@@ -29,7 +29,7 @@ export class MediaRange {
     return that.satisfiedBy(this);
   }
 
-  public withExtensions(exts: Map<string, string>): MediaRange {
+  public withExtensions(exts: OrdMap<string, string>): MediaRange {
     return new MediaRange(this.mainType, exts);
   }
 
@@ -37,11 +37,12 @@ export class MediaRange {
   public static readonly 'application/*' = new MediaRange('application');
   public static readonly 'text/*' = new MediaRange('text');
 
-  public static readonly standard: Map<string, MediaRange> = Map(
-    ...[this['*/*'], this['application/*'], this['text/*']].map(x =>
-      tupled(x.mainType, x),
-    ),
-  );
+  public static readonly standard: OrdMap<string, MediaRange> =
+    OrdMap.fromArray(
+      [this['*/*'], this['application/*'], this['text/*']].map(x =>
+        tupled(x.mainType, x),
+      ),
+    );
 
   public static fromString(s: string): ParseResult<MediaRange> {
     return ParseResult.fromParser(this.parser, 'media range')(s);
@@ -61,11 +62,7 @@ export class MediaRange {
     return this.parser
       .product(extensions)
       .map(([mr, xs]) =>
-        xs.isEmpty
-          ? mr
-          : mr.withExtensions(
-              Map.fromList<string>(Ord.fromUniversalCompare())(xs),
-            ),
+        xs.isEmpty ? mr : mr.withExtensions(OrdMap.fromList(xs)),
       );
   }
 }
@@ -74,7 +71,7 @@ export class MediaType extends MediaRange {
   public constructor(
     mainType: string,
     public readonly subType: string,
-    extensions: Map<string, string> = Map.empty,
+    extensions: OrdMap<string, string> = OrdMap.empty,
   ) {
     super(mainType, extensions);
   }
@@ -90,7 +87,7 @@ export class MediaType extends MediaRange {
     }
   }
 
-  public override withExtensions(exts: Map<string, string>): MediaType {
+  public override withExtensions(exts: OrdMap<string, string>): MediaType {
     return new MediaType(this.mainType, this.subType, exts);
   }
 
@@ -100,12 +97,14 @@ export class MediaType extends MediaRange {
   );
   public static readonly 'text/plain' = new MediaType('text', 'plain');
 
-  public static readonly all: Map<[string, string], MediaType> = Map.fromArray(
-    OrdString2,
-  )([
-    [['application', 'json'], this['application/json']],
-    [['text', 'plain'], this['text/plain']],
-  ]);
+  public static readonly all: OrdMap<[string, string], MediaType> =
+    OrdMap.fromArray<[string, string], MediaType>(
+      [
+        [['application', 'json'], this['application/json']],
+        [['text', 'plain'], this['text/plain']],
+      ],
+      OrdString2,
+    );
 
   public static override fromString(s: string): ParseResult<MediaType> {
     return ParseResult.fromParser(this.parser, 'media type')(s);
@@ -122,11 +121,7 @@ export class MediaType extends MediaRange {
     return mt
       .product(extensions)
       .map(([mt, xs]) =>
-        xs.isEmpty
-          ? mt
-          : mt.withExtensions(
-              Map.fromList<string>(Ord.fromUniversalCompare())(xs),
-            ),
+        xs.isEmpty ? mt : mt.withExtensions(OrdMap.fromList(xs)),
       );
   }
 }

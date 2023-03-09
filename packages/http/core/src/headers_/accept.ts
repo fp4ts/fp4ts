@@ -5,7 +5,7 @@
 
 import { Lazy, lazy, tupled } from '@fp4ts/core';
 import { IdentityF, Ord, Semigroup } from '@fp4ts/cats';
-import { List, NonEmptyList, Map } from '@fp4ts/collections';
+import { List, NonEmptyList, OrdMap } from '@fp4ts/collections';
 import { Parser, ParserT, StringSource } from '@fp4ts/parse';
 
 import { QValue } from '../q-value';
@@ -105,9 +105,7 @@ const parser: Lazy<Parser<StringSource, Accept>> = lazy(() => {
         tupled(QValue.one, List.empty),
       );
       return new MediaRangeAndQValue(
-        mr.withExtensions(
-          Map.fromList<string>(Ord.fromUniversalCompare())(exts),
-        ),
+        mr.withExtensions(OrdMap.fromList(exts)),
         qvalue,
       );
     });

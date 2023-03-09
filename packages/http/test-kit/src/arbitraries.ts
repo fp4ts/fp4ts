@@ -24,7 +24,7 @@ import {
   Accept,
 } from '@fp4ts/http-core';
 import { Ord } from '@fp4ts/cats';
-import { List, Map } from '@fp4ts/collections';
+import { List, OrdMap } from '@fp4ts/collections';
 import * as A from '@fp4ts/collections-test-kit/lib/arbitraries';
 
 export * from '@fp4ts/stream-test-kit/lib/arbitraries';
@@ -106,9 +106,9 @@ const arbQuotedText = fc
 const arbUnquotedText = arbQDText;
 const arbMediaRangeExtension = fc.tuple(arbToken, fc.oneof(arbQDText, arbText));
 
-const arbMediaRangeExtensions: Arbitrary<Map<string, string>> = fc
+const arbMediaRangeExtensions: Arbitrary<OrdMap<string, string>> = fc
   .array(arbMediaRangeExtension)
-  .map(xs => Map.fromArray(Ord.fromUniversalCompare() as Ord<string>)(xs));
+  .map(xs => OrdMap.fromArray(xs));
 
 export const fp4tsMediaType = (): Arbitrary<MediaType> =>
   fc.constantFrom(...MediaType.all.toArray.map(snd));
@@ -175,9 +175,9 @@ const arbRealm: Arbitrary<string> = arbToken;
 const arbChallengeParam: Arbitrary<[string, string]> = fc
   .tuple(arbToken, fc.oneof(arbQDText, arbText))
   .filter(x => x[0] !== 'realm');
-const arbChallengeParams: Arbitrary<Map<string, string>> = fc
+const arbChallengeParams: Arbitrary<OrdMap<string, string>> = fc
   .array(arbChallengeParam)
-  .map(xs => Map.fromArray(Ord.fromUniversalCompare() as Ord<string>)(xs));
+  .map(xs => OrdMap.fromArray(xs));
 
 export const fp4tsChallenge = (): Arbitrary<Challenge> =>
   fc

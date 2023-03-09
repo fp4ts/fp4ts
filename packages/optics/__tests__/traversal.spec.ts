@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { id, tupled } from '@fp4ts/core';
 import { Either, Eq, Monoid, Option, Some } from '@fp4ts/cats';
-import { LazyList, List, Map, Seq, Vector } from '@fp4ts/collections';
+import { LazyList, List, OrdMap, Seq, Vector } from '@fp4ts/collections';
 import {
   all,
   any,
@@ -298,28 +298,28 @@ describe('Traversal', () => {
 
   test('indexing worded', () => {
     expect(
-      IEach.Map<number>()<string>().compose(worded).apply(headOption)(
-        Map([42, 'test test']),
+      IEach.OrdMap<number>()<string>().compose(worded).apply(headOption)(
+        OrdMap([42, 'test test']),
       ),
     ).toEqual(Some('test'));
 
     expect(
-      IEach.Map<number>()<string>().icomposeL(worded).apply(iheadOption)(
-        Map([42, 'test test']),
+      IEach.OrdMap<number>()<string>().icomposeL(worded).apply(iheadOption)(
+        OrdMap([42, 'test test']),
       ),
     ).toEqual(Some(['test', 42]));
   });
 
   test('indexing lines', () => {
     expect(
-      IEach.Map<number>()<string>().compose(lined).apply(headOption)(
-        Map([42, 'test\r\ntest']),
+      IEach.OrdMap<number>()<string>().compose(lined).apply(headOption)(
+        OrdMap([42, 'test\r\ntest']),
       ),
     ).toEqual(Some('test'));
 
     expect(
-      IEach.Map<number>()<string>().icomposeL(lined).apply(iheadOption)(
-        Map([42, 'test\ntest']),
+      IEach.OrdMap<number>()<string>().icomposeL(lined).apply(iheadOption)(
+        OrdMap([42, 'test\ntest']),
       ),
     ).toEqual(Some(['test', 42]));
   });
@@ -382,10 +382,10 @@ describe('Traversal', () => {
 
   test('nested indexing', () => {
     expect(
-      IEach.Map<number>()<Map<string, string>>()
-        .icompose(IEach.Map<string>()())
+      IEach.OrdMap<number>()<OrdMap<string, string>>()
+        .icompose(IEach.OrdMap<string>()())
         .compose(worded)
-        .apply(iheadOption)(Map([42, Map(['testing', 'test test'])])),
+        .apply(iheadOption)(OrdMap([42, OrdMap(['testing', 'test test'])])),
     ).toEqual(Some(['test', [42, 'testing']]));
   });
 
@@ -490,9 +490,9 @@ describe('Traversal', () => {
     checkAll(
       'Traversal<Each<Map<string, number>>, number>',
       TraversalSuite(Each.Map<string>()<number>()).traversal(
-        CA.fp4tsMap(fc.string(), fc.integer()),
+        CA.fp4tsOrdMap(fc.string(), fc.integer()),
         fc.integer(),
-        Map.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
+        OrdMap.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()),
         Eq.fromUniversalEquals(),
       ),
     );

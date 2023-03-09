@@ -5,7 +5,7 @@
 
 import { Char } from '@fp4ts/core';
 import { Either, Left, Ord, Right } from '@fp4ts/cats';
-import { List, Map, NonEmptyList } from '@fp4ts/collections';
+import { List, OrdMap, NonEmptyList } from '@fp4ts/collections';
 import { Parser, StringSource, Rfc5234, text } from '@fp4ts/parse';
 import { Challenge } from '../challenge';
 import { AuthParams, Credentials, Token } from '../credentials';
@@ -37,7 +37,7 @@ export const challenge: Parser<StringSource, Challenge> = scheme['<*'](
     authParam
       .backtrack()
       .sepBy(text.char(',' as Char).surroundedBy(Rfc7230.ows))
-      .map(xs => Map.fromList(Ord.fromUniversalCompare() as Ord<string>)(xs)),
+      .map(xs => OrdMap.fromList(xs)),
   )
   .map(
     ([scheme, params]) =>

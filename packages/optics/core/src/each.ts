@@ -16,8 +16,8 @@ import {
   LazyListF,
   List,
   ListF,
-  Map,
-  MapF,
+  OrdMap,
+  OrdMapF,
   Seq,
   SeqF,
   Vector,
@@ -84,12 +84,12 @@ export const Each = Object.freeze({
   ) as <C>() => Each<$<EitherF, [C]>>,
 
   Map: lazy(
-    <K>(): Each<$<MapF, [K]>> =>
-      <A, B>(): PTraversal<Map<K, A>, Map<K, B>, A, B> =>
-        traversal<Map<K, A>, Map<K, B>, A, B>(
-          Map.TraversableWithIndex<K>().traverse,
+    <K>(): Each<$<OrdMapF, [K]>> =>
+      <A, B>(): PTraversal<OrdMap<K, A>, OrdMap<K, B>, A, B> =>
+        traversal<OrdMap<K, A>, OrdMap<K, B>, A, B>(
+          OrdMap.Traversable<K>().traverse,
         ),
-  ) as <K>() => Each<$<MapF, [K]>>,
+  ) as <K>() => Each<$<OrdMapF, [K]>>,
 });
 
 export const each = Each.Array;

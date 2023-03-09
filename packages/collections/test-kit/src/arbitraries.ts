@@ -11,8 +11,8 @@ import {
   HashMap,
   LazyList,
   List,
-  Map,
   NonEmptyList,
+  OrdMap,
   Seq,
   Set,
   Vector,
@@ -86,12 +86,12 @@ export const fp4tsChain = <A>(arbA: Arbitrary<A>): Arbitrary<Chain<A>> => {
   return gen(0);
 };
 
-export const fp4tsMap = <K, V>(
+export const fp4tsOrdMap = <K, V>(
   arbK: Arbitrary<K>,
   arbV: Arbitrary<V>,
   O: Ord<K> = Ord.fromUniversalCompare(),
-): Arbitrary<Map<K, V>> =>
-  fc.array(fc.tuple(arbK, arbV)).map(xs => Map.fromArray(O)(xs));
+): Arbitrary<OrdMap<K, V>> =>
+  fc.array(fc.tuple(arbK, arbV)).map(xs => OrdMap.fromArray(xs, O));
 
 export const fp4tsSet = <A>(
   arbA: Arbitrary<A>,

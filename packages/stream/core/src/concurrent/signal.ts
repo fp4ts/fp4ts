@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, tupled } from '@fp4ts/core';
-import { Map } from '@fp4ts/collections';
+import { OrdMap } from '@fp4ts/collections';
 import { Ref, Concurrent, Deferred } from '@fp4ts/effect';
 import { Stream } from '../stream';
 
@@ -19,7 +19,7 @@ export interface SignallingRef<F, A> extends Ref<F, A>, Signal<F, A> {}
 export const SignallingRef = function <F>(F: Concurrent<F, Error>) {
   return <A>(initial: A): Kind<F, [SignallingRef<F, A>]> =>
     F.do(function* (_) {
-      const state = yield* _(F.ref(new State<F, A>(initial, 0, Map.empty)));
+      const state = yield* _(F.ref(new State<F, A>(initial, 0, OrdMap.empty)));
       const ids = yield* _(F.ref(0));
       const newId = ids.updateAndGet(x => x + 1);
 
@@ -95,7 +95,7 @@ class SignallingRefImpl<F, A> extends Ref<F, A> implements Signal<F, A> {
   ): [State<F, A>, Kind<F, [B]>] => {
     const [newValue, result] = f(state.value);
     const lastUpdate = state.lastUpdate + 1;
-    const newState = new State<F, A>(newValue, lastUpdate, Map.empty);
+    const newState = new State<F, A>(newValue, lastUpdate, OrdMap.empty);
     const notifyListeners = state.listeners.toList.traverse(
       this.F,
       ([, listener]) => listener.complete([newValue, lastUpdate]),
@@ -112,13 +112,13 @@ class SignallingRefImpl<F, A> extends Ref<F, A> implements Signal<F, A> {
 type Props<F, A> = {
   readonly value: A;
   readonly lastUpdate: number;
-  readonly listeners: Map<number, Deferred<F, [A, number]>>;
+  readonly listeners: OrdMap<number, Deferred<F, [A, number]>>;
 };
 class State<F, A> {
   public constructor(
     public readonly value: A,
     public readonly lastUpdate: number,
-    public readonly listeners: Map<number, Deferred<F, [A, number]>>,
+    public readonly listeners: OrdMap<number, Deferred<F, [A, number]>>,
   ) {}
 
   public copy = ({

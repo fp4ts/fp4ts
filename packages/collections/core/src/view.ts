@@ -43,7 +43,7 @@ import { Set as OrdSet } from './set';
 import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector } from './vector';
-import { Map } from './map';
+import { OrdMap } from './ord-map';
 import { Seq } from './seq';
 
 /**
@@ -859,13 +859,13 @@ export class _View<A> {
    *
    * ```typescript
    * > View([1, 'a'], [2, 'b'], [3, 'c']).toMap()
-   * // Map([1, 'a'], [2, 'b'], [3, 'c'])
+   * // OrdMap([1, 'a'], [2, 'b'], [3, 'c'])
    *
    * > View([1, 'a'], [2, 'b'], [2, 'c'], [3, 'd'], [3, 'd']).toMap()
-   * // Map([1, 'a'], [2, 'c'], [3, 'd'])
+   * // OrdMap([1, 'a'], [2, 'c'], [3, 'd'])
    *
    * > View.empty.toMap()
-   * // Map()
+   * // OrdMap()
    *
    * > View.repeat([1, 'a']).toMap()
    * // *hangs*
@@ -874,8 +874,8 @@ export class _View<A> {
   public toMap<K, V>(
     this: View<[K, V]>,
     O: Ord<K> = Ord.fromUniversalCompare(),
-  ): Map<K, V> {
-    return this.foldLeft(Map.empty as Map<K, V>, (xs, [k, v]) =>
+  ): OrdMap<K, V> {
+    return this.foldLeft(OrdMap.empty as OrdMap<K, V>, (xs, [k, v]) =>
       xs.insert(k, v, O),
     );
   }

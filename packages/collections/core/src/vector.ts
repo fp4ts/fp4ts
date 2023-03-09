@@ -45,7 +45,7 @@ import {
 
 import { View } from './view';
 import { List, ListBuffer } from './list';
-import { Map } from './map';
+import { OrdMap } from './ord-map';
 import { Seq } from './seq';
 import { Set as CSet } from './set';
 
@@ -444,20 +444,20 @@ class _Vector<out A> {
    *
    * ```typescript
    * > Vector([1, 'a'], [2, 'b'], [3, 'c']).toMap()
-   * // Map([1, 'a'], [2, 'b'], [3, 'c'])
+   * // OrdMap([1, 'a'], [2, 'b'], [3, 'c'])
    *
    * > Vector([1, 'a'], [2, 'b'], [2, 'c'], [3, 'd'], [3, 'd']).toMap()
-   * // Map([1, 'a'], [2, 'c'], [3, 'd'])
+   * // OrdMap([1, 'a'], [2, 'c'], [3, 'd'])
    *
    * > Vector.empty.toMap()
-   * // Map()
+   * // OrdMap()
    * ```
    */
   public toMap<K, V>(
     this: Seq<[K, V]>,
     O: Ord<K> = Ord.fromUniversalCompare(),
-  ): Map<K, V> {
-    return this.foldLeft(Map.empty as Map<K, V>, (s, [k, v]) =>
+  ): OrdMap<K, V> {
+    return this.foldLeft(OrdMap.empty as OrdMap<K, V>, (s, [k, v]) =>
       s.insert(k, v, O),
     );
   }

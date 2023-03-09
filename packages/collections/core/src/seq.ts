@@ -43,7 +43,7 @@ import {
   Unzip,
 } from '@fp4ts/cats';
 
-import { Map } from './map';
+import { OrdMap } from './ord-map';
 import { Set } from './set';
 import { List } from './list';
 import { View } from './view';
@@ -456,20 +456,20 @@ abstract class _Seq<out A> {
    *
    * ```typescript
    * > Seq([1, 'a'], [2, 'b'], [3, 'c']).toMap()
-   * // Map([1, 'a'], [2, 'b'], [3, 'c'])
+   * // OrdMap([1, 'a'], [2, 'b'], [3, 'c'])
    *
    * > Seq([1, 'a'], [2, 'b'], [2, 'c'], [3, 'd'], [3, 'd']).toMap()
-   * // Map([1, 'a'], [2, 'c'], [3, 'd'])
+   * // OrdMap([1, 'a'], [2, 'c'], [3, 'd'])
    *
    * > Seq.empty.toMap()
-   * // Map()
+   * // OrdMap()
    * ```
    */
   public toMap<K, V>(
     this: Seq<[K, V]>,
     O: Ord<K> = Ord.fromUniversalCompare(),
-  ): Map<K, V> {
-    return this.foldLeft(Map.empty as Map<K, V>, (s, [k, v]) =>
+  ): OrdMap<K, V> {
+    return this.foldLeft(OrdMap.empty as OrdMap<K, V>, (s, [k, v]) =>
       s.insert(k, v, O),
     );
   }

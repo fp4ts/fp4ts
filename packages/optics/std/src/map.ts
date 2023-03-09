@@ -4,12 +4,14 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Ord } from '@fp4ts/cats';
-import { Map } from '@fp4ts/collections';
+import { OrdMap } from '@fp4ts/collections';
 import { ifoldMap, IndexedFold } from '@fp4ts/optics-core';
 
 export function toMap<K>(
   O: Ord<K> = Ord.fromUniversalCompare(),
-): <S, A>(l: IndexedFold<K, S, A>) => (s: S) => Map<K, A> {
+): <S, A>(l: IndexedFold<K, S, A>) => (s: S) => OrdMap<K, A> {
   return <S, A>(l: IndexedFold<K, S, A>) =>
-    ifoldMap(l)(Map.MonoidK<K>(O).algebra<A>())((a, k) => Map.singleton(k, a));
+    ifoldMap(l)(OrdMap.MonoidK<K>(O).algebra<A>())((a, k) =>
+      OrdMap.singleton(k, a),
+    );
 }

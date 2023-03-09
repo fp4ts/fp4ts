@@ -44,7 +44,7 @@ import {
   Unzip,
 } from '@fp4ts/cats';
 
-import { Map } from './map';
+import { OrdMap } from './ord-map';
 import { Set as CSet } from './set';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
@@ -581,11 +581,8 @@ export abstract class _List<out A> {
   public toMap<K, V>(
     this: List<[K, V]>,
     O: Ord<K> = Ord.fromUniversalCompare(),
-  ): Map<K, V> {
-    // TODO: use dedicated List constructor
-    return this.foldLeft(Map.empty as Map<K, V>, (s, [k, v]) =>
-      s.insert(k, v, O),
-    );
+  ): OrdMap<K, V> {
+    return OrdMap.fromList(this, O);
   }
 
   /**
@@ -3038,7 +3035,7 @@ export abstract class _List<out A> {
   // -- Folds
 
   /**
-   * Apply `f` to each element of the view for its side-effect.
+   * Apply `f` to each element of the list for its side-effect.
    *
    * @examples
    *
@@ -3529,7 +3526,9 @@ export abstract class _List<out A> {
   }
 
   public toString(): string {
-    return `List(${this.map(String).join(',')})`;
+    return `List(${this.map(x =>
+      Array.isArray(x) ? `[${String(x)}]` : String(x),
+    ).join(',')})`;
   }
 
   // -- Misc
