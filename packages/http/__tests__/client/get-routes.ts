@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Map } from '@fp4ts/collections';
+import { OrdMap } from '@fp4ts/collections';
 import { IO, IOF } from '@fp4ts/effect';
 import { Chunk, Stream, text } from '@fp4ts/stream';
 import { EntityEncoder, Response, Status } from '@fp4ts/http-core';
@@ -16,7 +16,7 @@ export const NotFoundPath = '/not-found';
 export const EmptyNotFoundPath = '/empty-not-found';
 export const InternalServerErrorPath = '/internal-server-error';
 
-export const GetRoutes = Map<string, IO<Response<IOF>>>(
+export const GetRoutes = OrdMap<string, IO<Response<IOF>>>(
   [SimplePath, IO.pure(Status.Ok('simple path')(EntityEncoder.text()))],
   [
     ChunkedPath,

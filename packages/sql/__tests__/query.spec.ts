@@ -5,7 +5,7 @@
 
 import '@fp4ts/effect-test-kit/lib/jest-extension';
 import { None, Ord, Some } from '@fp4ts/cats';
-import { List, Map } from '@fp4ts/collections';
+import { List, OrdMap } from '@fp4ts/collections';
 import { IO } from '@fp4ts/effect';
 import { Fragment, Query, Read, Write } from '@fp4ts/sql-core';
 import { SqliteTransactor } from '@fp4ts/sql-sqlite';
@@ -45,7 +45,7 @@ describe('Query', () => {
         .map(xs => [xs.id, xs.foo] as [string, number])
         .toMap(Ord.fromUniversalCompare())('foo')
         .transact(trx)
-        .map(xs => expect(xs).toEqual(Map(['xxx', 42]))),
+        .map(xs => expect(xs).toEqual(OrdMap(['xxx', 42]))),
     );
 
     it.M('should return an empty Map', () =>
@@ -53,7 +53,7 @@ describe('Query', () => {
         .map(xs => [xs.id, xs.foo] as [string, number])
         .toMap(Ord.fromUniversalCompare())('baz')
         .transact(trx)
-        .map(xs => expect(xs).toEqual(Map.empty)),
+        .map(xs => expect(xs).toEqual(OrdMap.empty)),
     );
   });
 
@@ -155,7 +155,7 @@ describe('Query0', () => {
         .toQuery0('foo')
         .toMap(Ord.fromUniversalCompare())
         .transact(trx)
-        .map(xs => expect(xs).toEqual(Map(['xxx', 42]))),
+        .map(xs => expect(xs).toEqual(OrdMap(['xxx', 42]))),
     );
 
     it.M('should return an empty Map', () =>
@@ -164,7 +164,7 @@ describe('Query0', () => {
         .toQuery0('baz')
         .toMap(Ord.fromUniversalCompare())
         .transact(trx)
-        .map(xs => expect(xs).toEqual(Map.empty)),
+        .map(xs => expect(xs).toEqual(OrdMap.empty)),
     );
   });
 

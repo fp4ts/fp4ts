@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Option, Ord } from '@fp4ts/cats';
-import { List, Map } from '@fp4ts/collections';
+import { List, OrdMap } from '@fp4ts/collections';
 import { Chunk, Stream } from '@fp4ts/stream';
 import {
   ConnectionIO,
@@ -64,11 +64,11 @@ export class Query<in A, out B> {
   public toMap<K, V>(
     this: Query<A, [K, V]>,
     O: Ord<K>,
-  ): (a: A) => ConnectionIO<Map<K, V>> {
+  ): (a: A) => ConnectionIO<OrdMap<K, V>> {
     return a =>
       this.prepareStatement(this.executeQuery(a, rs => rs.getRows()))
         .map(rows => rows.map(this.R.fromRow))
-        .map(Map.fromArray(O));
+        .map(xs => OrdMap.fromArray(xs, O));
   }
 
   public stream(a: A): Stream<ConnectionIOF, B> {

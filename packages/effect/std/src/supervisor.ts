@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind, pipe, snd } from '@fp4ts/core';
-import { Map, List } from '@fp4ts/collections';
+import { OrdMap, List } from '@fp4ts/collections';
 import {
   Fiber,
   Concurrent,
@@ -21,7 +21,7 @@ export function Supervisor<F>(
   F: Concurrent<F, Error>,
 ): Resource<F, Supervisor<F>> {
   const stateRefR = Resource.make(F)(
-    F.ref<Map<UniqueToken, Kind<F, [void]>>>(Map.empty),
+    F.ref<OrdMap<UniqueToken, Kind<F, [void]>>>(OrdMap.empty),
     state =>
       pipe(
         state.get(),
@@ -38,7 +38,7 @@ export function Supervisor<F>(
 class SupervisorImpl<F> implements Supervisor<F> {
   public constructor(
     private readonly F: Concurrent<F, Error>,
-    private readonly state: Ref<F, Map<UniqueToken, Kind<F, [void]>>>,
+    private readonly state: Ref<F, OrdMap<UniqueToken, Kind<F, [void]>>>,
   ) {}
 
   public supervise<A>(fa: Kind<F, [A]>): Kind<F, [Fiber<F, Error, A>]> {

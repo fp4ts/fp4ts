@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { ArrayF, TraversableWithIndex } from '@fp4ts/cats';
-import { Map, MapF } from '@fp4ts/collections';
+import { OrdMap, OrdMapF } from '@fp4ts/collections';
 import { $, Kind, lazy } from '@fp4ts/core';
 import { IndexedPTraversal, IndexedTraversal, itraversal } from './traversal';
 
@@ -28,13 +28,13 @@ export const IEach = Object.freeze({
       ),
   ) as IEach<ArrayF, number>,
 
-  Map: lazy(
-    <K>(): IEach<$<MapF, [K]>, K> =>
-      <A, B>(): IndexedPTraversal<K, Map<K, A>, Map<K, B>, A, B> =>
-        itraversal<K, Map<K, A>, Map<K, B>, A, B>(
-          Map.TraversableWithIndex<K>().traverseWithIndex,
+  OrdMap: lazy(
+    <K>(): IEach<$<OrdMapF, [K]>, K> =>
+      <A, B>(): IndexedPTraversal<K, OrdMap<K, A>, OrdMap<K, B>, A, B> =>
+        itraversal<K, OrdMap<K, A>, OrdMap<K, B>, A, B>(
+          OrdMap.TraversableWithIndex<K>().traverseWithIndex,
         ),
-  ) as <K>() => IEach<$<MapF, [K]>, K>,
+  ) as <K>() => IEach<$<OrdMapF, [K]>, K>,
 });
 
 export const ieach = IEach.Array;

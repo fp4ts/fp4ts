@@ -8,7 +8,7 @@
  */
 export { List, ListF, ListBuffer } from './list';
 export * from './hash-map';
-export * from './map';
+export { OrdMap, OrdMapF } from './ord-map';
 export * from './vector';
 export * from './chain';
 export * from './seq';

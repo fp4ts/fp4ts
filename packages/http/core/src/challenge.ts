@@ -3,13 +3,13 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Map } from '@fp4ts/collections';
+import { OrdMap } from '@fp4ts/collections';
 
 export class Challenge {
   public constructor(
     public readonly scheme: string,
     public readonly realm: string,
-    public readonly params: Map<string, string> = Map.empty,
+    public readonly params: OrdMap<string, string> = OrdMap.empty,
   ) {}
 
   public toString(): string {
