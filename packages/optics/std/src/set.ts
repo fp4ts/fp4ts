@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Ord } from '@fp4ts/cats';
-import { Set } from '@fp4ts/collections';
+import { OrdSet } from '@fp4ts/collections';
 import {
   Fold,
   foldMap,
@@ -15,16 +15,16 @@ import {
 
 export function setmapped<A, B>(
   O?: Ord<B>,
-): IndexPreservingPSetter<Set<A>, Set<B>, A, B>;
-export function setmapped<A>(O?: Ord<A>): IndexPreservingSetter<Set<A>, A>;
+): IndexPreservingPSetter<OrdSet<A>, OrdSet<B>, A, B>;
+export function setmapped<A>(O?: Ord<A>): IndexPreservingSetter<OrdSet<A>, A>;
 export function setmapped<A>(
   O: Ord<A> = Ord.fromUniversalCompare(),
-): IndexPreservingSetter<Set<A>, A> {
+): IndexPreservingSetter<OrdSet<A>, A> {
   return sets(f => s => s.map(f, O));
 }
 
 export function toSet<A>(
   O: Ord<A> = Ord.fromUniversalCompare(),
-): <S>(l: Fold<S, A>) => (s: S) => Set<A> {
-  return <S>(l: Fold<S, A>) => foldMap(l)(Set.Monoid(O))(Set.singleton);
+): <S>(l: Fold<S, A>) => (s: S) => OrdSet<A> {
+  return <S>(l: Fold<S, A>) => foldMap(l)(OrdSet.Monoid(O))(OrdSet.singleton);
 }

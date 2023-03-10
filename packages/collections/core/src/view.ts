@@ -39,11 +39,11 @@ import {
   Unzip,
 } from '@fp4ts/cats';
 
-import { Set as OrdSet } from './set';
 import { List, ListBuffer } from './list';
 import { LazyList } from './lazy-list';
 import { Vector } from './vector';
 import { OrdMap } from './ord-map';
+import { OrdSet } from './ord-set';
 import { Seq } from './seq';
 
 /**

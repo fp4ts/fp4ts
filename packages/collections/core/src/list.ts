@@ -45,7 +45,7 @@ import {
 } from '@fp4ts/cats';
 
 import { OrdMap } from './ord-map';
-import { Set as CSet } from './set';
+import { OrdSet } from './ord-set';
 import { View } from './view';
 import { NonEmptyList } from './non-empty-list';
 import { Seq } from './seq';
@@ -544,21 +544,20 @@ export abstract class _List<out A> {
    *
    * ```typescript
    * > List(1, 2, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > List(1, 2, 2, 3, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > List.empty.toSet()
-   * // Set()
+   * // OrdSet()
    * ```
    */
   public toSet<A>(
     this: List<A>,
     O: Ord<A> = Ord.fromUniversalCompare(),
-  ): CSet<A> {
-    // TODO: use dedicated List constructor
-    return this.foldLeft(CSet.empty as CSet<A>, (s, x) => s.insert(x, O));
+  ): OrdSet<A> {
+    return OrdSet.fromList(this, O);
   }
 
   /**

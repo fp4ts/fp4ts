@@ -13,8 +13,8 @@ import {
   List,
   NonEmptyList,
   OrdMap,
+  OrdSet,
   Seq,
-  Set,
   Vector,
   View,
 } from '@fp4ts/collections-core';
@@ -93,10 +93,10 @@ export const fp4tsOrdMap = <K, V>(
 ): Arbitrary<OrdMap<K, V>> =>
   fc.array(fc.tuple(arbK, arbV)).map(xs => OrdMap.fromArray(xs, O));
 
-export const fp4tsSet = <A>(
+export const fp4tsOrdSet = <A>(
   arbA: Arbitrary<A>,
   O: Ord<A> = Ord.fromUniversalCompare(),
-): Arbitrary<Set<A>> => fc.array(arbA).map(xs => Set.fromArray(O, xs));
+): Arbitrary<OrdSet<A>> => fc.array(arbA).map(xs => OrdSet.fromArray(xs, O));
 
 interface HashMapConstraints {
   readonly minSize?: number;

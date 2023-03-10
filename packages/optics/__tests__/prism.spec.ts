@@ -11,7 +11,6 @@ import { deriveConstructors, Schema, Schemable } from '@fp4ts/schema';
 import {
   all,
   any,
-  filtered,
   find,
   getOption,
   getOrModify,
@@ -19,7 +18,6 @@ import {
   iso,
   modify,
   nonEmpty,
-  prism_,
   replace,
   reuse,
   reverseGet,

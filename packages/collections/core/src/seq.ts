@@ -44,7 +44,7 @@ import {
 } from '@fp4ts/cats';
 
 import { OrdMap } from './ord-map';
-import { Set } from './set';
+import { OrdSet } from './ord-set';
 import { List } from './list';
 import { View } from './view';
 
@@ -425,27 +425,27 @@ abstract class _Seq<out A> {
   }
 
   /**
-   * _O(n)_ Converts the seq into a `Set` using provided `Ord<A>` instance, or
-   * `Ord.fromUniversalCompare()` if not provided.
+   * _O(n)_ Converts the seq into a {@link OrdSet} using provided `Ord<A>`
+   * instance, or `Ord.fromUniversalCompare()` if not provided.
    *
    * @examples
    *
    * ```typescript
    * > Seq(1, 2, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > Seq(1, 2, 2, 3, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > Seq.empty.toSet()
-   * // Set()
+   * // OrdSet()
    * ```
    */
   public toSet<A>(
     this: Seq<A>,
     O: Ord<A> = Ord.fromUniversalCompare(),
-  ): Set<A> {
-    return this.foldLeft(Set.empty as Set<A>, (s, x) => s.insert(x, O));
+  ): OrdSet<A> {
+    return this.foldLeft(OrdSet.empty as OrdSet<A>, (s, x) => s.insert(x, O));
   }
 
   /**
