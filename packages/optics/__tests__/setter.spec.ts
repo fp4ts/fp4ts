@@ -176,8 +176,8 @@ describe('Setter', () => {
   );
 
   test(
-    'Set<number>',
-    forAll(CA.fp4tsSet(fc.integer()), xs =>
+    'OrdSet<number>',
+    forAll(CA.fp4tsOrdSet(fc.integer()), xs =>
       expect(
         setmapped<number, string>().apply(modify)(String)(xs).toArray,
       ).toEqual(xs.map(String).toArray),

@@ -47,7 +47,7 @@ import { View } from './view';
 import { List, ListBuffer } from './list';
 import { OrdMap } from './ord-map';
 import { Seq } from './seq';
-import { Set as CSet } from './set';
+import { OrdSet } from './ord-set';
 
 /**
  * Immutable, strict, finite sequence of elements `A`.
@@ -412,27 +412,27 @@ class _Vector<out A> {
   }
 
   /**
-   * _O(n)_ Converts the vector into a {@link Set} using provided `Ord<A>` instance,
-   * or {@link Ord.fromUniversalCompare} if not provided.
+   * _O(n)_ Converts the vector into a {@link OrdSet} using provided `Ord<A>`
+   * instance, or {@link Ord.fromUniversalCompare} if not provided.
    *
    * @examples
    *
    * ```typescript
    * > Vector(1, 2, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > Vector(1, 2, 2, 3, 3).toSet()
-   * // Set(1, 2, 3)
+   * // OrdSet(1, 2, 3)
    *
    * > Vector.empty.toSet()
-   * // Set()
+   * // OrdSet()
    * ```
    */
   public toSet<A>(
     this: Seq<A>,
     O: Ord<A> = Ord.fromUniversalCompare(),
-  ): CSet<A> {
-    return this.foldLeft(CSet.empty as CSet<A>, (s, x) => s.insert(x, O));
+  ): OrdSet<A> {
+    return this.foldLeft(OrdSet.empty as OrdSet<A>, (s, x) => s.insert(x, O));
   }
 
   /**

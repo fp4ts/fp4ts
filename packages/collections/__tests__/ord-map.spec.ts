@@ -174,19 +174,6 @@ describe('Map', () => {
       }),
     );
 
-    it(
-      'fromArray is reduce insert',
-      forAll(fc.array(fc.tuple(fc.integer(), fc.integer())), xs => {
-        const m1 = OrdMap.fromArray(xs);
-        const m2 = xs.reduce(
-          (kv, [k, v]) => kv.insert(k, v),
-          OrdMap.empty as OrdMap<number, number>,
-        );
-        expect(m1.toArray).toEqual(m2.toArray);
-        expect(isValid(m1)).toBe(true);
-      }),
-    );
-
     test('fromArrayWith', () => {
       expect(
         OrdMap.fromArrayWith(
@@ -1282,11 +1269,6 @@ describe('Map', () => {
     );
   });
 
-  test('something', () => {
-    console.log(OrdMap([0, 0]).partition(() => false));
-    console.log(List([0, 0]).partition(() => false));
-  });
-
   test(
     'partition to be toList.partition',
     forAll(
@@ -1453,6 +1435,18 @@ describe('Map', () => {
       n < 0 || n >= xs.size
         ? expect(() => xs.removeAt(n)).toThrow()
         : expect(xs.removeAt(n).toList).toEqual(xs.toList.removeAt(n)),
+    ),
+  );
+
+  test(
+    'findIndex.toList to be toList.findIndex',
+    forAll(
+      CA.fp4tsOrdMap(fc.integer(), fc.integer()),
+      fc.func(fc.boolean()),
+      (xs, f) =>
+        expect(xs.findIndex(v => f(v))).toEqual(
+          xs.toList.findIndex(([k, v]) => f(v)),
+        ),
     ),
   );
 

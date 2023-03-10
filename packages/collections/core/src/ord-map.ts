@@ -21,6 +21,7 @@ import {
   Ior,
   isConstTC,
   isIdentityTC,
+  Iter,
   Monoid,
   MonoidK,
   None,
@@ -168,8 +169,8 @@ OrdMap.fromArrayWith = <K, V>(
  * _O(n)_ Builds a map from an array of key/value pairs where keys are already
  * in an ascending order.
  *
- * @see {@link Ord.fromDistinctDescArray} for array with keys in descending order
- * @see {@link Ord.fromArray} for array with keys in no particular order
+ * @see {@link OrdMap.fromDistinctDescArray} for array with keys in descending order
+ * @see {@link OrdMap.fromArray} for array with keys in no particular order
  */
 OrdMap.fromDistinctAscArray = <K, V>(
   xs0: readonly (readonly [K, V])[],
@@ -437,7 +438,7 @@ export abstract class _OrdMap<out K, out V> {
   public abstract readonly size: number;
 
   /**
-   * _O(1)_ Returns a {@link View} of the maps's key/value paris.
+   * _O(1)_ Returns a {@link View} of the maps's key/value pairs.
    *
    * @note The complexity of this method, i.e., creating a view is constant as
    * the view is a lazy collection. Although it's traversal is _O(n)_.
@@ -525,7 +526,7 @@ export abstract class _OrdMap<out K, out V> {
   }
 
   /**
-   * _O(1)_ Returns an iterator of the map's key/value paris in an ascending order.
+   * _O(1)_ Returns an iterator of the map's key/value pairs in an ascending order.
    *
    * @note The complexity of this method, i.e., creating an iterator is constant
    * as the iterator is a lazy collection. Although it's traversal is _O(n)_.
@@ -538,7 +539,7 @@ export abstract class _OrdMap<out K, out V> {
   }
 
   /**
-   * _O(1)_ Returns an iterator of the map's key/value paris in an descending order.
+   * _O(1)_ Returns an iterator of the map's key/value pairs in an descending order.
    *
    * @note The complexity of this method, i.e., creating an iterator is constant
    * as the iterator is a lazy collection. Although it's traversal is _O(n)_.
@@ -590,7 +591,7 @@ export abstract class _OrdMap<out K, out V> {
    * ```
    */
   public get keysView(): View<K> {
-    return View.build((ez, g) => this.foldRight(ez, (_, eb, k) => g(k, eb)));
+    return View.build((ez, g) => Iter.foldRight_(this.keysIterator, ez, g));
   }
 
   /**
@@ -646,7 +647,7 @@ export abstract class _OrdMap<out K, out V> {
    * ```
    */
   public get valuesView(): View<V> {
-    return View.build((ez, g) => this.foldRight(ez, (v, eb, _) => g(v, eb)));
+    return View.build((ez, g) => Iter.foldRight_(this.valuesIterator, ez, g));
   }
 
   /**
@@ -678,13 +679,13 @@ export abstract class _OrdMap<out K, out V> {
    * // 'b'
    *
    * > OrdMap.empty.min
-   * // Uncaught Error: Map.empty.min
+   * // Uncaught Error: OrdMap.empty.min
    * ```
    */
   public get min(): V {
     const n = this as any as Node<K, V>;
     return n.tag === 'empty'
-      ? throwError(new Error('Map.empty.min'))
+      ? throwError(new Error('OrdMap.empty.min'))
       : n.lhs.minSure(n.value);
   }
 
@@ -732,13 +733,13 @@ export abstract class _OrdMap<out K, out V> {
    * // [1, 'b']
    *
    * > OrdMap.empty.minWithKey
-   * // Uncaught Error: Map.empty.minWithKey
+   * // Uncaught Error: OrdMap.empty.minWithKey
    * ```
    */
   public get minWithKey(): [K, V] {
     const n = this as any as Node<K, V>;
     return n.tag === 'empty'
-      ? throwError(new Error('Map.empty.minWithKey'))
+      ? throwError(new Error('OrdMap.empty.minWithKey'))
       : n.lhs.minWithKeySure(n.key, n.value);
   }
 
@@ -864,13 +865,13 @@ export abstract class _OrdMap<out K, out V> {
    * // 'c'
    *
    * > OrdMap.empty.max
-   * // Uncaught Error: Map.empty.max
+   * // Uncaught Error: OrdMap.empty.max
    * ```
    */
   public get max(): V {
     const n = this as any as Node<K, V>;
     return n.tag === 'empty'
-      ? throwError(new Error('Map.empty.max'))
+      ? throwError(new Error('OrdMap.empty.max'))
       : n.rhs.maxSure(n.value);
   }
 
@@ -918,13 +919,13 @@ export abstract class _OrdMap<out K, out V> {
    * // [5, 'c']
    *
    * > OrdMap.empty.maxWithKey
-   * // Uncaught Error: Map.empty.maxWithKey
+   * // Uncaught Error: OrdMap.empty.maxWithKey
    * ```
    */
   public get maxWithKey(): [K, V] {
     const n = this as any as Node<K, V>;
     return n.tag === 'empty'
-      ? throwError(new Error('Map.empty.maxWithKey'))
+      ? throwError(new Error('OrdMap.empty.maxWithKey'))
       : n.rhs.maxWithKeySure(n.key, n.value);
   }
 
@@ -1088,7 +1089,7 @@ export abstract class _OrdMap<out K, out V> {
    * // 'b'
    *
    * > OrdMap([5, 'a'], [3, 'b'], [5, 'c']).get(42)
-   * // Uncaught Error: Map.get: no such element
+   * // Uncaught Error: OrdMap.get: no such element
    * ```
    */
   public get<K>(
@@ -1110,7 +1111,7 @@ export abstract class _OrdMap<out K, out V> {
   }
   private getImpl<K>(this: OrdMap<K, V>, k: K, O: Ord<K>): V {
     const n = this as Node<K, V>;
-    if (n.tag === 'empty') throw new Error('Map.get: no such element');
+    if (n.tag === 'empty') throw new Error('OrdMap.get: no such element');
     switch (O.compare(k, n.key)) {
       case Compare.LT:
         return n.lhs.getImpl(k, O);
@@ -1692,18 +1693,18 @@ export abstract class _OrdMap<out K, out V> {
    * ```typescript
    * > const f = _ => None
    *
-   * > OrdMap([5, 'a'], [3, 'b']]).alter(7, f)
+   * > OrdMap([5, 'a'], [3, 'b']).alter(7, f)
    * // OrdMap([3, 'b'], [5, 'a'])
    *
-   * > OrdMap([5, 'a'], [3, 'b']]).alter(5, f)
+   * > OrdMap([5, 'a'], [3, 'b']).alter(5, f)
    * // OrdMap([3, 'b'])
    *
    * > const g = _ => Some('c')
    *
-   * > OrdMap([5, 'a'], [3, 'b']]).alter(7, g)
+   * > OrdMap([5, 'a'], [3, 'b']).alter(7, g)
    * // OrdMap([3, 'b'], [5, 'a'], [7, 'c'])
    *
-   * > OrdMap([5, 'a'], [3, 'b']]).alter(5, g)
+   * > OrdMap([5, 'a'], [3, 'b']).alter(5, g)
    * // OrdMap([3, 'b'], [5, 'c'])
    * ```
    */
@@ -1911,7 +1912,6 @@ export abstract class _OrdMap<out K, out V> {
 
     return l1l2.size + r1r2.size === n1.size ? n1 : _link2(l1l2, r1r2);
   }
-
   /**
    * Alias for {@link difference}
    */
@@ -1990,7 +1990,7 @@ export abstract class _OrdMap<out K, out V> {
    *
    * ```typescript
    * > OrdMap([3, 'a'], [5, 'b']).intersect(OrdMap([5, 'B'], [7, 'C']))
-   * // OrdMap([5, 'b']])
+   * // OrdMap([5, 'b'])
    * ```
    */
   public intersect<K, V1, V2>(
@@ -2067,7 +2067,7 @@ export abstract class _OrdMap<out K, out V> {
    * _O(m * log( (n + 1) / (m + 1) )), m <= n_ Returns `true` if the key sets
    * of both maps are disjoint
    *
-   * `m.disjoint(n)` is equivalent to `m.intersect(n).size`
+   * `m.disjoint(n)` is equivalent to `m.intersect(n).isEmpty`
    *
    * @examples
    *
@@ -2551,15 +2551,15 @@ export abstract class _OrdMap<out K, out V> {
    * // [7, 'c']
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).elemAt(3)
-   * // Uncaught Error: Map.elemAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.elemAt: IndexOutOfBounds
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).elemAt(-1)
-   * // Uncaught Error: Map.elemAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.elemAt: IndexOutOfBounds
    * ```
    */
   public elemAt(i: number): [K, V] {
     return i < 0 || i >= this.size
-      ? throwError(new Error('Map.elemAt: IndexOutOfBounds'))
+      ? throwError(new Error('OrdMap.elemAt: IndexOutOfBounds'))
       : this.elemAtImpl(i);
   }
   private elemAtImpl(i: number): [K, V] {
@@ -2671,9 +2671,10 @@ export abstract class _OrdMap<out K, out V> {
     if (n.tag === 'empty') return None;
 
     const { key, value, lhs, rhs } = n;
-    if (p(value, key)) return Some(s + lhs.size);
     const l = lhs.findIndexImpl(s, p);
-    return l.nonEmpty ? l : rhs.findIndexImpl(s + lhs.size + 1, p);
+    if (l.nonEmpty) return l;
+    if (p(value, key)) return Some(s + lhs.size);
+    return rhs.findIndexImpl(s + lhs.size + 1, p);
   }
 
   /**
@@ -2784,10 +2785,10 @@ export abstract class _OrdMap<out K, out V> {
    * // OrdMap([3, 'b'], [5, 'ax'], [7, 'c'])
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).modifyAt(42, x => x + 'x')
-   * // Uncaught Error: Map.modifyAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.modifyAt: IndexOutOfBounds
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).modifyAt(-1, x => x + 'x')
-   * // Uncaught Error: Map.modifyAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.modifyAt: IndexOutOfBounds
    * ```
    */
   public modifyAt<V>(
@@ -2796,7 +2797,7 @@ export abstract class _OrdMap<out K, out V> {
     f: (v: V, k: K) => V,
   ): OrdMap<K, V> {
     return i < 0 || i >= this.size
-      ? throwError(new Error('Map.modifyAt: IndexOutOfBounds'))
+      ? throwError(new Error('OrdMap.modifyAt: IndexOutOfBounds'))
       : this.modifyAtImpl(i, f);
   }
   private modifyAtImpl<V>(
@@ -2829,10 +2830,10 @@ export abstract class _OrdMap<out K, out V> {
    * // OrdMap([3, 'b'], [7, 'c'])
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).modifyAt(42, x => Some(x + 'x'))
-   * // Uncaught Error: Map.modifyAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.modifyAt: IndexOutOfBounds
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).modifyAt(-1, x => None)
-   * // Uncaught Error: Map.modifyAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.modifyAt: IndexOutOfBounds
    * ```
    */
   public updateAt<V>(
@@ -2841,7 +2842,7 @@ export abstract class _OrdMap<out K, out V> {
     f: (v: V, k: K) => Option<V>,
   ): OrdMap<K, V> {
     return i < 0 || i >= this.size
-      ? throwError(new Error('Map.updateAt: IndexOutOfBounds'))
+      ? throwError(new Error('OrdMap.updateAt: IndexOutOfBounds'))
       : this.updateAtImpl(i, f);
   }
   private updateAtImpl<V>(
@@ -2877,15 +2878,15 @@ export abstract class _OrdMap<out K, out V> {
    * // OrdMap([3, 'b'], [7, 'c'])
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).removeAt(42)
-   * // Uncaught Error: Map.removeAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.removeAt: IndexOutOfBounds
    *
    * > OrdMap([5, 'a'], [3, 'b'], [7, 'c']).removeAt(-1)
-   * // Uncaught Error: Map.removeAt: IndexOutOfBounds
+   * // Uncaught Error: OrdMap.removeAt: IndexOutOfBounds
    * ```
    */
   public removeAt(i: number): OrdMap<K, V> {
     return i < 0 || i >= this.size
-      ? throwError(new Error('Map.removeAt: IndexOutOfBounds'))
+      ? throwError(new Error('OrdMap.removeAt: IndexOutOfBounds'))
       : this.removeAtImpl(i);
   }
   private removeAtImpl(i: number): OrdMap<K, V> {
@@ -3049,22 +3050,11 @@ export abstract class _OrdMap<out K, out V> {
     ez: Eval<B>,
     f: (v: V, eb: Eval<B>, k: K) => Eval<B>,
   ): Eval<B> {
-    const go = (n: Node<K, V>, eb: Eval<B>): Eval<B> => {
-      if (n.tag === 'empty') return eb;
-      return n.size === 1
-        ? f(n.value, eb, n.key)
-        : go(
-            n.lhs as Node<K, V>,
-            Eval.defer(() =>
-              f(
-                n.value,
-                Eval.defer(() => go(n.rhs as Node<K, V>, eb)),
-                n.key,
-              ),
-            ),
-          );
-    };
-    return Eval.defer(() => go(this as any as Node<K, V>, ez));
+    return Iter.foldRight_(
+      new OrdMapIterator(this, (k, v) => ({ k, v })),
+      ez,
+      (kv, eb) => f(kv.v, eb, kv.k),
+    );
   }
 
   /**
@@ -3430,7 +3420,7 @@ function _balanceR<K, V>(
       );
 }
 
-export const _link = <K, V>(
+const _link = <K, V>(
   k: K,
   x: V,
   l: OrdMap<K, V>,
@@ -3448,10 +3438,7 @@ export const _link = <K, V>(
   else return mkBin(k, x, ln, rn);
 };
 
-export const _link2 = <K, V>(
-  l: OrdMap<K, V>,
-  r: OrdMap<K, V>,
-): OrdMap<K, V> => {
+const _link2 = <K, V>(l: OrdMap<K, V>, r: OrdMap<K, V>): OrdMap<K, V> => {
   const ln = l as Node<K, V>;
   if (ln.tag === 'empty') return r;
   const rn = r as Node<K, V>;
@@ -3464,11 +3451,7 @@ export const _link2 = <K, V>(
   else return _glue(ln, rn);
 };
 
-export const _insertMax = <K, V>(
-  k: K,
-  x: V,
-  sa: OrdMap<K, V>,
-): OrdMap<K, V> => {
+const _insertMax = <K, V>(k: K, x: V, sa: OrdMap<K, V>): OrdMap<K, V> => {
   const sn = sa as Node<K, V>;
   return sn.tag === 'empty'
     ? new Bin(1, k, x, Empty, Empty)
@@ -3619,6 +3602,11 @@ const ordMapFoldableWithIndex = lazy(<K>() =>
         fa.foldMap(M, f),
     foldRightWithIndex_: (fa, ez, f) => fa.foldRight(ez, f),
     foldLeftWithIndex_: (fa, z, f) => fa.foldLeft(z, f),
+    isEmpty: fa => fa.isEmpty,
+    nonEmpty: fa => fa.nonEmpty,
+    size: fa => fa.size,
+    toArray: fa => fa.values,
+    iterator: fa => fa.valuesIterator,
   }),
 ) as <K>() => Foldable<$<OrdMapF, [K]>>;
 

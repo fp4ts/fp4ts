@@ -9,10 +9,10 @@
 export { List, ListF, ListBuffer } from './list';
 export * from './hash-map';
 export { OrdMap, OrdMapF } from './ord-map';
+export { OrdSet, OrdSetF } from './ord-set';
 export * from './vector';
 export * from './chain';
 export * from './seq';
-export * from './set';
 export * from './non-empty-list';
 
 export * from './view';

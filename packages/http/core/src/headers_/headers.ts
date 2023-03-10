@@ -5,7 +5,7 @@
 
 import { Kind } from '@fp4ts/core';
 import { Option } from '@fp4ts/cats';
-import { List, NonEmptyList, Set as CSet } from '@fp4ts/collections';
+import { List, NonEmptyList, OrdSet } from '@fp4ts/collections';
 import { RawHeader, SelectHeader, ToRaw } from '../header';
 import { Authorization } from './authorization';
 
@@ -16,8 +16,8 @@ export class Headers {
     return new Headers(List.fromArray(hs).flatMap(this.convertToRaw));
   }
 
-  public static get sensitive(): CSet<string> {
-    return CSet(Authorization.Header.headerName);
+  public static get sensitive(): OrdSet<string> {
+    return OrdSet(Authorization.Header.headerName);
   }
 
   public constructor(public readonly headers: List<RawHeader>) {}

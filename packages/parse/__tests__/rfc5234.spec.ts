@@ -6,7 +6,7 @@
 import fc, { Arbitrary } from 'fast-check';
 import { Byte, Char, id } from '@fp4ts/core';
 import { Right } from '@fp4ts/cats';
-import { Set } from '@fp4ts/collections';
+import { OrdSet } from '@fp4ts/collections';
 import { Parser, StringSource } from '@fp4ts/parse-core';
 import { Rfc5234 } from '@fp4ts/parse-text';
 import { forAll } from '@fp4ts/cats-test-kit';
@@ -17,21 +17,21 @@ const charRange = (from: number, to: number): Char[] =>
     String.fromCharCode(from + i),
   ) as Char[];
 
-const allChars = Set(...charRange(0, Char.MaxValue));
+const allChars = OrdSet(...charRange(0, Char.MaxValue));
 
 describe('RFC 5234', () => {
   function singleCharProperties<A>(
     name: string,
     rule: Parser<StringSource, A>,
-    valid: Set<Char>,
+    valid: OrdSet<Char>,
     f: (c: Char) => A,
   ) {
     const validArb = fc.oneof(...valid.toArray.map(fc.constant));
     const invalidArb = fc.oneof(
       ...[
-        [3, Set(...charRange(0x00, 0x7f))['\\'](valid)] as const,
-        [1, Set(...charRange(0x80, 0xff))['\\'](valid)] as const,
-        [1, Set(...charRange(0x100, Char.MaxValue))['\\'](valid)] as const,
+        [3, OrdSet(...charRange(0x00, 0x7f))['\\'](valid)] as const,
+        [1, OrdSet(...charRange(0x80, 0xff))['\\'](valid)] as const,
+        [1, OrdSet(...charRange(0x100, Char.MaxValue))['\\'](valid)] as const,
       ]
         .filter(([, xs]) => xs.nonEmpty)
         .map(([weight, xs]) => ({
@@ -68,39 +68,39 @@ describe('RFC 5234', () => {
     name: string,
     rule: Parser<StringSource, void>,
     valid: Char,
-  ) => singleCharProperties(name, rule, Set(valid), () => {});
+  ) => singleCharProperties(name, rule, OrdSet(valid), () => {});
 
   const singleMultiCharProperties = (
     name: string,
     rule: Parser<StringSource, Char>,
-    valid: Set<Char>,
+    valid: OrdSet<Char>,
   ) => singleCharProperties(name, rule, valid, id);
 
   singleMultiCharProperties(
     'alpha',
     Rfc5234.alpha(),
-    Set(...charRange(0x41, 0x5a), ...charRange(0x61, 0x7a)),
+    OrdSet(...charRange(0x41, 0x5a), ...charRange(0x61, 0x7a)),
   );
   singleMultiCharProperties(
     'bit',
     Rfc5234.bit(),
-    Set('0' as Char, '1' as Char),
+    OrdSet('0' as Char, '1' as Char),
   );
   singleMultiCharProperties(
     'char',
     Rfc5234.char(),
-    Set(...charRange(0x01, 0x7f)),
+    OrdSet(...charRange(0x01, 0x7f)),
   );
   singleConstCharProperties('cr', Rfc5234.cr(), Char.fromByte(0x0d as Byte));
   singleMultiCharProperties(
     'ctl',
     Rfc5234.ctl(),
-    Set(...charRange(0x00, 0x1f), Char.fromByte(0x7f as Byte)),
+    OrdSet(...charRange(0x00, 0x1f), Char.fromByte(0x7f as Byte)),
   );
   singleMultiCharProperties(
     'digit',
     Rfc5234.digit(),
-    Set(...charRange(0x30, 0x39)),
+    OrdSet(...charRange(0x30, 0x39)),
   );
   singleConstCharProperties(
     'dquote',
@@ -110,7 +110,7 @@ describe('RFC 5234', () => {
   singleMultiCharProperties(
     'hexdig',
     Rfc5234.hexdigit(),
-    Set(...(('0123456789' + 'ABCDEF' + 'abcdef').split('') as Char[])),
+    OrdSet(...(('0123456789' + 'ABCDEF' + 'abcdef').split('') as Char[])),
   );
   singleConstCharProperties(
     'htab',
@@ -121,18 +121,18 @@ describe('RFC 5234', () => {
   singleMultiCharProperties(
     'octet',
     Rfc5234.octet(),
-    Set(...charRange(0x00, 0xff)),
+    OrdSet(...charRange(0x00, 0xff)),
   );
   singleConstCharProperties('sp', Rfc5234.sp(), Char.fromByte(0x20 as Byte));
   singleMultiCharProperties(
     'vchar',
     Rfc5234.vchar(),
-    Set(...charRange(0x21, 0x7e)),
+    OrdSet(...charRange(0x21, 0x7e)),
   );
   singleCharProperties(
     'wsp',
     Rfc5234.wsp(),
-    Set(Char.fromByte(0x20 as Byte), Char.fromByte(0x09 as Byte)),
+    OrdSet(Char.fromByte(0x20 as Byte), Char.fromByte(0x09 as Byte)),
     () => {},
   );
 
@@ -166,7 +166,7 @@ describe('RFC 5234', () => {
     const arb = A.fp4tsOption(
       fc.oneof(
         ...allChars['\\'](
-          Set(Char.fromByte(0x20 as Byte), Char.fromByte(0x09 as Byte)),
+          OrdSet(Char.fromByte(0x20 as Byte), Char.fromByte(0x09 as Byte)),
         ).toArray.map(fc.constant),
       ),
     ).map(opt => `\r\n${opt.getOrElse(() => '')}`);
