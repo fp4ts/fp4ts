@@ -27,6 +27,7 @@ import {
   Functor,
   FunctorFilter,
   isIdentityTC,
+  Iter,
   Left,
   Monad,
   MonadPlus,
@@ -5423,87 +5424,67 @@ function viewRN<A>(m: Seq<Node<A>>): [Seq<Node<A>>, Node<A>] | undefined {
   }
 }
 
-function* iterator<A>(self: Seq<A>): Generator<A, void, undefined> {
+function iterator<A>(self: Seq<A>): Iterator<A> {
   const xs = self as ViewSeq<A>;
   switch (xs.tag) {
     case 0:
-      break;
+      return Iter.empty;
     case 1:
-      yield xs.value;
-      break;
+      return Iter.pure(xs.value);
     case 2:
-      yield* xs.pfx;
-      for (const n of iterator(xs.deeper)) {
-        yield* nodeIterator(n);
-      }
-      yield* xs.sfx;
-      break;
+      return Iter.concat_(
+        xs.pfx[Symbol.iterator](),
+        Iter.concat_(
+          Iter.flatMap_(iterator(xs.deeper), nodeIterator),
+          xs.sfx[Symbol.iterator](),
+        ),
+      );
   }
 }
-function* nodeIterator<A>(xs: Node<A>): Generator<A, void, undefined> {
+function nodeIterator<A>(xs: Node<A>): Iterator<A> {
   switch (xs.length) {
     case 3:
-      yield xs[1];
-      yield xs[2];
-      break;
+      return [xs[1], xs[2]][Symbol.iterator]();
     case 4:
-      yield xs[1];
-      yield xs[2];
-      yield xs[3];
-      break;
+      return [xs[1], xs[2], xs[3]][Symbol.iterator]();
   }
 }
 
-function* reverseIterator<A>(self: Seq<A>): Generator<A, void, undefined> {
+function reverseIterator<A>(self: Seq<A>): Iterator<A> {
   const xs = self as ViewSeq<A>;
   switch (xs.tag) {
     case 0:
-      break;
+      return Iter.empty;
     case 1:
-      yield xs.value;
-      break;
+      return Iter.pure(xs.value);
     case 2:
-      yield* digitReverseIterator(xs.sfx);
-      for (const n of reverseIterator(xs.deeper)) {
-        yield* nodeReversedIterator(n);
-      }
-      yield* digitReverseIterator(xs.pfx);
-      break;
+      return Iter.concat_(
+        digitReverseIterator(xs.sfx),
+        Iter.concat_(
+          Iter.flatMap_(reverseIterator(xs.deeper), nodeReversedIterator),
+          digitReverseIterator(xs.pfx),
+        ),
+      );
   }
 }
-function* digitReverseIterator<A>(xs: Digit<A>): Generator<A, void, undefined> {
+function digitReverseIterator<A>(xs: Digit<A>): Iterator<A> {
   switch (xs.length) {
     case 1:
-      yield xs[0];
-      break;
+      return Iter.pure(xs[0]);
     case 2:
-      yield xs[1];
-      yield xs[0];
-      break;
+      return [xs[1], xs[0]][Symbol.iterator]();
     case 3:
-      yield xs[2];
-      yield xs[1];
-      yield xs[0];
-      break;
+      return [xs[2], xs[1], xs[0]][Symbol.iterator]();
     case 4:
-      yield xs[3];
-      yield xs[2];
-      yield xs[1];
-      yield xs[0];
-      break;
+      return [xs[3], xs[2], xs[1], xs[0]][Symbol.iterator]();
   }
 }
-function* nodeReversedIterator<A>(xs: Node<A>): Generator<A, void, undefined> {
+function nodeReversedIterator<A>(xs: Node<A>): Iterator<A> {
   switch (xs.length) {
     case 3:
-      yield xs[2];
-      yield xs[1];
-      break;
+      return [xs[2], xs[1]][Symbol.iterator]();
     case 4:
-      yield xs[3];
-      yield xs[2];
-      yield xs[1];
-      break;
+      return [xs[3], xs[2], xs[1]][Symbol.iterator]();
   }
 }
 
