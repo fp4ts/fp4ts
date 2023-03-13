@@ -36,6 +36,13 @@ to verify correctness of those implementations.
   - `@fp4ts/free` Free structures
 
 
+- `@fp4ts/collections` Basic collections such as `List`, `LazyList`, `OrdMap`,
+and `OrdSet`.
+
+  - `@fp4ts/collections-core` Implementation of the collection data types (_included_)
+  - `@fp4ts/collections-test-kit` Set of `fast-check` arbitraries for the collections.
+
+
 - `@fp4ts/mtl` Monad Transformer Library
 
   - `@fp4ts/mtl-core` Set of type classes and transformer data types (_included_)
@@ -139,10 +146,13 @@ for consuming anything from `@fp4ts/cats-kernel` or `@fp4ts/cats-core` one can
 just install `@fp4ts/cats` and:
 
 ```typescript
-import { List, Map, Ord } from '@fp4ts/cats';
+import { Ord, None, Some } from '@fp4ts/cats';
+import { OrdMap } from '@fp4ts/collections';
 
-const xs = List<[string, number]>(['a', 42], ['b', 43]);
-const ms = Map.fromList(Ord.primitive)(xs);
+const xs: [string, number][] = [['a', 42], ['b', 43]];
+const x: OrdMap<string, string> = OrdMap
+  .fromArray(xs, Ord.fromUniversalCompare())
+  .collect(v => v % 2 === 0 ? Some(`${v}`) : None)
 
 ...
 ```
