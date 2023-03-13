@@ -33,7 +33,7 @@ export const Alternative = Object.freeze({
           A.cons,
         );
 
-        return self.map_(many.value, xs => A.consCopyToArray(xs, []));
+        return self.map_(many.value, A.consToArray);
       },
 
       many1: <A>(fa: Kind<F, [A]>): Kind<F, [A[]]> => {
@@ -46,7 +46,7 @@ export const Alternative = Object.freeze({
           A.cons,
         );
 
-        return self.map_(many1.value, xs => A.consCopyToArray(xs, []));
+        return self.map_(many1.value, A.consToArray);
       },
 
       ...MonoidK.of(F),

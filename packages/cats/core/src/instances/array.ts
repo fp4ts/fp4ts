@@ -472,7 +472,7 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
     }
   };
 
-  return G.map_(Rhs.toG(loop(0, xs.length)), xs => A.concatCopyToArray(xs, []));
+  return G.map_(Rhs.toG(loop(0, xs.length)), A.concatToArray);
 };
 
 export const arrayTraversableFilter = lazy(() =>
@@ -533,7 +533,7 @@ const traverseFilterImpl = <G, Rhs, A, B>(
     }
   };
 
-  return G.map_(Rhs.toG(loop(0, xs.length)), xs => A.concatCopyToArray(xs, []));
+  return G.map_(Rhs.toG(loop(0, xs.length)), A.concatToArray);
 };
 
 // -- HKT
