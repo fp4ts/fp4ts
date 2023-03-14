@@ -8,7 +8,8 @@ import path from 'path';
 import cp from 'child_process';
 
 import { tupled } from '@fp4ts/core';
-import { List, None, Option, Some, Try } from '@fp4ts/cats';
+import { None, Option, Some, Try } from '@fp4ts/cats';
+import { List } from '@fp4ts/collections';
 import { IO, unsafeRunMain } from '@fp4ts/effect';
 import { Stream, text } from '@fp4ts/stream';
 import { toposort } from './toposort';
