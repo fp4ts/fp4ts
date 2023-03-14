@@ -20,6 +20,8 @@ import { Fiber } from './fiber';
 import { Outcome } from './outcome';
 import { Deferred } from './deferred';
 import { Semaphore } from './semaphore';
+import { MonadCancelRequirements } from './monad-cancel';
+import { UniqueRequirements } from './unique';
 
 export interface Concurrent<F, E> extends Spawn<F, E> {
   readonly ref: <A>(a: A) => Kind<F, [Ref<F, A>]>;
@@ -56,7 +58,9 @@ export type ConcurrentRequirements<F, E> = Pick<
   Concurrent<F, E>,
   'ref' | 'deferred'
 > &
-  Omit<SpawnRequirements<F, E>, 'racePair_'> &
+  Pick<Spawn<F, E>, 'fork' | 'never' | 'suspend'> &
+  MonadCancelRequirements<F, E> &
+  UniqueRequirements<F> &
   Partial<Concurrent<F, E>>;
 export const Concurrent = Object.freeze({
   of: <F, E>(F: ConcurrentRequirements<F, E>): Concurrent<F, E> => {
