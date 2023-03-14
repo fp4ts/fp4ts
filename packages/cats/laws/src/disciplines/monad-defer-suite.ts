@@ -10,14 +10,14 @@ import { MonadDefer } from '@fp4ts/cats-core';
 import { exec, forAll, RuleSet } from '@fp4ts/cats-test-kit';
 
 import { MonadSuite } from './monad-suite';
-import { DeferSuite } from './defer-suite';
 import { MonadDeferLaws } from '../monad-defer-laws';
+import { ApplicativeDeferSuite } from './applicative-defer-suite';
 
 export const MonadDeferSuite = <F>(F: MonadDefer<F>) => {
   const laws = MonadDeferLaws(F);
   const self = {
     ...MonadSuite(F),
-    ...DeferSuite(F),
+    ...ApplicativeDeferSuite(F),
 
     monadDefer: <A, B, C, D>(
       arbA: Arbitrary<A>,
@@ -35,26 +35,8 @@ export const MonadDeferSuite = <F>(F: MonadDefer<F>) => {
         'MonadDefer',
         [
           [
-            'monadDefer delay is pure',
-            forAll(arbA, laws.monadDeferDelayIsPure)(mkEqF(EqA)),
-          ],
-          [
-            'monadDefer delay does not evaluate',
-            exec(laws.monadDeferDelayDoesNotEvaluate),
-          ],
-          [
-            'monadDefer map is lazy',
-            forAll(mkArbF(arbA), laws.monadDeferMapIsLazy),
-          ],
-          [
             'monadDefer flatMap is lazy',
             forAll(mkArbF(arbA), laws.monadDeferFlatMapIsLazy),
-          ],
-          [
-            'monadDefer map stack safety',
-            exec(laws.monadDeferMapStackSafety)(
-              mkEqF(Eq.fromUniversalEquals()),
-            ),
           ],
           [
             'monadDefer left bind stack safety',
@@ -83,7 +65,16 @@ export const MonadDeferSuite = <F>(F: MonadDefer<F>) => {
               mkArbF,
               mkEqF,
             ),
-            self.defer(arbA, EqA, mkArbF, mkEqF),
+            self.applicativeDefer(
+              arbA,
+              arbB,
+              arbC,
+              EqA,
+              EqB,
+              EqC,
+              mkArbF,
+              mkEqF,
+            ),
           ],
         },
       ),

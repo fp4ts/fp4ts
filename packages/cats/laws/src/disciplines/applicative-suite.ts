@@ -15,14 +15,6 @@ import { ApplySuite } from './apply-suite';
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const ApplicativeSuite = <F>(F: Applicative<F>) => {
   const laws = ApplicativeLaws(F);
-  const {
-    applicativeIdentity,
-    applicativeHomomorphism,
-    applicativeInterchange,
-    applicativeMap,
-    apProductConsistent,
-    applicativeUnit,
-  } = laws;
   const self = {
     ...ApplySuite(F),
 
@@ -41,14 +33,14 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
         [
           [
             'applicative identity',
-            forAll(mkArbF(arbA), applicativeIdentity)(mkEqF(EqA)),
+            forAll(mkArbF(arbA), laws.applicativeIdentity)(mkEqF(EqA)),
           ],
           [
             'applicative homomorphism',
             forAll(
               arbA,
               fc.func<[A], B>(arbB),
-              applicativeHomomorphism,
+              laws.applicativeHomomorphism,
             )(mkEqF(EqB)),
           ],
           [
@@ -56,7 +48,7 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
             forAll(
               arbA,
               mkArbF(fc.func<[A], B>(arbB)),
-              applicativeInterchange,
+              laws.applicativeInterchange,
             )(mkEqF(EqB)),
           ],
           [
@@ -64,7 +56,7 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
             forAll(
               mkArbF(arbA),
               fc.func<[A], B>(arbB),
-              applicativeMap,
+              laws.applicativeMap,
             )(mkEqF(EqB)),
           ],
           [
@@ -72,10 +64,10 @@ export const ApplicativeSuite = <F>(F: Applicative<F>) => {
             forAll(
               mkArbF(arbA),
               mkArbF(fc.func<[A], B>(arbB)),
-              apProductConsistent,
+              laws.apProductConsistent,
             )(mkEqF(EqB)),
           ],
-          ['applicative unit', forAll(arbA, applicativeUnit)(mkEqF(EqA))],
+          ['applicative unit', forAll(arbA, laws.applicativeUnit)(mkEqF(EqA))],
         ],
         { parent: self.apply(arbA, arbB, arbC, EqA, EqC, mkArbF, mkEqF) },
       ),

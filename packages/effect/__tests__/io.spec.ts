@@ -23,6 +23,7 @@ import { checkAll, forAll, IsEq } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/effect-test-kit/lib/arbitraries';
 import * as E from '@fp4ts/effect-test-kit/lib/eq';
 import { AsyncSuite } from '@fp4ts/effect-laws';
+import { MonadDeferSuite } from '@fp4ts/cats-laws';
 
 describe('IO', () => {
   describe('free monad', () => {
@@ -1149,10 +1150,9 @@ describe('IO', () => {
   });
 
   describe.ticked('Laws', ticker => {
-    const spawnTests = AsyncSuite(IO.Async);
     checkAll(
       'Async<IO>',
-      spawnTests.async(
+      AsyncSuite(IO.Async).async(
         fc.integer(),
         fc.string(),
         fc.string(),
@@ -1163,6 +1163,22 @@ describe('IO', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         E.eqIOOutcome(Eq.fromUniversalEquals()),
+        A.fp4tsIO,
+        EqX => E.eqIO(EqX, ticker),
+      ),
+    );
+
+    checkAll(
+      'MonadDefer<IO>',
+      MonadDeferSuite(IO.MonadDefer).monadDefer(
+        fc.integer(),
+        fc.string(),
+        fc.string(),
+        fc.string(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
+        Eq.fromUniversalEquals(),
         A.fp4tsIO,
         EqX => E.eqIO(EqX, ticker),
       ),

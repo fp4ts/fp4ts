@@ -7,6 +7,7 @@
  * @module cats/laws
  */
 export * from './alternative-laws';
+export * from './applicative-defer-laws';
 export * from './applicative-error-laws';
 export * from './applicative-laws';
 export * from './apply-laws';

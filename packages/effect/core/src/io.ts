@@ -153,7 +153,8 @@ interface IOObj {
   readonly Functor: Functor<IOF>;
   readonly Apply: Apply<IOF>;
   readonly Applicative: Applicative<IOF>;
-  readonly Monad: Monad<IOF>;
+  readonly Monad: MonadDefer<IOF>;
+  readonly MonadDefer: MonadDefer<IOF>;
   readonly MonadError: MonadError<IOF, Error>;
   readonly MonadCancel: MonadCancel<IOF, Error>;
   readonly Sync: Sync<IOF>;
@@ -854,7 +855,12 @@ Object.defineProperty(IO, 'Applicative', {
   },
 });
 Object.defineProperty(IO, 'Monad', {
-  get(): Monad<IOF> {
+  get(): MonadDefer<IOF> {
+    return ioMonad();
+  },
+});
+Object.defineProperty(IO, 'MonadDefer', {
+  get(): MonadDefer<IOF> {
     return ioMonad();
   },
 });

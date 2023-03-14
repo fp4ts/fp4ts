@@ -15,12 +15,12 @@ import { Traversable } from './traversable';
  * @category Type Class
  */
 export interface Applicative<F> extends Apply<F> {
-  readonly pure: <A>(a: A) => Kind<F, [A]>;
+  pure<A>(a: A): Kind<F, [A]>;
   readonly unit: Kind<F, [void]>;
 
-  readonly tupled: <A extends unknown[]>(
+  tupled<A extends unknown[]>(
     ...fsa: { [k in keyof A]: Kind<F, [A[k]]> }
-  ) => Kind<F, [A]>;
+  ): Kind<F, [A]>;
 
   traverseA<G>(
     G: Foldable<G>,
@@ -42,7 +42,8 @@ export interface Applicative<F> extends Apply<F> {
   ) => Kind<F, [void]>;
 }
 
-export type ApplicativeRequirements<F> = Pick<Applicative<F>, 'pure' | 'ap_'> &
+export type ApplicativeRequirements<F> = Pick<Applicative<F>, 'pure'> &
+  (Pick<Applicative<F>, 'ap_'> | Pick<Applicative<F>, 'map2_'>) &
   Partial<Applicative<F>>;
 export const Applicative = Object.freeze({
   of: <F>(F: ApplicativeRequirements<F>): Applicative<F> => {
@@ -58,7 +59,7 @@ export const Applicative = Object.freeze({
       traverseWithIndexA: G => f => ta => self.traverseWithIndexA_(G)(ta, f),
       traverseWithIndexA_: G => (ta, f) => traverseWithIndexA(self, G, ta, f),
 
-      ...Apply.of<F>({ map_: (fa, f) => F.ap_(F.pure(f), fa), ...F }),
+      ...Apply.of<F>({ map_: (fa, f) => self.ap_(F.pure(f), fa), ...F }),
       ...F,
     };
     return self;

@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 export * from './alternative-suite';
+export * from './applicative-defer-suite';
 export * from './applicative-error-suite';
 export * from './applicative-suite';
 export * from './apply-suite';

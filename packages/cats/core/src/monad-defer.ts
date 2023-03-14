@@ -4,9 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, Base, EvalF, Kind } from '@fp4ts/core';
+import { ApplicativeDefer } from './applicative-defer';
 import { Either } from './data';
-import { Defer } from './defer';
 import { Monad } from './monad';
+
 import { evalMonadDefer } from './instances/eval';
 import {
   Function0F,
@@ -18,9 +19,7 @@ import {
 /**
  * @category Type Class
  */
-export interface MonadDefer<F> extends Monad<F>, Defer<F> {
-  delay<A>(thunk: () => A): Kind<F, [A]>;
-}
+export interface MonadDefer<F> extends Monad<F>, ApplicativeDefer<F> {}
 
 export type MonadDeferRequirements<F> = Pick<
   MonadDefer<F>,
@@ -29,25 +28,25 @@ export type MonadDeferRequirements<F> = Pick<
   Partial<MonadDefer<F>>;
 export const MonadDefer = Object.freeze({
   of: <F>(F: MonadDeferRequirements<F>): MonadDefer<F> => {
+    const M = Monad.of({
+      tailRecM_: <A, B>(a: A, f: (a: A) => Kind<F, [Either<A, B>]>) => {
+        const cont = (ea: Either<A, B>): Kind<F, [B]> => ea.fold(go, self.pure);
+        const go = (a: A): Kind<F, [B]> => self.flatMap_(f(a), cont);
+        return go(a);
+      },
+      compose_:
+        <A, B, C>(g: (b: B) => Kind<F, [C]>, f: (a: A) => Kind<F, [B]>) =>
+        (a: A) =>
+          self.defer(() => self.flatMap_(f(a), g)),
+      ...F,
+    });
+
     const self: MonadDefer<F> = {
-      delay: thunk => self.defer(() => self.pure(thunk())),
-
-      ...Defer.of({
+      ...M,
+      ...ApplicativeDefer.of({
         defer: F.defer ?? (thunk => self.flatMap_(self.unit, _ => thunk())),
-        ...F,
-      }),
-
-      ...Monad.of({
-        tailRecM_: <A, B>(a: A, f: (a: A) => Kind<F, [Either<A, B>]>) => {
-          const cont = (ea: Either<A, B>): Kind<F, [B]> =>
-            ea.fold(go, self.pure);
-          const go = (a: A): Kind<F, [B]> => self.flatMap_(f(a), cont);
-          return go(a);
-        },
-        compose_:
-          <A, B, C>(g: (b: B) => Kind<F, [C]>, f: (a: A) => Kind<F, [B]>) =>
-          (a: A) =>
-            self.defer(() => self.flatMap_(f(a), g)),
+        ap_: M.ap_,
+        map2_: M.map2_,
         ...F,
       }),
       ...F,
