@@ -3983,7 +3983,7 @@ function modifyDigitN<A>(
       if (idx < sab) return [xs[0], f(xs[1], idx - sa), xs[2], xs[3]];
       const sabc = sab + xs[2][0];
       if (idx < sabc) return [xs[0], xs[1], f(xs[2], idx - sab), xs[3]];
-      return [xs[0], xs[1], xs[2], f(xs[3], idx - sab)];
+      return [xs[0], xs[1], xs[2], f(xs[3], idx - sabc)];
     }
   }
 }

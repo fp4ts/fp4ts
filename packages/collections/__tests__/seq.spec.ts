@@ -440,6 +440,7 @@ describe('Seq', () => {
             ),
     ),
   );
+
   test('#replaceAt to be List.replaceAt', () => {
     fc.assert(
       fc.property(

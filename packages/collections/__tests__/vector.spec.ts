@@ -375,7 +375,7 @@ describe('Vector', () => {
   test(
     'replaceAt to be List.replaceAt',
     forAll(
-      CA.fp4tsSeq(fc.integer()),
+      CA.fp4tsVector(fc.integer()),
       fc.integer(),
       fc.integer(),
       (xs, idx, x) =>
