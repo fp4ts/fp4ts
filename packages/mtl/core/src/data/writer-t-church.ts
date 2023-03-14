@@ -9,7 +9,6 @@ import {
   Either,
   Defer,
   Functor,
-  isMonadDefer,
   Left,
   Monad,
   MonadError,
@@ -17,6 +16,7 @@ import {
   Monoid,
   Right,
   Semigroup,
+  isDefer,
 } from '@fp4ts/cats';
 import { MonadWriter } from '../monad-writer';
 
@@ -145,7 +145,7 @@ WriterT.Applicative = <F, S>(): Applicative<$<WriterTF, [S, F]>> =>
   });
 
 WriterT.Monad = <F, W>(F: Monad<F>): Monad<$<WriterTF, [F, W]>> =>
-  isMonadDefer(F)
+  isDefer(F)
     ? MonadDefer.of({
         ...WriterT.Applicative(),
         flatMap_: WriterT.flatMapDefer_(F),

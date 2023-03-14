@@ -9,7 +9,6 @@ import {
   Either,
   Defer,
   Functor,
-  isMonadDefer,
   Left,
   Monad,
   MonadError,
@@ -17,6 +16,7 @@ import {
   Monoid,
   Right,
   Semigroup,
+  isDefer,
 } from '@fp4ts/cats';
 import { MonadReader } from '../monad-reader';
 import { MonadState } from '../monad-state';
@@ -163,7 +163,7 @@ RWST.Functor = <R, W, S, F>(): Functor<$<RWSTF, [R, W, S, F]>> =>
   Functor.of({ map_: RWST.map_ });
 
 RWST.Monad = <R, W, S, F>(F: Monad<F>): Monad<$<RWSTF, [R, W, S, F]>> =>
-  isMonadDefer(F)
+  isDefer(F)
     ? MonadDefer.of({
         ...RWST.Functor(),
         pure: RWST.pure,

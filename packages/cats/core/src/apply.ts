@@ -6,8 +6,8 @@
 import { cached, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
-import { isMonadDefer } from './monad-defer';
 import { IdentityF } from './data';
+import { isDefer } from './defer';
 
 /**
  * @category Type Class
@@ -166,7 +166,7 @@ export const Apply = Object.freeze({
     ComposedApply.of(F, G),
 
   TraverseStrategy: cached(<F>(F: Apply<F>) => {
-    const traverseStrategy: TraverseStrategy<F, unknown> = isMonadDefer(F)
+    const traverseStrategy: TraverseStrategy<F, unknown> = isDefer(F)
       ? ({
           defer: F.defer,
           toRhs: F.defer,

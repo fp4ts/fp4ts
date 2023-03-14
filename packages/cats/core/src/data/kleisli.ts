@@ -19,7 +19,7 @@ import {
   α,
   λ,
 } from '@fp4ts/core';
-import { Defer } from '../defer';
+import { Defer, isDefer } from '../defer';
 import { SemigroupK } from '../semigroup-k';
 import { MonoidK } from '../monoid-k';
 import { Functor } from '../functor';
@@ -33,7 +33,7 @@ import { Monad } from '../monad';
 import { MonadError } from '../monad-error';
 import { Contravariant } from '../contravariant';
 import { Distributive } from '../distributive';
-import { isMonadDefer, MonadDefer } from '../monad-defer';
+import { MonadDefer } from '../monad-defer';
 import { MonadPlus } from '../monad-plus';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
@@ -69,7 +69,7 @@ export interface KleisliObj {
 const suspend = <F, A, B>(
   F: Base<F>,
   f: (a: A) => Kind<F, [B]>,
-): Kleisli<F, A, B> => (isMonadDefer(F) ? (a: A) => F.defer<B>(() => f(a)) : f);
+): Kleisli<F, A, B> => (isDefer(F) ? (a: A) => F.defer<B>(() => f(a)) : f);
 
 const kleisliDefer: <F, R>(F: Defer<F>) => Defer<$<KleisliF, [F, R]>> = cached(
   <F, R>(F: Defer<F>) =>

@@ -64,7 +64,3 @@ export const MonadDefer = Object.freeze({
 
   Function1: <R>(): MonadDefer<$<Function1F, [R]>> => function1MonadDefer(),
 });
-
-export function isMonadDefer<F>(F: Base<F>): F is MonadDefer<F> {
-  return (F as any).defer != null && (F as any).flatMap != null;
-}

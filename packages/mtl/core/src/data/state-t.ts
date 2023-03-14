@@ -9,12 +9,12 @@ import {
   Either,
   Defer,
   Functor,
-  isMonadDefer,
   Left,
   Monad,
   MonadError,
   MonadDefer,
   Right,
+  isDefer,
 } from '@fp4ts/cats';
 import { MonadState } from '../monad-state';
 
@@ -157,7 +157,7 @@ StateT.Applicative = <F, S>(): Applicative<$<StateTF, [S, F]>> =>
   });
 
 StateT.Monad = <F, S>(F: Monad<F>): Monad<$<StateTF, [S, F]>> =>
-  isMonadDefer(F)
+  isDefer(F)
     ? MonadDefer.of({
         ...StateT.Applicative(),
         flatMap_: StateT.flatMapDefer_(F),

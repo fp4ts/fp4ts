@@ -4,6 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Base, Kind, instance, $, EvalF } from '@fp4ts/core';
+import { ApplicativeDefer } from './applicative-defer';
+import { Apply } from './apply';
 import { evalMonadDefer } from './instances/eval';
 import {
   function0Defer,
@@ -11,6 +13,8 @@ import {
   Function1F,
   function1Defer,
 } from './instances/function';
+import { Monad } from './monad';
+import { MonadDefer } from './monad-defer';
 
 /**
  * @category Type Class
@@ -43,3 +47,10 @@ export const Defer = Object.freeze({
 
   Function1: <R>(): Defer<$<Function1F, [R]>> => function1Defer(),
 });
+
+export function isDefer<F>(F: Monad<F>): F is MonadDefer<F>;
+export function isDefer<F>(F: Apply<F>): F is ApplicativeDefer<F>;
+export function isDefer<F>(F: Base<F>): F is Defer<F>;
+export function isDefer<F>(F: Base<F>): F is MonadDefer<F> {
+  return (F as any).defer != null;
+}

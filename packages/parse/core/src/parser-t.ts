@@ -22,7 +22,7 @@ import {
   Eq,
   Functor,
   FunctorFilter,
-  isMonadDefer,
+  isDefer,
   Left,
   Monad,
   MonadPlus,
@@ -235,7 +235,7 @@ class _ParserT<S, F, out A> {
             );
 
       const F = S.monad;
-      return isMonadDefer(F)
+      return isDefer(F)
         ? F.defer(() => this.runParserPrim(S, s, mcok, cerr, meok, eerr))
         : this.runParserPrim(S, s, mcok, cerr, meok, eerr);
     });
@@ -518,7 +518,7 @@ ParserT.unit = <S, F>(): ParserT<S, F, void> => ParserT.succeed(undefined);
 ParserT.defer = <S, F, A>(that: () => ParserT<S, F, A>): ParserT<S, F, A> => {
   const lazyThat = lazy(that);
   return new _ParserT((S, s, cok, cerr, eok, eerr) =>
-    isMonadDefer(S)
+    isDefer(S)
       ? S.defer(() => lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr))
       : lazyThat().runParserPrim(S, s, cok, cerr, eok, eerr),
   );

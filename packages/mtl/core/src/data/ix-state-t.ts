@@ -11,7 +11,7 @@ import {
   FlatMap,
   FunctionK,
   Functor,
-  isMonadDefer,
+  isDefer,
   Left,
   Monad,
   MonadError,
@@ -173,7 +173,7 @@ IxStateT.MonadState = <S, F>(
 const suspend = <S1, S2, F, A>(
   F: Functor<F>,
   f: (s1: S1) => Kind<F, [[A, S2]]>,
-): IxStateT<S1, S2, F, A> => (isMonadDefer(F) ? s1 => F.defer(() => f(s1)) : f);
+): IxStateT<S1, S2, F, A> => (isDefer(F) ? s1 => F.defer(() => f(s1)) : f);
 
 /**
  * @category Type Constructor
