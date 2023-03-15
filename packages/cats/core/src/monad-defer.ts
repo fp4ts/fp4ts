@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, Base, EvalF, Kind } from '@fp4ts/core';
+import { $, Base, Eval, EvalF, Kind } from '@fp4ts/core';
 import { ApplicativeDefer } from './applicative-defer';
 import { Either } from './data';
 import { Monad } from './monad';
@@ -47,6 +47,12 @@ export const MonadDefer = Object.freeze({
         defer: F.defer ?? (thunk => self.flatMap_(self.unit, _ => thunk())),
         ap_: M.ap_,
         map2_: M.map2_,
+        map2Eval_:
+          F.map2Eval_ ??
+          ((fa, efb, f) =>
+            Eval.now(
+              self.flatMap_(fa, a => self.map_(efb.value, b => f(a, b))),
+            )),
         ...F,
       }),
       ...F,

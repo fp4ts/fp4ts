@@ -24,7 +24,19 @@ export const ApplicativeDefer = Object.freeze({
   of: <F>(F: ApplicativeDeferRequirements<F>): ApplicativeDefer<F> => {
     const self: ApplicativeDefer<F> = {
       delay: thunk => F.defer(() => F.pure(thunk())),
-      ...Applicative.of(F),
+      ...Applicative.of({
+        map2Eval_:
+          F.map2Eval_ ??
+          ((fa, efb, f) =>
+            Eval.now(
+              self.map2_(
+                fa,
+                self.defer(() => efb.value),
+                f,
+              ),
+            )),
+        ...F,
+      }),
       ...Defer.of(F),
     };
     return self;
