@@ -835,9 +835,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fp4ts/collections@workspace:packages/collections"
   dependencies:
-    "@fp4ts/optics-core": "*"
-    "@fp4ts/optics-derivation": "*"
-    "@fp4ts/optics-std": "*"
+    "@fp4ts/collections-core": "*"
     typescript: 4.9.5
   languageName: unknown
   linkType: soft

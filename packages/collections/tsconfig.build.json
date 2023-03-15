@@ -7,6 +7,7 @@
   "include": ["./index.ts"],
   "references": [
     { "path": "./core/tsconfig.build.json" },
+    { "path": "./perf/tsconfig.build.json" },
     { "path": "./test-kit/tsconfig.build.json" },
   ]
 }

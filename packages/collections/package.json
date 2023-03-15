@@ -9,9 +9,7 @@
     "compile": "yarn tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@fp4ts/optics-core": "*",
-    "@fp4ts/optics-derivation": "*",
-    "@fp4ts/optics-std": "*"
+    "@fp4ts/collections-core": "*"
   },
   "devDependencies": {
     "typescript": "4.9.5"

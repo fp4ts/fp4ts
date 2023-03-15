@@ -4,22 +4,22 @@
 // LICENSE file in the root directory of this source tree.
 
 import { suite, add, cycle, configure } from 'benny';
-import { Set } from '@fp4ts/collections-core';
+import { OrdSet } from '@fp4ts/collections-core';
 
 function makeSuite(size: number) {
   const nums = [...new Array(size).keys()].map((_, i) => i);
   const perm = nums.map(() => (Math.random() * size) | 0);
 
-  const set = Set.fromArray(nums);
-  const setr = Set.fromArray(perm);
+  const set = OrdSet.fromArray(nums);
+  const setr = OrdSet.fromArray(perm);
 
   return [
     add(`fromArray (${size})`, () => {
-      Set.fromArray(nums);
+      OrdSet.fromArray(nums);
     }),
 
     add(`fromArray random (${size})`, () => {
-      Set.fromArray(perm);
+      OrdSet.fromArray(perm);
     }),
 
     add(`lookup identity (${size})`, () => {
@@ -34,13 +34,13 @@ function makeSuite(size: number) {
     }),
 
     add(`insert (${size})`, () => {
-      let m: Set<number> = Set.empty;
+      let m: OrdSet<number> = OrdSet.empty;
       for (let i = 0; i < size; i++) {
         m = m.insert(i);
       }
     }),
     add(`insert random (${size})`, () => {
-      let m: Set<number> = Set.empty;
+      let m: OrdSet<number> = OrdSet.empty;
       for (let i = 0; i < size; i++) {
         m = m.insert(perm[i]);
       }

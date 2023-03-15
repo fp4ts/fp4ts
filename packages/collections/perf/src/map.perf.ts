@@ -4,8 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { suite, add, cycle, configure } from 'benny';
-import { Ord } from '@fp4ts/cats';
-import { Map } from '@fp4ts/collections-core';
+import { OrdMap } from '@fp4ts/collections-core';
 
 function makeSuite(size: number) {
   const nums = [...new Array(size).keys()].map((_, i) => i);
@@ -13,16 +12,16 @@ function makeSuite(size: number) {
 
   const numPs = nums.map(x => [x, x] as [number, number]);
   const permPs = nums.map(x => [x, x] as [number, number]);
-  const map = Map.fromArray(Ord.fromUniversalCompare<number>())(numPs);
-  const mapr = Map.fromArray(Ord.fromUniversalCompare<number>())(permPs);
+  const map = OrdMap.fromArray(numPs);
+  const mapr = OrdMap.fromArray(permPs);
 
   return [
     add(`fromArray (${size})`, () => {
-      Map.fromArray(Ord.fromUniversalCompare())(numPs);
+      OrdMap.fromArray(numPs);
     }),
 
     add(`fromArray random (${size})`, () => {
-      Map.fromArray(Ord.fromUniversalCompare())(numPs);
+      OrdMap.fromArray(numPs);
     }),
 
     add(`lookup identity (${size})`, () => {
@@ -38,13 +37,13 @@ function makeSuite(size: number) {
     }),
 
     add(`insert (${size})`, () => {
-      let m: Map<number, number> = Map.empty;
+      let m: OrdMap<number, number> = OrdMap.empty;
       for (let i = 0; i < size; i++) {
         m = m.insert(i, i);
       }
     }),
     add(`insert random (${size})`, () => {
-      let m: Map<number, number> = Map.empty;
+      let m: OrdMap<number, number> = OrdMap.empty;
       for (let i = 0; i < size; i++) {
         m = m.insert(perm[i], perm[i]);
       }
