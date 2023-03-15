@@ -27,7 +27,7 @@ export const evalFunctor: () => Functor<EvalF> = lazy(() =>
 export const evalMonadDefer: () => MonadDefer<EvalF> = lazy(() =>
   MonadDefer.of({
     ...evalDefer(),
-    delay: Eval.always,
+    delay: Eval.delay,
     pure: Eval.pure,
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
