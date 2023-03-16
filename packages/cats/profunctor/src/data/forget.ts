@@ -3,7 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, cached, F1, id, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  cached,
+  Eval,
+  F1,
+  id,
+  Kind,
+  lazy,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import {
   Applicative,
   Contravariant,
@@ -11,6 +22,7 @@ import {
   Functor,
   MonoidK,
   Traversable,
+  TraverseStrategy,
 } from '@fp4ts/cats-core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { Const, ConstF, Either, Left, Right } from '@fp4ts/cats-core/lib/data';
@@ -35,6 +47,14 @@ const forgetMonoidK = cached(<R, E>(R: Monoid<R>) =>
     emptyK: () => _ => R.empty,
     combineK_: (f, g) =>
       F1.flatMap(f, r1 => F1.andThen(g, r2 => R.combine_(r1, r2))),
+    combineKEval_: (f, eg) =>
+      Eval.now(
+        (e: E) =>
+          R.combineEval_(
+            f(e),
+            eg.map(g => g(e)),
+          ).value,
+      ),
   }),
 );
 
@@ -42,15 +62,36 @@ const forgetFunctor = lazy(<R, E>() =>
   Functor.of<$<ForgetF, [R, E]>>({ map_: (f, _) => f }),
 ) as <R, E>() => Functor<$<ForgetF, [R, E]>>;
 
-const forgetApplicative = cached(<R, E>(R: Monoid<R>) =>
-  Applicative.of<$<ForgetF, [R, E]>>({
+const forgetApplicative = cached(<R, E>(R: Monoid<R>) => {
+  const self = Applicative.of<$<ForgetF, [R, E]>>({
     ...forgetFunctor(),
     pure: _ => _ => R.empty,
     ap_: (f, g) => F1.flatMap(f, r1 => F1.andThen(g, r2 => R.combine_(r1, r2))),
     map2_: (f, g, _) =>
       F1.flatMap(f, r1 => F1.andThen(g, r2 => R.combine_(r1, r2))),
-  }),
-);
+    map2Eval_: (f, eg) =>
+      Eval.now(
+        (e: E) =>
+          R.combineEval_(
+            f(e),
+            eg.map(g => g(e)),
+          ).value,
+      ),
+  });
+
+  const ts: TraverseStrategy<$<ForgetF, [R, E]>, $<ForgetF, [Eval<R>, E]>> = {
+    toG: fa => F1.andThen(fa, r => r.value),
+    toRhs: thunk => (e: E) => Eval.always(() => thunk()(e)),
+    map: (fa, f) => fa,
+    map2: (fa, fb, f) => (e: E) =>
+      Eval.defer(() => fa(e)).flatMap(a => R.combineEval_(a, fb(e))),
+    defer: thunk => (e: E) => Eval.defer(() => thunk()(e)),
+  };
+
+  self.TraverseStrategy = use => use(ts);
+
+  return self;
+});
 
 const forgetContravariant = lazy(<R, E>() =>
   Contravariant.of<$<ForgetF, [R, E]>>({ contramap_: (pab, f) => pab }),
