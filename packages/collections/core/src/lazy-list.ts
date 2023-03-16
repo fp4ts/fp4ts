@@ -470,8 +470,8 @@ export class _LazyList<out A> {
     return isIdentityTC(G)
       ? f => this.map(f) as any
       : isConstTC(G)
-      ? f => this.traverse_(G, f) as any
-      : Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs));
+      ? f => this.traverse_(G, f as any) as any
+      : G.TraverseStrategy(Rhs => this.traverseImpl(G, Rhs));
   }
 
   public traverse_<G>(
@@ -508,7 +508,7 @@ export class _LazyList<out A> {
   ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
     return isIdentityTC(G)
       ? f => this.collect(f as any) as any
-      : Apply.TraverseStrategy(G)(Rhs => this.traverseFilterImpl(G, Rhs));
+      : G.TraverseStrategy(Rhs => this.traverseFilterImpl(G, Rhs));
   }
 
   private traverseFilterImpl<G, Rhs>(

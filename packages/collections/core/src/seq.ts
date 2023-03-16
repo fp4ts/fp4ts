@@ -2530,7 +2530,7 @@ abstract class _Seq<out A> {
   ): Kind<G, [Seq<B>]> {
     return isIdentityTC(G)
       ? (this.map(f) as any)
-      : Apply.TraverseStrategy(G)(Rhs => traverseViaSeqImpl(G, Rhs, this, f));
+      : G.TraverseStrategy(Rhs => traverseViaSeqImpl(G, Rhs, this, f));
   }
 
   /**
@@ -2615,7 +2615,7 @@ abstract class _Seq<out A> {
   ): Kind<G, [Seq<B>]> {
     return isIdentityTC(G)
       ? (this.collect(f as any) as any)
-      : Apply.TraverseStrategy(G)(Rhs =>
+      : G.TraverseStrategy(Rhs =>
           traverseFilterViaSeqImpl(
             G,
             Foldable.Array,

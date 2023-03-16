@@ -312,7 +312,7 @@ export const traverseViaChain = <G, F>(
   xs: Kind<F, [A]>,
   f: (a: A, i: number) => Kind<G, [B]>,
 ) => Kind<G, [Chain<B>]>) =>
-  Apply.TraverseStrategy(G)(Rhs => traverseViaChainImpl(G, F, Rhs));
+  G.TraverseStrategy(Rhs => traverseViaChainImpl(G, F, Rhs));
 
 const traverseViaChainImpl =
   <G, F, Rhs>(
@@ -371,7 +371,7 @@ export const traverseFilterViaChain = <G, F>(
   xs: Kind<F, [A]>,
   f: (a: A, i: number) => Kind<G, [Option<B>]>,
 ) => Kind<G, [Chain<B>]>) =>
-  Apply.TraverseStrategy(G)(Rhs => traverseFilterViaChainImpl(G, F, Rhs));
+  G.TraverseStrategy(Rhs => traverseFilterViaChainImpl(G, F, Rhs));
 
 const traverseFilterViaChainImpl =
   <G, F, Rhs>(

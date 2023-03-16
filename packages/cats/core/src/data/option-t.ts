@@ -126,7 +126,7 @@ OptionT.Alternative = cached(
 OptionT.Monad = cached(
   <F>(F: Monad<F>): Monad<$<OptionTF, [F]>> =>
     Monad.of<$<OptionTF, [F]>>({
-      ...OptionT.Functor(F),
+      ...OptionT.Applicative(F),
       pure: a => F.pure(Some(a)),
       flatMap_: (fa, f) =>
         F.flatMap_(fa, opt => opt.fold(() => F.pure(None), f)),

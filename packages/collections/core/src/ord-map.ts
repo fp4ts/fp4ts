@@ -2163,7 +2163,7 @@ export abstract class _OrdMap<out K, out V> {
   ): Kind<F, [OrdMap<K, C>]> {
     return isIdentityTC(F)
       ? (this.mergeImpl(that, lm as any, rm as any, f as any, O) as any)
-      : Apply.TraverseStrategy(F)(Rhs =>
+      : F.TraverseStrategy(Rhs =>
           Rhs.toG(this.mergeAImpl(F, Rhs, that, lm, rm, f, O)),
         );
   }
@@ -3117,8 +3117,8 @@ export abstract class _OrdMap<out K, out V> {
     return isIdentityTC(G)
       ? (this.map(f) as any)
       : isConstTC(G)
-      ? this.traverse_(G, f)
-      : Apply.TraverseStrategy(G)(Rhs => Rhs.toG(this.traverseImpl(G, Rhs, f)));
+      ? this.traverse_(G, f as any)
+      : G.TraverseStrategy(Rhs => Rhs.toG(this.traverseImpl(G, Rhs, f)));
   }
 
   /**
@@ -3173,9 +3173,7 @@ export abstract class _OrdMap<out K, out V> {
   ): Kind<G, [OrdMap<K, B>]> {
     return isIdentityTC(G)
       ? (this.collect(f as any) as any)
-      : Apply.TraverseStrategy(G)(Rhs =>
-          Rhs.toG(this.traverseFilterImpl(G, Rhs, f)),
-        );
+      : G.TraverseStrategy(Rhs => Rhs.toG(this.traverseFilterImpl(G, Rhs, f)));
   }
 
   private traverseFilterImpl<G, Rhs, B>(

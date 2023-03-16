@@ -18,7 +18,6 @@ import {
   Align,
   Alternative,
   Applicative,
-  Apply,
   CoflatMap,
   Compare,
   Either,
@@ -3357,7 +3356,7 @@ export abstract class _List<out A> {
   ): Kind<G, [List<B>]> {
     return isIdentityTC(G)
       ? (this.map(f) as any)
-      : Apply.TraverseStrategy(G)(Rhs => this.traverseImpl(G, Rhs, f));
+      : G.TraverseStrategy(Rhs => this.traverseImpl(G, Rhs, f));
   }
 
   private traverseImpl<G, Rhs, B>(
@@ -3422,9 +3421,15 @@ export abstract class _List<out A> {
 
     return isIdentityTC(G)
       ? (this.forEach(f) as any)
-      : this.foldRight(Eval.now(G.unit), (x, eb) =>
-          G.map2Eval_(f(x), eb, discard),
-        ).value;
+      : G.TraverseStrategy(Rhs =>
+          Rhs.toG(
+            this.foldRightTraverse(
+              Rhs,
+              Rhs.toRhs(() => G.unit),
+              (x, r) => Rhs.map2Rhs(f(x), r, discard),
+            ),
+          ),
+        );
   }
 
   /**
@@ -3461,7 +3466,7 @@ export abstract class _List<out A> {
   ): Kind<G, [List<B>]> {
     return isIdentityTC(G)
       ? (this.collect(f as any) as any)
-      : Apply.TraverseStrategy(G)(Rhs => this.traverseFilterImpl(G, Rhs, f));
+      : G.TraverseStrategy(Rhs => this.traverseFilterImpl(G, Rhs, f));
   }
 
   private traverseFilterImpl<G, Rhs, B>(

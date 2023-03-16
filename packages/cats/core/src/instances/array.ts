@@ -416,8 +416,8 @@ const traverseWithIndex =
       : isIdentityTC(G)
       ? (mapWithIndex(xs, f) as any)
       : isConstTC(G)
-      ? (traverseWithIndex_(G, xs, f) as any)
-      : Apply.TraverseStrategy(G)(Rhs => traverseWithIndexImpl(G, Rhs, xs, f));
+      ? (traverseWithIndex_(G, xs, f as any) as any)
+      : G.TraverseStrategy(Rhs => traverseWithIndexImpl(G, Rhs, xs, f));
 
 function traverseWithIndex_<G, A>(
   G: Applicative<G>,
@@ -487,7 +487,7 @@ const traverseFilter =
       ? G.pure([])
       : isIdentityTC(G)
       ? (collect(xs, f as any) as any)
-      : Apply.TraverseStrategy(G)(Rhs => traverseFilterImpl(G, Rhs, xs, f));
+      : G.TraverseStrategy(Rhs => traverseFilterImpl(G, Rhs, xs, f));
 
 const traverseFilterImpl = <G, Rhs, A, B>(
   G: Applicative<G>,

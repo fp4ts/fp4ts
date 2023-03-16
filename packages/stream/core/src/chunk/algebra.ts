@@ -14,7 +14,6 @@ import {
   Eq,
   Iter,
   TraverseStrategy,
-  Apply,
 } from '@fp4ts/cats';
 import { Chain, List, Vector } from '@fp4ts/collections';
 
@@ -283,7 +282,7 @@ export abstract class Chunk<out O> {
   public traverse<F>(
     F: Applicative<F>,
   ): <O2>(f: (o: O) => Kind<F, [O2]>) => Kind<F, [Chunk<O2>]> {
-    return Apply.TraverseStrategy(F)(Rhs => this.traverseImpl(F, Rhs));
+    return F.TraverseStrategy(Rhs => this.traverseImpl(F, Rhs));
   }
 
   private traverseImpl<F, Rhs>(

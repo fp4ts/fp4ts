@@ -6,7 +6,6 @@
 import { cached, Eval, EvalF, id, Kind } from '@fp4ts/core';
 import { ComposedApply } from './composed';
 import { Functor, FunctorRequirements } from './functor';
-import { IdentityF } from './data';
 import { isDefer } from './defer';
 
 /**
@@ -64,6 +63,8 @@ export interface Apply<F> extends Functor<F> {
 
   productR<B>(fb: Kind<F, [B]>): <A>(fa: Kind<F, [A]>) => Kind<F, [B]>;
   productR_<A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>): Kind<F, [B]>;
+
+  TraverseStrategy<A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A;
 }
 
 export type ApplyRequirements<F> = (
@@ -155,6 +156,10 @@ export const Apply = Object.freeze({
           fb,
         ),
 
+      TraverseStrategy<A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A {
+        return mkTraverseStrategy(this)(use as any);
+      },
+
       ...Functor.of<F>(F),
       ...F,
     };
@@ -164,29 +169,29 @@ export const Apply = Object.freeze({
 
   compose: <F, G>(F: Apply<F>, G: Apply<G>): ComposedApply<F, G> =>
     ComposedApply.of(F, G),
+});
 
-  TraverseStrategy: cached(<F>(F: Apply<F>) => {
-    const traverseStrategy: TraverseStrategy<F, unknown> = isDefer(F)
-      ? ({
-          defer: F.defer,
-          toRhs: F.defer,
-          map: F.map_,
-          map2Rhs: F.map2_,
-          map2: F.map2_,
-          toG: id,
-        } as TraverseStrategy<F, F>)
-      : ({
-          defer: Eval.defer,
-          toRhs: Eval.always,
-          map: (fa, f) => fa.map(F.map(f)),
-          map2Rhs: F.map2Eval_,
-          map2: (fa, efb, f) => fa.flatMap(fa => F.map2Eval_(fa, efb, f)),
-          toG: fa => fa.value,
-        } as TraverseStrategy<F, [EvalF, F]>);
+const mkTraverseStrategy = cached(<F>(F: Apply<F>) => {
+  const traverseStrategy: TraverseStrategy<F, unknown> = isDefer(F)
+    ? ({
+        defer: F.defer,
+        toRhs: F.defer,
+        map: F.map_,
+        map2Rhs: F.map2_,
+        map2: F.map2_,
+        toG: id,
+      } as TraverseStrategy<F, F>)
+    : ({
+        defer: Eval.defer,
+        toRhs: Eval.always,
+        map: (fa, f) => fa.map(F.map(f)),
+        map2Rhs: F.map2Eval_,
+        map2: (fa, efb, f) => fa.flatMap(fa => F.map2Eval_(fa, efb, f)),
+        toG: fa => fa.value,
+      } as TraverseStrategy<F, [EvalF, F]>);
 
-    return <A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A =>
-      use(traverseStrategy);
-  }),
+  return <A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A =>
+    use(traverseStrategy);
 });
 
 export interface TraverseStrategy<G, Rhs> {

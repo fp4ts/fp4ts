@@ -9,6 +9,7 @@ import {
   Base,
   cached,
   Eval,
+  EvalF,
   F1,
   Fix,
   Kind,
@@ -24,7 +25,7 @@ import { SemigroupK } from '../semigroup-k';
 import { MonoidK } from '../monoid-k';
 import { Functor } from '../functor';
 import { FunctorFilter } from '../functor-filter';
-import { Apply } from '../apply';
+import { Apply, TraverseStrategy } from '../apply';
 import { Applicative } from '../applicative';
 import { Alternative } from '../alternative';
 import { ApplicativeError } from '../applicative-error';
@@ -153,8 +154,8 @@ const kleisliDistributive = <F, R>(
   });
 
 const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
-  <F, R>(F: Apply<F>) =>
-    Apply.of<$<KleisliF, [F, R]>>({
+  <F, R>(F: Apply<F>) => {
+    const self: Apply<$<KleisliF, [F, R]>> = Apply.of<$<KleisliF, [F, R]>>({
       ...kleisliFunctor(F),
       ap_: (ff, fa) => F1.flatMap(ff, f => F1.andThen(fa, a => F.ap_(f, a))),
       map2_: <A, B, C>(
@@ -178,7 +179,40 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
               ).value,
           ),
         ),
-    }),
+    });
+
+    if (!isDefer(F)) {
+      const ts: TraverseStrategy<
+        $<KleisliF, [F, R]>,
+        $<KleisliF, [[EvalF, F], R]>
+      > = {
+        defer: F1.defer,
+        map: (fa, f) => (r: R) => Eval.defer(() => fa(r).map(F.map(f))),
+        map2: (fa, fb, f) => (r: R) =>
+          Eval.defer(() =>
+            fa(r).flatMap(fa =>
+              F.map2Eval_(
+                fa,
+                Eval.defer(() => fb(r)),
+                f,
+              ),
+            ),
+          ),
+        map2Rhs: (fa, fb, f) => (r: R) =>
+          Eval.defer(() =>
+            F.map2Eval_(
+              fa(r),
+              Eval.defer(() => fb(r)),
+              f,
+            ),
+          ),
+        toG: fa => F1.andThen(fa, efa => efa.value),
+        toRhs: thunk => (r: R) => Eval.later(() => thunk()(r)),
+      };
+      self.TraverseStrategy = use => use(ts);
+    }
+    return self;
+  },
 ) as <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>>;
 
 const kleisliApplicative: <F, A>(
