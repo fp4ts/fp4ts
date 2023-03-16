@@ -207,7 +207,7 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
             ),
           ),
         toG: fa => F1.andThen(fa, efa => efa.value),
-        toRhs: thunk => (r: R) => Eval.later(() => thunk()(r)),
+        toRhs: thunk => (r: R) => Eval.always(() => thunk()(r)),
       };
       self.TraverseStrategy = use => use(ts);
     }

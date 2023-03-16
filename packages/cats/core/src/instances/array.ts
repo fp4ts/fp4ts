@@ -447,7 +447,13 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
         const a = xs[idx];
         const right = first;
         const idx0 = idx;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right, A.cons));
+        first = Rhs.defer(() =>
+          Rhs.map2(
+            Rhs.toRhs(() => f(a, idx0)),
+            right,
+            A.cons,
+          ),
+        );
       }
       return Rhs.map(first, A.single);
     } else {

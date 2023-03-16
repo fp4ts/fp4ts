@@ -26,7 +26,7 @@ export function consToArray<A>(xs: Cons<A>): A[] {
   _consCopyToArray(xs, ys, 0);
   return ys;
 }
-const Nil: Concat<never> = { tag: 0, size: 0 };
+export const Nil: Concat<never> = { tag: 0, size: 0 };
 
 export type Concat<A> =
   | { tag: 0; size: number }
