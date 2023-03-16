@@ -2177,7 +2177,7 @@ export abstract class _OrdMap<out K, out V> {
     rm: WhenMissing<F, K, B, C>,
     f: WhenMatched<F, K, A, B, C>,
     O: Ord<K> = Ord.fromUniversalCompare(),
-  ): Kind<Rhs, [Kind<F, [OrdMap<K, C>]>]> {
+  ): Kind<Rhs, [OrdMap<K, C>]> {
     const n1 = this as Node<K, A>;
     if (n1.tag === 'empty') return Rhs.toRhs(() => rm.missingSubtree(that));
     const n2 = that as Node<K, B>;
@@ -3142,7 +3142,7 @@ export abstract class _OrdMap<out K, out V> {
     G: Applicative<G>,
     Rhs: TraverseStrategy<G, Rhs>,
     f: (v: V, k: K) => Kind<G, [B]>,
-  ): Kind<Rhs, [Kind<G, [OrdMap<K, B>]>]> {
+  ): Kind<Rhs, [OrdMap<K, B>]> {
     const n = this as any as Node<K, V>;
     if (n.tag === 'empty') return Rhs.toRhs(() => G.pure(Empty));
     if (n.size === 1)
@@ -3182,7 +3182,7 @@ export abstract class _OrdMap<out K, out V> {
     G: Applicative<G>,
     Rhs: TraverseStrategy<G, Rhs>,
     f: (v: V, k: K) => Kind<G, [Option<B>]>,
-  ): Kind<Rhs, [Kind<G, [OrdMap<K, B>]>]> {
+  ): Kind<Rhs, [OrdMap<K, B>]> {
     const n = this as any as Node<K, V>;
     if (n.tag === 'empty') return Rhs.toRhs(() => G.pure(Empty));
     if (n.size === 1)

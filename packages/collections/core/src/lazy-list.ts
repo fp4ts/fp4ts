@@ -490,7 +490,7 @@ export class _LazyList<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
     return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
-      const go = (xs: Step<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+      const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
         xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
           : Rhs.map2Rhs(
@@ -516,7 +516,7 @@ export class _LazyList<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
   ): <B>(f: (a: A) => Kind<G, [Option<B>]>) => Kind<G, [LazyList<B>]> {
     return <B>(f: (a: A) => Kind<G, [Option<B>]>): Kind<G, [LazyList<B>]> => {
-      const go = (xs: Step<A>): Kind<Rhs, [Kind<G, [LazyList<B>]>]> =>
+      const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
         xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
           : Rhs.map2Rhs(

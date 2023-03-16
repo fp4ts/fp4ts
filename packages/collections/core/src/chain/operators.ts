@@ -329,10 +329,7 @@ const traverseViaChainImpl =
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
 
-    const loop = (
-      start: number,
-      end: number,
-    ): Kind<Rhs, [Kind<G, [Chain<B>]>]> => {
+    const loop = (start: number, end: number): Kind<Rhs, [Chain<B>]> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
         let first = Rhs.toRhs(() =>
@@ -391,10 +388,7 @@ const traverseFilterViaChainImpl =
     // Max width of the tree -- max depth log_128(c.size)
     const width = 128;
 
-    const loop = (
-      start: number,
-      end: number,
-    ): Kind<Rhs, [Kind<G, [Chain<B>]>]> => {
+    const loop = (start: number, end: number): Kind<Rhs, [Chain<B>]> => {
       if (end - start <= width) {
         // We've entered leaves of the tree
         let first = Rhs.toRhs(() =>

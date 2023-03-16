@@ -439,10 +439,7 @@ const traverseWithIndexImpl = <G, Rhs, A, B>(
   // Max width of the tree -- max depth log_128(c.size)
   const width = 128;
 
-  const loop = (
-    start: number,
-    end: number,
-  ): Kind<Rhs, [Kind<G, [A.Concat<B>]>]> => {
+  const loop = (start: number, end: number): Kind<Rhs, [A.Concat<B>]> => {
     if (end - start <= width) {
       // We've entered leaves of the tree
       let first = Rhs.toRhs(() => G.map_(f(xs[end - 1], end - 1), A.singleton));
@@ -501,10 +498,7 @@ const traverseFilterImpl = <G, Rhs, A, B>(
   // Max width of the tree -- max depth log_128(c.size)
   const width = 128;
 
-  const loop = (
-    start: number,
-    end: number,
-  ): Kind<Rhs, [Kind<G, [A.Concat<B>]>]> => {
+  const loop = (start: number, end: number): Kind<Rhs, [A.Concat<B>]> => {
     if (end - start <= width) {
       // We've entered leaves of the tree
       let first = Rhs.toRhs(() => G.map_(f(xs[end - 1]), A.singletonFilter));

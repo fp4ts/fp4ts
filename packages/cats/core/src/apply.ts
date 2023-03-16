@@ -174,7 +174,7 @@ export const Apply = Object.freeze({
           map2Rhs: F.map2_,
           map2: F.map2_,
           toG: id,
-        } as TraverseStrategy<F, IdentityF>)
+        } as TraverseStrategy<F, F>)
       : ({
           defer: Eval.defer,
           toRhs: Eval.always,
@@ -182,7 +182,7 @@ export const Apply = Object.freeze({
           map2Rhs: F.map2Eval_,
           map2: (fa, efb, f) => fa.flatMap(fa => F.map2Eval_(fa, efb, f)),
           toG: fa => fa.value,
-        } as TraverseStrategy<F, EvalF>);
+        } as TraverseStrategy<F, [EvalF, F]>);
 
     return <A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A =>
       use(traverseStrategy);
@@ -190,21 +190,18 @@ export const Apply = Object.freeze({
 });
 
 export interface TraverseStrategy<G, Rhs> {
-  toRhs<A>(thunk: () => Kind<G, [A]>): Kind<Rhs, [Kind<G, [A]>]>;
-  toG<A>(fa: Kind<Rhs, [Kind<G, [A]>]>): Kind<G, [A]>;
-  defer<A>(thunk: () => Kind<Rhs, [Kind<G, [A]>]>): Kind<Rhs, [Kind<G, [A]>]>;
-  map<A, B>(
-    fa: Kind<Rhs, [Kind<G, [A]>]>,
-    f: (a: A) => B,
-  ): Kind<Rhs, [Kind<G, [B]>]>;
+  toRhs<A>(thunk: () => Kind<G, [A]>): Kind<Rhs, [A]>;
+  toG<A>(fa: Kind<Rhs, [A]>): Kind<G, [A]>;
+  defer<A>(thunk: () => Kind<Rhs, [A]>): Kind<Rhs, [A]>;
+  map<A, B>(fa: Kind<Rhs, [A]>, f: (a: A) => B): Kind<Rhs, [B]>;
   map2Rhs<A, B, C>(
     lhs: Kind<G, [A]>,
-    rhs: Kind<Rhs, [Kind<G, [B]>]>,
+    rhs: Kind<Rhs, [B]>,
     f: (a: A, b: B) => C,
-  ): Kind<Rhs, [Kind<G, [C]>]>;
+  ): Kind<Rhs, [C]>;
   map2<A, B, C>(
-    lhs: Kind<Rhs, [Kind<G, [A]>]>,
-    rhs: Kind<Rhs, [Kind<G, [B]>]>,
+    lhs: Kind<Rhs, [A]>,
+    rhs: Kind<Rhs, [B]>,
     f: (a: A, b: B) => C,
-  ): Kind<Rhs, [Kind<G, [C]>]>;
+  ): Kind<Rhs, [C]>;
 }

@@ -5116,7 +5116,7 @@ function traverseImpl<G, Rhs, A, B>(
   Rhs: TraverseStrategy<G, Rhs>,
   self: Seq<A>,
   f: (a: A) => Kind<G, [B]>,
-): Kind<Rhs, [Kind<G, [Seq<B>]>]> {
+): Kind<Rhs, [Seq<B>]> {
   const xs = self as ViewSeq<A>;
   switch (xs.tag) {
     case 0:
@@ -5146,7 +5146,7 @@ function traverseNode<G, Rhs, A, B>(
   Rhs: TraverseStrategy<G, Rhs>,
   xs: Node<A>,
   f: (a: A) => Kind<G, [B]>,
-): Kind<Rhs, [Kind<G, [Node<B>]>]> {
+): Kind<Rhs, [Node<B>]> {
   switch (xs.length) {
     case 3:
       return Rhs.map2Rhs(
@@ -5176,7 +5176,7 @@ function traverseDigit<G, Rhs, A, B>(
   Rhs: TraverseStrategy<G, Rhs>,
   xs: Digit<A>,
   f: (a: A) => Kind<G, [B]>,
-): Kind<Rhs, [Kind<G, [Digit<B>]>]> {
+): Kind<Rhs, [Digit<B>]> {
   switch (xs.length) {
     case 1:
       return Rhs.toRhs(() => G.map_(f(xs[0]), a => [a]));
@@ -5238,7 +5238,7 @@ function traverseFilterViaSeqImpl<G, F, Rhs, A, B>(
   // Max width of the tree -- max depth log_128(c.size)
   const width = 128;
 
-  const loop = (start: number, end: number): Kind<Rhs, [Kind<G, [Seq<B>]>]> => {
+  const loop = (start: number, end: number): Kind<Rhs, [Seq<B>]> => {
     if (end - start <= width) {
       // We've entered leaves of the tree
       let first = Rhs.toRhs(() =>

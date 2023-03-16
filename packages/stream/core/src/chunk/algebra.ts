@@ -296,10 +296,7 @@ export abstract class Chunk<out O> {
       // Max width of the tree -- max depth log_128(c.size)
       const width = 128;
 
-      const loop = (
-        start: number,
-        end: number,
-      ): Kind<Rhs, [Kind<F, [Chunk<O2>]>]> => {
+      const loop = (start: number, end: number): Kind<Rhs, [Chunk<O2>]> => {
         if (end - start <= width) {
           // We've entered leaves of the tree
           let first = Rhs.toRhs(() => F.map_(f(this.elem(end - 1)), List));

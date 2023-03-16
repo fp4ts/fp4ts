@@ -3365,7 +3365,7 @@ export abstract class _List<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
     f: (a: A) => Kind<G, [B]>,
   ): Kind<G, [List<B>]> {
-    const consF = (x: A, gys: Kind<Rhs, [Kind<G, [List<B>]>]>) =>
+    const consF = (x: A, gys: Kind<Rhs, [List<B>]>) =>
       Rhs.map2Rhs(f(x), gys, List.cons);
 
     return Rhs.toG(
@@ -3469,7 +3469,7 @@ export abstract class _List<out A> {
     Rhs: TraverseStrategy<G, Rhs>,
     f: (a: A) => Kind<G, [Option<B>]>,
   ): Kind<G, [List<B>]> {
-    const consF = (x: A, gys: Kind<Rhs, [Kind<G, [List<B>]>]>) =>
+    const consF = (x: A, gys: Kind<Rhs, [List<B>]>) =>
       Rhs.map2Rhs(f(x), gys, (oy, ys) =>
         oy.isEmpty ? ys : new Cons(oy.get, ys),
       );
@@ -3487,11 +3487,11 @@ export abstract class _List<out A> {
 
   private foldRightTraverse<F, Rhs, B>(
     Rhs: TraverseStrategy<F, Rhs>,
-    ez: Kind<Rhs, [Kind<F, [B]>]>,
-    f: (a: A, eb: Kind<Rhs, [Kind<F, [B]>]>) => Kind<Rhs, [Kind<F, [B]>]>,
-  ): Kind<Rhs, [Kind<F, [B]>]> {
+    ez: Kind<Rhs, [B]>,
+    f: (a: A, eb: Kind<Rhs, [B]>) => Kind<Rhs, [B]>,
+  ): Kind<Rhs, [B]> {
     let xs = this as List<A>;
-    const go: Kind<Rhs, [Kind<F, [B]>]> = Rhs.defer(() => {
+    const go: Kind<Rhs, [B]> = Rhs.defer(() => {
       if (xs === Nil) return ez;
       const x = xs.head;
       xs = xs.tail;
