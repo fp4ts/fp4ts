@@ -5149,19 +5149,19 @@ function traverseNode<G, Rhs, A, B>(
 ): Kind<Rhs, [Node<B>]> {
   switch (xs.length) {
     case 3:
-      return Rhs.map2Rhs(
-        f(xs[1]),
+      return Rhs.map2(
+        Rhs.toRhs(() => f(xs[1])),
         Rhs.toRhs(() => f(xs[2])),
         (a, b) => [xs[0], a, b],
       );
     case 4: {
       let b: B;
       let c: B;
-      return Rhs.map2Rhs(
-        f(xs[1]),
+      return Rhs.map2(
+        Rhs.toRhs(() => f(xs[1])),
         Rhs.defer(() =>
-          Rhs.map2Rhs(
-            f(xs[2]),
+          Rhs.map2(
+            Rhs.toRhs(() => f(xs[2])),
             Rhs.toRhs(() => f(xs[3])),
             (x, y) => ((b = x), (c = y)),
           ),
@@ -5181,19 +5181,19 @@ function traverseDigit<G, Rhs, A, B>(
     case 1:
       return Rhs.toRhs(() => G.map_(f(xs[0]), a => [a]));
     case 2:
-      return Rhs.map2Rhs(
-        f(xs[0]),
+      return Rhs.map2(
+        Rhs.toRhs(() => f(xs[0])),
         Rhs.toRhs(() => f(xs[1])),
         (a, b) => [a, b],
       );
     case 3: {
       let b: B;
       let c: B;
-      return Rhs.map2Rhs(
-        f(xs[0]),
+      return Rhs.map2(
+        Rhs.toRhs(() => f(xs[0])),
         Rhs.defer(() =>
-          Rhs.map2Rhs(
-            f(xs[1]),
+          Rhs.map2(
+            Rhs.toRhs(() => f(xs[1])),
             Rhs.toRhs(() => f(xs[2])),
             (x, y) => ((b = x), (c = y)),
           ),
@@ -5205,14 +5205,14 @@ function traverseDigit<G, Rhs, A, B>(
       let b: B;
       let c: B;
       let d: B;
-      return Rhs.map2Rhs(
-        f(xs[0]),
+      return Rhs.map2(
+        Rhs.toRhs(() => f(xs[0])),
         Rhs.defer(() =>
-          Rhs.map2Rhs(
-            f(xs[1]),
+          Rhs.map2(
+            Rhs.toRhs(() => f(xs[1])),
             Rhs.defer(() =>
-              Rhs.map2Rhs(
-                f(xs[2]),
+              Rhs.map2(
+                Rhs.toRhs(() => f(xs[2])),
                 Rhs.toRhs(() => f(xs[3])),
                 (y, w) => ((c = y), (d = w)),
               ),
@@ -5250,10 +5250,10 @@ function traverseFilterViaSeqImpl<G, F, Rhs, A, B>(
         const a = F.elem_(xs, idx).get;
         const right = first;
         const idx0 = idx;
-        first = Rhs.defer(() =>
-          Rhs.map2Rhs(f(a, idx0), right, (opt, tl) =>
-            opt.nonEmpty ? tl.prepend(opt.get) : tl,
-          ),
+        first = Rhs.map2(
+          Rhs.toRhs(() => f(a, idx0)),
+          right,
+          (opt, tl) => (opt.nonEmpty ? tl.prepend(opt.get) : tl),
         );
       }
       return first;

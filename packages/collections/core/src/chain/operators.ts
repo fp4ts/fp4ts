@@ -15,7 +15,6 @@ import {
 } from '@fp4ts/core';
 import {
   Applicative,
-  Apply,
   Eq,
   Foldable,
   FoldableWithIndex,
@@ -339,7 +338,13 @@ const traverseViaChainImpl =
           const a = F.elem_(xs, idx).get;
           const right = first;
           const idx0 = idx;
-          first = Rhs.defer(() => Rhs.map2Rhs(f(a, idx0), right, List.cons));
+          first = Rhs.defer(() =>
+            Rhs.map2(
+              Rhs.toRhs(() => f(a, idx0)),
+              right,
+              List.cons,
+            ),
+          );
         }
         return Rhs.map(first, fromList);
       } else {
@@ -401,8 +406,10 @@ const traverseFilterViaChainImpl =
           const right = first;
           const idx0 = idx;
           first = Rhs.defer(() =>
-            Rhs.map2Rhs(f(a, idx0), right, (opt, tl) =>
-              opt.nonEmpty ? tl.prepend(opt.get) : tl,
+            Rhs.map2(
+              Rhs.toRhs(() => f(a, idx0)),
+              right,
+              (opt, tl) => (opt.nonEmpty ? tl.prepend(opt.get) : tl),
             ),
           );
         }

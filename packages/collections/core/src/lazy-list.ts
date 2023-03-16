@@ -19,7 +19,6 @@ import {
   Align,
   Alternative,
   Applicative,
-  Apply,
   Defer,
   Eq,
   EqK,
@@ -493,8 +492,8 @@ export class _LazyList<out A> {
       const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
         xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
-          : Rhs.map2Rhs(
-              f(xs.head),
+          : Rhs.map2(
+              Rhs.toRhs(() => f(xs.head)),
               Rhs.defer(() => go(xs.forceTail)),
               (y, ys) => ys.cons(y),
             );
@@ -519,8 +518,8 @@ export class _LazyList<out A> {
       const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
         xs === NilStep
           ? Rhs.toRhs(() => G.pure(LazyList.empty))
-          : Rhs.map2Rhs(
-              f(xs.head),
+          : Rhs.map2(
+              Rhs.toRhs(() => f(xs.head)),
               Rhs.defer(() => go(xs.forceTail)),
               (y, ys) => (y.nonEmpty ? ys.cons(y.get) : ys),
             );

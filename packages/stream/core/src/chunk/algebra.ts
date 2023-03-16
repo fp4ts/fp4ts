@@ -302,7 +302,13 @@ export abstract class Chunk<out O> {
           for (let idx = end - 2; start <= idx; idx--) {
             const a = this.elem(idx);
             const right = first;
-            first = Rhs.defer(() => Rhs.map2Rhs(f(a), right, List.cons));
+            first = Rhs.defer(() =>
+              Rhs.map2(
+                Rhs.toRhs(() => f(a)),
+                right,
+                List.cons,
+              ),
+            );
           }
           return Rhs.map(first, Chunk.fromList);
         } else {

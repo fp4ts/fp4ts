@@ -198,14 +198,6 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
               ),
             ),
           ),
-        map2Rhs: (fa, fb, f) => (r: R) =>
-          Eval.defer(() =>
-            F.map2Eval_(
-              fa(r),
-              Eval.defer(() => fb(r)),
-              f,
-            ),
-          ),
         toG: fa => F1.andThen(fa, efa => efa.value),
         toRhs: thunk => (r: R) => Eval.always(() => thunk()(r)),
       };

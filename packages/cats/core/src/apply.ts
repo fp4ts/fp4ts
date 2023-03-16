@@ -64,7 +64,7 @@ export interface Apply<F> extends Functor<F> {
   productR<B>(fb: Kind<F, [B]>): <A>(fa: Kind<F, [A]>) => Kind<F, [B]>;
   productR_<A, B>(fa: Kind<F, [A]>, fb: Kind<F, [B]>): Kind<F, [B]>;
 
-  TraverseStrategy<A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A;
+  TraverseStrategy<A>(use: <T>(Rhs: TraverseStrategy<F, T>) => A): A;
 }
 
 export type ApplyRequirements<F> = (
@@ -177,7 +177,6 @@ const mkTraverseStrategy = cached(<F>(F: Apply<F>) => {
         defer: F.defer,
         toRhs: F.defer,
         map: F.map_,
-        map2Rhs: F.map2_,
         map2: F.map2_,
         toG: id,
       } as TraverseStrategy<F, F>)
@@ -185,28 +184,22 @@ const mkTraverseStrategy = cached(<F>(F: Apply<F>) => {
         defer: Eval.defer,
         toRhs: Eval.always,
         map: (fa, f) => fa.map(F.map(f)),
-        map2Rhs: F.map2Eval_,
         map2: (fa, efb, f) => fa.flatMap(fa => F.map2Eval_(fa, efb, f)),
         toG: fa => fa.value,
       } as TraverseStrategy<F, [EvalF, F]>);
 
-  return <A>(use: <Rhs>(Rhs: TraverseStrategy<F, Rhs>) => A): A =>
+  return <A>(use: <T>(Rhs: TraverseStrategy<F, T>) => A): A =>
     use(traverseStrategy);
 });
 
-export interface TraverseStrategy<G, Rhs> {
-  toRhs<A>(thunk: () => Kind<G, [A]>): Kind<Rhs, [A]>;
-  toG<A>(fa: Kind<Rhs, [A]>): Kind<G, [A]>;
-  defer<A>(thunk: () => Kind<Rhs, [A]>): Kind<Rhs, [A]>;
-  map<A, B>(fa: Kind<Rhs, [A]>, f: (a: A) => B): Kind<Rhs, [B]>;
-  map2Rhs<A, B, C>(
-    lhs: Kind<G, [A]>,
-    rhs: Kind<Rhs, [B]>,
-    f: (a: A, b: B) => C,
-  ): Kind<Rhs, [C]>;
+export interface TraverseStrategy<G, T> {
+  toRhs<A>(thunk: () => Kind<G, [A]>): Kind<T, [A]>;
+  toG<A>(fa: Kind<T, [A]>): Kind<G, [A]>;
+  defer<A>(thunk: () => Kind<T, [A]>): Kind<T, [A]>;
+  map<A, B>(fa: Kind<T, [A]>, f: (a: A) => B): Kind<T, [B]>;
   map2<A, B, C>(
-    lhs: Kind<Rhs, [A]>,
-    rhs: Kind<Rhs, [B]>,
+    lhs: Kind<T, [A]>,
+    rhs: Kind<T, [B]>,
     f: (a: A, b: B) => C,
-  ): Kind<Rhs, [C]>;
+  ): Kind<T, [C]>;
 }

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, EvalF, id, Kind } from '@fp4ts/core';
+import { id, Kind } from '@fp4ts/core';
 import { Functor } from '../functor';
 import { Applicative } from '../applicative';
 import { Monad } from '../monad';
@@ -44,12 +44,6 @@ Backwards.Applicative = <F>(F: Applicative<F>) => {
           defer: Rhs.defer,
           map: Rhs.map,
           map2: (fa, fb, f) => Rhs.map2(fb, fa, (b, a) => f(a, b)),
-          map2Rhs: (fa, fb, f) =>
-            Rhs.map2(
-              fb,
-              Rhs.toRhs(() => fa),
-              (b, a) => f(a, b),
-            ),
           toG: Rhs.toG,
           toRhs: Rhs.toRhs,
         }),
@@ -59,7 +53,6 @@ Backwards.Applicative = <F>(F: Applicative<F>) => {
       defer: F.defer,
       map: F.map_,
       map2: (fa, fb, f) => F.map2_(fb, fa, (b, a) => f(a, b)),
-      map2Rhs: (fa, fb, f) => F.map2_(fb, fa, (b, a) => f(a, b)),
       toG: id,
       toRhs: F.defer,
     };

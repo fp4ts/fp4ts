@@ -511,7 +511,11 @@ const traverseFilterImpl = <G, Rhs, A, B>(
       for (let idx = end - 2; start <= idx; idx--) {
         const a = xs[idx];
         const right = first;
-        first = Rhs.defer(() => Rhs.map2Rhs(f(a), right, A.consFilter));
+        first = Rhs.map2(
+          Rhs.toRhs(() => f(a)),
+          right,
+          A.consFilter,
+        );
       }
       return Rhs.map(first, A.single);
     } else {

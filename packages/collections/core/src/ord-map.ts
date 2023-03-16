@@ -6,7 +6,6 @@
 import {
   Align,
   Applicative,
-  Apply,
   Compare,
   Const,
   Either,
@@ -3153,8 +3152,8 @@ export abstract class _OrdMap<out K, out V> {
     return Rhs.map2(
       n.lhs.traverseImpl(G, Rhs, f),
       Rhs.defer(() =>
-        Rhs.map2Rhs(
-          f(n.value, n.key),
+        Rhs.map2(
+          Rhs.toRhs(() => f(n.value, n.key)),
           Rhs.defer(() => n.rhs.traverseImpl(G, Rhs, f)),
           (b, rhs) => [b, rhs] as const,
         ),
@@ -3195,8 +3194,8 @@ export abstract class _OrdMap<out K, out V> {
     return Rhs.map2(
       n.lhs.traverseFilterImpl(G, Rhs, f),
       Rhs.defer(() =>
-        Rhs.map2Rhs(
-          f(n.value, n.key),
+        Rhs.map2(
+          Rhs.toRhs(() => f(n.value, n.key)),
           Rhs.defer(() => n.rhs.traverseFilterImpl(G, Rhs, f)),
           (b, rhs) => [b, rhs] as const,
         ),
