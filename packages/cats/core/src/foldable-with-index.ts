@@ -58,7 +58,7 @@ export interface FoldableWithIndex<F, I> extends Foldable<F> {
 }
 
 export type FoldableWithIndexRequirements<F, I> = (
-  | Pick<FoldableWithIndex<F, I>, 'foldMapKWithIndex_'>
+  | Pick<FoldableWithIndex<F, I>, 'foldMapWithIndex_'>
   | Pick<FoldableWithIndex<F, I>, 'foldRightWithIndex_'>
 ) &
   Partial<FoldableWithIndex<F, I>>;

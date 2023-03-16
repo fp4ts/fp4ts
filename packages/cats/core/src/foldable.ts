@@ -12,6 +12,7 @@ import { Option, Some, None, Either, Left, Right } from './data';
 import { ComposedFoldable } from './composed';
 import { ArrayF } from './instances/array';
 import { FoldableWithIndex } from './foldable-with-index';
+import { Defer } from './defer';
 
 /**
  * @category Type Class
@@ -60,6 +61,26 @@ export interface Foldable<F> extends UnorderedFoldable<F> {
     b: Eval<B>,
     f: (a: A, b: Eval<B>) => Eval<B>,
   ): Eval<B>;
+
+  /**
+   * Right associative, lazy fold of the structure into a lazy accumulated value
+   * `Eval<B>`.
+   */
+  foldRightDefer<G, A, B>(
+    G: Defer<G>,
+    gz: Kind<G, [B]>,
+    f: (a: A, b: Kind<G, [B]>) => Kind<G, [B]>,
+  ): (fa: Kind<F, [A]>) => Kind<G, [B]>;
+  /**
+   * Right associative, lazy fold of the structure into a lazy accumulated value
+   * `Eval<B>`.
+   */
+  foldRightDefer_<G, A, B>(
+    G: Defer<G>,
+    fa: Kind<F, [A]>,
+    gz: Kind<G, [B]>,
+    f: (a: A, b: Kind<G, [B]>) => Kind<G, [B]>,
+  ): Kind<G, [B]>;
 
   /**
    * Left associative, strict fold of the structure into an accumulated value `B`.
@@ -136,6 +157,24 @@ export const Foldable = Object.freeze({
           ez,
         ),
 
+      foldRightDefer: (G, gz, f) => fa => self.foldRightDefer_(G, fa, gz, f),
+      foldRightDefer_: <G, A, B>(
+        G: Defer<G>,
+        fa: Kind<F, [A]>,
+        gz: Kind<G, [B]>,
+        f: (a: A, eb: Kind<G, [B]>) => Kind<G, [B]>,
+      ): Kind<G, [B]> => {
+        const go = (src: Source<A>): Kind<G, [B]> => {
+          if (!src.uncons) return gz;
+          const { head, tail } = src.uncons;
+          return f(
+            head,
+            G.defer(() => go(tail.value)),
+          );
+        };
+        return G.defer(() => go(Source.fromFoldable(self, fa).value));
+      },
+
       foldLeft: (z, f) => fa => self.foldLeft_(fa, z, f),
       foldLeft_: <A, B>(fa: Kind<F, [A]>, z: B, f: (b: B, a: A) => B): B => {
         self.foldRight_(fa, Eval.unit, (a, r) => ((z = f(z, a)), r)).value;
@@ -151,12 +190,12 @@ export const Foldable = Object.freeze({
       foldM: G => (z, f) => fa => self.foldM_(G)(fa, z, f),
       foldM_: G => (fa, z, f) => {
         const src = Source.fromFoldable(self, fa);
-        return G.tailRecM(tupled(z, src))(([b, src]) =>
-          src.value.uncons.fold(
-            () => G.pure(Right(b)),
-            ({ head, tail }) => G.map_(f(b, head), b => Left(tupled(b, tail))),
-          ),
-        );
+        return G.tailRecM(tupled(z, src))(([b, src]) => {
+          const s = src.value;
+          if (!s.uncons) return G.pure(Right(b));
+          const { head, tail } = s.uncons;
+          return G.map_(f(b, head), b => Left(tupled(b, tail)));
+        });
       },
 
       elem: idx => self.get(idx),
@@ -221,11 +260,13 @@ export const Foldable = Object.freeze({
   },
 });
 
-type Source<A> = { uncons: Option<{ head: A; tail: Eval<Source<A>> }> };
+type Source<A> = { uncons?: { head: A; tail: Eval<Source<A>> } };
 const Source = Object.freeze({
   fromFoldable: <F, A>(F: Foldable<F>, fa: Kind<F, [A]>): Eval<Source<A>> =>
-    F.foldRight_(fa, Eval.now({ uncons: None } as Source<A>), (head, tail) =>
-      Eval.now({ uncons: Some({ head, tail }) }),
+    F.foldRight_(
+      fa,
+      Eval.now({ uncons: undefined } as Source<A>),
+      (head, tail) => Eval.now({ uncons: { head, tail } }),
     ),
 });
 

@@ -31,6 +31,7 @@ import {
   Some,
 } from '../data';
 import * as A from '../internal/array-helpers';
+import { Defer } from '../defer';
 
 export const arrayEqK = lazy(() => EqK.of<ArrayF>({ liftEq: Eq.Array }));
 
@@ -324,6 +325,7 @@ export const arrayFoldableWithIndex = lazy(() =>
     foldLeft_: foldLeft,
     foldLeftWithIndex_: foldLeftWithIndex,
     foldRight_: foldRight,
+    foldRightDefer_: foldRightDefer,
     foldRightWithIndex_: foldRightWithIndex,
     elem_: elem,
     all_: all,
@@ -354,6 +356,18 @@ function foldRight<A, B>(
   let idx = 0;
   const sz = xs.length;
   const go: Eval<B> = Eval.defer(() => (idx >= sz ? ez : f(xs[idx++], go)));
+  return go;
+}
+
+function foldRightDefer<G, A, B>(
+  G: Defer<G>,
+  xs: readonly A[],
+  ez: Kind<G, [B]>,
+  f: (a: A, eb: Kind<G, [B]>) => Kind<G, [B]>,
+): Kind<G, [B]> {
+  let idx = 0;
+  const sz = xs.length;
+  const go: Kind<G, [B]> = G.defer(() => (idx >= sz ? ez : f(xs[idx++], go)));
   return go;
 }
 

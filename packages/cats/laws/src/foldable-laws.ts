@@ -5,7 +5,7 @@
 
 import { Eval, Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
-import { Foldable, MonoidK } from '@fp4ts/cats-core';
+import { Defer, Foldable, MonoidK } from '@fp4ts/cats-core';
 import {
   Identity,
   Option,
@@ -18,7 +18,7 @@ import {
 } from '@fp4ts/cats-core/lib/data';
 import { IsEq } from '@fp4ts/cats-test-kit';
 
-export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
+export const FoldableLaws = <F>(F: Foldable<F>) => ({
   foldRightLazy: <A>(fa: Kind<F, [A]>): boolean => {
     let i = 0;
     F.foldRight_(fa, Eval.now('empty'), () => {
@@ -27,6 +27,30 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
     }).value;
     return F.isEmpty(fa) ? i === 0 : i === 1;
   },
+
+  foldRightDeferLazy: <A>(fa: Kind<F, [A]>): boolean => {
+    let i = 0;
+    F.foldRightDefer_(
+      Defer.Function0,
+      fa,
+      () => 'empty',
+      () => {
+        i += 1;
+        return () => 'not empty';
+      },
+    )();
+    return F.isEmpty(fa) ? i === 0 : i === 1;
+  },
+
+  foldRightConsistentWithFoldRightDeferEval: <A, B>(
+    fa: Kind<F, [A]>,
+    z: B,
+    f: (a: A, eb: Eval<B>) => Eval<B>,
+  ): IsEq<B> =>
+    new IsEq(
+      F.foldRight_(fa, Eval.now(z), f).value,
+      F.foldRightDefer_(Defer.Eval, fa, Eval.now(z), f).value,
+    ),
 
   leftFoldConsistentWithFoldMapLeft:
     <B>(B: Monoid<B>) =>
@@ -144,56 +168,3 @@ export const FoldableLaws = <F>(F: Foldable<F>): FoldableLaws<F> => ({
   arrayFromIteratorIsToArray: <A>(fa: Kind<F, [A]>): IsEq<A[]> =>
     new IsEq(Iter.toArray(F.iterator(fa)), F.toArray(fa)),
 });
-
-export interface FoldableLaws<F> {
-  foldRightLazy: <A>(fa: Kind<F, [A]>) => boolean;
-
-  leftFoldConsistentWithFoldMapLeft: <B>(
-    B: Monoid<B>,
-  ) => <A>(fa: Kind<F, [A]>, f: (a: A) => B) => IsEq<B>;
-
-  rightFoldConsistentWithFoldMap: <B>(
-    B: Monoid<B>,
-  ) => <A>(fa: Kind<F, [A]>, f: (a: A) => B) => IsEq<B>;
-
-  foldMapConsistentWithRightFold: <A, B>(
-    fa: Kind<F, [A]>,
-    ez: Eval<B>,
-    f: (a: A, eb: Eval<B>) => Eval<B>,
-  ) => IsEq<B>;
-
-  foldMapConsistentWithLeftFold: <A, B>(
-    fa: Kind<F, [A]>,
-    z: B,
-    f: (b: B, a: A) => B,
-  ) => IsEq<B>;
-
-  foldMapKConsistentWithFoldMap: <G>(
-    G: MonoidK<G>,
-  ) => <A, B>(
-    fa: Kind<F, [A]>,
-    f: (a: A) => Kind<G, [B]>,
-  ) => IsEq<Kind<G, [B]>>;
-
-  foldMIdentity: <A, B>(
-    fa: Kind<F, [A]>,
-    b: B,
-    f: (b: B, a: A) => B,
-  ) => IsEq<B>;
-
-  allConsistentWithAny: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
-
-  anyLazy: <A>(fa: Kind<F, [A]>) => boolean;
-
-  allLazy: <A>(fa: Kind<F, [A]>) => boolean;
-
-  allEmpty: <A>(fa: Kind<F, [A]>, p: (a: A) => boolean) => boolean;
-
-  nonEmptyRef: <A>(fa: Kind<F, [A]>) => IsEq<boolean>;
-
-  elemRef: <A>(fa: Kind<F, [A]>, idx: number) => IsEq<Option<A>>;
-
-  toArrayRef: <A>(fa: Kind<F, [A]>) => IsEq<A[]>;
-
-  arrayFromIteratorIsToArray: <A>(fa: Kind<F, [A]>) => IsEq<A[]>;
-}

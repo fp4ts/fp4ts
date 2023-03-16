@@ -32,6 +32,19 @@ export const FoldableSuite = <F>(F: Foldable<F>) => {
           forAll(mkArbF(arbA), laws.foldRightLazy),
         ],
         [
+          'foldable foldRightDefer is lazy',
+          forAll(mkArbF(arbA), laws.foldRightDeferLazy),
+        ],
+        [
+          'foldable foldRight is foldRightDefer(Eval)',
+          forAll(
+            mkArbF(arbA),
+            arbB,
+            fc.func(A.fp4tsEval(arbB)),
+            laws.foldRightConsistentWithFoldRightDeferEval,
+          )(EqB),
+        ],
+        [
           'foldable foldLeft consistent with foldMapLeft',
           forAll(
             mkArbF(arbA),

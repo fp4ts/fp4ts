@@ -11,6 +11,7 @@ import { FunctorWithIndex } from './functor-with-index';
 import { Traversable } from './traversable';
 import { MonoidK } from './monoid-k';
 import { ArrayF, arrayTraversableWithIndex } from './instances/array';
+import { Monoid } from '@fp4ts/cats-kernel';
 
 /**
  * @category Type Class
@@ -61,6 +62,11 @@ export const TraversableWithIndex = Object.freeze({
           F.mapWithIndex_ ?? F.traverseWithIndex_(Identity.Applicative),
       }),
       ...FoldableWithIndex.of({
+        foldMapWithIndex_:
+          F.foldMapWithIndex_ ??
+          (<M>(M: Monoid<M>) =>
+            <A>(fa: Kind<F, [A]>, f: (a: A, i: I) => M): M =>
+              self.traverseWithIndex_(Const.Applicative(M))(fa, f)),
         foldMapKWithIndex_:
           F.foldMapKWithIndex_ ??
           (<G>(M: MonoidK<G>) =>
