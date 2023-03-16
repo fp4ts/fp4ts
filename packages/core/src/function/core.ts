@@ -3,6 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval } from '../eval';
+
 export interface Lazy<A> {
   (): A;
 }
@@ -72,4 +74,9 @@ export const untuple =
 
 export function absurd<A>(x: never): A {
   throw new Error('Absurd function called');
+}
+
+export function fix<A>(f: (a: Eval<A>) => A): A {
+  const a: A = f(Eval.later(() => a));
+  return a;
 }

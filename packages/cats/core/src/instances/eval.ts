@@ -4,21 +4,20 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, lazy } from '@fp4ts/core';
+import { Eval, EvalF, fix, lazy } from '@fp4ts/core';
 import { Comonad } from '../comonad';
 import { EqK } from '../eq-k';
 import { Defer } from '../defer';
 import { MonadDefer } from '../monad-defer';
 import { Unzip } from '../unzip';
 import { Functor } from '../functor';
+import { MonadFix } from '../monad-fix';
 
 export const evalEqK: () => EqK<EvalF> = lazy(() =>
   EqK.of({ liftEq: Eq.Eval }),
 );
 
-export const evalDefer = lazy(() =>
-  Defer.of<EvalF>({ defer: Eval.defer, fix: Eval.fix }),
-);
+export const evalDefer = lazy(() => Defer.of<EvalF>({ defer: Eval.defer }));
 
 export const evalFunctor: () => Functor<EvalF> = lazy(() =>
   Functor.of({ map_: (fa, f) => fa.map(f) }),
@@ -32,6 +31,16 @@ export const evalMonadDefer: () => MonadDefer<EvalF> = lazy(() =>
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
     flatten: fa => fa.flatten(),
+  }),
+);
+
+export const evalMonadFix: () => MonadFix<EvalF> = lazy(() =>
+  MonadFix.of({
+    ...evalMonadDefer(),
+    fix: <A>(f: (a: Eval<A>) => Eval<A>): Eval<A> => {
+      const a: Eval<A> = f(Eval.defer(() => a));
+      return a;
+    },
   }),
 );
 

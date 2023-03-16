@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { $, $type, instance, pipe, TyK, TyVar } from '@fp4ts/core';
-import { EitherT } from '@fp4ts/cats';
+import { EitherT, Monad } from '@fp4ts/cats';
 import { Concurrent, IO, IOF } from '@fp4ts/effect';
 import { Client } from '@fp4ts/http-client';
 
@@ -18,7 +18,9 @@ export const ClientM = Object.freeze({
     F: Concurrent<F, Error>,
   ): RunClient<$<ClientMF, [F]>, F> {
     return instance<RunClient<$<ClientMF, [F]>, F>>({
-      ...EitherT.Monad<F, ClientError<F>>(F),
+      ...(EitherT.Monad<F, ClientError<F>>(F) as any as Monad<
+        $<ClientMF, [F]>
+      >),
       runRequest: req =>
         pipe(
           client.fetch(req, F.pure),

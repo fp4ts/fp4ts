@@ -7,9 +7,9 @@ import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
 import {
   CoflatMap,
-  Defer,
   Distributive,
   Monad,
+  MonadFix,
   Traversable,
 } from '@fp4ts/cats-core';
 import {
@@ -22,11 +22,12 @@ import * as eq from '@fp4ts/cats-test-kit/lib/eq';
 
 describe('Function1', () => {
   describe('fix point', () => {
-    it('should calculate factorial', () => {
-      const fact = Defer.Function1<number>().fix<number>(
-        rec => n => n <= 1 ? 1 : n * rec(n - 1),
+    it('should replicate and sum the value', () => {
+      const replicate = MonadFix.Function1<number>().fix<(n: number) => number>(
+        rec => r => n => n <= 0 ? 0 : rec.value(n - 1) + r,
       );
-      expect(fact(5)).toBe(120);
+
+      expect(replicate(42)(42)).toBe(42 * 42);
     });
   });
 

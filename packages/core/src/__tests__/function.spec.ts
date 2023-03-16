@@ -4,7 +4,8 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { compose, flow, pipe, F0, F1 } from '../function';
+import { Eval } from '../eval';
+import { compose, flow, pipe, F0, F1, fix } from '../function';
 
 describe('Function', () => {
   const add = (x: number) => x + 1;
@@ -176,6 +177,25 @@ describe('Function', () => {
           (f, g, x) => expect(F1.andThen(f, g)(x)).toBe(F1.compose(g, f)(x)),
         ),
       );
+    });
+  });
+
+  describe('fix', () => {
+    it('should calculate sum with pure result', () => {
+      const sum = fix<(n: number) => number>(
+        rec => (n: number) => n <= 1 ? 1 : n + rec.value(n - 1),
+      );
+
+      expect(sum(5000)).toBe(12502500);
+    });
+
+    it('should calculate sum with Eval-wrapped result', () => {
+      const sumEval = fix<(n: number) => Eval<number>>(
+        rec => (n: number) =>
+          n <= 1 ? Eval.one : rec.flatMap(rec => rec(n - 1).map(m => m + n)),
+      );
+
+      expect(sumEval(1_000_000).value).toBe(500000500000);
     });
   });
 });

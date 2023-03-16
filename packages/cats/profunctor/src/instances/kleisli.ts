@@ -3,12 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, cached, Eval, F1, id, Kind } from '@fp4ts/core';
+import { $, cached, Eval, F1, fst, id, Kind, snd } from '@fp4ts/core';
 import {
   Applicative,
+  Defer,
   Distributive,
   Functor,
   Monad,
+  MonadFix,
   Traversable,
 } from '@fp4ts/cats-core';
 import {
@@ -23,7 +25,7 @@ import { Closed } from '../closed';
 import { Profunctor } from '../profunctor';
 import { Representable } from '../representable';
 import { Sieve } from '../sieve';
-import { Strong } from '../strong';
+import { Costrong, Strong } from '../strong';
 import { Traversing } from '../traversing';
 import { Mapping } from '../mapping';
 
@@ -52,6 +54,39 @@ export const kleisliStrong = cached(
         <A, B>(pab: Kleisli<F, A, B>) =>
         ([c, a]: [C, A]) =>
           F.map_(pab(a), b => [c, b]),
+    }),
+);
+
+export const kleisliCostrong = cached(
+  <F>(F: MonadFix<F>): Costrong<$<KleisliF, [F]>> =>
+    Costrong.of<$<KleisliF, [F]>>({
+      ...kleisliProfunctor(F),
+
+      unfirst_:
+        <G, A, B, C>(
+          G: Defer<G>,
+          f: Kleisli<F, [A, Kind<G, [C]>], [B, Kind<G, [C]>]>,
+        ) =>
+        (a: A) =>
+          F.map_(
+            F.fix<[B, Kind<G, [C]>]>(bgc =>
+              f([a, G.defer(() => bgc.value[1])]),
+            ),
+            fst,
+          ),
+
+      unsecond_:
+        <G, A, B, C>(
+          G: Defer<G>,
+          f: Kleisli<F, [Kind<G, [C]>, A], [Kind<G, [C]>, B]>,
+        ) =>
+        (a: A) =>
+          F.map_(
+            F.fix<[Kind<G, [C]>, B]>(gcb =>
+              f([G.defer(() => gcb.value[0]), a]),
+            ),
+            snd,
+          ),
     }),
 );
 

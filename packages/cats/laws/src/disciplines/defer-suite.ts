@@ -43,13 +43,13 @@ export const DeferSuite = <F>(F: Defer<F>) => {
             laws.deferIsStackSafe,
           )(mkEqF(EqA)),
         ],
-        [
-          'defer is matches fix',
-          forAll(
-            fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
-            laws.deferMatchesFix,
-          )(mkEqF(EqA)),
-        ],
+        // [
+        //   'defer is matches fix',
+        //   forAll(
+        //     fc.func<[], Kind<F, [A]>>(mkArbF(arbA)),
+        //     laws.deferMatchesFix,
+        //   )(mkEqF(EqA)),
+        // ],
       ]),
   };
 };

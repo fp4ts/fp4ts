@@ -4,10 +4,10 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Kind } from '@fp4ts/core';
-import { Comonad, Defer, Functor } from '@fp4ts/cats-core';
+import { Comonad, Defer, Functor, MonadFix } from '@fp4ts/cats-core';
 import { cokleisliCostrong, cokleisliStrong } from './instances/cokleisli';
 import { function1Costrong, function1Strong } from './instances/function';
-import { kleisliStrong } from './instances/kleisli';
+import { kleisliCostrong, kleisliStrong } from './instances/kleisli';
 import { Profunctor, ProfunctorRequirements } from './profunctor';
 
 /**
@@ -118,6 +118,7 @@ export const Costrong = Object.freeze({
     return function1Costrong();
   },
 
+  Kleisli: <F>(F: MonadFix<F>) => kleisliCostrong(F),
   Cokleisli: <F>(F: Functor<F>) => cokleisliCostrong(F),
 });
 

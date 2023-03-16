@@ -7,6 +7,7 @@ import {
   $,
   $type,
   constant,
+  Eval,
   EvalF,
   F0,
   F1,
@@ -28,6 +29,7 @@ import { Distributive } from '../distributive';
 import { EqK } from '../eq-k';
 import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
+import { MonadFix } from '../monad-fix';
 import { MonadDefer } from '../monad-defer';
 import { Either } from '../data';
 
@@ -148,8 +150,29 @@ export const function1MonadDefer = lazy(<R>() =>
     ...function1Defer(),
     pure: constant,
     flatMap_: F1.flatMap,
+    tailRecM_:
+      <S, A>(s: S, f: (x: S) => (r: R) => Either<S, A>) =>
+      (r: R) => {
+        let cur = f(s)(r);
+        while (cur.isEmpty) {
+          cur = f(cur.getLeft)(r);
+        }
+        return cur.get;
+      },
   }),
 ) as <R>() => MonadDefer<$<Function1F, [R]>>;
+
+export const function1MonadFix = lazy(<R>() =>
+  MonadFix.of<$<Function1F, [R]>>({
+    ...function1MonadDefer(),
+    fix:
+      <A>(f: (a: Eval<A>) => (r: R) => A) =>
+      (r: R): A => {
+        const a: A = f(Eval.always(() => a))(r);
+        return a;
+      },
+  }),
+) as <R>() => MonadFix<$<Function1F, [R]>>;
 
 // -- HKT
 

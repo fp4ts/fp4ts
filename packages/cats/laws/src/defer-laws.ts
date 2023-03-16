@@ -30,9 +30,9 @@ export const DeferLaws = <F>(F: Defer<F>) => ({
     return new IsEq(loop(10_000), ffa());
   },
 
-  deferMatchesFix: <A>(ffa: () => Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    new IsEq(
-      F.defer(() => ffa()),
-      F.fix(() => ffa()),
-    ),
+  // deferMatchesFix: <A>(ffa: () => Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
+  //   new IsEq(
+  //     F.defer(() => ffa()),
+  //     F.fix(() => ffa()),
+  //   ),
 });

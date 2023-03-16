@@ -5,12 +5,8 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { Eq } from '@fp4ts/cats-kernel';
-import { Comonad, Distributive, Monad, Traversable } from '@fp4ts/cats-core';
-import {
-  ComonadSuite,
-  DistributiveSuite,
-  MonadDeferSuite,
-} from '@fp4ts/cats-laws';
+import { Distributive, Monad, Traversable } from '@fp4ts/cats-core';
+import { DistributiveSuite, MonadDeferSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 
 describe('Function0', () => {
