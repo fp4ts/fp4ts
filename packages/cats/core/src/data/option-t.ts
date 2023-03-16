@@ -102,22 +102,10 @@ OptionT.FunctorFilter = cached(
     }),
 );
 
-OptionT.Applicative = cached(
-  <F>(F: Applicative<F>): Applicative<$<OptionTF, [F]>> =>
-    Applicative.of<$<OptionTF, [F]>>({
-      pure: a => F.pure(Some(a)),
-      ap_: (ff, fa) =>
-        F.map2_(ff, fa, (f, a) =>
-          f.nonEmpty && a.nonEmpty ? Some(f.get(a.get)) : None,
-        ),
-      map2_: (fa, fb, f) => F.map2_(fa, fb, (a, b) => a.map2(b, f)),
-    }),
-);
-
 OptionT.Alternative = cached(
-  <F>(F: Applicative<F>): Alternative<$<OptionTF, [F]>> =>
+  <F>(F: Monad<F>): Alternative<$<OptionTF, [F]>> =>
     Alternative.of<$<OptionTF, [F]>>({
-      ...OptionT.Applicative(F),
+      ...OptionT.Monad(F),
       emptyK: <A>() => F.pure<Option<A>>(None),
       combineK_: (fx, fy) => F.map2_(fx, fy, (x, y) => x.orElse(() => y)),
     }),
@@ -126,7 +114,7 @@ OptionT.Alternative = cached(
 OptionT.Monad = cached(
   <F>(F: Monad<F>): Monad<$<OptionTF, [F]>> =>
     Monad.of<$<OptionTF, [F]>>({
-      ...OptionT.Applicative(F),
+      ...OptionT.Functor(F),
       pure: a => F.pure(Some(a)),
       flatMap_: (fa, f) =>
         F.flatMap_(fa, opt => opt.fold(() => F.pure(None), f)),
