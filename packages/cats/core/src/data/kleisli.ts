@@ -9,18 +9,17 @@ import {
   Base,
   cached,
   Eval,
-  EvalF,
   F1,
   Fix,
   Kind,
   Lazy,
   lazy,
-  throwError,
   TyK,
   TyVar,
   α,
   λ,
 } from '@fp4ts/core';
+import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Defer, isDefer } from '../defer';
 import { SemigroupK } from '../semigroup-k';
 import { MonoidK } from '../monoid-k';
@@ -37,7 +36,6 @@ import { Contravariant } from '../contravariant';
 import { Distributive } from '../distributive';
 import { MonadDefer } from '../monad-defer';
 import { MonadPlus } from '../monad-plus';
-import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
 
@@ -150,40 +148,21 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
         efb: Eval<Kleisli<F, R, B>>,
         f: (a: A, b: B) => C,
       ) =>
-        Eval.now(
-          suspend(
-            F,
-            (r: R) =>
-              F.map2Eval_(
-                fa(r),
-                efb.map(fb => fb(r)),
-                f,
-              ).value,
-          ),
-        ),
+        Eval.now(F1.combineEval(fa, efb, (fa, efb) => F.map2Eval_(fa, efb, f))),
     });
 
     if (!isDefer(F)) {
-      const ts: TraverseStrategy<
-        $<KleisliF, [F, R]>,
-        $<KleisliF, [[EvalF, F], R]>
-      > = {
-        defer: F1.defer,
-        map: (fa, f) => (r: R) => Eval.defer(() => fa(r).map(F.map(f))),
-        map2: (fa, fb, f) => (r: R) =>
-          Eval.defer(() =>
-            fa(r).flatMap(fa =>
-              F.map2Eval_(
-                fa,
-                Eval.defer(() => fb(r)),
-                f,
-              ),
-            ),
-          ),
-        toG: fa => F1.andThen(fa, efa => efa.value),
-        toRhs: thunk => (r: R) => Eval.always(() => thunk()(r)),
-      };
-      self.TraverseStrategy = use => use(ts);
+      self.TraverseStrategy = use =>
+        F.TraverseStrategy(<T>(T: TraverseStrategy<F, T>) =>
+          use<$<KleisliF, [T, R]>>({
+            defer: F1.defer,
+            map: (fa, f) => (r: R) => T.defer(() => T.map(fa(r), f)),
+            map2: (fa, fb, f) => (r: R) =>
+              T.defer(() => T.map2(fa(r), fb(r), f)),
+            toG: f => F1.andThen(f, T.toG),
+            toRhs: t => (r: R) => T.toRhs(() => t()(r)),
+          }),
+        );
     }
     return self;
   },
@@ -239,10 +218,16 @@ const kleisliFlatMap: <F, A>(F: FlatMap<F>) => FlatMap<$<KleisliF, [F, A]>> =
 
 const kleisliMonad: <F, A>(F: Monad<F>) => Monad<$<KleisliF, [F, A]>> = cached(
   F =>
-    Monad.of({
-      ...kleisliApplicative(F),
-      ...kleisliFlatMap(F),
-    }),
+    isDefer(F)
+      ? MonadDefer.of({
+          ...kleisliDefer(F),
+          ...kleisliApplicative(F),
+          ...kleisliFlatMap(F),
+        })
+      : Monad.of({
+          ...kleisliApplicative(F),
+          ...kleisliFlatMap(F),
+        }),
 );
 const kleisliMonadPlus: <F, A>(
   F: MonadPlus<F>,

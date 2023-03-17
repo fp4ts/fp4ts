@@ -23,6 +23,10 @@ import {
   RepresentableSuite,
   TraversingSuite,
 } from '@fp4ts/cats-profunctor-laws';
+import {
+  foldRightTraverse,
+  foldRightTraverse_,
+} from '../helpers/fold-right-traverse';
 
 describe('Forget', () => {
   describe('stack safety', () => {
@@ -38,7 +42,18 @@ describe('Forget', () => {
 
     it('should have Stack-Safe Applicative instance', () => {
       expect(
-        Traversable.Array.traverse_(Forget.Applicative(Monoid.addition))(
+        foldRightTraverse(
+          Forget.Applicative(Monoid.addition),
+          [...new Array(100_000).keys()],
+          _ => _ => 1,
+        )(null),
+      ).toBe(100_000);
+    });
+
+    it('should have Stack-Safe Applicative instance', () => {
+      expect(
+        foldRightTraverse_(
+          Forget.Applicative(Monoid.addition),
           [...new Array(100_000).keys()],
           _ => _ => 1,
         )(null),

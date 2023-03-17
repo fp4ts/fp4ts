@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval, id, pipe } from '@fp4ts/core';
+import { Eval, id } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { Monad, Traversable } from '@fp4ts/cats-core';
 import {
@@ -24,11 +24,9 @@ describe('Backwards', () => {
     const F = Backwards.Applicative(Monad.Eval);
     let acc = '';
 
-    pipe(
-      F.product_(
-        Eval.delay(() => (acc += ' my first action')),
-        Eval.delay(() => (acc += 'my second action')),
-      ),
+    F.product_(
+      Eval.delay(() => (acc += ' my first action')),
+      Eval.delay(() => (acc += 'my second action')),
     ).value;
 
     expect(acc).toBe('my second action my first action');

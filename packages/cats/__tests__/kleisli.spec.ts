@@ -5,8 +5,14 @@
 
 import fc, { Arbitrary } from 'fast-check';
 import { $, Eval, EvalF, id, Kind } from '@fp4ts/core';
-import { Eq } from '@fp4ts/cats-kernel';
-import { Alternative, ArrayF, Monad, MonadDefer } from '@fp4ts/cats-core';
+import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import {
+  Alternative,
+  ArrayF,
+  Monad,
+  MonadDefer,
+  Traversable,
+} from '@fp4ts/cats-core';
 import {
   Identity,
   IdentityF,
@@ -15,6 +21,8 @@ import {
   Kleisli,
   EitherF,
   Either,
+  Const,
+  None,
 } from '@fp4ts/cats-core/lib/data';
 import {
   AlternativeSuite,
@@ -32,6 +40,10 @@ import {
   ExhaustiveCheck,
 } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
+import {
+  foldRightTraverse,
+  foldRightTraverse_,
+} from './helpers/fold-right-traverse';
 
 describe('Kleisli', () => {
   const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);
@@ -61,6 +73,112 @@ describe('Kleisli', () => {
       Eval.now as (x: number) => Eval<number>,
     )(42);
     expect(result.value).toBe(size + 42);
+  });
+
+  it('should be stack-safe on foldMap with MonoidK with Const', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const f = Traversable.Array.foldMapK_(
+      Kleisli.MonoidK(Const.MonoidK(Monoid.addition)),
+    )(xs, x => _ => 1);
+
+    expect(f(null)).toBe(size);
+  });
+
+  it('should be short-circuit on foldMap with MonoidK with Const', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const seen: number[] = [];
+    const f = Traversable.Array.foldMapK_(
+      Kleisli.MonoidK(Const.MonoidK(Monoid.conjunction)),
+    )(xs, x => _ => (seen.push(x), false));
+
+    expect(f(null)).toBe(false);
+    expect(seen).toEqual([0]);
+  });
+
+  it('should be stack-safe on traverse with Identity', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const f = foldRightTraverse(
+      Kleisli.Monad(Identity.Monad),
+      xs,
+      x => () => x,
+    );
+
+    expect(f(null)).toEqual(xs);
+  });
+
+  it('should be stack-safe on traverse_ with Identity', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const f = foldRightTraverse_(
+      Kleisli.Monad(Identity.Monad),
+      xs,
+      x => () => x,
+    );
+
+    f(null);
+  });
+
+  it('should be stack-safe on traverse with Eval', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const f = foldRightTraverse(
+      Kleisli.Monad(Monad.Eval),
+      xs,
+      x => () => Eval.now(x),
+    );
+
+    expect(f(null).value).toEqual(xs);
+  });
+
+  it('should be stack-safe on traverse_ with Eval', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const f = foldRightTraverse_(
+      Kleisli.Monad(Monad.Eval),
+      xs,
+      x => () => Eval.unit,
+    );
+
+    f(null).value;
+  });
+
+  it('should be short-circuit on traverse with Option', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const seen: number[] = [];
+    const f = foldRightTraverse(
+      Kleisli.Monad(Option.Monad),
+      xs,
+      x => () => (seen.push(x), None),
+    );
+
+    expect(f(null)).toEqual(None);
+    expect(seen).toEqual([0]);
+  });
+
+  it('should be short-circuit on traverse_ with Option', () => {
+    const size = 50_000;
+    const xs = [...new Array(size).keys()];
+
+    const seen: number[] = [];
+    const f = foldRightTraverse_(
+      Kleisli.Monad(Option.Monad),
+      xs,
+      x => () => (seen.push(x), None),
+    );
+
+    expect(f(null)).toEqual(None);
+    expect(seen).toEqual([0]);
   });
 
   describe('Laws', () => {

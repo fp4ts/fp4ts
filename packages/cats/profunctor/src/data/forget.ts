@@ -64,13 +64,7 @@ const forgetApplicative = cached(<R, E>(R: Monoid<R>) => {
     map2_: (f, g, _) =>
       F1.flatMap(f, r1 => F1.andThen(g, r2 => R.combine_(r1, r2))),
     map2Eval_: (f, eg) =>
-      Eval.now(
-        (e: E) =>
-          R.combineEval_(
-            f(e),
-            eg.map(g => g(e)),
-          ).value,
-      ),
+      Eval.now(F1.combineEval(f, eg, (fa, efb) => R.combineEval_(fa, efb))),
   });
 
   const ts: TraverseStrategy<$<ForgetF, [R, E]>, $<ForgetF, [Eval<R>, E]>> = {

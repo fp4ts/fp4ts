@@ -70,7 +70,7 @@ export const function1Semigroup = cached(
     Semigroup.of({
       combine_: (x, y) =>
         F1.flatMap(x, x => F1.andThen(y, y => S.combine_(x, y))),
-      combineEval_: (x, ey) => Eval.now(combine1(S.combineEval_, x, ey)),
+      combineEval_: (x, ey) => Eval.now(F1.combineEval(x, ey, S.combineEval_)),
       combineN_: (x, n) => F1.andThen(x, x => S.combineN_(x, n)),
     }),
 );
@@ -135,9 +135,7 @@ export const endoEvalMonoid = lazy(
     }),
 ) as <A>() => Monoid<(a: A) => A>;
 
-function isCombine<A>(f: () => A): f is CombineFn0<A>;
-function isCombine<A, B>(f: (a: A) => B): f is CombineFn1<A, B>;
-function isCombine(f: (a: any) => any): boolean {
+function isCombine<A>(f: () => A): f is CombineFn0<A> {
   return combineTag in f;
 }
 
@@ -178,49 +176,6 @@ function runF0<A>(c: (a: A, ea: Eval<A>) => Eval<A>, f: () => A): Eval<A> {
           ),
         )
       : Eval.now(f());
-  };
-  return go(f);
-}
-
-function combine1<A, B>(
-  c: (b: B, eb: Eval<B>) => Eval<B>,
-  lhs: (a: A) => B,
-  rhs: Eval<(a: A) => B>,
-): (a: A) => B {
-  const apply = ((a: A) => runF1(c, apply, a).value) as CombineFn1<A, B>;
-  apply[combineTag] = true;
-  apply.lhs = lhs;
-  apply.rhs = rhs;
-  return apply;
-}
-
-interface CombineFn1<A, B> {
-  (a: A): B;
-  [combineTag]: true;
-  lhs: (a: A) => B;
-  rhs: Eval<(a: A) => B>;
-  f: (x: B, ey: Eval<B>) => Eval<B>;
-}
-
-function runF1<A, B>(
-  c: (b: B, eb: Eval<B>) => Eval<B>,
-  f: (a: A) => B,
-  a: A,
-): Eval<B> {
-  const rhs: Eval<(a: A) => B>[] = [];
-  const go = (f: (a: A) => B): Eval<B> => {
-    while (isCombine(f)) {
-      rhs.push(f.rhs);
-      f = f.lhs;
-    }
-    return rhs.length
-      ? Eval.defer(() =>
-          c(
-            f(a),
-            rhs.pop()!.flatMap(g => go(g)),
-          ),
-        )
-      : Eval.now(f(a));
   };
   return go(f);
 }

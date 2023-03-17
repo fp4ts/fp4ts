@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Kind } from '@fp4ts/core';
+import { Eval, Kind } from '@fp4ts/core';
 import { Applicative, TraverseStrategy } from '@fp4ts/cats-core';
 import * as A from '@fp4ts/cats-core/lib/internal/array-helpers';
 
@@ -38,4 +38,21 @@ export function foldRightTraverse<G, A, B>(
     ),
     A.consToArray,
   );
+}
+
+export function foldRightTraverse_<G, A>(
+  G: Applicative<G>,
+  xs: A[],
+  f: (a: A) => Kind<G, [unknown]>,
+): Kind<G, [void]> {
+  const sz = xs.length;
+  const go = (i: number, r: Eval<Kind<G, [void]>>): Eval<Kind<G, [void]>> =>
+    i >= sz
+      ? r
+      : G.map2Eval_(
+          f(xs[i]),
+          Eval.defer(() => go(i + 1, r)),
+          () => {},
+        );
+  return go(0, Eval.now(G.unit)).value;
 }

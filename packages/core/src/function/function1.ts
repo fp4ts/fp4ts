@@ -3,6 +3,8 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { Eval } from '../eval';
+
 export function defer<A, B>(fa: () => (a: A) => B): (a: A) => B {
   const apply = ((a: A) => runFunction1(apply, a)) as Defer1<A, B>;
   apply.cached = fa;
@@ -146,4 +148,59 @@ function runFunction1<A, B>(fa: (a: A) => B, start: A): B {
     }
     return result as B;
   }
+}
+
+export function combineEval<A1, A2, B, C, D>(
+  lhs: (a: A1) => B,
+  rhs: Eval<(a: A2) => C>,
+  f: (b: B, ec: Eval<C>) => Eval<D>,
+): (a: A1 & A2) => D {
+  const apply = ((a: A1 & A2) => runF1(apply, a).value) as CombineFn1<
+    A1 & A2,
+    B,
+    C,
+    D
+  >;
+  apply[combineTag] = true;
+  apply.lhs = lhs;
+  apply.rhs = rhs;
+  apply.f = f;
+  return apply;
+}
+
+const combineTag = Symbol('@fp4ts/core/function1/combine');
+
+function isCombine<A, D>(f: (a: A) => D): f is CombineFn1<A, any, any, D> {
+  return combineTag in f;
+}
+
+interface CombineFn1<A, B, C, D> {
+  (a: A): D;
+  [combineTag]: true;
+  lhs: (a: A) => B;
+  rhs: Eval<(a: A) => C>;
+  f: (x: B, ey: Eval<C>) => Eval<D>;
+}
+
+function runF1<A, D>(f: (a: A) => D, a: A): Eval<D> {
+  const stack: unknown[] = [];
+  const go = (f: (a: unknown) => unknown): Eval<unknown> => {
+    while (isCombine(f)) {
+      stack.push(f.rhs);
+      stack.push(f.f);
+      f = f.lhs;
+    }
+    if (stack.length === 0) return Eval.now(f(a));
+    const c = stack.pop() as (a: unknown, b: Eval<unknown>) => Eval<unknown>;
+
+    return Eval.defer(() =>
+      c(
+        f(a),
+        (stack.pop()! as Eval<unknown>).flatMap(g =>
+          go(g as (u: unknown) => unknown),
+        ),
+      ),
+    );
+  };
+  return go(f as (u: unknown) => unknown) as Eval<D>;
 }
