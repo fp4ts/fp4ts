@@ -13,7 +13,7 @@ import { recordCommutativeMonoid } from './instances/record';
 import {
   function0CommutativeMonoid,
   function1CommutativeMonoid,
-} from './instances/funciton';
+} from './instances/function';
 
 /**
  * @category Type Class

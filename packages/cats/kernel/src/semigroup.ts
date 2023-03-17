@@ -6,7 +6,7 @@
 import { Base, Eval, instance, lazy } from '@fp4ts/core';
 import { arraySemigroup } from './instances/array';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
-import { function0Semigroup, function1Semigroup } from './instances/funciton';
+import { function0Semigroup, function1Semigroup } from './instances/function';
 import { additionMonoid, productMonoid } from './instances/number';
 import { recordSemigroup } from './instances/record';
 

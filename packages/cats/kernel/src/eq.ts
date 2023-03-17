@@ -5,7 +5,7 @@
 
 import { $type, Base, Eval, instance, TyK, TyVar } from '@fp4ts/core';
 import { arrayEq } from './instances/array';
-import { function0Eq } from './instances/funciton';
+import { function0Eq } from './instances/function';
 import { recordEq } from './instances/record';
 import { tupleEq } from './instances/tuple';
 

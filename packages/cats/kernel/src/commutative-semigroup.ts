@@ -11,7 +11,7 @@ import { recordCommutativeSemigroup } from './instances/record';
 import {
   function0CommutativeSemigroup,
   function1CommutativeSemigroup,
-} from './instances/funciton';
+} from './instances/function';
 
 /**
  * @category Type Class

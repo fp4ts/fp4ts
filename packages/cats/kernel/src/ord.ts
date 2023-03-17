@@ -6,7 +6,7 @@
 import { instance, lazy } from '@fp4ts/core';
 import { Eq } from './eq';
 import { arrayOrd } from './instances/array';
-import { function0Ord } from './instances/funciton';
+import { function0Ord } from './instances/function';
 import { tupleOrd } from './instances/tuple';
 
 const LT = 0;

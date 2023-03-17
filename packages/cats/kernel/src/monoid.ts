@@ -14,7 +14,7 @@ import {
   endoMonoid,
   function0Monoid,
   function1Monoid,
-} from './instances/funciton';
+} from './instances/function';
 
 /**
  * @category Type Class
