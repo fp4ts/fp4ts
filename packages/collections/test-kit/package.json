@@ -12,7 +12,7 @@
     "@fp4ts/collections-core": "*",
     "@fp4ts/core": "*",
     "@types/jest": "^29.2.3",
-    "fast-check": "^3.3.0",
+    "fast-check": "^3.7.1",
     "jest": "^29.5.0"
   },
   "devDependencies": {

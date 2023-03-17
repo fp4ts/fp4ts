@@ -16,7 +16,7 @@
     "@fp4ts/core": "*",
     "@fp4ts/optics-core": "*",
     "@fp4ts/optics-std": "*",
-    "fast-check": "^3.3.0"
+    "fast-check": "^3.7.1"
   },
   "devDependencies": {
     "typescript": "5.0.2"

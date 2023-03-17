@@ -14,7 +14,7 @@
     "@fp4ts/core": "*",
     "@fp4ts/schema-core": "*",
     "@fp4ts/schema-kernel": "*",
-    "fast-check": "^3.3.0"
+    "fast-check": "^3.7.1"
   },
   "devDependencies": {
     "typescript": "5.0.2"

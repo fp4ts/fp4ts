@@ -14,7 +14,7 @@
     "@fp4ts/cats-test-kit": "*",
     "@fp4ts/core": "*",
     "@fp4ts/mtl-core": "*",
-    "fast-check": "^3.3.0"
+    "fast-check": "^3.7.1"
   },
   "devDependencies": {
     "typescript": "5.0.2"
