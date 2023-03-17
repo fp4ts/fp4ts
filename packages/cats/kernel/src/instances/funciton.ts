@@ -25,17 +25,8 @@ export const function0Semigroup = cached(
   <A>(S: Semigroup<A>): Semigroup<() => A> =>
     Semigroup.of({
       combine_: (x, y) => F0.flatMap(x, x => F0.map(y, y => S.combine_(x, y))),
-      combineEval_: (x, ey) =>
-        Eval.now(
-          F0.map(
-            x,
-            x =>
-              S.combineEval_(
-                x,
-                ey.map(y => y()),
-              ).value,
-          ),
-        ),
+      combineEval_: (x, ey) => Eval.now(combine0(S.combineEval_, x, ey)),
+      combineN_: (x, n) => F0.map(x, x => S.combineN_(x, n)),
     }),
 );
 
@@ -45,6 +36,7 @@ export const function0CommutativeSemigroup = cached(
     return CommutativeSemigroup.of({
       combine_: FS.combine_,
       combineEval_: FS.combineEval_,
+      combineN_: (x, n) => F0.map(x, x => S.combineN_(x, n)),
     });
   },
 );
@@ -55,6 +47,7 @@ export const function0Monoid = cached(<A>(S: Monoid<A>): Monoid<() => A> => {
     empty: () => S.empty,
     combine_: FS.combine_,
     combineEval_: FS.combineEval_,
+    combineN_: (x, n) => F0.map(x, x => S.combineN_(x, n)),
   });
 });
 
@@ -65,6 +58,7 @@ export const function0CommutativeMonoid = cached(
       empty: () => S.empty,
       combine_: FS.combine_,
       combineEval_: FS.combineEval_,
+      combineN_: (x, n) => F0.map(x, x => S.combineN_(x, n)),
     });
   },
 );
@@ -76,16 +70,8 @@ export const function1Semigroup = cached(
     Semigroup.of({
       combine_: (x, y) =>
         F1.flatMap(x, x => F1.andThen(y, y => S.combine_(x, y))),
-      combineEval_: (x, ey) =>
-        Eval.now(
-          F1.defer(
-            () => (a: A) =>
-              S.combineEval_(
-                x(a),
-                ey.map(y => y(a)),
-              ).value,
-          ),
-        ),
+      combineEval_: (x, ey) => Eval.now(combine1(S.combineEval_, x, ey)),
+      combineN_: (x, n) => F1.andThen(x, x => S.combineN_(x, n)),
     }),
 );
 
@@ -95,6 +81,7 @@ export const function1CommutativeSemigroup = cached(
     return CommutativeSemigroup.of({
       combine_: FS.combine_,
       combineEval_: FS.combineEval_,
+      combineN_: (x, n) => F1.andThen(x, x => S.combineN_(x, n)),
     });
   },
 );
@@ -106,6 +93,7 @@ export const function1Monoid = cached(
       empty: () => S.empty,
       combine_: FS.combine_,
       combineEval_: FS.combineEval_,
+      combineN_: (x, n) => F1.andThen(x, x => S.combineN_(x, n)),
     });
   },
 );
@@ -117,6 +105,7 @@ export const function1CommutativeMonoid = cached(
       empty: () => S.empty,
       combine_: FS.combine_,
       combineEval_: FS.combineEval_,
+      combineN_: (x, n) => F1.andThen(x, x => S.combineN_(x, n)),
     });
   },
 );
@@ -145,3 +134,93 @@ export const endoEvalMonoid = lazy(
         Eval.now((ez: Eval<A>) => f(eg.flatMap(g => g(ez)))),
     }),
 ) as <A>() => Monoid<(a: A) => A>;
+
+function isCombine<A>(f: () => A): f is CombineFn0<A>;
+function isCombine<A, B>(f: (a: A) => B): f is CombineFn1<A, B>;
+function isCombine(f: (a: any) => any): boolean {
+  return combineTag in f;
+}
+
+const combineTag = Symbol('@fp4ts/cats-kernel/function/combine');
+
+function combine0<A>(
+  c: (b: A, eb: Eval<A>) => Eval<A>,
+  lhs: () => A,
+  rhs: Eval<() => A>,
+): () => A {
+  const apply = (() => runF0(c, apply).value) as CombineFn0<A>;
+  apply[combineTag] = true;
+  apply.lhs = lhs;
+  apply.rhs = rhs;
+  return apply;
+}
+
+interface CombineFn0<A> {
+  (): A;
+  [combineTag]: true;
+  lhs: () => A;
+  rhs: Eval<() => A>;
+  f: (x: A, ey: Eval<A>) => Eval<A>;
+}
+
+function runF0<A>(c: (a: A, ea: Eval<A>) => Eval<A>, f: () => A): Eval<A> {
+  const rhs: Eval<() => A>[] = [];
+  const go = (f: () => A): Eval<A> => {
+    while (isCombine(f)) {
+      rhs.push(f.rhs);
+      f = f.lhs;
+    }
+    return rhs.length
+      ? Eval.defer(() =>
+          c(
+            f(),
+            rhs.pop()!.flatMap(g => go(g)),
+          ),
+        )
+      : Eval.now(f());
+  };
+  return go(f);
+}
+
+function combine1<A, B>(
+  c: (b: B, eb: Eval<B>) => Eval<B>,
+  lhs: (a: A) => B,
+  rhs: Eval<(a: A) => B>,
+): (a: A) => B {
+  const apply = ((a: A) => runF1(c, apply, a).value) as CombineFn1<A, B>;
+  apply[combineTag] = true;
+  apply.lhs = lhs;
+  apply.rhs = rhs;
+  return apply;
+}
+
+interface CombineFn1<A, B> {
+  (a: A): B;
+  [combineTag]: true;
+  lhs: (a: A) => B;
+  rhs: Eval<(a: A) => B>;
+  f: (x: B, ey: Eval<B>) => Eval<B>;
+}
+
+function runF1<A, B>(
+  c: (b: B, eb: Eval<B>) => Eval<B>,
+  f: (a: A) => B,
+  a: A,
+): Eval<B> {
+  const rhs: Eval<(a: A) => B>[] = [];
+  const go = (f: (a: A) => B): Eval<B> => {
+    while (isCombine(f)) {
+      rhs.push(f.rhs);
+      f = f.lhs;
+    }
+    return rhs.length
+      ? Eval.defer(() =>
+          c(
+            f(a),
+            rhs.pop()!.flatMap(g => go(g)),
+          ),
+        )
+      : Eval.now(f(a));
+  };
+  return go(f);
+}

@@ -41,6 +41,7 @@ export const arrayMonoidK = lazy(() => {
     emptyK: () => M.empty,
     combineK_: M.combine_,
     combineKEval_: M.combineEval_,
+    combineNK_: M.combineN_,
     algebra: () => M,
   });
 });

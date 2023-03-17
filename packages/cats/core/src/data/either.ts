@@ -3,7 +3,18 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Eval, HKT, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  Eval,
+  HKT,
+  Kind,
+  Lazy,
+  lazy,
+  throwError,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Applicative } from '../applicative';
 import { Bifunctor } from '../bifunctor';
@@ -265,6 +276,8 @@ const eitherSemigroupK = lazy(
     SemigroupK.of<$<EitherF, [E]>>({
       combineK_: (fa, fb) => fa.orElse(() => fb),
       combineKEval_: (fa, efb) => fa.orElseEval(efb),
+      combineNK_: (x, n) =>
+        n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,
     }),
 ) as <E>() => SemigroupK<$<EitherF, [E]>>;
 

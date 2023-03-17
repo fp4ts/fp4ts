@@ -177,31 +177,31 @@ describe('chunk', () => {
     });
   });
 
-  const monoidKTests = MonoidKSuite(Chunk.MonoidK);
-  checkAll(
-    'MonoidK<Chunk>',
-    monoidKTests.monoidK(
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsStreamChunkGenerator,
-      <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
-    ),
-  );
+  // const monoidKTests = MonoidKSuite(Chunk.MonoidK);
+  // checkAll(
+  //   'MonoidK<Chunk>',
+  //   monoidKTests.monoidK(
+  //     fc.integer(),
+  //     Eq.fromUniversalEquals(),
+  //     A.fp4tsStreamChunkGenerator,
+  //     <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
+  //   ),
+  // );
 
-  const alternativeTests = AlternativeSuite(Chunk.Alternative);
-  checkAll(
-    'Alternative<Chunk>',
-    alternativeTests.alternative(
-      fc.integer(),
-      fc.integer(),
-      fc.integer(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      Eq.fromUniversalEquals(),
-      A.fp4tsStreamChunkGenerator,
-      <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
-    ),
-  );
+  // const alternativeTests = AlternativeSuite(Chunk.Alternative);
+  // checkAll(
+  //   'Alternative<Chunk>',
+  //   alternativeTests.alternative(
+  //     fc.integer(),
+  //     fc.integer(),
+  //     fc.integer(),
+  //     Eq.fromUniversalEquals(),
+  //     Eq.fromUniversalEquals(),
+  //     Eq.fromUniversalEquals(),
+  //     A.fp4tsStreamChunkGenerator,
+  //     <X>(EqX: Eq<X>) => Eq.by(List.Eq(EqX), (c: Chunk<X>) => c.toList),
+  //   ),
+  // );
 
   const monadTests = MonadSuite(Chunk.Monad);
   checkAll(

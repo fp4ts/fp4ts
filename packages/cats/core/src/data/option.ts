@@ -3,7 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, HKT, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
+import {
+  $type,
+  Eval,
+  HKT,
+  Kind,
+  Lazy,
+  lazy,
+  throwError,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Alternative } from '../alternative';
 import { Applicative } from '../applicative';
@@ -245,6 +255,8 @@ const optionAlternative = lazy(() =>
     ...optionMonad(),
     combineK_: (fa, lfb) => fa.orElse(() => lfb),
     combineKEval_: (fa, efb) => fa.orElseEval(efb),
+    combineNK_: (x, n) =>
+      n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,
     emptyK: () => None,
   }),
 );

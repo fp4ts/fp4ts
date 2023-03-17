@@ -83,7 +83,7 @@ describe('Function1 instances', () => {
   );
 
   checkAll(
-    'CommutativeMonoid<MiniInt => string>',
+    'CommutativeMonoid<MiniInt => number>',
     CommutativeMonoidSuite(
       CommutativeMonoid.Function1<MiniInt, number>(CommutativeMonoid.addition),
     ).commutativeMonoid(

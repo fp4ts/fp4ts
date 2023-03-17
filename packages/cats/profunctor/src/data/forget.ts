@@ -42,21 +42,15 @@ export const Forget = function <R, A, B>(f: (a: A) => R): Forget<R, A, B> {
   return f;
 };
 
-const forgetMonoidK = cached(<R, E>(R: Monoid<R>) =>
-  MonoidK.of<$<ForgetF, [R, E]>>({
+const forgetMonoidK = cached(<R, E>(R: Monoid<R>) => {
+  const M = Monoid.Function1<E, R>(R);
+  return MonoidK.of<$<ForgetF, [R, E]>>({
     emptyK: () => _ => R.empty,
-    combineK_: (f, g) =>
-      F1.flatMap(f, r1 => F1.andThen(g, r2 => R.combine_(r1, r2))),
-    combineKEval_: (f, eg) =>
-      Eval.now(
-        (e: E) =>
-          R.combineEval_(
-            f(e),
-            eg.map(g => g(e)),
-          ).value,
-      ),
-  }),
-);
+    combineK_: M.combine_,
+    combineKEval_: M.combineEval_,
+    combineNK_: M.combineN_,
+  });
+});
 
 const forgetFunctor = lazy(<R, E>() =>
   Functor.of<$<ForgetF, [R, E]>>({ map_: (f, _) => f }),

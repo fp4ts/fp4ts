@@ -21,6 +21,9 @@ export interface Semigroup<A> extends Base<A> {
 
   combineEval(y: Eval<A>): (x: A) => Eval<A>;
   combineEval_(x: A, ey: Eval<A>): Eval<A>;
+
+  combineN(n: number): (x: A) => A;
+  combineN_(x: A, n: number): A;
 }
 
 export type SemigroupRequirements<A> = Pick<Semigroup<A>, 'combine_'> &
@@ -40,6 +43,12 @@ export const Semigroup = Object.freeze({
 
       combineEval: ey => x => self.combineEval_(x, ey),
       combineEval_: (x, ey) => ey.map(y => self.combine_(x, y)),
+
+      combineN: n => x => self.combineN_(x, n),
+      combineN_: (x, n) => {
+        if (n <= 0) throw new Error('Semigroup.combineN: n has to be > 0');
+        return n === 1 ? x : combineN(self, x, n - 1);
+      },
 
       ...S,
     });
@@ -76,3 +85,10 @@ export const Semigroup = Object.freeze({
   Function1: <A, B>(S: Semigroup<B>): Semigroup<(a: A) => B> =>
     function1Semigroup(S),
 });
+
+function combineN<A>(S: Semigroup<A>, x: A, n: number): A {
+  const r: Eval<A> = Eval.defer(() =>
+    n-- < 1 ? Eval.now(x) : S.combineEval_(x, r),
+  );
+  return r.value;
+}

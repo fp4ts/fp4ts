@@ -10,7 +10,7 @@ import { IsEq } from '@fp4ts/cats-test-kit';
 import { MonoidKLaws } from './monoid-k-laws';
 import { ApplicativeLaws } from './applicative-laws';
 
-export const AlternativeLaws = <F>(F: Alternative<F>): AlternativeLaws<F> => ({
+export const AlternativeLaws = <F>(F: Alternative<F>) => ({
   ...MonoidKLaws(F),
   ...ApplicativeLaws(F),
 
@@ -38,21 +38,3 @@ export const AlternativeLaws = <F>(F: Alternative<F>): AlternativeLaws<F> => ({
       F.combineK_(F.ap_(ff, fa), F.ap_(fg, fa)),
     ),
 });
-
-export interface AlternativeLaws<F> extends ApplicativeLaws<F>, MonoidKLaws<F> {
-  alternativeRightAbsorption: <A, B>(
-    ff: Kind<F, [(a: A) => B]>,
-  ) => IsEq<Kind<F, [B]>>;
-
-  alternativeLeftDistributivity: <A, B>(
-    fa: Kind<F, [A]>,
-    fa2: Kind<F, [A]>,
-    f: (a: A) => B,
-  ) => IsEq<Kind<F, [B]>>;
-
-  alternativeRightDistributivity: <A, B>(
-    fa: Kind<F, [A]>,
-    ff: Kind<F, [(a: A) => B]>,
-    fg: Kind<F, [(a: A) => B]>,
-  ) => IsEq<Kind<F, [B]>>;
-}

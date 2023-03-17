@@ -13,6 +13,7 @@ import {
   Kind,
   Lazy,
   lazy,
+  throwError,
   tupled,
   TyK,
   TyVar,
@@ -67,6 +68,11 @@ abstract class _Validation<out E, out A> {
   ): Validation<E2, B> {
     return this.orElse(that);
   }
+
+  public abstract orElseEval<E2, B>(
+    this: Validation<E2, B>,
+    that: Eval<Validation<E2, B>>,
+  ): Eval<Validation<E2, B>>;
 
   public abstract map<B>(g: (a: A) => B): Validation<E, B>;
   public abstract mapError<E2>(f: (e: E) => E2): Validation<E2, A>;
@@ -163,6 +169,12 @@ class _Valid<A> extends _Validation<never, A> {
   ): Validation<E2, B> {
     return this;
   }
+  public orElseEval<E2, B>(
+    this: Validation<E2, B>,
+    that: Eval<Validation<E2, B>>,
+  ): Eval<Validation<E2, B>> {
+    return Eval.now(this);
+  }
 
   public map<B>(f: (a: A) => B): Validation<never, B> {
     return new _Valid(f(this.get));
@@ -217,6 +229,17 @@ class _Invalid<E> extends _Validation<E, never> {
     return that().fold(
       ve => Validation.Invalid(this.getError.concat(ve)),
       b => Validation.Valid(b),
+    );
+  }
+  public orElseEval<E2, B>(
+    this: Validation<E2, B>,
+    that: Eval<Validation<E2, B>>,
+  ): Eval<Validation<E2, B>> {
+    return that.map(t =>
+      t.fold(
+        ve => Validation.Invalid(this.getError.concat(ve)),
+        b => Validation.Valid(b),
+      ),
     );
   }
 
@@ -457,6 +480,8 @@ const validationSemigroupK: <E>() => SemigroupK<$<ValidationF, [E]>> = lazy(<
 >() =>
   SemigroupK.of<$<ValidationF, [E]>>({
     combineK_: (fa, fb) => fa['<|>'](() => fb),
+    combineNK_: (x, n) =>
+      n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,
   }),
 ) as <E>() => SemigroupK<$<ValidationF, [E]>>;
 

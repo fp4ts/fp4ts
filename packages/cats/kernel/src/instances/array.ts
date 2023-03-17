@@ -45,6 +45,17 @@ export const arraySemigroup = lazy(<A>() =>
     combine_: (xs, ys) => xs.concat(ys),
     combineEval_: (xs, eys) =>
       xs.length === 0 ? eys : eys.map(ys => xs.concat(ys)),
+    combineN_: (xs, n): A[] => {
+      if (n <= 0) throw new Error('SemigroupK.combineN_: n must be >0');
+      if (xs.length === 0) return [];
+      const ys: A[] = new Array(xs.length * n);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0, l = xs.length; j < l; j++) {
+          ys[i * l + j] = xs[j];
+        }
+      }
+      return ys;
+    },
   }),
 ) as <A>() => Semigroup<A[]>;
 
@@ -53,6 +64,7 @@ export const arrayMonoid = lazy(<A>() => {
   return Monoid.of<A[]>({
     combine_: S.combine_,
     combineEval_: S.combineEval_,
+    combineN_: S.combineN_,
     empty: [],
   });
 }) as <A>() => Monoid<A[]>;

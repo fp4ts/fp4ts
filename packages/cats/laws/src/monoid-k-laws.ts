@@ -9,13 +9,7 @@ import { IsEq } from '@fp4ts/cats-test-kit';
 
 import { SemigroupKLaws } from './semigroup-k-laws';
 
-export interface MonoidKLaws<F> extends SemigroupKLaws<F> {
-  monoidKLeftIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-
-  monoidKRightIdentity: <A>(fa: Kind<F, [A]>) => IsEq<Kind<F, [A]>>;
-}
-
-export const MonoidKLaws = <F>(F: MonoidK<F>): MonoidKLaws<F> => ({
+export const MonoidKLaws = <F>(F: MonoidK<F>) => ({
   ...SemigroupKLaws(F),
 
   monoidKLeftIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>

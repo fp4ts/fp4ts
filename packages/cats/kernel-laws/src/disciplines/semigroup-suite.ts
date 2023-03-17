@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Arbitrary } from 'fast-check';
+import fc, { Arbitrary } from 'fast-check';
 import { Eq, Semigroup } from '@fp4ts/cats-kernel';
 import { forAll, RuleSet } from '@fp4ts/cats-test-kit';
 import { SemigroupLaws } from '../semigroup-laws';
@@ -25,6 +25,12 @@ export const SemigroupSuite = <A>(S: Semigroup<A>) => {
         [
           'semigroup dual dual is identity',
           forAll(arbA, arbA, laws.semigroupDualDualIsIdentity)(EqA),
+        ],
+        [
+          'semigroup combineEval is stack safe',
+          forAll(arbA, laws.semigroupCombineEvalStackSafety, { numRuns: 1 })(
+            EqA,
+          ),
         ],
       ]),
   };

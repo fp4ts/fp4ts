@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import { throwError } from '@fp4ts/core';
 import { CommutativeMonoid } from '../commutative-monoid';
 import { CommutativeSemigroup } from '../commutative-semigroup';
 import { Eq } from '../eq';
@@ -56,7 +57,10 @@ function combine<K extends symbol | number | string, A>(
 }
 
 export const recordMonoid = <A>(S: Semigroup<A>): Monoid<Record<string, A>> =>
-  Monoid.of({ combine_: (xs, ys) => combine(xs, ys, S), empty: {} });
+  Monoid.of({
+    combine_: (xs, ys) => combine(xs, ys, S),
+    empty: {},
+  });
 
 export const recordCommutativeMonoid = <A>(
   S: CommutativeSemigroup<A>,

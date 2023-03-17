@@ -3,7 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, constant, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  constant,
+  Kind,
+  lazy,
+  throwError,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Eq, Monoid, Semigroup } from '@fp4ts/cats-kernel';
 import { Applicative } from '../applicative';
 import { Apply } from '../apply';
@@ -63,12 +72,24 @@ const constEqK: <A>(E: Eq<A>) => EqK<$<ConstF, [A]>> = E =>
   EqK.of({ liftEq: () => E });
 
 const constSemigroupK: <A>(A: Semigroup<A>) => SemigroupK<$<ConstF, [A]>> = A =>
-  SemigroupK.of({ combineK_: (x, y) => A.combine_(x, y) });
+  SemigroupK.of({
+    combineK_: (x, y) => A.combine_(x, y),
+    combineKEval_: (x, y) => A.combineEval_(x, y),
+    combineNK_: (x, n) =>
+      n <= 0
+        ? throwError(new Error('Semigroup.combineN_: n must be >0'))
+        : A.combineN_(x, n),
+  });
 
 const constMonoidK: <A>(A: Monoid<A>) => MonoidK<$<ConstF, [A]>> = A =>
   MonoidK.of({
     emptyK: () => A.empty,
     combineK_: (x, y) => A.combine_(x, y),
+    combineKEval_: (x, y) => A.combineEval_(x, y),
+    combineNK_: (x, n) =>
+      n <= 0
+        ? throwError(new Error('Semigroup.combineN_: n must be >0'))
+        : A.combineN_(x, n),
   });
 
 const constFunctor: <A>() => Functor<$<ConstF, [A]>> = lazy(<A>() => ({

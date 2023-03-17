@@ -31,6 +31,12 @@ export const SemigroupKSuite = <F>(F: SemigroupK<F>) => {
             laws.semigroupKAssociative,
           )(mkEqF(EqA)),
         ],
+        [
+          'semigroup combineEval is stack safe',
+          forAll(mkArbF(arbA), laws.semigroupKCombineEvalStackSafety, {
+            numRuns: 1,
+          })(mkEqF(EqA)),
+        ],
       ]),
   };
 };

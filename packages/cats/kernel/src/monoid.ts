@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, instance, lazy } from '@fp4ts/core';
+import { Eval, instance, lazy, throwError } from '@fp4ts/core';
 import { arrayMonoid } from './instances/array';
 import { Semigroup, SemigroupRequirements } from './semigroup';
 import { conjunctionMonoid, disjunctionMonoid } from './instances/boolean';
@@ -46,7 +46,14 @@ export const Monoid = Object.freeze({
   },
 
   get string(): Monoid<string> {
-    return Monoid.of({ combine_: Semigroup.string.combine_, empty: '' });
+    return Monoid.of({
+      combine_: Semigroup.string.combine_,
+      combineN_: (x, n) =>
+        n <= 0
+          ? throwError(new Error('Semigroup.combineN_: n must be >0'))
+          : x.repeat(n),
+      empty: '',
+    });
   },
 
   get disjunction(): Monoid<boolean> {

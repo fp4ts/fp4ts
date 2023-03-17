@@ -15,6 +15,7 @@ import {
   Kind,
   Lazy,
   lazy,
+  throwError,
   TyK,
   TyVar,
   α,
@@ -36,6 +37,7 @@ import { Contravariant } from '../contravariant';
 import { Distributive } from '../distributive';
 import { MonadDefer } from '../monad-defer';
 import { MonadPlus } from '../monad-plus';
+import { Monoid, Semigroup } from '@fp4ts/cats-kernel';
 
 export type Kleisli<F, A, B> = (a: A) => Kind<F, [B]>;
 
@@ -84,45 +86,25 @@ const kleisliDefer: <F, R>(F: Defer<F>) => Defer<$<KleisliF, [F, R]>> = cached(
 
 const kleisliSemigroupK: <F, A>(
   F: SemigroupK<F>,
-) => SemigroupK<$<KleisliF, [F, A]>> = cached(<F, A>(F: SemigroupK<F>) =>
-  SemigroupK.of<$<KleisliF, [F, A]>>({
-    combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
-      F1.flatMap(x, x => F1.andThen(y, y => F.combineK_(x, y))),
-    combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
-      Eval.now(
-        suspend(
-          F,
-          (a: A) =>
-            F.combineKEval_(
-              x(a),
-              ey.map(y => y(a)),
-            ).value,
-        ),
-      ),
-  }),
-) as <F, A>(F: SemigroupK<F>) => SemigroupK<$<KleisliF, [F, A]>>;
+) => SemigroupK<$<KleisliF, [F, A]>> = cached(<F, A>(F: SemigroupK<F>) => {
+  const S = Semigroup.Function1<A, Kind<F, [any]>>(F.algebra());
+  return SemigroupK.of<$<KleisliF, [F, A]>>({
+    combineK_: S.combine_,
+    combineKEval_: S.combineEval_,
+    combineNK_: S.combineN_,
+  });
+}) as <F, A>(F: SemigroupK<F>) => SemigroupK<$<KleisliF, [F, A]>>;
 
 const kleisliMonoidK: <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>> =
-  cached(<F, A>(F: MonoidK<F>) =>
-    MonoidK.of<$<KleisliF, [F, A]>>({
-      combineK_: <B>(x: Kleisli<F, A, B>, y: Kleisli<F, A, B>) =>
-        F1.flatMap(x, x => F1.andThen(y, y => F.combineK_(x, y))),
-
-      combineKEval_: <B>(x: Kleisli<F, A, B>, ey: Eval<Kleisli<F, A, B>>) =>
-        Eval.now(
-          suspend(
-            F,
-            (a: A) =>
-              F.combineKEval_(
-                x(a),
-                ey.map(y => y(a)),
-              ).value,
-          ),
-        ),
-
+  cached(<F, A>(F: MonoidK<F>) => {
+    const M = Monoid.Function1<A, Kind<F, [any]>>(F.algebra());
+    return MonoidK.of<$<KleisliF, [F, A]>>({
+      combineK_: M.combine_,
+      combineKEval_: M.combineEval_,
+      combineNK_: M.combineN_,
       emptyK: () => F.emptyK,
-    }),
-  ) as <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>>;
+    });
+  }) as <F, A>(F: MonoidK<F>) => MonoidK<$<KleisliF, [F, A]>>;
 
 const kleisliContravariant: <F, B>() => Contravariant<
   λ<KleisliF, [Fix<F>, α, Fix<B>]>

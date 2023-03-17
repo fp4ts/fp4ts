@@ -18,6 +18,9 @@ export interface SemigroupK<F> extends Base<F> {
   ): (x: Kind<F, [A]>) => Eval<Kind<F, [A]>>;
   combineKEval_<A>(x: Kind<F, [A]>, ey: Eval<Kind<F, [A]>>): Eval<Kind<F, [A]>>;
 
+  combineNK(n: number): <A>(fa: Kind<F, [A]>) => Kind<F, [A]>;
+  combineNK_<A>(fa: Kind<F, [A]>, n: number): Kind<F, [A]>;
+
   algebra<A>(): Semigroup<Kind<F, [A]>>;
 
   dual(): SemigroupK<F>;
@@ -33,11 +36,19 @@ export const SemigroupK = Object.freeze({
       combineKEval: ey => x => self.combineKEval_(x, ey),
       combineKEval_: (x, ey) => ey.map(y => F.combineK_(x, y)),
 
+      combineNK: n => x => self.combineNK_(x, n),
+      combineNK_: (x, n) => {
+        if (n <= 0) throw new Error('Semigroup.combineN: n has to be > 0');
+        return n === 1 ? x : combineNK(self, x, n - 1);
+      },
+
       algebra: lazy(<A>() =>
         Semigroup.of<Kind<F, [A]>>({
           combine: F.combineK ?? (y => x => F.combineK_(x, y)),
           combine_: F.combineK_,
           combineEval_: F.combineKEval_,
+          combineN: F.combineNK,
+          combineN_: F.combineNK_,
         }),
       ) as <A>() => Semigroup<Kind<F, [A]>>,
 
@@ -52,3 +63,14 @@ export const SemigroupK = Object.freeze({
     return self;
   },
 });
+
+function combineNK<F, A>(
+  S: SemigroupK<F>,
+  fa: Kind<F, [A]>,
+  n: number,
+): Kind<F, [A]> {
+  const r: Eval<Kind<F, [A]>> = Eval.defer(() =>
+    n-- < 1 ? Eval.now(fa) : S.combineKEval_(fa, r),
+  );
+  return r.value;
+}

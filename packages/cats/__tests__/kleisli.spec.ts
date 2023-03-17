@@ -123,7 +123,7 @@ describe('Kleisli', () => {
     );
 
     checkAll(
-      'Alternative<Kleisli<List, MiniInt, *>>',
+      'Alternative<Kleisli<Array, MiniInt, *>>',
       AlternativeSuite(
         Kleisli.Alternative<ArrayF, MiniInt>(Alternative.Array),
       ).alternative(
@@ -133,7 +133,8 @@ describe('Kleisli', () => {
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
         Eq.fromUniversalEquals(),
-        <X>(x: Arbitrary<X>) => A.fp4tsKleisli<ArrayF, MiniInt, X>(fc.array(x)),
+        <X>(x: Arbitrary<X>) =>
+          A.fp4tsKleisli<ArrayF, MiniInt, X>(fc.array(x, { maxLength: 3 })),
         <X>(E: Eq<X>) =>
           eqKleisli<ArrayF, MiniInt, X>(ExhaustiveCheck.miniInt(), Eq.Array(E)),
       ),

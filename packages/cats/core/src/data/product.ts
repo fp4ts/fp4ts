@@ -3,7 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $, $type, Eval, fst, Kind, snd, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  Eval,
+  fst,
+  Kind,
+  snd,
+  throwError,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
 import { Align } from '../align';
 import { Alternative } from '../alternative';
@@ -59,6 +69,10 @@ Product.SemigroupK = <F, G>(F: SemigroupK<F>, G: SemigroupK<G>) =>
         G.combineKEval_(lga, erfarga.map(snd)).map(ga => [fa, ga]),
       );
     },
+    combineNK_: ([fa, ga], n) =>
+      n <= 0
+        ? throwError(new Error('Semigroup.combineN_: n must be >0'))
+        : [F.combineNK_(fa, n), G.combineNK_(ga, n)],
   });
 
 Product.MonoidK = <F, G>(F: MonoidK<F>, G: MonoidK<G>) => {
@@ -67,6 +81,7 @@ Product.MonoidK = <F, G>(F: MonoidK<F>, G: MonoidK<G>) => {
     combineK_: S.combineK_,
     combineKEval_: S.combineKEval_,
     emptyK: () => [F.emptyK(), G.emptyK()],
+    combineNK_: S.combineNK_,
   });
 };
 

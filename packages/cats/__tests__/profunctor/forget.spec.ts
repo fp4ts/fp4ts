@@ -26,7 +26,7 @@ import {
 
 describe('Forget', () => {
   describe('stack safety', () => {
-    it.skip('should have Stack-Safe MonoidK instance', () => {
+    it('should have Stack-Safe MonoidK instance', () => {
       expect(
         Iter.foldMap_(
           Forget.MonoidK(Monoid.addition).algebra<number>(),
@@ -58,6 +58,20 @@ describe('Forget', () => {
       ).toBe(false);
 
       expect(seen).toEqual([1]);
+    });
+
+    it('should short-circuit on Monoid', () => {
+      const seen: number[] = [];
+
+      expect(
+        Iter.foldMap_(
+          Forget.MonoidK(Monoid.conjunction).algebra<number>(),
+          Iter.range(0, 100_000),
+          x => _ => (seen.push(x), false),
+        )(null),
+      ).toBe(false);
+
+      expect(seen).toEqual([0]);
     });
   });
 

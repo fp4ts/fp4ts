@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { Eval, Lazy, lazy } from '@fp4ts/core';
+import { Eval, Lazy, lazy, throwError } from '@fp4ts/core';
 import { Eq } from '@fp4ts/cats-kernel';
 import { SemigroupK } from '../../semigroup-k';
 import { Functor } from '../../functor';
@@ -48,6 +48,8 @@ export const trySemigroupK: Lazy<SemigroupK<TryF>> = lazy(() =>
   SemigroupK.of({
     combineK_: (x, y) => orElse_(x, () => y),
     combineKEval_: orElseEval_,
+    combineNK_: (x, n) =>
+      n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,
   }),
 );
 
