@@ -36,19 +36,18 @@ export const arbitraryRefining: Lazy<Refining<ArbitraryF>> = lazy(() =>
   }),
 );
 
-export const arbitraryConstraining: Lazy<Constraining<ArbitraryF>> = lazy(
-  () =>
-    Constraining.of({
-      ...arbitrarySchemable(),
-      min_: (fa, n) => fa.filter(x => x >= n),
-      minExclusive_: (fa, n) => fa.filter(x => x > n),
-      max_: (fa, n) => fa.filter(x => x <= n),
-      maxExclusive_: (fa, n) => fa.filter(x => x < n),
-      nonEmpty: (<A>(fa: Arbitrary<string | A[]>) =>
-        fa.filter(x => x.length > 0)) as Constraining<ArbitraryF>['nonEmpty'],
-      minLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
-        fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
-      maxLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
-        fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
-    }),
+export const arbitraryConstraining: Lazy<Constraining<ArbitraryF>> = lazy(() =>
+  Constraining.of({
+    ...arbitrarySchemable(),
+    min_: (fa, n) => fa.filter(x => x >= n),
+    minExclusive_: (fa, n) => fa.filter(x => x > n),
+    max_: (fa, n) => fa.filter(x => x <= n),
+    maxExclusive_: (fa, n) => fa.filter(x => x < n),
+    nonEmpty: (<A>(fa: Arbitrary<string | A[]>) =>
+      fa.filter(x => x.length > 0)) as Constraining<ArbitraryF>['nonEmpty'],
+    minLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
+      fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
+    maxLength_: (<A>(fa: Arbitrary<string | A[]>, n: number) =>
+      fa.filter(x => x.length <= n)) as Constraining<ArbitraryF>['nonEmpty'],
+  }),
 );

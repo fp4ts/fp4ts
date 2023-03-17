@@ -21,7 +21,7 @@ export const Compare = Object.freeze({
   EQ,
   GT,
 });
-export type Compare = typeof Compare[keyof typeof Compare];
+export type Compare = (typeof Compare)[keyof typeof Compare];
 
 /**
  * @category Type Class

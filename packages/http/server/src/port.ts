@@ -20,4 +20,4 @@ export const Port = class extends subtype<number>()('@fp4ts/http/server/port') {
     return this.fromNumber(parseInt(value));
   }
 };
-export type Port = typeof Port['Type'];
+export type Port = (typeof Port)['Type'];

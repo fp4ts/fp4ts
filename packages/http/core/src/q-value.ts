@@ -37,7 +37,7 @@ export const QValue = class extends newtype<number>()(
     return parser_();
   }
 };
-export type QValue = typeof QValue['Type'];
+export type QValue = (typeof QValue)['Type'];
 
 const mkQValue = (thousands: number, s: string): ParseResult<QValue> =>
   thousands < 0 || thousands > 1_000

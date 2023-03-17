@@ -40,39 +40,38 @@ export const guardRefining: Lazy<Refining<$<GuardF, [unknown]>>> = lazy(() =>
   }),
 );
 
-export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazy(
-  () =>
-    Schemable.of({
-      literal,
-      boolean,
-      string,
-      number,
-      null: nullGuard,
-      array,
-      struct,
-      defer,
-      nullable,
-      optional,
-      product: product as Schemable<$<GuardF, [unknown]>>['product'],
-      record,
-      sum,
+export const guardSchemable: Lazy<Schemable<$<GuardF, [unknown]>>> = lazy(() =>
+  Schemable.of({
+    literal,
+    boolean,
+    string,
+    number,
+    null: nullGuard,
+    array,
+    struct,
+    defer,
+    nullable,
+    optional,
+    product: product as Schemable<$<GuardF, [unknown]>>['product'],
+    record,
+    sum,
 
-      imap: <A, B>(
-        ga: Guard<unknown, A>,
-        f: (a: A) => B,
-        g: (b: B) => A,
-      ): Guard<unknown, B> =>
-        new SafeGuard(x =>
-          Try(() => g(x as any)).fold(
-            () => Eval.false,
-            y => safeTest(ga, y),
-          ),
+    imap: <A, B>(
+      ga: Guard<unknown, A>,
+      f: (a: A) => B,
+      g: (b: B) => A,
+    ): Guard<unknown, B> =>
+      new SafeGuard(x =>
+        Try(() => g(x as any)).fold(
+          () => Eval.false,
+          y => safeTest(ga, y),
         ),
-    }),
+      ),
+  }),
 );
 
-export const guardConstraining: Lazy<Constraining<$<GuardF, [unknown]>>> =
-  lazy(() =>
+export const guardConstraining: Lazy<Constraining<$<GuardF, [unknown]>>> = lazy(
+  () =>
     Constraining.of({
       ...guardSchemable(),
 
@@ -86,4 +85,4 @@ export const guardConstraining: Lazy<Constraining<$<GuardF, [unknown]>>> =
       minLength_: minLength_,
       maxLength_: maxLength_,
     }),
-  );
+);

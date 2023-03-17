@@ -24,7 +24,9 @@ declare global {
 type JestExtends<Context> = (_: {
   [k: string]: (this: Context, ...arg: any) => any;
 }) => any;
-type MatcherContext = typeof expect['extend'] extends JestExtends<infer Context>
+type MatcherContext = (typeof expect)['extend'] extends JestExtends<
+  infer Context
+>
   ? Context
   : never;
 
