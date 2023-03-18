@@ -15,8 +15,6 @@ import {
   Ior,
   OptionT,
   EitherT,
-  ValidationError,
-  Validation,
   Coproduct,
 } from '@fp4ts/cats-core/lib/data';
 import { MiniInt } from './mini-int';
@@ -86,26 +84,3 @@ export const fp4tsKleisli = <F, A, B>(
 
 export const fp4tsEndo = <A>(arbA: Arbitrary<A>): Arbitrary<(_: A) => A> =>
   fc.func<[A], A>(arbA);
-
-export const fp4tsValidation = <E, A>(
-  arbVE: Arbitrary<ValidationError<E>>,
-  arbA: Arbitrary<A>,
-): Arbitrary<Validation<E, A>> =>
-  fc.oneof(arbVE.map(Validation.Invalid), arbA.map(Validation.Valid));
-
-export const fp4tsValidationError = <E>(
-  arbE: Arbitrary<E>,
-): Arbitrary<ValidationError<E>> => {
-  const { go } = fc.letrec(tie => ({
-    base: arbE.map(ValidationError),
-    rec: fc
-      .tuple(
-        tie('go') as Arbitrary<ValidationError<E>>,
-        tie('go') as Arbitrary<ValidationError<E>>,
-      )
-      .map(([l, r]) => l['<>'](r)),
-    go: fc.oneof({ maxDepth: 10 }, tie('base'), tie('rec')),
-  }));
-
-  return go as Arbitrary<ValidationError<E>>;
-};
