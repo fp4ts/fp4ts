@@ -155,7 +155,7 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
       self.TraverseStrategy = use =>
         F.TraverseStrategy(<T>(T: TraverseStrategy<F, T>) =>
           use<$<KleisliF, [T, R]>>({
-            defer: F1.defer,
+            defer: thunk => (r: R) => T.defer(() => thunk()(r)),
             map: (fa, f) => (r: R) => T.defer(() => T.map(fa(r), f)),
             map2: (fa, fb, f) => (r: R) =>
               T.defer(() => T.map2(fa(r), fb(r), f)),
