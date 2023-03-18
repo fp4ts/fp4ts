@@ -42,7 +42,7 @@ describe('Either', () => {
 
     it('should widen the never type to number', () => {
       const ea: Either<string, never> = Left('nope');
-      const ea2: Either<string, number> = ea['<|>'](() => Right(22));
+      const ea2: Either<string, number> = ea['<|>'](Right(22));
     });
   });
 

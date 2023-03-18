@@ -37,7 +37,7 @@ export class CompileOps<F, G, A> {
 
   public get headOption(): Kind<G, [Option<A>]> {
     return this.foldChunks(None as Option<A>, (prev, next) =>
-      prev['<|>'](() => next.headOption),
+      prev['<|>'](next.headOption),
     );
   }
 
@@ -52,7 +52,7 @@ export class CompileOps<F, G, A> {
 
   public get lastOption(): Kind<G, [Option<A>]> {
     return this.foldChunks(None as Option<A>, (prev, next) =>
-      next.lastOption['<|>'](() => prev),
+      next.lastOption['<|>'](prev),
     );
   }
 

@@ -95,16 +95,10 @@ abstract class _Either<out E, out A> {
     return this.isEmpty ? new _Left(f(this.getLeft)) : new _Right(g(this.get));
   }
 
-  public orElse<E, B>(
-    this: Either<E, B>,
-    that: Lazy<Either<E, B>>,
-  ): Either<E, B> {
-    return this.isEmpty ? that() : this;
+  public orElse<E, B>(this: Either<E, B>, that: Either<E, B>): Either<E, B> {
+    return this.isEmpty ? that : this;
   }
-  public '<|>'<E2, B>(
-    this: Either<E2, B>,
-    that: Lazy<Either<E2, B>>,
-  ): Either<E2, B> {
+  public '<|>'<E2, B>(this: Either<E2, B>, that: Either<E2, B>): Either<E2, B> {
     return this.orElse(that);
   }
   public orElseEval<E2, B>(
@@ -274,7 +268,7 @@ const eitherEqK = <E>(EE: Eq<E>): EqK<$<EitherF, [E]>> =>
 const eitherSemigroupK = lazy(
   <E>(): SemigroupK<$<EitherF, [E]>> =>
     SemigroupK.of<$<EitherF, [E]>>({
-      combineK_: (fa, fb) => fa.orElse(() => fb),
+      combineK_: (fa, fb) => fa.orElse(fb),
       combineKEval_: (fa, efb) => fa.orElseEval(efb),
       combineNK_: (x, n) =>
         n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,

@@ -100,7 +100,7 @@ export class InterruptContext<F> {
     const { F, ref, deferred } = this;
 
     return pipe(
-      ref.update(oc => oc['<|>'](() => Some(outcome))),
+      ref.update(oc => oc['<|>'](Some(outcome))),
       F.finalize(() => F.void(deferred.complete(outcome))),
     );
   };

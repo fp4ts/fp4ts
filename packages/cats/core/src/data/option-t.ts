@@ -107,7 +107,7 @@ OptionT.Alternative = cached(
     Alternative.of<$<OptionTF, [F]>>({
       ...OptionT.Monad(F),
       emptyK: <A>() => F.pure<Option<A>>(None),
-      combineK_: (fx, fy) => F.map2_(fx, fy, (x, y) => x.orElse(() => y)),
+      combineK_: (fx, fy) => F.map2_(fx, fy, (x, y) => x.orElse(y)),
     }),
 );
 

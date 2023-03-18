@@ -36,7 +36,7 @@ describe('Ior', () => {
         new IsEq(
           i.onlyLeft
             .map<Either<number, string>>(Left)
-            ['<|>'](() => i.onlyRight.map(Right)),
+            .orElseEval(Eval.always(() => i.onlyRight.map(Right))).value,
           i.onlyLeftOrRight,
         ),
     )(Option.Eq(Either.Eq(Eq.fromUniversalEquals(), Eq.fromUniversalEquals()))),
@@ -75,7 +75,7 @@ describe('Ior', () => {
       (i, j) =>
         new IsEq(
           i.combine(Semigroup.addition, Semigroup.string)(j).left,
-          i.left.map(x => x + j.left.getOrElse(() => 0)).orElse(() => j.left),
+          i.left.map(x => x + j.left.getOrElse(() => 0)).orElse(j.left),
         ),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );
@@ -99,8 +99,8 @@ describe('Ior', () => {
         i.mergeWith(f) ===
         i.onlyBoth
           .map(([l, r]) => f(l, r))
-          ['<|>'](() => i.left)
-          ['<|>'](() => i.right).get,
+          ['<|>'](i.left)
+          ['<|>'](i.right).get,
     ),
   );
 
@@ -112,9 +112,7 @@ describe('Ior', () => {
       (i, j) =>
         new IsEq(
           i.combine(Semigroup.addition, Semigroup.string)(j).right,
-          i.right
-            .map(x => x + j.right.getOrElse(() => ''))
-            .orElse(() => j.right),
+          i.right.map(x => x + j.right.getOrElse(() => '')).orElse(j.right),
         ),
     )(Option.Eq(Eq.fromUniversalEquals())),
   );

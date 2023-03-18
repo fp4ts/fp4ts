@@ -100,11 +100,14 @@ abstract class _Option<out A> {
     return this.flatMap(f);
   }
 
-  public orElse<A>(this: Option<A>, that: Lazy<Option<A>>): Option<A> {
-    return this === None ? that() : this;
+  public orElse<A>(this: Option<A>, that: Option<A>): Option<A> {
+    return this === None ? that : this;
   }
-  public '<|>'<A>(this: Option<A>, that: Lazy<Option<A>>): Option<A> {
+  public '<|>'<A>(this: Option<A>, that: Option<A>): Option<A> {
     return this.orElse(that);
+  }
+  public orElseLazy<A>(this: Option<A>, that: () => Option<A>): Option<A> {
+    return this === None ? that() : this;
   }
   public orElseEval<A>(
     this: Option<A>,
@@ -253,7 +256,7 @@ const optionFunctorFilter = lazy(() =>
 const optionAlternative = lazy(() =>
   Alternative.of<OptionF>({
     ...optionMonad(),
-    combineK_: (fa, lfb) => fa.orElse(() => lfb),
+    combineK_: (fa, lfb) => fa.orElse(lfb),
     combineKEval_: (fa, efb) => fa.orElseEval(efb),
     combineNK_: (x, n) =>
       n <= 0 ? throwError(new Error('Semigroup.combineN_: n must be >0')) : x,

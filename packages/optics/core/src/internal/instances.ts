@@ -38,7 +38,7 @@ export const _firstOption = lazy(
   <A>(): Monoid<Option<A>> =>
     Monoid.of<Option<A>>({
       empty: None,
-      combine_: (x, y) => x.orElse(() => y),
+      combine_: (x, y) => x.orElse(y),
       combineEval_: (x, ey) => x.orElseEval(ey),
     }),
 ) as <A>() => Monoid<Option<A>>;
@@ -47,7 +47,7 @@ export const _lastOption = lazy(
   <A>(): Monoid<Option<A>> =>
     Monoid.of<Option<A>>({
       empty: None,
-      combine_: (x, y) => y.orElse(() => x),
+      combine_: (x, y) => y.orElse(x),
     }),
 ) as <A>() => Monoid<Option<A>>;
 

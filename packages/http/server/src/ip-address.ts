@@ -19,13 +19,13 @@ export abstract class IpAddress {
   public abstract toBytes(): Byte[];
 
   public static fromString(value: string): Option<IpAddress> {
-    return Ipv4Address.fromString(value)['<|>']<IpAddress>(() =>
+    return Ipv4Address.fromString(value).orElseLazy<IpAddress>(() =>
       Ipv6Address.fromString(value),
     );
   }
 
   public static fromBytes(bytes: Byte[]): Option<IpAddress> {
-    return Ipv4Address.fromBytes(bytes)['<|>']<IpAddress>(() =>
+    return Ipv4Address.fromBytes(bytes).orElseLazy<IpAddress>(() =>
       Ipv6Address.fromBytes(bytes),
     );
   }
@@ -159,7 +159,7 @@ export class Ipv6Address extends IpAddress {
   }
 
   public static override fromString(value: string): Option<Ipv6Address> {
-    return this.fromNonMixedString(value)['<|>'](() =>
+    return this.fromNonMixedString(value).orElseLazy(() =>
       this.fromMixedString(value),
     );
   }
