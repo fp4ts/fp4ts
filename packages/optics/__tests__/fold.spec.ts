@@ -31,6 +31,8 @@ import {
   ifiltered,
   each,
   ieach,
+  toArray,
+  Each,
 } from '@fp4ts/optics-core';
 import { toList } from '@fp4ts/optics-std';
 import { forAll } from '@fp4ts/cats-test-kit';
@@ -261,6 +263,16 @@ describe('Fold', () => {
       ).toEqual(List.fromArray(xs.filter(x => x.length > 2).slice(2))),
     ),
   );
+
+  test('indexing to be stack-safe', () => {
+    const xs = List.range(0, 50_000);
+    expect(
+      Each.List<number>()
+        .indexing()
+        .apply(l => ifiltered(l))((x, i) => i % 2 === 0)
+        .apply(toArray)(xs),
+    ).toEqual(xs.toArray.filter((x, i) => i % 2 === 0));
+  });
 
   test(
     'ifilter preservation of indexes',

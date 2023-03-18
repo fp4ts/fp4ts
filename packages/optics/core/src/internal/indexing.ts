@@ -4,7 +4,18 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Applicative, Contravariant, Functor } from '@fp4ts/cats';
-import { $, $type, cached, Eval, F1, Kind, TyK, TyVar } from '@fp4ts/core';
+import {
+  $,
+  $type,
+  cached,
+  Eval,
+  F1,
+  fst,
+  Kind,
+  snd,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { Indexable } from './indexable';
 
 /**
@@ -28,7 +39,7 @@ export function indexing<F, P, RepF, CorepF, A, B, S, T>(
 ): (pafb: Kind<P, [A, Kind<F, [B]>]>) => (s: S) => Kind<F, [T]> {
   return (pafb: Kind<P, [A, Kind<F, [B]>]>) => {
     const ipafb = P.indexed(pafb);
-    const sift = l((a: A) => i => i.map(i => [ipafb(a, i), Eval.now(i + 1)]));
+    const sift = l(a => i => i.map(i => [ipafb(a, i), Eval.now(i + 1)]));
     return (s: S) => sift(s)(Eval.zero).value[0];
   };
 }
@@ -55,32 +66,37 @@ const indexingApplicative = cached(
   <F>(F: Applicative<F>): Applicative<$<IndexingF, [F]>> =>
     Applicative.of({
       ...indexingFunctor(F),
+
       pure:
         <A>(a: A) =>
         i =>
           Eval.now([F.pure(a), i]),
 
-      ap_:
-        <A, B>(iff: Indexing<F, (a: A) => B>, ifa: Indexing<F, A>) =>
-        i =>
-          Eval.defer(() =>
-            iff(i).flatMap(([ff, j]) =>
-              ifa(j).map(([fa, k]) => [F.ap_(ff, fa), k]),
-            ),
-          ),
+      ap_: <A, B>(iff: Indexing<F, (a: A) => B>, ifa: Indexing<F, A>) =>
+        F1.andThen(iff, effj =>
+          effj.flatMap(([ff, j]) => {
+            const efbk = Eval.defer(() => ifa(j)).memoize;
+            return F.map2Eval_(ff, efbk.map(fst), (f, a) => f(a)).map(fb => [
+              fb,
+              efbk.flatMap(snd),
+            ]);
+          }),
+        ),
 
-      map2_:
-        <A, B, C>(
-          ifa: Indexing<F, A>,
-          ifb: Indexing<F, B>,
-          f: (a: A, b: B) => C,
-        ) =>
-        i =>
-          Eval.defer(() =>
-            ifa(i).flatMap(([fa, j]) =>
-              ifb(j).map(([fb, k]) => [F.map2_(fa, fb, f), k]),
-            ),
-          ),
+      map2_: <A, B, C>(
+        ifa: Indexing<F, A>,
+        ifb: Indexing<F, B>,
+        f: (a: A, b: B) => C,
+      ) =>
+        F1.andThen(ifa, efaj =>
+          efaj.flatMap(([fa, j]) => {
+            const efbk = Eval.defer(() => ifb(j)).memoize;
+            return F.map2Eval_(fa, efbk.map(fst), f).map(fc => [
+              fc,
+              efbk.flatMap(snd),
+            ]);
+          }),
+        ),
 
       map2Eval_: <A, B, C>(
         ifa: Indexing<F, A>,
@@ -90,8 +106,11 @@ const indexingApplicative = cached(
         Eval.now(
           F1.andThen(ifa, efaj =>
             efaj.flatMap(([fa, j]) => {
-              const [efb, k] = eifb.flatMap(ifb => ifb(j)).unzip();
-              return F.map2Eval_(fa, efb, f).map(fc => [fc, k.flatten()]);
+              const efbk = eifb.flatMap(ifb => ifb(j)).memoize;
+              return F.map2Eval_(fa, efbk.map(fst), f).map(fc => [
+                fc,
+                efbk.flatMap(snd),
+              ]);
             }),
           ),
         ),
