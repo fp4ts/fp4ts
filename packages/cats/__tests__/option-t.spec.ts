@@ -13,10 +13,8 @@ import {
   EitherF,
   Some,
   None,
-  Option,
   OptionT,
   Either,
-  SyntaxK,
 } from '@fp4ts/cats-core/lib/data';
 import {
   CoflatMapSuite,
@@ -28,12 +26,10 @@ import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
 
 describe('OptionT', () => {
-  const OptIdF = {
+  const F = {
     ...OptionT.Monad(Identity.Monad),
     ...OptionT.Alternative(Identity.Monad),
   };
-  const mkSomeS = <A>(a: A) => SyntaxK(OptIdF)(Some(a));
-  const mkNoneS = <A = never>() => SyntaxK(OptIdF)(None as Option<A>);
 
   describe('type', () => {
     it('should be covariant in A parameter', () => {
@@ -86,97 +82,42 @@ describe('OptionT', () => {
   describe('map', () => {
     it('should double the wrapped value', () => {
       expect(
-        SyntaxK(OptionT.Functor(Identity.Functor), Some(42)).map(x => x * 2)
-          .value,
+        OptionT.Functor(Identity.Functor).map_(Some(42), x => x * 2),
       ).toEqual(Identity(Some(84)));
     });
 
     it('should do nothing on none', () => {
-      expect(
-        SyntaxK(OptionT.Functor(Identity.Functor), None).map(x => x * 2).value,
-      ).toEqual(Identity(None));
+      expect(OptionT.Functor(Identity.Functor).map_(None, x => x * 2)).toEqual(
+        Identity(None),
+      );
     });
   });
 
   describe('orElse', () => {
     it('should return left result on Some', () => {
-      expect(mkSomeS(42).combineK(() => mkSomeS(43)).value).toEqual(
-        Identity(Some(42)),
-      );
+      expect(F.combineK_(Some(42), Some(43))).toEqual(Some(42));
     });
 
     it('should return right result on None', () => {
-      expect(mkNoneS<number>().combineK(() => mkSomeS(43)).value).toEqual(
-        Identity(Some(43)),
-      );
+      expect(F.combineK_(None, Some(43))).toEqual(Some(43));
     });
 
     it('should return None when both sides are None', () => {
-      expect(mkNoneS().combineK(() => mkNoneS()).value).toEqual(Identity(None));
+      expect(F.combineK_(None, None)).toEqual(None);
     });
   });
-
-  describe('orElseF', () => {
-    it('should return left result on Some', () => {
-      expect(mkSomeS(42).combineKF(() => Identity(Some(43))).value).toEqual(
-        Identity(Some(42)),
-      );
-    });
-
-    it('should return right result on None', () => {
-      expect(
-        mkNoneS<number>().combineKF(() => Identity(Some(43))).value,
-      ).toEqual(Identity(Some(43)));
-    });
-
-    it('should return None when both sides are None', () => {
-      expect(mkNoneS<number>().combineKF(() => Identity(None)).value).toEqual(
-        Identity(None),
-      );
-    });
-  });
-
-  // describe('getOrElse', () => {
-  //   it('should return lhs when is Some', () => {
-  //     expect(mkSome(42).getOrElse(() => 43)).toEqual(Identity(42));
-  //   });
-
-  //   it('should return rhs when is None', () => {
-  //     expect(mkNone<number>().getOrElse(() => 43)).toEqual(Identity(43));
-  //   });
-  // });
-
-  // describe('getOrElseF', () => {
-  //   it('should return lhs when is Some', () => {
-  //     expect(mkSome(42).getOrElseF(F)(() => Identity(43))).toEqual(
-  //       Identity(42),
-  //     );
-  //   });
-
-  //   it('should return rhs when is None', () => {
-  //     expect(mkNoneS<number>().getOrElseF(F)(() => Identity(43))).toEqual(
-  //       Identity(43),
-  //     );
-  //   });
-  // });
 
   describe('flatMap', () => {
     it('should map the wrapped value', () => {
-      expect(mkSomeS(42).flatMap(x => mkSomeS(x * 2)).value).toEqual(
-        Identity(Some(84)),
-      );
+      expect(F.flatMap_(Some(42), x => Some(x * 2))).toEqual(Some(84));
     });
 
     it('should transform into None', () => {
-      expect(mkSomeS(42).flatMap(() => mkNoneS()).value).toEqual(
-        Identity(None),
-      );
+      expect(F.flatMap_(Some(42), _ => None)).toEqual(None);
     });
 
     it('should ignore the None', () => {
-      expect(mkNoneS<number>().flatMap(x => mkSomeS(x * 2)).value).toEqual(
-        Identity(None),
-      );
+      expect(F.flatMap_(None, x => Some(x * 2))).toEqual(None);
     });
   });
 

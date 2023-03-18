@@ -26,5 +26,3 @@ export * from './kleisli';
 export * from './identity-t';
 export * from './option-t';
 export * from './either-t';
-
-export { SyntaxK } from './syntax-k';
