@@ -19,6 +19,7 @@ import {
   Align,
   Alternative,
   Applicative,
+  ApplicativeDefer,
   Defer,
   Eq,
   EqK,
@@ -488,18 +489,36 @@ export class _LazyList<out A> {
     G: Applicative<G>,
     Rhs: TraverseStrategy<G, Rhs>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
-    return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
-      const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
-        xs === NilStep
-          ? Rhs.toRhs(() => G.pure(LazyList.empty))
-          : Rhs.map2(
-              Rhs.toRhs(() => f(xs.head)),
-              Rhs.defer(() => go(xs.forceTail)),
-              (y, ys) => ys.cons(y),
-            );
+    const cosequenceEval = Rhs.cosequenceEval;
+    if (cosequenceEval) {
+      return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
+        const go = (xs: Step<A>): Kind<Rhs, [Step<B>]> =>
+          xs === NilStep
+            ? Rhs.toRhs(() => G.pure(NilStep))
+            : Rhs.map2(
+                Rhs.toRhs(() => f(xs.head)),
+                cosequenceEval(xs.tail.map(go)),
+                LazyList.consStep,
+              );
 
-      return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
-    };
+        return Rhs.toG(
+          Rhs.map(cosequenceEval(this.source.map(go)), LazyList.fromStepEval),
+        );
+      };
+    } else {
+      return <B>(f: (a: A) => Kind<G, [B]>): Kind<G, [LazyList<B>]> => {
+        const go = (xs: Step<A>): Kind<Rhs, [LazyList<B>]> =>
+          xs === NilStep
+            ? Rhs.toRhs(() => G.pure(LazyList.empty))
+            : Rhs.map2(
+                Rhs.toRhs(() => f(xs.head)),
+                Rhs.defer(() => go(xs.forceTail)),
+                (y, ys) => ys.cons(y),
+              );
+
+        return Rhs.toG(Rhs.defer(() => go(this.forceSource)));
+      };
+    }
   }
 
   public traverseFilter<G>(
