@@ -4,16 +4,17 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
-import { Eval, id, tupled } from '@fp4ts/core';
+import { Eval, EvalF, id, tupled } from '@fp4ts/core';
 import {
   CommutativeMonoid,
   Eq,
+  Kleisli,
   Identity,
   Monad,
   Option,
   Some,
+  Function0F,
 } from '@fp4ts/cats';
-import {} from '@fp4ts/cats-core/lib/data';
 import { LazyList, List, Vector } from '@fp4ts/collections-core';
 import {
   AlignSuite,
@@ -1664,6 +1665,38 @@ describe('LazyList', () => {
       fibs.drop(999).head;
 
       expect(cnt).toBe(1000);
+    });
+  });
+
+  describe('laziness subsumption during traversal', () => {
+    test('Function0', () => {
+      const f = LazyList.range(0).traverse(Monad.Function0)(x => () => x + 1);
+
+      expect(f().take(3).toArray).toEqual([1, 2, 3]);
+    });
+
+    test('Function1<number, *>', () => {
+      const f = LazyList.range(0).traverse(Monad.Function1<number>())(
+        x => y => x + y,
+      );
+
+      expect(f(42).take(3).toArray).toEqual([42, 43, 44]);
+    });
+
+    it('Kleisli<Eval, *, *>', () => {
+      const f = LazyList.range(0).traverse(
+        Kleisli.Monad<EvalF, number>(Monad.Eval),
+      )(x => y => Eval.now(x + y));
+
+      expect(f(42).value.take(3).toArray).toEqual([42, 43, 44]);
+    });
+
+    it('Kleisli<Function0, *, *>', () => {
+      const f = LazyList.range(0).traverse(
+        Kleisli.Monad<Function0F, number>(Monad.Function0),
+      )(x => y => () => x + y);
+
+      expect(f(42)().take(3).toArray).toEqual([42, 43, 44]);
     });
   });
 
