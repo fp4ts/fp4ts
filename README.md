@@ -7,8 +7,9 @@
 [![codecov](https://codecov.io/gh/fp4ts/fp4ts/branch/master/graph/badge.svg?token=wXOEoz3yOm)](https://codecov.io/gh/fp4ts/fp4ts)
 
 Welcome to fp4ts! Fp4ts is a zero-dependency, purely functional library that
-attempts to port portion of the [Typelevel](https://typelevel.org/) ecosystem
-to Typescript.
+attempts to provide idiomatic support for lazy, safe, and performant functional
+programming in Typescript by porting a portion of the [Typelevel](https://typelevel.org/)
+and Haskell ecosystems.
 
 _The project is currently under development and is not intended to be used in
 production._
@@ -173,7 +174,7 @@ API dsl](./packages/examples/todo-api/src/api)
 ```
 The MIT License (MIT)
 
-Copyright (c) 2021-2022 Peter Matta.
+Copyright (c) 2021-2023 Peter Matta.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
