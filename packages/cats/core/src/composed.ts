@@ -6,7 +6,7 @@
 import { Kind } from '@fp4ts/core';
 import { Monoid } from '@fp4ts/cats-kernel';
 import { EqK } from './eq-k';
-import { Apply } from './apply';
+import { Apply, TraverseStrategy } from './apply';
 import { Functor } from './functor';
 import { Applicative } from './applicative';
 import { Foldable } from './foldable';
@@ -51,6 +51,25 @@ export const ComposedApply = Object.freeze({
 
         map2Eval_: (fga, efgb, f) =>
           F.map2Eval_(fga, efgb, (ga, gb) => G.map2_(ga, gb, f)),
+
+        TraverseStrategy: use =>
+          F.TraverseStrategy(<T>(T: TraverseStrategy<F, T>) =>
+            G.TraverseStrategy(<U>(U: TraverseStrategy<G, U>) =>
+              use<[T, U]>({
+                toG: tua => T.toG(T.map(tua, U.toG)),
+                defer: thunk => T.defer(() => thunk()),
+                toRhs: thunk =>
+                  T.toRhs(() => F.map_(thunk(), ga => U.toRhs(() => ga))),
+                map: (tua, f) => T.map(tua, ua => U.map(ua, f)),
+                map2: (tua, tub, f) =>
+                  T.map2(tua, tub, (ua, ub) => U.map2(ua, ub, f)),
+                cosequenceEval:
+                  T.cosequenceEval &&
+                  U.cosequenceEval &&
+                  (etua => T.map(T.cosequenceEval!(etua), U.cosequenceEval!)),
+              }),
+            ),
+          ),
       }),
     };
   },

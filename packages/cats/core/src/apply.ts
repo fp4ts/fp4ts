@@ -202,4 +202,5 @@ export interface TraverseStrategy<G, T> {
     rhs: Kind<T, [B]>,
     f: (a: A, b: B) => C,
   ): Kind<T, [C]>;
+  cosequenceEval?<A>(rhs: Eval<Kind<T, [A]>>): Kind<T, [Eval<A>]>;
 }

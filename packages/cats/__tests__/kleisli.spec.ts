@@ -44,6 +44,7 @@ import {
   foldRightTraverse,
   foldRightTraverse_,
 } from './helpers/fold-right-traverse';
+import { LazyList } from '@fp4ts/collections-core';
 
 describe('Kleisli', () => {
   const KEM = <R>() => Kleisli.Monad<EvalF, R>(Monad.Eval);

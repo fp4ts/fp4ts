@@ -151,19 +151,20 @@ const kleisliApply: <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>> = cached(
         Eval.now(F1.combineEval(fa, efb, (fa, efb) => F.map2Eval_(fa, efb, f))),
     });
 
-    if (!isDefer(F)) {
-      self.TraverseStrategy = use =>
-        F.TraverseStrategy(<T>(T: TraverseStrategy<F, T>) =>
-          use<$<KleisliF, [T, R]>>({
-            defer: thunk => (r: R) => T.defer(() => thunk()(r)),
-            map: (fa, f) => (r: R) => T.defer(() => T.map(fa(r), f)),
-            map2: (fa, fb, f) => (r: R) =>
-              T.defer(() => T.map2(fa(r), fb(r), f)),
-            toG: f => F1.andThen(f, T.toG),
-            toRhs: t => (r: R) => T.toRhs(() => t()(r)),
-          }),
-        );
-    }
+    self.TraverseStrategy = use =>
+      F.TraverseStrategy(<T>(T: TraverseStrategy<F, T>) =>
+        use<$<KleisliF, [T, R]>>({
+          defer: thunk => (r: R) => T.defer(() => thunk()(r)),
+          map: (fa, f) => (r: R) => T.defer(() => T.map(fa(r), f)),
+          map2: (fa, fb, f) => (r: R) => T.defer(() => T.map2(fa(r), fb(r), f)),
+          toG: f => F1.andThen(f, T.toG),
+          toRhs: t => (r: R) => T.toRhs(() => t()(r)),
+          cosequenceEval:
+            T.cosequenceEval &&
+            (e => (r: R) => T.cosequenceEval!(e.map(t => T.defer(() => t(r))))),
+        }),
+      );
+
     return self;
   },
 ) as <F, R>(F: Apply<F>) => Apply<$<KleisliF, [F, R]>>;
