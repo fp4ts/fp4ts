@@ -31,7 +31,7 @@ import { Functor } from '../functor';
 import { MonoidK } from '../monoid-k';
 import { MonadFix } from '../monad-fix';
 import { MonadDefer } from '../monad-defer';
-import { Either } from '../data';
+import { Either, KleisliF } from '../data';
 
 // -- Function0
 
@@ -67,8 +67,8 @@ export const function0Comonad = lazy(() =>
   }),
 );
 
-export const function0MonadDefer = lazy(() =>
-  MonadDefer.of<Function0F>({
+export const function0MonadDefer = lazy(() => {
+  const self: MonadDefer<Function0F> = MonadDefer.of<Function0F>({
     ...function0Defer(),
     ...function0Functor(),
     pure: constant,
@@ -82,8 +82,18 @@ export const function0MonadDefer = lazy(() =>
         }
         return cur.get;
       },
-  }),
-);
+  });
+  self.TraverseStrategy = use =>
+    use<Function0F>({
+      toG: id,
+      toRhs: self.defer,
+      defer: self.defer,
+      map: self.map_,
+      map2: self.map2_,
+      cosequenceEval: efa => () => efa.map(f => f()),
+    });
+  return self;
+});
 
 // -- Function1
 
@@ -159,6 +169,16 @@ export const function1MonadDefer = lazy(<R>() =>
         }
         return cur.get;
       },
+    TraverseStrategy: use =>
+      use<$<KleisliF, [EvalF, R]>>({
+        defer: thunk => (r: R) => Eval.defer(() => thunk()(r)),
+        toG: fa => F1.andThen(fa, e => e.value),
+        toRhs: thunk => (r: R) => Eval.always(() => thunk()(r)),
+        map: (fa, f) => (r: R) => Eval.defer(() => fa(r).map(f)),
+        map2: (fa, fb, f) => (r: R) =>
+          Eval.defer(() => fa(r).flatMap(a => fb(r).map(b => f(a, b)))),
+        cosequenceEval: efa => (r: R) => efa.map(fa => fa(r)),
+      }),
   }),
 ) as <R>() => MonadDefer<$<Function1F, [R]>>;
 

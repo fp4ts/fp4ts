@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import { Eq } from '@fp4ts/cats-kernel';
-import { Eval, EvalF, fix, lazy } from '@fp4ts/core';
+import { Eval, EvalF, id, lazy } from '@fp4ts/core';
 import { Comonad } from '../comonad';
 import { EqK } from '../eq-k';
 import { Defer } from '../defer';
@@ -31,6 +31,15 @@ export const evalMonadDefer: () => MonadDefer<EvalF> = lazy(() =>
     map_: (fa, f) => fa.map(f),
     flatMap_: (fa, f) => fa.flatMap(f),
     flatten: fa => fa.flatten(),
+    TraverseStrategy: use =>
+      use({
+        defer: Eval.defer,
+        toRhs: Eval.defer,
+        toG: id,
+        map: (fa, f) => fa.map(f),
+        map2: (fa, fb, f) => fa.map2(fb, f),
+        cosequenceEval: id,
+      }),
   }),
 );
 

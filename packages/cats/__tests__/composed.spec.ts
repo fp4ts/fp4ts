@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import fc from 'fast-check';
+import { Eval, EvalF } from '@fp4ts/core';
 import {
   Applicative,
   ArrayF,
@@ -12,14 +13,32 @@ import {
   Monad,
   Traversable,
 } from '@fp4ts/cats-core';
-import { Option, OptionF } from '@fp4ts/cats-core/lib/data';
+import { None, Option, OptionF } from '@fp4ts/cats-core/lib/data';
 import { Eq, Monoid } from '@fp4ts/cats-kernel';
+import { LazyList } from '@fp4ts/collections';
 import { ApplicativeSuite, TraversableSuite } from '@fp4ts/cats-laws';
 import { checkAll } from '@fp4ts/cats-test-kit';
 import * as A from '@fp4ts/cats-test-kit/lib/arbitraries';
-import { EvalF } from '@fp4ts/core';
 
 describe('Composed', () => {
+  it('should subsume lazy evaluation from infinite lazy list', () => {
+    const f = LazyList.range(0).traverse(
+      Applicative.compose(Monad.Function1<number>(), Monad.Eval),
+    )(x => y => Eval.now(x + y));
+
+    expect(f(42).value.take(3).toArray).toEqual([42, 43, 44]);
+  });
+
+  it('should short-circuit on lhs of composition', () => {
+    const seen: number[] = [];
+    const f = LazyList.range(0).traverse<[OptionF, EvalF]>(
+      Applicative.compose(Option.Monad, Monad.Eval),
+    )(x => (seen.push(x), None));
+
+    expect(f.map(xs => xs.value.take(3).toArray)).toEqual(None);
+    expect(seen).toEqual([0]);
+  });
+
   checkAll(
     'Applicative<[Option, Eval]>',
     ApplicativeSuite<[OptionF, EvalF]>(
