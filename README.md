@@ -91,8 +91,8 @@ brackets using `Writer`, `WriterT` and `Console` type classes.
   - `@fp4ts/logging-core` Implementation for standard loggers (_included_)
 
 
-- `@fp4ts/optics` Port of the [Monocle](https://github.com/optics-dev/Monocle) library,
-a Scala optics library for easy data access and transformation built on the profunctor optics.
+- `@fp4ts/optics` Port of the [lens](https://github.com/ekmett/lens) library,
+a Haskell optics library providing families of lenses, isomorphisms, folds, traversals, setters, and getters.
 
   - `@fp4ts/optics-core` Implementation of the common regular, index preserving and indexed optics (_included_)
   - `@fp4ts/optics-derivation` Binding for deriving common optics from `@fp4ts/schema` definitions (_included_)
