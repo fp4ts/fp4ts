@@ -465,9 +465,7 @@ export class _LazyList<out A> {
   public traverse<G>(
     G: Applicative<G>,
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
-    return isIdentityTC(G)
-      ? f => this.map(f) as any
-      : G.TraverseStrategy(Rhs => this.traverseImpl(G, Rhs));
+    return G.TraverseStrategy(Rhs => this.traverseImpl(G, Rhs));
   }
 
   public traverse_<G>(

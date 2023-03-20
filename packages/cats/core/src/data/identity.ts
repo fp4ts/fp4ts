@@ -3,7 +3,17 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import { $type, Eval, id, Kind, Lazy, lazy, TyK, TyVar } from '@fp4ts/core';
+import {
+  $type,
+  Eval,
+  EvalF,
+  id,
+  Kind,
+  Lazy,
+  lazy,
+  TyK,
+  TyVar,
+} from '@fp4ts/core';
 import { EqK } from '../eq-k';
 import { Distributive } from '../distributive';
 import { Applicative } from '../applicative';
@@ -142,6 +152,16 @@ const identityApply: Lazy<Apply<IdentityF>> = lazy(() =>
     ...identityFunctor(),
     ap_: (ff, fa) => ff(fa),
     map2_: (a, b, f) => f(a, b),
+
+    TraverseStrategy: use =>
+      use<EvalF>({
+        toRhs: Eval.always,
+        defer: Eval.defer,
+        toG: e => e.value,
+        map: (fa, f) => fa.map(f),
+        map2: (fa, fb, f) => fa.map2(fb, f),
+        cosequenceEval: id,
+      }),
   }),
 );
 
