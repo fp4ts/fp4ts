@@ -47,7 +47,7 @@ export function DistributiveSuite<F>(F: Distributive<F>) {
             'consequence twice is id',
             forAll(
               mkArbF(arbA),
-              laws.consequenceTwiceIsId<IdentityF>(Identity.Distributive),
+              laws.cosequenceTwiceIsId<IdentityF>(Identity.Distributive),
             )(mkEqF(EqA)),
           ],
         ],

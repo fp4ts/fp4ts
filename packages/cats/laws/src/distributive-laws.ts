@@ -19,10 +19,10 @@ export const DistributiveLaws = <F>(F: Distributive<F>) => ({
     new IsEq(F.distribute_(Identity.Functor)(fa, F.map(f)), F.map_(fa, f)),
 
   consequenceIdentity: <A>(fa: Kind<F, [A]>): IsEq<Kind<F, [A]>> =>
-    new IsEq(F.consequence(Identity.Functor)(fa), fa),
+    new IsEq(F.cosequence(Identity.Functor)(fa), fa),
 
-  consequenceTwiceIsId:
+  cosequenceTwiceIsId:
     <G>(G: Distributive<G>) =>
     <A>(fga: Kind<F, [Kind<G, [A]>]>): IsEq<Kind<F, [Kind<G, [A]>]>> =>
-      new IsEq(F.consequence(G)(G.consequence(F)(fga)), fga),
+      new IsEq(F.cosequence(G)(G.cosequence(F)(fga)), fga),
 });

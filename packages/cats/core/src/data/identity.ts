@@ -160,7 +160,7 @@ const identityApply: Lazy<Apply<IdentityF>> = lazy(() =>
         toG: e => e.value,
         map: (fa, f) => fa.map(f),
         map2: (fa, fb, f) => fa.map2(fb, f),
-        cosequenceEval: id,
+        cosequenceEval: xs => Eval.always(() => xs.flatten()),
       }),
   }),
 );

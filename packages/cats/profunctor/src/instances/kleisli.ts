@@ -157,7 +157,7 @@ export const kleisliClosed = cached(
         <X>() =>
         <A, B>(pab: Kleisli<F, A, B>) =>
         (xa: (x: X) => A) =>
-          F.consequence(Monad.Function1<X>())(F1.compose(pab, xa)),
+          F.cosequence(Monad.Function1<X>())(F1.compose(pab, xa)),
     }),
 );
 
@@ -192,6 +192,6 @@ export const kleisliMapping = cached(
           f: (g: (a: A) => B) => (s: S) => T,
         ): Kleisli<F, S, T> =>
         (s: S) =>
-          F.map_(F.consequence(Monad.Function1<A>())(pab), g => f(g)(s)),
+          F.map_(F.cosequence(Monad.Function1<A>())(pab), g => f(g)(s)),
     }),
 );

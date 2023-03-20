@@ -28,7 +28,7 @@ export interface Distributive<F> extends Functor<F> {
     f: (a: A) => Kind<F, [B]>,
   ) => Kind<F, [Kind<G, [B]>]>;
 
-  consequence<G>(
+  cosequence<G>(
     G: Functor<G>,
   ): <A>(gfa: Kind<G, [Kind<F, [A]>]>) => Kind<F, [Kind<G, [A]>]>;
 }
@@ -40,7 +40,7 @@ export const Distributive = Object.freeze({
   of: <F>(F: DistributiveRequirements<F>) => {
     const self: Distributive<F> = instance<Distributive<F>>({
       distribute: G => f => ga => self.distribute_(G)(ga, f),
-      consequence: G => gfa => self.distribute_(G)(gfa, id),
+      cosequence: G => gfa => self.distribute_(G)(gfa, id),
       ...Functor.of(F),
       ...F,
     });
