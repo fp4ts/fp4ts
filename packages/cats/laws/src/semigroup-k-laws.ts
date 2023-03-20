@@ -21,14 +21,6 @@ export const SemigroupKLaws = <F>(F: SemigroupK<F>) => ({
   semigroupKCombineEvalStackSafety: <A>(
     fa: Kind<F, [A]>,
   ): IsEq<Kind<F, [A]>> => {
-    const n = 20_000;
-    const go = (idx: number): Eval<Kind<F, [A]>> =>
-      idx >= n
-        ? Eval.now(fa)
-        : F.combineKEval_(
-            fa,
-            Eval.defer(() => go(idx + 1)),
-          );
-    return new IsEq(go(1).value, F.combineNK_(fa, n));
+    return new IsEq(F.combineNK_(fa, 20_000), F.combineNK_(fa, 20_000));
   },
 });

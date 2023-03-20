@@ -87,8 +87,13 @@ export const Semigroup = Object.freeze({
 });
 
 function combineN<A>(S: Semigroup<A>, x: A, n: number): A {
-  const r: Eval<A> = Eval.defer(() =>
-    n-- < 1 ? Eval.now(x) : S.combineEval_(x, r),
-  );
-  return r.value;
+  const go = (i: number): Eval<A> =>
+    i >= n
+      ? Eval.now(x)
+      : S.combineEval_(
+          x,
+          Eval.defer(() => go(i + 1)),
+        );
+
+  return go(1).value;
 }

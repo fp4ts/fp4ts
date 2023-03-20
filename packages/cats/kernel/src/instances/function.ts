@@ -118,8 +118,8 @@ export const endoMonoid = lazy(
       combineEval_: (f, eg) =>
         Eval.now(
           F1.andThen(
-            f,
             F1.defer(() => eg.value),
+            f,
           ),
         ),
     }),

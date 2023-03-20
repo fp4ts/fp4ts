@@ -101,6 +101,7 @@ export const endoMonoidK = lazy(() => {
   const M = Monoid.Endo<any>();
   return MonoidK.of<EndoF>({
     combineK_: M.combine_,
+    combineKEval_: M.combineEval_,
     emptyK: () => id,
     algebra: () => M,
   });
