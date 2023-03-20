@@ -19,7 +19,6 @@ import {
   Align,
   Alternative,
   Applicative,
-  ApplicativeDefer,
   Defer,
   Eq,
   EqK,
@@ -27,7 +26,6 @@ import {
   Functor,
   FunctorFilter,
   Ior,
-  isConstTC,
   isIdentityTC,
   Iter,
   MonadDefer,
@@ -469,8 +467,6 @@ export class _LazyList<out A> {
   ): <B>(f: (a: A) => Kind<G, [B]>) => Kind<G, [LazyList<B>]> {
     return isIdentityTC(G)
       ? f => this.map(f) as any
-      : isConstTC(G)
-      ? f => this.traverse_(G, f as any) as any
       : G.TraverseStrategy(Rhs => this.traverseImpl(G, Rhs));
   }
 

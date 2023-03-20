@@ -7,6 +7,9 @@ import {
   $,
   $type,
   constant,
+  Eval,
+  EvalF,
+  id,
   Kind,
   lazy,
   throwError,
@@ -117,6 +120,14 @@ const constApply: <E>(E: Monoid<E>) => Apply<$<ConstF, [E]>> = <E>(
     map2_: (fa, fb, f) => E.combine_(fa, fb),
     map2Eval_: (fa, efb, f) => E.combineEval_(fa, efb),
     product_: (fa, fb) => E.combine_(fa, fb),
+    TraverseStrategy: use =>
+      use<$<ConstF, [Eval<E>]>>({
+        toG: e => e.value,
+        defer: Eval.defer,
+        toRhs: Eval.always,
+        map: (fa, f) => fa,
+        map2: (lhs, rhs) => lhs.flatMap(lhs => E.combineEval_(lhs, rhs)),
+      }),
   }),
 });
 
