@@ -238,14 +238,15 @@ type View<A> =
   | Memoize<A>;
 
 enum Cont {
-  MapK = 0,
-  FlatMapK = 1,
-  MemoizeK = 2,
+  DoneK = 0,
+  MapK = 1,
+  FlatMapK = 2,
+  MemoizeK = 3,
 }
 
 function evaluate<A>(e: Eval<A>): A {
   const stack: unknown[] = [];
-  const conts: Cont[] = [];
+  const conts: Cont[] = [0];
   let _cur: Eval<unknown> = e;
 
   runLoop: while (true) {
@@ -315,20 +316,20 @@ function evaluate<A>(e: Eval<A>): A {
     }
 
     while (true) {
-      if (conts.length <= 0) return result as A;
-      const c = conts.pop()!;
-      switch (c) {
-        case 0: /* MapK */ {
+      switch (conts.pop()!) {
+        case 0:
+          return result as A;
+        case 1: /* MapK */ {
           const next = stack.pop()! as (u: unknown) => unknown;
           result = next(result);
           continue;
         }
-        case 1: /* FlatMapK */ {
+        case 2: /* FlatMapK */ {
           const next = stack.pop()! as (u: unknown) => Eval<unknown>;
           _cur = next(result);
           continue runLoop;
         }
-        case 2: /* MemoizeK */ {
+        case 3: /* MemoizeK */ {
           const deferred = stack.pop()! as any as DeferredValue<unknown>;
           deferred.resolved = true;
           deferred.value = result;

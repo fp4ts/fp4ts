@@ -5,7 +5,7 @@
 
 import { $, $type, HKT, id, Kind, lazy, TyK, TyVar } from '@fp4ts/core';
 import { FunctionK, Monad, MonadDefer } from '@fp4ts/cats-core';
-import { Left, Right } from '@fp4ts/cats-core/lib/data';
+import { Either, Left, Right } from '@fp4ts/cats-core/lib/data';
 
 export type Free<F, A> = _Free<F, A>;
 export const Free: FreeObj = function <F, A>(a: A): Free<F, A> {
@@ -29,43 +29,52 @@ abstract class _Free<in out F, out A> {
     return (nt: FunctionK<F, G>): Kind<G, [A]> => this.foldMapImpl(G, nt);
   }
 
-  private foldMapImpl<G>(G: Monad<G>, nt: FunctionK<F, G>): Kind<G, [A]> {
-    return G.tailRecM(this as Free<F, A>)(_free => {
-      const free = _free.step as View<F, A>;
-      switch (free.tag) {
-        case 0:
-          return G.pure(Right(free.value));
-        case 1:
-          return G.map_(nt(free.fa), Right);
-        case 2:
-          return G.map_(free.self.foldMap(G)(nt), cc => Left(free.f(cc)));
-      }
-    });
-  }
-
   public runTailRec(F: Monad<F>): Kind<F, [A]> {
-    return this.foldMap(F)(id);
+    return this.foldMapImpl(F, id);
   }
 
-  private get step(): Free<F, A> {
-    let _cur = this as Free<F, A>;
+  private foldMapImpl<G>(G: Monad<G>, nt: FunctionK<F, G>): Kind<G, [A]> {
+    const go = <A>(fv: Step<F, A>): Kind<G, [Either<Step<F, A>, A>]> =>
+      fv.tag === 0
+        ? G.pure(Right(fv.value))
+        : fv.stack.isEmpty
+        ? G.map_(nt(fv.value), Right as any)
+        : G.map_(nt(fv.value), cc =>
+            Left(fv.stack.head(cc).step(fv.stack.tail) as any),
+          );
+    return G.tailRecM_(this.step(Nil), go);
+  }
+
+  private step(stack: Cons<Frame<F>>): Step<F, A> {
+    let _cur: Free<F, any> = this as any;
     while (true) {
-      const cur = _cur as any as View<F, A>;
+      const cur = _cur as View<F, unknown>;
       switch (cur.tag) {
         case 0:
+          if (stack.isEmpty)
+            return { tag: 0, value: cur.value as A, stack: undefined };
+          _cur = stack.head(cur.value);
+          stack = stack.tail;
+          continue;
+
         case 1:
-          return cur;
+          return { tag: 1, value: cur.fa, stack };
 
         case 2: {
-          const self = cur.self as View<F, A>;
+          const self = cur.self as View<F, any>;
+          const f = cur.f;
+
           switch (self.tag) {
             case 0:
-              _cur = cur.f(self.value);
+              _cur = f(self.value);
               continue;
+
             case 1:
-              return cur;
-            case 2:
-              _cur = self.self.flatMap(cc => self.f(cc).flatMap(cur.f));
+              return { tag: 1, value: self.fa, stack: Cons(f, stack) };
+
+            default:
+              stack = Cons(f, stack);
+              _cur = self;
               continue;
           }
         }
@@ -119,10 +128,30 @@ Free.Monad = lazy(<F>() =>
   }),
 ) as <F>() => MonadDefer<$<FreeF, [F]>>;
 
-// HKT
+// -- HKT
 
 interface _Free<F, A> extends HKT<FreeF, [F, A]> {}
 
 export interface FreeF extends TyK<[unknown, unknown]> {
   [$type]: Free<TyVar<this, 0>, TyVar<this, 1>>;
 }
+
+// -- Private implementation
+
+type Frame<F> = (u: unknown) => Free<F, unknown>;
+
+type Step<F, A> =
+  | { tag: 0; value: A; stack: undefined }
+  | { tag: 1; value: Kind<F, [unknown]>; stack: Cons<Frame<F>> };
+
+export type Cons<A> = { isEmpty: boolean; head: A; tail: Cons<A> };
+const Cons = <A>(head: A, tail: Cons<A>): Cons<A> => ({
+  isEmpty: false,
+  head,
+  tail,
+});
+const Nil: Cons<never> = {
+  isEmpty: true,
+  head: undefined as any as never,
+  tail: undefined as any,
+};

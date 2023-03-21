@@ -178,19 +178,12 @@ const identityFlatMap: Lazy<FlatMap<IdentityF>> = lazy(() =>
       f: (a: A) => Identity<Either<A, B>>,
     ): Identity<B> => {
       let cur: Either<A, B> = f(a);
-      let resolved: boolean = false;
-      let result: B;
 
-      while (!resolved) {
-        if (cur.isEmpty) {
-          cur = f(cur.getLeft);
-        } else {
-          resolved = true;
-          result = cur.get;
-        }
+      while (cur.isEmpty) {
+        cur = f(cur.getLeft);
       }
 
-      return result!;
+      return cur.get;
     },
   }),
 );
