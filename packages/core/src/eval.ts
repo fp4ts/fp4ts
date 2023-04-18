@@ -48,9 +48,13 @@ export abstract class Eval<out A> {
 
   private readonly __void!: void;
 
-  public abstract readonly value: A;
+  public get memoize(): Eval<A> {
+    return new Memoize(this);
+  }
 
-  public abstract readonly memoize: Eval<A>;
+  public get value(): A {
+    return evaluate(this);
+  }
 
   public map<B>(f: (a: A) => B): Eval<B> {
     return new Map(this, f);
@@ -61,7 +65,7 @@ export abstract class Eval<out A> {
   }
 
   public map2<B, C>(that: Eval<B>, f: (a: A, b: B) => C): Eval<C> {
-    return this.flatMap(a => that.map(b => f(a, b)));
+    return new Map2(this, that, f);
   }
 
   public flatMap<B>(f: (a: A) => Eval<B>): Eval<B> {
@@ -88,18 +92,28 @@ export abstract class Eval<out A> {
 }
 
 class Now<A> extends Eval<A> {
-  public readonly tag = 0;
-  public constructor(public readonly value: A) {
+  public get tag(): 0 {
+    return 0;
+  }
+
+  public constructor(public readonly _value: A) {
     super();
   }
 
-  public get memoize(): Eval<A> {
+  public override get value(): A {
+    return this._value;
+  }
+
+  public override get memoize(): Eval<A> {
     return this;
   }
 }
 
 class Later<A> extends Eval<A> {
-  public readonly tag = 1;
+  public get tag(): 1 {
+    return 1;
+  }
+
   public constructor(thunk: () => A) {
     super();
     this._value = lazy(thunk);
@@ -107,111 +121,104 @@ class Later<A> extends Eval<A> {
 
   private readonly _value: () => A;
 
-  public get value(): A {
+  public override get value(): A {
     return this._value();
   }
 
-  public get memoize(): Eval<A> {
+  public override get memoize(): Eval<A> {
     return this;
   }
 }
 
 class Always<A> extends Eval<A> {
-  public readonly tag = 2;
+  public get tag(): 2 {
+    return 2;
+  }
+
   public constructor(private readonly thunk: () => A) {
     super();
   }
 
-  public get value(): A {
+  public override get value(): A {
     return this.thunk();
   }
 
-  public get memoize(): Eval<A> {
+  public override get memoize(): Eval<A> {
     return new Later(this.thunk);
   }
 }
 
 class Defer<A> extends Eval<A> {
-  public readonly tag = 3;
+  public get tag(): 3 {
+    return 3;
+  }
+
   public constructor(public readonly thunk: () => Eval<A>) {
     super();
-  }
-
-  public get memoize(): Eval<A> {
-    return new Memoize(this);
-  }
-
-  public get value(): A {
-    return evaluate(this);
   }
 }
 
 class Map<E, A> extends Eval<A> {
-  public readonly tag = 4;
+  public get tag(): 4 {
+    return 4;
+  }
+
   public constructor(
     public readonly self: Eval<E>,
     public readonly run: (e: E) => A,
   ) {
     super();
   }
-
-  public get memoize(): Eval<A> {
-    return new Memoize(this);
-  }
-
-  public get value(): A {
-    return evaluate(this);
-  }
 }
 
 class FlatMap<E, A> extends Eval<A> {
-  public readonly tag = 5;
+  public get tag(): 5 {
+    return 5;
+  }
+
   public constructor(
     public readonly self: Eval<E>,
     public readonly run: (e: E) => Eval<A>,
   ) {
     super();
   }
-
-  public get memoize(): Eval<A> {
-    return new Memoize(this);
-  }
-
-  public get value(): A {
-    return evaluate(this);
-  }
 }
 
 class Memoize<A> extends Eval<A> {
-  public readonly tag = 6;
+  public get tag(): 6 {
+    return 6;
+  }
+
   public readonly result: DeferredValue<A> = {
     resolved: false,
     value: undefined,
   };
+
   public constructor(public readonly self: Eval<A>) {
     super();
   }
 
-  public readonly memoize = this;
-  public get value(): A {
+  public override get memoize() {
+    return this;
+  }
+
+  public override get value(): A {
     return this.result.resolved ? this.result.value! : evaluate(this);
   }
 }
 
-interface EvalObj {
-  pure<A>(a: A): Eval<A>;
-  now<A>(a: A): Eval<A>;
-  unit: Eval<void>;
-  always<A>(thunk: () => A): Eval<A>;
-  later<A>(thunk: () => A): Eval<A>;
-  delay<A>(thunk: () => A): Eval<A>;
-  defer<A>(thunk: () => Eval<A>): Eval<A>;
+class Map2<L, R, A> extends Eval<A> {
+  public get tag(): 7 {
+    return 7;
+  }
 
-  void: Eval<void>;
-  false: Eval<boolean>;
-  true: Eval<boolean>;
-  zero: Eval<number>;
-  one: Eval<number>;
+  public constructor(
+    public readonly lhs: Eval<L>,
+    public readonly rhs: Eval<R>,
+    public readonly f: (l: L, r: R) => A,
+  ) {
+    super();
+  }
 }
 
 (Eval as any).unit = Eval.now(undefined);
@@ -235,13 +242,16 @@ type View<A> =
   | Defer<A>
   | Map<any, A>
   | FlatMap<any, A>
-  | Memoize<A>;
+  | Memoize<A>
+  | Map2<any, any, A>;
 
 enum Cont {
   DoneK = 0,
   MapK = 1,
   FlatMapK = 2,
   MemoizeK = 3,
+  Map2LK = 4,
+  Map2RK = 5,
 }
 
 function evaluate<A>(e: Eval<A>): A {
@@ -311,13 +321,44 @@ function evaluate<A>(e: Eval<A>): A {
         conts.push(Cont.MemoizeK);
         stack.push(cur.result);
         _cur = cur.self;
-        (cur.self as any) = null; // allow to GC as we'll never need it
         continue;
+
+      case 7: /* Map2 */ {
+        const lhs = cur.lhs as View<unknown>;
+        const rhs = cur.rhs as View<unknown>;
+        const f = cur.f;
+
+        switch (lhs.tag) {
+          case 0: // Now
+          case 1: // Later
+          case 2: // Always
+            break;
+          default:
+            stack.push(f, rhs);
+            conts.push(Cont.Map2LK);
+            _cur = lhs;
+            continue;
+        }
+
+        switch (rhs.tag) {
+          case 0: // Now
+          case 1: // Later
+          case 2: // Always
+            result = f(lhs.value, rhs.value);
+            break;
+          default:
+            stack.push(f, lhs.value);
+            conts.push(Cont.Map2RK);
+            _cur = rhs;
+            continue;
+        }
+        break;
+      }
     }
 
     while (true) {
       switch (conts.pop()!) {
-        case 0:
+        case 0: // EndK
           return result as A;
         case 1: /* MapK */ {
           const next = stack.pop()! as (u: unknown) => unknown;
@@ -333,6 +374,31 @@ function evaluate<A>(e: Eval<A>): A {
           const deferred = stack.pop()! as any as DeferredValue<unknown>;
           deferred.resolved = true;
           deferred.value = result;
+          continue;
+        }
+
+        case 4: /* Map2LR */ {
+          const rhs = stack.pop()! as View<unknown>;
+          switch (rhs.tag) {
+            case 0: // Now
+            case 1: // Later
+            case 2: /* Always */ {
+              const f = stack.pop()! as (l: unknown, r: unknown) => unknown;
+              result = f(result, rhs.value);
+              continue;
+            }
+            default:
+              conts.push(Cont.Map2RK);
+              stack.push(result);
+              _cur = rhs;
+              continue runLoop;
+          }
+        }
+
+        case 5: /* Map2RK */ {
+          const lhs = stack.pop()! as View<unknown>;
+          const f = stack.pop()! as (l: unknown, r: unknown) => unknown;
+          result = f(lhs, result);
           continue;
         }
       }
