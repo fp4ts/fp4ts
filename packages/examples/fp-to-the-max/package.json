@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "@fp4ts/mtl": "*",
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }

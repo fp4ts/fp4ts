@@ -16,6 +16,6 @@
     "@fp4ts/cats-laws": "*",
     "@fp4ts/cats-test-kit": "*",
     "fast-check": "^3.7.1",
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }

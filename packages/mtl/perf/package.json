@@ -13,6 +13,6 @@
     "benny": "^3.7.1"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }

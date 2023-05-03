@@ -12,6 +12,6 @@
     "@fp4ts/sql-core": "*"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }

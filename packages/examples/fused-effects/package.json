@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "@fp4ts/http-test-kit-node": "*",
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }

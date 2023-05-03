@@ -21,6 +21,6 @@
     "@fp4ts/stream-test-kit": "*"
   },
   "devDependencies": {
-    "typescript": "5.0.2"
+    "typescript": "5.0.4"
   }
 }
