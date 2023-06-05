@@ -103,7 +103,7 @@ export const structSafeFunctor = <F extends {}>(fs: {
       return keys.reduce(
         (eac, k) =>
           eac.flatMap(acc =>
-            safeMap(fs[k], fas[k], f).map(x => ({ ...acc, [k]: x })),
+            safeMap(fs[k] as any, fas[k], f).map(x => ({ ...acc, [k]: x })),
           ),
         Eval.now({}) as Eval<Partial<Kind<StructK<F>, [B]>>>,
       ) as Eval<Kind<StructK<F>, [B]>>;
@@ -122,7 +122,7 @@ export const sumSafeFunctor =
       ): Eval<Kind<SumK<F>, [B]>> => {
         const k = (fa as any)[tag] as keyof F;
         const F = fs[k];
-        return safeMap(F, fa, f);
+        return safeMap(F as any, fa, f) as any;
       },
     });
 

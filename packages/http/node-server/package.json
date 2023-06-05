@@ -20,6 +20,6 @@
     "@fp4ts/stream-io": "*"
   },
   "devDependencies": {
-    "typescript": "5.0.4"
+    "typescript": "5.1.3"
   }
 }

@@ -183,10 +183,14 @@ export const structSafeTraversable = <F extends {}>(fs: {
         return keys.reduce(
           (egac, k) =>
             egac.flatMap(gac =>
-              G.map2Eval_(gac, safeTraverse(G)(fs[k], fas[k], f), (ac, x) => ({
-                ...ac,
-                [k]: x,
-              })),
+              G.map2Eval_(
+                gac,
+                safeTraverse(G)(fs[k] as any, fas[k], f),
+                (ac, x) => ({
+                  ...ac,
+                  [k]: x,
+                }),
+              ),
             ),
           Eval.now(G.pure({} as Partial<Kind<StructK<F>, [B]>>)),
         ) as Eval<Kind<G, [Kind<StructK<F>, [B]>]>>;
@@ -210,7 +214,7 @@ export const sumSafeTraversable =
         ): Eval<Kind<G, [Kind<SumK<F>, [B]>]>> => {
           const k = (fa as any)[tag] as keyof F;
           const F = fs[k];
-          return safeTraverse(G)(F, fa, f);
+          return safeTraverse(G)(F as any, fa, f) as any;
         },
     });
 

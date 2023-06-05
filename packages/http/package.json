@@ -12,6 +12,6 @@
     "@fp4ts/http-core": "*"
   },
   "devDependencies": {
-    "typescript": "5.0.4"
+    "typescript": "5.1.3"
   }
 }

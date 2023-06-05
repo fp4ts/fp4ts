@@ -158,7 +158,7 @@ export const structSafeFoldable = <F extends {}>(fs: {
         idx >= keys.length
           ? Eval.now(ac)
           : Eval.defer(() =>
-              safeFoldLeft(fs[keys[idx]], fas[keys[idx]], ac, f),
+              safeFoldLeft(fs[keys[idx]] as any, fas[keys[idx]], ac, f),
             ).flatMap(ac => loop(ac, idx + 1));
 
       return loop(z, 0);
@@ -187,7 +187,7 @@ export const sumSafeFoldable =
       ): Eval<B> {
         const k = (fa as any)[tag] as keyof typeof fs;
         const F = fs[k];
-        return safeFoldLeft(F, fa, z, f);
+        return safeFoldLeft(F as any, fa, z, f);
       },
     });
 

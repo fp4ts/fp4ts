@@ -16,6 +16,6 @@
     "@fp4ts/schema-kernel": "*"
   },
   "devDependencies": {
-    "typescript": "5.0.4"
+    "typescript": "5.1.3"
   }
 }
